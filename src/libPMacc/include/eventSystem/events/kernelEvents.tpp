@@ -29,6 +29,8 @@
 
 namespace PMacc
 {
+namespace exec
+{
     template< typename T_KernelFunctor >
     template<
         typename T_VectorGrid,
@@ -58,4 +60,5 @@ namespace PMacc
             sharedMemByte
         );
     }
+} // namespace exec
 } // namespace PMacc
