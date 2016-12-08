@@ -398,8 +398,8 @@ private:
             if (rank == 0)
             {
                 json_object_set_new( visualization->getJsonMetaRoot(), "time step", json_string( "Time step" ) );
-                json_object_set_new( visualization->getJsonMetaRoot(), "drawing time", json_string( "Drawing time in µs" ) );
-                json_object_set_new( visualization->getJsonMetaRoot(), "simulation time", json_string( "Simulation time in µs" ) );
+                json_object_set_new( visualization->getJsonMetaRoot(), "drawing time", json_string( "Drawing time in us" ) );
+                json_object_set_new( visualization->getJsonMetaRoot(), "simulation time", json_string( "Simulation time in us" ) );
                 json_object_set_new( visualization->getJsonMetaRoot(), "cell count", json_string( "Total numbers of cells" ) );
                 json_object_set_new( visualization->getJsonMetaRoot(), "particle count", json_string( "Total numbers of particles" ) );
             }
