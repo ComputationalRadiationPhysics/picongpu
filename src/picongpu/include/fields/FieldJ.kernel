@@ -47,78 +47,82 @@ using namespace PMacc;
 
 typedef FieldJ::DataBoxType J_DataBox;
 
-template<int workerMultiplier, class BlockDescription_, uint32_t AREA, class JBox, class ParBox, class Mapping, class FrameSolver>
-__global__ void kernelComputeCurrent(JBox fieldJ,
-                                     ParBox boxPar, FrameSolver frameSolver, Mapping mapper)
+template< int workerMultiplier, class BlockDescription_, uint32_t AREA >
+struct kernelComputeCurrent
 {
-    typedef typename ParBox::FrameType FrameType;
-    typedef typename ParBox::FramePtr FramePtr;
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-
-    const uint32_t cellsPerSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
-
-    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-    const DataSpace<simDim > threadIndex(threadIdx);
-
-    /* thread id, can be greater than cellsPerSuperCell*/
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-
-    const uint32_t virtualBlockId = linearThreadIdx / cellsPerSuperCell;
-    /* move linearThreadIdx for all threads to [0;cellsPerSuperCell) */
-    const int virtualLinearId = linearThreadIdx - (virtualBlockId * cellsPerSuperCell);
-
-
-    FramePtr frame;
-    lcellId_t particlesInSuperCell = 0;
-
-    frame = boxPar.getLastFrame(block);
-    if (frame.isValid() && virtualBlockId == 0)
-        particlesInSuperCell = boxPar.getSuperCell(block).getSizeLastFrame();
-
-    /* select N-th (N=virtualBlockId) frame from the end of the list*/
-    for (int i = 1; (i <= virtualBlockId) && frame.isValid(); ++i)
+    template<class JBox, class ParBox, class Mapping, class FrameSolver>
+    DINLINE void operator()(JBox fieldJ,
+                                         ParBox boxPar, FrameSolver frameSolver, Mapping mapper) const
     {
-        particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
-        frame = boxPar.getPreviousFrame(frame);
-    }
+        typedef typename ParBox::FrameType FrameType;
+        typedef typename ParBox::FramePtr FramePtr;
+        typedef typename Mapping::SuperCellSize SuperCellSize;
 
-    /* This memory is used by all virtual blocks*/
-    PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
+        const uint32_t cellsPerSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
-    Set<typename JBox::ValueType > set(float3_X::create(0.0));
-    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiveSet(linearThreadIdx);
-    collectiveSet(set, cachedJ);
+        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        const DataSpace<simDim > threadIndex(threadIdx);
 
-    __syncthreads();
+        /* thread id, can be greater than cellsPerSuperCell*/
+        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-    while (frame.isValid())
-    {
-        /* this test is only importend for the last frame
-         * if frame is not the last one particlesInSuperCell==particles count in supercell
-         */
-        if (virtualLinearId < particlesInSuperCell)
+        const uint32_t virtualBlockId = linearThreadIdx / cellsPerSuperCell;
+        /* move linearThreadIdx for all threads to [0;cellsPerSuperCell) */
+        const int virtualLinearId = linearThreadIdx - (virtualBlockId * cellsPerSuperCell);
+
+
+        FramePtr frame;
+        lcellId_t particlesInSuperCell = 0;
+
+        frame = boxPar.getLastFrame(block);
+        if (frame.isValid() && virtualBlockId == 0)
+            particlesInSuperCell = boxPar.getSuperCell(block).getSizeLastFrame();
+
+        /* select N-th (N=virtualBlockId) frame from the end of the list*/
+        for (int i = 1; (i <= virtualBlockId) && frame.isValid(); ++i)
         {
-            frameSolver(*frame,
-                        virtualLinearId,
-                        cachedJ);
-        }
-
-        particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
-        for (int i = 0; (i < workerMultiplier) && frame.isValid(); ++i)
-        {
+            particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
             frame = boxPar.getPreviousFrame(frame);
         }
+
+        /* This memory is used by all virtual blocks*/
+        PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
+
+        Set<typename JBox::ValueType > set(float3_X::create(0.0));
+        ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiveSet(linearThreadIdx);
+        collectiveSet(set, cachedJ);
+
+        __syncthreads();
+
+        while (frame.isValid())
+        {
+            /* this test is only importend for the last frame
+             * if frame is not the last one particlesInSuperCell==particles count in supercell
+             */
+            if (virtualLinearId < particlesInSuperCell)
+            {
+                frameSolver(*frame,
+                            virtualLinearId,
+                            cachedJ);
+            }
+
+            particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
+            for (int i = 0; (i < workerMultiplier) && frame.isValid(); ++i)
+            {
+                frame = boxPar.getPreviousFrame(frame);
+            }
+        }
+
+        /* we wait that all threads finish the loop*/
+        __syncthreads();
+
+        nvidia::functors::Add add;
+        const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
+        ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiveAdd(linearThreadIdx);
+        PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
+        collectiveAdd(add, fieldJBlock, cachedJ);
     }
-
-    /* we wait that all threads finish the loop*/
-    __syncthreads();
-
-    nvidia::functors::Add add;
-    const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
-    ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiveAdd(linearThreadIdx);
-    PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
-    collectiveAdd(add, fieldJBlock, cachedJ);
-}
+};
 
 template<class ParticleAlgo, class Velocity, class TVec>
 struct ComputeCurrentPerFrame
@@ -158,118 +162,127 @@ private:
     const PMACC_ALIGN(m_deltaTime, float_32);
 };
 
-template<class T_CurrentInterpolation, class T_Mapping>
-__global__ void kernelAddCurrentToEMF(typename FieldE::DataBoxType fieldE,
-                                      typename FieldB::DataBoxType fieldB,
-                                      J_DataBox fieldJ,
-                                      T_CurrentInterpolation currentInterpolation,
-                                      T_Mapping mapper)
+struct kernelAddCurrentToEMF
 {
-    /* Caching of fieldJ */
-    typedef SuperCellDescription<
-                SuperCellSize,
-                typename T_CurrentInterpolation::LowerMargin,
-                typename T_CurrentInterpolation::UpperMargin
-                > BlockArea;
-
-    PMACC_AUTO(cachedJ, CachedBox::create < 0, typename J_DataBox::ValueType > (BlockArea()));
-
-    nvidia::functors::Assign assign;
-    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-    const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
-
-    ThreadCollective<BlockArea> collective(threadIndex);
-    collective(
-              assign,
-              cachedJ,
-              fieldJBlock
-              );
-
-    __syncthreads();
-
-    const DataSpace<T_Mapping::Dim> cell(blockCell + threadIndex);
-
-    // Amperes Law:
-    //   Change of the dE = - j / EPS0 * dt
-    //                        j = current density (= current per area)
-    //                          = fieldJ
-    currentInterpolation( fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(threadIndex) );
-}
-
-template<class Mapping>
-__global__ void kernelBashCurrent(J_DataBox fieldJ,
-                                  J_DataBox targetJ,
-                                  DataSpace<simDim> exchangeSize,
-                                  DataSpace<simDim> direction,
-                                  Mapping mapper)
-{
-    const DataSpace<simDim> blockCell(
-                                      mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
-                                      * Mapping::SuperCellSize::toRT()
-                                      );
-    const DataSpace<Mapping::Dim> threadIndex(threadIdx);
-    const DataSpace<Mapping::Dim> sourceCell(blockCell + threadIndex);
-
-    /*origin in area from local GPU*/
-    DataSpace<simDim> nullSourceCell(
-                                     mapper.getSuperCellIndex(DataSpace<simDim > ())
-                                     * Mapping::SuperCellSize::toRT()
-                                     );
-    DataSpace<simDim> targetCell(sourceCell - nullSourceCell);
-
-    for (uint32_t d = 0; d < simDim; ++d)
+    template<class T_CurrentInterpolation, class T_Mapping>
+    DINLINE void operator()(typename FieldE::DataBoxType fieldE,
+                                          typename FieldB::DataBoxType fieldB,
+                                          J_DataBox fieldJ,
+                                          T_CurrentInterpolation currentInterpolation,
+                                          T_Mapping mapper) const
     {
-        if (direction[d] == -1)
-        {
-            if (threadIndex[d] < SuperCellSize::toRT()[d] - exchangeSize[d]) return;
-            targetCell[d] -= SuperCellSize::toRT()[d] - exchangeSize[d];
-        }
-        else if ((direction[d] == 1) && (threadIndex[d] >= exchangeSize[d])) return;
+        /* Caching of fieldJ */
+        typedef SuperCellDescription<
+                    SuperCellSize,
+                    typename T_CurrentInterpolation::LowerMargin,
+                    typename T_CurrentInterpolation::UpperMargin
+                    > BlockArea;
+
+        PMACC_AUTO(cachedJ, CachedBox::create < 0, typename J_DataBox::ValueType > (BlockArea()));
+
+        nvidia::functors::Assign assign;
+        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
+
+        const DataSpace<simDim > threadIndex(threadIdx);
+        PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
+
+        ThreadCollective<BlockArea> collective(threadIndex);
+        collective(
+                  assign,
+                  cachedJ,
+                  fieldJBlock
+                  );
+
+        __syncthreads();
+
+        const DataSpace<T_Mapping::Dim> cell(blockCell + threadIndex);
+
+        // Amperes Law:
+        //   Change of the dE = - j / EPS0 * dt
+        //                        j = current density (= current per area)
+        //                          = fieldJ
+        currentInterpolation( fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(threadIndex) );
     }
+};
 
-    targetJ(targetCell) = fieldJ(sourceCell);
-}
-
-template<class Mapping>
-__global__ void kernelInsertCurrent(J_DataBox fieldJ,
-                                    J_DataBox sourceJ,
-                                    DataSpace<simDim> exchangeSize,
-                                    DataSpace<simDim> direction,
-                                    Mapping mapper)
+struct kernelBashCurrent
 {
-    const DataSpace<Mapping::Dim> threadIndex(threadIdx);
-    const DataSpace<simDim> blockCell(
-                                      mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
-                                      * Mapping::SuperCellSize::toRT()
-                                      );
-    DataSpace<Mapping::Dim> targetCell(blockCell + threadIndex);
-
-    /*origin in area from local GPU*/
-    DataSpace<simDim> nullSourceCell(
-                                     mapper.getSuperCellIndex(DataSpace<simDim > ())
-                                     * Mapping::SuperCellSize::toRT()
-                                     );
-    DataSpace<simDim> sourceCell(targetCell - nullSourceCell);
-
-    for (uint32_t d = 0; d < simDim; ++d)
+    template<class Mapping>
+    DINLINE void operator()(J_DataBox fieldJ,
+                                      J_DataBox targetJ,
+                                      DataSpace<simDim> exchangeSize,
+                                      DataSpace<simDim> direction,
+                                      Mapping mapper) const
     {
-        if (direction[d] == 1)
-        {
-            if (threadIndex[d] < SuperCellSize::toRT()[d] - exchangeSize[d]) return;
-            sourceCell[d] -= SuperCellSize::toRT()[d] - exchangeSize[d];
-            targetCell[d] -= SuperCellSize::toRT()[d];
-        }
-        else if (direction[d] == -1)
-        {
-            if (threadIndex[d] >= exchangeSize[d]) return;
-            targetCell[d] += SuperCellSize::toRT()[d];
-        }
-    }
+        const DataSpace<simDim> blockCell(
+                                          mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
+                                          * Mapping::SuperCellSize::toRT()
+                                          );
+        const DataSpace<Mapping::Dim> threadIndex(threadIdx);
+        const DataSpace<Mapping::Dim> sourceCell(blockCell + threadIndex);
 
-    fieldJ(targetCell) += sourceJ(sourceCell);
-}
+        /*origin in area from local GPU*/
+        DataSpace<simDim> nullSourceCell(
+                                         mapper.getSuperCellIndex(DataSpace<simDim > ())
+                                         * Mapping::SuperCellSize::toRT()
+                                         );
+        DataSpace<simDim> targetCell(sourceCell - nullSourceCell);
+
+        for (uint32_t d = 0; d < simDim; ++d)
+        {
+            if (direction[d] == -1)
+            {
+                if (threadIndex[d] < SuperCellSize::toRT()[d] - exchangeSize[d]) return;
+                targetCell[d] -= SuperCellSize::toRT()[d] - exchangeSize[d];
+            }
+            else if ((direction[d] == 1) && (threadIndex[d] >= exchangeSize[d])) return;
+        }
+
+        targetJ(targetCell) = fieldJ(sourceCell);
+    }
+};
+
+struct kernelInsertCurrent
+{
+    template<class Mapping>
+    DINLINE void operator()(J_DataBox fieldJ,
+                                        J_DataBox sourceJ,
+                                        DataSpace<simDim> exchangeSize,
+                                        DataSpace<simDim> direction,
+                                        Mapping mapper) const
+    {
+        const DataSpace<Mapping::Dim> threadIndex(threadIdx);
+        const DataSpace<simDim> blockCell(
+                                          mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
+                                          * Mapping::SuperCellSize::toRT()
+                                          );
+        DataSpace<Mapping::Dim> targetCell(blockCell + threadIndex);
+
+        /*origin in area from local GPU*/
+        DataSpace<simDim> nullSourceCell(
+                                         mapper.getSuperCellIndex(DataSpace<simDim > ())
+                                         * Mapping::SuperCellSize::toRT()
+                                         );
+        DataSpace<simDim> sourceCell(targetCell - nullSourceCell);
+
+        for (uint32_t d = 0; d < simDim; ++d)
+        {
+            if (direction[d] == 1)
+            {
+                if (threadIndex[d] < SuperCellSize::toRT()[d] - exchangeSize[d]) return;
+                sourceCell[d] -= SuperCellSize::toRT()[d] - exchangeSize[d];
+                targetCell[d] -= SuperCellSize::toRT()[d];
+            }
+            else if (direction[d] == -1)
+            {
+                if (threadIndex[d] >= exchangeSize[d]) return;
+                targetCell[d] += SuperCellSize::toRT()[d];
+            }
+        }
+
+        fieldJ(targetCell) += sourceJ(sourceCell);
+    }
+};
 
 }

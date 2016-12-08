@@ -93,22 +93,25 @@ DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_stre
     while (finish == 0);
 }
 
-template<class BoxedMemory, class Mapping>
-__global__ void kernelAbsorbBorder(BoxedMemory field, uint32_t thickness, float_X absorber_strength, Mapping mapper)
+struct kernelAbsorbBorder
 {
+    template<class BoxedMemory, class Mapping>
+    DINLINE void operator()(BoxedMemory field, uint32_t thickness, float_X absorber_strength, Mapping mapper) const
+    {
 
-    const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > (mapper.getExchangeType());
+        const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > (mapper.getExchangeType());
 
-    //this is a workaround that we get a kernelwithout lmem
-    if (direction.x() != 0)
-        absorb < 0 > (field, thickness, absorber_strength, mapper, direction);
-    else if (direction.y() != 0)
-        absorb < 1 > (field, thickness, absorber_strength, mapper, direction);
-#if (SDIMDIM==DIM3)
-    else if (direction.z() != 0)
-        absorb < 2 > (field, thickness, absorber_strength, mapper, direction);
-#endif
-}
+        //this is a workaround that we get a kernelwithout lmem
+        if (direction.x() != 0)
+            absorb < 0 > (field, thickness, absorber_strength, mapper, direction);
+        else if (direction.y() != 0)
+            absorb < 1 > (field, thickness, absorber_strength, mapper, direction);
+    #if (SDIMDIM==DIM3)
+        else if (direction.z() != 0)
+            absorb < 2 > (field, thickness, absorber_strength, mapper, direction);
+    #endif
+    }
+};
 } //namespace
 #endif    /* FIELDMANIPULATOR_KERNEL */
 

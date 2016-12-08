@@ -68,427 +68,430 @@ namespace po = boost::program_options;
 /////////////////////////////////////  Radiation Kernel  //////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * The radiation kernel calculates for all particles on the device the
- * emitted radiation for every direction and every frequency.
- * The parallelization is as follows:
- *  - There are as many Blocks of threads as there are directions for which
- *    radiation needs to be calculated. (A block of threads shares
- *    shared memory)
- *  - The number of threads per block is equal to the number of cells per
- *    super cells which is also equal to the number of particles per frame
- *
- * The procedure starts with calculating unique ids for the threads and
- * initializing the shared memory.
- * Then a loop over all super cells starts.
- * Every thread loads a particle from that super cell and calculates its
- * retarded time and its real amplitude (both is dependent of the direction).
- * For every Particle
- * exists therefor a unique space within the shared memory.
- * After that, a thread calculates for a specific frequency the emitted
- * radiation of all particles.
- * @param pb
- * @param radiation
- * @param globalOffset
- * @param currentStep
- * @param mapper
- * @param freqFkt
- * @param simBoxSize
- */
-template<class ParBox, class DBox, class Mapping>
-__global__
-/*__launch_bounds__(256, 4)*/
-void kernelRadiationParticles(ParBox pb,
-                              DBox radiation,
-                              DataSpace<simDim> globalOffset,
-                              uint32_t currentStep,
-                              Mapping mapper,
-                              radiation_frequencies::FreqFunctor freqFkt,
-                              DataSpace<simDim> simBoxSize)
+
+struct kernelRadiationParticles
 {
-
-    typedef typename MappingDesc::SuperCellSize Block;
-    typedef typename ParBox::FrameType FRAME;
-    typedef typename ParBox::FramePtr FramePtr;
-
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame; // pointer to  frame storing particles
-    __shared__ lcellId_t particlesInFrame; // number  of particles in current frame
-
-    using namespace parameters; // parameters of radiation
-
-    /// calculate radiated Amplitude
-    /* parallelized in 1 dimensions:
-     * looking direction (theta)
-     * (not anymore data handling)
-     * create shared memory for particle data to reduce global memory calls
-     * every thread in a block loads one particle and every thread runs
-     * through all particles and calculates the radiation for one direction
-     * for all frequencies
+    /**
+     * The radiation kernel calculates for all particles on the device the
+     * emitted radiation for every direction and every frequency.
+     * The parallelization is as follows:
+     *  - There are as many Blocks of threads as there are directions for which
+     *    radiation needs to be calculated. (A block of threads shares
+     *    shared memory)
+     *  - The number of threads per block is equal to the number of cells per
+     *    super cells which is also equal to the number of particles per frame
+     *
+     * The procedure starts with calculating unique ids for the threads and
+     * initializing the shared memory.
+     * Then a loop over all super cells starts.
+     * Every thread loads a particle from that super cell and calculates its
+     * retarded time and its real amplitude (both is dependent of the direction).
+     * For every Particle
+     * exists therefor a unique space within the shared memory.
+     * After that, a thread calculates for a specific frequency the emitted
+     * radiation of all particles.
+     * @param pb
+     * @param radiation
+     * @param globalOffset
+     * @param currentStep
+     * @param mapper
+     * @param freqFkt
+     * @param simBoxSize
      */
-
-    const int blockSize=PMacc::math::CT::volume<Block>::type::value;
-    // vectorial part of the integrand in the Jackson formula
-    __shared__ vector_64 real_amplitude_s[blockSize];
-
-    // retarded time
-    __shared__ picongpu::float_64 t_ret_s[blockSize];
-
-    // storage for macro particle weighting needed if
-    // the coherent and incoherent radiation of a single
-    // macro-particle needs to be considered
-#if (__COHERENTINCOHERENTWEIGHTING__==1)
-    __shared__ float_X radWeighting_s[blockSize];
-#endif
-
-    // particle counter used if not all particles are considered for
-    // radiation calculation
-    __shared__ int counter_s;
-
-    // memory for Nyquist frequency at current time step
-#if (__NYQUISTCHECK__==1)
-    __shared__ NyquistLowPass lowpass_s[blockSize];
-#endif
-
-
-    const int theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
-    const uint32_t linearThreadIdx = threadIdx.x; // used for determine omega and particle id
-
-
-    // simulation time (needed for retarded time)
-    const picongpu::float_64 t((picongpu::float_64) currentStep * (picongpu::float_64) DELTA_T);
-
-    // looking direction (needed for observer) used in the thread
-    const vector_64 look = radiation_observer::observation_direction(theta_idx);
-
-    // get extent of guarding super cells (needed to ignore them)
-    const int guardingSuperCells = mapper.getGuardingSuperCells();
-
-
-    // number of super cells on GPU per dimension (still including guard cells)
-    // remove both guards from count [later one sided guard needs to be added again]
-    const DataSpace<simDim> superCellsCount(mapper.getGridSuperCells() -2 * guardingSuperCells);
-
-    // get absolute number of relevant super cells
-    const int numSuperCells = superCellsCount.productOfComponents();
-
-
-    // go over all super cells on GPU
-    // but ignore all guarding supercells
-    for (int super_cell_index = 0; super_cell_index <= numSuperCells; ++super_cell_index)
+    template<class ParBox, class DBox, class Mapping>
+    DINLINE
+    /*__launch_bounds__(256, 4)*/
+    void operator()(ParBox pb,
+                                  DBox radiation,
+                                  DataSpace<simDim> globalOffset,
+                                  uint32_t currentStep,
+                                  Mapping mapper,
+                                  radiation_frequencies::FreqFunctor freqFkt,
+                                  DataSpace<simDim> simBoxSize) const
     {
-        /* warpId != 1 synchronization is needed,
-           since a race condition can occur if "continue loop" is called,
-           all threads must wait for the selection of a new frame
-           until all threads have evaluated "isValid"
-        */
-        __syncthreads();
 
-        // select SuperCell and add one sided guard again
-        DataSpace<simDim> superCell = DataSpaceOperations<simDim>::map(superCellsCount, super_cell_index);
-        superCell += guardingSuperCells;
+        typedef typename MappingDesc::SuperCellSize Block;
+        typedef typename ParBox::FrameType FRAME;
+        typedef typename ParBox::FramePtr FramePtr;
 
-        const DataSpace<simDim> superCellOffset(globalOffset
-                                                + ((superCell - guardingSuperCells)
-                                                   * Block::toRT()));
-        // -guardingSuperCells remove guarding block
+        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame; // pointer to  frame storing particles
+        __shared__ lcellId_t particlesInFrame; // number  of particles in current frame
 
-        /*
-         * The Master process (thread 0) in every thread block is in
-         * charge of loading a frame from
-         * the current super cell and evaluate the total number of
-         * particles in this frame.
+        using namespace parameters; // parameters of radiation
+
+        /// calculate radiated Amplitude
+        /* parallelized in 1 dimensions:
+         * looking direction (theta)
+         * (not anymore data handling)
+         * create shared memory for particle data to reduce global memory calls
+         * every thread in a block loads one particle and every thread runs
+         * through all particles and calculates the radiation for one direction
+         * for all frequencies
          */
-        if (linearThreadIdx == 0)
-          {
-            // set frame pointer
-            frame = pb.getLastFrame(superCell);
 
-            // number of particles in this frame
-            particlesInFrame = pb.getSuperCell(superCell).getSizeLastFrame();
+        const int blockSize=PMacc::math::CT::volume<Block>::type::value;
+        // vectorial part of the integrand in the Jackson formula
+        __shared__ vector_64 real_amplitude_s[blockSize];
 
-            counter_s = 0;
-          }
+        // retarded time
+        __shared__ picongpu::float_64 t_ret_s[blockSize];
 
-        __syncthreads();
+        // storage for macro particle weighting needed if
+        // the coherent and incoherent radiation of a single
+        // macro-particle needs to be considered
+    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+        __shared__ float_X radWeighting_s[blockSize];
+    #endif
 
-        /* go to next supercell
-         *
-         * if "isValid" is false then there is no frame
-         * inside the superCell (anymore)
-         */
-        while (frame.isValid())
+        // particle counter used if not all particles are considered for
+        // radiation calculation
+        __shared__ int counter_s;
+
+        // memory for Nyquist frequency at current time step
+    #if (__NYQUISTCHECK__==1)
+        __shared__ NyquistLowPass lowpass_s[blockSize];
+    #endif
+
+
+        const int theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
+        const uint32_t linearThreadIdx = threadIdx.x; // used for determine omega and particle id
+
+
+        // simulation time (needed for retarded time)
+        const picongpu::float_64 t((picongpu::float_64) currentStep * (picongpu::float_64) DELTA_T);
+
+        // looking direction (needed for observer) used in the thread
+        const vector_64 look = radiation_observer::observation_direction(theta_idx);
+
+        // get extent of guarding super cells (needed to ignore them)
+        const int guardingSuperCells = mapper.getGuardingSuperCells();
+
+
+        // number of super cells on GPU per dimension (still including guard cells)
+        // remove both guards from count [later one sided guard needs to be added again]
+        const DataSpace<simDim> superCellsCount(mapper.getGridSuperCells() -2 * guardingSuperCells);
+
+        // get absolute number of relevant super cells
+        const int numSuperCells = superCellsCount.productOfComponents();
+
+
+        // go over all super cells on GPU
+        // but ignore all guarding supercells
+        for (int super_cell_index = 0; super_cell_index <= numSuperCells; ++super_cell_index)
         {
-            // only threads with particles are running
-            if (linearThreadIdx < particlesInFrame)
-            {
-
-                PMACC_AUTO(par,frame[linearThreadIdx]);
-                // get old and new particle momenta
-                const vector_X particle_momentumNow = vector_X(par[momentum_]);
-                const vector_X particle_momentumOld = vector_X(par[momentumPrev1_]);
-                /* initializes "saveParticleAt" flag with -1
-                 * because "counter_s" will never be -1
-                 * therefore, if a particle is saved, a value of counter
-                 * is stored in "saveParticleAt" != -1
-                 * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
-                 * LATER: can this be optimized?
-                 */
-                int saveParticleAt = -1;
-
-                /* if particle is not accelerated we skip all calculations
-                 *
-                 * this is a component-wise comparison
-                 */
-                if( particle_momentumNow != particle_momentumOld )
-                {
-                    /* If the gamma filter is activated or not all particles are used
-                     * for radiation calculation, check if particle contributes
-                     * to the radiation calculation by checking its flag.
-                     */
-#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-                    if (par[radiationFlag_])
-#endif
-                    saveParticleAt = nvidia::atomicAllInc(&counter_s);
-                    /* for information:
-                    *   atomicAdd returns an int with the previous
-                    *   value of "counter_s" != -1
-                    *   therefore, if a particle is selected
-                    *   "saveParticleAs" != -1
-                    */
-
-                    // if a particle needs to be considered
-                    if (saveParticleAt != -1)
-                    {
-
-                        // calculate global position
-                        lcellId_t cellIdx = par[localCellIdx_];
-
-                        // position inside of the cell
-                        floatD_X pos = par[position_];
-
-                        // calculate global position of cell
-                        const DataSpace<simDim> globalPos(superCellOffset
-                                                          + DataSpaceOperations<simDim>::template map<Block >
-                                                          (cellIdx));
-
-                        // add global position of cell with local position of particle in cell
-                        vector_X particle_locationNow;
-                        // set z component to zero in case of simDim==DIM2
-                        particle_locationNow[2] = 0.0;
-                        // run over all components and compute gobal position
-                        for(int i=0; i<simDim; ++i)
-                          particle_locationNow[i] = ((float_X) globalPos[i] + (float_X) pos[i]) * cellSize[i];
-
-
-                        /* get macro-particle weighting
-                         *
-                         * Info:
-                         * the weighting is the number of real particles described
-                         * by a macro-particle
-                         */
-                        const float_X weighting = par[weighting_];
-
-
-                        /* only of coherent and incoherent radiation of a single macro-particle is
-                         * considered, the weighting of each macro-particle needs to be stored
-                         * in order to be considered when the actual frequency calculation is done
-                         */
-#if (__COHERENTINCOHERENTWEIGHTING__==1)
-                       radWeighting_s[saveParticleAt] = weighting;
-#endif
-
-                        // mass of macro-particle
-                        const float_X particle_mass = attribute::getMass(weighting,par);
-
-
-                        /****************************************************
-                         **** Here happens the true physical calculation ****
-                         ****************************************************/
-
-                        // set up particle using the radiation's own particle class
-                        /*!\todo please add a namespace for Particle class*/
-                        const ::Particle particle(particle_locationNow,
-                                                  particle_momentumOld,
-                                                  particle_momentumNow,
-                                                  particle_mass);
-
-                        // set up amplitude calculator
-                        typedef Calc_Amplitude< Retarded_time_1, Old_DFT > Calc_Amplitude_n_sim_1;
-
-                        // calculate amplitude
-                        const Calc_Amplitude_n_sim_1 amplitude3(particle,
-                                                                DELTA_T,
-                                                                t);
-
-
-                    // if coherent and incoherent of single macro-particle is considered
-#if (__COHERENTINCOHERENTWEIGHTING__==1)
-                        // get charge of single electron ! (weighting=1.0f)
-                        const picongpu::float_X particle_charge = frame::getCharge<FRAME>();
-
-                        // compute real amplitude of macro-particle with a charge of
-                        // a single electron
-                        real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
-                          particle_charge *
-                          picongpu::float_64(DELTA_T);
-#else
-                        // if coherent and incoherent of single macro-particle is NOT considered
-
-                        // get charge of entire macro-particle
-                        const picongpu::float_X particle_charge = attribute::getCharge(weighting,par);
-
-                        // compute real amplitude of macro-particle
-                        real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
-                          particle_charge *
-                          picongpu::float_64(DELTA_T);
-#endif
-
-                        // retarded time stored in shared memory
-                        t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
-
-                        // if Nyquist-limiter is used, then the NyquistLowPlass object
-                        // is setup and stored in shared memory
-#if (__NYQUISTCHECK__==1)
-                        lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
-#endif
-
-
-                        /* the particle amplitude is used to include the weighting
-                         * of the window function filter without needing more memory */
-                        const radWindowFunction::radWindowFunction winFkt;
-
-                        /* start with a factor of one */
-                        float_X windowFactor = 1.0;
-
-                        for (uint32_t d = 0; d < simDim; ++d)
-                        {
-                            windowFactor *= winFkt(particle_locationNow[d],
-                            simBoxSize[d] * cellSize[d]);
-                        }
-
-                        /* apply window function factor to amplitude */
-                        real_amplitude_s[saveParticleAt] *= windowFactor;
-
-
-
-                    } // END: if a particle needs to be considered
-                } // END: check if particle is accelerated
-            } // END: only threads with particles are running
-
-
-            __syncthreads(); // wait till every thread has loaded its particle data
-
-
-
-            // run over all  valid omegas for this thread
-            for (int o = linearThreadIdx; o < radiation_frequencies::N_omega; o += blockSize)
-              {
-
-                /* storage for amplitude (complex 3D vector)
-                 * it  is initialized with zeros (  0 +  i 0 )
-                 */
-                Amplitude amplitude = Amplitude::zero();
-
-                // compute frequency "omega" using for-loop-index "o"
-                const picongpu::float_64 omega = freqFkt(o);
-
-
-                // if coherent and incoherent radiation of a single macro-particle
-                // is considered, create a form factor object
-#if (__COHERENTINCOHERENTWEIGHTING__==1)
-                const radFormFactor::radFormFactor myRadFormFactor;
-#endif
-
-                /* Particle loop: thread runs through loaded particle data
-                 *
-                 * Summation of Jackson radiation formula integrand
-                 * over all electrons for fixed, thread-specific
-                 * frequency
-                 */
-                for (int j = 0; j < counter_s; ++j)
-                  {
-
-                    // if Nyquist-limiter is on
-#if (__NYQUISTCHECK__==1)
-                    // check Nyquist-limit for each particle "j" and each frequency "omega"
-                    if (lowpass_s[j].check(omega))
-                      {
-#endif
-
-                        /****************************************************
-                         **** Here happens the true physical calculation ****
-                         ****************************************************/
-
-
-                        // if coherent/incoherent radiation of single macro-particle
-                        // is considered
-                        // the form factor influences the real amplitude
-#if (__COHERENTINCOHERENTWEIGHTING__==1)
-                        const vector_64 weighted_real_amp = real_amplitude_s[j] * precisionCast<float_64 >
-                          (myRadFormFactor(radWeighting_s[j], omega, look));
-#else
-                        // if coherent/incoherent radiation of single macro-particle
-                        // is NOT considered
-                        // no change on real amplitude is performed
-                        const vector_64 weighted_real_amp = real_amplitude_s[j];
-#endif
-
-                        // complex amplitude for j-th particle
-                        Amplitude amplitude_add(weighted_real_amp,
-                                                t_ret_s[j] * omega);
-
-                        // add this single amplitude those previously considered
-                        amplitude += amplitude_add;
-
-                        // if Nyquist limiter is on
-#if (__NYQUISTCHECK__==1)
-                      }// END: check Nyquist-limit for each particle "j" and each frequency "omega"
-#endif
-
-                  }// END: Particle loop
-
-
-                /* the radiation contribution of the following is added to global memory:
-                 *     - valid particles of last super cell
-                 *     - from this (one) time step
-                 *     - omega_id = theta_idx * radiation_frequencies::N_omega + o
-                 */
-                radiation[theta_idx * radiation_frequencies::N_omega + o] += amplitude;
-
-
-              } // end frequency loop
-
-
-            // wait till all radiation contributions for this super cell are done
+            /* warpId != 1 synchronization is needed,
+               since a race condition can occur if "continue loop" is called,
+               all threads must wait for the selection of a new frame
+               until all threads have evaluated "isValid"
+            */
             __syncthreads();
 
+            // select SuperCell and add one sided guard again
+            DataSpace<simDim> superCell = DataSpaceOperations<simDim>::map(superCellsCount, super_cell_index);
+            superCell += guardingSuperCells;
 
+            const DataSpace<simDim> superCellOffset(globalOffset
+                                                    + ((superCell - guardingSuperCells)
+                                                       * Block::toRT()));
+            // -guardingSuperCells remove guarding block
 
+            /*
+             * The Master process (thread 0) in every thread block is in
+             * charge of loading a frame from
+             * the current super cell and evaluate the total number of
+             * particles in this frame.
+             */
             if (linearThreadIdx == 0)
               {
-                /* First threads starts loading next frame of the super-cell:
-                 *
-                 * Info:
-                 *   The calculation starts with the last SuperCell (must not be full filled)
-                 *   all previous SuperCells are full with particles
-                 */
-                particlesInFrame = blockSize;
-                frame = pb.getPreviousFrame(frame);
+                // set frame pointer
+                frame = pb.getLastFrame(superCell);
+
+                // number of particles in this frame
+                particlesInFrame = pb.getSuperCell(superCell).getSizeLastFrame();
+
                 counter_s = 0;
               }
 
-            // wait till first thread has loaded new frame
             __syncthreads();
 
-            // run through while-loop(is Valid) again
+            /* go to next supercell
+             *
+             * if "isValid" is false then there is no frame
+             * inside the superCell (anymore)
+             */
+            while (frame.isValid())
+            {
+                // only threads with particles are running
+                if (linearThreadIdx < particlesInFrame)
+                {
 
-          } // end while(frame.isValid())
+                    PMACC_AUTO(par,frame[linearThreadIdx]);
+                    // get old and new particle momenta
+                    const vector_X particle_momentumNow = vector_X(par[momentum_]);
+                    const vector_X particle_momentumOld = vector_X(par[momentumPrev1_]);
+                    /* initializes "saveParticleAt" flag with -1
+                     * because "counter_s" will never be -1
+                     * therefore, if a particle is saved, a value of counter
+                     * is stored in "saveParticleAt" != -1
+                     * THIS IS ACTUALLY ONLY NEEDED IF: the radiation flag was set
+                     * LATER: can this be optimized?
+                     */
+                    int saveParticleAt = -1;
 
-      } // end loop over all super cells
+                    /* if particle is not accelerated we skip all calculations
+                     *
+                     * this is a component-wise comparison
+                     */
+                    if( particle_momentumNow != particle_momentumOld )
+                    {
+                        /* If the gamma filter is activated or not all particles are used
+                         * for radiation calculation, check if particle contributes
+                         * to the radiation calculation by checking its flag.
+                         */
+    #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+                        if (par[radiationFlag_])
+    #endif
+                        saveParticleAt = nvidia::atomicAllInc(&counter_s);
+                        /* for information:
+                        *   atomicAdd returns an int with the previous
+                        *   value of "counter_s" != -1
+                        *   therefore, if a particle is selected
+                        *   "saveParticleAs" != -1
+                        */
+
+                        // if a particle needs to be considered
+                        if (saveParticleAt != -1)
+                        {
+
+                            // calculate global position
+                            lcellId_t cellIdx = par[localCellIdx_];
+
+                            // position inside of the cell
+                            floatD_X pos = par[position_];
+
+                            // calculate global position of cell
+                            const DataSpace<simDim> globalPos(superCellOffset
+                                                              + DataSpaceOperations<simDim>::template map<Block >
+                                                              (cellIdx));
+
+                            // add global position of cell with local position of particle in cell
+                            vector_X particle_locationNow;
+                            // set z component to zero in case of simDim==DIM2
+                            particle_locationNow[2] = 0.0;
+                            // run over all components and compute gobal position
+                            for(int i=0; i<simDim; ++i)
+                              particle_locationNow[i] = ((float_X) globalPos[i] + (float_X) pos[i]) * cellSize[i];
 
 
-} // end radiation kernel
+                            /* get macro-particle weighting
+                             *
+                             * Info:
+                             * the weighting is the number of real particles described
+                             * by a macro-particle
+                             */
+                            const float_X weighting = par[weighting_];
 
+
+                            /* only of coherent and incoherent radiation of a single macro-particle is
+                             * considered, the weighting of each macro-particle needs to be stored
+                             * in order to be considered when the actual frequency calculation is done
+                             */
+    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+                           radWeighting_s[saveParticleAt] = weighting;
+    #endif
+
+                            // mass of macro-particle
+                            const float_X particle_mass = attribute::getMass(weighting,par);
+
+
+                            /****************************************************
+                             **** Here happens the true physical calculation ****
+                             ****************************************************/
+
+                            // set up particle using the radiation's own particle class
+                            /*!\todo please add a namespace for Particle class*/
+                            const ::Particle particle(particle_locationNow,
+                                                      particle_momentumOld,
+                                                      particle_momentumNow,
+                                                      particle_mass);
+
+                            // set up amplitude calculator
+                            typedef Calc_Amplitude< Retarded_time_1, Old_DFT > Calc_Amplitude_n_sim_1;
+
+                            // calculate amplitude
+                            const Calc_Amplitude_n_sim_1 amplitude3(particle,
+                                                                    DELTA_T,
+                                                                    t);
+
+
+                        // if coherent and incoherent of single macro-particle is considered
+    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+                            // get charge of single electron ! (weighting=1.0f)
+                            const picongpu::float_X particle_charge = frame::getCharge<FRAME>();
+
+                            // compute real amplitude of macro-particle with a charge of
+                            // a single electron
+                            real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
+                              particle_charge *
+                              picongpu::float_64(DELTA_T);
+    #else
+                            // if coherent and incoherent of single macro-particle is NOT considered
+
+                            // get charge of entire macro-particle
+                            const picongpu::float_X particle_charge = attribute::getCharge(weighting,par);
+
+                            // compute real amplitude of macro-particle
+                            real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
+                              particle_charge *
+                              picongpu::float_64(DELTA_T);
+    #endif
+
+                            // retarded time stored in shared memory
+                            t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
+
+                            // if Nyquist-limiter is used, then the NyquistLowPlass object
+                            // is setup and stored in shared memory
+    #if (__NYQUISTCHECK__==1)
+                            lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
+    #endif
+
+
+                            /* the particle amplitude is used to include the weighting
+                             * of the window function filter without needing more memory */
+                            const radWindowFunction::radWindowFunction winFkt;
+
+                            /* start with a factor of one */
+                            float_X windowFactor = 1.0;
+
+                            for (uint32_t d = 0; d < simDim; ++d)
+                            {
+                                windowFactor *= winFkt(particle_locationNow[d],
+                                simBoxSize[d] * cellSize[d]);
+                            }
+
+                            /* apply window function factor to amplitude */
+                            real_amplitude_s[saveParticleAt] *= windowFactor;
+
+
+
+                        } // END: if a particle needs to be considered
+                    } // END: check if particle is accelerated
+                } // END: only threads with particles are running
+
+
+                __syncthreads(); // wait till every thread has loaded its particle data
+
+
+
+                // run over all  valid omegas for this thread
+                for (int o = linearThreadIdx; o < radiation_frequencies::N_omega; o += blockSize)
+                  {
+
+                    /* storage for amplitude (complex 3D vector)
+                     * it  is initialized with zeros (  0 +  i 0 )
+                     */
+                    Amplitude amplitude = Amplitude::zero();
+
+                    // compute frequency "omega" using for-loop-index "o"
+                    const picongpu::float_64 omega = freqFkt(o);
+
+
+                    // if coherent and incoherent radiation of a single macro-particle
+                    // is considered, create a form factor object
+    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+                    const radFormFactor::radFormFactor myRadFormFactor;
+    #endif
+
+                    /* Particle loop: thread runs through loaded particle data
+                     *
+                     * Summation of Jackson radiation formula integrand
+                     * over all electrons for fixed, thread-specific
+                     * frequency
+                     */
+                    for (int j = 0; j < counter_s; ++j)
+                      {
+
+                        // if Nyquist-limiter is on
+    #if (__NYQUISTCHECK__==1)
+                        // check Nyquist-limit for each particle "j" and each frequency "omega"
+                        if (lowpass_s[j].check(omega))
+                          {
+    #endif
+
+                            /****************************************************
+                             **** Here happens the true physical calculation ****
+                             ****************************************************/
+
+
+                            // if coherent/incoherent radiation of single macro-particle
+                            // is considered
+                            // the form factor influences the real amplitude
+    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+                            const vector_64 weighted_real_amp = real_amplitude_s[j] * precisionCast<float_64 >
+                              (myRadFormFactor(radWeighting_s[j], omega, look));
+    #else
+                            // if coherent/incoherent radiation of single macro-particle
+                            // is NOT considered
+                            // no change on real amplitude is performed
+                            const vector_64 weighted_real_amp = real_amplitude_s[j];
+    #endif
+
+                            // complex amplitude for j-th particle
+                            Amplitude amplitude_add(weighted_real_amp,
+                                                    t_ret_s[j] * omega);
+
+                            // add this single amplitude those previously considered
+                            amplitude += amplitude_add;
+
+                            // if Nyquist limiter is on
+    #if (__NYQUISTCHECK__==1)
+                          }// END: check Nyquist-limit for each particle "j" and each frequency "omega"
+    #endif
+
+                      }// END: Particle loop
+
+
+                    /* the radiation contribution of the following is added to global memory:
+                     *     - valid particles of last super cell
+                     *     - from this (one) time step
+                     *     - omega_id = theta_idx * radiation_frequencies::N_omega + o
+                     */
+                    radiation[theta_idx * radiation_frequencies::N_omega + o] += amplitude;
+
+
+                  } // end frequency loop
+
+
+                // wait till all radiation contributions for this super cell are done
+                __syncthreads();
+
+
+
+                if (linearThreadIdx == 0)
+                  {
+                    /* First threads starts loading next frame of the super-cell:
+                     *
+                     * Info:
+                     *   The calculation starts with the last SuperCell (must not be full filled)
+                     *   all previous SuperCells are full with particles
+                     */
+                    particlesInFrame = blockSize;
+                    frame = pb.getPreviousFrame(frame);
+                    counter_s = 0;
+                  }
+
+                // wait till first thread has loaded new frame
+                __syncthreads();
+
+                // run through while-loop(is Valid) again
+
+              } // end while(frame.isValid())
+
+          } // end loop over all super cells
+
+
+    } // end radiation kernel
+};
 
 }
 

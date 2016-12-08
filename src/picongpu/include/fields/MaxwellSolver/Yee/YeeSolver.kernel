@@ -24,65 +24,73 @@ namespace yeeSolver
 {
 using namespace PMacc;
 
-
-template<class BlockDescription_, class CurlType_, class EBox, class BBox, class Mapping>
-__global__ void kernelUpdateE(EBox fieldE, BBox fieldB, Mapping mapper)
+template< typename BlockDescription_, typename CurlType_ >
+struct kernelUpdateE
 {
+    template<class EBox, class BBox, class Mapping>
+    DINLINE void operator()(EBox fieldE, BBox fieldB, Mapping mapper) const
+    {
 
-    PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
+        PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
 
-    nvidia::functors::Assign assign;
-    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-    const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
+        nvidia::functors::Assign assign;
+        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
 
-    const DataSpace<simDim > threadIndex(threadIdx);
-    PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
+        const DataSpace<simDim > threadIndex(threadIdx);
+        PMACC_AUTO(fieldBBlock, fieldB.shift(blockCell));
 
-    ThreadCollective<BlockDescription_> collective(threadIndex);
-    collective(
-              assign,
-              cachedB,
-              fieldBBlock
-              );
+        ThreadCollective<BlockDescription_> collective(threadIndex);
+        collective(
+                  assign,
+                  cachedB,
+                  fieldBBlock
+                  );
 
-    __syncthreads();
+        __syncthreads();
 
-    const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
-    const float_X dt = DELTA_T;
+        const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+        const float_X dt = DELTA_T;
 
-    CurlType_ curl;
-    fieldE(blockCell + threadIndex) += curl(cachedB.shift(DataSpace<simDim > (threadIdx))) * c2 * dt;
-}
+        CurlType_ curl;
+        fieldE(blockCell + threadIndex) += curl(cachedB.shift(DataSpace<simDim > (threadIdx))) * c2 * dt;
+    }
+};
 
-template<class BlockDescription_, class CurlType_, class EBox, class BBox, class Mapping>
-__global__ void kernelUpdateBHalf(BBox fieldB,
-                                  EBox fieldE,
-                                  Mapping mapper)
+template<class BlockDescription_, class CurlType_>
+struct kernelUpdateBHalf
 {
+    template<class EBox, class BBox, class Mapping>
+    DINLINE void operator()(
+        BBox fieldB,
+        EBox fieldE,
+        Mapping mapper) const
+    {
 
-    PMACC_AUTO(cachedE, CachedBox::create < 0, typename EBox::ValueType > (BlockDescription_()));
+        PMACC_AUTO(cachedE, CachedBox::create < 0, typename EBox::ValueType > (BlockDescription_()));
 
-    nvidia::functors::Assign assign;
-    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-    const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
-    const DataSpace<simDim > threadIndex(threadIdx);
-    PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
+        nvidia::functors::Assign assign;
+        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
+        const DataSpace<simDim > threadIndex(threadIdx);
+        PMACC_AUTO(fieldEBlock, fieldE.shift(blockCell));
 
-    ThreadCollective<BlockDescription_> collective(threadIndex);
-    collective(
-              assign,
-              cachedE,
-              fieldEBlock
-              );
+        ThreadCollective<BlockDescription_> collective(threadIndex);
+        collective(
+                  assign,
+                  cachedE,
+                  fieldEBlock
+                  );
 
 
-    __syncthreads();
+        __syncthreads();
 
-    const float_X dt = DELTA_T;
+        const float_X dt = DELTA_T;
 
-    CurlType_ curl;
-    fieldB(blockCell + threadIndex) -= curl(cachedE.shift(threadIndex)) * float_X(0.5) * dt;
-}
+        CurlType_ curl;
+        fieldB(blockCell + threadIndex) -= curl(cachedE.shift(threadIndex)) * float_X(0.5) * dt;
+    }
+};
 
 } // yeeSolver
 
