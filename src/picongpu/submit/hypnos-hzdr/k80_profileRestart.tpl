@@ -52,7 +52,7 @@
 #PBS -o stdout
 #PBS -e stderr
 
-echo 'Running program...'
+echo 'Running program...' | tee -a output
 
 cd !TBG_dstPath
 
@@ -73,49 +73,49 @@ cd simOutput
 
 sleep 1
 
-echo "----- automated restart routine -----"
+echo "----- automated restart routine -----" | tee -a output
 
 #check whether last checkpoint is valid
 file=""
 for file in `ls -t ./checkpoints/checkpoint_*.h5`
 do
-    echo -n "validate checkpoint $file: "
+    echo -n "validate checkpoint $file: " | tee -a output
     h5ls $file &> /dev/null
     if [ $? -eq 0 ]
     then
-        echo "OK"
+        echo "OK" | tee -a output
         break
     else
-        echo "FAILED"
+        echo "FAILED" | tee -a output
         file=""
     fi
 done
 
 #this sed call extracts the final simulation step from the cfg (assuming a standard cfg)
 finalStep=`echo !TBG_programParams | sed 's/.*-s[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
-echo "final step      = " $finalStep
+echo "final step      = " $finalStep | tee -a output
 #this sed call extracts the -s and --checkpoint flags
 programParams=`echo !TBG_programParams | sed 's/-s[[:blank:]]\+[0-9]\+[^\s]//g' | sed 's/--checkpoints[[:blank:]]\+[0-9]\+[^\s]//g'`
 #extract restart period
 restartPeriod=`echo !TBG_programParams | sed 's/.*--checkpoints[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
-echo  "restart period = " $restartPeriod
+echo  "restart period = " $restartPeriod | tee -a output
 
 if [ "" != "$file" ]
 then
     cptimestep=`basename $file | sed 's/checkpoint_//g' | sed 's/.h5//g'`
-    echo "start time      = " $cptimestep
+    echo "start time      = " $cptimestep | tee -a output
 
     endTime="$(($cptimestep + $restartPeriod ))"
-    echo "end time        = " $endTime
+    echo "end time        = " $endTime | tee -a output
 
     stepSetup=$(echo -s $endTime "--restart --restart-step" $cptimestep "--checkpoints" $restartPeriod )
 else
-    echo "no checkpoint found"
+    echo "no checkpoint found" | tee -a output
     endTime=$restartPeriod
     stepSetup=$(echo " -s " $endTime "--checkpoints" $restartPeriod )
 fi
 
-echo "--- end automated restart routine ---"
+echo "--- end automated restart routine ---" | tee -a output
 
 #wait that all nodes see ouput folder
 sleep 1
@@ -123,7 +123,7 @@ sleep 1
 mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -x LD_LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
 
 if [ $? -eq 0 ] ; then
-  mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu $stepSetup !TBG_author $programParams | tee output
+  mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu $stepSetup !TBG_author $programParams | tee -a output
 fi
 
 mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks killall -9 picongpu 2>/dev/null || true
@@ -132,8 +132,8 @@ if [ $endTime -lt $finalStep ]
 then
     ssh hypnos4 "/opt/torque/bin/qsub !TBG_dstPath/tbg/submit.start"
     if [ $? -ne 0 ] ; then
-        echo "error during job submission"
+        echo "error during job submission" | tee -a output
     else
-        echo "job submitted"
+        echo "job submitted" | tee -a output
     fi
 fi
