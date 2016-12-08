@@ -24,54 +24,80 @@
 namespace picongpu
 {
 
-  namespace radFormFactor_CIC_3D
+  namespace radFormFactor_baseShape_3D
   {
-    class radFormFactor
+    /** general form factor class of discrete charge distribution of PIC particle shape of order T_shapeOrder
+     *
+     * @tparam T_shapeOrder order of charge distribution shape in PIC code used for radiation form factor
+     */
+
+    template< uint32_t T_shapeOrder >
+    struct radFormFactor
     {
-    public:
-      /* Form Factor for CIC charge distribution of N discrete electrons:
-       * | \mathcal{F} |^2 = N + (N*N - N) * sinc^2(n_x * L_x * \omega) * sinc^2(n_y * L_y * \omega) * sinc^2(n_z * L_z * \omega)
+      /** Form Factor for T_shapeOrder-order particle shape charge distribution of N discrete electrons:
+       * \f[ | \mathcal{F} |^2 = N + (N*N - N) * (sinc^2(n_x * L_x * \omega) * sinc^2(n_y * L_y * \omega) * sinc^2(n_z * L_z * \omega))^T_shapeOrder \f]
        *
-       * with observation direction (unit vector) \vec{n} = (n_x, n_y, n_z)
-       * and with: N     = weighting
-       *           omega = frequency
-       *           L_d   = the size of the CIC-particle / cell in dimension d
+       * with observation direction (unit vector) \f$ \vec{n} = (n_x, n_y, n_z) \f$
+       * and with:
+       * @param N     = weighting
+       * @param omega = frequency
+       * @param L_d   = the size of the CIC-particle / cell in dimension d
        *
        * @param N = macro particle weighting
        * @param omega = frequency at which to calculate the  form factor
        * @param observer_unit_vec = observation direction
-       * @return the Form Factor: sqrt( | \mathcal{F} |^2 )
+       * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
        */
-      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+      HDINLINE float_X operator()( const float_X N, const float_X omega, vector_X const & observer_unit_vec ) const
       {
-        //util::Pow<float_X, 1> pow;
-        const float_X sincX = util::pow( math::sinc( observer_unit_vec.x() * CELL_WIDTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 1 );
-        const float_X sincY = util::pow( math::sinc( observer_unit_vec.y() * CELL_HEIGHT / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 1 );
-        const float_X sincZ = util::pow( math::sinc( observer_unit_vec.z() * CELL_DEPTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 1 );
-          return math::sqrt(
-              N + ( N * N - N ) * util::square( sincX * sincY * sincZ )
-          ); // math::sqrt
+          float_X sincValue = float_X( 1.0 );
+          for( uint32_t d = 0; d < DIM3; ++d )
+              sincValue *= math::sinc( observer_unit_vec[d] * cellSize[d] / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega );
+
+          // here we combine sinc^2(..) with (...)^T_shapeOrder to ...^(2 * T_shapeOrder)
+          return math::sqrt( N + ( N * N - N ) * util::pow( sincValue , 2 * T_shapeOrder ) );
       }
     };
+  } // radFormFactor_baseShape_3D
+
+
+  namespace radFormFactor_CIC_3D
+  {
+    struct radFormFactor : public radFormFactor_baseShape_3D::radFormFactor< 1 >
+    { };
   } // radFormFactor_CIC_3D
+
+  namespace radFormFactor_TSC_3D
+  {
+    struct radFormFactor : public radFormFactor_baseShape_3D::radFormFactor< 2 >
+    { };
+  } // radFormFactor_TSC_3D
+
+  namespace radFormFactor_PCS_3D
+  {
+    struct radFormFactor : public radFormFactor_baseShape_3D::radFormFactor< 3 >
+    { };
+
+  } // radFormFactor_PCS_3D
 
 
   namespace radFormFactor_CIC_1Dy
   {
-    class radFormFactor
+    struct radFormFactor
     {
-      /* Form Factor for 1-d CIC charge distribution iy y of N discrete electrons:
-       * | \mathcal{F} |^2 = N + (N*N - N) * sinc^2(n_y * L_y * \omega)
+      /** Form Factor for 1-d CIC charge distribution iy y of N discrete electrons:
+       * \f[ | \mathcal{F} |^2 = N + (N*N - N) * sinc^2(n_y * L_y * \omega) \f]
        *
-       * with observation direction (unit vector) \vec{n} = (n_x, n_y, n_z)
-       * and with: N     = weighting
-       *           omega = frequency
-       *           L_d   = the size of the CIC-particle / cell in dimension d
+       * with observation direction (unit vector) \f$ \vec{n} = (n_x, n_y, n_z) \f$
+       * and with:
+       * @param N     = weighting
+       * @param omega = frequency
+       * @param L_d   = the size of the CIC-particle / cell in dimension d
        *
        * @param N = macro particle weighting
        * @param omega = frequency at which to calculate the  form factor
        * @param observer_unit_vec = observation direction
-       * @return the Form Factor: sqrt( | \mathcal{F} |^2 )
+       * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
        */
       HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
       {
@@ -85,82 +111,18 @@ namespace picongpu
   } // radFormFactor_CIC_1Dy
 
 
-  namespace radFormFactor_TSC_3D
-  {
-    class radFormFactor
-    {
-    public:
-      /* Form Factor for TSC charge distribution of N discrete electrons:
-       *
-       * with observation direction (unit vector) \vec{n} = (n_x, n_y, n_z)
-       * and with: N     = weighting
-       *           omega = frequency
-       *           L_d   = the size of the cell in dimension d
-       *
-       * @param N = macro particle weighting
-       * @param omega = frequency at which to calculate the  form factor
-       * @param observer_unit_vec = observation direction
-       * @return the Form Factor: sqrt( | \mathcal{F} |^2 )
-       */
-      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
-      {
-        //util::Pow<float_X, 2> pow;
-        const float_X sincX = util::pow( math::sinc( observer_unit_vec.x() * CELL_WIDTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 2 );
-        const float_X sincY = util::pow( math::sinc( observer_unit_vec.y() * CELL_HEIGHT / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 2 );
-        const float_X sincZ = util::pow( math::sinc( observer_unit_vec.z() * CELL_DEPTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 2 );
-          return math::sqrt(
-              N + ( N * N - N ) * util::square( sincX * sincY * sincZ )
-          ); // math::sqrt
-      }
-    };
-  } // radFormFactor_TSC_3D
-
-
-  namespace radFormFactor_PCS_3D
-  {
-    class radFormFactor
-    {
-    public:
-      /* Form Factor for PCS charge distribution of N discrete electrons:
-       *
-       * with observation direction (unit vector) \vec{n} = (n_x, n_y, n_z)
-       * and with: N     = weighting
-       *           omega = frequency
-       *           L_d   = the size of the cell in dimension d
-       *
-       * @param N = macro particle weighting
-       * @param omega = frequency at which to calculate the  form factor
-       * @param observer_unit_vec = observation direction
-       * @return the Form Factor: sqrt( | \mathcal{F} |^2 )
-       */
-      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
-      {
-        //util::Pow<float_X, 3> pow;
-        const float_X sincX = util::pow( math::sinc( observer_unit_vec.x() * CELL_WIDTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 3 );
-        const float_X sincY = util::pow( math::sinc( observer_unit_vec.y() * CELL_HEIGHT / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 3 );
-        const float_X sincZ = util::pow( math::sinc( observer_unit_vec.z() * CELL_DEPTH / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega ), 3 );
-          return math::sqrt(
-              N + ( N * N - N ) * util::square( sincX * sincY * sincZ )
-          ); // math::sqrt
-      }
-    };
-  } // radFormFactor_PCS_3D
-
-
-
   namespace radFormFactor_Gauss_spherical
   {
-    class radFormFactor
+    struct radFormFactor
     {
-    public:
       /** Form Factor for point-symmetric Gauss-shaped charge distribution of N discrete electrons:
-        * <rho(r)> = N*q_e* 1/sqrt(2*pi*sigma^2) * exp(-0.5 * r^2/sigma^2)
+        * \f[ <rho(r)> = N*q_e* 1/sqrt(2*pi*sigma^2) * exp(-0.5 * r^2/sigma^2) \f]
         * with sigma = 0.5*c/delta_t (0.5 because sigma is defined around center)
         *
         * @param N = macro particle weighting
         * @param omega = frequency at which to calculate the  form factor
         * @param observer_unit_vec = observation direction
-        * @return the Form Factor: sqrt( | \mathcal{F} |^2 )
+        * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
         */
       HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
       {
@@ -177,17 +139,16 @@ namespace picongpu
 
   namespace radFormFactor_Gauss_cell
   {
-    class radFormFactor
+    struct radFormFactor
     {
-    public:
       /** Form Factor for per-dimension Gauss-shaped charge distribution of N discrete electrons:
-        * <rho(r)> = N*q_e* product[d={x,y,z}](1/sqrt(2*pi*sigma_d^2) * exp(-0.5 * d^2/sigma_d^2))
+        * \f[ <rho(r)> = N*q_e* product[d={x,y,z}](1/sqrt(2*pi*sigma_d^2) * exp(-0.5 * d^2/sigma_d^2)) \f]
         * with sigma_d = 0.5*cell_width_d*n_d
         *
         * @param N = macro particle weighting
         * @param omega = frequency at which to calculate the  form factor
         * @param observer_unit_vec = observation direction
-        * @return the Form Factor: sqrt( | \mathcal{F} |^2 )
+        * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 ) \f$
         */
       HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
       {
@@ -210,15 +171,14 @@ namespace picongpu
 
   namespace radFormFactor_incoherent
   {
-    class radFormFactor
+    struct radFormFactor
     {
-    public:
       /** Form Factor for an incoherent charge distribution:
         *
         * @param N = macro particle weighting
         * @param omega = frequency at which to calculate the  form factor
         * @param observer_unit_vec = observation direction
-        * @return the Form Factor: sqrt( | \mathcal{F} |^2 == sqrt(weighting)
+        * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 == \sqrt(weighting) \f$
         */
       HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
       {
