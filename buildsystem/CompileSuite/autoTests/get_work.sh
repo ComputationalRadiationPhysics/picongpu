@@ -31,7 +31,7 @@ security_check $thisDir
 
 # clean up old stuff
 #
-rm -rf $cnf_gitdir/* $cnf_gitdir/.git*
+rm -rf $cnf_gitdir
 mkdir -p $cnf_gitdir
 cd $cnf_gitdir
 
