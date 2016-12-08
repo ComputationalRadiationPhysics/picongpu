@@ -191,11 +191,11 @@ public:
                 256,
                 0,
                 this->getCudaStream()
-            >>>( 
+            >>>(
                 kernelSetValue{},
-                destBox, 
-                this->value, 
-                area_size 
+                destBox,
+                this->value,
+                area_size
             );
         }
         this->activate();
@@ -254,11 +254,11 @@ public:
                 256,
                 0,
                 this->getCudaStream()
-            >>>( 
+            >>>(
                 kernelSetValue{},
-                destBox, 
-                devicePtr, 
-                area_size 
+                destBox,
+                devicePtr,
+                area_size
             );
         }
 

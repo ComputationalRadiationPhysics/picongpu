@@ -308,7 +308,7 @@ struct kernelIonizeParticles
         }
     } // void kernelIonizeParticles
 };
-    
+
 } // namespace ionization
 } // namespace particles
 } // namespace picongpu

@@ -71,7 +71,7 @@ typedef QuietImpl<QuietParameter> Quiet;
 
 namespace manipulators
 {
-    
+
     struct BoundElectronsWhenNeutral
     {
         /* space for attribute initial parameters */

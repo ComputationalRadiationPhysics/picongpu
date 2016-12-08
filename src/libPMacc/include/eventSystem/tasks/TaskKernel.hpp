@@ -29,7 +29,7 @@
 
 namespace PMacc
 {
-     
+
     class TaskKernel : public StreamTask
     {
     public:

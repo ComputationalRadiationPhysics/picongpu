@@ -77,7 +77,7 @@ void ToolsAdiosParallel::convertToText()
         adios_perform_reads(pFile, 1);
 
         if(pVarInfo->ndim > 0)
-        {        
+        {
             for(int k = 0; k < varElement; k++)
             {
                 printValue(pVarInfo->type, &P[k*varTypeSize]);

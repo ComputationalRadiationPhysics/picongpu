@@ -38,12 +38,12 @@ struct setValueTest
         typedef size_t Extents;
 
         std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
-        
+
         for(size_t i = 0; i < nElementsPerDim.size(); ++i)
         {
             ::PMacc::DataSpace<T_Dim::value> const dataSpace = ::PMacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
             ::PMacc::HostBufferIntern<Data, T_Dim::value> hostBufferIntern(dataSpace);
-            
+
             const Data value = 255;
             hostBufferIntern.setValue(value);
 
@@ -52,9 +52,9 @@ struct setValueTest
             {
                 BOOST_CHECK_EQUAL( ptr[j], value );
             }
-            
+
         }
-        
+
     }
 
     PMACC_NO_NVCC_HDWARNING

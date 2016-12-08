@@ -36,20 +36,20 @@ namespace traits
     struct PICToAdios<int32_t>
     {
         ADIOS_DATATYPES type;
-        
+
         PICToAdios() :
         type(adios_integer) {}
     };
-    
+
     template<>
     struct PICToAdios<uint32_t>
     {
         ADIOS_DATATYPES type;
-        
+
         PICToAdios() :
         type(adios_unsigned_integer) {}
     };
-    
+
     template<>
     struct PICToAdios<int64_t>
     {
@@ -63,7 +63,7 @@ namespace traits
     struct PICToAdios<uint64_t>
     {
         ADIOS_DATATYPES type;
-        
+
         PICToAdios() :
         type(adios_unsigned_long) {}
     };
@@ -90,7 +90,7 @@ namespace traits
     struct PICToAdios<float_32>
     {
         ADIOS_DATATYPES type;
-        
+
         PICToAdios() :
         type(adios_real) {}
     };
@@ -99,7 +99,7 @@ namespace traits
     struct PICToAdios<float_64>
     {
         ADIOS_DATATYPES type;
-        
+
         PICToAdios() :
         type(adios_double) {}
     };

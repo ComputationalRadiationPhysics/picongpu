@@ -34,15 +34,15 @@ namespace traits
 template<typename T_Species>
 struct GetMarginPusher
 {
-    typedef PMacc::math::CT::add< 
-        GetLowerMargin< GetInterpolation< bmpl::_1 > >, 
-        GetLowerMargin< GetPusher< bmpl::_1 > > 
+    typedef PMacc::math::CT::add<
+        GetLowerMargin< GetInterpolation< bmpl::_1 > >,
+        GetLowerMargin< GetPusher< bmpl::_1 > >
     > AddLowerMargins;
     typedef typename bmpl::apply<AddLowerMargins, T_Species>::type LowerMargin;
 
-    typedef PMacc::math::CT::add< 
-        GetUpperMargin< GetInterpolation< bmpl::_1 > >, 
-        GetUpperMargin< GetPusher< bmpl::_1 > > 
+    typedef PMacc::math::CT::add<
+        GetUpperMargin< GetInterpolation< bmpl::_1 > >,
+        GetUpperMargin< GetPusher< bmpl::_1 > >
     > AddUpperMargins;
     typedef typename bmpl::apply<AddUpperMargins, T_Species>::type UpperMargin;
 };

@@ -38,7 +38,7 @@ struct CopyFromTest {
         typedef size_t Extents;
 
         std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
-        
+
         for(unsigned i = 0; i < nElementsPerDim.size(); ++i){
             ::PMacc::DataSpace<T_Dim::value> const dataSpace = ::PMacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
             ::PMacc::HostBuffer<Data, T_Dim::value>* hostBufferIntern = new ::PMacc::HostBufferIntern<Data, T_Dim::value>(dataSpace);
