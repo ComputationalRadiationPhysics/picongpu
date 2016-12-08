@@ -91,7 +91,7 @@ do
     fi
 done
 
-#this sed call extracts the final simulation step from the cfg (assuming a standard cfg) 
+#this sed call extracts the final simulation step from the cfg (assuming a standard cfg)
 finalStep=`echo !TBG_programParams | sed 's/.*-s[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
 echo "final step      = " $finalStep
 #this sed call extracts the -s and --checkpoint flags
