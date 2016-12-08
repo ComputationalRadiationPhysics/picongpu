@@ -41,7 +41,7 @@ namespace PMacc
         ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
         auto grid = mapper.getGridDim();
 
-        PMACC_TYPEKERNEL(kernelDeleteParticles)
+        PMACC_KERNEL(kernelDeleteParticles{})
                 (grid, (int)TileSize)
                 (particlesBuffer->getDeviceParticleBox(), mapper);
     }
@@ -54,7 +54,7 @@ namespace PMacc
         AreaMapping<T_area, MappingDesc> mapper(this->cellDescription);
         auto grid = mapper.getGridDim();
 
-        PMACC_TYPEKERNEL(kernelDeleteParticles)
+        PMACC_KERNEL(kernelDeleteParticles{})
                 (grid, (int)TileSize)
                 (particlesBuffer->getDeviceParticleBox(), mapper);
     }
@@ -76,7 +76,7 @@ namespace PMacc
             particlesBuffer->getSendExchangeStack(exchangeType).setCurrentSize(0);
             auto grid = mapper.getGridDim();
 
-            PMACC_TYPEKERNEL(kernelBashParticles)
+            PMACC_KERNEL(kernelBashParticles{})
                     (grid, (int)TileSize)
                     (particlesBuffer->getDeviceParticleBox(),
                     particlesBuffer->getSendExchangeStack(exchangeType).getDeviceExchangePushDataBox(), mapper);
@@ -93,7 +93,7 @@ namespace PMacc
             if (grid != 0)
             {
                 ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
-                PMACC_TYPEKERNEL(kernelInsertParticles)
+                PMACC_KERNEL(kernelInsertParticles{})
                         (grid, (int)TileSize)
                         (particlesBuffer->getDeviceParticleBox(),
                         particlesBuffer->getReceiveExchangeStack(exchangeType).getDeviceExchangePopDataBox(),

@@ -94,7 +94,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
         auto blockDim = ThreadBlock::toRT();                                                                \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                  \
         using namespace PMacc;                                                                              \
-        PMACC_TYPEKERNEL(detail::kernelForeachBlock)(mapper.cudaGridDim(p_zone.size), blockDim)             \
+        PMACC_KERNEL(detail::kernelForeachBlock{})(mapper.cudaGridDim(p_zone.size), blockDim)               \
                     /* c0_shifted, c1_shifted, ... */                                                       \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                   \
     }

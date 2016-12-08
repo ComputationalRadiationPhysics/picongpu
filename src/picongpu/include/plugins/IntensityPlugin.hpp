@@ -341,7 +341,7 @@ private:
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
         auto  block = PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT();
 
-        PMACC_TYPEKERNEL(kernelIntensity)
+        PMACC_KERNEL(kernelIntensity{})
             (grid, block)
             (
              fieldE->getDeviceDataBox(),

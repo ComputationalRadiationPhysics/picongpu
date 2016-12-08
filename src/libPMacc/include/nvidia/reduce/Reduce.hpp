@@ -62,7 +62,7 @@ namespace kernel
             Type* s_mem=(Type*)s_mem_extern;
 
 
-            
+
             bool isActive = (tid < src_count);
 
             if(isActive)
@@ -91,7 +91,7 @@ namespace kernel
                 /* New chunks is half number of chunks rounded up for uneven counts
                  * --> local_tid=0 will reduce the single element for an odd number of values at the end */
                 chunk_count = (chunk_count + 1) / 2;
-                
+
                 isActive = (tid < src_count) && !(localId != 0 && localId >= active_threads);
                 if(isActive)
                     func(s_mem[localId], s_mem[localId + chunk_count]);
@@ -154,7 +154,7 @@ namespace kernel
 
             uint32_t blocks = threads / 2 / blockcount;
             if (blocks == 0) blocks = 1;
-            PMACC_TYPEKERNEL(kernel::reduce < Type >)(blocks, blockcount, blockcount * sizeof (Type))(src, n, dest, func,
+            PMACC_KERNEL(kernel::reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(src, n, dest, func,
                                                                                                     PMacc::nvidia::functors::Assign());
             n = blocks;
             blockcount = optimalThreadsPerBlock(n, sizeof (Type));
@@ -171,13 +171,13 @@ namespace kernel
                     uint32_t problemSize = n - (blockOffset * blockcount);
                     Type* srcPtr = dest + (blockOffset * blockcount);
 
-                    PMACC_TYPEKERNEL(kernel::reduce < Type >)(useBlocks, blockcount, blockcount * sizeof (Type))(srcPtr, problemSize, dest, func, func);
+                    PMACC_KERNEL(kernel::reduce < Type >{})(useBlocks, blockcount, blockcount * sizeof (Type))(srcPtr, problemSize, dest, func, func);
                     blocks = blockOffset*blockcount;
                 }
                 else
                 {
 
-                    PMACC_TYPEKERNEL(kernel::reduce < Type >)(blocks, blockcount, blockcount * sizeof (Type))(dest, n, dest, func,
+                    PMACC_KERNEL(kernel::reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(dest, n, dest, func,
                                                                                                             PMacc::nvidia::functors::Assign());
                 }
 

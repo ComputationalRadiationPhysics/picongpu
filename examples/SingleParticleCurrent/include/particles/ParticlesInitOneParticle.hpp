@@ -130,7 +130,7 @@ public:
         std::cout << "localSuperCell: " << localSuperCell << std::endl;
         std::cout << "cellInSuperCell: " << cellInSuperCell << std::endl;
 
-        PMACC_TYPEKERNEL(kernelAddOneParticle)
+        PMACC_KERNEL(kernelAddOneParticle{})
             (1, 1)
             (parClass.getDeviceParticlesBox(),
              localSuperCell, cellInSuperCell);

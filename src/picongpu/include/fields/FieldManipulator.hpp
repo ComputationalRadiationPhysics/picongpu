@@ -78,7 +78,7 @@ public:
                 if (MovingWindow::getInstance().isSlidingWindowActive() && i == BOTTOM) continue;
 
                 ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);
-                PMACC_TYPEKERNEL(kernelAbsorbBorder)
+                PMACC_KERNEL(kernelAbsorbBorder{})
                     (mapper.getGridDim(), mapper.getSuperCellSize())
                     (deviceBox, thickness, absorber_strength,
                      mapper);

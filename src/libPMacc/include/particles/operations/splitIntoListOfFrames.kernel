@@ -206,7 +206,7 @@ HINLINE void splitIntoListOfFrames(
         uint32_t currentChunkSize = std::min(leftOverParticles, chunkSize);
         log(logLvl, "load particles on device chunk offset=%1%; chunk size=%2%; left particles %3%") %
             (i * chunkSize) % currentChunkSize % leftOverParticles;
-        PMACC_TYPEKERNEL(kernel::splitIntoListOfFrames)
+        PMACC_KERNEL(kernel::splitIntoListOfFrames{})
             (algorithms::math::float2int_ru(double(currentChunkSize) / double(cellsInSuperCell)), cellsInSuperCell)
             (counterBuffer.getDeviceBuffer().getDataBox(),
              destSpecies.getDeviceParticlesBox(), srcFrame,

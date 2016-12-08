@@ -131,7 +131,7 @@ public:
         localSuperCell = localSuperCell + cellDescription.getGuardingSuperCells();
 
 
-        PMACC_TYPEKERNEL(kernelAddOneParticle)
+        PMACC_KERNEL(kernelAddOneParticle{})
             (1, 1)
             (parClass.getDeviceParticlesBox(),
              localSuperCell, cellInSuperCell);

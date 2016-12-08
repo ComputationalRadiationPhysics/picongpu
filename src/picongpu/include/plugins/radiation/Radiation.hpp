@@ -1054,7 +1054,7 @@ private:
       /* check if restart file exists */
       if( !boost::filesystem::exists(filename.str()) )
       {
-          log<picLog::INPUT_OUTPUT > ("Radiation (%1%): restart file not found (%2%) - start with zero values") % 
+          log<picLog::INPUT_OUTPUT > ("Radiation (%1%): restart file not found (%2%) - start with zero values") %
                                       speciesName % filename.str();
       }
       else
@@ -1190,7 +1190,7 @@ private:
 
 
       // PIC-like kernel call of the radiation kernel
-      PMACC_TYPEKERNEL(kernelRadiationParticles)
+      PMACC_KERNEL(kernelRadiationParticles{})
         (gridDim_rad, blockDim_rad)
         (
          /*Pointer to particles memory on the device*/

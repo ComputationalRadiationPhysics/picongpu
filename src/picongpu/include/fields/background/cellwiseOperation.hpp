@@ -115,7 +115,7 @@ namespace cellwiseOperation
 
             /* start kernel */
             AreaMapping<T_Area, MappingDesc> mapper(m_cellDescription);
-            PMACC_TYPEKERNEL(kernelCellwiseOperation)
+            PMACC_KERNEL(kernelCellwiseOperation{})
                     (mapper.getGridDim(), SuperCellSize::toRT())
                     (field->getDeviceDataBox(), opFunctor, valFunctor, totalCellOffset, currentStep, mapper);
         }

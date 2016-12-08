@@ -133,7 +133,7 @@ void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_Device
     Space2D gridSize(rngSize / blockSize);
 
     CUDA_CHECK(cudaEventRecord(start));
-    PMACC_TYPEKERNEL(RandomFiller)(gridSize, blockSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
+    PMACC_KERNEL(RandomFiller{})(gridSize, blockSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
     CUDA_CHECK(cudaEventRecord(stop));
     CUDA_CHECK(cudaEventSynchronize(stop));
     float milliseconds = 0;

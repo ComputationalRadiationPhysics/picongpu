@@ -83,7 +83,7 @@ namespace gol
                 buffWrite(blockCell + threadIndex) = isLife;
             }
         };
-        
+
         struct randomInit
         {
             template<class BoxWriteOnly, class Mapping>
@@ -136,7 +136,7 @@ namespace gol
             GridController<DIM2>& gc = Environment<DIM2>::get().GridController();
             uint32_t seed = gc.getGlobalSize() + gc.getGlobalRank();
 
-            PMACC_TYPEKERNEL(kernel::randomInit)
+            PMACC_KERNEL(kernel::randomInit{})
                     (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT())
                     (
                      writeBox,
@@ -149,7 +149,7 @@ namespace gol
         void run(const DBox& readBox, const DBox & writeBox)
         {
             AreaMapping < Area, MappingDesc > mapper(mapping);
-            PMACC_TYPEKERNEL(kernel::evolution)
+            PMACC_KERNEL(kernel::evolution{})
                     (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT())
                     (readBox,
                      writeBox,

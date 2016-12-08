@@ -528,7 +528,7 @@ public:
         PMACC_ASSERT(cellDescription != NULL);
         AreaMapping<CORE + BORDER, MappingDesc> mapper(*cellDescription);
         //create image fields
-        PMACC_TYPEKERNEL(kernelPaintFields)
+        PMACC_KERNEL(kernelPaintFields{})
             (mapper.getGridDim(), SuperCellSize::toRT())
             (fieldE->getDeviceDataBox(),
              fieldB->getDeviceDataBox(),
@@ -569,18 +569,18 @@ public:
         //We don't know the superCellSize at compile time
         // (because of the runtime dimension selection in any analyser),
         // thus we must use a one dimension kernel and no mapper
-        PMACC_TYPEKERNEL(vis_kernels::divideAnyCell)(ceil((float_64) elements / 256), 256)(d1access, elements, max);
+        PMACC_KERNEL(vis_kernels::divideAnyCell{})(ceil((float_64) elements / 256), 256)(d1access, elements, max);
 #endif
 
         // convert channels to RGB
-        PMACC_TYPEKERNEL(vis_kernels::channelsToRGB)(ceil((float_64) elements / 256), 256)(d1access, elements);
+        PMACC_KERNEL(vis_kernels::channelsToRGB{})(ceil((float_64) elements / 256), 256)(d1access, elements);
 
         // add density color channel
         DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
         DataSpace<DIM2> blockSize2D(blockSize[m_transpose.x()], blockSize[m_transpose.y()]);
 
         //create image particles
-        PMACC_TYPEKERNEL(kernelPaintParticles3D)
+        PMACC_KERNEL(kernelPaintParticles3D{})
             (mapper.getGridDim(), SuperCellSize::toRT(), blockSize2D.productOfComponents() * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),

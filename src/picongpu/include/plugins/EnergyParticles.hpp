@@ -118,7 +118,7 @@ struct kernelEnergyParticles
                 {
                     /* kinetic energy for particles: E = (gamma - 1) * m * c^2
                      *                                    gamma = sqrt( 1 + (p/m/c)^2 )
-                     * _local_energyKin += (algorithms::math::sqrt(mom2 / (mass * mass * c2) 
+                     * _local_energyKin += (algorithms::math::sqrt(mom2 / (mass * mass * c2)
                      *                                             + 1.) - 1.) * mass * c2;
                      */
                     _local_energyKin += (gamma - float_X(1.0)) * mass*c2;
@@ -156,7 +156,7 @@ struct kernelEnergyParticles
         }
     }
 };
-    
+
 template<class ParticlesType>
 class EnergyParticles : public ISimulationPlugin
 {
@@ -319,7 +319,7 @@ private:
 
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
         /* kernel call = sum all particle energies on GPU */
-        PMACC_TYPEKERNEL(kernelEnergyParticles)
+        PMACC_KERNEL(kernelEnergyParticles{})
             (mapper.getGridDim(), block)
             (particles->getDeviceParticlesBox(),
              gEnergy->getDeviceBuffer().getDataBox(),

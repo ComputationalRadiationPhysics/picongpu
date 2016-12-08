@@ -279,12 +279,5 @@ namespace exec
  */
 #define PMACC_KERNEL( ... ) PMacc::exec::kernel( __VA_ARGS__, __FILE__,  static_cast< size_t >( __LINE__ ) )
 
-/** create a kernel object out of a functor type name
- *
- * this macro add the current filename and line number to the kernel object
- *
- * @param ... type of the kernel functor
- */
-#define PMACC_TYPEKERNEL( ... ) PMacc::exec::kernel( __VA_ARGS__{}, __FILE__,  static_cast< size_t >( __LINE__ ) )
 
 #include "eventSystem/events/kernelEvents.tpp"

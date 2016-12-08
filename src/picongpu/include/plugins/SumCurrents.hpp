@@ -188,7 +188,7 @@ private:
         auto block = MappingDesc::SuperCellSize::toRT();
 
         AreaMapping<CORE + BORDER, MappingDesc> mapper(*cellDescription);
-        PMACC_TYPEKERNEL(kernelSumCurrents)
+        PMACC_KERNEL(kernelSumCurrents{})
             (mapper.getGridDim(), block)
             (fieldJ->getDeviceDataBox(),
              sumcurrents->getDeviceBuffer().getBasePointer(),

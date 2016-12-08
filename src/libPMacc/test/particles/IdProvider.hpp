@@ -120,7 +120,7 @@ struct IdProviderTest
         BOOST_REQUIRE_EQUAL(IdProvider::getNewId(), state.nextId);
         // Generate the same IDs on the device
         PMacc::HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
-        PMACC_TYPEKERNEL(generateIds<IdProvider>)(numBlocks, numThreadsPerBlock)
+        PMACC_KERNEL(generateIds<IdProvider>{})(numBlocks, numThreadsPerBlock)
                 (idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
         idBuf.deviceToHost();
         BOOST_REQUIRE_EQUAL(numIds, ids.size());

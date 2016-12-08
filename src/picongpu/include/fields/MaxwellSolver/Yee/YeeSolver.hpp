@@ -67,7 +67,7 @@ private:
         /* Courant-Friedrichs-Levy-Condition for Yee Field Solver: */
         PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_gridConfig_param_file,
             (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0);
-        
+
         typedef SuperCellDescription<
                 SuperCellSize,
                 typename CurlB::LowerMargin,
@@ -75,7 +75,7 @@ private:
                 > BlockArea;
 
         AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
-        PMACC_TYPEKERNEL(kernelUpdateE<BlockArea, CurlB>)
+        PMACC_KERNEL(kernelUpdateE<BlockArea, CurlB>{})
                 (mapper.getGridDim(), SuperCellSize::toRT())
                 (this->fieldE->getDeviceDataBox(), this->fieldB->getDeviceDataBox(),mapper);
     }
@@ -90,7 +90,7 @@ private:
                 > BlockArea;
 
         AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
-        PMACC_TYPEKERNEL(kernelUpdateBHalf<BlockArea, CurlE>)
+        PMACC_KERNEL(kernelUpdateBHalf<BlockArea, CurlE>{})
                 (mapper.getGridDim(), SuperCellSize::toRT())
                 (this->fieldB->getDeviceDataBox(),
                 this->fieldE->getDeviceDataBox(),

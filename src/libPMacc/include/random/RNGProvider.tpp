@@ -70,7 +70,7 @@ namespace random
 
         PMACC_AUTO(bufferBox, buffer->getDeviceBuffer().getDataBox());
 
-        PMACC_TYPEKERNEL(kernel::initRNGProvider<RNGMethod>)
+        PMACC_KERNEL(kernel::initRNGProvider<RNGMethod>{})
         (gridSize, blockSize)
         (bufferBox, seed, m_size);
     }

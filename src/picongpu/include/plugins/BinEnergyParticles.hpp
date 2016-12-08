@@ -410,7 +410,7 @@ private:
         const float_X maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
-        PMACC_TYPEKERNEL(kernelBinEnergyParticles)
+        PMACC_KERNEL(kernelBinEnergyParticles{})
             (mapper.getGridDim(), block, (realNumBins) * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              gBins->getDeviceBuffer().getDataBox(), numBins, minEnergy,

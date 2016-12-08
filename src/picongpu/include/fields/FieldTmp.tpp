@@ -179,7 +179,7 @@ namespace picongpu
 
         do
         {
-            PMACC_TYPEKERNEL( kernelComputeSupercells<BlockArea, AREA> )
+            PMACC_KERNEL( kernelComputeSupercells<BlockArea, AREA>{} )
                 ( mapper.getGridDim( ), mapper.getSuperCellSize( ) )
                 ( tmpBox,
                   pBox, solver, mapper );
@@ -221,7 +221,7 @@ namespace picongpu
         auto grid = mapper.getGridDim( );
 
         const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-        PMACC_TYPEKERNEL( kernelBashValue )
+        PMACC_KERNEL( kernelBashValue{} )
             ( grid, mapper.getSuperCellSize( ) )
             ( fieldTmp->getDeviceBuffer( ).getDataBox( ),
               fieldTmp->getSendExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -237,7 +237,7 @@ namespace picongpu
         auto grid = mapper.getGridDim( );
 
         const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-        PMACC_TYPEKERNEL( kernelInsertValue )
+        PMACC_KERNEL( kernelInsertValue{} )
             ( grid, mapper.getSuperCellSize( ) )
             ( fieldTmp->getDeviceBuffer( ).getDataBox( ),
               fieldTmp->getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),

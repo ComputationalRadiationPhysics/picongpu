@@ -215,7 +215,7 @@ private:
         typedef MappingDesc::SuperCellSize SuperCellSize;
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
 
-        PMACC_TYPEKERNEL(CountMakroParticle)
+        PMACC_KERNEL(CountMakroParticle{})
             (mapper.getGridDim(), SuperCellSize::toRT())
             (particles->getDeviceParticlesBox(),
              localResult->getDeviceBuffer().getDataBox(), mapper);

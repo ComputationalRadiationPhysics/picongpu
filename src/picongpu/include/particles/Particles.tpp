@@ -176,7 +176,7 @@ void Particles<T_ParticleDescription>::update(uint32_t )
     auto block = MappingDesc::SuperCellSize::toRT();
 
     AreaMapping<CORE+BORDER,MappingDesc> mapper(this->cellDescription);
-    PMACC_TYPEKERNEL( kernelMoveAndMarkParticles<BlockArea> )
+    PMACC_KERNEL( kernelMoveAndMarkParticles<BlockArea>{} )
         (mapper.getGridDim(), block)
         ( this->getDeviceParticlesBox( ),
           this->fieldE->getDeviceDataBox( ),
@@ -204,7 +204,7 @@ void Particles<T_ParticleDescription>::initGas( T_GasFunctor& gasFunctor,
 
     auto block = MappingDesc::SuperCellSize::toRT( );
     AreaMapping<CORE+BORDER,MappingDesc> mapper(this->cellDescription);
-    PMACC_TYPEKERNEL( kernelFillGridWithParticles<Particles<T_ParticleDescription> > )
+    PMACC_KERNEL( kernelFillGridWithParticles<Particles<T_ParticleDescription> >{} )
         (mapper.getGridDim(), block)
         ( gasFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ), mapper );
 
@@ -221,7 +221,7 @@ void Particles<T_ParticleDescription>::deviceDeriveFrom( Particles< T_SrcParticl
 
     log<picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
     AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
-    PMACC_TYPEKERNEL( kernelDeriveParticles )
+    PMACC_KERNEL( kernelDeriveParticles{} )
         (mapper.getGridDim(), block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ), functor, mapper );
     this->fillAllGaps( );
 }
@@ -234,7 +234,7 @@ void Particles<T_ParticleDescription>::manipulateAllParticles( uint32_t currentS
     auto block = MappingDesc::SuperCellSize::toRT( );
 
     AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
-    PMACC_TYPEKERNEL( kernelManipulateAllParticles )
+    PMACC_KERNEL( kernelManipulateAllParticles{} )
         (mapper.getGridDim(), block)
         ( this->particlesBuffer->getDeviceParticleBox( ),
           functor,

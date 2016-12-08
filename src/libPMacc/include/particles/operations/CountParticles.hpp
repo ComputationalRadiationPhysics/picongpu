@@ -121,7 +121,7 @@ struct CountParticles
 
         AreaMapping<AREA, CellDesc> mapper(cellDescription);
 
-        PMACC_TYPEKERNEL(kernelCountParticles)
+        PMACC_KERNEL(kernelCountParticles{})
             (mapper.getGridDim(), block)
             (buffer.getDeviceParticlesBox(),
              counter.getDeviceBuffer().getBasePointer(),

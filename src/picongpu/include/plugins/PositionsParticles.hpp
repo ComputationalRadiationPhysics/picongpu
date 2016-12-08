@@ -260,7 +260,7 @@ private:
         auto block = SuperCellSize::toRT();
 
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
-        PMACC_TYPEKERNEL(kernelPositionsParticles)
+        PMACC_KERNEL(kernelPositionsParticles{})
             (mapper.getGridDim(), block)
             (particles->getDeviceParticlesBox(),
              gParticle->getDeviceBuffer().getBasePointer(),
