@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -46,7 +46,7 @@ namespace picongpu
        *  The axises of the octant point towards:
        *  (+1,0,0) ; (0,+1,0) ; (0,0,-1)
        */
-        
+
       /* generate two indices from single block index */
       constexpr int N_angle_split = 16; /* index split distance */
       /* get column index for computing angle theta: */
@@ -63,7 +63,7 @@ namespace picongpu
       /* compute both angles */
       const picongpu::float_64 theta(  my_index_theta * delta_angle  + 0.5*picongpu::PI );
       const picongpu::float_64 phi(    my_index_phi   * delta_angle  );
-      
+
       /* compute unit vector */
             picongpu::float_32 sinPhi;
       picongpu::float_32 cosPhi;
@@ -75,6 +75,6 @@ namespace picongpu
 
 
     }
-    
+
   } // end namespace radiation_observer
 } // end namespace picongpu

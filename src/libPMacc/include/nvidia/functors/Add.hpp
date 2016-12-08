@@ -32,7 +32,7 @@ namespace nvidia
 namespace functors
 {
     struct Add
-    {    
+    {
         template<typename Dst, typename Src >
         HDINLINE void operator()(Dst & dst, const Src & src) const
         {

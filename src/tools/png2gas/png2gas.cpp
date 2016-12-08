@@ -106,10 +106,10 @@ bool parseCmdLine(int argc, char **argv, Options &options)
                 std::cerr << std::endl << desc << std::endl;
                 return false;
             }
-            
+
             options.dataOffset.set(offset[0], offset[1], offset[2]);
         }
-        
+
 
     } catch (const boost::program_options::error& e)
     {

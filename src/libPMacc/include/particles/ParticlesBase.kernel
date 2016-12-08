@@ -413,9 +413,9 @@ struct kernelFillGaps
 struct kernelDeleteParticles
 {
     template< class T_ParticleBox, class Mapping>
-    DINLINE void operator()( 
+    DINLINE void operator()(
         T_ParticleBox pb,
-        Mapping mapper 
+        Mapping mapper
     ) const
     {
         using namespace particles::operations;
@@ -466,7 +466,7 @@ struct kernelDeleteParticles
 struct kernelBashParticles
 {
     template< class ParBox, class BORDER, class Mapping>
-    DINLINE void operator()( 
+    DINLINE void operator()(
         ParBox pb,
         ExchangePushDataBox<vint_t, BORDER, Mapping::Dim - 1 > border,
         Mapping mapper ) const

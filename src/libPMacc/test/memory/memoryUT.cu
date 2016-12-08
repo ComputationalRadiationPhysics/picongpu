@@ -70,7 +70,7 @@ std::vector<size_t> getElementsPerDim(){
 
     // Elements per dimension
     for(size_t i = 0; i < nElements.size(); ++i){
-        nElementsPerDim.push_back(std::pow(nElements[i], static_cast<double>(1)/static_cast<double>(T_Dim::value))); 
+        nElementsPerDim.push_back(std::pow(nElements[i], static_cast<double>(1)/static_cast<double>(T_Dim::value)));
 
     }
     return nElementsPerDim;

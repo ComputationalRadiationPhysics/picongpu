@@ -37,7 +37,7 @@ namespace traits
 template<typename T_Type, bool T_IsFundamental = boost::is_fundamental<T_Type>::value>
 struct GetNComponents
 {
-    PMACC_CASSERT_MSG_TYPE( __GetNComponents_is_not_defined_for_this_type, T_Type, false ); 
+    PMACC_CASSERT_MSG_TYPE( __GetNComponents_is_not_defined_for_this_type, T_Type, false );
     static constexpr uint32_t value = 0;
 };
 

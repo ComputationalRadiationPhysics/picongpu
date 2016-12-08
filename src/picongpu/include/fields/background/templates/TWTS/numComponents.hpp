@@ -20,7 +20,7 @@
 
 
 #pragma once
- 
+
 namespace picongpu
 {
 namespace templates

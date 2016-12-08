@@ -35,7 +35,7 @@ struct SimHeader
     uint32_t step;
     picongpu::float_32 scale[2];
     picongpu::float_32 cellSizeArr[2];
-    
+
 
     SimHeader() : step(0)
     {

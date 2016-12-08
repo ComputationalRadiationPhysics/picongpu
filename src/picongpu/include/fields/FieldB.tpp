@@ -95,9 +95,9 @@ fieldE( NULL )
         GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin
         >::type UpperMarginInterpolationAndSolver;
 
-    /* Calculate upper and lower margin for pusher 
-       (currently all pusher use the interpolation of the species)  
-       and find maximum margin 
+    /* Calculate upper and lower margin for pusher
+       (currently all pusher use the interpolation of the species)
+       and find maximum margin
     */
     typedef typename PMacc::particles::traits::FilterByFlag
     <

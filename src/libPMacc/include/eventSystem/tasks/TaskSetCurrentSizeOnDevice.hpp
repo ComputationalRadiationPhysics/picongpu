@@ -93,9 +93,9 @@ private:
             1,
             0,
             this->getCudaStream()
-        >>>( 
+        >>>(
             kernelSetValueOnDeviceMemory{},
-            sizePtr, 
+            sizePtr,
             size
         );
 

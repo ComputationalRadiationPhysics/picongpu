@@ -32,7 +32,7 @@ namespace PMacc
 namespace nvidia
 {
     /**
-     * 
+     *
      * @tparam T_KernelFunctor type of the functor for device execution
      * @param kernel functor for device execution
      * @param args arguments for the functor
