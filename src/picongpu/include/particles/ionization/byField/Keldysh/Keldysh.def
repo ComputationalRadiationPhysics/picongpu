@@ -51,7 +51,7 @@ namespace ionization
      * - this is a Monte Carlo method: if a random number is smaller
      *   or equal than the ionization probability -> increase the charge state
      * - see for example: D. Bauer and P. Mulser. Exact field ionization rates in the barrier-suppression
-     *   regime from numerical time-dependent Schrödinger-equation calculations.
+     *   regime from numerical time-dependent Schroedinger-equation calculations.
      *   Physical Review A, 59(1):569+, January 1999.
      *
      * wrapper class,

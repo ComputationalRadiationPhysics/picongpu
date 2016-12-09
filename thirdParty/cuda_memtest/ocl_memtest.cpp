@@ -149,9 +149,11 @@ read_kernel_source(void)
   size_t rc = fread(kernel_source, 1, MAX_KERNEL_FILE_SIZE, fd);
   if (rc < 0 || rc >= MAX_KERNEL_FILE_SIZE){
     printf("ERROR: return value out of range for reading kernel file(rc=%lx)\n", rc);
+    fclose(fd);
     exit(1);
   }
 
+  fclose(fd);
   return;
 }
 

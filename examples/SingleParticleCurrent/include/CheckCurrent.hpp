@@ -42,7 +42,7 @@ struct CheckCurrent
         {
             const float_X unit_current = UNIT_CHARGE / (UNIT_LENGTH * UNIT_LENGTH * UNIT_TIME);
             totalJ *= unit_current;
-            printf("totalJ: (%g, %g, %g) A/m²\n", totalJ.x(), totalJ.y(), totalJ.z());
+            printf("totalJ: (%g, %g, %g) A/m^2\n", totalJ.x(), totalJ.y(), totalJ.z());
         }
 
         HDINLINE void operator()(float3_X data, PMacc::math::Int<3> cellIdx)
@@ -82,7 +82,7 @@ struct CheckCurrent
 
         const float_64 j = BASE_CHARGE / CELL_VOLUME * math::abs(beta) * SPEED_OF_LIGHT;
         const float_64 unit_current = UNIT_CHARGE / (UNIT_LENGTH * UNIT_LENGTH * UNIT_TIME);
-        std::cout << "j = rho * abs(velocity) = " << std::setprecision(6) << j * unit_current << " A/m²" << std::endl;
+        std::cout << "j = rho * abs(velocity) = " << std::setprecision(6) << j * unit_current << " A/m^2" << std::endl;
         std::cout << "------------------------------------------\n\n";
 
         std::cout << "fieldJ facts:\n\n";

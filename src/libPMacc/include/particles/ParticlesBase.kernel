@@ -266,7 +266,7 @@ struct kernelFillGapsLastFrame
         {
             //count particles in last frame
             const bool isParticle = lastFrame[threadIdx.x][multiMask_];
-            if ( isParticle == true ) //\todo: bits zählen
+            if ( isParticle == true ) // \todo: count bits
             {
                 nvidia::atomicAllInc( &counterParticles );
             }
