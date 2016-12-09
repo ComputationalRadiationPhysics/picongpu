@@ -690,10 +690,14 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: Setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter(slides, restartStep);
 
-        /* re-distribute the local offsets in y-direction */
+        /* re-distribute the local offsets in y-direction
+         * this will work for restarts with moving window still enabled
+         * and restarts that disable the moving window
+         * \warning enabling the moving window from a checkpoint that
+         *          had no moving window will not work
+         */
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        if( MovingWindow::getInstance().isSlidingWindowActive() )
-            gc.setStateAfterSlides(slides);
+        gc.setStateAfterSlides(slides);
 
         /* set window for restart, complete global domain */
         mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);

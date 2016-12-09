@@ -390,8 +390,7 @@ public:
          * information such as local offsets in y-direction
          */
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        if( MovingWindow::getInstance().isSlidingWindowActive() )
-            gc.setStateAfterSlides(0);
+        gc.setStateAfterSlides(0);
 
         /* fill all objects registed in DataConnector */
         if (initialiserController)
