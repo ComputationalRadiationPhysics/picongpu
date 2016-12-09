@@ -83,12 +83,16 @@ namespace radiationNyquist
 
   /* Choose different form factors in order to consider different  particle shapes for radiation
    *  - radFormFactor_CIC_3D ... CIC charge distribution
+   *  - radFormFactor_TSC_3D ... TSC charge distribution
+   *  - radFormFactor_PCS_3D ... PCS charge distribution
    *  - radFormFactor_CIC_1Dy ... only CIC charge distribution in y
    *  - radFormFactor_Gauss_spherical ... symmetric Gauss charge distribution
    *  - radFormFactor_Gauss_cell ... Gauss charge distribution according to cell size
    *  - radFormFactor_incoherent ... only incoherent radiation
    */
   namespace radFormFactor_CIC_3D { }
+  namespace radFormFactor_TSC_3D { }
+  namespace radFormFactor_PCS_3D { }
   namespace radFormFactor_CIC_1Dy { }
   namespace radFormFactor_Gauss_spherical { }
   namespace radFormFactor_Gauss_cell { }
