@@ -37,127 +37,19 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # set helper pathes to find libraries and packages
 # Add specific hints
-list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
-list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
-list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
-list(APPEND CMAKE_PREFIX_PATH "$ENV{VT_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
-# Last add generic system path to the end (as last fallback)
-list(APPEND "/usr/lib/x86_64-linux-gnu/")
-
-# own modules for find_packages
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/cmake-modules/)
 
 
 ################################################################################
-# Find CUDA
+# Find PMacc
 ################################################################################
 
-find_package(CUDA 7.5 REQUIRED)
-
-set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
-
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 11)
-
-# work-around since the above flag does not necessarily put -std=c++11 in
-# the CMAKE_CXX_FLAGS, which is unfurtunately hiding the switch from FindCUDA
-if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif()
-
-if(IS_CUDA_ARCH_UNSUPPORTED)
-    message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
-                       "SM 2.0 or higher is required.")
-endif(IS_CUDA_ARCH_UNSUPPORTED)
-
-set(CUDA_FTZ "--ftz=false" CACHE STRING "Set flush to zero for GPU")
-
-set(CUDA_MATH --use_fast_math CACHE STRING "Enable fast-math" )
-option(CUDA_SHOW_REGISTER "Show kernel registers and create PTX" OFF)
-option(CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps (folder: nvcc_tmp)" OFF)
-option(CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck" OFF)
-
-if(CUDA_SHOW_CODELINES)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --source-in-ptx -Xcompiler -rdynamic -lineinfo)
-    set(CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
-endif(CUDA_SHOW_CODELINES)
-
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH} ${CUDA_MATH} ${CUDA_FTZ})
-if(CUDA_SHOW_REGISTER)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xptxas=-v)
-endif(CUDA_SHOW_REGISTER)
-
-if(CUDA_KEEP_FILES)
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/nvcc_tmp")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
-endif(CUDA_KEEP_FILES)
-
-
-################################################################################
-# VampirTrace
-################################################################################
-
-option(VAMPIR_ENABLE "Create PIConGPU with VampirTrace support" OFF)
-
-# set filters: please do NOT use line breaks WITHIN the string!
-set(VT_INST_FILE_FILTER
-    "stl,usr/include,libgpugrid,vector_types.h,Vector.hpp,DeviceBuffer.hpp,DeviceBufferIntern.hpp,Buffer.hpp,StrideMapping.hpp,StrideMappingMethods.hpp,MappingDescription.hpp,AreaMapping.hpp,AreaMappingMethods.hpp,ExchangeMapping.hpp,ExchangeMappingMethods.hpp,DataSpace.hpp,Manager.hpp,Manager.tpp,Transaction.hpp,Transaction.tpp,TransactionManager.hpp,TransactionManager.tpp,Vector.tpp,Mask.hpp,ITask.hpp,EventTask.hpp,EventTask.tpp,StandardAccessor.hpp,StandardNavigator.hpp,HostBuffer.hpp,HostBufferIntern.hpp"
-    CACHE STRING "VampirTrace: Files to exclude from instrumentation")
-set(VT_INST_FUNC_FILTER
-    "vector,Vector,dim3,GPUGrid,execute,allocator,Task,Manager,Transaction,Mask,operator,DataSpace,PitchedBox,Event,new,getGridDim,GetCurrentDataSpaces,MappingDescription,getOffset,getParticlesBuffer,getDataSpace,getInstance"
-    CACHE STRING "VampirTrace: Functions to exclude from instrumentation")
-
-if(VAMPIR_ENABLE)
-    message(STATUS "Building with VampirTrace support")
-    set(VAMPIR_ROOT "$ENV{VT_ROOT}")
-    if(NOT VAMPIR_ROOT)
-        message(FATAL_ERROR "Environment variable VT_ROOT not set!")
-    endif(NOT VAMPIR_ROOT)
-
-    # compile flags
-    execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-compile
-                    OUTPUT_VARIABLE VT_COMPILEFLAGS
-                    RESULT_VARIABLE VT_CONFIG_RETURN
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if(NOT VT_CONFIG_RETURN EQUAL 0)
-        message(FATAL_ERROR "Can NOT execute 'vtc++' at $ENV{VT_ROOT}/bin/vtc++ - check file permissions")
-    endif()
-    # link flags
-    execute_process(COMMAND $ENV{VT_ROOT}/bin/vtc++ -vt:hyb -vt:showme-link
-                    OUTPUT_VARIABLE VT_LINKFLAGS
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-    # bugfix showme
-    string(REPLACE "--as-needed" "--no-as-needed" VT_LINKFLAGS "${VT_LINKFLAGS}")
-
-    # modify our flags
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${VT_LINKFLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VT_COMPILEFLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -finstrument-functions-exclude-file-list=${VT_INST_FILE_FILTER}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -finstrument-functions-exclude-function-list=${VT_INST_FUNC_FILTER}")
-
-    # nvcc flags (rly necessary?)
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
-        -Xcompiler=-finstrument-functions,-finstrument-functions-exclude-file-list=\\\"${VT_INST_FILE_FILTER}\\\"
-        -Xcompiler=-finstrument-functions-exclude-function-list=\\\"${VT_INST_FUNC_FILTER}\\\"
-        -Xcompiler=-DVTRACE -Xcompiler=-I\\\"${VT_ROOT}/include/vampirtrace\\\"
-        -v)
-
-    # for manual instrumentation and hints that vampir is enabled in our code
-    add_definitions(-DVTRACE)
-
-    # titan work around: currently (5.14.4) the -D defines are not provided by -vt:showme-compile
-    add_definitions(-DMPICH_IGNORE_CXX_SEEK)
-endif(VAMPIR_ENABLE)
+find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc")
+include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${PMacc_LIBRARIES})
+add_definitions(${PMacc_DEFINITIONS})
 
 
 ################################################################################
@@ -167,30 +59,12 @@ endif(VAMPIR_ENABLE)
 option(PIC_RELEASE "Build release version, disables all runtime asserts" OFF)
 if(PIC_RELEASE)
     message(STATUS "Release version")
-
     set(CMAKE_BUILD_TYPE Release)
     add_definitions(-DNDEBUG)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcompiler=-pthread")
 else(PIC_RELEASE)
     message(STATUS "Debug version")
-
     set(CMAKE_BUILD_TYPE Debug)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -g "-Xcompiler=-g,-pthread")
 endif(PIC_RELEASE)
-
-
-################################################################################
-# Find MPI
-################################################################################
-
-find_package(MPI REQUIRED)
-include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
-set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
-
-# bullxmpi fails if it can not find its c++ counter part
-if(MPI_CXX_FOUND)
-    set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
-endif(MPI_CXX_FOUND)
 
 
 ################################################################################
@@ -218,73 +92,6 @@ find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options regex filesystem
                                               system thread math_tr1)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
-
-# Boost 1.55 added support for a define that makes result_of look for
-# the result<> template and falls back to decltype if none is found. This is
-# great for the transition from the "wrong" usage to the "correct" one as
-# both can be used. But:
-# 1) Cannot be used in 7.0 due to nvcc bug:
-#    http://stackoverflow.com/questions/31940457/
-# 2) Requires C++11 enabled as there is no further check in boost besides
-#    the version check of nvcc
-if( (NOT CUDA_VERSION VERSION_EQUAL 7.0) AND (CMAKE_CXX_STANDARD EQUAL 11) )
-    add_definitions(-DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
-else()
-    # Fallback
-    add_definitions(-DBOOST_RESULT_OF_USE_TR1)
-endif()
-
-
-# Boost >= 1.60.0 and CUDA != 7.5 failed when used with C++11
-# seen with boost 1.60.0 - 1.62.0 (atm latest) and CUDA 7.0, 8.0 (atm latest)
-# CUDA 7.5 works without a workaround
-if( (Boost_VERSION GREATER 105999) AND
-    (NOT CUDA_VERSION VERSION_EQUAL 7.5) )
-    # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
-    message(STATUS "Boost: Disable template aliases")
-    add_definitions(-DBOOST_NO_CXX11_TEMPLATE_ALIASES)
-endif()
-
-
-################################################################################
-# Find OpenMP
-################################################################################
-
-find_package(OpenMP)
-if(OPENMP_FOUND)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
-
-
-################################################################################
-# Find mallocMC
-################################################################################
-
-find_package(mallocMC 2.2.0 QUIET)
-
-if(NOT mallocMC_FOUND)
-  message(STATUS "Using mallocMC from thirdParty/ directory")
-  set(MALLOCMC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/mallocMC")
-  find_package(mallocMC 2.2.0 REQUIRED)
-endif(NOT mallocMC_FOUND)
-
-include_directories(SYSTEM ${mallocMC_INCLUDE_DIRS})
-add_definitions(${mallocMC_DEFINITIONS})
-set(LIBS ${LIBS} ${mallocMC_LIBRARIES})
-
-
-################################################################################
-# PMacc options
-################################################################################
-
-option(PMACC_BLOCKING_KERNEL
-       "Activate checks for every kernel call and synchronize after every kernel call" OFF)
-if(PMACC_BLOCKING_KERNEL)
-    add_definitions(-DPMACC_SYNC_KERNEL=1)
-endif(PMACC_BLOCKING_KERNEL)
-
-set(PMACC_VERBOSE "0" CACHE STRING "Set verbosity level for libPMacc")
-add_definitions(-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE})
 
 
 ################################################################################
@@ -370,27 +177,14 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
-    # new warning in gcc 4.8 (flag ignored in previous version)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
 # ICC
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_VARIADIC_TEMPLATES")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_FENV_H")
 # PGI
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
 endif()
-
-################################################################################
-# Configure include directories
-################################################################################
-
-# libPMacc
-
-set(PMACC_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc")
-include_directories(${PMACC_ROOT_DIR}/include)
 
 
 ################################################################################
@@ -424,12 +218,14 @@ if(PNGwriter_FOUND)
     set(LIBS ${LIBS} ${PNGwriter_LIBRARIES})
 endif(PNGwriter_FOUND)
 
+
 ################################################################################
 # ISAAC
 ################################################################################
 
 find_package(ISAAC 0.1.0 CONFIG QUIET)
 if(ISAAC_FOUND)
+    message(STATUS "Found ISAAC: ${ISAAC_DIR}")
     SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
     SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
 

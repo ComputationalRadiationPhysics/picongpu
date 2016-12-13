@@ -23,24 +23,25 @@
 ################################################################################
 # PMacc tests
 ################################################################################
+
 cmake_minimum_required(VERSION 3.3.0)
 project(PMaccTest)
 
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 11)
 
 ################################################################################
 # PMacc
 ################################################################################
+
 find_package(PMacc REQUIRED CONFIG PATHS ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${PMacc_LIBRARIES})
 add_definitions(${PMacc_DEFINITIONS})
 
+
 ###############################################################################
 # Boost.Test
 ###############################################################################
+
 find_package(Boost 1.57.0 COMPONENTS unit_test_framework  REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
