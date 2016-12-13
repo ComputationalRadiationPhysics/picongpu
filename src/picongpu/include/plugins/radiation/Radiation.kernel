@@ -399,7 +399,7 @@ struct kernelRadiationParticles
                     // if coherent and incoherent radiation of a single macro-particle
                     // is considered, create a form factor object
     #if (__COHERENTINCOHERENTWEIGHTING__==1)
-                    const radFormFactor::radFormFactor myRadFormFactor;
+                    const radFormFactor::radFormFactor myRadFormFactor{ };
     #endif
 
                     /* Particle loop: thread runs through loaded particle data
