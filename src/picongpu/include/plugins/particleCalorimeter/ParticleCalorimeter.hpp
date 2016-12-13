@@ -520,7 +520,7 @@ public:
         DataConnector &dc = Environment<>::get().DataConnector();
         ParticlesType* particles = &(dc.getData<ParticlesType > (speciesName, true));
 
-        PMACC_KERNEL(kernelParticleCalorimeter{})
+        PMACC_KERNEL(KernelParticleCalorimeter{})
                 (grid, mapper.getSuperCellSize())
                 (particles->getDeviceParticlesBox(), (MyCalorimeterFunctor)*this->calorimeterFunctor, mapper);
     }

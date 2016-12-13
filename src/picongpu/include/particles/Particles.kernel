@@ -59,7 +59,7 @@ namespace picongpu
 using namespace PMacc;
 
 
-struct kernelDeriveParticles
+struct KernelDeriveParticles
 {
     template<class T_MyParBox, class T_OtherFrameBox, class T_ManipulateFunctor, class Mapping>
     DINLINE void operator()(T_MyParBox myBox, T_OtherFrameBox otherBox, T_ManipulateFunctor manipulateFunctor, Mapping mapper) const
@@ -118,7 +118,7 @@ struct kernelDeriveParticles
     }
 };
 
-struct kernelManipulateAllParticles
+struct KernelManipulateAllParticles
 {
     /* kernel must called with one dimension for blockSize */
     template<typename T_ParticleFunctor,typename T_ParBox,  class Mapping>
@@ -174,7 +174,7 @@ struct kernelManipulateAllParticles
 };
 
 template< class BlockDescription_ >
-struct kernelMoveAndMarkParticles
+struct KernelMoveAndMarkParticles
 {
     template<class ParBox, class BBox, class EBox, class Mapping, class FrameSolver>
     DINLINE void operator()(

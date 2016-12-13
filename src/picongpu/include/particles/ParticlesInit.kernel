@@ -62,7 +62,7 @@ DINLINE float_X calcRealDensity(T_GasProfile& gasFunctor,
 }
 
 template< typename T_Species >
-struct kernelFillGridWithParticles
+struct KernelFillGridWithParticles
 {
     template<typename T_GasProfile, typename T_PositionFunctor, typename ParBox, class Mapping>
     DINLINE void operator()(

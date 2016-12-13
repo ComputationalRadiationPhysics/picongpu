@@ -93,7 +93,7 @@ DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_stre
     while (finish == 0);
 }
 
-struct kernelAbsorbBorder
+struct KernelAbsorbBorder
 {
     template<class BoxedMemory, class Mapping>
     DINLINE void operator()(BoxedMemory field, uint32_t thickness, float_X absorber_strength, Mapping mapper) const

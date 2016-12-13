@@ -47,7 +47,7 @@ namespace ionization
 using namespace PMacc;
 
 
-struct kernelIonizeParticles
+struct KernelIonizeParticles
 {
     /** kernelIonizeParticles
      * \brief main kernel for ionization

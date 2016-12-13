@@ -52,7 +52,7 @@ namespace po = boost::program_options;
 /** This kernel computes the kinetic and total energy summed over
  *  all particles of a species.
  **/
-struct kernelEnergyParticles
+struct KernelEnergyParticles
 {
     template<class ParBox, class DBox, class Mapping>
     DINLINE void operator()(ParBox pb,
@@ -319,7 +319,7 @@ private:
 
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
         /* kernel call = sum all particle energies on GPU */
-        PMACC_KERNEL(kernelEnergyParticles{})
+        PMACC_KERNEL(KernelEnergyParticles{})
             (mapper.getGridDim(), block)
             (particles->getDeviceParticlesBox(),
              gEnergy->getDeviceBuffer().getDataBox(),

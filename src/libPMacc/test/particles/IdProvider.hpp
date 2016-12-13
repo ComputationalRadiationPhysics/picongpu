@@ -42,7 +42,7 @@ namespace bmpl = boost::mpl;
 namespace
 {
     template< typename T_IdProvider >
-    struct generateIds
+    struct GenerateIds
     {
         template<class T_Box>
         DINLINE void operator()(T_Box outputbox, uint32_t numThreads, uint32_t numIdsPerThread) const
@@ -120,7 +120,7 @@ struct IdProviderTest
         BOOST_REQUIRE_EQUAL(IdProvider::getNewId(), state.nextId);
         // Generate the same IDs on the device
         PMacc::HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
-        PMACC_KERNEL(generateIds<IdProvider>{})(numBlocks, numThreadsPerBlock)
+        PMACC_KERNEL(GenerateIds<IdProvider>{})(numBlocks, numThreadsPerBlock)
                 (idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
         idBuf.deviceToHost();
         BOOST_REQUIRE_EQUAL(numIds, ids.size());

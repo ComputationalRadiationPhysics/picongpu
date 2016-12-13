@@ -44,7 +44,7 @@ namespace picongpu
     using namespace PMacc;
 
     template< class BlockDescription_, uint32_t AREA >
-    struct kernelComputeSupercells
+    struct KernelComputeSupercells
     {
         template<class TmpBox, class ParBox, class FrameSolver, class Mapping>
         DINLINE void operator()( TmpBox fieldTmp, ParBox boxPar, FrameSolver frameSolver, Mapping mapper ) const
@@ -102,7 +102,7 @@ namespace picongpu
         }
     };
 
-    struct kernelBashValue
+    struct KernelBashValue
     {
         template<class Box, class Mapping>
         DINLINE void operator()( Box fieldTmp,
@@ -138,7 +138,7 @@ namespace picongpu
         }
     };
 
-    struct kernelInsertValue
+    struct KernelInsertValue
     {
         template<class Box, class Mapping>
         DINLINE void operator()( Box fieldTmp,

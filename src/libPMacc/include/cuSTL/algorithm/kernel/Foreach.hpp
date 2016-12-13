@@ -66,7 +66,7 @@ namespace kernel
         auto blockDim = BlockDim::toRT();                                                                   \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                  \
         using namespace PMacc;                                                                              \
-        PMACC_KERNEL(detail::kernelForeach{})(mapper.cudaGridDim(p_zone.size), blockDim)                    \
+        PMACC_KERNEL(detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size), blockDim)                    \
                   /* c0_shifted, c1_shifted, ... */                                                         \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                   \
     }

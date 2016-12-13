@@ -142,7 +142,7 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDim)
         );                                                                                                          \
         kernel::detail::SphericMapper<Zone::dim> mapper;                                                            \
         using namespace PMacc;                                                                                      \
-        PMACC_KERNEL(kernel::detail::kernelForeach{})(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockDim)   \
+        PMACC_KERNEL(kernel::detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockDim)   \
                 /*   c0_shifted, ..., cN_shifted    */                                                              \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                           \
     }

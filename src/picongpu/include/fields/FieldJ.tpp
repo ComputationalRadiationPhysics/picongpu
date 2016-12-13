@@ -188,7 +188,7 @@ void FieldJ::bashField( uint32_t exchangeType )
     auto grid = mapper.getGridDim( );
 
     const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-    PMACC_KERNEL( kernelBashCurrent{} )
+    PMACC_KERNEL( KernelBashCurrent{} )
         ( grid, mapper.getSuperCellSize( ) )
         ( fieldJ.getDeviceBuffer( ).getDataBox( ),
           fieldJ.getSendExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -204,7 +204,7 @@ void FieldJ::insertField( uint32_t exchangeType )
     auto grid = mapper.getGridDim( );
 
     const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-    PMACC_KERNEL( kernelInsertCurrent{} )
+    PMACC_KERNEL( KernelInsertCurrent{} )
         ( grid, mapper.getSuperCellSize( ) )
         ( fieldJ.getDeviceBuffer( ).getDataBox( ),
           fieldJ.getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -302,7 +302,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
 
     do
     {
-        PMACC_KERNEL( kernelComputeCurrent<workerMultiplier, BlockArea, AREA>{} )
+        PMACC_KERNEL( KernelComputeCurrent<workerMultiplier, BlockArea, AREA>{} )
             ( mapper.getGridDim( ), blockSize )
             ( jBox,
               pBox, solver, mapper );
@@ -315,7 +315,7 @@ template<uint32_t AREA, class T_CurrentInterpolation>
 void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
 {
     AreaMapping<AREA, MappingDesc> mapper(cellDescription);
-    PMACC_KERNEL( kernelAddCurrentToEMF{} )
+    PMACC_KERNEL( KernelAddCurrentToEMF{} )
         ( mapper.getGridDim(), MappingDesc::SuperCellSize::toRT( ) )
         ( this->fieldE->getDeviceDataBox( ),
           this->fieldB->getDeviceDataBox( ),

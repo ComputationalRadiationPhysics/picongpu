@@ -83,7 +83,7 @@ getValue(T_Type& value)
 
 }
 
-struct kernelSetValue
+struct KernelSetValue
 {
     template <class DataBox, typename T_ValueType, typename Space>
     DINLINE void operator()(DataBox data, const T_ValueType value, const Space size) const
@@ -192,7 +192,7 @@ public:
                 0,
                 this->getCudaStream()
             >>>(
-                kernelSetValue{},
+                KernelSetValue{},
                 destBox,
                 this->value,
                 area_size
@@ -255,7 +255,7 @@ public:
                 0,
                 this->getCudaStream()
             >>>(
-                kernelSetValue{},
+                KernelSetValue{},
                 destBox,
                 devicePtr,
                 area_size

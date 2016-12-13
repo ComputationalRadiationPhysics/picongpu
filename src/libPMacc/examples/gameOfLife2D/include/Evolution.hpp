@@ -38,7 +38,7 @@ namespace gol
     {
         using namespace PMacc;
 
-        struct evolution
+        struct Evolution
         {
             template<class BoxReadOnly, class BoxWriteOnly, class Mapping>
             DINLINE void operator()(BoxReadOnly buffRead,
@@ -84,7 +84,7 @@ namespace gol
             }
         };
 
-        struct randomInit
+        struct RandomInit
         {
             template<class BoxWriteOnly, class Mapping>
             DINLINE void operator()(BoxWriteOnly buffWrite,
@@ -136,7 +136,7 @@ namespace gol
             GridController<DIM2>& gc = Environment<DIM2>::get().GridController();
             uint32_t seed = gc.getGlobalSize() + gc.getGlobalRank();
 
-            PMACC_KERNEL(kernel::randomInit{})
+            PMACC_KERNEL(kernel::RandomInit{})
                     (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT())
                     (
                      writeBox,
@@ -149,7 +149,7 @@ namespace gol
         void run(const DBox& readBox, const DBox & writeBox)
         {
             AreaMapping < Area, MappingDesc > mapper(mapping);
-            PMACC_KERNEL(kernel::evolution{})
+            PMACC_KERNEL(kernel::Evolution{})
                     (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT())
                     (readBox,
                      writeBox,

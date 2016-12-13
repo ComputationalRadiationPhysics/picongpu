@@ -42,7 +42,7 @@ namespace po = boost::program_options;
 
 typedef FieldJ::DataBoxType J_DataBox;
 
-struct kernelSumCurrents
+struct KernelSumCurrents
 {
     template<class Mapping>
     DINLINE void operator()(J_DataBox fieldJ, float3_X* gCurrent, Mapping mapper) const
@@ -188,7 +188,7 @@ private:
         auto block = MappingDesc::SuperCellSize::toRT();
 
         AreaMapping<CORE + BORDER, MappingDesc> mapper(*cellDescription);
-        PMACC_KERNEL(kernelSumCurrents{})
+        PMACC_KERNEL(KernelSumCurrents{})
             (mapper.getGridDim(), block)
             (fieldJ->getDeviceDataBox(),
              sumcurrents->getDeviceBuffer().getBasePointer(),

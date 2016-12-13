@@ -28,7 +28,7 @@ using namespace PMacc;
 
 /** This kernel is only called for guard particles.
  */
-struct kernelParticleCalorimeter
+struct KernelParticleCalorimeter
 {
     template<typename ParticlesBox, typename CalorimeterFunctor, typename Mapper>
     DINLINE void operator()(ParticlesBox particlesBox,

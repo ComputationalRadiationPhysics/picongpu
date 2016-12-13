@@ -49,7 +49,7 @@ DINLINE void operator()(Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Fun
     functor(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
 }
 
-struct kernelForeach
+struct KernelForeach
 {
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREACH, _)
 };

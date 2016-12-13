@@ -159,7 +159,7 @@ public:
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
             /* this sanity check costs a little bit of time but hdf5 writing is slower */
-            PMACC_KERNEL(copySpecies{})
+            PMACC_KERNEL(CopySpecies{})
                 (mapper.getGridDim(), block)
                 (counterBuffer.getDeviceBuffer().getPointer(),
                  deviceFrame, speciesTmp->getDeviceParticlesBox(),
