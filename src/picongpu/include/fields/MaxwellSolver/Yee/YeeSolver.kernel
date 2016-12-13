@@ -25,7 +25,7 @@ namespace yeeSolver
 using namespace PMacc;
 
 template< typename BlockDescription_, typename CurlType_ >
-struct kernelUpdateE
+struct KernelUpdateE
 {
     template<class EBox, class BBox, class Mapping>
     DINLINE void operator()(EBox fieldE, BBox fieldB, Mapping mapper) const
@@ -58,7 +58,7 @@ struct kernelUpdateE
 };
 
 template<class BlockDescription_, class CurlType_>
-struct kernelUpdateBHalf
+struct KernelUpdateBHalf
 {
     template<class EBox, class BBox, class Mapping>
     DINLINE void operator()(

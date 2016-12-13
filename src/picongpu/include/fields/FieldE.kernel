@@ -36,7 +36,7 @@ namespace picongpu
 {
 using namespace PMacc;
 
-struct kernelLaserE
+struct KernelLaserE
 {
     template<class EBox>
     DINLINE void operator()(EBox fieldE, LaserManipulator lMan) const

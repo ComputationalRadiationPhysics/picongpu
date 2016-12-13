@@ -96,7 +96,7 @@ struct SglParticle
  * \warning this analyser MUST NOT be used with more than one (global!)
  * particle and is created for one-particle-test-purposes only
  */
-struct kernelPositionsParticles
+struct KernelPositionsParticles
 {
     template<class ParBox, class FloatPos, class Mapping>
     DINLINE void operator()(ParBox pb,
@@ -260,7 +260,7 @@ private:
         auto block = SuperCellSize::toRT();
 
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
-        PMACC_KERNEL(kernelPositionsParticles{})
+        PMACC_KERNEL(KernelPositionsParticles{})
             (mapper.getGridDim(), block)
             (particles->getDeviceParticlesBox(),
              gParticle->getDeviceBuffer().getBasePointer(),

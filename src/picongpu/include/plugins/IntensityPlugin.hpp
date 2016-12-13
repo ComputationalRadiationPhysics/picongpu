@@ -51,7 +51,7 @@ using namespace PMacc;
 /* count particles in an area
  * is not optimized, it checks any particle position if it is really a particle
  */
-struct kernelIntensity
+struct KernelIntensity
 {
     template<class FieldBox, class BoxMax, class BoxIntegral>
     DINLINE void operator()(FieldBox field, DataSpace<simDim> cellsCount, BoxMax boxMax, BoxIntegral integralBox) const
@@ -341,7 +341,7 @@ private:
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
         auto  block = PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT();
 
-        PMACC_KERNEL(kernelIntensity{})
+        PMACC_KERNEL(KernelIntensity{})
             (grid, block)
             (
              fieldE->getDeviceDataBox(),

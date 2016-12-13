@@ -51,7 +51,7 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
-struct kernelBinEnergyParticles
+struct KernelBinEnergyParticles
 {
     /* sum up the energy of all particles
      * the kinetic energy of all active particles will be calculated
@@ -410,7 +410,7 @@ private:
         const float_X maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
-        PMACC_KERNEL(kernelBinEnergyParticles{})
+        PMACC_KERNEL(KernelBinEnergyParticles{})
             (mapper.getGridDim(), block, (realNumBins) * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              gBins->getDeviceBuffer().getDataBox(), numBins, minEnergy,

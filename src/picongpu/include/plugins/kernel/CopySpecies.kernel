@@ -35,7 +35,7 @@ namespace picongpu
 using namespace PMacc;
 
 
-struct copySpecies
+struct CopySpecies
 {
     /** copy particle of a species to a host frame
      *

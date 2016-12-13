@@ -201,7 +201,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
     gridBlocks.y()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).z( ) / SuperCellSize::z::value;
     blockSize.y()=SuperCellSize::z::value;
 #endif
-    PMACC_KERNEL( kernelLaserE{} )
+    PMACC_KERNEL( KernelLaserE{} )
         ( gridBlocks,
           blockSize )
         ( this->getDeviceDataBox( ), laser->getLaserManipulator( currentStep ) );

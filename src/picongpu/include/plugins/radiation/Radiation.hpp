@@ -1190,7 +1190,7 @@ private:
 
 
       // PIC-like kernel call of the radiation kernel
-      PMACC_KERNEL(kernelRadiationParticles{})
+      PMACC_KERNEL(KernelRadiationParticles{})
         (gridDim_rad, blockDim_rad)
         (
          /*Pointer to particles memory on the device*/

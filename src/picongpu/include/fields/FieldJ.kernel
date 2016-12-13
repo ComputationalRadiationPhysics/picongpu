@@ -48,7 +48,7 @@ using namespace PMacc;
 typedef FieldJ::DataBoxType J_DataBox;
 
 template< int workerMultiplier, class BlockDescription_, uint32_t AREA >
-struct kernelComputeCurrent
+struct KernelComputeCurrent
 {
     template<class JBox, class ParBox, class Mapping, class FrameSolver>
     DINLINE void operator()(JBox fieldJ,
@@ -162,7 +162,7 @@ private:
     const PMACC_ALIGN(m_deltaTime, float_32);
 };
 
-struct kernelAddCurrentToEMF
+struct KernelAddCurrentToEMF
 {
     template<class T_CurrentInterpolation, class T_Mapping>
     DINLINE void operator()(typename FieldE::DataBoxType fieldE,
@@ -206,7 +206,7 @@ struct kernelAddCurrentToEMF
     }
 };
 
-struct kernelBashCurrent
+struct KernelBashCurrent
 {
     template<class Mapping>
     DINLINE void operator()(J_DataBox fieldJ,
@@ -243,7 +243,7 @@ struct kernelBashCurrent
     }
 };
 
-struct kernelInsertCurrent
+struct KernelInsertCurrent
 {
     template<class Mapping>
     DINLINE void operator()(J_DataBox fieldJ,

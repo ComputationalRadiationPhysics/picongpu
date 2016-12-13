@@ -36,7 +36,7 @@ namespace cellwiseOperation
 {
     using namespace PMacc;
 
-    struct kernelCellwiseOperation
+    struct KernelCellwiseOperation
     {
         /** Kernel that calls T_OpFunctor and T_ValFunctor on each cell of a field
          *
@@ -115,7 +115,7 @@ namespace cellwiseOperation
 
             /* start kernel */
             AreaMapping<T_Area, MappingDesc> mapper(m_cellDescription);
-            PMACC_KERNEL(kernelCellwiseOperation{})
+            PMACC_KERNEL(KernelCellwiseOperation{})
                     (mapper.getGridDim(), SuperCellSize::toRT())
                     (field->getDeviceDataBox(), opFunctor, valFunctor, totalCellOffset, currentStep, mapper);
         }

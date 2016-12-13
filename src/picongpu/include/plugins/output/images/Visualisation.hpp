@@ -176,7 +176,7 @@ struct typicalFields < 5 >
     }
 };
 
-struct kernelPaintFields
+struct KernelPaintFields
 {
     template<class EBox, class BBox, class JBox, class Mapping>
     DINLINE void operator() (
@@ -257,7 +257,7 @@ struct kernelPaintFields
     }
 };
 
-struct kernelPaintParticles3D
+struct KernelPaintParticles3D
 {
     template<class ParBox, class Mapping>
     DINLINE void
@@ -391,7 +391,7 @@ struct kernelPaintParticles3D
 namespace vis_kernels
 {
 
-struct divideAnyCell
+struct DivideAnyCell
 {
     template<class Mem, typename Type>
     DINLINE void operator()(Mem mem, uint32_t n, Type divisor) const
@@ -405,7 +405,7 @@ struct divideAnyCell
 };
 
 
-struct channelsToRGB
+struct ChannelsToRGB
 {
     template<class Mem>
     DINLINE void operator()(Mem mem, uint32_t n) const
@@ -528,7 +528,7 @@ public:
         PMACC_ASSERT(cellDescription != NULL);
         AreaMapping<CORE + BORDER, MappingDesc> mapper(*cellDescription);
         //create image fields
-        PMACC_KERNEL(kernelPaintFields{})
+        PMACC_KERNEL(KernelPaintFields{})
             (mapper.getGridDim(), SuperCellSize::toRT())
             (fieldE->getDeviceDataBox(),
              fieldB->getDeviceDataBox(),
@@ -569,18 +569,18 @@ public:
         //We don't know the superCellSize at compile time
         // (because of the runtime dimension selection in any analyser),
         // thus we must use a one dimension kernel and no mapper
-        PMACC_KERNEL(vis_kernels::divideAnyCell{})(ceil((float_64) elements / 256), 256)(d1access, elements, max);
+        PMACC_KERNEL(vis_kernels::DivideAnyCell{})(ceil((float_64) elements / 256), 256)(d1access, elements, max);
 #endif
 
         // convert channels to RGB
-        PMACC_KERNEL(vis_kernels::channelsToRGB{})(ceil((float_64) elements / 256), 256)(d1access, elements);
+        PMACC_KERNEL(vis_kernels::ChannelsToRGB{})(ceil((float_64) elements / 256), 256)(d1access, elements);
 
         // add density color channel
         DataSpace<simDim> blockSize(MappingDesc::SuperCellSize::toRT());
         DataSpace<DIM2> blockSize2D(blockSize[m_transpose.x()], blockSize[m_transpose.y()]);
 
         //create image particles
-        PMACC_KERNEL(kernelPaintParticles3D{})
+        PMACC_KERNEL(KernelPaintParticles3D{})
             (mapper.getGridDim(), SuperCellSize::toRT(), blockSize2D.productOfComponents() * sizeof (float_X))
             (particles->getDeviceParticlesBox(),
              img->getDeviceBuffer().getDataBox(),

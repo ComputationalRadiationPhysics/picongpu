@@ -303,7 +303,7 @@ struct CallIonization
              * "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER"
              * "threads" is calculated from the previously defined vector "block"
              */
-            PMACC_KERNEL( particles::ionization::kernelIonizeParticles{} )
+            PMACC_KERNEL( particles::ionization::KernelIonizeParticles{} )
                 (mapper.getGridDim(), block)
                 ( srcSpeciesPtr->getDeviceParticlesBox( ),
                   electronsPtr->getDeviceParticlesBox( ),

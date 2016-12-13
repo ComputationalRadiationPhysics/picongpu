@@ -69,7 +69,7 @@ namespace po = boost::program_options;
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
-struct kernelRadiationParticles
+struct KernelRadiationParticles
 {
     /**
      * The radiation kernel calculates for all particles on the device the
