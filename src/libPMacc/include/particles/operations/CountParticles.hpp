@@ -40,7 +40,7 @@ namespace PMacc
 /* count particles in an area
  * is not optimized, it checks any partcile position if its realy a particle
  */
-struct kernelCountParticles
+struct KernelCountParticles
 {
     template<class PBox, class Filter, class Mapping>
     DINLINE void operator()(
@@ -121,7 +121,7 @@ struct CountParticles
 
         AreaMapping<AREA, CellDesc> mapper(cellDescription);
 
-        PMACC_KERNEL(kernelCountParticles{})
+        PMACC_KERNEL(KernelCountParticles{})
             (mapper.getGridDim(), block)
             (buffer.getDeviceParticlesBox(),
              counter.getDeviceBuffer().getBasePointer(),

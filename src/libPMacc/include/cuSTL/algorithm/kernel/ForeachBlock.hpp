@@ -66,7 +66,7 @@ DINLINE void operator()(Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Fun
     functor(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                       \
 }
 
-struct kernelForeachBlock
+struct KernelForeachBlock
 {
 
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREACH, _)
@@ -94,7 +94,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
         auto blockDim = ThreadBlock::toRT();                                                                \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                  \
         using namespace PMacc;                                                                              \
-        PMACC_KERNEL(detail::kernelForeachBlock{})(mapper.cudaGridDim(p_zone.size), blockDim)               \
+        PMACC_KERNEL(detail::KernelForeachBlock{})(mapper.cudaGridDim(p_zone.size), blockDim)               \
                     /* c0_shifted, c1_shifted, ... */                                                       \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                   \
     }

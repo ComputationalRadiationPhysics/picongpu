@@ -33,7 +33,7 @@
 #include <cuda_runtime_api.h>
 #include <cuda.h>
 
-struct kernelSetValueOnDeviceMemory
+struct KernelSetValueOnDeviceMemory
 {
     DINLINE void operator()(size_t* pointer, const size_t size) const
     {
@@ -94,7 +94,7 @@ private:
             0,
             this->getCudaStream()
         >>>(
-            kernelSetValueOnDeviceMemory{},
+            KernelSetValueOnDeviceMemory{},
             sizePtr,
             size
         );

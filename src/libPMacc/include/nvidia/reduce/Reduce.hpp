@@ -41,7 +41,7 @@ namespace reduce
 namespace kernel
 {
     template< typename Type >
-    struct reduce
+    struct Reduce
     {
         template<typename Src, typename Dest, class Functor, class Functor2>
         DINLINE void operator()(
@@ -154,7 +154,7 @@ namespace kernel
 
             uint32_t blocks = threads / 2 / blockcount;
             if (blocks == 0) blocks = 1;
-            PMACC_KERNEL(kernel::reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(src, n, dest, func,
+            PMACC_KERNEL(kernel::Reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(src, n, dest, func,
                                                                                                     PMacc::nvidia::functors::Assign());
             n = blocks;
             blockcount = optimalThreadsPerBlock(n, sizeof (Type));
@@ -171,13 +171,13 @@ namespace kernel
                     uint32_t problemSize = n - (blockOffset * blockcount);
                     Type* srcPtr = dest + (blockOffset * blockcount);
 
-                    PMACC_KERNEL(kernel::reduce < Type >{})(useBlocks, blockcount, blockcount * sizeof (Type))(srcPtr, problemSize, dest, func, func);
+                    PMACC_KERNEL(kernel::Reduce < Type >{})(useBlocks, blockcount, blockcount * sizeof (Type))(srcPtr, problemSize, dest, func, func);
                     blocks = blockOffset*blockcount;
                 }
                 else
                 {
 
-                    PMACC_KERNEL(kernel::reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(dest, n, dest, func,
+                    PMACC_KERNEL(kernel::Reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(dest, n, dest, func,
                                                                                                             PMacc::nvidia::functors::Assign());
                 }
 

@@ -36,7 +36,7 @@ namespace PMacc {
 
         __device__ uint64_cu nextId;
 
-        struct setNextId
+        struct SetNextId
         {
             DINLINE void operator()(uint64_cu id) const
             {
@@ -44,7 +44,7 @@ namespace PMacc {
             }
         };
 
-        struct getNextId
+        struct GetNextId
         {
             template<class T_Box>
             DINLINE void operator()(T_Box boxOut) const
@@ -53,7 +53,7 @@ namespace PMacc {
             }
         };
 
-        struct getNewId
+        struct GetNewId
         {
             template<class T_Box, class T_GetNewId>
             DINLINE void operator()(T_Box boxOut, T_GetNewId getNewId) const
@@ -102,7 +102,7 @@ namespace PMacc {
     IdProvider<T_dim>::State IdProvider<T_dim>::getState()
     {
         HostDeviceBuffer<uint64_cu, 1> nextIdBuf(DataSpace<1>(1));
-        PMACC_KERNEL(idDetail::getNextId{})(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
+        PMACC_KERNEL(idDetail::GetNextId{})(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
         nextIdBuf.deviceToHost();
         State state;
         state.nextId = static_cast<uint64_t>(nextIdBuf.getHostBuffer().getDataBox()(0));
@@ -174,14 +174,14 @@ namespace PMacc {
     template<unsigned T_dim>
     void IdProvider<T_dim>::setNextId(uint64_t nextId)
     {
-        PMACC_KERNEL(idDetail::setNextId{})(1, 1)(nextId);
+        PMACC_KERNEL(idDetail::SetNextId{})(1, 1)(nextId);
     }
 
     template<unsigned T_dim>
     uint64_t IdProvider<T_dim>::getNewIdHost()
     {
         HostDeviceBuffer<uint64_cu, 1> newIdBuf(DataSpace<1>(1));
-        PMACC_KERNEL(idDetail::getNewId{})(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
+        PMACC_KERNEL(idDetail::GetNewId{})(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
         newIdBuf.deviceToHost();
         return static_cast<uint64_t>(newIdBuf.getHostBuffer().getDataBox()(0));
     }

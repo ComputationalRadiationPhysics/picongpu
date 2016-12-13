@@ -33,7 +33,7 @@ namespace random
     namespace kernel {
 
         template< typename T_RNGMethod>
-        struct initRNGProvider
+        struct InitRNGProvider
         {
             template<class T_RNGBox, class T_Space>
             DINLINE void
@@ -70,7 +70,7 @@ namespace random
 
         PMACC_AUTO(bufferBox, buffer->getDeviceBuffer().getDataBox());
 
-        PMACC_KERNEL(kernel::initRNGProvider<RNGMethod>{})
+        PMACC_KERNEL(kernel::InitRNGProvider<RNGMethod>{})
         (gridSize, blockSize)
         (bufferBox, seed, m_size);
     }
