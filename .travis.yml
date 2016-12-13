@@ -18,3 +18,8 @@ script:
   # Disallow non-ASCII in source files and scripts                            #
   #############################################################################
   - test/hasNonASCII
+
+  #############################################################################
+  # Disallow spaces before pre-compiler macros                                #
+  #############################################################################
+  - test/hasSpaceBeforePrecompiler
