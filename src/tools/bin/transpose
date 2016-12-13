@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 
+#
 # Copyright 2013-2016 Rene Widera
 #
 # This file is part of PIConGPU.
@@ -43,7 +43,7 @@ for(r = 1; r <= NR; r++) {
     }
     print ""
   }
-}' 
+}'
 }
 
 

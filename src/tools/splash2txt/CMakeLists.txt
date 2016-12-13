@@ -1,22 +1,22 @@
 #
 # Copyright 2013-2016 Felix Schmitt, Axel Huebl, Rene Widera
 #
-# This file is part of splash2txt. 
-# 
-# splash2txt is free software: you can redistribute it and/or modify 
-# it under the terms of either the GNU General Public License or 
-# the GNU Lesser General Public License as published by 
-# the Free Software Foundation, either version 3 of the License, or 
-# (at your option) any later version. 
-# splash2txt is distributed in the hope that it will be useful, 
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
-# GNU General Public License and the GNU Lesser General Public License 
-# for more details. 
-# 
-# You should have received a copy of the GNU General Public License 
-# and the GNU Lesser General Public License along with splash2txt. 
-# If not, see <http://www.gnu.org/licenses/>. 
+# This file is part of splash2txt.
+#
+# splash2txt is free software: you can redistribute it and/or modify
+# it under the terms of either the GNU General Public License or
+# the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# splash2txt is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License and the GNU Lesser General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License
+# and the GNU Lesser General Public License along with splash2txt.
+# If not, see <http://www.gnu.org/licenses/>.
 #
 
 ################################################################################
@@ -27,7 +27,7 @@ cmake_minimum_required(VERSION 2.8.12.2)
 
 
 ################################################################################
-# Project 
+# Project
 ################################################################################
 
 project(splash2txt)
@@ -80,7 +80,7 @@ include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
 set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
 # bullxmpi fails if it can not find its c++ counter part
-if(MPI_CXX_FOUND) 
+if(MPI_CXX_FOUND)
     set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
 endif(MPI_CXX_FOUND)
 

@@ -26,14 +26,14 @@ cmake_minimum_required(VERSION 2.8.12.2)
 
 
 ################################################################################
-# Project 
+# Project
 ################################################################################
 
 project(mpiInfo)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
-endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # set helper pathes to find libraries and packages
 # Add specific hints
@@ -61,7 +61,7 @@ include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
 set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
 # bullxmpi fails if it can not find its c++ counter part
-if(MPI_CXX_FOUND) 
+if(MPI_CXX_FOUND)
     set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
 endif(MPI_CXX_FOUND)
 

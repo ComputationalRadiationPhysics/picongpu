@@ -28,7 +28,7 @@ function usage()
 {
     echo "Usage:"
     echo "  uncrustifyMyCode [-h] filename"
-    echo 
+    echo
     echo "  -h                  - show usage"
     echo "  filename            - file to uncrustify"
 }

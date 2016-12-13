@@ -26,7 +26,7 @@ cmake_minimum_required(VERSION 2.8.12.2)
 
 
 ################################################################################
-# Project 
+# Project
 ################################################################################
 
 project(png2gas)
@@ -44,7 +44,7 @@ list(APPEND "/usr/lib/x86_64-linux-gnu/")
 # install prefix
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
-endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wno-pmf-conversions -Wno-deprecated")
 
 # own modules for find_packages
