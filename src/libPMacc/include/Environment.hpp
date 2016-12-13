@@ -180,7 +180,7 @@ private:
         {
             throw std::runtime_error("no CUDA capable devices detected");
         }
-        else if (num_gpus < deviceNumber) //check if device can be selected by deviceNumber
+        else if (deviceNumber >= num_gpus) //check if device can be selected by deviceNumber
         {
             std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
             throw std::runtime_error("CUDA capable devices can't be selected");
