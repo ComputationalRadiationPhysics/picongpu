@@ -35,14 +35,18 @@ namespace traits
  * \return \p ::value as public with number of components (uint32_t)
  */
 template<typename T_Type, bool T_IsFundamental = boost::is_fundamental<T_Type>::value>
-struct GetNComponents;
+struct GetNComponents
+{
+    PMACC_CASSERT_MSG_TYPE( __GetNComponents_is_not_defined_for_this_type, T_Type, false );
+    static constexpr uint32_t value = 0;
+};
 
 /** return value=1 for al fundamental c++ types
  */
 template<typename T_Type>
 struct GetNComponents<T_Type, true>
 {
-    BOOST_STATIC_CONSTEXPR uint32_t value=1;
+    static constexpr uint32_t value=1;
 };
 
 } //namespace traits

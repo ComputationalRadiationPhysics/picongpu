@@ -81,7 +81,7 @@ struct cuda_vec : public V
         return (&(this->x()))[dim];
     }
 
-    HDINLINE T &operator[](uint32_t dim) const
+    HDINLINE const T &operator[](uint32_t dim) const
     {
         return (&(this->x()))[dim];
     }

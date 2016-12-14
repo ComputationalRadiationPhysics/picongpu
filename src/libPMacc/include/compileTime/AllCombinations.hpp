@@ -41,29 +41,6 @@ namespace PMacc
 {
 namespace bmpl = boost::mpl;
 
-/** Assign to each element in a sequence of CT::Vector(s) a type at a given
- *  component position
- *
- * @tparam T_InVector sequence with CT::Vector
- * @tparam T_ComponentPos position of the component to be changed (type must be bmpl::integral_c<uint32_t,X>)
- * @tparam T_Element value (type) which should replace the component at position T_Component
- *                   in the CT::Vector elements
- */
-template<typename T_InVector,
-typename T_ComponentPos,
-typename T_Element
->
-struct AssignToAnyElementInVector
-{
-    typedef T_InVector InVector;
-    typedef T_Element Element;
-
-    typedef typename bmpl::transform<
-        InVector,
-        PMacc::math::CT::Assign<bmpl::_1, T_ComponentPos, Element>
-    >::type type;
-};
-
 namespace detail
 {
 /** Create tuples out of the elements of N sequences
@@ -90,7 +67,7 @@ struct AllCombinations<T_MplSeq, T_TmpResult, false >
     typedef T_MplSeq MplSeq;
     typedef T_TmpResult TmpResult;
 
-    BOOST_STATIC_CONSTEXPR uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
+    static constexpr uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
     typedef typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1 > > ::type LastElement;
     typedef bmpl::empty<LastElement> IsLastElementEmpty;
     typedef typename MakeSeq<LastElement>::type LastElementAsSequence;
@@ -101,10 +78,39 @@ struct AllCombinations<T_MplSeq, T_TmpResult, false >
      */
     typedef typename bmpl::copy<LastElementAsSequence, bmpl::back_inserter< bmpl::vector0<> > >::type TmpVector;
 
-    typedef typename bmpl::transform< TmpVector,
-    AssignToAnyElementInVector<TmpResult,
-    bmpl::integral_c<uint32_t, rangeVectorSize - 1 >, bmpl::_1 > >::type NestedSeq;
+    /** Assign to each element in a sequence of CT::Vector(s) a type at a given
+    *  component position
+    *
+    * @tparam T_ComponentPos position of the component to be changed (type must be bmpl::integral_c<uint32_t,X>)
+    * @tparam T_Element value (type) which should replace the component at position T_Component
+    *                   in the CT::Vector elements
+    */
+    template<
+        typename T_ComponentPos,
+        typename T_Element
+    >
+    struct AssignToAnyElementInVector
+    {
+        typedef TmpResult InVector;
+        typedef T_Element Element;
 
+        typedef typename bmpl::transform<
+                InVector,
+                PMacc::math::CT::Assign<
+                    bmpl::_1,
+                    T_ComponentPos,
+                    Element
+                >
+            >::type type;
+    };
+
+    typedef typename bmpl::transform<
+        TmpVector,
+        AssignToAnyElementInVector<
+            bmpl::integral_c<uint32_t, rangeVectorSize - 1 >,
+            bmpl::_1
+        >
+    >::type NestedSeq;
 
     typedef typename MakeSeqFromNestedSeq<NestedSeq>::type OneSeq;
 
@@ -150,7 +156,7 @@ struct AllCombinations
      * a sequence because all next algorithms can only work with sequences */
     typedef typename MakeSeq<T_MplSeq>::type MplSeq;
 
-    BOOST_STATIC_CONSTEXPR uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
+    static constexpr uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
     typedef typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1 > > ::type LastElement;
     typedef bmpl::empty<LastElement> IsLastElementEmpty;
     typedef typename MakeSeq<LastElement>::type LastElementAsSequence;

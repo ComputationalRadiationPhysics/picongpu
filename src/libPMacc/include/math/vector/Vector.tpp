@@ -47,7 +47,7 @@ struct GetComponentsType<PMacc::math::Vector<T_DataType, T_Dim>, false >
 template<typename T_DataType, int T_Dim>
 struct GetNComponents<PMacc::math::Vector<T_DataType, T_Dim>,false >
 {
-    BOOST_STATIC_CONSTEXPR uint32_t value = (uint32_t) PMacc::math::Vector<T_DataType, T_Dim>::dim;
+    static constexpr uint32_t value = (uint32_t) PMacc::math::Vector<T_DataType, T_Dim>::dim;
 };
 
 template<typename T_Type, int T_dim, typename T_Accessor, typename T_Navigator, template<typename, int> class T_Storage>

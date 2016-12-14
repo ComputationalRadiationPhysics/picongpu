@@ -26,10 +26,11 @@
 #include "eventSystem/events/EventNotify.hpp"
 #include "eventSystem/events/IEvent.hpp"
 #include "pmacc_types.hpp"
+#include "assert.hpp"
 
 #include <string>
 #include <set>
-#include <cassert>
+
 
 namespace PMacc
 {
@@ -54,7 +55,7 @@ namespace PMacc
             static id_t globalId = 1;
 
             myId = globalId++;
-            assert(myId > 0);
+            PMACC_ASSERT(myId > 0);
         }
 
 

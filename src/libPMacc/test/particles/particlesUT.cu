@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Erik Zenker
+ * Copyright 2016-2016 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -20,8 +20,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE "PMacc Unit Tests"
+#include "PMaccFixture.hpp"
 #include <boost/test/unit_test.hpp>
 
+#if TEST_DIM == 2
+    BOOST_GLOBAL_FIXTURE(PMaccFixture2D);
+#else
+    BOOST_GLOBAL_FIXTURE(PMaccFixture3D);
+#endif
 
+#include "IdProvider.hpp"

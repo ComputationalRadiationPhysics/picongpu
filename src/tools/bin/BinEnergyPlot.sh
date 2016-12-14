@@ -34,7 +34,7 @@ function usage()
  programName=`basename $0`
  echo "Usage:"
  echo "  $programName [-h] [-l labelForLegend] [-o outputfile] pathToSpectraFile timeStep "
- echo 
+ echo
  echo "  -h                  - show usage of $programName"
  echo "  -l labelForLegend   - set name of label"
  echo "                        default \"$LABEL\""
@@ -76,8 +76,8 @@ do
         fi
     fi
 
-    # If the label after the -l or -o argument is missing, the getopt 
-    # routine returns ":" 
+    # If the label after the -l or -o argument is missing, the getopt
+    # routine returns ":"
     if [ "$VALUE" = ":" ]
     then
         echo "Flag -$OPTARG requires an argument."
@@ -96,7 +96,7 @@ done
 
 
 # The first argument after the flags is at index $OPTIND
-# shift the argument list 
+# shift the argument list
 shift `expr $OPTIND - 1`
 
 # check whether the first argument is a file
@@ -125,7 +125,7 @@ LABELESC=`echo $LABEL | escapeForLater`
 bindirEsc=`echo "$bindir" | escapeForLater`
 OUTPUT_FILEEsc=`echo "$OUTPUT_FILE" | escapeForLater`
 
-# adjust default gnuplot script 
+# adjust default gnuplot script
 script=$( echo "$script" | sed -e "s/FILENAME/$Esc1/g" )
 script=$( echo "$script" | sed -e "s/TIMESTEP/$Esc2/g" )
 script=$( echo "$script" | sed -e "s/BINDIR/$bindirEsc/g" )

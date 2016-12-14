@@ -93,7 +93,10 @@ touch "$thisDir"runGuard
             # modify compile environment (forwarded to CMake)
             #export PIC_COMPILE_SUITE_CMAKE="-DPIC_ENABLE_PNG=OFF -DCUDA_ARCH=sm_35"
             . /etc/profile
-            module load gcc/4.8.5 boost/1.57.0 cmake/3.3.0 cuda/7.5.18 openmpi/1.10.1 libSplash/1.6.0 adios/1.10.0 pngwriter/0.5.6 rivlib/1.0.1
+            module load gcc/4.9.4 boost/1.57.0 cmake/3.3.0 cuda/7.5.18 openmpi/1.10.4
+            module load libSplash/1.6.0 adios/1.10.0
+            module load pngwriter/0.5.6 rivlib/1.0.2
+            module load libjpeg-turbo/1.5.1 icet/2.1.1 jansson/2.9 isaac/1.1.0
 
             # compile all examples, fetch output and return code
             $cnf_gitdir/compile -l -q -j $cnf_numParallel \

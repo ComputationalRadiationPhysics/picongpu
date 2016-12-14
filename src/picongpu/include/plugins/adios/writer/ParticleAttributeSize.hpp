@@ -27,6 +27,7 @@
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
+#include "assert.hpp"
 
 namespace picongpu
 {
@@ -85,8 +86,8 @@ struct ParticleAttributeSize
         const uint32_t macroWeighted = (macroWeightedBool ? 1 : 0);
         const float_64 weightingPower = WeightingPower<T_Identifier>::get();
 
-        assert(unit.size() == components); // unitSI for each component
-        assert(unitDimension.size() == 7); // seven openPMD base units
+        PMACC_ASSERT(unit.size() == components); // unitSI for each component
+        PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
         for (uint32_t d = 0; d < components; d++)
         {

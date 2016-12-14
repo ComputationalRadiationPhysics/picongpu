@@ -1,5 +1,5 @@
 # Copyright 2013-2016 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
-#                     Rene Widera, Alexander Grund
+#                     Rene Widera, Alexander Grund, Alexander Matthes
 #
 # This file is part of PIConGPU.
 #
@@ -56,7 +56,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 # Find CUDA
 ################################################################################
 
-find_package(CUDA 5.5 REQUIRED)
+find_package(CUDA 7.5 REQUIRED)
 
 set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
 string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
@@ -66,18 +66,13 @@ string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
 
-if(CUDA_VERSION VERSION_LESS 7.5)
-    set(CMAKE_CXX_STANDARD 98)
-else()
-    set(CMAKE_CXX_STANDARD 11)
-    # work-around since the above flag does not necessarily put -std=c++11 in
-    # the CMAKE_CXX_FLAGS, which is unfurtunately hiding the switch from FindCUDA
-    if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-    endif()
+# work-around since the above flag does not necessarily put -std=c++11 in
+# the CMAKE_CXX_FLAGS, which is unfurtunately hiding the switch from FindCUDA
+if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
-message(STATUS "Compiling as C++${CMAKE_CXX_STANDARD}...")
 
 if(IS_CUDA_ARCH_UNSUPPORTED)
     message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
@@ -106,16 +101,6 @@ if(CUDA_KEEP_FILES)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
 endif(CUDA_KEEP_FILES)
 
-# savety check for now in case someone plays with CMAKE_CXX_STANDARD
-if( (CUDA_VERSION VERSION_GREATER 7.0) AND
-    (CMAKE_CXX_STANDARD EQUAL 98) )
-    # Kind of invalid usage of floats in constant expressions
-    # which causes problems in nvcc 7.5 and up:
-    # https://github.com/ComputationalRadiationPhysics/picongpu/issues/1290
-    message(FATAL_ERROR "Please compile as C++11 with
-                        `-DCMAKE_CXX_STANDARD=11`
-                        when compiling with nvcc 7.5")
-endif()
 
 ################################################################################
 # VampirTrace
@@ -249,21 +234,12 @@ else()
     add_definitions(-DBOOST_RESULT_OF_USE_TR1)
 endif()
 
-# work-arounds and known issues
-if( (Boost_VERSION EQUAL 106000) AND
-    (CMAKE_CXX_STANDARD EQUAL 98) )
-    # Boost Bug https://svn.boost.org/trac/boost/ticket/11852
-    message(FATAL_ERROR "Boost 1.60.0: Please upgrade boost or use a C++11 "
-                        "enabled CUDA version (7.5+)")
-endif()
-
 
 # Boost >= 1.60.0 and CUDA != 7.5 failed when used with C++11
 # seen with boost 1.60.0 - 1.62.0 (atm latest) and CUDA 7.0, 8.0 (atm latest)
 # CUDA 7.5 works without a workaround
 if( (Boost_VERSION GREATER 105999) AND
-    (NOT CUDA_VERSION VERSION_EQUAL 7.5) AND
-    (NOT CMAKE_CXX_STANDARD EQUAL 98) )
+    (NOT CUDA_VERSION VERSION_EQUAL 7.5) )
     # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
     message(STATUS "Boost: Disable template aliases")
     add_definitions(-DBOOST_NO_CXX11_TEMPLATE_ALIASES)
@@ -448,6 +424,39 @@ if(PNGwriter_FOUND)
     set(LIBS ${LIBS} ${PNGwriter_LIBRARIES})
 endif(PNGwriter_FOUND)
 
+################################################################################
+# ISAAC
+################################################################################
+
+find_package(ISAAC 0.1.0 CONFIG QUIET)
+if(ISAAC_FOUND)
+    SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
+    SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
+
+    if(${ISAAC_STEREO} STREQUAL "No")
+        add_definitions(-DISAAC_STEREO=0)
+    endif()
+    if(${ISAAC_STEREO} STREQUAL "SideBySide")
+        add_definitions(-DISAAC_STEREO=1)
+    endif()
+    if(${ISAAC_STEREO} STREQUAL "Anaglyph")
+        add_definitions(-DISAAC_STEREO=2)
+    endif()
+
+    include_directories(SYSTEM ${ISAAC_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
+
+    set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
+    set(ISAAC_DEFAULT_WEIGHT "7" CACHE STRING "Default weight of an isaac source" )
+    add_definitions(${ISAAC_DEFINITIONS})
+    add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
+    add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
+    add_definitions(-DISAAC_DEFAULT_WEIGHT=${ISAAC_DEFAULT_WEIGHT})
+
+    add_definitions(-DENABLE_ISAAC=1)
+else(ISAAC_FOUND)
+    message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH" )
+endif(ISAAC_FOUND)
 
 ################################################################################
 # Check if PIC_EXTENSION_PATH is relative or absolute

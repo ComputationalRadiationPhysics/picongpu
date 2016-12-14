@@ -77,9 +77,9 @@ private:
     size_t s[3];
 };
 
-enum FileMode { FM_SPLASH = 0 
+enum FileMode { FM_SPLASH = 0
 #if (ENABLE_ADIOS == 1)
-               ,FM_ADIOS = 1 
+               ,FM_ADIOS = 1
 #endif
 };
 

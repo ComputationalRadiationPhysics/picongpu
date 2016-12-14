@@ -38,29 +38,29 @@ namespace rad_linear_frequencies
 {
 namespace SI
 {
-BOOST_CONSTEXPR_OR_CONST float_64 omega_min = 0.0;
-BOOST_CONSTEXPR_OR_CONST float_64 omega_max = 5.8869e17;
+constexpr float_64 omega_min = 0.0;
+constexpr float_64 omega_max = 5.8869e17;
 }
 
-BOOST_CONSTEXPR_OR_CONST unsigned int N_omega = 2048; // number of frequencies
+constexpr unsigned int N_omega = 2048; // number of frequencies
 }
 
 namespace rad_log_frequencies
 {
 namespace SI
 {
-BOOST_CONSTEXPR_OR_CONST float_64 omega_min = 1.0e14;
-BOOST_CONSTEXPR_OR_CONST float_64 omega_max = 1.0e17;
+constexpr float_64 omega_min = 1.0e14;
+constexpr float_64 omega_max = 1.0e17;
 }
 
-BOOST_CONSTEXPR_OR_CONST unsigned int N_omega = 2048; // number of frequencies
+constexpr unsigned int N_omega = 2048; // number of frequencies
 }
 
 
 namespace rad_frequencies_from_list
 {
-//BOOST_CONSTEXPR_OR_CONST char listLocation[] = "/scratch/s5960712/list001.freq";
-BOOST_CONSTEXPR_OR_CONST unsigned int N_omega = 2048; // number of frequencies
+//constexpr char listLocation[] = "/scratch/s5960712/list001.freq";
+constexpr unsigned int N_omega = 2048; // number of frequencies
 }
 
 
@@ -69,7 +69,7 @@ namespace radiation_frequencies = rad_linear_frequencies;
 
 namespace radiationNyquist
 {
-  BOOST_CONSTEXPR_OR_CONST float_32 NyquistFactor = 0.5;
+  constexpr float_32 NyquistFactor = 0.5;
 }
 
 
@@ -81,17 +81,24 @@ namespace radiationNyquist
   // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
 #define __COHERENTINCOHERENTWEIGHTING__ 1
 
-
-
   /* Choose different form factors in order to consider different  particle shapes for radiation
-   * radFormFactor_CIC_3D
-   * radFormFactor_CIC_1Dy
+   *  - radFormFactor_CIC_3D ... CIC charge distribution
+   *  - radFormFactor_TSC_3D ... TSC charge distribution
+   *  - radFormFactor_PCS_3D ... PCS charge distribution
+   *  - radFormFactor_CIC_1Dy ... only CIC charge distribution in y
+   *  - radFormFactor_Gauss_spherical ... symmetric Gauss charge distribution
+   *  - radFormFactor_Gauss_cell ... Gauss charge distribution according to cell size
+   *  - radFormFactor_incoherent ... only incoherent radiation
    */
   namespace radFormFactor_CIC_3D { }
+  namespace radFormFactor_TSC_3D { }
+  namespace radFormFactor_PCS_3D { }
   namespace radFormFactor_CIC_1Dy { }
+  namespace radFormFactor_Gauss_spherical { }
+  namespace radFormFactor_Gauss_cell { }
   namespace radFormFactor_incoherent { }
 
-  namespace radFormFactor = radFormFactor_CIC_3D;
+  namespace radFormFactor = radFormFactor_Gauss_spherical;
 
 
 ///////////////////////////////////////////////////////////
@@ -117,9 +124,9 @@ namespace parameters
 //diable (0) / enable (1)
 #define RAD_ACTIVATE_GAMMA_FILTER 0
 
-BOOST_CONSTEXPR_OR_CONST float_32 RadiationGamma = 5.;
+constexpr float_32 RadiationGamma = 5.;
 
-BOOST_CONSTEXPR_OR_CONST unsigned int N_observer = 128; // number of looking directions
+constexpr unsigned int N_observer = 128; // number of looking directions
 
 
 

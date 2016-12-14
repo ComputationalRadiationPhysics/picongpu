@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Richard Pausch
+ * Copyright 2016 Alexander Matthes
  *
  * This file is part of PIConGPU.
  *
@@ -20,12 +20,22 @@
 
 #pragma once
 
+namespace picongpu
+{
+namespace isaacP
+{
 
-// compile time assert:
-template<bool Value>
-struct Assert;
+    //Native fields to visualize
+    typedef MakeSeq<FieldE, FieldB, FieldJ>::type Native_Seq;
 
-template<>
-struct Assert<true>
-{};
+	//Creating a density field for every species to visualize
+    typedef bmpl::transform<
+            VectorAllSpecies,
+            CreateDensityOperation<bmpl::_1>
+            >::type Density_Seq;
 
+    //bmpl::list of all fields to visualize
+    typedef MakeSeq<Native_Seq,Density_Seq>::type Fields_Seq;
+
+} // namespace isaacP
+} // namespace picongpu

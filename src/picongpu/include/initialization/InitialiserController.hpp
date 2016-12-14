@@ -33,6 +33,7 @@
 #include "initialization/SimStartInitialiser.hpp"
 
 #include "initialization/IInitPlugin.hpp"
+#include "assert.hpp"
 
 #include <boost/mpl/find.hpp>
 
@@ -168,7 +169,7 @@ public:
 
     virtual void setMappingDescription(MappingDesc *cellDescription)
     {
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != NULL);
         this->cellDescription = cellDescription;
     }
 

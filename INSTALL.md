@@ -19,7 +19,7 @@ Requirements
 
 ### Mandatory
 
-- **gcc** 4.8 to 5.X (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
+- **gcc** 4.9 to 5.X (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
   - *Debian/Ubuntu:*
     - `sudo apt-get install gcc-4.9 g++-4.9 build-essential`
     - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9`
@@ -27,10 +27,7 @@ Requirements
     - `sudo pacman --sync base-devel`
     - the installed version of **gcc** might be too new. [Compile an older gcc](https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53)
 
-- C++98 build: [CUDA 5.5-7.0](https://developer.nvidia.com/cuda-downloads)
-  - *Arch Linux:* `sudo pacman --sync cuda`
-- C++11 build: [CUDA 7.5+](https://developer.nvidia.com/cuda-downloads)
-  - note: we recommend using **gcc 4.9**
+- [CUDA 7.5+](https://developer.nvidia.com/cuda-downloads)
   - *Arch Linux:* `sudo pacman --sync cuda`
 
 - at least one **CUDA** capable **GPU**
@@ -89,7 +86,7 @@ Some of our examples will also need **libSplash**.
 - **libSplash** >= 1.6.0 (requires *HDF5*, *boost program-options*)
     - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - *Arch Linux dependencies:* `sudo pacman --sync hdf5-openmpi boost`
-    - *or compile hdf5 yourself:*  follow instructions one paragraph below 
+    - *or compile hdf5 yourself:*  follow instructions one paragraph below
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
@@ -164,8 +161,25 @@ Some of our examples will also need **libSplash**.
       [LD\_LIBRARY\_PATH](#additional-required-environment-variables-for-optional-libraries)
       to `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ADIOS_ROOT/lib`
 
+- **ISAAC** (requires *boost* (header only), *IceT*, *Jansson*, *libjpeg* (preferably *libjpeg-turbo*), *libwebsockets* (only for the ISAAC server, but not the plugin itself) )
+    - Enables live in situ visualization, see more here [Plugin description](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Plugin%3A-ISAAC)
+    - To enable ISAAC you need ISAAC itself:
+      - `git clone https://github.com/ComputationalRadiationPhysics/isaac.git`
+      - While configuring a simulation add the path of ISAAC to CMake, e.g. with
+        `$PICSRC/configure ~/paramSets/kh -c "-DISAAC_DIR=~/isaac/lib/"` or with
+        `CMAKE_PREFIX_PATH`. Of course may the path vary. ISAAC needs C++11, which
+        is enabled for PIConGPU if CUDA 7.5 or newer is available, thus these
+        versions are needed. For more requirements have a look at
+        [ISAAC's installation requirements](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md).
+      - It may be, that even more installation paths for libraries need to be added.
+        Just add them in the same matter as ISAAC itself. The CMake variables names
+        are described in [ISAAC's installation requirements](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md),
+        too. E.g. for the laser wake field experiment configuration you may need:
+        `$PICSRC/configure ~/paramSets/lw -c "-DISAAC_DIR=~/isaac/lib -DJansson_DIR=~/jansson/install/lib/cmake/jansson -DIceT_DIR=~/IceT/install/lib"`.
+        Of course the paths may and will vary for your setup.
+
 - for **VampirTrace** support
-    - download 5.14.4 or higher, e.g. from 
+    - download 5.14.4 or higher, e.g. from
     [http://www.tu-dresden.de](http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/vampirtrace)
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
@@ -186,9 +200,9 @@ Install
 
 ### Mandatory environment variables
 
-- `CUDA_ROOT`: cuda installation directory, 
+- `CUDA_ROOT`: cuda installation directory,
     e.g. `export CUDA_ROOT=<CUDA_INSTALL>`
-- `MPI_ROOT`: mpi installation directory, 
+- `MPI_ROOT`: mpi installation directory,
     e.g. `export MPI_ROOT=<MPI_INSTALL>`
 - extend your `$PATH` with helper tools for PIConGPU, see point,
     [Checkout and Build PIConGPU](#checkout-and-build-picongpu) *step 2.2*
@@ -197,9 +211,9 @@ Install
 ### Additional required environment variables (for optional libraries)
 
 #### for splash and HDF5
-- `SPLASH_ROOT`: libsplash installation directory, 
+- `SPLASH_ROOT`: libsplash installation directory,
     e.g. `export SPLASH_ROOT=$HOME/lib/splash`
-- `HDF5_ROOT`: hdf5 installation directory, 
+- `HDF5_ROOT`: hdf5 installation directory,
     e.g. `export HDF5_ROOT=$HOME/lib/hdf5`
 - `LD_LIBRARY_PATH`: add path to $HOME/lib/hdf5/lib,
     e.g. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib`

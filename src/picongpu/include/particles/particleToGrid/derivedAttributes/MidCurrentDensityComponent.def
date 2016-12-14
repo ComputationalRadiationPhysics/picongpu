@@ -1,0 +1,92 @@
+/**
+ * Copyright 2016 Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "pmacc_types.hpp"
+#include "static_assert.hpp"
+#include "traits/SIBaseUnits.hpp"
+#include <vector>
+
+
+namespace picongpu
+{
+namespace particleToGrid
+{
+namespace derivedAttributes
+{
+    /** Calculate the on-charge current density in a selected direction.
+     *
+     * \tparam size_t with perpendicular direction x=0, y=1, z=2
+     */
+    template <size_t T_direction>
+    struct MidCurrentDensityComponent
+    {
+        PMACC_CASSERT_MSG( Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param, ((T_direction)>=0) );
+        PMACC_CASSERT_MSG( Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param, ((T_direction)<3) );
+
+        HDINLINE float1_64
+        getUnit() const;
+
+        HINLINE std::vector<float_64>
+        getUnitDimension() const
+        {
+           /* L, M, T, I, theta, N, J
+            *
+            * MidCurrentDensity is in Ampere / square meters: A / m^2
+            *   charge density: Coulomb / m^3
+            *   velocity:       m / s
+            *   current density = charge density * velocity
+            *   -> L^-2 * I
+            */
+           std::vector<float_64> unitDimension( 7, 0.0 );
+           unitDimension.at(SIBaseUnits::length) = -2.0;
+           unitDimension.at(SIBaseUnits::electricCurrent) =  1.0;
+
+           return unitDimension;
+        }
+
+        HINLINE std::string
+        getName() const
+        {
+            const std::string name_lookup[] = {"x", "y", "z"};
+
+            return "midCurrentDensity/" + name_lookup[T_direction];
+        }
+
+        /** Calculate a new attribute per particle
+         *
+         * Returns a new (on-the-fly calculated) attribute of a particle
+         * that can then be mapped to the cells the particle contributes to.
+         * This method is called on a per-thread basis (each thread of a block
+         * handles a particle of a frame).
+         *
+         * \tparam T_Particle particle in the frame
+         * \param particle particle in the frame
+         *
+         * \return new attribute for the particle (type \see T_AttributeType)
+         */
+        template< class T_Particle >
+        DINLINE float_X
+        operator()( T_Particle& particle ) const;
+    };
+} /* namespace derivedAttributes */
+} /* namespace particleToGrid */
+} /* namespace picongpu */

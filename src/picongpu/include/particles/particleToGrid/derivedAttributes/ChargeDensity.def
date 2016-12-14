@@ -42,7 +42,7 @@ namespace derivedAttributes
         {
            /* L, M, T, I, theta, N, J
             *
-            * ChargeDensity is in Coulomb / cubic meter: Q / m^3 = I * t / m^3
+            * ChargeDensity is in Coulomb / cubic meter: Q / m^3 = A * s / m^3
             *   -> L^-3 * T * I
             */
            std::vector<float_64> unitDimension( 7, 0.0 );

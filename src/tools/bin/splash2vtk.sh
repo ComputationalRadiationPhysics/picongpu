@@ -149,7 +149,7 @@ do
   #z=$((tz-1))
   #z=$tz
   echo "  <Piece Extent=\"1 $nx 1 $ny $z $zm\" Source=\"slab_$zm.vti\"/>" >> pslab.pvti
-  
+
   if [ $zm -lt $nz ]; then
     z=$((zm))
   else

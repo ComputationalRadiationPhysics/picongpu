@@ -48,7 +48,6 @@
 #include "particles/traits/GetMarginPusher.hpp"
 
 #include <iostream>
-#include <cassert>
 #include <limits>
 
 namespace picongpu
@@ -174,14 +173,16 @@ void Particles<T_ParticleDescription>::update(uint32_t )
         UpperMargin
         > BlockArea;
 
-    dim3 block( MappingDesc::SuperCellSize::toRT().toDim3() );
+    auto block = MappingDesc::SuperCellSize::toRT();
 
-    __picKernelArea( kernelMoveAndMarkParticles<BlockArea>, this->cellDescription, CORE + BORDER )
-        (block)
+    AreaMapping<CORE+BORDER,MappingDesc> mapper(this->cellDescription);
+    PMACC_KERNEL( KernelMoveAndMarkParticles<BlockArea>{} )
+        (mapper.getGridDim(), block)
         ( this->getDeviceParticlesBox( ),
           this->fieldE->getDeviceDataBox( ),
           this->fieldB->getDeviceDataBox( ),
-          FrameSolver( )
+          FrameSolver( ),
+          mapper
           );
 
     ParticlesBaseType::template shiftParticles < CORE + BORDER > ( );
@@ -201,11 +202,11 @@ void Particles<T_ParticleDescription>::initGas( T_GasFunctor& gasFunctor,
     DataSpace<simDim> totalGpuCellOffset = subGrid.getLocalDomain( ).offset;
     totalGpuCellOffset.y( ) += numSlides * localCells.y( );
 
-    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3( ) );
-    __picKernelArea( (kernelFillGridWithParticles<Particles<T_ParticleDescription> >),
-                      this->cellDescription, CORE + BORDER)
-        (block)
-        ( gasFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ) );
+    auto block = MappingDesc::SuperCellSize::toRT( );
+    AreaMapping<CORE+BORDER,MappingDesc> mapper(this->cellDescription);
+    PMACC_KERNEL( KernelFillGridWithParticles<Particles<T_ParticleDescription> >{} )
+        (mapper.getGridDim(), block)
+        ( gasFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ), mapper );
 
 
     this->fillAllGaps( );
@@ -216,11 +217,12 @@ template< typename T_SrcParticleDescription,
           typename T_ManipulateFunctor>
 void Particles<T_ParticleDescription>::deviceDeriveFrom( Particles< T_SrcParticleDescription> &src, T_ManipulateFunctor& functor )
 {
-    dim3 block( PMacc::math::CT::volume<SuperCellSize>::type::value );
+    auto block = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
     log<picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
-    __picKernelArea( kernelDeriveParticles, this->cellDescription, CORE + BORDER )
-        (block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ), functor );
+    AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
+    PMACC_KERNEL( KernelDeriveParticles{} )
+        (mapper.getGridDim(), block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ), functor, mapper );
     this->fillAllGaps( );
 }
 
@@ -229,12 +231,15 @@ template< typename T_Functor>
 void Particles<T_ParticleDescription>::manipulateAllParticles( uint32_t currentStep, T_Functor& functor )
 {
 
-    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3( ) );
+    auto block = MappingDesc::SuperCellSize::toRT( );
 
-    __picKernelArea( kernelManipulateAllParticles, this->cellDescription, CORE + BORDER )
-        (block)
+    AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
+    PMACC_KERNEL( KernelManipulateAllParticles{} )
+        (mapper.getGridDim(), block)
         ( this->particlesBuffer->getDeviceParticleBox( ),
-          functor );
+          functor,
+          mapper
+        );
 }
 
 } // end namespace

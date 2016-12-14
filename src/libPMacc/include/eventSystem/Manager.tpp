@@ -25,6 +25,7 @@
 #include "eventSystem/streams/StreamController.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/Manager.hpp"
+#include "assert.hpp"
 
 #include <cstdlib>
 #include <cstdio>
@@ -68,7 +69,7 @@ inline bool Manager::execute( id_t taskToWait )
     {
         id_t id = iter->first;
         ITask* taskPtr = iter->second;
-        assert( taskPtr != NULL );
+        PMACC_ASSERT( taskPtr != NULL );
         ++iter;
 #ifdef DEBUG_EVENTS
         if ( counter == 500000 )
@@ -172,18 +173,18 @@ inline void Manager::waitForAllTasks( )
     {
         this->execute( );
     }
-    assert( tasks.size( ) == 0 );
+    PMACC_ASSERT( tasks.size( ) == 0 );
 }
 
 inline void Manager::addTask( ITask *task )
 {
-    assert( task != NULL );
+    PMACC_ASSERT( task != NULL );
     tasks[task->getId( )] = task;
 }
 
 inline void Manager::addPassiveTask( ITask *task )
 {
-    assert( task != NULL );
+    PMACC_ASSERT( task != NULL );
 
     task->addObserver( this );
     passiveTasks[task->getId( )] = task;

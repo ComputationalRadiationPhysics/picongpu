@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Felix Schmitt, 
+ * Copyright 2013-2016 Axel Huebl, Rene Widera, Felix Schmitt,
  * Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -40,6 +40,8 @@ namespace picongpu
      * you can choose any of these particle to grid projections:
      *   - CreateDensityOperation: particle position + shape on the grid
      *   - CreateChargeDensityOperation: density * charge
+     *   - CreateMidCurrentDensityComponentOperation:
+     *                                   density * charge * velocity_component
      *   - CreateCounterOperation: counts point like particles per cell (debug)
      *   - CreateEnergyDensityOperation: particle energy density with respect
      *                                   to shape

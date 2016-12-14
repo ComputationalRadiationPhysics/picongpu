@@ -41,10 +41,10 @@ class ComputeGridValuePerFrame
 public:
 
     typedef typename T_ParticleShape::ChargeAssignment AssignmentFunction;
-    BOOST_STATIC_CONSTEXPR int supp = AssignmentFunction::support;
+    static constexpr int supp = AssignmentFunction::support;
 
-    BOOST_STATIC_CONSTEXPR int lowerMargin = supp / 2;
-    BOOST_STATIC_CONSTEXPR int upperMargin = (supp + 1) / 2;
+    static constexpr int lowerMargin = supp / 2;
+    static constexpr int upperMargin = (supp + 1) / 2;
     typedef typename PMacc::math::CT::make_Int<simDim, lowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim, upperMargin>::type UpperMargin;
 
@@ -104,6 +104,19 @@ struct CreateChargeDensityOperation
     > ParticleChargeDensity;
 
     typedef FieldTmpOperation< ParticleChargeDensity, T_Species > type;
+};
+
+/* MidCurrentDensityComponent */
+template<typename T_Species, typename T_Direction = bmpl::int_<0> >
+struct CreateMidCurrentDensityComponentOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        particleToGrid::derivedAttributes::MidCurrentDensityComponent<T_Direction::value>
+    > ParticleMidCurrentDensityComponent;
+
+    typedef FieldTmpOperation< ParticleMidCurrentDensityComponent, T_Species > type;
 };
 
 /* ParticleCounter */

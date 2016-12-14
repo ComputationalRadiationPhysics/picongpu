@@ -75,18 +75,18 @@ struct Push
     // the transver data type adjust to 3D3V, 2D3V, 2D2V, ...
     typedef PMacc::math::Vector< picongpu::float_X, simDim + dimMomentum > VariableType;
     VariableType var;
-    
+
     // transfer position
     for(uint32_t i=0; i<picongpu::simDim; ++i)
       var[i] = pos[i];
-    
+
     // transfer momentum
     for(uint32_t i=0; i<dimMomentum; ++i)
       var[simDim + i] = mom[i];
-        
+
     typedef DiffEquation<VariableType, float_X, TypeEFieldFunctor, TypeBFieldFunctor, TypePosition, TypeMomentum, TypeMass, TypeCharge, TypeWeighting, Velocity, Gamma> DiffEqType;
     DiffEqType diffEq(functorEField, functorBField, mass, charge, weighting);
-    
+
     VariableType varNew = PMacc::math::RungeKutta4()(diffEq, var, float_X(0.0), deltaT);
 
     // transfer position
@@ -98,7 +98,7 @@ struct Push
       mom[i] = varNew[simDim+i];
 
   }
-  
+
   template<typename T_Var, typename T_Time,
            typename T_FieldEFunc, typename T_FieldBFunc,
            typename T_Pos, typename T_Mom,
@@ -106,7 +106,7 @@ struct Push
            typename T_Velocity, typename T_Gamma>
   struct DiffEquation
   {
-    
+
     // alias for types to  follow coding guide line
     typedef T_Var VariableType;
     typedef T_Time TimeType;
@@ -146,7 +146,7 @@ struct Push
       const uint32_t dimMomentum = GetNComponents<MomentumType>::value;
       for(uint32_t i=0; i<dimMomentum; ++i)
         mom[i] = var[simDim+i];
-      
+
       VelocityType velocityCalc;
       GammaType gammaCalc;
       const float_X c = SPEED_OF_LIGHT;
@@ -161,14 +161,14 @@ struct Push
       const float_X prefactorRR = 2./3. * charge2 * charge2 / (4.*PI*EPS0 * mass*mass * c2*c2);
       const float3_X lorentz = fieldE + conversionMomentum2Beta * c * math::cross(mom, fieldB);
       const float_X fieldETimesBeta = math::dot(fieldE, mom) * conversionMomentum2Beta;
-      const float3_X radReactionVec = c * (math::cross(fieldE, fieldB) + 
+      const float3_X radReactionVec = c * (math::cross(fieldE, fieldB) +
                                            c * conversionMomentum2Beta * math::cross(fieldB, math::cross(fieldB, mom)))
                                       + conversionMomentum2Beta * fieldE * math::dot(mom, fieldE)
                                       - gamma * gamma * conversionMomentum2Beta * (mom * (math::dot(lorentz, lorentz) - fieldETimesBeta*fieldETimesBeta));
 
       const float3_X diffMom = charge * lorentz + (prefactorRR / weighting) * radReactionVec;
       const float3_X diffPos = velocity;
-      
+
       VariableType returnVar;
       for(uint32_t i=0; i<picongpu::simDim; ++i)
         returnVar[i] = diffPos[i] / cellSize[i];
@@ -180,7 +180,7 @@ struct Push
     }
 
 
-  private:    
+  private:
     EFieldFuncType fieldEFunc; /* functor E field interpolation */
     BFieldFuncType fieldBFunc; /* functor B field interpolation */
     MassType mass;             /* mass of the macro particle */

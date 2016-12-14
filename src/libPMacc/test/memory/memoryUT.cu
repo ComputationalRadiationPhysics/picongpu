@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Erik Zenker
+ * Copyright 2015-2016 Erik Zenker, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -20,6 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "PMaccFixture.hpp"
+
 // STL
 #include <stdint.h> /* uint8_t */
 #include <iostream> /* cout, endl */
@@ -29,7 +31,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
-#include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/int.hpp>
 
 // MPI
 #include <mpi.h> /* MPI_Init, MPI_Finalize */
@@ -48,35 +50,6 @@
 /*******************************************************************************
  * Configuration
  ******************************************************************************/
-
-/**
- * A fixture is an object that is constructed before some
- * statment and destructed after some statement. Thus, the
- * fixture defines pre and postconditions of this statement.
- *
- * This fixture defines the initialization and termination
- * of MPI and the initialization of the environment
- * singleton.
- */
-struct Fixture {
-    Fixture(){
-        int argc = 0;
-        char **argv = NULL;
-
-        MPI_Init( &argc, &argv );
-
-        PMacc::DataSpace<DIM3> const devices(1,1,1);
-        PMacc::DataSpace<DIM3> const periodic(1,1,1);
-        PMacc::Environment<DIM3>::get().initDevices(devices, periodic);
-
-
-    }
-
-    ~Fixture(){
-        MPI_Finalize( );
-    }
-
-};
 
 
 /**
@@ -97,7 +70,7 @@ std::vector<size_t> getElementsPerDim(){
 
     // Elements per dimension
     for(size_t i = 0; i < nElements.size(); ++i){
-        nElementsPerDim.push_back(std::pow(nElements[i], static_cast<double>(1)/static_cast<double>(T_Dim::value))); 
+        nElementsPerDim.push_back(std::pow(nElements[i], static_cast<double>(1)/static_cast<double>(T_Dim::value)));
 
     }
     return nElementsPerDim;
@@ -110,16 +83,17 @@ std::vector<size_t> getElementsPerDim(){
  * each dimension setup automatically. For this
  * purpose boost::mpl::for_each is used.
  */
-typedef ::boost::mpl::list<boost::mpl::integral_c<int, DIM1>,
-                           boost::mpl::integral_c<int, DIM2>,
-                           boost::mpl::integral_c<int, DIM3> > Dims;
-
-BOOST_GLOBAL_FIXTURE( Fixture );
+typedef ::boost::mpl::list<boost::mpl::int_<DIM1>,
+                           boost::mpl::int_<DIM2>,
+                           boost::mpl::int_<DIM3> > Dims;
 
 
 /*******************************************************************************
  * Test Suites
  ******************************************************************************/
+typedef PMaccFixture<TEST_DIM> MyPMaccFixture;
+BOOST_GLOBAL_FIXTURE(MyPMaccFixture);
+
 BOOST_AUTO_TEST_SUITE( memory )
 
   BOOST_AUTO_TEST_SUITE( HostBufferIntern )

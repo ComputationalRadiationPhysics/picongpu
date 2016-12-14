@@ -34,8 +34,6 @@
 #include "plugins/output/images/Visualisation.hpp"
 #include "plugins/output/images/LiveViewClient.hpp"
 
-#include <cassert>
-
 #include <stdexcept>
 
 

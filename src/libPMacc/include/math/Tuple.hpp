@@ -71,7 +71,7 @@ class Tuple<TypeList, false>
     : public Tuple<typename mpl::pop_front<TypeList>::type>
 {
 public:
-    BOOST_STATIC_CONSTEXPR int dim = mpl::size<TypeList>::type::value;
+    static constexpr int dim = mpl::size<TypeList>::type::value;
     typedef TypeList TypeList_;
 private:
     typedef Tuple<typename mpl::pop_front<TypeList>::type> base;

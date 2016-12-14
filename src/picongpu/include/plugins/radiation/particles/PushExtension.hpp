@@ -50,7 +50,7 @@ struct PushExtension
             // Radiation marks only a particle if it has a high velocity
             // marked particle means that momentumPrev1 is not 0.0 in one direction
 
-            const float_X abs2_mom = PMacc::algorithms::math::abs2(mom);
+            const float_X abs2_mom = math::abs2(mom);
             if (((abs2_mom)>((parameters::RadiationGamma * parameters::RadiationGamma - float_X(1.0)) * mass * mass * c2)))
             {
                 radFlag = true;
