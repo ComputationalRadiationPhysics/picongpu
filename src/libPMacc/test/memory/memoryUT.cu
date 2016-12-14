@@ -97,9 +97,9 @@ BOOST_GLOBAL_FIXTURE(MyPMaccFixture);
 BOOST_AUTO_TEST_SUITE( memory )
 
   BOOST_AUTO_TEST_SUITE( HostBufferIntern )
-  #include "HostBufferIntern/copyFrom.hpp"
-  #include "HostBufferIntern/reset.hpp"
-  #include "HostBufferIntern/setValue.hpp"
+#   include "HostBufferIntern/copyFrom.hpp"
+#   include "HostBufferIntern/reset.hpp"
+#   include "HostBufferIntern/setValue.hpp"
   BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()

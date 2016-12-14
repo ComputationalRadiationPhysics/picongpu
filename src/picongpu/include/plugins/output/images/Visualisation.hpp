@@ -203,12 +203,12 @@ struct KernelPaintFields
                                         realCell[transpose.y()]);
         const DataSpace<simDim> realCell2(blockOffset + threadId); //delete guard from cell idx
 
-    #if (SIMDIM==DIM3)
+#if( SIMDIM==DIM3 )
         uint32_t globalCell = realCell2[sliceDim] + globalOffset;
 
         if (globalCell != slice)
             return;
-    #endif
+#endif
         // set fields of this cell to vars
         typename BBox::ValueType field_b = fieldB(cell);
         typename EBox::ValueType field_e = fieldE(cell);
@@ -292,11 +292,11 @@ struct KernelPaintParticles3D
         //\todo: guard size should not be set to (fixed) 1 here
         const DataSpace<simDim> realCell(blockOffset + threadId); //delete guard from cell idx
 
-    #if(SIMDIM==DIM3)
+#if( SIMDIM==DIM3 )
         uint32_t globalCell = realCell[sliceDim] + globalOffset;
 
         if (globalCell == slice)
-    #endif
+#endif
         {
             nvidia::atomicAllExch(&isValid,1); /*WAW Error in cuda-memcheck racecheck*/
             isImageThread = true;
@@ -341,10 +341,10 @@ struct KernelPaintParticles3D
                 int cellIdx = particle[localCellIdx_];
                 // we only draw the first slice of cells in the super cell (z == 0)
                 const DataSpace<simDim> particleCellId(DataSpaceOperations<simDim>::template map<Block > (cellIdx));
-    #if(SIMDIM==DIM3)
+#if( SIMDIM==DIM3 )
                 uint32_t globalParticleCell = particleCellId[sliceDim] + globalOffset + blockOffset[sliceDim];
                 if (globalParticleCell == slice)
-    #endif
+#endif
                 {
                     const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
                     atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);

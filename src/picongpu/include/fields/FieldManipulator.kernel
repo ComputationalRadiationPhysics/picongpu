@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-#ifndef FIELDMANIPULATOR_KERNEL
-#define    FIELDMANIPULATOR_KERNEL
+#pragma once
 
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
@@ -106,12 +103,10 @@ struct KernelAbsorbBorder
             absorb < 0 > (field, thickness, absorber_strength, mapper, direction);
         else if (direction.y() != 0)
             absorb < 1 > (field, thickness, absorber_strength, mapper, direction);
-    #if (SDIMDIM==DIM3)
+#if( SDIMDIM==DIM3 )
         else if (direction.z() != 0)
             absorb < 2 > (field, thickness, absorber_strength, mapper, direction);
-    #endif
+#endif
     }
 };
-} //namespace
-#endif    /* FIELDMANIPULATOR_KERNEL */
-
+} // picongpu

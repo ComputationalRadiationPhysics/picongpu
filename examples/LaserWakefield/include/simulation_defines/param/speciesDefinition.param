@@ -51,14 +51,14 @@ typedef MakeSeq<position<position_pic>, momentum, weighting>::type DefaultPartic
 
 /*add old momentum for radiation plugin*/
 typedef MakeSeq<
-#if(ENABLE_RADIATION == 1)
+#if( ENABLE_RADIATION == 1 )
 momentumPrev1
 #endif
 >::type AttributMomentum_mt1;
 
 /*add old radiation flag for radiation plugin*/
 typedef MakeSeq<
-#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+#if( RAD_MARK_PARTICLE>1 ) || ( RAD_ACTIVATE_GAMMA_FILTER!=0 )
 radiationFlag
 #endif
 >::type AttributRadiationFlag;
@@ -163,11 +163,11 @@ typedef bmpl::vector<
     current<UsedParticleCurrentSolver>,
     massRatio<MassRatioIons>,
     chargeRatio<ChargeRatioIons>,
-    #if(PARAM_IONIZATION == 1)
+#if( PARAM_IONIZATION == 1 )
     ionizer<particles::ionization::BSIEffectiveZ<PIC_Electrons> >,
     ionizationEnergies<AU::IONIZATION_ENERGY_HYDROGEN_t>,
     effectiveAtomicNumbers<Z_EFFECTIVE_HYDROGEN_t>,
-    #endif
+#endif
     atomicNumbers<Hydrogen>
 > ParticleFlagsIons;
 
@@ -188,13 +188,13 @@ typedef Particles<
  * support multi species */
 /** \todo: not nice, but this should be changed in the future*/
 typedef MakeSeq<
-#if (ENABLE_ELECTRONS == 1)
+#if( ENABLE_ELECTRONS == 1 )
 PIC_Electrons
 #endif
 >::type Species1;
 
 typedef MakeSeq<
-#if (ENABLE_IONS == 1)
+#if( ENABLE_IONS == 1 )
 PIC_Ions
 #endif
 >::type Species2;

@@ -18,17 +18,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FIELDE_KERNEL
-#define    FIELDE_KERNEL
+#pragma once
 
 #include "math/Vector.hpp"
-
 #include "simulation_classTypes.hpp"
-
 #include "dimensions/DataSpace.hpp"
-
 #include "memory/boxes/CachedBox.hpp"
-
 #include "nvidia/functors/Assign.hpp"
 #include "mappings/threads/ThreadCollective.hpp"
 
@@ -48,12 +43,10 @@ struct KernelLaserE
         EFieldOffset.x() = cellOffset.x() + (MappingDesc::SuperCellSize::x::value * GUARD_SIZE);
         EFieldOffset.y() = MappingDesc::SuperCellSize::y::value*GUARD_SIZE;
 
-    #if (SIMDIM==DIM3)
+#if( SIMDIM==DIM3 )
         cellOffset.z() = (blockIdx.y * blockDim.y) + threadIdx.y;
         EFieldOffset.z() = cellOffset.z() + (MappingDesc::SuperCellSize::z::value * GUARD_SIZE);
-    #endif
-
-        //uint32_t zOffset
+#endif
 
         /** Calculate how many neighbors to the left we have
          * to initialize the laser in the E-Field
@@ -84,13 +77,10 @@ struct KernelLaserE
              *
              *  \todo What about the B-Field in the second plane?
              */
-            cellOffset.y()=totalOffsetY;
+            cellOffset.y() = totalOffsetY;
             fieldE(EFieldOffset) = lMan.getManipulation(cellOffset);
         }
     }
 };
 
 }
-
-
-#endif  //end FIELDE_KERNEL
