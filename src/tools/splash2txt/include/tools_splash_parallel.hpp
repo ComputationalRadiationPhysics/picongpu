@@ -20,7 +20,7 @@
  */
 
 #ifndef TOOLS_SPLASH_PARALLEL_HPP
-#define	TOOLS_SPLASH_PARALLEL_HPP
+#define TOOLS_SPLASH_PARALLEL_HPP
 
 #include <iostream>
 
@@ -64,5 +64,5 @@ protected:
     std::ostream &errorStream;
 };
 
-#endif	/* TOOLS_SPLASH_PARALLEL_HPP */
+#endif    /* TOOLS_SPLASH_PARALLEL_HPP */
 

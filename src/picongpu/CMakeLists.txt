@@ -337,12 +337,12 @@ add_definitions(-DPIC_VERBOSE_LVL=${PIC_VERBOSE})
 
 option(PIC_ENABLE_INSITU_VOLVIS "Enable In Situ Volume Visualization" OFF)
 if(PIC_ENABLE_INSITU_VOLVIS)
-	add_definitions(-DENABLE_INSITU_VOLVIS=1)
-	set(CUDA_ARCH sm_35 CACHE STRING "set GPU architecture")
-	set(IceT_DIR "$ENV{ICET_ROOT}/lib/")
-	find_package(IceT REQUIRED)
-	include_directories(SYSTEM ${ICET_INCLUDE_DIRS})
-	set(LIBS ${LIBS} ${ICET_CORE_LIBS} ${ICET_MPI_LIBS})
+    add_definitions(-DENABLE_INSITU_VOLVIS=1)
+    set(CUDA_ARCH sm_35 CACHE STRING "set GPU architecture")
+    set(IceT_DIR "$ENV{ICET_ROOT}/lib/")
+    find_package(IceT REQUIRED)
+    include_directories(SYSTEM ${ICET_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${ICET_CORE_LIBS} ${ICET_MPI_LIBS})
 endif(PIC_ENABLE_INSITU_VOLVIS)
 
 ################################################################################
