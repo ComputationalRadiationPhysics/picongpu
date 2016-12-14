@@ -79,7 +79,7 @@ class TFieldSource
                 GridController<simDim> &gc = Environment<simDim>::get().GridController();
                 if (gc.getPosition()[1] == 0) //first gpu
                 {
-					uint32_t* currentStep = (uint32_t*)pointer;
+                    uint32_t* currentStep = (uint32_t*)pointer;
                     Window window( MovingWindow::getInstance().getWindow( *currentStep ) );
                     guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
                 }
@@ -142,15 +142,15 @@ class TFieldSource< FieldTmpOperation< FrameSolver, ParticleType > >
                 __setTransactionEvent(fieldTmpEvent);
                 __getTransactionEvent().waitForFinished();
                 DataSpace< simDim > guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
-				if (movingWindow)
-				{
-					GridController<simDim> &gc = Environment<simDim>::get().GridController();
-					if (gc.getPosition()[1] == 0) //first gpu
-					{
-						Window window(MovingWindow::getInstance().getWindow( *currentStep ));
-						guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
-					}
-				}
+                if (movingWindow)
+                {
+                    GridController<simDim> &gc = Environment<simDim>::get().GridController();
+                    if (gc.getPosition()[1] == 0) //first gpu
+                    {
+                        Window window(MovingWindow::getInstance().getWindow( *currentStep ));
+                        guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
+                    }
+                }
                 typename FieldTmp::DataBoxType dataBox = fieldTmp->getDeviceDataBox();
                 shifted = dataBox.shift( guarding );
             }
@@ -270,10 +270,10 @@ public:
                 json_t* js;
                 if ( meta && ( js = json_object_get(meta, "interval") ) )
                 {
-					render_interval = max( int(1), int( json_integer_value ( js ) ) );
-					//Feedback for other clients than the changing one
-					if (rank == 0)
-						json_object_set_new( visualization->getJsonMetaRoot(), "interval", json_integer( render_interval ) );
+                    render_interval = max( int(1), int( json_integer_value ( js ) ) );
+                    //Feedback for other clients than the changing one
+                    if (rank == 0)
+                        json_object_set_new( visualization->getJsonMetaRoot(), "interval", json_integer( render_interval ) );
                 }
                 json_decref( meta );
                 if (direct_pause)

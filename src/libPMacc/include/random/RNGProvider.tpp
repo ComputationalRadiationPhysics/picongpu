@@ -52,8 +52,8 @@ namespace random
 
     template<uint32_t T_dim, class T_RNGMethod>
     RNGProvider<T_dim, T_RNGMethod>::RNGProvider(const Space& size, const std::string& uniqueId):
-    		m_size(size), m_uniqueId(uniqueId.empty() ? getName() : uniqueId),
-    		buffer(new Buffer(size))
+            m_size(size), m_uniqueId(uniqueId.empty() ? getName() : uniqueId),
+            buffer(new Buffer(size))
     {
         if(m_size.productOfComponents() == 0)
             throw std::invalid_argument("Cannot create RNGProvider with zero size");

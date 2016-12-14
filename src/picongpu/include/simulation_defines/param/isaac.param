@@ -28,7 +28,7 @@ namespace isaacP
     //Native fields to visualize
     typedef MakeSeq<FieldE, FieldB, FieldJ>::type Native_Seq;
 
-	//Creating a density field for every species to visualize
+    //Creating a density field for every species to visualize
     typedef bmpl::transform<
             VectorAllSpecies,
             CreateDensityOperation<bmpl::_1>

@@ -131,12 +131,12 @@ void * Visualization::runVisThread(void * vis)
         v->getStream()->receive(&id, buffer, &len);
 
         uint32_t timestep;
-	float fps;
-	float renderFps;
+        float fps;
+        float renderFps;
 
-    int64_t numGPUs;
-    int64_t numCells;
-    int64_t numParticles;
+        int64_t numGPUs;
+        int64_t numCells;
+        int64_t numParticles;
 
         /// depending on what kind of header was sent treat data
         switch(id)
@@ -148,7 +148,7 @@ void * Visualization::runVisThread(void * vis)
 #endif
                 v->m_prov->broadcast_message(RIVLIB_USERMSG + RenderFPS, sizeof(float), (const char*)&renderFps);
                 } break;
-	    case FPS: {
+        case FPS: {
                 fps = reinterpret_cast<float*>(buffer)[0];
 #if VERBOSITY_LEVEL >= 2
                 std::cout << "[SERVER](" << v->getName() << ") Received FPS " << fps << "." << std::endl;

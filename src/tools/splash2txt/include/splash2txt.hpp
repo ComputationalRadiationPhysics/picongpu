@@ -20,7 +20,7 @@
  */
 
 #ifndef SPLASH2TXT_HPP
-#define	SPLASH2TXT_HPP
+#define SPLASH2TXT_HPP
 
 #include <mpi.h>
 
@@ -100,5 +100,5 @@ typedef struct
     bool applyUnits; // apply the unit stored in HDF5 to the output data
 } ProgramOptions;
 
-#endif	/* SPLASH2TXT_HPP */
+#endif    /* SPLASH2TXT_HPP */
 

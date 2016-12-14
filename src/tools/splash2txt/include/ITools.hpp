@@ -20,7 +20,7 @@
  */
 
 #ifndef ITOOLS_HPP
-#define	ITOOLS_HPP
+#define ITOOLS_HPP
 
 #include "splash2txt.hpp"
 
@@ -51,5 +51,5 @@ protected:
     std::ostream &m_outStream;
 };
 
-#endif	/* ITOOLS_HPP */
+#endif    /* ITOOLS_HPP */
 

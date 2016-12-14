@@ -64,7 +64,7 @@ if(NOT RELEASE)
     message("building debug")
 else()
     message("building release")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Werror")
 endif(NOT RELEASE)
 
 
