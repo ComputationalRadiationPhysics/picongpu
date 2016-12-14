@@ -18,6 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "static_assert.hpp"
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
@@ -188,7 +189,11 @@ void ChargeConservation::notify(uint32_t currentStep)
     DataConnector &dc = Environment<>::get().DataConnector();
 
     /* load FieldTmp without copy data to host */
-    FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
+    PMACC_CASSERT_MSG(
+        _please_allocate_at_least_one_FieldTmp_in_memory_param,
+        fieldTmpNumSlots > 0
+    );
+    FieldTmp* fieldTmp = &(dc.getData< FieldTmp >( FieldTmp::getUniqueId( 0 ), true ));
     /* reset density values to zero */
     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
 

@@ -97,7 +97,6 @@ public:
     fieldB(NULL),
     fieldE(NULL),
     fieldJ(NULL),
-    fieldTmp(NULL),
     mallocMCBuffer(NULL),
     myFieldSolver(NULL),
     myCurrentInterpolation(NULL),
@@ -251,7 +250,9 @@ public:
 
         __delete(fieldJ);
 
-        __delete(fieldTmp);
+        for( auto* slot : fieldTmp )
+            __delete( slot );
+        fieldTmp.clear();
 
         __delete(mallocMCBuffer);
 
@@ -282,7 +283,8 @@ public:
         fieldB = new FieldB(*cellDescription);
         fieldE = new FieldE(*cellDescription);
         fieldJ = new FieldJ(*cellDescription);
-        fieldTmp = new FieldTmp(*cellDescription);
+        for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
+            fieldTmp.push_back( new FieldTmp( *cellDescription, slot ) );
         pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
         currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
 
@@ -360,7 +362,8 @@ public:
         fieldB->init(*fieldE, *laser);
         fieldE->init(*fieldB, *laser);
         fieldJ->init(*fieldE, *fieldB);
-        fieldTmp->init();
+        for( auto* slot : fieldTmp )
+            slot->init();
 
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
@@ -370,7 +373,7 @@ public:
 
 
         ForEach<VectorAllSpecies, particles::CallInit<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleInit;
-        particleInit(forward(particleStorage), fieldE, fieldB, fieldJ, fieldTmp);
+        particleInit( forward(particleStorage), fieldE, fieldB );
 
 
         /* add CUDA streams to the StreamController for concurrent execution */
@@ -630,7 +633,7 @@ protected:
     FieldB *fieldB;
     FieldE *fieldE;
     FieldJ *fieldJ;
-    FieldTmp *fieldTmp;
+    std::vector< FieldTmp * > fieldTmp;
     MallocMCBuffer *mallocMCBuffer;
 
     // field solver

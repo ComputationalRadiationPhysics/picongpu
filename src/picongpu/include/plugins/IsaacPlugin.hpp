@@ -25,7 +25,10 @@
 
 #include "plugins/ILightweightPlugin.hpp"
 #include "dataManagement/DataConnector.hpp"
+#include "static_assert.hpp"
+
 #include <isaac.hpp>
+
 #include <boost/fusion/container/list.hpp>
 #include <boost/fusion/include/list.hpp>
 #include <boost/fusion/container/list/list_fwd.hpp>
@@ -134,8 +137,14 @@ class TFieldSource< FieldTmpOperation< FrameSolver, ParticleType > >
                 uint32_t* currentStep = (uint32_t*)pointer;
                 const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
                 DataConnector &dc = Environment< simDim >::get().DataConnector();
-                FieldTmp * fieldTmp = &(dc.getData< FieldTmp > (FieldTmp::getName(), true));
+
+                PMACC_CASSERT_MSG(
+                    _please_allocate_at_least_one_FieldTmp_in_memory_param,
+                    fieldTmpNumSlots > 0
+                );
+                FieldTmp * fieldTmp = &(dc.getData< FieldTmp >( FieldTmp::getUniqueId( 0 ), true ));
                 ParticleType * particles = &(dc.getData< ParticleType > ( ParticleType::FrameType::getName(), true));
+
                 fieldTmp->getGridBuffer().getDeviceBuffer().setValue( FieldTmp::ValueType(0.0) );
                 fieldTmp->computeValue < CORE + BORDER, FrameSolver > (*particles, *currentStep);
                 EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());

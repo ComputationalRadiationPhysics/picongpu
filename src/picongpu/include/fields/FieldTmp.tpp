@@ -46,15 +46,26 @@
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "traits/GetMargin.hpp"
+#include "traits/GetUniqueTypeId.hpp"
+
+#include <string>
 
 namespace picongpu
 {
     using namespace PMacc;
 
-    FieldTmp::FieldTmp( MappingDesc cellDescription ) :
-    SimulationFieldHelper<MappingDesc>( cellDescription ),
-    fieldTmp( NULL )
+    FieldTmp::FieldTmp(
+        MappingDesc cellDescription,
+        uint32_t slotId
+    ) :
+        SimulationFieldHelper<MappingDesc>( cellDescription ),
+        fieldTmp( NULL ),
+        m_slotId( slotId )
     {
+        m_commTag =
+            ++PMacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
+            SPECIES_FIRSTTAG;
+
         fieldTmp = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
         /** \todo The exchange has to be resetted and set again regarding the
@@ -154,7 +165,7 @@ namespace picongpu
 
             }
             // std::cout << "ex " << i << " x=" << guardingCells[0] << " y=" << guardingCells[1] << " z=" << guardingCells[2] << std::endl;
-            fieldTmp->addExchangeBuffer( i, guardingCells, FIELD_TMP );
+            fieldTmp->addExchangeBuffer( i, guardingCells, m_commTag );
         }
     }
 
@@ -186,9 +197,17 @@ namespace picongpu
         } while( mapper.next( ) );
     }
 
-    SimulationDataId FieldTmp::getUniqueId()
+
+    SimulationDataId
+    FieldTmp::getUniqueId( uint32_t slotId )
     {
-        return getName();
+        return getName() + std::to_string( slotId );
+    }
+
+    SimulationDataId
+    FieldTmp::getUniqueId()
+    {
+        return getUniqueId( m_slotId );
     }
 
     void FieldTmp::synchronize( )
@@ -299,8 +318,7 @@ namespace picongpu
     uint32_t
     FieldTmp::getCommTag( )
     {
-        return FIELD_TMP;
+        return m_commTag;
     }
 
 } // namespace picongpu
-

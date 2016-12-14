@@ -84,7 +84,7 @@ public:
 
     void createParticleBuffer();
 
-    void init(FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp);
+    void init(FieldE &fieldE, FieldB &fieldB);
 
     void update(uint32_t currentStep);
 
@@ -164,8 +164,6 @@ private:
 
     FieldE *fieldE;
     FieldB *fieldB;
-    FieldJ *fieldJcurrent;
-    FieldTmp *fieldTmp;
 };
 
 namespace traits

@@ -32,8 +32,6 @@
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
-#include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.hpp"
 
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 #include "ParticlesInit.kernel"
@@ -76,8 +74,6 @@ Particles<
     >( cellDescription ),
     fieldB( NULL ),
     fieldE( NULL ),
-    fieldJcurrent( NULL ),
-    fieldTmp( NULL ),
     m_gridLayout(gridLayout),
     m_datasetID( datasetID )
 {
@@ -210,12 +206,10 @@ Particles<
     T_Name,
     T_Attributes,
     T_Flags
->::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp )
+>::init( FieldE &fieldE, FieldB &fieldB )
 {
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
-    this->fieldJcurrent = &fieldJ;
-    this->fieldTmp = &fieldTmp;
 
     Environment<>::get( ).DataConnector( ).registerData( *this );
 }

@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "static_assert.hpp"
 #include "simulation_defines.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
@@ -74,7 +75,12 @@ private:
     {
         using namespace splash;
         DataConnector &dc = Environment<>::get().DataConnector();
-        FieldTmp& fieldTmp = dc.getData<FieldTmp > (FieldTmp::getName(), true);
+
+        PMACC_CASSERT_MSG(
+            _please_allocate_at_least_one_FieldTmp_in_memory_param,
+            fieldTmpNumSlots > 0
+        );
+        FieldTmp& fieldTmp = dc.getData<FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
         PMACC_AUTO(&fieldBuffer, fieldTmp.getGridBuffer());
 
         deviceDataBox = fieldBuffer.getDeviceBuffer().getDataBox();

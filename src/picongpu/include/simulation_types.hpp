@@ -44,7 +44,6 @@ enum CommunicationTag
     FIELD_E = 2u,
     FIELD_J = 3u,
     FIELD_JRECV = 4u,
-    FIELD_TMP = 5u,
     SPECIES_FIRSTTAG = 42u
 };
 
