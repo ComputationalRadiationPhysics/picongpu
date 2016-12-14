@@ -29,29 +29,29 @@ namespace picongpu
     // asserts for wrong user configurations
     //
     // setting 1: Laser
-    #if (EM_FIELD_SCALE_CHANNEL1 == 1 || EM_FIELD_SCALE_CHANNEL2 == 1 || EM_FIELD_SCALE_CHANNEL3 == 1)
-      PMACC_DEF_IN_NAMESPACE_MSG( You_can_not_scale_your_preview_to_laser_without_using_a_laser___change_visualization_param, laserProfile, AMPLITUDE );
-    #endif
+#if( EM_FIELD_SCALE_CHANNEL1 == 1 || EM_FIELD_SCALE_CHANNEL2 == 1 || EM_FIELD_SCALE_CHANNEL3 == 1 )
+    PMACC_DEF_IN_NAMESPACE_MSG( You_can_not_scale_your_preview_to_laser_without_using_a_laser___change_visualization_param, laserProfile, AMPLITUDE );
+#endif
 
     // setting 2: Drifting Plasma
-    #if (EM_FIELD_SCALE_CHANNEL1 == 2 || EM_FIELD_SCALE_CHANNEL2 == 2 || EM_FIELD_SCALE_CHANNEL3 == 2)
-      PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_drift_without_a_initially_drifting_plasma___change_visualization_param, ((PARTICLE_INIT_DRIFT_GAMMA)>1.0) );
-    #endif
+#if( EM_FIELD_SCALE_CHANNEL1 == 2 || EM_FIELD_SCALE_CHANNEL2 == 2 || EM_FIELD_SCALE_CHANNEL3 == 2 )
+    PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_drift_without_a_initially_drifting_plasma___change_visualization_param, ((PARTICLE_INIT_DRIFT_GAMMA)>1.0) );
+#endif
 
     // setting 3: Plasma Wave
-    #if (EM_FIELD_SCALE_CHANNEL1 == 3 || EM_FIELD_SCALE_CHANNEL2 == 3 || EM_FIELD_SCALE_CHANNEL3 == 3)
-      PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_plasma_density___change_visualization_param, ((GAS_DENSITY)>0.0 && gasProfile::GAS_ENABLED) );
-    #endif
+#if( EM_FIELD_SCALE_CHANNEL1 == 3 || EM_FIELD_SCALE_CHANNEL2 == 3 || EM_FIELD_SCALE_CHANNEL3 == 3 )
+    PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_plasma_density___change_visualization_param, ((GAS_DENSITY)>0.0 && gasProfile::GAS_ENABLED) );
+#endif
 
     // setting 4: Thermal Warm Plasma
-    #if (EM_FIELD_SCALE_CHANNEL1 == 4 || EM_FIELD_SCALE_CHANNEL2 == 4 || EM_FIELD_SCALE_CHANNEL3 == 4)
-      PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_plasma_density___change_visualization_param, ((GAS_DENSITY)>0.0 && gasProfile::GAS_ENABLED) );
-      PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_electron_temperature___change_visualization_param, ((ELECTRON_TEMPERATURE)>0.0) );
-    #endif
+#if( EM_FIELD_SCALE_CHANNEL1 == 4 || EM_FIELD_SCALE_CHANNEL2 == 4 || EM_FIELD_SCALE_CHANNEL3 == 4 )
+    PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_plasma_density___change_visualization_param, ((GAS_DENSITY)>0.0 && gasProfile::GAS_ENABLED) );
+    PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_electron_temperature___change_visualization_param, ((ELECTRON_TEMPERATURE)>0.0) );
+#endif
 
     // setting 5: Blow Out
-    #if (EM_FIELD_SCALE_CHANNEL1 == 5 || EM_FIELD_SCALE_CHANNEL2 == 5 || EM_FIELD_SCALE_CHANNEL3 == 5)
-      //PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_plasma_density___change_visualization_param, ((GAS_DENSITY)>0.0 && gasProfile::GAS_ENABLED) );
-      PMACC_DEF_IN_NAMESPACE_MSG( You_can_not_scale_your_preview_to_blowout_with_a_laser_without_beam_waist___change_visualization_param, laserProfile, W0 );
-    #endif
+#if( EM_FIELD_SCALE_CHANNEL1 == 5 || EM_FIELD_SCALE_CHANNEL2 == 5 || EM_FIELD_SCALE_CHANNEL3 == 5 )
+    //PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_plasma_density___change_visualization_param, ((GAS_DENSITY)>0.0 && gasProfile::GAS_ENABLED) );
+    PMACC_DEF_IN_NAMESPACE_MSG( You_can_not_scale_your_preview_to_blowout_with_a_laser_without_beam_waist___change_visualization_param, laserProfile, W0 );
+#endif
 }

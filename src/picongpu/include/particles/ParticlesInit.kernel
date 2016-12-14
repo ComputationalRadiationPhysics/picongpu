@@ -163,14 +163,14 @@ struct KernelFillGridWithParticles
                 particle[localCellIdx_] = linearThreadIdx;
                 particle[weighting_] = macroWeighting;
 
-    #if(ENABLE_RADIATION == 1)
-    #    if(RAD_MARK_PARTICLE>1) && (RAD_ACTIVATE_GAMMA_FILTER==0)
+#if( ENABLE_RADIATION == 1 )
+#   if( RAD_MARK_PARTICLE>1 ) && ( RAD_ACTIVATE_GAMMA_FILTER==0 )
                 particle[radiationFlag_] = (bool)(rng() < (1.0 / (float_32) RAD_MARK_PARTICLE));
-    #    endif
-    #    if(RAD_ACTIVATE_GAMMA_FILTER!=0)
+#   endif
+#   if( RAD_ACTIVATE_GAMMA_FILTER!=0 )
                 particle[radiationFlag_] = (bool)(false);
-    #    endif
-    #endif
+#   endif
+#endif
 
                 numParsPerCell--;
                 if (numParsPerCell > 0)

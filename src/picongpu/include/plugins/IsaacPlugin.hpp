@@ -199,17 +199,17 @@ public:
         DataSpace< simDim >,
         textureDim,
         float3_X,
-        #if (ISAAC_STEREO == 0)
+#if( ISAAC_STEREO == 0 )
             isaac::DefaultController,
             isaac::DefaultCompositor
-        #else
+#else
             isaac::StereoController,
-            #if (ISAAC_STEREO == 1)
+#   if( ISAAC_STEREO == 1 )
                 isaac::StereoCompositorSideBySide<isaac::StereoController>
-            #else
+#   else
                 isaac::StereoCompositorAnaglyph<isaac::StereoController,0x000000FF,0x00FFFF00>
-            #endif
-        #endif
+#   endif
+#endif
     > * visualization;
 
     IsaacPlugin() :
@@ -370,17 +370,17 @@ private:
                 SourceList,
                 DataSpace< simDim >,
                 textureDim, float3_X,
-                #if (ISAAC_STEREO == 0)
+#if( ISAAC_STEREO == 0 )
                     isaac::DefaultController,
                     isaac::DefaultCompositor
-                #else
+#else
                     isaac::StereoController,
-                    #if (ISAAC_STEREO == 1)
+#   if( ISAAC_STEREO == 1 )
                         isaac::StereoCompositorSideBySide<isaac::StereoController>
-                    #else
+#   else
                         isaac::StereoCompositorAnaglyph<isaac::StereoController,0x000000FF,0x00FFFF00>
-                    #endif
-                #endif
+#   endif
+#endif
             > (
                 name,
                 0,

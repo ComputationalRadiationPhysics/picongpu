@@ -49,8 +49,8 @@
 #include "nvidia/atomic.hpp"
 
 
-#if (__NYQUISTCHECK__==1)
-#include "plugins/radiation/nyquist_low_pass.hpp"
+#if( __NYQUISTCHECK__ == 1 )
+#   include "plugins/radiation/nyquist_low_pass.hpp"
 #endif
 
 #include "plugins/radiation/radFormFactor.hpp"
@@ -139,18 +139,18 @@ struct KernelRadiationParticles
         // storage for macro particle weighting needed if
         // the coherent and incoherent radiation of a single
         // macro-particle needs to be considered
-    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+#if( __COHERENTINCOHERENTWEIGHTING__ == 1 )
         __shared__ float_X radWeighting_s[blockSize];
-    #endif
+#endif
 
         // particle counter used if not all particles are considered for
         // radiation calculation
         __shared__ int counter_s;
 
         // memory for Nyquist frequency at current time step
-    #if (__NYQUISTCHECK__==1)
+#if( __NYQUISTCHECK__ == 1 )
         __shared__ NyquistLowPass lowpass_s[blockSize];
-    #endif
+#endif
 
 
         const int theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
@@ -248,9 +248,9 @@ struct KernelRadiationParticles
                          * for radiation calculation, check if particle contributes
                          * to the radiation calculation by checking its flag.
                          */
-    #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+#if( RAD_MARK_PARTICLE > 1 ) || ( RAD_ACTIVATE_GAMMA_FILTER != 0 )
                         if (par[radiationFlag_])
-    #endif
+#endif
                         saveParticleAt = nvidia::atomicAllInc(&counter_s);
                         /* for information:
                         *   atomicAdd returns an int with the previous
@@ -296,9 +296,9 @@ struct KernelRadiationParticles
                              * considered, the weighting of each macro-particle needs to be stored
                              * in order to be considered when the actual frequency calculation is done
                              */
-    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+#if( __COHERENTINCOHERENTWEIGHTING__ == 1 )
                            radWeighting_s[saveParticleAt] = weighting;
-    #endif
+#endif
 
                             // mass of macro-particle
                             const float_X particle_mass = attribute::getMass(weighting,par);
@@ -325,7 +325,7 @@ struct KernelRadiationParticles
 
 
                         // if coherent and incoherent of single macro-particle is considered
-    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+#if( __COHERENTINCOHERENTWEIGHTING__ == 1 )
                             // get charge of single electron ! (weighting=1.0f)
                             const picongpu::float_X particle_charge = frame::getCharge<FRAME>();
 
@@ -334,7 +334,7 @@ struct KernelRadiationParticles
                             real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
                               particle_charge *
                               picongpu::float_64(DELTA_T);
-    #else
+#else
                             // if coherent and incoherent of single macro-particle is NOT considered
 
                             // get charge of entire macro-particle
@@ -344,16 +344,16 @@ struct KernelRadiationParticles
                             real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
                               particle_charge *
                               picongpu::float_64(DELTA_T);
-    #endif
+#endif
 
                             // retarded time stored in shared memory
                             t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
 
                             // if Nyquist-limiter is used, then the NyquistLowPlass object
                             // is setup and stored in shared memory
-    #if (__NYQUISTCHECK__==1)
+#if( __NYQUISTCHECK__ == 1 )
                             lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
-    #endif
+#endif
 
 
                             /* the particle amplitude is used to include the weighting
@@ -398,9 +398,9 @@ struct KernelRadiationParticles
 
                     // if coherent and incoherent radiation of a single macro-particle
                     // is considered, create a form factor object
-    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+#    if (__COHERENTINCOHERENTWEIGHTING__==1)
                     const radFormFactor::radFormFactor myRadFormFactor{ };
-    #endif
+#    endif
 
                     /* Particle loop: thread runs through loaded particle data
                      *
@@ -412,11 +412,11 @@ struct KernelRadiationParticles
                       {
 
                         // if Nyquist-limiter is on
-    #if (__NYQUISTCHECK__==1)
+#    if (__NYQUISTCHECK__==1)
                         // check Nyquist-limit for each particle "j" and each frequency "omega"
                         if (lowpass_s[j].check(omega))
                           {
-    #endif
+#    endif
 
                             /****************************************************
                              **** Here happens the true physical calculation ****
@@ -426,15 +426,15 @@ struct KernelRadiationParticles
                             // if coherent/incoherent radiation of single macro-particle
                             // is considered
                             // the form factor influences the real amplitude
-    #if (__COHERENTINCOHERENTWEIGHTING__==1)
+#    if (__COHERENTINCOHERENTWEIGHTING__==1)
                             const vector_64 weighted_real_amp = real_amplitude_s[j] * precisionCast<float_64 >
                               (myRadFormFactor(radWeighting_s[j], omega, look));
-    #else
+#    else
                             // if coherent/incoherent radiation of single macro-particle
                             // is NOT considered
                             // no change on real amplitude is performed
                             const vector_64 weighted_real_amp = real_amplitude_s[j];
-    #endif
+#    endif
 
                             // complex amplitude for j-th particle
                             Amplitude amplitude_add(weighted_real_amp,
@@ -444,9 +444,9 @@ struct KernelRadiationParticles
                             amplitude += amplitude_add;
 
                             // if Nyquist limiter is on
-    #if (__NYQUISTCHECK__==1)
+#    if (__NYQUISTCHECK__==1)
                           }// END: check Nyquist-limit for each particle "j" and each frequency "omega"
-    #endif
+#    endif
 
                       }// END: Particle loop
 

@@ -30,7 +30,7 @@
 #include "CT/FillTerminalList.hpp"
 #include <math/Tuple.hpp>
 #include "RefWrapper.hpp"
- #include <boost/type_traits/is_reference.hpp>
+#include <boost/type_traits/is_reference.hpp>
 
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/front.hpp>
@@ -102,9 +102,9 @@ struct ExprFunctor
         CT::FillTerminalList<Expr, CTExpr>()(expr, this->terminalTuple);
     }
 
-    #define CREF_TYPE_LIST(Z, N, _) const Arg ## N &
+#define CREF_TYPE_LIST(Z, N, _) const Arg ## N &
 
-    #define OPERATOR_CALL(Z,N,_)                                                                        \
+#define OPERATOR_CALL(Z,N,_)                                                                        \
         template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>                                                 \
         HDINLINE                                                                                        \
         typename ::PMacc::result_of::Functor<ExprFunctor<Expr>, BOOST_PP_ENUM_PARAMS(N, Arg)>::type     \
@@ -118,8 +118,8 @@ struct ExprFunctor
 
     BOOST_PP_REPEAT_FROM_TO(1, LAMBDA_MAX_PARAMS, OPERATOR_CALL, _)
 
-    #undef OPERATOR_CALL
-    #undef CREF_TYPE_LIST
+#undef OPERATOR_CALL
+#undef CREF_TYPE_LIST
 };
 
 namespace result_of
@@ -158,4 +158,3 @@ make_Functor(const Expression<ExprType, Childs>& expr)
 
 } // lambda
 } // PMacc
-

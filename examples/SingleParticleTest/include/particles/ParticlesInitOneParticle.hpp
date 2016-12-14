@@ -90,11 +90,11 @@ struct kernelAddOneParticle
             par[localCellIdx_] = linearIdx;
             par[weighting_] = parWeighting;
 
-    #if(ENABLE_RADIATION == 1)
-    #if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
+#if( ENABLE_RADIATION == 1 )
+#   if( RAD_MARK_PARTICLE>1 ) || ( RAD_ACTIVATE_GAMMA_FILTER!=0 )
             par[radiationFlag_] = true;
-    #endif
-    #endif
+#   endif
+#endif
         }
     }
 };
