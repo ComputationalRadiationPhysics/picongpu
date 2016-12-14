@@ -36,9 +36,23 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
 endif()
 
+# set helper pathes to find libraries and packages
+# Add specific hints
+list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
+
+###############################################################################
+# Language Flags
+###############################################################################
+
+# enforce C++11
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
 
 ################################################################################
 # Find PMacc
@@ -48,6 +62,21 @@ find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../l
 include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${PMacc_LIBRARIES})
 add_definitions(${PMacc_DEFINITIONS})
+
+
+################################################################################
+# Find CUDA
+################################################################################
+find_package(CUDA 7.5 REQUIRED)
+
+
+################################################################################
+# Find MPI
+################################################################################
+
+find_package(MPI REQUIRED)
+include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
+set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
 
 ################################################################################
@@ -69,7 +98,7 @@ endif(GOL_RELEASE)
 # Find Boost
 ###############################################################################
 
-find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options )
+find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
@@ -124,7 +153,7 @@ cuda_add_executable(gameOfLife
     ${SRCFILES}
 )
 
-target_link_libraries(gameOfLife  ${LIBS} ${CUDA_CUDART_LIBRARY} z m ${MPI_EXTRA_LIBRARY})
+target_link_libraries(gameOfLife ${LIBS} m)
 
 
 ################################################################################

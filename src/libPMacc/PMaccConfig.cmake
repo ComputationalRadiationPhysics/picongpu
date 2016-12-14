@@ -31,8 +31,6 @@
 ###############################################################################
 cmake_minimum_required(VERSION 3.3.0)
 
-set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} "${PMacc_DIR}/include")
-
 # set helper pathes to find libraries and packages
 # Add specific hints
 list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
@@ -41,8 +39,6 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{VT_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
-# Last add generic system path to the end (as last fallback)
-list(APPEND "/usr/lib/x86_64-linux-gnu/")
 
 # own modules for find_packages e.g. FindmallocMC
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
@@ -180,7 +176,7 @@ endif(MPI_CXX_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.57.0 REQUIRED COMPONENTS filesystem system thread math_tr1)
+find_package(Boost 1.57.0 REQUIRED COMPONENTS filesystem system math_tr1)
 set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${Boost_LIBRARIES})
 
@@ -245,3 +241,6 @@ endif(PMACC_BLOCKING_KERNEL)
 
 set(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
 set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE}")
+
+# PMacc header files
+set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} "${PMacc_DIR}/include")
