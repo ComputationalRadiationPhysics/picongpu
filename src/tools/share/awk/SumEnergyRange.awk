@@ -1,4 +1,4 @@
-# 
+#
 # Copyright 2013-2016 Rene Widera
 #
 # This file is part of PIConGPU.
