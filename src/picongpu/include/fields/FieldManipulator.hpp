@@ -62,7 +62,7 @@ public:
 
                 uint32_t thickness = ABSORBER_CELLS[direction][pos_or_neg];
 
-                float_X absorber_strength = -1.0 * math::log( ABSORBER_STRENGTH[direction][pos_or_neg] ) * thickness;
+                float_X absorber_strength = -1.0 * math::log( ABSORBER_MAXFACTOR[direction][pos_or_neg] ) * thickness;
 
                 if (thickness == 0) continue; /*if the absorber has no thickness we check the next side*/
 
