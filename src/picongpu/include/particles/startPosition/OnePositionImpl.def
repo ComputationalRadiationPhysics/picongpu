@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2017 Rene Widera
+ * Copyright 2016-2017 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -18,10 +18,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "particles/startPosition/IFunctor.def"
-#include "particles/startPosition/QuietImpl.def"
-#include "particles/startPosition/RandomImpl.def"
-#include "particles/startPosition/OnePositionImpl.def"
+namespace picongpu
+{
+namespace particles
+{
+namespace startPosition
+{
+
+    template< typename T_ParamClass >
+    struct OnePositionImpl;
+
+} // namespace startPosition
+} // namespace particles
+} // namespace picongpu
