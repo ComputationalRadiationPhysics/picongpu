@@ -77,7 +77,7 @@ typedef long long int int64_cu;
 #define PMACC_GLOBAL_KEYWORD __location__(global)
 
 /*
- * Disable nvcc warning:
+ * Disable nvcc warnings and errors:
  * calling a __host__ function from __host__ __device__ function.
  *
  * Usage:
@@ -90,8 +90,8 @@ typedef long long int int64_cu;
  * WARNING: only use this method if there is no other way to create runable code.
  * Most cases can solved by #ifdef __CUDA_ARCH__ or #ifdef __CUDACC__.
  */
-#if defined(__CUDACC__)
-#define PMACC_NO_NVCC_HDWARNING _Pragma("hd_warning_disable")
+#if defined(__CUDACC__) && !(defined(__CUDA__) && defined(__clang__))
+#define PMACC_NO_NVCC_HDWARNING _Pragma("nv_exec_check_disable")
 #else
 #define PMACC_NO_NVCC_HDWARNING
 #endif
