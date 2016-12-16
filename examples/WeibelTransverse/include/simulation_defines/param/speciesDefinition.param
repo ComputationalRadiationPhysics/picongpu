@@ -25,13 +25,9 @@
 #include "simulation_defines.hpp"
 #include "particles/Identifier.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "identifier/identifier.hpp"
-#include "identifier/alias.hpp"
 #include "identifier/value_identifier.hpp"
 
 #include "particles/Particles.hpp"
-#include "particles/ParticleDescription.hpp"
 #include <boost/mpl/string.hpp>
 
 #include "particles/ionization/byField/ionizers.def"
@@ -91,12 +87,9 @@ typedef bmpl::vector<
 
 /*define specie electrons*/
 typedef Particles<
-    ParticleDescription<
-        bmpl::string<'e'>,
-        SuperCellSize,
-        DefaultAttributesSeq,
-        ParticleFlagsElectrons
-    >
+    bmpl::string<'e'>,
+    DefaultAttributesSeq,
+    ParticleFlagsElectrons
 > PIC_Electrons;
 
 /*--------------------------- ions -------------------------------------------*/
@@ -156,12 +149,9 @@ typedef bmpl::vector<
 
 /*define specie ions*/
 typedef Particles<
-    ParticleDescription<
-        bmpl::string<'i'>,
-        SuperCellSize,
-        DefaultAttributesSeq,
-        ParticleFlagsIons
-    >
+    bmpl::string<'i'>,
+    DefaultAttributesSeq,
+    ParticleFlagsIons
 > PIC_Ions;
 
 /*########################### end species ####################################*/

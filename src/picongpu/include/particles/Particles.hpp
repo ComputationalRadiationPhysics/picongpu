@@ -29,6 +29,7 @@
 #include "particles/ParticlesBase.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 #include "particles/manipulators/manipulators.def"
+#include "particles/ParticleDescription.hpp"
 
 #include "memory/dataTypes/Mask.hpp"
 #include "mappings/simulation/GridController.hpp"
@@ -41,12 +42,36 @@ namespace picongpu
 {
 using namespace PMacc;
 
-template<typename T_ParticleDescription>
-class Particles : public ParticlesBase<T_ParticleDescription, MappingDesc>, public ISimulationData
+/** particle species
+ *
+ * @tparam T_Name name of the species [type boost::mpl::string]
+ * @tparam T_Attributes sequence with attributes [type boost::mpl forward sequence]
+ * @tparam T_Flags sequence with flags e.g. solver [type boost::mpl forward sequence]
+ */
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+class Particles : public ParticlesBase<
+    ParticleDescription<
+        T_Name,
+        SuperCellSize,
+        T_Attributes,
+        T_Flags
+    >,
+    MappingDesc
+>, public ISimulationData
 {
 public:
 
-    typedef ParticlesBase<T_ParticleDescription, MappingDesc> ParticlesBaseType;
+    typedef ParticleDescription<
+        T_Name,
+        SuperCellSize,
+        T_Attributes,
+        T_Flags
+    > SpeciesParticleDescription;
+    typedef ParticlesBase<SpeciesParticleDescription, MappingDesc> ParticlesBaseType;
     typedef typename ParticlesBaseType::BufferType BufferType;
     typedef typename ParticlesBaseType::FrameType FrameType;
     typedef typename ParticlesBaseType::FrameTypeBorder FrameTypeBorder;
@@ -66,9 +91,20 @@ public:
     template<typename T_GasFunctor, typename T_PositionFunctor>
     void initGas(T_GasFunctor& gasFunctor, T_PositionFunctor& positionFunctor, const uint32_t currentStep);
 
-    template< typename T_SrcParticleDescription,
-              typename T_ManipulateFunctor>
-    void deviceDeriveFrom(Particles<T_SrcParticleDescription> &src, T_ManipulateFunctor& manipulateFunctor);
+    template<
+        typename T_SrcName,
+        typename T_SrcAttributes,
+        typename T_SrcFlags,
+        typename T_ManipulateFunctor
+    >
+    void deviceDeriveFrom(
+        Particles<
+            T_SrcName,
+            T_SrcAttributes,
+            T_SrcFlags
+        >& src,
+        T_ManipulateFunctor& manipulateFunctor
+    );
 
     template<typename T_Functor>
     void manipulateAllParticles(uint32_t currentStep, T_Functor& functor);
@@ -134,11 +170,24 @@ private:
 
 namespace traits
 {
-template<typename T_ParticleDescription>
-struct GetDataBoxType<picongpu::Particles<T_ParticleDescription> >
-{
-    typedef typename picongpu::Particles<T_ParticleDescription>::ParticlesBoxType type;
-};
-
+    template<
+        typename T_Name,
+        typename T_Attributes,
+        typename T_Flags
+    >
+    struct GetDataBoxType<
+        picongpu::Particles<
+            T_Name,
+            T_Attributes,
+            T_Flags
+       >
+    >
+    {
+        typedef typename picongpu::Particles<
+            T_Name,
+            T_Attributes,
+            T_Flags
+        >::ParticlesBoxType type;
+    };
 } //namespace traits
 } //namespace picongpu
