@@ -31,52 +31,39 @@
 ###############################################################################
 cmake_minimum_required(VERSION 3.3.0)
 
-set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} "${PMacc_DIR}/include")
+# set helper pathes to find libraries and packages
+# Add specific hints
+list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{VT_ROOT}")
+# Add from environment after specific env vars
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 
-# This path should be within PMacc
-# own modules for find_packages
+# own modules for find_packages e.g. FindmallocMC
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     ${PMacc_DIR}/../../thirdParty/cmake-modules/)
 
-# Options
-option(PMACC_BLOCKING_KERNEL "activate checks for every kernel call and synch after every kernel call" OFF)
-if(PMACC_BLOCKING_KERNEL)
-  set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_SYNC_KERNEL=1")
-endif(PMACC_BLOCKING_KERNEL)
-
-set(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
-set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE}")
 
 ###############################################################################
-# Compiler Flags
+# Language Flags
 ###############################################################################
 
-# GNU
-if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
-# ICC
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_VARIADIC_TEMPLATES")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_FENV_H")
-# PGI
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
-endif()
+# enforce C++11
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
+
 
 ################################################################################
-# CUDA
+# Find CUDA
 ################################################################################
 find_package(CUDA 7.5 REQUIRED)
 
 # work-around since the above flag does not necessarily put -std=c++11 in
 # the CMAKE_CXX_FLAGS, which is unfurtunately hiding the switch from FindCUDA
 if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
 set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
@@ -112,9 +99,6 @@ if(CUDA_KEEP_FILES)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
 endif(CUDA_KEEP_FILES)
 
-################################################################################
-# VAMPIR
-################################################################################
 
 ################################################################################
 # VampirTrace
@@ -167,41 +151,96 @@ if(VAMPIR_ENABLE)
         -v)
 
     # for manual instrumentation and hints that vampir is enabled in our code
-    add_definitions(-DVTRACE)
+    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DVTRACE)
 
     # titan work around: currently (5.14.4) the -D defines are not provided by -vt:showme-compile
-    add_definitions(-DMPICH_IGNORE_CXX_SEEK)
+    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DMPICH_IGNORE_CXX_SEEK)
 endif(VAMPIR_ENABLE)
 
+
 ################################################################################
-# MPI LIB
+# Find MPI
 ################################################################################
-find_package(MPI MODULE REQUIRED)
+
+find_package(MPI REQUIRED)
 set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${MPI_C_INCLUDE_PATH})
 set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${MPI_C_LIBRARIES})
-set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${MPI_CXX_LIBRARIES})
+
+# bullxmpi fails if it can not find its c++ counter part
+if(MPI_CXX_FOUND)
+    set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${MPI_CXX_LIBRARIES})
+endif(MPI_CXX_FOUND)
+
 
 ################################################################################
-# PNGwriter
+# Find Boost
 ################################################################################
-find_package(PNGwriter MODULE REQUIRED)
 
-if(PNGwriter_FOUND)
-  set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${PNGwriter_INCLUDE_DIRS})
-  list(APPEND PNGwriter_DEFINITIONS "-DGOL_ENABLE_PNG=1")
-  set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} ${PNGwriter_DEFINITIONS})
-  set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${PNGwriter_LIBRARIES})
-endif(PNGwriter_FOUND)
-
-###############################################################################
-# Boost LIB
-###############################################################################
-find_package(Boost 1.57.0 MODULE REQUIRED COMPONENTS program_options regex system)
+find_package(Boost 1.57.0 REQUIRED COMPONENTS filesystem system math_tr1)
 set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${Boost_LIBRARIES})
 
+# Boost 1.55 added support for a define that makes result_of look for
+# the result<> template and falls back to decltype if none is found. This is
+# great for the transition from the "wrong" usage to the "correct" one as
+set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
+
+# Boost >= 1.60.0 and CUDA != 7.5 failed when used with C++11
+# seen with boost 1.60.0 - 1.62.0 (atm latest) and CUDA 7.0, 8.0 (atm latest)
+# CUDA 7.5 works without a workaround
+if( (Boost_VERSION GREATER 105999) AND
+    (NOT CUDA_VERSION VERSION_EQUAL 7.5) )
+    # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
+    message(STATUS "Boost: Disable template aliases")
+    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_NO_CXX11_TEMPLATE_ALIASES)
+endif()
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_VARIADIC_TEMPLATES")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_FENV_H")
+endif()
+
+
 ################################################################################
-# PThreads
+# Find OpenMP
 ################################################################################
-find_package(Threads MODULE REQUIRED)
-set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+find_package(OpenMP)
+if(OPENMP_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
+
+################################################################################
+# Find mallocMC
+################################################################################
+
+find_package(mallocMC 2.2.0 QUIET)
+
+if(NOT mallocMC_FOUND)
+    message(STATUS "Using mallocMC from thirdParty/ directory")
+    set(MALLOCMC_ROOT "${PMacc_DIR}/../../thirdParty/mallocMC")
+    find_package(mallocMC 2.2.0 REQUIRED)
+endif(NOT mallocMC_FOUND)
+
+set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${mallocMC_INCLUDE_DIRS})
+set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${mallocMC_LIBRARIES})
+set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} ${mallocMC_DEFINITIONS})
+
+
+################################################################################
+# PMacc options
+################################################################################
+
+option(PMACC_BLOCKING_KERNEL
+    "activate checks for every kernel call and synch after every kernel call" OFF)
+if(PMACC_BLOCKING_KERNEL)
+    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_SYNC_KERNEL=1")
+endif(PMACC_BLOCKING_KERNEL)
+
+set(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
+set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE}")
+
+# PMacc header files
+set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} "${PMacc_DIR}/include")
