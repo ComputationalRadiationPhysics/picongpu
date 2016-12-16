@@ -39,32 +39,17 @@ namespace picongpu
 /*########################### define particle attributes #####################*/
 
 /** describe attributes of a particle*/
-typedef MakeSeq<position<position_pic>, momentum, weighting>::type DefaultParticleAttributes;
-
-
-/** \todo: not nice, we change this later with nice interfaces
- * Plugins should add required attributes
- */
-
-/*add old momentum for radiation plugin*/
-typedef MakeSeq<
+using DefaultParticleAttributes = MakeSeq_t<
+    position< position_pic >,
+    momentum,
+    weighting
 #if( ENABLE_RADIATION == 1 )
-momentumPrev1
+    , momentumPrev1
 #endif
->::type AttributMomentum_mt1;
-
-/*add old radiation flag for radiation plugin*/
-typedef MakeSeq<
 #if( RAD_MARK_PARTICLE > 1 ) || ( RAD_ACTIVATE_GAMMA_FILTER != 0 )
-radiationFlag
+    , radiationFlag
 #endif
->::type AttributRadiationFlag;
-
-typedef MakeSeq<
-DefaultParticleAttributes,
-AttributMomentum_mt1,
-AttributRadiationFlag
->::type DefaultAttributesSeq;
+>;
 
 /*########################### end particle attributes ########################*/
 
@@ -72,55 +57,55 @@ AttributRadiationFlag
 
 /*--------------------------- photons -------------------------------------------*/
 
-value_identifier(float_X, DummyMass, 1.0);
-value_identifier(float_X, DummyCharge, 0.0);
+value_identifier( float_X, DummyMass, 1.0 );
+value_identifier( float_X, DummyCharge, 0.0 );
 
-typedef bmpl::vector<
-    particlePusher<particles::pusher::Photon>,
-    shape<UsedParticleShape>,
-    interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>,
-    massRatio<DummyMass>,
-    chargeRatio<DummyCharge>
-> ParticleFlagsPhotons;
+using ParticleFlagsPhotons = bmpl::vector<
+    particlePusher< particles::pusher::Photon >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< DummyMass >,
+    chargeRatio< DummyCharge >
+>;
 
-/*define species photons*/
-typedef Particles<
-    bmpl::string<'p', 'h'>,
-    DefaultAttributesSeq,
+/* define species photons */
+using PIC_Photons = Particles<
+    bmpl::string< 'p', 'h' >,
+    DefaultParticleAttributes,
     ParticleFlagsPhotons
-> PIC_Photons;
+>;
 
 /*--------------------------- electrons --------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier(float_X, MassRatioElectrons, 1.0);
-value_identifier(float_X, ChargeRatioElectrons, 1.0);
+value_identifier( float_X, MassRatioElectrons, 1.0 );
+value_identifier( float_X, ChargeRatioElectrons, 1.0 );
 
-typedef bmpl::vector<
-    particlePusher<UsedParticlePusher>,
-    shape<UsedParticleShape>,
-    interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>,
-    massRatio<MassRatioElectrons>,
-    chargeRatio<ChargeRatioElectrons>
+using ParticleFlagsElectrons = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioElectrons >,
+    chargeRatio< ChargeRatioElectrons >
 #if( ENABLE_SYNCHROTRON_PHOTONS == 1 )
-    , synchrotronPhotons<PIC_Photons>
+    , synchrotronPhotons< PIC_Photons >
 #endif
-> ParticleFlagsElectrons;
+>;
 
-/*define specie electrons*/
-typedef Particles<
-    bmpl::string<'e'>,
-    DefaultAttributesSeq,
+/* define species electrons */
+using PIC_Electrons = Particles<
+    bmpl::string< 'e' >,
+    DefaultParticleAttributes,
     ParticleFlagsElectrons
-> PIC_Electrons;
+>;
 
 /*--------------------------- ions -------------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier(float_X, MassRatioIons, 1836.152672);
-value_identifier(float_X, ChargeRatioIons, -1.0);
+value_identifier( float_X, MassRatioIons, 1836.152672 );
+value_identifier( float_X, ChargeRatioIons, -1.0 );
 
 /*! Specify (chemical) element
  *
@@ -159,24 +144,24 @@ struct Hydrogen
  *
  * Usage: Add a flag to the list of particle flags that has the following structure
  *
- *        ionizer<IonizationModel<Species2BCreated> >
+ *        ionizer< IonizationModel< Species2BCreated > >
  */
 
-typedef bmpl::vector<
-    particlePusher<UsedParticlePusher>,
-    shape<UsedParticleShape>,
-    interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>,
-    massRatio<MassRatioIons>,
-    chargeRatio<ChargeRatioIons>
-> ParticleFlagsIons;
+using ParticleFlagsIons = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioIons >,
+    chargeRatio< ChargeRatioIons >
+>;
 
-/*define specie ions*/
-typedef Particles<
-    bmpl::string<'i'>,
-    DefaultAttributesSeq,
+/* define species ions */
+using PIC_Ions = Particles<
+    bmpl::string< 'i' >,
+    DefaultParticleAttributes,
     ParticleFlagsIons
-> PIC_Ions;
+>;
 
 /*########################### end species ####################################*/
 
@@ -184,24 +169,24 @@ typedef Particles<
 /*! we delete this ugly definition of VectorAllSpecies after all picongpu components
  * support multi species */
 /** \todo: not nice, but this should be changed in the future*/
-typedef MakeSeq<
+using Species1 = MakeSeq_t<
 #if( ENABLE_ELECTRONS == 1 )
-PIC_Electrons
+    PIC_Electrons
 #endif
->::type Species1;
+>;
 
-typedef MakeSeq<
+using Species2 = MakeSeq_t<
 #if( ENABLE_IONS == 1 )
-PIC_Ions
+    PIC_Ions
 #endif
->::type Species2;
+>;
 
-typedef MakeSeq<
-Species1,
-Species2
+using VectorAllSpecies = MakeSeq_t<
+    Species1,
+    Species2
 #if( ENABLE_SYNCHROTRON_PHOTONS == 1 )
-,PIC_Photons
+    , PIC_Photons
 #endif
->::type VectorAllSpecies;
+>;
 
 } //namespace picongpu

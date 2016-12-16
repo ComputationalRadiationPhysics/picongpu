@@ -54,54 +54,60 @@ namespace picongpu
     using namespace particleToGrid;
 
     /* ChargeDensity section */
-    typedef bmpl::transform<
-            VectorAllSpecies,
-            CreateChargeDensityOperation<bmpl::_1>
-            >::type ChargeDensity_Seq;
+    using ChargeDensity_Seq = bmpl::transform<
+        VectorAllSpecies,
+        CreateChargeDensityOperation< bmpl::_1 >
+    >::type;
 
     /* ParticleCounter section */
-    typedef bmpl::transform<
-            VectorAllSpecies,
-            CreateCounterOperation<bmpl::_1>
-            >::type Counter_Seq;
+    using Counter_Seq = bmpl::transform<
+        VectorAllSpecies,
+        CreateCounterOperation< bmpl::_1 >
+    >::type;
 
     /* EnergyDensity section */
-    typedef bmpl::transform<
-            VectorAllSpecies,
-            CreateEnergyDensityOperation<bmpl::_1>
-            >::type EnergyDensity_Seq;
+    using EnergyDensity_Seq = bmpl::transform<
+        VectorAllSpecies,
+        CreateEnergyDensityOperation< bmpl::_1 >
+    >::type;
 
     /* CreateMomentumComponentOperation section: define "component" as
        0=X (default), 1=Y or 2=Z (results: [-1.:1.])
      */
-    typedef bmpl::transform<
-            VectorAllSpecies,
-            CreateMomentumComponentOperation<bmpl::_1, bmpl::int_<0> >
-            >::type MomentumComponent_Seq;
+    using MomentumComponent_Seq = bmpl::transform<
+        VectorAllSpecies,
+        CreateMomentumComponentOperation<
+            bmpl::_1,
+            bmpl::int_< 0 >
+        >
+    >::type;
 
 
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    typedef MakeSeq<
+    using FieldTmpSolvers = MakeSeq_t<
         ChargeDensity_Seq,
         Counter_Seq,
         EnergyDensity_Seq,
         MomentumComponent_Seq
-    >::type FieldTmpSolvers;
+    >;
 
 
     /** FileOutputFields: Groups all Fields that shall be dumped *************/
 
     /** Possible native fields: FieldE, FieldB, FieldJ
      */
-    typedef MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
+    using NativeFileOutputFields = MakeSeq_t<
+        FieldE,
+        FieldB
+    >;
 
-    typedef MakeSeq<
+    using FileOutputFields = MakeSeq_t<
         NativeFileOutputFields,
         FieldTmpSolvers
-    >::type FileOutputFields;
+    >;
 
 
     /** FileOutputParticles: Groups all Species that shall be dumped **********
@@ -109,6 +115,6 @@ namespace picongpu
      * hint: to disable particle output set to
      *   typedef bmpl::vector0< > FileOutputParticles;
      */
-    typedef VectorAllSpecies FileOutputParticles;
+    using FileOutputParticles = VectorAllSpecies;
 
 }
