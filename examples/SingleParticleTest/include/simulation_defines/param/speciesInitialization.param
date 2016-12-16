@@ -1,0 +1,98 @@
+/**
+ * Copyright 2015-2016 Rene Widera, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "particles/InitFunctors.hpp"
+
+namespace picongpu
+{
+namespace particles
+{
+
+/* Available species functors
+ *   in src/picongpu/include/particles/InitFunctors.hpp
+ *
+ * - CreateGas<T_GasFunctor, T_PositionFunctor, T_SpeciesType>
+ *     Create particle distribution based on a gas profile and an in-cell
+ *     positioning.
+ *     Fills a particle species (`fillAllGaps()` is called).
+ *     @tparam T_GasFunctor      unary lambda functor with gas description,
+ *                               \see gasConfig.param
+ *                               \example gasProfiles::Homogenous,
+ *     @tparam T_PositionFunctor unary lambda functor with position description,
+ *                               \see particlesConfig.param
+ *                               \example startPosition::Quiet
+ *                                        startPosition::Random
+ *     @tparam T_SpeciesType type of the used species,
+ *                               \see speciesDefinition.param
+ *                               \example PIC_Electrons
+ *
+ * - DeriveSpecies<T_SrcSpeciesType, T_DestSpeciesType>
+ *     Create a particle species by copying all matching attributes from an
+ *     other species (`fillAllGaps()` is called on T_DestSpeciesType).
+ *     @tparam T_SrcSpeciesType  source species
+ *     @tparam T_DestSpeciesType destination species
+ *
+ * - Manipulate<T_Functor, typename T_SpeciesType>
+ *     Run a user defined functor for every particle.
+ *     \warning does not call `fillAllGaps()` if one removes or
+ *              adds particles with it (\see FillAllGaps below)
+ *     @tparam T_Functor     unary lambda functor,
+ *                           \see particleConfig.param
+ *     @tparam T_SpeciesType type of the used species
+ *
+ * - ManipulateDeriveSpecies<T_ManipulateFunctor, T_SrcSpeciesType, T_DestSpeciesType>
+ *     Same as \see DeriveSpecies but allows a T_ManipulateFunctor to be called
+ *     after deriving to manipulate the two particles that took part
+ *     in the deriving (e.g., assign and increase an attribute such as weighting).
+ *     Note: `fillAllGaps()` is only called for the T_DestSpeciesType.
+ *     @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle
+ *                                 species: destination and source,
+ *                                 \see particleConfig.param
+ *     @tparam T_SrcSpeciesType    source species
+ *     @tparam T_DestSpeciesType   destination species
+ *
+ * - FillAllGaps<T_SpeciesType>
+ *     The manipulate functor does not call `fillAllGaps` on
+ *     the particle list of frames. For user-defined functors
+ *     that are called via Manipulate and create/remove
+ *     particles into/from frame lists, this must be called
+ *     afterward to create a valid data structure.
+ */
+
+/** InitPipeline define in which order species are initialized
+ *
+ * the functors are called in order (from first to last functor)
+ */
+using InitPipeline = mpl::vector<
+    CreateGas<
+        gasProfiles::FreeFormula,
+        startPosition::OnePosition,
+        PIC_Electrons
+    >,
+    Manipulate<
+        manipulators::AssignYDrift,
+        PIC_Electrons
+    >
+>;
+
+} /* namespace particles */
+} /* namespace picongpu  */
