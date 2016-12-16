@@ -80,6 +80,9 @@ typedef long long int int64_cu;
  * Disable nvcc warning:
  * calling a __host__ function from __host__ __device__ function.
  *
+ * Read https://github.com/ComputationalRadiationPhysics/picongpu/pull/1707 for
+ * more information.
+ * 
  * Usage:
  * PMACC_NO_NVCC_HDWARNING
  * HDINLINE function_declaration()
@@ -94,6 +97,26 @@ typedef long long int int64_cu;
 #define PMACC_NO_NVCC_HDWARNING _Pragma("hd_warning_disable")
 #else
 #define PMACC_NO_NVCC_HDWARNING
+#endif
+
+/*
+ * Disable nvcc error:
+ * calling a __device__ function from __host__ __device__ function.
+ *
+ * Read https://github.com/ComputationalRadiationPhysics/picongpu/pull/1707 for
+ * more information.
+ *
+ * Usage:
+ * PMACC_NO_NVCC_HDERROR
+ * HDINLINE function_declaration()
+ *
+ * WARNING: only use this method if there is no other way to create runable code.
+ * Most cases can solved by #ifdef __CUDA_ARCH__ or #ifdef __CUDACC__.
+ */
+#if defined(__CUDACC__)
+#define PMACC_NO_NVCC_HDERROR _Pragma("nv_exec_check_disable")
+#else
+#define PMACC_NO_NVCC_HDERROR
 #endif
 
 /**
