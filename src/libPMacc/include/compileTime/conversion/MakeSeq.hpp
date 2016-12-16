@@ -35,22 +35,24 @@ namespace PMacc
  * Note: if the input type is a sequence itself, its elements will be unfolded
  *       and added separately
  *
- * @tparam T_N a boost mpl sequence or single type
+ * @tparam T_Args a boost mpl sequence or single type
+ *
+ * @code
+ * using MyType = typename MakeSeq< A, B >::type
+ * using MyType2 = typename MakeSeq< boost::mpl::vector<A, B>, C >::type
+ * @endcode
+ *
  */
-template<typename T_1 = bmpl::vector0<>, typename T_2 = bmpl::vector0<>,
-         typename T_3 = bmpl::vector0<>, typename T_4 = bmpl::vector0<>,
-         typename T_5 = bmpl::vector0<> >
+template< typename... T_Args >
 struct MakeSeq
 {
     typedef typename MakeSeqFromNestedSeq<
-    bmpl::vector5<
-    T_1,
-    T_2,
-    T_3,
-    T_4,
-    T_5
-    >
+        bmpl::vector< T_Args... >
     >::type type;
 };
+
+/** short hand definition for @see MakeSeq<> */
+template< typename... T_Args >
+using MakeSeq_t = typename MakeSeq< T_Args... >::type;
 
 } //namespace PMacc
