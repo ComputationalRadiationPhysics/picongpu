@@ -75,9 +75,13 @@ private:
                 > BlockArea;
 
         AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
-        PMACC_KERNEL(KernelUpdateE<BlockArea, CurlB>{})
-                (mapper.getGridDim(), SuperCellSize::toRT())
-                (this->fieldE->getDeviceDataBox(), this->fieldB->getDeviceDataBox(),mapper);
+        PMACC_KERNEL(KernelUpdateE<BlockArea>{ })
+            (mapper.getGridDim(), SuperCellSize::toRT())(
+                CurlB( ),
+                this->fieldE->getDeviceDataBox(),
+                this->fieldB->getDeviceDataBox(),
+                mapper
+            );
     }
 
     template<uint32_t AREA>
@@ -90,11 +94,13 @@ private:
                 > BlockArea;
 
         AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
-        PMACC_KERNEL(KernelUpdateBHalf<BlockArea, CurlE>{})
-                (mapper.getGridDim(), SuperCellSize::toRT())
-                (this->fieldB->getDeviceDataBox(),
+        PMACC_KERNEL(KernelUpdateBHalf<BlockArea>{ })
+            (mapper.getGridDim(), SuperCellSize::toRT())(
+                CurlE( ),
+                this->fieldB->getDeviceDataBox(),
                 this->fieldE->getDeviceDataBox(),
-                mapper);
+                mapper
+            );
     }
 
 public:
