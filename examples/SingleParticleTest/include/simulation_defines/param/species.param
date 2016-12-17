@@ -60,7 +60,7 @@ typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpo
  *   without optimization (~4x slower and needs more shared memory)
  * - currentSolver::ZigZag<SHAPE>     : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
  */
-typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
+typedef currentSolver::ZigZag<UsedParticleShape> UsedParticleCurrentSolver;
 
 /*! particle pusher configuration ----------------------------------------------
  *

@@ -76,7 +76,7 @@ typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpo
  * - currentSolver::ZigZag<SHAPE>     : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
  */
 #ifndef PARAM_CURRENTSOLVER
-#define PARAM_CURRENTSOLVER Esirkepov
+#define PARAM_CURRENTSOLVER ZigZag
 #endif
 typedef currentSolver::PARAM_CURRENTSOLVER<UsedParticleShape> UsedParticleCurrentSolver;
 
