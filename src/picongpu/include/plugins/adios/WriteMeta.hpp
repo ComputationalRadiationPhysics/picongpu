@@ -41,6 +41,73 @@ namespace adios
 {
 using namespace PMacc;
 
+namespace writeMeta
+{
+    /** write openPMD species meta data
+     *
+     * @tparam numSpecies count of defined species
+     */
+    template< uint32_t numSpecies = bmpl::size<VectorAllSpecies>::type::value >
+    struct OfAllSpecies
+    {
+        /** write meta data for species
+         *
+         * @param threadParams context of the adios plugin
+         * @param fullMeshesPath path to mesh entry
+         */
+        void operator()(
+            ThreadParams* threadParams,
+            const std::string& fullMeshesPath
+        ) const
+        {
+            // assume all boundaries are like the first species for openPMD 1.0.0
+            GetStringProperties<bmpl::at_c<VectorAllSpecies, 0>::type> particleBoundaryProp;
+            std::list<std::string> listParticleBoundary;
+            std::list<std::string> listParticleBoundaryParam;
+            for( uint32_t i = NumberOfExchanges<simDim>::value - 1; i > 0; --i )
+            {
+                if( FRONT % i == 0 )
+                {
+                    listParticleBoundary.push_back(
+                        particleBoundaryProp[ExchangeTypeNames()[i]]["name"].value
+                    );
+                    listParticleBoundaryParam.push_back(
+                        particleBoundaryProp[ExchangeTypeNames()[i]]["param"].value
+                    );
+                }
+            }
+            helper::GetADIOSArrayOfString getADIOSArrayOfString;
+            PMACC_AUTO(arrParticleBoundary, getADIOSArrayOfString( listParticleBoundary ));
+            PMACC_AUTO(arrParticleBoundaryParam, getADIOSArrayOfString( listParticleBoundaryParam ));
+
+            ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                "particleBoundary", fullMeshesPath.c_str(), adios_string_array,
+                listParticleBoundary.size(), &( arrParticleBoundary.starts.at( 0 ) )));
+            ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
+                "particleBoundaryParameters", fullMeshesPath.c_str(), adios_string_array,
+                listParticleBoundaryParam.size(), &( arrParticleBoundaryParam.starts.at( 0 ) )));
+        }
+    };
+
+    /** specialization if no species are defined */
+    template< >
+    struct OfAllSpecies< 0 >
+    {
+        /** write meta data for species
+         *
+         * @param threadParams context of the adios plugin
+         * @param fullMeshesPath path to mesh entry
+         */
+        void operator()(
+            ThreadParams* /* threadParams */,
+            const std::string& /* fullMeshesPath */
+        ) const
+        {
+        }
+    };
+
+} // namespace writeMeta
+
     struct WriteMeta
     {
         void operator()(ThreadParams *threadParams)
@@ -143,34 +210,7 @@ using namespace PMacc;
                 "fieldBoundaryParameters", fullMeshesPath.c_str(), adios_string_array,
                 listFieldBoundaryParam.size(), &( arrFieldBoundaryParam.starts.at( 0 ) )));
 
-            if( bmpl::size<VectorAllSpecies>::type::value > 0 )
-            {
-                // assume all boundaries are like the first species for openPMD 1.0.0
-                GetStringProperties<bmpl::at_c<VectorAllSpecies, 0>::type> particleBoundaryProp;
-                std::list<std::string> listParticleBoundary;
-                std::list<std::string> listParticleBoundaryParam;
-                for( uint32_t i = NumberOfExchanges<simDim>::value - 1; i > 0; --i )
-                {
-                    if( FRONT % i == 0 )
-                    {
-                        listParticleBoundary.push_back(
-                            particleBoundaryProp[ExchangeTypeNames()[i]]["name"].value
-                        );
-                        listParticleBoundaryParam.push_back(
-                            particleBoundaryProp[ExchangeTypeNames()[i]]["param"].value
-                        );
-                    }
-                }
-                PMACC_AUTO(arrParticleBoundary, getADIOSArrayOfString( listParticleBoundary ));
-                PMACC_AUTO(arrParticleBoundaryParam, getADIOSArrayOfString( listParticleBoundaryParam ));
-
-                ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
-                    "particleBoundary", fullMeshesPath.c_str(), adios_string_array,
-                    listParticleBoundary.size(), &( arrParticleBoundary.starts.at( 0 ) )));
-                ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
-                    "particleBoundaryParameters", fullMeshesPath.c_str(), adios_string_array,
-                    listParticleBoundaryParam.size(), &( arrParticleBoundaryParam.starts.at( 0 ) )));
-            }
+            writeMeta::OfAllSpecies<>()( threadParams, fullMeshesPath );
 
             GetStringProperties<fieldSolver::CurrentInterpolation> currentSmoothingProp;
             const std::string currentSmoothing( currentSmoothingProp["name"].value );
