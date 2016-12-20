@@ -113,7 +113,7 @@ HDINLINE float3_X laserTransversal(float3_X elong, const float_X, const float_X 
     const float_X exp_x = posX * posX / (W0_X * W0_X);
     const float_X exp_z = posZ * posZ / (W0_Z * W0_Z);
 
-    return elong * math::exp(exp_x + exp_z);
+    return elong * math::exp( float_X( -1.0 ) * ( exp_x + exp_z ) );
 
 }
 
