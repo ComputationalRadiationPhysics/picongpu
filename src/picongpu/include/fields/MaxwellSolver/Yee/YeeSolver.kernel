@@ -24,14 +24,24 @@ namespace yeeSolver
 {
 using namespace PMacc;
 
-template< typename BlockDescription_, typename CurlType_ >
+template< typename BlockDescription_ >
 struct KernelUpdateE
 {
-    template<class EBox, class BBox, class Mapping>
-    DINLINE void operator()(EBox fieldE, BBox fieldB, Mapping mapper) const
+    template<
+        typename T_Curl,
+        typename T_EBox,
+        typename T_BBox,
+        typename T_Mapping
+    >
+    DINLINE void operator()(
+        const T_Curl& curl,
+        T_EBox fieldE,
+        T_BBox fieldB,
+        T_Mapping mapper
+    ) const
     {
 
-        PMACC_AUTO(cachedB, CachedBox::create < 0, typename BBox::ValueType > (BlockDescription_()));
+        PMACC_AUTO(cachedB, CachedBox::create < 0, typename T_BBox::ValueType > (BlockDescription_()));
 
         nvidia::functors::Assign assign;
         const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
@@ -52,22 +62,28 @@ struct KernelUpdateE
         const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
         const float_X dt = DELTA_T;
 
-        CurlType_ curl;
         fieldE(blockCell + threadIndex) += curl(cachedB.shift(DataSpace<simDim > (threadIdx))) * c2 * dt;
     }
 };
 
-template<class BlockDescription_, class CurlType_>
+template< typename BlockDescription_ >
 struct KernelUpdateBHalf
 {
-    template<class EBox, class BBox, class Mapping>
+    template<
+        typename T_Curl,
+        typename T_EBox,
+        typename T_BBox,
+        typename T_Mapping
+    >
     DINLINE void operator()(
-        BBox fieldB,
-        EBox fieldE,
-        Mapping mapper) const
+        const T_Curl& curl,
+        T_BBox fieldB,
+        T_EBox fieldE,
+        T_Mapping mapper
+    ) const
     {
 
-        PMACC_AUTO(cachedE, CachedBox::create < 0, typename EBox::ValueType > (BlockDescription_()));
+        PMACC_AUTO(cachedE, CachedBox::create < 0, typename T_EBox::ValueType > (BlockDescription_()));
 
         nvidia::functors::Assign assign;
         const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
@@ -87,7 +103,6 @@ struct KernelUpdateBHalf
 
         const float_X dt = DELTA_T;
 
-        CurlType_ curl;
         fieldB(blockCell + threadIndex) -= curl(cachedE.shift(threadIndex)) * float_X(0.5) * dt;
     }
 };
