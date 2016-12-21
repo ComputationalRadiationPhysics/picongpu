@@ -24,6 +24,7 @@
 #include "simulation_defines.hpp"
 #include "nvidia/atomic.hpp"
 #include "particles/operations/Deselect.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -86,8 +87,8 @@ struct CreateParticlesFromParticleImpl : private T_Functor
         typedef typename DestFrameType::FramePtr DestFramePtr;
 
 
-        __shared__ DestFramePtr destFrame;
-        __shared__ int particlesInDestSuperCell;
+        PMACC_SMEM( destFrame, DestFramePtr );
+        PMACC_SMEM( particlesInDestSuperCell, int );
 
 
         uint32_t ltid = DataSpaceOperations<simDim>::template map<SuperCellSize>(DataSpace<simDim>(threadIdx));

@@ -47,6 +47,8 @@
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
 #include "nvidia/atomic.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "memory/Array.hpp"
 
 
 #if( __NYQUISTCHECK__ == 1 )
@@ -114,8 +116,8 @@ struct KernelRadiationParticles
         typedef typename ParBox::FrameType FRAME;
         typedef typename ParBox::FramePtr FramePtr;
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame; // pointer to  frame storing particles
-        __shared__ lcellId_t particlesInFrame; // number  of particles in current frame
+        PMACC_SMEM( frame, FramePtr ); // pointer to  frame storing particles
+        PMACC_SMEM( particlesInFrame, lcellId_t ); // number  of particles in current frame
 
         using namespace parameters; // parameters of radiation
 
@@ -131,25 +133,25 @@ struct KernelRadiationParticles
 
         const int blockSize=PMacc::math::CT::volume<Block>::type::value;
         // vectorial part of the integrand in the Jackson formula
-        __shared__ vector_64 real_amplitude_s[blockSize];
+        PMACC_SMEM( real_amplitude_s, memory::Array< vector_64, blockSize > );
 
         // retarded time
-        __shared__ picongpu::float_64 t_ret_s[blockSize];
+        PMACC_SMEM( t_ret_s, memory::Array< picongpu::float_64, blockSize > );
 
         // storage for macro particle weighting needed if
         // the coherent and incoherent radiation of a single
         // macro-particle needs to be considered
 #if( __COHERENTINCOHERENTWEIGHTING__ == 1 )
-        __shared__ float_X radWeighting_s[blockSize];
+        PMACC_SMEM( radWeighting_s, memory::Array< float_X, blockSize > );
 #endif
 
         // particle counter used if not all particles are considered for
         // radiation calculation
-        __shared__ int counter_s;
+        PMACC_SMEM( counter_s, int );
 
         // memory for Nyquist frequency at current time step
 #if( __NYQUISTCHECK__ == 1 )
-        __shared__ NyquistLowPass lowpass_s[blockSize];
+        PMACC_SMEM( lowpass_s, memory::Array< NyquistLowPass, blockSize > );
 #endif
 
 

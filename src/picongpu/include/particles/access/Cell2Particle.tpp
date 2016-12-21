@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include "math/Vector.hpp"
 #include "math/MapTuple.hpp"
+#include "memory/shared/Allocate.hpp"
 #include <boost/mpl/void.hpp>
 
 namespace particleAccess
@@ -47,8 +48,8 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
     \
     typedef typename TParticlesBox::FramePtr FramePtr; \
     typedef typename TParticlesBox::FrameType Frame; \
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame; \
-    __shared__ uint16_t particlesInSuperCell; \
+    PMACC_SMEM( frame, FramePtr ); \
+    PMACC_SMEM( particlesInSuperCell, uint16_t ); \
     \
     if(linearThreadIdx == 0) \
     { \

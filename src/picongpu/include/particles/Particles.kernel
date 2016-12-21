@@ -52,6 +52,7 @@
 #include "particles/operations/Deselect.hpp"
 #include "nvidia/atomic.hpp"
 #include "particles/InterpolationForPusher.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -68,9 +69,9 @@ struct KernelDeriveParticles
         typedef typename T_MyParBox::FramePtr MyFramePtr;
         typedef typename T_OtherFrameBox::FramePtr OtherFramePtr;
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<OtherFramePtr>::type frame;
+        PMACC_SMEM( frame, OtherFramePtr );
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<MyFramePtr>::type myFrame;
+        PMACC_SMEM( myFrame, MyFramePtr );
 
 
         typedef typename Mapping::SuperCellSize SuperCellSize;
@@ -128,7 +129,7 @@ struct KernelManipulateAllParticles
         Mapping mapper) const
     {
         typedef typename T_ParBox::FramePtr FramePtr;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+        PMACC_SMEM( frame, FramePtr );
 
         typedef typename Mapping::SuperCellSize SuperCellSize;
 
@@ -203,7 +204,7 @@ struct KernelMoveAndMarkParticles
 
        FramePtr frame;
 
-       __shared__ int mustShift;
+       PMACC_SMEM( mustShift, int );
        lcellId_t particlesInSuperCell;
 
 

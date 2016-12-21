@@ -24,6 +24,7 @@
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
 #include "nvidia/atomic.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -44,7 +45,7 @@ DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_stre
     //cells in simulation
     const DataSpace<simDim> gCells = mapper.getGridSuperCells() * SuperCellSize::toRT();
 
-    __shared__ int finish;
+    PMACC_SMEM( finish, int );
 
 
     float_X factor = float_X(0.0);

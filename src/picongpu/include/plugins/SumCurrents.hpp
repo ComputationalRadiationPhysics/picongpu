@@ -33,6 +33,7 @@
 
 #include "dimensions/DataSpaceOperations.hpp"
 #include "plugins/ILightweightPlugin.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -49,7 +50,7 @@ struct KernelSumCurrents
     {
         typedef typename Mapping::SuperCellSize SuperCellSize;
 
-        __shared__ float3_X sh_sumJ;
+        PMACC_SMEM( sh_sumJ, float3_X );
 
         const DataSpace<simDim > threadIndex(threadIdx);
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);

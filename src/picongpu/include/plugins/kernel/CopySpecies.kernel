@@ -27,6 +27,7 @@
 #include "simulation_types.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "nvidia/atomic.hpp"
+#include "memory/shared/Allocate.hpp"
 
 
 namespace picongpu
@@ -78,9 +79,9 @@ struct CopySpecies
         typedef T_Mapping Mapping;
         typedef typename Mapping::SuperCellSize Block;
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<SrcFramePtr>::type srcFramePtr;
-        __shared__ int localCounter;
-        __shared__ int globalOffset;
+        PMACC_SMEM( srcFramePtr, SrcFramePtr );
+        PMACC_SMEM( localCounter, int );
+        PMACC_SMEM( globalOffset, int );
 
         int storageOffset;
 

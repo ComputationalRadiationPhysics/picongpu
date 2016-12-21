@@ -33,6 +33,7 @@
 #include "particles/startPosition/MacroParticleCfg.hpp"
 #include "particles/traits/GetDensityRatio.hpp"
 #include "nvidia/atomic.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -75,7 +76,7 @@ struct KernelFillGridWithParticles
         typedef typename ParBox::FramePtr FramePtr;
         const DataSpace<simDim> superCells(mapper.getGridSuperCells());
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+        PMACC_SMEM( frame, FramePtr );
 
 
         typedef typename Mapping::SuperCellSize SuperCellSize;
@@ -100,7 +101,7 @@ struct KernelFillGridWithParticles
 
         const float_X realParticlesPerCell = realDensity * CELL_VOLUME;
 
-        __shared__ int finished;
+        PMACC_SMEM( finished, int );
         if (linearThreadIdx == 0)
             finished = 1;
         __syncthreads();

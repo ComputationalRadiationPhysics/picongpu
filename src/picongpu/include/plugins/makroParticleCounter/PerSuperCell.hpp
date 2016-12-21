@@ -34,6 +34,7 @@
 #include "plugins/ILightweightPlugin.hpp"
 
 #include "memory/buffers/GridBuffer.hpp"
+#include "memory/shared/Allocate.hpp"
 
 
 #include <splash/splash.h>
@@ -61,8 +62,8 @@ struct CountMakroParticle
         const DataSpace<simDim > threadIndex(threadIdx);
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-        __shared__ uint64_cu counterValue;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+        PMACC_SMEM( counterValue, uint64_cu );
+        PMACC_SMEM( frame, FramePtr );
 
         if (linearThreadIdx == 0)
         {
