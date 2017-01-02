@@ -62,8 +62,8 @@ namespace picongpu
         {0, 0}   /*z direction [negative,positive]*/
     }; //unit: number of cells
 
-    //! Define the strength of the absorber for any direction
-    const float_X ABSORBER_STRENGTH[3][2] = {
+    //! Define the maximum weakening factor (at the outer border) that em field should be reduced to
+    const float_X ABSORBER_MAXFACTOR[3][2] = {
         {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
         {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
         {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/

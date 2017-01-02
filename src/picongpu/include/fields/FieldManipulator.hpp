@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+ * Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -61,7 +61,8 @@ public:
                 uint32_t pos_or_neg = i % 2;
 
                 uint32_t thickness = ABSORBER_CELLS[direction][pos_or_neg];
-                float_X absorber_strength = ABSORBER_STRENGTH[direction][pos_or_neg];
+
+                float_X absorber_strength = -1.0 * math::log( ABSORBER_MAXFACTOR[direction][pos_or_neg] ) * thickness;
 
                 if (thickness == 0) continue; /*if the absorber has no thickness we check the next side*/
 
