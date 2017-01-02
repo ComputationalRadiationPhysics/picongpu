@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Marco Garten, Benjamin Worpitz
+ * Copyright 2013-2016 Axel Huebl, Rene Widera, Marco Garten, Benjamin Worpitz,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -39,9 +40,9 @@ namespace particles
 /** a particle with a weighting below MIN_WEIGHTING will not
  *      be created / will be deleted
  *  unit: none */
-BOOST_CONSTEXPR_OR_CONST float_X MIN_WEIGHTING = 10.0;
+constexpr float_X MIN_WEIGHTING = 10.0;
 
-BOOST_CONSTEXPR_OR_CONST uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
+constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
 
 namespace startPosition
 {
@@ -50,7 +51,7 @@ struct RandomParameter
 {
     /** Count of particles per cell at initial state
      *  unit: none */
-    BOOST_STATIC_CONSTEXPR uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+    static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
 };
 /* definition of random particle start*/
 typedef RandomImpl<RandomParameter> Random;
@@ -62,7 +63,7 @@ struct QuietParameter
     typedef mCT::shrinkTo<mCT::Int<1, TYPICAL_PARTICLES_PER_CELL, 1>, simDim>::type numParticlesPerDimension;
 };
 
-/* definition of random particle start*/
+/* definition of quiet particle start*/
 typedef QuietImpl<QuietParameter> Quiet;
 
 
@@ -70,7 +71,7 @@ typedef QuietImpl<QuietParameter> Quiet;
 
 namespace manipulators
 {
-    
+
     struct BoundElectronsWhenNeutral
     {
         /* space for attribute initial parameters */

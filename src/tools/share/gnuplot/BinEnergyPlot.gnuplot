@@ -21,7 +21,7 @@ if(OUTPUT2FILE == 1){
   set terminal postscript eps color "Helvetica" 20
   set grid
   set out 'OUTPUT_FILE.eps'
-  } 
+  }
 
 
 set xlabel "E_n in MeV"

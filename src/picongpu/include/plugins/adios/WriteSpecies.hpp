@@ -24,6 +24,7 @@
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
+#include "assert.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
@@ -144,7 +145,7 @@ public:
                                 );
             dc.releaseData(MallocMCBuffer::getName());
             /* this costs a little bit of time but adios writing is slower */
-            assert((uint64_cu) globalParticleOffset == totalNumParticles);
+            PMACC_ASSERT((uint64_cu) globalParticleOffset == totalNumParticles);
         }
         /* dump to adios file */
         ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;

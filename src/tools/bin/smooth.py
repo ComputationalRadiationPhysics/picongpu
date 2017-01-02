@@ -30,11 +30,11 @@ It can be applied to 1D and 2D data sets."
 
 def __info__():
     """
-    This is the 'smooth' module which provides several functions that 
+    This is the 'smooth' module which provides several functions that
     provide methods to smooth data from simulation or experiments.
     It can be applied to 1D and 2D data sets.
 
-    If you are running this module as executable program from your 
+    If you are running this module as executable program from your
     shell, you will now have a look at all manuals of the functions
     provided by this module.
 
@@ -47,7 +47,7 @@ def makeOddNumber(number, larger=True):
     """
     This function takes a number and returns the next odd number.
     By default, the next larger number will be returned, but by
-    setting larger=False the next smaller odd number will be 
+    setting larger=False the next smaller odd number will be
     returned.
 
     Example:
@@ -84,7 +84,7 @@ def makeOddNumber(number, larger=True):
 
 def gaussWindow(N, sigma):
     """
-    This function returns N discrete points of a Gauss function 
+    This function returns N discrete points of a Gauss function
     with a standard deviation of sigma (in units of discrete points).
     The return values are symetric and strech from 0 to N-1.
 
@@ -94,19 +94,19 @@ def gaussWindow(N, sigma):
     -----------
     N     - int
             number of sample and return points
-    sigma - float 
+    sigma - float
             standard deviation in units of descrete points
 
     Returns:
     --------
-    returns N symetric samples of e^(-0.5*(x/sigma)^2) 
+    returns N symetric samples of e^(-0.5*(x/sigma)^2)
     """
     length = (N/float(sigma)) # +/- range bins  to  calculate
     return numpy.exp(-0.5 * (numpy.linspace(-length, length, N))**2) # not normalized
 
 
 def smooth(x, sigma, window_len = 11, fkt=gaussWindow):
-    """ 
+    """
     A function that returns smoothed 1D-data from given data.
 
     Parameters:
@@ -214,7 +214,7 @@ def smooth2D(data, sigma_x = 10, len_x = 50, sigma_y = 10, len_y = 50, fkt=gauss
 
 
 if __name__ == "__main__":
-    # call all function manuals  
+    # call all function manuals
     help(__info__)
     help(makeOddNumber)
     help(gaussWindow)

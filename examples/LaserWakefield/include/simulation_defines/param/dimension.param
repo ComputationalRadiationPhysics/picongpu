@@ -28,5 +28,5 @@
 
 namespace picongpu
 {
-    BOOST_CONSTEXPR_OR_CONST uint32_t simDim = SIMDIM;
+    constexpr uint32_t simDim = SIMDIM;
 } // namespace picongpu

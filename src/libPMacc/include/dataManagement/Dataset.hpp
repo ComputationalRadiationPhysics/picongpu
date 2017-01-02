@@ -24,8 +24,6 @@
 
 #include "dataManagement/ISimulationData.hpp"
 
-#include <cassert>
-
 namespace PMacc
 {
 

@@ -24,7 +24,6 @@
 #include "simulation_defines.hpp"
 
 #include <boost/program_options/options_description.hpp>
-#include <cassert>
 #include <iostream>
 
 #include "simulation_defines.hpp"

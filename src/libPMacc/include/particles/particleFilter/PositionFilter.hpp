@@ -39,7 +39,7 @@ template<unsigned T_dim, class Base = NullFrame>
 class PositionFilter : public Base
 {
 public:
-    BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
+    static constexpr uint32_t dim = T_dim;
 protected:
     DataSpace<dim> offset;
     DataSpace<dim> max;

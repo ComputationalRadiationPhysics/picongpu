@@ -244,6 +244,10 @@ public:
 
     bool setStateAfterSlides(size_t numSlides)
     {
+        // nothing happens
+        if(numSlides == 0)
+            return false;
+
         // we can only slide in y direction right now
         if(DIM < DIM2)
             return false;

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016 Erik Zenker
+# Copyright 2015-2016 Erik Zenker, Alexander Grund
 #
 # This file is part of libPMacc.
 #
@@ -23,37 +23,86 @@
 ################################################################################
 # PMacc tests
 ################################################################################
+
 cmake_minimum_required(VERSION 3.3.0)
 project(PMaccTest)
 
+# set helper pathes to find libraries and packages
+# Add specific hints
+list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{VT_ROOT}")
+# Add from environment after specific env vars
+list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+
+
+###############################################################################
+# Language Flags
+###############################################################################
+
+# enforce C++11
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
 
 ################################################################################
 # PMacc
 ################################################################################
+
 find_package(PMacc REQUIRED CONFIG PATHS ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${PMacc_LIBRARIES})
 add_definitions(${PMacc_DEFINITIONS})
 
+
+################################################################################
+# Find CUDA
+################################################################################
+
+find_package(CUDA 7.5 REQUIRED)
+
+
 ###############################################################################
 # Boost.Test
 ###############################################################################
-find_package(Boost 1.57.0 COMPONENTS unit_test_framework  REQUIRED)
+
+find_package(Boost 1.57.0 COMPONENTS unit_test_framework REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
+
+
+################################################################################
+# Find MPI
+################################################################################
+
+find_package(MPI REQUIRED)
+include_directories(SYSTEM ${MPI_C_INCLUDE_PATH})
+set(LIBS ${LIBS} ${MPI_C_LIBRARIES})
 
 
 ###############################################################################
 # Targets
 ###############################################################################
 
-# Test cases
-file(GLOB_RECURSE TESTS test/*UT.cu)
-cuda_add_executable(check EXCLUDE_FROM_ALL ${TESTS})
-target_link_libraries(check ${LIBS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/test)
+add_definitions(-DBOOST_TEST_DYN_LINK)
 
 # CTest
 enable_testing()
-add_test(PMacc_test_build "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target check)
-add_test(PMacc_test_run  mpiexec -n 1 ./check --log_level=test_suite)
-set_tests_properties(PMacc_test_run PROPERTIES DEPENDS PMacc_test_build)
+
+# Test cases
+# Each *UT.cu file is an independent executable with one or more test cases
+file(GLOB_RECURSE TESTS test/*UT.cu)
+foreach(dim 2 3)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTEST_DIM=${dim}")
+    foreach(testCaseFilepath ${TESTS})
+        get_filename_component(testCaseFilename ${testCaseFilepath} NAME)
+        string(REPLACE "UT.cu" "" testCase ${testCaseFilename})
+        set(testExe "${PROJECT_NAME}-${testCase}-${dim}D")
+        cuda_add_executable(${testExe} ${testCaseFilepath} ${CMAKE_CURRENT_SOURCE_DIR}/test/main.cpp)
+        target_link_libraries(${testExe} ${LIBS})
+        add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec -n 1 ./${testExe})
+    endforeach()
+    string(REPLACE "-DTEST_DIM=${dim}" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endforeach()

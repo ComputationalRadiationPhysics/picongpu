@@ -27,6 +27,7 @@
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
+#include "assert.hpp"
 
 #include "plugins/CountParticles.hpp"
 #include "plugins/EnergyParticles.hpp"
@@ -86,6 +87,10 @@
 #include "plugins/adios/ADIOSWriter.hpp"
 #endif
 
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+#include "plugins/IsaacPlugin.hpp"
+#endif
+
 namespace picongpu
 {
 
@@ -139,6 +144,9 @@ private:
 #endif
 #if (ENABLE_HDF5 == 1)
       , hdf5::HDF5Writer
+#endif
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+      , isaacP::IsaacPlugin
 #endif
     > StandAlonePlugins;
 
@@ -220,7 +228,7 @@ public:
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != NULL);
 
         for (std::list<ISimulationPlugin*>::iterator iter = plugins.begin();
              iter != plugins.end();

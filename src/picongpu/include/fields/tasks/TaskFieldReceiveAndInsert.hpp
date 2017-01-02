@@ -39,7 +39,7 @@ class TaskFieldReceiveAndInsert : public MPITask
 public:
 
 
-    BOOST_STATIC_CONSTEXPR uint32_t Dim = picongpu::simDim;
+    static constexpr uint32_t Dim = picongpu::simDim;
 
     TaskFieldReceiveAndInsert(Field &buffer) :
     m_buffer(buffer),

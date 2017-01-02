@@ -37,7 +37,7 @@ namespace copier
 template<int T_dim>
 struct D2DCopier
 {
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
 
     PMACC_NO_NVCC_HDWARNING /* Handled via CUDA_ARCH */
     template<typename Type>

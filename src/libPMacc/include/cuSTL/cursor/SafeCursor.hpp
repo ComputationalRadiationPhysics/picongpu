@@ -37,7 +37,7 @@ template<typename Cursor>
 class SafeCursor : public Cursor
 {
 public:
-    BOOST_STATIC_CONSTEXPR int dim = PMacc::cursor::traits::dim<Cursor>::value;
+    static constexpr int dim = PMacc::cursor::traits::dim<Cursor>::value;
 private:
     /* \todo: Use a zone instead of lowerExtent and UpperExtent */
     const math::Int<dim> lowerExtent;
@@ -145,7 +145,7 @@ namespace traits
 template<typename Cursor>
 struct dim<SafeCursor<Cursor> >
 {
-    BOOST_STATIC_CONSTEXPR int value = SafeCursor<Cursor>::dim;
+    static constexpr int value = SafeCursor<Cursor>::dim;
 };
 
 } // traits

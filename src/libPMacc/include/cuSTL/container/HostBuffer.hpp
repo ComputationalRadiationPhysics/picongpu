@@ -106,9 +106,9 @@ public:
     template<typename DBuffer>
     HINLINE
     typename boost::enable_if<
-		boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>,
-		HostBuffer&
-		>::type
+        boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>,
+        HostBuffer&
+        >::type
     operator=(const DBuffer& rhs)
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::type, Type>::value));

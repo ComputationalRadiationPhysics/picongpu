@@ -48,7 +48,6 @@
 #include "particles/traits/GetMarginPusher.hpp"
 
 #include <iostream>
-#include <cassert>
 #include <limits>
 
 namespace picongpu
@@ -57,13 +56,30 @@ namespace picongpu
 
 using namespace PMacc;
 
-template<typename T_ParticleDescription>
-Particles<T_ParticleDescription>::Particles( GridLayout<simDim> gridLayout,
-                                             MappingDesc cellDescription,
-                                             SimulationDataId datasetID ) :
-ParticlesBase<T_ParticleDescription, MappingDesc>( cellDescription ),
-fieldB( NULL ), fieldE( NULL ), fieldJcurrent( NULL ), fieldTmp( NULL ), m_gridLayout(gridLayout),
-m_datasetID( datasetID )
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::Particles(
+    GridLayout<simDim> gridLayout,
+    MappingDesc cellDescription,
+    SimulationDataId datasetID
+) :
+    ParticlesBase<
+        SpeciesParticleDescription,
+        MappingDesc
+    >( cellDescription ),
+    fieldB( NULL ),
+    fieldE( NULL ),
+    fieldJcurrent( NULL ),
+    fieldTmp( NULL ),
+    m_gridLayout(gridLayout),
+    m_datasetID( datasetID )
 {
     size_t sizeOfExchanges = 2 * 2 * ( BYTES_EXCHANGE_X + BYTES_EXCHANGE_Y + BYTES_EXCHANGE_Z ) + BYTES_EXCHANGE_X * 2 * 8;
 
@@ -110,38 +126,91 @@ m_datasetID( datasetID )
 #endif
 }
 
-template< typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::createParticleBuffer( )
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+void
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::createParticleBuffer( )
 {
     this->particlesBuffer->createParticleBuffer( );
 }
 
-template< typename T_ParticleDescription>
-Particles<T_ParticleDescription>::~Particles( )
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::~Particles( )
 {
     delete this->particlesBuffer;
 }
 
-template< typename T_ParticleDescription>
-SimulationDataId Particles<T_ParticleDescription>::getUniqueId( )
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+SimulationDataId
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::getUniqueId( )
 {
     return m_datasetID;
 }
 
-template< typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::synchronize( )
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+void
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::synchronize( )
 {
     this->particlesBuffer->deviceToHost();
 }
 
-template< typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::syncToDevice( )
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+void
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::syncToDevice( )
 {
 
 }
 
-template<typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp )
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+void
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::init( FieldE &fieldE, FieldB &fieldB, FieldJ &fieldJ, FieldTmp &fieldTmp )
 {
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
@@ -151,8 +220,17 @@ void Particles<T_ParticleDescription>::init( FieldE &fieldE, FieldB &fieldB, Fie
     Environment<>::get( ).DataConnector( ).registerData( *this );
 }
 
-template<typename T_ParticleDescription>
-void Particles<T_ParticleDescription>::update(uint32_t )
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+void
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::update(uint32_t )
 {
     typedef typename GetFlagType<FrameType,particlePusher<> >::type PusherAlias;
     typedef typename PMacc::traits::Resolve<PusherAlias>::type ParticlePush;
@@ -174,22 +252,33 @@ void Particles<T_ParticleDescription>::update(uint32_t )
         UpperMargin
         > BlockArea;
 
-    dim3 block( MappingDesc::SuperCellSize::toRT().toDim3() );
+    auto block = MappingDesc::SuperCellSize::toRT();
 
-    __picKernelArea( kernelMoveAndMarkParticles<BlockArea>, this->cellDescription, CORE + BORDER )
-        (block)
+    AreaMapping<CORE+BORDER,MappingDesc> mapper(this->cellDescription);
+    PMACC_KERNEL( KernelMoveAndMarkParticles<BlockArea>{} )
+        (mapper.getGridDim(), block)
         ( this->getDeviceParticlesBox( ),
           this->fieldE->getDeviceDataBox( ),
           this->fieldB->getDeviceDataBox( ),
-          FrameSolver( )
+          FrameSolver( ),
+          mapper
           );
 
     ParticlesBaseType::template shiftParticles < CORE + BORDER > ( );
 }
 
-template< typename T_ParticleDescription>
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
 template<typename T_GasFunctor, typename T_PositionFunctor>
-void Particles<T_ParticleDescription>::initGas( T_GasFunctor& gasFunctor,
+void
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::initGas( T_GasFunctor& gasFunctor,
                                                 T_PositionFunctor& positionFunctor,
                                                 const uint32_t currentStep )
 {
@@ -201,40 +290,73 @@ void Particles<T_ParticleDescription>::initGas( T_GasFunctor& gasFunctor,
     DataSpace<simDim> totalGpuCellOffset = subGrid.getLocalDomain( ).offset;
     totalGpuCellOffset.y( ) += numSlides * localCells.y( );
 
-    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3( ) );
-    __picKernelArea( (kernelFillGridWithParticles<Particles<T_ParticleDescription> >),
-                      this->cellDescription, CORE + BORDER)
-        (block)
-        ( gasFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ) );
+    auto block = MappingDesc::SuperCellSize::toRT( );
+    AreaMapping<CORE+BORDER,MappingDesc> mapper(this->cellDescription);
+    PMACC_KERNEL( KernelFillGridWithParticles< Particles >{} )
+        (mapper.getGridDim(), block)
+        ( gasFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ), mapper );
 
 
     this->fillAllGaps( );
 }
 
-template< typename T_ParticleDescription>
-template< typename T_SrcParticleDescription,
-          typename T_ManipulateFunctor>
-void Particles<T_ParticleDescription>::deviceDeriveFrom( Particles< T_SrcParticleDescription> &src, T_ManipulateFunctor& functor )
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
+template<
+    typename T_SrcName,
+    typename T_SrcAttributes,
+    typename T_SrcFlags,
+    typename T_ManipulateFunctor
+>
+void
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::deviceDeriveFrom(
+    Particles<
+        T_SrcName,
+        T_SrcAttributes,
+        T_SrcFlags
+    >& src,
+    T_ManipulateFunctor& functor
+)
 {
-    dim3 block( PMacc::math::CT::volume<SuperCellSize>::type::value );
+    auto block = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
     log<picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
-    __picKernelArea( kernelDeriveParticles, this->cellDescription, CORE + BORDER )
-        (block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ), functor );
+    AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
+    PMACC_KERNEL( KernelDeriveParticles{} )
+        (mapper.getGridDim(), block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ), functor, mapper );
     this->fillAllGaps( );
 }
 
-template< typename T_ParticleDescription>
+template<
+    typename T_Name,
+    typename T_Attributes,
+    typename T_Flags
+>
 template< typename T_Functor>
-void Particles<T_ParticleDescription>::manipulateAllParticles( uint32_t currentStep, T_Functor& functor )
+void
+Particles<
+    T_Name,
+    T_Attributes,
+    T_Flags
+>::manipulateAllParticles( uint32_t currentStep, T_Functor& functor )
 {
 
-    dim3 block( MappingDesc::SuperCellSize::toRT( ).toDim3( ) );
+    auto block = MappingDesc::SuperCellSize::toRT( );
 
-    __picKernelArea( kernelManipulateAllParticles, this->cellDescription, CORE + BORDER )
-        (block)
+    AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
+    PMACC_KERNEL( KernelManipulateAllParticles{} )
+        (mapper.getGridDim(), block)
         ( this->particlesBuffer->getDeviceParticleBox( ),
-          functor );
+          functor,
+          mapper
+        );
 }
 
 } // end namespace

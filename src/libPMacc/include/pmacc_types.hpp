@@ -33,7 +33,7 @@
 #include <boost/mpl/placeholders.hpp>
 #include <boost/filesystem.hpp>
 
-// Allows use of C++11/C++98 compatibility macros like BOOST_CONSTEXPR
+// compatibility macros (compiler or C++ standard version specific)
 #include <boost/config.hpp>
 
 #include <builtin_types.h>
@@ -72,6 +72,9 @@ typedef long long int int64_cu;
 #else
 #   define PMACC_CUDA_ARCH __CUDA_ARCH__
 #endif
+
+/** PMacc global identifier for CUDA kernel */
+#define PMACC_GLOBAL_KEYWORD __location__(global)
 
 /*
  * Disable nvcc warning:

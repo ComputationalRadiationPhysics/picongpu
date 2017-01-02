@@ -55,13 +55,13 @@ namespace verboseLog_detail
 template<typename X, typename Y>
 struct IsSameClassType
 {
-    BOOST_STATIC_CONSTEXPR bool result = false;
+    static constexpr bool result = false;
 };
 
 template<typename X>
 struct IsSameClassType<X, X>
 {
-    BOOST_STATIC_CONSTEXPR bool result = true;
+    static constexpr bool result = true;
 };
 
 } //namespace verboseLog_detail
@@ -70,7 +70,7 @@ template<uint64_t lvl_, class membership_>
 struct LogLvl
 {
     typedef membership_ Parent;
-    BOOST_STATIC_CONSTEXPR uint64_t lvl = lvl_;
+    static constexpr uint64_t lvl = lvl_;
 
     /* This operation is only allowed for LogLvl with the same Parent type.
      * Create a LogLvl that contains two levels. At least one lvl has to be true
@@ -91,7 +91,7 @@ class VerboseLog
 {
 private:
     typedef typename LogLevel::Parent LogParent;
-    BOOST_STATIC_CONSTEXPR uint64_t logLvl = LogLevel::lvl;
+    static constexpr uint64_t logLvl = LogLevel::lvl;
 public:
 
     VerboseLog(const char* msg) : fmt(msg)

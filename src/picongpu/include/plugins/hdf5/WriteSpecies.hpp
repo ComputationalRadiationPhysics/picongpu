@@ -28,6 +28,7 @@
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/SIBaseUnits.hpp"
 #include "traits/PICToOpenPMD.hpp"
+#include "assert.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
@@ -151,14 +152,14 @@ public:
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
-            dim3 block(PMacc::math::CT::volume<SuperCellSize>::type::value);
+            auto block = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
             /* int: assume < 2e9 particles per GPU */
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
             /* this sanity check costs a little bit of time but hdf5 writing is slower */
-            __cudaKernel(copySpecies)
+            PMACC_KERNEL(CopySpecies{})
                 (mapper.getGridDim(), block)
                 (counterBuffer.getDeviceBuffer().getPointer(),
                  deviceFrame, speciesTmp->getDeviceParticlesBox(),
@@ -172,7 +173,7 @@ public:
             __getTransactionEvent().waitForFinished();
             log<picLog::INPUT_OUTPUT > ("HDF5:  all events are finished: %1%") % Hdf5FrameType::getName();
 
-            assert((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == numParticles);
+            PMACC_ASSERT((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == numParticles);
         }
 
         /* We rather do an allgather at this point then letting libSplash

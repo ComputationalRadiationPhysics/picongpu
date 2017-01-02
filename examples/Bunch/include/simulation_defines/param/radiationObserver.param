@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 #pragma once
 
@@ -53,12 +53,12 @@ namespace picongpu
       const int my_theta_id = observation_id_extern;
 
       /* set up: */
-      BOOST_CONSTEXPR_OR_CONST picongpu::float_64 gamma_times_thetaMax = 1.5; /* max normalized angle */
-      BOOST_CONSTEXPR_OR_CONST picongpu::float_64 gamma = 5.0;                /* relativistic gamma */
-      BOOST_CONSTEXPR_OR_CONST picongpu::float_64 thetaMax = gamma_times_thetaMax / gamma; /* max angle */
+      constexpr picongpu::float_64 gamma_times_thetaMax = 1.5; /* max normalized angle */
+      constexpr picongpu::float_64 gamma = 5.0;                /* relativistic gamma */
+      constexpr picongpu::float_64 thetaMax = gamma_times_thetaMax / gamma; /* max angle */
 
       /* stepwith of theta for from [-thetaMax : +thetaMax] */
-      BOOST_CONSTEXPR_OR_CONST picongpu::float_64 delta_theta =  2.0 * thetaMax / (parameters::N_observer);
+      constexpr picongpu::float_64 delta_theta =  2.0 * thetaMax / (parameters::N_observer);
 
       /* compute angle theta for index */
       const picongpu::float_64 theta(my_theta_id * delta_theta - thetaMax + picongpu::PI);
@@ -69,8 +69,8 @@ namespace picongpu
       picongpu::float_32 cosTheta;
       math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
       return vector_64(sinTheta, cosTheta, 0.0);
-      
+
     }
-    
+
   } // end namespace radiation_observer
 } // end namespace picongpu

@@ -45,8 +45,8 @@ struct Abs<double>
       return ::fabs( value );
 #else
       /* \bug on cpu `::abs(double)` always return zero -> maybe this is the
-	* integer version of `abs()`
-	*/
+       * integer version of `abs()`
+       */
       return std::abs( value );
 #endif
     }

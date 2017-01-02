@@ -30,13 +30,16 @@ namespace picongpu
     /** Note: we need at least FieldE and FieldB for restart
      *        capabilities!
      */
-    typedef MakeSeq<FieldE, FieldB>::type NativeFileCheckpointFields;
+    using NativeFileCheckpointFields = MakeSeq_t<
+        FieldE,
+        FieldB
+    >;
 
     /* List of particle species for checkpoint/restart */
-    typedef VectorAllSpecies FileCheckpointParticles;
+    using FileCheckpointParticles = VectorAllSpecies;
 
     /**  List of fields for checkpoint/restart */
-    typedef MakeSeq<
-            NativeFileCheckpointFields
-    >::type FileCheckpointFields;
+    using FileCheckpointFields = MakeSeq_t<
+        NativeFileCheckpointFields
+    >;
 }

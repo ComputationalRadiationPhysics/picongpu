@@ -34,11 +34,10 @@ namespace twts
 /** Auxiliary functions for calculating the TWTS field */
 namespace detail
 {
-    namespace pmMath = PMacc::algorithms::math;
-    
+
     template <typename T_Type, typename T_AngleType>
     struct RotateField;
-    
+
     template <typename T_Type, typename T_AngleType>
     struct RotateField<PMacc::math::Vector<T_Type,3>, T_AngleType >
     {
@@ -57,14 +56,14 @@ namespace detail
              *  system in paper is oriented the other way round.) */
             return result(
                 fieldPosVector.x(),
-               -pmMath::sin(AngleType(phi))*fieldPosVector.y()
-                    -pmMath::cos(AngleType(phi))*fieldPosVector.z() ,
-               +pmMath::cos(AngleType(phi))*fieldPosVector.y()
-                    -pmMath::sin(AngleType(phi))*fieldPosVector.z() );
+               -math::sin(AngleType(phi))*fieldPosVector.y()
+                    -math::cos(AngleType(phi))*fieldPosVector.z() ,
+               +math::cos(AngleType(phi))*fieldPosVector.y()
+                    -math::sin(AngleType(phi))*fieldPosVector.z() );
         }
-                        
+
     };
-    
+
     template <typename T_Type, typename T_AngleType>
     struct RotateField<PMacc::math::Vector<T_Type,2>, T_AngleType >
     {
@@ -81,7 +80,7 @@ namespace detail
              *  phi to determine the required amount of pulse front tilt.
              *  RotationMatrix[PI/2+phi].(y,z) (180Deg-flip at phi=90Deg since coordinate
              *  system in paper is oriented the other way round.) */
-            
+
             /*  Rotate 90 degree around y-axis, so that TWTS laser propagates within
              *  the 2D (x,y)-plane. Corresponding position vector for the Ez-components
              *  in 2D simulations.
@@ -102,13 +101,13 @@ namespace detail
              * Note: The x-axis of rotation is fine in 2D, because that component now contains
              *       the (non-existing) simulation z-coordinate. */
              return result(
-                -pmMath::sin(AngleType(phi))*fieldPosVector.y()
-                    -pmMath::cos(AngleType(phi))*fieldPosVector.x() ,
-                +pmMath::cos(AngleType(phi))*fieldPosVector.y()
-                    -pmMath::sin(AngleType(phi))*fieldPosVector.x() );
+                -math::sin(AngleType(phi))*fieldPosVector.y()
+                    -math::cos(AngleType(phi))*fieldPosVector.x() ,
+                +math::cos(AngleType(phi))*fieldPosVector.y()
+                    -math::sin(AngleType(phi))*fieldPosVector.x() );
         }
     };
-    
+
     template <typename T_Type, typename T_AngleType>
     HDINLINE typename RotateField<T_Type,T_AngleType>::result
     rotateField( const T_Type& fieldPosVector,
@@ -116,7 +115,7 @@ namespace detail
     {
         return RotateField<T_Type,T_AngleType>()(fieldPosVector,phi);
     }
-    
+
 } /* namespace detail */
 } /* namespace twts */
 } /* namespace templates */

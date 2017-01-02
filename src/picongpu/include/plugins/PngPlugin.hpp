@@ -30,12 +30,9 @@
 #include "simulation_classTypes.hpp"
 #include "plugins/ILightweightPlugin.hpp"
 #include "simulationControl/MovingWindow.hpp"
+
 #include <vector>
 #include <list>
-
-
-#include <cassert>
-
 #include <stdexcept>
 
 

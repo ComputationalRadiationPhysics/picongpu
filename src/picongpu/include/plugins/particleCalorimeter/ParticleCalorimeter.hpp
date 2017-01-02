@@ -207,7 +207,6 @@ private:
     void pluginLoad()
     {
         namespace pm = PMacc::math;
-        namespace pam = PMacc::algorithms::math;
 
         if(this->notifyPeriod == 0)
             return;
@@ -263,11 +262,11 @@ private:
         /* calculate rotated calorimeter frame from posYaw_deg and posPitch_deg */
         const float_64 posYaw_rad = this->posYaw_deg * float_64(M_PI / 180.0);
         const float_64 posPitch_rad = this->posPitch_deg * float_64(M_PI / 180.0);
-        this->calorimeterFrameVecY = float3_X(pam::sin(posYaw_rad) * pam::cos(posPitch_rad),
-                                              pam::cos(posYaw_rad) * pam::cos(posPitch_rad),
-                                              pam::sin(posPitch_rad));
+        this->calorimeterFrameVecY = float3_X(math::sin(posYaw_rad) * math::cos(posPitch_rad),
+                                              math::cos(posYaw_rad) * math::cos(posPitch_rad),
+                                              math::sin(posPitch_rad));
         /* If the y-axis is pointing exactly up- or downwards we need to define the x-axis manually */
-        if(pam::abs(this->calorimeterFrameVecY.z()) == float_X(1.0))
+        if(math::abs(this->calorimeterFrameVecY.z()) == float_X(1.0))
         {
             this->calorimeterFrameVecX = float3_X(1.0, 0.0, 0.0);
         }
@@ -275,11 +274,11 @@ private:
         {
             /* choose `calorimeterFrameVecX` so that the roll is zero. */
             const float3_X vecUp(0.0, 0.0, -1.0);
-            this->calorimeterFrameVecX = pam::cross(vecUp, this->calorimeterFrameVecY);
+            this->calorimeterFrameVecX = math::cross(vecUp, this->calorimeterFrameVecY);
             /* normalize vector */
-            this->calorimeterFrameVecX /= pam::abs(this->calorimeterFrameVecX);
+            this->calorimeterFrameVecX /= math::abs(this->calorimeterFrameVecX);
         }
-        this->calorimeterFrameVecZ = pam::cross(this->calorimeterFrameVecX, this->calorimeterFrameVecY);
+        this->calorimeterFrameVecZ = math::cross(this->calorimeterFrameVecX, this->calorimeterFrameVecY);
 
         /* create calorimeter functor instance */
         this->calorimeterFunctor = MyCalorimeterFunctorPtr(new MyCalorimeterFunctor(
@@ -288,8 +287,8 @@ private:
             this->numBinsYaw,
             this->numBinsPitch,
             this->numBinsEnergy,
-            this->logScale ? pam::log10(this->minEnergy) : this->minEnergy,
-            this->logScale ? pam::log10(this->maxEnergy) : this->maxEnergy,
+            this->logScale ? math::log10(this->minEnergy) : this->minEnergy,
+            this->logScale ? math::log10(this->maxEnergy) : this->maxEnergy,
             this->logScale,
             this->calorimeterFrameVecX,
             this->calorimeterFrameVecY,
@@ -516,12 +515,12 @@ public:
         this->calorimeterFunctor->setCalorimeterCursor(this->dBufLeftParsCalorimeter->origin());
 
         ExchangeMapping<GUARD, MappingDesc> mapper(*this->cellDescription, direction);
-        dim3 grid(mapper.getGridDim());
+        auto grid = mapper.getGridDim();
 
         DataConnector &dc = Environment<>::get().DataConnector();
         ParticlesType* particles = &(dc.getData<ParticlesType > (speciesName, true));
 
-        __cudaKernel(kernelParticleCalorimeter)
+        PMACC_KERNEL(KernelParticleCalorimeter{})
                 (grid, mapper.getSuperCellSize())
                 (particles->getDeviceParticlesBox(), (MyCalorimeterFunctor)*this->calorimeterFunctor, mapper);
     }

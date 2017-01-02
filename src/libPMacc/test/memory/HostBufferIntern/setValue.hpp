@@ -31,32 +31,38 @@ struct setValueTest
 {
 
     template<typename T_Dim>
-    void operator()(T_Dim)
+    void exec(T_Dim)
     {
 
         typedef uint8_t Data;
         typedef size_t Extents;
 
         std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
-        
+
         for(size_t i = 0; i < nElementsPerDim.size(); ++i)
         {
             ::PMacc::DataSpace<T_Dim::value> const dataSpace = ::PMacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
             ::PMacc::HostBufferIntern<Data, T_Dim::value> hostBufferIntern(dataSpace);
-            
+
             const Data value = 255;
             hostBufferIntern.setValue(value);
 
-	    PMACC_AUTO( ptr, hostBufferIntern.getPointer( ) );
+            PMACC_AUTO( ptr, hostBufferIntern.getPointer( ) );
             for(size_t j = 0; j < static_cast<size_t>(dataSpace.productOfComponents()); ++j)
             {
                 BOOST_CHECK_EQUAL( ptr[j], value );
             }
-            
+
         }
-        
+
     }
 
+    PMACC_NO_NVCC_HDWARNING
+    template<typename T_Dim>
+    HDINLINE void operator()(T_Dim dim)
+    {
+        exec(dim);
+    }
 };
 
 BOOST_AUTO_TEST_CASE( setValue )

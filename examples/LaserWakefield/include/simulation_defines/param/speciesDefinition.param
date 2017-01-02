@@ -26,13 +26,9 @@
 #include "simulation_defines.hpp"
 #include "particles/Identifier.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "identifier/identifier.hpp"
-#include "identifier/alias.hpp"
 #include "identifier/value_identifier.hpp"
 
 #include "particles/Particles.hpp"
-#include "particles/ParticleDescription.hpp"
 #include <boost/mpl/string.hpp>
 
 #include "particles/ionization/byField/ionizers.def"
@@ -43,42 +39,25 @@ namespace picongpu
 /*########################### define particle attributes #####################*/
 
 /** describe attributes of a particle*/
-typedef MakeSeq<position<position_pic>, momentum, weighting>::type DefaultParticleAttributes;
-
-/** \todo: not nice, we change this later with nice interfaces
- * Plugins should add required attributes
- */
-
-/*add old momentum for radiation plugin*/
-typedef MakeSeq<
-#if(ENABLE_RADIATION == 1)
-momentumPrev1
+using DefaultParticleAttributes = MakeSeq_t<
+    position<position_pic>,
+    momentum,
+    weighting
+#if( ENABLE_RADIATION == 1 )
+    , momentumPrev1
 #endif
->::type AttributMomentum_mt1;
-
-/*add old radiation flag for radiation plugin*/
-typedef MakeSeq<
-#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-radiationFlag
+#if( RAD_MARK_PARTICLE > 1 ) || ( RAD_ACTIVATE_GAMMA_FILTER != 0 )
+    , radiationFlag
 #endif
->::type AttributRadiationFlag;
-
-/* attribute sequence for species: electrons */
-typedef
-MakeSeq<
-DefaultParticleAttributes,
-AttributMomentum_mt1,
-AttributRadiationFlag
->::type AttributeSeqElectrons;
+>;
 
 /* attribute sequence for species: ions */
-typedef
-MakeSeq<
-DefaultParticleAttributes,
-AttributMomentum_mt1,
-AttributRadiationFlag,
-boundElectrons
->::type AttributeSeqIons;
+using AttributeSeqIons = MakeSeq_t<
+    DefaultParticleAttributes,
+#if( PARAM_IONIZATION == 1 )
+    boundElectrons
+#endif
+>;
 
 /*########################### end particle attributes ########################*/
 
@@ -88,33 +67,30 @@ boundElectrons
 /*--------------------------- electrons --------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier(float_X, MassRatioElectrons, 1.0);
-value_identifier(float_X, ChargeRatioElectrons, 1.0);
+value_identifier( float_X, MassRatioElectrons, 1.0 );
+value_identifier( float_X, ChargeRatioElectrons, 1.0 );
 
-typedef bmpl::vector<
-    particlePusher<UsedParticlePusher>,
-    shape<UsedParticleShape>,
-    interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>,
-    massRatio<MassRatioElectrons>,
-    chargeRatio<ChargeRatioElectrons>
-> ParticleFlagsElectrons;
+using ParticleFlagsElectrons = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioElectrons >,
+    chargeRatio< ChargeRatioElectrons >
+>;
 
 /* define species: electrons */
-typedef Particles<
-    ParticleDescription<
-        bmpl::string<'e'>,
-        SuperCellSize,
-        AttributeSeqElectrons,
-        ParticleFlagsElectrons
-    >
-> PIC_Electrons;
+using PIC_Electrons = Particles<
+    bmpl::string< 'e' >,
+    DefaultParticleAttributes,
+    ParticleFlagsElectrons
+>;
 
 /*--------------------------- ions -------------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier(float_X, MassRatioIons, 1836.152672);
-value_identifier(float_X, ChargeRatioIons, -1.0);
+value_identifier( float_X, MassRatioIons, 1836.152672 );
+value_identifier( float_X, ChargeRatioIons, -1.0 );
 
 /*! Specify (chemical) element
  *
@@ -131,8 +107,8 @@ value_identifier(float_X, ChargeRatioIons, -1.0);
  */
 struct Hydrogen
 {
-    BOOST_STATIC_CONSTEXPR float_X numberOfProtons  = 1.0;
-    BOOST_STATIC_CONSTEXPR float_X numberOfNeutrons = 0.0;
+    static constexpr float_X numberOfProtons  = 1.0;
+    static constexpr float_X numberOfNeutrons = 0.0;
 };
 
 /*! Ionization Model Configuration ----------------------------------------
@@ -153,33 +129,32 @@ struct Hydrogen
  *
  * Usage: Add a flag to the list of particle flags that has the following structure
  *
- *        ionizer<IonizationModel<Species2BCreated> >
+ *        ionizer< IonizationModel< Species2BCreated > >
  */
 
-typedef bmpl::vector<
-    particlePusher<UsedParticlePusher>,
-    shape<UsedParticleShape>,
-    interpolation<UsedField2Particle>,
-    current<UsedParticleCurrentSolver>,
-    massRatio<MassRatioIons>,
-    chargeRatio<ChargeRatioIons>,
-    #if(PARAM_IONIZATION == 1)
-    ionizer<particles::ionization::BSIEffectiveZ<PIC_Electrons> >,
-    ionizationEnergies<AU::IONIZATION_ENERGY_HYDROGEN_t>,
-    effectiveAtomicNumbers<Z_EFFECTIVE_HYDROGEN_t>,
-    #endif
-    atomicNumbers<Hydrogen>
-> ParticleFlagsIons;
+using ParticleFlagsIons = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioIons >,
+    chargeRatio< ChargeRatioIons >,
+#if( PARAM_IONIZATION == 1 )
+    ionizer<
+        particles::ionization::BSIEffectiveZ< PIC_Electrons >
+    >,
+    ionizationEnergies< AU::IONIZATION_ENERGY_HYDROGEN_t >,
+    effectiveAtomicNumbers< Z_EFFECTIVE_HYDROGEN_t >,
+#endif
+    atomicNumbers< Hydrogen >
+>;
 
 /* define species: ions */
-typedef Particles<
-    ParticleDescription<
-        bmpl::string<'i'>,
-        SuperCellSize,
-        AttributeSeqIons,
-        ParticleFlagsIons
-    >
-> PIC_Ions;
+using PIC_Ions = Particles<
+    bmpl::string< 'i' >,
+    AttributeSeqIons,
+    ParticleFlagsIons
+>;
 
 /*########################### end species ####################################*/
 
@@ -187,22 +162,21 @@ typedef Particles<
 /*! we delete this ugly definition of VectorAllSpecies after all picongpu components
  * support multi species */
 /** \todo: not nice, but this should be changed in the future*/
-typedef MakeSeq<
-#if (ENABLE_ELECTRONS == 1)
-PIC_Electrons
+using Species1 = MakeSeq_t<
+#if( ENABLE_ELECTRONS == 1 )
+    PIC_Electrons
 #endif
->::type Species1;
+>;
 
-typedef MakeSeq<
-#if (ENABLE_IONS == 1)
-PIC_Ions
+using Species2 = MakeSeq_t<
+#if( ENABLE_IONS == 1 )
+    PIC_Ions
 #endif
->::type Species2;
+>;
 
-typedef MakeSeq<
-Species1,
-Species2
->::type VectorAllSpecies;
-
+using VectorAllSpecies = MakeSeq_t<
+    Species1,
+    Species2
+>;
 
 } //namespace picongpu

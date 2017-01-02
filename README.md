@@ -1,6 +1,12 @@
 PIConGPU - A Many GPGPU PIC Code
 ================================================================
 
+[![Code Status master](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/master.svg?label=master)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
+[![Code Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
+[![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)](https://isocpp.org/)
+[![License PIConGPU](https://img.shields.io/badge/license-GPLv3-blue.svg?label=PIConGPU)](https://www.gnu.org/licenses/gpl-3.0.html)
+[![License PMacc](https://img.shields.io/badge/license-LGPLv3-blue.svg?label=PMacc)](https://www.gnu.org/licenses/lgpl-3.0.html)
+
 [![PIConGPU Presentation Video](http://img.youtube.com/vi/nwZuG-XtUDE/0.jpg)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
 [![PIConGPU Release](doc/logo/pic_logo_vert_158x360.png)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
 
@@ -19,18 +25,26 @@ PIConGPU implements various numerical schemes to solve the PIC cycle.
 Its features for the electro-magnetic PIC algorithm include:
 - a central or Yee-lattice for fields
 - particle pushers that solve the equation of motion for charged and neutral
-  particles, e.g., the *Boris-* and the *Vay-Pusher*
-- Maxwell field solvers, e.g. *Yee's* and *Lehe's* scheme
+  particles, e.g., the *Boris-* and the
+  [*Vay-Pusher*](http://dx.doi.org/10.1063/1.2837054)
+- Maxwell field solvers, e.g.
+  [*Yee's*](http://dx.doi.org/10.1109/TAP.1966.1138693) and
+  [*Lehe's*](http://dx.doi.org/10.1103/PhysRevSTAB.16.021301) scheme
 - rigorously charge conserving current deposition schemes, such as
-  *Villasenor-Buneman*, *Esirkepov* and *ZigZag*
+  [*Villasenor-Buneman*](http://dx.doi.org/10.1016/0010-4655(92)90169-Y),
+  [*Esirkepov*](http://dx.doi.org/10.1016/S0010-4655(00)00228-9)
+  and *ZigZag*
 - macro-particle form factors ranging from NGP (0th order), CIC (1st),
   TSC (2nd), PSQ (3rd) to P4S (4th)
 
 and the electro-magnetic PIC algorithm is further self-consistently coupled to:
-- classical radiation reaction (DOI: 10.1016/j.cpc.2016.04.002)
-- QED synchrotron radiation (photon emission) (DOI: 10.1103/PhysRevE.92.023305)
+- classical radiation reaction
+  ([DOI:10.1016/j.cpc.2016.04.002](http://dx.doi.org/10.1016/j.cpc.2016.04.002))
+- QED synchrotron radiation (photon emission)
+  ([DOI:10.1103/PhysRevE.92.023305](http://dx.doi.org/10.1103/PhysRevE.92.023305))
 - advanced field ionization methods
-  (DOI: DOI:10.1103/PhysRevA.59.569, LV Keldysh)
+  ([DOI:10.1103/PhysRevA.59.569](http://dx.doi.org/10.1103/PhysRevA.59.569),
+   [LV Keldysh](http://www.jetp.ac.ru/cgi-bin/dn/e_020_05_1307.pdf), BSI)
 
 Besides the electro-magnetic PIC algorithm and extensions to it, we developed
 a wide range of tools and diagnostics, e.g.:
@@ -194,37 +208,26 @@ Active Team
 
 - Heiko Burau*
 - Dr. Alexander Debus
-- Carlchristian Eckert
 - Marco Garten
-- Alexander Grund
 - Axel Huebl*
+- Alexander Matthes
 - Richard Pausch*
 - Rene Widera*
 
 ### Former Members, Contributions and Thanks
 
-The PIConGPU Team expresses its thanks to:
+The PIConGPU Team expresses its gratitude to:
 
-- Florian Berninger
-- Robert Dietrich
-- Wen Fu, Ph.D.
-- Anton Helm
-- Wolfgang Hoehnig
-- Maximilian Knespel
-- Dr. Remi Lehe
-- Felix Schmitt
-- Benjamin Schneider
-- Joseph Schuchart
-- Conrad Schumann
-- Klaus Steiniger
-- Stefan Tietze
-- Marija Vranic, Ph.D.
-- Benjamin Worpitz
-- Erik Zenker
+Florian Berninger, Robert Dietrich, Carlchristian Eckert, Wen Fu, Ph.D.,
+Alexander Grund, Anton Helm, Wolfgang Hoehnig, Maximilian Knespel,
+Dr. Remi Lehe, Felix Schmitt, Benjamin Schneider, Joseph Schuchart,
+Conrad Schumann, Klaus Steiniger, Stefan Tietze, Marija Vranic, Ph.D.,
+Benjamin Worpitz, Erik Zenker, Alexander Matthes
 
-Kudos to everyone who helped!
+Kudos to everyone, mentioned or unmentioned, who contributed further in any
+way!
 
 ********************************************************************************
 
-![image of an lwfa](doc/images/lwfa_grey.png "LWFA")
+![image of an lwfa](doc/images/lwfa_iso.png "LWFA")
 ![image of our strong scaling](doc/images/StrongScalingPIConGPU_log.png "Strong Scaling")

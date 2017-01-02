@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2016 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -43,7 +44,7 @@ namespace particles
            typedef mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type numParticlesPerDimension;
         };
 
-        /* definition of random particle start*/
+        /* definition of quiet particle start*/
         typedef QuietImpl<QuietParam> Quiet;
 
     } //namespace startPosition
@@ -67,7 +68,7 @@ namespace manipulators
          *  Examples:
          *    - No drift is equal to 1.0
          *  unit: none */
-        BOOST_STATIC_CONSTEXPR float_64 gamma = 1.021;
+        static constexpr float_64 gamma = 1.021;
         const DriftParamPositive_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -80,7 +81,7 @@ namespace manipulators
          *  Examples:
          *    - No drift is equal to 1.0
          *  unit: none */
-        BOOST_STATIC_CONSTEXPR float_64 gamma = 1.021;
+        static constexpr float_64 gamma = 1.021;
         const DriftParamNegative_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -91,7 +92,7 @@ namespace manipulators
         /*Initial temperature
          *  unit: keV
          */
-        BOOST_STATIC_CONSTEXPR float_64 temperature = 0.0005;
+        static constexpr float_64 temperature = 0.0005;
     };
     /* definition of SetDrift start*/
     typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
@@ -100,13 +101,13 @@ namespace manipulators
     struct IfRelativeGlobalPositionParamLowQuarter
     {
         /* lowerBound is included in the range*/
-        BOOST_STATIC_CONSTEXPR float_X lowerBound = 0.0;
+        static constexpr float_X lowerBound = 0.0;
         /* upperBound is excluded in the range*/
-        BOOST_STATIC_CONSTEXPR float_X upperBound = 0.25;
+        static constexpr float_X upperBound = 0.25;
         /* dimension for the filter
          * x = 0; y= 1; z = 2
          */
-        BOOST_STATIC_CONSTEXPR uint32_t dimension = 1;
+        static constexpr uint32_t dimension = 1;
     };
     /* definition of SetDrift start*/
     typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParamLowQuarter,AssignXDriftPositive> AssignXDriftPrositiveToLowerQuarterYPosition;
@@ -114,13 +115,13 @@ namespace manipulators
     struct IfRelativeGlobalPositionParamMiddleHalf
     {
         /* lowerBound is included in the range*/
-        BOOST_STATIC_CONSTEXPR float_X lowerBound = 0.25;
+        static constexpr float_X lowerBound = 0.25;
         /* upperBound is excluded in the range*/
-        BOOST_STATIC_CONSTEXPR float_X upperBound = 0.75;
+        static constexpr float_X upperBound = 0.75;
         /* dimension for the filter
          * x = 0; y= 1; z = 2
          */
-        BOOST_STATIC_CONSTEXPR uint32_t dimension = 1;
+        static constexpr uint32_t dimension = 1;
     };
     /* definition of SetDrift start*/
     typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParamMiddleHalf,AssignXDriftNegative> AssignXDriftNegativeToMiddleHalfYPosition;
@@ -128,13 +129,13 @@ namespace manipulators
     struct IfRelativeGlobalPositionParamUpperQuarter
     {
         /* lowerBound is included in the range*/
-        BOOST_STATIC_CONSTEXPR float_X lowerBound = 0.75;
+        static constexpr float_X lowerBound = 0.75;
         /* upperBound is excluded in the range*/
-        BOOST_STATIC_CONSTEXPR float_X upperBound = 1.0;
+        static constexpr float_X upperBound = 1.0;
         /* dimension for the filter
          * x = 0; y= 1; z = 2
          */
-        BOOST_STATIC_CONSTEXPR uint32_t dimension = 1;
+        static constexpr uint32_t dimension = 1;
     };
     /* definition of SetDrift start*/
     typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParamUpperQuarter,AssignXDriftPositive> AssignXDriftPrositiveToUpperQuarterYPosition;

@@ -34,11 +34,11 @@ template<int T_dim>
 class MapTo1DNavigator
 {
 public:
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
 private:
     math::Size_t<dim> shape;
     int pos;
-    
+
     HDINLINE
     math::Int<dim> toNdim(int idx) const
     {
@@ -56,7 +56,7 @@ public:
      * @param shape area to map the 1D index to.
      */
     HDINLINE
-    MapTo1DNavigator(math::Size_t<dim> shape) 
+    MapTo1DNavigator(math::Size_t<dim> shape)
      : shape(shape), pos(0) {}
 
     template<typename Cursor>
@@ -66,9 +66,9 @@ public:
         math::Int<dim> ndstart = toNdim(this->pos);
         this->pos += jump.x();
         math::Int<dim> ndend = toNdim(this->pos);
-        
+
         math::Int<dim> ndjump = ndend - ndstart;
-        
+
         return cursor(ndjump);
     }
 

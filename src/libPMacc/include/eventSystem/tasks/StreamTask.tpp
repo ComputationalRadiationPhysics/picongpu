@@ -26,7 +26,7 @@
 //#include "eventSystem/EventSystem.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
-#include "Environment.hpp"
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -42,7 +42,7 @@ alwaysFinished( false )
 
 inline CudaEventHandle StreamTask::getCudaEventHandle( ) const
 {
-    assert( hasCudaEventHandle );
+    PMACC_ASSERT( hasCudaEventHandle );
     return cudaEvent;
 }
 
@@ -76,8 +76,8 @@ inline EventStream* StreamTask::getEventStream( )
 
 inline void StreamTask::setEventStream( EventStream* newStream )
 {
-    assert( newStream != NULL );
-    assert( stream == NULL ); //it is only allowed to set a stream if no stream is set before
+    PMACC_ASSERT( newStream != NULL );
+    PMACC_ASSERT( stream == NULL ); //it is only allowed to set a stream if no stream is set before
     this->stream = newStream;
 }
 

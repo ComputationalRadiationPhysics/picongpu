@@ -44,16 +44,16 @@ template<class T_Shape, class InterpolationMethod>
 struct FieldToParticleInterpolation
 {
     typedef typename T_Shape::ChargeAssignmentOnSupport AssignmentFunction;
-    BOOST_STATIC_CONSTEXPR int supp = AssignmentFunction::support;
+    static constexpr int supp = AssignmentFunction::support;
 
-    BOOST_STATIC_CONSTEXPR int lowerMargin = supp / 2 ;
-    BOOST_STATIC_CONSTEXPR int upperMargin = (supp + 1) / 2;
+    static constexpr int lowerMargin = supp / 2 ;
+    static constexpr int upperMargin = (supp + 1) / 2;
     typedef typename PMacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
 
     /*(supp + 1) % 2 is 1 for even supports else 0*/
-    BOOST_STATIC_CONSTEXPR int begin = -supp / 2 + (supp + 1) % 2;
-    BOOST_STATIC_CONSTEXPR int end = begin+supp-1;
+    static constexpr int begin = -supp / 2 + (supp + 1) % 2;
+    static constexpr int end = begin+supp-1;
 
     template<class Cursor, class VecVector>
     HDINLINE typename Cursor::ValueType operator()(Cursor field,

@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <cassert>
-
 #include "dimensions/DataSpace.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/GridLayout.hpp"

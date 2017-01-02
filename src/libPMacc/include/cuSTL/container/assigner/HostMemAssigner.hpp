@@ -38,7 +38,7 @@ namespace bmpl = boost::mpl;
 template<typename T_Dim = bmpl::_1, typename T_CartBuffer = bmpl::_2>
 struct HostMemAssigner
 {
-    BOOST_STATIC_CONSTEXPR int dim = T_Dim::value;
+    static constexpr int dim = T_Dim::value;
     typedef T_CartBuffer CartBuffer;
 
     template<typename Type>

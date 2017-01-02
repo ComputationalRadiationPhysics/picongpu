@@ -193,6 +193,12 @@ namespace PMacc
              */
             bool setStateAfterSlides(size_t numSlides)
             {
+                // nothing to do, nothing to change
+                // note: prevents destroying static load balancing in y for
+                //       non-moving window simulations
+                if( numSlides == 0 )
+                    return false;
+
                 bool result = comm.setStateAfterSlides(numSlides);
                 updateDomainOffset(numSlides);
                 return result;

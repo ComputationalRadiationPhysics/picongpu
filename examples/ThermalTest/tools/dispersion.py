@@ -21,9 +21,9 @@
 
 #___________P A R A M E T E R S___________
 
-omega_plasma = 6.718e13		# SI unit: 1/s
-v_th = 1.0e8               	# SI unit: m/s
-c = 2.9979e8			    # SI unit: m/s
+omega_plasma = 6.718e13     # SI unit: 1/s
+v_th = 1.0e8                # SI unit: m/s
+c = 2.9979e8                # SI unit: m/s
 delta_t = 2.5e-15           # SI unit: s
 delta_z = c * delta_t       # SI unit: m
 

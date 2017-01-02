@@ -43,7 +43,7 @@ struct Float
     typedef Y y;
     typedef Z z;
 
-    BOOST_STATIC_CONSTEXPR int dim = 3;
+    static constexpr int dim = 3;
 };
 
 template<>
@@ -54,7 +54,7 @@ struct Float<X>
 {
     typedef X x;
 
-    BOOST_STATIC_CONSTEXPR int dim = 1;
+    static constexpr int dim = 1;
 };
 
 template<typename X, typename Y>
@@ -63,7 +63,7 @@ struct Float<X, Y>
     typedef X x;
     typedef Y y;
 
-    BOOST_STATIC_CONSTEXPR int dim = 2u;
+    static constexpr int dim = 2u;
 };
 
 } // CT

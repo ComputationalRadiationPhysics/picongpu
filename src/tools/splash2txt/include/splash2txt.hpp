@@ -20,7 +20,7 @@
  */
 
 #ifndef SPLASH2TXT_HPP
-#define	SPLASH2TXT_HPP
+#define SPLASH2TXT_HPP
 
 #include <mpi.h>
 
@@ -77,9 +77,9 @@ private:
     size_t s[3];
 };
 
-enum FileMode { FM_SPLASH = 0 
+enum FileMode { FM_SPLASH = 0
 #if (ENABLE_ADIOS == 1)
-               ,FM_ADIOS = 1 
+               ,FM_ADIOS = 1
 #endif
 };
 
@@ -100,5 +100,5 @@ typedef struct
     bool applyUnits; // apply the unit stored in HDF5 to the output data
 } ProgramOptions;
 
-#endif	/* SPLASH2TXT_HPP */
+#endif    /* SPLASH2TXT_HPP */
 

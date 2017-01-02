@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2016 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -36,9 +37,9 @@ namespace particles
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
      *  unit: none */
-    BOOST_CONSTEXPR_OR_CONST float_X MIN_WEIGHTING = 10.0;
+    constexpr float_X MIN_WEIGHTING = 10.0;
 
-    BOOST_CONSTEXPR_OR_CONST uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
 
 namespace manipulators
 {
@@ -46,7 +47,7 @@ namespace manipulators
     CONST_VECTOR(float_X,3,DriftParam_direction,1.0,0.0,0.0);
     struct DriftParam
     {
-        BOOST_STATIC_CONSTEXPR float_64 gamma = 1.0;
+        static constexpr float_64 gamma = 1.0;
         const DriftParam_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -57,7 +58,7 @@ namespace manipulators
         /*Initial temperature
          *  unit: keV
          */
-        BOOST_STATIC_CONSTEXPR float_64 temperature = 0.0;
+        static constexpr float_64 temperature = 0.0;
     };
     /* definition of SetDrift start*/
     typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
@@ -66,13 +67,13 @@ namespace manipulators
     struct IfRelativeGlobalPositionParam
     {
         /* lowerBound is included in the range*/
-        BOOST_STATIC_CONSTEXPR float_X lowerBound = 0.0;
+        static constexpr float_X lowerBound = 0.0;
         /* upperBound is excluded in the range*/
-        BOOST_STATIC_CONSTEXPR float_X upperBound = 0.5;
+        static constexpr float_X upperBound = 0.5;
         /* dimension for the filter
          * x = 0; y= 1; z = 2
          */
-        BOOST_STATIC_CONSTEXPR uint32_t dimension = 0;
+        static constexpr uint32_t dimension = 0;
     };
     /* definition of SetDrift start*/
     typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParam,AssignXDrift> AssignXDriftToLowerHalfXPosition;
@@ -102,7 +103,7 @@ namespace startPosition
     {
         /** Count of particles per cell at initial state
          *  unit: none */
-        BOOST_STATIC_CONSTEXPR uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
     };
     /* definition of random particle start*/
     typedef RandomImpl<RandomParameter> Random;
@@ -114,7 +115,7 @@ namespace startPosition
        typedef mCT::shrinkTo<mCT::Int<1, TYPICAL_PARTICLES_PER_CELL, 1>, simDim>::type numParticlesPerDimension;
     };
 
-    /* definition of random particle start*/
+    /* definition of quiet particle start*/
     typedef QuietImpl<QuietParam> Quiet;
 
 

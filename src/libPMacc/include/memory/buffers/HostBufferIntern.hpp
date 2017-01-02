@@ -27,8 +27,7 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
-
-#include <cassert>
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -93,7 +92,7 @@ public:
 
     void copyFrom(DeviceBuffer<TYPE, DIM>& other)
     {
-        assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
+        PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyDeviceToHost(other, *this);
     }
 

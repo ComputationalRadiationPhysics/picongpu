@@ -83,12 +83,12 @@ namespace particles
  * the functors are called in order (from first to last functor)
  */
 typedef mpl::vector<
-#if (PARAM_IONIZATION == 0)
+#if( PARAM_IONIZATION == 0 )
 
     CreateGas<gasProfiles::Gaussian, startPosition::Random, PIC_Electrons>
-    #if (ENABLE_IONS == 1)
-        ,DeriveSpecies<PIC_Electrons,PIC_Ions>
-    #endif
+#   if( ENABLE_IONS == 1 )
+    , DeriveSpecies<PIC_Electrons,PIC_Ions>
+#   endif
 
 #else
 

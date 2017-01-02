@@ -4,13 +4,13 @@ module purge
 #
 module load oscar-modules
 module load cmake/3.3.1 git
-module load cuda/7.5.18 # gcc <=4.9, intel 15.0
+module load cuda/8.0.44 # gcc <= 5, intel 15-16
 module load bullxmpi
 module load gnuplot/4.6.1
 
 # Compilers ###################################################################
 ### GCC
-module load gcc/5.1.0 boost/1.58.0-gnu5.1
+module load gcc/5.3.0 boost/1.60.0-gnu5.3
 ### ICC
 #module load intel/2015.3.187 boost/1.59.0-intel2015.3.187
 ### PGI
@@ -23,7 +23,7 @@ module load gcc/5.1.0 boost/1.58.0-gnu5.1
 
 # Other Software ##############################################################
 #
-module load hdf5/1.8.15-gcc-5.1.0
+module load hdf5/1.8.18-gcc-5.3.0-xmpi
 module load zlib/1.2.8
 
 # Environment #################################################################
@@ -38,11 +38,6 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/splash/lib/
 
 export PICSRC=$HOME/src/picongpu
 export PATH=$PATH:$PICSRC/src/tools/bin
-
-# cmake work-around: avoids wrong linkage if system-wide
-# libraries are available that shall not be used (hdf5, boost, ...)
-#   see https://www.mail-archive.com/cmake@cmake.org/msg50018.html
-unset LIBRARY_PATH
 
 # send me a mail on BEGIN, END, FAIL, REQUEUE, ALL,
 # TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
