@@ -42,6 +42,7 @@
 #include "nvidia/functors/Add.hpp"
 
 #include "algorithms/Gamma.hpp"
+#include "memory/shared/Allocate.hpp"
 
 #include "common/txtFileHandling.hpp"
 
@@ -69,9 +70,9 @@ struct KernelBinEnergyParticles
         typedef typename MappingDesc::SuperCellSize Block;
         typedef typename ParBox::FramePtr FramePtr;
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+        PMACC_SMEM( frame, FramePtr );
 
-        __shared__ lcellId_t particlesInSuperCell;
+        PMACC_SMEM( particlesInSuperCell, lcellId_t );
 
         const bool enableDetector = maximumSlopeToDetectorX != float_X(0.0) && maximumSlopeToDetectorZ != float_X(0.0);
 

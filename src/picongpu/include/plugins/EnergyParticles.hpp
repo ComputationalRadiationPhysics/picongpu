@@ -40,6 +40,7 @@
 #include "nvidia/functors/Add.hpp"
 
 #include "algorithms/Gamma.hpp"
+#include "memory/shared/Allocate.hpp"
 
 #include "common/txtFileHandling.hpp"
 
@@ -61,9 +62,9 @@ struct KernelEnergyParticles
     {
 
         typedef typename ParBox::FramePtr FramePtr;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame; /* pointer to particle data frame */
-        __shared__ float_X shEnergyKin; /* shared kinetic energy */
-        __shared__ float_X shEnergy; /* shared total energy */
+        PMACC_SMEM( frame, FramePtr ); /* pointer to particle data frame */
+        PMACC_SMEM( shEnergyKin, float_X ); /* shared kinetic energy */
+        PMACC_SMEM( shEnergy, float_X ); /* shared total energy */
 
         float_X _local_energyKin = float_X(0.0); /* sum kinetic energy for this thread */
         float_X _local_energy = float_X(0.0); /* sum total energy for this thread */

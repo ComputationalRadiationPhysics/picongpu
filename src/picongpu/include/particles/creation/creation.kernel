@@ -30,6 +30,7 @@
 #include "traits/Resolve.hpp"
 #include "math/vector/Int.hpp"
 #include "nvidia/atomic.hpp"
+#include "memory/shared/Allocate.hpp"
 #include <iostream>
 
 namespace picongpu
@@ -107,8 +108,8 @@ struct CreateParticlesKernel
         /* for not mixing operations::assign up with the nvidia functor assign */
         namespace partOp = PMacc::particles::operations;
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<SourceFramePtr>::type sourceFrame;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<TargetFramePtr>::type targetFrame;
+        PMACC_SMEM( sourceFrame, SourceFramePtr );
+        PMACC_SMEM( targetFrame, TargetFramePtr );
         const lcellId_t maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
         /* find last frame in super cell
@@ -130,7 +131,7 @@ struct CreateParticlesKernel
         /* Declare counter in shared memory that will later tell the current fill level or
          * occupation of the newly created target frames.
          */
-        __shared__ int newFrameFillLvl;
+        PMACC_SMEM( newFrameFillLvl, int );
 
         /* Declare local variable oldFrameFillLvl for each thread */
         int oldFrameFillLvl;

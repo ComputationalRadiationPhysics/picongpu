@@ -33,6 +33,8 @@
 #include "particles/operations/Deselect.hpp"
 #include "traits/NumberOfExchanges.hpp"
 #include "nvidia/atomic.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "memory/Array.hpp"
 
 namespace PMacc
 {
@@ -59,7 +61,6 @@ struct KernelShiftParticles
         typedef T_ParBox ParBox;
         typedef typename ParBox::FrameType FrameType;
         typedef typename ParBox::FramePtr FramePtr;
-        typedef typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type FramePtrShared;
 
         const uint32_t dim = Mapping::Dim;
         const uint32_t frameSize = math::CT::volume<typename FrameType::SuperCellSize>::type::value;
@@ -70,14 +71,15 @@ struct KernelShiftParticles
          * index range [0,numExchanges-1] are being referred to as `low frames`
          * index range [numExchanges,2*numExchanges-1] are being referred to as `high frames`
          */
-        __shared__ FramePtrShared destFrames[numExchanges * 2];
-        __shared__ int destFramesCounter[numExchanges]; //count particles per frame
+        PMACC_SMEM( destFrames, memory::Array< FramePtr, numExchanges * 2 > );
+        //count particles per frame
+        PMACC_SMEM( destFramesCounter, memory::Array< int, numExchanges > );
 
         /* lastFrameSize is only valid for threads with `linearThreadIdx` < numExchanges */
         uint32_t lastFrameSize = 0;
 
-        __shared__ FramePtrShared frame;
-        __shared__ bool mustShift;
+        PMACC_SMEM( frame, FramePtr );
+        PMACC_SMEM( mustShift, bool );
 
         DataSpace<dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<dim> (blockIdx) );
         const uint32_t linearThreadIdx = threadIdx.x;
@@ -106,7 +108,7 @@ struct KernelShiftParticles
             destFrames[linearThreadIdx] = FramePtr();
             destFrames[linearThreadIdx + numExchanges] = FramePtr();
             /* load last frame of neighboring supercell */
-            FramePtrShared tmpFrame(pb.getLastFrame( relative ));
+            FramePtr tmpFrame(pb.getLastFrame( relative ));
 
             if ( tmpFrame.isValid() )
             {
@@ -155,7 +157,7 @@ struct KernelShiftParticles
                     /* if we had no `low frame` we load a new empty one */
                     if ( !destFrames[linearThreadIdx].isValid() )
                     {
-                        FramePtrShared tmpFrame(pb.getEmptyFrame( ));
+                        FramePtr tmpFrame(pb.getEmptyFrame( ));
                         destFrames[linearThreadIdx] = tmpFrame;
                         pb.setAsLastFrame( tmpFrame, relative );
                     }
@@ -163,7 +165,7 @@ struct KernelShiftParticles
                     if ( destFramesCounter[linearThreadIdx] > frameSize )
                     {
                             lastFrameSize = destFramesCounter[linearThreadIdx] - frameSize;
-                            FramePtrShared tmpFrame(pb.getEmptyFrame( ));
+                            FramePtr tmpFrame(pb.getEmptyFrame( ));
                             destFrames[linearThreadIdx + numExchanges] = tmpFrame;
                             pb.setAsLastFrame( tmpFrame, relative );
                     }
@@ -243,14 +245,12 @@ struct KernelFillGapsLastFrame
 
         DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type lastFrame;
+        PMACC_SMEM( lastFrame, FramePtr );
 
-        __shared__ int gapIndices_sh[TileSize];
-        __shared__ int counterGaps;
-        __shared__ int counterParticles;
-
-        __shared__ int srcGap;
-
+        PMACC_SMEM( gapIndices_sh, memory::Array< int, TileSize > );
+        PMACC_SMEM( counterGaps, int);
+        PMACC_SMEM( counterParticles, int);
+        PMACC_SMEM( srcGap, int);
 
         if ( threadIdx.x == 0 )
         {
@@ -318,12 +318,12 @@ struct KernelFillGaps
         DataSpace<Dim> superCellIdx( mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) ) );
 
         //data copied from right (last) to left (first)
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type firstFrame;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type lastFrame;
+        PMACC_SMEM( firstFrame, FramePtr );
+        PMACC_SMEM( lastFrame, FramePtr );
 
-        __shared__ int particleIndices_sh[TileSize];
-        __shared__ int counterGaps;
-        __shared__ int counterParticles;
+        PMACC_SMEM( particleIndices_sh, memory::Array< int, TileSize> );
+        PMACC_SMEM( counterGaps, int );
+        PMACC_SMEM( counterParticles, int );
 
 
         if ( threadIdx.x == 0 )
@@ -432,7 +432,7 @@ struct KernelDeleteParticles
         DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
         const int linearThreadIdx = threadIdx.x;
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+        PMACC_SMEM( frame, FramePtr );
 
         if ( linearThreadIdx == 0 )
         {
@@ -482,10 +482,10 @@ struct KernelBashParticles
 
         DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
 
-        __shared__ int numBashedParticles;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-        __shared__ bool hasMemory;
-        __shared__ TileDataBox<BORDER> tmpBorder;
+        PMACC_SMEM( numBashedParticles, int );
+        PMACC_SMEM( frame, FramePtr );
+        PMACC_SMEM( hasMemory, bool );
+        PMACC_SMEM( tmpBorder, TileDataBox<BORDER> );
 
         if ( threadIdx.x == 0 )
         {
@@ -571,9 +571,9 @@ struct KernelInsertParticles
         };
 
         typedef typename ParBox::FramePtr FramePtr;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-        __shared__ int elementCount;
-        __shared__ TileDataBox<BORDER> tmpBorder;
+        PMACC_SMEM( frame, FramePtr );
+        PMACC_SMEM( elementCount, int );
+        PMACC_SMEM( tmpBorder, TileDataBox<BORDER> );
 
 
         DataSpace < Mapping::Dim - 1 > superCell;

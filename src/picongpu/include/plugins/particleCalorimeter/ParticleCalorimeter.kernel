@@ -21,6 +21,7 @@
 #pragma once
 
 #include "math/Vector.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -44,7 +45,7 @@ struct KernelParticleCalorimeter
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
         typedef typename ParticlesBox::FramePtr ParticlesFramePtr;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<ParticlesFramePtr>::type particlesFrame;
+        PMACC_SMEM( particlesFrame, ParticlesFramePtr );
 
         /* find last frame in super cell
          */

@@ -33,6 +33,7 @@
 
 #include "algorithms/Gamma.hpp"
 #include "plugins/ILightweightPlugin.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -105,7 +106,7 @@ struct KernelPositionsParticles
     {
 
         typedef typename ParBox::FramePtr FramePtr;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+        PMACC_SMEM( frame, FramePtr );
 
 
         typedef typename Mapping::SuperCellSize SuperCellSize;

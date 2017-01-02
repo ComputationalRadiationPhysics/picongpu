@@ -31,6 +31,7 @@
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "nvidia/atomic.hpp"
+#include "memory/shared/Allocate.hpp"
 
 
 
@@ -55,9 +56,9 @@ struct KernelCountParticles
         typedef typename PBox::FramePtr FramePtr;
         const uint32_t Dim = Mapping::Dim;
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-        __shared__ int counter;
-        __shared__ lcellId_t particlesInSuperCell;
+        PMACC_SMEM( frame, FramePtr );
+        PMACC_SMEM( counter, int );
+        PMACC_SMEM( particlesInSuperCell, lcellId_t );
 
 
         typedef typename Mapping::SuperCellSize SuperCellSize;

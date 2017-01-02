@@ -43,6 +43,8 @@
 #include "basicOperations.hpp"
 #include "dimensions/SuperCellDescription.hpp"
 #include "math/Vector.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "memory/Array.hpp"
 
 namespace picongpu
 {
@@ -58,8 +60,8 @@ struct KernelIntensity
     {
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
-        __shared__ float_X s_integrated[SuperCellSize::y::value];
-        __shared__ float_X s_max[SuperCellSize::y::value];
+        PMACC_SMEM( s_integrated, memory::Array< float_X,SuperCellSize::y::value > );
+        PMACC_SMEM( s_max, memory::Array< float_X, SuperCellSize::y::value > );
 
 
         /*descripe size of a worker block for cached memory*/

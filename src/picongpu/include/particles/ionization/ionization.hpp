@@ -36,6 +36,7 @@
 #include "pmacc_types.hpp"
 
 #include "particles/ionization/ionizationMethods.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -118,9 +119,9 @@ struct KernelIonizeParticles
         typedef typename particles::ionization::WriteElectronIntoFrame WriteElectronIntoFrame;
 
 
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<IonFramePtr>::type ionFrame;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<ElectronFramePtr>::type electronFrame;
-        __shared__ lcellId_t maxParticlesInFrame;
+        PMACC_SMEM( ionFrame, IonFramePtr );
+        PMACC_SMEM( electronFrame,ElectronFramePtr );
+        PMACC_SMEM( maxParticlesInFrame, lcellId_t );
 
 
         /* find last frame in super cell
@@ -142,7 +143,7 @@ struct KernelIonizeParticles
         /* Declare counter in shared memory that will later tell the current fill level or
          * occupation of the newly created target electron frames.
          */
-        __shared__ int newFrameFillLvl;
+        PMACC_SMEM( newFrameFillLvl, int );
 
         /* Declare local variable oldFrameFillLvl for each thread */
         int oldFrameFillLvl;

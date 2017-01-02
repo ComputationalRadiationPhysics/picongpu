@@ -71,6 +71,7 @@
 #include "memory/boxes/DataBoxDim1Access.hpp"
 #include "nvidia/functors/Max.hpp"
 #include "nvidia/atomic.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -271,8 +272,8 @@ struct KernelPaintParticles3D
     {
         typedef typename ParBox::FramePtr FramePtr;
         typedef typename MappingDesc::SuperCellSize Block;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-        __shared__ int isValid;
+        PMACC_SMEM( frame, FramePtr );
+        PMACC_SMEM( isValid, int );
 
         bool isImageThread = false;
 

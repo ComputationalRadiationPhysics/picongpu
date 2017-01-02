@@ -38,6 +38,7 @@
 #include "algorithms/Set.hpp"
 
 #include "particles/frame_types.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -57,9 +58,9 @@ namespace picongpu
             const DataSpace<simDim > threadIndex( threadIdx );
             const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > ( threadIndex );
 
-            __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
+            PMACC_SMEM( frame, FramePtr );
 
-            __shared__ lcellId_t particlesInSuperCell;
+            PMACC_SMEM( particlesInSuperCell, lcellId_t );
 
 
             if( linearThreadIdx == 0 )

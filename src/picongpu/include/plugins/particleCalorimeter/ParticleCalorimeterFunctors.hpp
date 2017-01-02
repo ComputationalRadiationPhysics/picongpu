@@ -23,6 +23,7 @@
 #include "simulation_defines.hpp"
 #include "math/Vector.hpp"
 #include "algorithms/math.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -177,7 +178,7 @@ struct ParticleCalorimeterKernel
             threadIndex);
 
         typedef typename ParticlesBox::FramePtr ParticlesFramePtr;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<ParticlesFramePtr>::type particlesFrame;
+        PMACC_SMEM( particlesFrame, ParticlesFramePtr );
 
         /* find last frame in super cell
          */
