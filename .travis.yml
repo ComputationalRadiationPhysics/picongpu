@@ -1,7 +1,21 @@
 language: cpp
 sudo: false
 
+cache:
+  apt: true
+
+addons:
+  apt:
+    packages:
+      - jq
+
 script:
+  #############################################################################
+  # Disallow PRs to `ComputationalRadiationPhysics/picongpu` branch `master`  #
+  # if not an other mainline branch such as `dev` or `release-...`            #
+  #############################################################################
+  - . test/correctBranchPR
+
   #############################################################################
   # Conformance with Alpaka: Do not write __global__ CUDA kernels directly    #
   #############################################################################
