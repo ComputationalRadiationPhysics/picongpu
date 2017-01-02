@@ -30,7 +30,7 @@ help()
     echo "If no path_to_CMakeLists.txt is set the directory of this binary is used as source directory."
     echo ""
     echo "-i | --install       - path were picongpu should be installed (default is <parameter_DIRECTORY>)"
-    echo "-a | --arch          - set cuda architecture (e.g.: sm_20, sm_35, sm_37, sm_52, sm_60, ...)"
+    echo "-a | --arch          - set cuda architecture (semicolon separated list, e.g.: \"20;35;37;52;60\")"
     echo "-c | --cmake         - overwrite options for cmake (e.g.: -c \"-DPIC_VERBOSE=1\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
     echo "-h | --help          - show this help message"
