@@ -29,8 +29,8 @@
 #   - start with zero index
 #   - increase by 1, no gaps
 
-flags[0]="-DCUDA_ARCH=sm_20"
-flags[1]="-DCUDA_ARCH=sm_35 -DPARAM_OVERWRITES:LIST=-DPARAM_DIMENSION=DIM2"
+flags[0]="-DCUDA_ARCH=20"
+flags[1]="-DCUDA_ARCH=35 -DPARAM_OVERWRITES:LIST=-DPARAM_DIMENSION=DIM2"
 
 
 ################################################################################

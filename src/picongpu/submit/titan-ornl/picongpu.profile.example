@@ -43,7 +43,7 @@ export MPI_ROOT=$MPICH_DIR
 #   configure with -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
 #                      -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`"
 #   e.g.:
-#     SCOREP_WRAPPER=OFF $PICSRC/configure -a sm_35 \
+#     SCOREP_WRAPPER=OFF $PICSRC/configure -a 35 \
 #         -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
 #         -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`" \
 #         ~/paramSets/case001
