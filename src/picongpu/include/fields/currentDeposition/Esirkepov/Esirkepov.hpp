@@ -76,7 +76,7 @@ struct Esirkepov<T_ParticleShape, DIM3>
                                            velocity.z() * deltaTime / cellSize.z());
         const PosType oldPos = pos - deltaPos;
         Line<float3_X> line(oldPos, pos);
-        BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
+        PMACC_AUTO(cursorJ, dataBoxJ.toCursor());
 
         if (supp % 2 == 1)
         {

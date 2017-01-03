@@ -84,8 +84,8 @@ struct DirSplittingKernel
             foreach(CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), _1 = _2);
             __syncthreads();
 
-            BOOST_AUTO(cursorE, cacheE.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z));
-            BOOST_AUTO(cursorB, cacheB.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z));
+            PMACC_AUTO(cursorE, cacheE.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z));
+            PMACC_AUTO(cursorB, cacheB.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z));
 
             if(threadPos_x == BlockDim::x::value - 1)
             {
