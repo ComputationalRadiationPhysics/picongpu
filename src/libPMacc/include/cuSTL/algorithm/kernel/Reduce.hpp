@@ -52,7 +52,7 @@ struct Reduce
 
         cursor::MapTo1DNavigator<Zone::dim> myNavi(p_zone.size);
 
-        BOOST_AUTO(_srcCursor, cursor::make_Cursor(cursor::CursorAccessor<SrcCursor>(),
+        PMACC_AUTO(_srcCursor, cursor::make_Cursor(cursor::CursorAccessor<SrcCursor>(),
                                                    myNavi,
                                                    srcCursor_shifted));
 

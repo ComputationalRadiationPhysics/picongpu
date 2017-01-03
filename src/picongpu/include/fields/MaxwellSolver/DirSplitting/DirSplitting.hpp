@@ -101,11 +101,11 @@ public:
         FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
         FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
 
-        BOOST_AUTO(fieldE_coreBorder,
+        PMACC_AUTO(fieldE_coreBorder,
             fieldE.getGridBuffer().getDeviceBuffer().
                    cartBuffer().view(GuardDim().toRT(),
                                      -GuardDim().toRT()));
-        BOOST_AUTO(fieldB_coreBorder,
+        PMACC_AUTO(fieldB_coreBorder,
             fieldB.getGridBuffer().getDeviceBuffer().
             cartBuffer().view(GuardDim().toRT(),
                               -GuardDim().toRT()));
