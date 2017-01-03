@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 Felix Schmitt
+ * Copyright 2013-2017 Felix Schmitt
  *
  * This file is part of splash2txt.
  *

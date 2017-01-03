@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
  *
  * This file is part of PIConGPU.
  *

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Alexander Debus, Rene Widera
+ * Copyright 2014-2017 Alexander Debus, Rene Widera
  *
  * This file is part of PIConGPU.
  *

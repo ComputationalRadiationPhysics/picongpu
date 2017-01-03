@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Alexander Debus, Axel Huebl
+ * Copyright 2014-2017 Alexander Debus, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
