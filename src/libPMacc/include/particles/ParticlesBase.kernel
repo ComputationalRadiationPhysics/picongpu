@@ -188,12 +188,12 @@ struct KernelShiftParticles
                     direction += numExchanges;
                     destParticleIdx -= frameSize;
                 }
-                PMACC_AUTO( dstParticle, destFrames[direction][destParticleIdx] );
-                PMACC_AUTO( srcParticle, frame[linearThreadIdx] );
+                auto dstParticle = destFrames[direction][destParticleIdx];
+                auto srcParticle = frame[linearThreadIdx];
                 dstParticle[multiMask_] = 1;
                 srcParticle[multiMask_] = 0;
-                PMACC_AUTO( dstFilteredParticle,
-                            particles::operations::deselect<multiMask>(dstParticle) );
+                auto dstFilteredParticle =
+                            particles::operations::deselect<multiMask>(dstParticle);
                 particles::operations::assign( dstFilteredParticle, srcParticle );
             }
             __syncthreads( );
@@ -283,13 +283,13 @@ struct KernelFillGapsLastFrame
                 //any particle search a gap
                 const int srcGapIdx = nvidia::atomicAllInc( &srcGap );
                 const int gapIdx = gapIndices_sh[srcGapIdx];
-                PMACC_AUTO( parDestFull, lastFrame[gapIdx] );
+                auto parDestFull = lastFrame[gapIdx];
                 /*enable particle*/
                 parDestFull[multiMask_] = 1;
                 /* we not update multiMask because copy from mem to mem is to slow
                  * we have enabled particle explicit */
-                PMACC_AUTO( parDest, deselect<multiMask>(parDestFull) );
-                PMACC_AUTO( parSrc, (lastFrame[threadIdx.x]) );
+                auto parDest = deselect<multiMask>(parDestFull);
+                auto parSrc = (lastFrame[threadIdx.x]);
                 assign( parDest, parSrc );
                 parSrc[multiMask_] = 0; //delete old partice
             }
@@ -373,13 +373,13 @@ struct KernelFillGaps
             if ( localGapIdx < counterParticles )
             {
                 const int parIdx = particleIndices_sh[localGapIdx];
-                PMACC_AUTO( parDestFull, (firstFrame[threadIdx.x]) );
+                auto parDestFull = (firstFrame[threadIdx.x]);
                 /*enable particle*/
                 parDestFull[multiMask_] = 1;
                 /* we not update multiMask because copy from mem to mem is to slow
                  * we have enabled particle explicit */
-                PMACC_AUTO( parDest, deselect<multiMask>(parDestFull) );
-                PMACC_AUTO( parSrc, (lastFrame[parIdx]) );
+                auto parDest = deselect<multiMask>(parDestFull);
+                auto parSrc = (lastFrame[parIdx]);
                 assign( parDest, parSrc );
                 parSrc[multiMask_] = 0;
             }
@@ -444,7 +444,7 @@ struct KernelDeleteParticles
         while ( frame.isValid( ) )
         {
 
-            PMACC_AUTO( particle, (frame[linearThreadIdx]) );
+            auto particle = (frame[linearThreadIdx]);
             particle[multiMask_] = 0; //delete particle
 
             __syncthreads( );
@@ -524,8 +524,8 @@ struct KernelBashParticles
 
                 if ( bashIdx != INV_LOC_IDX && bashIdx < tmpBorder.getSize( ) )
                 {
-                    PMACC_AUTO( parDest, tmpBorder[bashIdx][0] );
-                    PMACC_AUTO( parSrc, (frame[threadIdx.x]) );
+                    auto parDest = tmpBorder[bashIdx][0];
+                    auto parSrc = (frame[threadIdx.x]);
                     assign( parDest, parSrc );
                     parSrc[multiMask_] = 0;
                 }
@@ -590,11 +590,11 @@ struct KernelInsertParticles
         __syncthreads( );
         if ( threadIdx.x < elementCount )
         {
-            PMACC_AUTO( parDestFull, (frame[threadIdx.x]) );
+            auto parDestFull = (frame[threadIdx.x]);
             parDestFull[multiMask_] = 1;
-            PMACC_AUTO( parSrc, ((tmpBorder[threadIdx.x])[0]) );
+            auto parSrc = ((tmpBorder[threadIdx.x])[0]);
             /*we know that source has no multiMask*/
-            PMACC_AUTO( parDest, deselect<multiMask>(parDestFull) );
+            auto parDest = deselect<multiMask>(parDestFull);
             assign( parDest, parSrc );
         }
         /*if this syncronize fix the kernel crash in spezial cases,

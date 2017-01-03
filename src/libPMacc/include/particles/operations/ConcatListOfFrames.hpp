@@ -113,7 +113,7 @@ struct ConcatListOfFrames
                 int curNumParticles = 0;
                 for (int threadIdx = 0; threadIdx < particlesPerFrame; ++threadIdx)
                 {
-                    PMACC_AUTO(parSrc, (srcFramePtr[threadIdx]));
+                    auto parSrc = (srcFramePtr[threadIdx]);
                     /* Check if particle exists and is not filtered */
                     if (parSrc[multiMask_] == 1 && filter(*srcFramePtr, threadIdx))
                         localIdxs[threadIdx] = curNumParticles++;
@@ -133,9 +133,9 @@ struct ConcatListOfFrames
                 {
                     if (localIdxs[threadIdx] != -1)
                     {
-                        PMACC_AUTO(parSrc, (srcFramePtr[threadIdx]));
-                        PMACC_AUTO(parDest, destFrame[globalOffset + localIdxs[threadIdx]]);
-                        PMACC_AUTO(parDestNoDomainIdx, deselect<T_Identifier>(parDest));
+                        auto parSrc = (srcFramePtr[threadIdx]);
+                        auto parDest = destFrame[globalOffset + localIdxs[threadIdx]];
+                        auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
                         assign(parDestNoDomainIdx, parSrc);
                         /* calculate cell index for user-defined domain */
                         DataSpace<Mapping::Dim> localCellIdx(DataSpaceOperations<Mapping::Dim>::template map<SuperCellSize>(parSrc[localCellIdx_]));

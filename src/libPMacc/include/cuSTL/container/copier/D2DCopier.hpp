@@ -51,12 +51,12 @@ struct D2DCopier
         Cursor bufCursorSrc(source, pitchSource);
         cursor::MapTo1DNavigator<dim> myNavi(size);
 
-        BOOST_AUTO(srcCursor, cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
+        auto srcCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
                                                   myNavi,
-                                                  bufCursorSrc));
-        BOOST_AUTO(destCursor, cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
+                                                  bufCursorSrc);
+        auto destCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
                                                    myNavi,
-                                                   bufCursorDest));
+                                                   bufCursorDest);
         size_t sizeProd = size.productOfComponents();
         for(size_t i = 0; i < sizeProd; i++)
         {
