@@ -123,7 +123,7 @@ struct AssignChargeToCell
         const uint32_t currentComponent = CurrentComponent::value;
 
         /* shift memory cursor to cell (grid point)*/
-        PMACC_AUTO(cursorToValue, cursor(GridPointVec::toRT()));
+        auto cursorToValue = cursor(GridPointVec::toRT());
         /* add current to component of the cell*/
         atomicAddWrapper(&((*cursorToValue)[currentComponent]), j);
     }
@@ -295,7 +295,7 @@ struct ZigZag
                 flux[d] = (parId == 0 ? charge * velocity[d] * volume_reci : float_X(0.0));
             }
 
-            PMACC_AUTO(cursorJ, dataBoxJ.shift(precisionCast<int>(I[parId])).toCursor());
+            auto cursorJ = dataBoxJ.shift(precisionCast<int>(I[parId])).toCursor();
 
             /*the current has three components*/
             typedef boost::mpl::range_c<int, 0, 3 > ComponentsRange;

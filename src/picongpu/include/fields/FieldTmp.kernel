@@ -73,7 +73,7 @@ namespace picongpu
             if( !frame.isValid() )
                 return; //end kernel if we have no frames
 
-            PMACC_AUTO( cachedVal, CachedBox::create < 0, typename TmpBox::ValueType > ( BlockDescription_( ) ) );
+            auto cachedVal = CachedBox::create < 0, typename TmpBox::ValueType > ( BlockDescription_( ) );
             Set<typename TmpBox::ValueType > set( float_X( 0.0 ) );
 
             ThreadCollective<BlockDescription_> collective( linearThreadIdx );
@@ -97,7 +97,7 @@ namespace picongpu
 
             nvidia::functors::Add add;
             const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT( );
-            PMACC_AUTO( fieldTmpBlock, fieldTmp.shift( blockCell ) );
+            auto fieldTmpBlock = fieldTmp.shift( blockCell );
             collective( add, fieldTmpBlock, cachedVal );
             __syncthreads( );
         }

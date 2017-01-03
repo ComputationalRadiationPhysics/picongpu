@@ -1042,7 +1042,7 @@ private:
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) counting particles.");
 
-        PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
+        auto idProviderState = IdProvider<simDim>::getState();
         WriteNDScalars<uint64_t, uint64_t> writeIdProviderStartId("picongpu/idProvider/startId", "maxNumProc");
         WriteNDScalars<uint64_t, uint64_t> writeIdProviderNextId("picongpu/idProvider/nextId");
         writeIdProviderStartId.prepare(*threadParams, idProviderState.maxNumProc);

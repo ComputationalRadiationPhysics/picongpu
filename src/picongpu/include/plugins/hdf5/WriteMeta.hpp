@@ -83,9 +83,9 @@ namespace writeMeta
                 }
             }
             helper::GetSplashArrayOfString getSplashArrayOfString;
-            PMACC_AUTO(arrParticleBoundary, getSplashArrayOfString( listParticleBoundary ));
+            auto arrParticleBoundary = getSplashArrayOfString( listParticleBoundary );
             ColTypeString ctParticleBoundary( arrParticleBoundary.maxLen );
-            PMACC_AUTO(arrParticleBoundaryParam, getSplashArrayOfString( listParticleBoundaryParam ));
+            auto arrParticleBoundaryParam = getSplashArrayOfString( listParticleBoundaryParam );
             ColTypeString ctParticleBoundaryParam( arrParticleBoundaryParam.maxLen );
 
             dc->writeAttribute( currentStep, ctParticleBoundary, meshesPath.c_str(),
@@ -235,9 +235,9 @@ namespace writeMeta
                 }
             }
             helper::GetSplashArrayOfString getSplashArrayOfString;
-            PMACC_AUTO(arrFieldBoundary, getSplashArrayOfString( listFieldBoundary ));
+            auto arrFieldBoundary = getSplashArrayOfString( listFieldBoundary );
             ColTypeString ctFieldBoundaries( arrFieldBoundary.maxLen );
-            PMACC_AUTO(arrFieldBoundaryParam, getSplashArrayOfString( listFieldBoundaryParam ));
+            auto arrFieldBoundaryParam = getSplashArrayOfString( listFieldBoundaryParam );
             ColTypeString ctFieldBoundariesParam( arrFieldBoundaryParam.maxLen );
 
             dc->writeAttribute( currentStep, ctFieldBoundaries, meshesPath.c_str(),

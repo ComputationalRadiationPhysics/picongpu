@@ -227,9 +227,9 @@ struct CreateParticlesKernel
                 if ((0 <= targetParId) && (targetParId < maxParticlesInFrame))
                 {
                     /* each thread makes the attributes of its source particle accessible */
-                    PMACC_AUTO(sourceParticle,(sourceFrame[linearThreadIdx]));
+                    auto sourceParticle = (sourceFrame[linearThreadIdx]);
                     /* each thread initializes an target particle if one should be created */
-                    PMACC_AUTO(targetParticle,(targetFrame[targetParId]));
+                    auto targetParticle = (targetFrame[targetParId]);
 
                     /* create an target particle in the new target particle frame: */
                     particleCreator(sourceParticle, targetParticle);
@@ -262,9 +262,9 @@ struct CreateParticlesKernel
                     targetParId -= maxParticlesInFrame;
 
                     /* each thread makes the attributes of its source particle accessible */
-                    PMACC_AUTO(sourceParticle,(sourceFrame[linearThreadIdx]));
+                    auto sourceParticle = (sourceFrame[linearThreadIdx]);
                     /* each thread initializes an target particle if one should be created */
-                    PMACC_AUTO(targetParticle,(targetFrame[targetParId]));
+                    auto targetParticle = (targetFrame[targetParId]);
 
                     /* create an target particle in the new target particle frame: */
                     particleCreator(sourceParticle, targetParticle);

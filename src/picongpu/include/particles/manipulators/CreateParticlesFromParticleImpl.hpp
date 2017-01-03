@@ -132,7 +132,7 @@ struct CreateParticlesFromParticleImpl : private T_Functor
             --numParToCreate;
             if (freeSlot>-1 && freeSlot < cellsInSuperCell)
             {
-                PMACC_AUTO(destParticle, destFrame[freeSlot]);
+                auto destParticle = destFrame[freeSlot];
                 Functor::operator()(destParticle, particle);
             }
             __syncthreads();
@@ -154,7 +154,7 @@ struct CreateParticlesFromParticleImpl : private T_Functor
             //second flush
             if (freeSlot >= cellsInSuperCell)
             {
-                PMACC_AUTO(destParticle, (*destFrame)[freeSlot - cellsInSuperCell]);
+                auto destParticle = (*destFrame)[freeSlot - cellsInSuperCell];
                 Functor::operator()(destParticle, particle);
             }
             __syncthreads();

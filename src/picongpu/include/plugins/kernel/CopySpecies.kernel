@@ -97,7 +97,7 @@ struct CopySpecies
         __syncthreads();
         while (srcFramePtr.isValid()) //move over all Frames
         {
-            PMACC_AUTO(parSrc, (srcFramePtr[threadIdx.x]));
+            auto parSrc = (srcFramePtr[threadIdx.x]);
             storageOffset = -1;
             /*count particle in frame*/
             if (parSrc[multiMask_] == 1 && filter(*srcFramePtr, threadIdx.x))
@@ -111,8 +111,8 @@ struct CopySpecies
             __syncthreads();
             if (storageOffset != -1)
             {
-                PMACC_AUTO(parDest, destFrame[globalOffset + storageOffset]);
-                PMACC_AUTO(parDestNoDomainIdx, deselect<T_Identifier>(parDest));
+                auto parDest = destFrame[globalOffset + storageOffset];
+                auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
                 assign(parDestNoDomainIdx, parSrc);
                 /* calculate cell index for user-defined domain */
                 DataSpace<Mapping::Dim> localCell(DataSpaceOperations<Mapping::Dim>::template map<Block>(parSrc[localCellIdx_]));

@@ -152,7 +152,7 @@ struct PushSpecies
                             T_EventList& updateEvent
                             ) const
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        auto speciesPtr = tuple[SpeciesName()];
 
         __startTransaction(eventInt);
         speciesPtr->update(currentStep);
@@ -285,9 +285,9 @@ struct CallIonization
              */
             typedef typename SelectIonizer::DestSpecies DestSpecies;
             /* alias for pointer on source species */
-            PMACC_AUTO(srcSpeciesPtr, tuple[SpeciesName()]);
+            auto srcSpeciesPtr = tuple[SpeciesName()];
             /* alias for pointer on destination species */
-            PMACC_AUTO(electronsPtr,  tuple[typename MakeIdentifier<DestSpecies>::type()]);
+            auto electronsPtr = tuple[typename MakeIdentifier<DestSpecies>::type()];
 
             /* 3-dim vector : number of threads to be started in every dimension */
             auto block = MappingDesc::SuperCellSize::toRT();
@@ -350,9 +350,9 @@ struct CallSynchrotronPhotons
         typedef typename SelectedPhotonCreator::PhotonSpecies PhotonSpecies;
 
         /* alias for pointer on source species */
-        PMACC_AUTO(electronSpeciesPtr, tuple[SpeciesName()]);
+        auto electronSpeciesPtr = tuple[SpeciesName()];
         /* alias for pointer on destination species */
-        PMACC_AUTO(photonSpeciesPtr, tuple[typename MakeIdentifier<PhotonSpecies>::type()]);
+        auto photonSpeciesPtr = tuple[typename MakeIdentifier<PhotonSpecies>::type()];
 
         using namespace synchrotronPhotons;
         SelectedPhotonCreator photonCreator(

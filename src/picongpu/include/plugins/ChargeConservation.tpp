@@ -206,18 +206,18 @@ void ChargeConservation::notify(uint32_t currentStep)
     __setTransactionEvent(fieldTmpEvent);
 
     /* cast libPMacc Buffer to cuSTL Buffer */
-    BOOST_AUTO(fieldTmp_coreBorder,
+    auto fieldTmp_coreBorder =
                  fieldTmp->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
-                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT()));
+                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());
 
     /* cast libPMacc Buffer to cuSTL Buffer */
-    BOOST_AUTO(fieldE_coreBorder,
+    auto fieldE_coreBorder =
                  dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
-                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT()));
+                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());
 
     /* run calculation: fieldTmp = | div E * eps_0 - rho | */
     using namespace lambda;

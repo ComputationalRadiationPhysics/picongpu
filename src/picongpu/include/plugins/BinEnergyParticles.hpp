@@ -112,7 +112,7 @@ struct KernelBinEnergyParticles
         {
             if (linearThreadIdx < particlesInSuperCell)
             {
-                PMACC_AUTO(particle,frame[linearThreadIdx]);
+                auto particle = frame[linearThreadIdx];
                 /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
                  *                                   = c^2 * [p^2 + m^2*c^2] */
                 const float3_X mom = particle[momentum_];

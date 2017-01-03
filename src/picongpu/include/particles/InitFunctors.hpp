@@ -95,7 +95,7 @@ struct CreateGas
                             const uint32_t currentStep
                             )
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        auto speciesPtr = tuple[SpeciesName()];
         GasFunctor gasFunctor(currentStep);
         PositionFunctor positionFunctor(currentStep);
         speciesPtr->initGas(gasFunctor, positionFunctor, currentStep);
@@ -129,8 +129,8 @@ struct ManipulateDeriveSpecies
                             const uint32_t currentStep
                             )
     {
-        PMACC_AUTO(speciesPtr, tuple[DestSpeciesName()]);
-        PMACC_AUTO(srcSpeciesPtr, tuple[SrcSpeciesName()]);
+        auto speciesPtr = tuple[DestSpeciesName()];
+        auto srcSpeciesPtr = tuple[SrcSpeciesName()];
 
         ManipulateFunctor manipulateFunctor(currentStep);
 
@@ -177,7 +177,7 @@ struct Manipulate
                             const uint32_t currentStep
                             )
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        auto speciesPtr = tuple[SpeciesName()];
         Functor functor(currentStep);
         speciesPtr->manipulateAllParticles(currentStep, functor);
     }
@@ -200,7 +200,7 @@ struct FillAllGaps
                             const uint32_t currentStep
                             )
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        auto speciesPtr = tuple[SpeciesName()];
         speciesPtr->fillAllGaps();
     }
 };

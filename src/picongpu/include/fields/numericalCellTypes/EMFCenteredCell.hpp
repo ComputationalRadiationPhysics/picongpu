@@ -60,7 +60,7 @@ namespace traits
 
         HDINLINE ReturnType operator()() const
         {
-            const PMACC_AUTO(center, PosType::create( 0.5 ));
+            const auto center = PosType::create( 0.5 );
 
             return ReturnType::create( center );
         }

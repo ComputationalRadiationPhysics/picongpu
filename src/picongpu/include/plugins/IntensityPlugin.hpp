@@ -69,7 +69,7 @@ struct KernelIntensity
             PMacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
             > SuperCell2D;
 
-        PMACC_AUTO(s_field, CachedBox::create < 0, float_32> (SuperCell2D()));
+        auto s_field = CachedBox::create < 0, float_32 > (SuperCell2D());
 
         int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
         int yGlobal = y + SuperCellSize::y::value;
@@ -341,7 +341,7 @@ private:
         DataSpace<DIM2> grid(1,cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
         /*use only 2D slice XY for supercell handling*/
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
-        auto  block = PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT();
+        auto block = PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT();
 
         PMACC_KERNEL(KernelIntensity{})
             (grid, block)

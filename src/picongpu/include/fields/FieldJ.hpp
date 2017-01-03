@@ -162,7 +162,7 @@ struct ComputeCurrent
         typedef T_SpeciesName SpeciesName;
         typedef typename SpeciesName::type SpeciesType;
 
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        auto speciesPtr = tuple[SpeciesName()];
         fieldJ->computeCurrent<T_Area::value, SpeciesType> (*speciesPtr, currentStep);
     }
 };

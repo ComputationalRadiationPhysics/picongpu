@@ -51,7 +51,7 @@ struct FromHDF5Impl : public T_ParamClass
     HINLINE FromHDF5Impl(uint32_t currentStep)
     {
         const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
-        PMACC_AUTO(window, MovingWindow::getInstance().getWindow(currentStep));
+        auto window = MovingWindow::getInstance().getWindow(currentStep);
         loadHDF5(window);
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         DataSpace<simDim> localCells = subGrid.getLocalDomain( ).size;
@@ -81,7 +81,7 @@ private:
             fieldTmpNumSlots > 0
         );
         FieldTmp& fieldTmp = dc.getData<FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
-        PMACC_AUTO(&fieldBuffer, fieldTmp.getGridBuffer());
+        auto& fieldBuffer = fieldTmp.getGridBuffer();
 
         deviceDataBox = fieldBuffer.getDeviceBuffer().getDataBox();
 
@@ -206,7 +206,7 @@ private:
                 }
 
                 /* get the databox of the host buffer */
-                PMACC_AUTO(dataBox, fieldBuffer.getHostBuffer().getDataBox());
+                auto dataBox = fieldBuffer.getHostBuffer().getDataBox();
                 /* get a 1D access object to the databox */
                 typedef DataBoxDim1Access< typename FieldTmp::DataBoxType > D1Box;
                 DataSpace<simDim> guards = fieldBuffer.getGridLayout().getGuard();
