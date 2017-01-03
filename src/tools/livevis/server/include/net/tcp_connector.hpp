@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Benjamin Schneider
+ * Copyright 2013-2017 Benjamin Schneider
  *
  * This file is part of PIConGPU.
  *

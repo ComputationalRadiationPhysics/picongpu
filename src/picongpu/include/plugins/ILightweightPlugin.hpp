@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Felix Schmitt
+ * Copyright 2014-2017 Felix Schmitt
  *
  * This file is part of PIConGPU.
  *

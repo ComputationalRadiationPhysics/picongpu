@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera, Marco Garten, Alexander Grund,
+ * Copyright 2014-2017 Rene Widera, Marco Garten, Alexander Grund,
  *                     Heiko Burau
  *
  * This file is part of PIConGPU.

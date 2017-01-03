@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Marco Garten, Axel Huebl, Heiko Burau, Rene Widera,
+ * Copyright 2014-2017 Marco Garten, Axel Huebl, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Felix Schmitt
  *
  * This file is part of PIConGPU.

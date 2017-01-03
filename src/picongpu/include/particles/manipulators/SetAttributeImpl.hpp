@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Marco Garten, Axel Huebl
+ * Copyright 2015-2017 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
