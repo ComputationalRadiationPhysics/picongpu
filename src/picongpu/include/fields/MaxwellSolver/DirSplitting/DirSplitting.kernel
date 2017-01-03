@@ -80,8 +80,8 @@ struct DirSplittingKernel
         algorithm::cudaBlock::Foreach<BlockDim> foreach;
         for (int x_offset = 0; x_offset < this->m_totalLength; x_offset += BlockDim::x::value)
         {
-            foreach(CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), _1 = _2);
-            foreach(CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), _1 = _2);
+            foreach(typename CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), _1 = _2);
+            foreach(typename CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), _1 = _2);
             __syncthreads();
 
             BOOST_AUTO(cursorE, cacheE.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z));
