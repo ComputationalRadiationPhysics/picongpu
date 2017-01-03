@@ -41,7 +41,7 @@ namespace nvidia
 DINLINE uint32_t getLaneId()
 {
     uint32_t id;
-    asm("mov.u32 %0, %laneid;" : "=r" (id));
+    asm("mov.u32 %0, %%laneid;" : "=r" (id));
     return id;
 }
 #endif
