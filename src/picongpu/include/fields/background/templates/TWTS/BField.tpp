@@ -669,7 +669,7 @@ namespace twts
                     - complex_T(0,2)*cspeed*om0*t*wy*wy*rho0
                     + float_T(2.0)*cspeed*y*y*rho0
                     + complex_T(0,2)*om0*wy*wy*z*rho0
-                )*tan(float_T(PI) / float_T(2.0)-phiT) / sinPhi
+                )*math::tan(float_T(PI) / float_T(2.0)-phiT) / sinPhi
             )*sinPhi2*sinPhi2*sinPhi2*sinPhi2
             - complex_T(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sinPhi
             - float_T(2.0)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*z*sinPhi
