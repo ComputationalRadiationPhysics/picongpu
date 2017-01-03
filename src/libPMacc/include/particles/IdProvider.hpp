@@ -99,7 +99,7 @@ namespace PMacc {
     }
 
     template<unsigned T_dim>
-    IdProvider<T_dim>::State IdProvider<T_dim>::getState()
+    typename IdProvider<T_dim>::State IdProvider<T_dim>::getState()
     {
         HostDeviceBuffer<uint64_cu, 1> nextIdBuf(DataSpace<1>(1));
         PMACC_KERNEL(idDetail::GetNextId{})(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());

@@ -57,9 +57,9 @@ namespace cudaBlock
                                                                                    \
         for(int i = this->linearThreadIdx; i < dataVolume; i += blockVolume)       \
         {                                                                          \
-            PosType pos = Zone::Offset().toRT() +                                  \
+            PosType pos = Zone::Offset::toRT() +                                   \
                           precisionCast<typename PosType::type>(                   \
-                            math::MapToPos<Zone::dim>()( Zone::Size(), i ) );      \
+                            math::MapToPos<Zone::dim>()( typename Zone::Size(), i ) ); \
             functor_(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                     \
         }                                                                          \
     }
