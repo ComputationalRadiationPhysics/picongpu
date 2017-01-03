@@ -43,8 +43,6 @@
 #include <stdint.h>
 #include <stdexcept>
 
-#define PMACC_AUTO_TPL(var,...) BOOST_AUTO_TPL(var,(__VA_ARGS__))
-#define PMACC_AUTO(var,...) BOOST_AUTO(var,(__VA_ARGS__))
 
 namespace PMacc
 {
