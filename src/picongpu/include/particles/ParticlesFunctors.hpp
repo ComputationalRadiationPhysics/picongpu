@@ -111,11 +111,9 @@ struct CallInit
     template<typename T_StorageTuple>
     HINLINE void operator()(T_StorageTuple& tuple,
                             FieldE* fieldE,
-                            FieldB* fieldB,
-                            FieldJ* fieldJ,
-                            FieldTmp* fieldTmp) const
+                            FieldB* fieldB) const
     {
-        tuple[SpeciesName()]->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
+        tuple[SpeciesName()]->init( *fieldE, *fieldB );
     }
 };
 

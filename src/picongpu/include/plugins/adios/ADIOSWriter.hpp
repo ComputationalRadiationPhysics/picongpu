@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "pmacc_types.hpp"
+#include "static_assert.hpp"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
 
@@ -232,7 +233,11 @@ private:
             /*## update field ##*/
 
             /*load FieldTmp without copy data to host*/
-            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
+            PMACC_CASSERT_MSG(
+                _please_allocate_at_least_one_FieldTmp_in_memory_param,
+                fieldTmpNumSlots > 0
+            );
+            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getUniqueId( 0 ), true));
             /*load particle without copy particle data to host*/
             Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
 
@@ -259,7 +264,7 @@ private:
                        getName(),
                        fieldTmp->getHostDataBox().getPointer());
 
-            dc.releaseData(FieldTmp::getName());
+            dc.releaseData( FieldTmp::getUniqueId( 0 ) );
 
         }
 
