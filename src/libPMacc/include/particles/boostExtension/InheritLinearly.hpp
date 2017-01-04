@@ -24,6 +24,7 @@
 #pragma once
 
 
+#include "compileTime/accessors/Identity.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/inherit.hpp>
 #include <boost/mpl/inherit_linearly.hpp>
@@ -31,28 +32,45 @@
 
 namespace PMacc
 {
-
-
 namespace detail
 {
 
-template<typename T_Base>
-struct InheritLinearly : public T_Base
-{
-};
+    /** get combined type which inherit from a boost mpl sequence
+     *
+     * @tparam T_Sequence boost mpl sequence with classes
+     * @tparam T_Accessor unary operator to transform each element of the sequence
+     */
+    template<
+        typename T_Sequence,
+        template< typename > class T_Accessor = compileTime::accessors::Identity
+    >
+    struct InheritLinearly :
+        public bmpl::inherit_linearly<
+            T_Sequence,
+            bmpl::inherit<
+                bmpl::_1,
+                T_Accessor< bmpl::_2 >
+            >
+        >::type
+    {
+    };
 
 } //namespace detail
 
-template<typename T_Sequence>
-struct InheritLinearly :
-public detail::InheritLinearly<
-typename
-bmpl::inherit_linearly<T_Sequence, bmpl::inherit< bmpl::_1, bmpl::_2 > >::type
->
-{
-};
-
+    /** type which inherits from multiple classes
+     *
+     * @tparam T_Sequence boost mpl sequence with classes
+     * @tparam T_Accessor unary operator to transform each element of the sequence
+     */
+    template<
+        typename T_Sequence,
+        template< typename > class T_Accessor = compileTime::accessors::Identity
+    >
+    struct InheritLinearly : detail::InheritLinearly<
+        T_Sequence,
+        T_Accessor
+    >
+    {
+    };
 
 } //namespace PMacc
-
-
