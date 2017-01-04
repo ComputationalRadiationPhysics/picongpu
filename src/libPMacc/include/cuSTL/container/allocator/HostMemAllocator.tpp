@@ -28,6 +28,7 @@ namespace allocator
 {
 
 template<typename Type, int T_dim>
+HDINLINE
 cursor::BufferCursor<Type, T_dim>
 HostMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 {
@@ -58,6 +59,7 @@ HostMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 }
 
 template<typename Type>
+HDINLINE
 cursor::BufferCursor<Type, 1>
 HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 {
@@ -80,6 +82,7 @@ HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 
 template<typename Type, int T_dim>
 template<typename TCursor>
+HDINLINE
 void HostMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
 {
 #ifndef __CUDA_ARCH__
@@ -89,6 +92,7 @@ void HostMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
 
 template<typename Type>
 template<typename TCursor>
+HDINLINE
 void HostMemAllocator<Type, 1>::deallocate(const TCursor& cursor)
 {
 #ifndef __CUDA_ARCH__
