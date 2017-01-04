@@ -3,21 +3,21 @@ Change Log / Release Log for PIConGPU
 
 0.2.2
 -----
-**Date:** 2017-01-03
+**Date:** 2017-01-04
 
 Laser wavepacket, vacuum openPMD & icc
 
-This release fixes small a broken laser profile (wavepacket),
-allows to use icc as the host compiler, fixes a bug when writing openPMD
-files in simulations without particle species ("vacuum") and a problem
-with GPU device selection shared node usage via `CUDA_VISIBLE_DEVICES`.
+This release fixes a broken laser profile (wavepacket), allows to use
+icc as the host compiler, fixes a bug when writing openPMD files in
+simulations without particle species ("vacuum") and a problem with
+GPU device selection on shared node usage via `CUDA_VISIBLE_DEVICES`.
 
 ### Changes to "0.2.1"
 
 **Bug Fixes:**
  - add missing minus sign wavepacket laser transversal #1722
- - write openMPD meta data without species #1718
- - Device Selection: Guard Valid Range #1665
+ - write openPMD meta data without species #1718
+ - device selection: guard valid range #1665
  - PMacc icc compatibility:
    - `MapTuple` #1648
    - `AllCombinations` #1646
@@ -25,7 +25,7 @@ with GPU device selection shared node usage via `CUDA_VISIBLE_DEVICES`.
 **Misc:**
  - refactor `InheritLinearly` #1647
 
-Thank you to René Widera and Richard Pausch for spotting the issues and
+Thanks to René Widera and Richard Pausch for spotting the issues and
 providing fixes!
 
 
