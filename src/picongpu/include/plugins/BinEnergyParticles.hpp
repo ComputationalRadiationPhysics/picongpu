@@ -42,6 +42,7 @@
 #include "nvidia/functors/Add.hpp"
 
 #include "algorithms/Gamma.hpp"
+#include "algorithms/KinEnergy.hpp"
 #include "memory/shared/Allocate.hpp"
 
 #include "common/txtFileHandling.hpp"
@@ -131,32 +132,16 @@ struct KernelBinEnergyParticles
 
                 if (calcParticle)
                 {
-                    /* \todo: this is a duplication of the code in EnergyParticles - in separate file? */
-                    const float_X mom2 = math::abs2(mom);
                     const float_X weighting = particle[weighting_];
                     const float_X mass = attribute::getMass(weighting,particle);
-                    const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-                    Gamma<> calcGamma;
-                    const float_X gamma = calcGamma(mom, mass);
+                    // calculate kinetic energy of the macro particle
+                    float_X localEnergy = KinEnergy<>()(mom, mass);
 
-                    float_X _local_energy;
-
-                    if (gamma < GAMMA_THRESH)
-                    {
-                        _local_energy = mom2 / (2.0f * mass); /* not relativistic use equation with more precision */
-                    }
-                    else
-                    {
-                        /* kinetic Energy for Particles: E = (sqrt[p^2*c^2 /(m^2*c^4)+ 1] -1) m*c^2
-                         *                                   = c^2 * [p^2 + m^2*c^2]-m*c^2
-                         *                                 = (gamma - 1) * m * c^2   */
-                        _local_energy = (gamma - float_X(1.0)) * mass*c2;
-                    }
-                    _local_energy /= weighting;
+                    localEnergy /= weighting;
 
                     /* +1 move value from 1 to numBins+1 */
-                    int binNumber = math::floor((_local_energy - minEnergy) /
+                    int binNumber = math::floor((localEnergy - minEnergy) /
                                           (maxEnergy - minEnergy) * (float_32) numBins) + 1;
 
                     const int maxBin = numBins + 1;
