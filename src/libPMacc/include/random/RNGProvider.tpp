@@ -95,14 +95,14 @@ namespace random
     }
 
     template<uint32_t T_dim, class T_RNGMethod>
-    RNGProvider<T_dim, T_RNGMethod>::Buffer&
+    typename RNGProvider<T_dim, T_RNGMethod>::Buffer&
     RNGProvider<T_dim, T_RNGMethod>::getStateBuffer()
     {
         return *buffer;
     }
 
     template<uint32_t T_dim, class T_RNGMethod>
-    RNGProvider<T_dim, T_RNGMethod>::DataBoxType
+    typename RNGProvider<T_dim, T_RNGMethod>::DataBoxType
     RNGProvider<T_dim, T_RNGMethod>::getDeviceDataBox()
     {
         return buffer->getDeviceBuffer().getDataBox();
