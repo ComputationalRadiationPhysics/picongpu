@@ -336,7 +336,7 @@ struct KernelPaintParticles3D
 
         while (frame.isValid()) //move over all Frames
         {
-            PMACC_AUTO(particle, frame[localId]);
+            auto particle = frame[localId];
             if (particle[multiMask_] == 1)
             {
                 int cellIdx = particle[localCellIdx_];
@@ -602,7 +602,7 @@ public:
 
         DataSpace<DIM2> size = img->getGridLayout().getDataSpace();
 
-        PMACC_AUTO(hostBox, img->getHostBuffer().getDataBox());
+        auto hostBox = img->getHostBuffer().getDataBox();
 
         if (picongpu::white_box_per_GPU)
         {
@@ -611,7 +611,7 @@ public:
             hostBox[0 ][size.x() - 1] = float3_X(1.0, 1.0, 1.0);
             hostBox[size.y() - 1 ][size.x() - 1] = float3_X(1.0, 1.0, 1.0);
         }
-        PMACC_AUTO(resultBox, gather(hostBox, *header));
+        auto resultBox = gather(hostBox, *header);
         if (isMaster)
         {
             m_output(resultBox.shift(header->window.offset), header->window.size, *header);

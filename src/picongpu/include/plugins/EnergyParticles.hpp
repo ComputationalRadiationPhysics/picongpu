@@ -98,7 +98,7 @@ struct KernelEnergyParticles
             if (isParticle)
             {
 
-                PMACC_AUTO(particle,frame[linearThreadIdx]); /* get one particle */
+                auto particle = frame[linearThreadIdx]; /* get one particle */
                 const float3_X mom = particle[momentum_]; /* get particle momentum */
                 /* and compute square of absolute momentum of one particle: */
                 const float_X mom2 = mom.x() * mom.x() + mom.y() * mom.y() + mom.z() * mom.z();

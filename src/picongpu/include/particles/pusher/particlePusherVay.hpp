@@ -51,8 +51,8 @@ struct Push
     {
         typedef T_Mom MomType;
 
-        PMACC_AUTO( bField , functorBField(pos));
-        PMACC_AUTO( eField , functorEField(pos));
+        auto bField  = functorBField(pos);
+        auto eField  = functorEField(pos);
         /*
              time index in paper is reduced by a half: i=0 --> i=-1/2 so that momenta are
              at half time steps and fields and locations are at full time steps

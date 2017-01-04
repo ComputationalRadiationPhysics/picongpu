@@ -74,8 +74,8 @@ namespace picongpu
             {
                 typedef T_Mom MomType;
 
-                PMACC_AUTO( bField , functorBField(pos));
-                PMACC_AUTO( eField , functorEField(pos));
+                auto bField  = functorBField(pos);
+                auto eField  = functorEField(pos);
 
                 Gamma gammaCalc;
                 Velocity velocityCalc;

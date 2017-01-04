@@ -77,8 +77,8 @@ namespace writeMeta
                 }
             }
             helper::GetADIOSArrayOfString getADIOSArrayOfString;
-            PMACC_AUTO(arrParticleBoundary, getADIOSArrayOfString( listParticleBoundary ));
-            PMACC_AUTO(arrParticleBoundaryParam, getADIOSArrayOfString( listParticleBoundaryParam ));
+            auto arrParticleBoundary = getADIOSArrayOfString( listParticleBoundary );
+            auto arrParticleBoundaryParam = getADIOSArrayOfString( listParticleBoundaryParam );
 
             ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
                 "particleBoundary", fullMeshesPath.c_str(), adios_string_array,
@@ -200,8 +200,8 @@ namespace writeMeta
                 }
             }
             helper::GetADIOSArrayOfString getADIOSArrayOfString;
-            PMACC_AUTO(arrFieldBoundary, getADIOSArrayOfString( listFieldBoundary ));
-            PMACC_AUTO(arrFieldBoundaryParam, getADIOSArrayOfString( listFieldBoundaryParam ));
+            auto arrFieldBoundary = getADIOSArrayOfString( listFieldBoundary );
+            auto arrFieldBoundaryParam = getADIOSArrayOfString( listFieldBoundaryParam );
 
             ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
                 "fieldBoundary", fullMeshesPath.c_str(), adios_string_array,

@@ -52,12 +52,12 @@ namespace gol
                         math::CT::Int< 1, 1 >,
                         math::CT::Int< 1, 1 >
                         > BlockArea;
-                PMACC_AUTO(cache, CachedBox::create < 0, Type > (BlockArea()));
+                auto cache = CachedBox::create < 0, Type > (BlockArea());
 
                 const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
                 const Space blockCell = block * Mapping::SuperCellSize::toRT();
                 const Space threadIndex(threadIdx);
-                PMACC_AUTO(buffRead_shifted, buffRead.shift(blockCell));
+                auto buffRead_shifted = buffRead.shift(blockCell);
 
                 ThreadCollective<BlockArea> collective(threadIndex);
 
@@ -103,9 +103,9 @@ namespace gol
                         blockCell + threadIndex);
 
                 /* get uniform random number from seed  */
-                PMACC_AUTO(rng, nvidia::rng::create(
+                auto rng = nvidia::rng::create(
                                     nvidia::rng::methods::Xor(seed, cellIdx),
-                                    nvidia::rng::distributions::Uniform_float()));
+                                    nvidia::rng::distributions::Uniform_float());
 
                 /* write 1(white) if uniform random number 0<rng<1 is smaller than 'fraction' */
                 buffWrite(blockCell + threadIndex) = (rng() <= fraction);

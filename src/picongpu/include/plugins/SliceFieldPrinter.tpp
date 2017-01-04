@@ -109,10 +109,10 @@ void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
       namespace vec = ::PMacc::math;
       typedef SuperCellSize BlockDim;
       DataConnector &dc = Environment<>::get().DataConnector();
-      BOOST_AUTO(field_coreBorder,
+      auto field_coreBorder =
                  dc.getData<Field > (Field::getName(), true).getGridBuffer().
                  getDeviceBuffer().cartBuffer().
-                 view(BlockDim::toRT(), -BlockDim::toRT()));
+                 view(BlockDim::toRT(), -BlockDim::toRT());
 
       std::ostringstream filename;
       filename << this->fileName << "_" << currentStep << ".dat";

@@ -154,7 +154,7 @@ public:
         /* instance of nvidia assignment operator */
         nvidia::functors::Assign assign;
         /* copy fields from global to shared */
-        PMACC_AUTO(fieldBBlock, bBox.shift(blockCell));
+        auto fieldBBlock = bBox.shift(blockCell);
         ThreadCollective<BlockArea> collective(linearThreadIdx);
         collective(
                   assign,
@@ -162,7 +162,7 @@ public:
                   fieldBBlock
                   );
         /* copy fields from global to shared */
-        PMACC_AUTO(fieldEBlock, eBox.shift(blockCell));
+        auto fieldEBlock = eBox.shift(blockCell);
         collective(
                   assign,
                   cachedE,
@@ -244,7 +244,7 @@ public:
     {
         using namespace PMacc::algorithms;
 
-        PMACC_AUTO(particle, sourceFrame[localIdx]);
+        auto particle = sourceFrame[localIdx];
 
         /* particle position, used for field-to-particle interpolation */
         const floatD_X pos = particle[position_];
@@ -325,14 +325,13 @@ public:
     DINLINE void operator()(Electron& electron, Photon& photon) const
     {
         namespace parOp = PMacc::particles::operations;
-        PMACC_AUTO(destPhoton,
+        auto destPhoton =
             parOp::deselect<
                 boost::mpl::vector<
                     multiMask,
                     momentum
                 >
-            >(photon)
-        );
+            >(photon);
         parOp::assign( destPhoton, parOp::deselect<particleId>(electron) );
 
         photon[multiMask_] = 1;

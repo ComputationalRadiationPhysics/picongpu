@@ -68,7 +68,7 @@ namespace random
         const uint32_t blockSize = 256;
         const uint32_t gridSize = (m_size.productOfComponents() + blockSize - 1u) / blockSize; // Round up
 
-        PMACC_AUTO(bufferBox, buffer->getDeviceBuffer().getDataBox());
+        auto bufferBox = buffer->getDeviceBuffer().getDataBox();
 
         PMACC_KERNEL(kernel::InitRNGProvider<RNGMethod>{})
         (gridSize, blockSize)

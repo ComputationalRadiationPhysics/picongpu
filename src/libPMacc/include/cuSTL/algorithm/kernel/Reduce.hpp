@@ -52,9 +52,9 @@ struct Reduce
 
         cursor::MapTo1DNavigator<Zone::dim> myNavi(p_zone.size);
 
-        BOOST_AUTO(_srcCursor, cursor::make_Cursor(cursor::CursorAccessor<SrcCursor>(),
+        auto _srcCursor = cursor::make_Cursor(cursor::CursorAccessor<SrcCursor>(),
                                                    myNavi,
-                                                   srcCursor_shifted));
+                                                   srcCursor_shifted);
 
         PMacc::nvidia::reduce::Reduce reduce(1024);
         return reduce(functor, _srcCursor, p_zone.size.productOfComponents());

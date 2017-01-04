@@ -244,9 +244,9 @@ struct KernelIonizeParticles
                 if ((0 <= electronId) && (electronId < maxParticlesInFrame))
                 {
                     /* each thread makes the attributes of its ion accessible */
-                    PMACC_AUTO(parentIon,(ionFrame[linearThreadIdx]));
+                    auto parentIon = (ionFrame[linearThreadIdx]);
                     /* each thread initializes an electron if one should be created */
-                    PMACC_AUTO(targetElectronFull,(electronFrame[electronId]));
+                    auto targetElectronFull = (electronFrame[electronId]);
 
                     /* create an electron in the new electron frame:
                      * - see particles/ionization/ionizationMethods.hpp
@@ -284,9 +284,9 @@ struct KernelIonizeParticles
                     electronId -= maxParticlesInFrame;
 
                     /* each thread makes the attributes of its ion accessible */
-                    PMACC_AUTO(parentIon,((*ionFrame)[linearThreadIdx]));
+                    auto parentIon = ((*ionFrame)[linearThreadIdx]);
                     /* each thread initializes an electron if one should be produced */
-                    PMACC_AUTO(targetElectronFull,(electronFrame[electronId]));
+                    auto targetElectronFull = (electronFrame[electronId]);
 
                     /* create an electron in the new electron frame:
                      * - see particles/ionization/ionizationMethods.hpp

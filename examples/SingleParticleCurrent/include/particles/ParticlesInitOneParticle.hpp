@@ -57,7 +57,7 @@ struct kernelAddOneParticle
         for (unsigned i = 0; i < 1; ++i)
         {
 
-            PMACC_AUTO(par, frame[i]);
+            auto par = frame[i];
 
             /** we now initialize all attributes of the new particle to their default values
              *   some attributes, such as the position, localCellIdx, weighting or the

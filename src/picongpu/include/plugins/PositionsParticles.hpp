@@ -132,7 +132,7 @@ struct KernelPositionsParticles
         {
             if (isParticle)
             {
-                PMACC_AUTO(particle,frame[linearThreadIdx]);
+                auto particle = frame[linearThreadIdx];
                 gParticle->position = particle[position_];
                 gParticle->momentum = particle[momentum_];
                 gParticle->weighting = particle[weighting_];

@@ -227,7 +227,7 @@ struct KernelRadiationParticles
                 if (linearThreadIdx < particlesInFrame)
                 {
 
-                    PMACC_AUTO(par,frame[linearThreadIdx]);
+                    auto par = frame[linearThreadIdx];
                     // get old and new particle momenta
                     const vector_X particle_momentumNow = vector_X(par[momentum_]);
                     const vector_X particle_momentumOld = vector_X(par[momentumPrev1_]);

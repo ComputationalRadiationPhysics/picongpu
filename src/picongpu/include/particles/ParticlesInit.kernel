@@ -142,7 +142,7 @@ struct KernelFillGridWithParticles
             if (numParsPerCell > 0)
             {
                 floatD_X pos = positionFunctor(totalNumParsPerCell - numParsPerCell);
-                PMACC_AUTO(particle, (frame[linearThreadIdx]));
+                auto particle = (frame[linearThreadIdx]);
 
                 /** we now initialize all attributes of the new particle to their default values
                  *   some attributes, such as the position, localCellIdx, weighting or the

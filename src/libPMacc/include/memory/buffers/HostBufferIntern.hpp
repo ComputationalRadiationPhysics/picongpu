@@ -126,7 +126,7 @@ public:
     {
         __startOperation(ITask::TASK_HOST);
         size_t current_size = this->getCurrentSize();
-        PMACC_AUTO(memBox,getDataBox());
+        auto memBox = getDataBox();
         typedef DataBoxDim1Access<DataBoxType > D1Box;
         D1Box d1Box(memBox, this->getDataSpace());
         #pragma omp parallel for

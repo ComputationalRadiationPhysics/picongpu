@@ -56,7 +56,7 @@ namespace mpi
         uint32_t
         operator()( uint32_t localSeed )
         {
-            PMACC_AUTO(&gc, PMacc::Environment<T_DIM>::get().GridController());
+            auto& gc = PMacc::Environment<T_DIM>::get().GridController();
 
             uint32_t rank = gc.getGlobalRank( );
             /* We put the rank into the upper bits to allow values which start

@@ -86,7 +86,7 @@ struct KernelComputeCurrent
         }
 
         /* This memory is used by all virtual blocks*/
-        PMACC_AUTO(cachedJ, CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_()));
+        auto cachedJ = CachedBox::create < 0, typename JBox::ValueType > (BlockDescription_());
 
         Set<typename JBox::ValueType > set(float3_X::create(0.0));
         ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiveSet(linearThreadIdx);
@@ -119,7 +119,7 @@ struct KernelComputeCurrent
         nvidia::functors::Add add;
         const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
         ThreadCollective<BlockDescription_, cellsPerSuperCell * workerMultiplier> collectiveAdd(linearThreadIdx);
-        PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
+        auto fieldJBlock = fieldJ.shift(blockCell);
         collectiveAdd(add, fieldJBlock, cachedJ);
     }
 };
@@ -137,7 +137,7 @@ struct ComputeCurrentPerFrame
     DINLINE void operator()(FrameType& frame, const int localIdx, BoxJ & jBox)
     {
 
-        PMACC_AUTO(particle, frame[localIdx]);
+        auto particle = frame[localIdx];
         const float_X weighting = particle[weighting_];
         const floatD_X pos = particle[position_];
         const int particleCellIdx = particle[localCellIdx_];
@@ -148,7 +148,7 @@ struct ComputeCurrentPerFrame
         const float3_X vel = velocity(
                                       particle[momentum_],
                                       attribute::getMass(weighting,particle));
-        PMACC_AUTO(fieldJShiftToParticle, jBox.shift(localCell));
+        auto fieldJShiftToParticle = jBox.shift(localCell);
         ParticleAlgo perParticle;
         perParticle(fieldJShiftToParticle,
                     pos,
@@ -178,14 +178,14 @@ struct KernelAddCurrentToEMF
                     typename T_CurrentInterpolation::UpperMargin
                     > BlockArea;
 
-        PMACC_AUTO(cachedJ, CachedBox::create < 0, typename J_DataBox::ValueType > (BlockArea()));
+        auto cachedJ = CachedBox::create < 0, typename J_DataBox::ValueType > (BlockArea());
 
         nvidia::functors::Assign assign;
         const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
         const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
 
         const DataSpace<simDim > threadIndex(threadIdx);
-        PMACC_AUTO(fieldJBlock, fieldJ.shift(blockCell));
+        auto fieldJBlock = fieldJ.shift(blockCell);
 
         ThreadCollective<BlockArea> collective(threadIndex);
         collective(

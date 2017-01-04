@@ -72,7 +72,7 @@ namespace ionization
              * - boundElectrons: because species other than ions or atoms do not have them
              * (gets AUTOMATICALLY deselected because electrons do not have this attribute)
              */
-            PMACC_AUTO(targetElectronClone, partOp::deselect<bmpl::vector2<multiMask, momentum> >(childElectron));
+            auto targetElectronClone = partOp::deselect<bmpl::vector2<multiMask, momentum> >(childElectron);
 
             partOp::assign(targetElectronClone, partOp::deselect<particleId>(parentIon));
 

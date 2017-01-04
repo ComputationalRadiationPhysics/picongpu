@@ -78,7 +78,7 @@ struct EsirkepovNative
                                            velocity.z() * deltaTime / cellSize.z());
         const PosType oldPos = pos - deltaPos;
         Line<float3_X> line(oldPos, pos);
-        BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
+        auto cursorJ = dataBoxJ.toCursor();
 
         /**
          * \brief the following three calls separate the 3D current deposition

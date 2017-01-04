@@ -131,7 +131,7 @@ namespace ionization
 
                 ThreadCollective<BlockArea> collective(linearThreadIdx);
                 /* copy fields from global to shared */
-                PMACC_AUTO(fieldEBlock, eBox.shift(blockCell));
+                auto fieldEBlock = eBox.shift(blockCell);
                 collective(
                           assign,
                           cachedE,
@@ -149,7 +149,7 @@ namespace ionization
             DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
             {
                 /* alias for the single macro-particle */
-                PMACC_AUTO(particle,ionFrame[localIdx]);
+                auto particle = ionFrame[localIdx];
                 /* particle position, used for field-to-particle interpolation */
                 floatD_X pos = particle[position_];
                 const int particleCellIdx = particle[localCellIdx_];

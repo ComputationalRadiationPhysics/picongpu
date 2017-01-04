@@ -42,10 +42,8 @@ namespace traits
     {
         static StringProperty get()
         {
-            PMACC_AUTO(
-                propList,
-                ::picongpu::leheSolver::LeheSolver::getStringProperties()
-            );
+            auto propList =
+                ::picongpu::leheSolver::LeheSolver::getStringProperties();
             // overwrite the name of the yee solver (inherit all other properties)
             propList["name"].value = "Lehe";
             return propList;

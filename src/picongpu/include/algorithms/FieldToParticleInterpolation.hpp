@@ -78,7 +78,7 @@ struct FieldToParticleInterpolation
         typename Cursor::ValueType result;
         for(uint32_t i = 0; i < Cursor::ValueType::dim; i++)
         {
-            BOOST_AUTO(fieldComponent, PMacc::cursor::make_FunctorCursor(field, _1[i]));
+            auto fieldComponent = PMacc::cursor::make_FunctorCursor(field, _1[i]);
             floatD_X particlePosShifted = particlePos;
             ShiftCoordinateSystem<Supports>()(fieldComponent, particlePosShifted, fieldPos[i]);
             result[i] = InterpolationMethod::template interpolate<AssignmentFunction, begin, end > (fieldComponent, particlePosShifted);

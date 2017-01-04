@@ -137,10 +137,10 @@ struct Push
           pos[i] = var[i] * cellSize[i];
       }
 
-      PMACC_AUTO( fieldE , fieldEFunc( posInterpolation,
-                                       picongpu::particles::interpolationMemoryPolicy::ShiftToValidRange() ) );
-      PMACC_AUTO( fieldB , fieldBFunc( posInterpolation,
-                                       picongpu::particles::interpolationMemoryPolicy::ShiftToValidRange() ) );
+      auto fieldE = fieldEFunc( posInterpolation,
+                                       picongpu::particles::interpolationMemoryPolicy::ShiftToValidRange() );
+      auto fieldB = fieldBFunc( posInterpolation,
+                                       picongpu::particles::interpolationMemoryPolicy::ShiftToValidRange() );
 
       // transfer momentum
       const uint32_t dimMomentum = GetNComponents<MomentumType>::value;

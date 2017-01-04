@@ -78,7 +78,7 @@ private:
         using namespace cursor::tools;
         using namespace PMacc::math;
 
-        PMACC_AUTO(gridSizeTwisted, twistComponents<OrientationTwist>(gridSize));
+        auto gridSizeTwisted = twistComponents<OrientationTwist>(gridSize);
 
         /* twist components of the supercell */
         typedef typename CT::TwistComponents<SuperCellSize, OrientationTwist>::type BlockDim;
