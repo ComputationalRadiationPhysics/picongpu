@@ -36,8 +36,7 @@ namespace derivedAttributes
     EnergyDensity::getUnit() const
     {
         const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
-        return UNIT_ENERGY * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-               / UNIT_VOLUME;
+        return UNIT_ENERGY / UNIT_VOLUME;
     }
 
     template< class T_Particle >
@@ -51,10 +50,7 @@ namespace derivedAttributes
 
         const float_X energy = KinEnergy<>()( mom, mass );
 
-        const float_X particleDensity = weighting /
-            ( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME );
-
-        const float_X particleEnergyDensity = energy * particleDensity;
+        const float_X particleEnergyDensity = energy / CELL_VOLUME;
 
         /* return attribute */
         return particleEnergyDensity;
