@@ -124,10 +124,10 @@ for sim in directories:
     if len(files) == 0:
         sys.exit("There were no energy files in \"{}\".".format(mydir))
     # verbose output
-    print "\nFor directory: \n\t{}".format(sim)
-    print "the following files are considered for calculating the total energy:"
+    print("\nFor directory: \n\t{}".format(sim))
+    print("the following files are considered for calculating the total energy:")
     for f in files:
-        print "\t \t - {}".format(f)
+        print("\t \t - {}".format(f))
 
     # read time steps from first file in list
     Time = np.loadtxt(os.path.join(mydir,files[0]))[:,0]
@@ -145,7 +145,7 @@ for sim in directories:
     Times.append(Time)
 
 # end verbose output with newline:
-print " "
+print(" ")
 
 
 ## check time steps ##
@@ -155,8 +155,8 @@ if numDir == 2:
         time_limit = len(Times[0])
     else:
         # determine range of equal time steps
-        print "WARNING: time steps between both directories differ"
-        print "         choosing agreeing range"
+        print("WARNING: time steps between both directories differ")
+        print("         choosing agreeing range")
         min_index = np.amin((len(Times[0]), len(Times[1])))
         time_limit=0
         for i in range(min_index):
