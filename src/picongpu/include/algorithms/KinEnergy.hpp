@@ -23,6 +23,7 @@
 #include "simulation_defines.hpp"
 #include "algorithms/Gamma.hpp"
 
+
 namespace picongpu
 {
 
@@ -42,14 +43,12 @@ struct KinEnergy
     typedef T_PrecisionType ValueType;
 
     template< typename MomType, typename MassType >
-    HDINLINE ValueType operator()( const MomType& mom, const MassType& mass )
+    HDINLINE ValueType operator()( MomType const & mom, MassType const & mass )
     {
         if( mass == MassType( 0.0 ) )
-        {
             return SPEED_OF_LIGHT * math::abs( precisionCast< ValueType >( mom ) );
-        }
 
-        /* If mass is non-zero then gamma is well defined */
+        /* if mass is non-zero then gamma is well defined */
         const ValueType gamma = Gamma< ValueType >()( mom, mass );
 
         ValueType kinEnergy;
@@ -58,13 +57,13 @@ struct KinEnergy
         {
             const ValueType mom2 = math::abs2( precisionCast< ValueType >( mom ) );
             /* non relativistic kinetic energy expression */
-            kinEnergy = mom2 / (ValueType( 2.0 ) * mass);
+            kinEnergy = mom2 / ( ValueType( 2.0 ) * mass );
         }
         else
         {
-            const ValueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
-            /* kinetic Energy for Particles: E = (gamma - 1) * m * c^2 */
-            kinEnergy = (gamma - ValueType( 1.0 )) * mass*c2;
+            constexpr ValueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+            /* kinetic energy for particles: E = (gamma - 1) * m * c^2 */
+            kinEnergy = ( gamma - ValueType( 1.0 ) ) * mass * c2;
         }
 
         return kinEnergy;
@@ -72,4 +71,3 @@ struct KinEnergy
 };
 
 }
-
