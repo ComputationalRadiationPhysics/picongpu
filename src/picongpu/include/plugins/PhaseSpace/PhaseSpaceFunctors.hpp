@@ -104,8 +104,8 @@ namespace picongpu
             int p_bin = int( rel_bin * float_X(num_pbins) );
 
             /* out-of-range bins back to min/max */
-            p_bin >= 0 ? /* do not change p_bin */ : p_bin=0;
-            p_bin < num_pbins ? /* do not change p_bin */ : p_bin=num_pbins-1;
+            p_bin >= 0 ? p_bin /* do not change p_bin */ : p_bin=0;
+            p_bin < num_pbins ? p_bin/* do not change p_bin */ : p_bin=num_pbins-1;
 
             /** \todo take particle shape into account */
             atomicAddWrapper( &(*curDBufferOriginInBlock( p_bin, r_bin )),

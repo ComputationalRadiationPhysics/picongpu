@@ -171,8 +171,8 @@ find_path(CUDA_MEMTEST_DIR
         DOC "path to cuda_memtest"
         )
 
-add_subdirectory(${CUDA_MEMTEST_DIR}
-                 "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
+#add_subdirectory(${CUDA_MEMTEST_DIR}
+#                 "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
 
 
 ################################################################################
@@ -185,8 +185,8 @@ find_path(MPI_INFO_DIR
         DOC "path to mpiInfo"
         )
 
-add_subdirectory(${MPI_INFO_DIR}
-                 "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
+#add_subdirectory(${MPI_INFO_DIR}
+#                 "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
 
 
 ################################################################################
@@ -328,13 +328,27 @@ file(GLOB CUDASRCFILES "*.cu")
 file(GLOB SRCFILES "*.cpp")
 
 
+if(CLANG_DEVICE_COMPILE)
+    add_library(picongpuLibs
+        STATIC
+        ${SRCFILES}
+    )
+    add_executable(picongpu
+        ${CUDASRCFILES}
+    )
+    set_target_properties(picongpu PROPERTIES COMPILE_FLAGS ${CLANG_BUILD_FLAGS})
+    set_target_properties(picongpu PROPERTIES LINKER_LANGUAGE CXX)
+    set_source_files_properties(${CUDASRCFILES} PROPERTIES LANGUAGE CXX)
 
-cuda_add_executable(picongpu
-    ${CUDASRCFILES}
-    ${SRCFILES}
-)
+    target_link_libraries(picongpu ${LIBS} m picongpuLibs)
+else()
+    cuda_add_executable(picongpu
+        ${CUDASRCFILES}
+        ${SRCFILES}
+    )
 
-target_link_libraries(picongpu ${LIBS} m)
+    target_link_libraries(picongpu ${LIBS} m)
+endif()
 
 ################################################################################
 # Install PIConGPU
