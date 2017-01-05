@@ -54,51 +54,61 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 11)
 
+option(CLANG_DEVICE_COMPILE "enable clang compile for device code" OFF)
 
 ################################################################################
 # Find CUDA
 ################################################################################
 find_package(CUDA 7.5 REQUIRED)
 
-# work-around since the above flag does not necessarily put -std=c++11 in
-# the CMAKE_CXX_FLAGS, which is unfurtunately hiding the switch from FindCUDA
-if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${CUDA_LIBRARIES})
+
+if(CLANG_DEVICE_COMPILE)
+    #set(LIBS ${LIBS} cudart_static)
+    set(CLANG_BUILD_FLAGS "-ftemplate-backtrace-limit=0 -O3 -x cuda --cuda-path=${CUDA_TOOLKIT_ROOT_DIR}")
+    set(CLANG_BUILD_FLAGS "${CLANG_BUILD_FLAGS} --cuda-gpu-arch=${CUDA_ARCH}")
+    add_definitions(-DBOOST_NO_CXX11_SMART_PTR)
+    add_definitions(-DCLANG_DEVICE_COMPILE=1)
+else()
+    # work-around since the above flag does not necessarily put -std=c++11 in
+    # the CMAKE_CXX_FLAGS, which is unfurtunately hiding the switch from FindCUDA
+    if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    endif()
+
+    set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
+    string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
+    string(COMPARE EQUAL ${CUDA_ARCH} "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
+    string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
+    string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
+
+    if(IS_CUDA_ARCH_UNSUPPORTED)
+        message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
+                           "SM 2.0 or higher is required.")
+    endif(IS_CUDA_ARCH_UNSUPPORTED)
+
+    set(CUDA_FTZ "--ftz=false" CACHE STRING "Set flush to zero for GPU")
+
+    set(CUDA_MATH --use_fast_math CACHE STRING "Enable fast-math" )
+    option(CUDA_SHOW_REGISTER "Show kernel registers and create PTX" OFF)
+    option(CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps (folder: nvcc_tmp)" OFF)
+    option(CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck" OFF)
+
+    if(CUDA_SHOW_CODELINES)
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --source-in-ptx -Xcompiler -rdynamic -lineinfo)
+        set(CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
+    endif(CUDA_SHOW_CODELINES)
+
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH} ${CUDA_MATH} ${CUDA_FTZ})
+    if(CUDA_SHOW_REGISTER)
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xptxas=-v)
+    endif(CUDA_SHOW_REGISTER)
+
+    if(CUDA_KEEP_FILES)
+        file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/nvcc_tmp")
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
+    endif(CUDA_KEEP_FILES)
 endif()
-
-set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
-
-if(IS_CUDA_ARCH_UNSUPPORTED)
-    message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
-                       "SM 2.0 or higher is required.")
-endif(IS_CUDA_ARCH_UNSUPPORTED)
-
-set(CUDA_FTZ "--ftz=false" CACHE STRING "Set flush to zero for GPU")
-
-set(CUDA_MATH --use_fast_math CACHE STRING "Enable fast-math" )
-option(CUDA_SHOW_REGISTER "Show kernel registers and create PTX" OFF)
-option(CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps (folder: nvcc_tmp)" OFF)
-option(CUDA_SHOW_CODELINES "Show kernel lines in cuda-gdb and cuda-memcheck" OFF)
-
-if(CUDA_SHOW_CODELINES)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --source-in-ptx -Xcompiler -rdynamic -lineinfo)
-    set(CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
-endif(CUDA_SHOW_CODELINES)
-
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH} ${CUDA_MATH} ${CUDA_FTZ})
-if(CUDA_SHOW_REGISTER)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xptxas=-v)
-endif(CUDA_SHOW_REGISTER)
-
-if(CUDA_KEEP_FILES)
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/nvcc_tmp")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" --keep --keep-dir "${PROJECT_BINARY_DIR}/nvcc_tmp")
-endif(CUDA_KEEP_FILES)
-
 
 ################################################################################
 # VampirTrace
