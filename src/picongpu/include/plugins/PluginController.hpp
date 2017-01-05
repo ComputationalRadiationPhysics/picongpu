@@ -58,9 +58,7 @@
 #include "plugins/ILightweightPlugin.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 
-#if(PIC_ENABLE_PNG==1)
 #include "plugins/output/images/PngCreator.hpp"
-#endif
 
 
 /// That's an abstract plugin for Png and Binary Density output
@@ -178,9 +176,7 @@ private:
 #if(ENABLE_RADIATION == 1)
       , Radiation<bmpl::_1>
 #endif
-#if(PIC_ENABLE_PNG==1)
      , PngPlugin< Visualisation<bmpl::_1, PngCreator> >
-#endif
 #if(ENABLE_HDF5 == 1)
       , ParticleCalorimeter<bmpl::_1>
       , PerSuperCell<bmpl::_1>
