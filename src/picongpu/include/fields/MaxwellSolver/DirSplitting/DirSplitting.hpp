@@ -104,11 +104,11 @@ public:
         auto fieldE_coreBorder =
             fieldE.getGridBuffer().getDeviceBuffer().
                    cartBuffer().view(GuardDim().toRT(),
-                                     -GuardDim().toRT()));
+                                     -GuardDim().toRT());
         auto fieldB_coreBorder =
             fieldB.getGridBuffer().getDeviceBuffer().
             cartBuffer().view(GuardDim().toRT(),
-                              -GuardDim().toRT()));
+                              -GuardDim().toRT());
 
         using namespace cursor::tools;
         using namespace PMacc::math;

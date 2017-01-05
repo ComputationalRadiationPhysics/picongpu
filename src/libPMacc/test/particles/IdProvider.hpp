@@ -124,7 +124,7 @@ struct IdProviderTest
                 (idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
         idBuf.deviceToHost();
         BOOST_REQUIRE_EQUAL(numIds, ids.size());
-        PMACC_AUTO(hostBox, idBuf.getHostBuffer().getDataBox());
+        auto hostBox = idBuf.getHostBuffer().getDataBox();
         // Make sure they are the same
         for(uint32_t i=0; i<numIds; i++)
         {

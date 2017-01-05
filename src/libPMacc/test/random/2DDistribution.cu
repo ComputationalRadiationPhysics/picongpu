@@ -164,7 +164,7 @@ void runTest(uint32_t numSamples)
     generateRandomNumbers(rngSize, numSamples, detector.getDeviceBuffer(), GetRandomIdx<RNGProvider>());
 
     detector.deviceToHost();
-    PMACC_AUTO(box, detector.getHostBuffer().getDataBox());
+    auto box = detector.getHostBuffer().getDataBox();
     // Write data to file
     std::ofstream dataFile((rngName + "_data.txt").c_str());
     for(int y=0; y<size.y(); y++)
