@@ -39,7 +39,7 @@
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
 
-#include "algorithms/Gamma.hpp"
+#include "algorithms/KinEnergy.hpp"
 #include "memory/shared/Allocate.hpp"
 
 #include "common/txtFileHandling.hpp"
@@ -107,23 +107,8 @@ struct KernelEnergyParticles
                 const float_X mass = attribute::getMass(weighting,particle); /* compute mass using weighting */
                 const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-                Gamma<> calcGamma; /* functor for computing relativistic gamma factor */
-                const float_X gamma = calcGamma(mom, mass); /* compute relativistic gamma */
-
-                if (gamma < GAMMA_THRESH) /* if particle energy is low enough: */
-                {
-                    /* not relativistic: use equation with more precision */
-                    _local_energyKin += mom2 / (2.0f * mass);
-                }
-                else /* if particle is relativistic */
-                {
-                    /* kinetic energy for particles: E = (gamma - 1) * m * c^2
-                     *                                    gamma = sqrt( 1 + (p/m/c)^2 )
-                     * _local_energyKin += (algorithms::math::sqrt(mom2 / (mass * mass * c2)
-                     *                                             + 1.) - 1.) * mass * c2;
-                     */
-                    _local_energyKin += (gamma - float_X(1.0)) * mass*c2;
-                }
+                /* calculate kinetic energy of the macro particle */
+                _local_energyKin += KinEnergy<>()(mom, mass);
 
                 /* total energy for particles: E^2 = p^2*c^2 + m^2*c^4
                  *                                   = c^2 * [p^2 + m^2*c^2]
