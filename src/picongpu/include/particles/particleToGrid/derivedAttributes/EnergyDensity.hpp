@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2017 Axel Huebl, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Rene Widera, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -35,9 +35,8 @@ namespace derivedAttributes
     HDINLINE float1_64
     EnergyDensity::getUnit() const
     {
-        const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
-        return UNIT_ENERGY * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-               / UNIT_VOLUME;
+        constexpr float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
+        return UNIT_ENERGY / UNIT_VOLUME;
     }
 
     template< class T_Particle >
@@ -49,15 +48,9 @@ namespace derivedAttributes
         const float3_X mom = particle[momentum_];
         const float_X mass = attribute::getMass( weighting, particle );
 
-        const float_X energy = KinEnergy<>()( mom, mass );
+        constexpr float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
 
-        const float_X particleDensity = weighting /
-            ( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME );
-
-        const float_X particleEnergyDensity = energy * particleDensity;
-
-        /* return attribute */
-        return particleEnergyDensity;
+        return KinEnergy<>()( mom, mass ) * INV_CELL_VOLUME;
     }
 } /* namespace derivedAttributes */
 } /* namespace particleToGrid */
