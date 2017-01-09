@@ -83,8 +83,23 @@ namespace particles
  * the functors are called in order (from first to last functor)
  */
 typedef mpl::vector<
-    CreateDensity<densityProfiles::GaussianCloud, startPosition::Random, PIC_Electrons>,
-    Manipulate<manipulators::AssignYDriftNegative, PIC_Electrons>
+#ifdef PARAM_SINGLE_PARTICLE
+    CreateDensity<
+        densityProfiles::FreeFormula,
+        startPosition::OnePosition,
+        PIC_Electrons
+    >,
+#else
+    CreateDensity<
+        densityProfiles::GaussianCloud,
+        startPosition::Random,
+        PIC_Electrons
+    >,
+#endif
+    Manipulate<
+        manipulators::AssignYDriftNegative,
+        PIC_Electrons
+    >
 > InitPipeline;
 
 } /* namespace particles */
