@@ -78,7 +78,7 @@ foreach(PMACC_CUDA_ARCH_ELEM ${CUDA_ARCH})
 
     # set flags to create device code for the given architecture
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
-        "--generate-code arch=compute_${PMACC_CUDA_ARCH_ELEM},code=sm_${PMACC_CUDA_ARCH_ELEM}")
+        "--generate-code arch=compute_${PMACC_CUDA_ARCH_ELEM},code=sm_${PMACC_CUDA_ARCH_ELEM} --generate-code arch=compute_${PMACC_CUDA_ARCH_ELEM},code=compute_${PMACC_CUDA_ARCH_ELEM}")
     if(${PMACC_CUDA_ARCH_ELEM} LESS 20)
         message(FATAL_ERROR "Unsupported CUDA architecture '${PMACC_CUDA_ARCH_ELEM}' specified. "
                             "Use '20' (for SM 2.0) or higher.")
