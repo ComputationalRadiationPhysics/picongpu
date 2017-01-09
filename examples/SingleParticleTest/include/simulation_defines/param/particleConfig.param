@@ -53,8 +53,8 @@ namespace manipulators
         3,
         DriftParam_direction,
         /* unit vector for direction of drift: x, y, z */
-        0.0,
         1.0,
+        0.0,
         0.0
     );
     struct DriftParam
@@ -93,7 +93,7 @@ namespace startPosition
         const InCellOffset_t inCellOffset;
     };
 
-    /* definition of quiet particle start*/
+    /* definition of one specific position for particle start */
     using OnePosition = OnePositionImpl< OnePositionParameter >;
 
 } // namespace startPosition

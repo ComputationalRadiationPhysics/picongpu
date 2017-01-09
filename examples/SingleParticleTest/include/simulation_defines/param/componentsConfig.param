@@ -53,6 +53,6 @@ namespace laserProfile = laserNone;
 namespace fieldSolver = fieldSolverNone;
 
 /*! enable (1) or disable (0) current calculation */
-#define ENABLE_CURRENT 0
+#define ENABLE_CURRENT 1
 
 }

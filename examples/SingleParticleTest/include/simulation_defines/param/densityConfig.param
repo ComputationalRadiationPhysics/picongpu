@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -19,33 +19,34 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "particles/gasProfiles/profiles.def"
+#include "particles/densityProfiles/profiles.def"
 /* preprocessor struct generator */
 #include "preprocessor/struct.hpp"
+
 
 namespace picongpu
 {
 namespace SI
 {
-    /** The maximum density in particles per m^3 in the gas distribution
-     *  unit: ELEMENTS/m^3
+    /** Base density in particles per m^3 in the density profiles.
      *
-     *  One particle per cell with weighting 1.0:
+     * This is often taken as reference maximum density in normalized profiles.
+     * Individual particle species can define a `densityRatio` flag relative
+     * to this value.
+     *
+     * unit: ELEMENTS/m^3
+     *
+     * One particle per cell with weighting 1.0:
      */
-    constexpr float_64 GAS_DENSITY_SI =
+    constexpr float_64 BASE_DENSITY_SI =
         1.0 /
         ( CELL_WIDTH_SI * CELL_HEIGHT_SI * CELL_DEPTH_SI );
 
 }
 
-//##########################################################################
-//############## special gas profiles ######################################
-//##########################################################################
-
-namespace gasProfiles
+namespace densityProfiles
 {
 
     struct FreeFormulaFunctor
@@ -53,7 +54,7 @@ namespace gasProfiles
 
         /**
          * This formula uses SI quantities only
-         * The profile will be multiplied by GAS_DENSITY.
+         * The profile will be multiplied by BASE_DENSITY_SI.
          *
          * @param position_SI total offset including all slides [in meter]
          * @param cellSize_SI cell sizes [in meter]
@@ -67,8 +68,11 @@ namespace gasProfiles
         {
             const PMacc::math::UInt64< simDim > cell_id( position_SI / cellSize_SI.shrink< simDim >() );
 
-            // add particle in cell in first y plane at [128, 0, 128 ]
-            const PMacc::math::UInt64< DIM3 > cell_start( 128u, 0u, 128u );
+            // add particle in cell in at [ 32 5 16 ]
+            // X=32: middle of X plane (gyro-motion in X-Y)
+            // Y=5:  do not start fully at border, e.g., if someone wants to increase E, and so mass over time
+            // Z=16: middle of box in Z, move slowly in positive Z as E-field drift
+            const PMacc::math::UInt64< DIM3 > cell_start( 32u, 5u, 16u );
 
             bool isStartCell = true;
             for( uint64_t d = 0; d < simDim; ++d )
@@ -82,9 +86,7 @@ namespace gasProfiles
         }
     };
 
-    /* definition of gas free formula */
+    /* definition of free formula profile */
     using FreeFormula = FreeFormulaImpl< FreeFormulaFunctor >;
-
-} // namespace gasProfiles
-
+}
 }

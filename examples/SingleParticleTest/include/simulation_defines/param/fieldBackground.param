@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Axel Huebl, Alexander Debus
+ * Copyright 2014-2017 Axel Huebl, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -29,7 +29,7 @@ namespace picongpu
     {
     public:
         /* Add this additional field for pushing particles */
-        static constexpr bool InfluenceParticlePusher = false;
+        static constexpr bool InfluenceParticlePusher = true;
 
         /* We use this to calculate your SI input back to our unit system */
         PMACC_ALIGN(
@@ -54,8 +54,8 @@ namespace picongpu
             /* specify your E-Field in V/m and convert to PIConGPU units */
             return float3_X(
                 0.0,
-                -1.0e13 / m_unitField[1],
-                0.0
+                0.0,
+                -10.0e6 / m_unitField[1]
             );
         }
     };
