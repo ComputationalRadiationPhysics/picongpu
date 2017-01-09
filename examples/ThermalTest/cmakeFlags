@@ -29,7 +29,7 @@
 #   - start with zero index
 #   - increase by 1, no gaps
 
-flags[0]="-DCUDA_ARCH=sm_20"
+flags[0]="-DCUDA_ARCH=20"
 
 
 ################################################################################

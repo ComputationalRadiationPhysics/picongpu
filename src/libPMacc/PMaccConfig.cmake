@@ -66,16 +66,24 @@ if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-std=c\\+\\+11")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
-set(CUDA_ARCH sm_20 CACHE STRING "Set GPU architecture")
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_10" IS_CUDA_ARCH_UNSUPPORTED)
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_11" IS_CUDA_ARCH_UNSUPPORTED)
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_12" IS_CUDA_ARCH_UNSUPPORTED)
-string(COMPARE EQUAL ${CUDA_ARCH} "sm_13" IS_CUDA_ARCH_UNSUPPORTED)
+set(CUDA_ARCH "20" CACHE STRING "Set GPU architecture (semicolon separated list, e.g. '-DCUDA_ARCH=20;35;60')")
 
-if(IS_CUDA_ARCH_UNSUPPORTED)
-    message(FATAL_ERROR "Unsupported CUDA architecture ${CUDA_ARCH} specified. "
-                       "SM 2.0 or higher is required.")
-endif(IS_CUDA_ARCH_UNSUPPORTED)
+foreach(PMACC_CUDA_ARCH_ELEM ${CUDA_ARCH})
+    string(REGEX MATCH "^[0-9]+$" PMACC_IS_NUMBER ${CUDA_ARCH})
+    if(NOT PMACC_IS_NUMBER)
+        message(FATAL_ERROR "Defined compute architecture '${PMACC_CUDA_ARCH_ELEM}' in "
+                            "'${CUDA_ARCH}' is not an integral number, use e.g. '20' (for SM 2.0).")
+    endif()
+    unset(PMACC_IS_NUMBER)
+
+    # set flags to create device code for the given architecture
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
+        "--generate-code arch=compute_${PMACC_CUDA_ARCH_ELEM},code=sm_${PMACC_CUDA_ARCH_ELEM} --generate-code arch=compute_${PMACC_CUDA_ARCH_ELEM},code=compute_${PMACC_CUDA_ARCH_ELEM}")
+    if(${PMACC_CUDA_ARCH_ELEM} LESS 20)
+        message(FATAL_ERROR "Unsupported CUDA architecture '${PMACC_CUDA_ARCH_ELEM}' specified. "
+                            "Use '20' (for SM 2.0) or higher.")
+    endif()
+endforeach()
 
 set(CUDA_FTZ "--ftz=false" CACHE STRING "Set flush to zero for GPU")
 
@@ -89,7 +97,7 @@ if(CUDA_SHOW_CODELINES)
     set(CUDA_KEEP_FILES ON CACHE BOOL "activate keep files" FORCE)
 endif(CUDA_SHOW_CODELINES)
 
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} -arch=${CUDA_ARCH} ${CUDA_MATH} ${CUDA_FTZ})
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} ${nvcc_flags} ${CUDA_MATH} ${CUDA_FTZ})
 if(CUDA_SHOW_REGISTER)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" -Xptxas=-v)
 endif(CUDA_SHOW_REGISTER)
