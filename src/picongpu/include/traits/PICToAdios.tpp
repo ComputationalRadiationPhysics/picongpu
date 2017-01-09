@@ -33,6 +33,20 @@ namespace picongpu
 namespace traits
 {
     template<>
+    struct PICToAdios<bool>
+    {
+        ADIOS_DATATYPES type;
+
+        PICToAdios() :
+        type(adios_unsigned_byte) {}
+
+        PMACC_STATIC_ASSERT_MSG(
+            sizeof(bool) == 1,
+            ADIOS_Plugin__Can_not_find_a_one_byte_representation_of_bool
+        );
+    };
+
+    template<>
     struct PICToAdios<int32_t>
     {
         ADIOS_DATATYPES type;
