@@ -1,0 +1,80 @@
+/**
+ * Copyright 2016-2017 Marco Garten
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "pmacc_types.hpp"
+
+namespace picongpu
+{
+namespace particles
+{
+namespace ionization
+{
+    /** \struct ThomasFermi_Impl
+     *
+     * \brief Pressure Ionization in the Thomas-Fermi atomic model (SCF model)
+     *
+     * \tparam T_DestSpecies electron species to be created
+     * \tparam T_SrcSpecies particle species that is ionized
+     *         default is boost::mpl placeholder because specialization
+     *         cannot be known in list of particle species' flags
+     *         \see speciesDefinition.param
+     */
+    template<typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
+    struct ThomasFermi_Impl;
+
+    /** \struct ThomasFermi
+     *
+     * \brief Thomas-Fermi pressure ionization
+     *
+     * This ionization model describes the atom inside the Thomas-Fermi framework
+     * in a self-consistent way. There the electrons are modeled as a density
+     * with respect to the distance from the core while the atomic core is often
+     * assumed as a point charge. The atomic potential is considered to be finite
+     * as a result of matter density and it defines the so-called "ion sphere".
+     * Due to the overlap of adjacent ion spheres the ionization barrier can be
+     * lowered and electrons become quasi-free in the system (resonance states).
+     * The Thomas-Fermi model calculates an average ionization degree only with
+     * respect to charge density and temperature. Through further assumptions
+     * and fitting parameters the model gets extended to arbitrary temperatures
+     * and atoms.
+     *
+     * See table IV from Pressure Ionization, Resonances, and the Continuity of
+     * Bound and Free States
+     * \url http://www.sciencedirect.com/science/article/pii/S0065219908601451
+     * doi:10.1016/S0065-2199(08)60145-1
+     *
+     * \tparam T_DestSpecies electron species to be created
+     *
+     * wrapper class,
+     * needed because the SrcSpecies cannot be known during the
+     * first specialization of the ionization model in the particle definition
+     * \see speciesDefinition.param
+     */
+    template<typename T_DestSpecies>
+    struct ThomasFermi
+    {
+        typedef ThomasFermi_Impl<T_DestSpecies> type;
+    };
+
+} // namespace ionization
+} // namespace particles
+} // namespace picongpu
