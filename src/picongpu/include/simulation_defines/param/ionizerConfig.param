@@ -28,6 +28,9 @@
  * - ADKCircPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
  *                -> circularly polarized lasers
  * - Keldysh : Keldysh ionization model
+ * - ThomasFermi : statistical impact ionization based on Thomas-Fermi
+ *                 atomic model
+ *                 Attention: requires 2 FieldTmp slots @see memory.param
  *
  * Research and development:
  * - BSIEffectiveZ : BSI taking electron shielding into account via an effective
