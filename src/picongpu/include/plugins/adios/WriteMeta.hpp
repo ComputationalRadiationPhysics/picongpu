@@ -144,7 +144,10 @@ namespace writeMeta
             ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
                 "iterationEncoding", "/", adios_string, 1, (void*)iterationEncoding.c_str()));
 
-            const std::string iterationFormat( threadParams->adiosFilename + std::string("_%T.h5") );
+            const std::string iterationFormat(
+                Environment< simDim >::get().Filesystem().basename( threadParams->adiosFilename ) +
+                std::string("_%T.bp")
+            );
             ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
                 "iterationFormat", "/", adios_string, 1, (void*)iterationFormat.c_str()));
 
