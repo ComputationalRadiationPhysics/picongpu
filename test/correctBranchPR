@@ -37,49 +37,47 @@
 # Are we even in travis? Otherwise pass this test.
 if [ "$TRAVIS" != "true" ]
 then
-  echo "Not in travis, so I have nothing to do :)"
-  exit 0
-fi
+    echo "Not in travis, so I have nothing to do :)"
+else
 
-mainline_slug="ComputationalRadiationPhysics/picongpu"
-gh_api="https://api.github.com"
+    mainline_slug="ComputationalRadiationPhysics/picongpu"
+    gh_api="https://api.github.com"
 
-# only enforced for PRs
-if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]
-then
-  # only enforced for `master` branch
-  if [ "$TRAVIS_BRANCH" == "master" ]
-  then
-    # only enforced for mainline repo (not for forks)
-    if [ "$TRAVIS_REPO_SLUG" == "$mainline_slug" ]
+    # only enforced for PRs
+    if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]
     then
-      # travis lacks the origin information, so we ask the GitHub API
-      # note: we are limited to 60/hr unauthenticated and
-      #       OAUTH + travis encr. var are not possible for PRs from forks
-      pr_json=$(curl -H "Accept:application/json" \
-                     -X GET -s                    \
-                "$gh_api/repos/$mainline_slug/pulls/$TRAVIS_PULL_REQUEST")
-      pr_slug=$(echo "$pr_json" | jq -r '.head.repo.full_name')
-      if [ "$pr_slug" != "$mainline_slug" ]
-      then
-        pr_author=$(echo "$pr_json" | jq -r '.head.repo.owner.login')
-        pr_branch=$TRAVIS_PULL_REQUEST_BRANCH
-        echo ""
-        echo "Pull request opened to wrong branch!"
-        echo ""
-        echo "New features need to go to our 'dev' branch but your"
-        echo "pull-request from '"$pr_slug"' was sent to 'master' which is"
-        echo "only updated by our maintainers for new stable releases."
-        echo ""
-        echo "Please re-open your pull-request against our 'dev' branch:"
-        echo "  https://github.com/ComputationalRadiationPhysics/picongpu/compare/dev...$pr_author:$pr_branch?expand=1"
-        echo ""
-        echo "For further information, please see:"
-        echo "  https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/CONTRIBUTING.md"
-        exit 1
-      fi
+        # only enforced for `master` branch
+        if [ "$TRAVIS_BRANCH" == "master" ]
+        then
+            # only enforced for mainline repo (not for forks)
+            if [ "$TRAVIS_REPO_SLUG" == "$mainline_slug" ]
+            then
+                # travis lacks the origin information, so we ask the GitHub API
+                # note: we are limited to 60/hr unauthenticated and
+                #       OAUTH + travis encr. var are not possible for PRs from forks
+                pr_json=$(curl -H "Accept:application/json" \
+                               -X GET -s                    \
+                          "$gh_api/repos/$mainline_slug/pulls/$TRAVIS_PULL_REQUEST")
+                pr_slug=$(echo "$pr_json" | jq -r '.head.repo.full_name')
+                if [ "$pr_slug" != "$mainline_slug" ]
+                then
+                    pr_author=$(echo "$pr_json" | jq -r '.head.repo.owner.login')
+                    pr_branch=$TRAVIS_PULL_REQUEST_BRANCH
+                    echo ""
+                    echo "Pull request opened to wrong branch!"
+                    echo ""
+                    echo "New features need to go to our 'dev' branch but your"
+                    echo "pull-request from '"$pr_slug"' was sent to 'master' which is"
+                    echo "only updated by our maintainers for new stable releases."
+                    echo ""
+                    echo "Please re-open your pull-request against our 'dev' branch:"
+                    echo "  https://github.com/ComputationalRadiationPhysics/picongpu/compare/dev...$pr_author:$pr_branch?expand=1"
+                    echo ""
+                    echo "For further information, please see:"
+                    echo "  https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/CONTRIBUTING.md"
+                    exit 1
+                fi
+            fi
+        fi
     fi
-  fi
 fi
-
-exit 0
