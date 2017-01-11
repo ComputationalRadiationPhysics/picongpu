@@ -88,8 +88,8 @@ public:
 
     void update(uint32_t currentStep);
 
-    template<typename T_GasFunctor, typename T_PositionFunctor>
-    void initGas(T_GasFunctor& gasFunctor, T_PositionFunctor& positionFunctor, const uint32_t currentStep);
+    template<typename T_DensityFunctor, typename T_PositionFunctor>
+    void initDensityProfile(T_DensityFunctor& densityFunctor, T_PositionFunctor& positionFunctor, const uint32_t currentStep);
 
     template<
         typename T_SrcName,

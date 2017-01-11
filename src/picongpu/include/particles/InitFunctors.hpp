@@ -98,7 +98,7 @@ struct CreateDensity
         auto speciesPtr = tuple[SpeciesName()];
         DensityFunctor densityFunctor(currentStep);
         PositionFunctor positionFunctor(currentStep);
-        speciesPtr->initGas(densityFunctor, positionFunctor, currentStep);
+        speciesPtr->initDensityProfile(densityFunctor, positionFunctor, currentStep);
     }
 };
 
