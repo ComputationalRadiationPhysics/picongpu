@@ -19,16 +19,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 
 namespace picongpu
 
 {
-    constexpr float_X GAS_DENSITY =
-        float_X( SI::GAS_DENSITY_SI * UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
-} // namespace picongpu
+    constexpr float_X DENSITY =
+        float_X( SI::DENSITY_SI * UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
+}
 
-#include "particles/gasProfiles/profiles.hpp"
+#include "particles/densityProfiles/profiles.hpp"

@@ -19,34 +19,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "particles/gasProfiles/profiles.def"
+#include "particles/densityProfiles/profiles.def"
+
 
 namespace picongpu
 {
-    namespace SI
-    {
-        /** The maximum density in particles per m^3 in the gas distribution
-         *  unit: ELEMENTS/m^3
-         *
-         * He (2e- / Atom ) with 1.e15 He / m^3
-         *                      = 2.e15 e- / m^3 */
-        constexpr float_64 GAS_DENSITY_SI = 1.571e24;
-
-    }
-
-    //##########################################################################
-    //############## special gas profiles ######################################
-    //##########################################################################
-
-namespace gasProfiles
+namespace SI
 {
+    /** Base density in particles per m^3 in the density profiles.
+     *
+     * This is often taken as reference maximum density in normalized profiles.
+     * Individual particle species can define a `densityRatio` flag relative
+     * to this value.
+     *
+     * unit: ELEMENTS/m^3
+     */
+    constexpr float_64 DENSITY_SI = 1.571e24;
+}
 
-/* definition of homogenous gas*/
-typedef HomogenousImpl Homogenous;
-
-}//namespace gasProfiles
-
+namespace densityProfiles
+{
+    /* definition of homogenous density profile */
+    typedef HomogenousImpl Homogenous;
+}
 }

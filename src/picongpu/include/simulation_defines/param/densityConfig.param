@@ -19,257 +19,251 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "particles/gasProfiles/profiles.def"
+#include "particles/densityProfiles/profiles.def"
 /* preprocessor struct generator */
 #include "preprocessor/struct.hpp"
+
 
 namespace picongpu
 {
 namespace SI
 {
-/** The maximum density in particles per m^3 in the gas distribution
- *  unit: ELEMENTS/m^3
- *
- * He (2e- / Atom ) with 1.e15 He / m^3
- *                      = 2.e15 e- / m^3 */
-    constexpr float_64 GAS_DENSITY_SI = 1.e25;
-
+    /** Base density in particles per m^3 in the density profiles.
+     *
+     * This is often taken as reference maximum density in normalized profiles.
+     * Individual particle species can define a `densityRatio` flag relative
+     * to this value.
+     *
+     * unit: ELEMENTS/m^3
+     */
+    constexpr float_64 DENSITY_SI = 1.e25;
 }
 
-//##########################################################################
-//############## special gas profiles ######################################
-//##########################################################################
-
-namespace gasProfiles
+namespace densityProfiles
 {
+    PMACC_STRUCT(GaussianParam,
+        /** Profile Formula:
+         *   const float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
+         *   const float_X density = exp(gasFactor * pow(exponent, gasPower));
+         *
+         *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
+         *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
+         *   and exponent = float_X(0.0)  for gasCenterLeft_SI < y < gasCenterRight_SI
+         */
+        (PMACC_C_VALUE(float_X, gasFactor, -1.0))
+        (PMACC_C_VALUE(float_X, gasPower, 4.0))
 
-PMACC_STRUCT(GaussianParam,
-    /** Gas Formula:
-     *   const float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
-     *   const float_X density = exp(gasFactor * pow(exponent, gasPower));
+        /** height of vacuum area on top border
+         *
+         *  this vacuum is important because of the laser initialization,
+         *  which is done in the first cells of the simulation and
+         *  assumes a charge-free volume
+         *  unit: cells
+         */
+        (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+
+        /** The central position of the distribution
+          *  unit: meter
+          */
+        (PMACC_C_VALUE(float_64, gasCenterLeft_SI, 4.62e-5))
+        (PMACC_C_VALUE(float_64, gasCenterRight_SI, 4.62e-5))
+
+        /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
+          *  unit: meter
+          */
+        (PMACC_C_VALUE(float_64, gasSigmaLeft_SI, 4.62e-5))
+        (PMACC_C_VALUE(float_64, gasSigmaRight_SI, 4.62e-5))
+    ); /* struct GaussianParam */
+
+    /* definition of density profile with gaussian profile*/
+    typedef GaussianImpl<GaussianParam> Gaussian;
+
+
+    /* definition of homogenous profile */
+    typedef HomogenousImpl Homogenous;
+
+
+    /** parameter for `LinearExponential` profile
      *
-     *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
-     *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
-     *   and exponent = float_X(0.0)  for gasCenterLeft_SI < y < gasCenterRight_SI
+     * Density Profile: /\
+     *                 /  -,_
+     *   linear       /      -,_    exponential
+     *   slope       /  |       -,_ slope
+     *                  MAX
      */
-    (PMACC_C_VALUE(float_X, gasFactor, -1.0))
-    (PMACC_C_VALUE(float_X, gasPower, 4.0))
+    PMACC_STRUCT(LinearExponentialParam,
+        /** height of vacuum area on top border
+         *
+         * this vacuum is important because of the laser initialization,
+         * which is done in the first cells of the simulation and
+         * assumes a charge-free volume
+         * unit: cells
+         */
+        (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
 
-    /** height of vacuum area on top border
+        /** Y-Position where the linear slope ends and the exponential slope
+         *  begins
+         *  unit: meter
+         */
+        (PMACC_C_VALUE(float_64, gasYMax_SI, 1.0e-3))
+
+        /** Parameters for the linear slope:
+         *  For Y <= gasYMax_SI:
+         *    \rho / GAS_DENSITY = A * Y + B
+         *                       = element [0.0; 1.0]
+         *  unit for A: 1/m
+         *  unit for B: none
+         */
+        (PMACC_C_VALUE(float_64, gasA_SI, 1.0e-3))
+
+        /** Parameters for the exponential slope
+         *  For Y > gasYMax_SI:
+         *    let Y' = Y - gasYMax_SI
+         *    \rho = exp[ - Y' * D ]
+         *         = element [0.0; 1.0]
+         *  unit: 1/m
+         */
+        (PMACC_C_VALUE(float_64, gasD_SI, 1.0e-3))
+
+        (PMACC_C_VALUE(float_64, gasB, 0.0))
+    ); /* struct LinearExponentialParam */
+
+    /* definition of gas with linear start slop and exponential end slope */
+    typedef LinearExponentialImpl<LinearExponentialParam> LinearExponential;
+
+
+    PMACC_STRUCT(GaussianCloudParam,
+        /** Profile Formula:
+         *     exponent = |globalCellPos - center| / sigma
+         *     density = e^[ gasFactor * exponent^gasPower ]
+         */
+        (PMACC_C_VALUE(float_X, gasFactor, -0.5))
+        (PMACC_C_VALUE(float_X, gasPower, 2.0))
+
+        /** height of vacuum area on top border
+         *
+         * this vacuum is important because of the laser initialization,
+         * which is done in the first cells of the simulation and
+         * assumes a charge-free volume
+         * unit: cells
+         */
+        (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+
+        /** The central position of the gas distribution
+         *  unit: meter
+         */
+        (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.134e-5, 1.134e-5, 1.134e-5))
+
+        /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
+          *  unit: meter */
+        (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 7.0e-6, 7.0e-6, 7.0e-6))
+    ); /* struct GaussianCloudParam */
+
+    /* definition of cloud profile*/
+    typedef GaussianCloudImpl<GaussianCloudParam> GaussianCloud;
+
+
+    /** The profile consists out of the composition of 3 1D profiles
+     *  with the scheme: exponential increasing flank, constant sphere,
+     *                   exponential decreasing flank
+     *           ___
+     *  1D:  _,./   \.,_   rho(r)
      *
-     *  this vacuum is important because of the laser initialization,
-     *  which is done in the first cells of the simulation and
-     *  assumes a charge-free volume
-     *  unit: cells
-     */
-    (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
-
-    /** The central position of the gas distribution
-      *  unit: meter
-      */
-    (PMACC_C_VALUE(float_64, gasCenterLeft_SI, 4.62e-5))
-    (PMACC_C_VALUE(float_64, gasCenterRight_SI, 4.62e-5))
-
-    /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
-      *  unit: meter
-      */
-    (PMACC_C_VALUE(float_64, gasSigmaLeft_SI, 4.62e-5))
-    (PMACC_C_VALUE(float_64, gasSigmaRight_SI, 4.62e-5))
-); /* struct GaussianParam */
-
-/* definition of gas with gaussian profile*/
-typedef GaussianImpl<GaussianParam> Gaussian;
-
-
-/* definition of homogenous gas*/
-typedef HomogenousImpl Homogenous;
-
-
-/** parameter for `LinearExponential` gas profile
- *
- * Gas Profile:    /\
- *                /  -,_
- *   linear      /      -,_    exponential
- *   slope      /  |       -,_ slope
- *                 MAX
- */
-PMACC_STRUCT(LinearExponentialParam,
-    /** height of vacuum area on top border
+     *  2D:  ..,x,..   density: . low
+     *       .,xxx,.            , middle
+     *       ..,x,..            x high (constant)
      *
-     * this vacuum is important because of the laser initialization,
-     * which is done in the first cells of the simulation and
-     * assumes a charge-free volume
-     * unit: cells
      */
-    (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+    PMACC_STRUCT(SphereFlanksParam,
+        /** height of vacuum area on top border
+         *
+         * this vacuum is important because of the laser initialization,
+         * which is done in the first cells of the simulation and
+         * assumes a charge-free volume
+         * unit: cells
+         */
+        (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
 
-    /** Y-Position where the linear slope ends and the exponential slope
-     *  begins
-     *  unit: meter
-     */
-    (PMACC_C_VALUE(float_64, gasYMax_SI, 1.0e-3))
+        /** Radius of the constant sphere
+         *  unit: meter
+         */
+        (PMACC_C_VALUE(float_64, r_SI, 1.0e-3))
 
-    /** Parameters for the linear slope:
-     *  For Y <= gasYMax_SI:
-     *    \rho / GAS_DENSITY = A * Y + B
-     *                       = element [0.0; 1.0]
-     *  unit for A: 1/m
-     *  unit for B: none
-     */
-    (PMACC_C_VALUE(float_64, gasA_SI, 1.0e-3))
+        /** Inner radius if you want to build a shell/ring
+         *  unit: meter
+         */
+        (PMACC_C_VALUE(float_64, ri_SI, 0.0))
 
-    /** Parameters for the exponential slope
-     *  For Y > gasYMax_SI:
-     *    let Y' = Y - gasYMax_SI
-     *    \rho = exp[ - Y' * D ]
-     *         = element [0.0; 1.0]
-     *  unit: 1/m
-     */
-    (PMACC_C_VALUE(float_64, gasD_SI, 1.0e-3))
+        /** Middle of the constant sphere
+         *  unit: meter
+         */
+        (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 8.0e-3, 8.0e-3, 8.0e-3))
 
-    (PMACC_C_VALUE(float_64, gasB, 0.0))
-); /* struct LinearExponentialParam */
+        /** Parameters for the exponential slope
+         *  For distance > r_SI:
+         *    let distance' = distance - r
+         *    \rho = exp[ - distance' * exponent ]
+         *  unit: 1/m
+         */
+        (PMACC_C_VALUE(float_64, exponent_SI, 1.0e3))
 
-/* definition of gas with linear start slop and exponential end slope */
-typedef LinearExponentialImpl<LinearExponentialParam> LinearExponential;
+    ); /* struct SphereFlanksParam */
 
-
-PMACC_STRUCT(GaussianCloudParam,
-    /** Gas Formula:
-     *     exponent = |globalCellPos - center| / sigma
-     *     density = e^[ gasFactor * exponent^gasPower ]
-     */
-    (PMACC_C_VALUE(float_X, gasFactor, -0.5))
-    (PMACC_C_VALUE(float_X, gasPower, 2.0))
-
-    /** height of vacuum area on top border
-     *
-     * this vacuum is important because of the laser initialization,
-     * which is done in the first cells of the simulation and
-     * assumes a charge-free volume
-     * unit: cells
-     */
-    (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
-
-    /** The central position of the gas distribution
-     *  unit: meter
-     */
-    (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.134e-5, 1.134e-5, 1.134e-5))
-
-    /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
-      *  unit: meter */
-    (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 7.0e-6, 7.0e-6, 7.0e-6))
-); /* struct GaussianCloudParam */
-
-/* definition of gas cloud profile*/
-typedef GaussianCloudImpl<GaussianCloudParam> GaussianCloud;
+    /* definition of sphere profile with flanks*/
+    typedef SphereFlanksImpl<SphereFlanksParam> SphereFlanks;
 
 
-/** The profile consists out of the composition of 3 1D profiles
- *  with the scheme: exponential increasing flank, constant sphere,
- *                   exponential decreasing flank
- *           ___
- *  1D:  _,./   \.,_   rho(r)
- *
- *  2D:  ..,x,..   density: . low
- *       .,xxx,.            , middle
- *       ..,x,..            x high (constant)
- *
- */
-PMACC_STRUCT(SphereFlanksParam,
-    /** height of vacuum area on top border
-     *
-     * this vacuum is important because of the laser initialization,
-     * which is done in the first cells of the simulation and
-     * assumes a charge-free volume
-     * unit: cells
-     */
-    (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
+    PMACC_STRUCT(FromHDF5Param,
+        /* prefix of filename
+         * full file name: gas_0.h5
+         * filename = "gas"
+         * iteration = 0
+         */
+        (PMACC_C_STRING(filename,"gas"))
 
-    /** Radius of the constant sphere
-     *  unit: meter
-     */
-    (PMACC_C_VALUE(float_64, r_SI, 1.0e-3))
+        (PMACC_C_STRING(datasetName,"fields/e_chargeDensity"))
 
-    /** Inner radius if you want to build a shell/ring
-     *  unit: meter
-     */
-    (PMACC_C_VALUE(float_64, ri_SI, 0.0))
+        /* simulation step*/
+        (PMACC_C_VALUE(uint32_t, iteration, 0))
+        (PMACC_C_VALUE(float_X, defaultDensity, 0.0))
+    ); /* struct FromHDF5Param */
 
-    /** Middle of the constant sphere
-     *  unit: meter
-     */
-    (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 8.0e-3, 8.0e-3, 8.0e-3))
-
-    /** Parameters for the exponential slope
-     *  For distance > r_SI:
-     *    let distance' = distance - r
-     *    \rho = exp[ - distance' * exponent ]
-     *  unit: 1/m
-     */
-    (PMACC_C_VALUE(float_64, exponent_SI, 1.0e3))
-
-); /* struct SphereFlanksParam */
-
-/* definition of gas sphere with flanks*/
-typedef SphereFlanksImpl<SphereFlanksParam> SphereFlanks;
+    /* definition of cloud profile*/
+    typedef FromHDF5Impl<FromHDF5Param> FromHDF5;
 
 
-PMACC_STRUCT(FromHDF5Param,
-    /* prefix of filename
-     * full file name: gas_0.h5
-     * filename = "gas"
-     * iteration = 0
-     */
-    (PMACC_C_STRING(filename,"gas"))
-
-    (PMACC_C_STRING(datasetName,"fields/e_chargeDensity"))
-
-    /* simulation step*/
-    (PMACC_C_VALUE(uint32_t, iteration, 0))
-    (PMACC_C_VALUE(float_X, defaultDensity, 0.0))
-); /* struct FromHDF5Param */
-
-/* definition of gas cloud profile*/
-typedef FromHDF5Impl<FromHDF5Param> FromHDF5;
-
-
-struct FreeFormulaFunctor
-{
-
-    /**
-     * This formula uses SI quantities only
-     * The profile will be multiplied by GAS_DENSITY.
-     *
-     * @param position_SI total offset including all slides [in meter]
-     * @param cellSize_SI cell sizes [in meter]
-     *
-     * @return float_X density [normalized to 1.0]
-     */
-    HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+    struct FreeFormulaFunctor
     {
-        const float_64 y( position_SI.y() * 1000.0 ); // m -> mm
-        //const uint64_t y_cell_id( uint64_t(position_SI.y() / cellSize_SI[1]) );
+        /**
+         * This formula uses SI quantities only
+         * The profile will be multiplied by DENSITY_SI.
+         *
+         * @param position_SI total offset including all slides [in meter]
+         * @param cellSize_SI cell sizes [in meter]
+         *
+         * @return float_X density [normalized to 1.0]
+         */
+        HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+        {
+            const float_64 y( position_SI.y() * 1000.0 ); // m -> mm
+            //const uint64_t y_cell_id( uint64_t(position_SI.y() / cellSize_SI[1]) );
 
-        /* triangle function example
-         * for a density profile from 0 to 400 microns */
-        float_64 s = 1.0 - 5.0 * math::abs(y - 0.2);
+            /* triangle function example
+             * for a density profile from 0 to 400 microns */
+            float_64 s = 1.0 - 5.0 * math::abs(y - 0.2);
 
-        /* give it an empty/filled shape for every second cell */
-        //s *= float_64( (y_cell_id % 2) == 0 );
+            /* give it an empty/filled shape for every second cell */
+            //s *= float_64( (y_cell_id % 2) == 0 );
 
-        /* all parts of the function MUST be > 0 */
-        s *= float_64(s >= 0.0);
-        return s;
-    }
-};
+            /* all parts of the function MUST be > 0 */
+            s *= float_64(s >= 0.0);
+            return s;
+        }
+    };
 
-/* definition of gas free formula */
-typedef FreeFormulaImpl<FreeFormulaFunctor> FreeFormula;
-
-}//namespace gasProfiles
-
+    /* definition of free formula profile */
+    typedef FreeFormulaImpl<FreeFormulaFunctor> FreeFormula;
+}
 }
