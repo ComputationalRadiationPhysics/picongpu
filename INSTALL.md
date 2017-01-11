@@ -26,9 +26,18 @@ Requirements
   - *Arch Linux:*
     - `sudo pacman --sync base-devel`
     - the installed version of **gcc** might be too new. [Compile an older gcc](https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53)
+  - *Spack:*
+    - `spack install gcc@4.9.4`
+    - make it the default in your
+      [`packages.yaml`](http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration)
+      or [*suffix* all following `spack install` commands](http://spack.readthedocs.io/en/latest/features.html#simple-package-installation)
+      with ` %gcc@4.9.4`
 
 - [CUDA 7.5+](https://developer.nvidia.com/cuda-downloads)
   - *Arch Linux:* `sudo pacman --sync cuda`
+  - *Spack:*
+    - `curl -o cuda_7.5.18_linux.run http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run`
+    - `spack install cuda@7.5.18`
 
 - at least one **CUDA** capable **GPU**
   - *Compute capability* **sm\_20** or higher
@@ -38,28 +47,35 @@ Requirements
 - **cmake** 3.3.0 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
+  - *Spack:* `spack install cmake`
 
 - **OpenMPI** 1.5.1+ / **MVAPICH2** 1.8+ or similar
   ([GPU aware](https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/) install recommended)
   - *Debian/Ubuntu:* `sudo apt-get install libopenmpi-dev`
   - *Arch Linux:* `sudo pacman --sync openmpi`
+  - *Spack:*
+    - `spack install openmpi`
+    - as long as CUDA awareness (`openmpi+cuda`) is missing: `export OMPI_MCA_mpi_leave_pinned=0`
 
 - **zlib**
   - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
   - *Arch Linux:* `sudo pacman --sync zlib`
+  - *Spack:* `spack install zlib`
 
 - **boost** 1.57.0+ ("program options", "regex" , "filesystem", "system", "thread", "math" and nearly all header-only libs)
   - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz/download),
       e.g. version 1.57.0
   - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-math-dev`
   - *Arch Linux:* `sudo pacman --sync boost`
-  - *From source:*
+  - *Spack:* `spack install boost`
+  - *from source:*
     - `./bootstrap.sh --with-libraries=filesystem,program_options,regex,system,thread,math --prefix=$HOME/lib/boost`
     - `./b2 -j4 && ./b2 install`
 
 - **git** 1.7.9.5 or [higher](https://help.github.com/articles/https-cloning-errors)
   - *Debian/Ubuntu:* `sudo apt-get install git`
   - *Arch Linux:* `sudo pacman --sync git`
+  - *Spack:* `spack install git`
 
 ### Optional Libraries
 
@@ -68,6 +84,8 @@ We recommend to install at least **pngwriter**.
 Some of our examples will also need **libSplash**.
 
 - **pngwriter** >= 0.5.6
+  - *Spack:* `spack install pngwriter`
+  - *from source:*
     - download our modified version from
       [github.com/pngwriter/pngwriter](https://github.com/pngwriter/pngwriter)
     - Requires [libpng](http://www.libpng.org/),
@@ -86,8 +104,8 @@ Some of our examples will also need **libSplash**.
 - **libSplash** >= 1.6.0 (requires *HDF5*, *boost program-options*)
     - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - *Arch Linux dependencies:* `sudo pacman --sync hdf5-openmpi boost`
-    - *or compile hdf5 yourself:*  follow instructions one paragraph below
-    - example:
+    - *Spack:* `spack install libsplash ^hdf5~fortran`
+    - *from source:*
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
       - `cd ~/build`
@@ -100,7 +118,8 @@ Some of our examples will also need **libSplash**.
 - **HDF5** >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
     - *Debian/Ubuntu:* `sudo apt-get install libhdf5-openmpi-dev`
     - *Arch Linux:* `sudo pacman --sync hdf5-openmpi`
-    - example:
+    - *Spack:* `spack install hdf5~fortran`
+    - *from source:*
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
       - download hdf5 source code from [release list of the HDF5 group]
@@ -144,7 +163,8 @@ Some of our examples will also need **libSplash**.
       - `git clone https://aur.archlinux.org/libadios.git`
       - `cd libadios`
       - `makepkg -sri`
-    - example:
+    - *Spack:* `spack install adios`
+    - *from source:*
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
       - `wget http://users.nccs.gov/~pnorbert/adios-1.10.0.tar.gz`
@@ -163,20 +183,11 @@ Some of our examples will also need **libSplash**.
 
 - **ISAAC** (requires *boost* (header only), *IceT*, *Jansson*, *libjpeg* (preferably *libjpeg-turbo*), *libwebsockets* (only for the ISAAC server, but not the plugin itself) )
     - Enables live in situ visualization, see more here [Plugin description](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Plugin%3A-ISAAC)
-    - To enable ISAAC you need ISAAC itself:
-      - `git clone https://github.com/ComputationalRadiationPhysics/isaac.git`
-      - While configuring a simulation add the path of ISAAC to CMake, e.g. with
-        `$PICSRC/configure ~/paramSets/kh -c "-DISAAC_DIR=~/isaac/lib/"` or with
-        `CMAKE_PREFIX_PATH`. Of course may the path vary. ISAAC needs C++11, which
-        is enabled for PIConGPU if CUDA 7.5 or newer is available, thus these
-        versions are needed. For more requirements have a look at
-        [ISAAC's installation requirements](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md).
-      - It may be, that even more installation paths for libraries need to be added.
-        Just add them in the same matter as ISAAC itself. The CMake variables names
-        are described in [ISAAC's installation requirements](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md),
-        too. E.g. for the laser wake field experiment configuration you may need:
-        `$PICSRC/configure ~/paramSets/lw -c "-DISAAC_DIR=~/isaac/lib -DJansson_DIR=~/jansson/install/lib/cmake/jansson -DIceT_DIR=~/IceT/install/lib"`.
-        Of course the paths may and will vary for your setup.
+    - *Spack:* `spack install isaac`
+    - *from source:* build the *in situ library* and its dependencies as described in
+      [ISAAC's INSTALL.md](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md)
+    - set environment variable `CMAKE_PREFIX_PATH` for each dependency and the
+      ISAAC in situ library
 
 - for **VampirTrace** support
     - download 5.14.4 or higher, e.g. from
