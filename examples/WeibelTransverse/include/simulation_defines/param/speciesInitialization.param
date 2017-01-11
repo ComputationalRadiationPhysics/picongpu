@@ -84,7 +84,7 @@ namespace particles
  */
 typedef mpl::vector<
     CreateGas<gasProfiles::Homogenous, startPosition::Quiet, PIC_Ions>,
-    DeriveSpecies<PIC_Ions,PIC_Electrons>,
+    ManipulateDeriveSpecies<manipulators::RatioWeightingImpl,PIC_Ions,PIC_Electrons>,
     Manipulate<manipulators::AssignZDriftIons, PIC_Ions>,
     Manipulate<manipulators::AssignZDriftElectrons, PIC_Electrons>,
     Manipulate<manipulators::AddTemperature, PIC_Electrons>
