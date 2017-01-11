@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2017 Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -18,17 +18,31 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
+
+#include "simulation_defines.hpp"
+#include "particles/densityProfiles/IProfile.def"
+
 
 namespace picongpu
 {
-
-namespace gasProfiles
+namespace densityProfiles
 {
 
-template<typename T_ParamClass>
-struct GaussianImpl;
+template<typename T_Base>
+struct IProfile : private T_Base
+{
 
-} //namespace gasProfiles
-} //namespace picongpu
+    typedef T_Base Base;
+
+    HINLINE IProfile(uint32_t currentStep) : Base(currentStep)
+    {
+    }
+
+    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
+    {
+        return Base::operator()(totalCellOffset);
+    }
+};
+}
+}

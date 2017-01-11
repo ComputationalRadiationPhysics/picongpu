@@ -18,64 +18,68 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "simulation_defines.hpp"
 #include "simulationControl/MovingWindow.hpp"
 
+
 namespace picongpu
 {
-
-namespace gasProfiles
+namespace densityProfiles
 {
 
 template<typename T_ParamClass>
-struct GaussianCloudImpl : public T_ParamClass
+struct GaussianImpl : public T_ParamClass
 {
     typedef T_ParamClass ParamClass;
 
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef GaussianCloudImpl<ParamClass> type;
+        typedef GaussianImpl<ParamClass> type;
     };
 
-    HINLINE GaussianCloudImpl(uint32_t currentStep)
+    HINLINE GaussianImpl(uint32_t currentStep)
     {
     }
 
-    /** Calculate the gas density
+    /** Calculate the normalized density
      *
      * @param totalCellOffset total offset including all slides [in cells]
      */
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
-        const float_64 unit_length = UNIT_LENGTH;
         const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
-        const floatD_X center = precisionCast<float_X>(ParamClass::center_SI / unit_length);
-        const floatD_X sigma = precisionCast<float_X>(ParamClass::sigma_SI / unit_length);
+        const float_X gas_center_left = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
+        const float_X gas_center_right = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
+        const float_X gas_sigma_left = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
+        const float_X gas_sigma_right = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
 
         const floatD_X globalCellPos(
                                      precisionCast<float_X>(totalCellOffset) *
                                      cellSize.shrink<simDim>()
                                      );
 
-        if (globalCellPos.y() < vacuum_y) return float_X(0.0);
+        if (globalCellPos.y() * cellSize.y() < vacuum_y)
+        {
+            return float_X(0.0);
+        }
 
-        /* for x, y, z calculate: x-x0 / sigma_x */
-        const floatD_X r0overSigma = (globalCellPos - center) / sigma;
-        /* get lenghts of r0 over sigma */
-        const float_X exponent = math::abs(r0overSigma);
+        float_X exponent = float_X(0.0);
+        if (globalCellPos.y() < gas_center_left)
+        {
+            exponent = math::abs((globalCellPos.y() - gas_center_left) / gas_sigma_left);
+        }
+        else if (globalCellPos.y() >= gas_center_right)
+        {
+            exponent = math::abs((globalCellPos.y() - gas_center_right) / gas_sigma_right);
+        }
 
-        /* calculate exp(factor * exponent**power) */
-        const float_X power  = ParamClass::gasPower;
-        const float_X factor = ParamClass::gasFactor;
-        const float_X density = math::exp(factor * math::pow(exponent, power));
-
+        const float_X gas_power = ParamClass::gasPower;
+        const float_X density = math::exp(float_X(ParamClass::gasFactor) * math::pow(exponent, gas_power));
         return density;
     }
-
 };
-} //namespace gasProfiles
-} //namespace picongpu
+}
+}

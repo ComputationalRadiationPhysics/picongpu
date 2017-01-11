@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,40 +18,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "particles/densityProfiles/IProfile.hpp"
+#include "particles/densityProfiles/FreeFormulaImpl.hpp"
+#include "particles/densityProfiles/GaussianImpl.hpp"
+#include "particles/densityProfiles/HomogenousImpl.hpp"
+#include "particles/densityProfiles/LinearExponentialImpl.hpp"
+#include "particles/densityProfiles/GaussianCloudImpl.hpp"
+#include "particles/densityProfiles/SphereFlanksImpl.hpp"
 
-namespace picongpu
-{
-
-namespace gasProfiles
-{
-
-struct HomogenousImpl
-{
-    template<typename T_SpeciesType>
-    struct apply
-    {
-        typedef HomogenousImpl type;
-    };
-
-    HINLINE HomogenousImpl(uint32_t currentStep)
-    {
-    }
-
-    /** Calculate the gas density
-     *
-     * @param totalCellOffset total offset including all slides [in cells]
-     * @return float_X always 1.0
-     */
-    HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
-    {
-
-        return float_X(1.0);
-    }
-
-};
-} //namespace gasProfiles
-} //namespace picongpu
+#if( ENABLE_HDF5 == 1 )
+#    include "particles/densityProfiles/FromHDF5Impl.hpp"
+#endif

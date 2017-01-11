@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2017 Rene Widera, Alexander Grund
+ * Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,14 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "particles/gasProfiles/IProfile.def"
-#include "particles/gasProfiles/FreeFormulaImpl.def"
-#include "particles/gasProfiles/GaussianImpl.def"
-#include "particles/gasProfiles/HomogenousImpl.def"
-#include "particles/gasProfiles/LinearExponentialImpl.def"
-#include "particles/gasProfiles/GaussianCloudImpl.def"
-#include "particles/gasProfiles/SphereFlanksImpl.def"
-#include "particles/gasProfiles/FromHDF5Impl.def"
+
+namespace picongpu
+{
+namespace densityProfiles
+{
+    template<typename T_Base>
+    struct IProfile;
+}
+}
