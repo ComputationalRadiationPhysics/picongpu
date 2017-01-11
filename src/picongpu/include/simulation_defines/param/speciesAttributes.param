@@ -140,7 +140,7 @@ alias(chargeRatio);
 
 /*! alias for particle density ratio
  *
- * density ratio between default density @see `densityConfig.param` SI::DENSITY_SI
+ * density ratio between default density @see `densityConfig.param` SI::BASE_DENSITY_SI
  * and a user defined species
  *
  * default value: 1.0 if unset

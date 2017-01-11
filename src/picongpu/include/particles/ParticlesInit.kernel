@@ -54,11 +54,11 @@ template< typename T_Species, typename T_DensityProfile>
 DINLINE float_X calcRealDensity(T_DensityProfile& densityFunctor,
                                 const DataSpace<simDim>& totalGpuCellIdx)
 {
-    PMACC_CASSERT_MSG(Please_deselect_densityProfileInitMethod_for_your_species_or_set_DENSITY_to_a_value_greater_than_0, ((DENSITY) > 0.0f));
+    PMACC_CASSERT_MSG(Please_deselect_densityProfileInitMethod_for_your_species_or_set_BASE_DENSITY_to_a_value_greater_than_0, ((BASE_DENSITY) > 0.0f));
 
     const float_X densityRatioOfSpecies = traits::GetDensityRatio<T_Species>::type::getValue();
 
-    const float_X value = densityFunctor(totalGpuCellIdx) * DENSITY * densityRatioOfSpecies;
+    const float_X value = densityFunctor(totalGpuCellIdx) * BASE_DENSITY * densityRatioOfSpecies;
     return value;
 }
 

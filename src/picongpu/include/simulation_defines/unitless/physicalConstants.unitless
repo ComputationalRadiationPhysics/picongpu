@@ -35,7 +35,7 @@ namespace picongpu
         /** Number of particles per makro particle (= macro particle weighting)
          *  unit: none */
         constexpr float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE =
-            float_64( SI::GAS_DENSITY_SI * SI::CELL_WIDTH_SI * SI::CELL_HEIGHT_SI * SI::CELL_DEPTH_SI ) /
+            float_64( SI::BASE_DENSITY_SI * SI::CELL_WIDTH_SI * SI::CELL_HEIGHT_SI * SI::CELL_DEPTH_SI ) /
             float_64( particles::TYPICAL_PARTICLES_PER_CELL );
     }
 

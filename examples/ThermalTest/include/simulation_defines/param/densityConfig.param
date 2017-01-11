@@ -36,7 +36,7 @@ namespace SI
      *
      * unit: ELEMENTS/m^3
      */
-    constexpr float_64 DENSITY_SI = 1.571e24;
+    constexpr float_64 BASE_DENSITY_SI = 1.571e24;
 }
 
 namespace densityProfiles

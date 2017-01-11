@@ -38,7 +38,7 @@ namespace SI
      *
      * unit: ELEMENTS/m^3
      */
-    constexpr float_64 DENSITY_SI = 1.e25;
+    constexpr float_64 BASE_DENSITY_SI = 1.e25;
 }
 
 namespace densityProfiles
@@ -111,8 +111,8 @@ namespace densityProfiles
 
         /** Parameters for the linear slope:
          *  For Y <= gasYMax_SI:
-         *    \rho / GAS_DENSITY = A * Y + B
-         *                       = element [0.0; 1.0]
+         *    \rho / BASE_DENSITY = A * Y + B
+         *                        = element [0.0; 1.0]
          *  unit for A: 1/m
          *  unit for B: none
          */
@@ -238,7 +238,7 @@ namespace densityProfiles
     {
         /**
          * This formula uses SI quantities only
-         * The profile will be multiplied by DENSITY_SI.
+         * The profile will be multiplied by BASE_DENSITY_SI.
          *
          * @param position_SI total offset including all slides [in meter]
          * @param cellSize_SI cell sizes [in meter]
