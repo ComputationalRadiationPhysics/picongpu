@@ -28,24 +28,19 @@ namespace particles
 namespace manipulators
 {
 
-/* Re-scale the weighting of a cloned species by numberOfProtons
+/* Re-scale the weighting of a cloned species by densityRatio
  *
- * When derive species from each other, the new
+ * When deriving species from each other, the new
  * species "inherits" the macro-particle weighting
  * of the first one.
  * This functor can be used to manipulate the weighting
- * of the new species' macro particles to be a multiplied by
- * the number of protons on the initial species.
+ * of the new species' macro particles to satisfy the
+ * input densityRatio of it.
  *
- * As an example, this comes useful when initializing a quasi-neutral,
- * pre-ionized plasma of ions and electrons. Electrons can be created
- * from ions via deriving and increasing their weight to avoid simulating
- * multiple macro electrons per macro ion (with Z>1).
- *
- * note: needs the atomicNumbers flag on the initial species,
- *       used by the GetAtomicNumbers trait.
+ * note: needs the densityRatio flag on both species,
+ *       used by the GetDensityRatio trait.
  */
-struct ProtonTimesWeightingImpl;
+struct DensityWeighting;
 
 } //namespace manipulators
 } //namespace particles

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "particles/manipulators/RatioWeightingImpl.def"
+#include "particles/manipulators/DensityWeighting.def"
 #include "particles/traits/GetDensityRatio.hpp"
 
 #include "simulation_defines.hpp"
@@ -33,16 +33,16 @@ namespace particles
 namespace manipulators
 {
 
-struct RatioWeightingImpl
+struct DensityWeighting
 {
 
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef RatioWeightingImpl type;
+        typedef DensityWeighting type;
     };
 
-    HINLINE RatioWeightingImpl(uint32_t)
+    HINLINE DensityWeighting(uint32_t)
     {
     }
 

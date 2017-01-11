@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "particles/manipulators/ProtonTimesWeightingImpl.def"
+#include "particles/manipulators/ProtonTimesWeighting.def"
 #include "particles/traits/GetAtomicNumbers.hpp"
 
 #include "simulation_defines.hpp"
@@ -33,16 +33,16 @@ namespace particles
 namespace manipulators
 {
 
-struct ProtonTimesWeightingImpl
+struct ProtonTimesWeighting
 {
 
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef ProtonTimesWeightingImpl type;
+        typedef ProtonTimesWeighting type;
     };
 
-    HINLINE ProtonTimesWeightingImpl(uint32_t)
+    HINLINE ProtonTimesWeighting(uint32_t)
     {
     }
 
