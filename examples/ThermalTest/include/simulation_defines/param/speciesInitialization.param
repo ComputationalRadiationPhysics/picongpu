@@ -83,10 +83,24 @@ namespace particles
  * the functors are called in order (from first to last functor)
  */
 typedef mpl::vector<
-    CreateGas<gasProfiles::Homogenous, startPosition::Random, PIC_Electrons>,
-    DeriveSpecies<PIC_Electrons, PIC_Ions>,
-    Manipulate<manipulators::AddTemperature, PIC_Electrons>,
-    Manipulate<manipulators::AddTemperature, PIC_Ions>
+    CreateGas<
+        gasProfiles::Homogenous,
+        startPosition::Random,
+        PIC_Ions
+    >,
+    ManipulateDeriveSpecies<
+        manipulators::ProtonTimesWeighting,
+        PIC_Ions,
+        PIC_Electrons
+    >,
+    Manipulate<
+        manipulators::AddTemperature,
+        PIC_Electrons
+    >,
+    Manipulate<
+        manipulators::AddTemperature,
+        PIC_Ions
+    >
 > InitPipeline;
 
 } /* namespace particles */

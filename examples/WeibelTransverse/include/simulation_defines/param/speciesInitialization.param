@@ -83,11 +83,33 @@ namespace particles
  * the functors are called in order (from first to last functor)
  */
 typedef mpl::vector<
-    CreateGas<gasProfiles::Homogenous, startPosition::Quiet, PIC_Ions>,
-    ManipulateDeriveSpecies<manipulators::RatioWeightingImpl,PIC_Ions,PIC_Electrons>,
-    Manipulate<manipulators::AssignZDriftIons, PIC_Ions>,
-    Manipulate<manipulators::AssignZDriftElectrons, PIC_Electrons>,
-    Manipulate<manipulators::AddTemperature, PIC_Electrons>
+    CreateGas<
+        gasProfiles::Homogenous,
+        startPosition::Quiet,
+        PIC_Ions
+    >,
+    ManipulateDeriveSpecies<
+        /* make sure in speciesDefinition.param that
+         *   densityRatio * chargeRatio
+         * of electrons and ions is quasi neutral!
+         * alternatively, use manipulators::ProtonTimesWeighting
+         */
+        manipulators::DensityWeighting,
+        PIC_Ions,
+        PIC_Electrons
+    >,
+    Manipulate<
+        manipulators::AssignZDriftIons,
+        PIC_Ions
+    >,
+    Manipulate<
+        manipulators::AssignZDriftElectrons,
+        PIC_Electrons
+    >,
+    Manipulate<
+        manipulators::AddTemperature,
+        PIC_Electrons
+    >
 > InitPipeline;
 
 } /* namespace particles */
