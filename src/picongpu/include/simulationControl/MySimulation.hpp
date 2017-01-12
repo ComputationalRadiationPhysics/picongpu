@@ -34,6 +34,9 @@
 #include "simulationControl/SimulationHelper.hpp"
 #include "simulation_defines.hpp"
 
+#include "particles/bremsstrahlung/ScaledSpectrum.hpp"
+#include "particles/bremsstrahlung/PhotonEmissionAngle.hpp"
+
 #include "eventSystem/EventSystem.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "fields/LaserPhysics.hpp"
@@ -267,7 +270,6 @@ public:
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
-
         __delete(rngFactory);
     }
 
@@ -302,11 +304,13 @@ public:
         /* define a type that contains the number of `boost::true_type`s when `::value` is accessed */
         typedef typename boost::mpl::count<VectorIonizersUsingRNG, boost::true_type>::type NumReqRNGs;
 
-        // Initialize random number generator and synchrotron functions, if there are synchrotron photon species
+        // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
+        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+                                                                bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
 
-        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value || NumReqRNGs::value)
+        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value || !bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value || NumReqRNGs::value)
         {
             // create factory for the random number generator
             this->rngFactory = new RNGFactory(Environment<simDim>::get().SubGrid().getLocalDomain().size);
@@ -319,6 +323,16 @@ public:
         if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
         {
             this->synchrotronFunctions.init();
+        }
+
+        // Initialize bremsstrahlung lookup tables, if there are species containing bremsstrahlung photons
+        if(!bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value)
+        {
+            ForEach<AllBremsstrahlungPhotonsSpecies,
+                particles::bremsstrahlung::FillScaledSpectrumMap<bmpl::_1> > fillScaledSpectrumMap;
+            fillScaledSpectrumMap(forward(this->scaledBremsstrahlungSpectrumMap));
+
+            this->bremsstrahlungPhotonAngle.init();
         }
 
         ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > createSpeciesMemory;
@@ -483,6 +497,24 @@ public:
                 MakeIdentifier<bmpl::_1> > synchrotronRadiation;
         synchrotronRadiation(forward(particleStorage), cellDescription, currentStep, this->synchrotronFunctions);
 
+        /* Bremsstrahlung */
+        typedef typename PMacc::particles::traits::FilterByFlag
+        <
+            VectorAllSpecies,
+            bremsstrahlungIons<>
+        >::type VectorSpeciesWithBremsstrahlung;
+        ForEach
+        <
+            VectorSpeciesWithBremsstrahlung,
+            particles::CallBremsstrahlung<bmpl::_1>,
+            MakeIdentifier<bmpl::_1>
+        > particleBremsstrahlung;
+        particleBremsstrahlung(
+            forward(particleStorage),
+            cellDescription,
+            currentStep,
+            this->scaledBremsstrahlungSpectrumMap,
+            this->bremsstrahlungPhotonAngle);
 
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;
@@ -650,6 +682,11 @@ protected:
 
     LaserPhysics *laser;
 
+    // creates lookup tables for the bremsstrahlung effect
+    // map<atomic number, scaled bremsstrahlung spectrum>
+    std::map<float_X, particles::bremsstrahlung::ScaledSpectrum> scaledBremsstrahlungSpectrumMap;
+    particles::bremsstrahlung::GetPhotonAngle bremsstrahlungPhotonAngle;
+
     // Synchrotron functions (used in synchrotronPhotons module)
     particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
 
@@ -680,3 +717,5 @@ protected:
 
 #include "fields/Fields.tpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.tpp"
+#include "particles/bremsstrahlung/Bremsstrahlung.tpp"
+#include "particles/bremsstrahlung/ScaledSpectrum.tpp"
