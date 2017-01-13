@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2017 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch
+ * Copyright 2013-2017 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -73,6 +73,10 @@ constexpr float_64 PULSE_INIT = 20.0;
 
 /* laser phase shift (no shift: 0.0) */
 constexpr float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+
+/* Use only the 0th Laguerremode for a standard Gaussian */
+constexpr uint32_t MODENUMBER = 0;
+PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
 
 enum PolarisationType
 {

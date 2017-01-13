@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2017 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch
+ * Copyright 2013-2017 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -73,6 +73,13 @@ namespace picongpu
 
         /* laser phase shift (no shift: 0.0) */
         constexpr float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
+
+        /* Use only the 0th Laguerremode for a standard Gaussian */
+        constexpr uint32_t MODENUMBER = 0;
+        PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
+        /* This is just an example for a more complicated set of Laguerre modes. */
+        //constexpr uint32_t MODENUMBER = 12;
+        //PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, -1.0, 0.0300519, 0.319461, -0.23783, 0.0954839, 0.0318653, -0.144547, 0.0249208, -0.111989, 0.0434385, -0.030038, -0.00896321, -0.0160788);
 
         enum PolarisationType
         {
