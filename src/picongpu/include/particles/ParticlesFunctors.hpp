@@ -30,12 +30,13 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
 
-
 #include "communication/AsyncCommunication.hpp"
 #include "particles/traits/GetIonizer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/GetPhotonCreator.hpp"
+#include "particles/traits/ResolveAliasFromSpecies.hpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "particles/bremsstrahlung/Bremsstrahlung.hpp"
 #include "particles/creation/creation.hpp"
 
 namespace picongpu
@@ -317,6 +318,62 @@ struct CallIonization
     }
 
 }; // struct CallIonization
+
+/** Handles the bremsstrahlung effect for electrons on ions.
+ *
+ * \tparam T_ElectronSpeciesName name of electron species
+ */
+template<typename T_ElectronSpeciesName>
+struct CallBremsstrahlung
+{
+    typedef T_ElectronSpeciesName ElectronSpeciesName;
+    typedef typename ElectronSpeciesName::type ElectronSpecies;
+
+    typedef typename PMacc::particles::traits::ResolveAliasFromSpecies<
+        ElectronSpecies,
+        bremsstrahlungIons<>
+    >::type IonSpecies;
+    typedef typename PMacc::particles::traits::ResolveAliasFromSpecies<
+        ElectronSpecies,
+        bremsstrahlungPhotons<>
+    >::type PhotonSpecies;
+    typedef bremsstrahlung::Bremsstrahlung<IonSpecies, ElectronSpecies, PhotonSpecies> BremsstrahlungFunctor;
+
+    /** Functor implementation
+     *
+     * \tparam T_StorageStuple contains info about the particle species
+     * \tparam T_CellDescription contains the number of blocks and blocksize
+     *                           that is later passed to the kernel
+     * \param tuple an n-tuple containing the type-info of multiple particle species
+     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param currentStep the current time step
+     */
+    template<typename T_StorageTuple, typename T_CellDescription, typename ScaledSpectrumMap>
+    HINLINE void operator()(
+                            T_StorageTuple& tuple,
+                            T_CellDescription* cellDesc,
+                            const uint32_t currentStep,
+                            const ScaledSpectrumMap& scaledSpectrumMap,
+                            const bremsstrahlung::GetPhotonAngle& photonAngle) const
+    {
+        /* alias for pointer on source species */
+        auto electronSpeciesPtr = tuple[ElectronSpeciesName()];
+        /* alias for pointer on destination species */
+        auto photonSpeciesPtr = tuple[typename MakeIdentifier<PhotonSpecies>::type()];
+
+        const float_X targetZ = GetAtomicNumbers<IonSpecies>::type::numberOfProtons;
+
+        using namespace bremsstrahlung;
+        BremsstrahlungFunctor bremsstrahlungFunctor(
+            scaledSpectrumMap.at(targetZ).getScaledSpectrumFunctor(),
+            scaledSpectrumMap.at(targetZ).getStoppingPowerFunctor(),
+            photonAngle.getPhotonAngleFunctor(),
+            currentStep);
+
+        creation::createParticlesFromSpecies(*electronSpeciesPtr, *photonSpeciesPtr, bremsstrahlungFunctor, cellDesc);
+    }
+
+}; // struct CallBremsstrahlung
 
 /** Handles the synchrotron radiation emission of photons from electrons
  *

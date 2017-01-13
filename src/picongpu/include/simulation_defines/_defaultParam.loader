@@ -40,6 +40,7 @@
 #include "simulation_defines/param/gasConfig.param"
 #include "simulation_defines/param/particleConfig.param"
 #include "simulation_defines/param/synchrotronPhotons.param"
+#include "simulation_defines/param/bremsstrahlung.param"
 #include "simulation_defines/param/species.param"
 #include "simulation_defines/param/speciesDefinition.param"
 #include "simulation_defines/param/speciesInitialization.param"
