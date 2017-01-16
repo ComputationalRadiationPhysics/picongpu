@@ -302,6 +302,26 @@ struct KernelFillGapsLastFrame
 
 struct KernelFillGaps
 {
+    template
+    <
+        size_t TileSize,
+        bool has_no_gaps = true,
+        typename T_CellEntryPoint,
+        typename T_CellCount,
+        typename T_FramePtr,
+        typename T_FrameNr
+    >
+    DINLINE static void updateCellsForOneFrame(T_CellEntryPoint& cellEntryPoint, T_CellCount& cellCount, T_FramePtr& frame, T_FrameNr& frameNr)
+    {
+        if (has_no_gaps || frame[threadIdx.x][multiMask_] == 1)
+        {
+            auto myID = threadIdx.x + frameNr * TileSize;
+            auto myCell = frame[threadIdx.x][localCellIdx_];
+            //\TODO: Add to list
+        }
+        __syncthreads( );
+    }
+
     template<class ParBox, class Mapping>
     DINLINE void operator()( ParBox pb, Mapping mapper ) const
     {
@@ -324,12 +344,23 @@ struct KernelFillGaps
         PMACC_SMEM( particleIndices_sh, memory::Array< int, TileSize> );
         PMACC_SMEM( counterGaps, int );
         PMACC_SMEM( counterParticles, int );
+        PMACC_SMEM( frameNr, int );
 
+        //entry points for all particles in a cell
+        PMACC_SMEM( cellEntryPoint_sh, memory::Array< uint32_t, TileSize> );
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            cellEntryPoint_sh[i * blockDim.x + threadIdx.x] = 0xffffffff; // "-1" == not set
+        //number of particles in a cell
+        PMACC_SMEM( cellCount_sh, memory::Array< uint32_t, TileSize> );
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            cellCount_sh[i * blockDim.x + threadIdx.x] = 0;
+        __syncthreads( );
 
         if ( threadIdx.x == 0 )
         {
             firstFrame = pb.getFirstFrame( DataSpace<Dim > (superCellIdx) );
             lastFrame = pb.getLastFrame( DataSpace<Dim > (superCellIdx) );
+            frameNr = 0;
         }
         __syncthreads( );
 
@@ -355,9 +386,11 @@ struct KernelFillGaps
 
             if ( counterGaps == 0 )
             {
+                updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
                 if ( threadIdx.x == 0 )
                 {
                     firstFrame = pb.getNextFrame( firstFrame );
+                    frameNr++;
                 }
                 __syncthreads( ); //wait control thread search new frame
                 continue; //check next frame
@@ -384,12 +417,21 @@ struct KernelFillGaps
                 parSrc[multiMask_] = 0;
             }
             __syncthreads( );
+            if ( counterGaps < counterParticles )
+                updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
+            else if ( counterGaps == counterParticles )
+            {
+                if ( lastFrame.isValid( ) && lastFrame != firstFrame )
+                    updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
+            }
             if ( threadIdx.x == 0 )
             {
                 if ( counterGaps < counterParticles )
                 {
                     //any gap in the first frame is filled
+                    updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
                     firstFrame = pb.getNextFrame( firstFrame );
+                    frameNr++;
                 }
                 else if ( counterGaps > counterParticles )
                 {
@@ -401,12 +443,16 @@ struct KernelFillGaps
                     lastFrame = getPreviousFrameAndRemoveLastFrame( lastFrame, pb, superCellIdx );
                     if ( lastFrame.isValid( ) && lastFrame != firstFrame )
                     {
+                        updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
                         firstFrame = pb.getNextFrame( firstFrame );
+                        frameNr++;
                     }
                 }
             }
             __syncthreads( );
         }
+        updateCellsForOneFrame<TileSize,false>(cellEntryPoint_sh, cellCount_sh, lastFrame, frameNr);
+        //\TODO: Save cellEntryPoint_sh and cellCount_sh as framelist attribute
     }
 };
 
