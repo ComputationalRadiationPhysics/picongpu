@@ -57,7 +57,7 @@ struct DensityWeighting
      *    densityRatio * BASE_DENSITY * profile)
      *
      * This is useful when the profile and number of macro particles for both species
-     * shall be the same and the initialization of another profile via `CreateGas`
+     * shall be the same and the initialization of another profile via `CreateDensity`
      * would be expensive (or one wants to keep the exact same position while deriving).
      *
      * \tparam T_DesParticle type of the particle species with weighting to manipulate
