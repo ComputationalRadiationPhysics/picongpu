@@ -63,6 +63,11 @@ value_identifier(float3_X,momentumPrev1,float3_X::create(0.));
 value_identifier(float_X, weighting, 0.0);
 /** use this particle for radiation diagnostics */
 value_identifier(bool, radiationFlag, false);
+/** offset from current particle to next particle in the same cell in units of
+ *  of frame position
+ *  - used for in-cell sorting and particle-particle (e.g. collisional) methods
+ */
+value_identifier(uint32_t, inCellOffset, 0);
 
 /** number of electrons bound to the atom / ion
  *
