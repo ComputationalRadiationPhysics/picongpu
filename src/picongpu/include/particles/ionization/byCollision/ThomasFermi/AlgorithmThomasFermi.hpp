@@ -56,7 +56,6 @@ namespace ionization
      */
     struct AlgorithmThomasFermi
     {
-
         /** Functor implementation
          *
          * \tparam DensityType type of number
@@ -66,10 +65,11 @@ namespace ionization
          * \param density number density value
          * \param kinEnergyDensity kinetic energy density value
          * \param parentIon particle instance to be ionized
+         * \param randNr random number
          */
         template<typename KinEnergyDensityType, typename DensityType, typename ParticleType >
         HDINLINE void
-        operator()( const KinEnergyDensityType kinEnergyDensity, const DensityType density, ParticleType& parentIon )
+        operator()( const KinEnergyDensityType kinEnergyDensity, const DensityType density, ParticleType& parentIon, float_X randNr )
         {
 
             /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU units */
@@ -108,11 +108,11 @@ namespace ionization
                 float_64 TFA4_temp = TFA4;
                 float_64 TFBeta_temp = TFBeta;
 
-                float_64   A = TFA1 * math::pow(T_0,TFA2_temp) + TFA3 * math::pow(T_0,TFA4_temp);
+                float_64 A = TFA1 * math::pow(T_0,TFA2_temp) + TFA3 * math::pow(T_0,TFA4_temp);
 
-                float_64   B = -math::exp(TFB0 + TFB1*T_F + TFB2*math::pow(T_F,float_64(7.)));
+                float_64 B = -math::exp(TFB0 + TFB1*T_F + TFB2*math::pow(T_F,float_64(7.)));
 
-                float_64   C = TFC1 * T_F + TFC2;
+                float_64 C = TFC1 * T_F + TFC2;
 
                 /** requires mass density in g/cm^3
                  * @TODO relocate constants to param file or leave out and calculate unitless
@@ -121,21 +121,29 @@ namespace ionization
                 float_64 const convM3ToCM3 = 1.e6;
 
                 float_64 massDensity = density * densityUnit * massNumber / nAvogadro / convM3ToCM3;
-                float_64   R = massDensity/(protonNumber * massNumber);
+                float_64 R = massDensity/(protonNumber * massNumber);
 
                 float_64 Q_1 = A * math::pow(R,B);
 
-                float_64   Q = math::pow(math::pow(R,C) + math::pow(Q_1,C), float_64(1.)/C);
+                float_64 Q = math::pow(math::pow(R,C) + math::pow(Q_1,C), float_64(1.)/C);
 
-                float_64  x = TFAlpha * math::pow(Q,TFBeta_temp);
+                float_64 x = TFAlpha * math::pow(Q,TFBeta_temp);
 
                 /* Thomas-Fermi average ionization state */
-                float_X ZStar = static_cast<float_X>(protonNumber * x / (float_64(1.) + x + math::sqrt(float_64(1.) + float_64(2.)*x)));
+                float_64 ZStar = protonNumber * x / (float_64(1.) + x + math::sqrt(float_64(1.) + float_64(2.)*x));
 
-                /** determine the new number of bound electrons from the TF ionization state by rounding to nearest charge state
+                /* integral part of the charge state */
+                float_64 intZStar;
+                /* fractional part of the charge state */
+                float_X fracZStar = static_cast<float_X>(math::modf(ZStar,&intZStar));
+
+                /* determine charge state */
+                float_X chargeState = static_cast<float_X>(intZStar) + float_X(1.0)*(randNr < fracZStar);
+
+                /** determine the new number of bound electrons from the TF ionization state
                  * @TODO introduce partial macroparticle ionization / ionization distribution at some point
                  */
-                float_X newBoundElectrons = protonNumber - float_X(math::float2int_rn(ZStar));
+                float_X newBoundElectrons = protonNumber - chargeState;
                 /* safety check to avoid double counting since recombination is not yet implemented */
                 if (newBoundElectrons < parentIon[boundElectrons_])
                     /* update the particle attribute only if more free electrons are to be created */

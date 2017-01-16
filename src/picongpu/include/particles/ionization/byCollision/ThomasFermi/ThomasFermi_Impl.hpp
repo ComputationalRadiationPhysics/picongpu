@@ -20,8 +20,11 @@
 
 #pragma once
 
+#include <boost/type_traits/integral_constant.hpp>
+
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
+#include "traits/UsesRNG.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "fields/FieldTmp.hpp"
@@ -33,8 +36,26 @@
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "memory/boxes/DataBox.hpp"
 
+#include "particles/ionization/ionizationMethods.hpp"
+
+#include "random/methods/XorMin.hpp"
+#include "random/distributions/Uniform.hpp"
+#include "random/RNGProvider.hpp"
+
 namespace picongpu
 {
+namespace traits
+{
+    /** specialization of the UsesRNG trait
+     * --> ionization module uses random number generation
+     */
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
+    struct UsesRNG<particles::ionization::ThomasFermi_Impl<T_IonizationAlgorithm, T_DestSpecies, T_SrcSpecies> > :
+    public boost::true_type
+    {
+    };
+} // namespace traits
+
 namespace particles
 {
 namespace ionization
@@ -47,7 +68,7 @@ namespace ionization
      * \tparam T_DestSpecies electron species to be created
      * \tparam T_SrcSpecies particle species that is ionized
      */
-    template<typename T_DestSpecies, typename T_SrcSpecies>
+    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
     struct ThomasFermi_Impl
     {
 
@@ -74,12 +95,16 @@ namespace ionization
 
         BlockArea BlockDescription;
 
-
-
         private:
 
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
-            typedef particles::ionization::AlgorithmThomasFermi IonizationAlgorithm;
+            typedef T_IonizationAlgorithm IonizationAlgorithm;
+
+            /* random number generator */
+            typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
+            typedef PMacc::random::distributions::Uniform<float> Distribution;
+            typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
+            RandomGen randomGen;
 
             typedef MappingDesc::SuperCellSize TVec;
 
@@ -108,9 +133,11 @@ namespace ionization
              */
             typedef typename particleToGrid::CreateEnergyDensityOperation<T_DestSpecies>::type::Solver EnergyDensitySolver;
 
+
+
         public:
-            /* host constructor */
-            ThomasFermi_Impl(const uint32_t currentStep)
+            /* host constructor initializing member : random number generator */
+            ThomasFermi_Impl(const uint32_t currentStep) : randomGen(RNGFactory::createRandom<Distribution>())
             {
                 /* create handle for access to host and device data */
                 DataConnector &dc = Environment<>::get().DataConnector();
@@ -165,6 +192,7 @@ namespace ionization
              */
             DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
             {
+
                 /* caching of density and "temperature" fields */
                 cachedRho = CachedBox::create < 0, ValueType_Rho > (BlockArea());
                 cachedEne = CachedBox::create < 1, ValueType_Ene > (BlockArea());
@@ -189,6 +217,9 @@ namespace ionization
 
                 /* wait for shared memory to be initialized */
                 __syncthreads();
+
+                /* initialize random number generator with the local cell index in the simulation */
+                this->randomGen.init(localCellOffset);
             }
 
             /** Functor implementation
@@ -207,7 +238,6 @@ namespace ionization
                 const int particleCellIdx = particle[localCellIdx_];
                 /* multi-dim coordinate of the local cell inside the super cell */
                 DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
-
                 /* interpolation of density */
                 const fieldSolver::numericalCellType::traits::FieldPosition<FieldTmp> fieldPosRho;
                 ValueType_Rho densityV = Field2ParticleInterpolation()
@@ -229,7 +259,7 @@ namespace ionization
                 IonizationAlgorithm ionizeAlgo;
                 ionizeAlgo(
                     kinEnergyDensity, density,
-                    particle
+                    particle, this->randomGen()
                     );
 
                 /* determine number of new macro electrons to be created */

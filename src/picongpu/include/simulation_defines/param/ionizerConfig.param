@@ -49,6 +49,7 @@
 #pragma once
 
 #include "particles/ionization/byField/fieldIonizationCalc.def"
+#include "particles/ionization/byCollision/collisionalIonizationCalc.def"
 
 
 namespace picongpu

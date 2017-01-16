@@ -20,3 +20,4 @@
 #pragma once
 
 #include "particles/ionization/byField/fieldIonizationCalc.hpp"
+#include "particles/ionization/byCollision/collisionalIonizationCalc.hpp"
