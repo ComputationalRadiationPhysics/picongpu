@@ -24,6 +24,7 @@
 
 
 #include "pmacc_types.hpp"
+#include "memory/Array.hpp"
 
 
 namespace PMacc
@@ -55,7 +56,7 @@ namespace shared
         DINLINE T_Type &
         get()
         {
-            __shared__ uint8_t smem[ sizeof(T_Type) ];
+            __shared__ alignas( alignof( T_Type ) ) uint8_t smem[ sizeof( T_Type ) ];
             return *( reinterpret_cast< T_Type* >( smem ) );
         }
     };
