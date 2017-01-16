@@ -18,16 +18,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "simulation_defines.hpp"
 #include "simulationControl/MovingWindow.hpp"
 
+
 namespace picongpu
 {
-
-namespace gasProfiles
+namespace densityProfiles
 {
 
 template<typename T_ParamClass>
@@ -45,7 +44,7 @@ struct FreeFormulaImpl : public T_ParamClass
     {
     }
 
-    /** Calculate the gas density
+    /** Calculate the normalized density
      *
      * @param totalCellOffset total offset including all slides [in cells]
      */
@@ -57,7 +56,6 @@ struct FreeFormulaImpl : public T_ParamClass
 
         return ParamClass::operator()(position_SI, cellSize_SI);
     }
-
 };
-} //namespace gasProfiles
-} //namespace picongpu
+}
+}

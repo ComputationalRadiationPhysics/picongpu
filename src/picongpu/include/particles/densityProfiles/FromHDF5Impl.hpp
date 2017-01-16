@@ -18,7 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "static_assert.hpp"
@@ -31,10 +30,10 @@
 
 #include <splash/splash.h>
 
+
 namespace picongpu
 {
-
-namespace gasProfiles
+namespace densityProfiles
 {
 
 template<typename T_ParamClass>
@@ -59,7 +58,7 @@ struct FromHDF5Impl : public T_ParamClass
         totalGpuOffset.y( ) += numSlides * localCells.y( );
     }
 
-    /** Calculate the gas density from HDF5 file
+    /** Calculate the normalized density from HDF5 file
      *
      * @param totalCellOffset total offset including all slides [in cells]
      */
@@ -239,7 +238,6 @@ private:
 
     PMACC_ALIGN(deviceDataBox,FieldTmp::DataBoxType);
     PMACC_ALIGN(totalGpuOffset,DataSpace<simDim>);
-
 };
-} //namespace gasProfiles
-} //namespace picongpu
+}
+}

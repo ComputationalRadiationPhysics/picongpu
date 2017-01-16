@@ -51,13 +51,13 @@ struct DensityWeighting
      * While deriving a particle (particleDes) from another (T_SrcParticle), one
      * can afterward directly normalize the weighting back to the intended density:
      * - divide weighting with the `T_SrcParticle`'s densityRatio
-     *   (to get macro particle weighting according to reference GAS_DENSITY * profile
+     *   (to get macro particle weighting according to reference BASE_DENSITY * profile
      *    at this specific point in space & time)
      * - multiply weighting with own densityRatio (to get this species'
-     *    densityRatio * GAS_DENSITY * profile)
+     *    densityRatio * BASE_DENSITY * profile)
      *
      * This is useful when the profile and number of macro particles for both species
-     * shall be the same and the initialization of another profile via `CreateGas`
+     * shall be the same and the initialization of another profile via `CreateDensity`
      * would be expensive (or one wants to keep the exact same position while deriving).
      *
      * \tparam T_DesParticle type of the particle species with weighting to manipulate

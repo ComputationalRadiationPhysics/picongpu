@@ -18,69 +18,62 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "simulationControl/MovingWindow.hpp"
+
 
 namespace picongpu
 {
-
-namespace gasProfiles
+namespace densityProfiles
 {
 
 template<typename T_ParamClass>
-struct SphereFlanksImpl : public T_ParamClass
+struct LinearExponentialImpl : public T_ParamClass
 {
     typedef T_ParamClass ParamClass;
 
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef SphereFlanksImpl<ParamClass> type;
+        typedef LinearExponentialImpl<ParamClass> type;
     };
 
-    HINLINE SphereFlanksImpl(uint32_t currentStep)
+    HINLINE LinearExponentialImpl(uint32_t currentStep)
     {
+
     }
 
-    /** Calculate the gas density
+    /* Calculate the normalized density
      *
      * @param totalCellOffset total offset including all slides [in cells]
      */
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
-        const float_64 unit_length = UNIT_LENGTH;
         const float_X vacuum_y = float_X(ParamClass::vacuumCellsY) * cellSize.y();
-        const floatD_X center = precisionCast<float_32>(ParamClass::center_SI / unit_length);
-        const float_X r = ParamClass::r_SI / unit_length;
-        const float_X ri = ParamClass::ri_SI / unit_length;
-        const float_X exponent = ParamClass::exponent_SI * unit_length;
-
+        const float_X gas_a = ParamClass::gasA_SI * UNIT_LENGTH;
+        const float_X gas_d = ParamClass::gasD_SI * UNIT_LENGTH;
+        const float_X gas_y_max = ParamClass::gasYMax_SI / UNIT_LENGTH;
 
         const floatD_X globalCellPos(
                                      precisionCast<float_X>(totalCellOffset) *
                                      cellSize.shrink<simDim>()
                                      );
+        float_X density = float_X(0.0);
 
-        if (globalCellPos.y() < vacuum_y) return float_X(0.0);
+        if (globalCellPos.y() < vacuum_y) return density;
 
-        const float_X distance = math::abs(globalCellPos - center);
+        if (globalCellPos.y() <= gas_y_max) // linear slope
+            density = gas_a * globalCellPos.y() + ParamClass::gasB;
+        else // exponential slope
+            density = math::exp((globalCellPos.y() - gas_y_max) * gas_d);
 
-        /* "shell": inner radius */
-        if (distance < ri)
-            return float_X(0.0);
-            /* "hard core" */
-        else if (distance <= r)
-            return float_X(1.0);
+        // avoid < 0 densities for the linear slope
+        if (density < float_X(0.0))
+            density = float_X(0.0);
 
-        /* "soft exp. flanks"
-         *   note: by definition (return, see above) the
-         *         argument [ r - distance ] will be element of (-inf, 0) */
-        else
-            return math::exp((r - distance) * exponent);
+        return density;
     }
 };
-} //namespace gasProfiles
-} //namespace picongpu
+}
+}

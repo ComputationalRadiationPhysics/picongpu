@@ -1,5 +1,6 @@
 /**
- * Copyright 2014-2017 Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -18,17 +19,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
+
+#include "particles/densityProfiles/profiles.def"
+
 
 namespace picongpu
 {
-
-namespace gasProfiles
+namespace SI
 {
+    /** Base density in particles per m^3 in the density profiles.
+     *
+     * This is often taken as reference maximum density in normalized profiles.
+     * Individual particle species can define a `densityRatio` flag relative
+     * to this value.
+     *
+     * unit: ELEMENTS/m^3
+     */
+    constexpr float_64 BASE_DENSITY_SI = 1.e25;
+}
 
-template<typename T_ParamClass>
-struct FreeFormulaImpl;
-
-} //namespace gasProfiles
-} //namespace picongpu
+namespace densityProfiles
+{
+    /* definition of homogenous density profile */
+    typedef HomogenousImpl Homogenous;
+}
+}

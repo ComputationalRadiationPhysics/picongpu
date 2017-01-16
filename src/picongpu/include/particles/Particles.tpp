@@ -266,17 +266,19 @@ template<
     typename T_Attributes,
     typename T_Flags
 >
-template<typename T_GasFunctor, typename T_PositionFunctor>
+template<typename T_DensityFunctor, typename T_PositionFunctor>
 void
 Particles<
     T_Name,
     T_Attributes,
     T_Flags
->::initGas( T_GasFunctor& gasFunctor,
-                                                T_PositionFunctor& positionFunctor,
-                                                const uint32_t currentStep )
+>::initDensityProfile(
+    T_DensityFunctor& densityFunctor,
+    T_PositionFunctor& positionFunctor,
+    const uint32_t currentStep
+)
 {
-    log<picLog::SIMULATION_STATE > ( "initialize gas profile for species %1%" ) % FrameType::getName( );
+    log<picLog::SIMULATION_STATE > ( "initialize density profile for species %1%" ) % FrameType::getName( );
 
     const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
     const SubGrid<simDim>& subGrid = Environment<simDim>::get( ).SubGrid( );
@@ -288,7 +290,7 @@ Particles<
     AreaMapping<CORE+BORDER,MappingDesc> mapper(this->cellDescription);
     PMACC_KERNEL( KernelFillGridWithParticles< Particles >{} )
         (mapper.getGridDim(), block)
-        ( gasFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ), mapper );
+        ( densityFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ), mapper );
 
 
     this->fillAllGaps( );

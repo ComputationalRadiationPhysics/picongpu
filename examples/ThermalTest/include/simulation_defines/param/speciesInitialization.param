@@ -30,13 +30,13 @@ namespace particles
 /* Available species functors
  *   in src/picongpu/include/particles/InitFunctors.hpp
  *
- * - CreateGas<T_GasFunctor, T_PositionFunctor, T_SpeciesType>
- *     Create particle distribution based on a gas profile and an in-cell
+ * - CreateDensity<T_DensityFunctor, T_PositionFunctor, T_SpeciesType>
+ *     Create particle distribution based on a density profile and an in-cell
  *     positioning.
  *     Fills a particle species (`fillAllGaps()` is called).
- *     @tparam T_GasFunctor      unary lambda functor with gas description,
- *                               \see gasConfig.param
- *                               \example gasProfiles::Homogenous,
+ *     @tparam T_DensityFunctor  unary lambda functor with density description,
+ *                               \see densityConfig.param
+ *                               \example densityProfiles::Homogenous,
  *     @tparam T_PositionFunctor unary lambda functor with position description,
  *                               \see particlesConfig.param
  *                               \example startPosition::Quiet
@@ -83,8 +83,8 @@ namespace particles
  * the functors are called in order (from first to last functor)
  */
 typedef mpl::vector<
-    CreateGas<
-        gasProfiles::Homogenous,
+    CreateDensity<
+        densityProfiles::Homogenous,
         startPosition::Random,
         PIC_Ions
     >,
