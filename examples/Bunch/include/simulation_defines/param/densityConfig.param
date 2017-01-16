@@ -59,17 +59,17 @@ namespace densityProfiles
          */
         (PMACC_C_VALUE(uint32_t, vacuumCellsY, 50))
 
-        /** The central position of the gas distribution
+        /** The central position of the density distribution
          *  unit: meter
          */
         (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.024e-5, 9.072e-5, 1.024e-5))
 
-        /** the distance from gasCenter_SI until the gas density decreases to its 1/e-th part
+        /** the distance from gasCenter_SI until the density decreases to its 1/e-th part
           *  unit: meter */
         (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 6.0e-6, 6.0e-6, 6.0e-6))
     ); /* struct GaussianCloudParam */
 
-    /* definition of gas cloud profile*/
+    /* definition of cloud density profile */
     typedef GaussianCloudImpl<GaussianCloudParam> GaussianCloud;
 }
 }
