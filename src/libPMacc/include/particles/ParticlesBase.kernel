@@ -313,11 +313,14 @@ struct KernelFillGaps
     >
     DINLINE static void updateCellsForOneFrame(T_CellEntryPoint& cellEntryPoint, T_CellCount& cellCount, T_FramePtr& frame, T_FrameNr& frameNr)
     {
-        if (has_no_gaps || frame[threadIdx.x][multiMask_] == 1)
+        auto myParticle = frame[threadIdx.x];
+        if (has_no_gaps || myParticle[multiMask_])
         {
+            //absolute position in frame list
             auto myID = threadIdx.x + frameNr * TileSize;
-            auto myCell = frame[threadIdx.x][localCellIdx_];
-            //\TODO: Add to list
+            auto myCell = myParticle[localCellIdx_];
+            myParticle[picongpu::inCellOffset_] = ::atomicExch(&(cellEntryPoint[myCell]),myID);
+            ::atomicAdd(&(cellCount[myCell]),1);
         }
         __syncthreads( );
     }
@@ -373,7 +376,7 @@ struct KernelFillGaps
                 counterGaps = 0;
                 counterParticles = 0;
             }
-            int localGapIdx = INV_LOC_IDX; //later we cann call localGapIdx < X because X<INV_LOC_IDX
+            int localGapIdx = INV_LOC_IDX; //later we can call localGapIdx < X because X<INV_LOC_IDX
 
             __syncthreads( );
 
@@ -409,7 +412,7 @@ struct KernelFillGaps
                 auto parDestFull = (firstFrame[threadIdx.x]);
                 /*enable particle*/
                 parDestFull[multiMask_] = 1;
-                /* we not update multiMask because copy from mem to mem is to slow
+                /* we not update multiMask because copy from mem to mem is too slow
                  * we have enabled particle explicit */
                 auto parDest = deselect<multiMask>(parDestFull);
                 auto parSrc = (lastFrame[parIdx]);
@@ -452,7 +455,11 @@ struct KernelFillGaps
             __syncthreads( );
         }
         updateCellsForOneFrame<TileSize,false>(cellEntryPoint_sh, cellCount_sh, lastFrame, frameNr);
-        //\TODO: Save cellEntryPoint_sh and cellCount_sh as framelist attribute
+        //Saving shared memory to buffers
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            pb.getCellEntryPoint( DataSpace<Dim > (superCellIdx) )[i * blockDim.x + threadIdx.x] = cellEntryPoint_sh[i * blockDim.x + threadIdx.x];
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            pb.getCellCount( DataSpace<Dim > (superCellIdx) )[i * blockDim.x + threadIdx.x] = cellCount_sh[i * blockDim.x + threadIdx.x];
     }
 };
 

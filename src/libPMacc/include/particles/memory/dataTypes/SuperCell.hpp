@@ -23,6 +23,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "memory/Array.hpp"
 
 namespace PMacc
 {
@@ -31,6 +32,9 @@ template <class TYPE>
 class SuperCell
 {
 public:
+    typedef typename math::CT::volume<typename TYPE::SuperCellSize>::type CellsPerSupercell;
+    typedef memory::Array< uint32_t, CellsPerSupercell::value> CellEntryPointType;
+    typedef memory::Array< uint32_t, CellsPerSupercell::value> CellCountType;
 
     HDINLINE SuperCell() :
     firstFramePtr(NULL),
@@ -87,6 +91,8 @@ private:
 public:
     PMACC_ALIGN(firstFramePtr, TYPE*);
     PMACC_ALIGN(lastFramePtr, TYPE*);
+    PMACC_ALIGN(cellEntryPoint, CellEntryPointType);
+    PMACC_ALIGN(cellCount, CellCountType);
 };
 
 } //end namespace
