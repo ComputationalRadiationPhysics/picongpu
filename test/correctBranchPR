@@ -27,7 +27,6 @@
 #
 # -> only enforced for `master` branch
 #    -> only enforced for mainline repo (not for forks)
-#       -> travis lacks the PRs origin information, so we ask the GitHub API
 #
 # This file needs to be sourced in .travis.yml to work.
 #
@@ -41,7 +40,6 @@ then
 else
 
     mainline_slug="ComputationalRadiationPhysics/picongpu"
-    gh_api="https://api.github.com"
 
     # only enforced for PRs
     if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]
@@ -52,16 +50,11 @@ else
             # only enforced for mainline repo (not for forks)
             if [ "$TRAVIS_REPO_SLUG" == "$mainline_slug" ]
             then
-                # travis lacks the origin information, so we ask the GitHub API
-                # note: we are limited to 60/hr unauthenticated and
-                #       OAUTH + travis encr. var are not possible for PRs from forks
-                pr_json=$(curl -H "Accept:application/json" \
-                               -X GET -s                    \
-                          "$gh_api/repos/$mainline_slug/pulls/$TRAVIS_PULL_REQUEST")
-                pr_slug=$(echo "$pr_json" | jq -r '.head.repo.full_name')
-                if [ "$pr_slug" != "$mainline_slug" ]
+                # origin repo is not our mainline? so it's a PR from a fork!
+                if [ "$TRAVIS_PULL_REQUEST_SLUG" != "$mainline_slug" ]
                 then
-                    pr_author=$(echo "$pr_json" | jq -r '.head.repo.owner.login')
+                    # the PR came from a fork owned by the first part of the slug
+                    pr_author=$(echo "$TRAVIS_PULL_REQUEST_SLUG" | awk -F "/" '{print $1}')
                     pr_branch=$TRAVIS_PULL_REQUEST_BRANCH
                     echo ""
                     echo "Pull request opened to wrong branch!"
