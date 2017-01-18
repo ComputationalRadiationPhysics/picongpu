@@ -1,14 +1,6 @@
 language: cpp
 sudo: false
 
-cache:
-  apt: true
-
-addons:
-  apt:
-    packages:
-      - jq
-
 script:
   #############################################################################
   # Disallow PRs to `ComputationalRadiationPhysics/picongpu` branch `master`  #
