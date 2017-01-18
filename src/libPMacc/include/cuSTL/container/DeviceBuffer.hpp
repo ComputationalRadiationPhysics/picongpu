@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -111,10 +111,10 @@ public:
     template<typename HBuffer>
     HINLINE
     typename boost::enable_if<
-		boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>,
-		DeviceBuffer&
-		>::type
-	operator=(const HBuffer& rhs)
+        boost::is_same<typename HBuffer::memoryTag, allocator::tag::host>,
+        DeviceBuffer&
+        >::type
+    operator=(const HBuffer& rhs)
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename HBuffer::type, Type>::value));
         BOOST_STATIC_ASSERT(HBuffer::dim == T_dim);

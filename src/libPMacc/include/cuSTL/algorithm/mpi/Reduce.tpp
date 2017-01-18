@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Axel Huebl
+ * Copyright 2013-2017 Heiko Burau, Axel Huebl
  *
  * This file is part of libPMacc.
  *
@@ -42,7 +42,7 @@ Reduce<dim>::Reduce(const zone::SphericZone<dim>& p_zone, bool setThisAsRoot) : 
 {
     using namespace math;
 
-    PMACC_AUTO(&con,Environment<dim>::get().GridController());
+    auto& con = Environment<dim>::get().GridController();
 
     typedef std::pair<Int<dim>, bool> PosFlag;
     PosFlag posFlag;

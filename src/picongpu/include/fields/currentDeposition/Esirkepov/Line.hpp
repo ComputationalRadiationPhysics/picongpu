@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -38,6 +38,10 @@ struct Line
 
     type m_pos0;
     type m_pos1;
+
+    DINLINE Line()
+    {
+    }
 
     DINLINE Line(const type& pos0, const type & pos1) : m_pos0(pos0), m_pos1(pos1)
     {

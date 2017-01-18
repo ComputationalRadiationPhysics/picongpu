@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera
+ * Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -24,10 +24,9 @@
 
 #include "pmacc_types.hpp"
 #include "particles/boostExtension/InheritLinearly.hpp"
-#include <boost/utility/result_of.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/mpl/if.hpp>
 #include "traits/HasIdentifier.hpp"
+#include "traits/HasFlag.hpp"
+#include "traits/GetFlagType.hpp"
 #include "compileTime/GetKeyFromAlias.hpp"
 #include "compileTime/conversion/ResolveAliases.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
@@ -40,6 +39,9 @@
 #include "particles/operations/Deselect.hpp"
 #include "particles/operations/SetAttributeToDefault.hpp"
 #include "compileTime/errorHandlerPolicies/ReturnValue.hpp"
+#include <boost/utility/result_of.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/mpl/if.hpp>
 #include <boost/mpl/remove_if.hpp>
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/contains.hpp>
@@ -152,13 +154,13 @@ namespace traits
 {
 
 template<
-typename T_Key,
-typename T_FrameType,
-typename T_ValueTypeSeq
+    typename T_Key,
+    typename T_FrameType,
+    typename T_ValueTypeSeq
 >
 struct HasIdentifier<
-PMacc::Particle< T_FrameType, T_ValueTypeSeq >,
-T_Key
+    PMacc::Particle< T_FrameType, T_ValueTypeSeq >,
+    T_Key
 >
 {
 private:
@@ -176,6 +178,29 @@ public:
 
     typedef bmpl::contains<ValueTypeSeq, SolvedAliasName> type;
 };
+
+template<
+    typename T_Key,
+    typename T_FrameType,
+    typename T_ValueTypeSeq
+>
+struct HasFlag<
+    PMacc::Particle<T_FrameType, T_ValueTypeSeq>,
+    T_Key
+>: public HasFlag<T_FrameType, T_Key>
+{};
+
+template<
+    typename T_Key,
+    typename T_FrameType,
+    typename T_ValueTypeSeq
+>
+struct GetFlagType<
+    PMacc::Particle<T_FrameType, T_ValueTypeSeq>,
+    T_Key
+>: public GetFlagType<T_FrameType, T_Key>
+{};
+
 } //namespace traits
 
 namespace particles

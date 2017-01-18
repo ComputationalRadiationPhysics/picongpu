@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Richard Pausch
+ * Copyright 2013-2017 Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -29,7 +29,7 @@ namespace picongpu
 /*! Select a precision for the simulation data
  *  - precision32Bit : use 32Bit floating point numbers
  *                     [significant digits 7 to 8]
- *  - precision64Bit : use 64Bit floating point numbers (need CUDA_ARCH>=sm_20)
+ *  - precision64Bit : use 64Bit floating point numbers
  *                     [significant digits 15 to 16]
  */
 namespace precisionPIConGPU      = precision32Bit;

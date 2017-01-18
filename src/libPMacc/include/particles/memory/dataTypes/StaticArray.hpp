@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera
+ * Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -35,7 +35,7 @@ template<typename T_Type, typename T_size>
 class StaticArray
 {
 public:
-    BOOST_STATIC_CONSTEXPR uint32_t size = T_size::value;
+    static constexpr uint32_t size = T_size::value;
     typedef T_Type Type;
 private:
     Type data[size];

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -99,7 +99,7 @@ private:
                             math::float2int_rd(meanPos.y()),
                             math::float2int_rd(meanPos.z()));
 
-        PMACC_AUTO(mem, memIn.shift(off));
+        auto mem = memIn.shift(off);
 
         //fit meanPos into the range [0,1)
         meanPos.x() -= math::floor(meanPos.x());

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -39,7 +39,7 @@ struct TSC
      * width of the support of this form_factor. This is the area where the function
      * is non-zero.
      */
-    BOOST_STATIC_CONSTEXPR int support = 3;
+    static constexpr int support = 3;
 
 
     HDINLINE static float_X ff_1st_radius(const float_X x)

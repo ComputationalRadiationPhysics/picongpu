@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Alexander Grund
+ * Copyright 2013-2017 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -24,6 +24,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "assert.hpp"
 #include "dimensions/DataSpace.hpp"
 #include <stdexcept>
 
@@ -74,7 +75,7 @@ namespace PMacc
          */
         HINLINE BorderMapping(const BaseClass& base, PMacc::ExchangeType direction): BaseClass(base), m_direction(direction)
         {
-            assert(direction != 0);
+            PMACC_ASSERT(direction != 0);
         }
 
         /**

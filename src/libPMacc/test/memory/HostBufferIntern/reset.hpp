@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Erik Zenker
+ * Copyright 2015-2017 Erik Zenker
  *
  * This file is part of libPMacc.
  *
@@ -30,14 +30,16 @@
 struct ResetTest {
 
     template<typename T_Dim>
-    void operator()(T_Dim){
+    void exec(T_Dim)
+    {
 
         typedef uint8_t Data;
         typedef size_t Extents;
 
         std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
-        
-        for(unsigned i = 0; i < nElementsPerDim.size(); ++i){
+
+        for(unsigned i = 0; i < nElementsPerDim.size(); ++i)
+        {
             ::PMacc::DataSpace<T_Dim::value> const dataSpace = ::PMacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
             ::PMacc::HostBufferIntern<Data, T_Dim::value> hostBufferIntern(dataSpace);
 
@@ -51,6 +53,12 @@ struct ResetTest {
 
     }
 
+    PMACC_NO_NVCC_HDWARNING
+    template<typename T_Dim>
+    HDINLINE void operator()(T_Dim dim)
+    {
+        exec(dim);
+    }
 };
 
 BOOST_AUTO_TEST_CASE( reset ){

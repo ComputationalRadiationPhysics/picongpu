@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -34,7 +34,7 @@ namespace copier
 template<int T_dim>
 struct H2HCopier
 {
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
 
     PMACC_NO_NVCC_HDWARNING /* Should never be called from device functions */
     template<typename Type>

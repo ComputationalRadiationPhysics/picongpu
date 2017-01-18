@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
  *
  * This file is part of PIConGPU.
  *
@@ -42,53 +42,62 @@ namespace picongpu
             typedef PMacc::math::CT::Int< 1, 1, 1 > LowerMargin;
             typedef PMacc::math::CT::Int< 2, 2, 2 > UpperMargin;
 
+            float_X mySin;
+
+            HINLINE CurlELehe( )
+            {
+                mySin = float_X(
+                    math::sin(
+                        float_64( 0.5 ) *
+                        float_64( M_PI ) *  float_64( SPEED_OF_LIGHT ) *
+                        float_64( DELTA_T ) / float_64( CELL_WIDTH )
+                    )
+                );
+            }
+
             template<class Memory >
             HDINLINE typename Memory::ValueType operator( )(const Memory & mem ) const
             {
                 /* Distinguished direction where the numerical Cherenkov Radiation
                  * of moving particles is suppressed.
                  */
-                const float_X isDir_x = float_X( 1.0 );
-                const float_X isDir_y = float_X( 0.0 );
-                const float_X isDir_z = float_X( 0.0 );
+                constexpr float_X isDir_x = float_X( 1.0 );
+                constexpr float_X isDir_y = float_X( 0.0 );
+                constexpr float_X isDir_z = float_X( 0.0 );
 
-                const float_X isNotDir_x = float_X( 1.0 ) - isDir_x;
-                const float_X isNotDir_y = float_X( 1.0 ) - isDir_y;
-                const float_X isNotDir_z = float_X( 1.0 ) - isDir_z;
+                constexpr float_X isNotDir_x = float_X( 1.0 ) - isDir_x;
+                constexpr float_X isNotDir_y = float_X( 1.0 ) - isDir_y;
+                constexpr float_X isNotDir_z = float_X( 1.0 ) - isDir_z;
 
-                const float_X dx2 = CELL_WIDTH * CELL_WIDTH;
-                const float_X dy2 = CELL_HEIGHT * CELL_HEIGHT;
-                const float_X dz2 = CELL_DEPTH * CELL_DEPTH;
-                const float_X dt2 = DELTA_T * DELTA_T;
-                const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                constexpr float_X dx2 = CELL_WIDTH * CELL_WIDTH;
+                constexpr float_X dy2 = CELL_HEIGHT * CELL_HEIGHT;
+                constexpr float_X dz2 = CELL_DEPTH * CELL_DEPTH;
+                constexpr float_X dt2 = DELTA_T * DELTA_T;
+                constexpr float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-                const float_X reci_dx = float_X( 1.0 ) / CELL_WIDTH;
-                const float_X reci_dy = float_X( 1.0 ) / CELL_HEIGHT;
-                const float_X reci_dz = float_X( 1.0 ) / CELL_DEPTH;
+                constexpr float_X reci_dx = float_X( 1.0 ) / CELL_WIDTH;
+                constexpr float_X reci_dy = float_X( 1.0 ) / CELL_HEIGHT;
+                constexpr float_X reci_dz = float_X( 1.0 ) / CELL_DEPTH;
 
-                const float_X beta_xy = float_X( 0.125 ) * dx2 / dy2 * isDir_x
+                constexpr float_X beta_xy = float_X( 0.125 ) * dx2 / dy2 * isDir_x
                     + float_X( 0.125 ) * isNotDir_x * isDir_y;
-                const float_X beta_xz = float_X( 0.125 ) * dx2 / dz2 * isDir_x
+                constexpr float_X beta_xz = float_X( 0.125 ) * dx2 / dz2 * isDir_x
                     + float_X( 0.125 ) * isNotDir_x * isDir_z;
 
-                const float_X beta_yx = float_X( 0.125 ) * dy2 / dx2 * isDir_y
+                constexpr float_X beta_yx = float_X( 0.125 ) * dy2 / dx2 * isDir_y
                     + float_X( 0.125 ) * isNotDir_y * isDir_x;
-                const float_X beta_yz = float_X( 0.125 ) * dy2 / dz2 * isDir_y
+                constexpr float_X beta_yz = float_X( 0.125 ) * dy2 / dz2 * isDir_y
                     + float_X( 0.125 ) * isNotDir_y * isDir_z;
 
-                const float_X beta_zx = float_X( 0.125 ) * dz2 / dx2 * isDir_z
+                constexpr float_X beta_zx = float_X( 0.125 ) * dz2 / dx2 * isDir_z
                     + float_X( 0.125 ) * isNotDir_z * isDir_x;
-                const float_X beta_zy = float_X( 0.125 ) * dz2 / dy2 * isDir_z
+                constexpr float_X beta_zy = float_X( 0.125 ) * dz2 / dy2 * isDir_z
                     + float_X( 0.125 ) * isNotDir_z * isDir_y;
 
-                const float_X d_dir = CELL_WIDTH * isDir_x
+                constexpr float_X d_dir = CELL_WIDTH * isDir_x
                     + CELL_HEIGHT * isDir_y
                     + CELL_DEPTH * isDir_z;
-                const float_X d_dir2 = d_dir * d_dir;
-
-                //! \todo all constants, calculate once at CPU and use as parameter
-                const float_X mySin = math::sin( float_X( 0.5 ) * float_X( M_PI ) *
-                                                 SPEED_OF_LIGHT * DELTA_T / d_dir );
+                constexpr float_X d_dir2 = d_dir * d_dir;
 
                 // delta_x0 == delta_x
                 // delta_dir0 == delta_dir
@@ -176,59 +185,66 @@ namespace picongpu
             typedef PMacc::math::CT::Int< 1, 1, 1 > LowerMargin;
             typedef PMacc::math::CT::Int< 2, 2, 2 > UpperMargin;
 
+            float_X mySin;
+
+            HINLINE CurlELehe( )
+            {
+                mySin = float_X(
+                    math::sin(
+                        float_64( 0.5 ) *
+                        float_64( M_PI ) *  float_64( SPEED_OF_LIGHT ) *
+                        float_64( DELTA_T ) / float_64( CELL_HEIGHT )
+                    )
+                );
+            }
+
             template<class Memory >
             HDINLINE typename Memory::ValueType operator( )(const Memory & mem ) const
             {
                 /* Distinguished direction where the numerical Cherenkov Radiation
                  * of moving particles is suppressed.
                  */
-                const float_X isDir_x = float_X( 0.0 );
-                const float_X isDir_y = float_X( 1.0 );
-                const float_X isDir_z = float_X( 0.0 );
+                constexpr float_X isDir_x = float_X( 0.0 );
+                constexpr float_X isDir_y = float_X( 1.0 );
+                constexpr float_X isDir_z = float_X( 0.0 );
 
-                const float_X isNotDir_x = float_X( 1.0 ) - isDir_x;
-                const float_X isNotDir_y = float_X( 1.0 ) - isDir_y;
-                const float_X isNotDir_z = float_X( 1.0 ) - isDir_z;
+                constexpr float_X isNotDir_x = float_X( 1.0 ) - isDir_x;
+                constexpr float_X isNotDir_y = float_X( 1.0 ) - isDir_y;
+                constexpr float_X isNotDir_z = float_X( 1.0 ) - isDir_z;
 
-                const float_X dx2 = CELL_WIDTH * CELL_WIDTH;
-                const float_X dy2 = CELL_HEIGHT * CELL_HEIGHT;
-                const float_X dz2 = CELL_DEPTH * CELL_DEPTH;
-                const float_X dt2 = DELTA_T * DELTA_T;
-                const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+                constexpr float_X dx2 = CELL_WIDTH * CELL_WIDTH;
+                constexpr float_X dy2 = CELL_HEIGHT * CELL_HEIGHT;
+                constexpr float_X dz2 = CELL_DEPTH * CELL_DEPTH;
+                constexpr float_X dt2 = DELTA_T * DELTA_T;
+                constexpr float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-                const float_X reci_dx = float_X( 1.0 ) / CELL_WIDTH;
-                const float_X reci_dy = float_X( 1.0 ) / CELL_HEIGHT;
-                const float_X reci_dz = float_X( 1.0 ) / CELL_DEPTH;
+                constexpr float_X reci_dx = float_X( 1.0 ) / CELL_WIDTH;
+                constexpr float_X reci_dy = float_X( 1.0 ) / CELL_HEIGHT;
+                constexpr float_X reci_dz = float_X( 1.0 ) / CELL_DEPTH;
 
                 /** Naming of the coefficients
                  *  1st letter: direction of differentiation
                  *  2nd letter: direction of averaging
                  */
-                const float_X beta_xy = float_X( 0.125 ) * dx2 / dy2 * isDir_x
+                constexpr float_X beta_xy = float_X( 0.125 ) * dx2 / dy2 * isDir_x
                     + float_X( 0.125 ) * isNotDir_x * isDir_y;
-                const float_X beta_xz = float_X( 0.125 ) * dx2 / dz2 * isDir_x
+                constexpr float_X beta_xz = float_X( 0.125 ) * dx2 / dz2 * isDir_x
                     + float_X( 0.125 ) * isNotDir_x * isDir_z;
 
-                const float_X beta_yx = float_X( 0.125 ) * dy2 / dx2 * isDir_y
+                constexpr float_X beta_yx = float_X( 0.125 ) * dy2 / dx2 * isDir_y
                     + float_X( 0.125 ) * isNotDir_y * isDir_x;
-                const float_X beta_yz = float_X( 0.125 ) * dy2 / dz2 * isDir_y
+                constexpr float_X beta_yz = float_X( 0.125 ) * dy2 / dz2 * isDir_y
                     + float_X( 0.125 ) * isNotDir_y * isDir_z;
 
-                const float_X beta_zx = float_X( 0.125 ) * dz2 / dx2 * isDir_z
+                constexpr float_X beta_zx = float_X( 0.125 ) * dz2 / dx2 * isDir_z
                     + float_X( 0.125 ) * isNotDir_z * isDir_x;
-                const float_X beta_zy = float_X( 0.125 ) * dz2 / dy2 * isDir_z
+                constexpr float_X beta_zy = float_X( 0.125 ) * dz2 / dy2 * isDir_z
                     + float_X( 0.125 ) * isNotDir_z * isDir_y;
 
-                const float_X d_dir = CELL_WIDTH * isDir_x
+                constexpr float_X d_dir = CELL_WIDTH * isDir_x
                     + CELL_HEIGHT * isDir_y
                     + CELL_DEPTH * isDir_z;
-                const float_X d_dir2 = d_dir * d_dir;
-
-                /** \todo all constants, calculate once at CPU and use as parameter
-                 *  \todo cast to float_64 to force high-precision sinus
-                 */
-                const float_X mySin = math::sin( float_X( 0.5 ) * float_X( M_PI ) *
-                                                 SPEED_OF_LIGHT * DELTA_T / d_dir );
+                constexpr float_X d_dir2 = d_dir * d_dir;
 
                 // delta_y0 == delta_y
                 // delta_dir0 == delta_dir

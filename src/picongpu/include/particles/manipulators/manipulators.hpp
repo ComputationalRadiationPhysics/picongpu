@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera, Axel Huebl
+ * Copyright 2014-2017 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -31,5 +31,5 @@
 #include "particles/manipulators/FreeImpl.hpp"
 #include "particles/manipulators/SetAttributeImpl.hpp"
 #include "particles/manipulators/RandomPositionImpl.hpp"
-#include "particles/manipulators/RatioWeightingImpl.hpp"
-#include "particles/manipulators/ProtonTimesWeightingImpl.hpp"
+#include "particles/manipulators/DensityWeighting.hpp"
+#include "particles/manipulators/ProtonTimesWeighting.hpp"

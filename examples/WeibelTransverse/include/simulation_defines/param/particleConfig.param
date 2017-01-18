@@ -1,5 +1,6 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2017 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -36,9 +37,9 @@ namespace particles
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
      *  unit: none */
-    BOOST_CONSTEXPR_OR_CONST float_X MIN_WEIGHTING = 10.0;
+    constexpr float_X MIN_WEIGHTING = 10.0;
 
-    BOOST_CONSTEXPR_OR_CONST uint32_t TYPICAL_PARTICLES_PER_CELL = 4;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 4;
 
 namespace manipulators
 {
@@ -50,7 +51,7 @@ namespace manipulators
          *  Examples:
          *    - No drift is equal to 1.0
          *  unit: none */
-        BOOST_STATIC_CONSTEXPR float_64 gamma = 1.021;
+        static constexpr float_64 gamma = 1.021;
         const DriftParamElectrons_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -63,7 +64,7 @@ namespace manipulators
          *  Examples:
          *    - No drift is equal to 1.0
          *  unit: none */
-        BOOST_STATIC_CONSTEXPR float_64 gamma = 1.021;
+        static constexpr float_64 gamma = 1.021;
         const DriftParamIons_direction_t direction;
     };
     /* definition of SetDrift start*/
@@ -74,7 +75,7 @@ namespace manipulators
         /*Initial temperature
          *  unit: keV
          */
-        BOOST_STATIC_CONSTEXPR float_64 temperature = 0.005;
+        static constexpr float_64 temperature = 0.005;
     };
     /* definition of SetDrift start*/
     typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
@@ -92,7 +93,7 @@ namespace startPosition
        typedef mCT::shrinkTo<mCT::Int<TYPICAL_PARTICLES_PER_CELL/2, TYPICAL_PARTICLES_PER_CELL/2, 1>, simDim>::type numParticlesPerDimension;
     };
 
-    /* definition of random particle start*/
+    /* definition of quiet particle start*/
     typedef QuietImpl<QuietParam> Quiet;
 
 } //namespace startPosition

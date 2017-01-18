@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Alexander Grund
+ * Copyright 2015-2017 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -38,7 +38,7 @@ namespace random
     struct RNGHandle
     {
         typedef T_RNGProvider RNGProvider;
-        BOOST_STATIC_CONSTEXPR uint32_t rngDim = RNGProvider::dim;
+        static constexpr uint32_t rngDim = RNGProvider::dim;
         typedef typename RNGProvider::DataBoxType RNGBox;
         typedef typename RNGProvider::RNGMethod RNGMethod;
         typedef typename RNGMethod::StateType RNGState;

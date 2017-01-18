@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Rene Widera, Alexander Grund
+ * Copyright 2015-2017 Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -171,6 +171,48 @@ atomicAllExch(T_Type* ptr, const T_Type value)
     if (getLaneId() == leader)
 #endif
         atomicExch(ptr, value);
+}
+
+namespace detail
+{
+    template<typename T_Type>
+    struct AtomicAdd
+    {
+        DINLINE T_Type
+        operator()(T_Type* ptr, const T_Type value)
+        {
+            return ::atomicAdd(ptr, value);
+        }
+    };
+#if (__CUDA_ARCH__ < 600)
+    // Emulated for double before CC 6.x as shown in
+    // http://docs.nvidia.com/cuda/cuda-c-programming-guide/#axzz3PVCpVsEG
+    template<>
+    struct AtomicAdd<double>
+    {
+        DINLINE double
+        operator()(double* ptr, const double value)
+        {
+            uint64_cu* ptrUInt64 = reinterpret_cast<uint64_cu*>(ptr);
+            uint64_cu oldValue = *ptrUInt64;
+            uint64_cu assumedValue;
+            do {
+                assumedValue = oldValue;
+                const double newValue = value + __longlong_as_double(oldValue);
+                const uint64_cu newValueUint64 = __double_as_longlong(newValue);
+                oldValue = ::atomicCAS(ptrUInt64, oldValue, newValueUint64);
+            } while (assumedValue != oldValue);
+            return __longlong_as_double(oldValue);
+        }
+    };
+#endif
+} // namespace detail
+
+template<typename T_Type>
+DINLINE T_Type
+atomicAdd(T_Type* ptr, const T_Type value)
+{
+    return detail::AtomicAdd<T_Type>()(ptr, value);
 }
 
 } //namespace nvidia

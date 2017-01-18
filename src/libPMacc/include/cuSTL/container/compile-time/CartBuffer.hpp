@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -47,7 +47,7 @@ public:
     typedef _Size Size;
     typedef typename Allocator::Pitch Pitch;
     typedef cursor::CT::BufferCursor<Type, Pitch> Cursor;
-    BOOST_STATIC_CONSTEXPR int dim = Size::dim;
+    static constexpr int dim = Size::dim;
     typedef zone::CT::SphericZone<_Size, typename math::CT::make_Int<dim, 0>::type> Zone;
 private:
     Type* dataPointer;

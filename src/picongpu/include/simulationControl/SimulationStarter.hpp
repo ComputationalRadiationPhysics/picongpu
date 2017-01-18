@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +24,6 @@
 #include "simulation_defines.hpp"
 
 #include <boost/program_options/options_description.hpp>
-#include <cassert>
 #include <iostream>
 
 #include "simulation_defines.hpp"

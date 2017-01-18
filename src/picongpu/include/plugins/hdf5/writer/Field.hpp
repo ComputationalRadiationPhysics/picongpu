@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2014-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -26,6 +26,7 @@
 #include "traits/PICToSplash.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
+#include "assert.hpp"
 
 #include <string>
 
@@ -72,11 +73,11 @@ struct Field
             name % nComponents;
 
         /* parameter checking */
-        assert(unit.size() == nComponents);
-        assert(inCellPosition.size() == nComponents);
+        PMACC_ASSERT( unit.size() == nComponents );
+        PMACC_ASSERT( inCellPosition.size() == nComponents );
         for( uint32_t n = 0; n < nComponents; ++n )
-            assert(inCellPosition.at(n).size() == simDim );
-        assert(unitDimension.size() == 7); // seven openPMD base units
+            PMACC_ASSERT( inCellPosition.at(n).size() == simDim );
+        PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
         /* component names */
         const std::string recordName = std::string("fields/") + name;

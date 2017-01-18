@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -37,7 +37,7 @@ struct TwistedAxesNavigator;
 template<typename Axes>
 struct TwistedAxesNavigator<Axes, 2>
 {
-    BOOST_STATIC_CONSTEXPR int dim = 2;
+    static constexpr int dim = 2;
 
     template<typename TCursor>
     HDINLINE
@@ -53,7 +53,7 @@ struct TwistedAxesNavigator<Axes, 2>
 template<typename Axes>
 struct TwistedAxesNavigator<Axes, 3>
 {
-    BOOST_STATIC_CONSTEXPR int dim = 3;
+    static constexpr int dim = 3;
 
     template<typename TCursor>
     HDINLINE

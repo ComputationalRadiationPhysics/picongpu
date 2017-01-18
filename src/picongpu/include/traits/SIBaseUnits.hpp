@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Axel Huebl
+ * Copyright 2015-2017 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -28,7 +28,7 @@ namespace traits
     /* openPMD uses the powers of the 7 SI base measures to describe
      * the unit of a record
      * \see http://git.io/vROmP */
-    BOOST_CONSTEXPR_OR_CONST uint32_t NUnitDimension = 7;
+    constexpr uint32_t NUnitDimension = 7;
 
     // pre-C++11 "scoped enumerator" work-around
     namespace SIBaseUnits {

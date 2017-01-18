@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,26 +22,17 @@
 
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
 
 #include <string>
-#include "mappings/simulation/GridController.hpp"
-
-#include <pngwriter.h>
-
 #include <iostream>
 #include <sstream>
-
 #include <iomanip>
 
-#include "memory/boxes/PitchedBox.hpp"
 #include "memory/boxes/DataBox.hpp"
 #include "plugins/output/header/MessageHeader.hpp"
 
-
 #include <boost/thread.hpp>
-//c includes
-#include <sys/stat.h>
+
 
 namespace picongpu
 {
@@ -136,75 +127,6 @@ namespace picongpu
 
     };
 
-    template<class Box>
-    inline void PngCreator::createImage(
-                                        const Box data,
-                                        const Size2D size,
-                                        const MessageHeader header
-                                        )
-    {
-        if (m_createFolder)
-        {
-            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(m_folder);
-            m_createFolder = false;
-        }
-
-        std::stringstream step;
-        step << std::setw(6) << std::setfill('0') << header.sim.step;
-        std::string filename(m_name + "_" + step.str() + ".png");
-
-        pngwriter png(size.x(), size.y(), 0, filename.c_str());
-
-        /* default compression: 6
-         * zlib level 1 is ~12% bigger but ~2.3x faster in write_png()
-         */
-        png.setcompressionlevel(1);
-
-        //PngWriter coordinate system begin with 1,1
-        for (int y = 0; y < size.y(); ++y)
-        {
-            for (int x = 0; x < size.x(); ++x)
-            {
-                float3_X p = data[y ][x ];
-                png.plot(x + 1, size.y() - y, p.x(), p.y(), p.z());
-            }
-        }
-
-        /* scale the image by a user defined relative factor
-         * `scale_image` is defined in `visualization.param`
-         */
-        float_X scale_x(scale_image);
-        float_X scale_y(scale_image);
-
-
-        if (scale_to_cellsize)
-        {
-            // scale to real cell size
-            scale_x *= header.sim.scale[0];
-            scale_y *= header.sim.scale[1];
-        }
-
-        /* to prevent artifacts scale only, if at least one of scale_x and
-         * scale_y is != 1.0
-         */
-        if ((scale_x != float_X(1.0)) || (scale_y != float_X(1.0)))
-            //process the cell size and by factor scaling within one step
-            png.scale_kxky(scale_x, scale_y);
-
-        // add some meta information
-        //header.writeToConsole( std::cout );
-
-        std::ostringstream description( std::ostringstream::out );
-        header.writeToConsole( description );
-
-        char title[] = "PIConGPU preview image";
-        std::string author = Environment<>::get().SimulationDescription().getAuthor();
-        char software[] = "PIConGPU with PNGwriter";
-
-        png.settext( title, author.c_str(), description.str().c_str(), software);
-
-        // write to disk and close object
-        png.close();
-    }
-
 } /* namespace picongpu */
+
+#include "plugins/output/images/PngCreator.tpp"

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Marco Garten, Rene Widera
+ * Copyright 2016-2017 Marco Garten, Rene Widera
  *
  * This file is part of PIConGPU.
  *

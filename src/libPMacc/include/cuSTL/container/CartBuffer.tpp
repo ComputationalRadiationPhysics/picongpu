@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -101,6 +101,7 @@ namespace detail
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 (const math::Size_t<T_dim>& _size) : refCount(NULL)
 {
@@ -109,6 +110,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 (size_t x) : refCount(NULL)
 {
@@ -116,6 +118,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 (size_t x, size_t y) : refCount(NULL)
 {
@@ -123,6 +126,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 (size_t x, size_t y, size_t z) : refCount(NULL)
 {
@@ -130,6 +134,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 (const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& other) : refCount(NULL)
 {
@@ -143,6 +148,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 #define COMMA ,
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 (BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) other) : refCount(NULL)
 {
@@ -155,6 +161,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::init()
 {
     typename Allocator::Cursor cursor = Allocator::allocate(this->_size);
@@ -167,12 +174,14 @@ void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::init()
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::~CartBuffer()
 {
     exit();
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::exit()
 {
     if(!this->refCount) return;
@@ -188,6 +197,7 @@ void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::exit()
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
 (BOOST_COPY_ASSIGN_REF(CartBuffer) rhs)
@@ -207,6 +217,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
 (BOOST_RV_REF(CartBuffer) rhs)
@@ -234,6 +245,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
 #undef COMMA
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 View<CartBuffer<Type, T_dim, Allocator, Copier, Assigner> >
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::view
 (math::Int<T_dim> a, math::Int<T_dim> b) const
@@ -252,6 +264,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::view
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 cursor::BufferCursor<Type, T_dim> CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::origin() const
 {
     detail::notifyEventSystem<typename Allocator::tag>();
@@ -259,6 +272,7 @@ cursor::BufferCursor<Type, T_dim> CartBuffer<Type, T_dim, Allocator, Copier, Ass
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 cursor::SafeCursor<cursor::BufferCursor<Type, T_dim> >
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originSafe() const
 {
@@ -268,6 +282,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originSafe() const
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 cursor::Cursor<cursor::PointerAccessor<Type>, cursor::CartNavigator<T_dim>, char*>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originCustomAxes(const math::UInt32<T_dim>& axes) const
 {
@@ -288,6 +303,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::originCustomAxes(const mat
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 zone::SphericZone<T_dim>
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::zone() const
 {

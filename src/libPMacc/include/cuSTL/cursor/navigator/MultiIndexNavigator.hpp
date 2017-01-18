@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -35,7 +35,7 @@ template<int T_dim>
 struct MultiIndexNavigator
 {
     typedef tag::MultiIndexNavigator tag;
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
 
     template<typename MultiIndex>
     HDINLINE
@@ -51,7 +51,7 @@ namespace traits
 template<int T_dim>
 struct dim<MultiIndexNavigator<T_dim> >
 {
-    BOOST_STATIC_CONSTEXPR int value = T_dim;
+    static constexpr int value = T_dim;
 };
 
 }

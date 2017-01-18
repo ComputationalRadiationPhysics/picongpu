@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2016 Rene Widera
+# Copyright 2014-2017 Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -31,13 +31,13 @@ help()
     echo ""
     echo "-h | --help                    - Shows help (this output)."
     echo " "
-    echo "ATTENTION:" 
-    echo "    - if you require at least one non-option argument (an argument not" 
+    echo "ATTENTION:"
+    echo "    - if you require at least one non-option argument (an argument not"
     echo "      starting with - or --) the result is only valid when you allow"
     echo "      minimum one non-option argument"
     echo "    - If more than one non option argument is given and the last"
     echo "      option has an optional argument the argument is assigned to"
-    echo "      the option" 
+    echo "      the option"
     echo "      e.g. --foo has an optional argument"
     echo "           --foo ALICE BOB  is the same as --foo=ALICE BOB"
     echo "           BOB --foo ALICE  is the same as BOB --foo=ALICE"
@@ -60,7 +60,7 @@ for i in "$@"
 do
     if [[ "$i" == "++" ]] || [[ "$i" =~ ^- ]] ; then
         egetoptOpts+="$i "
-    else 
+    else
         egetoptOpts+="'$i' "
     fi
 done
@@ -70,7 +70,7 @@ egetOptArgs=`echo $egetoptOpts | sed 's/++.*$//g'`
 # user arguments
 userArgs=`echo $egetoptOpts | sed 's/^.*++//g'`
 
-# evaluate options for getopt 
+# evaluate options for getopt
 OPTS=`getopt -o o:l:n:qhV -l help,options:,longoptions:version -- $egetOptArgs`
 eval set -- "$OPTS"
 
@@ -95,7 +95,7 @@ while true ; do
             shift
             exit 1
             ;;
-        --) 
+        --)
             shift
             break
             ;;
@@ -112,21 +112,21 @@ eval set -- "$userArgs --"
 
 # nonOptionCheck is only important if the last options were scanned
 # e.g. -s has optional argument
-# 
+#
 # transform: `-s foo NONOPTION --`, `-s foo -f foo [...] --`
 # not transform: `-s NONOPTION --`
 #
 # if nenOptionCheck is set to 3 it is possible to transform
 # `NONOPTION -s foo`
-#   
+#
 nonOptionCheck=4
-transformedArgs="" 
+transformedArgs=""
 
 disableCecks=""
 while true ; do
     case "$1" in
-        --) 
-            shift 
+        --)
+            shift
             break
             ;;
         *)
@@ -148,7 +148,7 @@ while true ; do
                         transformedArgs+="='$2'"
                         shift
                     fi
-                elif [[ ! $1 =~ ^-- ]] && [[ ! $1 =~ ^-.*$ ]] ; then 
+                elif [[ ! $1 =~ ^-- ]] && [[ ! $1 =~ ^-.*$ ]] ; then
                     if [ -z "$POSIXLY_CORRECT" ] ; then
                         if [ $nonOptionCheck -eq 4 ] ; then
                             nonOptionCheck=3
@@ -157,10 +157,10 @@ while true ; do
                         disableCecks="true"
                     fi
                 fi
-            fi 
+            fi
             ;;
     esac
     shift
-done    
+done
 
 echo "getopt $getOptArgs -- $transformedArgs" | bash

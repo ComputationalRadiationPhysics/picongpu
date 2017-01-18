@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera
+ * Copyright 2013-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,8 +20,9 @@
 
 #pragma once
 
+#include "assert.hpp"
+
 #include <string>
-#include <cassert>
 #include "zlib.h"
 
 class ZipConnector
@@ -48,7 +49,7 @@ public:
         strm.next_out = (Bytef*) out;
 
         ret = deflate(&strm, Z_FINISH);
-        assert(ret != Z_STREAM_ERROR);
+        PMACC_ASSERT(ret != Z_STREAM_ERROR);
 
         size_t compressedBytes = strm.total_out;
 
@@ -76,7 +77,7 @@ public:
         strm.avail_out = sizeOut;
         strm.next_out = (Bytef*) out;
         ret = inflate(&strm, Z_FINISH);
-        assert(ret != Z_STREAM_ERROR);
+        PMACC_ASSERT(ret != Z_STREAM_ERROR);
 
         size_t uncompressedBytes = strm.total_out;
 

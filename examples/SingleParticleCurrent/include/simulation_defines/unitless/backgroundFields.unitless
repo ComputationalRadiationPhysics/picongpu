@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,7 +17,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -26,13 +26,13 @@
 namespace picongpu
 {
     // Constant Background Fields
-    BOOST_CONSTEXPR_OR_CONST float_X E_X = float_X( SI::E_X_SI / UNIT_EFIELD); //unit: Volt /meter
-    BOOST_CONSTEXPR_OR_CONST float_X E_Y = float_X( SI::E_Y_SI / UNIT_EFIELD); //unit: Volt /meter
-    BOOST_CONSTEXPR_OR_CONST float_X E_Z = float_X( SI::E_Z_SI / UNIT_EFIELD); //unit: Volt /meter
+    constexpr float_X E_X = float_X( SI::E_X_SI / UNIT_EFIELD); //unit: Volt /meter
+    constexpr float_X E_Y = float_X( SI::E_Y_SI / UNIT_EFIELD); //unit: Volt /meter
+    constexpr float_X E_Z = float_X( SI::E_Z_SI / UNIT_EFIELD); //unit: Volt /meter
 
-    BOOST_CONSTEXPR_OR_CONST float_X B_X = float_X( SI::B_X_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
-    BOOST_CONSTEXPR_OR_CONST float_X B_Y = float_X( SI::B_Y_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
-    BOOST_CONSTEXPR_OR_CONST float_X B_Z = float_X( SI::B_Z_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
+    constexpr float_X B_X = float_X( SI::B_X_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
+    constexpr float_X B_Y = float_X( SI::B_Y_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
+    constexpr float_X B_Z = float_X( SI::B_Z_SI / UNIT_BFIELD); //unit: Tesla = Vs/m^2
 }
 
 

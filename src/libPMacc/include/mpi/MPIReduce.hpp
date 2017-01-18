@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -27,10 +27,8 @@
 #include "mpi/reduceMethods/AllReduce.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
 #include "mpi/GetMPI_Op.hpp"
-
+#include "assert.hpp"
 #include "pmacc_types.hpp"
-
-#include <cassert>
 
 #include <mpi.h>
 
@@ -61,7 +59,7 @@ struct MPIReduce
     template<class MPIMethod>
     bool hasResult(const MPIMethod & method) const
     {
-        assert(isMPICommInitialized == true);
+        PMACC_ASSERT(isMPICommInitialized == true);
         return method.hasResult(mpiRank);
     }
 

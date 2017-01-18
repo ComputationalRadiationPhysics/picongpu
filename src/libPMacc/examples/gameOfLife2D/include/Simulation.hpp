@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Maximilian Knespel, Alexander Grund
+ * Copyright 2013-2017 Rene Widera, Maximilian Knespel, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -209,7 +209,7 @@ private:
 
     void oneStep(uint32_t currentStep, Buffer* read, Buffer* write)
     {
-        PMACC_AUTO(splitEvent, __getTransactionEvent());
+        auto splitEvent = __getTransactionEvent();
         /* GridBuffer 'read' will use 'splitEvent' to schedule transaction    *
          * tasks from the Borders of the neighboring areas to the Guards of   *
          * this local Area added by 'addExchange'. All transactions in        *
@@ -217,7 +217,7 @@ private:
          * calculations in the core. In order to synchronize the data         *
          * transfer for the case the core calculation is finished earlier,    *
          * GridBuffer.asyncComm returns a transaction handle we can check     */
-        PMACC_AUTO(send, read->asyncCommunication(splitEvent));
+        auto send = read->asyncCommunication(splitEvent);
         evo.run<CORE>( read->getDeviceBuffer().getDataBox(),
                        write->getDeviceBuffer().getDataBox() );
         /* Join communication with worker tasks, Now all next tasks run sequential */
@@ -229,7 +229,7 @@ private:
 
         /* gather::operator() gathers all the buffers and assembles those to  *
          * a complete picture discarding the guards.                          */
-        PMACC_AUTO(picture, gather(write->getHostBuffer().getDataBox()));
+        auto picture = gather(write->getHostBuffer().getDataBox());
         PngCreator png;
         if (isMaster) png(currentStep, picture, gridSize);
 

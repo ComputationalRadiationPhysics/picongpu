@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -44,7 +44,6 @@ enum CommunicationTag
     FIELD_E = 2u,
     FIELD_J = 3u,
     FIELD_JRECV = 4u,
-    FIELD_TMP = 5u,
     SPECIES_FIRSTTAG = 42u
 };
 

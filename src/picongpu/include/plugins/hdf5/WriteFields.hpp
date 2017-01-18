@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ * Copyright 2014-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "static_assert.hpp"
 #include "simulation_types.hpp"
 #include "plugins/hdf5/HDF5Writer.def"
 #include "plugins/hdf5/writer/Field.hpp"
@@ -170,7 +171,11 @@ private:
         /*## update field ##*/
 
         /*load FieldTmp without copy data to host*/
-        FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
+        PMACC_CASSERT_MSG(
+            _please_allocate_at_least_one_FieldTmp_in_memory_param,
+            fieldTmpNumSlots > 0
+        );
+        FieldTmp* fieldTmp = &(dc.getData<FieldTmp >( FieldTmp::getUniqueId( 0 ), true ));
         /*load particle without copy particle data to host*/
         Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
 
@@ -210,7 +215,7 @@ private:
                           fieldTmp->getHostDataBox(),
                           ValueType());
 
-        dc.releaseData(FieldTmp::getName());
+        dc.releaseData( FieldTmp::getUniqueId( 0 ) );
 
     }
 

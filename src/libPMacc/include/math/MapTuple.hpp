@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -114,7 +114,7 @@ namespace math
     {
 
         typedef T_Map Map;
-        BOOST_STATIC_CONSTEXPR int dim = bmpl::size< Map >::type::value;
+        static constexpr int dim = bmpl::size< Map >::type::value;
         typedef InheritLinearly<
             T_Map,
             T_PodType

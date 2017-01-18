@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Felix Schmitt
+ * Copyright 2014-2017 Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -35,15 +35,15 @@ namespace picongpu
         {
             // disable checkpoint/restart capabilities for lightweight plugins
         }
-        
+
         void checkpoint(uint32_t, const std::string)
         {
             // disable checkpoint/restart capabilities for lightweight plugins
         }
-        
+
         virtual ~ILightweightPlugin()
         {
-            
+
         }
     };
 } //namespace picongpu

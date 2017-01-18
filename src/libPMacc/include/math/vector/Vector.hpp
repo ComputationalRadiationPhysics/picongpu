@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -45,8 +45,8 @@ namespace detail
 template<typename T_Type, int T_Dim>
 struct Vector_components
 {
-    BOOST_STATIC_CONSTEXPR bool isConst = false;
-    BOOST_STATIC_CONSTEXPR int dim = T_Dim;
+    static constexpr bool isConst = false;
+    static constexpr int dim = T_Dim;
     typedef T_Type type;
 
     /*align full vector*/
@@ -116,7 +116,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
 {
     typedef T_Storage<T_Type, T_dim> Storage;
     typedef typename Storage::type type;
-    BOOST_STATIC_CONSTEXPR int dim = Storage::dim;
+    static constexpr int dim = Storage::dim;
     typedef tag::Vector tag;
     typedef T_Accessor Accessor;
     typedef T_Navigator Navigator;
@@ -495,7 +495,7 @@ template<typename Type>
 struct Vector<Type, 0 >
 {
     typedef Type type;
-    BOOST_STATIC_CONSTEXPR int dim = 0;
+    static constexpr int dim = 0;
 
     template<typename OtherType >
     HDINLINE operator Vector<OtherType, 0 > () const

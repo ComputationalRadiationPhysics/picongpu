@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera
+ * Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -25,6 +25,7 @@
 
 #include "eventSystem/EventSystem.hpp"
 #include "traits/NumberOfExchanges.hpp"
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -83,14 +84,10 @@ namespace PMacc
                     if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
                         state=Wait;
-                        assert(lastSize <= maxSize);
+                        PMACC_ASSERT(lastSize <= maxSize);
                         //check for next bash round
                         if (lastSize == maxSize)
-                        {
-                            std::cerr << "recv max size " << maxSize << " particles" << std::endl;
                             init(); //call init and run a full send cycle
-
-                        }
                         else
                         {
                             state = Finished;

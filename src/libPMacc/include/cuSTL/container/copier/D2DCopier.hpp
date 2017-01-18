@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -37,7 +37,7 @@ namespace copier
 template<int T_dim>
 struct D2DCopier
 {
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
 
     PMACC_NO_NVCC_HDWARNING /* Handled via CUDA_ARCH */
     template<typename Type>
@@ -51,12 +51,12 @@ struct D2DCopier
         Cursor bufCursorSrc(source, pitchSource);
         cursor::MapTo1DNavigator<dim> myNavi(size);
 
-        BOOST_AUTO(srcCursor, cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
+        auto srcCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
                                                   myNavi,
-                                                  bufCursorSrc));
-        BOOST_AUTO(destCursor, cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
+                                                  bufCursorSrc);
+        auto destCursor = cursor::make_Cursor(cursor::CursorAccessor<Cursor>(),
                                                    myNavi,
-                                                   bufCursorDest));
+                                                   bufCursorDest);
         size_t sizeProd = size.productOfComponents();
         for(size_t i = 0; i < sizeProd; i++)
         {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Alexander Debus
+ * Copyright 2015-2017 Alexander Debus
  *
  * This file is part of libPMacc.
  *

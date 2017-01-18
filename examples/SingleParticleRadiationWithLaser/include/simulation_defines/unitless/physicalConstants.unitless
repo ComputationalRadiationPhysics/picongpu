@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
+ * Copyright 2013-2017 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -24,57 +24,57 @@
 namespace picongpu
 {
     /** Unit of Speed */
-    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+    constexpr float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
     /** Unit of time */
-    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_TIME = SI::DELTA_T_SI;
+    constexpr float_64 UNIT_TIME = SI::DELTA_T_SI;
     /** Unit of length */
-    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+    constexpr float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
 
     namespace particles
     {
         /** Number of electrons per particle (= macro particle weighting)
          *  unit: none */
-        BOOST_CONSTEXPR_OR_CONST float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
+        constexpr float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE = 1;
 
     }
 
     /** Unit of mass */
-    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+    constexpr float_64 UNIT_MASS = SI::ELECTRON_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of charge */
-    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+    constexpr float_64 UNIT_CHARGE = -1.0 * SI::ELECTRON_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
     /** Unit of energy */
-    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
+    constexpr float_64 UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
     /** Unit of EField: V/m */
-    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_EFIELD = 1.0 / (UNIT_TIME * UNIT_TIME / UNIT_MASS / UNIT_LENGTH * UNIT_CHARGE);
+    constexpr float_64 UNIT_EFIELD = 1.0 / (UNIT_TIME * UNIT_TIME / UNIT_MASS / UNIT_LENGTH * UNIT_CHARGE);
     //** Unit of BField: Tesla [T] = Vs/m^2 */
-    BOOST_CONSTEXPR_OR_CONST float_64 UNIT_BFIELD = (UNIT_MASS / (UNIT_TIME * UNIT_CHARGE));
+    constexpr float_64 UNIT_BFIELD = (UNIT_MASS / (UNIT_TIME * UNIT_CHARGE));
 
 
 
 
-    BOOST_CONSTEXPR_OR_CONST float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
+    constexpr float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
 
     //! reduced Planck constant
-    BOOST_CONSTEXPR_OR_CONST float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
+    constexpr float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
 
     //! Charge of electron
-    BOOST_CONSTEXPR_OR_CONST float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
+    constexpr float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
     //! Mass of electron
-    BOOST_CONSTEXPR_OR_CONST float_X ELECTRON_MASS = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
+    constexpr float_X ELECTRON_MASS = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
 
     //! magnetic constant must be double 3.92907e-39
-    BOOST_CONSTEXPR_OR_CONST float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
+    constexpr float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
 
     //! electric constant must be double 2.54513e+38
-    BOOST_CONSTEXPR_OR_CONST float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+    constexpr float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
 
     // = 1/c^2
-    BOOST_CONSTEXPR_OR_CONST float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+    constexpr float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
 
     /* Atomic unit of electric field in PIC Efield units */
-    BOOST_CONSTEXPR_OR_CONST float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / UNIT_EFIELD);
+    constexpr float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / UNIT_EFIELD);
 
     /* Atomic unit of time in PIC units */
-    BOOST_CONSTEXPR_OR_CONST float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / UNIT_TIME);
+    constexpr float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / UNIT_TIME);
 
 } //namespace picongpu

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Alexander Grund
+ * Copyright 2013-2017 Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -40,7 +40,7 @@
  * @param default_lvl must be a integer which represent a defined log lvl
  */
 #define __DEFINE_VERBOSE_CLASS_DEFAULT_LVL(default_lvl) \
-    BOOST_STATIC_CONSTEXPR uint64_t log_level = default_lvl;      \
+    static constexpr uint64_t log_level = default_lvl;      \
     }
 
 /** helper for define log lvl inside of DEFINE_VERBOSE_CLASS

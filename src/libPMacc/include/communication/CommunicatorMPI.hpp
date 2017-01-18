@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ * Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
@@ -244,6 +244,10 @@ public:
 
     bool setStateAfterSlides(size_t numSlides)
     {
+        // nothing happens
+        if(numSlides == 0)
+            return false;
+
         // we can only slide in y direction right now
         if(DIM < DIM2)
             return false;

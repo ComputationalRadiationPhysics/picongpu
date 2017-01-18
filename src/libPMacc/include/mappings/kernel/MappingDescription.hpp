@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -23,6 +23,7 @@
 #pragma once
 
 #include <stdexcept>
+#include "verify.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "mappings/simulation/GridController.hpp"
@@ -64,9 +65,9 @@ public:
         {
             minBlock = std::min(minBlock, gridSuperCells[2]);
         }
-        assert((guardingSuperCells == 0) || (minBlock >= 3));
+        PMACC_VERIFY((guardingSuperCells == 0) || (minBlock >= 3));
         /*border block count must smaller or equal to core blocks count*/
-        assert(borderSuperCells <= (minBlock - (2 * guardingSuperCells)));
+        PMACC_VERIFY(borderSuperCells <= (minBlock - (2 * guardingSuperCells)));
     }
 
     HDINLINE DataSpace<DIM> getGridSuperCells() const

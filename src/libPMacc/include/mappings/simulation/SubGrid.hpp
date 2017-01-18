@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
+ * Copyright 2013-2017 Felix Schmitt, Heiko Burau, Rene Widera, Wolfgang Hoenig
  *
  * This file is part of libPMacc.
  *
@@ -21,8 +21,6 @@
  */
 
 #pragma once
-
-#include <cassert>
 
 #include "dimensions/DataSpace.hpp"
 #include "mappings/simulation/GridController.hpp"

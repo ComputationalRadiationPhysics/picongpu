@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -31,10 +31,9 @@
 
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/TaskReceive.hpp"
-
+#include "assert.hpp"
 #include "pmacc_types.hpp"
 
-#include <cassert>
 
 namespace PMacc
 {
@@ -52,7 +51,7 @@ namespace PMacc
         Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(NULL)
         {
 
-            assert(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
+            PMACC_ASSERT(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
 
             DataSpace<DIM> tmp_size = memoryLayout.getDataSpaceWithoutGuarding();
             /*

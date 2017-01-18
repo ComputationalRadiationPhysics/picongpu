@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Heiko Burau
+ * Copyright 2015-2017 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -56,11 +56,11 @@ void createParticlesFromSpecies(T_SourceSpecies& sourceSpecies,
     const PMacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2*guardSuperCells;
 
     /* Functor holding the actual generic particle creation kernel */
-    PMACC_AUTO(createParticlesKernel, make_CreateParticlesKernel(
+    auto createParticlesKernel = make_CreateParticlesKernel(
         sourceSpecies.getDeviceParticlesBox(),
         targetSpecies.getDeviceParticlesBox(),
         particleCreator,
-        guardSuperCells));
+        guardSuperCells);
 
     /* This zone represents the core+border area with guard offset in unit of cells */
     const zone::SphericZone<simDim> zone(

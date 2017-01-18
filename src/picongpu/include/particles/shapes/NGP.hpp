@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -39,7 +39,7 @@ namespace shapes
              * width of the support of this form_factor. This is the area where the function
              * is non-zero.
              */
-            BOOST_STATIC_CONSTEXPR int support = 1;
+            static constexpr int support = 1;
         };
 
     } // namespace shared_NGP

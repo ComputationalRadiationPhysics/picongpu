@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -45,8 +45,8 @@ struct Abs<double>
       return ::fabs( value );
 #else
       /* \bug on cpu `::abs(double)` always return zero -> maybe this is the
-	* integer version of `abs()`
-	*/
+       * integer version of `abs()`
+       */
       return std::abs( value );
 #endif
     }

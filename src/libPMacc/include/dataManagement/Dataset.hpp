@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Felix Schmitt, Benjamin Worpitz
+ * Copyright 2013-2017 Rene Widera, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -23,8 +23,6 @@
 #pragma once
 
 #include "dataManagement/ISimulationData.hpp"
-
-#include <cassert>
 
 namespace PMacc
 {

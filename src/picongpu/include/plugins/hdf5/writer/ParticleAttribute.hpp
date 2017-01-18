@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -31,6 +31,7 @@
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
+#include "assert.hpp"
 
 namespace picongpu
 {
@@ -99,8 +100,8 @@ struct ParticleAttribute
         const uint32_t macroWeighted = (macroWeightedBool ? 1 : 0);
         const float_64 weightingPower = WeightingPower<T_Identifier>::get();
 
-        assert(unit.size() == components); // unitSI for each component
-        assert(unitDimension.size() == 7); // seven openPMD base units
+        PMACC_ASSERT(unit.size() == components); // unitSI for each component
+        PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step

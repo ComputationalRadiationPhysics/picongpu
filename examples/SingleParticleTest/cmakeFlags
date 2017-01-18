@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2017 Axel Huebl, Rene Widera, Richard Pausch
 #
-# This file is part of PIConGPU. 
-# 
-# PIConGPU is free software: you can redistribute it and/or modify 
-# it under the terms of the GNU General Public License as published by 
-# the Free Software Foundation, either version 3 of the License, or 
-# (at your option) any later version. 
-# 
-# PIConGPU is distributed in the hope that it will be useful, 
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-# GNU General Public License for more details. 
-# 
-# You should have received a copy of the GNU General Public License 
-# along with PIConGPU.  
-# If not, see <http://www.gnu.org/licenses/>. 
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
 #
 
 #
@@ -31,26 +31,26 @@
 
 # test all pushers in 3D and 2D
 # Boris Pusher
-flags[0]="-DCUDA_ARCH=sm_20"
-flags[1]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_DIMENSION=DIM2"
+flags[0]="-DCUDA_ARCH=20"
+flags[1]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_DIMENSION=DIM2"
 # Vay Pusher
-flags[2]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Vay"
-flags[3]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Vay;-DPARAM_DIMENSION=DIM2"
+flags[2]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Vay"
+flags[3]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Vay;-DPARAM_DIMENSION=DIM2"
 # disable the pusher
-flags[4]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_ENABLEPUSHER=0"
-flags[5]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_ENABLEPUSHER=0;-DPARAM_DIMENSION=DIM2"
+flags[4]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_ENABLEPUSHER=0"
+flags[5]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_ENABLEPUSHER=0;-DPARAM_DIMENSION=DIM2"
 # Free Pusher
-flags[6]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Free"
-flags[7]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Free;-DPARAM_DIMENSION=DIM2"
+flags[6]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Free"
+flags[7]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Free;-DPARAM_DIMENSION=DIM2"
 # Photon Pusher
-flags[8]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Photon"
-flags[9]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Photon;-DPARAM_DIMENSION=DIM2"
-# Axel Pusher 
-flags[10]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Axel"
+flags[8]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Photon"
+flags[9]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Photon;-DPARAM_DIMENSION=DIM2"
+# Axel Pusher
+flags[10]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=Axel"
 # does not support 2D
 # Reduced Landau Lifshitz Pusher
-flags[11]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=ReducedLandauLifshitz"
-flags[12]="-DCUDA_ARCH=sm_20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=ReducedLandauLifshitz;-DPARAM_DIMENSION=DIM2"
+flags[11]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=ReducedLandauLifshitz"
+flags[12]="-DCUDA_ARCH=20 -DPARAM_OVERWRITES:LIST=-DPARAM_PARTICLEPUSHER=ReducedLandauLifshitz;-DPARAM_DIMENSION=DIM2"
 
 ################################################################################
 # execution

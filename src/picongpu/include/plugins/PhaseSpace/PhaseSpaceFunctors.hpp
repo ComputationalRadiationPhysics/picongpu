@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Richard Pausch
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -84,7 +84,7 @@ namespace picongpu
                     const uint32_t el_p,
                     const std::pair<float_X, float_X>& axis_p_range )
         {
-            PMACC_AUTO( particle, frame[particleID] );
+            auto particle = frame[particleID];
             /** \todo this can become a functor to be even more flexible */
             const float_X mom_i = particle[momentum_][el_p];
 
@@ -104,8 +104,10 @@ namespace picongpu
             int p_bin = int( rel_bin * float_X(num_pbins) );
 
             /* out-of-range bins back to min/max */
-            p_bin >= 0 ? /* do not change p_bin */ : p_bin=0;
-            p_bin < num_pbins ? /* do not change p_bin */ : p_bin=num_pbins-1;
+            if( p_bin < 0 )
+                p_bin = 0;
+            if( p_bin >= num_pbins )
+                p_bin = num_pbins - 1;
 
             /** \todo take particle shape into account */
             atomicAddWrapper( &(*curDBufferOriginInBlock( p_bin, r_bin )),

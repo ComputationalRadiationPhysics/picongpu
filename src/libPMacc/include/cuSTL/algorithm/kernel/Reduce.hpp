@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -49,13 +49,13 @@ struct Reduce
     typename SrcCursor::ValueType operator()(const SrcCursor& srcCursor, const Zone& p_zone, const NVidiaFunctor& functor)
     {
         SrcCursor srcCursor_shifted = srcCursor(p_zone.offset);
-        
+
         cursor::MapTo1DNavigator<Zone::dim> myNavi(p_zone.size);
-        
-        BOOST_AUTO(_srcCursor, cursor::make_Cursor(cursor::CursorAccessor<SrcCursor>(),
+
+        auto _srcCursor = cursor::make_Cursor(cursor::CursorAccessor<SrcCursor>(),
                                                    myNavi,
-                                                   srcCursor_shifted));
-        
+                                                   srcCursor_shifted);
+
         PMacc::nvidia::reduce::Reduce reduce(1024);
         return reduce(functor, _srcCursor, p_zone.size.productOfComponents());
     }

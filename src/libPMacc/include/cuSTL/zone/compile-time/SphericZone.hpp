@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Axel Huebl
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of libPMacc.
  *
@@ -46,7 +46,7 @@ struct SphericZone
 {
     typedef _Size Size;
     typedef _Offset Offset;
-    BOOST_STATIC_CONSTEXPR int dim = Size::dim;
+    static constexpr int dim = Size::dim;
 };
 
 } // CT

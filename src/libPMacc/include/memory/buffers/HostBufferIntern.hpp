@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2017 Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -27,8 +27,7 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
-
-#include <cassert>
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -93,7 +92,7 @@ public:
 
     void copyFrom(DeviceBuffer<TYPE, DIM>& other)
     {
-        assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
+        PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyDeviceToHost(other, *this);
     }
 
@@ -127,7 +126,7 @@ public:
     {
         __startOperation(ITask::TASK_HOST);
         size_t current_size = this->getCurrentSize();
-        PMACC_AUTO(memBox,getDataBox());
+        auto memBox = getDataBox();
         typedef DataBoxDim1Access<DataBoxType > D1Box;
         D1Box d1Box(memBox, this->getDataSpace());
         #pragma omp parallel for

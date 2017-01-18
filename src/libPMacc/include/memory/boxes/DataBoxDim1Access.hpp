@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -36,7 +36,7 @@ class DataBoxDim1Access : protected T_Base
 public:
 
     typedef T_Base Base;
-    BOOST_STATIC_CONSTEXPR uint32_t Dim= Base::Dim;
+    static constexpr uint32_t Dim = Base::Dim;
 
 
     typedef typename Base::ValueType ValueType;

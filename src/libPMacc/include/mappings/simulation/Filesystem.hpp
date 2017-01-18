@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Felix Schmitt
+ * Copyright 2014-2017 Felix Schmitt
  *
  * This file is part of libPMacc.
  *
@@ -44,7 +44,8 @@ namespace PMacc
              *
              * @param dir name of directory
              */
-            void createDirectory(const std::string dir)
+            void
+            createDirectory( const std::string dir ) const
             {
                 /* does not throw if the directory exists or has been created */
                 bfs::create_directories(dir);
@@ -55,7 +56,8 @@ namespace PMacc
              *
              * @param dir name of directory
              */
-            void setDirectoryPermissions(const std::string dir)
+            void
+            setDirectoryPermissions( const std::string dir )  const
             {
                 /* set permissions */
                 bfs::permissions(dir,
@@ -71,7 +73,8 @@ namespace PMacc
              *
              * @param dir name of directory
              */
-            void createDirectoryWithPermissions(const std::string dir)
+            void
+            createDirectoryWithPermissions( const std::string dir ) const
             {
                 GridController<DIM>& gc = Environment<DIM>::get().GridController();
 
@@ -82,6 +85,17 @@ namespace PMacc
                     /* must be set by only one process to avoid races */
                     setDirectoryPermissions(dir);
                 }
+            }
+
+            /**
+             * Strip path from absolute or relative paths to filenames
+             *
+             * @param path and filename
+             */
+            std::string
+            basename( const std::string pathFilename ) const
+            {
+                return bfs::path( pathFilename ).filename().string();
             }
 
         private:

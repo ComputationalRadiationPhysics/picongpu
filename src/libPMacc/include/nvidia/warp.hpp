@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Rene Widera, Alexander Grund
+ * Copyright 2015-2017 Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -41,7 +41,7 @@ namespace nvidia
 DINLINE uint32_t getLaneId()
 {
     uint32_t id;
-    asm("mov.u32 %0, %laneid;" : "=r" (id));
+    asm("mov.u32 %0, %%laneid;" : "=r" (id));
     return id;
 }
 #endif

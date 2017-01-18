@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -45,7 +45,7 @@
 #include <boost/preprocessor/cat.hpp>
 
 #ifndef LAMBDA_MAX_PARAMS
-#define LAMBDA_MAX_PARAMS 8
+#   define LAMBDA_MAX_PARAMS 8
 #endif
 
 namespace mpl = boost::mpl;
@@ -76,14 +76,14 @@ struct Expression : public math::Tuple<_Childs>
     HDINLINE Expression(FirstChild const & child0 = FirstChild())
      : Base(child0) {}
 
-    #define EXPRESSION_CTOR(Z, N, _)                                         \
+#define EXPRESSION_CTOR(Z, N, _)                                             \
         template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>                      \
         HDINLINE Expression(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg)) \
          : Base(BOOST_PP_ENUM_PARAMS(N, arg)) {}
 
     BOOST_PP_REPEAT_FROM_TO(2, LAMBDA_MAX_PARAMS, EXPRESSION_CTOR, _)
 
-    #undef EXPRESSION_CTOR
+#undef EXPRESSION_CTOR
 
     template<typename Idx>
     HDINLINE
@@ -149,10 +149,10 @@ struct Expression : public math::Tuple<_Childs>
         (*this, make_Expr(rhs));
     }
 
-    #define RESULT_OF_MAKE_EXPR(Z, N, _) typename result_of::make_Expr<Arg ## N>::type
-    #define MAKE_EXPR(Z, N, _) make_Expr(arg ## N)
+#define RESULT_OF_MAKE_EXPR(Z, N, _) typename result_of::make_Expr<Arg ## N>::type
+#define MAKE_EXPR(Z, N, _) make_Expr(arg ## N)
 
-    #define OPERATOR_CALL(Z, N, _) \
+#define OPERATOR_CALL(Z, N, _) \
         template<BOOST_PP_ENUM_PARAMS(N, typename Arg)> \
         HDINLINE \
         Expression<exprTypes::call, mpl::vector<This BOOST_PP_ENUM_TRAILING(N, RESULT_OF_MAKE_EXPR, _)> > \
@@ -164,9 +164,9 @@ struct Expression : public math::Tuple<_Childs>
 
     BOOST_PP_REPEAT_FROM_TO(1, LAMBDA_MAX_PARAMS, OPERATOR_CALL, _)
 
-    #undef RESULT_OF_MAKE_EXPR
-    #undef MAKE_EXPR
-    #undef OPERATOR_CALL
+#undef RESULT_OF_MAKE_EXPR
+#undef MAKE_EXPR
+#undef OPERATOR_CALL
 
     template<typename Arg>
     HDINLINE
@@ -197,4 +197,3 @@ DECLARE_PLACEHOLDERS()
 
 } // lambda
 } // PMacc
-

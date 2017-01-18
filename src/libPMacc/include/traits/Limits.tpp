@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera
+ * Copyright 2014-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -37,19 +37,19 @@ namespace limits
 template<>
 struct Max<int>
 {
-    BOOST_STATIC_CONSTEXPR int value=INT_MAX;
+    static constexpr int value=INT_MAX;
 };
 
 template<>
 struct Max<uint32_t>
 {
-    BOOST_STATIC_CONSTEXPR uint32_t value=static_cast<uint32_t>(-1);
+    static constexpr uint32_t value=static_cast<uint32_t>(-1);
 };
 
 template<>
 struct Max<uint64_t>
 {
-    BOOST_STATIC_CONSTEXPR uint64_t value=static_cast<uint64_t>(-1);
+    static constexpr uint64_t value=static_cast<uint64_t>(-1);
 };
 
 } //namespace limits

@@ -1,4 +1,4 @@
-# Copyright 2013-2016 Axel Huebl, Rene Widera
+# Copyright 2013-2017 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -21,19 +21,19 @@ fileName=$1
 projectName=${PROJECT_NAME:-"PIConGPU"}
 
 rename="s/psychocoder/Rene Widera/g;
-	s/rp6038/Richard Pausch/g;
-	s/fschmitt/Felix Schmitt/g;
-	s/ahuebl/Axel Huebl/g;
-	s/heiko/Heiko Burau/g;
-	s/steinigk/Klaus Steiniger/g;
-	s/ben_schneider/Benjamin Schneider/g;
-	s/whoenig/Wolfgang Hoenig/g;
-	s/rdietric/Robert Dietric/g;
-	s/phoenixloe/Florian Berninger/g;
-	s/helma/Anton Helm/g;
-	s/wf5/Wen Fu/g;
-	s/bussmann/Michael Bussmann/g
-	"
+    s/rp6038/Richard Pausch/g;
+    s/fschmitt/Felix Schmitt/g;
+    s/ahuebl/Axel Huebl/g;
+    s/heiko/Heiko Burau/g;
+    s/steinigk/Klaus Steiniger/g;
+    s/ben_schneider/Benjamin Schneider/g;
+    s/whoenig/Wolfgang Hoenig/g;
+    s/rdietric/Robert Dietric/g;
+    s/phoenixloe/Florian Berninger/g;
+    s/helma/Anton Helm/g;
+    s/wf5/Wen Fu/g;
+    s/bussmann/Michael Bussmann/g
+    "
 
 #author=`svn log "$fileName" --quiet | grep "^r" | awk '{print $3}' | sort | uniq | tr "\n" "," | sed 's/,$//g' | sed 's/,/, /g'`
 #author=`echo "$author" | sed "$rename"`

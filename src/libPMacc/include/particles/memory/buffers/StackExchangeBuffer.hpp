@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2017 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -25,7 +25,7 @@
 #include "particles/memory/boxes/ExchangePopDataBox.hpp"
 #include "particles/memory/boxes/ExchangePushDataBox.hpp"
 #include "memory/buffers/Exchange.hpp"
-#include <cassert>
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -91,8 +91,8 @@ namespace PMacc
          */
         ExchangePushDataBox<vint_t, FRAME, DIM> getDeviceExchangePushDataBox()
         {
-            assert(stack.getDeviceBuffer().hasCurrentSizeOnDevice() == true);
-            assert(stackIndexer.getDeviceBuffer().hasCurrentSizeOnDevice() == true);
+            PMACC_ASSERT(stack.getDeviceBuffer().hasCurrentSizeOnDevice() == true);
+            PMACC_ASSERT(stackIndexer.getDeviceBuffer().hasCurrentSizeOnDevice() == true);
             return ExchangePushDataBox<vint_t, FRAME, DIM > (
                                                              stack.getDeviceBuffer().getBasePointer(),
                                                              (vint_t*) stack.getDeviceBuffer().getCurrentSizeOnDevicePointer(),

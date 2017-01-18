@@ -19,19 +19,25 @@ Requirements
 
 ### Mandatory
 
-- **gcc** 4.8 to 5.X (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
+- **gcc** 4.9 to 5.X (depends on your current [CUDA version](https://gist.github.com/ax3l/9489132))
   - *Debian/Ubuntu:*
     - `sudo apt-get install gcc-4.9 g++-4.9 build-essential`
     - `sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9`
   - *Arch Linux:*
     - `sudo pacman --sync base-devel`
     - the installed version of **gcc** might be too new. [Compile an older gcc](https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53)
+  - *Spack:*
+    - `spack install gcc@4.9.4`
+    - make it the default in your
+      [`packages.yaml`](http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration)
+      or [*suffix* all following `spack install` commands](http://spack.readthedocs.io/en/latest/features.html#simple-package-installation)
+      with ` %gcc@4.9.4`
 
-- C++98 build: [CUDA 5.5-7.0](https://developer.nvidia.com/cuda-downloads)
+- [CUDA 7.5+](https://developer.nvidia.com/cuda-downloads)
   - *Arch Linux:* `sudo pacman --sync cuda`
-- C++11 build: [CUDA 7.5+](https://developer.nvidia.com/cuda-downloads)
-  - note: we recommend using **gcc 4.9**
-  - *Arch Linux:* `sudo pacman --sync cuda`
+  - *Spack:*
+    - `curl -o cuda_7.5.18_linux.run http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run`
+    - `spack install cuda@7.5.18`
 
 - at least one **CUDA** capable **GPU**
   - *Compute capability* **sm\_20** or higher
@@ -41,28 +47,35 @@ Requirements
 - **cmake** 3.3.0 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
+  - *Spack:* `spack install cmake`
 
 - **OpenMPI** 1.5.1+ / **MVAPICH2** 1.8+ or similar
   ([GPU aware](https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/) install recommended)
   - *Debian/Ubuntu:* `sudo apt-get install libopenmpi-dev`
   - *Arch Linux:* `sudo pacman --sync openmpi`
+  - *Spack:*
+    - `spack install openmpi`
+    - as long as CUDA awareness (`openmpi+cuda`) is missing: `export OMPI_MCA_mpi_leave_pinned=0`
 
 - **zlib**
   - *Debian/Ubuntu:* `sudo apt-get install zlib1g-dev`
   - *Arch Linux:* `sudo pacman --sync zlib`
+  - *Spack:* `spack install zlib`
 
 - **boost** 1.57.0+ ("program options", "regex" , "filesystem", "system", "thread", "math" and nearly all header-only libs)
   - download from [http://www.boost.org/](http://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz/download),
       e.g. version 1.57.0
   - *Debian/Ubuntu:* `sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-math-dev`
   - *Arch Linux:* `sudo pacman --sync boost`
-  - *From source:*
+  - *Spack:* `spack install boost`
+  - *from source:*
     - `./bootstrap.sh --with-libraries=filesystem,program_options,regex,system,thread,math --prefix=$HOME/lib/boost`
     - `./b2 -j4 && ./b2 install`
 
 - **git** 1.7.9.5 or [higher](https://help.github.com/articles/https-cloning-errors)
   - *Debian/Ubuntu:* `sudo apt-get install git`
   - *Arch Linux:* `sudo pacman --sync git`
+  - *Spack:* `spack install git`
 
 ### Optional Libraries
 
@@ -71,6 +84,8 @@ We recommend to install at least **pngwriter**.
 Some of our examples will also need **libSplash**.
 
 - **pngwriter** >= 0.5.6
+  - *Spack:* `spack install pngwriter`
+  - *from source:*
     - download our modified version from
       [github.com/pngwriter/pngwriter](https://github.com/pngwriter/pngwriter)
     - Requires [libpng](http://www.libpng.org/),
@@ -89,8 +104,8 @@ Some of our examples will also need **libSplash**.
 - **libSplash** >= 1.6.0 (requires *HDF5*, *boost program-options*)
     - *Debian/Ubuntu dependencies:* `sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev`
     - *Arch Linux dependencies:* `sudo pacman --sync hdf5-openmpi boost`
-    - *or compile hdf5 yourself:*  follow instructions one paragraph below 
-    - example:
+    - *Spack:* `spack install libsplash ^hdf5~fortran`
+    - *from source:*
       - `mkdir -p ~/src ~/build ~/lib`
       - `git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/`
       - `cd ~/build`
@@ -103,7 +118,8 @@ Some of our examples will also need **libSplash**.
 - **HDF5** >= 1.8.6, standard shared version (no c++, enable parallel), e.g. `hdf5/1.8.5-threadsafe`
     - *Debian/Ubuntu:* `sudo apt-get install libhdf5-openmpi-dev`
     - *Arch Linux:* `sudo pacman --sync hdf5-openmpi`
-    - example:
+    - *Spack:* `spack install hdf5~fortran`
+    - *from source:*
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
       - download hdf5 source code from [release list of the HDF5 group]
@@ -147,7 +163,8 @@ Some of our examples will also need **libSplash**.
       - `git clone https://aur.archlinux.org/libadios.git`
       - `cd libadios`
       - `makepkg -sri`
-    - example:
+    - *Spack:* `spack install adios`
+    - *from source:*
       - `mkdir -p ~/src ~/build ~/lib`
       - `cd ~/src`
       - `wget http://users.nccs.gov/~pnorbert/adios-1.10.0.tar.gz`
@@ -164,8 +181,16 @@ Some of our examples will also need **libSplash**.
       [LD\_LIBRARY\_PATH](#additional-required-environment-variables-for-optional-libraries)
       to `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ADIOS_ROOT/lib`
 
+- **ISAAC** (requires *boost* (header only), *IceT*, *Jansson*, *libjpeg* (preferably *libjpeg-turbo*), *libwebsockets* (only for the ISAAC server, but not the plugin itself) )
+    - Enables live in situ visualization, see more here [Plugin description](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Plugin%3A-ISAAC)
+    - *Spack:* `spack install isaac`
+    - *from source:* build the *in situ library* and its dependencies as described in
+      [ISAAC's INSTALL.md](https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md)
+    - set environment variable `CMAKE_PREFIX_PATH` for each dependency and the
+      ISAAC in situ library
+
 - for **VampirTrace** support
-    - download 5.14.4 or higher, e.g. from 
+    - download 5.14.4 or higher, e.g. from
     [http://www.tu-dresden.de](http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/vampirtrace)
     - example:
       - `mkdir -p ~/src ~/build ~/lib`
@@ -186,9 +211,9 @@ Install
 
 ### Mandatory environment variables
 
-- `CUDA_ROOT`: cuda installation directory, 
+- `CUDA_ROOT`: cuda installation directory,
     e.g. `export CUDA_ROOT=<CUDA_INSTALL>`
-- `MPI_ROOT`: mpi installation directory, 
+- `MPI_ROOT`: mpi installation directory,
     e.g. `export MPI_ROOT=<MPI_INSTALL>`
 - extend your `$PATH` with helper tools for PIConGPU, see point,
     [Checkout and Build PIConGPU](#checkout-and-build-picongpu) *step 2.2*
@@ -197,9 +222,9 @@ Install
 ### Additional required environment variables (for optional libraries)
 
 #### for splash and HDF5
-- `SPLASH_ROOT`: libsplash installation directory, 
+- `SPLASH_ROOT`: libsplash installation directory,
     e.g. `export SPLASH_ROOT=$HOME/lib/splash`
-- `HDF5_ROOT`: hdf5 installation directory, 
+- `HDF5_ROOT`: hdf5 installation directory,
     e.g. `export HDF5_ROOT=$HOME/lib/hdf5`
 - `LD_LIBRARY_PATH`: add path to $HOME/lib/hdf5/lib,
     e.g. `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/lib/hdf5/lib`

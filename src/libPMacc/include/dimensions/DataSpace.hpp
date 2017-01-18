@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Felix Schmitt, Heiko Burau, Rene Widera,
+ * Copyright 2013-2017 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
@@ -42,7 +42,7 @@ namespace PMacc
     {
     public:
 
-        BOOST_STATIC_CONSTEXPR int Dim=DIM;
+        static constexpr int Dim=DIM;
         typedef math::Vector<int,DIM> BaseType;
 
         /**

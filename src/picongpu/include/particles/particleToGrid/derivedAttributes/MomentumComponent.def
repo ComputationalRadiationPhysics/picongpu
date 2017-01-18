@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Axel Huebl
+ * Copyright 2016-2017 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -34,7 +34,7 @@ namespace derivedAttributes
 {
     /** Calculate the ratio of momentum in a selected direction to total momentum.
      *
-     * \tparam size_t with perpendicular direction x=0, y=1, z=2 
+     * \tparam size_t with perpendicular direction x=0, y=1, z=2
      */
     template <size_t T_direction>
     struct MomentumComponent

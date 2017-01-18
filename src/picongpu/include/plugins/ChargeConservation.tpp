@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -18,6 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "static_assert.hpp"
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
@@ -188,7 +189,11 @@ void ChargeConservation::notify(uint32_t currentStep)
     DataConnector &dc = Environment<>::get().DataConnector();
 
     /* load FieldTmp without copy data to host */
-    FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
+    PMACC_CASSERT_MSG(
+        _please_allocate_at_least_one_FieldTmp_in_memory_param,
+        fieldTmpNumSlots > 0
+    );
+    FieldTmp* fieldTmp = &(dc.getData< FieldTmp >( FieldTmp::getUniqueId( 0 ), true ));
     /* reset density values to zero */
     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
 
@@ -201,18 +206,18 @@ void ChargeConservation::notify(uint32_t currentStep)
     __setTransactionEvent(fieldTmpEvent);
 
     /* cast libPMacc Buffer to cuSTL Buffer */
-    BOOST_AUTO(fieldTmp_coreBorder,
+    auto fieldTmp_coreBorder =
                  fieldTmp->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
-                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT()));
+                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());
 
     /* cast libPMacc Buffer to cuSTL Buffer */
-    BOOST_AUTO(fieldE_coreBorder,
+    auto fieldE_coreBorder =
                  dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
-                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT()));
+                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());
 
     /* run calculation: fieldTmp = | div E * eps_0 - rho | */
     using namespace lambda;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+ * Copyright 2014-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -67,7 +67,7 @@ public:
 
         DataSpace<simDim> local_domain_size = params->window.localDimensions.size;
 
-        PMACC_AUTO(destBox, field.getHostBuffer().getDataBox());
+        auto destBox = field.getHostBuffer().getDataBox();
         for (uint32_t n = 0; n < numComponents; ++n)
         {
             // Read the subdomain which belongs to our mpi position.

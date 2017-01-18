@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Axel Huebl
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -60,7 +60,7 @@ namespace traits
 
         HDINLINE ReturnType operator()() const
         {
-            const PMACC_AUTO(center, PosType::create( 0.5 ));
+            const auto center = PosType::create( 0.5 );
 
             return ReturnType::create( center );
         }

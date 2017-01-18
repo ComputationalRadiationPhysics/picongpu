@@ -25,7 +25,7 @@ export FC=`which ftn`
 #export LD_PRELOAD=$MY_CRAY_LIBS/libgfortran.so.3:$LD_PRELOAD
 
 # required tools and libs
-module load git 
+module load git
 module load cmake/3.5.2
 module load cudatoolkit
 module load boost/1.57.0
@@ -38,12 +38,12 @@ export MPI_ROOT=$MPICH_DIR
 #     $PICSRC/configure -c "-DVAMPIR_ENABLE=ON" ~/paramSets/case001
 #module load vampirtrace/5.14.4
 #export VT_ROOT=$VAMPIRTRACE_DIR
- 
+
 # scorep (optional) ############################################
 #   configure with -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
 #                      -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`"
 #   e.g.:
-#     SCOREP_WRAPPER=OFF $PICSRC/configure -a sm_35 \
+#     SCOREP_WRAPPER=OFF $PICSRC/configure -a 35 \
 #         -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
 #         -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`" \
 #         ~/paramSets/case001

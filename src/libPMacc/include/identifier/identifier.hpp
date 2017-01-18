@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz, Alexander Grund
+ * Copyright 2013-2017 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -28,18 +28,18 @@
 /* No namespace is needed because we only have defines*/
 
 #ifdef __CUDA_ARCH__ //we are on gpu
-#define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(device_placeholder,id)
+#   define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(device_placeholder,id)
 #else
-#define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(host_placeholder,id)
+#   define PMACC_PLACEHOLDER(id) using namespace PMACC_JOIN(host_placeholder,id)
 #endif
 
 #ifdef __CUDACC__
-    #define PMACC_identifier_CUDA(name,id)                                         \
+#   define PMACC_identifier_CUDA(name,id)                                         \
         namespace PMACC_JOIN(device_placeholder,id){                               \
             __constant__ PMACC_JOIN(placeholder_definition,id)::name PMACC_JOIN(name,_); \
         }
 #else
-    #define PMACC_identifier_CUDA(name,id)
+#   define PMACC_identifier_CUDA(name,id)
 #endif
 
 /*define special macros for creating classes which are only used as identifier*/

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Axel Huebl
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of libPMacc.
  *
@@ -48,7 +48,7 @@ namespace cudaBlock
     /*                     (      C0 c0, ..., C(N-1) c(N-1)           ,       ) */ \
     DINLINE void operator()(Zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
     {                                                                              \
-        BOOST_AUTO(functor_, lambda::make_Functor(functor));                       \
+        auto functor_ = lambda::make_Functor(functor);                       \
         const int dataVolume = math::CT::volume<typename Zone::Size>::type::value; \
         const int blockVolume = math::CT::volume<BlockDim>::type::value;           \
                                                                                    \
@@ -57,9 +57,9 @@ namespace cudaBlock
                                                                                    \
         for(int i = this->linearThreadIdx; i < dataVolume; i += blockVolume)       \
         {                                                                          \
-            PosType pos = Zone::Offset().toRT() +                                  \
+            PosType pos = Zone::Offset::toRT() +                                   \
                           precisionCast<typename PosType::type>(                   \
-                            math::MapToPos<Zone::dim>()( Zone::Size(), i ) );      \
+                            math::MapToPos<Zone::dim>()( typename Zone::Size(), i ) ); \
             functor_(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                     \
         }                                                                          \
     }

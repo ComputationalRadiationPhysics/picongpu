@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch,
+ * Copyright 2013-2017 Axel Huebl, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -50,7 +50,9 @@ namespace picongpu
     /** Tmp (at the moment: scalar) field for analysers and tmp data like
      *  "gridded" particle data (charge density, energy density, ...)
      */
-    class FieldTmp : public SimulationFieldHelper<MappingDesc>, public ISimulationData
+    class FieldTmp :
+        public SimulationFieldHelper<MappingDesc>,
+        public ISimulationData
     {
     public:
         typedef float1_X ValueType;
@@ -64,13 +66,16 @@ namespace picongpu
             return this->cellDescription;
         }
 
-        FieldTmp( MappingDesc cellDescription );
+        FieldTmp(
+            MappingDesc cellDescription,
+            uint32_t slotId
+        );
 
         virtual ~FieldTmp( );
 
         virtual void reset( uint32_t currentStep );
 
-        template<class FrameSolver >
+        template< class FrameSolver >
         HDINLINE static UnitValueType getUnit();
 
         /** powers of the 7 base measures
@@ -84,7 +89,7 @@ namespace picongpu
 
         static std::string getName();
 
-        static uint32_t getCommTag();
+        uint32_t getCommTag();
 
         virtual EventTask asyncCommunication( EventTask serialEvent );
 
@@ -100,6 +105,8 @@ namespace picongpu
 
         template<uint32_t AREA, class FrameSolver, class ParticlesClass>
         void computeValue(ParticlesClass& parClass, uint32_t currentStep);
+
+        static SimulationDataId getUniqueId( uint32_t slotId );
 
         SimulationDataId getUniqueId();
 
@@ -117,8 +124,12 @@ namespace picongpu
         void insertField( uint32_t exchangeType );
 
     private:
+
         GridBuffer<ValueType, simDim> *fieldTmp;
 
+        uint32_t m_slotId;
+
+        uint32_t m_commTag;
     };
 
 

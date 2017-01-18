@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau
+ * Copyright 2013-2017 Heiko Burau
  *
  * This file is part of libPMacc.
  *
@@ -42,15 +42,17 @@ namespace detail
 /*                        typename C0, ..., typename CN     */ \
 template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
 /*                                          C0 c0, ..., CN cN   */ \
-__global__ void kernelForeach(Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) \
+DINLINE void operator()(Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) const \
 { \
-    math::Int<Mapper::dim> cellIndex(mapper(blockIdx, threadIdx)); \
+    math::Int<Mapper::dim> cellIndex(mapper(dim3(blockIdx), dim3(threadIdx))); \
 /*          forward(c0[cellIndex]), ..., forward(cN[cellIndex])     */ \
     functor(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
 }
 
+struct KernelForeach
+{
 BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREACH, _)
-
+};
 #undef KERNEL_FOREACH
 #undef SHIFTACCESS_CURSOR
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl, Heiko Burau
+ * Copyright 2014-2017 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -99,6 +99,12 @@ alias(ionizationEnergies);
 /*! alias for synchrotronPhotons @see speciesDefinition.param */
 alias(synchrotronPhotons)
 
+/*! alias for ion species used for bremsstrahlung */
+alias(bremsstrahlungIons);
+
+/*! alias for photon species used for bremsstrahlung */
+alias(bremsstrahlungPhotons);
+
 /*! alias for particle to field interpolation @see species.param */
 alias(interpolation);
 
@@ -116,25 +122,29 @@ alias(effectiveAtomicNumbers);
 
 /*! alias for particle mass ratio
  *
- *  mass ratio between base particle @see `speciesConstants.param` SI::BASE_MASS_SI
- *  and a user defined species
+ * mass ratio between base particle @see `speciesConstants.param` SI::BASE_MASS_SI
+ * and a user defined species
+ *
+ * default value: 1.0 if unset
  */
 alias(massRatio);
 
 /*! alias for particle charge ratio
  *
- *  charge ratio between base particle @see `speciesConstants.param` SI::BASE_CHARGE_SI
- *  and a user defined species
+ * charge ratio between base particle @see `speciesConstants.param` SI::BASE_CHARGE_SI
+ * and a user defined species
+ *
+ * default value: 1.0 if unset
  */
 alias(chargeRatio);
 
 /*! alias for particle density ratio
  *
- * density ratio between default density @see `gasConfig.param` SI::GAS_DENSITY_SI
+ * density ratio between default density @see `densityConfig.param` SI::BASE_DENSITY_SI
  * and a user defined species
  *
- * densityRatio is an *optional* flag of a species
+ * default value: 1.0 if unset
  */
 alias(densityRatio);
 
-} //namespace picongpu
+}

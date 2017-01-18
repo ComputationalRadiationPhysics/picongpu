@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -81,7 +81,7 @@ struct cuda_vec : public V
         return (&(this->x()))[dim];
     }
 
-    HDINLINE T &operator[](uint32_t dim) const
+    HDINLINE const T &operator[](uint32_t dim) const
     {
         return (&(this->x()))[dim];
     }

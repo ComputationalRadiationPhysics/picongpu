@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -78,7 +78,7 @@ private:
         using namespace cursor::tools;
         using namespace PMacc::math;
 
-        PMACC_AUTO(gridSizeTwisted, twistComponents<OrientationTwist>(gridSize));
+        auto gridSizeTwisted = twistComponents<OrientationTwist>(gridSize);
 
         /* twist components of the supercell */
         typedef typename CT::TwistComponents<SuperCellSize, OrientationTwist>::type BlockDim;
@@ -101,14 +101,14 @@ public:
         FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
         FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
 
-        BOOST_AUTO(fieldE_coreBorder,
+        auto fieldE_coreBorder =
             fieldE.getGridBuffer().getDeviceBuffer().
                    cartBuffer().view(GuardDim().toRT(),
-                                     -GuardDim().toRT()));
-        BOOST_AUTO(fieldB_coreBorder,
+                                     -GuardDim().toRT());
+        auto fieldB_coreBorder =
             fieldB.getGridBuffer().getDeviceBuffer().
             cartBuffer().view(GuardDim().toRT(),
-                              -GuardDim().toRT()));
+                              -GuardDim().toRT());
 
         using namespace cursor::tools;
         using namespace PMacc::math;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -33,8 +33,6 @@
 #include <list>
 #include "plugins/output/images/Visualisation.hpp"
 #include "plugins/output/images/LiveViewClient.hpp"
-
-#include <cassert>
 
 #include <stdexcept>
 

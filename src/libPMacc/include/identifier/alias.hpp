@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Felix Schmitt, Benjamin Worpitz,
+ * Copyright 2013-2017 Rene Widera, Felix Schmitt, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -38,12 +38,12 @@ identifier(pmacc_isAlias);
 } //namespace PMacc
 
 #ifdef __CUDACC__
-    #define PMACC_alias_CUDA(name,id)                                          \
+#   define PMACC_alias_CUDA(name,id)                                          \
         namespace PMACC_JOIN(device_placeholder,id){                           \
             __constant__ PMACC_JOIN(placeholder_definition,id)::name<> PMACC_JOIN(name,_); \
         }
 #else
-    #define PMACC_alias_CUDA(name,id)
+#   define PMACC_alias_CUDA(name,id)
 #endif
 
 /*define special makros for creating classes which are only used as identifer*/

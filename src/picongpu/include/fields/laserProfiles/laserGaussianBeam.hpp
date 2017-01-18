@@ -1,6 +1,6 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+ *                     Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -43,6 +43,13 @@ namespace picongpu
 
             float3_X elong(float3_X::create(0.0));
 
+            // This check is done here on HOST, since std::numeric_limits<float_X>::epsilon() does not compile on laserTransversal(), which is on DEVICE.
+            float_X etrans_norm = float_X(0.0);
+            for ( uint32_t m = 0 ; m <= MODENUMBER ; ++m )
+                etrans_norm += LAGUERREMODES[m];
+            PMACC_VERIFY_MSG( algorithms::math::abs(etrans_norm) > std::numeric_limits<float_X>::epsilon(), "Sum of LAGUERREMODES can not be 0." );
+
+
             // a symmetric pulse will be initialized at position z=0 for
             // a time of PULSE_INIT * PULSE_LENGTH = INIT_TIME.
             // we shift the complete pulse for the half of this time to start with
@@ -81,6 +88,32 @@ namespace picongpu
         }
 
         /**
+         *  Simple iteration algorithm to implement Laguerre polynomials for GPUs.
+         *  @param n order of the Laguerre polynomial
+         *  @param x coordinate at which the polynomial is evaluated
+         *  @return
+         */
+        HDINLINE float_X simpleLaguerre( const uint32_t n, const float_X x )
+        {
+            //Result for special case n == 0
+            if (n == 0) return float_X(1.0);
+            uint32_t currentN = 1;
+            float_X laguerreNMinus1 = float_X(1.0);
+            float_X laguerreN = float_X(1.0) - x;
+            float_X laguerreNPlus1 = float_X(0.0);
+            while (currentN < n)
+            {
+                //Core statement of the algorithm
+                laguerreNPlus1 = ( ( float_X(2.0) * float_X(currentN) + float_X(1.0) - x) * laguerreN - float_X(currentN) * laguerreNMinus1 ) / float_X(currentN + 1);
+                //Advance by one order
+                laguerreNMinus1 = laguerreN;
+                laguerreN = laguerreNPlus1;
+                currentN++;
+            }
+            return laguerreN;
+        }
+
+        /**
          *
          * @param elong
          * @param phase
@@ -98,6 +131,13 @@ namespace picongpu
             // the radius of curvature of the beam's  wavefronts
             const float_X R_y = -FOCUS_POS * ( float_X(1.0) + ( y_R / FOCUS_POS )*( y_R / FOCUS_POS ) );
 
+            // initialize temporary variables
+            float_X etrans = float_X(0.0);
+            float_X etrans_norm = float_X(0.0);
+            PMACC_CASSERT_MSG(MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector, MODENUMBER<LAGUERREMODES_t::dim);
+            PMACC_VERIFY_MSG( MODENUMBER<LAGUERREMODES_t::dim, "MODENUMBER must be smaller than number of entries in LAGUERREMODES vector." );
+            for ( uint32_t m = 0 ; m <= MODENUMBER ; ++m )
+                etrans_norm += LAGUERREMODES[m];
 
             //beam waist in the near field: w_y(y=0) == W0
             const float_X w_y = W0 * algorithms::math::sqrt( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
@@ -106,22 +146,38 @@ namespace picongpu
 
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
-                elong *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                for ( uint32_t m = 0 ; m <= MODENUMBER ; ++m )
+                {
+                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, float_X(2.0) * r2 / w_y / w_y )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + phase )
+                        * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                }
+                elong *= etrans / etrans_norm;
             }
             else if( Polarisation == CIRCULAR )
             {
-                elong.x() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                for ( uint32_t m = 0 ; m <= MODENUMBER ; ++m )
+                {
+                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, float_X(2.0) * r2 / w_y / w_y )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + phase )
+                        * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                }
+                elong.x() *= etrans / etrans_norm;
                 phase += float_X( PI / 2.0 );
-                elong.z() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                etrans = float_X(0.0);
+                for ( uint32_t m = 0 ; m <= MODENUMBER ; ++m )
+                {
+                    etrans += LAGUERREMODES[m] * simpleLaguerre( m, float_X(2.0) * r2 / w_y / w_y )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + phase )
+                        * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
+                }
+                elong.z() *= etrans / etrans_norm;
                 phase -= float_X( PI / 2.0 );
             }
 

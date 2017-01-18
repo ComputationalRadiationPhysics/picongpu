@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+ * Copyright 2013-2017 Felix Schmitt, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -32,6 +32,7 @@
 
 #include "mappings/kernel/StrideMapping.hpp"
 #include "traits/NumberOfExchanges.hpp"
+#include "assert.hpp"
 
 
 namespace PMacc
@@ -54,10 +55,10 @@ public:
 
     /* Type of frame in particles buffer
      */
-    typedef typename BufferType::ParticleType FrameType;
+    typedef typename BufferType::FrameType FrameType;
     /* Type of border frame in a particle buffer
      */
-    typedef typename BufferType::ParticleTypeBorder FrameTypeBorder;
+    typedef typename BufferType::FrameTypeBorder FrameTypeBorder;
 
     /* Type of the particle box which particle buffer create
      */
@@ -98,14 +99,14 @@ protected:
         __startTransaction(__getTransactionEvent());
         do
         {
-            __cudaKernel(kernelShiftParticles)
-                (mapper.getGridDim(), TileSize)
+            PMACC_KERNEL(KernelShiftParticles{})
+                (mapper.getGridDim(), (int)TileSize)
                 (pBox, mapper);
-            __cudaKernel(kernelFillGaps)
-                (mapper.getGridDim(), TileSize)
+            PMACC_KERNEL(KernelFillGaps{})
+                (mapper.getGridDim(), (int)TileSize)
                 (pBox, mapper);
-            __cudaKernel(kernelFillGapsLastFrame)
-                (mapper.getGridDim(), TileSize)
+            PMACC_KERNEL(KernelFillGapsLastFrame{})
+                (mapper.getGridDim(), (int)TileSize)
                 (pBox, mapper);
         }
         while (mapper.next());
@@ -122,12 +123,12 @@ protected:
     {
         AreaMapping<AREA, MappingDesc> mapper(this->cellDescription);
 
-        __cudaKernel(kernelFillGaps)
-            (mapper.getGridDim(), TileSize)
+        PMACC_KERNEL(KernelFillGaps{})
+            (mapper.getGridDim(), (int)TileSize)
             (particlesBuffer->getDeviceParticleBox(), mapper);
 
-        __cudaKernel(kernelFillGapsLastFrame)
-            (mapper.getGridDim(), TileSize)
+        PMACC_KERNEL(KernelFillGapsLastFrame{})
+            (mapper.getGridDim(), (int)TileSize)
             (particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
@@ -179,7 +180,7 @@ public:
      */
     BufferType& getParticlesBuffer()
     {
-        assert(particlesBuffer != NULL);
+        PMACC_ASSERT(particlesBuffer != NULL);
         return *particlesBuffer;
     }
 

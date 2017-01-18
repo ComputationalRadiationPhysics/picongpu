@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2016 Axel Huebl
+# Copyright 2013-2017 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -31,7 +31,7 @@ security_check $thisDir
 
 # clean up old stuff
 #
-rm -rf $cnf_gitdir/* $cnf_gitdir/.git*
+rm -rf $cnf_gitdir
 mkdir -p $cnf_gitdir
 cd $cnf_gitdir
 

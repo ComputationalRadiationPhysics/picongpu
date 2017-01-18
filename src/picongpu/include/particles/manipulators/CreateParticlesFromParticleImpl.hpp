@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera
+ * Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,6 +24,7 @@
 #include "simulation_defines.hpp"
 #include "nvidia/atomic.hpp"
 #include "particles/operations/Deselect.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -58,8 +59,8 @@ struct CreateParticlesFromParticleImpl : private T_Functor
 
 
     typedef T_Functor Functor;
-    BOOST_STATIC_CONSTEXPR uint32_t particlePerParticle = T_Count::value;
-    BOOST_STATIC_CONSTEXPR int cellsInSuperCell = (int)PMacc::math::CT::volume<SuperCellSize>::type::value;
+    static constexpr uint32_t particlePerParticle = T_Count::value;
+    static constexpr int cellsInSuperCell = (int)PMacc::math::CT::volume<SuperCellSize>::type::value;
 
     HINLINE CreateParticlesFromParticleImpl(uint32_t currentStep) : Functor(currentStep)
     {
@@ -86,8 +87,8 @@ struct CreateParticlesFromParticleImpl : private T_Functor
         typedef typename DestFrameType::FramePtr DestFramePtr;
 
 
-        __shared__ DestFramePtr destFrame;
-        __shared__ int particlesInDestSuperCell;
+        PMACC_SMEM( destFrame, DestFramePtr );
+        PMACC_SMEM( particlesInDestSuperCell, int );
 
 
         uint32_t ltid = DataSpaceOperations<simDim>::template map<SuperCellSize>(DataSpace<simDim>(threadIdx));
@@ -131,7 +132,7 @@ struct CreateParticlesFromParticleImpl : private T_Functor
             --numParToCreate;
             if (freeSlot>-1 && freeSlot < cellsInSuperCell)
             {
-                PMACC_AUTO(destParticle, destFrame[freeSlot]);
+                auto destParticle = destFrame[freeSlot];
                 Functor::operator()(destParticle, particle);
             }
             __syncthreads();
@@ -153,7 +154,7 @@ struct CreateParticlesFromParticleImpl : private T_Functor
             //second flush
             if (freeSlot >= cellsInSuperCell)
             {
-                PMACC_AUTO(destParticle, (*destFrame)[freeSlot - cellsInSuperCell]);
+                auto destParticle = (*destFrame)[freeSlot - cellsInSuperCell];
                 Functor::operator()(destParticle, particle);
             }
             __syncthreads();

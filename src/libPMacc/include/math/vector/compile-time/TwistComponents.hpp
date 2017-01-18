@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Heiko Burau
+ * Copyright 2015-2017 Heiko Burau
  *
  * This file is part of libPMacc.
  *
@@ -36,9 +36,9 @@ namespace CT
  * @brief Twists axes of a compile-time vector.
  * @tparam Vec compile-time vector to be twisted
  * @tparam Axes compile-time vector containing new axes
- * 
+ *
  * Example:
- * 
+ *
  * typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
  * typedef typename PMacc::math::CT::TwistComponents<BlockDim, Orientation_Y>::type TwistedBlockDim;
  */

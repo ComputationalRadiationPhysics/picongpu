@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Klaus Steiniger, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -550,7 +550,7 @@ private:
    *  Return:
    *  std::string - name
    *
-   * This method avoids initializing BOOST_STATIC_CONSTEXPR string arrays.
+   * This method avoids initializing static constexpr string arrays.
    */
   static const std::string dataLabels(int index)
   {
@@ -1054,7 +1054,7 @@ private:
       /* check if restart file exists */
       if( !boost::filesystem::exists(filename.str()) )
       {
-          log<picLog::INPUT_OUTPUT > ("Radiation (%1%): restart file not found (%2%) - start with zero values") % 
+          log<picLog::INPUT_OUTPUT > ("Radiation (%1%): restart file not found (%2%) - start with zero values") %
                                       speciesName % filename.str();
       }
       else
@@ -1168,7 +1168,7 @@ private:
        * percent) and definitely slower on Kepler GPUs (sm_3x, tested on K20))
        */
       const int N_observer = parameters::N_observer;
-      const dim3 gridDim_rad(N_observer);
+      const auto gridDim_rad = N_observer;
 
       /* number of threads per block = number of cells in a super cell
        *          = number of particles in a Frame
@@ -1178,7 +1178,7 @@ private:
        * Particles in a Frame can be accessed in parallel.
        */
 
-      const dim3 blockDim_rad(PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
+      const auto blockDim_rad = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
 
       // Some funny things that make it possible for the kernel to calculate
       // the absolute position of the particles
@@ -1190,7 +1190,7 @@ private:
 
 
       // PIC-like kernel call of the radiation kernel
-      __cudaKernel(kernelRadiationParticles)
+      PMACC_KERNEL(KernelRadiationParticles{})
         (gridDim_rad, blockDim_rad)
         (
          /*Pointer to particles memory on the device*/

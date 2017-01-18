@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -25,7 +25,6 @@
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/tasks/TaskLogicalAnd.hpp"
-#include <cassert>
 
 namespace PMacc
 {

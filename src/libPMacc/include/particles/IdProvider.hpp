@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Alexander Grund
+ * Copyright 2016-2017 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -36,22 +36,31 @@ namespace PMacc {
 
         __device__ uint64_cu nextId;
 
-        __global__ void setNextId(uint64_cu id)
+        struct SetNextId
         {
-            nextId = id;
-        }
+            DINLINE void operator()(uint64_cu id) const
+            {
+                nextId = id;
+            }
+        };
 
-        template<class T_Box>
-        __global__ void getNextId(T_Box boxOut)
+        struct GetNextId
         {
-            boxOut(0) = nextId;
-        }
+            template<class T_Box>
+            DINLINE void operator()(T_Box boxOut) const
+            {
+                boxOut(0) = nextId;
+            }
+        };
 
-        template<class T_Box, class T_GetNewId>
-        __global__ void getNewId(T_Box boxOut, T_GetNewId getNewId)
+        struct GetNewId
         {
-            boxOut(0) = getNewId();
-        }
+            template<class T_Box, class T_GetNewId>
+            DINLINE void operator()(T_Box boxOut, T_GetNewId getNewId) const
+            {
+                boxOut(0) = getNewId();
+            }
+        };
 
     }  // namespace idDetail
 
@@ -90,10 +99,10 @@ namespace PMacc {
     }
 
     template<unsigned T_dim>
-    IdProvider<T_dim>::State IdProvider<T_dim>::getState()
+    typename IdProvider<T_dim>::State IdProvider<T_dim>::getState()
     {
         HostDeviceBuffer<uint64_cu, 1> nextIdBuf(DataSpace<1>(1));
-        __cudaKernel(idDetail::getNextId)(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
+        PMACC_KERNEL(idDetail::GetNextId{})(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
         nextIdBuf.deviceToHost();
         State state;
         state.nextId = static_cast<uint64_t>(nextIdBuf.getHostBuffer().getDataBox()(0));
@@ -133,7 +142,7 @@ namespace PMacc {
         }
 
         // Number of bits in the ids
-        BOOST_STATIC_CONSTEXPR int32_t numBitsOfType = sizeof(curState.maxNumProc) * CHAR_BIT;
+        static constexpr int32_t numBitsOfType = sizeof(curState.maxNumProc) * CHAR_BIT;
 
         // Get current id
         uint64_t nextId = curState.nextId;
@@ -165,14 +174,14 @@ namespace PMacc {
     template<unsigned T_dim>
     void IdProvider<T_dim>::setNextId(uint64_t nextId)
     {
-        __cudaKernel(idDetail::setNextId)(1, 1)(nextId);
+        PMACC_KERNEL(idDetail::SetNextId{})(1, 1)(nextId);
     }
 
     template<unsigned T_dim>
     uint64_t IdProvider<T_dim>::getNewIdHost()
     {
         HostDeviceBuffer<uint64_cu, 1> newIdBuf(DataSpace<1>(1));
-        __cudaKernel(idDetail::getNewId)(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
+        PMACC_KERNEL(idDetail::GetNewId{})(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
         newIdBuf.deviceToHost();
         return static_cast<uint64_t>(newIdBuf.getHostBuffer().getDataBox()(0));
     }

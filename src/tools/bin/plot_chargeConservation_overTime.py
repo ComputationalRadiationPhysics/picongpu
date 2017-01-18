@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2015-2016 Richard Pausch, Axel Huebl
+# Copyright 2015-2017 Richard Pausch, Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -38,7 +38,7 @@ plots a variety of values to check charge conservation
 over time.
 
 All plotted values show the difference $d = div(E)*epsilon_0 - rho$
-normalized to the maximum [per-species] charge in the first 
+normalized to the maximum [per-species] charge in the first
 simulation time step.
 
 Developer: Richard Pausch
@@ -114,11 +114,11 @@ def deviation_charge_conservation(h5file):
             norm = np.max([norm, np.amax(np.abs(species_Density))])
             # add charge density to total charge density
             charge += species_Density
-            # We check the attribute _size of any/all density_[species]. libSplash always 
-            # keeps this as an array of length 3. It describes the size of the data in 
-            # each dimension. If we are in a 2D simulation, the size of the z or 
-            # [2]-component is 1, which is <2. The code changes the 2D3D flag if one 
-            # Density data set is 2D. 
+            # We check the attribute _size of any/all density_[species]. libSplash always
+            # keeps this as an array of length 3. It describes the size of the data in
+            # each dimension. If we are in a 2D simulation, the size of the z or
+            # [2]-component is 1, which is <2. The code changes the 2D3D flag if one
+            # Density data set is 2D.
             if species_Density_pointer.attrs['_size'][2] < 2:
                 is2D = True
 
@@ -168,6 +168,12 @@ if __name__ == "__main__":
                         help="simulation base directories",
                         action="store",
                         nargs="+")
+
+    parser.add_argument("--export",
+                        metavar="file name",
+                        dest="output_file",
+                        default="",
+                        help="export plot to file (disable interactive window)")
 
     args = parser.parse_args()
     directories = args.directories
@@ -232,7 +238,7 @@ if __name__ == "__main__":
 
         # sort data temporally
         collect_results = np.sort(collect_results, axis=0)
-                
+
         # alias to data
         t = collect_results[:, 0] # all timesteps
         max_diff = collect_results[:, 1] # all max abs diff
@@ -241,22 +247,26 @@ if __name__ == "__main__":
         norm = collect_results[0, 4] # first (t=0) norm
 
         # generate plot label based on directory and avoid underscore bug
-        plot_label = ("{:d}. ".format(sim_dir_counter) + 
+        plot_label = ("{:d}. ".format(sim_dir_counter) +
                       os.path.normpath(directory).split("/")[-1])
         sim_dir_counter += 1
 
-        # add plot for maximum difference        
+        # add plot for maximum difference
         ax1.plot(t, max_diff/norm,
                  linestyle="-",lw=3,
-                 marker="+", ms=15, markeredgewidth=3, 
+                 marker="+", ms=15, markeredgewidth=3,
                  label=plot_label)
 
         # add plot for mean difference and std
-        ax2.errorbar(t, mean_abs/norm, yerr=std/norm, lw=3, markeredgewidth=3, 
+        ax2.errorbar(t, mean_abs/norm, yerr=std/norm, lw=3, markeredgewidth=3,
                      label=plot_label)
 
     # finish plots
     ax1.legend(loc=0)
     ax2.legend(loc=0)
     plt.tight_layout()
-    plt.show()
+
+    if not args.output_file:
+        plt.show()
+    else:
+        plt.savefig(args.output_file)

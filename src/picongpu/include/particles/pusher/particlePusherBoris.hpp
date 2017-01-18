@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Richard Pausch
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -51,8 +51,8 @@ struct Push
     {
         typedef T_Mom MomType;
 
-        PMACC_AUTO( bField , functorBField(pos));
-        PMACC_AUTO( eField , functorEField(pos));
+        auto bField  = functorBField(pos);
+        auto eField  = functorEField(pos);
 
         const float_X QoM = charge / mass;
 
@@ -63,7 +63,7 @@ struct Push
         Gamma gamma;
         const float_X gamma_reci = float_X(1.0) / gamma(mom_minus, mass);
         const float3_X t = float_X(0.5) * QoM * bField * gamma_reci * deltaT;
-        PMACC_AUTO( s , float_X(2.0) * t * (float_X(1.0) / (float_X(1.0) + math::abs2(t))));
+        auto s  = float_X(2.0) * t * (float_X(1.0) / (float_X(1.0) + math::abs2(t)));
 
         const MomType mom_prime = mom_minus + math::cross(mom_minus, t);
         const MomType mom_plus = mom_minus + math::cross(mom_prime, s);

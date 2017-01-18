@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera
+ * Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,3 +24,4 @@
 #include "particles/startPosition/IFunctor.def"
 #include "particles/startPosition/QuietImpl.def"
 #include "particles/startPosition/RandomImpl.def"
+#include "particles/startPosition/OnePositionImpl.def"

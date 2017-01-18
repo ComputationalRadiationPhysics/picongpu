@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -30,6 +30,7 @@
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
+#include "assert.hpp"
 
 
 namespace picongpu
@@ -79,7 +80,7 @@ struct LoadParticleAttributesFromADIOS
 
         // dev assert!
         if( elements > 0 )
-            assert(tmpArray);
+            PMACC_ASSERT(tmpArray);
 
         for (uint32_t n = 0; n < components; ++n)
         {

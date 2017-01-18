@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -32,7 +32,7 @@ namespace nvidia
 namespace functors
 {
     struct Add
-    {    
+    {
         template<typename Dst, typename Src >
         HDINLINE void operator()(Dst & dst, const Src & src) const
         {

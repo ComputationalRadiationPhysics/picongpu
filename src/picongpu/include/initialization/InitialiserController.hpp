@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -33,6 +33,7 @@
 #include "initialization/SimStartInitialiser.hpp"
 
 #include "initialization/IInitPlugin.hpp"
+#include "assert.hpp"
 
 #include <boost/mpl/find.hpp>
 
@@ -112,7 +113,7 @@ public:
             const float_32 charge = frame::getCharge<FrameType>();
             const float_32 mass = frame::getMass<FrameType>();
             log<picLog::PHYSICS >("species %2%: omega_p * dt <= 0.1 ? %1%") %
-                                 (sqrt(GAS_DENSITY *  charge / mass * charge / EPS0) * DELTA_T) %
+                                 (sqrt(BASE_DENSITY *  charge / mass * charge / EPS0) * DELTA_T) %
                                   FrameType::getName();
         }
     };
@@ -168,7 +169,7 @@ public:
 
     virtual void setMappingDescription(MappingDesc *cellDescription)
     {
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != NULL);
         this->cellDescription = cellDescription;
     }
 

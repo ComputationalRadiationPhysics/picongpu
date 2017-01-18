@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Rene Widera
+ * Copyright 2015-2017 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -23,8 +23,10 @@
 #include "simulation_defines.hpp"
 #include "traits/GetFlagType.hpp"
 #include "traits/Resolve.hpp"
+#include "traits/HasFlag.hpp"
 
 #include <boost/mpl/if.hpp>
+
 
 namespace picongpu
 {
@@ -34,7 +36,7 @@ namespace traits
 namespace detail
 {
     value_identifier(float_X, DefaultDensityRatio, 1.0);
-} //namespace detail
+} // namespace detail
 
 
 /** get density ratio of a species
@@ -55,12 +57,11 @@ struct GetDensityRatio
     >::type DensityRatioOfSpecies;
 
     typedef typename bmpl::if_<
-         hasDensityRatio,
+        hasDensityRatio,
         DensityRatioOfSpecies,
         detail::DefaultDensityRatio
     >::type type;
 };
 
-} //namespace traits
-
-}// namespace picongpu
+} // namespace traits
+} // namespace picongpu

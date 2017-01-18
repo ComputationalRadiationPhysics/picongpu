@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+ * Copyright 2013-2017 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
@@ -26,10 +26,11 @@
 #include "eventSystem/events/EventNotify.hpp"
 #include "eventSystem/events/IEvent.hpp"
 #include "pmacc_types.hpp"
+#include "assert.hpp"
 
 #include <string>
 #include <set>
-#include <cassert>
+
 
 namespace PMacc
 {
@@ -54,7 +55,7 @@ namespace PMacc
             static id_t globalId = 1;
 
             myId = globalId++;
-            assert(myId > 0);
+            PMACC_ASSERT(myId > 0);
         }
 
 

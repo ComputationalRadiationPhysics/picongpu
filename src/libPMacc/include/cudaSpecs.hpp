@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Heiko Burau
+ * Copyright 2015-2017 Heiko Burau
  *
  * This file is part of libPMacc.
  *
@@ -37,7 +37,7 @@ namespace cudaSpecs
  */
 
 /** maximum number of threads per block */
-BOOST_CONSTEXPR_OR_CONST uint32_t maxNumThreadsPerBlock = 1024;
+constexpr uint32_t maxNumThreadsPerBlock = 1024;
 
 /** maximum number of threads per axis of a block */
 typedef math::CT::Size_t<1024, 1024, 64> MaxNumThreadsPerBlockDim;

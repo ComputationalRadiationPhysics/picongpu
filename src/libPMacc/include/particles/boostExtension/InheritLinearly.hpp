@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera
+ * Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -44,16 +44,14 @@ namespace detail
         typename T_Sequence,
         template< typename > class T_Accessor = compileTime::accessors::Identity
     >
-    struct InheritLinearly :
-        public bmpl::inherit_linearly<
+    using InheritLinearly =
+        typename bmpl::inherit_linearly<
             T_Sequence,
             bmpl::inherit<
                 bmpl::_1,
                 T_Accessor< bmpl::_2 >
             >
-        >::type
-    {
-    };
+        >::type;
 
 } //namespace detail
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Alexander Grund
+ * Copyright 2016-2017 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -36,6 +36,8 @@ namespace PMacc {
         typedef HostBufferIntern<T_Type, T_dim> HostBufferType;
         typedef DeviceBufferIntern<T_Type, T_dim> DeviceBufferType;
     public:
+        typedef HostBuffer<T_Type, T_dim> HostBuffer;
+        typedef DeviceBuffer<T_Type, T_dim> DeviceBuffer;
         typedef typename HostBufferType::DataBoxType DataBoxType;
         PMACC_CASSERT_MSG(DataBoxTypes_must_match, boost::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);
 
@@ -56,7 +58,7 @@ namespace PMacc {
          * Sizes should match. If size is smaller than the buffer size, then only the part near the origin is used.
          * Passing a size bigger than the buffer is undefined.
          */
-        HostDeviceBuffer(DeviceBuffer<T_Type, T_dim>& otherDeviceBuffer, const DataSpace<T_dim>& size, bool sizeOnDevice = false);
+        HostDeviceBuffer(DeviceBuffer& otherDeviceBuffer, const DataSpace<T_dim>& size, bool sizeOnDevice = false);
 
         /**
          * Constructor that reuses the given buffers instead of creating own ones.
@@ -64,9 +66,9 @@ namespace PMacc {
          * Passing a size bigger than the buffer (minus the offset) is undefined.
          */
         HostDeviceBuffer(
-                   HostBuffer<T_Type, T_dim>& otherHostBuffer,
+                   HostBuffer& otherHostBuffer,
                    const DataSpace<T_dim>& offsetHost,
-                   DeviceBuffer<T_Type, T_dim>& otherDeviceBuffer,
+                   DeviceBuffer& otherDeviceBuffer,
                    const DataSpace<T_dim>& offsetDevice,
                    const GridLayout<T_dim> size,
                    bool sizeOnDevice = false);
@@ -78,14 +80,14 @@ namespace PMacc {
          *
          * @return internal HostBuffer
          */
-        HINLINE HostBuffer<T_Type, T_dim>& getHostBuffer() const;
+        HINLINE HostBuffer& getHostBuffer() const;
 
         /**
          * Returns the internal data buffer on device side
          *
          * @return internal DeviceBuffer
          */
-        HINLINE DeviceBuffer<T_Type, T_dim>& getDeviceBuffer() const;
+        HINLINE DeviceBuffer& getDeviceBuffer() const;
 
         /**
          * Resets both internal buffers.

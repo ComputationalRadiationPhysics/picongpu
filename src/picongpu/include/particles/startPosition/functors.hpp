@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,3 +24,4 @@
 #include "particles/startPosition/IFunctor.hpp"
 #include "particles/startPosition/QuietImpl.hpp"
 #include "particles/startPosition/RandomImpl.hpp"
+#include "particles/startPosition/OnePositionImpl.hpp"

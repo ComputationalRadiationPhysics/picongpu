@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 Felix Schmitt
+ * Copyright 2013-2017 Felix Schmitt
  *
  * This file is part of splash2txt.
  *
@@ -20,7 +20,7 @@
  */
 
 #ifndef ITOOLS_HPP
-#define	ITOOLS_HPP
+#define ITOOLS_HPP
 
 #include "splash2txt.hpp"
 
@@ -51,5 +51,5 @@ protected:
     std::ostream &m_outStream;
 };
 
-#endif	/* ITOOLS_HPP */
+#endif    /* ITOOLS_HPP */
 

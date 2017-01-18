@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera
+ * Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -56,7 +56,7 @@ struct LoadBoundElectrons
     HDINLINE float_X operator()(const float_X singlyChargedResult, const T_Particle& particle)
     {
         const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
-        
+
         return singlyChargedResult * (protonNumber - particle[boundElectrons_]);
     }
 };

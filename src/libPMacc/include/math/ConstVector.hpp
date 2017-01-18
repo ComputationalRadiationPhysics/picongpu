@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera, Benjamin Worpitz
+ * Copyright 2014-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -28,20 +28,20 @@
 
 /* select namespace depending on __CUDA_ARCH__ compiler flag*/
 #ifdef __CUDA_ARCH__ //we are on gpu
-#define PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id) using namespace PMACC_JOIN(pmacc_static_const_vector_device,id)
+#   define PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id) using namespace PMACC_JOIN(pmacc_static_const_vector_device,id)
 #else
-#define PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id) using namespace PMACC_JOIN(pmacc_static_const_vector_host,id)
+#   define PMACC_USING_STATIC_CONST_VECTOR_NAMESPACE(id) using namespace PMACC_JOIN(pmacc_static_const_vector_host,id)
 #endif
 
 #ifdef __CUDACC__
-    #define PMACC_STATIC_CONST_VECTOR_DIM_DEF_CUDA(id,Name,Type,...)               \
+#   define PMACC_STATIC_CONST_VECTOR_DIM_DEF_CUDA(id,Name,Type,...)                \
         namespace PMACC_JOIN(pmacc_static_const_vector_device,id)                  \
         {                                                                          \
            /* store all values in a const C array on device*/                      \
             __constant__ const Type PMACC_JOIN(Name, _data)[]={__VA_ARGS__};       \
         } /*namespace pmacc_static_const_vector_device + id */
 #else
-    #define PMACC_STATIC_CONST_VECTOR_DIM_DEF_CUDA(id,Name,Type,...)
+#   define PMACC_STATIC_CONST_VECTOR_DIM_DEF_CUDA(id,Name,Type,...)
 #endif
 
 /** define a const vector
@@ -65,9 +65,9 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
     template<typename T_Type, int T_Dim>                                       \
     struct ConstArrayStorage                                                   \
     {                                                                          \
-        BOOST_STATIC_CONSTEXPR bool isConst = true;                                      \
+        static constexpr bool isConst = true;                                  \
         typedef T_Type type;                                                   \
-        BOOST_STATIC_CONSTEXPR int dim=T_Dim;                                            \
+        static constexpr int dim = T_Dim;                                      \
                                                                                \
         HDINLINE const type& operator[](const int idx) const                   \
         {                                                                      \
@@ -86,14 +86,14 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
 using namespace PMACC_JOIN(pmacc_static_const_storage,id)
 
 #ifdef __CUDACC__
-    #define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name,id)               \
+#   define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name,id)                \
         namespace PMACC_JOIN(pmacc_static_const_vector_device,id)              \
         {                                                                      \
             /* create const instance on device */                              \
             __constant__ const PMACC_JOIN(Name,_t) Name;                       \
         } /* namespace pmacc_static_const_vector_device + id */
 #else
-    #define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name,id)
+#   define PMACC_STATIC_CONST_VECTOR_DIM_INSTANCE_CUDA(Name,id)
 #endif
 
 /** create a instance of type `Name_t` with the name `Name`

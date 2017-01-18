@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Felix Schmitt, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -31,6 +31,7 @@
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"
+#include "assert.hpp"
 
 
 namespace picongpu
@@ -100,7 +101,7 @@ struct LoadParticleAttributesFromHDF5
                                sizeRead,
                                tmpArray
                                );
-            assert(sizeRead[0] == elements);
+            PMACC_ASSERT(sizeRead[0] == elements);
 
             /* copy component from temporary array to array of structs */
             #pragma omp parallel for

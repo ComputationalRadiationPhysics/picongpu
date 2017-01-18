@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -78,7 +78,7 @@ public:
                 if (MovingWindow::getInstance().isSlidingWindowActive() && i == BOTTOM) continue;
 
                 ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);
-                __cudaKernel(kernelAbsorbBorder)
+                PMACC_KERNEL(KernelAbsorbBorder{})
                     (mapper.getGridDim(), mapper.getSuperCellSize())
                     (deviceBox, thickness, absorber_strength,
                      mapper);

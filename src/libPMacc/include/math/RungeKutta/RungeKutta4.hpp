@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Richard Pausch
+ * Copyright 2015-2017 Richard Pausch
  *
  * This file is part of libPMacc.
  *
@@ -52,13 +52,13 @@ struct RungeKutta4
       typedef T_Time TimeType;
 
       // calculate all 4 steps of the Runge Kutta 4th order
-      const VariableType k_1 = diffEq(time, 
+      const VariableType k_1 = diffEq(time,
                                       var);
-      const VariableType k_2 = diffEq(time + TimeType(0.5) * deltaTime, 
+      const VariableType k_2 = diffEq(time + TimeType(0.5) * deltaTime,
                                       var + (TimeType(0.5) * deltaTime) * k_1);
-      const VariableType k_3 = diffEq(time + TimeType(0.5) * deltaTime, 
+      const VariableType k_3 = diffEq(time + TimeType(0.5) * deltaTime,
                                       var + (TimeType(0.5) * deltaTime) * k_2);
-      const VariableType k_4 = diffEq(time + deltaTime, 
+      const VariableType k_4 = diffEq(time + deltaTime,
                                       var + deltaTime * k_3);
 
       // combine all 4 steps

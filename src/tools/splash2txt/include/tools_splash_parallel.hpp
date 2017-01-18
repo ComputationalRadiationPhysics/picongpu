@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 Felix Schmitt
+ * Copyright 2013-2017 Felix Schmitt
  *
  * This file is part of splash2txt.
  *
@@ -20,7 +20,7 @@
  */
 
 #ifndef TOOLS_SPLASH_PARALLEL_HPP
-#define	TOOLS_SPLASH_PARALLEL_HPP
+#define TOOLS_SPLASH_PARALLEL_HPP
 
 #include <iostream>
 
@@ -64,5 +64,5 @@ protected:
     std::ostream &errorStream;
 };
 
-#endif	/* TOOLS_SPLASH_PARALLEL_HPP */
+#endif    /* TOOLS_SPLASH_PARALLEL_HPP */
 

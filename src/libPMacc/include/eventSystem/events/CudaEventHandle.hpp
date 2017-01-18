@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera
+ * Copyright 2014-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -24,6 +24,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "assert.hpp"
 #include <cuda_runtime.h>
 #include "eventSystem/events/CudaEvent.def"
 
@@ -106,7 +107,7 @@ public:
      */
     bool isFinished( )
     {
-        assert( event );
+        PMACC_ASSERT( event );
         return event->isFinished( );
     }
 
@@ -117,7 +118,7 @@ public:
      */
     cudaStream_t getStream( ) const
     {
-        assert( event );
+        PMACC_ASSERT( event );
         return event->getStream( );
     }
 
@@ -127,7 +128,7 @@ public:
      */
     void recordEvent( cudaStream_t stream )
     {
-        assert( event );
+        PMACC_ASSERT( event );
         event->recordEvent( stream );
     }
 };

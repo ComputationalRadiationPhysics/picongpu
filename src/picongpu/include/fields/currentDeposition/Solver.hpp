@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera
+ * Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,6 +22,7 @@
 #include "fields/currentDeposition/Esirkepov/Esirkepov.hpp"
 #include "fields/currentDeposition/Esirkepov/EsirkepovNative.hpp"
 #include "fields/currentDeposition/ZigZag/ZigZag.hpp"
+#include "fields/currentDeposition/EmZ/EmZ.hpp"
 
 #if(SIMDIM==DIM3)
 #include "fields/currentDeposition/VillaBune/CurrentVillaBune.hpp"

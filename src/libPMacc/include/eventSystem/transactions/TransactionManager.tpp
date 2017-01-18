@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2017 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -24,7 +24,6 @@
 
 #include "eventSystem/EventSystem.hpp"
 
-#include <cassert>
 
 namespace PMacc
 {

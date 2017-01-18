@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -31,14 +31,14 @@
 namespace PMacc
 {
 
-template<class BlockArea_, int MaxThreads_ =  math::CT::volume<typename BlockArea_::SuperCellSize>::type::value >
+template<class BlockArea_, int MaxThreads_ = math::CT::volume<typename BlockArea_::SuperCellSize>::type::value >
 class ThreadCollective
 {
 private:
     typedef typename BlockArea_::SuperCellSize SuperCellSize;
     typedef typename BlockArea_::FullSuperCellSize FullSuperCellSize;
     typedef typename BlockArea_::OffsetOrigin OffsetOrigin;
-    BOOST_STATIC_CONSTEXPR int maxThreads=MaxThreads_;
+    static constexpr int maxThreads = MaxThreads_;
 
     enum
     {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -54,7 +54,7 @@ namespace picongpu
     public:
         typedef float3_X ValueType;
         typedef promoteType<float_64, ValueType>::type UnitValueType;
-        BOOST_STATIC_CONSTEXPR int numComponents = ValueType::dim;
+        static constexpr int numComponents = ValueType::dim;
 
         typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
 

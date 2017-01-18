@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera
+ * Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -33,7 +33,7 @@
 #include <boost/mpl/apply_wrap.hpp>
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "particles/manipulators/manipulators.def"
-#include "particles/gasProfiles/IProfile.def"
+#include "particles/densityProfiles/IProfile.def"
 #include "particles/startPosition/IFunctor.def"
 #include "traits/Resolve.hpp"
 
@@ -65,25 +65,25 @@ struct CallFunctor
     }
 };
 
-/** create gas based on a gas profile and a position profile
+/** create density based on a normalized profile and a position profile
  *
- * constructor with current time step of gas and position profile is called
- * after the gas is created `fillAllGaps()` is called
+ * constructor with current time step of density and position profile is called
+ * after the density profile is created `fillAllGaps()` is called
  *
- * @tparam T_GasFunctor unary lambda functor with gas description
+ * @tparam T_DensityFunctor unary lambda functor with profile description
  * @tparam T_PositionFunctor unary lambda functor with position description
  * @tparam T_SpeciesType type of the used species
  */
-template<typename T_GasFunctor, typename T_PositionFunctor, typename T_SpeciesType = bmpl::_1>
-struct CreateGas
+template<typename T_DensityFunctor, typename T_PositionFunctor, typename T_SpeciesType = bmpl::_1>
+struct CreateDensity
 {
     typedef T_SpeciesType SpeciesType;
     typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
 
 
-    typedef typename bmpl::apply1<T_GasFunctor, SpeciesType>::type UserGasFunctor;
+    typedef typename bmpl::apply1<T_DensityFunctor, SpeciesType>::type UserDensityFunctor;
     /* add interface for compile time interface validation*/
-    typedef gasProfiles::IProfile<UserGasFunctor> GasFunctor;
+    typedef densityProfiles::IProfile<UserDensityFunctor> DensityFunctor;
 
     typedef typename bmpl::apply1<T_PositionFunctor, SpeciesType>::type UserPositionFunctor;
     /* add interface for compile time interface validation*/
@@ -95,10 +95,10 @@ struct CreateGas
                             const uint32_t currentStep
                             )
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
-        GasFunctor gasFunctor(currentStep);
+        auto speciesPtr = tuple[SpeciesName()];
+        DensityFunctor densityFunctor(currentStep);
         PositionFunctor positionFunctor(currentStep);
-        speciesPtr->initGas(gasFunctor, positionFunctor, currentStep);
+        speciesPtr->initDensityProfile(densityFunctor, positionFunctor, currentStep);
     }
 };
 
@@ -129,8 +129,8 @@ struct ManipulateDeriveSpecies
                             const uint32_t currentStep
                             )
     {
-        PMACC_AUTO(speciesPtr, tuple[DestSpeciesName()]);
-        PMACC_AUTO(srcSpeciesPtr, tuple[SrcSpeciesName()]);
+        auto speciesPtr = tuple[DestSpeciesName()];
+        auto srcSpeciesPtr = tuple[SrcSpeciesName()];
 
         ManipulateFunctor manipulateFunctor(currentStep);
 
@@ -177,7 +177,7 @@ struct Manipulate
                             const uint32_t currentStep
                             )
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        auto speciesPtr = tuple[SpeciesName()];
         Functor functor(currentStep);
         speciesPtr->manipulateAllParticles(currentStep, functor);
     }
@@ -200,7 +200,7 @@ struct FillAllGaps
                             const uint32_t currentStep
                             )
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        auto speciesPtr = tuple[SpeciesName()];
         speciesPtr->fillAllGaps();
     }
 };

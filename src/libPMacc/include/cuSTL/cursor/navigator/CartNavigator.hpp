@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -36,7 +36,7 @@ class CartNavigator
 {
 public:
     typedef tag::CartNavigator tag;
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
 private:
     math::Int<dim> factor;
 public:
@@ -64,7 +64,7 @@ namespace traits
 template<int T_dim>
 struct dim<CartNavigator<T_dim> >
 {
-    BOOST_STATIC_CONSTEXPR int value = T_dim;
+    static constexpr int value = T_dim;
 };
 
 } // traits

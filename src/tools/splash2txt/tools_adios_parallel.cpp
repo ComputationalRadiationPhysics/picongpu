@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Felix Schmitt, Conrad Schumann, Axel Huebl
+ * Copyright 2014-2017 Felix Schmitt, Conrad Schumann, Axel Huebl
  *
  * This file is part of splash2txt.
  *
@@ -77,7 +77,7 @@ void ToolsAdiosParallel::convertToText()
         adios_perform_reads(pFile, 1);
 
         if(pVarInfo->ndim > 0)
-        {        
+        {
             for(int k = 0; k < varElement; k++)
             {
                 printValue(pVarInfo->type, &P[k*varTypeSize]);

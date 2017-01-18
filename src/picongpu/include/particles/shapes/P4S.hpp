@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Rene Widera
+ * Copyright 2015-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -34,7 +34,7 @@ namespace shared_P4S
 
 struct P4S
 {
-    BOOST_STATIC_CONSTEXPR int support = 5;
+    static constexpr int support = 5;
 
     HDINLINE static float_X ff_1st_radius(const float_X x)
     {

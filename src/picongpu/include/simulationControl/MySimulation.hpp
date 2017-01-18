@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+ * Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund
  *
@@ -22,7 +22,9 @@
 
 #pragma once
 
-#include <cassert>
+#include "verify.hpp"
+#include "assert.hpp"
+
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
@@ -31,6 +33,9 @@
 #include "pmacc_types.hpp"
 #include "simulationControl/SimulationHelper.hpp"
 #include "simulation_defines.hpp"
+
+#include "particles/bremsstrahlung/ScaledSpectrum.hpp"
+#include "particles/bremsstrahlung/PhotonEmissionAngle.hpp"
 
 #include "eventSystem/EventSystem.hpp"
 #include "dimensions/GridLayout.hpp"
@@ -95,7 +100,6 @@ public:
     fieldB(NULL),
     fieldE(NULL),
     fieldJ(NULL),
-    fieldTmp(NULL),
     mallocMCBuffer(NULL),
     myFieldSolver(NULL),
     myCurrentInterpolation(NULL),
@@ -232,9 +236,9 @@ public:
             if (isPeriodic[i] == 0)
             {
                 /*negativ direction*/
-                assert((int) ABSORBER_CELLS[i][0] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
+                PMACC_VERIFY((int) ABSORBER_CELLS[i][0] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
                 /*positiv direction*/
-                assert((int) ABSORBER_CELLS[i][1] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
+                PMACC_VERIFY((int) ABSORBER_CELLS[i][1] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
             }
         }
     }
@@ -249,7 +253,9 @@ public:
 
         __delete(fieldJ);
 
-        __delete(fieldTmp);
+        for( auto* slot : fieldTmp )
+            __delete( slot );
+        fieldTmp.clear();
 
         __delete(mallocMCBuffer);
 
@@ -264,7 +270,6 @@ public:
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
-
         __delete(rngFactory);
     }
 
@@ -280,7 +285,8 @@ public:
         fieldB = new FieldB(*cellDescription);
         fieldE = new FieldE(*cellDescription);
         fieldJ = new FieldJ(*cellDescription);
-        fieldTmp = new FieldTmp(*cellDescription);
+        for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
+            fieldTmp.push_back( new FieldTmp( *cellDescription, slot ) );
         pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
         currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
 
@@ -298,11 +304,13 @@ public:
         /* define a type that contains the number of `boost::true_type`s when `::value` is accessed */
         typedef typename boost::mpl::count<VectorIonizersUsingRNG, boost::true_type>::type NumReqRNGs;
 
-        // Initialize random number generator and synchrotron functions, if there are synchrotron photon species
+        // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
+        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+                                                                bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
 
-        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value || NumReqRNGs::value)
+        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value || !bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value || NumReqRNGs::value)
         {
             // create factory for the random number generator
             this->rngFactory = new RNGFactory(Environment<simDim>::get().SubGrid().getLocalDomain().size);
@@ -315,6 +323,16 @@ public:
         if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
         {
             this->synchrotronFunctions.init();
+        }
+
+        // Initialize bremsstrahlung lookup tables, if there are species containing bremsstrahlung photons
+        if(!bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value)
+        {
+            ForEach<AllBremsstrahlungPhotonsSpecies,
+                particles::bremsstrahlung::FillScaledSpectrumMap<bmpl::_1> > fillScaledSpectrumMap;
+            fillScaledSpectrumMap(forward(this->scaledBremsstrahlungSpectrumMap));
+
+            this->bremsstrahlungPhotonAngle.init();
         }
 
         ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > createSpeciesMemory;
@@ -358,7 +376,8 @@ public:
         fieldB->init(*fieldE, *laser);
         fieldE->init(*fieldB, *laser);
         fieldJ->init(*fieldE, *fieldB);
-        fieldTmp->init();
+        for( auto* slot : fieldTmp )
+            slot->init();
 
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
@@ -368,7 +387,7 @@ public:
 
 
         ForEach<VectorAllSpecies, particles::CallInit<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleInit;
-        particleInit(forward(particleStorage), fieldE, fieldB, fieldJ, fieldTmp);
+        particleInit( forward(particleStorage), fieldE, fieldB );
 
 
         /* add CUDA streams to the StreamController for concurrent execution */
@@ -388,8 +407,7 @@ public:
          * information such as local offsets in y-direction
          */
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        if( MovingWindow::getInstance().isSlidingWindowActive() )
-            gc.setStateAfterSlides(0);
+        gc.setStateAfterSlides(0);
 
         /* fill all objects registed in DataConnector */
         if (initialiserController)
@@ -479,6 +497,24 @@ public:
                 MakeIdentifier<bmpl::_1> > synchrotronRadiation;
         synchrotronRadiation(forward(particleStorage), cellDescription, currentStep, this->synchrotronFunctions);
 
+        /* Bremsstrahlung */
+        typedef typename PMacc::particles::traits::FilterByFlag
+        <
+            VectorAllSpecies,
+            bremsstrahlungIons<>
+        >::type VectorSpeciesWithBremsstrahlung;
+        ForEach
+        <
+            VectorSpeciesWithBremsstrahlung,
+            particles::CallBremsstrahlung<bmpl::_1>,
+            MakeIdentifier<bmpl::_1>
+        > particleBremsstrahlung;
+        particleBremsstrahlung(
+            forward(particleStorage),
+            cellDescription,
+            currentStep,
+            this->scaledBremsstrahlungSpectrumMap,
+            this->bremsstrahlungPhotonAngle);
 
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;
@@ -594,7 +630,7 @@ public:
     virtual void setInitController(IInitPlugin *initController)
     {
 
-        assert(initController != NULL);
+        PMACC_ASSERT(initController != NULL);
         this->initialiserController = initController;
     }
 
@@ -614,13 +650,13 @@ private:
         {
             // global size must be a devisor of supercell size
             // note: this is redundant, while using the local condition below
-            assert(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
+            PMACC_VERIFY(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
             // local size must be a devisor of supercell size
-            assert(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
+            PMACC_VERIFY(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
             // local size must be at least 3 supercells (1x core + 2x border)
             // note: size of border = guard_size (in supercells)
             // \todo we have to add the guard_x/y/z for modified supercells here
-            assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
+            PMACC_VERIFY((uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
         }
     }
 
@@ -629,7 +665,7 @@ protected:
     FieldB *fieldB;
     FieldE *fieldE;
     FieldJ *fieldJ;
-    FieldTmp *fieldTmp;
+    std::vector< FieldTmp * > fieldTmp;
     MallocMCBuffer *mallocMCBuffer;
 
     // field solver
@@ -645,6 +681,11 @@ protected:
     ParticleStorage particleStorage;
 
     LaserPhysics *laser;
+
+    // creates lookup tables for the bremsstrahlung effect
+    // map<atomic number, scaled bremsstrahlung spectrum>
+    std::map<float_X, particles::bremsstrahlung::ScaledSpectrum> scaledBremsstrahlungSpectrumMap;
+    particles::bremsstrahlung::GetPhotonAngle bremsstrahlungPhotonAngle;
 
     // Synchrotron functions (used in synchrotronPhotons module)
     particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
@@ -676,3 +717,5 @@ protected:
 
 #include "fields/Fields.tpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.tpp"
+#include "particles/bremsstrahlung/Bremsstrahlung.tpp"
+#include "particles/bremsstrahlung/ScaledSpectrum.tpp"

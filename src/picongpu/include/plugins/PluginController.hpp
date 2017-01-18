@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Benjamin Schneider, Felix Schmitt,
+ * Copyright 2013-2017 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
@@ -27,6 +27,7 @@
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
+#include "assert.hpp"
 
 #include "plugins/CountParticles.hpp"
 #include "plugins/EnergyParticles.hpp"
@@ -57,9 +58,7 @@
 #include "plugins/ILightweightPlugin.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 
-#if(PIC_ENABLE_PNG==1)
 #include "plugins/output/images/PngCreator.hpp"
-#endif
 
 
 /// That's an abstract plugin for Png and Binary Density output
@@ -84,6 +83,10 @@
 
 #if (ENABLE_ADIOS == 1)
 #include "plugins/adios/ADIOSWriter.hpp"
+#endif
+
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+#include "plugins/IsaacPlugin.hpp"
 #endif
 
 namespace picongpu
@@ -140,6 +143,9 @@ private:
 #if (ENABLE_HDF5 == 1)
       , hdf5::HDF5Writer
 #endif
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+      , isaacP::IsaacPlugin
+#endif
     > StandAlonePlugins;
 
 
@@ -170,9 +176,7 @@ private:
 #if(ENABLE_RADIATION == 1)
       , Radiation<bmpl::_1>
 #endif
-#if(PIC_ENABLE_PNG==1)
      , PngPlugin< Visualisation<bmpl::_1, PngCreator> >
-#endif
 #if(ENABLE_HDF5 == 1)
       , ParticleCalorimeter<bmpl::_1>
       , PerSuperCell<bmpl::_1>
@@ -220,7 +224,7 @@ public:
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != NULL);
 
         for (std::list<ISimulationPlugin*>::iterator iter = plugins.begin();
              iter != plugins.end();

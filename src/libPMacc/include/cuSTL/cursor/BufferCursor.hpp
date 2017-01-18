@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -67,7 +67,7 @@ namespace traits
 template<typename Type, int T_dim>
 struct dim<BufferCursor<Type, T_dim> >
 {
-    BOOST_STATIC_CONSTEXPR int value = PMacc::cursor::traits::dim<
+    static constexpr int value = PMacc::cursor::traits::dim<
         Cursor<PointerAccessor<Type>, BufferNavigator<T_dim>, Type*> >::value;
 };
 

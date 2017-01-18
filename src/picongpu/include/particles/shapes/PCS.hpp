@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -33,7 +33,7 @@ namespace shared_PCS
 {
 struct PCS
 {
-    BOOST_STATIC_CONSTEXPR int support = 4;
+    static constexpr int support = 4;
 
 
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Felix Schmitt, Heiko Burau, Rene Widera,
+ * Copyright 2013-2017 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -51,7 +51,7 @@ public:
     typedef SuperCell<FrameType> SuperCellType;
     typedef DataBox<PitchedBox<SuperCell<FrameType>, DIM> > BaseType;
 
-    BOOST_STATIC_CONSTEXPR uint32_t Dim = DIM;
+    static constexpr uint32_t Dim = DIM;
 
     /** default constructor
      *

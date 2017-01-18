@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -44,10 +44,10 @@ template<class T_Shape, class InterpolationMethod>
 struct FieldToParticleInterpolationNative
 {
     typedef typename T_Shape::ChargeAssignment AssignmentFunction;
-    BOOST_STATIC_CONSTEXPR int supp = AssignmentFunction::support;
+    static constexpr int supp = AssignmentFunction::support;
 
-    BOOST_STATIC_CONSTEXPR int lowerMargin = supp / 2;
-    BOOST_STATIC_CONSTEXPR int upperMargin = (supp + 1) / 2;
+    static constexpr int lowerMargin = supp / 2;
+    static constexpr int upperMargin = (supp + 1) / 2;
     typedef typename PMacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
 
@@ -70,17 +70,17 @@ struct FieldToParticleInterpolationNative
          * _1[mpl::int_<0>()] is equivalent to _1[0] but has no runtime cost.
          */
 
-        BOOST_AUTO(field_x, PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 0 > ()]));
+        auto field_x = PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 0 > ()]);
         floatD_X pos_tmp(particlePos);
         ShiftCoordinateSystemNative<supp>()(field_x, pos_tmp, fieldPos.x());
         float_X result_x = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_x, pos_tmp);
 
-        BOOST_AUTO(field_y, PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 1 > ()]));
+        auto field_y = PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 1 > ()]);
         pos_tmp = particlePos;
         ShiftCoordinateSystemNative<supp>()(field_y, pos_tmp, fieldPos.y());
         float_X result_y = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_y, pos_tmp);
 
-        BOOST_AUTO(field_z, PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 2 > ()]));
+        auto field_z = PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 2 > ()]);
         pos_tmp = particlePos;
         ShiftCoordinateSystemNative<supp>()(field_z, pos_tmp, fieldPos.z());
         float_X result_z = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_z, pos_tmp);

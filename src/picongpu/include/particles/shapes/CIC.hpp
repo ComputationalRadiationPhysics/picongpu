@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -37,7 +37,7 @@ struct CIC
      * width of the support of this form_factor. This is the area where the function
      * is non-zero.
      */
-    BOOST_STATIC_CONSTEXPR int support = 2;
+    static constexpr int support = 2;
 };
 
 }//namespace shared_CIC

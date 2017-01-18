@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -48,17 +48,17 @@ template<typename T_ParticleShape>
 struct EsirkepovNative
 {
     typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
-    BOOST_STATIC_CONSTEXPR int supp = ParticleAssign::support;
+    static constexpr int supp = ParticleAssign::support;
 
-    BOOST_STATIC_CONSTEXPR int currentLowerMargin = supp / 2 + 1;
-    BOOST_STATIC_CONSTEXPR int currentUpperMargin = (supp + 1) / 2 + 1;
+    static constexpr int currentLowerMargin = supp / 2 + 1;
+    static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
     typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
     typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
 
     /* iterate over all grid points */
-    BOOST_STATIC_CONSTEXPR int begin = -currentLowerMargin;
-    BOOST_STATIC_CONSTEXPR int end = currentUpperMargin + 1;
+    static constexpr int begin = -currentLowerMargin;
+    static constexpr int end = currentUpperMargin + 1;
 
     float_X charge;
 
@@ -78,7 +78,7 @@ struct EsirkepovNative
                                            velocity.z() * deltaTime / cellSize.z());
         const PosType oldPos = pos - deltaPos;
         Line<float3_X> line(oldPos, pos);
-        BOOST_AUTO(cursorJ, dataBoxJ.toCursor());
+        auto cursorJ = dataBoxJ.toCursor();
 
         /**
          * \brief the following three calls separate the 3D current deposition

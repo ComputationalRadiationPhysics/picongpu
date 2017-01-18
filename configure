@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2016 Axel Huebl, Rene Widera
+# Copyright 2013-2017 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -30,7 +30,7 @@ help()
     echo "If no path_to_CMakeLists.txt is set the directory of this binary is used as source directory."
     echo ""
     echo "-i | --install       - path were picongpu should be installed (default is <parameter_DIRECTORY>)"
-    echo "-a | --arch          - set cuda architecture (e.g.: sm_13, sm_20, ...)"
+    echo "-a | --arch          - set cuda architecture (semicolon separated list, e.g.: \"20;35;37;52;60\")"
     echo "-c | --cmake         - overwrite options for cmake (e.g.: -c \"-DPIC_VERBOSE=1\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
     echo "-h | --help          - show this help message"

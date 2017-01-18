@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Alexander Debus, Axel Huebl
+ * Copyright 2014-2017 Alexander Debus, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -43,7 +43,6 @@ namespace templates
 /* Traveling-wave Thomson scattering laser pulse */
 namespace twts
 {
-    namespace pmMath = PMacc::algorithms::math;
 
     HINLINE
     EField::EField( const float_64 focus_y_SI,
@@ -110,8 +109,8 @@ namespace twts
          *
          * RotationMatrix[-(PI/2+phi)].(Ey,Ez) for rotating back the field-vectors.
          */
-        const float_64 Ey_rot = -pmMath::sin(+phi)*Ey_Ey;
-        const float_64 Ez_rot = -pmMath::cos(+phi)*Ey_Ez;
+        const float_64 Ey_rot = -math::sin(+phi)*Ey_Ey;
+        const float_64 Ez_rot = -math::cos(+phi)*Ey_Ez;
 
         /* Finally, the E-field normalized to the peak amplitude. */
         return float3_X( float_X(0.0),
@@ -164,8 +163,8 @@ namespace twts
          *
          * RotationMatrix[-(PI / 2+phi)].(Ey,Ex) for rotating back the field-vectors.
          */
-        const float_64 Ey_rot = -pmMath::sin(+phi)*Ey_Ey;
-        const float_64 Ex_rot = -pmMath::cos(+phi)*Ey_Ex;
+        const float_64 Ey_rot = -math::sin(+phi)*Ey_Ey;
+        const float_64 Ex_rot = -math::cos(+phi)*Ey_Ex;
 
         /* Finally, the E-field normalized to the peak amplitude. */
         return float3_X( float_X(Ex_rot),
@@ -219,9 +218,9 @@ namespace twts
          * Instead phi is taken positive, but the entire pulse rotated by 180 deg around the
          * z-axis of the coordinate system in this function.
          */
-        const float_T phiReal = float_T( pmMath::abs(phi) );
-        const float_T alphaTilt = pmMath::atan2(float_T(1.0)-beta0*pmMath::cos(phiReal),
-                                                beta0*pmMath::sin(phiReal));
+        const float_T phiReal = float_T( math::abs(phi) );
+        const float_T alphaTilt = math::atan2(float_T(1.0)-beta0*math::cos(phiReal),
+                                                beta0*math::sin(phiReal));
         /* Definition of the laser pulse front tilt angle for the laser field below.
          *
          * For beta0 = 1.0, this is equivalent to our standard definition. Question: Why is the
@@ -256,11 +255,11 @@ namespace twts
         const float_T t = float_T(time / UNIT_TIME);
 
         /* Calculating shortcuts for speeding up field calculation */
-        const float_T sinPhi = pmMath::sin(phiT);
-        const float_T cosPhi = pmMath::cos(phiT);
-        const float_T sinPhi2 = pmMath::sin(phiT / float_T(2.0));
-        const float_T cosPhi2 = pmMath::cos(phiT / float_T(2.0));
-        const float_T tanPhi2 = pmMath::tan(phiT / float_T(2.0));
+        const float_T sinPhi = math::sin(phiT);
+        const float_T cosPhi = math::cos(phiT);
+        const float_T sinPhi2 = math::sin(phiT / float_T(2.0));
+        const float_T cosPhi2 = math::cos(phiT / float_T(2.0));
+        const float_T tanPhi2 = math::tan(phiT / float_T(2.0));
 
         /* The "helpVar" variables decrease the nesting level of the evaluated expressions and
          * thus help with formal code verification through manual code inspection.
@@ -287,7 +286,7 @@ namespace twts
                         - complex_T(0,2)*cspeed*om0*t*wy*wy*rho0
                         + float_T(2.0)*cspeed*y*y*rho0
                         + complex_T(0,2)*om0*wy*wy*z*rho0
-                    )*pmMath::tan(float_T(PI / 2.0)-phiT)/sinPhi
+                    )*math::tan(float_T(PI / 2.0)-phiT)/sinPhi
                 )*sinPhi2*sinPhi2*sinPhi2*sinPhi2
             - complex_T(0,2)*cspeed*cspeed*om0*t*t*wy*wy*z*sinPhi
             - float_T(2.0)*cspeed*cspeed*om0*om0*t*tauG*tauG*wy*wy*z*sinPhi
@@ -329,11 +328,11 @@ namespace twts
         ) * complex_T( float_64(1.0) / complex_64(float_T(2.0)*cspeed*wy*wy*helpVar1*helpVar2) );
 
         const complex_T helpVar5 = cspeed*om0*tauG*tauG
-            - complex_T(0,8)*y*pmMath::tan( float_T(PI / 2)-phiT )
+            - complex_T(0,8)*y*math::tan( float_T(PI / 2)-phiT )
                                 / sinPhi / sinPhi*sinPhi2*sinPhi2*sinPhi2*sinPhi2
             - complex_T(0,2)*z*tanPhi2*tanPhi2;
-        const complex_T result = (pmMath::exp(helpVar4)*tauG
-            *pmMath::sqrt((cspeed*om0*rho0) / helpVar3)) / pmMath::sqrt(helpVar5);
+        const complex_T result = (math::exp(helpVar4)*tauG
+            *math::sqrt((cspeed*om0*rho0) / helpVar3)) / math::sqrt(helpVar5);
         return result.get_real();
     }
 

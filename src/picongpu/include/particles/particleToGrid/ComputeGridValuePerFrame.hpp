@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -69,11 +69,11 @@ ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()
     /* \todo in the future and if useful, the functor can be a parameter */
     T_DerivedAttribute particleAttribute;
 
-    PMACC_AUTO(particle, frame[localIdx]);
+    auto particle = frame[localIdx];
 
     /* particle attributes: in-cell position and generic, derived attribute */
     const floatD_X pos = particle[position_];
-    const PMACC_AUTO(particleAttr, particleAttribute( particle ));
+    const auto particleAttr = particleAttribute( particle );
 
     /** Shift to the cell the particle belongs to
      * range of particleCell: [DataSpace<simDim>::create(0), TVecSuperCell]
@@ -82,7 +82,7 @@ ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()
     const DataSpace<TVecSuperCell::dim> particleCell(
         DataSpaceOperations<TVecSuperCell::dim>::map( superCell, particleCellIdx )
     );
-    PMACC_AUTO(fieldTmpShiftToParticle, tmpBox.shift(particleCell));
+    auto fieldTmpShiftToParticle = tmpBox.shift(particleCell);
 
     /* loop around the particle's cell (according to shape) */
     const DataSpace<simDim> lowMargin(LowerMargin().toRT());

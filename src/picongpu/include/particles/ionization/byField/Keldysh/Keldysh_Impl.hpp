@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Marco Garten
+ * Copyright 2016-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -152,7 +152,7 @@ namespace ionization
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
                 /* copy fields from global to shared */
-                PMACC_AUTO(fieldBBlock, bBox.shift(blockCell));
+                auto fieldBBlock = bBox.shift(blockCell);
                 ThreadCollective<BlockArea> collective(linearThreadIdx);
                 collective(
                           assign,
@@ -160,7 +160,7 @@ namespace ionization
                           fieldBBlock
                           );
                 /* copy fields from global to shared */
-                PMACC_AUTO(fieldEBlock, eBox.shift(blockCell));
+                auto fieldEBlock = eBox.shift(blockCell);
                 collective(
                           assign,
                           cachedE,
@@ -184,7 +184,7 @@ namespace ionization
             DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
             {
                 /* alias for the single macro-particle */
-                PMACC_AUTO(particle,ionFrame[localIdx]);
+                auto particle = ionFrame[localIdx];
                 /* particle position, used for field-to-particle interpolation */
                 floatD_X pos = particle[position_];
                 const int particleCellIdx = particle[localCellIdx_];

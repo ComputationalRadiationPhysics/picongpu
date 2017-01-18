@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+ * Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -47,7 +47,7 @@ struct GetComponentsType<DataSpace<DIM>, false >
 template<unsigned DIM>
 struct GetNComponents<DataSpace<DIM>,false >
 {
-    BOOST_STATIC_CONSTEXPR uint32_t value=DIM;
+    static constexpr uint32_t value=DIM;
 };
 
 }// namespace traits

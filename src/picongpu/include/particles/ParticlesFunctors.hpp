@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2016 Rene Widera, Marco Garten, Alexander Grund,
+ * Copyright 2014-2017 Rene Widera, Marco Garten, Alexander Grund,
  *                     Heiko Burau
  *
  * This file is part of PIConGPU.
@@ -30,12 +30,13 @@
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
 
-
 #include "communication/AsyncCommunication.hpp"
 #include "particles/traits/GetIonizer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/GetPhotonCreator.hpp"
+#include "particles/traits/ResolveAliasFromSpecies.hpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "particles/bremsstrahlung/Bremsstrahlung.hpp"
 #include "particles/creation/creation.hpp"
 
 namespace picongpu
@@ -111,11 +112,9 @@ struct CallInit
     template<typename T_StorageTuple>
     HINLINE void operator()(T_StorageTuple& tuple,
                             FieldE* fieldE,
-                            FieldB* fieldB,
-                            FieldJ* fieldJ,
-                            FieldTmp* fieldTmp) const
+                            FieldB* fieldB) const
     {
-        tuple[SpeciesName()]->init(*fieldE, *fieldB, *fieldJ, *fieldTmp);
+        tuple[SpeciesName()]->init( *fieldE, *fieldB );
     }
 };
 
@@ -154,7 +153,7 @@ struct PushSpecies
                             T_EventList& updateEvent
                             ) const
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        auto speciesPtr = tuple[SpeciesName()];
 
         __startTransaction(eventInt);
         speciesPtr->update(currentStep);
@@ -287,13 +286,14 @@ struct CallIonization
              */
             typedef typename SelectIonizer::DestSpecies DestSpecies;
             /* alias for pointer on source species */
-            PMACC_AUTO(srcSpeciesPtr, tuple[SpeciesName()]);
+            auto srcSpeciesPtr = tuple[SpeciesName()];
             /* alias for pointer on destination species */
-            PMACC_AUTO(electronsPtr,  tuple[typename MakeIdentifier<DestSpecies>::type()]);
+            auto electronsPtr = tuple[typename MakeIdentifier<DestSpecies>::type()];
 
             /* 3-dim vector : number of threads to be started in every dimension */
-            dim3 block( MappingDesc::SuperCellSize::toRT().toDim3() );
+            auto block = MappingDesc::SuperCellSize::toRT();
 
+            AreaMapping< CORE + BORDER, MappingDesc > mapper( *cellDesc );
             /** kernelIonizeParticles
              * \brief calls the ionization model and handles that electrons are created correctly
              *        while cycling through the particle frames
@@ -302,11 +302,12 @@ struct CallIonization
              * "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER"
              * "threads" is calculated from the previously defined vector "block"
              */
-            __picKernelArea( particles::ionization::kernelIonizeParticles, *cellDesc, CORE + BORDER )
-                (block)
+            PMACC_KERNEL( particles::ionization::KernelIonizeParticles{} )
+                (mapper.getGridDim(), block)
                 ( srcSpeciesPtr->getDeviceParticlesBox( ),
                   electronsPtr->getDeviceParticlesBox( ),
-                  SelectIonizer(currentStep)
+                  SelectIonizer(currentStep),
+                  mapper
                 );
             /* fill the gaps in the created species' particle frames to ensure that only
              * the last frame is not completely filled but every other before is full
@@ -317,6 +318,62 @@ struct CallIonization
     }
 
 }; // struct CallIonization
+
+/** Handles the bremsstrahlung effect for electrons on ions.
+ *
+ * \tparam T_ElectronSpeciesName name of electron species
+ */
+template<typename T_ElectronSpeciesName>
+struct CallBremsstrahlung
+{
+    typedef T_ElectronSpeciesName ElectronSpeciesName;
+    typedef typename ElectronSpeciesName::type ElectronSpecies;
+
+    typedef typename PMacc::particles::traits::ResolveAliasFromSpecies<
+        ElectronSpecies,
+        bremsstrahlungIons<>
+    >::type IonSpecies;
+    typedef typename PMacc::particles::traits::ResolveAliasFromSpecies<
+        ElectronSpecies,
+        bremsstrahlungPhotons<>
+    >::type PhotonSpecies;
+    typedef bremsstrahlung::Bremsstrahlung<IonSpecies, ElectronSpecies, PhotonSpecies> BremsstrahlungFunctor;
+
+    /** Functor implementation
+     *
+     * \tparam T_StorageStuple contains info about the particle species
+     * \tparam T_CellDescription contains the number of blocks and blocksize
+     *                           that is later passed to the kernel
+     * \param tuple an n-tuple containing the type-info of multiple particle species
+     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param currentStep the current time step
+     */
+    template<typename T_StorageTuple, typename T_CellDescription, typename ScaledSpectrumMap>
+    HINLINE void operator()(
+                            T_StorageTuple& tuple,
+                            T_CellDescription* cellDesc,
+                            const uint32_t currentStep,
+                            const ScaledSpectrumMap& scaledSpectrumMap,
+                            const bremsstrahlung::GetPhotonAngle& photonAngle) const
+    {
+        /* alias for pointer on source species */
+        auto electronSpeciesPtr = tuple[ElectronSpeciesName()];
+        /* alias for pointer on destination species */
+        auto photonSpeciesPtr = tuple[typename MakeIdentifier<PhotonSpecies>::type()];
+
+        const float_X targetZ = GetAtomicNumbers<IonSpecies>::type::numberOfProtons;
+
+        using namespace bremsstrahlung;
+        BremsstrahlungFunctor bremsstrahlungFunctor(
+            scaledSpectrumMap.at(targetZ).getScaledSpectrumFunctor(),
+            scaledSpectrumMap.at(targetZ).getStoppingPowerFunctor(),
+            photonAngle.getPhotonAngleFunctor(),
+            currentStep);
+
+        creation::createParticlesFromSpecies(*electronSpeciesPtr, *photonSpeciesPtr, bremsstrahlungFunctor, cellDesc);
+    }
+
+}; // struct CallBremsstrahlung
 
 /** Handles the synchrotron radiation emission of photons from electrons
  *
@@ -350,9 +407,9 @@ struct CallSynchrotronPhotons
         typedef typename SelectedPhotonCreator::PhotonSpecies PhotonSpecies;
 
         /* alias for pointer on source species */
-        PMACC_AUTO(electronSpeciesPtr, tuple[SpeciesName()]);
+        auto electronSpeciesPtr = tuple[SpeciesName()];
         /* alias for pointer on destination species */
-        PMACC_AUTO(photonSpeciesPtr, tuple[typename MakeIdentifier<PhotonSpecies>::type()]);
+        auto photonSpeciesPtr = tuple[typename MakeIdentifier<PhotonSpecies>::type()];
 
         using namespace synchrotronPhotons;
         SelectedPhotonCreator photonCreator(

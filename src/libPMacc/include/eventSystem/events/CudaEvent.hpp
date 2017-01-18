@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Rene Widera
+ * Copyright 2016-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -39,7 +39,7 @@ namespace PMacc
 
     CudaEvent::~CudaEvent( )
     {
-        assert( refCounter == 0u );
+        PMACC_ASSERT( refCounter == 0u );
         log( ggLog::CUDA_RT()+ggLog::MEMORY(), "sync and delete event" );
         // free cuda event
         CUDA_CHECK( cudaEventSynchronize( event ) );
@@ -92,7 +92,7 @@ namespace PMacc
     void CudaEvent::recordEvent(cudaStream_t stream)
     {
         /* disallow double recording */
-        assert(isRecorded==false);
+        assert(isRecorded == false);
         isRecorded = true;
         finished = false;
         this->stream = stream;
