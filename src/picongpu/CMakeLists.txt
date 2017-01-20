@@ -327,8 +327,6 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 file(GLOB CUDASRCFILES "*.cu")
 file(GLOB SRCFILES "*.cpp")
 
-
-
 cuda_add_executable(picongpu
     ${CUDASRCFILES}
     ${SRCFILES}
