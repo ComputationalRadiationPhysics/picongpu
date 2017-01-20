@@ -318,7 +318,7 @@ struct KernelFillGaps
         {
             //absolute position in frame list
             auto myID = threadIdx.x + frameNr * TileSize;
-            auto myCell = myParticle[localCellIdx_];
+            auto & myCell = myParticle[localCellIdx_];
             myParticle[picongpu::inCellOffset_] = ::atomicExch(&(cellEntryPoint[myCell]),myID);
             ::atomicAdd(&(cellCount[myCell]),1);
         }
@@ -420,19 +420,13 @@ struct KernelFillGaps
                 parSrc[multiMask_] = 0;
             }
             __syncthreads( );
-            if ( counterGaps < counterParticles )
+            if ( counterGaps <= counterParticles )
                 updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
-            else if ( counterGaps == counterParticles )
-            {
-                if ( lastFrame.isValid( ) && lastFrame != firstFrame )
-                    updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
-            }
             if ( threadIdx.x == 0 )
             {
                 if ( counterGaps < counterParticles )
                 {
                     //any gap in the first frame is filled
-                    updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
                     firstFrame = pb.getNextFrame( firstFrame );
                     frameNr++;
                 }
@@ -446,7 +440,6 @@ struct KernelFillGaps
                     lastFrame = getPreviousFrameAndRemoveLastFrame( lastFrame, pb, superCellIdx );
                     if ( lastFrame.isValid( ) && lastFrame != firstFrame )
                     {
-                        updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
                         firstFrame = pb.getNextFrame( firstFrame );
                         frameNr++;
                     }
@@ -454,7 +447,8 @@ struct KernelFillGaps
             }
             __syncthreads( );
         }
-        updateCellsForOneFrame<TileSize,false>(cellEntryPoint_sh, cellCount_sh, lastFrame, frameNr);
+        if (firstFrame == lastFrame && firstFrame.isValid( ))
+            updateCellsForOneFrame<TileSize,false>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
         //Saving shared memory to buffers
         for (int i = 0; i < blockDim.x / TileSize; ++i)
             pb.getCellEntryPoint( DataSpace<Dim > (superCellIdx) )[i * blockDim.x + threadIdx.x] = cellEntryPoint_sh[i * blockDim.x + threadIdx.x];
