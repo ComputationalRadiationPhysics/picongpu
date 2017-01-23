@@ -40,9 +40,6 @@ class DefaultFilter : public Base
         HDINLINE DefaultFilter() : filterActive(false)
         {}
 
-        HDINLINE virtual ~DefaultFilter()
-        {}
-
         template<class FRAME>
         HDINLINE bool operator()(FRAME & frame,lcellId_t id)
         {
@@ -72,9 +69,6 @@ class DefaultFilter<NullFrame>
     public:
 
         HDINLINE DefaultFilter() : alwaysTrue(true)
-        {}
-
-        HDINLINE virtual ~DefaultFilter()
         {}
 
         template<class FRAME>

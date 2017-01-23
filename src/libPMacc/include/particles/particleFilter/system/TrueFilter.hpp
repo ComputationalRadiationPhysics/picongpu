@@ -38,10 +38,6 @@ namespace PMacc
         {
         }
 
-        HDINLINE virtual ~TrueFilter()
-        {
-        }
-
         template<class FRAME>
         HDINLINE bool operator()(FRAME&, lcellId_t)
         {
