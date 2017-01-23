@@ -324,15 +324,19 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 # Compile & Link PIConGPU
 ################################################################################
 
-file(GLOB CUDASRCFILES "*.cu")
-file(GLOB SRCFILES "*.cpp")
+file(GLOB_RECURSE CUDASRCFILES "*.cu")
+file(GLOB_RECURSE SRCFILES "*.cpp")
 
-cuda_add_executable(picongpu
-    ${CUDASRCFILES}
+add_library(picongpu-hostonly
+    STATIC
     ${SRCFILES}
 )
 
-target_link_libraries(picongpu ${LIBS} m)
+cuda_add_executable(picongpu
+    ${CUDASRCFILES}
+)
+
+target_link_libraries(picongpu ${LIBS} picongpu-hostonly m)
 
 ################################################################################
 # Install PIConGPU
