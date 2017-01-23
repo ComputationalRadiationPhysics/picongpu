@@ -292,6 +292,26 @@ public:
         return BaseType::operator()(idx);
     }
 
+    /**
+     * Returns reference to the cellEntryPoint array
+     * @param idx position of supercell
+     * @return SuperCellType::CellEntryPointType
+     */
+    HDINLINE typename SuperCellType::CellEntryPointType & getCellEntryPoint( DataSpace<DIM> idx )
+    {
+        return getSuperCell( idx ).cellEntryPoint;
+    }
+
+    /**
+     * Returns reference to the cellCount array
+     * @param idx position of supercell
+     * @return SuperCellType::CellCountType
+     */
+    HDINLINE typename SuperCellType::CellCountType & getCellCount( DataSpace<DIM> idx )
+    {
+        return getSuperCell( idx ).cellCount;
+    }
+
 };
 
 }

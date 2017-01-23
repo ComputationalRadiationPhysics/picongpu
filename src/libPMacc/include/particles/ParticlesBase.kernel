@@ -302,6 +302,29 @@ struct KernelFillGapsLastFrame
 
 struct KernelFillGaps
 {
+    template
+    <
+        size_t TileSize,
+        bool has_no_gaps = true,
+        typename T_CellEntryPoint,
+        typename T_CellCount,
+        typename T_FramePtr,
+        typename T_FrameNr
+    >
+    DINLINE static void updateCellsForOneFrame(T_CellEntryPoint& cellEntryPoint, T_CellCount& cellCount, T_FramePtr& frame, T_FrameNr& frameNr)
+    {
+        auto myParticle = frame[threadIdx.x];
+        if (has_no_gaps || myParticle[multiMask_])
+        {
+            //absolute position in frame list
+            auto myID = threadIdx.x + frameNr * TileSize;
+            auto & myCell = myParticle[localCellIdx_];
+            myParticle[picongpu::inCellOffset_] = ::atomicExch(&(cellEntryPoint[myCell]),myID);
+            ::atomicAdd(&(cellCount[myCell]),1);
+        }
+        __syncthreads( );
+    }
+
     template<class ParBox, class Mapping>
     DINLINE void operator()( ParBox pb, Mapping mapper ) const
     {
@@ -324,12 +347,23 @@ struct KernelFillGaps
         PMACC_SMEM( particleIndices_sh, memory::Array< int, TileSize> );
         PMACC_SMEM( counterGaps, int );
         PMACC_SMEM( counterParticles, int );
+        PMACC_SMEM( frameNr, int );
 
+        //entry points for all particles in a cell
+        PMACC_SMEM( cellEntryPoint_sh, memory::Array< uint32_t, TileSize> );
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            cellEntryPoint_sh[i * blockDim.x + threadIdx.x] = 0xffffffff; // "-1" == not set
+        //number of particles in a cell
+        PMACC_SMEM( cellCount_sh, memory::Array< uint32_t, TileSize> );
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            cellCount_sh[i * blockDim.x + threadIdx.x] = 0;
+        __syncthreads( );
 
         if ( threadIdx.x == 0 )
         {
             firstFrame = pb.getFirstFrame( DataSpace<Dim > (superCellIdx) );
             lastFrame = pb.getLastFrame( DataSpace<Dim > (superCellIdx) );
+            frameNr = 0;
         }
         __syncthreads( );
 
@@ -342,7 +376,7 @@ struct KernelFillGaps
                 counterGaps = 0;
                 counterParticles = 0;
             }
-            int localGapIdx = INV_LOC_IDX; //later we cann call localGapIdx < X because X<INV_LOC_IDX
+            int localGapIdx = INV_LOC_IDX; //later we can call localGapIdx < X because X<INV_LOC_IDX
 
             __syncthreads( );
 
@@ -355,9 +389,11 @@ struct KernelFillGaps
 
             if ( counterGaps == 0 )
             {
+                updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
                 if ( threadIdx.x == 0 )
                 {
                     firstFrame = pb.getNextFrame( firstFrame );
+                    frameNr++;
                 }
                 __syncthreads( ); //wait control thread search new frame
                 continue; //check next frame
@@ -376,7 +412,7 @@ struct KernelFillGaps
                 auto parDestFull = (firstFrame[threadIdx.x]);
                 /*enable particle*/
                 parDestFull[multiMask_] = 1;
-                /* we not update multiMask because copy from mem to mem is to slow
+                /* we not update multiMask because copy from mem to mem is too slow
                  * we have enabled particle explicit */
                 auto parDest = deselect<multiMask>(parDestFull);
                 auto parSrc = (lastFrame[parIdx]);
@@ -384,12 +420,15 @@ struct KernelFillGaps
                 parSrc[multiMask_] = 0;
             }
             __syncthreads( );
+            if ( counterGaps <= counterParticles )
+                updateCellsForOneFrame<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
             if ( threadIdx.x == 0 )
             {
                 if ( counterGaps < counterParticles )
                 {
                     //any gap in the first frame is filled
                     firstFrame = pb.getNextFrame( firstFrame );
+                    frameNr++;
                 }
                 else if ( counterGaps > counterParticles )
                 {
@@ -402,11 +441,19 @@ struct KernelFillGaps
                     if ( lastFrame.isValid( ) && lastFrame != firstFrame )
                     {
                         firstFrame = pb.getNextFrame( firstFrame );
+                        frameNr++;
                     }
                 }
             }
             __syncthreads( );
         }
+        if (firstFrame == lastFrame && firstFrame.isValid( ))
+            updateCellsForOneFrame<TileSize,false>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
+        //Saving shared memory to buffers
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            pb.getCellEntryPoint( DataSpace<Dim > (superCellIdx) )[i * blockDim.x + threadIdx.x] = cellEntryPoint_sh[i * blockDim.x + threadIdx.x];
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            pb.getCellCount( DataSpace<Dim > (superCellIdx) )[i * blockDim.x + threadIdx.x] = cellCount_sh[i * blockDim.x + threadIdx.x];
     }
 };
 
