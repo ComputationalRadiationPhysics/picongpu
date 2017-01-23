@@ -47,4 +47,10 @@ value_identifier(lcellId_t,localCellIdx,0);
  */
 value_identifier(uint8_t,multiMask,0);
 
+/** offset from current particle to next particle in the same cell in units of
+ *  of frame position
+ *  - used for in-cell sorting and particle-particle (e.g. collisional) methods
+ */
+value_identifier(uint32_t,inCellOffset,0);
+
 } //namespace PMacc

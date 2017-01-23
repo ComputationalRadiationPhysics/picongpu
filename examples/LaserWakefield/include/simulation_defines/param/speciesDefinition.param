@@ -43,7 +43,6 @@ using DefaultParticleAttributes = MakeSeq_t<
     position<position_pic>,
     momentum,
     weighting,
-    inCellOffset
 #if( ENABLE_RADIATION == 1 )
     , momentumPrev1
 #endif

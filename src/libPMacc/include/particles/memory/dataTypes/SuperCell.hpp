@@ -32,8 +32,11 @@ template <class TYPE>
 class SuperCell
 {
 public:
+    /** number of cells in the super cell */
     typedef typename math::CT::volume<typename TYPE::SuperCellSize>::type CellsPerSupercell;
+    /** array that holds the absolute in-frame position of the first particle for each cell */
     typedef memory::Array< uint32_t, CellsPerSupercell::value> CellEntryPointType;
+    /** array that holds the number of particles in each cell for a certain species */
     typedef memory::Array< uint32_t, CellsPerSupercell::value> CellCountType;
 
     HDINLINE SuperCell() :
