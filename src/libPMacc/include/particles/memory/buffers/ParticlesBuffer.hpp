@@ -101,7 +101,8 @@ public:
     typedef typename MakeSeq<
         typename T_ParticleDescription::ValueTypeSeq,
         localCellIdx,
-        multiMask
+        multiMask,
+        inCellOffset
     >::type ParticleAttributeList;
 
     typedef typename MakeSeq<
