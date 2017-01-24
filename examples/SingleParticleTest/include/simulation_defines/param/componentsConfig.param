@@ -25,9 +25,9 @@
 namespace picongpu
 {
 /** Simulation Starter ---------------------------------------------------
- *  - singleParticleTest         : unique starter for this test
+ *  - defaultPIConGPU         : default PIConGPU configuration
  */
-namespace simulation_starter = singleParticleTest;
+namespace simulation_starter = defaultPIConGPU;
 
 /*! Laser Configuration --------------------------------------------------
  *  - laserNone             : no laser init
@@ -52,6 +52,7 @@ namespace laserProfile = laserNone;
  */
 namespace fieldSolver = fieldSolverNone;
 
-#define ENABLE_CURRENT 0
+/*! enable (1) or disable (0) current calculation */
+#define ENABLE_CURRENT 1
 
 }
