@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+ * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -105,12 +105,14 @@ private:
                 cellSizeInMoveDirection;
             /* Is the time step when the virtual particle **passed** the moving window
              * in the current to the next step
+             * Signed type of firstMoveStep to allow for edge case slide_point = 0.0
+             * for a moving window right from the start of the simulation.
              */
-            const uint32_t firstMoveStep = math::ceil(
+            const int32_t firstMoveStep = math::ceil(
                 wayToFirstMove / deltaWayPerStep
             ) - 1;
 
-            if (firstMoveStep <= currentStep)
+            if (firstMoveStep <= int32_t(currentStep) )
             {
                 /* calculate the current position of the virtual particle */
                 const float_64 virtualParticleWayPassed =
