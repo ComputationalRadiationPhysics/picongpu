@@ -51,10 +51,6 @@ public:
     {
     }
 
-    HDINLINE ~PositionFilter()
-    {
-    }
-
     HDINLINE void setWindowPosition(DataSpace<dim> offset, DataSpace<dim> size)
     {
         this->offset = offset;
