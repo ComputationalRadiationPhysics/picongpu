@@ -62,6 +62,7 @@ namespace picongpu
      *   - CreateMidCurrentDensityComponentOperation:
      *       density * charge * velocity_component
      *   - CreateCounterOperation: counts point like particles per cell
+     *   - CreateMacroCounterOperation: counts point like macro particles per cell
      */
     using namespace particleToGrid;
 
@@ -69,12 +70,6 @@ namespace picongpu
     using ChargeDensity_Seq = bmpl::transform<
         VectorAllSpecies,
         CreateChargeDensityOperation< bmpl::_1 >
-    >::type;
-
-    /* ParticleCounter section */
-    using Counter_Seq = bmpl::transform<
-        VectorAllSpecies,
-        CreateCounterOperation< bmpl::_1 >
     >::type;
 
     /* EnergyDensity section */
@@ -101,7 +96,6 @@ namespace picongpu
      */
     using FieldTmpSolvers = MakeSeq_t<
         ChargeDensity_Seq,
-        Counter_Seq,
         EnergyDensity_Seq,
         MomentumComponent_Seq
     >;
