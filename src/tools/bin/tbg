@@ -374,12 +374,29 @@ if [ ! -f "$cfg_file" ] ; then
 fi
 
 # cfg file sanity check - space after \ at EOL ?
-cfg_err=`egrep "\\\\\[[:space:]]+$" $cfg_file | wc -l`
+cfg_err=`egrep "\\\\\[[:blank:]]+$" $cfg_file | wc -l`
 if [ $cfg_err != 0 ] ; then
     echo "ERROR: file \"$cfg_file\" contains spaces after line continuation \\"
     echo "Check the following lines for end-of-line spaces:"
     echo ""
-    egrep -n "\\\[[:space:]]+$" $cfg_file
+    egrep -n "\\\[[:blank:]]+$" $cfg_file
+    echo ""
+    echo "Run the following command on the file to remove your"
+    echo "end-of-line (EOL) white spaces:"
+    echo ""
+    echo "sed -i 's/[[:blank:]]\+$//' $cfg_file"
+    exit 1;
+fi
+
+# cfg file sanity check - windows EOL? (CR LF)
+cfg_err=`grep -c $'\r' $cfg_file`
+if [ $cfg_err != 0 ] ; then
+    echo "ERROR: file \"$cfg_file\" contains" $cfg_err "non-unix new lines (\r)."
+    echo ""
+    echo "Run the following command on the file to convert all line endings"
+    echo "to pure unix line endings:"
+    echo ""
+    echo "dos2unix $cfg_file"
     exit 1;
 fi
 
