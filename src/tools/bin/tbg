@@ -379,7 +379,7 @@ if [ $cfg_err != 0 ] ; then
     echo "ERROR: file \"$cfg_file\" contains spaces after line continuation \\"
     echo "Check the following lines for end-of-line spaces:"
     echo ""
-    egrep -n "\\\[[:space:]]+$" $cfg_file
+    egrep -n "\\\[[:blank:]]+$" $cfg_file
     echo ""
     echo "Run the following command on the file to remove your"
     echo "end-of-line (EOL) white spaces:"
