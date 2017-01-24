@@ -24,17 +24,20 @@
 
 #define BOOST_BIND_NO_PLACEHOLDERS
 
-
 #include "Expression.hpp"
-#include "../placeholder.h"
-#include "../ExprTypes.h"
+#include "../placeholder.hpp"
+#include "../ExprTypes.hpp"
+
 #include "pmacc_types.hpp"
+#include "math/Tuple.hpp"
+#include "RefWrapper.hpp"
+
 #include <boost/mpl/void.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/type_traits/add_reference.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <math/Tuple.hpp>
-#include "RefWrapper.hpp"
+
 
 namespace mpl = boost::mpl;
 

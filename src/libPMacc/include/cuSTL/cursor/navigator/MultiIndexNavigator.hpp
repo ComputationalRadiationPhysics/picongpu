@@ -22,9 +22,10 @@
 
 #pragma once
 
+#include "tag.hpp"
 #include "math/vector/Int.hpp"
-#include "tag.h"
-#include <cuSTL/cursor/traits.hpp>
+#include "cuSTL/cursor/traits.hpp"
+
 
 namespace PMacc
 {

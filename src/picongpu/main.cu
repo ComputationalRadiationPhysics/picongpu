@@ -30,7 +30,7 @@
 
 #include "mallocMCconfig.hpp"
 #include "ArgsParser.hpp"
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 
 #include <simulation_defines.hpp>
 #include <mpi.h>

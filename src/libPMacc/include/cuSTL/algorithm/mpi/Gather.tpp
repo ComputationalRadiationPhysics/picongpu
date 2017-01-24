@@ -22,13 +22,15 @@
 
 #pragma once
 
-#include "mappings/simulation/GridController.hpp"
 #include "cuSTL/container/copier/Memcopy.hpp"
-#include "communication/manager_common.h"
+
+#include "mappings/simulation/GridController.hpp"
+#include "communication/manager_common.hpp"
 
 #include <iostream>
 #include <numeric>      // std::partial_sum
 #include <algorithm>    // std::copy
+
 
 namespace PMacc
 {

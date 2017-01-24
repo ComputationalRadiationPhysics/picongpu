@@ -24,7 +24,7 @@
 
 #include "pmacc_types.hpp"
 #include <mpi.h>
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 
 namespace PMacc
 {

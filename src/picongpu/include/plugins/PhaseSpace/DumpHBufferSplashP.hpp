@@ -26,7 +26,7 @@
 #include "traits/PICToSplash.hpp"
 
 #include "plugins/PhaseSpace/AxisDescription.hpp"
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/DataSpace.hpp"

@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 #include "communication/ICommunicator.hpp"
 #include "eventSystem/tasks/MPITask.hpp"
 #include "memory/buffers/Exchange.hpp"

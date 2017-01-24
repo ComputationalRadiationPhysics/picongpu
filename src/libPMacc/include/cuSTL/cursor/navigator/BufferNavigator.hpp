@@ -22,11 +22,14 @@
 
 #pragma once
 
-#include "math/Vector.hpp"
-#include "tag.h"
-#include <boost/type_traits/remove_pointer.hpp>
+#include "tag.hpp"
 #include "CartNavigator.hpp"
-#include <cuSTL/cursor/traits.hpp>
+#include "cuSTL/cursor/traits.hpp"
+
+#include "math/Vector.hpp"
+
+#include <boost/type_traits/remove_pointer.hpp>
+
 
 namespace PMacc
 {
