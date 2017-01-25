@@ -114,7 +114,11 @@ namespace parameters
 
 //disable or enable gamme filter
 //diable (0) / enable (1)
-#define RAD_ACTIVATE_GAMMA_FILTER 0
+#ifndef PARAM_FILTER_GAMMA
+#    define PARAM_FILTER_GAMMA 0
+#endif
+
+#define RAD_ACTIVATE_GAMMA_FILTER PARAM_FILTER_GAMMA
 
 BOOST_CONSTEXPR_OR_CONST float_32 RadiationGamma = 5.;
 
