@@ -22,6 +22,7 @@
 
 #include "particles/particleToGrid/derivedAttributes/Density.def"
 #include "particles/particleToGrid/derivedAttributes/Counter.def"
+#include "particles/particleToGrid/derivedAttributes/MacroCounter.def"
 #include "particles/particleToGrid/derivedAttributes/ChargeDensity.def"
 #include "particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.def"
 #include "particles/particleToGrid/derivedAttributes/EnergyDensity.def"

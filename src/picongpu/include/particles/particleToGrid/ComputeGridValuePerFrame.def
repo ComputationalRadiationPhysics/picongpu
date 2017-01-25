@@ -131,6 +131,18 @@ struct CreateCounterOperation
     typedef FieldTmpOperation< ParticleCounter, T_Species > type;
 };
 
+/* MacroParticleCounter */
+template<typename T_Species>
+struct CreateMacroCounterOperation
+{
+    typedef ComputeGridValuePerFrame<
+        particles::shapes::Counter,
+        particleToGrid::derivedAttributes::MacroCounter
+    > MacroParticleCounter;
+
+    typedef FieldTmpOperation< MacroParticleCounter, T_Species > type;
+};
+
 /* EnergyDensity */
 template<typename T_Species>
 struct CreateEnergyDensityOperation

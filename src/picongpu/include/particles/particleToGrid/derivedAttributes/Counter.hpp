@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/ChargeDensity.def"
+#include "particles/particleToGrid/derivedAttributes/Counter.def"
 
 #include "simulation_defines.hpp"
 

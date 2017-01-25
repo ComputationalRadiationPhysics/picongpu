@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2017 Axel Huebl, Richard Pausch
+ * Copyright 2017 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -20,12 +20,31 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/Density.hpp"
-#include "particles/particleToGrid/derivedAttributes/Counter.hpp"
-#include "particles/particleToGrid/derivedAttributes/MacroCounter.hpp"
-#include "particles/particleToGrid/derivedAttributes/ChargeDensity.hpp"
-#include "particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.hpp"
-#include "particles/particleToGrid/derivedAttributes/EnergyDensity.hpp"
-#include "particles/particleToGrid/derivedAttributes/Energy.hpp"
-#include "particles/particleToGrid/derivedAttributes/MomentumComponent.hpp"
-#include "particles/particleToGrid/derivedAttributes/LarmorPower.hpp"
+#include "particles/particleToGrid/derivedAttributes/MacroCounter.def"
+
+#include "simulation_defines.hpp"
+
+
+namespace picongpu
+{
+namespace particleToGrid
+{
+namespace derivedAttributes
+{
+
+    HDINLINE float1_64
+    MacroCounter::getUnit() const
+    {
+        return 1.0;
+    }
+
+    template< class T_Particle >
+    DINLINE float_X
+    MacroCounter::operator()( T_Particle& particle ) const
+    {
+        /* return attribute */
+        return 1.0;
+    }
+} /* namespace derivedAttributes */
+} /* namespace particleToGrid */
+} /* namespace picongpu */
