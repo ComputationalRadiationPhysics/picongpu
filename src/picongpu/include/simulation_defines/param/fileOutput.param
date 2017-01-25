@@ -47,7 +47,7 @@ namespace picongpu
      *       note: for species that do not change their charge state, this is
      *             the same as the density times a constant for the charge
      *   - CreateEnergyOperation: sum of kinetic particle energy per cell with
-     *                            respect to shape (deprecated)
+     *                            respect to shape
      *   - CreateEnergyDensityOperation: average kinetic particle energy per
      *                                   cell times the particle density
      *       note: this is the same as the sum of kinetic particle energy
