@@ -64,7 +64,6 @@ Particles<
     T_Attributes,
     T_Flags
 >::Particles(
-    GridLayout<simDim>,
     MappingDesc cellDescription,
     SimulationDataId datasetID
 ) :
