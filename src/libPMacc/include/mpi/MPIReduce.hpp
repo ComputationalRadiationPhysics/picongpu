@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 
 #include "mpi/reduceMethods/AllReduce.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"

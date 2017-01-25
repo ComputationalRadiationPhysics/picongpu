@@ -23,17 +23,17 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "ExprTypes.h"
-#include "placeholder.h"
+#include "ExprTypes.hpp"
+#include "placeholder.hpp"
 #include "is_Expression.hpp"
 #include "make_Expr.hpp"
+#include "make_Expr.hpp"
+#include "math/Tuple.hpp"
+
 #include <boost/mpl/void.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/int.hpp>
-#include "make_Expr.hpp"
-#include <math/Tuple.hpp>
-
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -45,8 +45,9 @@
 #include <boost/preprocessor/cat.hpp>
 
 #ifndef LAMBDA_MAX_PARAMS
-#   define LAMBDA_MAX_PARAMS 8
+#    define LAMBDA_MAX_PARAMS 8
 #endif
+
 
 namespace mpl = boost::mpl;
 

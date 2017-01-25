@@ -24,7 +24,7 @@
 #pragma once
 
 #include "communication/ICommunicator.hpp"
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "memory/dataTypes/Mask.hpp"
 #include "pmacc_types.hpp"

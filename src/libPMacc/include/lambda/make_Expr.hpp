@@ -23,9 +23,11 @@
 #pragma once
 
 #include "is_Expression.hpp"
-#include "ExprTypes.h"
+#include "ExprTypes.hpp"
 #include "pmacc_types.hpp"
+
 #include <boost/mpl/vector.hpp>
+
 
 namespace mpl = boost::mpl;
 

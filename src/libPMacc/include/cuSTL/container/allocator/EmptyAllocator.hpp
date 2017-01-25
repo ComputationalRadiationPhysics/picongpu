@@ -22,8 +22,10 @@
 
 #pragma once
 
-#include "tag.h"
+#include "tag.hpp"
+
 #include "pmacc_types.hpp"
+
 
 namespace PMacc
 {

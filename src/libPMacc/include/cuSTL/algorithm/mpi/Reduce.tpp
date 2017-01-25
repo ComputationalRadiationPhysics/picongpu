@@ -22,13 +22,16 @@
 
 #pragma once
 
+#include "cuSTL/container/copier/Memcopy.hpp"
+
+#include "lambda/make_Functor.hpp"
 #include "mappings/simulation/GridController.hpp"
+#include "communication/manager_common.hpp"
+
 #include <iostream>
 #include <utility>
 #include <algorithm>
-#include "cuSTL/container/copier/Memcopy.hpp"
-#include "lambda/make_Functor.hpp"
-#include "communication/manager_common.h"
+
 
 namespace PMacc
 {

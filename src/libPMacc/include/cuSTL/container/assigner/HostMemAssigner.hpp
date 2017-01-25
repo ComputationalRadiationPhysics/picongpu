@@ -23,10 +23,13 @@
 #pragma once
 
 #include "cuSTL/algorithm/host/Foreach.hpp"
-#include "lambda/placeholder.h"
+#include "lambda/placeholder.hpp"
+
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/int.hpp>
+
 #include <stdint.h>
+
 
 namespace PMacc
 {
