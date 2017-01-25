@@ -37,7 +37,7 @@ namespace PMacc
             std::set<IEvent*>::iterator iter = observers.begin( );
             for (; iter != observers.end( ); iter++ )
             {
-                if ( *iter != NULL )
+                if ( *iter != nullptr )
                     ( *iter )->event( eventId, type, data );
             }
             /* if notify is not called from destructor
@@ -48,7 +48,7 @@ namespace PMacc
 
             /**
              * \TODO are we sure that data won't be deleted anywhere else?
-             * if (data != NULL)
+             * if (data != nullptr)
              *  delete data;
              **/
 

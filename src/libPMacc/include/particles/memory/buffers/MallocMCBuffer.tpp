@@ -30,7 +30,7 @@
 namespace PMacc
 {
 
-MallocMCBuffer::MallocMCBuffer( ) : hostPtr( NULL ),hostBufferOffset(0)
+MallocMCBuffer::MallocMCBuffer( ) : hostPtr( nullptr ),hostBufferOffset(0)
 {
     /* currently mallocMC has only one heap */
     this->deviceHeapInfo=mallocMC::getHeapLocations()[0];
@@ -39,7 +39,7 @@ MallocMCBuffer::MallocMCBuffer( ) : hostPtr( NULL ),hostBufferOffset(0)
 
 MallocMCBuffer::~MallocMCBuffer( )
 {
-    if ( hostPtr != NULL )
+    if ( hostPtr != nullptr )
         cudaHostUnregister(hostPtr);
 
     __deleteArray(hostPtr);
@@ -53,7 +53,7 @@ void MallocMCBuffer::synchronize( )
      *         system.
      *         WORKAROUND: use native cuda calls :-(
      */
-    if ( hostPtr == NULL )
+    if ( hostPtr == nullptr )
     {
         /* use `new` and than `cudaHostRegister` is faster than `cudaMallocHost`
          * but with the some result (create page-locked memory)

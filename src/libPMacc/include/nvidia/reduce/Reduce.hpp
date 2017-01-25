@@ -114,7 +114,7 @@ namespace kernel
          * @param sharedMemByte limit the usage of shared memory per block on gpu
          */
         HINLINE Reduce(const uint32_t byte, const uint32_t sharedMemByte = 4 * 1024) :
-        byte(byte), sharedMemByte(sharedMemByte), reduceBuffer(NULL)
+        byte(byte), sharedMemByte(sharedMemByte), reduceBuffer(nullptr)
         {
 
             reduceBuffer = new GridBuffer<char, DIM1 > (DataSpace<DIM1 > (byte));

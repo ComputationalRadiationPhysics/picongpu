@@ -56,7 +56,7 @@ namespace PMacc
         virtual ~TaskLogicalAnd()
         {
 
-            notify(this->myId, LOGICALAND, NULL);
+            notify(this->myId, LOGICALAND, nullptr);
         }
 
         void init()
@@ -79,7 +79,7 @@ namespace PMacc
                 task1 = 0;
 
                 ITask* task = Environment<>::get().Manager().getITaskIfNotFinished(task2);
-                if(task != NULL)
+                if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();
                     if (type == ITask::TASK_CUDA )
@@ -96,7 +96,7 @@ namespace PMacc
                 task2 = 0;
 
                 ITask* task = Environment<>::get().Manager().getITaskIfNotFinished(task1);
-                if(task != NULL)
+                if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();
                     if (type == ITask::TASK_CUDA )

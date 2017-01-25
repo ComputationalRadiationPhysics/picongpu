@@ -96,7 +96,7 @@ struct ParticleAttributeSize
             if (components > 1)
                 datasetName << "/" << name_lookup[d];
 
-            const char* path = NULL;
+            const char* path = nullptr;
             int64_t adiosParticleAttrId = defineAdiosVar<DIM1>(
                 params->adiosGroupHandle,
                 datasetName.str().c_str(),

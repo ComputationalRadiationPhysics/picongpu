@@ -52,7 +52,7 @@ public:
 
     virtual ~TaskGetCurrentSizeFromDevice()
     {
-        notify(this->myId,GETVALUE, NULL);
+        notify(this->myId,GETVALUE, nullptr);
     }
 
     bool executeIntern()

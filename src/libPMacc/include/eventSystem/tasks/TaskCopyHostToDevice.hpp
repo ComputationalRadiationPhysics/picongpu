@@ -51,7 +51,7 @@ namespace PMacc
 
         virtual ~TaskCopyHostToDeviceBase()
         {
-            notify(this->myId, COPYHOST2DEVICE, NULL);
+            notify(this->myId, COPYHOST2DEVICE, nullptr);
         }
 
         bool executeIntern()
@@ -173,13 +173,13 @@ namespace PMacc
             hostPtr.ysize = this->host->getDataSpace()[1];
 
             cudaMemcpy3DParms params;
-            params.dstArray = NULL;
+            params.dstArray = nullptr;
             params.dstPos = make_cudaPos(this->device->getOffset()[0] * sizeof (TYPE),
                                          this->device->getOffset()[1],
                                          this->device->getOffset()[2]);
             params.dstPtr = this->device->getCudaPitched();
 
-            params.srcArray = NULL;
+            params.srcArray = nullptr;
             params.srcPos = make_cudaPos(0, 0, 0);
             params.srcPtr = hostPtr;
 

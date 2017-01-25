@@ -61,7 +61,7 @@ struct CalorimeterFunctor
                        const float3_X calorimeterFrameVecX,
                        const float3_X calorimeterFrameVecY,
                        const float3_X calorimeterFrameVecZ) :
-        calorimeterCur(NULL, PMacc::math::Size_t<DIM2>()),
+        calorimeterCur(nullptr, PMacc::math::Size_t<DIM2>()),
         maxYaw(maxYaw),
         maxPitch(maxPitch),
         numBinsYaw(numBinsYaw),

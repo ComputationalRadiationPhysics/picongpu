@@ -75,7 +75,7 @@ struct WriteNDScalars
         varId = defineAdiosVar<simDim>(
                     params.adiosGroupHandle,
                     datasetName.c_str(),
-                    NULL,
+                    nullptr,
                     AdiosSkalarType().type,
                     Dimensions::create(1),
                     globalDomainSize,
@@ -118,13 +118,13 @@ struct ReadNDScalars
     /** Read the skalar field and optionally the attribute into the values referenced by the pointers */
     void operator()(ThreadParams& params,
                 const std::string& name, T_Scalar* value,
-                const std::string& attrName = "", T_Attribute* attribute = NULL)
+                const std::string& attrName = "", T_Attribute* attribute = nullptr)
     {
         log<picLog::INPUT_OUTPUT> ("ADIOS: read %1%D scalars: %2%") % simDim % name;
         std::string datasetName = params.adiosBasePath + name;
 
         ADIOS_VARINFO* varInfo;
-        ADIOS_CMD_EXPECT_NONNULL( varInfo = adios_inq_var(params.fp, datasetName.c_str()) );
+        ADIOS_CMD_EXPECT_NONnullptr( varInfo = adios_inq_var(params.fp, datasetName.c_str()) );
         if(varInfo->ndim != simDim)
             throw std::runtime_error(std::string("Invalid dimensionality for ") + name);
         if(varInfo->type != traits::PICToAdios<T_Scalar>().type)

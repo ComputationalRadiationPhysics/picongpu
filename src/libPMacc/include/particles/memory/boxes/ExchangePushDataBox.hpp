@@ -64,7 +64,7 @@ public:
             atomicExch(currentSizePointer, maxSize); //reset size to maxsize
             if (oldSize >= maxSize)
             {
-                return TileDataBox<VALUE > (NULL,
+                return TileDataBox<VALUE > (nullptr,
                                             DataSpace<DIM1 > (0),
                                             0);
             }

@@ -264,7 +264,7 @@ void Gather<dim>::operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy
                useTmpSrc ? static_cast<void*>(tmpSrc.getDataPointer()) : static_cast<void*>(source.getDataPointer()),
                source.size().productOfComponents() * sizeof(Type),
                MPI_CHAR,
-               root() ? static_cast<void*>(tmpDest.data()) : NULL,
+               root() ? static_cast<void*>(tmpDest.data()) : nullptr,
                srcBufferSizes1D_char.data(),
                srcBufferOffsets1D_char.data(),
                MPI_CHAR,

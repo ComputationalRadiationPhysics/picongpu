@@ -51,8 +51,8 @@ namespace picongpu
                                                          const uint32_t _notifyPeriod,
                                                          const std::pair<float_X, float_X>& _p_range,
                                                          const AxisDescription& _element ) :
-    cellDescription(NULL), name(_name), prefix(_prefix), particles(NULL),
-    dBuffer(NULL), axis_p_range(_p_range), axis_element(_element),
+    cellDescription(nullptr), name(_name), prefix(_prefix), particles(nullptr),
+    dBuffer(nullptr), axis_p_range(_p_range), axis_element(_element),
     notifyPeriod(_notifyPeriod), isPlaneReduceRoot(false),
     commFileWriter(MPI_COMM_NULL), planeReduce(NULL)
     {

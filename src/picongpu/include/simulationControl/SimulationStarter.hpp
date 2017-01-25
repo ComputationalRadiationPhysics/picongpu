@@ -53,7 +53,7 @@ namespace picongpu
         MappingDesc* mappingDesc;
     public:
 
-        SimulationStarter() : mappingDesc(NULL)
+        SimulationStarter() : mappingDesc(nullptr)
         {
             simulationClass = new SimulationClass();
             initClass = new InitClass();

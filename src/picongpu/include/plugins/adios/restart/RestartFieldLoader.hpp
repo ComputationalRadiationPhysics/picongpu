@@ -84,7 +84,7 @@ public:
                 datasetName.str();
 
             ADIOS_VARINFO* varInfo = adios_inq_var( params->fp, datasetName.str().c_str() );
-            if( varInfo == NULL )
+            if( varInfo == nullptr )
             {
                 std::string errMsg( adios_errmsg() );
                 if( errMsg.empty() ) errMsg = '\n';

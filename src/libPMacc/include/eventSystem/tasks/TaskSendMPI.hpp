@@ -60,8 +60,8 @@ public:
         if (this->isFinished())
             return true;
 
-        if (this->request == NULL)
-            throw std::runtime_error("request was NULL (call executeIntern after freed");
+        if (this->request == nullptr)
+            throw std::runtime_error("request was nullptr (call executeIntern after freed");
 
         int flag=0;
         MPI_CHECK(MPI_Test(this->request, &flag, &(this->status)));
@@ -69,7 +69,7 @@ public:
         if (flag) //finished
         {
             delete this->request;
-            this->request = NULL;
+            this->request = nullptr;
             this->setFinished();
             return true;
         }
@@ -78,7 +78,7 @@ public:
 
     virtual ~TaskSendMPI()
     {
-        notify(this->myId, SENDFINISHED, NULL);
+        notify(this->myId, SENDFINISHED, nullptr);
     }
 
     void event(id_t, EventType, IEventData*)

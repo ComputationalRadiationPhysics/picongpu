@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     if (!parseCmdLine(argc, argv, options))
         return -1;
 
-    MPI_Init(NULL, NULL);
+    MPI_Init(nullptr, nullptr);
 
     Dimensions data_size(options.dataSize);
     std::cout << "Creating density data with size " << data_size.toString() << std::endl;

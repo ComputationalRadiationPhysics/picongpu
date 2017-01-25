@@ -58,7 +58,7 @@ using namespace PMacc;
 
 FieldE::FieldE( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldB( NULL )
+fieldB( nullptr )
 {
     fieldE = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
     typedef typename PMacc::particles::traits::FilterByFlag

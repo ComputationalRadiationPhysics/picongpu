@@ -72,8 +72,8 @@ Particles<
         SpeciesParticleDescription,
         MappingDesc
     >( cellDescription ),
-    fieldB( NULL ),
-    fieldE( NULL ),
+    fieldB( nullptr ),
+    fieldE( nullptr ),
     m_datasetID( datasetID )
 {
     size_t sizeOfExchanges = 2 * 2 * ( BYTES_EXCHANGE_X + BYTES_EXCHANGE_Y + BYTES_EXCHANGE_Z ) + BYTES_EXCHANGE_X * 2 * 8;

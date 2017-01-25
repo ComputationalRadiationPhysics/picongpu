@@ -37,7 +37,7 @@ DeviceMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
     math::Size_t<T_dim-1> pitch;
     cudaPitchedPtr cudaData;
 
-    cudaData.ptr = NULL;
+    cudaData.ptr = nullptr;
     cudaData.pitch = 1;
     cudaData.xsize = size[0] * sizeof (Type);
     cudaData.ysize = 1;
@@ -67,7 +67,7 @@ DeviceMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 #endif
 
 #ifdef __CUDA_ARCH__
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
     math::Size_t<T_dim-1> pitch;
     return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
 #endif
@@ -79,7 +79,7 @@ cursor::BufferCursor<Type, 1>
 DeviceMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 {
 #ifndef __CUDA_ARCH__
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
 
     if(size[0])
         CUDA_CHECK(cudaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));
@@ -88,7 +88,7 @@ DeviceMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 #endif
 
 #ifdef __CUDA_ARCH__
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
     return cursor::BufferCursor<Type, 1>(dataPointer, math::Size_t<0>());
 #endif
 }

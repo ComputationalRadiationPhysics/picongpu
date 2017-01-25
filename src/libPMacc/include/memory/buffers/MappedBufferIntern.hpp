@@ -54,7 +54,7 @@ public:
      */
     MappedBufferIntern(DataSpace<DIM> size):
     DeviceBuffer<TYPE, DIM>(size, size),
-    pointer(NULL), ownPointer(true)
+    pointer(nullptr), ownPointer(true)
     {
         CUDA_CHECK(cudaMallocHost(&pointer, size.productOfComponents() * sizeof (TYPE), cudaHostAllocMapped));
         reset(false);
@@ -138,7 +138,7 @@ public:
 
     size_t* getCurrentSizeOnDevicePointer()
     {
-        return NULL;
+        return nullptr;
     }
 
     DataSpace<DIM> getOffset() const

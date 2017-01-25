@@ -47,7 +47,7 @@ namespace picongpu
 ChargeConservation::ChargeConservation()
     : name("ChargeConservation: Print the maximum charge deviation between particles and div E to textfile 'chargeConservation.dat'"),
       prefix("chargeConservation"), filename("chargeConservation.dat"),
-      cellDescription(NULL)
+      cellDescription(nullptr)
 {
     Environment<>::get().PluginConnector().registerPlugin(this);
 }

@@ -53,7 +53,7 @@ struct AssignNull
     template<typename T_StorageTuple>
     void operator()(T_StorageTuple& tuple)
     {
-        tuple[SpeciesName()] = NULL;
+        tuple[SpeciesName()] = nullptr;
     }
 };
 

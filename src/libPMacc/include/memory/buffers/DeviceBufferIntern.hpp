@@ -247,7 +247,7 @@ private:
     void createData()
     {
         __startOperation(ITask::TASK_CUDA);
-        data.ptr = NULL;
+        data.ptr = nullptr;
         data.pitch = 1;
         data.xsize = this->getDataSpace()[0] * sizeof (TYPE);
         data.ysize = 1;
@@ -283,7 +283,7 @@ private:
     void createFakeData()
     {
         __startOperation(ITask::TASK_CUDA);
-        data.ptr = NULL;
+        data.ptr = nullptr;
         data.pitch = 1;
         data.xsize = this->getDataSpace()[0] * sizeof (TYPE);
         data.ysize = 1;
@@ -305,7 +305,7 @@ private:
     void createSizeOnDevice(bool sizeOnDevice)
     {
         __startOperation(ITask::TASK_HOST);
-        sizeOnDevicePtr = NULL;
+        sizeOnDevicePtr = nullptr;
 
         if (sizeOnDevice)
         {

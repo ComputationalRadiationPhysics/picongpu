@@ -61,7 +61,7 @@ struct ParticleAttribute
 
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) write species attribute: %1%") % Identifier::getName();
 
-        ComponentType* tmpBfr = NULL;
+        ComponentType* tmpBfr = nullptr;
 
         if (elements > 0)
             tmpBfr = new ComponentType[elements];

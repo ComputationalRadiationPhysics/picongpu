@@ -170,9 +170,9 @@ public:
     analyzerName("EnergyParticles: calculate the energy of a species"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_energy")),
     filename(analyzerPrefix + ".dat"),
-    particles(NULL),
-    gEnergy(NULL),
-    cellDescription(NULL),
+    particles(nullptr),
+    gEnergy(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0),
     writeToFile(false)
     {

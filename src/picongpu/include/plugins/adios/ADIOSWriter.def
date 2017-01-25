@@ -74,7 +74,7 @@ namespace po = boost::program_options;
     }                                                                         \
 }
 
-#define ADIOS_CMD_EXPECT_NONNULL(_cmd)                                        \
+#define ADIOS_CMD_EXPECT_NONnullptr(_cmd)                                        \
 {                                                                             \
     if (!(_cmd))                                                              \
     {                                                                         \

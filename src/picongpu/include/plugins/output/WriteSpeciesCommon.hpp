@@ -55,7 +55,7 @@ struct MallocMemory
     {
         typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
 
-        type* ptr = NULL;
+        type* ptr = nullptr;
         if (size != 0)
         {
             CUDA_CHECK(cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped));
@@ -78,7 +78,7 @@ struct MallocHostMemory
         typedef T_Attribute Attribute;
         typedef typename PMacc::traits::Resolve<Attribute>::type::type type;
 
-        type* ptr = NULL;
+        type* ptr = nullptr;
         if (size != 0)
         {
             ptr = new type[size];
@@ -115,9 +115,9 @@ struct GetDevicePtr
     {
         typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
 
-        type* ptr = NULL;
+        type* ptr = nullptr;
         type* srcPtr = src.getIdentifier(T_Type()).getPointer();
-        if (srcPtr != NULL)
+        if (srcPtr != nullptr)
         {
             CUDA_CHECK(cudaHostGetDevicePointer(&ptr, srcPtr, 0));
         }
@@ -134,10 +134,10 @@ struct FreeMemory
         typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
 
         type* ptr = value.getIdentifier(T_Type()).getPointer();
-        if (ptr != NULL)
+        if (ptr != nullptr)
         {
             CUDA_CHECK(cudaFreeHost(ptr));
-            ptr=NULL;
+            ptr=nullptr;
         }
     }
 };
@@ -157,10 +157,10 @@ struct FreeHostMemory
         typedef typename PMacc::traits::Resolve<Attribute>::type::type type;
 
         type* ptr = value.getIdentifier(Attribute()).getPointer();
-        if (ptr != NULL)
+        if (ptr != nullptr)
         {
             __deleteArray(ptr);
-            ptr=NULL;
+            ptr=nullptr;
         }
     }
 };

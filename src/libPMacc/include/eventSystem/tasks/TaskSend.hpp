@@ -93,7 +93,7 @@ namespace PMacc
 
         virtual ~TaskSend()
         {
-            notify(this->myId, SENDFINISHED, NULL);
+            notify(this->myId, SENDFINISHED, nullptr);
         }
 
         void event(id_t, EventType type, IEventData*)

@@ -75,8 +75,8 @@ public:
     analyzerName("CountParticles: count macro particles of a species"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount")),
     filename(analyzerPrefix + ".dat"),
-    particles(NULL),
-    cellDescription(NULL),
+    particles(nullptr),
+    cellDescription(nullptr),
     notifyPeriod(0),
     writeToFile(false)
     {

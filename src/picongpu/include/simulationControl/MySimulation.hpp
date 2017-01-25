@@ -96,19 +96,19 @@ public:
      * Constructor
      */
     MySimulation() :
-    laser(NULL),
-    fieldB(NULL),
-    fieldE(NULL),
-    fieldJ(NULL),
-    mallocMCBuffer(NULL),
-    myFieldSolver(NULL),
-    myCurrentInterpolation(NULL),
-    pushBGField(NULL),
-    currentBGField(NULL),
-    cellDescription(NULL),
-    initialiserController(NULL),
+    laser(nullptr),
+    fieldB(nullptr),
+    fieldE(nullptr),
+    fieldJ(nullptr),
+    mallocMCBuffer(nullptr),
+    myFieldSolver(nullptr),
+    myCurrentInterpolation(nullptr),
+    pushBGField(nullptr),
+    currentBGField(nullptr),
+    cellDescription(nullptr),
+    initialiserController(nullptr),
     slidingWindow(false),
-    rngFactory(NULL)
+    rngFactory(nullptr)
     {
         ForEach<VectorAllSpecies, particles::AssignNull<bmpl::_1>, MakeIdentifier<bmpl::_1> > setPtrToNull;
         setPtrToNull(forward(particleStorage));
@@ -630,7 +630,7 @@ public:
     virtual void setInitController(IInitPlugin *initController)
     {
 
-        PMACC_ASSERT(initController != NULL);
+        PMACC_ASSERT(initController != nullptr);
         this->initialiserController = initController;
     }
 

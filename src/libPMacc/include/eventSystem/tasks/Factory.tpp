@@ -211,7 +211,7 @@ namespace PMacc
     {
         TaskKernel* task = new TaskKernel(kernelname);
 
-        if (registeringTask != NULL)
+        if (registeringTask != nullptr)
             task->addObserver(registeringTask);
 
         return task;
@@ -220,7 +220,7 @@ namespace PMacc
 
     inline EventTask Factory::startTask(ITask& task, ITask *registeringTask )
     {
-        if (registeringTask != NULL){
+        if (registeringTask != nullptr){
             task.addObserver(registeringTask);
         }
         EventTask event(task.getId());

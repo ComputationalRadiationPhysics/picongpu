@@ -33,8 +33,8 @@ class SuperCell
 public:
 
     HDINLINE SuperCell() :
-    firstFramePtr(NULL),
-    lastFramePtr(NULL),
+    firstFramePtr(nullptr),
+    lastFramePtr(nullptr),
     mustShiftVal(false),
     sizeLastFrame(0)
     {

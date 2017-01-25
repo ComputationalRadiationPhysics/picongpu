@@ -59,7 +59,7 @@ namespace picongpu
         uint32_t slotId
     ) :
         SimulationFieldHelper<MappingDesc>( cellDescription ),
-        fieldTmp( NULL ),
+        fieldTmp( nullptr ),
         m_slotId( slotId )
     {
         m_commTag =

@@ -69,7 +69,7 @@ inline bool Manager::execute( id_t taskToWait )
     {
         id_t id = iter->first;
         ITask* taskPtr = iter->second;
-        PMACC_ASSERT( taskPtr != NULL );
+        PMACC_ASSERT( taskPtr != nullptr );
         ++iter;
 #ifdef DEBUG_EVENTS
         if ( counter == 500000 )
@@ -113,9 +113,9 @@ inline void Manager::event( id_t eventId, EventType, IEventData* )
 inline ITask* Manager::getITaskIfNotFinished( id_t taskId ) const
 {
     if( taskId == 0 )
-        return NULL;
+        return nullptr;
     ITask* passiveTask = getPassiveITaskIfNotFinished( taskId );
-    if ( passiveTask != NULL )
+    if ( passiveTask != nullptr )
         return passiveTask;
 
     return getActiveITaskIfNotFinished( taskId );
@@ -126,7 +126,7 @@ inline ITask* Manager::getPassiveITaskIfNotFinished( id_t taskId ) const
     TaskMap::const_iterator itPassive = passiveTasks.find( taskId );
     if ( itPassive != passiveTasks.end( ) )
         return itPassive->second;
-    return NULL;
+    return nullptr;
 }
 
 inline ITask* Manager::getActiveITaskIfNotFinished( id_t taskId ) const
@@ -134,7 +134,7 @@ inline ITask* Manager::getActiveITaskIfNotFinished( id_t taskId ) const
     TaskMap::const_iterator it = tasks.find( taskId );
     if ( it != tasks.end( ) )
         return it->second;
-    return NULL;
+    return nullptr;
 }
 
 inline void Manager::waitForFinished( id_t taskId )
@@ -143,27 +143,27 @@ inline void Manager::waitForFinished( id_t taskId )
         return;
     //check if task is passive and wait on it
     ITask* task = getPassiveITaskIfNotFinished( taskId );
-    if ( task != NULL )
+    if ( task != nullptr )
     {
         do
         {
             this->execute( );
         }
-        while ( getPassiveITaskIfNotFinished( taskId ) != NULL );
+        while ( getPassiveITaskIfNotFinished( taskId ) != nullptr );
 
         return; //we can jump out because task is passive task
     }
 
     //check if task is  active and wait on it
     task = getActiveITaskIfNotFinished( taskId );
-    if ( task != NULL )
+    if ( task != nullptr )
     {
         do
         {
             if ( this->execute( taskId ) )
                 return; //jump out because task is finished
         }
-        while ( getActiveITaskIfNotFinished( taskId ) != NULL );
+        while ( getActiveITaskIfNotFinished( taskId ) != nullptr );
     }
 }
 
@@ -178,13 +178,13 @@ inline void Manager::waitForAllTasks( )
 
 inline void Manager::addTask( ITask *task )
 {
-    PMACC_ASSERT( task != NULL );
+    PMACC_ASSERT( task != nullptr );
     tasks[task->getId( )] = task;
 }
 
 inline void Manager::addPassiveTask( ITask *task )
 {
-    PMACC_ASSERT( task != NULL );
+    PMACC_ASSERT( task != nullptr );
 
     task->addObserver( this );
     passiveTasks[task->getId( )] = task;
@@ -203,7 +203,7 @@ inline std::size_t Manager::getCount( )
 {
     for ( TaskMap::iterator iter = tasks.begin( ); iter != tasks.end( ); ++iter )
     {
-        if ( iter->second != NULL )
+        if ( iter->second != nullptr )
         {
             std::cout << iter->first << " = " << iter->second->toString( ) << std::endl;
         }

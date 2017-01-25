@@ -48,7 +48,7 @@ public:
      */
     HostBufferIntern(DataSpace<DIM> size) :
     HostBuffer<TYPE, DIM>(size, size),
-    pointer(NULL),ownPointer(true)
+    pointer(nullptr),ownPointer(true)
     {
         CUDA_CHECK(cudaMallocHost(&pointer, size.productOfComponents() * sizeof (TYPE)));
         reset(false);
@@ -56,7 +56,7 @@ public:
 
     HostBufferIntern(HostBufferIntern& source, DataSpace<DIM> size, DataSpace<DIM> offset=DataSpace<DIM>()) :
     HostBuffer<TYPE, DIM>(size, source.getPhysicalMemorySize()),
-    pointer(NULL),ownPointer(false)
+    pointer(nullptr),ownPointer(false)
     {
         pointer=&(source.getDataBox()(offset));/*fix me, this is a bad way*/
         reset(true);

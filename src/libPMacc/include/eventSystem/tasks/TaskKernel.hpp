@@ -43,7 +43,7 @@ namespace PMacc
 
         virtual ~TaskKernel()
         {
-            notify(this->myId, KERNEL, NULL);
+            notify(this->myId, KERNEL, nullptr);
         }
 
         bool executeIntern()

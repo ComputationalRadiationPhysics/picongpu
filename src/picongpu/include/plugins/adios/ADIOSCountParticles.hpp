@@ -171,7 +171,7 @@ public:
             const uint64_t localTableSize = 5;
             traits::PICToAdios<uint64_t> adiosIndexType;
 
-            const char* path = NULL;
+            const char* path = nullptr;
             int64_t adiosSpeciesIndexVar = defineAdiosVar<DIM1>(
                 params->adiosGroupHandle,
                 (speciesPath + "particles_info").c_str(),

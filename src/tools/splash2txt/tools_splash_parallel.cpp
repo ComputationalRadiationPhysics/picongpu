@@ -133,7 +133,7 @@ void ToolsSplashParallel::printParticles(std::vector<ExDataContainer> fileData)
                 }
 
                 void* element = container->getElement(i);
-                assert(element != NULL);
+                assert(element != nullptr);
 
                 printElement(data_type, element, iter->unit, m_options.delimiter);
                 numElementsProcessed[container]++;
@@ -197,7 +197,7 @@ void ToolsSplashParallel::printFields(std::vector<ExDataContainer> fileData)
                             iter->container->getIndex(0)->getDataType();
 
                     void* element = iter->container->getElement(index);
-                    assert(element != NULL);
+                    assert(element != nullptr);
 
                     printElement(data_type, element, iter->unit, m_options.delimiter);
                 }
@@ -234,7 +234,7 @@ void ToolsSplashParallel::convertToText()
     try
     {
         dc.readAttribute(m_options.step, m_options.data[0].c_str(), DOMCOL_ATTR_CLASS,
-                &ref_data_class, NULL);
+                &ref_data_class, nullptr);
     } catch (const DCException&)
     {
         errorStream << "Error: No domain information for dataset '" << m_options.data[0] << "' available." << std::endl;
@@ -267,7 +267,7 @@ void ToolsSplashParallel::convertToText()
 
         DomainCollector::DomDataClass data_class = DomainCollector::UndefinedType;
         dc.readAttribute(m_options.step, iter->c_str(), DOMCOL_ATTR_CLASS,
-                &data_class, NULL);
+                &data_class, nullptr);
         if (data_class != ref_data_class)
             throw std::runtime_error("All requested datasets must be of the same data class");
 
@@ -283,7 +283,7 @@ void ToolsSplashParallel::convertToText()
             // poly type
 
             excontainer.container = dc.readDomain(m_options.step, iter->c_str(),
-                    Domain(total_domain.getOffset(), total_domain.getSize()), NULL, true);
+                    Domain(total_domain.getOffset(), total_domain.getSize()), nullptr, true);
         } else
         {
             // grid type
@@ -303,7 +303,7 @@ void ToolsSplashParallel::convertToText()
                 }
 
             excontainer.container = dc.readDomain(m_options.step, iter->c_str(),
-                    Domain(offset, domain_size), NULL);
+                    Domain(offset, domain_size), nullptr);
         }
 
         // read unit
@@ -313,7 +313,7 @@ void ToolsSplashParallel::convertToText()
             try
             {
                 dc.readAttribute(m_options.step, iter->c_str(), "unitSI",
-                        &(excontainer.unit), NULL);
+                        &(excontainer.unit), nullptr);
             } catch (const DCException&)
             {
                 if (m_options.verbose)
@@ -334,7 +334,7 @@ void ToolsSplashParallel::convertToText()
         file_data.push_back(excontainer);
     }
 
-    assert(file_data[0].container->get(0)->getData() != NULL);
+    assert(file_data[0].container->get(0)->getData() != nullptr);
 
     // write to file
     //
@@ -392,7 +392,7 @@ void ToolsSplashParallel::listAvailableDatasets()
 {
     // number of timesteps in this file
     size_t num_entries = 0;
-    dc.getEntryIDs(NULL, &num_entries);
+    dc.getEntryIDs(nullptr, &num_entries);
     if (num_entries == 0)
     {
         m_outStream << "no entries in file" << std::endl;
@@ -400,7 +400,7 @@ void ToolsSplashParallel::listAvailableDatasets()
     }
 
     int32_t *entries = new int32_t[num_entries];
-    dc.getEntryIDs(entries, NULL);
+    dc.getEntryIDs(entries, nullptr);
     std::sort(entries, entries + num_entries);
 
     m_outStream << std::endl
@@ -419,9 +419,9 @@ void ToolsSplashParallel::listAvailableDatasets()
     // available data sets in this file
     std::vector<DataCollector::DCEntry> dataTypeNames;
     size_t numDataTypes = 0;
-    dc.getEntriesForID(entries[0], NULL, &numDataTypes);
+    dc.getEntriesForID(entries[0], nullptr, &numDataTypes);
     dataTypeNames.resize(numDataTypes);
-    dc.getEntriesForID(entries[0], &(dataTypeNames.front()), NULL);
+    dc.getEntriesForID(entries[0], &(dataTypeNames.front()), nullptr);
 
     // parse dataTypeNames vector in a nice way for stdout
     m_outStream << "Available data field names:";

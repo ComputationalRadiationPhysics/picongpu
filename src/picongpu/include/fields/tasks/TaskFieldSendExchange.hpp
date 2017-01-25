@@ -61,7 +61,7 @@ namespace PMacc
                 break;
             case WaitForBash:
 
-                if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_initDependency.getTaskId()) )
+                if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_initDependency.getTaskId()) )
                 {
                     m_state = InitSend;
                     m_sendEvent = m_buffer.getGridBuffer().asyncSend(EventTask(), m_exchange);
@@ -73,7 +73,7 @@ namespace PMacc
             case InitSend:
                 break;
             case WaitForSendEnd:
-                if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_sendEvent.getTaskId()))
+                if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_sendEvent.getTaskId()))
                 {
                     m_state = Finished;
                     return true;
@@ -90,7 +90,7 @@ namespace PMacc
 
         virtual ~TaskFieldSendExchange()
         {
-            notify(this->myId, SENDFINISHED, NULL);
+            notify(this->myId, SENDFINISHED, nullptr);
         }
 
         void event(id_t, EventType, IEventData*)

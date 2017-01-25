@@ -62,7 +62,7 @@ void ToolsAdiosParallel::convertToText()
 
         pVarInfo = adios_inq_var(pFile, nodeName.c_str());
 
-        varTypeSize = adios_type_size(pVarInfo->type, NULL);
+        varTypeSize = adios_type_size(pVarInfo->type, nullptr);
 
         // get number of elements combined in a dataset
         for(int j = 0; j < pVarInfo->ndim; j++)
@@ -72,7 +72,7 @@ void ToolsAdiosParallel::convertToText()
         // allocate memory
         P = (uint8_t*) malloc (sizeof(uint8_t) * varTypeSize * varElement);
 
-        adios_schedule_read(pFile, NULL, nodeName.c_str(), 0, 1, P);
+        adios_schedule_read(pFile, nullptr, nodeName.c_str(), 0, 1, P);
 
         adios_perform_reads(pFile, 1);
 

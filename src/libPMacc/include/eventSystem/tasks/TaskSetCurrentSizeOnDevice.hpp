@@ -61,7 +61,7 @@ public:
 
     virtual ~TaskSetCurrentSizeOnDevice()
     {
-        notify(this->myId, SETVALUE, NULL);
+        notify(this->myId, SETVALUE, nullptr);
     }
 
     virtual void init()

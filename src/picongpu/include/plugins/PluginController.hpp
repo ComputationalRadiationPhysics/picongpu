@@ -224,7 +224,7 @@ public:
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-        PMACC_ASSERT(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != nullptr);
 
         for (std::list<ISimulationPlugin*>::iterator iter = plugins.begin();
              iter != plugins.end();

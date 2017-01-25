@@ -82,12 +82,12 @@ public:
      */
     DINLINE FramePtr getEmptyFrame( )
     {
-        FrameType* tmp = NULL;
+        FrameType* tmp = nullptr;
         const int maxTries = 13; //magic number is not performance critical
         for ( int numTries = 0; numTries < maxTries; ++numTries )
         {
             tmp = (FrameType*) mallocMC::malloc( sizeof (FrameType) );
-            if ( tmp != NULL )
+            if ( tmp != nullptr )
             {
                 /* disable all particles since we can not assume that newly allocated memory contains zeros */
                 for ( int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i )
@@ -117,7 +117,7 @@ public:
     DINLINE void removeFrame( FramePointer<FrameType, T_InitMethod>& frame )
     {
         mallocMC::free( (void*) frame.ptr );
-        frame.ptr = NULL;
+        frame.ptr = nullptr;
     }
 
     HDINLINE
@@ -279,8 +279,8 @@ public:
                 return true;
             }
             //remove last frame of supercell
-            getSuperCell( idx ).firstFramePtr = NULL;
-            getSuperCell( idx ).lastFramePtr = NULL;
+            getSuperCell( idx ).firstFramePtr = nullptr;
+            getSuperCell( idx ).lastFramePtr = nullptr;
 
             removeFrame( last );
         }

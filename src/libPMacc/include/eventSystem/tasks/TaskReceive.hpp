@@ -93,7 +93,7 @@ namespace PMacc
 
         virtual ~TaskReceive()
         {
-            notify(this->myId, RECVFINISHED, NULL);
+            notify(this->myId, RECVFINISHED, nullptr);
         }
 
         void event(id_t, EventType type, IEventData* data)
@@ -101,7 +101,7 @@ namespace PMacc
             switch (type)
             {
                 case RECVFINISHED:
-                    if (data != NULL)
+                    if (data != nullptr)
                     {
                         EventDataReceive *rdata = static_cast<EventDataReceive*> (data);
                         // std::cout<<" data rec "<<rdata->getReceivedCount()/sizeof(TYPE)<<std::endl;

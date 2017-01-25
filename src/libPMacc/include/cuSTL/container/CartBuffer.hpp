@@ -84,7 +84,7 @@ public:
     PitchType pitch;
     HDINLINE void init();
     HDINLINE void exit();
-    HDINLINE CartBuffer() : refCount(NULL) {}
+    HDINLINE CartBuffer() : refCount(nullptr) {}
 
     /* makes this class able to emulate a r-value reference */
     BOOST_COPYABLE_AND_MOVABLE(CartBuffer)

@@ -224,9 +224,9 @@ public:
     analyzerName("BinEnergyParticles: calculate a energy histogram of a species"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_energyHistogram")),
     filename(analyzerPrefix + ".dat"),
-    particles(NULL),
-    gBins(NULL),
-    cellDescription(NULL),
+    particles(nullptr),
+    gBins(nullptr),
+    cellDescription(nullptr),
     notifyPeriod(0),
     writeToFile(false),
     enableDetector(false)

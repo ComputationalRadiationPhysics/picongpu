@@ -88,7 +88,7 @@ public:
      * @param firstCommunicationTag optional value which can be used to tag ('name') this buffer in communications
      * @param sizeOnDevice if true, size information exists on device, too.
      */
-    MultiGridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) : blobDeviceBuffer(NULL),blobHostBuffer(NULL)
+    MultiGridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) : blobDeviceBuffer(nullptr),blobHostBuffer(nullptr)
     {
         init(gridLayout, sizeOnDevice);
     }
@@ -100,7 +100,7 @@ public:
      * @param firstCommunicationTag optional value which can be used to tag ('name') this buffer in communications
      * @param sizeOnDevice if true, size information exists on device, too.
      */
-    MultiGridBuffer(DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) : blobDeviceBuffer(NULL),blobHostBuffer(NULL)
+    MultiGridBuffer(DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) : blobDeviceBuffer(nullptr),blobHostBuffer(nullptr)
     {
         init(GridLayout<DIM > (dataSpace), sizeOnDevice);
     }

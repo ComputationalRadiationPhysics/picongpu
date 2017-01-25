@@ -43,10 +43,10 @@ namespace po = boost::program_options;
 
 struct ThreadParams
 {
-    /* set at least the pointers to NULL by default */
+    /* set at least the pointers to nullptr by default */
     ThreadParams() :
-        dataCollector(NULL),
-        cellDescription(NULL)
+        dataCollector(nullptr),
+        cellDescription(nullptr)
     {}
 
     /** current simulation step */

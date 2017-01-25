@@ -33,7 +33,7 @@ namespace PMacc
 
 inline StreamTask::StreamTask( ) :
 ITask( ),
-stream( NULL ),
+stream( nullptr ),
 hasCudaEventHandle( false ),
 alwaysFinished( false )
 {
@@ -69,21 +69,21 @@ inline bool StreamTask::isFinished( )
 
 inline EventStream* StreamTask::getEventStream( )
 {
-    if ( stream == NULL )
+    if ( stream == nullptr )
         stream = __getEventStream( TASK_CUDA );
     return stream;
 }
 
 inline void StreamTask::setEventStream( EventStream* newStream )
 {
-    PMACC_ASSERT( newStream != NULL );
-    PMACC_ASSERT( stream == NULL ); //it is only allowed to set a stream if no stream is set before
+    PMACC_ASSERT( newStream != nullptr );
+    PMACC_ASSERT( stream == nullptr ); //it is only allowed to set a stream if no stream is set before
     this->stream = newStream;
 }
 
 inline cudaStream_t StreamTask::getCudaStream( )
 {
-    if ( stream == NULL )
+    if ( stream == nullptr )
         stream = Environment<>::get( ).TransactionManager( ).getEventStream( TASK_CUDA );
     return stream->getCudaStream( );
 }

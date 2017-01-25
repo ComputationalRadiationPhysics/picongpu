@@ -72,7 +72,7 @@ public:
     }
 
     DINLINE SharedBox() :
-    fixedPointer(NULL)
+    fixedPointer(nullptr)
     {
     }
 
@@ -120,7 +120,7 @@ public:
     typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id > ReducedType;
     typedef SharedBox<ValueType, T_Vector, T_id, DIM2 > This;
 
-    HDINLINE SharedBox(ValueType* pointer = NULL) :
+    HDINLINE SharedBox(ValueType* pointer = nullptr) :
     fixedPointer(pointer)
     {
     }
@@ -196,7 +196,7 @@ public:
         return ReducedType(this->fixedPointer + idx *  (Size::x::value *Size::y::value));
     }
 
-    HDINLINE SharedBox(ValueType* pointer = NULL) :
+    HDINLINE SharedBox(ValueType* pointer = nullptr) :
     fixedPointer(pointer)
     {
     }

@@ -145,9 +145,9 @@ public:
     IntensityPlugin() :
     analyzerName("IntensityPlugin: calculate the maximum and integrated E-Field energy\nover laser propagation direction"),
     analyzerPrefix(FieldE::getName() + std::string("_intensity")),
-    localMaxIntensity(NULL),
-    localIntegratedIntensity(NULL),
-    cellDescription(NULL),
+    localMaxIntensity(nullptr),
+    localIntegratedIntensity(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0),
     writeToFile(false)
     {

@@ -64,8 +64,8 @@ namespace PMacc
                     break;
                 case WaitForBash:
 
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()) &&
-                        NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()) &&
+                        nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                     {
                         state = InitSend;
                         //bash is finished
@@ -81,7 +81,7 @@ namespace PMacc
                 case InitSend:
                     break;
                 case WaitForSend:
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
                         PMACC_ASSERT(lastSize <= maxSize);
                         //check for next bash round
@@ -96,7 +96,7 @@ namespace PMacc
                     }
                     break;
                 case WaitForSendEnd:
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                     {
                         state = Finished;
                         return true;
@@ -113,7 +113,7 @@ namespace PMacc
 
         virtual ~TaskSendParticlesExchange()
         {
-            notify(this->myId, RECVFINISHED, NULL);
+            notify(this->myId, RECVFINISHED, nullptr);
             if(retryCounter != 0)
             {
                 std::cerr << "Send/receive buffer for species " <<

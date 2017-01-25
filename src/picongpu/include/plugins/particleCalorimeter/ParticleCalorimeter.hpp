@@ -407,12 +407,12 @@ public:
         prefix(ParticlesType::FrameType::getName() + std::string("_calorimeter")),
         foldername(prefix),
         notifyPeriod(0),
-        cellDescription(NULL),
+        cellDescription(nullptr),
         leftParticlesDatasetName("calorimeterLeftParticles"),
-        dBufCalorimeter(NULL),
-        dBufLeftParsCalorimeter(NULL),
-        hBufCalorimeter(NULL),
-        hBufTotalCalorimeter(NULL)
+        dBufCalorimeter(nullptr),
+        dBufLeftParsCalorimeter(nullptr),
+        hBufCalorimeter(nullptr),
+        hBufTotalCalorimeter(nullptr)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }

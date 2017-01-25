@@ -48,7 +48,7 @@ namespace PMacc
         static double getTime()
         {
             struct timeval act_time;
-            gettimeofday(&act_time, NULL);
+            gettimeofday(&act_time, nullptr);
             return (double)act_time.tv_sec*1000. + (double)act_time.tv_usec / 1000.;
         }
 

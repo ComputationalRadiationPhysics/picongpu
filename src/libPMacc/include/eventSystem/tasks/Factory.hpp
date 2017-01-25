@@ -59,7 +59,7 @@ namespace PMacc
          */
         template <class TYPE, unsigned DIM>
         EventTask createTaskCopyHostToDevice(HostBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * creates a TaskCopyDeviceToHost
@@ -70,7 +70,7 @@ namespace PMacc
         template <class TYPE, unsigned DIM>
         EventTask createTaskCopyDeviceToHost(DeviceBuffer<TYPE, DIM>& src,
         HostBuffer<TYPE, DIM>& dst,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * creates a TaskCopyDeviceToDevice
@@ -80,7 +80,7 @@ namespace PMacc
          */
         template <class TYPE, unsigned DIM>
         EventTask createTaskCopyDeviceToDevice( DeviceBuffer<TYPE, DIM>& src, DeviceBuffer<TYPE, DIM>& dst,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a TaskReceive.
@@ -89,7 +89,7 @@ namespace PMacc
          */
         template <class TYPE, unsigned DIM>
         EventTask createTaskReceive(Exchange<TYPE, DIM> &ex,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a TaskSend.
@@ -98,7 +98,7 @@ namespace PMacc
          */
         template <class TYPE, unsigned DIM>
         EventTask createTaskSend(Exchange<TYPE, DIM> &ex,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a TaskSendMPI.
@@ -107,7 +107,7 @@ namespace PMacc
          */
         template <class TYPE, unsigned DIM>
         EventTask createTaskSendMPI(Exchange<TYPE, DIM> *ex,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a TaskReceiveMPI.
@@ -116,7 +116,7 @@ namespace PMacc
          */
         template <class TYPE, unsigned DIM>
         EventTask createTaskReceiveMPI(Exchange<TYPE, DIM> *ex,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a new TaskSetValue.
@@ -126,7 +126,7 @@ namespace PMacc
          */
         template <class TYPE, unsigned DIM>
         EventTask createTaskSetValue(DeviceBuffer<TYPE, DIM>& dst, const TYPE& value,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a new TaskSetCurrentSizeOnDevice.
@@ -136,7 +136,7 @@ namespace PMacc
          */
         template <class TYPE, unsigned DIM>
         EventTask createTaskSetCurrentSizeOnDevice(DeviceBuffer<TYPE, DIM>& dst, size_t size,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a new TaskGetCurrentSizeFromDevic.
@@ -145,7 +145,7 @@ namespace PMacc
          */
         template <class TYPE, unsigned DIM>
         EventTask createTaskGetCurrentSizeFromDevice(DeviceBuffer<TYPE, DIM>& buffer,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a new TaskKernel.
@@ -153,7 +153,7 @@ namespace PMacc
          * @param registeringTask optional pointer to an ITask which should be registered at the new task as an observer
          * @return the newly created TaskKernel
          */
-        TaskKernel* createTaskKernel(std::string kernelname, ITask *registeringTask = NULL);
+        TaskKernel* createTaskKernel(std::string kernelname, ITask *registeringTask = nullptr);
 
         /**
          * Starts a task by initialising it and adding it to the Manager's queue.

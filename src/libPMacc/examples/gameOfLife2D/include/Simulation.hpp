@@ -65,7 +65,7 @@ private:
 public:
 
     Simulation(uint32_t rule, int32_t steps, Space gridSize, Space devices, Space periodic) :
-    evo(rule), steps(steps), gridSize(gridSize), isMaster(false), buff1(NULL), buff2(NULL)
+    evo(rule), steps(steps), gridSize(gridSize), isMaster(false), buff1(nullptr), buff2(nullptr)
     {
         /* -First this initializes the GridController with number of 'devices'*
          *  and 'periodic'ity. The init-routine will then create and manage   *

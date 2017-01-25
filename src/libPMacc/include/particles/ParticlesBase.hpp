@@ -81,7 +81,7 @@ protected:
 
     BufferType *particlesBuffer;
 
-    ParticlesBase(MappingDesc description) : SimulationFieldHelper<MappingDesc>(description), particlesBuffer(NULL)
+    ParticlesBase(MappingDesc description) : SimulationFieldHelper<MappingDesc>(description), particlesBuffer(nullptr)
     {
         this->particlesBuffer = new BufferType(
             description.getGridLayout().getDataSpace( ),
@@ -186,7 +186,7 @@ public:
      */
     BufferType& getParticlesBuffer()
     {
-        PMACC_ASSERT(particlesBuffer != NULL);
+        PMACC_ASSERT(particlesBuffer != nullptr);
         return *particlesBuffer;
     }
 

@@ -69,7 +69,7 @@ namespace PMacc
                 case Init:
                     break;
                 case WaitForSend:
-                    return NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+                    return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
                 default:
                     return false;
             }
@@ -79,7 +79,7 @@ namespace PMacc
 
         virtual ~TaskFieldSend()
         {
-            notify(this->myId, SENDFINISHED, NULL);
+            notify(this->myId, SENDFINISHED, nullptr);
         }
 
         void event(id_t, EventType, IEventData*) { }

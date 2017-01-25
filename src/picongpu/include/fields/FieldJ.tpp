@@ -54,7 +54,7 @@ using namespace PMacc;
 
 FieldJ::FieldJ( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL ), fieldB( NULL ), fieldJrecv( NULL )
+fieldJ( cellDescription.getGridLayout( ) ), fieldE( nullptr ), fieldB( nullptr ), fieldJrecv( nullptr )
 {
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
@@ -172,7 +172,7 @@ EventTask FieldJ::asyncCommunication( EventTask serialEvent )
     FieldFactory::getInstance( ).createTaskFieldSend( *this );
     ret += __endTransaction( );
 
-    if( fieldJrecv != NULL )
+    if( fieldJrecv != nullptr )
     {
         EventTask eJ = fieldJrecv->asyncCommunication( ret );
         return eJ;
