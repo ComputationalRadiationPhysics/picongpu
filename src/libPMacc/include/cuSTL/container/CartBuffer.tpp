@@ -192,7 +192,7 @@ void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::exit()
     if(*(this->refCount) > 0)
         return;
     Allocator::deallocate(origin());
-    this->dataPointer = 0;
+    this->dataPointer = nullptr;
 #ifndef __CUDA_ARCH__
     delete this->refCount;
     this->refCount = 0;
