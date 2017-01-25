@@ -80,8 +80,6 @@ public:
 
     Particles(GridLayout<simDim> gridLayout, MappingDesc cellDescription, SimulationDataId datasetID);
 
-    virtual ~Particles();
-
     void createParticleBuffer();
 
     void init(FieldE &fieldE, FieldB &fieldB);
@@ -159,8 +157,6 @@ public:
 
 private:
     SimulationDataId m_datasetID;
-    GridLayout<simDim> m_gridLayout;
-
 
     FieldE *fieldE;
     FieldB *fieldB;
