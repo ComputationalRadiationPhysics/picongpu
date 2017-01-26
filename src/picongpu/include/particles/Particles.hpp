@@ -78,7 +78,7 @@ public:
     typedef typename ParticlesBaseType::ParticlesBoxType ParticlesBoxType;
 
 
-    Particles(GridLayout<simDim> gridLayout, MappingDesc cellDescription, SimulationDataId datasetID);
+    Particles(MappingDesc cellDescription, SimulationDataId datasetID);
 
     void createParticleBuffer();
 

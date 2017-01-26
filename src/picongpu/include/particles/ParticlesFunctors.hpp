@@ -78,7 +78,7 @@ struct CreateSpecies
     template<typename T_StorageTuple, typename T_CellDescription>
     HINLINE void operator()(T_StorageTuple& tuple, T_CellDescription* cellDesc) const
     {
-        tuple[SpeciesName()] = new SpeciesType(cellDesc->getGridLayout(), *cellDesc, SpeciesType::FrameType::getName());
+        tuple[SpeciesName()] = new SpeciesType(*cellDesc, SpeciesType::FrameType::getName());
     }
 };
 
