@@ -83,9 +83,15 @@ protected:
 
     ParticlesBase(MappingDesc description) : SimulationFieldHelper<MappingDesc>(description), particlesBuffer(NULL)
     {
+        this->particlesBuffer = new BufferType(
+            description.getGridLayout().getDataSpace( ),
+            description.getGridLayout().getGuard( )
+        );
     }
 
-    virtual ~ParticlesBase(){}
+    virtual ~ParticlesBase(){
+        __delete(particlesBuffer);
+    }
 
     /* Shift all particle in a AREA
      * @tparam AREA area which is used (CORE,BORDER,GUARD or a combination)
