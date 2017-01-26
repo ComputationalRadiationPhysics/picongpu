@@ -116,7 +116,7 @@ namespace helper
 
             // allocate & prepare buffer, starts
             result.buffers.assign( sumLen, '\0' );
-            result.starts.assign( listOfStrings.size(), NULL );
+            result.starts.assign( listOfStrings.size(), nullptr );
 
             // concat all strings, \0 terminated
             size_t startIdx = 0;

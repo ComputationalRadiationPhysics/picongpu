@@ -55,7 +55,7 @@ namespace PMacc
          * @param physicalMemorySize size of the physical memory (in elements)
          */
         Buffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize) :
-        data_space(size), data1D(true), current_size(NULL), m_physicalMemorySize(physicalMemorySize)
+        data_space(size), data1D(true), current_size(nullptr), m_physicalMemorySize(physicalMemorySize)
         {
             CUDA_CHECK(cudaMallocHost(&current_size, sizeof (size_t)));
             *current_size = size.productOfComponents();

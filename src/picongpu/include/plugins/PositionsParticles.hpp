@@ -185,9 +185,9 @@ public:
     PositionsParticles() :
     analyzerName("PositionsParticles: write position of one particle of a species to std::cout"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_position")),
-    particles(NULL),
-    gParticle(NULL),
-    cellDescription(NULL),
+    particles(nullptr),
+    gParticle(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0)
     {
 

@@ -281,36 +281,36 @@ namespace writeMeta
             );
 
             dc->writeAttribute( threadParams->currentStep,
-                                ctUInt32, NULL, "sim_slides", &slides );
+                                ctUInt32, nullptr, "sim_slides", &slides );
 
 
             /* openPMD: required time attributes */
-            dc->writeAttribute( currentStep, splashFloatXType, NULL, "dt", &DELTA_T );
+            dc->writeAttribute( currentStep, splashFloatXType, nullptr, "dt", &DELTA_T );
             const float_X time = float_X( threadParams->currentStep ) * DELTA_T;
-            dc->writeAttribute( currentStep, splashFloatXType, NULL, "time", &time );
-            dc->writeAttribute( currentStep, ctDouble, NULL, "timeUnitSI", &UNIT_TIME );
+            dc->writeAttribute( currentStep, splashFloatXType, nullptr, "time", &time );
+            dc->writeAttribute( currentStep, ctDouble, nullptr, "timeUnitSI", &UNIT_TIME );
 
             /* write normed grid parameters */
-            dc->writeAttribute( currentStep, splashFloatXType, NULL, "cell_width", &CELL_WIDTH );
-            dc->writeAttribute( currentStep, splashFloatXType, NULL, "cell_height", &CELL_HEIGHT );
+            dc->writeAttribute( currentStep, splashFloatXType, nullptr, "cell_width", &CELL_WIDTH );
+            dc->writeAttribute( currentStep, splashFloatXType, nullptr, "cell_height", &CELL_HEIGHT );
             if( simDim == DIM3 )
             {
-                dc->writeAttribute( currentStep, splashFloatXType, NULL, "cell_depth", &CELL_DEPTH );
+                dc->writeAttribute( currentStep, splashFloatXType, nullptr, "cell_depth", &CELL_DEPTH );
             }
 
             /* write base units */
-            dc->writeAttribute( currentStep, ctDouble, NULL, "unit_energy", &UNIT_ENERGY );
-            dc->writeAttribute( currentStep, ctDouble, NULL, "unit_length", &UNIT_LENGTH );
-            dc->writeAttribute( currentStep, ctDouble, NULL, "unit_speed", &UNIT_SPEED );
-            dc->writeAttribute( currentStep, ctDouble, NULL, "unit_time", &UNIT_TIME );
-            dc->writeAttribute( currentStep, ctDouble, NULL, "unit_mass", &UNIT_MASS );
-            dc->writeAttribute( currentStep, ctDouble, NULL, "unit_charge", &UNIT_CHARGE );
-            dc->writeAttribute( currentStep, ctDouble, NULL, "unit_efield", &UNIT_EFIELD );
-            dc->writeAttribute( currentStep, ctDouble, NULL, "unit_bfield", &UNIT_BFIELD );
+            dc->writeAttribute( currentStep, ctDouble, nullptr, "unit_energy", &UNIT_ENERGY );
+            dc->writeAttribute( currentStep, ctDouble, nullptr, "unit_length", &UNIT_LENGTH );
+            dc->writeAttribute( currentStep, ctDouble, nullptr, "unit_speed", &UNIT_SPEED );
+            dc->writeAttribute( currentStep, ctDouble, nullptr, "unit_time", &UNIT_TIME );
+            dc->writeAttribute( currentStep, ctDouble, nullptr, "unit_mass", &UNIT_MASS );
+            dc->writeAttribute( currentStep, ctDouble, nullptr, "unit_charge", &UNIT_CHARGE );
+            dc->writeAttribute( currentStep, ctDouble, nullptr, "unit_efield", &UNIT_EFIELD );
+            dc->writeAttribute( currentStep, ctDouble, nullptr, "unit_bfield", &UNIT_BFIELD );
 
             /* write physical constants */
-            dc->writeAttribute( currentStep, splashFloatXType, NULL, "mue0", &MUE0 );
-            dc->writeAttribute( currentStep, splashFloatXType, NULL, "eps0", &EPS0 );
+            dc->writeAttribute( currentStep, splashFloatXType, nullptr, "mue0", &MUE0 );
+            dc->writeAttribute( currentStep, splashFloatXType, nullptr, "eps0", &EPS0 );
         }
     };
 } // namespace hdf5

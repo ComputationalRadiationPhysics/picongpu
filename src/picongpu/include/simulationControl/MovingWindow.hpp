@@ -235,7 +235,7 @@ public:
      */
     uint32_t getSlideCounter(uint32_t currentStep)
     {
-        getCurrentSlideInfo(currentStep, NULL, NULL);
+        getCurrentSlideInfo(currentStep, nullptr, nullptr);
         return slideCounter;
     }
 
@@ -261,7 +261,7 @@ public:
 
         if (slidingWindowActive)
         {
-            getCurrentSlideInfo(currentStep, &doSlide, NULL);
+            getCurrentSlideInfo(currentStep, &doSlide, nullptr);
         }
 
         return doSlide;
@@ -319,7 +319,7 @@ public:
             window.globalDimensions.size.y() -= subGrid.getLocalDomain().size.y();
 
             float_64 offsetFirstGPU = 0.0;
-            getCurrentSlideInfo(currentStep, NULL, &offsetFirstGPU);
+            getCurrentSlideInfo(currentStep, nullptr, &offsetFirstGPU);
 
             /* while moving, the windows global offset within the global domain is between 0
              * and smaller than the local domain's size in y.

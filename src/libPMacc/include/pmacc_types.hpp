@@ -200,7 +200,7 @@ enum AreaType
     CORE = 1u, BORDER = 2u, GUARD = 4u
 };
 
-#define __delete(var) if((var)) { delete (var); var=NULL; }
-#define __deleteArray(var) if((var)) { delete[] (var); var=NULL; }
+#define __delete(var) if((var)) { delete (var); var=nullptr; }
+#define __deleteArray(var) if((var)) { delete[] (var); var=nullptr; }
 
 } //namespace PMacc

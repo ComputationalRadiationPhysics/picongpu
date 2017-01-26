@@ -78,7 +78,7 @@ struct LoadParticleAttributesFromHDF5
 
         const std::string name_lookup[] = {"x", "y", "z"};
 
-        ComponentType* tmpArray = NULL;
+        ComponentType* tmpArray = nullptr;
         if( elements > 0 )
             tmpArray = new ComponentType[elements];
 

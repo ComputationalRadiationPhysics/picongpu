@@ -65,7 +65,7 @@ namespace PMacc
                     break;
                 case WaitForReceive:
 
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
                     {
                         state = InitInsert;
                         //bash is finished
@@ -81,7 +81,7 @@ namespace PMacc
                 case InitInsert:
                     break;
                 case WaitForInsert:
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
                         state=Wait;
                         PMACC_ASSERT(lastSize <= maxSize);
@@ -108,7 +108,7 @@ namespace PMacc
 
         virtual ~TaskReceiveParticlesExchange()
         {
-            notify(this->myId, RECVFINISHED, NULL);
+            notify(this->myId, RECVFINISHED, nullptr);
         }
 
         void event(id_t, EventType, IEventData*) { }

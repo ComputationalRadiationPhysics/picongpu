@@ -51,7 +51,7 @@ namespace picongpu
     struct LiveViewClient
     {
 
-        LiveViewClient(std::string ip, std::string port) : socket(NULL), m_ip(ip), m_port(port)
+        LiveViewClient(std::string ip, std::string port) : socket(nullptr), m_ip(ip), m_port(port)
         {
         }
 

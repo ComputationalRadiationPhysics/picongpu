@@ -298,7 +298,7 @@ private:
                 datasetName << "/" << name_lookup_tpl[c];
 
             /* define adios var for field, e.g. field_FieldE_y */
-            const char* path = NULL;
+            const char* path = nullptr;
             int64_t adiosFieldVarId = defineAdiosVar<simDim>(
                     params->adiosGroupHandle,
                     datasetName.str().c_str(),
@@ -650,7 +650,7 @@ public:
             /* could not read full stream */
             throw std::runtime_error("ADIOS: Stream terminated too early: " +
                                      std::string(adios_errmsg()) );
-        if (mThreadParams.fp == NULL)
+        if (mThreadParams.fp == nullptr)
             throw std::runtime_error("ADIOS: Error opening stream: " +
                                      std::string(adios_errmsg()) );
 
@@ -660,7 +660,7 @@ public:
         /* load number of slides to initialize MovingWindow */
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) read attr (%1% available)") %
             mThreadParams.fp->nattrs;
-        void* slidesPtr = NULL;
+        void* slidesPtr = nullptr;
         int slideSize;
         enum ADIOS_DATATYPES slidesType;
         ADIOS_CMD(adios_get_attr( mThreadParams.fp,
@@ -676,7 +676,7 @@ public:
         PMACC_ASSERT(slidesType == adiosUInt32Type.type);
         PMACC_ASSERT(slideSize == sizeof(uint32_t)); // uint32_t in bytes
 
-        void* lastStepPtr = NULL;
+        void* lastStepPtr = nullptr;
         int lastStepSize;
         enum ADIOS_DATATYPES lastStepType;
         ADIOS_CMD(adios_get_attr( mThreadParams.fp,
@@ -1118,7 +1118,7 @@ private:
         /*\todo: copied from adios example, we might not need this ? */
         MPI_CHECK(MPI_Barrier(threadParams->adiosComm));
 
-        return NULL;
+        return nullptr;
     }
 
     ThreadParams mThreadParams;

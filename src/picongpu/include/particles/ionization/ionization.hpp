@@ -162,7 +162,7 @@ struct KernelIonizeParticles
         if (linearThreadIdx == 0)
         {
             newFrameFillLvl = 0;
-            electronFrame = NULL;
+            electronFrame = nullptr;
         }
         __syncthreads();
 

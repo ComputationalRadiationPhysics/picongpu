@@ -140,11 +140,11 @@ public:
     analyzerName("PerSuperCell: create hdf5 with macro particle count per superCell"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesPerSuperCell")),
     foldername(analyzerPrefix),
-    particles(NULL),
-    cellDescription(NULL),
+    particles(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0),
-    localResult(NULL),
-    dataCollector(NULL)
+    localResult(nullptr),
+    dataCollector(nullptr)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -269,7 +269,7 @@ private:
 
     void closeH5File()
     {
-        if (dataCollector != NULL)
+        if (dataCollector != nullptr)
         {
             std::string filename = (foldername + std::string("/makroParticlePerSupercell"));
             log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
@@ -280,7 +280,7 @@ private:
     void openH5File()
     {
 
-        if (dataCollector == NULL)
+        if (dataCollector == nullptr)
         {
             DataSpace<simDim> mpi_pos;
             DataSpace<simDim> mpi_size;

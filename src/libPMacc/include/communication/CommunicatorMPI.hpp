@@ -81,7 +81,7 @@ public:
      */
     CommunicatorMPI() : hostRank(0)
     {
-        //MPI_Init(NULL, NULL);
+        //MPI_Init(nullptr, nullptr);
     }
 
     /*! dtor
@@ -263,7 +263,7 @@ public:
 
 
 protected:
-    /* Set the first found non charactor or number to 0 (NULL)
+    /* Set the first found non charactor or number to 0 (nullptr)
      * name like p1223(Pid=1233) is than p1223
      * in some MPI implementation /mpich) the hostname is unique
      */

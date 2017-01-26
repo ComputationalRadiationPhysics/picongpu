@@ -33,7 +33,7 @@ cursor::BufferCursor<Type, T_dim>
 HostMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 {
 #ifndef __CUDA_ARCH__
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
     math::Size_t<T_dim-1> pitch;
 
     if(size.productOfComponents())
@@ -52,7 +52,7 @@ HostMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 #endif
 
 #ifdef __CUDA_ARCH__
-    Type* dataPointer = 0;
+    Type* dataPointer = nullptr;
     math::Size_t<T_dim-1> pitch;
     return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
 #endif
@@ -64,7 +64,7 @@ cursor::BufferCursor<Type, 1>
 HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 {
 #ifndef __CUDA_ARCH__
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
     math::Size_t<0> pitch;
 
     if(size.productOfComponents())
@@ -74,7 +74,7 @@ HostMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 #endif
 
 #ifdef __CUDA_ARCH__
-    Type* dataPointer = 0;
+    Type* dataPointer = nullptr;
     math::Size_t<0> pitch;
     return cursor::BufferCursor<Type, 1>(dataPointer, pitch);
 #endif

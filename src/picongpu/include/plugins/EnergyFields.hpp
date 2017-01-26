@@ -104,15 +104,15 @@ private:
 public:
 
     EnergyFields() :
-    fieldE(NULL),
-    fieldB(NULL),
-    cellDescription(NULL),
+    fieldE(nullptr),
+    fieldB(nullptr),
+    cellDescription(nullptr),
     analyzerName("EnergyFields: calculate the energy of the fields"),
     analyzerPrefix(std::string("fields_energy")),
     filename(analyzerPrefix + ".dat"),
     notifyFrequency(0),
     writeToFile(false),
-    localReduce(NULL)
+    localReduce(nullptr)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }

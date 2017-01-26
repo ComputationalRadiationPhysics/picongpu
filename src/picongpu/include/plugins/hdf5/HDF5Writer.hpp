@@ -198,7 +198,7 @@ public:
 
         /* load number of slides to initialize MovingWindow */
         uint32_t slides = 0;
-        mThreadParams.dataCollector->readAttribute(restartStep, NULL, "sim_slides", &slides);
+        mThreadParams.dataCollector->readAttribute(restartStep, nullptr, "sim_slides", &slides);
 
         /* apply slides to set gpus to last/written configuration */
         log<picLog::INPUT_OUTPUT > ("HDF5 setting slide count for moving window to %1%") % slides;
@@ -253,7 +253,7 @@ private:
 
     void closeH5File()
     {
-        if (mThreadParams.dataCollector != NULL)
+        if (mThreadParams.dataCollector != nullptr)
         {
             log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector");
             mThreadParams.dataCollector->close();
@@ -263,7 +263,7 @@ private:
     void openH5File(const std::string h5Filename)
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        if (mThreadParams.dataCollector == NULL)
+        if (mThreadParams.dataCollector == nullptr)
         {
             GridController<simDim> &gc = Environment<simDim>::get().GridController();
             mThreadParams.dataCollector = new ParallelDomainCollector(
@@ -442,7 +442,7 @@ private:
         WriteMeta writeMetaAttributes;
         writeMetaAttributes(threadParams);
 
-        return NULL;
+        return nullptr;
     }
 
     ThreadParams mThreadParams;

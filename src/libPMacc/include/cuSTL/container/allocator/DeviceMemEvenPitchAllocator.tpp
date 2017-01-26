@@ -31,7 +31,7 @@ template<typename Type, int T_dim>
 cursor::BufferCursor<Type, T_dim>
 DeviceMemEvenPitch<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 {
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
     math::Size_t<T_dim-1> pitch;
 
     if(size.productOfComponents())
@@ -54,7 +54,7 @@ template<typename Type>
 cursor::BufferCursor<Type, 1>
 DeviceMemEvenPitch<Type, 1>::allocate(const math::Size_t<1>& size)
 {
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
 
     if(size.productOfComponents())
         CUDA_CHECK(cudaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));

@@ -45,17 +45,17 @@ public:
     /**
      * Returns information about device memory.
      *
-     * @param free amount of free memory in bytes. can be NULL
-     * @param total total amount of memory in bytes. can be NULL. (NULL by default)
+     * @param free amount of free memory in bytes. can be nullptr
+     * @param total total amount of memory in bytes. can be nullptr. (nullptr by default)
      */
-    void getMemoryInfo(size_t *free, size_t *total = NULL)
+    void getMemoryInfo(size_t *free, size_t *total = nullptr)
     {
         size_t freeInternal = 0;
         size_t totalInternal = 0;
 
         CUDA_CHECK(cudaMemGetInfo(&freeInternal, &totalInternal));
 
-        if (free != NULL)
+        if (free != nullptr)
         {
             if (reservedMem > freeInternal)
                 freeInternal = 0;
@@ -64,7 +64,7 @@ public:
 
             *free = freeInternal;
         }
-        if (total != NULL)
+        if (total != nullptr)
         {
             if (reservedMem > totalInternal)
                 totalInternal = 0;

@@ -106,7 +106,7 @@ namespace detail
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(const math::Size_t<T_dim>& _size) : refCount(NULL)
+(const math::Size_t<T_dim>& _size) : refCount(nullptr)
 {
     this->_size = _size;
     init();
@@ -115,7 +115,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(size_t x) : refCount(NULL)
+(size_t x) : refCount(nullptr)
 {
     this->_size = math::Size_t<1>(x); init();
 }
@@ -123,7 +123,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(size_t x, size_t y) : refCount(NULL)
+(size_t x, size_t y) : refCount(nullptr)
 {
     this->_size = math::Size_t<2>(x, y); init();
 }
@@ -131,7 +131,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(size_t x, size_t y, size_t z) : refCount(NULL)
+(size_t x, size_t y, size_t z) : refCount(nullptr)
 {
     this->_size = math::Size_t<3>(x, y, z); init();
 }
@@ -139,7 +139,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& other) : refCount(NULL)
+(const CartBuffer<Type, T_dim, Allocator, Copier, Assigner>& other) : refCount(nullptr)
 {
     this->dataPointer = other.dataPointer;
     this->refCount = other.refCount;
@@ -153,14 +153,14 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) other) : refCount(NULL)
+(BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) other) : refCount(nullptr)
 {
     this->dataPointer = other.dataPointer;
     this->refCount = other.refCount;
     this->_size = other._size;
     this->pitch = other.pitch;
-    other.dataPointer = NULL;
-    other.refCount = NULL;
+    other.dataPointer = nullptr;
+    other.refCount = nullptr;
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
@@ -192,7 +192,7 @@ void CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::exit()
     if(*(this->refCount) > 0)
         return;
     Allocator::deallocate(origin());
-    this->dataPointer = 0;
+    this->dataPointer = nullptr;
 #ifndef __CUDA_ARCH__
     delete this->refCount;
     this->refCount = 0;
@@ -240,8 +240,8 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
     this->refCount = rhs.refCount;
     this->_size = rhs._size;
     this->pitch = rhs.pitch;
-    rhs.dataPointer = NULL;
-    rhs.refCount = NULL;
+    rhs.dataPointer = nullptr;
+    rhs.refCount = nullptr;
     return *this;
 }
 

@@ -48,7 +48,7 @@ namespace PMacc
 
         ExchangeIntern(DeviceBuffer<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
                        uint32_t communicationTag, uint32_t area = BORDER, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(NULL)
+        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(nullptr)
         {
 
             PMACC_ASSERT(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
@@ -82,7 +82,7 @@ namespace PMacc
 
         ExchangeIntern(DataSpace<DIM> exchangeDataSpace, uint32_t exchange,
                        uint32_t communicationTag, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(NULL)
+        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(nullptr)
         {
             this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice);
            //  this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice,true);
@@ -207,7 +207,7 @@ namespace PMacc
 
         virtual bool hasDeviceDoubleBuffer()
         {
-            return deviceDoubleBuffer != NULL;
+            return deviceDoubleBuffer != nullptr;
         }
 
         virtual DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer()

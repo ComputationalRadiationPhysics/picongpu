@@ -63,7 +63,7 @@ using namespace PMacc;
 
 FieldB::FieldB( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldE( NULL )
+fieldE( nullptr )
 {
     /*#####create FieldB###############*/
     fieldB = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );

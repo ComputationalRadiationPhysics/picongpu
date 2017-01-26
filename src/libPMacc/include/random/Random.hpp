@@ -89,7 +89,7 @@ namespace random
         typedef T_Distribution Distribution;
         typedef typename boost::result_of<Distribution(RNGState&)>::type result_type;
 
-        HDINLINE Random(): m_rngState(NULL)
+        HDINLINE Random(): m_rngState(nullptr)
         {}
 
         HDINLINE Random(RNGState* m_rngState): m_rngState(m_rngState)

@@ -449,15 +449,15 @@ public:
     Visualisation(std::string name, Output output, uint32_t notifyPeriod, DataSpace<DIM2> transpose, float_X slicePoint) :
     m_output(output),
     analyzerName(name),
-    cellDescription(NULL),
+    cellDescription(nullptr),
     particleTag(ParticlesType::FrameType::getName()),
     m_notifyPeriod(notifyPeriod),
     m_transpose(transpose),
     m_slicePoint(slicePoint),
     isMaster(false),
-    header(NULL),
+    header(nullptr),
     reduce(1024),
-    img(NULL)
+    img(nullptr)
     {
         sliceDim = 0;
         if (m_transpose.x() == 0 || m_transpose.y() == 0)
@@ -487,7 +487,7 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        PMACC_ASSERT(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != nullptr);
         const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
         Window window(MovingWindow::getInstance().getWindow(currentStep));
 
@@ -503,7 +503,7 @@ public:
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-        PMACC_ASSERT(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != nullptr);
         this->cellDescription = cellDescription;
     }
 
@@ -526,7 +526,7 @@ public:
 #endif
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
-        PMACC_ASSERT(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != nullptr);
         AreaMapping<CORE + BORDER, MappingDesc> mapper(*cellDescription);
         //create image fields
         PMACC_KERNEL(KernelPaintFields{})
@@ -623,7 +623,7 @@ public:
     {
         if (m_notifyPeriod > 0)
         {
-            PMACC_ASSERT(cellDescription != NULL);
+            PMACC_ASSERT(cellDescription != nullptr);
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
 
             Window window(MovingWindow::getInstance().getWindow(0));
@@ -658,7 +658,7 @@ private:
 
     bool doDrawing()
     {
-        PMACC_ASSERT(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != nullptr);
         const DataSpace<simDim> globalRootCellPos(Environment<simDim>::get().SubGrid().getLocalDomain().offset);
 #if(SIMDIM==DIM3)
         const bool tmp = globalRootCellPos[sliceDim] + Environment<simDim>::get().SubGrid().getLocalDomain().size[sliceDim] > sliceOffset &&

@@ -49,7 +49,7 @@ class InitialiserController : public IInitPlugin
 public:
 
     InitialiserController() :
-    cellDescription(NULL)
+    cellDescription(nullptr)
     {
     }
 
@@ -169,7 +169,7 @@ public:
 
     virtual void setMappingDescription(MappingDesc *cellDescription)
     {
-        PMACC_ASSERT(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != nullptr);
         this->cellDescription = cellDescription;
     }
 

@@ -71,7 +71,7 @@ public:
         case Init:
             break;
         case WaitForReceived:
-            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+            if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
             {
                 m_state = Insert;
             }
@@ -92,7 +92,7 @@ public:
         case Wait:
             break;
         case WaitInsertFinished:
-            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+            if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
             {
                 m_state = Finish;
                 return true;
@@ -109,7 +109,7 @@ public:
 
     virtual ~TaskFieldReceiveAndInsert()
     {
-        notify(this->myId, RECVFINISHED, NULL);
+        notify(this->myId, RECVFINISHED, nullptr);
     }
 
     void event(id_t, EventType, IEventData*)

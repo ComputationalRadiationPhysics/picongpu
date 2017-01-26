@@ -42,7 +42,7 @@ public:
      * Constructor.
      * Creates the cudaStream_t object.
      */
-    EventStream() : stream(NULL)
+    EventStream() : stream(nullptr)
     {
         CUDA_CHECK(cudaStreamCreate(&stream));
     }

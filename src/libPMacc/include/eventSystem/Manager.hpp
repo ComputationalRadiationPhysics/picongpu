@@ -49,7 +49,7 @@ namespace PMacc
 
 
         /*! Return a ITask pointer if ITask is not finished
-         * @return ITask pointer if Task is not finished else NULL
+         * @return ITask pointer if Task is not finished else nullptr
          */
         inline ITask* getITaskIfNotFinished(id_t taskId) const;
 

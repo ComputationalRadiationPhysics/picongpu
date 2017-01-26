@@ -58,7 +58,7 @@ class TFieldSource
         typename FieldType::DataBoxType shifted;
         MappingDesc *cellDescription;
         bool movingWindow;
-        TFieldSource() : cellDescription(NULL), movingWindow(false) {}
+        TFieldSource() : cellDescription(nullptr), movingWindow(false) {}
 
         void init(MappingDesc *cellDescription, bool movingWindow)
         {
@@ -117,7 +117,7 @@ class TFieldSource< FieldTmpOperation< FrameSolver, ParticleType > >
         MappingDesc *cellDescription;
         bool movingWindow;
 
-        TFieldSource() : cellDescription(NULL), movingWindow(false) {}
+        TFieldSource() : cellDescription(nullptr), movingWindow(false) {}
 
         void init(MappingDesc *cellDescription, bool movingWindow)
         {
@@ -222,8 +222,8 @@ public:
     > * visualization;
 
     IsaacPlugin() :
-        visualization(NULL),
-        cellDescription(NULL),
+        visualization(nullptr),
+        cellDescription(nullptr),
         movingWindow(false),
         render_interval(0),
         step(0),
@@ -271,7 +271,7 @@ public:
                 uint64_t start = visualization->getTicksUs();
                 json_t* meta = visualization->doVisualization(META_MASTER, &currentStep, !pause);
                 drawing_time = visualization->getTicksUs() - start;
-                json_t* json_pause = NULL;
+                json_t* json_pause = nullptr;
                 if ( meta && (json_pause = json_object_get(meta, "pause")) && json_boolean_value( json_pause ) )
                     pause = !pause;
                 if ( meta && json_integer_value( json_object_get(meta, "exit") ) )
@@ -437,7 +437,7 @@ private:
         if (notifyPeriod > 0)
         {
             delete visualization;
-            visualization = NULL;
+            visualization = nullptr;
             if (rank == 0)
                 log<picLog::INPUT_OUTPUT > ("ISAAC finished");
         }

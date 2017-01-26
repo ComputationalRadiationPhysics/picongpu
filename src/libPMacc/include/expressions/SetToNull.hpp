@@ -28,13 +28,13 @@ namespace PMacc
 namespace expressions
 {
 
-/** set pointer to NULL
+/** set pointer to nullptr
  *
  * only allowed to use with a pointer
  */
 struct SetToNull
 {
-    /** set pointer to NULL
+    /** set pointer to nullptr
      *
      * @tparam T_Type any type/class
      *
@@ -43,7 +43,7 @@ struct SetToNull
     template<typename T_Type>
     HDINLINE void operator()( T_Type& ptr) const
     {
-        ptr = NULL;
+        ptr = nullptr;
     }
 };
 

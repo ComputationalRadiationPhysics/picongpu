@@ -52,7 +52,7 @@ namespace openPMD
         if( comp == 2 )
             return &(*offsetZ.begin());
 
-        return NULL;
+        return nullptr;
     }
 
     uint64_t* ParticlePatches::getExtentComp( const uint32_t comp )
@@ -64,7 +64,7 @@ namespace openPMD
         if( comp == 2 )
             return &(*extentZ.begin());
 
-        return NULL;
+        return nullptr;
     }
 
     size_t ParticlePatches::size() const

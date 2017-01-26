@@ -174,7 +174,7 @@ public:
      * @param gpuMemory how many memory on device is used for this instance (in byte)
      */
     ParticlesBuffer(DataSpace<DIM> layout, DataSpace<DIM> superCellSize) :
-    superCellSize(superCellSize), gridSize(layout), framesExchanges(NULL)
+    superCellSize(superCellSize), gridSize(layout), framesExchanges(nullptr)
     {
 
         exchangeMemoryIndexer = new GridBuffer<BorderFrameIndex, DIM1 > (DataSpace<DIM1 > (0));
@@ -330,7 +330,7 @@ public:
     DataSpace<DIM> getSuperCellsCount()
     {
 
-        PMACC_ASSERT(superCells != NULL);
+        PMACC_ASSERT(superCells != nullptr);
         return superCells->getGridLayout().getDataSpace();
     }
 
@@ -342,7 +342,7 @@ public:
     GridLayout<DIM> getSuperCellsLayout()
     {
 
-        PMACC_ASSERT(superCells != NULL);
+        PMACC_ASSERT(superCells != nullptr);
         return superCells->getGridLayout();
     }
 

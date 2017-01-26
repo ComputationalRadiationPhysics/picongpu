@@ -182,7 +182,7 @@ private:
 
             /* allocate temporary buffer for hdf5 data */
             typedef typename FieldTmp::ValueType::type ValueType;
-            ValueType *tmpBfr = NULL;
+            ValueType *tmpBfr = nullptr;
 
             size_t accessSize = accessSpace.productOfComponents();
             if (accessSize > 0)

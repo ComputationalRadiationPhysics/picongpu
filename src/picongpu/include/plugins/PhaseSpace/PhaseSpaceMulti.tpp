@@ -33,7 +33,7 @@ namespace picongpu
         name("PhaseSpaceMulti: create phase space of a species"),
         prefix(Species::FrameType::getName() + std::string("_phaseSpace")),
         numChildren(0u),
-        cellDescription(NULL)
+        cellDescription(nullptr)
     {
         /* register our plugin during creation */
         Environment<>::get().PluginConnector().registerPlugin(this);

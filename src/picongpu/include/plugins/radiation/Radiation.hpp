@@ -154,17 +154,17 @@ public:
     speciesName(ParticlesType::FrameType::getName()),
     pluginPrefix(speciesName + std::string("_radiation")),
     filename_prefix(pluginPrefix),
-    particles(NULL),
-    radiation(NULL),
-    cellDescription(NULL),
+    particles(nullptr),
+    radiation(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0),
     dumpPeriod(0),
     totalRad(false),
     lastRad(false),
-    timeSumArray(NULL),
-    tmp_result(NULL),
-    detectorPositions(NULL),
-    detectorFrequencies(NULL),
+    timeSumArray(nullptr),
+    tmp_result(nullptr),
+    detectorPositions(nullptr),
+    detectorFrequencies(nullptr),
     isMaster(false),
     currentStep(0),
     radPerGPU(false),
@@ -861,11 +861,11 @@ private:
                                          "iterationFormat",
                                          iterationFormat.c_str() );
 
-      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, NULL, "dt", &DELTA_T);
+      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, nullptr, "dt", &DELTA_T);
       const float_X time = float_X(currentStep) * DELTA_T;
-      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, NULL, "time", &time);
+      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, nullptr, "time", &time);
       splash::ColTypeDouble ctDouble;
-      hdf5DataFile.writeAttribute(currentStep, ctDouble, NULL, "timeUnitSI", &UNIT_TIME);
+      hdf5DataFile.writeAttribute(currentStep, ctDouble, nullptr, "timeUnitSI", &UNIT_TIME);
 
       /* end required openPMD global attributes */
 

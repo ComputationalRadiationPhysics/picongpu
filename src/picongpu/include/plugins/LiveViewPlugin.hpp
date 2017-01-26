@@ -54,7 +54,7 @@ namespace picongpu
         LiveViewPlugin() :
         analyzerName("LiveViewPlugin: 2D (plane) insitu live visualisation of a species"),
         analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_liveView")),
-        cellDescription(NULL)
+        cellDescription(nullptr)
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
         }

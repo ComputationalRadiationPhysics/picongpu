@@ -128,7 +128,7 @@ public:
 
     virtual ~TaskSetValueBase()
     {
-        notify(this->myId, SETVALUE, NULL);
+        notify(this->myId, SETVALUE, nullptr);
 
     }
 
@@ -215,16 +215,16 @@ public:
     static constexpr uint32_t dim = T_dim;
 
     TaskSetValue(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
-    TaskSetValueBase<ValueType, dim>(dst, value), valuePointer_host(NULL)
+    TaskSetValueBase<ValueType, dim>(dst, value), valuePointer_host(nullptr)
     {
     }
 
     virtual ~TaskSetValue()
     {
-        if (valuePointer_host != NULL)
+        if (valuePointer_host != nullptr)
         {
             CUDA_CHECK(cudaFreeHost(valuePointer_host));
-            valuePointer_host = NULL;
+            valuePointer_host = nullptr;
         }
     }
 

@@ -83,7 +83,7 @@ public:
         case Init:
             break;
         case WaitForSend:
-            return NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+            return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
         default:
             return false;
         }
@@ -93,7 +93,7 @@ public:
 
     virtual ~TaskParticlesSend()
     {
-        notify(this->myId, RECVFINISHED, NULL);
+        notify(this->myId, RECVFINISHED, nullptr);
     }
 
     void event(id_t, EventType, IEventData*)

@@ -54,7 +54,7 @@ void Transaction::operation( ITask::TaskType operation )
         Manager &manager = Environment<>::get( ).Manager( );
 
         ITask* baseTask = manager.getITaskIfNotFinished( this->baseEvent.getTaskId( ) );
-        if ( baseTask != NULL )
+        if ( baseTask != nullptr )
         {
             if ( baseTask->getTaskType( ) == ITask::TASK_CUDA )
             {
@@ -71,7 +71,7 @@ EventStream* Transaction::getEventStream( ITask::TaskType )
     Manager &manager = Environment<>::get( ).Manager( );
     ITask* baseTask = manager.getITaskIfNotFinished( this->baseEvent.getTaskId( ) );
 
-    if ( baseTask != NULL )
+    if ( baseTask != nullptr )
     {
         if ( baseTask->getTaskType( ) == ITask::TASK_CUDA )
         {

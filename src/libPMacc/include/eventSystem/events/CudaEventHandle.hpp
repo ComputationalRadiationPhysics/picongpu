@@ -42,7 +42,7 @@ private:
 public:
 
     /** create invalid handle  */
-    CudaEventHandle( ) : event( NULL )
+    CudaEventHandle( ) : event( nullptr )
     {
 
     }
@@ -56,7 +56,7 @@ public:
         event->registerHandle();
     }
 
-    CudaEventHandle( const CudaEventHandle& other ) : event( NULL )
+    CudaEventHandle( const CudaEventHandle& other ) : event( nullptr )
     {
         /* register and release handle is done by the assign operator */
         *this = other;
@@ -76,7 +76,7 @@ public:
         if( event )
             event->releaseHandle( );
         event = other.event;
-        /* check that new event pointer is not NULL */
+        /* check that new event pointer is not nullptr */
         if( event )
             event->registerHandle( );
         return *this;
@@ -87,7 +87,7 @@ public:
     {
         if( event )
             event->releaseHandle( );
-        event = NULL;
+        event = nullptr;
     }
 
     /**

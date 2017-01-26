@@ -96,8 +96,8 @@ private:
 public:
 
     SumCurrents() :
-    fieldJ(NULL),
-    cellDescription(NULL),
+    fieldJ(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0)
     {
 

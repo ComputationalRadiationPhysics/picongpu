@@ -205,10 +205,10 @@ namespace PMacc
             for (iter = datasets.mapping.begin(); iter != datasets.mapping.end(); iter++)
                 delete iter->second;
 
-            if (datasets.sorter != NULL)
+            if (datasets.sorter != nullptr)
             {
                 delete datasets.sorter;
-                datasets.sorter = NULL;
+                datasets.sorter = nullptr;
             }
         }
 

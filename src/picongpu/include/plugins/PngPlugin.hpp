@@ -54,7 +54,7 @@ namespace picongpu
         PngPlugin() :
         analyzerName("PngPlugin: create png's of a species and fields"),
         analyzerPrefix(VisType::FrameType::getName() + "_" + VisClass::CreatorType::getName()),
-        cellDescription(NULL)
+        cellDescription(nullptr)
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
         }

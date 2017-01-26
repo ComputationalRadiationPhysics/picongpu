@@ -150,7 +150,7 @@ struct CreateParticlesKernel
         if (linearThreadIdx == 0)
         {
             newFrameFillLvl = 0;
-            targetFrame = NULL;
+            targetFrame = nullptr;
         }
         __syncthreads();
 

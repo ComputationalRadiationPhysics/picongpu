@@ -225,7 +225,7 @@ public:
                 }
                 hasOneExchange = true;
 
-                if (sendExchanges[ex] != NULL)
+                if (sendExchanges[ex] != nullptr)
                 {
                     throw std::runtime_error("Exchange already added!");
                 }
@@ -318,7 +318,7 @@ public:
                     }
                     hasOneExchange = true;
 
-                    if (sendExchanges[ex] != NULL)
+                    if (sendExchanges[ex] != nullptr)
                     {
                         throw std::runtime_error("Exchange already added!");
                     }
@@ -365,7 +365,7 @@ public:
      */
     bool hasSendExchange(uint32_t ex) const
     {
-        return ( (sendExchanges[ex] != NULL) && (getSendMask().isSet(ex)));
+        return ( (sendExchanges[ex] != nullptr) && (getSendMask().isSet(ex)));
     }
 
     /**
@@ -376,7 +376,7 @@ public:
      */
     bool hasReceiveExchange(uint32_t ex) const
     {
-        return ( (receiveExchanges[ex] != NULL) && (getReceiveMask().isSet(ex)));
+        return ( (receiveExchanges[ex] != nullptr) && (getReceiveMask().isSet(ex)));
     }
 
     /**
@@ -508,8 +508,8 @@ private:
     {
         for (uint32_t i = 0; i < 27; ++i)
         {
-            sendExchanges[i] = NULL;
-            receiveExchanges[i] = NULL;
+            sendExchanges[i] = nullptr;
+            receiveExchanges[i] = nullptr;
             /* fill array with valid empty events to avoid side effects if
              * array is accessed without calling hasExchange() before usage */
             receiveEvents[i] = EventTask();
