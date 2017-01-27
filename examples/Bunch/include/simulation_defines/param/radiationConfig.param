@@ -121,9 +121,13 @@ namespace parameters
 
 //disable or enable gamme filter
 //diable (0) / enable (1)
-#define RAD_ACTIVATE_GAMMA_FILTER 0
+#ifndef PARAM_FILTER_GAMMA
+#    define PARAM_FILTER_GAMMA 0
+#endif
 
-constexpr float_32 RadiationGamma = 5.;
+#define RAD_ACTIVATE_GAMMA_FILTER PARAM_FILTER_GAMMA
+
+constexpr float_32 RadiationGamma = 3.0;
 
 constexpr unsigned int N_observer = 128; // number of looking directions
 
