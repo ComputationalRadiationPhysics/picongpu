@@ -63,7 +63,6 @@ using ParticleFlagsPhotons = bmpl::vector<
     particlePusher< particles::pusher::Photon >,
     shape< UsedParticleShape >,
     interpolation< UsedField2Particle >,
-    current< UsedParticleCurrentSolver >,
     massRatio< MassRatioPhotons >,
     chargeRatio< ChargeRatioPhotons >
 >;

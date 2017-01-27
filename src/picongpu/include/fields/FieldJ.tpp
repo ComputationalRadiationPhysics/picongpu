@@ -59,14 +59,19 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldE( nullptr ), fieldB( nullptr )
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
     /* cell margins the current might spread to due to particle shapes */
-    typedef bmpl::accumulate<
+    typedef typename PMacc::particles::traits::FilterByFlag<
         VectorAllSpecies,
+        current<>
+    >::type AllSpeciesWithCurrent;
+
+    typedef bmpl::accumulate<
+        AllSpeciesWithCurrent,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
         >::type LowerMarginShapes;
 
     typedef bmpl::accumulate<
-        VectorAllSpecies,
+        AllSpeciesWithCurrent,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
         >::type UpperMarginShapes;
