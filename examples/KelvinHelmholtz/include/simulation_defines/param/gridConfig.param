@@ -77,14 +77,14 @@ namespace picongpu
     } //namespace SI
 
     //! Defines the size of the absorbing zone (in cells)
-    const uint32_t ABSORBER_CELLS[3][2] = {
+    constexpr uint32_t ABSORBER_CELLS[3][2] = {
         {32, 32},  /*x direction [negative,positive]*/
         {32, 32},  /*y direction [negative,positive]*/
         {32, 32}   /*z direction [negative,positive]*/
     }; //unit: number of cells
 
     //! Define the strength of the absorber for any direction
-    const float_X ABSORBER_STRENGTH[3][2] = {
+    constexpr float_X ABSORBER_STRENGTH[3][2] = {
         {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
         {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
         {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
