@@ -181,13 +181,37 @@ void FieldE::laserManipulation( uint32_t currentStep )
 {
     const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
+    /* initialize the laser not in the first cell is equal to a negative shift
+     * in time
+     */
+    constexpr float_X laserTimeShift = laser::laserInitPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
     /* Disable laser if
      * - init time of laser is over or
      * - we have periodic boundaries in Y direction or
      * - we already performed a slide
      */
-    if ( ( currentStep * DELTA_T ) >= laserProfile::INIT_TIME ||
-         Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) || numSlides != 0 ) return;
+    if (
+        laserProfile::INIT_TIME == float_X(0.0) || /* laser is disabled e.g. laserNone */
+        ( currentStep * DELTA_T  - laserTimeShift ) >= laserProfile::INIT_TIME ||
+        Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) || numSlides != 0
+    )
+    {
+        return;
+    }
+    else
+    {
+        PMACC_VERIFY_MSG(
+            laser::laserInitPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
+            "laserInitPlaneY must be located in the top GPU"
+        );
+    }
+
+    PMACC_CASSERT_MSG(
+        __laserInitPlaneY_need_to_be_greate_than_the_top_absorber_cells_or_zero,
+        laser::laserInitPlaneY > ABSORBER_CELLS[1][0] ||
+        laser::laserInitPlaneY == 0 ||
+        laserProfile::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
+    );
 
     DataSpace<simDim-1> gridBlocks;
     DataSpace<simDim-1> blockSize;

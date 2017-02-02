@@ -69,6 +69,8 @@ struct KernelLaserE
         //const int max_y_neighbors = Get<fieldSolver::FieldSolver::OffsetOrigin_E, 1 >::value;
         const int max_y_neighbors = 1;
 
+        cellOffset.y() += laser::laserInitPlaneY;
+        EFieldOffset.y() += laser::laserInitPlaneY;
         for (int totalOffsetY = 0; totalOffsetY < max_y_neighbors; ++totalOffsetY)
         {
             /** \todo Right now, the phase could be wrong ( == is cloned)
@@ -76,8 +78,25 @@ struct KernelLaserE
              *
              *  \todo What about the B-Field in the second plane?
              */
-            cellOffset.y() = totalOffsetY;
-            fieldE(EFieldOffset) = lMan.getManipulation(cellOffset);
+            if (laser::laserInitPlaneY != 0) // compile time if
+            {
+                /* If the laser is not initialized in the first cell we create a negative
+                 * and positive moving wave. Therefore we need to multiply the
+                 * amplitude with a correction factor depending of the cell size in
+                 * propagation direction.
+                 * The negative moving wave is filtered by the absorber.
+                 *
+                 * The `correctionFactor` assume that the wave is moving in y direction.
+                 */
+                auto correctionFactor = (SPEED_OF_LIGHT * DELTA_T) / CELL_HEIGHT * float_X(2.);
+                fieldE(EFieldOffset) +=  correctionFactor * lMan.getManipulation(cellOffset);
+            }
+            else
+            {
+                fieldE(EFieldOffset) = lMan.getManipulation(cellOffset);
+            }
+            cellOffset.y() += 1;
+            EFieldOffset.y() += 1;
         }
     }
 };
