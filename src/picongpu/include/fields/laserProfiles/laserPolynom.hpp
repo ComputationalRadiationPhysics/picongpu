@@ -40,7 +40,11 @@ HDINLINE float_X Tpolynomial(const float_X tau);
  */
 HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
 {
-    const float_X runTime = DELTA_T*currentStep;
+    /* initialize the laser not in the first cell is equal to a negative shift
+     * in time
+     */
+    constexpr float_X laserTimeShift = laser::laserInitPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+    const float_X runTime = DELTA_T * currentStep - laserTimeShift;
     const float_X f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
     float3_X elong(float3_X::create(0.0));
