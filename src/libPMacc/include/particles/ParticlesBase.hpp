@@ -34,6 +34,8 @@
 #include "traits/NumberOfExchanges.hpp"
 #include "assert.hpp"
 
+#include <memory>
+
 
 namespace PMacc
 {
@@ -41,7 +43,7 @@ namespace PMacc
 /* Tag used for marking particle types */
 struct ParticlesTag;
 
-template<typename T_ParticleDescription, class T_MappingDesc>
+template<typename T_ParticleDescription, class T_MappingDesc, typename T_DeviceHeap>
 class ParticlesBase : public SimulationFieldHelper<T_MappingDesc>
 {
     typedef T_ParticleDescription ParticleDescription;
@@ -51,7 +53,7 @@ public:
 
     /* Type of used particles buffer
      */
-    typedef ParticlesBuffer<ParticleDescription, typename MappingDesc::SuperCellSize, MappingDesc::Dim> BufferType;
+    typedef ParticlesBuffer<ParticleDescription, typename MappingDesc::SuperCellSize, T_DeviceHeap, MappingDesc::Dim> BufferType;
 
     /* Type of frame in particles buffer
      */
@@ -62,7 +64,7 @@ public:
 
     /* Type of the particle box which particle buffer create
      */
-    typedef ParticlesBox< FrameType, MappingDesc::Dim> ParticlesBoxType;
+    typedef typename BufferType::ParticlesBoxType ParticlesBoxType;
 
     /* Policies for handling particles in guard cells */
     typedef typename ParticleDescription::HandleGuardRegion HandleGuardRegion;
@@ -81,16 +83,23 @@ protected:
 
     BufferType *particlesBuffer;
 
-    ParticlesBase(MappingDesc description) : SimulationFieldHelper<MappingDesc>(description), particlesBuffer(nullptr)
+    ParticlesBase(
+        const std::shared_ptr<T_DeviceHeap>& deviceHeap,
+        MappingDesc description
+    ) :
+        SimulationFieldHelper<MappingDesc>(description),
+        particlesBuffer(NULL)
     {
-        this->particlesBuffer = new BufferType(
-            description.getGridLayout().getDataSpace( ),
-            description.getGridLayout().getGuard( )
+        particlesBuffer = new BufferType(
+            deviceHeap,
+            description.getGridLayout().getDataSpace(),
+            description.getGridLayout().getGuard()
         );
     }
 
-    virtual ~ParticlesBase(){
-        __delete(particlesBuffer);
+    virtual ~ParticlesBase()
+    {
+        delete this->particlesBuffer;
     }
 
     /* Shift all particle in a AREA

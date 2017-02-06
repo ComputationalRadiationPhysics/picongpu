@@ -34,8 +34,8 @@
 
 namespace PMacc
 {
-    template<typename T_ParticleDescription, class MappingDesc>
-    void ParticlesBase<T_ParticleDescription, MappingDesc>::deleteGuardParticles(uint32_t exchangeType)
+    template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
+    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::deleteGuardParticles(uint32_t exchangeType)
     {
 
         ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
@@ -46,9 +46,9 @@ namespace PMacc
                 (particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
-    template<typename T_ParticleDescription, class MappingDesc>
+    template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
     template<uint32_t T_area>
-    void ParticlesBase<T_ParticleDescription, MappingDesc>::deleteParticlesInArea()
+    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::deleteParticlesInArea()
     {
 
         AreaMapping<T_area, MappingDesc> mapper(this->cellDescription);
@@ -59,15 +59,15 @@ namespace PMacc
                 (particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
-    template<typename T_ParticleDescription, class MappingDesc>
-    void ParticlesBase<T_ParticleDescription, MappingDesc>::reset(uint32_t )
+    template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
+    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::reset(uint32_t )
     {
         deleteParticlesInArea<CORE+BORDER+GUARD>();
         particlesBuffer->reset( );
     }
 
-    template<typename T_ParticleDescription, class MappingDesc>
-    void ParticlesBase<T_ParticleDescription, MappingDesc>::bashParticles(uint32_t exchangeType)
+    template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
+    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::bashParticles(uint32_t exchangeType)
     {
         if (particlesBuffer->hasSendExchange(exchangeType))
         {
@@ -83,8 +83,8 @@ namespace PMacc
         }
     }
 
-    template<typename T_ParticleDescription, class MappingDesc>
-    void ParticlesBase<T_ParticleDescription, MappingDesc>::insertParticles(uint32_t exchangeType)
+    template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
+    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::insertParticles(uint32_t exchangeType)
     {
         if (particlesBuffer->hasReceiveExchange(exchangeType))
         {
