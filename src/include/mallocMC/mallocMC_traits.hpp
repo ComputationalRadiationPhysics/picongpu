@@ -1,8 +1,9 @@
 /*
   mallocMC: Memory Allocator for Many Core Architectures.
+  https://www.hzdr.de/crp
 
-  Copyright 2014 Institute of Radiation Physics,
-                 Helmholtz-Zentrum Dresden - Rossendorf
+  Copyright 2014 - 2015 Institute of Radiation Physics,
+                        Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
 
@@ -27,45 +28,12 @@
 
 #pragma once
 
-#include <boost/cstdint.hpp>
-#include <boost/mpl/bool.hpp>
-
-#include "OldMalloc.hpp"
-
 namespace mallocMC{
-namespace CreationPolicies{
 
-  class OldMalloc
-  {
-    typedef boost::uint32_t uint32;
+    template <class T_Allocator>
+    struct  Traits{
+        BOOST_STATIC_CONSTEXPR bool providesAvailableSlots = T_Allocator::CreationPolicy::providesAvailableSlots::value;
+    };
 
-    public:
-    typedef boost::mpl::bool_<false> providesAvailableSlots;
-
-    __device__ void* create(uint32 bytes)
-    {
-      return ::malloc(static_cast<size_t>(bytes));
-    }
-
-    __device__ void destroy(void* mem)
-    {
-      free(mem);
-    }
-
-    __device__ bool isOOM(void* p, size_t s){
-      return s && (p == NULL);
-    }
-
-    template < typename T >
-    static void* initHeap(T* dAlloc, void*, size_t){
-      return dAlloc;
-    }
-
-    static std::string classname(){
-      return "OldMalloc";
-    }
-
-  };
-
-} //namespace CreationPolicies
 } //namespace mallocMC
+

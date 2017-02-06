@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <assert.h>
+#include <cassert>
 #include <string>
 
 #include "BadAllocException.hpp"

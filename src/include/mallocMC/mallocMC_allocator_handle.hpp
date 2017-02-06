@@ -1,8 +1,9 @@
 /*
   mallocMC: Memory Allocator for Many Core Architectures.
+  https://www.hzdr.de/crp
 
-  Copyright 2014 Institute of Radiation Physics,
-                 Helmholtz-Zentrum Dresden - Rossendorf
+  Copyright 2014 - 2015 Institute of Radiation Physics,
+                        Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Carlchristian Eckert - c.eckert ( at ) hzdr.de
 
@@ -27,45 +28,51 @@
 
 #pragma once
 
-#include <boost/cstdint.hpp>
-#include <boost/mpl/bool.hpp>
-
-#include "OldMalloc.hpp"
+#include "mallocMC_prefixes.hpp"
 
 namespace mallocMC{
-namespace CreationPolicies{
 
-  class OldMalloc
-  {
-    typedef boost::uint32_t uint32;
-
-    public:
-    typedef boost::mpl::bool_<false> providesAvailableSlots;
-
-    __device__ void* create(uint32 bytes)
+    template <typename T_HostAllocator>
+    struct AllocatorHandleImpl
     {
-      return ::malloc(static_cast<size_t>(bytes));
-    }
+        typedef typename T_HostAllocator::DevAllocator DevAllocator;
 
-    __device__ void destroy(void* mem)
-    {
-      free(mem);
-    }
+        DevAllocator* devAllocator;
 
-    __device__ bool isOOM(void* p, size_t s){
-      return s && (p == NULL);
-    }
+        AllocatorHandleImpl(
+            DevAllocator* p
+        ) :
+            devAllocator( p )
+        {
+        }
 
-    template < typename T >
-    static void* initHeap(T* dAlloc, void*, size_t){
-      return dAlloc;
-    }
+        MAMC_ACCELERATOR
+        void*
+        malloc(
+            size_t size
+        )
+        {
+            return devAllocator->malloc( size );
+        }
 
-    static std::string classname(){
-      return "OldMalloc";
-    }
+        MAMC_ACCELERATOR
+        void
+        free(
+            void* p
+        )
+        {
+            devAllocator->free( p );
+        }
 
-  };
+        MAMC_ACCELERATOR
+        unsigned
+        getAvailableSlots(
+            size_t slotSize
+        )
+        {
+            return devAllocator->getAvailableSlots( slotSize );
+        }
 
-} //namespace CreationPolicies
-} //namespace mallocMC
+    };
+
+} // namespace mallocMC

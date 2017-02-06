@@ -40,7 +40,6 @@
 #include "version.hpp"
 
 // core functionality
-#include "mallocMC_overwrites.hpp"
 #include "mallocMC_hostclass.hpp"
 
 // all the policies
