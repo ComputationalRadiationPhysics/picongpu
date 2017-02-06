@@ -28,7 +28,6 @@
  * @author Heiko Burau, Rene Widera, Wolfgang Hoenig, Felix Schmitt, Axel Huebl, Michael Bussmann, Guido Juckeland
  */
 
-#include "mallocMCconfig.hpp"
 #include "ArgsParser.hpp"
 #include "communication/manager_common.hpp"
 
