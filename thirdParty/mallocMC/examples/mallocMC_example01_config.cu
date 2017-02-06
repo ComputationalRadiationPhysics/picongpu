@@ -32,7 +32,6 @@
 #include <boost/mpl/bool.hpp>
 
 // basic files for mallocMC
-#include "src/include/mallocMC/mallocMC_overwrites.hpp"
 #include "src/include/mallocMC/mallocMC_hostclass.hpp"
 
 // Load all available policies for mallocMC
@@ -79,6 +78,3 @@ typedef mallocMC::Allocator<
   mallocMC::ReservePoolPolicies::SimpleCudaMalloc,
   mallocMC::AlignmentPolicies::Shrink<ShrinkConfig>
   > ScatterAllocator;
-
-// use "ScatterAllocator" as PolicyAllocator
-MALLOCMC_SET_ALLOCATOR_TYPE(ScatterAllocator)

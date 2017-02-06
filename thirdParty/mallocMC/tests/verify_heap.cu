@@ -42,16 +42,13 @@
 
 #include <cuda.h>
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 #include <typeinfo>
 #include <vector>
 
 //include the Heap with the arguments given in the config
 #include "src/include/mallocMC/mallocMC_utils.hpp"
 #include "verify_heap_config.hpp"
-
-//use ScatterAllocator
-MALLOCMC_SET_ALLOCATOR_TYPE(ScatterAllocator)
 
 // global variable for verbosity, might change due to user input '--verbose'
 bool verbose = false;
@@ -76,9 +73,9 @@ std::ostream& dout() {
 }
 
 // define some defaults
-static const unsigned threads_default = 128;
-static const unsigned blocks_default  = 64; 
-static const size_t heapInMB_default  = 1024; // 1GB
+BOOST_STATIC_CONSTEXPR unsigned threads_default = 128;
+BOOST_STATIC_CONSTEXPR unsigned blocks_default  = 64;
+BOOST_STATIC_CONSTEXPR size_t heapInMB_default  = 1024; // 1GB
 
 
 /**
@@ -325,12 +322,13 @@ __global__ void check_content_fast(
 __global__ void allocAll(
     allocElem_t** data,
     unsigned long long* counter,
-    unsigned long long* globalSum
+    unsigned long long* globalSum,
+    ScatterAllocator::AllocatorHandle mMC
     ){
 
   unsigned long long sum=0;
   while(true){
-    allocElem_t* p = (allocElem_t*) mallocMC::malloc(sizeof(allocElem_t) * ELEMS_PER_SLOT);
+    allocElem_t* p = (allocElem_t*) mMC.malloc(sizeof(allocElem_t) * ELEMS_PER_SLOT);
     if(p == NULL) break;
 
     size_t pos = atomicAdd(counter,1);
@@ -357,13 +355,14 @@ __global__ void allocAll(
 __global__ void deallocAll(
     allocElem_t** data,
     unsigned long long* counter,
-    const size_t nSlots
+    const size_t nSlots,
+    ScatterAllocator::AllocatorHandle mMC
     ){
 
   while(true){
     size_t pos = atomicAdd(counter,1);
     if(pos >= nSlots) break;
-    mallocMC::free(data[pos]);
+    mMC.free(data[pos]);
   }
 }
 
@@ -401,7 +400,8 @@ void allocate(
     unsigned long long* h_nSlots,
     unsigned long long* h_sum,
     const unsigned blocks,
-    const unsigned threads
+    const unsigned threads,
+    ScatterAllocator* mMC
     ){
 
   dout() << "allocating on device...";
@@ -415,7 +415,7 @@ void allocate(
   MALLOCMC_CUDA_CHECKED_CALL(cudaMemcpy(d_sum,&zero,sizeof(unsigned long long),cudaMemcpyHostToDevice));
   MALLOCMC_CUDA_CHECKED_CALL(cudaMemcpy(d_nSlots,&zero,sizeof(unsigned long long),cudaMemcpyHostToDevice));
 
-  CUDA_CHECK_KERNEL_SYNC(allocAll<<<blocks,threads>>>(d_testData,d_nSlots,d_sum));
+  CUDA_CHECK_KERNEL_SYNC(allocAll<<<blocks,threads>>>(d_testData, d_nSlots, d_sum, *mMC ));
 
   MALLOCMC_CUDA_CHECKED_CALL(cudaMemcpy(h_sum,d_sum,sizeof(unsigned long long),cudaMemcpyDeviceToHost));
   MALLOCMC_CUDA_CHECKED_CALL(cudaMemcpy(h_nSlots,d_nSlots,sizeof(unsigned long long),cudaMemcpyDeviceToHost));
@@ -635,14 +635,14 @@ bool run_heap_verification(
   dout() << "maximum of elements:   "     << maxSlots                           << std::endl;
 
   // initializing the heap
-  mallocMC::initHeap(heapSize);
+  ScatterAllocator* mMC = new ScatterAllocator(heapSize);
   allocElem_t** d_testData;
   MALLOCMC_CUDA_CHECKED_CALL(cudaMalloc((void**) &d_testData, nPointers*sizeof(allocElem_t*)));
 
   // allocating with mallocMC
   unsigned long long usedSlots = 0;
   unsigned long long sumAllocElems = 0;
-  allocate(d_testData,&usedSlots,&sumAllocElems,blocks,threads);
+  allocate(d_testData, &usedSlots, &sumAllocElems, blocks, threads, mMC);
 
   const float allocFrac = static_cast<float>(usedSlots)*100/maxSlots;
   const size_t wasted = heapSize - static_cast<size_t>(usedSlots) * slotSize;
@@ -669,10 +669,10 @@ bool run_heap_verification(
   unsigned long long* d_dealloc_counter;
   MALLOCMC_CUDA_CHECKED_CALL(cudaMalloc((void**) &d_dealloc_counter, sizeof(unsigned long long)));
   MALLOCMC_CUDA_CHECKED_CALL(cudaMemcpy(d_dealloc_counter,&zero,sizeof(unsigned long long),cudaMemcpyHostToDevice));
-  CUDA_CHECK_KERNEL_SYNC(deallocAll<<<blocks,threads>>>(d_testData,d_dealloc_counter,static_cast<size_t>(usedSlots)));
+  CUDA_CHECK_KERNEL_SYNC(deallocAll<<<blocks,threads>>>(d_testData,d_dealloc_counter,static_cast<size_t>(usedSlots), *mMC ));
   cudaFree(d_dealloc_counter);
   cudaFree(d_testData);
-  mallocMC::finalizeHeap();
+  delete mMC;
 
   dout() << "done "<< std::endl;
 
