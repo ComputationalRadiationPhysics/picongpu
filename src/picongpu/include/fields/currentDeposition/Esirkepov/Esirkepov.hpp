@@ -28,6 +28,7 @@
 #include <cuSTL/cursor/compile-time/SafeCursor.hpp>
 #include "fields/currentDeposition/Esirkepov/Esirkepov.def"
 #include "fields/currentDeposition/Esirkepov/Line.hpp"
+#include "fields/currentDeposition/RelayPoint.hpp"
 
 namespace picongpu
 {
@@ -45,17 +46,6 @@ struct Esirkepov<T_ParticleShape, DIM3>
     static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
     typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
     typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
-
-    /* begin and end border is calculated for the current time step were the old
-     * position of the particle in the previous time step is smaller than the current position
-     * Later on all coordinates are shifted thus we can solve the charge calculation
-     * in support + 1 steps.
-     *
-     * For the case were previous position is greater than current position we correct
-     * begin and end on runtime and add +1 to begin and end.
-     */
-    static constexpr int begin = -currentLowerMargin;
-    static constexpr int end = begin + supp + 1;
 
     float_X charge;
 
@@ -76,37 +66,38 @@ struct Esirkepov<T_ParticleShape, DIM3>
                                            velocity.z() * deltaTime / cellSize.z());
         const PosType oldPos = pos - deltaPos;
         Line<float3_X> line(oldPos, pos);
-        auto cursorJ = dataBoxJ.toCursor();
 
-        if (supp % 2 == 1)
+        DataSpace<DIM3> gridShift;
+        /* Define in which direction the particle leaves the cell.
+         * It is not important whether the particle move over the positive or negative
+         * cell border.
+         *
+         * 0 == stay in cell
+         * 1 == leave cell
+         */
+        DataSpace<simDim> leaveCell;
+
+        /* calculate the offset for the virtual coordinate system */
+        for(int d=0; d<simDim; ++d)
         {
-            /* odd support
-             * shift coordinate system that we always can solve Esirkepov by going
-             * over the grid points [begin,end)
-             */
-
-            /* for any direction
-             * if pos> 0.5
-             * shift curser+1 and new_pos=old_pos-1
-             *
-             * floor(pos*2.0) is equal (pos > 0.5)
-             */
-            float3_X coordinate_shift(
-                                      float_X(math::floor(pos.x() * float_X(2.0))),
-                                      float_X(math::floor(pos.y() * float_X(2.0))),
-                                      float_X(math::floor(pos.z() * float_X(2.0)))
-                                      );
-            cursorJ = cursorJ(
-                              PMacc::math::Int < 3 > (
-                                                      coordinate_shift.x(),
-                                                      coordinate_shift.y(),
-                                                      coordinate_shift.z()
-                                                      ));
-            //same as: pos = pos - coordinate_shift;
-            line.m_pos0 -= (coordinate_shift);
-            line.m_pos1 -= (coordinate_shift);
+            int iStart;
+            int iEnd;
+            constexpr bool isSupportEven = ( supp % 2 == 0 );
+            RelayPoint< isSupportEven >()(
+                iStart,
+                iEnd,
+                line.m_pos0[d],
+                line.m_pos1[d]
+            );
+            gridShift[d] = iStart < iEnd ? iStart : iEnd; // integer min function
+            /* particle is leaving the cell */
+            leaveCell[d] = iStart != iEnd ? 1 : 0;
+            /* shift the particle position to the virtual coordinate system */
+            line.m_pos0[d] -= gridShift[d];
+            line.m_pos1[d] -= gridShift[d];
         }
-
+        /* shift current field to the virtual coordinate system */
+        auto cursorJ = dataBoxJ.shift(gridShift).toCursor();
         /**
          * \brief the following three calls separate the 3D current deposition
          * into three independent 1D calls, each for one direction and current component.
@@ -114,63 +105,88 @@ struct Esirkepov<T_ParticleShape, DIM3>
          * is always specific.
          */
         using namespace cursor::tools;
-        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 1, 2, 0 > >(cursorJ), rotateOrigin < 1, 2, 0 > (line), cellSize.x());
-        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 2, 0, 1 > >(cursorJ), rotateOrigin < 2, 0, 1 > (line), cellSize.y());
-        cptCurrent1D(cursorJ, line, cellSize.z());
+        cptCurrent1D(
+            DataSpace<simDim>(leaveCell.y(),leaveCell.z(),leaveCell.x()),
+            twistVectorFieldAxes<PMacc::math::CT::Int < 1, 2, 0 > >(cursorJ),
+            rotateOrigin < 1, 2, 0 > (line),
+            cellSize.x()
+        );
+        cptCurrent1D(
+            DataSpace<simDim>(leaveCell.z(),leaveCell.x(),leaveCell.y()),
+            twistVectorFieldAxes<PMacc::math::CT::Int < 2, 0, 1 > >(cursorJ),
+            rotateOrigin < 2, 0, 1 > (line),
+            cellSize.y()
+        );
+        cptCurrent1D(
+            leaveCell,
+            cursorJ,
+            line,
+            cellSize.z()
+        );
     }
 
     /**
      * deposites current in z-direction
+     * \param leaveCell vector with information (for each direction) if the particle is leaving the cell
      * \param cursorJ cursor pointing at the current density field of the particle's cell
      * \param line trajectory of the particle from to last to the current time step
      * \param cellEdgeLength length of edge of the cell in z-direction
      */
     template<typename CursorJ >
-    DINLINE void cptCurrent1D(CursorJ cursorJ,
+    DINLINE void cptCurrent1D(const DataSpace<simDim>& leaveCell,
+                              CursorJ cursorJ,
                               const Line<float3_X>& line,
                               const float_X cellEdgeLength)
     {
-        /* Check if particle position in previous step was greater or
-         * smaller than current position.
-         *
-         * If previous position was greater than current position we change our interval
-         * from [begin,end) to [begin+1,end+1).
-         */
-        const int offset_i = line.m_pos0.x() > line.m_pos1.x() ? 1 : 0;
-        const int offset_j = line.m_pos0.y() > line.m_pos1.y() ? 1 : 0;
-        const int offset_k = line.m_pos0.z() > line.m_pos1.z() ? 1 : 0;
+        /* skip calculation if the particle is not moving in z direction */
+        if(line.m_pos0[2] == line.m_pos1[2])
+            return;
+
+        constexpr int begin = -currentLowerMargin + 1;
+        constexpr int end = begin + supp;
 
         /* pick every cell in the xy-plane that is overlapped by particle's
          * form factor and deposit the current for the cells above and beneath
          * that cell and for the cell itself.
+         *
+         * for loop optimization (help the compiler to generate better code):
+         *   - use a loop with a static range
+         *   - skip invalid indexes with a if condition around the full loop body
+         *     ( this helps the compiler to mask threads without work )
          */
-        for (int i = begin + offset_i; i < end + offset_i; ++i)
-        {
-            for (int j = begin + offset_j; j < end + offset_j; ++j)
+        for(int i = begin ; i < end  + 1; ++i)
+            if(i < end + leaveCell[0])
             {
-                /* This is the implementation of the FORTRAN W(i,j,k,3)/ C style W(i,j,k,2) version from
-                 * Esirkepov paper. All coordinates are rotated before thus we can
-                 * always use C style W(i,j,k,2).
-                 */
-                float_X tmp =
-                    S0(line, i, 0) * S0(line, j, 1) +
-                    float_X(0.5) * DS(line, i, 0) * S0(line, j, 1) +
-                    float_X(0.5) * S0(line, i, 0) * DS(line, j, 1) +
-                    (float_X(1.0) / float_X(3.0)) * DS(line, i, 0) * DS(line, j, 1);
+                for(int j = begin ; j < end  + 1; ++j)
+                    if(j < end + leaveCell[1])
+                    {
+                        /* This is the implementation of the FORTRAN W(i,j,k,3)/ C style W(i,j,k,2) version from
+                         * Esirkepov paper. All coordinates are rotated before thus we can
+                         * always use C style W(i,j,k,2).
+                         */
+                        float_X tmp =
+                            S0(line, i, 0) * S0(line, j, 1) +
+                            float_X(0.5) * DS(line, i, 0) * S0(line, j, 1) +
+                            float_X(0.5) * S0(line, i, 0) * DS(line, j, 1) +
+                            (float_X(1.0) / float_X(3.0)) * DS(line, i, 0) * DS(line, j, 1);
 
-                float_X accumulated_J = float_X(0.0);
-                for (int k = begin + offset_k; k < end + offset_k; ++k)
-                {
-                    float_X W = DS(line, k, 2) * tmp;
-                    /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
-                     * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1) */
-                    accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
-                    /* the branch divergence here still over-compensates for the fewer collisions in the (expensive) atomic adds */
-                    if (accumulated_J != float_X(0.0))
-                        atomicAddWrapper(&((*cursorJ(i, j, k)).z()), accumulated_J);
-                }
+                        float_X accumulated_J = float_X(0.0);
+
+                        /* attention: inner loop has no upper bound `end + 1` because
+                         * the current for the point `end` is always zero,
+                         * therefore we skip the calculation
+                         */
+                        for(int k = begin ; k < end; ++k)
+                            if(k < end + leaveCell[2] - 1)
+                            {
+                                float_X W = DS(line, k, 2) * tmp;
+                                /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
+                                 * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1) */
+                                accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
+                                atomicAddWrapper(&((*cursorJ(i, j, k)).z()), accumulated_J);
+                            }
+                    }
             }
-        }
 
     }
 
