@@ -64,13 +64,18 @@ Particles<
     T_Attributes,
     T_Flags
 >::Particles(
+    const std::shared_ptr<DeviceHeap>& heap,
     MappingDesc cellDescription,
     SimulationDataId datasetID
 ) :
     ParticlesBase<
         SpeciesParticleDescription,
-        MappingDesc
-    >( cellDescription ),
+        MappingDesc,
+        DeviceHeap
+    >(
+        heap,
+        cellDescription
+    ),
     fieldB( nullptr ),
     fieldE( nullptr ),
     m_datasetID( datasetID )

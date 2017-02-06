@@ -816,7 +816,7 @@ private:
             DataConnector &dc = Environment<>::get().DataConnector();
 
             /* synchronizes the MallocMCBuffer to the host side */
-            dc.getData<MallocMCBuffer> (MallocMCBuffer::getName());
+            dc.getData<MallocMCBuffer<DeviceHeap>> (MallocMCBuffer<DeviceHeap>::getName());
 
             /* here we are copying all species to the host side since we
              * can not say at this point if this time step will need all of them
@@ -825,7 +825,7 @@ private:
             ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1> > copySpeciesToHost;
             copySpeciesToHost();
             lastSpeciesSyncStep = currentStep;
-            dc.releaseData(MallocMCBuffer::getName());
+            dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
         }
 
         beginAdios(mThreadParams.adiosFilename);

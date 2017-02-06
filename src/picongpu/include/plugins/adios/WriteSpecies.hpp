@@ -127,7 +127,7 @@ public:
                                      params->window.localDimensions.size);
 
             DataConnector &dc = Environment<>::get().DataConnector();
-            MallocMCBuffer& mallocMCBuffer = dc.getData<MallocMCBuffer> (MallocMCBuffer::getName(),true);
+            MallocMCBuffer<DeviceHeap>& mallocMCBuffer = dc.getData<MallocMCBuffer<DeviceHeap>> (MallocMCBuffer<DeviceHeap>::getName(),true);
 
             int globalParticleOffset = 0;
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
@@ -143,7 +143,7 @@ public:
                                 totalCellIdx_,
                                 mapper
                                 );
-            dc.releaseData(MallocMCBuffer::getName());
+            dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
             /* this costs a little bit of time but adios writing is slower */
             PMACC_ASSERT((uint64_cu) globalParticleOffset == totalNumParticles);
         }
