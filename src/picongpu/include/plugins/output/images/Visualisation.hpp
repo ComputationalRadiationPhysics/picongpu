@@ -18,60 +18,40 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "pmacc_types.hpp"
 #include "assert.hpp"
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldJ.hpp"
 
-#include "dimensions/DataSpace.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-
-#include "memory/buffers/GridBuffer.hpp"
-
-#include "particles/memory/boxes/ParticlesBox.hpp"
-
-#include "dataManagement/DataConnector.hpp"
 #include "plugins/ILightweightPlugin.hpp"
-#include "math/Vector.hpp"
-
-#include "memory/boxes/DataBox.hpp"
-#include "memory/boxes/SharedBox.hpp"
-#include "memory/boxes/PitchedBox.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-
-#include "simulationControl/MovingWindow.hpp"
-
-#include "mappings/kernel/MappingDescription.hpp"
-
-
-//c includes
-#include "sys/stat.h"
-#include <cfloat>
-
-
-#include "mappings/simulation/GridController.hpp"
-
-
-
-#include <string>
-
-#include "memory/boxes/PitchedBox.hpp"
-
 #include "plugins/output/header/MessageHeader.hpp"
 #include "plugins/output/GatherSlice.hpp"
+#include "simulationControl/MovingWindow.hpp"
 
 #include "algorithms/GlobalReduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 #include "nvidia/functors/Max.hpp"
 #include "nvidia/atomic.hpp"
 #include "memory/shared/Allocate.hpp"
+#include "memory/boxes/DataBox.hpp"
+#include "memory/boxes/SharedBox.hpp"
+#include "memory/boxes/PitchedBox.hpp"
+#include "memory/buffers/GridBuffer.hpp"
+#include "particles/memory/boxes/ParticlesBox.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
+#include "mappings/kernel/MappingDescription.hpp"
+#include "mappings/simulation/GridController.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "math/Vector.hpp"
+
+#include <string>
+#include <cfloat>
+
 
 namespace picongpu
 {

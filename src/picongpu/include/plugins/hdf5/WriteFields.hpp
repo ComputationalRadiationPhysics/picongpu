@@ -27,7 +27,10 @@
 #include "plugins/hdf5/HDF5Writer.def"
 #include "plugins/hdf5/writer/Field.hpp"
 
+#include "dataManagement/DataConnector.hpp"
+
 #include <vector>
+
 
 namespace picongpu
 {

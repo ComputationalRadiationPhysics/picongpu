@@ -39,6 +39,7 @@
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/accumulate.hpp>
 
+
 namespace picongpu
 {
     using namespace PMacc;

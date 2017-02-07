@@ -20,12 +20,13 @@
 
 #pragma once
 
-#include "static_assert.hpp"
 #include "simulation_defines.hpp"
+#include "fields/Fields.hpp"
+#include "simulationControl/MovingWindow.hpp"
+
+#include "static_assert.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
-#include "simulationControl/MovingWindow.hpp"
-#include "fields/Fields.hpp"
 #include "dataManagement/DataConnector.hpp"
 
 #include <splash/splash.h>

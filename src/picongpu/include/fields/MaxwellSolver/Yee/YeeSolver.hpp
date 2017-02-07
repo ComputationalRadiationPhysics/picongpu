@@ -18,18 +18,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "YeeSolver.def"
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 
 #include "fields/SimulationFieldHelper.hpp"
-#include "dataManagement/ISimulationData.hpp"
-
+#include "fields/FieldE.hpp"
+#include "fields/FieldB.hpp"
+#include "fields/FieldManipulator.hpp"
+#include "fields/MaxwellSolver/Yee/YeeSolver.kernel"
 
 #include "simulation_classTypes.hpp"
 #include "memory/boxes/SharedBox.hpp"
@@ -37,11 +36,8 @@
 #include "mappings/threads/ThreadCollective.hpp"
 #include "memory/boxes/CachedBox.hpp"
 #include "dimensions/DataSpace.hpp"
-#include <fields/FieldE.hpp>
-#include <fields/FieldB.hpp>
+#include "dataManagement/DataConnector.hpp"
 
-#include "fields/FieldManipulator.hpp"
-#include "fields/MaxwellSolver/Yee/YeeSolver.kernel"
 
 namespace picongpu
 {

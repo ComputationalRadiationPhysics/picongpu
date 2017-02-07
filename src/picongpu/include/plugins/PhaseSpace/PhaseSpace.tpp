@@ -20,8 +20,10 @@
 
 #pragma once
 
-#include <vector>
-#include <algorithm>
+#include "PhaseSpace.hpp"
+#include "PhaseSpaceFunctors.hpp"
+
+#include "DumpHBufferSplashP.hpp"
 
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/cursor/MultiIndexCursor.hpp"
@@ -32,14 +34,13 @@
 #include "cuSTL/algorithm/host/Foreach.hpp"
 #include "math/vector/Int.hpp"
 #include "math/vector/Size_t.hpp"
-
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
+#include "dataManagement/DataConnector.hpp"
 
-#include "PhaseSpace.hpp"
-#include "PhaseSpaceFunctors.hpp"
+#include <vector>
+#include <algorithm>
 
-#include "DumpHBufferSplashP.hpp"
 
 namespace picongpu
 {

@@ -18,13 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "simulation_defines.hpp"
 #include "nvidia/atomic.hpp"
 #include "particles/operations/Deselect.hpp"
 #include "memory/shared/Allocate.hpp"
+#include "dataManagement/DataConnector.hpp"
+
 
 namespace picongpu
 {

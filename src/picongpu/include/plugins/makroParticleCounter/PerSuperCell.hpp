@@ -18,27 +18,25 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 
 #include "mappings/kernel/AreaMapping.hpp"
+
+#include "plugins/ILightweightPlugin.hpp"
+
+#include "memory/buffers/GridBuffer.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "dataManagement/DataConnector.hpp"
+
+#include <splash/splash.h>
 
 #include <string>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
-#include "plugins/ILightweightPlugin.hpp"
-
-#include "memory/buffers/GridBuffer.hpp"
-#include "memory/shared/Allocate.hpp"
-
-
-#include <splash/splash.h>
-#include <sys/stat.h>
 
 namespace picongpu
 {

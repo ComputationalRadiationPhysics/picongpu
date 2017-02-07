@@ -20,16 +20,19 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/Density.hpp"
 #include "algorithms/Gamma.hpp"
-#include "algorithms/math/defines/sqrt.hpp"
-#include "algorithms/math/defines/dot.hpp"
-#include "algorithms/math/defines/cross.hpp"
 #include "traits/frame/GetMass.hpp"
 #include "traits/frame/GetCharge.hpp"
+#include "particles/particleToGrid/ComputeGridValuePerFrame.def"
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
 #include "particles/traits/GetAtomicNumbers.hpp"
+
+#include "dataManagement/DataConnector.hpp"
+#include "algorithms/math/defines/sqrt.hpp"
+#include "algorithms/math/defines/dot.hpp"
+#include "algorithms/math/defines/cross.hpp"
+
 
 namespace picongpu
 {

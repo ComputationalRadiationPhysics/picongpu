@@ -22,11 +22,22 @@
 
 #include <mpi.h>
 
-#include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
 
 #include "plugins/ISimulationPlugin.hpp"
+
+#include "plugins/output/WriteSpeciesCommon.hpp"
+#include "particles/traits/GetSpeciesFlagName.hpp"
+#include "traits/PICToAdios.hpp"
+
+#include "mappings/kernel/AreaMapping.hpp"
+#include "math/Vector.hpp"
+#include "plugins/adios/writer/ParticleAttributeSize.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "dataManagement/DataConnector.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -34,21 +45,10 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
-#include "compileTime/conversion/MakeSeq.hpp"
-
 #include <boost/type_traits.hpp>
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "math/Vector.hpp"
-
-#include "traits/PICToAdios.hpp"
-#include "plugins/adios/writer/ParticleAttributeSize.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-
-#include "particles/traits/GetSpeciesFlagName.hpp"
-
 #include <string>
+
 
 namespace picongpu
 {

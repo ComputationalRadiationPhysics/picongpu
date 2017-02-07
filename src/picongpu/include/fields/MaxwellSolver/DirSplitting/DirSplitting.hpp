@@ -24,17 +24,18 @@
 
 #include "simulation_defines.hpp"
 
-#include <fields/MaxwellSolver/DirSplitting/DirSplitting.kernel>
-#include <math/vector/Int.hpp>
-#include <dataManagement/DataConnector.hpp>
-#include <fields/FieldB.hpp>
-#include <fields/FieldE.hpp>
+#include "fields/MaxwellSolver/DirSplitting/DirSplitting.kernel"
+#include "dataManagement/DataConnector.hpp"
+#include "fields/FieldB.hpp"
+#include "fields/FieldE.hpp"
+#include "lambda/Expression.hpp"
+#include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
+#include "cuSTL/cursor/NestedCursor.hpp"
 #include "math/Vector.hpp"
-#include <cuSTL/algorithm/kernel/ForeachBlock.hpp>
-#include <lambda/Expression.hpp>
-#include <cuSTL/cursor/NestedCursor.hpp>
-#include <math/vector/TwistComponents.hpp>
-#include <math/vector/compile-time/TwistComponents.hpp>
+#include "math/vector/Int.hpp"
+#include "math/vector/TwistComponents.hpp"
+#include "math/vector/compile-time/TwistComponents.hpp"
+
 
 namespace picongpu
 {

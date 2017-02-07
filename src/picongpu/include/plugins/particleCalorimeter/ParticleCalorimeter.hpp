@@ -25,6 +25,7 @@
 
 #include "traits/PICToSplash.hpp"
 #include "plugins/ISimulationPlugin.hpp"
+
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
@@ -32,17 +33,19 @@
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "cuSTL/algorithm/host/Foreach.hpp"
 #include "particles/policies/ExchangeParticles.hpp"
+#include "dataManagement/DataConnector.hpp"
 #include "math/Vector.hpp"
 #include "algorithms/math.hpp"
-#include <boost/shared_ptr.hpp>
 
-/* libSplash data output */
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+
 
 namespace picongpu
 {

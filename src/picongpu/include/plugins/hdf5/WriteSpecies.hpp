@@ -18,10 +18,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
-
 
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
@@ -31,6 +28,19 @@
 #include "assert.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
+
+#include "plugins/output/WriteSpeciesCommon.hpp"
+#include "plugins/kernel/CopySpecies.kernel"
+#include "mappings/kernel/AreaMapping.hpp"
+
+#include "plugins/hdf5/writer/ParticleAttribute.hpp"
+
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "particles/ParticleDescription.hpp"
+#include "particles/traits/GetSpeciesFlagName.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -38,20 +48,10 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
-#include "compileTime/conversion/MakeSeq.hpp"
-
 #include <boost/type_traits.hpp>
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/kernel/CopySpecies.kernel"
-#include "mappings/kernel/AreaMapping.hpp"
-
-#include "plugins/hdf5/writer/ParticleAttribute.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "particles/ParticleDescription.hpp"
-#include "particles/traits/GetSpeciesFlagName.hpp"
-
 #include <string>
+
 
 namespace picongpu
 {

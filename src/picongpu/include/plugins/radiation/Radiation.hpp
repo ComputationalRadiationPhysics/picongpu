@@ -19,7 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #if(ENABLE_HDF5 != 1)
@@ -31,28 +30,26 @@
 #include "traits/SplashToPIC.hpp"
 #include "traits/PICToSplash.hpp"
 
-#include "dimensions/DataSpaceOperations.hpp"
 
-#include "simulation_classTypes.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
+#include "plugins/radiation/Radiation.kernel"
 #include "plugins/ISimulationPlugin.hpp"
 #include "plugins/common/stringHelpers.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
 
-#include "sys/stat.h"
-
-#include "plugins/radiation/Radiation.kernel"
-
-/* libSplash data output */
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+
 
 namespace picongpu
 {

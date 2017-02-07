@@ -19,17 +19,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <string>
-#include <iostream>
-#include <fstream>
 #include <mpi.h>
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
@@ -41,8 +35,14 @@
 
 #include "algorithms/KinEnergy.hpp"
 #include "memory/shared/Allocate.hpp"
+#include "dataManagement/DataConnector.hpp"
 
 #include "common/txtFileHandling.hpp"
+
+#include <string>
+#include <iostream>
+#include <fstream>
+
 
 namespace picongpu
 {

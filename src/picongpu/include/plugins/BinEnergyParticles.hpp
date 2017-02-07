@@ -19,33 +19,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
+
+#include "simulation_defines.hpp"
+
+#include "plugins/ISimulationPlugin.hpp"
+#include "algorithms/Gamma.hpp"
+#include "algorithms/KinEnergy.hpp"
+
+#include "mpi/reduceMethods/Reduce.hpp"
+#include "mpi/MPIReduce.hpp"
+#include "nvidia/functors/Add.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "basicOperations.hpp"
+#include "dimensions/DataSpace.hpp"
+
+#include "common/txtFileHandling.hpp"
 
 #include <string>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
-#include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
-#include "simulation_types.hpp"
-#include "basicOperations.hpp"
-#include "dimensions/DataSpace.hpp"
-
-#include "simulation_classTypes.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/ISimulationPlugin.hpp"
-
-#include "mpi/reduceMethods/Reduce.hpp"
-#include "mpi/MPIReduce.hpp"
-#include "nvidia/functors/Add.hpp"
-
-#include "algorithms/Gamma.hpp"
-#include "algorithms/KinEnergy.hpp"
-#include "memory/shared/Allocate.hpp"
-
-#include "common/txtFileHandling.hpp"
 
 namespace picongpu
 {

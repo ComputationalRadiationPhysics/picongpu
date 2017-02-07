@@ -25,6 +25,17 @@
 #include "plugins/adios/ADIOSWriter.def"
 #include "plugins/ISimulationPlugin.hpp"
 
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+#include "particles/ParticleDescription.hpp"
+#include "particles/operations/splitIntoListOfFrames.kernel"
+
+#include "plugins/output/WriteSpeciesCommon.hpp"
+#include "plugins/adios/restart/LoadParticleAttributesFromADIOS.hpp"
+
+#include "dataManagement/DataConnector.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -34,14 +45,6 @@
 #include <boost/mpl/find.hpp>
 #include <boost/type_traits.hpp>
 
-#include "compileTime/conversion/MakeSeq.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "particles/ParticleDescription.hpp"
-#include "particles/operations/splitIntoListOfFrames.kernel"
-
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/adios/restart/LoadParticleAttributesFromADIOS.hpp"
 
 namespace picongpu
 {

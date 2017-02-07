@@ -21,8 +21,6 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "traits/Resolve.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
@@ -32,11 +30,14 @@
 #include "particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
 #include "particles/ionization/ionization.hpp"
+#include "particles/ParticlesFunctors.hpp"
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "memory/boxes/DataBox.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+#include "traits/Resolve.hpp"
 
-#include "particles/ParticlesFunctors.hpp"
 
 namespace picongpu
 {

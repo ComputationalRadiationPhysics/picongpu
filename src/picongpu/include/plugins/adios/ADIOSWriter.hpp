@@ -21,12 +21,6 @@
 
 #pragma once
 
-#include <pthread.h>
-#include <sstream>
-#include <string>
-#include <list>
-#include <vector>
-
 #include "pmacc_types.hpp"
 #include "static_assert.hpp"
 #include "simulation_types.hpp"
@@ -35,10 +29,6 @@
 #include "particles/frame_types.hpp"
 #include "particles/IdProvider.def"
 #include "assert.hpp"
-
-#include <adios.h>
-#include <adios_read.h>
-#include <adios_error.h>
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
@@ -57,19 +47,6 @@
 #include "traits/Limits.hpp"
 
 #include "plugins/ILightweightPlugin.hpp"
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/type_traits/is_same.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/begin_end.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/filesystem.hpp>
-
-#include <boost/type_traits.hpp>
-#if !defined(_WIN32)
-#include <unistd.h>
-#endif
 
 #include "plugins/adios/WriteMeta.hpp"
 #include "plugins/adios/WriteSpecies.hpp"
@@ -78,6 +55,30 @@
 #include "plugins/adios/restart/RestartFieldLoader.hpp"
 #include "plugins/adios/NDScalars.hpp"
 #include "plugins/common/stringHelpers.hpp"
+
+#include <adios.h>
+#include <adios_read.h>
+#include <adios_error.h>
+
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/type_traits/is_same.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/begin_end.hpp>
+#include <boost/mpl/find.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/type_traits.hpp>
+
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
+#include <pthread.h>
+#include <sstream>
+#include <string>
+#include <list>
+#include <vector>
 
 
 namespace picongpu

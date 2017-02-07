@@ -18,28 +18,35 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include "static_assert.hpp"
+
+#include "fields/FieldJ.hpp"
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
 #include "math/vector/math_functor/abs.hpp"
 #include "math/vector/math_functor/max.hpp"
-#include "cuSTL/container/PseudoBuffer.hpp"
 #include "dataManagement/DataConnector.hpp"
-#include "fields/FieldJ.hpp"
 #include "math/Vector.hpp"
-#include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
+#include "cuSTL/container/PseudoBuffer.hpp"
+#include "cuSTL/cursor/NestedCursor.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
 #include "cuSTL/algorithm/host/Foreach.hpp"
-#include "cuSTL/cursor/NestedCursor.hpp"
-#include "lambda/Expression.hpp"
-#include <sstream>
-#include "algorithms/ForEach.hpp"
+#include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/algorithm/kernel/Reduce.hpp"
+#include "lambda/Expression.hpp"
+#include "algorithms/ForEach.hpp"
 #include "nvidia/functors/Add.hpp"
+
 #include "common/txtFileHandling.hpp"
+
+#include <sstream>
+
 
 namespace picongpu
 {
