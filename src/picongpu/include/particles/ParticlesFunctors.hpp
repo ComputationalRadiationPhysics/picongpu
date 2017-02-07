@@ -27,8 +27,6 @@
 #include "traits/HasFlag.hpp"
 #include "fields/Fields.def"
 #include "math/MapTuple.hpp"
-#include <boost/mpl/plus.hpp>
-#include <boost/mpl/accumulate.hpp>
 
 #include "communication/AsyncCommunication.hpp"
 #include "particles/traits/GetIonizer.hpp"
@@ -38,6 +36,10 @@
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "particles/bremsstrahlung/Bremsstrahlung.hpp"
 #include "particles/creation/creation.hpp"
+
+#include <memory>
+#include <boost/mpl/plus.hpp>
+#include <boost/mpl/accumulate.hpp>
 
 namespace picongpu
 {
@@ -75,10 +77,18 @@ struct CreateSpecies
     typedef T_SpeciesName SpeciesName;
     typedef typename SpeciesName::type SpeciesType;
 
-    template<typename T_StorageTuple, typename T_CellDescription>
-    HINLINE void operator()(T_StorageTuple& tuple, T_CellDescription* cellDesc) const
+    template<typename T_StorageTuple, typename T_DeviceHeap, typename T_CellDescription>
+    HINLINE void operator()(
+        T_StorageTuple& tuple,
+        const std::shared_ptr<T_DeviceHeap>& deviceHeap,
+        T_CellDescription* cellDesc
+    ) const
     {
-        tuple[SpeciesName()] = new SpeciesType(*cellDesc, SpeciesType::FrameType::getName());
+        tuple[SpeciesName()] = new SpeciesType(
+            deviceHeap,
+            *cellDesc,
+            SpeciesType::FrameType::getName()
+        );
     }
 };
 
@@ -88,14 +98,17 @@ struct CallCreateParticleBuffer
     typedef T_SpeciesName SpeciesName;
     typedef typename SpeciesName::type SpeciesType;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()(T_StorageTuple& tuple) const
+    template<typename T_StorageTuple, typename T_DeviceHeap>
+    HINLINE void operator()(
+        T_StorageTuple& tuple,
+        const std::shared_ptr<T_DeviceHeap>& deviceHeap
+    ) const
     {
 
         typedef typename SpeciesType::FrameType FrameType;
 
         log<picLog::MEMORY >("mallocMC: free slots for species %3%: %1% a %2%") %
-            mallocMC::getAvailableSlots(sizeof (FrameType)) %
+            deviceHeap->getAvailableSlots(sizeof (FrameType)) %
             sizeof (FrameType) %
             FrameType::getName();
 

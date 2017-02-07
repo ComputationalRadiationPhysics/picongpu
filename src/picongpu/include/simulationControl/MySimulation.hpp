@@ -75,6 +75,7 @@
 #include "particles/IdProvider.hpp"
 
 #include <boost/mpl/int.hpp>
+#include <memory>
 
 namespace picongpu
 {
@@ -335,8 +336,12 @@ public:
             this->bremsstrahlungPhotonAngle.init();
         }
 
+        /* Create an empty allocator. This one is resized after all exchanges
+         * for particles are created */
+        deviceHeap.reset(new DeviceHeap(0));
+
         ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > createSpeciesMemory;
-        createSpeciesMemory(forward(particleStorage), cellDescription);
+        createSpeciesMemory(forward(particleStorage), deviceHeap, cellDescription);
 
         size_t freeGpuMem(0);
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
@@ -362,11 +367,11 @@ public:
             log<picLog::MEMORY > ("RAM is NOT shared between GPU and host.");
 
         // initializing the heap for particles
-        mallocMC::initHeap(heapSize);
-        this->mallocMCBuffer = new MallocMCBuffer();
+        deviceHeap->destructiveResize(heapSize);
+        this->mallocMCBuffer = new MallocMCBuffer<DeviceHeap>(deviceHeap);
 
         ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, MakeIdentifier<bmpl::_1> > createParticleBuffer;
-        createParticleBuffer(forward(particleStorage));
+        createParticleBuffer(forward(particleStorage), deviceHeap);
 
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
@@ -463,11 +468,6 @@ public:
         __setTransactionEvent(eRfieldB);
 
         return step;
-    }
-
-    virtual ~MySimulation()
-    {
-        mallocMC::finalizeHeap();
     }
 
     /**
@@ -666,7 +666,8 @@ protected:
     FieldE *fieldE;
     FieldJ *fieldJ;
     std::vector< FieldTmp * > fieldTmp;
-    MallocMCBuffer *mallocMCBuffer;
+    MallocMCBuffer<DeviceHeap> *mallocMCBuffer;
+    std::shared_ptr<DeviceHeap> deviceHeap;
 
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;

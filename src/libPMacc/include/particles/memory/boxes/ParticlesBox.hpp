@@ -39,10 +39,11 @@ namespace PMacc
  * @tparam FRAME datatype for frames
  * @tparam DIM dimension of data (1-3)
  */
-template<class T_Frame, unsigned DIM>
+template<class T_Frame, typename T_DeviceHeapHandle, unsigned DIM>
 class ParticlesBox : protected DataBox<PitchedBox<SuperCell<T_Frame>, DIM> >
 {
 private:
+    PMACC_ALIGN( m_deviceHeapHandle, T_DeviceHeapHandle );
     PMACC_ALIGN( hostMemoryOffset, int64_t );
 public:
 
@@ -50,6 +51,7 @@ public:
     typedef FramePointer<FrameType> FramePtr;
     typedef SuperCell<FrameType> SuperCellType;
     typedef DataBox<PitchedBox<SuperCell<FrameType>, DIM> > BaseType;
+    typedef T_DeviceHeapHandle DeviceHeapHandle;
 
     static constexpr uint32_t Dim = DIM;
 
@@ -63,14 +65,21 @@ public:
 
     }
 
-    HDINLINE ParticlesBox( const DataBox<PitchedBox<SuperCellType, DIM> > &superCells ) :
-    BaseType( superCells ), hostMemoryOffset( 0 )
+    HDINLINE ParticlesBox(
+        const DataBox<PitchedBox<SuperCellType, DIM> >& superCells,
+        const DeviceHeapHandle&  deviceHeapHandle
+    ) :
+        BaseType( superCells ), m_deviceHeapHandle(deviceHeapHandle), hostMemoryOffset( 0 )
     {
 
     }
 
-    HDINLINE ParticlesBox( const DataBox<PitchedBox<SuperCellType, DIM> > &superCells, int64_t memoryOffset ) :
-    BaseType( superCells ), hostMemoryOffset( memoryOffset )
+    HDINLINE ParticlesBox(
+        const DataBox<PitchedBox<SuperCellType, DIM> > &superCells,
+        const DeviceHeapHandle&  deviceHeapHandle,
+        int64_t memoryOffset
+    ) :
+        BaseType( superCells ), m_deviceHeapHandle(deviceHeapHandle), hostMemoryOffset( memoryOffset )
     {
 
     }
@@ -86,7 +95,7 @@ public:
         const int maxTries = 13; //magic number is not performance critical
         for ( int numTries = 0; numTries < maxTries; ++numTries )
         {
-            tmp = (FrameType*) mallocMC::malloc( sizeof (FrameType) );
+            tmp = (FrameType*) m_deviceHeapHandle.malloc( sizeof (FrameType) );
             if ( tmp != nullptr )
             {
                 /* disable all particles since we can not assume that newly allocated memory contains zeros */
@@ -116,7 +125,7 @@ public:
     template<typename T_InitMethod>
     DINLINE void removeFrame( FramePointer<FrameType, T_InitMethod>& frame )
     {
-        mallocMC::free( (void*) frame.ptr );
+        m_deviceHeapHandle.free( (void*) frame.ptr );
         frame.ptr = nullptr;
     }
 

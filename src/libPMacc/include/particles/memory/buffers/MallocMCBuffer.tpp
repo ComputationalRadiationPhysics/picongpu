@@ -29,15 +29,18 @@
 
 namespace PMacc
 {
-
-MallocMCBuffer::MallocMCBuffer( ) : hostPtr( nullptr ),hostBufferOffset(0)
-{
+template< typename T_DeviceHeap >
+MallocMCBuffer< T_DeviceHeap >::MallocMCBuffer( const std::shared_ptr<DeviceHeap>& deviceHeap ) :
+    hostPtr( nullptr ),
     /* currently mallocMC has only one heap */
-    this->deviceHeapInfo=mallocMC::getHeapLocations()[0];
+    deviceHeapInfo( deviceHeap->getHeapLocations( )[ 0 ] ),
+    hostBufferOffset( 0 )
+{
     Environment<>::get().DataConnector().registerData( *this);
 }
 
-MallocMCBuffer::~MallocMCBuffer( )
+template< typename T_DeviceHeap >
+MallocMCBuffer< T_DeviceHeap >::~MallocMCBuffer( )
 {
     if ( hostPtr != nullptr )
         cudaHostUnregister(hostPtr);
@@ -46,7 +49,8 @@ MallocMCBuffer::~MallocMCBuffer( )
 
 }
 
-void MallocMCBuffer::synchronize( )
+template< typename T_DeviceHeap >
+void MallocMCBuffer< T_DeviceHeap >::synchronize( )
 {
     /** \todo: we had no abstraction to create a host buffer and a pseudo
      *         device buffer (out of the mallocMC ptr) and copy both with our event

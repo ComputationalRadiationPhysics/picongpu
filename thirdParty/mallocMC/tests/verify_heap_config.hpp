@@ -32,7 +32,6 @@
 #include <boost/mpl/bool.hpp>
 
 // basic files for mallocMC
-#include "src/include/mallocMC/mallocMC_overwrites.hpp"
 #include "src/include/mallocMC/mallocMC_hostclass.hpp"
 
 // Load all available policies for mallocMC

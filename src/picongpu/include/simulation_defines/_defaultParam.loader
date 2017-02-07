@@ -26,6 +26,7 @@
 #pragma once
 
 #include "simulation_defines/param/dimension.param"
+#include "simulation_defines/param/mallocMC.param"
 #include "simulation_defines/param/memory.param"
 #include "simulation_defines/param/seed.param"
 #include "simulation_defines/param/precision.param"

@@ -72,7 +72,7 @@ namespace Shrink2NS{
 #ifndef MALLOCMC_AP_SHRINK_DATAALIGNMENT
 #define MALLOCMC_AP_SHRINK_DATAALIGNMENT Properties::dataAlignment::value
 #endif
-    static const uint32 dataAlignment = MALLOCMC_AP_SHRINK_DATAALIGNMENT;
+    BOOST_STATIC_CONSTEXPR uint32 dataAlignment = MALLOCMC_AP_SHRINK_DATAALIGNMENT;
 
     // \TODO: The static_cast can be removed once the minimal dependencies of
     //        this project is are at least CUDA 7.0 and gcc 4.8.2

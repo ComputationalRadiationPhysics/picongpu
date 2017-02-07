@@ -4,8 +4,8 @@
 
   Copyright (C) 2012 Institute for Computer Graphics and Vision,
                      Graz University of Technology
-  Copyright (C) 2014 Institute of Radiation Physics,
-                     Helmholtz-Zentrum Dresden - Rossendorf
+  Copyright (C) 2014-2016 Institute of Radiation Physics,
+                          Helmholtz-Zentrum Dresden - Rossendorf
 
   Author(s):  Markus Steinberger - steinberger ( at ) icg.tugraz.at
               Rene Widera - r.widera ( at ) hzdr.de
@@ -33,11 +33,12 @@
 
 #pragma once
 
-#include <stdio.h>
+#include <cstdio>
 #include <boost/cstdint.hpp> /* uint32_t */
 #include <iostream>
 #include <string>
 #include <cassert>
+#include <stdexcept>
 #include <boost/mpl/bool.hpp>
 
 #include "../mallocMC_utils.hpp"
@@ -45,10 +46,11 @@
 
 namespace mallocMC{
 namespace CreationPolicies{
-    
+
 namespace ScatterKernelDetail{
   template <typename T_Allocator>
   __global__ void initKernel(T_Allocator* heap, void* heapmem, size_t memsize){
+    heap->pool = heapmem;
     heap->initDeviceFunction(heapmem, memsize);
   }
 
@@ -78,7 +80,7 @@ namespace ScatterKernelDetail{
       typedef T_Hashing HashingProperties;
       struct  Properties : HeapProperties, HashingProperties{};
       typedef boost::mpl::bool_<true>  providesAvailableSlots;
-      
+
     private:
       typedef boost::uint32_t uint32;
 
@@ -95,66 +97,66 @@ namespace ScatterKernelDetail{
 #ifndef MALLOCMC_CP_SCATTER_PAGESIZE
 #define MALLOCMC_CP_SCATTER_PAGESIZE  static_cast<uint32>(HeapProperties::pagesize::value)
 #endif
-      static const uint32 pagesize      = MALLOCMC_CP_SCATTER_PAGESIZE;
+      BOOST_STATIC_CONSTEXPR uint32 pagesize      = MALLOCMC_CP_SCATTER_PAGESIZE;
 
 #ifndef MALLOCMC_CP_SCATTER_ACCESSBLOCKS
 #define MALLOCMC_CP_SCATTER_ACCESSBLOCKS static_cast<uint32>(HeapProperties::accessblocks::value)
 #endif
-      static const uint32 accessblocks  = MALLOCMC_CP_SCATTER_ACCESSBLOCKS;
+      BOOST_STATIC_CONSTEXPR uint32 accessblocks  = MALLOCMC_CP_SCATTER_ACCESSBLOCKS;
 
 #ifndef MALLOCMC_CP_SCATTER_REGIONSIZE
 #define MALLOCMC_CP_SCATTER_REGIONSIZE static_cast<uint32>(HeapProperties::regionsize::value)
 #endif
-      static const uint32 regionsize    = MALLOCMC_CP_SCATTER_REGIONSIZE;
+      BOOST_STATIC_CONSTEXPR uint32 regionsize    = MALLOCMC_CP_SCATTER_REGIONSIZE;
 
 #ifndef MALLOCMC_CP_SCATTER_WASTEFACTOR
 #define MALLOCMC_CP_SCATTER_WASTEFACTOR static_cast<uint32>(HeapProperties::wastefactor::value)
 #endif
-      static const uint32 wastefactor   = MALLOCMC_CP_SCATTER_WASTEFACTOR;
+      BOOST_STATIC_CONSTEXPR uint32 wastefactor   = MALLOCMC_CP_SCATTER_WASTEFACTOR;
 
 #ifndef MALLOCMC_CP_SCATTER_RESETFREEDPAGES
 #define MALLOCMC_CP_SCATTER_RESETFREEDPAGES static_cast<bool>(HeapProperties::resetfreedpages::value)
 #endif
-      static const bool resetfreedpages = MALLOCMC_CP_SCATTER_RESETFREEDPAGES;
+      BOOST_STATIC_CONSTEXPR bool resetfreedpages = MALLOCMC_CP_SCATTER_RESETFREEDPAGES;
 
 
     public:
-      static const uint32 _pagesize       = pagesize;
-      static const uint32 _accessblocks   = accessblocks;
-      static const uint32 _regionsize     = regionsize;
-      static const uint32 _wastefactor    = wastefactor;
-      static const bool _resetfreedpages  = resetfreedpages;
+      BOOST_STATIC_CONSTEXPR uint32 _pagesize       = pagesize;
+      BOOST_STATIC_CONSTEXPR uint32 _accessblocks   = accessblocks;
+      BOOST_STATIC_CONSTEXPR uint32 _regionsize     = regionsize;
+      BOOST_STATIC_CONSTEXPR uint32 _wastefactor    = wastefactor;
+      BOOST_STATIC_CONSTEXPR bool _resetfreedpages  = resetfreedpages;
 
     private:
 #if _DEBUG || ANALYSEHEAP
     public:
 #endif
-      //static const uint32 minChunkSize0 = pagesize/(32*32);
-      static const uint32 minChunkSize1 = 0x10;
-      static const uint32 HierarchyThreshold =  (pagesize - 2*sizeof(uint32))/33;
-      static const uint32 minSegmentSize = 32*minChunkSize1 + sizeof(uint32);
-      static const uint32 tmp_maxOPM = minChunkSize1 > HierarchyThreshold ? 0 : (pagesize + (minSegmentSize-1)) / minSegmentSize;
-      static const uint32 maxOnPageMasks = 32 > tmp_maxOPM ? tmp_maxOPM : 32;
+      //BOOST_STATIC_CONSTEXPR uint32 minChunkSize0 = pagesize/(32*32);
+      BOOST_STATIC_CONSTEXPR uint32 minChunkSize1 = 0x10;
+      BOOST_STATIC_CONSTEXPR uint32 HierarchyThreshold =  (pagesize - 2*sizeof(uint32))/33;
+      BOOST_STATIC_CONSTEXPR uint32 minSegmentSize = 32*minChunkSize1 + sizeof(uint32);
+      BOOST_STATIC_CONSTEXPR uint32 tmp_maxOPM = minChunkSize1 > HierarchyThreshold ? 0 : (pagesize + (minSegmentSize-1)) / minSegmentSize;
+      BOOST_STATIC_CONSTEXPR uint32 maxOnPageMasks = 32 > tmp_maxOPM ? tmp_maxOPM : 32;
 
 #ifndef MALLOCMC_CP_SCATTER_HASHINGK
 #define MALLOCMC_CP_SCATTER_HASHINGK    static_cast<uint32>(HashingProperties::hashingK::value)
 #endif
-     static const uint32 hashingK       = MALLOCMC_CP_SCATTER_HASHINGK;
+     BOOST_STATIC_CONSTEXPR uint32 hashingK       = MALLOCMC_CP_SCATTER_HASHINGK;
 
 #ifndef MALLOCMC_CP_SCATTER_HASHINGDISTMP
 #define MALLOCMC_CP_SCATTER_HASHINGDISTMP static_cast<uint32>(HashingProperties::hashingDistMP::value)
 #endif
-     static const uint32 hashingDistMP  = MALLOCMC_CP_SCATTER_HASHINGDISTMP;
+     BOOST_STATIC_CONSTEXPR uint32 hashingDistMP  = MALLOCMC_CP_SCATTER_HASHINGDISTMP;
 
 #ifndef MALLOCMC_CP_SCATTER_HASHINGDISTWP
 #define MALLOCMC_CP_SCATTER_HASHINGDISTWP static_cast<uint32>(HashingProperties::hashingDistWP::value)
 #endif
-     static const uint32 hashingDistWP  = MALLOCMC_CP_SCATTER_HASHINGDISTWP;
+     BOOST_STATIC_CONSTEXPR uint32 hashingDistWP  = MALLOCMC_CP_SCATTER_HASHINGDISTWP;
 
 #ifndef MALLOCMC_CP_SCATTER_HASHINGDISTWPREL
 #define MALLOCMC_CP_SCATTER_HASHINGDISTWPREL static_cast<uint32>(HashingProperties::hashingDistWPRel::value)
 #endif
-     static const uint32 hashingDistWPRel = MALLOCMC_CP_SCATTER_HASHINGDISTWPREL;
+     BOOST_STATIC_CONSTEXPR uint32 hashingDistWPRel = MALLOCMC_CP_SCATTER_HASHINGDISTWPREL;
 
 
       /**
@@ -268,7 +270,7 @@ namespace ScatterKernelDetail{
           uint32 old = atomicOr(bitfield, mask);
           if( (old & mask) == 0)
             return spot;
-          // note: __popc(old) == spots should be sufficient, 
+          // note: __popc(old) == spots should be sufficient,
           //but if someone corrupts the memory we end up in an endless loop in here...
           if(__popc(old) >= spots)
             return -1;
@@ -408,7 +410,7 @@ namespace ScatterKernelDetail{
                 {
                   uint32 chunksize = _ptes[ptetry].chunksize;
                   if(chunksize >= bytes && chunksize <= maxchunksize)
-                  {            
+                  {
                     void * res = tryUsePage(ptetry, chunksize);
                     if(res != 0)  return res;
                   }
@@ -512,7 +514,7 @@ namespace ScatterKernelDetail{
         if(oldfilllevel == pagesize / 2 / chunksize)
         {
           uint32 region = page / regionsize;
-          _regions[region] = 0;        
+          _regions[region] = 0;
           uint32 block = region * regionsize * accessblocks / _numpages ;
           if(warpid() + laneid() == 0)
             atomicMin((uint32*)&_firstfreeblock, block);
@@ -651,7 +653,7 @@ namespace ScatterKernelDetail{
         //take care of padding
         //bytes = (bytes + dataAlignment - 1) & ~(dataAlignment-1); // in alignment-policy
         if(bytes < pagesize)
-          //chunck based 
+          //chunck based
           return allocChunked(bytes);
         else
           //allocate a range of pages
@@ -769,67 +771,24 @@ namespace ScatterKernelDetail{
 
       }
 
-      /** resets the heap data structures
-       *
-       * resets the pages, ptes, regions, firstfreedblock,firstfreepagebased
-       * and pagebaseMutex to a state similar to that after calling
-       * initDeviceFunction. The whole process of resetting is not strictly
-       * necessary, if initDeviceFunction is called before another request
-       * happens. However, this will leave the heap in a tidy state.
-       */
-      __device__ void finalizeDeviceFunction()
-      {
-        uint32 linid = threadIdx.x + blockDim.x*(threadIdx.y + threadIdx.z*blockDim.y);
-        uint32 threads = blockDim.x*blockDim.y*blockDim.z;
-        uint32 linblockid = blockIdx.x + gridDim.x*(blockIdx.y + blockIdx.z*gridDim.y);
-        uint32 blocks =  gridDim.x*gridDim.y*gridDim.z;
-        linid = linid + linblockid*threads;
-        threads = threads*blocks;
-
-        PTE* ptes = (PTE*)(_page + _numpages);
-
-        for(uint32 i = linid; i < _numpages; i+= threads)
-        {
-          ptes[i].init();
-          _page[i].init();
-        }
-
-        uint32 numregions = _numpages / regionsize;
-        for(uint32 i = linid; i < numregions; i+= numregions){
-          _regions[i] = 0;
-        }
-
-        if(linid == 0)
-        {
-          _ptes = (volatile PTE*)ptes;
-          _firstfreeblock = 0;
-          _pagebasedMutex = 0;
-          _firstFreePageBased = _numpages-1;
-        }
-      }
-
       __device__ bool isOOM(void* p, size_t s){
         // one thread that requested memory returned null
         return  s && (p == NULL);
       }
 
 
-      template < typename T_Obj>
-      static void* initHeap(const T_Obj& obj, void* pool, size_t memsize){
-        T_Obj* heap;
-        MALLOCMC_CUDA_CHECKED_CALL(cudaGetSymbolAddress((void**)&heap,obj));
+      template < typename T_DeviceAllocator >
+      static void* initHeap( T_DeviceAllocator* heap, void* pool, size_t memsize){
+        if( pool == NULL && memsize != 0 )
+        {
+          throw std::invalid_argument(
+            "Scatter policy cannot use NULL for non-empty memory pools. "
+            "Maybe you are using an incompatible ReservePoolPolicy or AlignmentPolicy."
+          );
+        }
         ScatterKernelDetail::initKernel<<<1,256>>>(heap, pool, memsize);
         return heap;
       }
-
-
-      template < typename T_Obj >
-      static void finalizeHeap(const T_Obj& obj, void* pool){
-        T_Obj* heap;
-        MALLOCMC_CUDA_CHECKED_CALL(cudaGetSymbolAddress((void**)&heap,obj));
-        ScatterKernelDetail::finalizeKernel<<<1,256>>>(heap);
-      }
-
 
       /** counts how many elements of a size fit inside a given page
        *
@@ -929,15 +888,14 @@ namespace ScatterKernelDetail{
        * @param slotSize the size of allocatable elements to count
        * @param obj a reference to the allocator instance (host-side)
        */
-      template <typename T_Obj>
-      static unsigned getAvailableSlotsHost(size_t const slotSize, const T_Obj& obj){
-        T_Obj* heap;
-        MALLOCMC_CUDA_CHECKED_CALL(cudaGetSymbolAddress((void**)&heap,obj));
+    public:
+      template<typename T_DeviceAllocator>
+      static unsigned getAvailableSlotsHost(size_t const slotSize, T_DeviceAllocator* heap){
         unsigned h_slots = 0;
         unsigned* d_slots;
         cudaMalloc((void**) &d_slots, sizeof(unsigned));
         cudaMemcpy(d_slots, &h_slots, sizeof(unsigned), cudaMemcpyHostToDevice);
-      
+
         ScatterKernelDetail::getAvailableSlotsKernel<<<64,256>>>(heap, slotSize, d_slots);
 
         cudaMemcpy(&h_slots, d_slots, sizeof(unsigned), cudaMemcpyDeviceToHost);

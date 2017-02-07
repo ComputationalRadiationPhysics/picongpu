@@ -49,6 +49,7 @@
 #include "particles/ParticleDescription.hpp"
 #include "particles/memory/dataTypes/ListPointer.hpp"
 
+#include <memory>
 
 namespace PMacc
 {
@@ -60,7 +61,7 @@ namespace PMacc
  * @tparam SuperCellSize_ TVec which descripe size of a superce
  * @tparam DIM dimension of the buffer (1-3)
  */
-template<typename T_ParticleDescription, class SuperCellSize_, unsigned DIM>
+template<typename T_ParticleDescription, class SuperCellSize_, typename T_DeviceHeap, unsigned DIM>
 class ParticlesBuffer
 {
 public:
@@ -156,6 +157,10 @@ public:
 
     typedef SuperCell<FrameType> SuperCellType;
 
+    typedef T_DeviceHeap DeviceHeap;
+    /* Type of the particle box which particle buffer create */
+    typedef ParticlesBox< FrameType, typename DeviceHeap::AllocatorHandle, DIM> ParticlesBoxType;
+
 private:
 
     /* this enum is used only for internal calculations */
@@ -169,12 +174,13 @@ public:
     /**
      * Constructor.
      *
+     * @param deviceHeap device heap memory allocator
      * @param layout number of cell per dimension
      * @param superCellSize size of one super cell
      * @param gpuMemory how many memory on device is used for this instance (in byte)
      */
-    ParticlesBuffer(DataSpace<DIM> layout, DataSpace<DIM> superCellSize) :
-    superCellSize(superCellSize), gridSize(layout), framesExchanges(nullptr)
+    ParticlesBuffer(const std::shared_ptr<DeviceHeap>& deviceHeap, DataSpace<DIM> layout, DataSpace<DIM> superCellSize) :
+        m_deviceHeap(deviceHeap), superCellSize(superCellSize), gridSize(layout), framesExchanges(nullptr)
     {
 
         exchangeMemoryIndexer = new GridBuffer<BorderFrameIndex, DIM1 > (DataSpace<DIM1 > (0));
@@ -232,11 +238,13 @@ public:
      *
      * @return device frames ParticlesBox
      */
-    ParticlesBox<FrameType, DIM> getDeviceParticleBox()
+    ParticlesBoxType getDeviceParticleBox()
     {
 
-        return ParticlesBox<FrameType, DIM > (
-                                                 superCells->getDeviceBuffer().getDataBox());
+        return ParticlesBoxType(
+            superCells->getDeviceBuffer().getDataBox(),
+            m_deviceHeap->getAllocatorHandle()
+        );
     }
 
     /**
@@ -244,13 +252,14 @@ public:
      *
      * @return host frames ParticlesBox
      */
-    ParticlesBox<FrameType, DIM> getHostParticleBox(int64_t memoryOffset)
+    ParticlesBoxType getHostParticleBox(int64_t memoryOffset)
     {
 
-        return ParticlesBox<FrameType, DIM > (
-                                                 superCells->getHostBuffer().getDataBox(),
-                                                 memoryOffset
-                                                );
+        return ParticlesBoxType (
+            superCells->getHostBuffer().getDataBox(),
+            m_deviceHeap->getAllocatorHandle(),
+            memoryOffset
+        );
     }
 
     /**
@@ -372,6 +381,7 @@ private:
 
     DataSpace<DIM> superCellSize;
     DataSpace<DIM> gridSize;
+    std::shared_ptr<DeviceHeap> m_deviceHeap;
 
 };
 }

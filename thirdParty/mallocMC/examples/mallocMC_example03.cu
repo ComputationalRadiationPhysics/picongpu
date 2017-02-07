@@ -26,22 +26,32 @@
   THE SOFTWARE.
 */
 
-#pragma once
+#include <iostream>
+#include <assert.h>
+#include <vector>
+#include <numeric>
+#include <stdio.h>
 
+#include <cuda.h>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/bool.hpp>
 
-// basic files for mallocMC
-#include "src/include/mallocMC/mallocMC_overwrites.hpp"
+
+///////////////////////////////////////////////////////////////////////////////
+// includes for mallocMC
+///////////////////////////////////////////////////////////////////////////////
 #include "src/include/mallocMC/mallocMC_hostclass.hpp"
 
-// Load all available policies for mallocMC
 #include "src/include/mallocMC/CreationPolicies.hpp"
 #include "src/include/mallocMC/DistributionPolicies.hpp"
 #include "src/include/mallocMC/OOMPolicies.hpp"
 #include "src/include/mallocMC/ReservePoolPolicies.hpp"
 #include "src/include/mallocMC/AlignmentPolicies.hpp"
-    
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Configuration for mallocMC
+///////////////////////////////////////////////////////////////////////////////
 
 // configurate the CreationPolicy "Scatter"
 struct ScatterConfig{
@@ -59,37 +69,51 @@ struct ScatterHashParams{
     typedef boost::mpl::int_<1>     hashingDistWPRel;
 };
 
-// configure the DistributionPolicy "XMallocSIMD"
-struct DistributionConfig{
-  typedef ScatterConfig::pagesize pagesize;
-};
 
 // configure the AlignmentPolicy "Shrink"
 struct AlignmentConfig{
-  typedef boost::mpl::int_<16> dataAlignment;
+    typedef boost::mpl::int_<16> dataAlignment;
 };
 
-// Define a new allocator and call it ScatterAllocator
+// Define a new mMCator and call it ScatterAllocator
 // which resembles the behaviour of ScatterAlloc
-typedef mallocMC::Allocator< 
-  mallocMC::CreationPolicies::Scatter<ScatterConfig,ScatterHashParams>,
-  mallocMC::DistributionPolicies::XMallocSIMD<DistributionConfig>,
-  mallocMC::OOMPolicies::ReturnNull,
-  mallocMC::ReservePoolPolicies::SimpleCudaMalloc,
-  mallocMC::AlignmentPolicies::Shrink<AlignmentConfig>
-  > ScatterAllocator;
+typedef mallocMC::Allocator<
+    mallocMC::CreationPolicies::Scatter<ScatterConfig, ScatterHashParams>,
+    mallocMC::DistributionPolicies::Noop,
+    mallocMC::OOMPolicies::ReturnNull,
+    mallocMC::ReservePoolPolicies::SimpleCudaMalloc,
+    mallocMC::AlignmentPolicies::Shrink<AlignmentConfig>
+> ScatterAllocator;
 
-typedef mallocMC::Allocator< 
-  mallocMC::CreationPolicies::OldMalloc,
-  mallocMC::DistributionPolicies::Noop,
-  mallocMC::OOMPolicies::ReturnNull,
-  mallocMC::ReservePoolPolicies::CudaSetLimits,
-  mallocMC::AlignmentPolicies::Noop
-  > OldAllocator;
+///////////////////////////////////////////////////////////////////////////////
+// End of mallocMC configuration
+///////////////////////////////////////////////////////////////////////////////
 
-// use "ScatterAllocator" as Allocator
-MALLOCMC_SET_ALLOCATOR_TYPE(ScatterAllocator)
 
-//MALLOCMC_SET_ALLOCATOR_TYPE(OldAllocator)
+__device__ int* arA;
 
-//MALLOCMC_OVERWRITE_MALLOC()
+
+__global__ void exampleKernel(ScatterAllocator::AllocatorHandle mMC){
+    unsigned x = 42;
+    if(threadIdx.x==0)
+        arA = (int*) mMC.malloc(sizeof(int) * 32);
+
+    x = mMC.getAvailableSlots(1);
+    __syncthreads();
+    arA[threadIdx.x] = threadIdx.x;
+    printf("tid: %d array: %d slots %d\n", threadIdx.x, arA[threadIdx.x],x);
+
+    if(threadIdx.x == 0)
+        mMC.free(arA);
+}
+
+
+int main()
+{
+    ScatterAllocator mMC(1U*1024U*1024U*1024U); //1GB for device-side malloc
+
+    exampleKernel<<<1,32>>>( mMC );
+    std::cout << "Slots from Host: " << mMC.getAvailableSlots(1) << std::endl;
+
+    return 0;
+}

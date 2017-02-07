@@ -27,15 +27,19 @@
 
 #include "mallocMC/mallocMC.hpp"
 #include <string>
+#include <memory>
+#include <utility>
 
 namespace PMacc
 {
 
+    template< typename T_DeviceHeap >
     class MallocMCBuffer : public ISimulationData
     {
     public:
+        using DeviceHeap = T_DeviceHeap;
 
-        MallocMCBuffer();
+        MallocMCBuffer( const std::shared_ptr<DeviceHeap>& deviceHeap );
 
         virtual ~MallocMCBuffer();
 
@@ -60,7 +64,11 @@ namespace PMacc
 
         char* hostPtr;
         int64_t hostBufferOffset;
-        mallocMC::HeapInfo deviceHeapInfo;
+        decltype(
+            std::declval<
+                T_DeviceHeap
+            >().getHeapLocations()[0]
+        ) deviceHeapInfo;
 
     };
 

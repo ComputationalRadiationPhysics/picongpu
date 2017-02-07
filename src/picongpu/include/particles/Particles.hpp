@@ -37,6 +37,7 @@
 
 #include <string>
 #include <sstream>
+#include <memory>
 
 namespace picongpu
 {
@@ -60,7 +61,8 @@ class Particles : public ParticlesBase<
         T_Attributes,
         T_Flags
     >,
-    MappingDesc
+    MappingDesc,
+    DeviceHeap
 >, public ISimulationData
 {
 public:
@@ -71,14 +73,13 @@ public:
         T_Attributes,
         T_Flags
     > SpeciesParticleDescription;
-    typedef ParticlesBase<SpeciesParticleDescription, MappingDesc> ParticlesBaseType;
-    typedef typename ParticlesBaseType::BufferType BufferType;
+    typedef ParticlesBase<SpeciesParticleDescription, MappingDesc, DeviceHeap> ParticlesBaseType;
     typedef typename ParticlesBaseType::FrameType FrameType;
     typedef typename ParticlesBaseType::FrameTypeBorder FrameTypeBorder;
     typedef typename ParticlesBaseType::ParticlesBoxType ParticlesBoxType;
 
 
-    Particles(MappingDesc cellDescription, SimulationDataId datasetID);
+    Particles(const std::shared_ptr<DeviceHeap>& heap, MappingDesc cellDescription, SimulationDataId datasetID);
 
     void createParticleBuffer();
 
