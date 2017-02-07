@@ -18,36 +18,35 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
-
 
 #include "simulation_types.hpp"
 
 #include "plugins/hdf5/HDF5Writer.def"
 #include "plugins/ISimulationPlugin.hpp"
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/type_traits/is_same.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/begin_end.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/type_traits.hpp>
+#include "plugins/output/WriteSpeciesCommon.hpp"
+#include "plugins/hdf5/restart/LoadParticleAttributesFromHDF5.hpp"
+
+#include "plugins/common/particlePatches.hpp"
+#include "plugins/hdf5/openPMD/patchReader.hpp"
 
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "particles/ParticleDescription.hpp"
 #include "particles/operations/splitIntoListOfFrames.kernel"
+#include "dataManagement/DataConnector.hpp"
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/hdf5/restart/LoadParticleAttributesFromHDF5.hpp"
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/begin_end.hpp>
+#include <boost/mpl/find.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/type_traits/is_same.hpp>
 
-#include "plugins/common/particlePatches.hpp"
-#include "plugins/hdf5/openPMD/patchReader.hpp"
 
 namespace picongpu
 {

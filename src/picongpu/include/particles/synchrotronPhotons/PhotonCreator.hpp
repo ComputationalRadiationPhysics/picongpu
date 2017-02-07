@@ -21,8 +21,8 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+
 #include "SynchrotronFunctions.hpp"
-#include "pmacc_types.hpp"
 #include "algorithms/Gamma.hpp"
 #include "algorithms/math/defines/sqrt.hpp"
 #include "algorithms/math/defines/dot.hpp"
@@ -32,6 +32,8 @@
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
 #include "particles/traits/ResolveAliasFromSpecies.hpp"
+#include "fields/FieldB.hpp"
+#include "fields/FieldE.hpp"
 
 #include "random/methods/XorMin.hpp"
 #include "random/distributions/Uniform.hpp"
@@ -39,12 +41,11 @@
 
 #include "traits/Resolve.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
+#include "dataManagement/DataConnector.hpp"
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "memory/boxes/DataBox.hpp"
+
 
 namespace picongpu
 {

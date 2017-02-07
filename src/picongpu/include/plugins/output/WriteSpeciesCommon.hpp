@@ -20,10 +20,17 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
+
+#include "mappings/kernel/AreaMapping.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "traits/Resolve.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -31,14 +38,8 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
-#include "compileTime/conversion/MakeSeq.hpp"
-
 #include <boost/type_traits.hpp>
 
-#include "mappings/kernel/AreaMapping.hpp"
-
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "traits/Resolve.hpp"
 
 namespace picongpu
 {

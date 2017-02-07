@@ -19,22 +19,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <iostream>
-#include <fstream>
-
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
-
-#include "simulation_classTypes.hpp"
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 
-#include "dimensions/DataSpaceOperations.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
@@ -43,8 +34,15 @@
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 #include "memory/boxes/DataBoxUnaryTransform.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
 
 #include "common/txtFileHandling.hpp"
+
+#include <iostream>
+#include <fstream>
+#include <memory>
+
 
 namespace picongpu
 {

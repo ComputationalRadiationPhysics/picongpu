@@ -21,19 +21,18 @@
 
 #pragma once
 
-#include <string>
-#include <iostream>
-
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
 
-#include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "algorithms/Gamma.hpp"
 #include "plugins/ILightweightPlugin.hpp"
 #include "memory/shared/Allocate.hpp"
+#include "dataManagement/DataConnector.hpp"
+
+#include <string>
+#include <iostream>
+
 
 namespace picongpu
 {

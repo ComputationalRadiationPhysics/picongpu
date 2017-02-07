@@ -20,17 +20,10 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 
 #include "plugins/ISimulationPlugin.hpp"
 
@@ -38,12 +31,17 @@
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
 #include "nvidia/functors/Max.hpp"
-
-#include "simulation_classTypes.hpp"
+#include "dataManagement/DataConnector.hpp"
 
 #include "particles/operations/CountParticles.hpp"
 
 #include "common/txtFileHandling.hpp"
+
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+
 
 namespace picongpu
 {

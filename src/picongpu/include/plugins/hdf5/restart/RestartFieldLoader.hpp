@@ -20,19 +20,22 @@
 
 #pragma once
 
-#include <string>
-#include <sstream>
-#include <splash/splash.h>
-
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
+
 #include "particles/frame_types.hpp"
-#include "dataManagement/DataConnector.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "dimensions/GridLayout.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 #include "simulationControl/MovingWindow.hpp"
+
+#include "dataManagement/DataConnector.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "dimensions/GridLayout.hpp"
+
+#include <splash/splash.h>
+
+#include <string>
+#include <sstream>
+
 
 namespace picongpu
 {

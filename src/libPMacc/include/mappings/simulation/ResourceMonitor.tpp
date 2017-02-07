@@ -22,13 +22,14 @@
 
 // PMacc
 #include "Environment.hpp"
-#include <particles/operations/CountParticles.hpp>
+#include "particles/operations/CountParticles.hpp"
 #include "pmacc_types.hpp"
 #include "forward.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "algorithms/ForEach.hpp"
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/simulation/ResourceMonitor.hpp"
+
 
 namespace PMacc
 {

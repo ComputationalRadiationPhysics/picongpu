@@ -24,6 +24,8 @@
 
 #include "random/RNGProvider.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
+#include "dataManagement/DataConnector.hpp"
+
 
 namespace PMacc
 {

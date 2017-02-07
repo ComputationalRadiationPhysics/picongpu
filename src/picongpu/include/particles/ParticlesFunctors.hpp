@@ -21,9 +21,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include <boost/mpl/if.hpp>
 #include "traits/HasFlag.hpp"
 #include "fields/Fields.def"
 #include "math/MapTuple.hpp"
@@ -37,9 +35,11 @@
 #include "particles/bremsstrahlung/Bremsstrahlung.hpp"
 #include "particles/creation/creation.hpp"
 
-#include <memory>
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
+
+#include <memory>
+
 
 namespace picongpu
 {

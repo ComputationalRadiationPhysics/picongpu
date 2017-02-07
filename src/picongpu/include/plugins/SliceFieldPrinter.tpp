@@ -21,12 +21,14 @@
 
 #pragma once
 
+#include "SliceFieldPrinter.hpp"
+#include "fields/FieldB.hpp"
+#include "fields/FieldE.hpp"
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
 #include "dataManagement/DataConnector.hpp"
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
 #include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
@@ -35,8 +37,9 @@
 #include "cuSTL/algorithm/kernel/run-time/Foreach.hpp"
 #include "cuSTL/algorithm/host/Foreach.hpp"
 #include "lambda/Expression.hpp"
-#include "SliceFieldPrinter.hpp"
+
 #include <sstream>
+
 
 namespace picongpu
 {

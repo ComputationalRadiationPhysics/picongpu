@@ -37,7 +37,8 @@
 
 #include <string>
 #include <sstream>
-#include <stdexcept> // throw std::runtime_error
+#include <stdexcept>
+
 
 namespace picongpu
 {
