@@ -65,6 +65,9 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
     template<typename T_Type, int T_Dim>                                       \
     struct ConstArrayStorage                                                   \
     {                                                                          \
+        PMACC_CASSERT_MSG(                                                     \
+            __PMACC_CONST_VECTOR_dimension_needs_to_be_less_than_or_equal_to_the_number_of_arguments__, \
+            Dim <= count );                                                    \
         static constexpr bool isConst = true;                                  \
         typedef T_Type type;                                                   \
         static constexpr int dim = T_Dim;                                      \
