@@ -133,10 +133,13 @@ struct Esirkepov<T_ParticleShape, DIM2>
 
     /**
      * deposites current in z-direction
-     * \param leaveCell vector with information (for each direction) if the particle is leaving the cel
+     * \param leaveCell vector with information if the particle is leaving the cell
+     *         (for each direction, 0 means stays in cell and 1 means leaves cell)
      * \param cursorJ cursor pointing at the current density field of the particle's cell
      * \param line trajectory of the particle from to last to the current time step
      * \param cellEdgeLength length of edge of the cell in z-direction
+     *
+     * @{
      */
     template<typename CursorJ >
     DINLINE void cptCurrent1D(const DataSpace<simDim>& leaveCell,
@@ -202,6 +205,10 @@ struct Esirkepov<T_ParticleShape, DIM2>
             }
 
     }
+
+    /**
+     * @}
+     */
 
     /** calculate S0 (see paper)
      * @param line element with previous and current position of the particle

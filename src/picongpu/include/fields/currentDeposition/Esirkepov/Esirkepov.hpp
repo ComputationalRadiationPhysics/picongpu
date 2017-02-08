@@ -68,9 +68,10 @@ struct Esirkepov<T_ParticleShape, DIM3>
         Line<float3_X> line(oldPos, pos);
 
         DataSpace<DIM3> gridShift;
+
         /* Define in which direction the particle leaves the cell.
-         * It is not important whether the particle move over the positive or negative
-         * cell border.
+         * It is not relevant whether the particle leaves the cell via
+         * the positive or negative cell border.
          *
          * 0 == stay in cell
          * 1 == leave cell
@@ -127,7 +128,9 @@ struct Esirkepov<T_ParticleShape, DIM3>
 
     /**
      * deposites current in z-direction
-     * \param leaveCell vector with information (for each direction) if the particle is leaving the cell
+     *
+     * \param leaveCell vector with information if the particle is leaving the cell
+     *         (for each direction, 0 means stays in cell and 1 means leaves cell)
      * \param cursorJ cursor pointing at the current density field of the particle's cell
      * \param line trajectory of the particle from to last to the current time step
      * \param cellEdgeLength length of edge of the cell in z-direction
