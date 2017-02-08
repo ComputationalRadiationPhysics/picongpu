@@ -43,3 +43,10 @@ ionizationEnergies.param
    :path: src/picongpu/include/simulation_defines/param/ionizationEnergies.param
    :no-link:
 
+flylite.param
+^^^^^^^^^^^^^
+
+.. doxygenfile:: flylite.param
+   :project: PIConGPU
+   :path: src/picongpu/include/simulation_defines/param/flylite.param
+   :no-link:
