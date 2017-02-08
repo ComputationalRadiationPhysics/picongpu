@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2017 Marco Garten
+ * Copyright 2014-2017 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -22,6 +22,7 @@
 
 #include "particles/ionization/byField/fieldIonizationCalc.def"
 
+
 namespace picongpu
 {
     /** Effective Atomic Numbers
@@ -34,19 +35,47 @@ namespace picongpu
      * @see https://en.wikipedia.org/wiki/Effective_nuclear_charge
      * or refer directly to the calculations by Slater or Clementi and Raimondi
      *
+     * References:
+     *   Clementi, E.; Raimondi, D. L. (1963)
+     *     "Atomic Screening Constants from SCF Functions"
+     *     J. Chem. Phys. 38 (11): 2686–2689. doi:10.1063/1.1733573
+     *   Clementi, E.; Raimondi, D. L.; Reinhardt, W. P. (1967)
+     *     "Atomic Screening Constants from SCF Functions. II. Atoms with 37 to 86 Electrons"
+     *     Journal of Chemical Physics. 47: 1300–1307. doi:10.1063/1.1712084
+     *
      * IMPORTANT NOTE:
      * You have to insert the values in REVERSE order since the lowest shell
      * corresponds to the last ionization process!
      */
 
     /* For hydrogen Z_eff is obviously equal to Z */
-    PMACC_CONST_VECTOR(float_X,1,Z_EFFECTIVE_HYDROGEN,
+    PMACC_CONST_VECTOR(float_X, 1, Z_EFFECTIVE_HYDROGEN,
         /* 1s */
         1.
-        );
+    );
+
+    /* Example: helium */
+    PMACC_CONST_VECTOR(float_X, 2, Z_EFFECTIVE_HELIUM,
+        /* 1s */
+        1.688,
+        1.688
+    );
+
+    /* Example: carbon */
+    PMACC_CONST_VECTOR(float_X, 6, Z_EFFECTIVE_CARBON,
+        /* 2p */
+        3.136,
+        3.136,
+        /* 2s */
+        3.217,
+        3.217,
+        /* 1s */
+        5.673,
+        5.673
+    );
 
     /* Example: nitrogen */
-    PMACC_CONST_VECTOR(float_X,7,Z_EFFECTIVE_NITROGEN,
+    PMACC_CONST_VECTOR(float_X, 7, Z_EFFECTIVE_NITROGEN,
         /* 2p */
         3.834,
         3.834,
@@ -57,5 +86,82 @@ namespace picongpu
         /* 1s */
         6.665,
         6.665
-        );
+    );
+
+    /* Example: oxygen */
+    PMACC_CONST_VECTOR(float_X, 8, Z_EFFECTIVE_OXYGEN,
+        /* 2p */
+        4.453,
+        4.453,
+        4.453,
+        4.453,
+        /* 2s */
+        4.492,
+        4.492,
+        /* 1s */
+        7.658,
+        7.658
+    );
+
+    /* Example: aluminium */
+    PMACC_CONST_VECTOR(float_X, 13, Z_EFFECTIVE_ALUMINIUM,
+        /* 3p */
+        4.066,
+        /* 3s */
+        4.117,
+        4.117,
+        /* 2p */
+        8.963,
+        8.963,
+        8.963,
+        8.963,
+        8.963,
+        8.963,
+        /* 2s */
+        8.214,
+        8.214,
+        /* 1s */
+        12.591,
+        12.591
+    );
+
+    /* Example: copper */
+    PMACC_CONST_VECTOR(float_X, 29, Z_EFFECTIVE_COPPER,
+        /* 3d */
+        13.201,
+        13.201,
+        13.201,
+        13.201,
+        13.201,
+        13.201,
+        13.201,
+        13.201,
+        13.201,
+        /* 4s */
+        5.842,
+        5.842,
+        /* 3p */
+        14.731,
+        14.731,
+        14.731,
+        14.731,
+        14.731,
+        14.731,
+        /* 3s */
+        15.594,
+        15.594,
+        /* 2p */
+        25.097,
+        25.097,
+        25.097,
+        25.097,
+        25.097,
+        25.097,
+        /* 2s */
+        21.020,
+        21.020,
+        /* 1s */
+        28.339,
+        28.339
+    );
 }
