@@ -288,7 +288,7 @@ This is an example how to use the modular building environment of PIConGPU.
 10. **Run:** Example run for the HPC System "hypnos" using a PBS batch system
     - *optional:* `tbg --help`
     - `tbg -s qsub -c submit/0016gpus.cfg
-           -t submit/hypnos/k20_profile.tpl $PICHOME/runs/testBatch01`
+           -t submit/hypnos-hzdr/k20_profile.tpl $PICHOME/runs/testBatch01`
     - This will create the directory `$PICHOME/runs/testBatch01` were all
       simulation output will be written to.
       ( *Again*, do NOT use your home `$HOME/runs` - change this path!)
@@ -305,7 +305,7 @@ To build PIConGPU with tracing support, change the steps in the example to:
 
 (8.) `cd $PICHOME/paramSets/case001`: goto installed programm
 
-(9.) `tbg -s qsub -c submit/0016gpus.cfg -t submit/hypnos/k20_vampir_profile.tpl
+(9.) `tbg -s qsub -c submit/0016gpus.cfg -t submit/hypnos-hzdr/k20_vampir_profile.tpl
        $PICHOME/runs/testBatchVampir`
 
 *******************************************************************************
