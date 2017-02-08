@@ -54,16 +54,8 @@ struct Esirkepov<T_ParticleShape, DIM2>
     typedef typename PMacc::math::CT::make_Int<DIM2, currentLowerMargin>::type LowerMargin;
     typedef typename PMacc::math::CT::make_Int<DIM2, currentUpperMargin>::type UpperMargin;
 
-    /* begin and end border is calculated for the current time step were the old
-     * position of the particle in the previous time step is smaller than the current position
-     * Later on all coordinates are shifted thus we can solve the charge calculation
-     * in support + 1 steps.
-     *
-     * For the case were previous position is greater than current position we correct
-     * begin and end on runtime and add +1 to begin and end.
-     */
-    static constexpr int begin = -currentLowerMargin;
-    static constexpr int end = begin + supp + 1;
+    static constexpr int begin = -currentLowerMargin + 1;
+    static constexpr int end = begin + supp;
 
     float_X charge;
 
@@ -78,39 +70,38 @@ struct Esirkepov<T_ParticleShape, DIM2>
                                            velocity.y() * deltaTime / cellSize.y());
         const PosType oldPos = pos - deltaPos;
         Line<float2_X> line(oldPos, pos);
-        auto cursorJ = dataBoxJ.toCursor();
 
-        if (supp % 2 == 1)
+        DataSpace<simDim> gridShift;
+        /* Define in which direction the particle leaves the cell.
+         * It is not important whether the particle move over the positive or negative
+         * cell border.
+         *
+         * 0 == stay in cell
+         * 1 == leave cell
+         */
+        DataSpace<DIM2> leaveCell;
+
+        /* calculate the offset for the virtual coordinate system */
+        for(int d=0; d<simDim; ++d)
         {
-            /* odd support
-             * we need only for odd supports a shift because for even supports
-             * we have always the grid range [-support/2+1;support/2] if we have
-             * no moving particle
-             *
-             * With this coordinate shift we only look to the support of one
-             * particle which is not moving. Moving praticles coordinate shifts
-             * are handled later (named offset_*)
-             */
-
-            /* for any direction
-             * if pos> 0.5
-             * shift curser+1 and new_pos=old_pos-1
-             *
-             * floor(pos*2.0) is equal (pos > 0.5)
-             */
-            float2_X coordinate_shift(
-                                      float_X(math::floor(pos.x() * float_X(2.0))),
-                                      float_X(math::floor(pos.y() * float_X(2.0)))
-                                      );
-            cursorJ = cursorJ(
-                              PMacc::math::Int < 2 > (
-                                                      coordinate_shift.x(),
-                                                      coordinate_shift.y()
-                                                      ));
-            //same as: pos = pos - coordinate_shift;
-            line.m_pos0 -= (coordinate_shift);
-            line.m_pos1 -= (coordinate_shift);
+            int iStart;
+            int iEnd;
+            constexpr bool isSupportEven = ( supp % 2 == 0 );
+            RelayPoint< isSupportEven >()(
+                iStart,
+                iEnd,
+                line.m_pos0[d],
+                line.m_pos1[d]
+            );
+            gridShift[d] = iStart < iEnd ? iStart : iEnd; // integer min function
+            /* particle is leaving the cell */
+            leaveCell[d] = iStart != iEnd ? 1 : 0;
+            /* shift the particle position to the virtual coordinate system */
+            line.m_pos0[d] -= gridShift[d];
+            line.m_pos1[d] -= gridShift[d];
         }
+        /* shift current field to the virtual coordinate system */
+        auto cursorJ = dataBoxJ.shift(gridShift).toCursor();
 
         /**
          * \brief the following three calls separate the 3D current deposition
@@ -120,86 +111,104 @@ struct Esirkepov<T_ParticleShape, DIM2>
          */
 
         using namespace cursor::tools;
-        cptCurrent1D(cursorJ, line, cellSize.x());
-        cptCurrent1D(twistVectorFieldAxes<PMacc::math::CT::Int < 1, 0 > >(cursorJ), rotateOrigin < 1, 0 > (line), cellSize.y());
-        cptCurrentZ(cursorJ, line, velocity.z());
+        cptCurrent1D(
+            leaveCell,
+            cursorJ,
+            line,
+            cellSize.x()
+        );
+        cptCurrent1D(DataSpace<DIM2>(
+            leaveCell[1],leaveCell[0]),
+            twistVectorFieldAxes<PMacc::math::CT::Int < 1, 0 > >(cursorJ),
+            rotateOrigin < 1, 0 > (line),
+            cellSize.y()
+        );
+        cptCurrentZ(
+            leaveCell,
+            cursorJ,
+            line,
+            velocity.z()
+        );
     }
 
     /**
      * deposites current in z-direction
+     * \param leaveCell vector with information if the particle is leaving the cell
+     *         (for each direction, 0 means stays in cell and 1 means leaves cell)
      * \param cursorJ cursor pointing at the current density field of the particle's cell
      * \param line trajectory of the particle from to last to the current time step
      * \param cellEdgeLength length of edge of the cell in z-direction
+     *
+     * @{
      */
     template<typename CursorJ >
-    DINLINE void cptCurrent1D(CursorJ cursorJ,
+    DINLINE void cptCurrent1D(const DataSpace<simDim>& leaveCell,
+                              CursorJ cursorJ,
                               const Line<float2_X>& line,
                               const float_X cellEdgeLength)
     {
-        /* Check if particle position in previous step was greater or
-         * smaller than current position.
-         *
-         * If previous position was greater than current position we change our interval
-         * from [begin,end) to [begin+1,end+1).
-         */
-        const int offset_i = line.m_pos0.x() > line.m_pos1.x() ? 1 : 0;
-        const int offset_j = line.m_pos0.y() > line.m_pos1.y() ? 1 : 0;
+        /* skip calculation if the particle is not moving in x direction */
+        if(line.m_pos0[0] == line.m_pos1[0])
+            return;
 
-
-        for (int j = begin + offset_j; j < end + offset_j; ++j)
-        {
-            /* This is the implementation of the FORTRAN W(i,j,k,1)/ C style W(i,j,k,0) version from
-             * Esirkepov paper. All coordinates are rotated before thus we can
-             * always use C style W(i,j,k,0).
-             */
-            float_X tmp = S0(line, j, 1) + float_X(0.5) * DS(line, j, 1);
-
-            float_X accumulated_J = float_X(0.0);
-            for (int i = begin + offset_i; i < end + offset_i; ++i)
+        for(int j = begin; j < end + 1; ++j)
+            if(j < end + leaveCell[1])
             {
-                float_X W = DS(line, i, 0) * tmp;
-                /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
-                 * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1) */
-                accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
-                /* the branch divergence here still over-compensates for the fewer collisions in the (expensive) atomic adds */
-                if (accumulated_J != float_X(0.0))
-                    atomicAddWrapper(&((*cursorJ(i, j)).x()), accumulated_J);
+                /* This is the implementation of the FORTRAN W(i,j,k,1)/ C style W(i,j,k,0) version from
+                 * Esirkepov paper. All coordinates are rotated before thus we can
+                 * always use C style W(i,j,k,0).
+                 */
+                float_X tmp = S0(line, j, 1) + float_X(0.5) * DS(line, j, 1);
+
+                float_X accumulated_J = float_X(0.0);
+                /* attention: inner loop has no upper bound `end + 1` because
+                 * the current for the point `end` is always zero,
+                 * therefore we skip the calculation
+                 */
+                for(int i = begin; i < end; ++i)
+                    if(i < end + leaveCell[0] - 1)
+                    {
+                        float_X W = DS(line, i, 0) * tmp;
+                        /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
+                         * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1) */
+                        accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
+                        atomicAddWrapper(&((*cursorJ(i, j)).x()), accumulated_J);
+                    }
             }
-        }
 
     }
 
     template<typename CursorJ >
-    DINLINE void cptCurrentZ(CursorJ cursorJ,
+    DINLINE void cptCurrentZ(const DataSpace<simDim>& leaveCell,
+                             CursorJ cursorJ,
                              const Line<float2_X>& line,
                              const float_X v_z)
     {
-        /* Check if particle position in previous step was greater or
-         * smaller than current position.
-         *
-         * If previous position was greater than current position we change our interval
-         * from [begin,end) to [begin+1,end+1).
-         */
-        const int offset_i = line.m_pos0.x() > line.m_pos1.x() ? 1 : 0;
-        const int offset_j = line.m_pos0.y() > line.m_pos1.y() ? 1 : 0;
+        if(v_z == float_X( 0.0 ))
+                return;
 
-
-        for (int j = begin + offset_j; j < end + offset_j; ++j)
-        {
-            for (int i = begin + offset_i; i < end + offset_i; ++i)
+        for(int j = begin; j < end + 1; ++j)
+            if(j < end + leaveCell[1])
             {
-                float_X W = S0(line, i, 0) * S0(line, j, 1) +
-                    float_X(0.5) * DS(line, i, 0) * S0(line, j, 1) +
-                    float_X(0.5) * S0(line, i, 0) * DS(line, j, 1)+
-                    (float_X(1.0) / float_X(3.0)) * DS(line, i, 0) * DS(line, j, 1);
 
-                const float_X j_z = this->charge * (float_X(1.0) / float_X(CELL_VOLUME)) * W * v_z;
-                if (j_z != float_X(0.0))
-                    atomicAddWrapper(&((*cursorJ(i, j)).z()), j_z);
+                for(int i = begin; i < end + 1; ++i)
+                    if(i < end + leaveCell[0])
+                    {
+                        float_X W = S0(line, i, 0) * S0(line, j, 1) +
+                            float_X(0.5) * DS(line, i, 0) * S0(line, j, 1) +
+                            float_X(0.5) * S0(line, i, 0) * DS(line, j, 1)+
+                            (float_X(1.0) / float_X(3.0)) * DS(line, i, 0) * DS(line, j, 1);
+
+                        const float_X j_z = this->charge * (float_X(1.0) / float_X(CELL_VOLUME)) * W * v_z;
+                        atomicAddWrapper(&((*cursorJ(i, j)).z()), j_z);
+                    }
             }
-        }
 
     }
+
+    /**
+     * @}
+     */
 
     /** calculate S0 (see paper)
      * @param line element with previous and current position of the particle
