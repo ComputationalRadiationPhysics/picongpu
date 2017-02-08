@@ -1,5 +1,5 @@
 /**
- * Copyright 2014-2017 Marco Garten
+ * Copyright 2014-2017 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -63,15 +63,36 @@ namespace AU
      * @see libPMacc/include/math/ConstVector.hpp
      * for finding ionization energies,
      * @see http://physics.nist.gov/PhysRefData/ASD/ionEnergy.html
+     *
+     * Reference: Kramida, A., Ralchenko, Yu., Reader, J., and NIST ASD Team (2014)
+     *            NIST Atomic Spectra Database (ver. 5.2), [Online]
+     *            Available: http://physics.nist.gov/asd [2017, February 8]
+     *            National Institute of Standards and Technology, Gaithersburg, MD
      */
 
     /* ionization energy for ground state hydrogen in atomic units */
-    PMACC_CONST_VECTOR(float_X,1,IONIZATION_ENERGY_HYDROGEN,
-        13.60569 * UNITCONV_eV_to_AU
+    PMACC_CONST_VECTOR(float_X, 1, IONIZATION_ENERGY_HYDROGEN,
+        13.59843 * UNITCONV_eV_to_AU
     );
 
-    /* ionization energy for nitrogen atomic units */
-    PMACC_CONST_VECTOR(float_X,7,IONIZATION_ENERGY_NITROGEN,
+    /* ionization energy for ground state helium in atomic units */
+    PMACC_CONST_VECTOR(float_X, 2, IONIZATION_ENERGY_HELIUM,
+        24.58739 * UNITCONV_eV_to_AU,
+        54.41776 * UNITCONV_eV_to_AU
+    );
+
+    /* ionization energy for carbon in atomic units */
+    PMACC_CONST_VECTOR(float_X, 6, IONIZATION_ENERGY_CARBON,
+        11.2603 * UNITCONV_eV_to_AU,
+        24.3845 * UNITCONV_eV_to_AU,
+        47.88778 * UNITCONV_eV_to_AU,
+        64.49351 * UNITCONV_eV_to_AU,
+        392.0905 * UNITCONV_eV_to_AU,
+        489.993177 * UNITCONV_eV_to_AU
+    );
+
+    /* ionization energy for nitrogen in atomic units */
+    PMACC_CONST_VECTOR(float_X, 7, IONIZATION_ENERGY_NITROGEN,
         14.53413 * UNITCONV_eV_to_AU,
         29.60125 * UNITCONV_eV_to_AU,
         47.4453 * UNITCONV_eV_to_AU,
@@ -79,6 +100,68 @@ namespace AU
         97.89013 * UNITCONV_eV_to_AU,
         552.06731 * UNITCONV_eV_to_AU,
         667.04609 * UNITCONV_eV_to_AU
+    );
+
+    /* ionization energy for oxygen in atomic units */
+    PMACC_CONST_VECTOR(float_X, 8, IONIZATION_ENERGY_OXYGEN,
+        13.61805 * UNITCONV_eV_to_AU,
+        35.12112 * UNITCONV_eV_to_AU,
+        54.93554 * UNITCONV_eV_to_AU,
+        77.41350 * UNITCONV_eV_to_AU,
+        113.8989 * UNITCONV_eV_to_AU,
+        138.1189 * UNITCONV_eV_to_AU,
+        739.3268 * UNITCONV_eV_to_AU,
+        871.4098 * UNITCONV_eV_to_AU
+    );
+
+    /* ionization energy for aluminium in atomic units */
+    PMACC_CONST_VECTOR(float_X, 13, IONIZATION_ENERGY_ALUMINIUM,
+        5.98577 * UNITCONV_eV_to_AU,
+        18.8285 * UNITCONV_eV_to_AU,
+        28.4476 * UNITCONV_eV_to_AU,
+        119.992 * UNITCONV_eV_to_AU,
+        153.825 * UNITCONV_eV_to_AU,
+        190.495 * UNITCONV_eV_to_AU,
+        241.769 * UNITCONV_eV_to_AU,
+        284.647 * UNITCONV_eV_to_AU,
+        330.214 * UNITCONV_eV_to_AU,
+        398.656 * UNITCONV_eV_to_AU,
+        442.006 * UNITCONV_eV_to_AU,
+        2085.97 * UNITCONV_eV_to_AU,
+        2304.14 * UNITCONV_eV_to_AU
+    );
+
+    /* ionization energy for copper in atomic units */
+    PMACC_CONST_VECTOR(float_X, 29, IONIZATION_ENERGY_COPPER,
+        7.72638 * UNITCONV_eV_to_AU,
+        20.2924 * UNITCONV_eV_to_AU,
+        36.8411 * UNITCONV_eV_to_AU,
+        57.385  * UNITCONV_eV_to_AU,
+        79.87   * UNITCONV_eV_to_AU,
+        103.010 * UNITCONV_eV_to_AU,
+        139.012 * UNITCONV_eV_to_AU,
+        166.021 * UNITCONV_eV_to_AU,
+        198.022 * UNITCONV_eV_to_AU,
+        232.25  * UNITCONV_eV_to_AU,
+        265.332 * UNITCONV_eV_to_AU,
+        367.09  * UNITCONV_eV_to_AU,
+        401.03  * UNITCONV_eV_to_AU,
+        436.06  * UNITCONV_eV_to_AU,
+        483.19  * UNITCONV_eV_to_AU,
+        518.712 * UNITCONV_eV_to_AU,
+        552.821 * UNITCONV_eV_to_AU,
+        632.56  * UNITCONV_eV_to_AU,
+        670.608 * UNITCONV_eV_to_AU,
+        1690.59 * UNITCONV_eV_to_AU,
+        1800.3  * UNITCONV_eV_to_AU,
+        1918.4  * UNITCONV_eV_to_AU,
+        2044.6  * UNITCONV_eV_to_AU,
+        2179.4  * UNITCONV_eV_to_AU,
+        2307.32 * UNITCONV_eV_to_AU,
+        2479.12 * UNITCONV_eV_to_AU,
+        2586.95 * UNITCONV_eV_to_AU,
+        11062.4 * UNITCONV_eV_to_AU,
+        11567.6 * UNITCONV_eV_to_AU
     );
 
 } // namespace SI
