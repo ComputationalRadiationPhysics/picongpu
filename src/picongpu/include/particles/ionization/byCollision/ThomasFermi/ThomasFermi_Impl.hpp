@@ -20,27 +20,26 @@
 
 #pragma once
 
-#include <boost/type_traits/integral_constant.hpp>
-
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
 #include "traits/UsesRNG.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
 
 #include "fields/FieldTmp.hpp"
 
 #include "particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
 #include "particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
 #include "particles/ionization/ionization.hpp"
-
-#include "compileTime/conversion/TypeToPointerPair.hpp"
-#include "memory/boxes/DataBox.hpp"
-
 #include "particles/ionization/ionizationMethods.hpp"
 
 #include "random/methods/XorMin.hpp"
 #include "random/distributions/Uniform.hpp"
 #include "random/RNGProvider.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "compileTime/conversion/TypeToPointerPair.hpp"
+#include "memory/boxes/DataBox.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+
+#include <boost/type_traits/integral_constant.hpp>
 
 namespace picongpu
 {
@@ -72,8 +71,8 @@ namespace ionization
     struct ThomasFermi_Impl
     {
 
-        typedef T_DestSpecies DestSpecies;
-        typedef T_SrcSpecies  SrcSpecies;
+        using DestSpecies = T_DestSpecies;
+        using SrcSpecies = T_SrcSpecies;
 
         typedef typename SrcSpecies::FrameType FrameType;
 
@@ -106,7 +105,7 @@ namespace ionization
             typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
             RandomGen randomGen;
 
-            typedef MappingDesc::SuperCellSize TVec;
+            using SuperCellSize = MappingDesc::SuperCellSize;
 
             typedef FieldTmp::ValueType ValueType_Rho;
             typedef FieldTmp::ValueType ValueType_Ene;
@@ -234,10 +233,10 @@ namespace ionization
                 /* alias for the single macro-particle */
                 auto particle = ionFrame[localIdx];
                 /* particle position, used for field-to-particle interpolation */
-                floatD_X pos = particle[position_];
-                const int particleCellIdx = particle[localCellIdx_];
+                floatD_X const pos = particle[position_];
+                int const particleCellIdx = particle[localCellIdx_];
                 /* multi-dim coordinate of the local cell inside the super cell */
-                DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
+                DataSpace<SuperCellSize::dim> localCell(DataSpaceOperations<SuperCellSize::dim>::template map<SuperCellSize > (particleCellIdx));
                 /* interpolation of density */
                 const fieldSolver::numericalCellType::traits::FieldPosition<FieldTmp> fieldPosRho;
                 ValueType_Rho densityV = Field2ParticleInterpolation()
@@ -257,14 +256,19 @@ namespace ionization
 
                 /* this is the point where actual ionization takes place */
                 IonizationAlgorithm ionizeAlgo;
-                ionizeAlgo(
+                float_X newBoundElectrons = ionizeAlgo(
                     kinEnergyDensity, density,
                     particle, this->randomGen()
                     );
 
-                /* determine number of new macro electrons to be created */
-                newMacroElectrons = prevBoundElectrons - particle[boundElectrons_];
+                particle[boundElectrons_] = newBoundElectrons;
 
+                /* safety check to avoid double counting since recombination is not yet implemented */
+                if (prevBoundElectrons > newBoundElectrons)
+                {
+                    /* determine number of new macro electrons to be created */
+                    newMacroElectrons = static_cast<unsigned int>(prevBoundElectrons - newBoundElectrons);
+                }
             }
 
     };

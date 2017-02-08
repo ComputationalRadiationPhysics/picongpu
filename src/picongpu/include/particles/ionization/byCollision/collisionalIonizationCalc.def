@@ -35,8 +35,6 @@ namespace particles
 namespace ionization
 {
 
-    struct AlgorithmNone;
-
     struct AlgorithmThomasFermi;
 
 } // namespace ionization

@@ -41,7 +41,6 @@ namespace ionization
 
     /** Thomas-Fermi impact ionization model
      *
-     *
      * This ionization model describes the atom inside the Thomas-Fermi framework
      * in a self-consistent way. There the electrons are modeled as a density
      * with respect to the distance from the core while the atomic core is often

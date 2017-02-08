@@ -62,6 +62,15 @@ namespace picongpu
          * 150 attoseconds (classical electron orbit time in hydrogen)  / 2 PI
          */
         constexpr float_64 ATOMIC_UNIT_TIME = 2.4189e-17;
+
+        /** Avogadro number
+         * unit: mol^-1
+         *
+         * Y. Azuma et al. Improved measurement results for the Avogadro
+         * constant using a 28-Si-enriched crystal, Metrologie 52, 2015, 360-375
+         * doi:10.1088/0026-1394/52/2/360
+         */
+        constexpr float_64 N_AVOGADRO = 6.02214076e23;
     }
 
     // converts
