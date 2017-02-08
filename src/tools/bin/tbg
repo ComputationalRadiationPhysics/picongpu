@@ -19,15 +19,11 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-# This script parse a tpl file and combine data from cfg file to start a batch job
-# in a PBS based batch system
-# example: ./tpg qsub testRun hypnos/hypnos.tpl hypnos/picongpu.cfg
-
-#$1        - submit command e.g. qsub
-#$2        - job name (must uniqu to older jobs)
-#$3        - tpl file
-#$4        - cfg file
-
+# This script parses template files for a batch systems and fills them
+# with a platform-independent configuration, which can then be submitted
+# to a batch system or plainly executed. It can also execute additional
+# commands at that point, e.g. to copy and archive input files alongside
+# a batch job.
 
 #######################
 ## replace all `!var` variables
