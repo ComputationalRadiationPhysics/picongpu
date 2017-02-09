@@ -26,6 +26,8 @@
 #include "dimensions/DataSpaceOperations.hpp"
 #include "dataManagement/DataConnector.hpp"
 
+#include <memory>
+
 
 namespace PMacc
 {
@@ -60,7 +62,7 @@ namespace random
         if(m_size.productOfComponents() == 0)
             throw std::invalid_argument("Cannot create RNGProvider with zero size");
 
-        Environment<dim>::get().DataConnector().registerData(*this);
+        Environment<T_dim>::get().DataConnector().share( std::shared_ptr< ISimulationData >( this ) );
     }
 
     template<uint32_t T_dim, class T_RNGMethod>
@@ -81,9 +83,10 @@ namespace random
     typename RNGProvider<T_dim, T_RNGMethod>::Handle
     RNGProvider<T_dim, T_RNGMethod>::createHandle(const std::string& id)
     {
-        RNGProvider& provider = Environment<>::get().DataConnector().getData<RNGProvider>(id, true);
-        Handle result(provider.getDeviceDataBox());
-        Environment<>::get().DataConnector().releaseData(id);
+        auto provider =
+            Environment<>::get().DataConnector().get< RNGProvider >( id, true );
+        Handle result( provider->getDeviceDataBox() );
+        Environment<>::get().DataConnector().releaseData( id );
         return result;
     }
 
