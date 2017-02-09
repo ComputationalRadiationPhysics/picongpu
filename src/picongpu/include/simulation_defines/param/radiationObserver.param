@@ -86,10 +86,10 @@ namespace picongpu
 
       /* compute step with between two angles for range [angle_??_start : angle_??_end] */
       constexpr int N_theta           = parameters::N_observer / N_angle_split;
-      const picongpu::float_64 delta_angle_theta =  (angle_theta_start -
-                       angle_theta_end) / (N_theta-1.0);
-      const picongpu::float_64 delta_angle_phi   =  (angle_phi_start -
-                       angle_phi_end)   / (N_angle_split-1.0);
+      const picongpu::float_64 delta_angle_theta =  (angle_theta_end -
+                       angle_theta_start) / (N_theta-1.0);
+      const picongpu::float_64 delta_angle_phi   =  (angle_phi_end -
+                       angle_phi_start)   / (N_angle_split-1.0);
 
       /* compute observation angles */
       const picongpu::float_64 theta(  my_index_theta * delta_angle_theta + angle_theta_start );
