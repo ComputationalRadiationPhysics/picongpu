@@ -32,7 +32,7 @@ namespace PMacc
 {
     CudaEvent::CudaEvent( ) : isRecorded( false ), finished( true ), refCounter( 0u )
     {
-        log( ggLog::CUDA_RT()+ggLog::MEMORY(), "create event" );
+        log( ggLog::CUDA_RT()+ggLog::EVENT(), "create event" );
         CUDA_CHECK( cudaEventCreateWithFlags( &event, cudaEventDisableTiming ) );
     }
 
@@ -40,7 +40,7 @@ namespace PMacc
     CudaEvent::~CudaEvent( )
     {
         PMACC_ASSERT( refCounter == 0u );
-        log( ggLog::CUDA_RT()+ggLog::MEMORY(), "sync and delete event" );
+        log( ggLog::CUDA_RT()+ggLog::EVENT(), "sync and delete event" );
         // free cuda event
         CUDA_CHECK( cudaEventSynchronize( event ) );
         CUDA_CHECK( cudaEventDestroy( event ) );
