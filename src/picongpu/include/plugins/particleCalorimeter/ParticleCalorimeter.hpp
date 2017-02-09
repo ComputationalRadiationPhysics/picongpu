@@ -431,7 +431,7 @@ public:
 
         /* create kernel functor instance */
         DataConnector &dc = Environment<>::get().DataConnector();
-        ParticlesType* particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
 
         ParticleCalorimeterKernel<typename ParticlesType::ParticlesBoxType,
                                   MyCalorimeterFunctor>
@@ -521,11 +521,12 @@ public:
         auto grid = mapper.getGridDim();
 
         DataConnector &dc = Environment<>::get().DataConnector();
-        ParticlesType* particles = &(dc.getData<ParticlesType > (speciesName, true));
+        auto particles = dc.get< ParticlesType >( speciesName, true );
 
         PMACC_KERNEL(KernelParticleCalorimeter{})
                 (grid, mapper.getSuperCellSize())
                 (particles->getDeviceParticlesBox(), (MyCalorimeterFunctor)*this->calorimeterFunctor, mapper);
+        dc.releaseData( speciesName );
     }
 };
 

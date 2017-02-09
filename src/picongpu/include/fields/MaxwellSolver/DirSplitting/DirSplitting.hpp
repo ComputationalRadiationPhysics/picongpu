@@ -99,15 +99,15 @@ public:
 
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
-        FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
         auto fieldE_coreBorder =
-            fieldE.getGridBuffer().getDeviceBuffer().
+            fieldE->getGridBuffer().getDeviceBuffer().
                    cartBuffer().view(GuardDim().toRT(),
                                      -GuardDim().toRT());
         auto fieldB_coreBorder =
-            fieldB.getGridBuffer().getDeviceBuffer().
+            fieldB->getGridBuffer().getDeviceBuffer().
             cartBuffer().view(GuardDim().toRT(),
                               -GuardDim().toRT());
 
@@ -123,8 +123,8 @@ public:
                   fieldB_coreBorder.origin(),
                   gridSize);
 
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
 
         typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
         propagate<Orientation_Y>(
@@ -132,8 +132,8 @@ public:
                   fieldB_coreBorder.origin(),
                   gridSize);
 
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
 
         typedef PMacc::math::CT::Int<2,0,1> Orientation_Z;
         propagate<Orientation_Z>(
@@ -142,26 +142,29 @@ public:
                   gridSize);
 
         if (laserProfile::INIT_TIME > float_X(0.0))
-            dc.getData<FieldE > (FieldE::getName(), true).laserManipulation(currentStep);
+            fieldE->laserManipulation(currentStep);
 
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
+
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
     }
 
     void update_afterCurrent(uint32_t) const
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
-        FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
-        EventTask eRfieldE = fieldE.asyncCommunication(__getTransactionEvent());
-        EventTask eRfieldB = fieldB.asyncCommunication(__getTransactionEvent());
+        EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
+        EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(eRfieldE);
         __setTransactionEvent(eRfieldB);
 
-        dc.releaseData(FieldE::getName());
-        dc.releaseData(FieldB::getName());
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
     }
 
     static PMacc::traits::StringProperty getStringProperties()

@@ -99,7 +99,7 @@ namespace ionization
             {
                 DataConnector &dc = Environment<>::get().DataConnector();
                 /* initialize pointers on host-side E-(B-)field databoxes */
-                FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
+                auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
                 /* initialize device-side E-(B-)field databoxes */
                 eBox = fieldE->getDeviceDataBox();
 

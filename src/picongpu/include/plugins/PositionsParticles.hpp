@@ -169,8 +169,6 @@ private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
     typedef floatD_X FloatPos;
 
-    ParticlesType *particles;
-
     GridBuffer<SglParticle<FloatPos>, DIM1> *gParticle;
 
     MappingDesc *cellDescription;
@@ -184,7 +182,6 @@ public:
     PositionsParticles() :
     analyzerName("PositionsParticles: write position of one particle of a species to std::cout"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_position")),
-    particles(nullptr),
     gParticle(nullptr),
     cellDescription(nullptr),
     notifyFrequency(0)
@@ -199,11 +196,6 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
-
         const int rank = Environment<simDim>::get().GridController().getGlobalRank();
         const SglParticle<FloatPos> positionParticle = getPositionsParticles < CORE + BORDER > (currentStep);
 
@@ -252,9 +244,11 @@ private:
     template< uint32_t AREA>
     SglParticle<FloatPos> getPositionsParticles(uint32_t currentStep)
     {
-
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
         SglParticle<FloatPos> positionParticleTmp;
+
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
 
         gParticle->getDeviceBuffer().setValue(positionParticleTmp);
         auto block = SuperCellSize::toRT();
@@ -265,6 +259,8 @@ private:
             (particles->getDeviceParticlesBox(),
              gParticle->getDeviceBuffer().getBasePointer(),
              mapper);
+
+        dc.releaseData( ParticlesType::FrameType::getName() );
         gParticle->deviceToHost();
 
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());

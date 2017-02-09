@@ -113,7 +113,7 @@ void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
       typedef SuperCellSize BlockDim;
       DataConnector &dc = Environment<>::get().DataConnector();
       auto field_coreBorder =
-                 dc.getData<Field > (Field::getName(), true).getGridBuffer().
+                 dc.get< Field >( Field::getName(), true )->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(BlockDim::toRT(), -BlockDim::toRT());
 

@@ -84,8 +84,6 @@ struct KernelSumCurrents
 class SumCurrents : public ILightweightPlugin
 {
 private:
-    FieldJ* fieldJ;
-
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
@@ -94,7 +92,6 @@ private:
 public:
 
     SumCurrents() :
-    fieldJ(nullptr),
     cellDescription(nullptr),
     notifyFrequency(0)
     {
@@ -109,11 +106,6 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
-
-
         const int rank = Environment<simDim>::get().GridController().getGlobalRank();
         const float3_X gCurrent = getSumCurrents();
 
@@ -183,6 +175,9 @@ private:
 
     float3_X getSumCurrents()
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
+
         sumcurrents->getDeviceBuffer().setValue(float3_X::create(0.0));
         auto block = MappingDesc::SuperCellSize::toRT();
 
@@ -192,6 +187,9 @@ private:
             (fieldJ->getDeviceDataBox(),
              sumcurrents->getDeviceBuffer().getBasePointer(),
              mapper);
+
+        dc.releaseData( FieldJ::getName() );
+
         sumcurrents->deviceToHost();
         return sumcurrents->getHostBuffer().getDataBox()[0];
     }

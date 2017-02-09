@@ -42,15 +42,18 @@
 
 #include "math/Vector.hpp"
 
-#include <list>
-
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "traits/GetMargin.hpp"
 #include "traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
-#include <boost/mpl/accumulate.hpp>
 #include "fields/LaserPhysics.hpp"
+
+#include <boost/mpl/accumulate.hpp>
+
+#include <list>
+#include <memory>
+
 
 namespace picongpu
 {
@@ -158,7 +161,7 @@ void FieldE::init( FieldB &fieldB, LaserPhysics &laserPhysics )
     this->fieldB = &fieldB;
     this->laser = &laserPhysics;
 
-    Environment<>::get().DataConnector().registerData( *this);
+    Environment<>::get().DataConnector().share( std::shared_ptr< ISimulationData >( this ) );
 }
 
 FieldE::DataBoxType FieldE::getDeviceDataBox( )

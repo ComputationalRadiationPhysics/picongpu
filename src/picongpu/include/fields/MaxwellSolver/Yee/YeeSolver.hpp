@@ -53,8 +53,8 @@ private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
 
-    FieldE* fieldE;
-    FieldB* fieldB;
+    std::shared_ptr< FieldE > fieldE;
+    std::shared_ptr< FieldB > fieldB;
     MappingDesc m_cellDescription;
 
     template<uint32_t AREA>
@@ -105,8 +105,8 @@ public:
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        this->fieldE = &dc.getData<FieldE > (FieldE::getName(), true);
-        this->fieldB = &dc.getData<FieldB > (FieldB::getName(), true);
+        this->fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        this->fieldB = dc.get< FieldB >( FieldB::getName(), true );
     }
 
     void update_beforeCurrent(uint32_t)

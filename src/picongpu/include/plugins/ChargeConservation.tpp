@@ -178,12 +178,12 @@ struct ComputeChargeDensity
         DataConnector &dc = Environment<>::get().DataConnector();
 
         /* load species without copying the particle data to the host */
-        SpeciesName* speciesTmp = &(dc.getData<SpeciesName >(SpeciesName::FrameType::getName(), true));
+        auto speciesTmp = dc.get< SpeciesName >( SpeciesName::FrameType::getName(), true );
 
         /* run algorithm */
         typedef typename CreateDensityOperation<SpeciesName>::type::Solver ChargeDensitySolver;
         fieldTmp->computeValue < area, ChargeDensitySolver > (*speciesTmp, currentStep);
-        dc.releaseData(SpeciesName::FrameType::getName());
+        dc.releaseData( SpeciesName::FrameType::getName() );
     }
 };
 
@@ -200,13 +200,13 @@ void ChargeConservation::notify(uint32_t currentStep)
         _please_allocate_at_least_one_FieldTmp_in_memory_param,
         fieldTmpNumSlots > 0
     );
-    FieldTmp* fieldTmp = &(dc.getData< FieldTmp >( FieldTmp::getUniqueId( 0 ), true ));
+    auto fieldTmp = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
     /* reset density values to zero */
     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
 
     /* calculate and add the charge density values from all species in FieldTmp */
     ForEach<VectorAllSpecies, picongpu::detail::ComputeChargeDensity<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeChargeDensity;
-    computeChargeDensity(forward(fieldTmp), currentStep);
+    computeChargeDensity(forward(fieldTmp.get()), currentStep);
 
     /* add results of all species that are still in GUARD to next GPUs BORDER */
     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
@@ -221,7 +221,7 @@ void ChargeConservation::notify(uint32_t currentStep)
 
     /* cast libPMacc Buffer to cuSTL Buffer */
     auto fieldE_coreBorder =
-                 dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().
+                 dc.get< FieldE >( FieldE::getName(), true )->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
                       this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());

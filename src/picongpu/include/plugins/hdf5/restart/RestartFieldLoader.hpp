@@ -159,7 +159,7 @@ public:
         ThreadParams *tp = params;
 
         /* load field without copying data to host */
-        FieldType* field = &(dc.getData<FieldType > (FieldType::getName(), true));
+        std::shared_ptr< FieldType > field = dc.get< FieldType >( FieldType::getName(), true );
 
         /* load from HDF5 */
         RestartFieldLoader::loadField(
@@ -168,7 +168,7 @@ public:
                 FieldType::getName(),
                 tp);
 
-        dc.releaseData(FieldType::getName());
+        dc.releaseData( FieldType::getName() );
 #endif
     }
 

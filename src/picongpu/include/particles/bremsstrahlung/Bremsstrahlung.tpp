@@ -56,12 +56,12 @@ Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::Bremsstrahlung
     DataConnector &dc = Environment<>::get().DataConnector();
 
     /* initialize pointers on host-side tmp-field databoxes */
-    FieldTmp* fieldIonDensity = &(dc.getData<FieldTmp > (FieldTmp::getUniqueId( 0 ), true));
+    auto fieldIonDensity = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
     /* reset values to zero */
     fieldIonDensity->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
 
     /* load species without copying the particle data to the host */
-    T_IonSpecies* ionSpecies = &(dc.getData<T_IonSpecies >(T_IonSpecies::FrameType::getName(), true));
+    auto ionSpecies = dc.get< T_IonSpecies >( T_IonSpecies::FrameType::getName(), true );
 
     /* compute ion density */
     typedef typename CreateEnergyDensityOperation<T_IonSpecies>::type::Solver DensitySolver;

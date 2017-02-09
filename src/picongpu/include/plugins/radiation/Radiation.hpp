@@ -85,13 +85,6 @@ private:
     typedef PIConGPUVerboseRadiation radLog;
 
     /**
-     * At the moment the ParticlesType is PIC_ELECTRONS
-     * (This special class which stores information about the momentum
-     * of the last two time steps)
-     */
-    ParticlesType *particles;
-
-    /**
      * Object that stores the complex radiated amplitude on host and device.
      * Radiated amplitude is a function of theta (looking direction) and
      * frequency. Layout of the radiation array is:
@@ -151,7 +144,6 @@ public:
     speciesName(ParticlesType::FrameType::getName()),
     pluginPrefix(speciesName + std::string("_radiation")),
     filename_prefix(pluginPrefix),
-    particles(nullptr),
     radiation(nullptr),
     cellDescription(nullptr),
     notifyFrequency(0),
@@ -186,11 +178,6 @@ public:
      */
     void notify(uint32_t currentStep)
     {
-
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
         if (currentStep >= radStart)
         {
             // radEnd = 0 is default, calculates radiation until simulation
@@ -1159,6 +1146,9 @@ private:
   {
       this->currentStep = currentStep;
 
+      DataConnector &dc = Environment<>::get().DataConnector();
+      auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+
       /* the parallelization is ONLY over directions:
        * (a combined parallelization over direction AND frequencies
        * turned out to be slower on GPUs of the Fermi generation (sm_2x) (couple
@@ -1200,6 +1190,8 @@ private:
          freqFkt,
          subGrid.getGlobalDomain().size
          );
+
+      dc.releaseData( ParticlesType::FrameType::getName() );
 
       if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)
       {

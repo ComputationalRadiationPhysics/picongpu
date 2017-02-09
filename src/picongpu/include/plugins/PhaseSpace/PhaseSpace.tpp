@@ -52,7 +52,7 @@ namespace picongpu
                                                          const uint32_t _notifyPeriod,
                                                          const std::pair<float_X, float_X>& _p_range,
                                                          const AxisDescription& _element ) :
-    cellDescription(nullptr), name(_name), prefix(_prefix), particles(nullptr),
+    cellDescription(nullptr), name(_name), prefix(_prefix),
     dBuffer(nullptr), axis_p_range(_p_range), axis_element(_element),
     notifyPeriod(_notifyPeriod), isPlaneReduceRoot(false),
     commFileWriter(MPI_COMM_NULL), planeReduce(NULL)
@@ -168,6 +168,10 @@ namespace picongpu
         const PMacc::math::Size_t<simDim> coreBorderCells = coreBorderSuperCells *
             precisionCast<size_t>( SuperCellSize().toRT() );
 
+        /* register particle species observer */
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto particles = dc.get< Species >( Species::FrameType::getName(), true );
+
         /* select CORE + BORDER for all cells
          * CORE + BORDER is contiguous, in cuSTL we call this a "topological spheric zone"
          */
@@ -176,7 +180,7 @@ namespace picongpu
         algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
 
         FunctorBlock<Species, SuperCellSize, float_PS, num_pbins, r_dir> functorBlock(
-            this->particles->getDeviceParticlesBox(), dBuffer->origin(),
+            particles->getDeviceParticlesBox(), dBuffer->origin(),
             this->axis_element.momentum, this->axis_p_range );
 
         forEachSuperCell( /* area to work on */
@@ -185,15 +189,13 @@ namespace picongpu
                           cursor::make_MultiIndexCursor<simDim>(),
                           functorBlock
                         );
+
+        dc.releaseData( Species::FrameType::getName() );
     }
 
     template<class AssignmentFunction, class Species>
     void PhaseSpace<AssignmentFunction, Species>::notify( uint32_t currentStep )
     {
-        /* register particle species observer */
-        DataConnector &dc = Environment<>::get().DataConnector();
-        this->particles = &(dc.getData<Species > (Species::FrameType::getName(), true));
-
         /* reset device buffer */
         this->dBuffer->assign( float_PS(0.0) );
 

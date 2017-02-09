@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include <iostream>
 #include "simulation_defines.hpp"
 #include "FieldJ.hpp"
 #include "fields/FieldJ.kernel"
@@ -40,11 +39,15 @@
 
 #include "math/Vector.hpp"
 
-#include <boost/mpl/accumulate.hpp>
 #include "particles/traits/GetCurrentSolver.hpp"
 #include "traits/GetMargin.hpp"
 #include "traits/Resolve.hpp"
 #include "traits/SIBaseUnits.hpp"
+
+#include <boost/mpl/accumulate.hpp>
+
+#include <iostream>
+#include <memory>
 
 
 namespace picongpu
@@ -222,7 +225,7 @@ void FieldJ::init( FieldE &fieldE, FieldB &fieldB )
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
 
-    Environment<>::get( ).DataConnector( ).registerData( *this );
+    Environment<>::get( ).DataConnector( ).share( std::shared_ptr< ISimulationData >( this ) );
 }
 
 GridLayout<simDim> FieldJ::getGridLayout( )

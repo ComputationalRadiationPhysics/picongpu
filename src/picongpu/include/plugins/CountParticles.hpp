@@ -53,8 +53,6 @@ class CountParticles : public ISimulationPlugin
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
-    ParticlesType *particles;
-
     MappingDesc *cellDescription;
     uint32_t notifyPeriod;
 
@@ -73,7 +71,6 @@ public:
     analyzerName("CountParticles: count macro particles of a species"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount")),
     filename(analyzerPrefix + ".dat"),
-    particles(nullptr),
     cellDescription(nullptr),
     notifyPeriod(0),
     writeToFile(false)
@@ -88,10 +85,6 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
         countParticles < CORE + BORDER > (currentStep);
     }
 
@@ -181,11 +174,16 @@ private:
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         const DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+
         /*count local particles*/
         size = PMacc::CountParticles::countOnDevice<AREA>(*particles,
                                                           *cellDescription,
                                                           DataSpace<simDim>(),
                                                           localSize);
+        dc.releaseData( ParticlesType::FrameType::getName() );
+
         uint64_cu reducedValueMax;
         if (picLog::log_level & picLog::CRITICAL::lvl)
         {

@@ -47,6 +47,8 @@
 
 #include <iostream>
 #include <limits>
+#include <memory>
+
 
 namespace picongpu
 {
@@ -197,7 +199,7 @@ Particles<
     this->fieldE = &fieldE;
     this->fieldB = &fieldB;
 
-    Environment<>::get( ).DataConnector( ).registerData( *this );
+    Environment<>::get( ).DataConnector( ).share( std::shared_ptr< ISimulationData >( this ) );
 }
 
 template<

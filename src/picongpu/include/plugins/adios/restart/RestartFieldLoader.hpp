@@ -167,7 +167,7 @@ public:
         ThreadParams *tp = params;
 
         /* load field without copying data to host */
-        FieldType* field = &(dc.getData<FieldType > (FieldType::getName(), true));
+        auto field = dc.get< FieldType >( FieldType::getName(), true );
 
         /* load from ADIOS */
         RestartFieldLoader::loadField(

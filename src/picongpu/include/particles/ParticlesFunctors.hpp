@@ -27,6 +27,7 @@
 #include "math/MapTuple.hpp"
 
 #include "communication/AsyncCommunication.hpp"
+#include "dataManagement/DataConnector.hpp"
 #include "particles/traits/GetIonizer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/GetPhotonCreator.hpp"
@@ -62,12 +63,14 @@ struct AssignNull
 template<typename T_SpeciesName>
 struct CallDelete
 {
-    typedef T_SpeciesName SpeciesName;
+    using SpeciesName = T_SpeciesName;
+    using SpeciesType = typename SpeciesName::type;
 
     template<typename T_StorageTuple>
     void operator()(T_StorageTuple& tuple)
     {
-        __delete(tuple[SpeciesName()]);
+        DataConnector &dc = Environment<>::get().DataConnector();
+        dc.unshare( SpeciesType::FrameType::getName() );
     }
 };
 

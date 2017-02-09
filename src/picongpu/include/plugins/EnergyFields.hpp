@@ -80,9 +80,6 @@ struct squareComponentWise
 class EnergyFields : public ISimulationPlugin
 {
 private:
-    FieldE* fieldE;
-    FieldB* fieldB;
-
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
@@ -102,8 +99,6 @@ private:
 public:
 
     EnergyFields() :
-    fieldE(nullptr),
-    fieldB(nullptr),
     cellDescription(nullptr),
     analyzerName("EnergyFields: calculate the energy of the fields"),
     analyzerPrefix(std::string("fields_energy")),
@@ -122,10 +117,6 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
-        fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
         getEnergyFields(currentStep);
     }
 
@@ -210,6 +201,11 @@ private:
 
     void getEnergyFields(uint32_t currentStep)
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
         /* idx == 0 -> fieldB
          * idx == 1 -> fieldE
          */
@@ -259,7 +255,7 @@ private:
 private:
 
     template<typename T_Field>
-    EneVectorType reduceField(T_Field* field)
+    EneVectorType reduceField( std::shared_ptr< T_Field > field )
     {
         /*define stacked DataBox's for reduce algorithm*/
         typedef DataBoxUnaryTransform<typename T_Field::DataBoxType, energyFields::squareComponentWise > TransformedBox;

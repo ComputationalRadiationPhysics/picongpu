@@ -246,21 +246,23 @@ public:
 
     virtual void pluginUnload()
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         SimulationHelper<simDim>::pluginUnload();
-        __delete(fieldB);
-
-        __delete(fieldE);
-
-        __delete(fieldJ);
-
-        for( auto* slot : fieldTmp )
-            __delete( slot );
-        fieldTmp.clear();
-
-        __delete(mallocMCBuffer);
 
         __delete(myFieldSolver);
+
+        dc.unshare( fieldB->getUniqueId() );
+
+        dc.unshare( fieldE->getUniqueId() );
+
+        dc.unshare( fieldJ->getUniqueId() );
+
+        for( auto* slot : fieldTmp )
+            dc.unshare( slot->getUniqueId( ) );
+        fieldTmp.clear();
+
+        dc.unshare( mallocMCBuffer->getUniqueId() );
 
         __delete(myCurrentInterpolation);
 

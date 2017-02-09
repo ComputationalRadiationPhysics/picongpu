@@ -116,8 +116,6 @@ private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
     typedef GridBuffer<size_t, simDim> GridBufferType;
 
-    ParticlesType *particles;
-
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
@@ -138,7 +136,6 @@ public:
     analyzerName("PerSuperCell: create hdf5 with macro particle count per superCell"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesPerSuperCell")),
     foldername(analyzerPrefix),
-    particles(nullptr),
     cellDescription(nullptr),
     notifyFrequency(0),
     localResult(nullptr),
@@ -154,10 +151,6 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
         countMakroParticles < CORE + BORDER > (currentStep);
     }
 
@@ -210,6 +203,10 @@ private:
     {
         openH5File();
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+
         /*############ count particles #######################################*/
         typedef MappingDesc::SuperCellSize SuperCellSize;
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
@@ -218,6 +215,8 @@ private:
             (mapper.getGridDim(), SuperCellSize::toRT())
             (particles->getDeviceParticlesBox(),
              localResult->getDeviceBuffer().getDataBox(), mapper);
+
+        dc.releaseData( ParticlesType::FrameType::getName() );
 
         localResult->deviceToHost();
 
