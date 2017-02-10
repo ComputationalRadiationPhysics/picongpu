@@ -155,11 +155,9 @@ using CopperIons = Particles<
     bmpl::string< 'C', 'u' >,
     ParticleFlagsCopper,
     MakeSeq_t<
-        position< position_pic >,
-        momentum,
-        weighting,
-        particleId,
-        boundElectrons
+        DefaultParticleAttributes,
+        boundElectrons,
+        superconfig
     >
 >;
 
