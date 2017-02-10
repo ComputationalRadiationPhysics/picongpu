@@ -147,7 +147,17 @@ using ParticleFlagsCopper = bmpl::vector<
     massRatio< MassRatioCopper >,
     chargeRatio< ChargeRatioCopper >,
     densityRatio< DensityRatioCopper >,
-    atomicNumbers< ionization::atomicNumbers::Copper_t >
+    atomicNumbers< ionization::atomicNumbers::Copper_t >,
+    // note: this method is not yet fully implemented
+    populationKinetics<
+        particles::flylite::NonLTE<
+            MakeSeq_t<
+                BulkElectrons,
+                PromptElectrons
+            >,
+            MakeSeq_t< Photons >
+        >
+    >
 >;
 
 /* define species ions */
