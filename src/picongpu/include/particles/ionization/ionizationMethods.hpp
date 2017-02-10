@@ -63,7 +63,7 @@ namespace ionization
 
             /* each thread sets the multiMask hard on "particle" (=1) */
             childElectron[multiMask_] = 1;
-            const uint32_t weighting = parentIon[weighting_];
+            const float_X weighting = parentIon[weighting_];
 
             /* each thread initializes a clone of the parent ion but leaving out
              * some attributes:
