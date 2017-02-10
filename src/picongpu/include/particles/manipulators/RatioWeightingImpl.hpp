@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Axel Huebl
+ * Copyright 2015-2017 Axel Huebl, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -73,9 +73,9 @@ struct RatioWeightingImpl
         if (isDesParticle && isSrcParticle)
         {
             const float_X densityRatioDes =
-                traits::GetDensityRatio<T_DesParticle>::type::getDefaultValue();
+                traits::GetDensityRatio<T_DesParticle>::type::getValue();
             const float_X densityRatioSrc =
-                traits::GetDensityRatio<T_SrcParticle>::type::getDefaultValue();
+                traits::GetDensityRatio<T_SrcParticle>::type::getValue();
 
             particleDes[weighting_] *= densityRatioDes / densityRatioSrc;
         }
