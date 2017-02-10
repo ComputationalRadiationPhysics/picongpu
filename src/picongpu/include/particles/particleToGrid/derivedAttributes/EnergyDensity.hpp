@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+ * Copyright 2013-2017 Axel Huebl, Rene Widera, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -23,7 +23,7 @@
 #include "particles/particleToGrid/derivedAttributes/EnergyDensity.def"
 
 #include "simulation_defines.hpp"
-
+#include "algorithms/KinEnergy.hpp"
 
 namespace picongpu
 {
@@ -35,9 +35,8 @@ namespace derivedAttributes
     HDINLINE float1_64
     EnergyDensity::getUnit() const
     {
-        const float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
-        return UNIT_ENERGY * particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
-               / UNIT_VOLUME;
+        BOOST_CONSTEXPR_OR_CONST float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
+        return UNIT_ENERGY / UNIT_VOLUME;
     }
 
     template< class T_Particle >
@@ -49,22 +48,9 @@ namespace derivedAttributes
         const float3_X mom = particle[momentum_];
         const float_X mass = attribute::getMass( weighting, particle );
 
-        /* calculate new attribute */
-        Gamma<float_X> calcGamma;
-        const typename Gamma<float_X>::valueType gamma = calcGamma( mom, mass );
-        const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+        BOOST_CONSTEXPR_OR_CONST float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
 
-        const float_X energy = ( gamma <= float_X(GAMMA_THRESH) ) ?
-            math::abs2(mom) / ( float_X(2.0) * mass ) :   /* non-relativistic */
-            (gamma - float_X(1.0)) * mass * c2;           /* relativistic     */
-
-        const float_X particleDensity = weighting /
-            ( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * CELL_VOLUME );
-
-        const float_X particleEnergyDensity = energy * particleDensity;
-
-        /* return attribute */
-        return particleEnergyDensity;
+        return KinEnergy<>()( mom, mass ) * INV_CELL_VOLUME;
     }
 } /* namespace derivedAttributes */
 } /* namespace particleToGrid */

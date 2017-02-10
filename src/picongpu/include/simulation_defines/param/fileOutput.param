@@ -37,17 +37,31 @@ namespace picongpu
 {
     /** FieldTmp output (calculated at runtime) *******************************
      *
+     * Those operations derive scalar field quantities from particle species
+     * at runtime. Each value is mapped per cell. Some operations are identical
+     * up to a constant, so avoid writing those twice to save storage.
+     *
      * you can choose any of these particle to grid projections:
      *   - CreateDensityOperation: particle position + shape on the grid
      *   - CreateChargeDensityOperation: density * charge
-     *   - CreateCounterOperation: counts point like particles per cell (debug)
-     *   - CreateEnergyDensityOperation: particle energy density with respect
-     *                                   to shape
-     *   - CreateEnergyOperation: particle energy with respect to shape
+     *       note: for species that do not change their charge state, this is
+     *             the same as the density times a constant for the charge
+     *   - CreateEnergyOperation: sum of kinetic particle energy per cell with
+     *                            respect to shape (deprecated)
+     *   - CreateEnergyDensityOperation: average kinetic particle energy per
+     *                                   cell times the particle density
+     *       note: this is the same as the sum of kinetic particle energy
+     *             divided by a constant for the cell volume
      *   - CreateMomentumComponentOperation: ratio between a selected momentum
      *                                       component and the absolute
      *                                       momentum with respect to shape
-     *   - CreateLarmorPowerOperation: radiated larmor power (needs ENABLE_RADIATION)
+     *   - CreateLarmorPowerOperation: radiated larmor power
+     *                                 (needs ENABLE_RADIATION)
+     *
+     * for debugging:
+     *   - CreateMidCurrentDensityComponentOperation:
+     *       density * charge * velocity_component
+     *   - CreateCounterOperation: counts point like particles per cell
      */
     using namespace particleToGrid;
 
