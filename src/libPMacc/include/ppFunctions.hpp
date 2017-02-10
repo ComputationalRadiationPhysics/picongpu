@@ -37,11 +37,10 @@
 /**
  * Returns number of args... arguments.
  *
- * Can only count values of ... which can be casted to int type.
- *
+ * @param type type of the arguments in ...
  * @param ... arguments
  */
-#define PMACC_COUNT_ARGS(...)  (sizeof((int[]){0, ##__VA_ARGS__})/sizeof(int)-1)
+#define PMACC_COUNT_ARGS(type,...)  (sizeof((type[]){type{}, ##__VA_ARGS__})/sizeof(type)-1u)
 
 /**
  * Check if ... has arguments or not
