@@ -82,6 +82,18 @@ value_identifier(bool, radiationMask, false);
  */
 value_identifier(float_X,boundElectrons,float_X(0.0));
 
+/** atomic superconfiguration
+ *
+ * atomic configuration of an ion for collisional-radiative modeling
+ *
+ * \see flylite.param
+ */
+value_identifier(
+    flylite::Superconfig,
+    superconfig,
+    flylite::Superconfig::create( 0. )
+);
+
 /** Total cell index of a particle.
  *
  *  The total cell index is a

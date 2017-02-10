@@ -416,5 +416,43 @@ struct WeightingPower<boundElectrons>
     }
 };
 
+template<>
+struct Unit<superconfig>
+{
+    // unitless and not scaled by a factor: 1.0
+    static std::vector<double> get()
+    {
+        return std::vector<double>( picongpu::flylite::populations, 1.0 );
+    }
+};
+template<>
+struct UnitDimension<superconfig>
+{
+    static std::vector<float_64> get()
+    {
+        // superconfig is unitless
+        std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
+
+        return unitDimension;
+    }
+};
+template<>
+struct MacroWeighted<superconfig>
+{
+    // represented by (1) or (weighted) ions???
+    static bool get()
+    {
+        return false;
+    }
+};
+template<>
+struct WeightingPower<superconfig>
+{
+    static float_64 get()
+    {
+        return 1.0;
+    }
+};
+
 } // namespace traits
 } // namespace picongpu
