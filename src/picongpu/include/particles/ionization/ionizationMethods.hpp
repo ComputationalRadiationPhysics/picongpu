@@ -76,10 +76,10 @@ namespace ionization
 
             partOp::assign(targetElectronClone, partOp::deselect<particleId>(parentIon));
 
-            float_X massIon = attribute::getMass(weighting,parentIon);
+            const float_X massIon = attribute::getMass(weighting,parentIon);
             const float_X massElectron = attribute::getMass(weighting,childElectron);
 
-            float3_X electronMomentum (parentIon[momentum_]*(massElectron/massIon));
+            const float3_X electronMomentum (parentIon[momentum_]*(massElectron/massIon));
 
             childElectron[momentum_] = electronMomentum;
 
