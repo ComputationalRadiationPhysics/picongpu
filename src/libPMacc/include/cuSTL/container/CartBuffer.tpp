@@ -298,6 +298,7 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::zone() const
 }
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
+HDINLINE
 bool
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::isContigousMemory() const
 {
