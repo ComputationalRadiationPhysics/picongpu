@@ -35,11 +35,8 @@ namespace manipulators
     /** generic manipulator to create user defined manipulators
      *
      * @tparam T_Functor user defined functor
-     *
-     * `T_Functor`
-     *   - must implement `void operator()(ParticleType)` or `void operator()(ParticleType1, ParticleType2)`
-     *   - `T_Functor` can implement **only** one `operator()` signature
-     *   - can implement **optional** one host side constructor `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
+     *              - must implement `void operator()(ParticleType)` **or** `void operator()(ParticleType1, ParticleType2)`
+     *              - **optional**: can implement **one** host side constructor `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
      */
     template< typename T_Functor >
     struct FreeImpl : private T_Functor
@@ -56,10 +53,11 @@ namespace manipulators
 
         /** constructor
          *
-         * is activated if the user functor has a constructor with one (uint32_t) argument
+         * This constructor is only compiled if the user functor has
+         * a host side constructor with one (uint32_t) argument.
          *
          * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
-         *                       the constructor
+         *                      the constructor
          * @param currentStep current simulation time step
          * @param is used to enable/disable the constructor (do not pass any value to this parameter)
          */
@@ -78,10 +76,10 @@ namespace manipulators
 
         /** constructor
          *
-         * is activated if the user functor has a default constructor
+         * This constructor is only compiled if the user functor has a default constructor.
          *
          * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
-         *                       the constructor
+         *                      the constructor
          * @param current simulation time step
          * @param is used to enable/disable the constructor (do not pass any value to this parameter)
          */
@@ -97,13 +95,14 @@ namespace manipulators
 
         /** call user functor
          *
-         * calls the user functor if both given particles are valid
+         * This method is only compiled if the user functor is a binary particle functor.
+         * The user functor is called if \p isParticle1 and \p isParticle2 are valid.
          *
          * @param cell index within the local volume
          * @param particleSpecies1 first particle
          * @param particleSpecies2 second particle, can be equal to the first particle
          * @param isParticle1 define if the reference @p particleSpecies1 is valid
-         * @param isParticle1 define if the reference @p particleSpecies2 is valid
+         * @param isParticle2 define if the reference @p particleSpecies2 is valid
          * @return void is used to enable the operator if the user functor except two arguments
          */
         template<
@@ -135,13 +134,14 @@ namespace manipulators
 
         /** call user functor
          *
-         * calls the user functor if the first particle is valid
+         * This method is only compiled if the user functor is a binary particle functor.
+         * The user functor is called if \p isParticle1 is valid.
          *
          * @param cell index within the local volume
          * @param particleSpecies1 first particle
-         * @param particleSpecies2 second particle, can be equal to the first particle
+         * @param unused
          * @param isParticle1 define if the reference @p particleSpecies1 is valid
-         * @param isParticle1 define if the reference @p particleSpecies2 is valid
+         * @param unused
          * @return void is used to enable the operator if user the functor except one argument
          */
         template<typename T_Particle1, typename T_Particle2>
