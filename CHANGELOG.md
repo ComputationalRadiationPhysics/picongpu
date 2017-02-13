@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.2.3
 -----
-**Date:** 2017-02-10
+**Date:** 2017-02-13
 
 Energy Density, Ionization NaNs and openPMD
 
@@ -29,7 +29,9 @@ the ion species' proton number.
  - possible NAN momenta in ionization #1817
 
 **Misc:**
- - ConstVector: check arguments init full length #1803
+ - ConstVector:
+   - check arguments init full length #1803
+   - float to int cast warnings #1819
  - verify number of ionization energy levels == proton number #1809
 
 Thanks to Axel Huebl, René Widera, Richard Pausch, Alexander Debus,

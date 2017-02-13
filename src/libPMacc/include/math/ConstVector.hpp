@@ -129,7 +129,7 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
  * create type definition `name_t`
  */
 #define PMACC_CONST_VECTOR_DEF(type,dim,name,...)                              \
-    PMACC_STATIC_CONST_VECTOR_DIM_DEF(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(__VA_ARGS__),__VA_ARGS__)
+    PMACC_STATIC_CONST_VECTOR_DIM_DEF(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(type,__VA_ARGS__),__VA_ARGS__)
 
 /** Create global constant math::Vector with compile time values which can be
  *  used on device and host
@@ -148,4 +148,4 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
  *      The type of the created vector is "name_t" -> in this case "myVector_t"
  */
 #define PMACC_CONST_VECTOR(type,dim,name,...)                                   \
-    PMACC_STATIC_CONST_VECTOR_DIM(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(__VA_ARGS__),__VA_ARGS__)
+    PMACC_STATIC_CONST_VECTOR_DIM(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(type,__VA_ARGS__),__VA_ARGS__)
