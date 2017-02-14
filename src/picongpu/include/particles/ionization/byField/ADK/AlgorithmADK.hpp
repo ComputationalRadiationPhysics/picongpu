@@ -60,6 +60,7 @@ namespace ionization
          * \param bField magnetic field value at t=0
          * \param eField electric field value at t=0
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
+         * \param randNr random number, equally distributed in range [0.:1.0]
          */
         template<typename EType, typename BType, typename ParticleType >
         HDINLINE void
