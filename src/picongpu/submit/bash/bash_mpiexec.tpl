@@ -22,10 +22,10 @@
 ##calculations will be performed by tbg##
 
 # settings that can be controlled by environment variables before submit
-TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
-TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
+.TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
     
 #number of cores per parallel node / default is 2 cores per gpu on k20 queue
 TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"

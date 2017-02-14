@@ -27,6 +27,7 @@ the ion species' proton number.
  - MovingWindow: slide_point now can be set to zero #1783
  - energy density #1750 #1744 (partial)
  - possible NAN momenta in ionization #1817
+ - `tbg` bash templates were outdated/broken #1831
 
 **Misc:**
  - ConstVector:
