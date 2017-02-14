@@ -73,7 +73,7 @@ struct KernelLaserE
         for (int totalOffsetY = 0; totalOffsetY < max_y_neighbors; ++totalOffsetY)
         {
             /** \todo Right now, the phase could be wrong ( == is cloned)
-             *        \See LaserPhysics.hpp
+             *        \see LaserPhysics.hpp
              *
              *  \todo What about the B-Field in the second plane?
              */

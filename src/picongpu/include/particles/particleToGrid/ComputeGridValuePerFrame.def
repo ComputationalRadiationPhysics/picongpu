@@ -18,7 +18,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file predefined calculations to derive scalar fields from particles
+/** @file ComputeGridValuePerFrame.def
+ *
+ * predefined calculations to derive scalar fields from particles
  *
  * The operations in this file derive scalar field quantities from particle
  * species at runtime, stored temporarily in @see picongpu::FieldTmp for I/O
@@ -92,8 +94,9 @@ public:
  * @tparam T_Species a @see picongpu::Particles class with a species definition,
  *                   see @see speciesDefinition.param
  *
- * @typedef CreateDensityOperation< T_Species >::type a field that can be used
- *          in @see fileOutput.param @see picongpu::FileOutputFields
+ * @typedef CreateDensityOperation< T_Species >::type
+ *          a field that can be used in @see fileOutput.param
+ *          @see picongpu::FileOutputFields
  */
 template<typename T_Species>
 struct CreateDensityOperation
@@ -119,8 +122,9 @@ struct CreateDensityOperation
  * @tparam T_Species a @see picongpu::Particles class with a species definition,
  *                   see @see speciesDefinition.param
  *
- * @typedef CreateChargeDensityOperation< T_Species >::type a field that can be
- *          used in @see fileOutput.param @see picongpu::FileOutputFields
+ * @typedef CreateChargeDensityOperation< T_Species >::type
+ *          a field that can be used in @see fileOutput.param
+ *          @see picongpu::FileOutputFields
  */
 template<typename T_Species>
 struct CreateChargeDensityOperation
@@ -146,8 +150,8 @@ struct CreateChargeDensityOperation
  * @tparam T_Species a @see picongpu::Particles class with a species definition,
  *                   see @see speciesDefinition.param
  *
- * @typedef CreateMidCurrentDensityComponentOperation< T_Species >::type a field
- *          that can be used in @see fileOutput.param
+ * @typedef CreateMidCurrentDensityComponentOperation< T_Species >::type
+ *          a field that can be used in @see fileOutput.param
  *          @see picongpu::FileOutputFields
  */
 template<typename T_Species, typename T_Direction = bmpl::int_<0> >
@@ -178,8 +182,9 @@ struct CreateMidCurrentDensityComponentOperation
  * @tparam T_Species a @see picongpu::Particles class with a species definition,
  *                   see @see speciesDefinition.param
  *
- * @typedef CreateCounterOperation< T_Species >::type a field that can be used
- *          in @see fileOutput.param @see picongpu::FileOutputFields
+ * @typedef CreateCounterOperation< T_Species >::type
+ *          a field that can be used in @see fileOutput.param
+ *          @see picongpu::FileOutputFields
  */
 template<typename T_Species>
 struct CreateCounterOperation
@@ -205,8 +210,9 @@ struct CreateCounterOperation
  * @tparam T_Species a @see picongpu::Particles class with a species definition,
  *                   see @see speciesDefinition.param
  *
- * @typedef CreateMacroCounterOperation< T_Species >::type a field that can be
- *          used in @see fileOutput.param @see picongpu::FileOutputFields
+ * @typedef CreateMacroCounterOperation< T_Species >::type
+ *          a field that can be used in @see fileOutput.param
+ *          @see picongpu::FileOutputFields
  */
 template<typename T_Species>
 struct CreateMacroCounterOperation
@@ -232,8 +238,9 @@ struct CreateMacroCounterOperation
  * @tparam T_Species a @see picongpu::Particles class with a species definition,
  *                   see @see speciesDefinition.param
  *
- * @typedef CreateEnergyDensityOperation< T_Species >::type a field that can be
- *          used in @see fileOutput.param @see picongpu::FileOutputFields
+ * @typedef CreateEnergyDensityOperation< T_Species >::type
+ *          a field that can be used in @see fileOutput.param
+ *          @see picongpu::FileOutputFields
  */
 template<typename T_Species>
 struct CreateEnergyDensityOperation
@@ -259,8 +266,9 @@ struct CreateEnergyDensityOperation
  * @tparam T_Species a @see picongpu::Particles class with a species definition,
  *                   see @see speciesDefinition.param
  *
- * @typedef CreateEnergyOperation< T_Species >::type a field that can be used in
- *          @see fileOutput.param @see picongpu::FileOutputFields
+ * @typedef CreateEnergyOperation< T_Species >::type
+ *          a field that can be used in @see fileOutput.param
+ *          @see picongpu::FileOutputFields
  */
 template<typename T_Species>
 struct CreateEnergyOperation
@@ -286,8 +294,8 @@ struct CreateEnergyOperation
  * @tparam T_Direction a @see boost::mpl::int_< int > variable with int as:
  *                     0=X (default), 1=Y or 2=Z, example: bmpl::int_<1>
  *
- * @typedef CreateMomentumComponentOperation< T_Species, T_Direction >::type a
- *          field that can be used in @see fileOutput.param
+ * @typedef CreateMomentumComponentOperation< T_Species, T_Direction >::type
+ *          a field that can be used in @see fileOutput.param
  *          @see picongpu::FileOutputFields
  */
 template<typename T_Species, typename T_Direction = bmpl::int_<0> >
@@ -312,8 +320,9 @@ struct CreateMomentumComponentOperation
  * @tparam T_Species a @see picongpu::Particles class with a species definition,
  *                   see @see speciesDefinition.param
  *
- * @typedef CreateLarmorPowerOperation< T_Species >::type a field that can
- *          be used in @see fileOutput.param @see picongpu::FileOutputFields
+ * @typedef CreateLarmorPowerOperation< T_Species >::type
+ *          a field that can be used in @see fileOutput.param
+ *          @see picongpu::FileOutputFields
  */
 template<typename T_Species>
 struct CreateLarmorPowerOperation

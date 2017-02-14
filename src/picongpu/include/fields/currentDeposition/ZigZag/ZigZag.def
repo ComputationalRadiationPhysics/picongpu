@@ -32,7 +32,7 @@ using namespace PMacc;
 
 
 /**
- * \class ZigZag charge conservation method
+ * ZigZag charge conservation method
  *
  * @tparam T_ParticleShape assignment shape of a particle
  *

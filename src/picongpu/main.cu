@@ -23,7 +23,7 @@
  *
  * Project with HZDR for porting their PiC-code to a GPU cluster.
  *
- * \image html picongpu.jpg
+ * \image html ../../doc/logo/pic_logo_320x140.png
  *
  * @author Heiko Burau, Rene Widera, Wolfgang Hoenig, Felix Schmitt, Axel Huebl, Michael Bussmann, Guido Juckeland
  */

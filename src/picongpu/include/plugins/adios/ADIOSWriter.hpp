@@ -603,8 +603,8 @@ public:
 
         /** one could try ADIOS_READ_METHOD_BP_AGGREGATE too which might
          *  be beneficial for re-distribution on a different number of GPUs
-         *    would need: - export chunk_size=<size> in MB
-         *                - mpiTransportParams.c_str() in adios_read_init_method
+         *    would need: - `export chunk_size=SIZE # in MB`
+         *                - `mpiTransportParams.c_str()` in `adios_read_init_method`
          */
         ADIOS_CMD(adios_read_init_method(ADIOS_READ_METHOD_BP,
                                          mThreadParams.adiosComm,

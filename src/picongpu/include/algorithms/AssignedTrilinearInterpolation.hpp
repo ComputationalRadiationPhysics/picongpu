@@ -59,7 +59,7 @@ struct AssignedTrilinearInterpolation
      *
      * \tparam AssignmentFunction function for assignment
      * \tparam Begin lower margin for interpolation
-     * \param End upper margin for interpolation
+     * \tparam End upper margin for interpolation
      *
      * \param cursor cursor pointing to the field
      * \param pos position of the interpolation point

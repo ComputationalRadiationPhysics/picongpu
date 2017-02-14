@@ -28,7 +28,8 @@
  * section of each "FieldSolver".
  *
  *
- * \typedef CurrentInterpolation is used to set a method performing the
+ * @typedef CurrentInterpolation
+ *          is used to set a method performing the
  * interpolate/assign operation from the generated currents of particle
  * species to the electro-magnetic fields.
  *
