@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.2.3
 -----
-**Date:** 2017-02-13
+**Date:** 2017-02-14
 
 Energy Density, Ionization NaNs and openPMD
 
