@@ -41,7 +41,7 @@ public:
 
 struct One_minus_beta_times_n
 {
-    /// Class to calculate 1-\beta \times \vec n
+    /// Class to calculate \f$1-\beta \times \vec n\f$
     /// using the best suiting method depending on energy
     /// to achieve the best numerical results
     /// it will be used as base class for amplitude calculations
