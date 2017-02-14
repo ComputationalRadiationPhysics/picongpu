@@ -173,7 +173,10 @@ namespace writeMeta
                                       ctIterationEncoding, "iterationEncoding",
                                       iterationEncoding.c_str() );
 
-            const std::string iterationFormat( threadParams->h5Filename + std::string("_%T.h5") );
+            const std::string iterationFormat(
+                Environment< simDim >::get().Filesystem().basename( threadParams->h5Filename ) +
+                std::string("_%T.h5")
+            );
             ColTypeString ctIterationFormat( iterationFormat.length() );
             dc->writeGlobalAttribute( threadParams->currentStep,
                                       ctIterationFormat, "iterationFormat",

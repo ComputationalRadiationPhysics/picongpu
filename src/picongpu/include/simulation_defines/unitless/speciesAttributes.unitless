@@ -399,10 +399,10 @@ struct UnitDimension<boundElectrons>
 template<>
 struct MacroWeighted<boundElectrons>
 {
-    // bound electrons are distributed over all macro ions
+    // bound electrons are counted for a single real ion
     static bool get()
     {
-        return true;
+        return false;
     }
 };
 template<>

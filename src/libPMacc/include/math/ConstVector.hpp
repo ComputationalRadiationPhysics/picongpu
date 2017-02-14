@@ -65,7 +65,10 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
     template<typename T_Type, int T_Dim>                                       \
     struct ConstArrayStorage                                                   \
     {                                                                          \
-        BOOST_STATIC_CONSTEXPR bool isConst = true;                                      \
+        PMACC_CASSERT_MSG(                                                     \
+            __PMACC_CONST_VECTOR_dimension_needs_to_be_less_than_or_equal_to_the_number_of_arguments__, \
+            Dim <= count );                                                    \
+        BOOST_STATIC_CONSTEXPR bool isConst = true;                            \
         typedef T_Type type;                                                   \
         BOOST_STATIC_CONSTEXPR int dim=T_Dim;                                            \
                                                                                \
@@ -126,7 +129,7 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
  * create type definition `name_t`
  */
 #define PMACC_CONST_VECTOR_DEF(type,dim,name,...)                              \
-    PMACC_STATIC_CONST_VECTOR_DIM_DEF(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(__VA_ARGS__),__VA_ARGS__)
+    PMACC_STATIC_CONST_VECTOR_DIM_DEF(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(type,__VA_ARGS__),__VA_ARGS__)
 
 /** Create global constant math::Vector with compile time values which can be
  *  used on device and host
@@ -145,4 +148,4 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
  *      The type of the created vector is "name_t" -> in this case "myVector_t"
  */
 #define PMACC_CONST_VECTOR(type,dim,name,...)                                   \
-    PMACC_STATIC_CONST_VECTOR_DIM(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(__VA_ARGS__),__VA_ARGS__)
+    PMACC_STATIC_CONST_VECTOR_DIM(__COUNTER__,name,type,dim,PMACC_COUNT_ARGS(type,__VA_ARGS__),__VA_ARGS__)

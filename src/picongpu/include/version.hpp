@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2016 Axel Huebl
+ * Copyright 2015-2017 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -22,4 +22,4 @@
 
 #define PICONGPU_VERSION_MAJOR 0
 #define PICONGPU_VERSION_MINOR 2
-#define PICONGPU_VERSION_PATCH 2
+#define PICONGPU_VERSION_PATCH 3
