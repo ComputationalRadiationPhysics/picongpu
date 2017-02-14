@@ -80,8 +80,8 @@ private:
             _please_allocate_at_least_one_FieldTmp_in_memory_param,
             fieldTmpNumSlots > 0
         );
-        FieldTmp& fieldTmp = dc.getData<FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
-        auto& fieldBuffer = fieldTmp.getGridBuffer();
+        auto fieldTmp = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
+        auto& fieldBuffer = fieldTmp->getGridBuffer();
 
         deviceDataBox = fieldBuffer.getDeviceBuffer().getDataBox();
 

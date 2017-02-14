@@ -21,9 +21,7 @@
 
 #pragma once
 
-#include <iostream>
 #include "simulation_defines.hpp"
-
 
 #include "fields/FieldB.hpp"
 
@@ -46,15 +44,19 @@
 
 #include "math/Vector.hpp"
 
-#include <list>
-
-#include <boost/mpl/accumulate.hpp>
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 
 #include "traits/GetMargin.hpp"
 #include "traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
+
+#include <boost/mpl/accumulate.hpp>
+
+#include <list>
+#include <iostream>
+#include <memory>
+
 
 namespace picongpu
 {
@@ -169,7 +171,7 @@ void FieldB::init( FieldE &fieldE, LaserPhysics &laserPhysics )
     this->fieldE = &fieldE;
     this->laser = &laserPhysics;
 
-    Environment<>::get().DataConnector().registerData( *this );
+    Environment<>::get().DataConnector().share( std::shared_ptr< ISimulationData >( this ) );
 }
 
 GridLayout<simDim> FieldB::getGridLayout( )

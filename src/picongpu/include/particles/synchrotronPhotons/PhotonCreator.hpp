@@ -130,8 +130,8 @@ public:
     {
         DataConnector &dc = Environment<>::get().DataConnector();
         /* initialize pointers on host-side E-(B-)field databoxes */
-        FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
-        FieldB* fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
         /* initialize device-side E-(B-)field databoxes */
         eBox = fieldE->getDeviceDataBox();
         bBox = fieldB->getDeviceDataBox();

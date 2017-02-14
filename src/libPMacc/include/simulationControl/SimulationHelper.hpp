@@ -131,8 +131,6 @@ public:
      */
     virtual void dumpOneStep(uint32_t currentStep)
     {
-        Environment<DIM>::get().DataConnector().invalidate();
-
         /* trigger notification */
         Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
 

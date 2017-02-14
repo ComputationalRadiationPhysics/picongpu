@@ -492,10 +492,10 @@ public:
         DataConnector &dc = Environment<>::get().DataConnector();
         // Data does not need to be synchronized as visualization is
         // done at the device.
-        FieldB *fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
-        FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
-        FieldJ* fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
-        ParticlesType* particles = &(dc.getData<ParticlesType > (particleTag, true));
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
+        auto particles = dc.get< ParticlesType >( particleTag, true );
 
         /* wait that shared buffers can accessed without conflicts */
         m_output.join();

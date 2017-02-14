@@ -56,7 +56,6 @@ namespace picongpu
         std::string name;
         std::string prefix;
         uint32_t notifyPeriod;
-        Species *particles;
         MappingDesc *cellDescription;
 
         /** plot to create: e.g. py, x from element_coordinate/momentum */

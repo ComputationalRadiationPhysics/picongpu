@@ -149,8 +149,6 @@ class EnergyParticles : public ISimulationPlugin
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
-    ParticlesType *particles; /* pointer to particle data */
-
     GridBuffer<float_64, DIM1> *gEnergy; /* energy values (global on GPU) */
     MappingDesc *cellDescription;
     uint32_t notifyFrequency; /* periodocity of computing the particle energy */
@@ -170,7 +168,6 @@ public:
     analyzerName("EnergyParticles: calculate the energy of a species"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_energy")),
     filename(analyzerPrefix + ".dat"),
-    particles(nullptr),
     gEnergy(nullptr),
     cellDescription(nullptr),
     notifyFrequency(0),
@@ -189,11 +186,6 @@ public:
    * the energy **/
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector(); /* get data connector */
-
-        /* use data connector to get particle data */
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
         /* call the method that calls the plugin kernel */
         calculateEnergyParticles < CORE + BORDER > (currentStep);
     }
@@ -300,6 +292,10 @@ private:
     template< uint32_t AREA>
     void calculateEnergyParticles(uint32_t currentStep)
     {
+        DataConnector &dc = Environment<>::get().DataConnector(); /* get data connector */
+        /* use data connector to get particle data */
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+
         gEnergy->getDeviceBuffer().setValue(0.0); /* init global energy with zero */
         auto block = MappingDesc::SuperCellSize::toRT(); /* GPU parallelization */
 
@@ -310,6 +306,8 @@ private:
             (particles->getDeviceParticlesBox(),
              gEnergy->getDeviceBuffer().getDataBox(),
              mapper);
+
+        dc.releaseData( ParticlesType::FrameType::getName() );
 
         gEnergy->deviceToHost(); /* get energy from GPU */
 

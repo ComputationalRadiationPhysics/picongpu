@@ -172,7 +172,7 @@ private:
 #ifndef __CUDA_ARCH__
             DataConnector &dc = Environment<simDim>::get().DataConnector();
 
-            T* field = &(dc.getData<T > (T::getName()));
+            auto field = dc.get< T >( T::getName() );
             params->gridLayout = field->getGridLayout();
 
             PICToAdios<ComponentType> adiosType;
@@ -183,7 +183,7 @@ private:
                        T::getName(),
                        field->getHostDataBox().getPointer());
 
-            dc.releaseData(T::getName());
+            dc.releaseData( T::getName() );
 #endif
         }
 
@@ -238,9 +238,9 @@ private:
                 _please_allocate_at_least_one_FieldTmp_in_memory_param,
                 fieldTmpNumSlots > 0
             );
-            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getUniqueId( 0 ), true));
+            auto fieldTmp = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
             /*load particle without copy particle data to host*/
-            Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
+            auto speciesTmp = dc.get< Species >( Species::FrameType::getName(), true );
 
             fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType::create(0.0));
             /*run algorithm*/
@@ -817,7 +817,7 @@ private:
             DataConnector &dc = Environment<>::get().DataConnector();
 
             /* synchronizes the MallocMCBuffer to the host side */
-            dc.getData<MallocMCBuffer<DeviceHeap>> (MallocMCBuffer<DeviceHeap>::getName());
+            dc.get< MallocMCBuffer< DeviceHeap > >( MallocMCBuffer< DeviceHeap >::getName() );
 
             /* here we are copying all species to the host side since we
              * can not say at this point if this time step will need all of them

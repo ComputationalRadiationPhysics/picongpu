@@ -75,7 +75,7 @@ class TFieldSource
         {
             const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
             DataConnector &dc = Environment< simDim >::get().DataConnector();
-            FieldType * pField = &(dc.getData< FieldType > (FieldType::getName(), true));
+            auto pField = dc.get< FieldType >( FieldType::getName(), true );
             DataSpace< simDim > guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
             if (movingWindow)
             {
@@ -89,6 +89,7 @@ class TFieldSource
             }
             typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
             shifted = dataBox.shift( guarding );
+            dc.releaseData( FieldType::getName() );
         }
 
         ISAAC_NO_HOST_DEVICE_WARNING
@@ -142,14 +143,18 @@ class TFieldSource< FieldTmpOperation< FrameSolver, ParticleType > >
                     _please_allocate_at_least_one_FieldTmp_in_memory_param,
                     fieldTmpNumSlots > 0
                 );
-                FieldTmp * fieldTmp = &(dc.getData< FieldTmp >( FieldTmp::getUniqueId( 0 ), true ));
-                ParticleType * particles = &(dc.getData< ParticleType > ( ParticleType::FrameType::getName(), true));
+                auto fieldTmp = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
+                auto particles = dc.get< ParticleType >( ParticleType::FrameType::getName(), true );
 
                 fieldTmp->getGridBuffer().getDeviceBuffer().setValue( FieldTmp::ValueType(0.0) );
                 fieldTmp->computeValue < CORE + BORDER, FrameSolver > (*particles, *currentStep);
                 EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
+
                 __setTransactionEvent(fieldTmpEvent);
                 __getTransactionEvent().waitForFinished();
+
+                dc.releaseData( ParticleType::FrameType::getName() );
+
                 DataSpace< simDim > guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
                 if (movingWindow)
                 {
@@ -162,6 +167,7 @@ class TFieldSource< FieldTmpOperation< FrameSolver, ParticleType > >
                 }
                 typename FieldTmp::DataBoxType dataBox = fieldTmp->getDeviceDataBox();
                 shifted = dataBox.shift( guarding );
+                dc.releaseData( FieldTmp::getUniqueId( 0 ) );
             }
         }
 

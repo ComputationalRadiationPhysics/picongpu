@@ -332,7 +332,7 @@ private:
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
 
         /*start only worker for any supercell in laser propagation direction*/
         DataSpace<DIM2> grid(1,cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
@@ -348,6 +348,8 @@ private:
              localMaxIntensity->getDeviceBuffer().getDataBox(),
              localIntegratedIntensity->getDeviceBuffer().getDataBox()
              );
+
+        dc.releaseData( FieldE::getName() );
 
         localMaxIntensity->deviceToHost();
         localIntegratedIntensity->deviceToHost();

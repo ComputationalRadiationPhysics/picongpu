@@ -49,6 +49,8 @@
 #include "traits/GetUniqueTypeId.hpp"
 
 #include <string>
+#include <memory>
+
 
 namespace picongpu
 {
@@ -266,7 +268,7 @@ namespace picongpu
 
     void FieldTmp::init( )
     {
-        Environment<>::get().DataConnector().registerData( *this );
+        Environment<>::get().DataConnector().share( std::shared_ptr< ISimulationData >( this ) );
     }
 
     FieldTmp::DataBoxType FieldTmp::getDeviceDataBox( )

@@ -108,7 +108,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = Environment<>::get().DataConnector();
         /* load particle without copy particle data to host */
-        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
+        auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
 
         /* count number of particles for this species on the device */
         uint64_t numParticles = 0;

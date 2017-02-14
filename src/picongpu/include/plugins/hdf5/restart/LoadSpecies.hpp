@@ -108,7 +108,7 @@ public:
         const PMacc::Selection<simDim>& globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
 
         // load particle without copying particle data to host
-        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
+        auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
 
         // count total number of particles on the device
         uint64_cu totalNumParticles = 0;

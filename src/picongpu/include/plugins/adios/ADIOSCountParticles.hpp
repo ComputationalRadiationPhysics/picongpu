@@ -102,7 +102,7 @@ public:
             std::string(ADIOS_PATH_PARTICLES) + speciesGroup );
 
         /* load particle without copy particle data to host */
-        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
+        auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
 
         /* count total number of particles on the device */
         uint64_cu totalNumParticles = 0;

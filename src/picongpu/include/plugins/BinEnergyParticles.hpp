@@ -185,8 +185,6 @@ private:
 
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
-    ParticlesType *particles;
-
     GridBuffer<float_64, DIM1> *gBins;
     MappingDesc *cellDescription;
 
@@ -221,7 +219,6 @@ public:
     analyzerName("BinEnergyParticles: calculate a energy histogram of a species"),
     analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_energyHistogram")),
     filename(analyzerPrefix + ".dat"),
-    particles(nullptr),
     gBins(nullptr),
     cellDescription(nullptr),
     notifyPeriod(0),
@@ -238,9 +235,6 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
         calBinEnergyParticles < CORE + BORDER > (currentStep);
     }
 
@@ -377,6 +371,9 @@ private:
         gBins->getDeviceBuffer().setValue(0);
         auto block = MappingDesc::SuperCellSize::toRT();
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+
         /** Assumption: distanceToDetector >> simulated Area in y-Direction
          *          AND     simulated area in X,Z << slit  */
         float_64 maximumSlopeToDetectorX = 0.0; /*0.0 is disabled detector*/
@@ -399,6 +396,7 @@ private:
              gBins->getDeviceBuffer().getDataBox(), numBins, minEnergy,
              maxEnergy, maximumSlopeToDetectorX, maximumSlopeToDetectorZ, mapper);
 
+        dc.releaseData( ParticlesType::FrameType::getName() );
         gBins->deviceToHost();
 
         reduce(nvidia::functors::Add(),

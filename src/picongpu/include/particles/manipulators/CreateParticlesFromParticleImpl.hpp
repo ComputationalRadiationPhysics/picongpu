@@ -69,8 +69,8 @@ struct CreateParticlesFromParticleImpl : private T_Functor
         typedef typename DestSpeciesType::ParticlesBoxType DestParticlesBoxType;
         guardCells = SuperCellSize::toRT(); //\todo: ask mapper or any other class
         DataConnector &dc = Environment<>::get().DataConnector();
-        DestSpeciesType& destSpecies = dc.getData<DestSpeciesType > (DestFrameType::getName(), true);
-        destParBox = destSpecies.getDeviceParticlesBox();
+        auto destSpecies = dc.get< DestSpeciesType >( DestFrameType::getName(), true );
+        destParBox = destSpecies->getDeviceParticlesBox();
         firstCall = true;
     }
 

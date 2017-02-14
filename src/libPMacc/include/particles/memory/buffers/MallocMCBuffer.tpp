@@ -26,6 +26,10 @@
 #include "pmacc_types.hpp"
 #include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
+#include "dataManagement/DataConnector.hpp"
+
+#include <memory>
+
 
 namespace PMacc
 {
@@ -36,7 +40,7 @@ MallocMCBuffer< T_DeviceHeap >::MallocMCBuffer( const std::shared_ptr<DeviceHeap
     deviceHeapInfo( deviceHeap->getHeapLocations( )[ 0 ] ),
     hostBufferOffset( 0 )
 {
-    Environment<>::get().DataConnector().registerData( *this);
+    Environment<>::get().DataConnector().share( std::shared_ptr< ISimulationData >( this ) );
 }
 
 template< typename T_DeviceHeap >

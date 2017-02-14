@@ -95,7 +95,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) write species: %1%") % AdiosFrameType::getName();
         DataConnector &dc = Environment<>::get().DataConnector();
         /* load particle without copy particle data to host */
-        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
+        auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
 
         /* count total number of particles on the device */
         log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) count particles: %1%") % AdiosFrameType::getName();
@@ -127,7 +127,7 @@ public:
                                      params->window.localDimensions.size);
 
             DataConnector &dc = Environment<>::get().DataConnector();
-            MallocMCBuffer<DeviceHeap>& mallocMCBuffer = dc.getData<MallocMCBuffer<DeviceHeap>> (MallocMCBuffer<DeviceHeap>::getName(),true);
+            auto mallocMCBuffer = dc.get< MallocMCBuffer< DeviceHeap > >( MallocMCBuffer< DeviceHeap >::getName(), true );
 
             int globalParticleOffset = 0;
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
@@ -137,13 +137,13 @@ public:
             concatListOfFrames(
                                 globalParticleOffset,
                                 hostFrame,
-                                speciesTmp->getHostParticlesBox(mallocMCBuffer.getOffset()),
+                                speciesTmp->getHostParticlesBox( mallocMCBuffer->getOffset() ),
                                 filter,
                                 particleOffset, /*relative to data domain (not to physical domain)*/
                                 totalCellIdx_,
                                 mapper
                                 );
-            dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
+            dc.releaseData( MallocMCBuffer< DeviceHeap >::getName() );
             /* this costs a little bit of time but adios writing is slower */
             PMACC_ASSERT((uint64_cu) globalParticleOffset == totalNumParticles);
         }

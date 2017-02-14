@@ -92,7 +92,7 @@ struct MallocHostMemory
 
 /** copy species to host memory
  *
- * use `DataConnector::getData<...>()` to copy data
+ * use `DataConnector::get<...>()` to copy data
  */
 template<typename T_SpeciesType>
 struct CopySpeciesToHost
@@ -103,8 +103,8 @@ struct CopySpeciesToHost
     {
         /* DataConnector copies data to host */
         DataConnector &dc = Environment<>::get().DataConnector();
-        dc.getData<SpeciesType> (SpeciesType::FrameType::getName());
-        dc.releaseData(SpeciesType::FrameType::getName());
+        dc.get< SpeciesType >( SpeciesType::FrameType::getName() );
+        dc.releaseData( SpeciesType::FrameType::getName() );
     }
 };
 
