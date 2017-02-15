@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Axel Huebl, Heiko Burau
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau
  *
  * This file is part of PIConGPU.
  *

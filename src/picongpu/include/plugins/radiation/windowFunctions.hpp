@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2017 Richard Pausch
+/* Copyright 2014-2017 Richard Pausch
  *
  * This file is part of PIConGPU.
  *
