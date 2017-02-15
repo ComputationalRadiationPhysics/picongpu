@@ -391,13 +391,7 @@ for myfile in args.path2Data:
     CB.ax.yaxis.get_offset_text().set_fontsize(exponentsize)
 
     # set appearance of plot
-    plt.subplots_adjust(left=0.13,
-                        right=0.85,
-                        bottom=0.15,
-                        top=0.95,
-                        wspace=0.0,
-                        hspace=0.0)
-
+    plt.tight_layout()
     # get name of file
     filename = os.path.basename(myfile.name)
 
