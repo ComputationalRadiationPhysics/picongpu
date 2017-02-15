@@ -33,7 +33,6 @@
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/SplashToPIC.hpp"
 #include "traits/PICToSplash.hpp"
-#include "plugins/common/stringHelpers.hpp"
 
 #include "particles/frame_types.hpp"
 
