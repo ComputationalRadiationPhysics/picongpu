@@ -106,7 +106,7 @@ public:
 
   /** calculate radiation from *this amplitude
    *
-   * Returns: \frac{d^2 I}{d \Omega d \omega} = const*Amplitude^2 */
+   * Returns: \f$\frac{d^2 I}{d \Omega d \omega} = const*Amplitude^2\f$ */
   HDINLINE picongpu::float_64 calc_radiation(void)
   {
       // const SI factor radiation

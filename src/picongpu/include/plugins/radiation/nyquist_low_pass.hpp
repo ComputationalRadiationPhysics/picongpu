@@ -30,8 +30,8 @@ class NyquistLowPass : public One_minus_beta_times_n
 
 public:
     /**
-     * calculates omega_{Nyquist} for particle in a direction n
-     * omega_{Nyquist} = (\pi - \epsilon )/(\delta t * (1 - \vec(\beta) * \vec(n)))
+     * calculates \f$omega_{Nyquist}\f$ for particle in a direction \f$n\f$
+     * \f$omega_{Nyquist} = (\pi - \epsilon )/(\delta t * (1 - \vec(\beta) * \vec(n)))\f$
      * so that all Amplitudes for higher frequencies can be ignored
     **/
     __device__ __host__ __forceinline__ NyquistLowPass(const vector_64& n, const Particle& particle)
