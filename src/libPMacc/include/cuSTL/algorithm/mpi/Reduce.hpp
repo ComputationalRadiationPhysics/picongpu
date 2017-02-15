@@ -1,4 +1,3 @@
-#pragma once
 
 /**
  * Copyright 2013-2017 Heiko Burau

@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2017 Alexander Grund, Rene Widera
+/* Copyright 2015-2017 Alexander Grund, Rene Widera
  *
  * This file is part of libPMacc.
  *

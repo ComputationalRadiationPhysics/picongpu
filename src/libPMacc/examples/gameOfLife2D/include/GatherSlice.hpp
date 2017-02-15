@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera,
  *                     Maximilian Knespel, Benjamin Worpitz
  *
  * This file is part of libPMacc.

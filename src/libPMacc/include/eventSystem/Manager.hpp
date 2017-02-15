@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2017 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.

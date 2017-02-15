@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Rene Widera, Marco Garten
+/* Copyright 2013-2017 Rene Widera, Marco Garten
  *
  * This file is part of libPMacc.
  *
