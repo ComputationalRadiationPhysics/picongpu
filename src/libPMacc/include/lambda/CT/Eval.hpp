@@ -22,9 +22,6 @@
 
 #pragma once
 
-#define BOOST_BIND_NO_PLACEHOLDERS
-
-
 #include "Expression.hpp"
 #include "../placeholder.h"
 #include "../ExprTypes.h"
