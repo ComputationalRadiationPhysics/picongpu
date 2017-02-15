@@ -1,7 +1,7 @@
 /**
  * Copyright 2013-2017 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Erik Zenker
  *
  * This file is part of PIConGPU.
  *
@@ -89,6 +89,8 @@
 #include "plugins/IsaacPlugin.hpp"
 #endif
 
+#include "plugins/ResourceLog.hpp"
+
 namespace picongpu
 {
 
@@ -146,6 +148,7 @@ private:
 #if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
       , isaacP::IsaacPlugin
 #endif
+    , ResourceLog
     > StandAlonePlugins;
 
 
