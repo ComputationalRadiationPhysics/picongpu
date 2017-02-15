@@ -22,7 +22,7 @@
 
 #include "pmacc_types.hpp"
 
-/** \file AlgorithNone.hpp
+/** \file AlgorithmNone.hpp
  *
  * IONIZATION ALGORITHM for the model None
  *
