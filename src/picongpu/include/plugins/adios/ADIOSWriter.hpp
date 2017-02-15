@@ -21,13 +21,6 @@
 
 #pragma once
 
-#include <pthread.h>
-#include <cassert>
-#include <sstream>
-#include <string>
-#include <list>
-#include <vector>
-
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
@@ -76,7 +69,13 @@
 #include "plugins/adios/restart/LoadSpecies.hpp"
 #include "plugins/adios/restart/RestartFieldLoader.hpp"
 #include "plugins/adios/NDScalars.hpp"
-#include "plugins/common/stringHelpers.hpp"
+
+#include <pthread.h>
+#include <cassert>
+#include <sstream>
+#include <string>
+#include <list>
+#include <vector>
 
 
 namespace picongpu
