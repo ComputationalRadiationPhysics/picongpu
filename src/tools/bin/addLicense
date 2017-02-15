@@ -84,6 +84,6 @@ fi
 
 sed -s -i '1i\'"$text"  $fileName
 
-sed -s -i '1i\/**\n * Copyright '`date +%G`' '"$author" $fileName
+sed -s -i '1i\/* Copyright '`date +%G`' '"$author" $fileName
 
 exit 0
