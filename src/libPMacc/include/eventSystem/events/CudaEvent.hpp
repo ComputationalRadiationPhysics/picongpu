@@ -20,13 +20,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "eventSystem/events/CudaEvent.def"
 #include "eventSystem/events/CudaEventHandle.hpp"
-#include "eventSystem/events/CudaEvent.hpp"
+#include "pmacc_types.hpp"
+
 #include <cuda_runtime.h>
+
 
 namespace PMacc
 {
