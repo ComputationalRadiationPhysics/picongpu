@@ -135,11 +135,6 @@ struct AllCombinations<T_MplSeq, T_TmpResult, true >
  * If the number of elements in each sequence is S0, S1, ... S(N-1)
  * than the resulting sequence will contain S0 * S1 * ... S(N-1) tuples.
  *
- * @tparam T_MplSeq N-dimensional sequence with input values
- *                  or single type (e.g. bmpl::integral_c<uint32_t,5>)
- *                  (if T_MplSeq is only one type it will be transformed to a sequence)
- * @tparam[out] ::type MplSequence of N-tuples
- *
  * example:
  *
  * sequence  == [ ]
@@ -147,7 +142,13 @@ struct AllCombinations<T_MplSeq, T_TmpResult, true >
  *
  * T_MplSeq = [[1,2],[1],[4,3]]
  * combined to
- * ::type = [(1,1,4),(1,1,3),(2,1,4),(2,1,3)]
+ * AllCombinations<T_MplSeq>::type = [(1,1,4),(1,1,3),(2,1,4),(2,1,3)]
+ *
+ * @tparam T_MplSeq N-dimensional sequence with input values
+ *                  or single type (e.g. `bmpl::integral_c<uint32_t,5>`)
+ *                  (if `T_MplSeq` is only one type it will be transformed to a sequence)
+ * @typedef AllCombinations<T_MplSeq>::type
+ *          MplSequence of N-tuples
  */
 template<typename T_MplSeq>
 struct AllCombinations
