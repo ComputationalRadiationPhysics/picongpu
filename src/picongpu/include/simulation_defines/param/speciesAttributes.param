@@ -140,6 +140,11 @@ alias(atomicNumbers);
  */
 alias(effectiveNuclearCharge);
 
+/*! alias for particle population kinetics model, e.g. FLYlite
+ * @see flylite.param
+ */
+alias(populationKinetics);
+
 /*! alias for particle mass ratio
  *
  * mass ratio between base particle @see `speciesConstants.param` SI::BASE_MASS_SI

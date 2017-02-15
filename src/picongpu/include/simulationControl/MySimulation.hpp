@@ -57,6 +57,7 @@
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "particles/Manipulate.hpp"
 #include "particles/manipulators/manipulators.hpp"
+#include "particles/flylite/NonLTE.tpp"
 #include "random/methods/XorMin.hpp"
 #include "random/RNGProvider.hpp"
 
@@ -342,6 +343,24 @@ public:
          * for particles are created */
         deviceHeap.reset(new DeviceHeap(0));
 
+        /* Allocate helper fields for FLYlite population kinetics for atomic physics
+         * (histograms, rate matrix, etc.)
+         */
+        using AllFlyLiteIons = typename PMacc::particles::traits::FilterByFlag<
+            VectorAllSpecies,
+            populationKinetics<>
+        >::type;
+
+        ForEach<
+            AllFlyLiteIons,
+            particles::CallPopulationKineticsInit< bmpl::_1 >,
+            MakeIdentifier< bmpl::_1>
+        > initPopulationKinetics;
+        initPopulationKinetics(
+            gridSizeLocal
+        );
+
+        // Allocate and initialize particle species with all left-over memory below
         ForEach< VectorAllSpecies, particles::CreateSpecies<bmpl::_1> > createSpeciesMemory;
         createSpeciesMemory( deviceHeap, cellDescription );
 
@@ -518,6 +537,19 @@ public:
         >::type;
         ForEach< VectorSpeciesWithIonizers, particles::CallIonization< bmpl::_1 > > particleIonization;
         particleIonization( cellDescription, currentStep );
+
+        /* FLYlite population kinetics for atomic physics */
+        using AllFlyLiteIons = typename PMacc::particles::traits::FilterByFlag<
+            VectorAllSpecies,
+            populationKinetics<>
+        >::type;
+
+        ForEach<
+            AllFlyLiteIons,
+            particles::CallPopulationKinetics< bmpl::_1 >,
+            MakeIdentifier< bmpl::_1 >
+        > populationKinetics;
+        populationKinetics( currentStep );
 
         /* call the synchrotron radiation module for each radiating species (normally electrons) */
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,

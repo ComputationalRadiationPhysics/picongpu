@@ -31,6 +31,7 @@
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/GetPhotonCreator.hpp"
 #include "particles/traits/ResolveAliasFromSpecies.hpp"
+#include "particles/flylite/IFlyLite.hpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "particles/bremsstrahlung/Bremsstrahlung.hpp"
 #include "particles/creation/creation.hpp"
@@ -140,6 +141,63 @@ struct CallReset
         auto species = dc.get< SpeciesType >( FrameType::getName(), true );
         species->reset( currentStep );
         dc.releaseData( FrameType::getName() );
+    }
+};
+
+/** Allocate helper fields for FLYlite population kinetics for atomic physics
+ *
+ * energy histograms, rate matrix, etc.
+ *
+ * @tparam T_SpeciesName name of ion species
+ */
+template< typename T_SpeciesName >
+struct CallPopulationKineticsInit
+{
+    using SpeciesName = T_SpeciesName;
+    using SpeciesType = typename SpeciesName::type;
+    using FrameType = typename SpeciesType::FrameType;
+
+    using PopulationKineticsSolver = typename PMacc::traits::Resolve<
+        typename GetFlagType<
+            FrameType,
+            populationKinetics<>
+        >::type
+    >::type;
+
+    HINLINE void operator()(
+        PMacc::DataSpace< simDim > gridSizeLocal
+    ) const
+    {
+        PopulationKineticsSolver flylite;
+        flylite.init( gridSizeLocal, FrameType::getName() );
+    }
+};
+
+/** Calculate FLYlite population kinetics evolving one time step
+ *
+ * @tparam T_SpeciesName name of ion species
+ */
+template< typename T_SpeciesName >
+struct CallPopulationKinetics
+{
+    using SpeciesName = T_SpeciesName;
+    using SpeciesType = typename SpeciesName::type;
+    using FrameType = typename SpeciesType::FrameType;
+
+    using PopulationKineticsSolver = typename PMacc::traits::Resolve<
+        typename GetFlagType<
+            FrameType,
+            populationKinetics<>
+        >::type
+    >::type;
+
+    HINLINE void operator()( uint32_t currentStep ) const
+    {
+        PopulationKineticsSolver flylite{};
+        flylite.template update< SpeciesName >(
+            FrameType::getName(),
+            currentStep
+        );
     }
 };
 

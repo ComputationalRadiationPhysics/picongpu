@@ -34,6 +34,7 @@
 #include "fields/currentDeposition/Solver.def"
 
 #include "particles/InitFunctors.hpp"
+#include "particles/flylite/NonLTE.def"
 #include "particles/manipulators/manipulators.def"
 
 
