@@ -129,7 +129,7 @@ struct AssignChargeToCell
     }
 };
 
-/**\class ZigZag charge conservation method
+/** ZigZag charge conservation method
  *
  * @see ZigZag.def for paper references
  */

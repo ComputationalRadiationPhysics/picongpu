@@ -32,7 +32,8 @@ using namespace PMacc;
 
 
 /**
- * \class Esirkepov implements the current deposition algorithm from T.Zh. Esirkepov
+ * Implements the current deposition algorithm from T.Zh. Esirkepov
+ *
  * for an arbitrary particle assign function given as a template parameter.
  * See available shapes at "intermediateLib/particleShape".
  * paper: "Exact charge conservation scheme for Particle-in-Cell simulation

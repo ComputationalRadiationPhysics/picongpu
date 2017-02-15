@@ -21,15 +21,15 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "pmacc_types.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "math/Vector.hpp"
-#include "cuSTL/cursor/Cursor.hpp"
 #include "basicOperations.hpp"
-#include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
-#include <cuSTL/cursor/compile-time/SafeCursor.hpp>
+#include "cuSTL/cursor/Cursor.hpp"
+#include "cuSTL/cursor/tools/twistVectorFieldAxes.hpp"
+#include "cuSTL/cursor/compile-time/SafeCursor.hpp"
 
 #include "fields/currentDeposition/Esirkepov/Line.hpp"
+
 
 namespace picongpu
 {
@@ -38,7 +38,8 @@ namespace currentSolver
 using namespace PMacc;
 
 /**
- * \class Esirkepov implements the current deposition algorithm from T.Zh. Esirkepov
+ * Implements the current deposition algorithm from T.Zh. Esirkepov
+ *
  * for an arbitrary particle assign function given as a template parameter.
  * See available shapes at "intermediateLib/particleShape".
  * paper: "Exact charge conservation scheme for Particle-in-Cell simulation
