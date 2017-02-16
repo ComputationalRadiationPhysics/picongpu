@@ -41,12 +41,23 @@ struct IManipulator : private T_Base
     {
     }
 
+    /** interface to operate on two particles
+     *
+     * @tparam T_Particle1 type of the first particle
+     * @tparam T_Particle2 type of the second particle
+     * @param localSuperCellOffset offset of the superCell (in cells, without any guards)
+     *                             to the origin of the local domain where both particles are located
+     * @param particleSpecies1 first particle
+     * @param particleSpecies2 second particle, can be equal to the first particle
+     * @param isParticle1 define if the reference @p particleSpecies1 is valid
+     * @param isParticle2 define if the reference @p particleSpecies2 is valid
+     */
     template<typename T_Particle1, typename T_Particle2>
-    DINLINE void operator()(const DataSpace<simDim>& localCellIdx,
+    DINLINE void operator()(const DataSpace<simDim>& localSuperCellOffset,
                             T_Particle1& particleSpecies1, T_Particle2& particleSpecies2,
                             const bool isParticle1, const bool isParticle2)
     {
-        return Base::operator()(localCellIdx, particleSpecies1, particleSpecies2, isParticle1, isParticle2);
+        return Base::operator()(localSuperCellOffset, particleSpecies1, particleSpecies2, isParticle1, isParticle2);
     }
 };
 

@@ -46,30 +46,54 @@ struct IfRelativeGlobalPositionImpl : private T_Functor
     }
 
     template<typename T_Particle1, typename T_Particle2>
-    DINLINE void operator()(const DataSpace<simDim>& localCellIdx,
+    DINLINE void operator()(const DataSpace<simDim>& localSuperCellOffset,
                             T_Particle1& particle1, T_Particle2& particle2,
                             const bool isParticle1, const bool isParticle2)
     {
         typedef typename SpeciesType::FrameType FrameType;
 
+        /* offset of the superCell (in cells, without any guards) to the origin of the global domain */
+        const DataSpace<simDim> globalSuperCellOffset = localSuperCellOffset + localDomainOffset;
+        bool particleInRange1 = isParticle1;
+        bool particleInRange2 = isParticle2;
 
-        DataSpace<simDim> myCellPosition = localCellIdx + localDomainOffset;
+        if( isParticle1 )
+        {
+            particleInRange1 = isParticleInsideRange( particle1, globalSuperCellOffset);
+        }
+        if( isParticle1 )
+        {
+            particleInRange2 = isParticleInsideRange( particle2, globalSuperCellOffset);
+        }
 
-        float_X relativePosition = float_X(myCellPosition[ParamClass::dimension]) /
-            float_X(globalDomainSize[ParamClass::dimension]);
-
-        const bool inRange=(ParamClass::lowerBound <= relativePosition &&
-            relativePosition < ParamClass::upperBound);
-        const bool particleInRange1 = isParticle1 && inRange;
-        const bool particleInRange2 = isParticle2 && inRange;
-
-        Functor::operator()(localCellIdx,
+        Functor::operator()(localSuperCellOffset,
                             particle1, particle2,
                             particleInRange1, particleInRange2);
 
     }
 
 private:
+
+    /** check if a particle is located in the user defined range
+     *
+     * @tparam T_Particle type of the particle
+     * @param particle particle than needs to be checked
+     * @param globalSuperCellOffset offset of the superCell (in cells, without any guards)
+     *                              to the origin of the global domain
+     */
+    template< typename T_Particle >
+    DINLINE bool isParticleInsideRange( const T_Particle& particle, const DataSpace<simDim>& globalSuperCellOffset ) const
+    {
+        const int particleCellIdx = particle[localCellIdx_];
+        const DataSpace<simDim> cellInSuperCell(DataSpaceOperations<simDim>::template map< SuperCellSize >(particleCellIdx));
+        const DataSpace<simDim> globalParticleOffset(globalSuperCellOffset + cellInSuperCell);
+
+        const float_X relativePosition = float_X(globalParticleOffset[ParamClass::dimension]) /
+            float_X(globalDomainSize[ParamClass::dimension]);
+
+        return (ParamClass::lowerBound <= relativePosition &&
+            relativePosition < ParamClass::upperBound);
+    }
 
     DataSpace<simDim> localDomainOffset;
     DataSpace<simDim> globalDomainSize;
