@@ -54,7 +54,6 @@
 #include "plugins/adios/restart/LoadSpecies.hpp"
 #include "plugins/adios/restart/RestartFieldLoader.hpp"
 #include "plugins/adios/NDScalars.hpp"
-#include "plugins/common/stringHelpers.hpp"
 
 #include <adios.h>
 #include <adios_read.h>
