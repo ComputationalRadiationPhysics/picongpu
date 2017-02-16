@@ -85,46 +85,6 @@ value_identifier( float_X, ChargeRatioIons, -1.0 );
 /* ratio relative to BASE_DENSITY */
 value_identifier( float_X, DensityRatioIons, 1.0 );
 
-/*! Specify (chemical) element
- *
- * Proton and neutron numbers define the chemical element that the ion species
- * is based on. This value can be non-integer for physical models taking
- * charge shielding effects into account.
- * @see http://en.wikipedia.org/wiki/Effective_nuclear_charge
- *
- * It is wrapped into a struct because of C++ restricting floats from being
- * template arguments.
- *
- * Do not forget to set the correct mass of the atom in
- * @see physicalConstants.param !
- */
-struct Hydrogen
-{
-    static constexpr float_X numberOfProtons  = 1.0;
-    static constexpr float_X numberOfNeutrons = 0.0;
-};
-
-/*! Ionization Model Configuration ----------------------------------------
- *
- * - None : no particle is ionized
- * - BSIHydrogenLike : simple barrier suppression ionization
- * - ADKLinPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
- *               -> linearly polarized lasers
- * - ADKCircPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
- *                -> circularly polarized lasers
- * - Keldysh : Keldysh ionization model
- *
- * Research and development: ----------------------------------------------
- * - BSIEffectiveZ : BSI taking electron shielding into account via an effective
- *                   atomic number Z_eff
- * - BSIStarkShifted : BSI for hydrogen-like atoms and ions considering the
- *                     Stark upshift of ionization potentials
- *
- * Usage: Add a flag to the list of particle flags that has the following structure
- *
- *        ionizer< IonizationModel< Species2BCreated > >
- */
-
 using ParticleFlagsIons = bmpl::vector<
     particlePusher<UsedParticlePusher>,
     shape<UsedParticleShape>,
@@ -133,7 +93,7 @@ using ParticleFlagsIons = bmpl::vector<
     massRatio<MassRatioIons>,
     chargeRatio<ChargeRatioIons>,
     densityRatio<DensityRatioIons>,
-    atomicNumbers<Hydrogen>
+    atomicNumbers<ionization::atomicNumbers::Hydrogen_t>
 >;
 
 /*define specie ions*/
