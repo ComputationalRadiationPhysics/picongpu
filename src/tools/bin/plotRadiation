@@ -417,7 +417,7 @@ for myfile in args.path2Data:
                  theta_max_draw,
                  shape[0])
 
-    # plot data: (only call!!!)
+    # plot data: (this is the only command that plots data)
     cax =  SP.pcolormesh(x, y, dataZoomed,
                          shading=my_interpolation,
                          cmap=my_cmap,
