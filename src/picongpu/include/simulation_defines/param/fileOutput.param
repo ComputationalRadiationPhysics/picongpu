@@ -18,8 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include <boost/mpl/vector.hpp>
@@ -28,9 +26,10 @@
 
 #include "compileTime/conversion/MakeSeq.hpp"
 
-/** some forward declarations we need */
+/* some forward declarations we need */
 #include "fields/Fields.def"
 #include "particles/particleToGrid/ComputeGridValuePerFrame.def"
+
 
 namespace picongpu
 {

@@ -19,8 +19,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "pmacc_types.hpp"
@@ -60,8 +58,8 @@
 #include "plugins/output/images/PngCreator.hpp"
 
 
-/// That's an abstract plugin for Png and Binary Density output
-/// \todo rename PngPlugin to ImagePlugin or similar
+// That's an abstract plugin for Png and Binary Density output
+// \todo rename PngPlugin to ImagePlugin or similar
 #include "plugins/PngPlugin.hpp"
 
 #if(SIMDIM==DIM3)

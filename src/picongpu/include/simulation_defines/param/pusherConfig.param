@@ -17,15 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+/**! @file pusherConfig.param
+ *
+ * describe particle pusher method
+ * Define a solver for current with the name "Pusher"
+ * etc.: typedef MyOwnPusherClass ParticlePusher;
+ */
 
 #pragma once
 
-/**! describe particle pusher method
- * Define a solver for current with the name "Pusher"
- *
- * etc.: typedef MyOwnPusherClass ParticlePusher;
- */
 
 namespace picongpu
 {

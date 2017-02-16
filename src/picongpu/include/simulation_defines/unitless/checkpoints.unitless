@@ -21,8 +21,9 @@
 
 #include "compileTime/conversion/MakeSeq.hpp"
 
-/** some forward declarations we need */
+/* some forward declarations we need */
 #include "fields/Fields.def"
+
 
 namespace picongpu
 {
