@@ -128,8 +128,7 @@ public:
 
                 algorithm::mpi::Reduce<3> reduce(gpuReducingZone, reduceRoot);
 
-                using namespace lambda;
-                reduce(eField_zt_reduced, *(eField_zt[i]), _1 + _2);
+                reduce(eField_zt_reduced, *(eField_zt[i]), lambda::_1 + lambda::_2);
             }
             if(!reduceRoot) continue;
 
@@ -175,13 +174,12 @@ public:
         for (size_t z = 0; z < eField_zt[0]->size().x(); z++)
         {
             zone::SphericZone < 2 > reduceZone(fieldE_coreBorder.size().shrink<2>());
-            using namespace lambda;
             for (int i = 0; i < 2; i++)
             {
                 *(eField_zt[i]->origin()(z, currentStep - firstTimestep)) =
                     algorithm::kernel::Reduce()
                         (cursor::make_FunctorCursor(cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
-                                                   _1[i == 0 ? 0 : 2]),
+                                                    lambda::_1[i == 0 ? 0 : 2]),
                          reduceZone,
                          nvidia::functors::Add());
             }
