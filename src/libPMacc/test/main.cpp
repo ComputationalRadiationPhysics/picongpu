@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2017 Erik Zenker, Alexander Grund
+/* Copyright 2015-2017 Erik Zenker, Alexander Grund
  *
  * This file is part of libPMacc.
  *

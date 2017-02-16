@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Rene Widera, Benjamin Worpitz, Alexander Debus
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz, Alexander Debus
  *
  * This file is part of libPMacc.
  *

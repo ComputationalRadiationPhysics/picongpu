@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Axel Huebl, Felix Schmitt
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *

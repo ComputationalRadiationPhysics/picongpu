@@ -1,5 +1,4 @@
-/**
- * Copyright 2016-2017 Felix Rene Widera
+/* Copyright 2016-2017 Felix Rene Widera
  *
  * This file is part of libPMacc.
  *

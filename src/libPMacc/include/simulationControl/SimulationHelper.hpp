@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Rene Widera, Alexander Debus,
  *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.

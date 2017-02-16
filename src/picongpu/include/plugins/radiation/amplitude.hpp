@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
  *

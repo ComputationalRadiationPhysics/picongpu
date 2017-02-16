@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2017 Richard Pausch
+/* Copyright 2015-2017 Richard Pausch
  *
  * This file is part of libPMacc.
  *

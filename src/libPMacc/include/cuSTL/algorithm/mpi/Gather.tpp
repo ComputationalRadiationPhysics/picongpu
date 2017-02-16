@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Heiko Burau, Benjamin Worpitz, Alexander Grund
+/* Copyright 2013-2017 Heiko Burau, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *

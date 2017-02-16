@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Heiko Burau, Axel Huebl
+/* Copyright 2013-2017 Heiko Burau, Axel Huebl
  *
  * This file is part of libPMacc.
  *

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Rene Widera, Benjamin Worpitz, Alexander Grund
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
