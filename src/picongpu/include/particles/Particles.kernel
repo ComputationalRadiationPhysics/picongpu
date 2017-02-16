@@ -77,6 +77,10 @@ struct KernelDeriveParticles
 
 
         const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
+        /* offset of the superCell (in cells, without any guards) to the origin of the local domain */
+        const DataSpace<simDim> localSuperCellOffset =
+            block * SuperCellSize::toRT()
+            - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
         if (threadIdx.x == 0)
         {
@@ -94,10 +98,7 @@ struct KernelDeriveParticles
             auto parSrc = frame[threadIdx.x];
             assign(parDest, deselect<particleId>(parSrc));
 
-            const DataSpace<simDim> localCellIdx = block * SuperCellSize::toRT()
-                + DataSpaceOperations<simDim>::map<SuperCellSize>(threadIdx.x)
-                - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
-            manipulateFunctor(localCellIdx,
+            manipulateFunctor(localSuperCellOffset,
                               parDest, parSrc,
                               true, parSrc[multiMask_] == 1);
 
@@ -151,16 +152,17 @@ struct KernelManipulateAllParticles
          * volatile prohibits that the compiler creates wrong code*/
         volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
-        const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
-        const DataSpace<simDim> localCellIdx = idx - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
-
+        /* offset of the superCell (in cells, without any guards) to the origin of the local domain */
+        const DataSpace<simDim> localSuperCellOffset =
+            superCellIdx * SuperCellSize::toRT()
+            - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
         __syncthreads();
 
         while (frame.isValid())
         {
             auto particle = frame[linearThreadIdx];
-            particleFunctor(localCellIdx, particle, particle, isParticle, isParticle);
+            particleFunctor(localSuperCellOffset, particle, particle, isParticle, isParticle);
 
             __syncthreads();
             if (linearThreadIdx == 0)

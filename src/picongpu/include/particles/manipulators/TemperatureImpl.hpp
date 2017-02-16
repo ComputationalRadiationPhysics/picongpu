@@ -64,7 +64,7 @@ struct TemperatureImpl : private T_ValueFunctor
     }
 
     template<typename T_Particle1, typename T_Particle2>
-    DINLINE void operator()(const DataSpace<simDim>& localCellIdx,
+    DINLINE void operator()(const DataSpace<simDim>& localSuperCellOffset,
                             T_Particle1& particle, T_Particle2&,
                             const bool isParticle, const bool)
     {
@@ -72,9 +72,15 @@ struct TemperatureImpl : private T_ValueFunctor
 
         if (!isInitialized)
         {
+            /** @todo: it is a wrong assumption that the threadIdx can be used to
+             * define the cell within the superCell. This is only allowed if we not
+             * use alpaka. We need to distinguish between manipulators those are working on the
+             * cell domain and on the particle domain.
+             */
+            const DataSpace<simDim > threadIndex(threadIdx);
             const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
                                                                       localCells,
-                                                                      localCellIdx );
+                                                                      localSuperCellOffset + threadIndex );
             rng = nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Normal_float());
             isInitialized = true;
         }
