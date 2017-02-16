@@ -1,6 +1,45 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.2.3
+-----
+**Date:** 2017-02-14
+
+Energy Density, Ionization NaNs and openPMD
+
+This release fixes energy density output, minor openPMD issues,
+corrects a broken species manipulator to derive density weighted
+particle distributions, fixes a rounding issue in ionization
+routines that can cause simulation corruption for very small
+particle weightings and allows the moving window to start
+immediately with timestep zero. For ionization input, we now
+verify that the number of arguments in the input table matches
+the ion species' proton number.
+
+### Changes to "0.2.2"
+
+**Bug Fixes:**
+ - openPMD:
+   - iterationFormat only basename #1751
+   - ADIOS trait for bool #1756
+   - boundElectrons: non-weighted attribute #1808
+ - RatioWeighting (DensityWeighting) manipulator #1759
+ - MovingWindow: slide_point now can be set to zero #1783
+ - energy density #1750 #1744 (partial)
+ - possible NAN momenta in ionization #1817
+ - `tbg` bash templates were outdated/broken #1831
+
+**Misc:**
+ - ConstVector:
+   - check arguments init full length #1803
+   - float to int cast warnings #1819
+ - verify number of ionization energy levels == proton number #1809
+
+Thanks to Axel Huebl, René Widera, Richard Pausch, Alexander Debus,
+Marco Garten, Heiko Burau and Thomas Kluge for spotting the issues
+and providing fixes!
+
+
 0.2.2
 -----
 **Date:** 2017-01-04
