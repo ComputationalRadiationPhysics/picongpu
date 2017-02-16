@@ -32,10 +32,11 @@ Developer: Richard Pausch
 '''
 
 
-######################################### check python environment ##########################################
+##################### check python environment #####################
 '''
-Check if the running version might cause problems. A typical problem is matplotlib. Several arguments
-for plots differ between versions. Therefore a warning will be given if a different matplotlib version
+Check if the running version might cause problems. A typical problem
+is matplotlib. Several arguments for plots differ between versions.
+Therefore a warning will be given if a different matplotlib version
 is used.
 '''
 
@@ -56,7 +57,7 @@ if not matplotlib.__version__ in tested_matplotlib_version:
 
 
 
-########################################### argsparse #########################################################
+##################### argsparse #####################
 '''
 The following part of the code describes the shell user interface.
 Several command line options are defined, f.e. the path to the input,
@@ -70,52 +71,79 @@ parser = argparse.ArgumentParser(
             )
 
 # Path to input files (several are possible) - necessary argument
-parser.add_argument('path2Data', metavar='Path to input file', type=argparse.FileType('r'), nargs='+',
+parser.add_argument('path2Data',
+                    metavar='Path to input file',
+                    type=argparse.FileType('r'),
+                    nargs='+',
                     help='location of input file (giving several files is possible)')
 
 # Default windows, but pdf version can be switched on.
-parser.add_argument('--pdf', dest='outputPDF', action='store_true',
+parser.add_argument('--pdf',
+                    dest='outputPDF',
+                    action='store_true',
                     help='store output as pdf instead of using window')
 
 # gives destination of  output (for several input files, a number will be added)
-parser.add_argument('--output', '-o', dest='outputName', metavar='path', nargs='?',
+parser.add_argument('--output',
+                    '-o',
+                    dest='outputName',
+                    metavar='path', nargs='?',
                     default='SpectraOutput',
                     help='''Path for output  if --pdf was chosen. [default=SpectraOutput]
                             For many input files: file name will be added between output
                             name and .dat''')
 
 # extend of the input data
-parser.add_argument('--dataExtend', '-d', nargs=4, metavar='float', type=float,
+parser.add_argument('--dataExtend',
+                    '-d',
+                    nargs=4,
+                    metavar='float',
+                    type=float,
                     default=(0.0, 1.0, 0.0, 90.0),
                     help='''extend of the input data: omega_min omega_max,
                             theta_min, theta_max [default=0.0 1.0 0.0 90.0]''')
 
 # extend of the input data
-parser.add_argument('--outputExtend', '-z', nargs=4, metavar='float', type=float,
+parser.add_argument('--outputExtend',
+                    '-z',
+                    nargs=4,
+                    metavar='float',
+                    type=float,
                     default=[],
                     help='''extend of the output data: omega_min omega_max,
                             theta_min, theta_max [default= as dataExtend]''')
 
 # This flag sets output of dI^2/domega dOmega to log scale.
-parser.add_argument('--logInt', dest='logIntensity', action='store_true',
+parser.add_argument('--logInt',
+                    dest='logIntensity',
+                    action='store_true',
                     help='''sets output of dI^2/domega dOmega to log scale''')
 
 # This flag sets omega-axis to log scale.
-parser.add_argument('--logOmega', dest='logOmega', action='store_true',
+parser.add_argument('--logOmega',
+                    dest='logOmega',
+                    action='store_true',
                     help='''sets omega-axis to log scale''')
 
 # set label x-axis
-parser.add_argument('--labelOmega', '-x', metavar='string', default='$\omega/\omega_0$',
+parser.add_argument('--labelOmega',
+                    '-x',
+                    metavar='string',
+                    default='$\omega/\omega_0$',
                     help='''Label text for omega axis (x-axis) in LaTeX style.
                             [default: $\omega/\omega_0$]''')
 
 # set label y-axis
-parser.add_argument('--labelTheta', '-y', metavar='string', default='$\\theta/^\circ$',
+parser.add_argument('--labelTheta',
+                    '-y',
+                    metavar='string',
+                    default='$\\theta/^\circ$',
                     help='''Label text for theta axis (y-axis) in LaTeX style.
                             [default: $\\\\theta/^\circ$]''')
 
 # set label c-axis
-parser.add_argument('--labelColorbar', metavar='string',
+parser.add_argument('--labelColorbar',
+                    metavar='string',
                     default="$\\frac{\\mathrm{d} ^2I}{\\mathrm{d} \\omega \\mathrm{d} \
                                \\Omega}/$Js",
                     help='''Label text for colorbar (c-axis) in LaTeX style. [default:
@@ -123,37 +151,57 @@ parser.add_argument('--labelColorbar', metavar='string',
                             \\\\mathrm{d} \\\\Omega}/$Js$]''')
 
 # set maximum value for colorbar
-parser.add_argument('--vMax', dest='colorbarMax', nargs='?', metavar='float', type=float,
+parser.add_argument('--vMax',
+                    dest='colorbarMax',
+                    nargs='?',
+                    metavar='float',
+                    type=float,
                     default=[],
                     help='''maximum value shown in colorbar (applied after smoothing)
                             [default: actual maximum]''')
 
 # set maximum value for data
-parser.add_argument('--dataMax', dest='dataMax', nargs=1, metavar='float', type=float,
+parser.add_argument('--dataMax',
+                    dest='dataMax',
+                    nargs=1,
+                    metavar='float',
+                    type=float,
                     default=[-1],
                     help='''maximum value of data used (applied before smoothing)
                             [default: not used]''')
 
 # set on and configure smoothing of data
-parser.add_argument('--smooth', dest='smooth', nargs=2, metavar='float', type=float,
+parser.add_argument('--smooth',
+                    dest='smooth',
+                    nargs=2,
+                    metavar='float',
+                    type=float,
                     default=[-1.0, -1.0],
                     help='''switch on smoothing of data with sigma_omega/x and
                             sigma_theta/y in bins [default: no smoothing]''')
 
 # set on and configure smoothing of data
-parser.add_argument('--split', dest='split', nargs=2, metavar='float', type=float,
+parser.add_argument('--split',
+                    dest='split',
+                    nargs=2,
+                    metavar='float',
+                    type=float,
                     default=[-1.0, -1.0],
                     help='''select between different ranges of observation angles,
                             param1: first index theta, param2: last index theta +1
                             [default: only one rang is assumed]''')
 
 # Default rainbow colorbar, but a black&white colorbar can be need for publications.
-parser.add_argument('--bw', dest='colorbarBlackAndWhite', action='store_true',
+parser.add_argument('--bw',
+                    dest='colorbarBlackAndWhite',
+                    action='store_true',
                     help='''use black and white colorbar instead of using rainbow colors''')
 
 
 # Default gouraud color interpolation, but a flat/nearest interpolation can be need for tests.
-parser.add_argument('--nearest', dest='interpolSet', action='store_true',
+parser.add_argument('--nearest',
+                    dest='interpolSet',
+                    action='store_true',
                     help='''use flat/nearest interpolation instead of gouraud''')
 
 
@@ -163,7 +211,7 @@ args = parser.parse_args()
 
 
 
-####################### work with program arguments ########################################################
+##################### work with program arguments #####################
 '''
 fill arguments not set yet
 rename arguments  for easier use
@@ -216,7 +264,7 @@ else:
 
 
 
-#################################### setup graphic output ##############################################
+##################### setup graphic output #####################
 
 if args.outputPDF:
     matplotlib.use('Agg')
@@ -283,7 +331,7 @@ my_cmap = colors.LinearSegmentedColormap('my_colormap',cdict,256)
 
 
 
-################# run through all files an create spectral plots #######################################
+##################### run through all files and create spectral plots #####################
 
 for myfile in args.path2Data:
     # load ascii data files
@@ -328,14 +376,17 @@ for myfile in args.path2Data:
         sigma_theta = args.smooth[1]
         len_omega_smooth = int(5.0*sigma_omega)
         len_theta_smooth = int(5.0*sigma_theta)
-        dataZoomed = smooth.smooth2D(dataZoomed, sigma_omega, len_omega_smooth, sigma_theta, len_theta_smooth)
+        dataZoomed = smooth.smooth2D(dataZoomed,
+                                     sigma_omega,
+                                     len_omega_smooth,
+                                     sigma_theta,
+                                     len_theta_smooth)
 
     # figure environment (is needed to be deleted for next file)
     FG = plt.figure("Plot Radiation", figsize=(window_width, window_height))
 
     # subplot environment
-    SP = plt.subplot(111, autoscale_on=True, xlim=(omega_min_draw, omega_max_draw), ylim=(theta_min_draw, theta_max_draw))
-
+    SP = plt.subplot(111, autoscale_on=True)
     # labels
     plt.xlabel(args.labelOmega, fontsize=labelfontsize)
     plt.xticks(size=tickfontsize)
@@ -354,11 +405,17 @@ for myfile in args.path2Data:
     shape = shape(dataZoomed)
     if(args.logOmega):
         SP.set_xscale('log')
-        x = logspace(log10(omega_min_draw), log10(omega_max_draw), shape[1])
+        x = logspace(log10(omega_min_draw),
+                     log10(omega_max_draw),
+                     shape[1])
     else:
-        x = linspace(omega_min_draw, omega_max_draw, shape[1])
+        x = linspace(omega_min_draw,
+                     omega_max_draw,
+                     shape[1])
 
-    y = linspace(theta_min_draw, theta_max_draw, shape[0])
+    y = linspace(theta_min_draw,
+                 theta_max_draw,
+                 shape[0])
 
     # plot data: (only call!!!)
     cax =  SP.pcolormesh(x, y, dataZoomed,
@@ -367,7 +424,7 @@ for myfile in args.path2Data:
                          vmax=colorbarMax,
                          norm=colorNorm)
 
-    # set x and y range
+    # set x and y range (required after pcolormesh(?))
     plt.xlim(x[0], x[-1])
     plt.ylim(y[0], y[-1])
 
@@ -420,5 +477,3 @@ for myfile in args.path2Data:
     myfile.close()
 
     print(filename + "\t Done")
-
-#  LocalWords:  PIConGPU
