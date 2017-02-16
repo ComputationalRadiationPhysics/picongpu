@@ -44,7 +44,7 @@ struct DriftImpl : private T_ValueFunctor
     }
 
     template<typename T_Particle1, typename T_Particle2>
-    DINLINE void operator()(const DataSpace<simDim>& localCellIdx,
+    DINLINE void operator()(const DataSpace<simDim>&,
                             T_Particle1& particle, T_Particle2&,
                             const bool isParticle, const bool)
     {

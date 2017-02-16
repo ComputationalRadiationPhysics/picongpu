@@ -74,7 +74,7 @@ struct CreateParticlesFromParticleImpl : private T_Functor
     }
 
     template<typename T_Particle1, typename T_Particle2>
-    DINLINE void operator()(const DataSpace<simDim>& localCellIdx,
+    DINLINE void operator()(const DataSpace<simDim>& localSuperCellOffset,
                             T_Particle1& particle, T_Particle2&,
                             const bool isParticle, const bool)
     {
@@ -92,7 +92,7 @@ struct CreateParticlesFromParticleImpl : private T_Functor
 
 
         uint32_t ltid = DataSpaceOperations<simDim>::template map<SuperCellSize>(DataSpace<simDim>(threadIdx));
-        const DataSpace<simDim> superCell((guardCells + localCellIdx) / SuperCellSize::toRT());
+        const DataSpace<simDim> superCell((guardCells + localSuperCellOffset) / SuperCellSize::toRT());
         if (ltid == 0)
         {
             if (firstCall)
