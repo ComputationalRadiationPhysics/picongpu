@@ -17,6 +17,32 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* @file ionizerConfig.param
+ *
+ * Ionization Model Configuration
+ *
+ * - None : no particle is ionized
+ * - BSIHydrogenLike : simple barrier suppression ionization
+ * - ADKLinPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
+ *               -> linearly polarized lasers
+ * - ADKCircPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
+ *                -> circularly polarized lasers
+ * - Keldysh : Keldysh ionization model
+ *
+ * Research and development:
+ * - BSIEffectiveZ : BSI taking electron shielding into account via an effective
+ *                   atomic number Z_eff
+ * - BSIStarkShifted : BSI for hydrogen-like atoms and ions considering the
+ *                     Stark upshift of ionization potentials
+ *
+ * Usage: Add flags to the list of particle flags that has the following structure
+ *
+ *        ionizer< particles::ionization::IonizationModel< Species2BCreated > >,
+ *        atomicNumbers< ionization::atomicNumbers::Element_t >,
+ *        effectiveNuclearCharge< ionization::effectiveNuclearCharge::Element_t >,
+ *        ionizationEnergies< ionization::energies::AU::Element_t >
+ */
+
 #pragma once
 
 #include "particles/ionization/byField/fieldIonizationCalc.def"
@@ -24,44 +50,125 @@
 
 namespace picongpu
 {
-    /** Effective Atomic Numbers
-     *
-     * Due to the shielding effect of inner electron shells in an atom / ion
-     * which makes the core charge seem smaller to valence electrons
-     * new, effective, atomic core charge numbers can be defined to make the
-     * crude barrier suppression ionization (BSI) model less inaccurate.
-     *
-     * @see https://en.wikipedia.org/wiki/Effective_nuclear_charge
-     * or refer directly to the calculations by Slater or Clementi and Raimondi
-     *
-     * References:
-     *   Clementi, E.; Raimondi, D. L. (1963)
-     *     "Atomic Screening Constants from SCF Functions"
-     *     J. Chem. Phys. 38 (11): 2686–2689. doi:10.1063/1.1733573
-     *   Clementi, E.; Raimondi, D. L.; Reinhardt, W. P. (1967)
-     *     "Atomic Screening Constants from SCF Functions. II. Atoms with 37 to 86 Electrons"
-     *     Journal of Chemical Physics. 47: 1300–1307. doi:10.1063/1.1712084
-     *
-     * IMPORTANT NOTE:
-     * You have to insert the values in REVERSE order since the lowest shell
-     * corresponds to the last ionization process!
-     */
+namespace ionization
+{
+/*! Specify (chemical) element
+ *
+ * Proton and neutron numbers define the chemical element that the ion species
+ * is based on. This value can be non-integer for physical models taking
+ * charge shielding effects into account.
+ * @see http://en.wikipedia.org/wiki/Effective_nuclear_charge
+ *
+ * It is wrapped into a struct because of C++ restricting floats from being
+ * template arguments.
+ *
+ * Do not forget to set the correct mass and charge via
+ * `massRatio<>` and `chargeRatio<>`!
+ */
+namespace atomicNumbers
+{
+    /** H-1 99.98% NA */
+    struct Hydrogen_t
+    {
+        static constexpr float_X numberOfProtons  = 1.0;
+        static constexpr float_X numberOfNeutrons = 0.0;
+    };
 
+    /** H-2 0.02% NA */
+    struct Deuterium_t
+    {
+        static constexpr float_X numberOfProtons  = 1.0;
+        static constexpr float_X numberOfNeutrons = 1.0;
+    };
+
+    /** He-4 ~100% NA */
+    struct Helium_t
+    {
+        static constexpr float_X numberOfProtons  = 2.0;
+        static constexpr float_X numberOfNeutrons = 2.0;
+    };
+
+    /** C-12 98.9% NA */
+    struct Carbon_t
+    {
+        static constexpr float_X numberOfProtons  = 6.0;
+        static constexpr float_X numberOfNeutrons = 6.0;
+    };
+
+    /** N-14 99.6% NA */
+    struct Nitrogen_t
+    {
+        static constexpr float_X numberOfProtons  = 7.0;
+        static constexpr float_X numberOfNeutrons = 7.0;
+    };
+
+    /** O-16 99.76% NA */
+    struct Oxygen_t
+    {
+        static constexpr float_X numberOfProtons  = 8.0;
+        static constexpr float_X numberOfNeutrons = 16.0;
+    };
+
+    /** Al-27 ~100% NA */
+    struct Aluminium_t
+    {
+        static constexpr float_X numberOfProtons  = 13.0;
+        static constexpr float_X numberOfNeutrons = 14.0;
+    };
+
+    /** Cu-63 69.15% NA */
+    struct Copper_t
+    {
+        static constexpr float_X numberOfProtons  = 29.0;
+        static constexpr float_X numberOfNeutrons = 34.0;
+    };
+} // namespace atomicNumbers
+
+/** Effective Nuclear Charge
+ *
+ * Due to the shielding effect of inner electron shells in an atom / ion
+ * which makes the core charge seem smaller to valence electrons
+ * new, effective, atomic core charge numbers can be defined to make the
+ * crude barrier suppression ionization (BSI) model less inaccurate.
+ *
+ * @see https://en.wikipedia.org/wiki/Effective_nuclear_charge
+ * or refer directly to the calculations by Slater or Clementi and Raimondi
+ *
+ * References:
+ *   Clementi, E.; Raimondi, D. L. (1963)
+ *     "Atomic Screening Constants from SCF Functions"
+ *     J. Chem. Phys. 38 (11): 2686–2689. doi:10.1063/1.1733573
+ *   Clementi, E.; Raimondi, D. L.; Reinhardt, W. P. (1967)
+ *     "Atomic Screening Constants from SCF Functions. II. Atoms with 37 to 86 Electrons"
+ *     Journal of Chemical Physics. 47: 1300–1307. doi:10.1063/1.1712084
+ *
+ * IMPORTANT NOTE:
+ * You have to insert the values in REVERSE order since the lowest shell
+ * corresponds to the last ionization process!
+ */
+namespace effectiveNuclearCharge
+{
     /* For hydrogen Z_eff is obviously equal to Z */
-    PMACC_CONST_VECTOR(float_X, 1, Z_EFFECTIVE_HYDROGEN,
+    PMACC_CONST_VECTOR(float_X, 1, Hydrogen,
+        /* 1s */
+        1.
+    );
+
+    /* Example: deuterium */
+    PMACC_CONST_VECTOR(float_X, 1, Deuterium,
         /* 1s */
         1.
     );
 
     /* Example: helium */
-    PMACC_CONST_VECTOR(float_X, 2, Z_EFFECTIVE_HELIUM,
+    PMACC_CONST_VECTOR(float_X, 2, Helium,
         /* 1s */
         1.688,
         1.688
     );
 
     /* Example: carbon */
-    PMACC_CONST_VECTOR(float_X, 6, Z_EFFECTIVE_CARBON,
+    PMACC_CONST_VECTOR(float_X, 6, Carbon,
         /* 2p */
         3.136,
         3.136,
@@ -74,7 +181,7 @@ namespace picongpu
     );
 
     /* Example: nitrogen */
-    PMACC_CONST_VECTOR(float_X, 7, Z_EFFECTIVE_NITROGEN,
+    PMACC_CONST_VECTOR(float_X, 7, Nitrogen,
         /* 2p */
         3.834,
         3.834,
@@ -88,7 +195,7 @@ namespace picongpu
     );
 
     /* Example: oxygen */
-    PMACC_CONST_VECTOR(float_X, 8, Z_EFFECTIVE_OXYGEN,
+    PMACC_CONST_VECTOR(float_X, 8, Oxygen,
         /* 2p */
         4.453,
         4.453,
@@ -103,7 +210,7 @@ namespace picongpu
     );
 
     /* Example: aluminium */
-    PMACC_CONST_VECTOR(float_X, 13, Z_EFFECTIVE_ALUMINIUM,
+    PMACC_CONST_VECTOR(float_X, 13, Aluminum,
         /* 3p */
         4.066,
         /* 3s */
@@ -125,7 +232,7 @@ namespace picongpu
     );
 
     /* Example: copper */
-    PMACC_CONST_VECTOR(float_X, 29, Z_EFFECTIVE_COPPER,
+    PMACC_CONST_VECTOR(float_X, 29, Copper,
         /* 3d */
         13.201,
         13.201,
@@ -163,4 +270,6 @@ namespace picongpu
         28.339,
         28.339
     );
-}
+} // namespace effectiveNuclearCharge
+} // namespace ionization
+} // namespace picongpu

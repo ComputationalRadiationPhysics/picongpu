@@ -32,56 +32,63 @@
 
 namespace picongpu
 {
+namespace ionization
+{
+/** Ionization potentials
+ *
+ * Please follow these rules for defining ionization energies of atomic species,
+ * unless your chosen ionization model requires a different unit system than `AU::`
+ *     - input of values in either atomic units or converting eV or Joule to them
+ *     -> use either UNITCONV_eV_to_AU or SI::ATOMIC_UNIT_ENERGY for that purpose
+ *     - use `float_X` as the preferred data type
+ *
+ * example:
+ *     ionization energy for ground state hydrogen: 13.6 eV
+ *     1 Joule       = 1 kg * m^2 / s^2
+ *     1 eV          = 1.602e-19 J
+ *
+ *     1 AU (energy) = 27.2 eV
+ *                   = 1 Hartree
+ *                   = 4.36e-18 J
+ *                   = 2 Rydberg
+ *                   = 2 x Hydrogen ground state binding energy
+ *
+ * Atomic units are useful for ionization models because they simplify the
+ * formulae greatly and provide intuitively understandable relations to a
+ * well-known system, i.e. the Hydrogen atom.
+ *
+ * for PMACC_CONST_VECTOR usage,
+ * @see libPMacc/include/math/ConstVector.hpp
+ * for finding ionization energies,
+ * @url http://physics.nist.gov/PhysRefData/ASD/ionEnergy.html
+ *
+ * Reference: Kramida, A., Ralchenko, Yu., Reader, J., and NIST ASD Team (2014)
+ *            NIST Atomic Spectra Database (ver. 5.2), [Online]
+ *            Available: http://physics.nist.gov/asd [2017, February 8]
+ *            National Institute of Standards and Technology, Gaithersburg, MD
+ */
+namespace energies
+{
 namespace AU
 {
-
-    /** Ionization potentials
-     *
-     * Please follow these rules for defining ionization energies of atomic species,
-     * unless your chosen ionization model requires a different unit system than AU:
-     *     - input of values in either atomic units or converting eV or Joule to them
-     *     -> use either UNITCONV_eV_to_AU or SI::ATOMIC_UNIT_ENERGY for that purpose
-     *     - use float_X as the preferred data type
-     *
-     * example:
-     *     ionization energy for ground state hydrogen: 13.6 eV
-     *     1 Joule       = 1 kg * m^2 / s^2
-     *     1 eV          = 1.602e-19 J
-     *
-     *     1 AU (energy) = 27.2 eV
-     *                   = 1 Hartree
-     *                   = 4.36e-18 J
-     *                   = 2 Rydberg
-     *                   = 2 x Hydrogen ground state binding energy
-     *
-     * Atomic units are useful for ionization models because they simplify the
-     * formulae greatly and provide intuitively understandable relations to a
-     * well-known system, i.e. the Hydrogen atom.
-     *
-     * for PMACC_CONST_VECTOR usage,
-     * @see libPMacc/include/math/ConstVector.hpp
-     * for finding ionization energies,
-     * @see http://physics.nist.gov/PhysRefData/ASD/ionEnergy.html
-     *
-     * Reference: Kramida, A., Ralchenko, Yu., Reader, J., and NIST ASD Team (2014)
-     *            NIST Atomic Spectra Database (ver. 5.2), [Online]
-     *            Available: http://physics.nist.gov/asd [2017, February 8]
-     *            National Institute of Standards and Technology, Gaithersburg, MD
-     */
-
     /* ionization energy for ground state hydrogen in atomic units */
-    PMACC_CONST_VECTOR(float_X, 1, IONIZATION_ENERGY_HYDROGEN,
+    PMACC_CONST_VECTOR(float_X, 1, Hydrogen,
         13.59843 * UNITCONV_eV_to_AU
     );
 
+    /* ionization energy for ground state deuterium in atomic units */
+    PMACC_CONST_VECTOR(float_X, 1, Deuterium,
+        13.60213 * UNITCONV_eV_to_AU
+    );
+
     /* ionization energy for ground state helium in atomic units */
-    PMACC_CONST_VECTOR(float_X, 2, IONIZATION_ENERGY_HELIUM,
+    PMACC_CONST_VECTOR(float_X, 2, Helium,
         24.58739 * UNITCONV_eV_to_AU,
         54.41776 * UNITCONV_eV_to_AU
     );
 
     /* ionization energy for carbon in atomic units */
-    PMACC_CONST_VECTOR(float_X, 6, IONIZATION_ENERGY_CARBON,
+    PMACC_CONST_VECTOR(float_X, 6, Carbon,
         11.2603 * UNITCONV_eV_to_AU,
         24.3845 * UNITCONV_eV_to_AU,
         47.88778 * UNITCONV_eV_to_AU,
@@ -91,7 +98,7 @@ namespace AU
     );
 
     /* ionization energy for nitrogen in atomic units */
-    PMACC_CONST_VECTOR(float_X, 7, IONIZATION_ENERGY_NITROGEN,
+    PMACC_CONST_VECTOR(float_X, 7, Nitrogen,
         14.53413 * UNITCONV_eV_to_AU,
         29.60125 * UNITCONV_eV_to_AU,
         47.4453 * UNITCONV_eV_to_AU,
@@ -102,7 +109,7 @@ namespace AU
     );
 
     /* ionization energy for oxygen in atomic units */
-    PMACC_CONST_VECTOR(float_X, 8, IONIZATION_ENERGY_OXYGEN,
+    PMACC_CONST_VECTOR(float_X, 8, Oxygen,
         13.61805 * UNITCONV_eV_to_AU,
         35.12112 * UNITCONV_eV_to_AU,
         54.93554 * UNITCONV_eV_to_AU,
@@ -114,7 +121,7 @@ namespace AU
     );
 
     /* ionization energy for aluminium in atomic units */
-    PMACC_CONST_VECTOR(float_X, 13, IONIZATION_ENERGY_ALUMINIUM,
+    PMACC_CONST_VECTOR(float_X, 13, Aluminium,
         5.98577 * UNITCONV_eV_to_AU,
         18.8285 * UNITCONV_eV_to_AU,
         28.4476 * UNITCONV_eV_to_AU,
@@ -131,7 +138,7 @@ namespace AU
     );
 
     /* ionization energy for copper in atomic units */
-    PMACC_CONST_VECTOR(float_X, 29, IONIZATION_ENERGY_COPPER,
+    PMACC_CONST_VECTOR(float_X, 29, Copper,
         7.72638 * UNITCONV_eV_to_AU,
         20.2924 * UNITCONV_eV_to_AU,
         36.8411 * UNITCONV_eV_to_AU,
@@ -163,5 +170,7 @@ namespace AU
         11567.6 * UNITCONV_eV_to_AU
     );
 
-} // namespace SI
+} // namespace AU
+} // namespace energies
+} // namespace ionization
 } // namespace picongpu
