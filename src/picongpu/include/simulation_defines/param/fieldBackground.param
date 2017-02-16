@@ -17,11 +17,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file fieldBackground.param
+ *
+ * Load external background fields
+ */
+
 #pragma once
 
-/** Load external background fields
- *
- */
+
 namespace picongpu
 {
     class FieldBackgroundE

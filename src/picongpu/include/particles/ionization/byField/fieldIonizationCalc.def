@@ -17,13 +17,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-/** forward declarations for ionization algorithms
+/** @file fieldIonizationCalc.def
  *
+ * forward declarations for ionization algorithms
  * ionization model has a < Name >
  * so the algorithm is called "Algorithm< Name >"
  */
+
+#pragma once
 
 namespace picongpu
 {
