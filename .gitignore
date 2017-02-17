@@ -15,7 +15,7 @@
 *.orig
 
 # doxygen output
-doc/xml/
-doc/doxygen_sqlite3.db
+docs/xml/
+docs/doxygen_sqlite3.db
 # sphinx & breathe output
-doc/build/
+docs/build/

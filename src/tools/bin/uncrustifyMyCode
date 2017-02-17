@@ -50,7 +50,7 @@ if test ! -f "$fileName" ; then
 fi
 
 toolsDir=`dirname $0`
-docDir="$toolsDir/../../../doc/"
+docDir="$toolsDir/../../../docs/"
 
 uncrustify -c "$docDir/picongpu_uncrustify.cfg" --replace --no-backup -q  $fileName
 

@@ -4,7 +4,7 @@ PIConGPU Install Guide
 Overview
 --------
 
-![Overview of PIConGPU Library Dependencies](doc/libraryDependencies.png)
+![Overview of PIConGPU Library Dependencies](docs/libraryDependencies.png)
 
 *Figure:* Overview of inter-library dependencies for parallel execution of
 PIConGPU on a typical HPC system. Due to common binary incompatibilities

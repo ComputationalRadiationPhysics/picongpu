@@ -289,7 +289,7 @@ Coding Guide Lines
 Well - there are some! ;)
 - Please follow our recommendations in our
   [wiki page](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Coding-Guide-Lines).
-- The `uncrustify` script [picongpu_uncrustify.cfg](doc/picongpu_uncrustify.cfg)
+- The `uncrustify` script [picongpu_uncrustify.cfg](docs/picongpu_uncrustify.cfg)
   can be used for auto-formatting your code.
 
 Please **add the according license header** snippet to your *new files*:
@@ -312,7 +312,7 @@ to a new version of the according software.
 Commit Rules
 ------------
 
-See our [commit rules page](doc/COMMIT.md)
+See our [commit rules page](docs/COMMIT.md)
 
 *******************************************************************************
 

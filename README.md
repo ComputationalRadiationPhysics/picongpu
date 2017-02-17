@@ -9,7 +9,7 @@ PIConGPU - A Many GPGPU PIC Code
 [![License PMacc](https://img.shields.io/badge/license-LGPLv3-blue.svg?label=PMacc)](https://www.gnu.org/licenses/lgpl-3.0.html)
 
 [![PIConGPU Presentation Video](http://img.youtube.com/vi/nwZuG-XtUDE/0.jpg)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
-[![PIConGPU Release](doc/logo/pic_logo_vert_158x360.png)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
+[![PIConGPU Release](docs/logo/pic_logo_vert_158x360.png)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
 
 Introduction
 ------------
@@ -230,5 +230,5 @@ way!
 
 ********************************************************************************
 
-![image of an lwfa](doc/images/lwfa_iso.png "LWFA")
-![image of our strong scaling](doc/images/StrongScalingPIConGPU_log.png "Strong Scaling")
+![image of an lwfa](docs/images/lwfa_iso.png "LWFA")
+![image of our strong scaling](docs/images/StrongScalingPIConGPU_log.png "Strong Scaling")
