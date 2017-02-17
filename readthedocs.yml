@@ -1,4 +1,4 @@
-requirements_file: doc/requirements.txt
+requirements_file: docs/requirements.txt
 
 conda:
   channels:
