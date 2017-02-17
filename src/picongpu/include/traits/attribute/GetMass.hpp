@@ -21,7 +21,7 @@
 
 #include "simulation_defines.hpp"
 #include "traits/frame/GetMass.hpp"
-#include "traits/HasIdentifier.hpp"
+
 
 namespace picongpu
 {
