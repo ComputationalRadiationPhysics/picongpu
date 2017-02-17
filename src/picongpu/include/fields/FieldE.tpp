@@ -184,7 +184,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
     /* initialize the laser not in the first cell is equal to a negative shift
      * in time
      */
-    constexpr float_X laserTimeShift = laser::laserInitPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+    constexpr float_X laserTimeShift = laser::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
     /* Disable laser if
      * - init time of laser is over or
      * - we have periodic boundaries in Y direction or
@@ -201,15 +201,15 @@ void FieldE::laserManipulation( uint32_t currentStep )
     else
     {
         PMACC_VERIFY_MSG(
-            laser::laserInitPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
-            "laserInitPlaneY must be located in the top GPU"
+            laser::initPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
+            "initPlaneY must be located in the top GPU"
         );
     }
 
     PMACC_CASSERT_MSG(
-        __laserInitPlaneY_need_to_be_greate_than_the_top_absorber_cells_or_zero,
-        laser::laserInitPlaneY > ABSORBER_CELLS[1][0] ||
-        laser::laserInitPlaneY == 0 ||
+        __initPlaneY_needs_to_be_greate_than_the_top_absorber_cells_or_zero,
+        laser::initPlaneY > ABSORBER_CELLS[1][0] ||
+        laser::initPlaneY == 0 ||
         laserProfile::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
     );
 

@@ -64,10 +64,10 @@ public:
 
                 if (thickness == 0) continue; /*if the absorber has no thickness we check the next side*/
 
-                /* allow to disable the absorber on the top side if the laser
+                /* allow to enable the absorber on the top side if the laser
                  * initialization plane in y direction is *not* in cell zero
                  */
-                if (laser::laserInitPlaneY == 0)
+                if (laser::initPlaneY == 0)
                 {
                     /* disable the absorber on top side if
                      *      no slide was performed and
@@ -75,7 +75,8 @@ public:
                      */
                     if (numSlides == 0 && ((currentStep * DELTA_T) <= laserProfile::INIT_TIME))
                     {
-                        if (i == TOP) continue; /*disable laser on top side*/
+                        /* disable absorber on top side */
+                        if (i == TOP) continue;
                     }
                 }
 

@@ -40,12 +40,12 @@ namespace picongpu
             /* initialize the laser not in the first cell is equal to a negative shift
              * in time
              */
-            constexpr float_X laserTimeShift = laser::laserInitPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+            constexpr float_X laserTimeShift = laser::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
             const float_64 runTime = DELTA_T * currentStep - laserTimeShift;
             const float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
             /* calculate focus position relative to the laser initialization plane */
-            const float_X focusPos = FOCUS_POS - laser::laserInitPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+            const float_X focusPos = FOCUS_POS - laser::initPlaneY * CELL_HEIGHT;
 
             float3_X elong(float3_X::create(0.0));
 
@@ -130,7 +130,7 @@ namespace picongpu
         HDINLINE float3_X laserTransversal( float3_X elong, float_X phase, const float_X posX, const float_X posZ )
         {
             /* calculate focus position relative to the laser initialization plane */
-            const float_X focusPos = FOCUS_POS - laser::laserInitPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+            const float_X focusPos = FOCUS_POS - laser::initPlaneY * CELL_HEIGHT;
             const float_X r2 = posX * posX + posZ * posZ;
 
             //rayleigh length (in y-direction)

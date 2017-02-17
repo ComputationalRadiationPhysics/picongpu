@@ -53,7 +53,7 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     /* initialize the laser not in the first cell is equal to a negative shift
      * in time
      */
-    constexpr float_X laserTimeShift = laser::laserInitPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+    constexpr float_X laserTimeShift = laser::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
     const float_64 runTime = (DELTA_T * currentStep - laserTimeShift)  - mue;
     const float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
