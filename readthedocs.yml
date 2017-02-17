@@ -1,0 +1,7 @@
+requirements_file: doc/requirements.txt
+
+conda:
+  channels:
+    - conda-forge
+  dependencies:
+    - doxygen
