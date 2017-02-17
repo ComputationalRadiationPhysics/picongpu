@@ -19,29 +19,36 @@
 
 #pragma once
 
+#include "simulation_defines.hpp"
+#include "algorithms/Gamma.def"
+
+
 namespace picongpu
 {
 
-using namespace PMacc;
-
-template<typename precisionType = float_X>
-struct Gamma
-{
-    typedef precisionType valueType;
-
-    template<typename MomType, typename MassType >
-        HDINLINE valueType operator()(const MomType mom, const MassType mass)
+    template< typename T_PrecisionType >
+    template<
+        typename T_MomType,
+        typename T_MassType
+    >
+    HDINLINE
+    T_PrecisionType
+    Gamma< T_PrecisionType >::operator()(
+        T_MomType const & mom,
+        T_MassType const mass
+    ) const
     {
-        const valueType fMom2 = math::abs2( precisionCast<valueType >( mom ) );
-        const valueType c2 = SPEED_OF_LIGHT*SPEED_OF_LIGHT;
+        using namespace PMacc;
 
-        const valueType m2_c2_reci = valueType(1.0) / precisionCast<valueType >( mass * mass * c2 );
+        valueType const fMom2 = math::abs2( precisionCast< valueType >( mom ) );
+        constexpr valueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
-        return math::sqrt( precisionCast<valueType >( valueType(1.0) + fMom2 * m2_c2_reci ) );
+        valueType const m2_c2_reci = valueType( 1.0 ) /
+            precisionCast<valueType >( mass * mass * c2 );
+
+        return math::sqrt(
+            precisionCast<valueType >( valueType( 1.0 ) + fMom2 * m2_c2_reci )
+        );
     }
 
-
-};
-
-}
-
+} // namespace picongpu
