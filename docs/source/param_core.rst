@@ -1,6 +1,3 @@
-.param Files
-============
-
 PIC Core
 --------
 
@@ -107,58 +104,3 @@ speciesInitialization.param
    :project: PIConGPU
    :path: src/picongpu/include/simulation_defines/param/speciesInitialization.param
    :no-link:
-
-Memory
-------
-
-memory.param
-^^^^^^^^^^^^
-precision.param
-^^^^^^^^^^^^^^^
-mallocMC.param
-^^^^^^^^^^^^^^
-
-PIC Extensions
---------------
-
-fieldBackground.param
-^^^^^^^^^^^^^^^^^^^^^
-
-bremsstrahlung.param
-^^^^^^^^^^^^^^^^^^^^
-synchrotronPhotons.param
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-ionizerConfig.param
-^^^^^^^^^^^^^^^^^^^
-ionizationEnergies.param
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Plugins
--------
-
-fileOutput.param
-^^^^^^^^^^^^^^^^
-isaac.param
-^^^^^^^^^^^
-particleCalorimeter.param
-^^^^^^^^^^^^^^^^^^^^^^^^^
-radiationConfig.param
-^^^^^^^^^^^^^^^^^^^^^
-radiationObserver.param
-^^^^^^^^^^^^^^^^^^^^^^^
-visualization.param
-^^^^^^^^^^^^^^^^^^^
-visColorScales.param
-^^^^^^^^^^^^^^^^^^^^
-
-Misc
-----
-
-starter.param
-^^^^^^^^^^^^^
-seed.param
-^^^^^^^^^^
-physicalConstants.param
-^^^^^^^^^^^^^^^^^^^^^^^
-
