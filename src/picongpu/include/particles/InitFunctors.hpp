@@ -19,22 +19,25 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include <boost/mpl/if.hpp>
-#include "traits/HasFlag.hpp"
-#include "traits/GetFlagType.hpp"
 #include "fields/Fields.def"
-#include "math/MapTuple.hpp"
-#include <boost/mpl/plus.hpp>
-#include <boost/mpl/accumulate.hpp>
-#include <boost/mpl/apply.hpp>
-#include <boost/mpl/apply_wrap.hpp>
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "particles/manipulators/manipulators.def"
 #include "particles/densityProfiles/IProfile.def"
 #include "particles/startPosition/IFunctor.def"
+#include "particles/Manipulate.hpp"
+
 #include "traits/Resolve.hpp"
+#include "traits/HasFlag.hpp"
+#include "traits/GetFlagType.hpp"
+#include "math/MapTuple.hpp"
+
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/plus.hpp>
+#include <boost/mpl/accumulate.hpp>
+#include <boost/mpl/apply.hpp>
+#include <boost/mpl/apply_wrap.hpp>
+
 
 namespace picongpu
 {
@@ -150,36 +153,6 @@ struct ManipulateDeriveSpecies
 template<typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
 struct DeriveSpecies : ManipulateDeriveSpecies<manipulators::NoneImpl, T_SrcSpeciesType, T_DestSpeciesType>
 {
-};
-
-
-/** run a user defined functor for every particle
- *
- * - constructor with current time step is called for the functor on the host side
- * - \warning `fillAllGaps()` is not called
- *
- * @tparam T_Functor unary lambda functor
- * @tparam T_SpeciesType type of the used species
- */
-template<typename T_Functor, typename T_SpeciesType = bmpl::_1>
-struct Manipulate
-{
-    typedef T_SpeciesType SpeciesType;
-    typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
-
-    typedef typename bmpl::apply1<T_Functor, SpeciesType>::type UserFunctor;
-    typedef manipulators::IManipulator<UserFunctor> Functor;
-
-    template<typename T_StorageTuple>
-    HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
-    {
-        auto speciesPtr = tuple[SpeciesName()];
-        Functor functor(currentStep);
-        speciesPtr->manipulateAllParticles(currentStep, functor);
-    }
 };
 
 
