@@ -18,11 +18,15 @@
 #
 import os
 import subprocess
+from recommonmark.parser import CommonMarkParser
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
 
 # -- General configuration ------------------------------------------------
+
+# RTD
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
@@ -31,7 +35,10 @@ import subprocess
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.mathjax', 'sphinx.ext.githubpages', 'breathe']
+extensions = ['sphinx.ext.mathjax', 'breathe']
+
+if not on_rtd:
+    extensions.append('sphinx.ext.githubpages')
 
 # breathe config
 breathe_projects = { 'PIConGPU': '../xml' }
@@ -52,8 +59,6 @@ breathe_domain_by_extension = {
 
 highlight_language = 'c++'
 
-# RTD
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     subprocess.call('cd ..; doxygen', shell=True)
 else:
@@ -67,8 +72,11 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
+source_parsers = {
+    '.md': CommonMarkParser,
+}
+
 source_suffix = ['.rst', '.md']
-#source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
@@ -122,7 +130,7 @@ todo_include_todos = False
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 
 # -- Options for HTMLHelp output ------------------------------------------
