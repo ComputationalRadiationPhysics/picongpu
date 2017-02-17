@@ -31,7 +31,7 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
    :maxdepth: 2
 
    basic_usage
-   param_files
+   param
    example_cases
 
 .. toctree::
