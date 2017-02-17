@@ -32,6 +32,7 @@
 #include "particles/manipulators/manipulators.def"
 #include "nvidia/functors/Add.hpp"
 #include "nvidia/functors/Assign.hpp"
+#include "nvidia/rng/distributions/Uniform_float.hpp"
 
 
 namespace picongpu
@@ -121,6 +122,19 @@ namespace manipulators
 
     /** definition of a free particle manipulator: double weighting */
     using DoubleWeighting = FreeImpl< DoubleWeightingFunctor >;
+
+    struct RandomEnabledRadiationFunctor
+    {
+        template< typename T_Rng, typename T_Particle >
+        DINLINE void operator()( T_Rng& rng, T_Particle& particle )
+        {
+            // enable radiation for 10% of the particles
+            particle[ radiationFlag_ ] = rng() < ( 0.1 );
+        }
+    };
+
+    /* definition of RandomEnableRadiation start*/
+    typedef FreeRngImpl< RandomEnabledRadiationFunctor, nvidia::rng::distributions::Uniform_float > RandomEnabledRadiation;
 
     /** changes the in-cell position of each particle of a species */
     using RandomPosition = RandomPositionImpl<>;
