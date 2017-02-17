@@ -89,7 +89,7 @@ alias(shape);
 /*! alias for particle pusher @see species.param */
 alias(particlePusher);
 
-/*! alias for particle ionizer @see speciesDefinition.param */
+/*! alias for particle ionizer @see ionizerConfig.param */
 alias(ionizer);
 
 /*! alias for ionization energy container @see ionizationEnergies.param */
@@ -110,14 +110,15 @@ alias(interpolation);
 /*! alias for particle current solver @see species.param */
 alias(current);
 
-/*! alias for particle flag: atomic numbers @see speciesDefinition.param
- * - only reasonable for atoms / ions / nuclei */
+/*! alias for particle flag: atomic numbers @see ionizerConfig.param
+ * - only reasonable for atoms / ions / nuclei
+ */
 alias(atomicNumbers);
 
-/*! alias for particle flag: effective atomic numbers @see speciesDefinition.param
- * @see ionizerConfig.param
+/*! alias for particle flag: effective nuclear charge @see ionizerConfig.param
+ * - only reasonable for atoms / ions / nuclei
  */
-alias(effectiveAtomicNumbers);
+alias(effectiveNuclearCharge);
 
 /*! alias for particle mass ratio
  *

@@ -22,7 +22,7 @@
 #include "simulation_defines.hpp"
 #include "particles/traits/GetIonizationEnergies.hpp"
 #include "particles/traits/GetAtomicNumbers.hpp"
-#include "particles/traits/GetEffectiveAtomicNumbers.hpp"
+#include "particles/traits/GetEffectiveNuclearCharge.hpp"
 #include "traits/attribute/GetChargeState.hpp"
 
 /** @file AlgorithmBSIEffectiveZ.hpp
@@ -73,7 +73,7 @@ namespace ionization
                 uint32_t cs = math::float2int_rd(chargeState);
                 /* ionization potential in atomic units */
                 const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
-                const float_X ZEff = GetEffectiveAtomicNumbers<ParticleType>::type()[cs];
+                const float_X ZEff = GetEffectiveNuclearCharge<ParticleType>::type()[cs];
                 /* critical field strength in atomic units */
                 float_X critField = iEnergy*iEnergy / (float_X(4.0) * ZEff);
 
