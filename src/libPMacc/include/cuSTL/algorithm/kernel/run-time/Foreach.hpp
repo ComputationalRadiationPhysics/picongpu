@@ -80,13 +80,17 @@ struct MaxCudaBlockDim<DIM3>
     typedef math::CT::Size_t<8, 8, 8> type;
 };
 
-/* Check if MaxCudaBlockDim holds the cuda specification limits */
+/** Check if MaxCudaBlockDim holds the cuda specification limits
+ *
+ * @cond
+ */
 PMACC_CASSERT_MSG(_cuda_blockDim_exceeds_maximum_number_of_threads_per_block,
     math::CT::volume<typename MaxCudaBlockDim<DIM1>::type >::type::value <= cudaSpecs::maxNumThreadsPerBlock);
 PMACC_CASSERT_MSG(_cuda_blockDim_exceeds_maximum_number_of_threads_per_block,
     math::CT::volume<typename MaxCudaBlockDim<DIM2>::type >::type::value <= cudaSpecs::maxNumThreadsPerBlock);
 PMACC_CASSERT_MSG(_cuda_blockDim_exceeds_maximum_number_of_threads_per_block,
     math::CT::volume<typename MaxCudaBlockDim<DIM3>::type >::type::value <= cudaSpecs::maxNumThreadsPerBlock);
+/** @endcond */
 
 /** Return a suitable cuda blockDim for a given gridDim.
  *
