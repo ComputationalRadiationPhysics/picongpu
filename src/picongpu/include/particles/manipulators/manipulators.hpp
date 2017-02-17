@@ -17,7 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "particles/manipulators/IManipulator.hpp"
@@ -32,3 +31,4 @@
 #include "particles/manipulators/RandomPositionImpl.hpp"
 #include "particles/manipulators/DensityWeighting.hpp"
 #include "particles/manipulators/ProtonTimesWeighting.hpp"
+#include "particles/manipulators/CopyAttribute.hpp"
