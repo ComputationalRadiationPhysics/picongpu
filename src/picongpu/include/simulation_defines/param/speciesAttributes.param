@@ -17,6 +17,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * This file defines available attributes that can be stored with each particle
+ * of a particle species.
+ * Each attribute defined here needs to implement furthermore the traits
+ *   - Unit
+ *   - UnitDimension
+ *   - WeightingPower
+ *   - MacroWeighted
+ * in speciesAttributes.unitless for further information about these
+ * traits see therein.
+ */
+
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -29,18 +42,6 @@
 #include "particles/IdProvider.def"
 
 
-/** \file speciesAttributes.param
- *
- * This file defines available attributes that can be stored with each particle
- * of a particle species.
- * Each attribute defined here needs to implement furthermore the traits
- *   - Unit
- *   - UnitDimension
- *   - WeightingPower
- *   - MacroWeighted
- * in \see speciesAttributes.unitless . For further information about these
- * traits see therein.
- */
 namespace picongpu
 {
 

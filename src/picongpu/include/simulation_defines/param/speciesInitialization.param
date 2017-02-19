@@ -17,16 +17,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include "particles/InitFunctors.hpp"
-
-namespace picongpu
-{
-namespace particles
-{
-
-/* Available species functors
+/** @file
+ *
+ * Available species functors
  *   in src/picongpu/include/particles/InitFunctors.hpp
  *
  * - CreateDensity<T_DensityFunctor, T_PositionFunctor, T_SpeciesType>
@@ -77,11 +70,21 @@ namespace particles
  *     afterward to create a valid data structure.
  */
 
-/** InitPipeline define in which order species are initialized
- *
- * the functors are called in order (from first to last functor)
- */
-typedef mpl::vector<> InitPipeline;
+#pragma once
 
-} /* namespace particles */
-} /* namespace picongpu  */
+#include "particles/InitFunctors.hpp"
+
+
+namespace picongpu
+{
+namespace particles
+{
+
+    /** InitPipeline defines in which order species are initialized
+     *
+     * the functors are called in order (from first to last functor)
+     */
+    using InitPipeline = mpl::vector<>;
+
+} // namespace particles
+} // namespace picongpu

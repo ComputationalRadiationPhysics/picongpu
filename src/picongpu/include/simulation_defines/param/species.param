@@ -17,7 +17,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+/** @file
+ *
+ * Forward declarations for speciesDefinition.param in case one wants to use
+ * the same particle shape, interpolation, current solver and particle pusher
+ * for all particle species.
+ */
 
 #pragma once
 
@@ -32,41 +37,44 @@
 #include "particles/manipulators/manipulators.def"
 
 
-/*enable (1) or disable (0) electrons*/
+/** enable (1) or disable (0) electrons (deprecated) */
 #define ENABLE_ELECTRONS 1
-/*enable (1) or disable (0) ions*/
+/** enable (1) or disable (0) ions (deprecated) */
 #define ENABLE_IONS 1
 
 
 namespace picongpu
 {
-/*---------------------------- generic solver---------------------------------*/
 
-/*! Particle Shape definitions -------------------------------------------------
+/** Particle Shape definitions
  *  - particles::shapes::CIC : 1st order
  *  - particles::shapes::TSC : 2nd order
  *  - particles::shapes::PCS : 3rd order
  *  - particles::shapes::P4S : 4th order
  *
- *  example:             typedef particles::shapes::CIC CICShape;
+ *  example:             using CICShape = particles::shapes::CIC;
  */
-typedef particles::shapes::TSC UsedParticleShape;
+using UsedParticleShape = particles::shapes::TSC;
 
-/* define which interpolation method is used to interpolate fields to particle*/
-typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation> UsedField2Particle;
+/** define which interpolation method is used to interpolate fields to particles
+ */
+using UsedField2Particle = FieldToParticleInterpolation<
+    UsedParticleShape,
+    AssignedTrilinearInterpolation
+>;
 
-/*! select current solver method -----------------------------------------------
- * - currentSolver::Esirkepov<SHAPE>  : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
- * - currentSolver::VillaBune<>       : particle shapes - CIC (1st order) only
+/** select current solver method
+ * - currentSolver::Esirkepov< SHAPE > : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
+ * - currentSolver::VillaBune<>        : particle shapes - CIC (1st order) only
  *
- * For development purposes: ---------------------------------------------------
- * - currentSolver::currentSolver::EsirkepovNative<SHAPE> : generic version of currentSolverEsirkepov
+ * For development purposes:
+ * - currentSolver::currentSolver::EsirkepovNative< SHAPE > : generic version of currentSolverEsirkepov
  *   without optimization (~4x slower and needs more shared memory)
- * - currentSolver::ZigZag<SHAPE>     : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
+ * - currentSolver::ZigZag< SHAPE >    : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
  */
-typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
+using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
 
-/*! particle pusher configuration ----------------------------------------------
+/** particle pusher configuration
  *
  * Define a pusher is optional for particles
  *
@@ -75,12 +83,12 @@ typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
  * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
  *                                              with classical radiation reaction
  *
- * For development purposes: ---------------------------------------------------
+ * For development purposes:
  * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  * - particles::pusher::Free : free propagation, ignore fields
  * (= free stream model)
  * - particles::pusher::Photon : propagate with c in direction of normalized mom.
  */
-typedef particles::pusher::Boris UsedParticlePusher;
+using UsedParticlePusher = particles::pusher::Boris;
 
-}//namespace picongpu
+} // namespace picongpu
