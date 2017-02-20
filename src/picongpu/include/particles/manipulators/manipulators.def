@@ -32,3 +32,4 @@
 #include "particles/manipulators/DensityWeighting.def"
 #include "particles/manipulators/ProtonTimesWeighting.def"
 #include "particles/manipulators/CopyAttribute.def"
+#include "particles/manipulators/FreeRngImpl.def"
