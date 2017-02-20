@@ -58,9 +58,6 @@ using DefaultParticleAttributes = MakeSeq_t<
 #if( ENABLE_RADIATION == 1 )
     , momentumPrev1
 #endif
-#if( RAD_MARK_PARTICLE > 1 ) || ( RAD_ACTIVATE_GAMMA_FILTER != 0 )
-    , radiationFlag
-#endif
 >;
 
 /*########################### end particle attributes ########################*/

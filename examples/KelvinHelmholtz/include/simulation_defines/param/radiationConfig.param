@@ -30,6 +30,9 @@
 
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
+#include "algorithms/Gamma.def"
+#include "traits/attribute/GetMass.hpp"
+#include "particles/manipulators/manipulators.def"
 
 namespace picongpu
 {
@@ -119,22 +122,45 @@ namespace parameters
 // 0 = off (faster but with fourier reflections)
 #define __NYQUISTCHECK__ 0
 
-
-
-//marked every N particle for calculate radiation
-//mark no particle at beginning
-#define RAD_MARK_PARTICLE 0
-//disable or enable gamme filter
-//diable (0) / enable (1)
-#define RAD_ACTIVATE_GAMMA_FILTER 0
-
-constexpr float_32 RadiationGamma = 5.;
-
 constexpr unsigned int N_observer = 256; // number of looking directions
 
-
-
 } /* end namespace parameters */
+
+namespace radiation
+{
+    /** activate particles for radiation */
+    struct GammaFilterFunctor
+    {
+        static constexpr float_X radiationGamma = 5.0;
+
+        template< typename T_Particle >
+        DINLINE void operator()( T_Particle& particle )
+        {
+            if(
+                picongpu::gamma<float_X>(
+                    particle[ picongpu::momentum_ ],
+                    picongpu::traits::attribute::getMass(
+                        particle[ picongpu::weighting_ ],
+                        particle
+                    )
+                ) >= radiationGamma
+            )
+                particle[ picongpu::radiationMask_ ] = true;
+        }
+    };
+
+
+    /* filter to enable radiation for electrons
+     *
+     * to enable the filter:
+     *   - goto file `speciesDefinietion.param`
+     *   - add the attribute `radiationFlag` to the electron species
+     */
+    using FilterEnableRadiation = picongpu::particles::manipulators::FreeImpl<
+        GammaFilterFunctor
+    >;
+
+} // namespace radiation
 
 //////////////////////////////////////////////////
 

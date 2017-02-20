@@ -30,6 +30,9 @@
 
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
+#include "algorithms/Gamma.def"
+#include "traits/attribute/GetMass.hpp"
+#include "particles/manipulators/manipulators.def"
 
 namespace picongpu
 {
@@ -112,30 +115,45 @@ namespace parameters
 // 0 = off (faster but with fourier reflections)
 #define __NYQUISTCHECK__ 1
 
-
-
-//marked every N particle for calculate radiation
-//mark no particle at beginning
-#define RAD_MARK_PARTICLE 1
-
-//disable or enable gamme filter
-//diable (0) / enable (1)
-#ifndef PARAM_FILTER_GAMMA
-#    define PARAM_FILTER_GAMMA 0
-#endif
-
-#define RAD_ACTIVATE_GAMMA_FILTER PARAM_FILTER_GAMMA
-
-constexpr float_32 RadiationGamma = 3.0;
-
 constexpr unsigned int N_observer = 128; // number of looking directions
-
-
 
 } /* end namespace parameters */
 
-//////////////////////////////////////////////////
+namespace radiation
+{
+    /** activate particles for radiation */
+    struct GammaFilterFunctor
+    {
+        static constexpr float_X radiationGamma = 3.0;
 
+        template< typename T_Particle >
+        DINLINE void operator()( T_Particle& particle )
+        {
+            if(
+                picongpu::gamma<float_X>(
+                    particle[ picongpu::momentum_ ],
+                    picongpu::traits::attribute::getMass(
+                        particle[ picongpu::weighting_ ],
+                        particle
+                    )
+                ) >= radiationGamma
+            )
+                particle[ picongpu::radiationMask_ ] = true;
+        }
+    };
+
+
+    /* filter to enable radiation for electrons
+     *
+     * to enable the filter:
+     *   - goto file `speciesDefinietion.param`
+     *   - add the attribute `radiationFlag` to the electron species
+     */
+    using FilterEnableRadiation = picongpu::particles::manipulators::FreeImpl<
+        GammaFilterFunctor
+    >;
+
+} // namespace radiation
 
 // add a window function weighting to the radiation in order
 // to avoid ringing effects from sharpe boundaries

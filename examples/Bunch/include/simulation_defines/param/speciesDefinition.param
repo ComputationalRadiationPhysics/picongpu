@@ -37,6 +37,12 @@ namespace picongpu
 
 /*########################### define particle attributes #####################*/
 
+//disable or enable functor FilterEnableRadiation
+//diable (0) / enable (1)
+#ifndef PARAM_FILTER_GAMMA
+#    define PARAM_FILTER_GAMMA 0
+#endif
+
 /** describe attributes of a particle*/
 using DefaultParticleAttributes = MakeSeq_t<
     position< position_pic >,
@@ -44,9 +50,9 @@ using DefaultParticleAttributes = MakeSeq_t<
     weighting,
     particleId,
     momentumPrev1
-#if( RAD_MARK_PARTICLE > 1 ) || ( RAD_ACTIVATE_GAMMA_FILTER != 0 )
+#   if( PARAM_FILTER_GAMMA == 1 )
     , radiationFlag
-#endif
+#   endif
 >;
 
 /*########################### end particle attributes ########################*/
