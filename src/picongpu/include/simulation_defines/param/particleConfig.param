@@ -18,7 +18,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitalization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
 
 #pragma once
 
@@ -27,31 +33,47 @@
 #include "nvidia/functors/Add.hpp"
 #include "nvidia/functors/Assign.hpp"
 
+
 namespace picongpu
 {
-
 namespace particles
 {
 
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
+     *
      *  unit: none */
     constexpr float_X MIN_WEIGHTING = 10.0;
 
+    /** Number of maximum particles per cell during density profile evaluation.
+     *
+     * Determines the weighting of a macro particle and with it, the number of
+     * particles "sampling" dynamics in phase space.
+     */
     constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
 
 namespace manipulators
 {
 
+    /** Parameter for DriftParam
+     */
     CONST_VECTOR(float_X,3,DriftParam_direction,1.0,0.0,0.0);
+    /** Parameter for a particle drift assignment
+     */
     struct DriftParam
     {
         static constexpr float_64 gamma = 1.0;
         const DriftParam_direction_t direction;
     };
-    /* definition of SetDrift start*/
-    typedef DriftImpl<DriftParam,nvidia::functors::Assign> AssignXDrift;
+    /** definition of manipulator that assigns a dirft in X */
+    using AssignXDrift = DriftImpl<
+        DriftParam,
+        nvidia::functors::Assign
+    >;
 
+
+    /** Parameter for a temperature assignment
+     */
     struct TemperatureParam
     {
         /*Initial temperature
@@ -59,10 +81,15 @@ namespace manipulators
          */
         static constexpr float_64 temperature = 0.0;
     };
-    /* definition of SetDrift start*/
-    typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
+    /* definition a temperature assignment manipulator */
+    using AddTemperature = TemperatureImpl<
+        TemperatureParam,
+        nvidia::functors::Add
+    >;
 
 
+    /** Parameters for an assignment in a relative position selection
+     */
     struct IfRelativeGlobalPositionParam
     {
         /* lowerBound is included in the range*/
@@ -74,25 +101,31 @@ namespace manipulators
          */
         static constexpr uint32_t dimension = 0;
     };
-    /* definition of SetDrift start*/
-    typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParam,AssignXDrift> AssignXDriftToLowerHalfXPosition;
+    /** definition of a relative position selection that assigns a drift in X
+     */
+    using AssignXDriftToLowerHalfXPosition = IfRelativeGlobalPositionImpl<
+        IfRelativeGlobalPositionParam,
+        AssignXDrift
+    >;
 
+    /** Unary particle manipulator: double each weighting
+     */
     struct DoubleWeightingFunctor
     {
-        template<typename T_Particle>
-        DINLINE void operator()(T_Particle& particle)
+        template< typename T_Particle >
+        DINLINE void operator()( T_Particle& particle )
         {
-            particle[weighting_]*=float_X(2.0);
+            particle[weighting_] *= float_X(2.0);
         }
     };
 
-    /* definition of SetDrift start*/
-    typedef FreeImpl<DoubleWeightingFunctor> DoubleWeighting;
+    /** definition of a free particle manipulator: double weighting */
+    using DoubleWeighting = FreeImpl< DoubleWeightingFunctor >;
 
-    /**  changes the in-cell position of each particle of a species*/
-    typedef RandomPositionImpl<> RandomPosition;
+    /** changes the in-cell position of each particle of a species */
+    using RandomPosition = RandomPositionImpl<>;
 
-} //namespace manipulators
+} // namespace manipulators
 
 
 namespace startPosition
@@ -101,23 +134,32 @@ namespace startPosition
     struct RandomParameter
     {
         /** Count of particles per cell at initial state
+         *
          *  unit: none */
         static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
     };
-    /* definition of random particle start */
-    typedef RandomImpl<RandomParameter> Random;
+    /** definition of random particle start */
+    using Random = RandomImpl< RandomParameter >;
 
     struct QuietParam
     {
         /** Count of particles per cell per direction at initial state
+         *
          *  unit: none */
-       typedef mCT::shrinkTo<mCT::Int<1, TYPICAL_PARTICLES_PER_CELL, 1>, simDim>::type numParticlesPerDimension;
+        using numParticlesPerDimension = mCT::shrinkTo<
+            mCT::Int<
+                1,
+                TYPICAL_PARTICLES_PER_CELL,
+                1
+                >,
+            simDim
+        >::type;
     };
 
-    /* definition of quiet particle start */
-    typedef QuietImpl<QuietParam> Quiet;
+    /** definition of quiet particle start */
+    using Quiet = QuietImpl< QuietParam >;
 
-    /* sit directly in lower corner of the cell */
+    /** sit directly in lower corner of the cell */
     CONST_VECTOR(
         float_X,
         3,
@@ -130,16 +172,16 @@ namespace startPosition
     struct OnePositionParameter
     {
         /** Count of particles per cell at initial state
+         *
          *  unit: none */
         static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
 
         const InCellOffset_t inCellOffset;
     };
 
-    /* definition of one specific position for particle start */
+    /** definition of one specific position for particle start */
     using OnePosition = OnePositionImpl< OnePositionParameter >;
 
-} //namespace startPosition
-} //namespace particles
-
-} //namespac picongpu
+} // namespace startPosition
+} // namespace particles
+} // namespace picongpu

@@ -18,18 +18,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Select the laser profile and the field solver here.
+ */
 
 #pragma once
 
 
 namespace picongpu
 {
-/*! Simulation Starter ---------------------------------------------------
+/** @namespace simulation_starter
+ *
+ * Simulation Starter Selection:
+ * This value does usually not need to be changed. Change only if you want to
+ * implement your own `SimulationHelper` (e.g. `MySimulation`) class.
  *  - defaultPIConGPU         : default PIConGPU configuration
  */
 namespace simulation_starter = defaultPIConGPU;
 
-/*! Laser Configuration --------------------------------------------------
+/** @namespace laserProfile
+ *
+ * Laser Profile Selection:
  *  - laserNone             : no laser init
  *  - laserGaussianBeam     : Gaussian beam (focusing)
  *  - laserPulseFrontTilt   : Gaussian beam with a tilted pulse envelope
@@ -37,22 +47,28 @@ namespace simulation_starter = defaultPIConGPU;
  *  - laserWavepacket       : wavepacket (Gaussian in time and space, not focusing)
  *  - laserPlaneWave        : a plane wave
  *  - laserPolynom          : a polynomial laser envelope
+ *
+ * Adjust the settings of the selected profile in laserConfig.param
  */
 namespace laserProfile = laserNone;
 
-/*! Field Configuration --------------------------------------------------
+/** @namespace fieldSolver
+ *
+ * Field Solver Selection:
  *  - fieldSolverYee : standard Yee solver
  *  - fieldSolverLehe: Num. Cherenkov free field solver in a chosen direction
  *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
  *  - fieldSolverNone: disable the vacuum update of E and B
  *
- * * For development purposes: ---------------------------------------------
+ * For development purposes:
  *  - fieldSolverYeeNative : generic version of fieldSolverYee
  *    (need more shared memory per GPU and is slow)
+ *
+ * Adjust the settings of the selected field solver in fieldSolver.param
  */
 namespace fieldSolver = fieldSolverYee;
 
-/*enable (1) or disable (0) current calculation*/
+/** enable (1) or disable (0) current calculation (deprecated) */
 #define ENABLE_CURRENT 1
 
 }

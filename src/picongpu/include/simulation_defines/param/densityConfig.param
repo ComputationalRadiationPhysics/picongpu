@@ -18,6 +18,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Configure existing or define new normalized density profiles here.
+ * During particle species creation in speciesInitialization.param,
+ * those profiles can be translated to spatial particle distributions.
+ */
+
 #pragma once
 
 #include "particles/densityProfiles/profiles.def"
@@ -38,18 +45,20 @@ namespace SI
      * unit: ELEMENTS/m^3
      */
     constexpr float_64 BASE_DENSITY_SI = 1.e25;
-}
+} // namespace SI
 
 namespace densityProfiles
 {
+    /** Profile Formula:
+     *   `const float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);`
+     *   `const float_X density = exp(gasFactor * pow(exponent, gasPower));`
+     *
+     *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
+     *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
+     *   and `exponent = float_X(0.0) for gasCenterLeft_SI < y < gasCenterRight_SI`
+     */
     PMACC_STRUCT(GaussianParam,
-        /** Profile Formula:
-         *   const float_X exponent = abs((y - gasCenter_SI) / gasSigma_SI);
-         *   const float_X density = exp(gasFactor * pow(exponent, gasPower));
-         *
-         *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
-         *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
-         *   and exponent = float_X(0.0)  for gasCenterLeft_SI < y < gasCenterRight_SI
+        /** ...
          */
         (PMACC_C_VALUE(float_X, gasFactor, -1.0))
         (PMACC_C_VALUE(float_X, gasPower, 4.0))
@@ -76,21 +85,23 @@ namespace densityProfiles
         (PMACC_C_VALUE(float_64, gasSigmaRight_SI, 4.62e-5))
     ); /* struct GaussianParam */
 
-    /* definition of density profile with gaussian profile*/
-    typedef GaussianImpl<GaussianParam> Gaussian;
+    /* definition of density profile with gaussian profile */
+    using Gaussian = GaussianImpl< GaussianParam >;
 
 
     /* definition of homogenous profile */
-    typedef HomogenousImpl Homogenous;
+    using Homogenous = HomogenousImpl;
 
 
     /** parameter for `LinearExponential` profile
      *
+     * @verbatim
      * Density Profile: /\
      *                 /  -,_
      *   linear       /      -,_    exponential
      *   slope       /  |       -,_ slope
      *                  MAX
+     * @endverbatim
      */
     PMACC_STRUCT(LinearExponentialParam,
         /** height of vacuum area on top border
@@ -130,7 +141,7 @@ namespace densityProfiles
     ); /* struct LinearExponentialParam */
 
     /* definition of gas with linear start slop and exponential end slope */
-    typedef LinearExponentialImpl<LinearExponentialParam> LinearExponential;
+    using LinearExponential = LinearExponentialImpl< LinearExponentialParam >;
 
 
     PMACC_STRUCT(GaussianCloudParam,
@@ -160,20 +171,21 @@ namespace densityProfiles
         (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 7.0e-6, 7.0e-6, 7.0e-6))
     ); /* struct GaussianCloudParam */
 
-    /* definition of cloud profile*/
-    typedef GaussianCloudImpl<GaussianCloudParam> GaussianCloud;
+    /* definition of cloud profile */
+    using GaussianCloud = GaussianCloudImpl< GaussianCloudParam >;
 
 
     /** The profile consists out of the composition of 3 1D profiles
      *  with the scheme: exponential increasing flank, constant sphere,
      *                   exponential decreasing flank
+     * @verbatim
      *           ___
      *  1D:  _,./   \.,_   rho(r)
      *
      *  2D:  ..,x,..   density: . low
      *       .,xxx,.            , middle
      *       ..,x,..            x high (constant)
-     *
+     * @endverbatim
      */
     PMACC_STRUCT(SphereFlanksParam,
         /** height of vacuum area on top border
@@ -210,8 +222,8 @@ namespace densityProfiles
 
     ); /* struct SphereFlanksParam */
 
-    /* definition of sphere profile with flanks*/
-    typedef SphereFlanksImpl<SphereFlanksParam> SphereFlanks;
+    /* definition of sphere profile with flanks */
+    using SphereFlanks = SphereFlanksImpl<SphereFlanksParam>;
 
 
     PMACC_STRUCT(FromHDF5Param,
@@ -229,22 +241,25 @@ namespace densityProfiles
         (PMACC_C_VALUE(float_X, defaultDensity, 0.0))
     ); /* struct FromHDF5Param */
 
-    /* definition of cloud profile*/
-    typedef FromHDF5Impl<FromHDF5Param> FromHDF5;
+    /* definition of cloud profile */
+    using FromHDF5 = FromHDF5Impl< FromHDF5Param >;
 
 
     struct FreeFormulaFunctor
     {
-        /**
-         * This formula uses SI quantities only
-         * The profile will be multiplied by BASE_DENSITY_SI.
+        /** This formula uses SI quantities only.
+         *  The profile will be multiplied by BASE_DENSITY_SI.
          *
-         * @param position_SI total offset including all slides [in meter]
-         * @param cellSize_SI cell sizes [in meter]
+         * @param position_SI total offset including all slides [meter]
+         * @param cellSize_SI cell sizes [meter]
          *
          * @return float_X density [normalized to 1.0]
          */
-        HDINLINE float_X operator()(const floatD_64& position_SI, const float3_64& cellSize_SI)
+        HDINLINE float_X
+        operator()(
+            const floatD_64& position_SI,
+            const float3_64& cellSize_SI
+        )
         {
             const float_64 y( position_SI.y() * 1000.0 ); // m -> mm
             //const uint64_t y_cell_id( uint64_t(position_SI.y() / cellSize_SI[1]) );
@@ -253,7 +268,7 @@ namespace densityProfiles
              * for a density profile from 0 to 400 microns */
             float_64 s = 1.0 - 5.0 * math::abs(y - 0.2);
 
-            /* give it an empty/filled shape for every second cell */
+            /* give it an empty/filled striping for every second cell */
             //s *= float_64( (y_cell_id % 2) == 0 );
 
             /* all parts of the function MUST be > 0 */
@@ -263,6 +278,6 @@ namespace densityProfiles
     };
 
     /* definition of free formula profile */
-    typedef FreeFormulaImpl<FreeFormulaFunctor> FreeFormula;
-}
-}
+    using FreeFormula = FreeFormulaImpl< FreeFormulaFunctor >;
+} // namespace densityProfiles
+} // namespace picongpu

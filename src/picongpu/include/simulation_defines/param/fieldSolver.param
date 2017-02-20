@@ -17,70 +17,72 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include "fields/currentInterpolation/CurrentInterpolation.def"
-
-/**! Configure the selected field solver method
+/** @file
+ *
+ * Configure the selected field solver method
  *
  * You can set/modify Maxwell solver specific options in the
  * section of each "FieldSolver".
  *
- *
- * @typedef CurrentInterpolation
- *          is used to set a method performing the
+ * CurrentInterpolation is used to set a method performing the
  * interpolate/assign operation from the generated currents of particle
  * species to the electro-magnetic fields.
  *
  * Allowed values are:
- *   - None<simDim>:
+ *   - None< simDim >:
  *     - default for staggered grids/Yee-scheme
  *     - updates E
- *   - Binomial<simDim>: 2nd order Binomial filter
+ *   - Binomial< simDim >: 2nd order Binomial filter
  *     - smooths the current before assignment in staggered grid
  *     - updates E & breaks local charge conservation slightly
- *   - NoneDS<simDim>:
+ *   - NoneDS< simDim >:
  *     - experimental assignment for all-centered/directional splitting
  *     - updates E & B at the same time
  */
+
+#pragma once
+
+#include "fields/currentInterpolation/CurrentInterpolation.def"
+
+
 namespace picongpu
 {
     namespace fieldSolverNone
     {
-        typedef currentInterpolation::None<simDim> CurrentInterpolation;
+        using CurrentInterpolation = currentInterpolation::None< simDim >;
     }
 
     namespace fieldSolverYee
     {
-        typedef currentInterpolation::None<simDim> CurrentInterpolation;
+        using CurrentInterpolation = currentInterpolation::None< simDim >;
     }
 
     namespace fieldSolverYeeNative
     {
-        typedef currentInterpolation::None<simDim> CurrentInterpolation;
+        using CurrentInterpolation = currentInterpolation::None< simDim >;
     }
 
     namespace fieldSolverDirSplitting
     {
-        typedef currentInterpolation::NoneDS<simDim> CurrentInterpolation;
+        using CurrentInterpolation = currentInterpolation::NoneDS< simDim >;
     }
 
-    /**! Lehe Solver
+    /** Lehe Solver
      * The solver proposed by R. Lehe et al
      * in Phys. Rev. ST Accel. Beams 16, 021301 (2013)
      */
     namespace fieldSolverLehe
     {
-        class CherenkovFreeDirection_X {};
-        class CherenkovFreeDirection_Y {};
-        class CherenkovFreeDirection_Z {};
+        class CherenkovFreeDirection_X{};
+        class CherenkovFreeDirection_Y{};
+        class CherenkovFreeDirection_Z{};
 
-        /*! Distinguish the direction where numerical Cherenkov Radiation
+        /** Distinguish the direction where numerical Cherenkov Radiation
          *  by moving particles shall be suppressed.
          */
-        typedef CherenkovFreeDirection_Y CherenkovFreeDir;
+        using CherenkovFreeDir = CherenkovFreeDirection_Y;
 
-        typedef currentInterpolation::None<simDim> CurrentInterpolation;
+        using CurrentInterpolation = currentInterpolation::None< simDim >;
     }
 
 } // namespace picongpu

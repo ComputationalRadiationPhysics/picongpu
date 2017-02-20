@@ -17,8 +17,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * The spatial dimensionality of the simulation.
+ */
+
 #pragma once
 
+
+/** Possible values: DIM3 for 3D3V and DIM2 for 2D3V.
+ */
 #define SIMDIM DIM3
 
 namespace picongpu

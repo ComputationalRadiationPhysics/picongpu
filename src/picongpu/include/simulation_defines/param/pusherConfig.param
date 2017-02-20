@@ -17,11 +17,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**! @file pusherConfig.param
+/** @file
  *
- * describe particle pusher method
- * Define a solver for current with the name "Pusher"
- * etc.: typedef MyOwnPusherClass ParticlePusher;
+ * Configure particle pushers. Those pushers can then be selected by
+ * a particle species in species.param and speciesDefinition.param
  */
 
 #pragma once
@@ -29,7 +28,6 @@
 
 namespace picongpu
 {
-
     namespace particlePusherVay
     {
         /** Precision of the square roots during the push step
@@ -65,6 +63,6 @@ namespace picongpu
         struct Axel;
 #endif
     } // namespace pusher
-    } // namespace partciles
+    } // namespace particles
 
 } // namespace picongpu
