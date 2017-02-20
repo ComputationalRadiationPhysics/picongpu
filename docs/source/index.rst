@@ -32,7 +32,14 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
 
    basic_usage
    param
+   plugin
    example_cases
+
+.. toctree::
+   :caption: Post-Processing
+   :maxdepth: 2
+
+   python
 
 .. toctree::
    :caption: DEVELOPMENT
