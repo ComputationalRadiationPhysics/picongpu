@@ -41,6 +41,7 @@
 #include "plugins/radiation/amplitude.hpp"
 #include "plugins/radiation/calc_amplitude.hpp"
 #include "plugins/radiation/windowFunctions.hpp"
+#include "plugins/radiation/GetRadiationFlag.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -65,11 +66,7 @@ using namespace PMacc;
 namespace po = boost::program_options;
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////  Radiation Kernel  //////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-
+/** calculate the radiation of a species */
 struct KernelRadiationParticles
 {
     /**
@@ -245,14 +242,8 @@ struct KernelRadiationParticles
                      */
                     if( particle_momentumNow != particle_momentumOld )
                     {
-                        /* If the gamma filter is activated or not all particles are used
-                         * for radiation calculation, check if particle contributes
-                         * to the radiation calculation by checking its flag.
-                         */
-#if( RAD_MARK_PARTICLE > 1 ) || ( RAD_ACTIVATE_GAMMA_FILTER != 0 )
-                        if (par[radiationFlag_])
-#endif
-                        saveParticleAt = nvidia::atomicAllInc(&counter_s);
+                        if ( getRadiationFlag(par) )
+                            saveParticleAt = nvidia::atomicAllInc(&counter_s);
                         /* for information:
                         *   atomicAdd returns an int with the previous
                         *   value of "counter_s" != -1
