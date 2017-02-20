@@ -36,6 +36,8 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
 
 .. toctree::
    :caption: DEVELOPMENT
-   :hidden:
+   :maxdepth: 1
 
-   doxyindex
+   dev/picongpu
+   dev/pmacc
+   dev/doxyindex
