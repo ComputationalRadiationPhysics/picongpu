@@ -44,7 +44,7 @@ namespace manipulators
              * @param particle particle to be manipulated
              */
             template< typename T_Particle >
-            DINLINE void operator()( T_Particle const & particle )
+            DINLINE void operator()( T_Particle & particle )
             {
                 particle[ T_DestAttribute{} ] = particle[ T_SrcAttribute{} ];
             }
