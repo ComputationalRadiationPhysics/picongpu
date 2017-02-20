@@ -1,5 +1,5 @@
-Kelvin-Helmholtz Instability
-============================
+KelvinHelmholtz: Kelvin-Helmholtz Instability
+=============================================
 
 * author:      Axel Huebl <a.huebl (at) hzdr.de>, E. Paulo Alves, Thomas Grismayer
 * maintainer:  Axel Huebl <a.huebl (at) hzdr.de>

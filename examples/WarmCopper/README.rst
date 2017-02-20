@@ -1,5 +1,5 @@
-Warm Copper: Average Charge State Evolution of Copper irradiated by a laser
-===========================================================================
+WarmCopper: Average Charge State Evolution of Copper Irradiated by a Laser
+==========================================================================
 
 * author:      Axel Huebl <a.huebl (at) hzdr.de>, Hyun-Kyung Chung
 * maintainer:  Axel Huebl <a.huebl (at) hzdr.de>

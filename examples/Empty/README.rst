@@ -1,5 +1,5 @@
-Empty: Default PIC Code Algorithm
-=================================
+Empty: Default PIC Algorithm
+============================
 
 * author:      Axel Huebl <a.huebl (at) hzdr.de>
 * maintainer:  Axel Huebl <a.huebl (at) hzdr.de>
