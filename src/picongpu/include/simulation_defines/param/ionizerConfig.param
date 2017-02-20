@@ -106,7 +106,7 @@ namespace atomicNumbers
     struct Oxygen_t
     {
         static constexpr float_X numberOfProtons  = 8.0;
-        static constexpr float_X numberOfNeutrons = 16.0;
+        static constexpr float_X numberOfNeutrons = 8.0;
     };
 
     /** Al-27 ~100% NA */
