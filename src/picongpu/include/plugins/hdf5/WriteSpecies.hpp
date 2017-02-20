@@ -28,6 +28,7 @@
 #include "plugins/hdf5/HDF5Writer.def"
 #include "traits/SIBaseUnits.hpp"
 #include "traits/PICToOpenPMD.hpp"
+#include "traits/HasIdentifier.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
@@ -239,20 +240,29 @@ public:
             numParticlesGlobal
         );
 
-        /* write constant particle records to hdf5 file */
-        const float_64 charge( frame::getCharge<FrameType>() );
-        std::vector<float_64> chargeUnitDimension( NUnitDimension, 0.0 );
-        chargeUnitDimension.at(SIBaseUnits::time) = 1.0;
-        chargeUnitDimension.at(SIBaseUnits::electricCurrent) = 1.0;
+        /* write constant particle records to hdf5 file
+         *   ions with variable charge due to a boundElectrons attribute do not write charge
+         */
+        typedef typename PMacc::traits::HasIdentifier<
+            FrameType,
+            boundElectrons
+        >::type hasBoundElectrons;
+        if( ! hasBoundElectrons::value )
+        {
+            const float_64 charge( frame::getCharge<FrameType>() );
+            std::vector<float_64> chargeUnitDimension( NUnitDimension, 0.0 );
+            chargeUnitDimension.at(SIBaseUnits::time) = 1.0;
+            chargeUnitDimension.at(SIBaseUnits::electricCurrent) = 1.0;
 
-        writeConstantRecord(
-            params,
-            speciesPath + std::string("/charge"),
-            numParticlesGlobal,
-            charge,
-            UNIT_CHARGE,
-            chargeUnitDimension
-        );
+            writeConstantRecord(
+                params,
+                speciesPath + std::string("/charge"),
+                numParticlesGlobal,
+                charge,
+                UNIT_CHARGE,
+                chargeUnitDimension
+            );
+        }
 
         const float_64 mass( frame::getMass<FrameType>() );
         std::vector<float_64> massUnitDimension( NUnitDimension, 0.0 );
