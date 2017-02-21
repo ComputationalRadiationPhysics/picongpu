@@ -82,7 +82,7 @@ public:
 
     void createParticleBuffer();
 
-    void init(FieldE &fieldE, FieldB &fieldB);
+    void init();
 
     void update(uint32_t currentStep);
 

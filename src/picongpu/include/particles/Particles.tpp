@@ -18,7 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -77,8 +76,6 @@ Particles<
         heap,
         cellDescription
     ),
-    fieldB( nullptr ),
-    fieldE( nullptr ),
     m_datasetID( datasetID )
 {
     size_t sizeOfExchanges = 2 * 2 * ( BYTES_EXCHANGE_X + BYTES_EXCHANGE_Y + BYTES_EXCHANGE_Z ) + BYTES_EXCHANGE_X * 2 * 8;
@@ -193,12 +190,8 @@ Particles<
     T_Name,
     T_Attributes,
     T_Flags
->::init( FieldE &fieldE, FieldB &fieldB )
+>::init( )
 {
-    this->fieldE = &fieldE;
-    this->fieldB = &fieldB;
-
-    Environment<>::get( ).DataConnector( ).share( std::shared_ptr< ISimulationData >( this ) );
 }
 
 template<
@@ -223,6 +216,10 @@ Particles<
     typedef PushParticlePerFrame<ParticlePush, MappingDesc::SuperCellSize,
         InterpolationScheme > FrameSolver;
 
+    DataConnector &dc = Environment<>::get().DataConnector();
+    auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+    auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
     // adjust interpolation area in particle pusher to allow sub-sampling pushes
     typedef typename GetLowerMarginPusher<Particles>::type LowerMargin;
     typedef typename GetUpperMarginPusher<Particles>::type UpperMargin;
@@ -239,11 +236,14 @@ Particles<
     PMACC_KERNEL( KernelMoveAndMarkParticles<BlockArea>{} )
         (mapper.getGridDim(), block)
         ( this->getDeviceParticlesBox( ),
-          this->fieldE->getDeviceDataBox( ),
-          this->fieldB->getDeviceDataBox( ),
+          fieldE->getDeviceDataBox( ),
+          fieldB->getDeviceDataBox( ),
           FrameSolver( ),
           mapper
           );
+
+    dc.releaseData( FieldE::getName() );
+    dc.releaseData( FieldB::getName() );
 
     ParticlesBaseType::template shiftParticles < CORE + BORDER > ( );
 }

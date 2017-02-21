@@ -25,8 +25,8 @@
 #include "fields/Fields.def"
 #include "math/MapTuple.hpp"
 
+#include "Environment.hpp"
 #include "communication/AsyncCommunication.hpp"
-#include "dataManagement/DataConnector.hpp"
 #include "particles/traits/GetIonizer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/GetPhotonCreator.hpp"
@@ -47,103 +47,112 @@ namespace picongpu
 namespace particles
 {
 
-template<typename T_SpeciesName>
+template<typename T_SpeciesType>
 struct AssignNull
 {
-    typedef T_SpeciesName SpeciesName;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple>
-    void operator()(T_StorageTuple& tuple)
-    {
-        tuple[SpeciesName()] = nullptr;
-    }
-};
-
-template<typename T_SpeciesName>
-struct CallDelete
-{
-    using SpeciesName = T_SpeciesName;
-    using SpeciesType = typename SpeciesName::type;
-
-    template<typename T_StorageTuple>
-    void operator()(T_StorageTuple& tuple)
+    void operator()()
     {
         DataConnector &dc = Environment<>::get().DataConnector();
-        dc.unshare( SpeciesType::FrameType::getName() );
+        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
+        species = nullptr;
+        dc.releaseData( FrameType::getName() );
     }
 };
 
-template<typename T_SpeciesName>
+template<typename T_SpeciesType>
+struct CallDelete
+{
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
+
+    void operator()()
+    {
+        DataConnector &dc = Environment<>::get().DataConnector();
+        dc.unshare( FrameType::getName() );
+    }
+};
+
+template<typename T_SpeciesType>
 struct CreateSpecies
 {
-    typedef T_SpeciesName SpeciesName;
-    typedef typename SpeciesName::type SpeciesType;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple, typename T_DeviceHeap, typename T_CellDescription>
+    template<
+        typename T_DeviceHeap,
+        typename T_CellDescription
+    >
     HINLINE void operator()(
-        T_StorageTuple& tuple,
         const std::shared_ptr<T_DeviceHeap>& deviceHeap,
         T_CellDescription* cellDesc
     ) const
     {
-        tuple[SpeciesName()] = new SpeciesType(
-            deviceHeap,
-            *cellDesc,
-            SpeciesType::FrameType::getName()
+        DataConnector &dc = Environment<>::get().DataConnector();
+        dc.share(
+            std::shared_ptr< ISimulationData >(
+                new SpeciesType(
+                    deviceHeap,
+                    *cellDesc,
+                    FrameType::getName()
+                )
+            )
         );
     }
 };
 
-template<typename T_SpeciesName>
+template<typename T_SpeciesType>
 struct CallCreateParticleBuffer
 {
-    typedef T_SpeciesName SpeciesName;
-    typedef typename SpeciesName::type SpeciesType;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple, typename T_DeviceHeap>
+    template<typename T_DeviceHeap>
     HINLINE void operator()(
-        T_StorageTuple& tuple,
         const std::shared_ptr<T_DeviceHeap>& deviceHeap
     ) const
     {
-
-        typedef typename SpeciesType::FrameType FrameType;
-
         log<picLog::MEMORY >("mallocMC: free slots for species %3%: %1% a %2%") %
             deviceHeap->getAvailableSlots(sizeof (FrameType)) %
             sizeof (FrameType) %
             FrameType::getName();
 
-        tuple[SpeciesName()]->createParticleBuffer();
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
+        species->createParticleBuffer();
+        dc.releaseData( FrameType::getName() );
     }
 };
 
-template<typename T_SpeciesName>
+template<typename T_SpeciesType>
 struct CallInit
 {
-    typedef T_SpeciesName SpeciesName;
-    typedef typename SpeciesName::type SpeciesType;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()(T_StorageTuple& tuple,
-                            FieldE* fieldE,
-                            FieldB* fieldB) const
+    HINLINE void operator()() const
     {
-        tuple[SpeciesName()]->init( *fieldE, *fieldB );
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
+        species->init();
+        dc.releaseData( FrameType::getName() );
     }
 };
 
-template<typename T_SpeciesName>
+template<typename T_SpeciesType>
 struct CallReset
 {
-    typedef T_SpeciesName SpeciesName;
-    typedef typename SpeciesName::type SpeciesType;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()(T_StorageTuple& tuple,
-                            const uint32_t currentStep)
+    HINLINE void operator()( const uint32_t currentStep )
     {
-        tuple[SpeciesName()]->reset(currentStep);
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
+        species->reset( currentStep );
+        dc.releaseData( FrameType::getName() );
     }
 };
 
@@ -151,27 +160,27 @@ struct CallReset
  *
  * push is only triggered for species with a pusher
  *
- * @tparam T_SpeciesName name of particle species that is checked
+ * @tparam T_SpeciesType type of particle species that is checked
  */
-template<typename T_SpeciesName>
+template<typename T_SpeciesType>
 struct PushSpecies
 {
-    typedef T_SpeciesName SpeciesName;
-    typedef typename SpeciesName::type SpeciesType;
-    typedef typename SpeciesType::FrameType FrameType;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple, typename T_EventList>
+    template<typename T_EventList>
     HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep,
-                            const EventTask& eventInt,
-                            T_EventList& updateEvent
-                            ) const
+        const uint32_t currentStep,
+        const EventTask& eventInt,
+        T_EventList& updateEvent
+    ) const
     {
-        auto speciesPtr = tuple[SpeciesName()];
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
 
         __startTransaction(eventInt);
-        speciesPtr->update(currentStep);
+        species->update(currentStep);
+        dc.releaseData( FrameType::getName() );
         EventTask ev = __endTransaction();
         updateEvent.push_back(ev);
     }
@@ -181,51 +190,49 @@ struct PushSpecies
  *
  * communication is only triggered for species with a pusher
  *
- * @tparam T_SpeciesName name of particle species that is checked
+ * @tparam T_SpeciesType type of particle species that is checked
  */
-template<typename T_SpeciesName>
+template<typename T_SpeciesType>
 struct CommunicateSpecies
 {
-    typedef T_SpeciesName SpeciesName;
-    typedef typename SpeciesName::type SpeciesType;
-    typedef typename SpeciesType::FrameType FrameType;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple, typename T_EventList>
+    template<typename T_EventList>
     HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            T_EventList& updateEventList,
-                            T_EventList& commEventList
-                            ) const
+        T_EventList& updateEventList,
+        T_EventList& commEventList
+    ) const
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
+
         EventTask updateEvent(*(updateEventList.begin()));
 
         updateEventList.pop_front();
-        commEventList.push_back( communication::asyncCommunication(*tuple[SpeciesName()], updateEvent) );
+        commEventList.push_back( communication::asyncCommunication(*species, updateEvent) );
+
+        dc.releaseData( FrameType::getName() );
     }
 };
 
 /** update momentum, move and communicate all species */
 struct PushAllSpecies
 {
-
     /** push and communicate all species
      *
-     * @tparam T_SpeciesStorage type of the speciesStorage
-     * @param speciesStorage struct with all species (e.g. `PMacc::math::MapTuple`)
      * @param currentStep current simulation step
      * @param pushEvent[out] grouped event that marks the end of the species push
      * @param commEvent[out] grouped event that marks the end of the species communication
      */
-    template<typename T_SpeciesStorage>
     HINLINE void operator()(
-                            T_SpeciesStorage& speciesStorage,
-                            const uint32_t currentStep,
-                            const EventTask& eventInt,
-                            EventTask& pushEvent,
-                            EventTask& commEvent
-                            ) const
+        const uint32_t currentStep,
+        const EventTask& eventInt,
+        EventTask& pushEvent,
+        EventTask& commEvent
+    ) const
     {
-        typedef std::list<EventTask> EventList;
+        using EventList = std::list<EventTask>;
         EventList updateEventList;
         EventList commEventList;
 
@@ -235,8 +242,8 @@ struct PushAllSpecies
             VectorAllSpecies,
             particlePusher<>
         >::type VectorSpeciesWithPusher;
-        ForEach<VectorSpeciesWithPusher, particles::PushSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > pushSpecies;
-        pushSpecies(forward(speciesStorage), currentStep, eventInt, forward(updateEventList));
+        ForEach< VectorSpeciesWithPusher, particles::PushSpecies< bmpl::_1 > > pushSpecies;
+        pushSpecies( currentStep, eventInt, forward(updateEventList) );
 
         /* join all push events */
         for (typename EventList::iterator iter = updateEventList.begin();
@@ -247,8 +254,8 @@ struct PushAllSpecies
         }
 
         /* call communication for all species */
-        ForEach<VectorSpeciesWithPusher, particles::CommunicateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > communicateSpecies;
-        communicateSpecies(forward(speciesStorage), forward(updateEventList), forward(commEventList));
+        ForEach< VectorSpeciesWithPusher, particles::CommunicateSpecies< bmpl::_1> > communicateSpecies;
+        communicateSpecies( forward(updateEventList), forward(commEventList) );
 
         /* join all communication events */
         for (typename EventList::iterator iter = commEventList.begin();
@@ -264,46 +271,45 @@ struct PushAllSpecies
  *
  * \brief Tests if species can be ionized and calls the kernel to do that
  *
- * \tparam T_SpeciesName name of particle species that is checked for ionization
+ * \tparam T_SpeciesType type of particle species that is checked for ionization
  */
-template<typename T_SpeciesName>
+template<typename T_SpeciesType>
 struct CallIonization
 {
-    typedef T_SpeciesName SpeciesName;
-    typedef typename SpeciesName::type SpeciesType;
-    typedef typename SpeciesType::FrameType FrameType;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
+
     /* SelectIonizer will be either the specified one or fallback: None */
-    typedef typename picongpu::traits::GetIonizer<SpeciesType>::type SelectIonizer;
+    using SelectIonizer = typename picongpu::traits::GetIonizer<SpeciesType>::type;
+    /* define the type of the species to be created
+    * from inside the ionization model specialization
+    */
+   using DestSpecies = typename SelectIonizer::DestSpecies;
+   using DestFrameType = typename DestSpecies::FrameType;
 
     /** Functor implementation
      *
-     * \tparam T_StorageStuple contains info about the particle species
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param tuple An n-tuple containing the type-info of multiple particle species
      * \param cellDesc points to logical block information like dimension and cell sizes
      * \param currentStep The current time step
      */
-    template<typename T_StorageTuple, typename T_CellDescription>
+    template<typename T_CellDescription>
     HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            T_CellDescription* cellDesc,
-                            const uint32_t currentStep
-                            ) const
+        T_CellDescription* cellDesc,
+        const uint32_t currentStep
+    ) const
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
+
         /* only if an ionizer has been specified, this is executed */
         typedef typename HasFlag<FrameType, ionizer<> >::type hasIonizer;
         if (hasIonizer::value)
         {
-
-            /* define the type of the species to be created
-             * from inside the ionization model specialization
-             */
-            typedef typename SelectIonizer::DestSpecies DestSpecies;
             /* alias for pointer on source species */
-            auto srcSpeciesPtr = tuple[SpeciesName()];
+            auto srcSpeciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
             /* alias for pointer on destination species */
-            auto electronsPtr = tuple[typename MakeIdentifier<DestSpecies>::type()];
+            auto electronsPtr = dc.get< DestSpecies >( DestFrameType::getName(), true );
 
             /* 3-dim vector : number of threads to be started in every dimension */
             auto block = MappingDesc::SuperCellSize::toRT();
@@ -329,52 +335,59 @@ struct CallIonization
              */
             electronsPtr->fillAllGaps();
 
+            dc.releaseData( FrameType::getName() );
+            dc.releaseData( DestFrameType::getName() );
         }
     }
 
-}; // struct CallIonization
+};
 
 /** Handles the bremsstrahlung effect for electrons on ions.
  *
- * \tparam T_ElectronSpeciesName name of electron species
+ * \tparam T_ElectronSpecies type of electron particle species
  */
-template<typename T_ElectronSpeciesName>
+template<typename T_ElectronSpecies>
 struct CallBremsstrahlung
 {
-    typedef T_ElectronSpeciesName ElectronSpeciesName;
-    typedef typename ElectronSpeciesName::type ElectronSpecies;
+    using ElectronSpecies = T_ElectronSpecies;
+    using ElectronFrameType = typename ElectronSpecies::FrameType;
 
-    typedef typename PMacc::particles::traits::ResolveAliasFromSpecies<
+    using IonSpecies = typename PMacc::particles::traits::ResolveAliasFromSpecies<
         ElectronSpecies,
         bremsstrahlungIons<>
-    >::type IonSpecies;
-    typedef typename PMacc::particles::traits::ResolveAliasFromSpecies<
+    >::type;
+    using PhotonSpecies = typename PMacc::particles::traits::ResolveAliasFromSpecies<
         ElectronSpecies,
         bremsstrahlungPhotons<>
-    >::type PhotonSpecies;
-    typedef bremsstrahlung::Bremsstrahlung<IonSpecies, ElectronSpecies, PhotonSpecies> BremsstrahlungFunctor;
+    >::type;
+    using PhotonFrameType = typename PhotonSpecies::FrameType;
+    using BremsstrahlungFunctor = bremsstrahlung::Bremsstrahlung<
+        IonSpecies,
+        ElectronSpecies,
+        PhotonSpecies
+    >;
 
     /** Functor implementation
      *
-     * \tparam T_StorageStuple contains info about the particle species
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param tuple an n-tuple containing the type-info of multiple particle species
      * \param cellDesc points to logical block information like dimension and cell sizes
      * \param currentStep the current time step
      */
-    template<typename T_StorageTuple, typename T_CellDescription, typename ScaledSpectrumMap>
+    template<typename T_CellDescription, typename ScaledSpectrumMap>
     HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            T_CellDescription* cellDesc,
-                            const uint32_t currentStep,
-                            const ScaledSpectrumMap& scaledSpectrumMap,
-                            const bremsstrahlung::GetPhotonAngle& photonAngle) const
+        T_CellDescription* cellDesc,
+        const uint32_t currentStep,
+        const ScaledSpectrumMap& scaledSpectrumMap,
+        const bremsstrahlung::GetPhotonAngle& photonAngle
+    ) const
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
+
         /* alias for pointer on source species */
-        auto electronSpeciesPtr = tuple[ElectronSpeciesName()];
+        auto electronSpeciesPtr = dc.get< ElectronSpecies >( ElectronFrameType::getName(), true );
         /* alias for pointer on destination species */
-        auto photonSpeciesPtr = tuple[typename MakeIdentifier<PhotonSpecies>::type()];
+        auto photonSpeciesPtr = dc.get< PhotonSpecies >( PhotonFrameType::getName(), true );
 
         const float_X targetZ = GetAtomicNumbers<IonSpecies>::type::numberOfProtons;
 
@@ -386,45 +399,49 @@ struct CallBremsstrahlung
             currentStep);
 
         creation::createParticlesFromSpecies(*electronSpeciesPtr, *photonSpeciesPtr, bremsstrahlungFunctor, cellDesc);
+
+        dc.releaseData( ElectronFrameType::getName() );
+        dc.releaseData( PhotonFrameType::getName() );
     }
 
-}; // struct CallBremsstrahlung
+};
 
 /** Handles the synchrotron radiation emission of photons from electrons
  *
- * \tparam T_SpeciesName name of electron species
+ * \tparam T_ElectronSpecies type of electron particle species
  */
-template<typename T_SpeciesName>
+template<typename T_ElectronSpecies>
 struct CallSynchrotronPhotons
 {
-    typedef T_SpeciesName SpeciesName;
-    typedef typename SpeciesName::type SpeciesType;
-    typedef typename SpeciesType::FrameType FrameType;
+    using ElectronSpecies = T_ElectronSpecies;
+    using ElectronFrameType = typename ElectronSpecies::FrameType;
+
     /* SelectedPhotonCreator will be either PhotonCreator or fallback: CreatorBase */
-    typedef typename traits::GetPhotonCreator<SpeciesType>::type SelectedPhotonCreator;
+    using SelectedPhotonCreator = typename traits::GetPhotonCreator< ElectronSpecies >::type;
+    using PhotonSpecies = typename SelectedPhotonCreator::PhotonSpecies;
+    using PhotonFrameType = typename PhotonSpecies::FrameType;
 
     /** Functor implementation
      *
-     * \tparam T_StorageStuple contains info about the particle species
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param tuple An n-tuple containing the type-info of multiple particle species
      * \param cellDesc points to logical block information like dimension and cell sizes
      * \param currentStep The current time step
      * \param synchrotronFunctions synchrotron functions wrapper object
      */
-    template<typename T_StorageTuple, typename T_CellDescription>
-    HINLINE void operator()(T_StorageTuple& tuple,
-                            T_CellDescription* cellDesc,
-                            const uint32_t currentStep,
-                            const synchrotronPhotons::SynchrotronFunctions& synchrotronFunctions) const
+    template<typename T_CellDescription>
+    HINLINE void operator()(
+        T_CellDescription* cellDesc,
+        const uint32_t currentStep,
+        const synchrotronPhotons::SynchrotronFunctions& synchrotronFunctions
+    ) const
     {
-        typedef typename SelectedPhotonCreator::PhotonSpecies PhotonSpecies;
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         /* alias for pointer on source species */
-        auto electronSpeciesPtr = tuple[SpeciesName()];
+        auto electronSpeciesPtr = dc.get< ElectronSpecies >( ElectronFrameType::getName(), true );
         /* alias for pointer on destination species */
-        auto photonSpeciesPtr = tuple[typename MakeIdentifier<PhotonSpecies>::type()];
+        auto photonSpeciesPtr = dc.get< PhotonSpecies >( PhotonFrameType::getName(), true );
 
         using namespace synchrotronPhotons;
         SelectedPhotonCreator photonCreator(
@@ -432,10 +449,12 @@ struct CallSynchrotronPhotons
             synchrotronFunctions.getCursor(SynchrotronFunctions::second));
 
         creation::createParticlesFromSpecies(*electronSpeciesPtr, *photonSpeciesPtr, photonCreator, cellDesc);
+
+        dc.releaseData( ElectronFrameType::getName() );
+        dc.releaseData( PhotonFrameType::getName() );
     }
 
-}; // struct CallSynchrotronPhotons
+};
 
 } // namespace particles
-
 } // namespace picongpu

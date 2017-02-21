@@ -27,6 +27,7 @@
 #include "particles/startPosition/IFunctor.def"
 #include "particles/Manipulate.hpp"
 
+#include "Environment.hpp"
 #include "traits/Resolve.hpp"
 #include "traits/HasFlag.hpp"
 #include "traits/GetFlagType.hpp"
@@ -55,15 +56,13 @@ namespace particles
 template<typename T_Functor = bmpl::_1>
 struct CallFunctor
 {
-    typedef T_Functor Functor;
+    using Functor = T_Functor;
 
-    template<typename T_StorageTuple>
     HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
+        const uint32_t currentStep
+    )
     {
-        Functor()(tuple, currentStep);
+        Functor()( currentStep );
     }
 };
 
@@ -79,8 +78,8 @@ struct CallFunctor
 template<typename T_DensityFunctor, typename T_PositionFunctor, typename T_SpeciesType = bmpl::_1>
 struct CreateDensity
 {
-    typedef T_SpeciesType SpeciesType;
-    typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
 
     typedef typename bmpl::apply1<T_DensityFunctor, SpeciesType>::type UserDensityFunctor;
@@ -91,16 +90,16 @@ struct CreateDensity
     /* add interface for compile time interface validation*/
     typedef startPosition::IFunctor<UserPositionFunctor> PositionFunctor;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
+    HINLINE void operator()( const uint32_t currentStep )
     {
-        auto speciesPtr = tuple[SpeciesName()];
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto speciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
+
         DensityFunctor densityFunctor(currentStep);
         PositionFunctor positionFunctor(currentStep);
         speciesPtr->initDensityProfile(densityFunctor, positionFunctor, currentStep);
+
+        dc.releaseData( FrameType::getName() );
     }
 };
 
@@ -119,24 +118,24 @@ struct CreateDensity
 template<typename T_ManipulateFunctor, typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
 struct ManipulateDeriveSpecies
 {
-    typedef T_DestSpeciesType DestSpeciesType;
-    typedef typename MakeIdentifier<DestSpeciesType>::type DestSpeciesName;
-    typedef T_SrcSpeciesType SrcSpeciesType;
-    typedef typename MakeIdentifier<SrcSpeciesType>::type SrcSpeciesName;
+    using DestSpeciesType = T_DestSpeciesType;
+    using DestFrameType = typename DestSpeciesType::FrameType;
+    using SrcSpeciesType = T_SrcSpeciesType;
+    using SrcFrameType = typename SrcSpeciesType::FrameType;
     typedef T_ManipulateFunctor ManipulateFunctor;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
+    HINLINE void operator()( const uint32_t currentStep )
     {
-        auto speciesPtr = tuple[DestSpeciesName()];
-        auto srcSpeciesPtr = tuple[SrcSpeciesName()];
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto speciesPtr = dc.get< DestSpeciesType >( DestFrameType::getName(), true );
+        auto srcSpeciesPtr = dc.get< SrcSpeciesType >( SrcFrameType::getName(), true );
 
         ManipulateFunctor manipulateFunctor(currentStep);
 
         speciesPtr->deviceDeriveFrom(*srcSpeciesPtr, manipulateFunctor);
+
+        dc.releaseData( DestFrameType::getName() );
+        dc.releaseData( SrcFrameType::getName() );
     }
 };
 
@@ -163,17 +162,16 @@ struct DeriveSpecies : ManipulateDeriveSpecies<manipulators::NoneImpl, T_SrcSpec
 template<typename T_SpeciesType = bmpl::_1>
 struct FillAllGaps
 {
-    typedef T_SpeciesType SpeciesType;
-    typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
     template<typename T_StorageTuple>
-    HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
+    HINLINE void operator()( const uint32_t currentStep )
     {
-        auto speciesPtr = tuple[SpeciesName()];
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto speciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
         speciesPtr->fillAllGaps();
+        dc.releaseData( FrameType::getName() );
     }
 };
 
