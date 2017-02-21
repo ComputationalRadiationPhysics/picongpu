@@ -149,20 +149,22 @@ private:
     FieldB *fieldB;
 };
 
-template<typename T_SpeciesName, typename T_Area>
+template<typename T_SpeciesType, typename T_Area>
 struct ComputeCurrent
 {
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()( FieldJ* fieldJ,
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep) const
+    HINLINE void operator()( const uint32_t currentStep ) const
     {
-        typedef T_SpeciesName SpeciesName;
-        typedef typename SpeciesName::type SpeciesType;
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
+        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
 
-        auto speciesPtr = tuple[SpeciesName()];
-        fieldJ->computeCurrent<T_Area::value, SpeciesType> (*speciesPtr, currentStep);
+        fieldJ->computeCurrent< T_Area::value, SpeciesType >( *species, currentStep );
+
+        dc.releaseData( FrameType::getName() );
+        dc.releaseData( FieldJ::getName() );
     }
 };
 
