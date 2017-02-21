@@ -132,3 +132,33 @@ SimulationHelper
    :members:
    :protected-members:
    :undoc-members:
+
+Struct Factory
+--------------
+
+Syntax to generate structs with all members inline, e.g. in `densityConfig.param`.
+Allows to conveniently switch between variable and constant defined members without the need to declare or initialize them externally.
+
+.. doxygendefine:: PMACC_STRUCT
+   :project: PIConGPU
+
+.. doxygendefine:: PMACC_C_VECTOR_DIM
+   :project: PIConGPU
+
+.. doxygendefine:: PMACC_C_VALUE
+   :project: PIConGPU
+
+.. doxygendefine:: PMACC_VALUE
+   :project: PIConGPU
+
+.. doxygendefine:: PMACC_VECTOR
+   :project: PIConGPU
+
+.. doxygendefine:: PMACC_VECTOR_DIM
+   :project: PIConGPU
+
+.. doxygendefine:: PMACC_C_STRING
+   :project: PIConGPU
+
+.. doxygendefine:: PMACC_EXTENT
+   :project: PIConGPU

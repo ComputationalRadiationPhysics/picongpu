@@ -32,6 +32,7 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
 
    basic_usage
    param
+   particles
    plugin
    example_cases
 
