@@ -18,6 +18,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** \file AlgorithmThomasFermi.hpp
+ *
+ * IONIZATION ALGORITHM for the Thomas-Fermi model
+ * - implements the calculation of average ionization degree and returns the
+ *   new number of bound electrons
+ * - is called with the IONIZATION MODEL, specifically by setting the flag in
+ *   @see speciesDefinition.param
+ */
+
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -25,15 +34,6 @@
 #include "traits/attribute/GetChargeState.hpp"
 
 #include "algorithms/math/floatMath/floatingPoint.tpp"
-
-/** \file AlgorithmThomasFermi.hpp
- *
- * IONIZATION ALGORITHM for the Thomas-Fermi model
- *
- * - implements the calculation of average ionization degree and changes charge states
- *   by decreasing the number of bound electrons
- * - is called with the IONIZATION MODEL, specifically by setting the flag in @see speciesDefinition.param
- */
 
 namespace picongpu
 {
