@@ -1,5 +1,5 @@
-Emission of Bremsstrahlung from Laser-foil interaction
-======================================================
+Bremsstrahlung: Emission of Bremsstrahlung from Laser-Foil Interaction
+======================================================================
 
 * author:      Heiko Burau <h.burau (at) hzdr.de>
 * maintainer:  Heiko Burau <h.burau (at) hzdr.de>
@@ -25,20 +25,20 @@ References
 ----------
 
 .. [BurauDipl]
-    Heiko Burau.
-    Entwicklung und Überprüfung eines Photonenmodells für die Abstrahlung durch hochenergetische Elektronen,
+    H. Burau.
+    *Entwicklung und Überprüfung eines Photonenmodells für die Abstrahlung durch hochenergetische Elektronen*,
     Diploma Thesis TU Dresden (2016),
     https://doi.org/10.5281/zenodo.192116
 
 .. [Jackson]
-    Jackson, J. David.
-    Electrodynamics,
+    J.D. Jackson.
+    *Electrodynamics*,
     Wiley‐VCH Verlag GmbH & Co. KGaA (1975),
     http://onlinelibrary.wiley.com/doi/10.1002/9783527600441.oe014
 
 .. [Salvat]
-    F. Salvat, J. Fernández-Varea, J. Sempau, and X. Llovet.
-    Monte carlo simulation of bremsstrahlung emission by electrons,
+    F. Salvat, J. Fernández-Varea, J. Sempau, X. Llovet.
+    *Monte carlo simulation of bremsstrahlung emission by electrons*,
     Radiation Physics and Chemistry (2006),
-    http://dx.doi.org/10.1016/j.radphyschem.2005.05.008
+    https://dx.doi.org/10.1016/j.radphyschem.2005.05.008
 
