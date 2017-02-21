@@ -156,7 +156,7 @@ namespace radiation
      *   - goto file `speciesDefinietion.param`
      *   - add the attribute `radiationFlag` to the electron species
      */
-    using FilterEnableRadiation = picongpu::particles::manipulators::FreeImpl<
+    using RadiationParticleFilter = picongpu::particles::manipulators::FreeImpl<
         GammaFilterFunctor
     >;
 

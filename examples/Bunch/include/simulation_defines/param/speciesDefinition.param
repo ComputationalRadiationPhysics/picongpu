@@ -37,7 +37,7 @@ namespace picongpu
 
 /*########################### define particle attributes #####################*/
 
-//disable or enable functor FilterEnableRadiation
+//disable or enable functor RadiationParticleFilter
 //diable (0) / enable (1)
 #ifndef PARAM_FILTER_GAMMA
 #    define PARAM_FILTER_GAMMA 0

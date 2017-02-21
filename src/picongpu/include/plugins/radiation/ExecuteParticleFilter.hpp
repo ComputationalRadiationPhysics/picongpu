@@ -43,7 +43,7 @@ namespace radiation
         template< typename T_Species >
         void operator()( std::shared_ptr<T_Species> species, const uint32_t currentStep )
         {
-            auto radiationEnableFunctor = picongpu::radiation::FilterEnableRadiation( currentStep );
+            auto radiationEnableFunctor = picongpu::radiation::RadiationParticleFilter( currentStep );
             species->manipulateAllParticles(
                 currentStep,
                 radiationEnableFunctor

@@ -127,7 +127,7 @@ namespace picongpu
 
     namespace radiation
     {
-        /** activate particles for radiation */
+        /** select particles for radiation */
         struct GammaFilterFunctor
         {
             static constexpr float_X radiationGamma = 5.0;
@@ -149,13 +149,13 @@ namespace picongpu
         };
 
 
-        /* filter to enable radiation for electrons
+        /* filter to (de)select particles for the radiation calculation
          *
-         * to enable the filter:
+         * to activate the filter:
          *   - goto file `speciesDefinietion.param`
-         *   - add the attribute `radiationFlag` to the electron species
+         *   - add the attribute `radiationFlag` to the particle species
          */
-        using FilterEnableRadiation = picongpu::particles::manipulators::FreeImpl<
+        using RadiationParticleFilter = picongpu::particles::manipulators::FreeImpl<
             GammaFilterFunctor
         >;
 
