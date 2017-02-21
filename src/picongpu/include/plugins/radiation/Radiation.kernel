@@ -41,7 +41,7 @@
 #include "plugins/radiation/amplitude.hpp"
 #include "plugins/radiation/calc_amplitude.hpp"
 #include "plugins/radiation/windowFunctions.hpp"
-#include "plugins/radiation/GetRadiationFlag.hpp"
+#include "plugins/radiation/GetRadiationMask.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -242,7 +242,7 @@ struct KernelRadiationParticles
                      */
                     if( particle_momentumNow != particle_momentumOld )
                     {
-                        if ( getRadiationFlag(par) )
+                        if ( getRadiationMask(par) )
                             saveParticleAt = nvidia::atomicAllInc(&counter_s);
                         /* for information:
                         *   atomicAdd returns an int with the previous

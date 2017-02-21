@@ -51,7 +51,7 @@ using DefaultParticleAttributes = MakeSeq_t<
     particleId,
     momentumPrev1
 #   if( PARAM_FILTER_GAMMA == 1 )
-    , radiationFlag
+    , radiationMask
 #   endif
 >;
 

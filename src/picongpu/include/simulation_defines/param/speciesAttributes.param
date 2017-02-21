@@ -68,7 +68,7 @@ value_identifier(float_X, weighting, 0.0);
  * `RadiationParticleFilter` in `radiationConfig.param` to (de)select
  * particles for the radiation calculation.
  */
-value_identifier(bool, radiationFlag, false);
+value_identifier(bool, radiationMask, false);
 
 /** number of electrons bound to the atom / ion
  *

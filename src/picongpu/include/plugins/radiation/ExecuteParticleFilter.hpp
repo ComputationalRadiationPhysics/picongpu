@@ -31,14 +31,14 @@ namespace picongpu
 namespace radiation
 {
 
-    /** read the `radiationFlag` of a species */
+    /** read the `radiationMask` of a species */
     template< bool hasFilter >
     struct ExecuteParticleFilter
     {
-        /** get the attribute value of `radiationFlag`
+        /** get the attribute value of `radiationMask`
          *
          * @param particle particle to be used
-         * @return value of the attribute `radiationFlag`
+         * @return value of the attribute `radiationMask`
          */
         template< typename T_Species >
         void operator()( std::shared_ptr<T_Species> species, const uint32_t currentStep )
@@ -54,12 +54,12 @@ namespace radiation
     /** specialization
      *
      * specialization for the case that the species not owns the attribute
-     * `radiationFlag`
+     * `radiationMask`
      */
     template< >
     struct ExecuteParticleFilter< false >
     {
-        /** get the attribute value of `radiationFlag`
+        /** get the attribute value of `radiationMask`
          *
          * @param particle to be used
          * @return always true
@@ -82,7 +82,7 @@ namespace radiation
     {
         constexpr bool hasRadiationFilter = ::PMacc::traits::HasIdentifier<
           typename T_Species::FrameType,
-          radiationFlag
+          radiationMask
         >::type::value;
 
         return ExecuteParticleFilter< hasRadiationFilter >{}( species, currentStep );

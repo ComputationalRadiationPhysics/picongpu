@@ -26,31 +26,31 @@
 
 namespace picongpu
 {
-    /** read the `radiationFlag` of a species */
-    template< bool hasRadiationFlag >
-    struct GetRadiationFlag
+    /** read the `radiationMask` of a species */
+    template< bool hasRadiationMask >
+    struct GetRadiationMask
     {
-        /** get the attribute value of `radiationFlag`
+        /** get the attribute value of `radiationMask`
          *
          * @param particle particle to be used
-         * @return value of the attribute `radiationFlag`
+         * @return value of the attribute `radiationMask`
          */
         template< typename T_Particle >
         HDINLINE bool operator()( const T_Particle& particle ) const
         {
-            return particle[ radiationFlag_ ];
+            return particle[ radiationMask_ ];
         }
     };
 
     /** specialization
      *
      * specialization for the case that the species not owns the attribute
-     * `radiationFlag`
+     * `radiationMask`
      */
     template< >
-    struct GetRadiationFlag< false >
+    struct GetRadiationMask< false >
     {
-        /** get the attribute value of `radiationFlag`
+        /** get the attribute value of `radiationMask`
          *
          * @param particle to be used
          * @return always true
@@ -62,22 +62,22 @@ namespace picongpu
         }
     };
 
-    /** get the value of the particle attribute `radiationFlag`
+    /** get the value of the particle attribute `radiationMask`
      *
-     * Allow to read out the value of the attribute `radiationFlag` also if
+     * Allow to read out the value of the attribute `radiationMask` also if
      * it is not defined for the particle.
      *
      * @tparam T_Particle particle type
      * @param particle valid particle
-     * @return particle attribute value `radiationFlag`, always `true` if attribute `radiationFlag` is not defined
+     * @return particle attribute value `radiationMask`, always `true` if attribute `radiationMask` is not defined
      */
     template< typename T_Particle >
-    HDINLINE bool getRadiationFlag( const T_Particle& particle )
+    HDINLINE bool getRadiationMask( const T_Particle& particle )
     {
-        constexpr bool hasRadiationFlag = PMacc::traits::HasIdentifier<
+        constexpr bool hasRadiationMask = PMacc::traits::HasIdentifier<
             typename T_Particle::FrameType,
-            radiationFlag
+            radiationMask
         >::type::value;
-        return GetRadiationFlag< hasRadiationFlag >{}( particle );
+        return GetRadiationMask< hasRadiationMask >{}( particle );
     }
 } // namespace picongpu
