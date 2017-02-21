@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2017 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch
+# Copyright 2013-2017 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch, Bifeng Lei
 #
 # This file is part of PIConGPU.
 #
@@ -77,10 +77,18 @@ echo "----- automated restart routine -----" | tee -a output
 
 #check whether last checkpoint is valid
 file=""
-for file in `ls -t ./checkpoints/checkpoint_*.h5`
+# ADIOS restart files take precedence over HDF5 files
+fileEnding="h5"
+hasADIOS=$(ls ./checkpoints/checkpoint_*.bp 2>/dev/null | wc -w)
+if [ $hasADIOS -gt 0 ]
+then
+    fileEnding="bp"
+fi
+
+for file in `ls -t ./checkpoints/checkpoint_*.$fileEnding`
 do
     echo -n "validate checkpoint $file: " | tee -a output
-    h5ls $file &> /dev/null
+    $fileEnding"ls" $file &> /dev/null
     if [ $? -eq 0 ]
     then
         echo "OK" | tee -a output
@@ -102,7 +110,7 @@ echo  "restart period = " $restartPeriod | tee -a output
 
 if [ "" != "$file" ]
 then
-    cptimestep=`basename $file | sed 's/checkpoint_//g' | sed 's/.h5//g'`
+    cptimestep=`basename $file | sed 's/checkpoint_//g' | sed 's/.'$fileEnding'//g'`
     echo "start time      = " $cptimestep | tee -a output
 
     endTime="$(($cptimestep + $restartPeriod ))"
