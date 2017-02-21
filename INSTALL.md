@@ -307,31 +307,3 @@ To build PIConGPU with tracing support, change the steps in the example to:
 
 (9.) `tbg -s qsub -c submit/0016gpus.cfg -t submit/hypnos-hzdr/k20_vampir_profile.tpl
        $PICHOME/runs/testBatchVampir`
-
-*******************************************************************************
-
-
-Notes:
-------
-
-This document uses markdown syntax: http://daringfireball.net/projects/markdown/
-
-To create and up-to-date pdf out of this Markdown (.md) file use gimli.
-Anyway, please do *not* check in the binary pdf in our version control system!
-
-  - `sudo apt-get install rubygems wkhtmltopdf libxslt-dev libxml2-dev`
-  - `sudo gem install gimli`
-  - `gimli -f INSTALL.md`
-
-On OS X (Apple Macintosh) you can get `gimli` using the already installed
-`ruby-gems` (`gem`) or install a newer version using macports:
-
-1. *install macports: http://www.macports.org/*
-2. *install rubygems* <br>
-    `sudo port install rb-rubygems ` <br>
-    *rubygems is called gem by default*
-3. install gimli <br>
-    `sudo gem install gimli`<br>
-    (installs all libraries automatically)
-4. convert documentation to pdf <br>
-    `gimli -f INSTALL.md`
