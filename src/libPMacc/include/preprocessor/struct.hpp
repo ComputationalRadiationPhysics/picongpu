@@ -19,6 +19,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * collection of `TypeMemberPair`s
+ *
+ * type id + member descriptions* are combined in a pair (called: TypeMemberPair)
+ * (typeId,(value_type,name,initValue,...))
+ *   - typeID and name are the only necessary values
+ *     e.g. (0,(_,myName,_))
+ */
+
 #pragma once
 
 #include "preprocessor/facilities.hpp"
@@ -37,15 +47,7 @@
 #include <boost/preprocessor/facilities/expand.hpp>
 
 
-/** collection of TypeMemberPair's
- *
- * *type id + member descriptions* are combined in a pair (called: TypeMemberPair)
- * (typeId,(value_type,name,initValue,...))
- *   - typeID and name are the only necessary values
- *     e.g. (0,(_,myName,_))
- */
-
-/** create static constexpr member vector that needs no memory inside of the struct
+/** create static const member vector that needs no memory inside of the struct
  *
  *   @param type type of an element (types containing a comma are not allowed (e.g. `Vector<type,dim>`)
  *               use `typedef Vector<type,dim> NewType;` to avoid this behavior
@@ -54,8 +56,8 @@
  *
  *   @code{.cpp}
  *     PMACC_C_VECTOR(float2_64, center_SI, 1.134e-5, 1.134e-5);
- *     // is the compile time equivalent of
- *     static constexpr float2_64 center_SI = float2_64(1.134e-5, 1.134e-5);
+ *     // is syntactically equivalent to
+ *     static const float2_64 center_SI = float2_64(1.134e-5, 1.134e-5);
  *   @endcode
  */
 #define PMACC_C_VECTOR(type,name,...) (0,(typename PMacc::traits::GetValueType<type>::type, \
@@ -64,7 +66,7 @@
                                           __VA_ARGS__))
 
 
-/** create static constexpr member vector that needs no memory inside of the struct
+/** create static const member vector that needs no memory inside of the struct
  *
  *   @param type type of an element
  *   @param dim number of vector components
@@ -73,8 +75,8 @@
  *
  *   @code{.cpp}
  *     PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 1.134e-5, 1.134e-5, 1.134e-5);
- *     // is the compile time equivalent of
- *     static constexpr Vector<float_64,simDim> center_SI = Vector<float_64,simDim>(1.134e-5, 1.134e-5, 1.134e-5);
+ *     // is syntactically equivalent to
+ *     static const Vector<float_64,simDim> center_SI = Vector<float_64,simDim>(1.134e-5, 1.134e-5, 1.134e-5);
  *   @endcode
  */
 #define PMACC_C_VECTOR_DIM(type,dim,name,...) (0,(type,name,dim,__VA_ARGS__))
@@ -87,7 +89,7 @@
  *
  *   @code{.cpp}
  *     PMACC_C_VALUE(float_64, power_SI, 2.0);
- *     // is the compile time equivalent of
+ *     // is syntactically equivalent to
  *     static constexpr float_64 power_SI = float_64(2.0);
  *   @endcode
  */
@@ -144,15 +146,15 @@
          )                                                                     \
         )
 
-/** create static constexpr character string
+/** create static const character string
  *
  *   @param name member variable name
  *   @param char_string character string
  *
  *   @code{.cpp}
  *     PMACC_C_STRING(filename, "fooFile.txt");
- *     // is the compile time equivalent of
- *     static constexpr char* filename = (char*)"fooFile.txt";
+ *     // is syntactically equivalent to
+ *     static const char* filename = (char*)"fooFile.txt";
  *   @endcode
  */
 #define PMACC_C_STRING(name,initValue) (3,(_,name,initValue))
@@ -203,6 +205,8 @@
  * @param r no user argument (used by boost)
  * @param accessor preprocessor function which accepts an element of the sequence
  * @param elem the current evaluated element of the sequence
+ *
+ * @{
  */
 #define PMACC_PP_SEQ_MACRO_WITH_ACCESSOR(r,accessor,elem) PMACC_PP_REMOVE_PAREN( accessor(elem))
 
@@ -249,11 +253,10 @@
 #define PMACC_PP_X1_ADD_DATA_TO_TYPEDESCRIPTION_MACRO(data,first,second) ((first,(data,PMACC_PP_REMOVE_PAREN(second))))
 #define PMACC_PP_X_ADD_DATA_TO_TYPEDESCRIPTION_MACRO(data,value) PMACC_PP_X1_ADD_DATA_TO_TYPEDESCRIPTION_MACRO(data,value)
 
-
+/** @} */
 
 #define PMACC_PP_ADD_DATA_TO_TYPEDESCRIPTION_MACRO(r,data,elem)                \
     PMACC_PP_X_ADD_DATA_TO_TYPEDESCRIPTION_MACRO(data,PMACC_PP_REMOVE_PAREN(elem))
-
 
 /** create constructor initialization of non static variables
  *
@@ -313,7 +316,27 @@ using namespace_name::name
  * @param name name of the struct
  * @param ... preprocessor sequence with TypeMemberPair's e.g. (PMACC_C_VALUE(int,a,2))
  *
- * ATTETENTION: do not forget the surrounding parenthesize for each element of a sequence
+ * @note do not forget the surrounding parenthesize for each element of a sequence
+ *
+ * @code{.cpp}
+ * PMACC_STRUCT(StructAlice,
+ *     // constant member variable
+ *     (PMACC_C_VALUE(float, varFoo, -1.0))
+ *     // lvalue member variable
+ *     (PMACC_VALUE(float, varFoo, -1.0))
+ *     // constant vector member variable
+ *     (PMACC_C_VECTOR_DIM(double, 3, vectorBarC, 1.134e-5, 1.134e-5, 1.134e-5))
+ *     // lvalue vector member variable
+ *     (PMACC_VECTOR_DIM(double, 3, vectorBarC, 1.134e-5, 1.134e-5, 1.134e-5))
+ *     // constant string member variable
+ *     (PMACC_C_STRING(someString, "anythingYouWant: even spaces!"))
+ *     // plain C++ member
+ *     PMACC_EXTENT(
+ *         using float_64 = double;
+ *         static constexpr int varBar = 42;
+ *     );
+ * );
+ * @endcode
  */
 #define PMACC_STRUCT(name,...)                                                 \
     PMACC_PP_STRUCT_DEF(BOOST_PP_CAT(BOOST_PP_CAT(pmacc_,name),__COUNTER__),name,PMACC_PP_ADD_DATA_TO_TYPEDESCRIPTION(name,__VA_ARGS__))
