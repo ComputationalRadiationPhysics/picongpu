@@ -297,7 +297,11 @@ if(ISAAC_FOUND)
 
     add_definitions(-DENABLE_ISAAC=1)
 else(ISAAC_FOUND)
-    message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH" )
+    if (DEFINED ISAAC_DEPENDENCY_HINTS)
+        message( STATUS "ISAAC was found, but has the following " ${ISAAC_DEPENDENCY_HINTS} )
+    else()
+        message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH" )
+    endif()
 endif(ISAAC_FOUND)
 
 ################################################################################
