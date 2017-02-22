@@ -133,11 +133,21 @@ SimulationHelper
    :protected-members:
    :undoc-members:
 
+ForEach
+-------
+
+.. doxygenstruct:: PMacc::algorithms::forEach::ForEach
+   :project: PIConGPU
+   :members:
+   :protected-members:
+   :undoc-members:
+
 Struct Factory
 --------------
 
-Syntax to generate structs with all members inline, e.g. in `densityConfig.param`.
+Syntax to generate structs with all members inline.
 Allows to conveniently switch between variable and constant defined members without the need to declare or initialize them externally.
+See for example PIConGPU's densityConfig.param for usage.
 
 .. doxygendefine:: PMACC_STRUCT
    :project: PIConGPU
@@ -161,4 +171,16 @@ Allows to conveniently switch between variable and constant defined members with
    :project: PIConGPU
 
 .. doxygendefine:: PMACC_EXTENT
+   :project: PIConGPU
+
+Identifier
+----------
+
+Construct unique types, e.g. to name, access and assign default values to particle species' attributes.
+See for example PIConGPU's speciesAttributes.param for usage.
+
+.. doxygendefine:: value_identifier
+   :project: PIConGPU
+
+.. doxygendefine:: alias
    :project: PIConGPU
