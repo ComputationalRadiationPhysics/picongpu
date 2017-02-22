@@ -21,6 +21,9 @@
 
 #include "simulation_defines.hpp"
 #include "particles/manipulators/manipulators.def"
+
+#include "Environment.hpp"
+
 #include <boost/mpl/apply.hpp>
 
 
@@ -44,7 +47,7 @@ namespace particles
     struct Manipulate
     {
         using SpeciesType = T_SpeciesType;
-        using SpeciesName = typename MakeIdentifier< SpeciesType >::type;
+        using FrameType = typename SpeciesType::FrameType;
 
         using UserFunctor = typename bmpl::apply1<
             T_Functor,
@@ -52,19 +55,19 @@ namespace particles
         >::type;
         using Functor = manipulators::IManipulator< UserFunctor >;
 
-        template<typename T_StorageTuple>
         HINLINE void
-        operator()(
-            T_StorageTuple& tuple,
-            const uint32_t currentStep
-        )
+        operator()( const uint32_t currentStep )
         {
-            auto speciesPtr = tuple[ SpeciesName() ];
+            DataConnector &dc = Environment<>::get().DataConnector();
+            auto speciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
+
             Functor functor( currentStep );
             speciesPtr->manipulateAllParticles(
                 currentStep,
                 functor
             );
+
+            dc.releaseData( FrameType::getName() );
         }
     };
 

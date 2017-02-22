@@ -110,8 +110,6 @@ public:
     slidingWindow(false),
     rngFactory(nullptr)
     {
-        ForEach<VectorAllSpecies, particles::AssignNull<bmpl::_1>, MakeIdentifier<bmpl::_1> > setPtrToNull;
-        setPtrToNull(forward(particleStorage));
     }
 
     virtual void pluginRegisterHelp(po::options_description& desc)
@@ -265,8 +263,8 @@ public:
 
         __delete(myCurrentInterpolation);
 
-        ForEach<VectorAllSpecies, particles::CallDelete<bmpl::_1>, MakeIdentifier<bmpl::_1> > deleteParticleMemory;
-        deleteParticleMemory(forward(particleStorage));
+        ForEach< VectorAllSpecies, particles::CallDelete< bmpl::_1 > > deleteParticleMemory;
+        deleteParticleMemory();
 
         __delete(laser);
         __delete(pushBGField);
@@ -330,8 +328,10 @@ public:
         // Initialize bremsstrahlung lookup tables, if there are species containing bremsstrahlung photons
         if(!bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value)
         {
-            ForEach<AllBremsstrahlungPhotonsSpecies,
-                particles::bremsstrahlung::FillScaledSpectrumMap<bmpl::_1> > fillScaledSpectrumMap;
+            ForEach<
+                AllBremsstrahlungPhotonsSpecies,
+                particles::bremsstrahlung::FillScaledSpectrumMap< bmpl::_1 >
+            > fillScaledSpectrumMap;
             fillScaledSpectrumMap(forward(this->scaledBremsstrahlungSpectrumMap));
 
             this->bremsstrahlungPhotonAngle.init();
@@ -341,8 +341,8 @@ public:
          * for particles are created */
         deviceHeap.reset(new DeviceHeap(0));
 
-        ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > createSpeciesMemory;
-        createSpeciesMemory(forward(particleStorage), deviceHeap, cellDescription);
+        ForEach< VectorAllSpecies, particles::CreateSpecies<bmpl::_1> > createSpeciesMemory;
+        createSpeciesMemory( deviceHeap, cellDescription );
 
         size_t freeGpuMem(0);
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
@@ -371,8 +371,8 @@ public:
         deviceHeap->destructiveResize(heapSize);
         this->mallocMCBuffer = new MallocMCBuffer<DeviceHeap>(deviceHeap);
 
-        ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, MakeIdentifier<bmpl::_1> > createParticleBuffer;
-        createParticleBuffer(forward(particleStorage), deviceHeap);
+        ForEach< VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1> > createParticleBuffer;
+        createParticleBuffer( deviceHeap );
 
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
@@ -392,8 +392,8 @@ public:
         this->myCurrentInterpolation = new fieldSolver::CurrentInterpolation;
 
 
-        ForEach<VectorAllSpecies, particles::CallInit<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleInit;
-        particleInit( forward(particleStorage), fieldE, fieldB );
+        ForEach< VectorAllSpecies, particles::CallInit<bmpl::_1> > particleInit;
+        particleInit( );
 
 
         /* add CUDA streams to the StreamController for concurrent execution */
@@ -440,8 +440,8 @@ public:
             else
             {
                 initialiserController->init();
-                ForEach<particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
-                initSpecies(forward(particleStorage), step);
+                ForEach< particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
+                initSpecies( step );
             }
         }
 
@@ -486,17 +486,18 @@ public:
             VectorAllSpecies,
             ionizer<>
         >::type VectorSpeciesWithIonizer;
-        ForEach<VectorSpeciesWithIonizer, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
-        particleIonization(forward(particleStorage), cellDescription, currentStep);
+        ForEach< VectorSpeciesWithIonizer, particles::CallIonization< bmpl::_1 > > particleIonization;
+        particleIonization( cellDescription, currentStep );
 
         /* call the synchrotron radiation module for each radiating species (normally electrons) */
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
 
-        ForEach<AllSynchrotronPhotonsSpecies,
-                particles::CallSynchrotronPhotons<bmpl::_1>,
-                MakeIdentifier<bmpl::_1> > synchrotronRadiation;
-        synchrotronRadiation(forward(particleStorage), cellDescription, currentStep, this->synchrotronFunctions);
+        ForEach<
+            AllSynchrotronPhotonsSpecies,
+            particles::CallSynchrotronPhotons< bmpl::_1 >
+        > synchrotronRadiation;
+        synchrotronRadiation( cellDescription, currentStep, this->synchrotronFunctions );
 
         /* Bremsstrahlung */
         typedef typename PMacc::particles::traits::FilterByFlag
@@ -504,14 +505,11 @@ public:
             VectorAllSpecies,
             bremsstrahlungIons<>
         >::type VectorSpeciesWithBremsstrahlung;
-        ForEach
-        <
+        ForEach<
             VectorSpeciesWithBremsstrahlung,
-            particles::CallBremsstrahlung<bmpl::_1>,
-            MakeIdentifier<bmpl::_1>
+            particles::CallBremsstrahlung< bmpl::_1 >
         > particleBremsstrahlung;
         particleBremsstrahlung(
-            forward(particleStorage),
             cellDescription,
             currentStep,
             this->scaledBremsstrahlungSpectrumMap,
@@ -523,7 +521,7 @@ public:
 
         /* push all species */
         particles::PushAllSpecies pushAllSpecies;
-        pushAllSpecies(particleStorage, currentStep, initEvent, updateEvent, commEvent);
+        pushAllSpecies( currentStep, initEvent, updateEvent, commEvent );
 
         __setTransactionEvent(updateEvent);
         /** remove background field for particle pusher */
@@ -546,8 +544,14 @@ public:
             VectorAllSpecies,
             current<>
         >::type VectorSpeciesWithCurrentSolver;
-        ForEach<VectorSpeciesWithCurrentSolver, ComputeCurrent<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeCurrent;
-        computeCurrent(forward(fieldJ),forward(particleStorage), currentStep);
+        ForEach<
+            VectorSpeciesWithCurrentSolver,
+            ComputeCurrent<
+                bmpl::_1,
+                bmpl::int_<CORE + BORDER>
+            >
+        > computeCurrent;
+        computeCurrent( currentStep );
 #endif
 
 #if  (ENABLE_CURRENT == 1)
@@ -610,8 +614,8 @@ public:
 
         fieldB->reset(currentStep);
         fieldE->reset(currentStep);
-        ForEach<VectorAllSpecies, particles::CallReset<bmpl::_1>, MakeIdentifier<bmpl::_1> > callReset;
-        callReset(forward(particleStorage), currentStep);
+        ForEach< VectorAllSpecies, particles::CallReset< bmpl::_1 > > callReset;
+        callReset( currentStep );
     }
 
     void slide(uint32_t currentStep)
@@ -623,8 +627,8 @@ public:
             log<picLog::SIMULATION_STATE > ("slide in step %1%") % currentStep;
             resetAll(currentStep);
             initialiserController->slide(currentStep);
-            ForEach<particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
-            initSpecies(forward(particleStorage), currentStep);
+            ForEach< particles::InitPipeline, particles::CallFunctor< bmpl::_1 > > initSpecies;
+            initSpecies( currentStep );
         }
     }
 
@@ -676,11 +680,6 @@ protected:
 
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* currentBGField;
-
-    typedef SeqToMap<VectorAllSpecies, TypeToPointerPair<bmpl::_1> >::type ParticleStorageMap;
-    typedef PMacc::math::MapTuple<ParticleStorageMap> ParticleStorage;
-
-    ParticleStorage particleStorage;
 
     LaserPhysics *laser;
 
