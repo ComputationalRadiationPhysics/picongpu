@@ -121,6 +121,10 @@ namespace PMacc
             datasets.push_back( data );
         }
 
+        /** End sharing a dataset with identifier id
+         *
+         * @param id id of the dataset to remove
+         */
         void
         unshare( SimulationDataId id )
         {
@@ -138,6 +142,24 @@ namespace PMacc
                                 id % ( it->use_count() - 1 );
 
             datasets.erase( it );
+        }
+
+        /** Unshare all associated datasets
+         */
+        void
+        clean()
+        {
+            log< ggLog::MEMORY >( "DataConnector: being cleaned (%1% datasets left to unshare)" ) %
+                                datasets.size();
+
+            // verbose version of: datasets.clear();
+            while( ! datasets.empty() )
+            {
+                auto it = datasets.rbegin();
+                log< ggLog::MEMORY >( "DataConnector: unshared '%1%' (%2% uses left)" ) %
+                                    (*it)->getUniqueId() % ( it->use_count() - 1 );
+                datasets.pop_back();
+            }
         }
 
         /** Returns shared pointer to managed data.
@@ -216,13 +238,7 @@ namespace PMacc
         {
             log< ggLog::MEMORY >( "DataConnector: being destroyed (%1% datasets left to destroy)" ) %
                                 datasets.size();
-            //datasets.clear();
-            for( auto it = datasets.begin(); it != datasets.end(); ++it )
-            {
-                log< ggLog::MEMORY >( "DataConnector: destroying %1%" ) %
-                                    (*it)->getUniqueId();
-                datasets.erase( it );
-            }
+            clean();
         }
 
         std::string
