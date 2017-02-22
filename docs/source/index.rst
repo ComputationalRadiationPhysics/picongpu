@@ -22,19 +22,22 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
 
 .. toctree::
    :caption: INSTALLATION
-   :maxdepth: 2
+   :maxdepth: 1
 
-   installation
+   install/path
+   install/INSTALL.md
+   install/profile
 
 .. toctree::
    :caption: USAGE
-   :maxdepth: 2
+   :maxdepth: 1
 
-   basic_usage
-   param
-   particles
-   plugin
-   example_cases
+   usage/basics
+   usage/param
+   usage/particles
+   usage/plugin
+   usage/tbg
+   usage/examples
 
 .. toctree::
    :caption: Post-Processing
@@ -46,6 +49,7 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
    :caption: DEVELOPMENT
    :maxdepth: 1
 
+   dev/CONTRIBUTING.md
    dev/picongpu
    dev/pmacc
    dev/doxyindex

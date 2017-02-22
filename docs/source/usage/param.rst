@@ -2,7 +2,6 @@
 ============
 
 .. toctree::
-   :caption: USAGE
    :maxdepth: 2
 
    param/core

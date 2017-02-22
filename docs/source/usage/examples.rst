@@ -5,5 +5,5 @@ Example Setups
    :glob:
    :maxdepth: 1
 
-   examples/*/README
+   ../examples/*/README
 
