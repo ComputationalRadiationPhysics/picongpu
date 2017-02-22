@@ -1,5 +1,4 @@
-/**
- * Copyright 2016-2017 Marco Garten
+/* Copyright 2016-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -74,41 +73,41 @@ namespace ionization
         using DestSpecies = T_DestSpecies;
         using SrcSpecies = T_SrcSpecies;
 
-        typedef typename SrcSpecies::FrameType FrameType;
+        using FrameType =  typename SrcSpecies::FrameType;
 
         /* specify field to particle interpolation scheme */
-        typedef typename PMacc::traits::Resolve<
+        using Field2ParticleInterpolation = typename PMacc::traits::Resolve<
             typename GetFlagType<FrameType,interpolation<> >::type
-        >::type Field2ParticleInterpolation;
+        >::type;
 
         /* margins around the supercell for the interpolation of the field on the cells */
-        typedef typename GetMargin<Field2ParticleInterpolation>::LowerMargin LowerMargin;
-        typedef typename GetMargin<Field2ParticleInterpolation>::UpperMargin UpperMargin;
+        using LowerMargin = typename GetMargin<Field2ParticleInterpolation>::LowerMargin ;
+        using UpperMargin = typename GetMargin<Field2ParticleInterpolation>::UpperMargin;
 
         /* relevant area of a block */
-        typedef SuperCellDescription<
+        using BlockArea = SuperCellDescription<
             typename MappingDesc::SuperCellSize,
             LowerMargin,
             UpperMargin
-            > BlockArea;
+            >;
 
         BlockArea BlockDescription;
 
         private:
 
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
-            typedef T_IonizationAlgorithm IonizationAlgorithm;
+            using IonizationAlgorithm =  T_IonizationAlgorithm;
 
             /* random number generator */
-            typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
-            typedef PMacc::random::distributions::Uniform<float> Distribution;
-            typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
+            using RNGFactory = PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin>;
+            using Distribution = PMacc::random::distributions::Uniform<float>;
+            using RandomGen = typename RNGFactory::GetRandomType<Distribution>::type;
             RandomGen randomGen;
 
             using SuperCellSize = MappingDesc::SuperCellSize;
 
-            typedef FieldTmp::ValueType ValueType_Rho;
-            typedef FieldTmp::ValueType ValueType_Ene;
+            using ValueType_Rho = FieldTmp::ValueType;
+            using ValueType_Ene = FieldTmp::ValueType ;
 
             /* global memory EM-field device databoxes */
             PMACC_ALIGN(rhoBox, FieldTmp::DataBoxType);
@@ -123,14 +122,14 @@ namespace ionization
              *  \todo Include all ion species because the model requires the
              *        density of ionic potential wells
              */
-            typedef typename particleToGrid::CreateDensityOperation<T_SrcSpecies>::type::Solver DensitySolver;
+            using DensitySolver = typename particleToGrid::CreateDensityOperation<T_SrcSpecies>::type::Solver;
 
             /** Solver for energy density of the electron species
              *
              *  \todo Include all electron species with a ForEach<VectorallSpecies,...>
              * instead of just the destination species
              */
-            typedef typename particleToGrid::CreateEnergyDensityOperation<T_DestSpecies>::type::Solver EnergyDensitySolver;
+            using EnergyDensitySolver = typename particleToGrid::CreateEnergyDensityOperation<T_DestSpecies>::type::Solver;
 
 
 
@@ -146,26 +145,26 @@ namespace ionization
                     fieldTmpNumSlots >= 2
                 );
                 /* initialize pointers on host-side density-/energy density field databoxes */
-                FieldTmp* density = &( dc.getData< FieldTmp >( FieldTmp::getUniqueId( 0 ), true ) );
-                FieldTmp* eneKinDens = &( dc.getData< FieldTmp >( FieldTmp::getUniqueId( 1 ), true ) );
+                auto density = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
+                auto eneKinDens = dc.get< FieldTmp >( FieldTmp::getUniqueId( 1 ), true );
 
                 /* reset density and kinetic energy values to zero */
                 density->getGridBuffer().getDeviceBuffer().setValue( FieldTmp::ValueType( 0. ) );
                 eneKinDens->getGridBuffer().getDeviceBuffer().setValue( FieldTmp::ValueType( 0. ) );
 
                 /* load species without copying the particle data to the host */
-                SrcSpecies* srcSpecies = &(dc.getData<SrcSpecies >(SrcSpecies::FrameType::getName(), true));
+                auto srcSpecies = dc.get< SrcSpecies >( SrcSpecies::FrameType::getName(), true );
 
                 /* kernel call for weighted ion density calculation */
                 density->computeValue < CORE + BORDER, DensitySolver > (*srcSpecies, currentStep);
-                dc.releaseData(SrcSpecies::FrameType::getName());
+                dc.releaseData( SrcSpecies::FrameType::getName() );
 
                 /* load species without copying the particle data to the host */
-                DestSpecies* destSpecies = &(dc.getData<DestSpecies >(DestSpecies::FrameType::getName(), true));
+                auto destSpecies = dc.get< DestSpecies >( DestSpecies::FrameType::getName(), true );
 
                 /* kernel call for weighted electron energy density calculation */
                 eneKinDens->computeValue < CORE + BORDER, EnergyDensitySolver > (*destSpecies, currentStep);
-                dc.releaseData(DestSpecies::FrameType::getName());
+                dc.releaseData( DestSpecies::FrameType::getName() );
 
                 /* initialize device-side density- and energy density field databox pointers */
                 rhoBox = density->getDeviceDataBox();

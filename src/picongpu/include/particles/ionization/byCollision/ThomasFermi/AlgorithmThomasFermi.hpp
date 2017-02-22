@@ -1,5 +1,4 @@
-/**
- * Copyright 2016-2017 Marco Garten
+/* Copyright 2016-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -107,15 +106,15 @@ namespace ionization
                 /** this is weird - I have to define temporary variables because
                  * otherwise the math::pow function won't recognize those at the
                  * exponent position */
-                constexpr float_64 TFA2_temp = TFA2;
-                constexpr float_64 TFA4_temp = TFA4;
-                constexpr float_64 TFBeta_temp = TFBeta;
+                constexpr float_64 TFA2_temp = thomasFermi::TFA2;
+                constexpr float_64 TFA4_temp = thomasFermi::TFA4;
+                constexpr float_64 TFBeta_temp = thomasFermi::TFBeta;
 
-                float_64 const A = TFA1 * math::pow(T_0,TFA2_temp) + TFA3 * math::pow(T_0,TFA4_temp);
+                float_64 const A = thomasFermi::TFA1 * math::pow(T_0,TFA2_temp) + thomasFermi::TFA3 * math::pow(T_0,TFA4_temp);
 
-                float_64 const B = -math::exp(TFB0 + TFB1*T_F + TFB2*math::pow(T_F,float_64(7.)));
+                float_64 const B = -math::exp(thomasFermi::TFB0 + thomasFermi::TFB1*T_F + thomasFermi::TFB2*math::pow(T_F,float_64(7.)));
 
-                float_64 const C = TFC1 * T_F + TFC2;
+                float_64 const C = thomasFermi::TFC1 * T_F + thomasFermi::TFC2;
 
                 /* requires mass density in g/cm^3 */
                 constexpr float_64 nAvogadro = SI::N_AVOGADRO;
@@ -124,14 +123,14 @@ namespace ionization
                 float_64 const convToMassDensity = densityUnit * massNumber / nAvogadro / convM3ToCM3;
                 float_64 const massDensity = density * convToMassDensity;
 
-                constexpr float_64 atomicTimesMassNumber = protonNumber * massNumber;
-                float_64 const R = massDensity/atomicTimesMassNumber;
+                constexpr float_64 invAtomicTimesMassNumber = float_64(1.) / (protonNumber * massNumber);
+                float_64 const R = massDensity * invAtomicTimesMassNumber;
 
                 float_64 const Q_1 = A * math::pow(R,B);
 
                 float_64 const Q = math::pow(math::pow(R,C) + math::pow(Q_1,C), float_64(1.)/C);
 
-                float_64 const x = TFAlpha * math::pow(Q,TFBeta_temp);
+                float_64 const x = thomasFermi::TFAlpha * math::pow(Q,TFBeta_temp);
 
                 /* Thomas-Fermi average ionization state */
                 float_64 const ZStar = protonNumber * x / (float_64(1.) + x + math::sqrt(float_64(1.) + float_64(2.)*x));

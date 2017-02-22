@@ -380,28 +380,38 @@ namespace effectiveNuclearCharge
         77.476
     );
 } // namespace effectiveNuclearCharge
+} // namespace ionization
 
-    /* Fitting parameters to average ionization degree Z* = 4/3*pi*R_0^3 * n(R_0)
+namespace particles
+{
+namespace ionization
+{
+namespace thomasFermi
+{
+
+    /** Fitting parameters to average ionization degree Z* = 4/3*pi*R_0^3 * n(R_0)
      * as an extension towards arbitrary atoms and temperatures
      *
      * See table IV of
      * \url http://www.sciencedirect.com/science/article/pii/S0065219908601451
      * doi:10.1016/S0065-2199(08)60145-1
      */
-    float_X constexpr TFAlpha = 14.3139;
-    float_X constexpr TFBeta  =  0.6624;
+    constexpr float_X TFAlpha = 14.3139;
+    constexpr float_X TFBeta  =  0.6624;
 
-    float_X constexpr TFA1    =  3.323e-3;
-    float_X constexpr TFA2    =  9.718e-1;
-    float_X constexpr TFA3    =  9.26148e-5;
-    float_X constexpr TFA4    =  3.10165;
+    constexpr float_X TFA1    =  3.323e-3;
+    constexpr float_X TFA2    =  9.718e-1;
+    constexpr float_X TFA3    =  9.26148e-5;
+    constexpr float_X TFA4    =  3.10165;
 
-    float_X constexpr TFB0    = -1.7630;
-    float_X constexpr TFB1    =  1.43175;
-    float_X constexpr TFB2    =  0.31546;
+    constexpr float_X TFB0    = -1.7630;
+    constexpr float_X TFB1    =  1.43175;
+    constexpr float_X TFB2    =  0.31546;
 
-    float_X constexpr TFC1    = -0.366667;
-    float_X constexpr TFC2    =  0.983333;
+    constexpr float_X TFC1    = -0.366667;
+    constexpr float_X TFC2    =  0.983333;
 
+} // namespace thomasFermi
 } // namespace ionization
+} // namespace particles
 } // namespace picongpu

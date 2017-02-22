@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2017 Marco Garten
+/* Copyright 2015-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -20,8 +19,9 @@
 
 #pragma once
 
-/** forward declarations for ionization algorithms
+/** \file
  *
+ * forward declarations for ionization algorithms
  * ionization model has a < Name >
  * so the algorithm is called "Algorithm< Name >"
  */

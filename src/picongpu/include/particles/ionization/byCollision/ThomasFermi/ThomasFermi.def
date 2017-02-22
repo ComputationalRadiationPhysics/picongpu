@@ -1,5 +1,4 @@
-/**
- * Copyright 2016-2017 Marco Garten
+/* Copyright 2016-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -68,8 +67,8 @@ namespace ionization
     template<typename T_DestSpecies>
     struct ThomasFermi
     {
-        typedef particles::ionization::AlgorithmThomasFermi IonizationAlgorithm;
-        typedef ThomasFermi_Impl<IonizationAlgorithm, T_DestSpecies> type;
+        using IonizationAlgorithm = particles::ionization::AlgorithmThomasFermi;
+        using type = ThomasFermi_Impl<IonizationAlgorithm, T_DestSpecies>;
     };
 
 } // namespace ionization
