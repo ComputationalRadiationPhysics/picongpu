@@ -63,19 +63,6 @@ struct AssignNull
 };
 
 template<typename T_SpeciesType>
-struct CallDelete
-{
-    using SpeciesType = T_SpeciesType;
-    using FrameType = typename SpeciesType::FrameType;
-
-    void operator()()
-    {
-        DataConnector &dc = Environment<>::get().DataConnector();
-        dc.unshare( FrameType::getName() );
-    }
-};
-
-template<typename T_SpeciesType>
 struct CreateSpecies
 {
     using SpeciesType = T_SpeciesType;
