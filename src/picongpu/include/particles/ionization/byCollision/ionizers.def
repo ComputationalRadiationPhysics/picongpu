@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Marco Garten
+/* Copyright 2015-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -17,7 +17,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** \file ionizers.def
+ *
+ * These includes contain forward declarations of < Ionization Models >
+ */
+
 #pragma once
 
-#include "particles/ionization/byField/fieldIonizationCalc.hpp"
-#include "particles/ionization/byCollision/collisionalIonizationCalc.hpp"
+#include "particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"

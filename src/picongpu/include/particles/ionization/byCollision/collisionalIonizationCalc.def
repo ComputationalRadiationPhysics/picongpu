@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Marco Garten
+/* Copyright 2015-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -19,5 +19,26 @@
 
 #pragma once
 
-#include "particles/ionization/byField/fieldIonizationCalc.hpp"
-#include "particles/ionization/byCollision/collisionalIonizationCalc.hpp"
+/** \file
+ *
+ * forward declarations for ionization algorithms
+ * ionization model has a < Name >
+ * so the algorithm is called "Algorithm< Name >"
+ */
+
+namespace picongpu
+{
+
+namespace particles
+{
+
+namespace ionization
+{
+
+    struct AlgorithmThomasFermi;
+
+} // namespace ionization
+
+} // namespace particles
+
+} // namespace picongpu

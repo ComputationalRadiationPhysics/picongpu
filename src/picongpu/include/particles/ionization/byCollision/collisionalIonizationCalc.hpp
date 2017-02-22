@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Marco Garten
+/* Copyright 2015-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -19,5 +19,4 @@
 
 #pragma once
 
-#include "particles/ionization/byField/fieldIonizationCalc.hpp"
-#include "particles/ionization/byCollision/collisionalIonizationCalc.hpp"
+#include "particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
