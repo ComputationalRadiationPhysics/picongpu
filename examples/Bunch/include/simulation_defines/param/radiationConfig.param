@@ -146,7 +146,7 @@ namespace radiation
     /* filter to enable radiation for electrons
      *
      * to enable the filter:
-     *   - goto file `speciesDefinietion.param`
+     *   - goto file `speciesDefinition.param`
      *   - add the attribute `radiationMask` to the electron species
      */
     using RadiationParticleFilter = picongpu::particles::manipulators::FreeImpl<

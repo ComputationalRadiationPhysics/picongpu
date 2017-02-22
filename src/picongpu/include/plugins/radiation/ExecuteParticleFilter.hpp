@@ -72,7 +72,9 @@ namespace radiation
 
     /** execute the particle filter on a species
      *
-     * There is no need to check if a particle filter is defined
+     * It is **allowed** to call this function even if the species does not contain
+     * the attribute `radiationMask`.
+     * The filter is **not** executed if the species does not contain the attribute `radiationMask`.
      *
      * @tparam T_Species species type
      * @param species species to be filtered
@@ -81,8 +83,8 @@ namespace radiation
     void executeParticleFilter( std::shared_ptr<T_Species>& species, const uint32_t currentStep )
     {
         constexpr bool hasRadiationFilter = ::PMacc::traits::HasIdentifier<
-          typename T_Species::FrameType,
-          radiationMask
+            typename T_Species::FrameType,
+            radiationMask
         >::type::value;
 
         return ExecuteParticleFilter< hasRadiationFilter >{}( species, currentStep );

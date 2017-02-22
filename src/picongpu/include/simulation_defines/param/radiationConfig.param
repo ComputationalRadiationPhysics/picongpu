@@ -152,7 +152,7 @@ namespace picongpu
         /* filter to (de)select particles for the radiation calculation
          *
          * to activate the filter:
-         *   - goto file `speciesDefinietion.param`
+         *   - goto file `speciesDefinition.param`
          *   - add the attribute `radiationMask` to the particle species
          */
         using RadiationParticleFilter = picongpu::particles::manipulators::FreeImpl<
