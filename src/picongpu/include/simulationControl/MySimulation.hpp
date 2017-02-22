@@ -76,6 +76,7 @@
 #include <boost/mpl/int.hpp>
 #include <memory>
 
+
 namespace picongpu
 {
 using namespace PMacc;
@@ -97,9 +98,6 @@ public:
      */
     MySimulation() :
     laser(nullptr),
-    fieldB(nullptr),
-    fieldE(nullptr),
-    fieldJ(nullptr),
     mallocMCBuffer(nullptr),
     myFieldSolver(nullptr),
     myCurrentInterpolation(nullptr),
@@ -249,22 +247,16 @@ public:
 
         __delete(myFieldSolver);
 
-        dc.unshare( fieldB->getUniqueId() );
-
-        dc.unshare( fieldE->getUniqueId() );
-
-        dc.unshare( fieldJ->getUniqueId() );
-
-        for( auto* slot : fieldTmp )
-            dc.unshare( slot->getUniqueId( ) );
-        fieldTmp.clear();
-
         dc.unshare( mallocMCBuffer->getUniqueId() );
 
         __delete(myCurrentInterpolation);
 
-        ForEach< VectorAllSpecies, particles::CallDelete< bmpl::_1 > > deleteParticleMemory;
-        deleteParticleMemory();
+        /** unshare all registered ISimulationData sets
+         *
+         * @todo can be removed as soon as our Environment learns to shutdown in
+         *       a distinct order, e.g. DataConnector before CUDA context
+         */
+        dc.clean();
 
         __delete(laser);
         __delete(pushBGField);
@@ -281,12 +273,24 @@ public:
     virtual void init()
     {
         namespace nvmem = PMacc::nvidia::memory;
+
+        DataConnector &dc = Environment<>::get().DataConnector();
+
         // create simulation data such as fields and particles
-        fieldB = new FieldB(*cellDescription);
-        fieldE = new FieldE(*cellDescription);
-        fieldJ = new FieldJ(*cellDescription);
+        auto fieldB = new FieldB( *cellDescription );
+        dc.share( std::shared_ptr< ISimulationData >( fieldB ) );
+        auto fieldE = new FieldE( *cellDescription );
+        dc.share( std::shared_ptr< ISimulationData >( fieldE ) );
+        auto fieldJ = new FieldJ( *cellDescription );
+        dc.share( std::shared_ptr< ISimulationData >( fieldJ ) );
+
+        std::vector< FieldTmp * > fieldTmp;
         for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
-            fieldTmp.push_back( new FieldTmp( *cellDescription, slot ) );
+        {
+            auto newFld = new FieldTmp( *cellDescription, slot );
+            fieldTmp.push_back( newFld );
+            dc.share( std::shared_ptr< ISimulationData >( newFld ) );
+        }
         pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
         currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
 
@@ -379,11 +383,11 @@ public:
 
         IdProvider<simDim>::init();
 
-        fieldB->init(*fieldE, *laser);
-        fieldE->init(*fieldB, *laser);
-        fieldJ->init(*fieldE, *fieldB);
-        for( auto* slot : fieldTmp )
-            slot->init();
+        fieldB->init( *fieldE, *laser );
+        fieldE->init( *fieldB, *laser );
+        fieldJ->init( *fieldE, *fieldB );
+        for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
+            fieldTmp.at( slot )->init();
 
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
@@ -453,9 +457,14 @@ public:
             beginning of a simulation in movingWindowCheck()
             At restarts the external fields are already added and will be
             double-counted, so we remove it in advance. */
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
         if( step != 0 )
         {
             namespace nvfct = PMacc::nvidia::functors;
+
             (*pushBGField)( fieldE, nvfct::Sub(), FieldBackgroundE(fieldE->getUnit()),
                             step, FieldBackgroundE::InfluenceParticlePusher);
             (*pushBGField)( fieldB, nvfct::Sub(), FieldBackgroundB(fieldB->getUnit()),
@@ -468,6 +477,9 @@ public:
         EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(eRfieldB);
 
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
+
         return step;
     }
 
@@ -479,6 +491,8 @@ public:
     virtual void runOneStep(uint32_t currentStep)
     {
         namespace nvfct = PMacc::nvidia::functors;
+
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         /* Initialize ionization routine for each species with the flag `ionizer<>` */
         typedef typename PMacc::particles::traits::FilterByFlag
@@ -525,13 +539,18 @@ public:
 
         __setTransactionEvent(updateEvent);
         /** remove background field for particle pusher */
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
         (*pushBGField)(fieldE, nvfct::Sub(), FieldBackgroundE(fieldE->getUnit()),
                        currentStep, FieldBackgroundE::InfluenceParticlePusher);
         (*pushBGField)(fieldB, nvfct::Sub(), FieldBackgroundB(fieldB->getUnit()),
                        currentStep, FieldBackgroundB::InfluenceParticlePusher);
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
 
+        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
         FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
         fieldJ->assign( zeroJ );
 
@@ -584,6 +603,7 @@ public:
             }
         }
 #endif
+        dc.releaseData( FieldJ::getName() );
 
         this->myFieldSolver->update_afterCurrent(currentStep);
     }
@@ -603,19 +623,34 @@ public:
          */
         namespace nvfct = PMacc::nvidia::functors;
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
         (*pushBGField)( fieldE, nvfct::Add(), FieldBackgroundE(fieldE->getUnit()),
                         currentStep, FieldBackgroundE::InfluenceParticlePusher );
         (*pushBGField)( fieldB, nvfct::Add(), FieldBackgroundB(fieldB->getUnit()),
                         currentStep, FieldBackgroundB::InfluenceParticlePusher );
+
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
     }
 
     virtual void resetAll(uint32_t currentStep)
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
         fieldB->reset(currentStep);
         fieldE->reset(currentStep);
         ForEach< VectorAllSpecies, particles::CallReset< bmpl::_1 > > callReset;
         callReset( currentStep );
+
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
     }
 
     void slide(uint32_t currentStep)
@@ -666,11 +701,6 @@ private:
     }
 
 protected:
-    // fields
-    FieldB *fieldB;
-    FieldE *fieldE;
-    FieldJ *fieldJ;
-    std::vector< FieldTmp * > fieldTmp;
     MallocMCBuffer<DeviceHeap> *mallocMCBuffer;
     std::shared_ptr<DeviceHeap> deviceHeap;
 
