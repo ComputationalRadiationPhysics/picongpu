@@ -34,6 +34,12 @@ struct PMaccFixture
         const PMacc::DataSpace<T_dim> periodic = PMacc::DataSpace<T_dim>::create(1);
         PMacc::Environment<T_dim>::get().initDevices(devices, periodic);
     }
+
+    ~PMaccFixture()
+    {
+        /* finalize the PMacc context */
+        PMacc::Environment<>::get().finalize();
+    }
 };
 
 typedef PMaccFixture<2> PMaccFixture2D;
