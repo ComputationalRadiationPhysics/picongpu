@@ -22,7 +22,6 @@
 #pragma once
 
 #include "communication/manager_common.hpp"
-
 #include "mpi/reduceMethods/AllReduce.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
 #include "mpi/GetMPI_Op.hpp"
@@ -31,18 +30,19 @@
 
 #include <mpi.h>
 
+
 namespace PMacc
 {
 namespace mpi
 {
 
+/** reduce data over selected mpi ranks */
 struct MPIReduce
 {
 
-    /*reduce data over selected mpi nodes*/
     MPIReduce() : mpiRank(-1), numRanks(0), comm(MPI_COMM_NULL), isMPICommInitialized(false)
     {
-        participate(true);
+
     }
 
     virtual ~MPIReduce()
@@ -53,20 +53,30 @@ struct MPIReduce
         }
     }
 
-    /*
+    /* defines if the result of the MPI operation is valid
+     *
+     * @tparam MPIMethod type of the reduction method
+     * @param method used reduction method e.g.,
+     *                reduceMethods::AllReduce, reduceMethods::Reduce
      * @return if resut of operator() is valid*/
     template<class MPIMethod>
-    bool hasResult(const MPIMethod & method) const
+    bool hasResult(const MPIMethod & method)
     {
-        PMACC_ASSERT(isMPICommInitialized == true);
+        if (!isMPICommInitialized)
+            participate(true);
         return method.hasResult(mpiRank);
     }
 
-    /*
-     * @return if resut of operator() is valid*/
-
-    bool hasResult() const
+    /** defines if the result of the MPI operation is valid
+     *
+     * The reduction method reduceMethods::Reduce is used.
+     *
+     * @return if result of operator() is valid
+     */
+    bool hasResult()
     {
+        if (!isMPICommInitialized)
+            participate(true);
         return this->hasResult(::PMacc::mpi::reduceMethods::AllReduce());
     }
 
@@ -139,6 +149,8 @@ struct MPIReduce
                              const size_t n,
                              const ReduceMethod method)
     {
+        if (!isMPICommInitialized)
+            participate(true);
         typedef Type ValueType;
 
         method(func,
@@ -167,6 +179,8 @@ struct MPIReduce
                              Type* src,
                              const size_t n)
     {
+        if (!isMPICommInitialized)
+            participate(true);
         this->operator ()(func, dest, src, n, ::PMacc::mpi::reduceMethods::AllReduce());
     }
 
@@ -178,6 +192,5 @@ private:
     int numRanks;
     bool isMPICommInitialized;
 };
-}
-}//namespace
-
+} // namespace mpi
+} // namespace PMacc
