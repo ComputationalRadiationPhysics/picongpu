@@ -32,6 +32,7 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
    :caption: USAGE
    :maxdepth: 1
 
+   usage/reference
    usage/basics
    usage/param
    usage/particles
