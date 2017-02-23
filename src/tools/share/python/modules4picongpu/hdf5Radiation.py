@@ -42,23 +42,23 @@ class radiationHDF5:
 
         # Amplitude
         # A_x
-        self.h5_Ax_Re = self.h5_file["/data/{}".format(self.timestep) +
-                                     "/Amplitude/x/Re"]
-        self.h5_Ax_Im = self.h5_file["/data/{}".format(self.timestep) +
-                                     "/Amplitude/x/Im"]
+        self.h5_Ax_Re = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
+                                     "/Amplitude/x_Re"]
+        self.h5_Ax_Im = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
+                                     "/Amplitude/x_Im"]
         # A_y
-        self.h5_Ay_Re = self.h5_file["/data/{}".format(self.timestep) +
-                                     "/Amplitude/y/Re"]
-        self.h5_Ay_Im = self.h5_file["/data/{}".format(self.timestep) +
-                                     "/Amplitude/y/Im"]
+        self.h5_Ay_Re = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
+                                     "/Amplitude/y_Re"]
+        self.h5_Ay_Im = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
+                                     "/Amplitude/y_Im"]
         # A_z
-        self.h5_Az_Re = self.h5_file["/data/{}".format(self.timestep) +
-                                     "/Amplitude/z/Re"]
-        self.h5_Az_Im = self.h5_file["/data/{}".format(self.timestep) +
-                                     "/Amplitude/z/Im"]
+        self.h5_Az_Re = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
+                                     "/Amplitude/z_Re"]
+        self.h5_Az_Im = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
+                                     "/Amplitude/z_Im"]
 
         # conversion factor for spectra from PIC units to SI units
-        self.convert_to_SI = self.h5_file["/data/{}".format(self.timestep) +
+        self.convert_to_SI = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
                                           "/Amplitude"].attrs['unitSI']
 
     def get_timestep(self):
