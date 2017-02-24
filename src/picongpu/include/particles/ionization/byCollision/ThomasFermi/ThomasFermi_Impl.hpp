@@ -156,14 +156,14 @@ namespace ionization
                 auto srcSpecies = dc.get< SrcSpecies >( SrcSpecies::FrameType::getName(), true );
 
                 /* kernel call for weighted ion density calculation */
-                density->computeValue < CORE + BORDER, DensitySolver > (*srcSpecies, currentStep);
+                density->template computeValue< CORE + BORDER, DensitySolver >(*srcSpecies, currentStep);
                 dc.releaseData( SrcSpecies::FrameType::getName() );
 
                 /* load species without copying the particle data to the host */
                 auto destSpecies = dc.get< DestSpecies >( DestSpecies::FrameType::getName(), true );
 
                 /* kernel call for weighted electron energy density calculation */
-                eneKinDens->computeValue < CORE + BORDER, EnergyDensitySolver > (*destSpecies, currentStep);
+                eneKinDens->template computeValue< CORE + BORDER, EnergyDensitySolver >(*destSpecies, currentStep);
                 dc.releaseData( DestSpecies::FrameType::getName() );
 
                 /* initialize device-side density- and energy density field databox pointers */

@@ -183,7 +183,7 @@ private:
 
         fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType::create(0.0));
         /*run algorithm*/
-        fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params->currentStep);
+        fieldTmp->template computeValue< CORE + BORDER, Solver >(*speciesTmp, params->currentStep);
 
         EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(fieldTmpEvent);
