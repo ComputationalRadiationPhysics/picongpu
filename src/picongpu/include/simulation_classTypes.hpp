@@ -20,6 +20,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "Environment.hpp"
 #include "simulation_defines.hpp"
 
 #include "mappings/kernel/AreaMapping.hpp"

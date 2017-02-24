@@ -19,17 +19,16 @@
  */
 
 #include "types.hpp"
-#include <iostream>
+#include "Environment.hpp"
+#include "Simulation.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-#include "Simulation.hpp"
+#include <iostream>
 
-#include <mpi.h>
-#include "communication/manager_common.hpp"
 
 namespace po = boost::program_options;
 
@@ -40,9 +39,6 @@ namespace po = boost::program_options;
  */
 int main( int argc, char **argv )
 {
-
-    MPI_CHECK( MPI_Init( &argc, &argv ) );
-
     typedef ::gol::Space Space;
 
     std::vector<uint32_t> devices;  /* will be set by boost program argument option "-d 3 3 3" */
@@ -74,7 +70,6 @@ int main( int argc, char **argv )
     /* print help message and quit simulation */
     if ( vm.count( "help" ) )
     {
-        MPI_CHECK( MPI_Finalize( ) );
         std::cerr << desc << "\n";
         return false;
     }
@@ -138,6 +133,8 @@ int main( int argc, char **argv )
     sim.start( );
     sim.finalize( );
 
-    MPI_CHECK( MPI_Finalize( ) );
+    /* finalize the PMacc context */
+    PMacc::Environment<>::get().finalize();
+
     return 0;
 }

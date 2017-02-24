@@ -28,14 +28,10 @@
  */
 
 #include "ArgsParser.hpp"
-#include "communication/manager_common.hpp"
+#include "Environment.hpp"
 
 #include <simulation_defines.hpp>
-#include <mpi.h>
 
-
-using namespace PMacc;
-using namespace picongpu;
 
 /*! start of PIConGPU
  *
@@ -44,9 +40,9 @@ using namespace picongpu;
  */
 int main(int argc, char **argv)
 {
-    MPI_CHECK(MPI_Init(&argc, &argv));
+    using namespace picongpu;
 
-    picongpu::simulation_starter::SimStarter sim;
+    simulation_starter::SimStarter sim;
     ArgsParser::ArgsErrorCode parserCode = sim.parseConfigs(argc, argv);
     int errorCode = 1;
 
@@ -59,14 +55,14 @@ int main(int argc, char **argv)
             sim.load();
             sim.start();
             sim.unload();
-            /*set error code to valid (1) after the simulation terminates*/
+            /* missing `break` is voluntarily to set the error code to 0 */
         case ArgsParser::SUCCESS_EXIT:
             errorCode = 0;
             break;
     };
 
-    // Required by scorep for flushing the buffers
-    cudaDeviceSynchronize();
-    MPI_CHECK(MPI_Finalize());
+    /* finalize the PMacc context */
+    PMacc::Environment<>::get().finalize();
+
     return errorCode;
 }

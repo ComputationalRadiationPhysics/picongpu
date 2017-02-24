@@ -107,9 +107,8 @@ protected:
     size_t reservedMem;
 
 private:
-    friend class Environment<DIM1>;
-    friend class Environment<DIM2>;
-    friend class Environment<DIM3>;
+
+    friend class detail::Environment;
 
     static MemoryInfo& getInstance()
     {

@@ -76,9 +76,7 @@ namespace PMacc
 
     private:
 
-        friend class Environment<DIM1>;
-        friend class Environment<DIM2>;
-        friend class Environment<DIM3>;
+        friend class detail::Environment;
 
         inline ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
 
