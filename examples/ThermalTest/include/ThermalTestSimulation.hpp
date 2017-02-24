@@ -80,12 +80,17 @@ public:
 
         using namespace ::PMacc::math;
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+
         auto fieldE_coreBorder =
-             this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
+             fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
                    precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT()));
 
         this->eField_zt[0] = new container::HostBuffer<float, 2 > (Size_t < 2 > (fieldE_coreBorder.size().z(), this->collectTimesteps));
         this->eField_zt[1] = new container::HostBuffer<float, 2 >(this->eField_zt[0]->size());
+
+        dc.releaseData( FieldE::getName() );
     }
 
     void pluginRegisterHelp(po::options_description& desc)
@@ -166,8 +171,11 @@ public:
 
         using namespace math;
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+
         auto fieldE_coreBorder =
-           this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
+           fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
                 precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT()));
 
         for (size_t z = 0; z < eField_zt[0]->size().x(); z++)
@@ -183,6 +191,8 @@ public:
                          nvidia::functors::Add());
             }
         }
+
+        dc.releaseData( FieldE::getName() );
 
         if (currentStep == this->collectTimesteps + firstTimestep)
             writeOutput();
