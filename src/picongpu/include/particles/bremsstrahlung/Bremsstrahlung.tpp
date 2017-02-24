@@ -64,7 +64,7 @@ Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::Bremsstrahlung
 
     /* compute ion density */
     typedef typename CreateEnergyDensityOperation<T_IonSpecies>::type::Solver DensitySolver;
-    fieldIonDensity->computeValue < CORE + BORDER, DensitySolver > (*ionSpecies, currentStep);
+    fieldIonDensity->template computeValue< CORE + BORDER, DensitySolver >(*ionSpecies, currentStep);
     dc.releaseData(T_IonSpecies::FrameType::getName());
 
     /* initialize device-side tmp-field databoxes */
