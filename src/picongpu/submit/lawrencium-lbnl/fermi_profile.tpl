@@ -90,10 +90,15 @@ cd simOutput
 #   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
 export OMPI_MCA_mpi_leave_pinned=0
 
-# Run CUDA memtest to check GPU's health
-mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+# test if cuda_memtest binary is available
+if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
+  # Run CUDA memtest to check GPU's health
+  mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+else
+  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+fi
 
-# Run PIConGPU
 if [ $? -eq 0 ] ; then
+  # Run PIConGPU
   mpirun !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi
