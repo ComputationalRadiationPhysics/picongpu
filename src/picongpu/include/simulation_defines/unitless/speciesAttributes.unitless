@@ -107,7 +107,7 @@ struct WeightingPower<position<T_Type> >
 };
 
 template<>
-struct Unit<radiationFlag>
+struct Unit<radiationMask>
 {
     // unitless and not scaled by a factor: by convention 1.0
     static std::vector<double> get()
@@ -117,18 +117,18 @@ struct Unit<radiationFlag>
     }
 };
 template<>
-struct UnitDimension<radiationFlag>
+struct UnitDimension<radiationMask>
 {
     static std::vector<float_64> get()
     {
-        // radiationFlag is unitless
+        // radiationMask is unitless
         std::vector<float_64> unitDimension( NUnitDimension, 0.0 );
 
         return unitDimension;
     }
 };
 template<>
-struct MacroWeighted<radiationFlag>
+struct MacroWeighted<radiationMask>
 {
     // identical and can not be scaled by weightings
     static bool get()
@@ -137,7 +137,7 @@ struct MacroWeighted<radiationFlag>
     }
 };
 template<>
-struct WeightingPower<radiationFlag>
+struct WeightingPower<radiationMask>
 {
     // flag * weighting^0 == flag: same for real and macro particle
     static float_64 get()

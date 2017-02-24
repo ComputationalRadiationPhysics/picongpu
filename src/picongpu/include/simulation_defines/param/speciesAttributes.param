@@ -61,8 +61,14 @@ value_identifier(float3_X,momentum,float3_X::create(0.));
 value_identifier(float3_X,momentumPrev1,float3_X::create(0.));
 /** weighting of the macro particle */
 value_identifier(float_X, weighting, 0.0);
-/** use this particle for radiation diagnostics */
-value_identifier(bool, radiationFlag, false);
+
+/** masking a particle for radiation
+ *
+ * The mask is used by the user defined filter
+ * `RadiationParticleFilter` in `radiationConfig.param` to (de)select
+ * particles for the radiation calculation.
+ */
+value_identifier(bool, radiationMask, false);
 
 /** number of electrons bound to the atom / ion
  *

@@ -39,9 +39,6 @@
 #include "mappings/threads/ThreadCollective.hpp"
 
 #include "plugins/radiation/parameters.hpp"
-#if(ENABLE_RADIATION == 1)
-#include "plugins/radiation/particles/PushExtension.hpp"
-#endif
 
 #include "nvidia/rng/RNG.hpp"
 #include "nvidia/rng/methods/Xor.hpp"
@@ -52,6 +49,7 @@
 #include "nvidia/atomic.hpp"
 #include "particles/InterpolationForPusher.hpp"
 #include "memory/shared/Allocate.hpp"
+#include "traits/HasFlag.hpp"
 
 namespace picongpu
 {
@@ -292,16 +290,7 @@ struct PushParticlePerFrame
 
         float3_X mom = particle[momentum_];
         const float_X mass = attribute::getMass(weighting,particle);
-#if(ENABLE_RADIATION == 1)
-        radiation::PushExtension < (RAD_MARK_PARTICLE > 1) || (RAD_ACTIVATE_GAMMA_FILTER != 0) > extensionRadiation;
-        float3_X& mom_mt1 = particle[momentumPrev1_];
-#if(RAD_MARK_PARTICLE>1) || (RAD_ACTIVATE_GAMMA_FILTER!=0)
-        bool& radiationFlag = particle[radiationFlag_];
-        extensionRadiation(mom_mt1, mom, mass, radiationFlag);
-#else
-        extensionRadiation(mom_mt1, mom, mass);
-#endif
-#endif
+
         PushAlgo push;
         push(
              functorBfield,

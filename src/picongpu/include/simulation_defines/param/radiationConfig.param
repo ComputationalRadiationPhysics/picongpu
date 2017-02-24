@@ -30,6 +30,9 @@
 
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
+#include "algorithms/Gamma.def"
+#include "traits/attribute/GetMass.hpp"
+#include "particles/manipulators/manipulators.def"
 
 namespace picongpu
 {
@@ -105,31 +108,58 @@ namespace picongpu
 
     namespace parameters
     {
-        /*!enable radiation calculation*/
+/*! enable radiation calculation
+ *
+ * If radiation is enabled the attribute `momentumPrev1` needs to be added to electron species
+ */
 #define ENABLE_RADIATION 0
 
-        // Nyquist low pass allows only amplitudes for frequencies below Nyquist frequency
-        // 1 = on  (slower and more memory, no fourier reflections)
-        // 0 = off (faster but with fourier reflections)
+// Nyquist low pass allows only amplitudes for frequencies below Nyquist frequency
+// 1 = on  (slower and more memory, no fourier reflections)
+// 0 = off (faster but with fourier reflections)
 #define __NYQUISTCHECK__ 0
-
-
-
-        //marked every N particle for calculate radiation
-        //mark no particle at beginning
-#define RAD_MARK_PARTICLE 1
-
-        //disable or enable gamme filter
-        //diable (0) / enable (1)
-#define RAD_ACTIVATE_GAMMA_FILTER 0
-
-        constexpr float_32 RadiationGamma = 5.;
 
         constexpr unsigned int N_observer = 256; // number of looking directions
 
 
 
     } /* end namespace parameters */
+
+    namespace radiation
+    {
+        /** select particles for radiation */
+        struct GammaFilterFunctor
+        {
+            static constexpr float_X radiationGamma = 5.0;
+
+            template< typename T_Particle >
+            DINLINE void operator()( T_Particle& particle )
+            {
+                if(
+                    picongpu::gamma<float_X>(
+                        particle[ picongpu::momentum_ ],
+                        picongpu::traits::attribute::getMass(
+                            particle[ picongpu::weighting_ ],
+                            particle
+                        )
+                    ) >= radiationGamma
+                )
+                    particle[ picongpu::radiationMask_ ] = true;
+            }
+        };
+
+
+        /* filter to (de)select particles for the radiation calculation
+         *
+         * to activate the filter:
+         *   - goto file `speciesDefinition.param`
+         *   - add the attribute `radiationMask` to the particle species
+         */
+        using RadiationParticleFilter = picongpu::particles::manipulators::FreeImpl<
+            GammaFilterFunctor
+        >;
+
+    } // namespace radiation
 
     //////////////////////////////////////////////////
 

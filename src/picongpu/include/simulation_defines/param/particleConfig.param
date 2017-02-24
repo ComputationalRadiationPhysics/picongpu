@@ -129,7 +129,7 @@ namespace manipulators
         DINLINE void operator()( T_Rng& rng, T_Particle& particle )
         {
             // enable radiation for 10% of the particles
-            particle[ radiationFlag_ ] = rng() < ( 0.1 );
+            particle[ radiationMask_ ] = rng() < ( 0.1 );
         }
     };
 

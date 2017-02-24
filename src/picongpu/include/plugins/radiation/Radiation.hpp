@@ -31,6 +31,7 @@
 
 
 #include "plugins/radiation/Radiation.kernel"
+#include "plugins/radiation/ExecuteParticleFilter.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 #include "plugins/common/stringHelpers.hpp"
 
@@ -1147,6 +1148,9 @@ private:
 
       DataConnector &dc = Environment<>::get().DataConnector();
       auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+
+      /* execute the particle filter */
+      radiation::executeParticleFilter( particles, currentStep );
 
       /* the parallelization is ONLY over directions:
        * (a combined parallelization over direction AND frequencies

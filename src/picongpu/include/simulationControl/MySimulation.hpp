@@ -55,6 +55,8 @@
 #include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "particles/Manipulate.hpp"
+#include "particles/manipulators/manipulators.hpp"
 #include "random/methods/XorMin.hpp"
 #include "random/RNGProvider.hpp"
 
@@ -71,6 +73,7 @@
 #include "particles/InitFunctors.hpp"
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
+#include "particles/traits/FilterByIdentifier.hpp"
 #include "particles/IdProvider.hpp"
 
 #include <boost/mpl/int.hpp>
@@ -491,6 +494,25 @@ public:
     virtual void runOneStep(uint32_t currentStep)
     {
         namespace nvfct = PMacc::nvidia::functors;
+
+        typedef typename PMacc::particles::traits::FilterByIdentifier
+        <
+            VectorAllSpecies,
+            momentumPrev1
+        >::type VectorSpeciesWithMementumPrev1;
+
+        /* copy attribute momentum to momentumPrev1 */
+        ForEach<
+            VectorSpeciesWithMementumPrev1,
+            particles::Manipulate<
+                particles::manipulators::CopyAttribute<
+                    momentumPrev1,
+                    momentum
+                >,
+                bmpl::_1
+            >
+        > copyMomentumPrev1;
+        copyMomentumPrev1( currentStep );
 
         DataConnector &dc = Environment<>::get().DataConnector();
 
