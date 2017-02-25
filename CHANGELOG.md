@@ -1,6 +1,39 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.2.4
+-----
+**Date:** 2017-03-06
+
+Charge of Bound Electrons, openPMD Axis Range, Manipulate by Position
+
+This release fixes a severe bug overestimating the charge of ions
+when used with the `boundElectrons` attribute for field ionization.
+For HDF5 & ADIOS output, the openPMD axis annotation for fields in
+simulations with non-cubic cells or moving window was interchanged.
+Assigning particle manipulators within a position selection was
+rounded to the closest supercell (`IfRelativeGlobalPositionImpl`).
+
+### Changes to "0.2.3"
+
+**Bug Fixes:**
+ - ionization: charge of ions with `boundElectrons` attribute #1844
+ - particle manipulators: position offset, e.g. in
+   `IfRelativeGlobalPositionImpl` rounded to supercell #1852 #1910
+ - PMacc:
+   - remove `BOOST_BIND_NO_PLACEHOLDERS` #1849
+   - add missing `HDINLINE` #1825
+   - `CudaEvent`: cyclic include #1836
+ - plugins:
+   - std includes: never inside namespaces #1835
+   - HDF5/ADIOS openPMD:
+     - GridSpacing, GlobalOffset #1900
+     - ill-places helper includes #1846
+
+Thanks to Axel Huebl, René Widera, Thomas Kluge, Richard Pausch and
+Rémi Lehe for spotting the issues and providing fixes!
+
+
 0.2.3
 -----
 **Date:** 2017-02-14
