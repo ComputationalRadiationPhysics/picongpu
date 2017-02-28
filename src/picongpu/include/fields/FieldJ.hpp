@@ -71,7 +71,7 @@ public:
 
     virtual EventTask asyncCommunication(EventTask serialEvent);
 
-    void init(FieldE &fieldE, FieldB &fieldB);
+    void init();
 
     GridLayout<simDim> getGridLayout();
 

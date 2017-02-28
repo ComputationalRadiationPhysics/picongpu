@@ -36,8 +36,6 @@
 
 #include "dimensions/SuperCellDescription.hpp"
 
-#include "FieldE.hpp"
-
 #include "MaxwellSolver/Solvers.hpp"
 #include "fields/numericalCellTypes/NumericalCellTypes.hpp"
 
@@ -63,8 +61,7 @@ namespace picongpu
 using namespace PMacc;
 
 FieldB::FieldB( MappingDesc cellDescription ) :
-SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldE( nullptr )
+SimulationFieldHelper<MappingDesc>( cellDescription )
 {
     /*#####create FieldB###############*/
     fieldB = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
@@ -164,13 +161,9 @@ EventTask FieldB::asyncCommunication( EventTask serialEvent )
     return eB;
 }
 
-void FieldB::init( FieldE &fieldE, LaserPhysics &laserPhysics )
+void FieldB::init( LaserPhysics &laserPhysics )
 {
-
-    this->fieldE = &fieldE;
     this->laser = &laserPhysics;
-
-    Environment<>::get().DataConnector().share( std::shared_ptr< ISimulationData >( this ) );
 }
 
 GridLayout<simDim> FieldB::getGridLayout( )
