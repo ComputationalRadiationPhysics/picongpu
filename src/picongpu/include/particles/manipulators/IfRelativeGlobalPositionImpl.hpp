@@ -60,7 +60,7 @@ struct IfRelativeGlobalPositionImpl : private T_Functor
         {
             particleInRange1 = isParticleInsideRange( particle1, globalSuperCellOffset);
         }
-        if( isParticle1 )
+        if( isParticle2 )
         {
             particleInRange2 = isParticleInsideRange( particle2, globalSuperCellOffset);
         }
