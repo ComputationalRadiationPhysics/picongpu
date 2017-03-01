@@ -386,9 +386,9 @@ public:
 
         IdProvider<simDim>::init();
 
-        fieldB->init( *fieldE, *laser );
-        fieldE->init( *fieldB, *laser );
-        fieldJ->init( *fieldE, *fieldB );
+        fieldB->init( *laser );
+        fieldE->init( *laser );
+        fieldJ->init( );
         for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
             fieldTmp.at( slot )->init();
 

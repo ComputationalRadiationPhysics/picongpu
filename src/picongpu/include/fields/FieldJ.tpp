@@ -27,8 +27,7 @@
 
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
-#include "dataManagement/DataConnector.hpp"
-
+#include "Environment.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "mappings/kernel/StrideMapping.hpp"
 #include "mappings/kernel/ExchangeMapping.hpp"
@@ -56,7 +55,7 @@ using namespace PMacc;
 
 FieldJ::FieldJ( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldJ( cellDescription.getGridLayout( ) ), fieldE( nullptr ), fieldB( nullptr ), fieldJrecv( nullptr )
+fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
 {
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
@@ -219,12 +218,8 @@ void FieldJ::insertField( uint32_t exchangeType )
           direction, mapper );
 }
 
-void FieldJ::init( FieldE &fieldE, FieldB &fieldB )
+void FieldJ::init( )
 {
-    this->fieldE = &fieldE;
-    this->fieldB = &fieldB;
-
-    Environment<>::get( ).DataConnector( ).share( std::shared_ptr< ISimulationData >( this ) );
 }
 
 GridLayout<simDim> FieldJ::getGridLayout( )
@@ -321,15 +316,21 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
 template<uint32_t AREA, class T_CurrentInterpolation>
 void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
 {
+    DataConnector &dc = Environment<>::get().DataConnector();
+    auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+    auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
     AreaMapping<AREA, MappingDesc> mapper(cellDescription);
     PMACC_KERNEL( KernelAddCurrentToEMF{} )
         ( mapper.getGridDim(), MappingDesc::SuperCellSize::toRT( ) )
-        ( this->fieldE->getDeviceDataBox( ),
-          this->fieldB->getDeviceDataBox( ),
+        ( fieldE->getDeviceDataBox( ),
+          fieldB->getDeviceDataBox( ),
           this->fieldJ.getDeviceBuffer( ).getDataBox( ),
           myCurrentInterpolation,
           mapper
         );
+    dc.releaseData( FieldE::getName() );
+    dc.releaseData( FieldB::getName() );
 }
 
 }

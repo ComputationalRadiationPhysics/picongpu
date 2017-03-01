@@ -32,8 +32,6 @@
 #include "fields/FieldManipulator.hpp"
 #include "dimensions/SuperCellDescription.hpp"
 
-#include "FieldB.hpp"
-
 #include "fields/FieldE.kernel"
 
 #include "MaxwellSolver/Solvers.hpp"
@@ -59,8 +57,7 @@ namespace picongpu
 using namespace PMacc;
 
 FieldE::FieldE( MappingDesc cellDescription ) :
-SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldB( nullptr )
+SimulationFieldHelper<MappingDesc>( cellDescription )
 {
     fieldE = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
     typedef typename PMacc::particles::traits::FilterByFlag
@@ -155,12 +152,9 @@ EventTask FieldE::asyncCommunication( EventTask serialEvent )
     return fieldE->asyncCommunication( serialEvent );
 }
 
-void FieldE::init( FieldB &fieldB, LaserPhysics &laserPhysics )
+void FieldE::init( LaserPhysics &laserPhysics )
 {
-    this->fieldB = &fieldB;
     this->laser = &laserPhysics;
-
-    Environment<>::get().DataConnector().share( std::shared_ptr< ISimulationData >( this ) );
 }
 
 FieldE::DataBoxType FieldE::getDeviceDataBox( )
