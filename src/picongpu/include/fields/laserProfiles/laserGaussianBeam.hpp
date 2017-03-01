@@ -44,6 +44,8 @@ namespace picongpu
 
             // This check is done here on HOST, since std::numeric_limits<float_X>::epsilon() does not compile on laserTransversal(), which is on DEVICE.
             float_X etrans_norm = float_X(0.0);
+
+            PMACC_CASSERT_MSG(MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector, MODENUMBER<LAGUERREMODES_t::dim);
             for ( uint32_t m = 0 ; m <= MODENUMBER ; ++m )
                 etrans_norm += LAGUERREMODES[m];
             PMACC_VERIFY_MSG( algorithms::math::abs(etrans_norm) > std::numeric_limits<float_X>::epsilon(), "Sum of LAGUERREMODES can not be 0." );
@@ -134,7 +136,6 @@ namespace picongpu
             float_X etrans = float_X(0.0);
             float_X etrans_norm = float_X(0.0);
             PMACC_CASSERT_MSG(MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector, MODENUMBER<LAGUERREMODES_t::dim);
-            PMACC_VERIFY_MSG( MODENUMBER<LAGUERREMODES_t::dim, "MODENUMBER must be smaller than number of entries in LAGUERREMODES vector." );
             for ( uint32_t m = 0 ; m <= MODENUMBER ; ++m )
                 etrans_norm += LAGUERREMODES[m];
 
