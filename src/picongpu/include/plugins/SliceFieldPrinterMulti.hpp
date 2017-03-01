@@ -19,22 +19,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "plugins/SliceFieldPrinter.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "math/vector/Float.hpp"
 
+#include <string>
+
+
 namespace picongpu
 {
 
 using namespace PMacc;
-
 namespace po = boost::program_options;
-
-#include <string>
 
 template<typename Field>
 class SliceFieldPrinterMulti : public ILightweightPlugin

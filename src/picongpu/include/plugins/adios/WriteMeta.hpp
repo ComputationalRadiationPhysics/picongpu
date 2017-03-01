@@ -22,6 +22,7 @@
 #include "simulation_defines.hpp"
 
 #include "plugins/adios/ADIOSWriter.def"
+#include "plugins/common/stringHelpers.hpp"
 #include "Environment.hpp"
 
 #include "fields/FieldManipulator.hpp"

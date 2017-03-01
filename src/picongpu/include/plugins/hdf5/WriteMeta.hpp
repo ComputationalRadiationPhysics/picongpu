@@ -25,6 +25,7 @@
 #include "simulation_defines.hpp"
 
 #include "plugins/hdf5/HDF5Writer.def"
+#include "plugins/common/stringHelpers.hpp"
 #include "Environment.hpp"
 
 #include "fields/FieldManipulator.hpp"
