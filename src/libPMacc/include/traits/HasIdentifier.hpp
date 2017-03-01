@@ -40,10 +40,18 @@ namespace traits
 template<typename T_Object, typename T_Key>
 struct HasIdentifier
 {
+    /* The compiler is allowed to evaluate an expression that does not depend on a template parameter
+     * even if the class is never instantiated. In that case static assert is always
+     * evaluated (e.g. with clang), this results in an error if the condition is false.
+     * http://www.boost.org/doc/libs/1_60_0/doc/html/boost_staticassert.html
+     *
+     * A workaround is to add a template dependency to the expression.
+     * `sizeof(ANY_TYPE) != 0` is always true and defers the evaluation.
+     */
     PMACC_CASSERT_MSG_TYPE(
         ___HasIdentifier_is_not_specialized_for_T_Object,
         T_Object,
-        false
+        false && ( sizeof(T_Object) != 0 )
     );
 };
 
