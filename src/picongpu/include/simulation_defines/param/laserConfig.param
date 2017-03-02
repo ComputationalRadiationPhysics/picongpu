@@ -28,6 +28,21 @@
 
 namespace picongpu
 {
+    namespace laser
+    {
+        /** cell from top where the laser is initialized
+         *
+         * if `initPlaneY == 0` than the absorber are disabled.
+         * if `initPlaneY > absorbercells negative Y` the negative absorber in y
+         * direction is enabled
+         *
+         * valid ranges:
+         *   - initPlaneY == 0
+         *   - absorber cells negative Y < initPlaneY < cells in y direction of the top gpu
+        */
+        constexpr uint32_t initPlaneY = 0;
+    }
+
     namespace laserGaussianBeam
     {
         namespace SI

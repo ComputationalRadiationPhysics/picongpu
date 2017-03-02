@@ -46,6 +46,9 @@ struct KernelLaserE
         cellOffset.z() = (blockIdx.y * blockDim.y) + threadIdx.y;
         EFieldOffset.z() = cellOffset.z() + (MappingDesc::SuperCellSize::z::value * GUARD_SIZE);
 #endif
+        // shift offsets to the laser initialization plane
+        cellOffset.y() += laser::initPlaneY;
+        EFieldOffset.y() += laser::initPlaneY;
 
         /** Calculate how many neighbors to the left we have
          * to initialize the laser in the E-Field
@@ -65,8 +68,11 @@ struct KernelLaserE
          *
          * Problem: that's still not our case. For example our Yee does a
          *          dE = curlLeft(B) - therefor, we should init B, too.
+         *
+         *
+         *  @todo: might also lack temporal offset since our formulas are E(x,z,t) instead of E(x,y,z,t)
+         *  `const int max_y_neighbors = Get<fieldSolver::FieldSolver::OffsetOrigin_E, 1 >::value;`
          */
-        //const int max_y_neighbors = Get<fieldSolver::FieldSolver::OffsetOrigin_E, 1 >::value;
         const int max_y_neighbors = 1;
 
         for (int totalOffsetY = 0; totalOffsetY < max_y_neighbors; ++totalOffsetY)
@@ -76,8 +82,26 @@ struct KernelLaserE
              *
              *  \todo What about the B-Field in the second plane?
              */
-            cellOffset.y() = totalOffsetY;
-            fieldE(EFieldOffset) = lMan.getManipulation(cellOffset);
+            if (laser::initPlaneY != 0) // compile time if
+            {
+                /* If the laser is not initialized in the first cell we emit a
+                 * negatively and positively propagating wave. Therefore we need to multiply the
+                 * amplitude with a correction factor depending of the cell size in
+                 * propagation direction.
+                 * The negatively propagating wave is damped by the absorber.
+                 *
+                 * The `correctionFactor` assume that the wave is moving in y direction.
+                 */
+                auto correctionFactor = (SPEED_OF_LIGHT * DELTA_T) / CELL_HEIGHT * float_X(2.);
+                fieldE(EFieldOffset) +=  correctionFactor * lMan.getManipulation(cellOffset);
+            }
+            else
+            {
+                fieldE(EFieldOffset) = lMan.getManipulation(cellOffset);
+            }
+            /* move to next cell @see max_y_neighbors */
+            cellOffset.y() += 1;
+            EFieldOffset.y() += 1;
         }
     }
 };

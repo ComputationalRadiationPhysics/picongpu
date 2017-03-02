@@ -37,8 +37,15 @@ namespace picongpu
          */
         HINLINE float3_X laserLongitudinal( uint32_t currentStep, float_X& phase )
         {
-            const float_64 runTime = DELTA_T*currentStep;
+            /* initialize the laser not in the first cell is equal to a negative shift
+             * in time
+             */
+            constexpr float_X laserTimeShift = laser::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+            const float_64 runTime = DELTA_T * currentStep - laserTimeShift;
             const float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
+
+            /* calculate focus position relative to the laser initialization plane */
+            constexpr float_X focusPos = FOCUS_POS - laser::initPlaneY * CELL_HEIGHT;
 
             float3_X elong(float3_X::create(0.0));
 
@@ -51,7 +58,7 @@ namespace picongpu
             //rayleigh length (in y-direction)
             const float_64 y_R = PI * W0 * W0 / WAVE_LENGTH;
             //gaussian beam waist in the nearfield: w_y(y=0) == W0
-            const float_64 w_y = W0 * sqrt( 1.0 + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
+            const float_64 w_y = W0 * sqrt( 1.0 + ( focusPos / y_R )*( focusPos / y_R ) );
 
             float_64 envelope = float_64( AMPLITUDE );
             if( simDim == DIM2 )
@@ -74,7 +81,7 @@ namespace picongpu
                 elong.z() = float_X( envelope / sqrt(2.0) );
             }
 
-            phase = float_X(2.0) * float_X(PI ) * float_X(f ) * ( runTime - float_X(mue ) - FOCUS_POS / SPEED_OF_LIGHT ) + LASER_PHASE;
+            phase = float_X(2.0) * float_X(PI ) * float_X(f ) * ( runTime - float_X(mue ) - focusPos / SPEED_OF_LIGHT ) + LASER_PHASE;
 
             return elong;
         }
@@ -91,9 +98,13 @@ namespace picongpu
         {
             //const float_X modMue = float_X(PI) * float_X(SPEED_OF_LIGHT / WAVE_LENGTH) * INIT_TIME;
             const float_X f = SPEED_OF_LIGHT / WAVE_LENGTH;
-            const float_X timeShift = phase / (float_X(2.0) * float_X(PI) * float_X(f)) + FOCUS_POS / SPEED_OF_LIGHT;
+            /* calculate focus position relative to the laser initialization plane */
+            constexpr float_X focusPos = FOCUS_POS - laser::initPlaneY * CELL_HEIGHT;
+
+            const float_X timeShift = phase / (float_X(2.0) * float_X(PI) * float_X(f)) + focusPos / SPEED_OF_LIGHT;
             const float_X spaceShift = SPEED_OF_LIGHT * algorithms::math::tan(TILT_X) * timeShift / CELL_HEIGHT;
             const float_X r2 = (posX + spaceShift) * (posX + spaceShift) + posZ * posZ;
+
 
             // pure gaussian
             //const float_X r2 = posX * posX + posZ * posZ;
@@ -102,30 +113,30 @@ namespace picongpu
             const float_X y_R = float_X( PI ) * W0 * W0 / WAVE_LENGTH;
 
             // the radius of curvature of the beam's  wavefronts
-            const float_X R_y = -FOCUS_POS * ( float_X(1.0) + ( y_R / FOCUS_POS )*( y_R / FOCUS_POS ) );
+            const float_X R_y = -focusPos * ( float_X(1.0) + ( y_R / focusPos )*( y_R / focusPos ) );
 
             //beam waist in the near field: w_y(y=0) == W0
-            const float_X w_y = W0 * algorithms::math::sqrt( float_X(1.0) + ( FOCUS_POS / y_R )*( FOCUS_POS / y_R ) );
+            const float_X w_y = W0 * algorithms::math::sqrt( float_X(1.0) + ( focusPos / y_R )*( focusPos / y_R ) );
             //! the Gouy phase shift
-            const float_X xi_y = algorithms::math::atan( -FOCUS_POS / y_R );
+            const float_X xi_y = algorithms::math::atan( -focusPos / y_R );
 
             if( Polarisation == LINEAR_X || Polarisation == LINEAR_Z )
             {
-                elong *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                elong *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * focusPos - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
+                    * math::exp( -( r2 / float_X(2.0) / R_y - focusPos - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                          *( r2 / float_X(2.0) / R_y - focusPos - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
             }
             else if( Polarisation == CIRCULAR )
             {
-                elong.x() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                elong.x() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * focusPos - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
+                    * math::exp( -( r2 / float_X(2.0) / R_y - focusPos - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                          *( r2 / float_X(2.0) / R_y - focusPos - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
                 phase += float_X( PI / 2.0 );
-                elong.z() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * FOCUS_POS - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - FOCUS_POS - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                elong.z() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / WAVE_LENGTH * focusPos - float_X(2.0) * float_X( PI ) / WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + phase )
+                    * math::exp( -( r2 / float_X(2.0) / R_y - focusPos - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
+                          *( r2 / float_X(2.0) / R_y - focusPos - phase / float_X(2.0) / float_X( PI ) * WAVE_LENGTH )
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
                 phase -= float_X( PI / 2.0 );
             }
