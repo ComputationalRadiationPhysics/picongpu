@@ -72,8 +72,11 @@ __global__ void kernelDeriveParticles(T_MyParBox myBox, T_OtherFrameBox otherBox
 
     typedef typename Mapping::SuperCellSize SuperCellSize;
 
-
     const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
+    /* offset of the superCell (in cells, without any guards) to the origin of the local domain */
+    const DataSpace<simDim> localSuperCellOffset =
+        block * SuperCellSize::toRT()
+        - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
     if (threadIdx.x == 0)
     {
@@ -91,10 +94,7 @@ __global__ void kernelDeriveParticles(T_MyParBox myBox, T_OtherFrameBox otherBox
         PMACC_AUTO(parSrc, frame[threadIdx.x]);
         assign(parDest, deselect<particleId>(parSrc));
 
-        const DataSpace<simDim> localCellIdx = block * SuperCellSize::toRT()
-            + DataSpaceOperations<simDim>::map<SuperCellSize>(threadIdx.x)
-            - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
-        manipulateFunctor(localCellIdx,
+        manipulateFunctor(localSuperCellOffset,
                           parDest, parSrc,
                           true, parSrc[multiMask_] == 1);
 
@@ -144,16 +144,17 @@ __global__ void kernelManipulateAllParticles(T_ParBox pb,
      * volatile prohibits that the compiler creates wrong code*/
     volatile bool isParticle = (*frame)[linearThreadIdx][multiMask_];
 
-    const DataSpace<simDim> idx(superCellIdx * SuperCellSize::toRT() + threadIndex);
-    const DataSpace<simDim> localCellIdx = idx - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
-
+    /* offset of the superCell (in cells, without any guards) to the origin of the local domain */
+    const DataSpace<simDim> localSuperCellOffset =
+        superCellIdx * SuperCellSize::toRT()
+        - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
 
     __syncthreads();
 
     while (frame.isValid())
     {
         PMACC_AUTO(particle, frame[linearThreadIdx]);
-        particleFunctor(localCellIdx, particle, particle, isParticle, isParticle);
+        particleFunctor(localSuperCellOffset, particle, particle, isParticle, isParticle);
 
         __syncthreads();
         if (linearThreadIdx == 0)
@@ -180,14 +181,10 @@ __global__ void kernelMoveAndMarkParticles(ParBox pb,
 
     const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
 
-
     const DataSpace<simDim > threadIndex(threadIdx);
     const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-
     const DataSpace<simDim> blockCell = block * SuperCellSize::toRT();
-
-
 
     FramePtr frame;
 
