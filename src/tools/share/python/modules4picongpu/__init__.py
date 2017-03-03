@@ -18,3 +18,5 @@
 #
 
 from .hdf5Radiation import radiationHDF5  # NOQA
+from .bunchInit import vec3D
+from .bunchInit import addParticles2Checkpoint
