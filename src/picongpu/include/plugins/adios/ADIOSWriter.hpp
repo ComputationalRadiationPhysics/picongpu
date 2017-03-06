@@ -21,13 +21,6 @@
 
 #pragma once
 
-#include <pthread.h>
-#include <cassert>
-#include <sstream>
-#include <string>
-#include <list>
-#include <vector>
-
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
@@ -76,7 +69,13 @@
 #include "plugins/adios/restart/LoadSpecies.hpp"
 #include "plugins/adios/restart/RestartFieldLoader.hpp"
 #include "plugins/adios/NDScalars.hpp"
-#include "plugins/common/stringHelpers.hpp"
+
+#include <pthread.h>
+#include <cassert>
+#include <sstream>
+#include <string>
+#include <list>
+#include <vector>
 
 
 namespace picongpu
@@ -351,9 +350,10 @@ private:
                 adios_string_array, simDim, axisLabels ));
         }
 
+        // cellSize is {x, y, z} but fields are F[z][y][x]
         std::vector<float_X> gridSpacing(simDim, 0.0);
         for( uint32_t d = 0; d < simDim; ++d )
-            gridSpacing.at(d) = cellSize[d];
+            gridSpacing.at(simDim-1-d) = cellSize[d];
 
         ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
             "gridSpacing", recordName.c_str(),
@@ -368,9 +368,10 @@ private:
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
         globalSlideOffset.y() += numSlides * localDomain.size.y();
 
+        // globalDimensions is {x, y, z} but fields are F[z][y][x]
         std::vector<float_64> gridGlobalOffset(simDim, 0.0);
         for( uint32_t d = 0; d < simDim; ++d )
-            gridGlobalOffset.at(d) =
+            gridGlobalOffset.at(simDim-1-d) =
                 float_64(cellSize[d]) *
                 float_64(params->window.globalDimensions.offset[d] +
                          globalSlideOffset[d]);

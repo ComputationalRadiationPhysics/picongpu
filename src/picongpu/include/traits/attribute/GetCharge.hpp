@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Rene Widera
+/* Copyright 2014-2017 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -48,25 +47,26 @@ struct LoadBoundElectrons
     /** Functor implementation
      *
      * \tparam T_Particle particle type
-     * \param singlyChargedResult charge resulting from multiplying a single
-     * electron charge (positive OR negative) by the macro particle weighting
+     * \param weighting the particle's weighting
      * \param particle particle reference
      */
     template<typename T_Particle>
-    HDINLINE float_X operator()(const float_X singlyChargedResult, const T_Particle& particle)
+    HDINLINE float_X operator()(const float_X weighting, const T_Particle& particle)
     {
         const float_X protonNumber = GetAtomicNumbers<T_Particle>::type::numberOfProtons;
-        
-        return singlyChargedResult * (protonNumber - particle[boundElectrons_]);
+
+        /* note: ELECTRON_CHARGE is negative and the second term is also negative
+         */
+        return
+            ELECTRON_CHARGE *
+            ( particle[boundElectrons_] - protonNumber ) *
+            weighting;
     }
 };
 
 /**  Calculate the real charge of a particle
  *
  * This is the fallback implementation if no `boundElectrons` are available for a particle
- *
- * \tparam T_HasBoundElectrons boolean that describes if species allows multiple charge states
- * due to bound electrons
  */
 template<>
 struct LoadBoundElectrons<false>
@@ -74,14 +74,13 @@ struct LoadBoundElectrons<false>
     /** Functor implementation
      *
      * \tparam T_Particle particle type
-     * \param singlyChargedResult charge resulting from multiplying a single
-     * electron charge (positive OR negative) by the macro particle weighting
+     * \param weighting the particle's weighting
      * \param particle particle reference
      */
     template<typename T_Particle>
-    HDINLINE float_X operator()(const float_X singlyChargedResult, const T_Particle& particle)
+    HDINLINE float_X operator()(const float_X weighting, const T_Particle&)
     {
-        return singlyChargedResult;
+        return frame::getCharge< typename T_Particle::FrameType >() * weighting;
     }
 };
 } // namespace detail
@@ -100,8 +99,9 @@ HDINLINE float_X getCharge(const float_X weighting, const T_Particle& particle)
     typedef T_Particle ParticleType;
     typedef typename PMacc::traits::HasIdentifier<ParticleType, boundElectrons>::type hasBoundElectrons;
     return detail::LoadBoundElectrons<hasBoundElectrons::value >()(
-                                                      frame::getCharge<typename ParticleType::FrameType > () * weighting,
-                                                      particle);
+        weighting,
+        particle
+    );
 }
 
 }// namespace attribute
