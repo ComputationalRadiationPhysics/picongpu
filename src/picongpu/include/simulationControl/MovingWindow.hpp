@@ -86,7 +86,7 @@ private:
              * depends on half cells.
              */
             const uint32_t virtualParticleInitialStartCell = math::ceil(
-                float_64(globalWindowSizeInMoveDirection) * (float_64(1.0) - slide_point)
+                float_64(globalWindowSizeInMoveDirection) * (float_64(1.0) - movePoint)
             );
 
             /* Is the time step when the virtual particle **passed** the GPU next to the last
@@ -104,7 +104,7 @@ private:
                 cellSizeInMoveDirection;
             /* Is the time step when the virtual particle **passed** the moving window
              * in the current to the next step
-             * Signed type of firstMoveStep to allow for edge case slide_point = 0.0
+             * Signed type of firstMoveStep to allow for edge case movePoint = 0.0
              * for a moving window right from the start of the simulation.
              */
             const int32_t firstMoveStep = math::ceil(
