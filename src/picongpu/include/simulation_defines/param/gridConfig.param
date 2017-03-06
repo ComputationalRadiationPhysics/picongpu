@@ -87,7 +87,7 @@ namespace picongpu
      *
      *  Slide point model: A virtual photon starts at t=0 at the lower end
      *  of the global simulation box in y-direction of the simulation.
-     *  When it reaches slide_point % of the global simulation box,
+     *  When it reaches movePoint % of the global simulation box,
      *  the co-moving window starts to move with the speed of light.
      *
      *  @note global simulation area: there is one additional "hidden" row
@@ -96,7 +96,7 @@ namespace picongpu
      *        described "virtual photon" from the lower end of the box' Y-axis
      *        reaches the beginning of this "hidden" row of GPUs.
      */
-    constexpr float_64 slide_point = 0.9;
+    constexpr float_64 movePoint = 0.9;
 
 } // namespace picongpu
 
