@@ -255,10 +255,19 @@ class addParticles2Checkpoint:
         h_E_in = f_in['/data/{}/fields/E/'.format(cpTimestep)]
         h_E_out = f_out['/data/{}/fields/E/'.format(self.timestep)]
 
+        # check shape (for Ex - all others are equal)
+        shape_in = np.shape(h_E_in['x'])
+        shape_out = np.shape(h_E_out['x'])
+        for index in range(3):
+            if shape_in[index] > shape_out[index]:
+                raise NameError('Input shape larger than output shape')
+
         # copy all components of E field
         for index in ['x', 'y', 'z']:
             self.print("E_"+index)
-            h_E_out[index][:,:,:] = h_E_in[index][:,:,:]
+            h_E_out[index][0:shape_in[0],
+                           0:shape_in[1],
+                           0:shape_in[2]] = h_E_in[index][:,:,:]
 
         # both B field handlers
         h_B_in = f_in['/data/{}/fields/B/'.format(cpTimestep)]
@@ -267,7 +276,9 @@ class addParticles2Checkpoint:
         # copy all components of B field
         for index in ['x', 'y', 'z']:
             self.print("B_"+index)
-            h_B_out[index][:,:,:] = h_B_in[index].value
+            h_B_out[index][0:shape_in[0],
+                           0:shape_in[1],
+                           0:shape_in[2]] = h_B_in[index].value
 
         # close file handlers
         f_out.close()
