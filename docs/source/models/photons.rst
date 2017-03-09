@@ -4,7 +4,7 @@ Photons
 Radiation reaction and (hard) photons: why and when are they needed.
 Models we implemented and verified:
 
-* Landau-Lifschitz Model (semi-classical)
+* :ref:`Landau-Lifschitz Model (semi-classical) <model-LL-RR>`
 * QED Models (Synchrotron & Bremsstrahlung)
 
 Would be great to add your Diploma Thesis talk with pictures and comments here.
