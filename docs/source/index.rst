@@ -41,6 +41,13 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
    usage/examples
 
 .. toctree::
+   :caption: MODELS
+   :maxdepth: 1
+
+   models/ionization
+   models/photons
+
+.. toctree::
    :caption: Post-Processing
    :maxdepth: 2
 
