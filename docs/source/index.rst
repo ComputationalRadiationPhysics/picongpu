@@ -11,7 +11,7 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
 
 .. attention::
    This documentation is just getting started.
-   Please contribute via pull requests! :-)
+   Learn more about how to improve it :ref:`here <development-sphinx>` and please contribute via pull requests! :-)
 
 .. note::
    We also have a `wiki`_
@@ -58,6 +58,7 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
    :maxdepth: 1
 
    dev/CONTRIBUTING.md
+   dev/sphinx
    dev/picongpu
    dev/pmacc
    dev/doxyindex
