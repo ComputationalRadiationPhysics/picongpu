@@ -1,3 +1,5 @@
+.. _pp-python:
+
 Python
 ======
 

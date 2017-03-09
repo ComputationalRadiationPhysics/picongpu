@@ -44,6 +44,8 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
    :caption: MODELS
    :maxdepth: 1
 
+   models/pic
+   models/LL_RR
    models/ionization
    models/photons
 
@@ -51,7 +53,9 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
    :caption: Post-Processing
    :maxdepth: 2
 
-   python
+   postprocessing/python
+   postprocessing/openPMD
+   postprocessing/paraview
 
 .. toctree::
    :caption: DEVELOPMENT
