@@ -142,6 +142,18 @@ ForEach
    :protected-members:
    :undoc-members:
 
+Kernel Start
+------------
+
+.. doxygenstruct:: PMacc::exec::Kernel
+   :project: PIConGPU
+   :members:
+   :protected-members:
+   :undoc-members:
+
+.. doxygendefine:: PMACC_KERNEL
+   :project: PIConGPU
+
 Struct Factory
 --------------
 
