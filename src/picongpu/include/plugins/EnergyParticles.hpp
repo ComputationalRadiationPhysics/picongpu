@@ -152,8 +152,8 @@ private:
     MappingDesc *cellDescription;
     uint32_t notifyFrequency; /* periodocity of computing the particle energy */
 
-    std::string analyzerName; /* name (used for output file too) */
-    std::string analyzerPrefix; /* prefix used for command line arguments */
+    std::string pluginName; /* name (used for output file too) */
+    std::string pluginPrefix; /* prefix used for command line arguments */
     std::string filename; /* output file name */
 
     std::ofstream outFile; /* file output stream */
@@ -164,9 +164,9 @@ private:
 public:
 
     EnergyParticles() :
-    analyzerName("EnergyParticles: calculate the energy of a species"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_energy")),
-    filename(analyzerPrefix + ".dat"),
+    pluginName("EnergyParticles: calculate the energy of a species"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_energy")),
+    filename(pluginPrefix + ".dat"),
     gEnergy(nullptr),
     cellDescription(nullptr),
     notifyFrequency(0),
@@ -193,15 +193,15 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
+            ((pluginPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency),
-             "compute kinetic and total energy [for each n-th step] enable analyser by setting a non-zero value");
+             "compute kinetic and total energy [for each n-th step] enable plugin by setting a non-zero value");
     }
 
   /** method giving the plugin name (used by plugin control) **/
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
   /** set cell description in this plugin **/
@@ -232,7 +232,7 @@ private:
                 if (!outFile)
                 {
                     std::cerr << "Can't open file [" << filename
-                              << "] for output, diasble analyser output. " << std::endl;
+                              << "] for output, diasble plugin output. " << std::endl;
                     writeToFile = false;
                 }
 

@@ -187,8 +187,8 @@ private:
     GridBuffer<float_64, DIM1> *gBins;
     MappingDesc *cellDescription;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
     std::string filename;
 
     float_64 * binReduced;
@@ -215,9 +215,9 @@ private:
 public:
 
     BinEnergyParticles() :
-    analyzerName("BinEnergyParticles: calculate a energy histogram of a species"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_energyHistogram")),
-    filename(analyzerPrefix + ".dat"),
+    pluginName("BinEnergyParticles: calculate a energy histogram of a species"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_energyHistogram")),
+    filename(pluginPrefix + ".dat"),
     gBins(nullptr),
     cellDescription(nullptr),
     notifyPeriod(0),
@@ -240,18 +240,18 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(), po::value<uint32_t > (&notifyPeriod)->default_value(0), "enable plugin [for each n-th step]")
-            ((analyzerPrefix + ".binCount").c_str(), po::value<int > (&numBins)->default_value(1024), "number of bins for the energy range")
-            ((analyzerPrefix + ".minEnergy").c_str(), po::value<float_X > (&minEnergy_keV)->default_value(0.0), "minEnergy[in keV]")
-            ((analyzerPrefix + ".maxEnergy").c_str(), po::value<float_X > (&maxEnergy_keV), "maxEnergy[in keV]")
-            ((analyzerPrefix + ".distanceToDetector").c_str(), po::value<float_X > (&distanceToDetector)->default_value(0.0), "distance between gas and detector, assumptions: simulated area in y direction << distance to detector AND simulated area in X,Z << slit [in meters]  (if not set, all particles are counted)")
-            ((analyzerPrefix + ".slitDetectorX").c_str(), po::value<float_X > (&slitDetectorX)->default_value(0.0), "size of the detector slit in X [in meters] (if not set, all particles are counted)")
-            ((analyzerPrefix + ".slitDetectorZ").c_str(), po::value<float_X > (&slitDetectorZ)->default_value(0.0), "size of the detector slit in Z [in meters] (if not set, all particles are counted)");
+            ((pluginPrefix + ".period").c_str(), po::value<uint32_t > (&notifyPeriod)->default_value(0), "enable plugin [for each n-th step]")
+            ((pluginPrefix + ".binCount").c_str(), po::value<int > (&numBins)->default_value(1024), "number of bins for the energy range")
+            ((pluginPrefix + ".minEnergy").c_str(), po::value<float_X > (&minEnergy_keV)->default_value(0.0), "minEnergy[in keV]")
+            ((pluginPrefix + ".maxEnergy").c_str(), po::value<float_X > (&maxEnergy_keV), "maxEnergy[in keV]")
+            ((pluginPrefix + ".distanceToDetector").c_str(), po::value<float_X > (&distanceToDetector)->default_value(0.0), "distance between gas and detector, assumptions: simulated area in y direction << distance to detector AND simulated area in X,Z << slit [in meters]  (if not set, all particles are counted)")
+            ((pluginPrefix + ".slitDetectorX").c_str(), po::value<float_X > (&slitDetectorX)->default_value(0.0), "size of the detector slit in X [in meters] (if not set, all particles are counted)")
+            ((pluginPrefix + ".slitDetectorZ").c_str(), po::value<float_X > (&slitDetectorZ)->default_value(0.0), "size of the detector slit in Z [in meters] (if not set, all particles are counted)");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
@@ -270,7 +270,7 @@ private:
         outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
         if (!outFile)
         {
-            std::cerr << "[Plugin] [" << analyzerPrefix
+            std::cerr << "[Plugin] [" << pluginPrefix
                       << "] Can't open file '" << filename
                       << "', output disabled" << std::endl;
             writeToFile = false;
@@ -293,8 +293,8 @@ private:
         {
             if( numBins <= 0 )
             {
-                std::cerr << "[Plugin] [" << analyzerPrefix
-                          << "] disabled since " << analyzerPrefix
+                std::cerr << "[Plugin] [" << pluginPrefix
+                          << "] disabled since " << pluginPrefix
                           << ".binCount must be > 0 (input "
                           << numBins << " bins)"
                           << std::endl;

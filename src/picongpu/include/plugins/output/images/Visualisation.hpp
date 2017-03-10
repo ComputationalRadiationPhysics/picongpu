@@ -427,7 +427,7 @@ public:
 
     Visualisation(std::string name, Output output, uint32_t notifyPeriod, DataSpace<DIM2> transpose, float_X slicePoint) :
     m_output(output),
-    analyzerName(name),
+    pluginName(name),
     cellDescription(nullptr),
     particleTag(ParticlesType::FrameType::getName()),
     m_notifyPeriod(notifyPeriod),
@@ -547,7 +547,7 @@ public:
 #endif
 
         //We don't know the superCellSize at compile time
-        // (because of the runtime dimension selection in any analyser),
+        // (because of the runtime dimension selection in any plugin),
         // thus we must use a one dimension kernel and no mapper
         PMACC_KERNEL(vis_kernels::DivideAnyCell{})(ceil((float_64) elements / 256), 256)(d1access, elements, max);
 #endif
@@ -658,7 +658,7 @@ private:
     uint32_t m_notifyPeriod;
     float_X m_slicePoint;
 
-    std::string analyzerName;
+    std::string pluginName;
 
 
     DataSpace<DIM2> m_transpose;

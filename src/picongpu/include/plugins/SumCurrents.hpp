@@ -139,7 +139,7 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ("sumcurr.period", po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+            ("sumcurr.period", po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const

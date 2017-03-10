@@ -118,8 +118,8 @@ private:
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
     std::string foldername;
     mpi::MPIReduce reduce;
 
@@ -132,9 +132,9 @@ private:
 public:
 
     PerSuperCell() :
-    analyzerName("PerSuperCell: create hdf5 with macro particle count per superCell"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesPerSuperCell")),
-    foldername(analyzerPrefix),
+    pluginName("PerSuperCell: create hdf5 with macro particle count per superCell"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesPerSuperCell")),
+    foldername(pluginPrefix),
     cellDescription(nullptr),
     notifyFrequency(0),
     localResult(nullptr),
@@ -156,13 +156,13 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+            ((pluginPrefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)

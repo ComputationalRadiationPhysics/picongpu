@@ -51,8 +51,8 @@ namespace picongpu
         typedef std::list<VisType*> VisPointerList;
 
         LiveViewPlugin() :
-        analyzerName("LiveViewPlugin: 2D (plane) insitu live visualisation of a species"),
-        analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_liveView")),
+        pluginName("LiveViewPlugin: 2D (plane) insitu live visualisation of a species"),
+        pluginPrefix(ParticlesType::FrameType::getName() + std::string("_liveView")),
         cellDescription(nullptr)
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
@@ -65,17 +65,17 @@ namespace picongpu
 
         std::string pluginGetName() const
         {
-            return analyzerName;
+            return pluginName;
         }
 
         void pluginRegisterHelp(po::options_description& desc)
         {
             desc.add_options()
-                    ((analyzerPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyFrequencys)->multitoken(), "enable images/visualisation [for each n-th step]")
-                    ((analyzerPrefix + ".ip").c_str(), po::value<std::vector<std::string > > (&ips)->multitoken(), "ip of server")
-                    ((analyzerPrefix + ".port").c_str(), po::value<std::vector<std::string > > (&ports)->multitoken(), "port of server")
-                    ((analyzerPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
-                    ((analyzerPrefix + ".slicePoint").c_str(), po::value<std::vector<float_32> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice");
+                    ((pluginPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyFrequencys)->multitoken(), "enable images/visualisation [for each n-th step]")
+                    ((pluginPrefix + ".ip").c_str(), po::value<std::vector<std::string > > (&ips)->multitoken(), "ip of server")
+                    ((pluginPrefix + ".port").c_str(), po::value<std::vector<std::string > > (&ports)->multitoken(), "port of server")
+                    ((pluginPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
+                    ((pluginPrefix + ".slicePoint").c_str(), po::value<std::vector<float_32> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice");
         }
 
         void setMappingDescription(MappingDesc *cellDescription)
@@ -109,7 +109,7 @@ namespace picongpu
                                                            charToAxisNumber(getValue(axis, i)[0]),
                                                            charToAxisNumber(getValue(axis, i)[1])
                                                            );
-                                VisType* tmp = new VisType(analyzerName, liveViewClient, frequ, transpose, getValue(slicePoints, i));
+                                VisType* tmp = new VisType(pluginName, liveViewClient, frequ, transpose, getValue(slicePoints, i));
                                 visIO.push_back(tmp);
                                 tmp->setMappingDescription(cellDescription);
                                 tmp->init();
@@ -167,8 +167,8 @@ namespace picongpu
         }
 
 
-        std::string analyzerName;
-        std::string analyzerPrefix;
+        std::string pluginName;
+        std::string pluginPrefix;
 
         std::vector<uint32_t> notifyFrequencys;
         std::vector<float_32> slicePoints;
