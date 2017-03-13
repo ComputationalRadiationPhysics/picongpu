@@ -105,6 +105,38 @@ namespace shared
 
 /** allocate shared memory
  *
+ * @warning Do not use this macro within a factory method. This macro contains
+ * a pre compiler counter which is only increased once per source code line.
+ * You must not use this macro to create an aliased pointer to shared memory.
+ * Please use `PMacc::memory::shared::allocate< id, type >()` to create shared memory
+ * which is used outside of the method where it is created.
+ *
+ * @code
+ * // THIS IS A EXAMPLE HOW `PMACC_SMEM` SHOULD NOT BE USED
+ * struct Factory
+ * {
+ *     int& getSharedMem( )
+ *     {
+ *         // this macro points always to the same memory address
+ *         // even if this method is called twice
+ *         PMACC_SMEM( sharedMem, int );
+ *         return sharedMem;
+ *     }
+ * };
+ *
+ * // RIGHT USAGE
+ * template< uint32_t T_id >
+ * struct Factory
+ * {
+ *     int& getSharedMem( )
+ *     {
+ *         // create new shared memory for each `T_id`
+ *         auto& sharedMem = PMacc::memory::shared::allocate< T_id, int >()
+ *         return sharedMem;
+ *     }
+ * };
+ * @endcode
+ *
  * @param varName name of the variable
  * @param ... type of the variable
  */
