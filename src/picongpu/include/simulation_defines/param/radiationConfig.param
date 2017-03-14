@@ -108,11 +108,6 @@ namespace picongpu
 
     namespace parameters
     {
-/*! enable radiation calculation
- *
- * If radiation is enabled the attribute `momentumPrev1` needs to be added to electron species
- */
-#define ENABLE_RADIATION 0
 
 
         constexpr unsigned int N_observer = 256; // number of looking directions

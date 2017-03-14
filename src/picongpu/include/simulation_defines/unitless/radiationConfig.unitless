@@ -17,20 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "static_assert.hpp"
 
 
-#if (ENABLE_RADIATION == 1 )
-
-PMACC_CASSERT_MSG(ENABLE_ELECTRONS_must_set_to_1__change_ENABLE_ELECTRONS_in_file_componentsConfig_param,ENABLE_ELECTRONS==1);
-
 PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_below_one, ( picongpu::radiationNyquist::NyquistFactor < 1.0 ) );
 PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_larger_than_zero, ( picongpu::radiationNyquist::NyquistFactor > 0.0 ) );
-
 namespace picongpu
 {
   namespace rad_linear_frequencies
@@ -66,9 +59,6 @@ namespace parameters
 }
 
 } //namespace picongpu
-
-#endif
-
 
 #include "plugins/radiation/frequencies/radiation_lin_freq.hpp"
 #include "plugins/radiation/frequencies/radiation_log_freq.hpp"
