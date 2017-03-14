@@ -28,6 +28,8 @@
 
 PMACC_CASSERT_MSG(ENABLE_ELECTRONS_must_set_to_1__change_ENABLE_ELECTRONS_in_file_componentsConfig_param,ENABLE_ELECTRONS==1);
 
+PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_below_one, ( picongpu::radiationNyquist::NyquistFactor < 1.0 ) );
+PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_larger_than_zero, ( picongpu::radiationNyquist::NyquistFactor > 0.0 ) );
 
 namespace picongpu
 {
