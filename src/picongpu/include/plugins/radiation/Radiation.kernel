@@ -51,9 +51,7 @@
 #include "memory/Array.hpp"
 
 
-#if( __NYQUISTCHECK__ == 1 )
-#   include "plugins/radiation/nyquist_low_pass.hpp"
-#endif
+#include "plugins/radiation/nyquist_low_pass.hpp"
 
 #include "plugins/radiation/radFormFactor.hpp"
 #include "sys/stat.h"
@@ -145,10 +143,7 @@ struct KernelRadiationParticles
         // radiation calculation
         PMACC_SMEM( counter_s, int );
 
-        // memory for Nyquist frequency at current time step
-#if( __NYQUISTCHECK__ == 1 )
         PMACC_SMEM( lowpass_s, memory::Array< NyquistLowPass, blockSize > );
-#endif
 
 
         const int theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
@@ -341,11 +336,7 @@ struct KernelRadiationParticles
                             // retarded time stored in shared memory
                             t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
 
-                            // if Nyquist-limiter is used, then the NyquistLowPlass object
-                            // is setup and stored in shared memory
-#if( __NYQUISTCHECK__ == 1 )
                             lowpass_s[saveParticleAt] = NyquistLowPass(look, particle);
-#endif
 
 
                             /* the particle amplitude is used to include the weighting
@@ -403,12 +394,9 @@ struct KernelRadiationParticles
                     for (int j = 0; j < counter_s; ++j)
                       {
 
-                        // if Nyquist-limiter is on
-#    if (__NYQUISTCHECK__==1)
                         // check Nyquist-limit for each particle "j" and each frequency "omega"
                         if (lowpass_s[j].check(omega))
                           {
-#    endif
 
                             /****************************************************
                              **** Here happens the true physical calculation ****
@@ -435,10 +423,7 @@ struct KernelRadiationParticles
                             // add this single amplitude those previously considered
                             amplitude += amplitude_add;
 
-                            // if Nyquist limiter is on
-#    if (__NYQUISTCHECK__==1)
                           }// END: check Nyquist-limit for each particle "j" and each frequency "omega"
-#    endif
 
                       }// END: Particle loop
 

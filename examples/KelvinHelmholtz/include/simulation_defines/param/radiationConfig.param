@@ -117,10 +117,6 @@ namespace parameters
 #endif
 #define ENABLE_RADIATION PARAM_RADIATION
 
-// Nyquist low pass allows only amplitudes for frequencies below Nyquist frequency
-// 1 = on  (slower and more memory, no fourier reflections)
-// 0 = off (faster but with fourier reflections)
-#define __NYQUISTCHECK__ 0
 
 constexpr unsigned int N_observer = 256; // number of looking directions
 
