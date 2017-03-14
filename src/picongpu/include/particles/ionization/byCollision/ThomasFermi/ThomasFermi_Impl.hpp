@@ -140,9 +140,17 @@ namespace ionization
                 /* create handle for access to host and device data */
                 DataConnector &dc = Environment<>::get().DataConnector();
 
+                /* The compiler is allowed to evaluate an expression that does not depend on a template parameter
+                 * even if the class is never instantiated. In that case static assert is always
+                 * evaluated (e.g. with clang), this results in an error if the condition is false.
+                 * http://www.boost.org/doc/libs/1_60_0/doc/html/boost_staticassert.html
+                 *
+                 * A workaround is to add a template dependency to the expression.
+                 * `sizeof(ANY_TYPE) != 0` is always true and defers the evaluation.
+                 */
                 PMACC_CASSERT_MSG(
                     _please_allocate_at_least_two_FieldTmp_slots_in_memory_param,
-                    fieldTmpNumSlots >= 2
+                    ( fieldTmpNumSlots >= 2 ) && ( sizeof( T_IonizationAlgorithm ) != 0 )
                 );
                 /* initialize pointers on host-side density-/energy density field databoxes */
                 auto density = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
