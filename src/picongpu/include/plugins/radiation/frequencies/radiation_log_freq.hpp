@@ -17,18 +17,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-
-
-
-
-#if (ENABLE_RADIATION == 1 )
 
 
 namespace picongpu
@@ -77,6 +68,3 @@ namespace picongpu
   }
 
 }
-
-#endif
-

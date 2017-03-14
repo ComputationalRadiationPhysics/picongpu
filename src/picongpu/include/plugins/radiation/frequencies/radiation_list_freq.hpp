@@ -17,17 +17,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include <fstream>
 #include <cstdio>
 #include "memory/buffers/GridBuffer.hpp"
-
-#if (ENABLE_RADIATION == 1)
 
 
 namespace picongpu
@@ -122,7 +117,3 @@ namespace picongpu
 
   }
 }
-
-
-
-#endif

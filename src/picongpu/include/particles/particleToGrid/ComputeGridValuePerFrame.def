@@ -309,7 +309,6 @@ struct CreateMomentumComponentOperation
     typedef FieldTmpOperation< ParticleMomentumComponent, T_Species > type;
 };
 
-#if(ENABLE_RADIATION == 1)
 /** Radiated Larmor Power Operation for Particle to Grid Projections
  *
  * Derives a scalar field with the radiated power according to the Larmor
@@ -334,6 +333,6 @@ struct CreateLarmorPowerOperation
 
     typedef FieldTmpOperation< ParticleLarmorPower, T_Species > type;
 };
-#endif
+
 } /* namespace particleToGrid */
 } /* namespace picongpu */
