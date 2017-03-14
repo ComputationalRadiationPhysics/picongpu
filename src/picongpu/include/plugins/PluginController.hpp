@@ -34,17 +34,14 @@
 #include "plugins/BinEnergyParticles.hpp"
 #include "plugins/ChargeConservation.hpp"
 #if(ENABLE_HDF5 == 1)
+#include "plugins/radiation/parameters.hpp"
+#include "plugins/radiation/Radiation.hpp"
 #include "plugins/particleCalorimeter/ParticleCalorimeter.hpp"
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 #endif
 
 #if (ENABLE_INSITU_VOLVIS == 1)
 #include "plugins/InSituVolumeRenderer.hpp"
-#endif
-
-#if(ENABLE_RADIATION == 1)
-#include "plugins/radiation/parameters.hpp"
-#include "plugins/radiation/Radiation.hpp"
 #endif
 
 #include "simulation_classTypes.hpp"
@@ -172,12 +169,10 @@ private:
         EnergyParticles<bmpl::_1>,
         BinEnergyParticles<bmpl::_1>,
         LiveViewPlugin<bmpl::_1>,
-        PositionsParticles<bmpl::_1>
-#if(ENABLE_RADIATION == 1)
-      , Radiation<bmpl::_1>
-#endif
-     , PngPlugin< Visualisation<bmpl::_1, PngCreator> >
+        PositionsParticles<bmpl::_1>,
+        PngPlugin< Visualisation<bmpl::_1, PngCreator> >
 #if(ENABLE_HDF5 == 1)
+      , Radiation<bmpl::_1>
       , ParticleCalorimeter<bmpl::_1>
       , PerSuperCell<bmpl::_1>
       , PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, bmpl::_1>

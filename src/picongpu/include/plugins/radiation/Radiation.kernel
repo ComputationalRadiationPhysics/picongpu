@@ -64,7 +64,14 @@ using namespace PMacc;
 namespace po = boost::program_options;
 
 
-/** calculate the radiation of a species */
+/** calculate the radiation of a species
+ *
+ * If \p T_dependenciesFulfilled is false a dummy kernel without functionality is created
+ *
+ * @tparam T_dependenciesFulfilled true if all dependencies(species attributes) are full filled
+ *                                  else false
+ */
+template< bool T_dependenciesFulfilled >
 struct KernelRadiationParticles
 {
     /**
@@ -470,7 +477,26 @@ struct KernelRadiationParticles
     } // end radiation kernel
 };
 
+/** specialization if a dependency is missing
+ *
+ * this functor is empty.
+ */
+template< >
+struct KernelRadiationParticles< false >
+{
+    template<class ParBox, class DBox, class Mapping>
+    DINLINE
+    void operator()(
+        ParBox,
+        DBox,
+        DataSpace<simDim>,
+        uint32_t,
+        Mapping,
+        radiation_frequencies::FreqFunctor,
+        DataSpace<simDim>
+    ) const
+    {
+    }
+};
+
 }
-
-
-

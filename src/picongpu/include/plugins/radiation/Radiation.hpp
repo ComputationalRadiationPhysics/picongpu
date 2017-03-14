@@ -41,6 +41,7 @@
 #include "dimensions/DataSpaceOperations.hpp"
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
+#include "traits/HasIdentifier.hpp"
 
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
@@ -114,6 +115,16 @@ private:
     std::string folderRadPerGPU;
     DataSpace<simDim> lastGPUpos;
 
+    /** defines if all kernel dependencies are full filled
+     *
+     * dependencies:
+     *   - species contains the attribute `momentumPrev1`
+     */
+    static constexpr bool dependenciesFulfilled = PMacc::traits::HasIdentifier<
+        typename ParticlesType::FrameType,
+        momentumPrev1
+    >::type::value;
+
     /**
      * Data structure for storage and summation of the intermediate values of
      * the calculated Amplitude from every host for every direction and
@@ -178,7 +189,7 @@ public:
      */
     void notify(uint32_t currentStep)
     {
-        if (currentStep >= radStart)
+        if (dependenciesFulfilled && currentStep >= radStart)
         {
             // radEnd = 0 is default, calculates radiation until simulation
             // end
@@ -199,19 +210,27 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
 
-        desc.add_options()
-            ((pluginPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]")
-            ((pluginPrefix + ".dump").c_str(), po::value<uint32_t > (&dumpPeriod)->default_value(0), "dump integrated radiation from last dumped step [for each n-th step] (0 = only print data at end of simulation)")
-            ((pluginPrefix + ".lastRadiation").c_str(), po::bool_switch(&lastRad), "enable calculation of integrated radiation from last dumped step")
-            ((pluginPrefix + ".folderLastRad").c_str(), po::value<std::string > (&folderLastRad)->default_value("lastRad"), "folder in which the integrated radiation from last dumped step is written")
-            ((pluginPrefix + ".totalRadiation").c_str(), po::bool_switch(&totalRad), "enable calculation of integrated radiation from start of simulation")
-            ((pluginPrefix + ".folderTotalRad").c_str(), po::value<std::string > (&folderTotalRad)->default_value("totalRad"), "folder in which the integrated radiation from start of simulation is written")
-            ((pluginPrefix + ".start").c_str(), po::value<uint32_t > (&radStart)->default_value(2), "time index when radiation should start with calculation")
-            ((pluginPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
-            ((pluginPrefix + ".omegaList").c_str(), po::value<std::string > (&pathOmegaList)->default_value("_noPath_"), "path to file containing all frequencies to calculate")
-            ((pluginPrefix + ".radPerGPU").c_str(), po::bool_switch(&radPerGPU), "enable radiation output from each GPU individually")
-            ((pluginPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
-            ((pluginPrefix + ".compression").c_str(), po::bool_switch(&compressionOn), "enable compression of hdf5 output");
+        if(dependenciesFulfilled)
+        {
+            desc.add_options()
+                ((pluginPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]")
+                ((pluginPrefix + ".dump").c_str(), po::value<uint32_t > (&dumpPeriod)->default_value(0), "dump integrated radiation from last dumped step [for each n-th step] (0 = only print data at end of simulation)")
+                ((pluginPrefix + ".lastRadiation").c_str(), po::bool_switch(&lastRad), "enable calculation of integrated radiation from last dumped step")
+                ((pluginPrefix + ".folderLastRad").c_str(), po::value<std::string > (&folderLastRad)->default_value("lastRad"), "folder in which the integrated radiation from last dumped step is written")
+                ((pluginPrefix + ".totalRadiation").c_str(), po::bool_switch(&totalRad), "enable calculation of integrated radiation from start of simulation")
+                ((pluginPrefix + ".folderTotalRad").c_str(), po::value<std::string > (&folderTotalRad)->default_value("totalRad"), "folder in which the integrated radiation from start of simulation is written")
+                ((pluginPrefix + ".start").c_str(), po::value<uint32_t > (&radStart)->default_value(2), "time index when radiation should start with calculation")
+                ((pluginPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
+                ((pluginPrefix + ".omegaList").c_str(), po::value<std::string > (&pathOmegaList)->default_value("_noPath_"), "path to file containing all frequencies to calculate")
+                ((pluginPrefix + ".radPerGPU").c_str(), po::bool_switch(&radPerGPU), "enable radiation output from each GPU individually")
+                ((pluginPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
+                ((pluginPrefix + ".compression").c_str(), po::bool_switch(&compressionOn), "enable compression of hdf5 output");
+        }
+        else
+        {
+            desc.add_options()
+                (pluginPrefix.c_str(), "plugin disabled [missing species attribute `momentumPrev1`]");
+        }
     }
 
 
@@ -233,7 +252,7 @@ public:
         if(notifyFrequency == 0)
             return;
 
-        if(isMaster)
+        if(dependenciesFulfilled && isMaster)
         {
             // this will lead to wrong lastRad output right after the checkpoint if the restart point is
             // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
@@ -250,15 +269,18 @@ public:
         if(notifyFrequency == 0)
             return;
 
-        // collect data GPU -> CPU -> Master
-        copyRadiationDeviceToHost();
-        collectRadiationOnMaster();
-        sumAmplitudesOverTime(tmp_result, timeSumArray);
-
-        // write backup file
-        if (isMaster)
+        if(dependenciesFulfilled)
         {
-            writeHDF5file(tmp_result, restartDirectory + "/" + speciesName + std::string("_radRestart_"));
+            // collect data GPU -> CPU -> Master
+            copyRadiationDeviceToHost();
+            collectRadiationOnMaster();
+            sumAmplitudesOverTime(tmp_result, timeSumArray);
+
+            // write backup file
+            if (isMaster)
+            {
+                writeHDF5file(tmp_result, restartDirectory + "/" + speciesName + std::string("_radRestart_"));
+            }
         }
     }
 
@@ -277,78 +299,81 @@ private:
      * is created.       */
     void pluginLoad()
     {
-        // allocate memory for all amplitudes for temporal data collection
-        tmp_result = new Amplitude[elements_amplitude()];
-
-        if (notifyFrequency > 0)
+        if(dependenciesFulfilled)
         {
-            /*only rank 0 create a file*/
-            isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
+            // allocate memory for all amplitudes for temporal data collection
+            tmp_result = new Amplitude[elements_amplitude()];
 
-            radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude())); //create one int on GPU and host
-
-            freqInit.Init(pathOmegaList);
-            freqFkt = freqInit.getFunctor();
-
-
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
-            PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
-
-            if (isMaster)
+            if (notifyFrequency > 0)
             {
-                timeSumArray = new Amplitude[elements_amplitude()];
+                /*only rank 0 create a file*/
+                isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
 
-                /* save detector position / observation direction */
-                detectorPositions = new vector_64[parameters::N_observer];
-                for(uint32_t detectorIndex=0; detectorIndex < parameters::N_observer; ++detectorIndex)
+                radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude())); //create one int on GPU and host
+
+                freqInit.Init(pathOmegaList);
+                freqFkt = freqInit.getFunctor();
+
+
+                Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+                PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
+
+                if (isMaster)
                 {
-                    detectorPositions[detectorIndex] = radiation_observer::observation_direction(detectorIndex);
+                    timeSumArray = new Amplitude[elements_amplitude()];
+
+                    /* save detector position / observation direction */
+                    detectorPositions = new vector_64[parameters::N_observer];
+                    for(uint32_t detectorIndex=0; detectorIndex < parameters::N_observer; ++detectorIndex)
+                    {
+                        detectorPositions[detectorIndex] = radiation_observer::observation_direction(detectorIndex);
+                    }
+
+                    /* save detector frequencies */
+                    detectorFrequencies = new float_64[radiation_frequencies::N_omega];
+                    for(uint32_t detectorIndex=0; detectorIndex < radiation_frequencies::N_omega; ++detectorIndex)
+                    {
+                        detectorFrequencies[detectorIndex] = freqFkt(detectorIndex);
+                    }
+
                 }
 
-                /* save detector frequencies */
-                detectorFrequencies = new float_64[radiation_frequencies::N_omega];
-                for(uint32_t detectorIndex=0; detectorIndex < radiation_frequencies::N_omega; ++detectorIndex)
+                if (isMaster && totalRad)
                 {
-                    detectorFrequencies[detectorIndex] = freqFkt(detectorIndex);
+                    fs.createDirectory("radiationHDF5");
+                    fs.setDirectoryPermissions("radiationHDF5");
+                }
+
+
+                if (isMaster && radPerGPU)
+                {
+                    fs.createDirectory(folderRadPerGPU);
+                    fs.setDirectoryPermissions(folderRadPerGPU);
+                }
+
+                if (isMaster && totalRad)
+                {
+                    //create folder for total output
+                    fs.createDirectory(folderTotalRad);
+                    fs.setDirectoryPermissions(folderTotalRad);
+                    for (unsigned int i = 0; i < elements_amplitude(); ++i)
+                        timeSumArray[i] = Amplitude::zero();
+                }
+                if (isMaster && lastRad)
+                {
+                    //create folder for total output
+                    fs.createDirectory(folderLastRad);
+                    fs.setDirectoryPermissions(folderLastRad);
                 }
 
             }
-
-            if (isMaster && totalRad)
-            {
-                fs.createDirectory("radiationHDF5");
-                fs.setDirectoryPermissions("radiationHDF5");
-            }
-
-
-            if (isMaster && radPerGPU)
-            {
-                fs.createDirectory(folderRadPerGPU);
-                fs.setDirectoryPermissions(folderRadPerGPU);
-            }
-
-            if (isMaster && totalRad)
-            {
-                //create folder for total output
-                fs.createDirectory(folderTotalRad);
-                fs.setDirectoryPermissions(folderTotalRad);
-                for (unsigned int i = 0; i < elements_amplitude(); ++i)
-                    timeSumArray[i] = Amplitude::zero();
-            }
-            if (isMaster && lastRad)
-            {
-                //create folder for total output
-                fs.createDirectory(folderLastRad);
-                fs.setDirectoryPermissions(folderLastRad);
-            }
-
         }
     }
 
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if(dependenciesFulfilled && notifyFrequency > 0)
         {
 
             // Some funny things that make it possible for the kernel to calculate
@@ -1180,7 +1205,7 @@ private:
 
 
       // PIC-like kernel call of the radiation kernel
-      PMACC_KERNEL(KernelRadiationParticles{})
+      PMACC_KERNEL(KernelRadiationParticles<dependenciesFulfilled>{})
         (gridDim_rad, blockDim_rad)
         (
          /*Pointer to particles memory on the device*/
