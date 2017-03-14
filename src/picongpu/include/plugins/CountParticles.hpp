@@ -55,8 +55,8 @@ private:
     MappingDesc *cellDescription;
     uint32_t notifyPeriod;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
     std::string filename;
 
     std::ofstream outFile;
@@ -67,9 +67,9 @@ private:
 public:
 
     CountParticles() :
-    analyzerName("CountParticles: count macro particles of a species"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount")),
-    filename(analyzerPrefix + ".dat"),
+    pluginName("CountParticles: count macro particles of a species"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount")),
+    filename(pluginPrefix + ".dat"),
     cellDescription(nullptr),
     notifyPeriod(0),
     writeToFile(false)
@@ -90,13 +90,13 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
+            ((pluginPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)

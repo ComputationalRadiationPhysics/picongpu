@@ -46,7 +46,7 @@ namespace picongpu
     using namespace PMacc;
 
 
-    /** Tmp (at the moment: scalar) field for analysers and tmp data like
+    /** Tmp (at the moment: scalar) field for plugins and tmp data like
      *  "gridded" particle data (charge density, energy density, ...)
      */
     class FieldTmp :

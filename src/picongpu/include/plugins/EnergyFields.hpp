@@ -82,8 +82,8 @@ private:
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
     std::string filename;
     std::ofstream outFile;
     /*only rank 0 create a file*/
@@ -99,9 +99,9 @@ public:
 
     EnergyFields() :
     cellDescription(nullptr),
-    analyzerName("EnergyFields: calculate the energy of the fields"),
-    analyzerPrefix(std::string("fields_energy")),
-    filename(analyzerPrefix + ".dat"),
+    pluginName("EnergyFields: calculate the energy of the fields"),
+    pluginPrefix(std::string("fields_energy")),
+    filename(pluginPrefix + ".dat"),
     notifyFrequency(0),
     writeToFile(false),
     localReduce(nullptr)
@@ -122,13 +122,13 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable analyser [for each n-th step]");
+            ((pluginPrefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)

@@ -51,8 +51,8 @@ namespace picongpu
         typedef std::list<VisType*> VisPointerList;
 
         PngPlugin() :
-        analyzerName("PngPlugin: create png's of a species and fields"),
-        analyzerPrefix(VisType::FrameType::getName() + "_" + VisClass::CreatorType::getName()),
+        pluginName("PngPlugin: create png's of a species and fields"),
+        pluginPrefix(VisType::FrameType::getName() + "_" + VisClass::CreatorType::getName()),
         cellDescription(nullptr)
         {
             Environment<>::get().PluginConnector().registerPlugin(this);
@@ -65,20 +65,20 @@ namespace picongpu
 
         std::string pluginGetName() const
         {
-            return analyzerName;
+            return pluginName;
         }
 
         void pluginRegisterHelp(po::options_description& desc)
         {
 #if( PIC_ENABLE_PNG == 1 )
             desc.add_options()
-                    ((analyzerPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyFrequencys)->multitoken(), "enable data output [for each n-th step]")
-                    ((analyzerPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
-                    ((analyzerPrefix + ".slicePoint").c_str(), po::value<std::vector<float_32> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice")
-                    ((analyzerPrefix + ".folder").c_str(), po::value<std::vector<std::string> > (&folders)->multitoken(), "folder for output files");
+                    ((pluginPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyFrequencys)->multitoken(), "enable data output [for each n-th step]")
+                    ((pluginPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
+                    ((pluginPrefix + ".slicePoint").c_str(), po::value<std::vector<float_32> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice")
+                    ((pluginPrefix + ".folder").c_str(), po::value<std::vector<std::string> > (&folders)->multitoken(), "folder for output files");
 #else
             desc.add_options()
-                    ((analyzerPrefix).c_str(), "plugin disabled [compiled without dependency PNGwriter]");
+                    ((pluginPrefix).c_str(), "plugin disabled [compiled without dependency PNGwriter]");
 #endif
         }
 
@@ -113,7 +113,7 @@ namespace picongpu
                                 {
                                     folders.push_back(std::string("."));
                                 }
-                                std::string filename(analyzerPrefix + "_" + getValue(axis, i) + "_" + o_slicePoint.str());
+                                std::string filename(pluginPrefix + "_" + getValue(axis, i) + "_" + o_slicePoint.str());
                                 typename VisType::CreatorType pngCreator(filename, getValue(folders, i));
                                 /** \todo rename me: transpose is the wrong name `swivel` is better
                                  *
@@ -135,7 +135,7 @@ namespace picongpu
                                                                       (transpose.x()==1 || transpose.y()==1);
                                 if( isAllowed2DSlice && isAllowedMovingWindowSlice )
                                 {
-                                    VisType* tmp = new VisType(analyzerName, pngCreator, frequ, transpose, getValue(slicePoints, i));
+                                    VisType* tmp = new VisType(pluginName, pngCreator, frequ, transpose, getValue(slicePoints, i));
                                     visIO.push_back(tmp);
                                     tmp->setMappingDescription(cellDescription);
                                     tmp->init();
@@ -203,8 +203,8 @@ namespace picongpu
         }
 
 
-        std::string analyzerName;
-        std::string analyzerPrefix;
+        std::string pluginName;
+        std::string pluginPrefix;
 
         std::vector<uint32_t> notifyFrequencys;
         std::vector<float_32> slicePoints;

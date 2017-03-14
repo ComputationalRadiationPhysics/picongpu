@@ -125,8 +125,8 @@ private:
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
 
     std::ofstream outFileMax;
     std::ofstream outFileIntegrated;
@@ -139,8 +139,8 @@ public:
      * integrated is the integral of amplidude of X and Z on Y position (is V/m in cell volume)
      */
     IntensityPlugin() :
-    analyzerName("IntensityPlugin: calculate the maximum and integrated E-Field energy\nover laser propagation direction"),
-    analyzerPrefix(FieldE::getName() + std::string("_intensity")),
+    pluginName("IntensityPlugin: calculate the maximum and integrated E-Field energy\nover laser propagation direction"),
+    pluginPrefix(FieldE::getName() + std::string("_intensity")),
     localMaxIntensity(nullptr),
     localIntegratedIntensity(nullptr),
     cellDescription(nullptr),
@@ -164,13 +164,13 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+            ((pluginPrefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
@@ -192,8 +192,8 @@ private:
 
             if (writeToFile)
             {
-                createFile(analyzerPrefix + "_max.dat", outFileMax);
-                createFile(analyzerPrefix + "_integrated.dat", outFileIntegrated);
+                createFile(pluginPrefix + "_max.dat", outFileMax);
+                createFile(pluginPrefix + "_integrated.dat", outFileIntegrated);
             }
 
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
@@ -364,7 +364,7 @@ private:
         stream.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
         if (!stream)
         {
-            std::cerr << "Can't open file [" << filename << "] for output, diasble analyser output. " << std::endl;
+            std::cerr << "Can't open file [" << filename << "] for output, diasble plugin output. " << std::endl;
             writeToFile = false;
         }
         stream << "#step position_in_laser_propagation_direction" << std::endl;

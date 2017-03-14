@@ -92,7 +92,7 @@ struct SglParticle
 };
 
 /** write the position of a single particle to a file
- * \warning this analyser MUST NOT be used with more than one (global!)
+ * \warning this plugin MUST NOT be used with more than one (global!)
  * particle and is created for one-particle-test-purposes only
  */
 struct KernelPositionsParticles
@@ -173,14 +173,14 @@ private:
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
 
 public:
 
     PositionsParticles() :
-    analyzerName("PositionsParticles: write position of one particle of a species to std::cout"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_position")),
+    pluginName("PositionsParticles: write position of one particle of a species to std::cout"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_position")),
     gParticle(nullptr),
     cellDescription(nullptr),
     notifyFrequency(0)
@@ -200,7 +200,7 @@ public:
 
         /*FORMAT OUTPUT*/
         if (positionParticle.mass != float_X(0.0))
-            std::cout << "[ANALYSIS] [" << rank << "] [COUNTER] [" << analyzerPrefix << "] [" << currentStep << "] "
+            std::cout << "[ANALYSIS] [" << rank << "] [COUNTER] [" << pluginPrefix << "] [" << currentStep << "] "
             << std::setprecision(16) << float_64(currentStep) * SI::DELTA_T_SI << " "
             << positionParticle << "\n"; // no flush
     }
@@ -208,13 +208,13 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+            ((pluginPrefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
