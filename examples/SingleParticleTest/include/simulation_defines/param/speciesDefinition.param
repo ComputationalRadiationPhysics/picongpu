@@ -78,9 +78,7 @@ using PIC_Electrons = Particles<
 /*########################### end species ####################################*/
 
 using VectorAllSpecies = MakeSeq_t<
-#if( ENABLE_ELECTRONS == 1 )
     PIC_Electrons
-#endif
 >;
 
 

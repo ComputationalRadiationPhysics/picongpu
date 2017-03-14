@@ -30,12 +30,6 @@
 #include "fields/currentDeposition/Solver.def"
 
 
-/*enable (1) or disable (0) electrons*/
-#define ENABLE_ELECTRONS 1
-/*enable (1) or disable (0) ions*/
-#define ENABLE_IONS 0
-
-
 namespace picongpu
 {
 /*---------------------------- generic solver---------------------------------*/

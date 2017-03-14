@@ -85,7 +85,7 @@ typedef mpl::vector<
 #if( PARAM_IONIZATION == 0 )
 
     CreateDensity<densityProfiles::Gaussian, startPosition::Random, PIC_Electrons>
-#   if( ENABLE_IONS == 1 )
+#   if( PARAM_IONS == 1 )
     , DeriveSpecies<PIC_Electrons,PIC_Ions>
 #   endif
 
