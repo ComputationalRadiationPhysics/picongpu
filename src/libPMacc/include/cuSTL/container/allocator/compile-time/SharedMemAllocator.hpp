@@ -21,8 +21,12 @@
 
 #pragma once
 
-#include "math/Vector.hpp"
 #include "cuSTL/cursor/compile-time/BufferCursor.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "memory/Array.hpp"
+#include "math/Vector.hpp"
+#include "pmacc_types.hpp"
+
 
 namespace PMacc
 {
@@ -43,8 +47,14 @@ struct SharedMemAllocator<Type, Size, 1, uid>
 
     __device__ static Cursor allocate()
     {
-        __shared__ Type shMem[Size::x::value];
-        return Cursor((Type*)shMem);
+        auto& shMem = PMacc::memory::shared::allocate<
+            uid,
+            memory::Array<
+                Type,
+                math::CT::volume< Size >::type::value
+            >
+        >( );
+        return Cursor(shMem.data());
     }
 };
 
@@ -58,8 +68,14 @@ struct SharedMemAllocator<Type, Size, 2, uid>
 
     __device__ static Cursor allocate()
     {
-        __shared__ Type shMem[Size::x::value][Size::y::value];
-        return Cursor((Type*)shMem);
+        auto& shMem = PMacc::memory::shared::allocate<
+            uid,
+            memory::Array<
+                Type,
+                math::CT::volume< Size >::type::value
+            >
+        >( );
+        return Cursor(shMem.data());
     }
 };
 
@@ -74,8 +90,14 @@ struct SharedMemAllocator<Type, Size, 3, uid>
 
     __device__ static Cursor allocate()
     {
-        __shared__ Type shMem[Size::x::value][Size::y::value][Size::z::value];
-        return Cursor((Type*)shMem);
+        auto& shMem = PMacc::memory::shared::allocate<
+            uid,
+            memory::Array<
+                Type,
+                math::CT::volume< Size >::type::value
+            >
+        >( );
+        return Cursor(shMem.data());
     }
 };
 
