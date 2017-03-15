@@ -17,18 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- *
- * Define particle species.
- *
- * This file collects all previous declarations of base (reference) quantities
- * and configured solvers for species and defines particle species. This
- * includes "attributes" (lvalues to store with each species) and "flags"
- * (rvalues & aliases for solvers to perform with the species for each timestep
- * and ratios to base quantities). With those information, a `Particles` class
- * is defined for each species and then collected in the list
- * `VectorAllSpecies`.
- */
 
 #pragma once
 
@@ -45,6 +33,11 @@
 #include "particles/ionization/byCollision/ionizers.def"
 
 
+#ifndef PARAM_RADIATION
+    /* disable radiation calculation */
+#   define PARAM_RADIATION 0
+#endif
+
 namespace picongpu
 {
 
@@ -55,31 +48,14 @@ using DefaultParticleAttributes = MakeSeq_t<
     position< position_pic >,
     momentum,
     weighting
+#if( PARAM_RADIATION == 1 )
+    , momentumPrev1
+#endif
 >;
 
 /*########################### end particle attributes ########################*/
 
 /*########################### define species #################################*/
-
-/*--------------------------- photons -------------------------------------------*/
-
-value_identifier( float_X, MassRatioPhotons, 0.0 );
-value_identifier( float_X, ChargeRatioPhotons, 0.0 );
-
-using ParticleFlagsPhotons = bmpl::vector<
-    particlePusher< particles::pusher::Photon >,
-    shape< UsedParticleShape >,
-    interpolation< UsedField2Particle >,
-    massRatio< MassRatioPhotons >,
-    chargeRatio< ChargeRatioPhotons >
->;
-
-/* define species photons */
-using PIC_Photons = Particles<
-    bmpl::string< 'p', 'h' >,
-    DefaultParticleAttributes,
-    ParticleFlagsPhotons
->;
 
 /*--------------------------- electrons --------------------------------------*/
 
@@ -94,9 +70,6 @@ using ParticleFlagsElectrons = bmpl::vector<
     current< UsedParticleCurrentSolver >,
     massRatio< MassRatioElectrons >,
     chargeRatio< ChargeRatioElectrons >
-#if( ENABLE_SYNCHROTRON_PHOTONS == 1 )
-    , synchrotronPhotons< PIC_Photons >
-#endif
 >;
 
 /* define species electrons */
@@ -159,9 +132,6 @@ using Species2 = MakeSeq_t<
 using VectorAllSpecies = MakeSeq_t<
     Species1,
     Species2
-#if( ENABLE_SYNCHROTRON_PHOTONS == 1 )
-    , PIC_Photons
-#endif
 >;
 
 } // namespace picongpu

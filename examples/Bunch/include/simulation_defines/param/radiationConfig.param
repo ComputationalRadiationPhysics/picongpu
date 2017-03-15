@@ -107,8 +107,6 @@ namespace radiationNyquist
 
 namespace parameters
 {
-/*!enable radiation calculation*/
-#define ENABLE_RADIATION 1
 
 
 constexpr unsigned int N_observer = 128; // number of looking directions

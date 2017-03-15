@@ -54,7 +54,7 @@ namespace picongpu
      *                                       component and the absolute
      *                                       momentum with respect to shape
      *   - CreateLarmorPowerOperation: radiated larmor power
-     *                                 (needs ENABLE_RADIATION)
+     *                                 (species must contain the attribute `momentumPrev1`)
      *
      * for debugging:
      *   - CreateMidCurrentDensityComponentOperation:
