@@ -74,24 +74,21 @@ struct AssignedTrilinearInterpolation
         typedef typename ::PMacc::result_of::Functor<AssignedTrilinearInterpolation, Cursor>::type type;
 
         type result_z = type(0.0);
-#pragma unroll 4
-        for (float_X z = Begin; z <= End; z += float_X(1.0))
+        for (int z = Begin; z <= End; ++z)
         {
             type result_y = type(0.0);
-#pragma unroll 4
-            for (float_X y = Begin; y <= End; y += float_X(1.0))
+            for (int y = Begin; y <= End; ++y)
             {
                 type result_x = type(0.0);
-#pragma unroll 4
-                for (float_X x = Begin; x <= End; x += float_X(1.0))
+                for (int x = Begin; x <= End; ++x)
                     //a form factor is the "amount of particle" that is affected by this cell
                     //so we have to sum over: cell_value * form_factor
-                    result_x += *cursor(x, y, z) * AssignmentFunction()(x - pos.x());
+                    result_x += *cursor(x, y, z) * AssignmentFunction()(float_X(x) - pos.x());
 
-                result_y += result_x * AssignmentFunction()(y - pos.y());
+                result_y += result_x * AssignmentFunction()(float_X(y) - pos.y());
             }
 
-            result_z += result_y * AssignmentFunction()(z - pos.z());
+            result_z += result_y * AssignmentFunction()(float_X(z) - pos.z());
         }
         return result_z;
     }
@@ -106,17 +103,15 @@ struct AssignedTrilinearInterpolation
 
 
         type result_y = type(0.0);
-#pragma unroll 4
-        for (float_X y = Begin; y <= End; y += float_X(1.0))
+        for (int y = Begin; y <= End; ++y)
         {
             type result_x = type(0.0);
-#pragma unroll 4
-            for (float_X x = Begin; x <= End; x += float_X(1.0))
+            for (int x = Begin; x <= End; ++x)
                 //a form factor is the "amount of particle" that is affected by this cell
                 //so we have to sum over: cell_value * form_factor
-                result_x += *cursor(x, y ) * AssignmentFunction()(x - pos.x());
+                result_x += *cursor(x, y ) * AssignmentFunction()(float_X(x) - pos.x());
 
-            result_y += result_x * AssignmentFunction()(y - pos.y());
+            result_y += result_x * AssignmentFunction()(float_X(y) - pos.y());
         }
         return result_y;
     }
