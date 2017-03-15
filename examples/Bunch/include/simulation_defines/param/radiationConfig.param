@@ -99,7 +99,10 @@ namespace radiationNyquist
   namespace radFormFactor_Gauss_cell { }
   namespace radFormFactor_incoherent { }
 
-  namespace radFormFactor = radFormFactor_Gauss_spherical;
+#ifndef PARAM_RADFORMFACTOR
+#   define PARAM_RADFORMFACTOR radFormFactor_Gauss_spherical
+#endif
+namespace radFormFactor = PARAM_RADFORMFACTOR;
 
 
 ///////////////////////////////////////////////////////////
@@ -166,13 +169,17 @@ namespace radiation
  * radWindowFunctionGauss
  * radWindowFunctionNone
  */
-namespace radWindowFunctionTriangle { }
-namespace radWindowFunctionHamming { }
-namespace radWindowFunctionTriplett { }
-namespace radWindowFunctionGauss { }
-namespace radWindowFunctionNone { }
 
-namespace radWindowFunction = radWindowFunctionNone;
+#ifndef PARAM_RADWINDOW
+#   define PARAM_RADWINDOW radWindowFunctionNone
+#endif
+  namespace radWindowFunctionTriangle { }
+  namespace radWindowFunctionHamming { }
+  namespace radWindowFunctionTriplett { }
+  namespace radWindowFunctionGauss { }
+  namespace radWindowFunctionNone { }
+
+  namespace radWindowFunction = PARAM_RADWINDOW;
 
 
 }//namespace picongpu
