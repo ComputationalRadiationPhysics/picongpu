@@ -104,49 +104,10 @@ using PIC_Electrons = Particles<
     ParticleFlagsElectrons
 >;
 
-/*--------------------------- ions -------------------------------------------*/
-
-/* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioIons, 1836.152672 );
-value_identifier( float_X, ChargeRatioIons, -1.0 );
-
-using ParticleFlagsIons = bmpl::vector<
-    particlePusher< UsedParticlePusher >,
-    shape< UsedParticleShape >,
-    interpolation< UsedField2Particle >,
-    current< UsedParticleCurrentSolver >,
-    massRatio< MassRatioIons >,
-    chargeRatio< ChargeRatioIons >
->;
-
-/* define species ions */
-using PIC_Ions = Particles<
-    bmpl::string< 'i' >,
-    DefaultParticleAttributes,
-    ParticleFlagsIons
->;
-
 /*########################### end species ####################################*/
 
-
-/*! we delete this ugly definition of VectorAllSpecies after all picongpu components
- * support multi species */
-/** \todo: not nice, but this should be changed in the future*/
-using Species1 = MakeSeq_t<
-#if( ENABLE_ELECTRONS == 1 )
-    PIC_Electrons
-#endif
->;
-
-using Species2 = MakeSeq_t<
-#if( ENABLE_IONS == 1 )
-    PIC_Ions
-#endif
->;
-
 using VectorAllSpecies = MakeSeq_t<
-    Species1,
-    Species2
+    PIC_Electrons
 #if( ENABLE_SYNCHROTRON_PHOTONS == 1 )
     , PIC_Photons
 #endif
