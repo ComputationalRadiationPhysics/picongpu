@@ -135,30 +135,14 @@ using PIC_Ions = Particles<
 
 /*########################### end species ####################################*/
 
-
-/*! we delete this ugly definition of VectorAllSpecies after all picongpu components
- * support multi species */
-/** \todo: not nice, but this should be changed in the future*/
-using Species1 = MakeSeq_t<
-#if( ENABLE_ELECTRONS == 1 )
-    PIC_Electrons
-#endif
->;
-
-using Species2 = MakeSeq_t<
-#if( ENABLE_IONS == 1 )
-    PIC_Ions
-#endif
->;
-
 /** All known particle species of the simulation
  *
  * List all defined particle species from above in this list
  * to make them available to the PIC algorithm.
  */
 using VectorAllSpecies = MakeSeq_t<
-    Species1,
-    Species2
+    PIC_Electrons,
+    PIC_Ions
 #if( ENABLE_SYNCHROTRON_PHOTONS == 1 )
     , PIC_Photons
 #endif

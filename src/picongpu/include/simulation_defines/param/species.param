@@ -37,12 +37,6 @@
 #include "particles/manipulators/manipulators.def"
 
 
-/** enable (1) or disable (0) electrons (deprecated) */
-#define ENABLE_ELECTRONS 1
-/** enable (1) or disable (0) ions (deprecated) */
-#define ENABLE_IONS 1
-
-
 namespace picongpu
 {
 
