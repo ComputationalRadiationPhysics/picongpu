@@ -82,10 +82,6 @@ namespace radiationNyquist
 
 
   // corect treatment of coherent and incoherent  radiation from macroparticles
-  // 1 = on  (slower and more memory, but correct quantitativ treatment)
-  // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
-#define __COHERENTINCOHERENTWEIGHTING__ 0
-
   /* Choose different form factors in order to consider different  particle shapes for radiation
    *  - radFormFactor_CIC_3D ... CIC charge distribution
    *  - radFormFactor_TSC_3D ... TSC charge distribution
@@ -94,6 +90,7 @@ namespace radiationNyquist
    *  - radFormFactor_Gauss_spherical ... symmetric Gauss charge distribution
    *  - radFormFactor_Gauss_cell ... Gauss charge distribution according to cell size
    *  - radFormFactor_incoherent ... only incoherent radiation
+   *  - radFormFactor_coherent ... only coherent radiation
    */
   namespace radFormFactor_CIC_3D { }
   namespace radFormFactor_TSC_3D { }
@@ -102,6 +99,7 @@ namespace radiationNyquist
   namespace radFormFactor_Gauss_spherical { }
   namespace radFormFactor_Gauss_cell { }
   namespace radFormFactor_incoherent { }
+  namespace radFormFactor_coherent { }
 
   namespace radFormFactor = radFormFactor_Gauss_spherical;
 
