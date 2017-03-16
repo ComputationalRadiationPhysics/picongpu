@@ -142,9 +142,7 @@ struct KernelRadiationParticles
         // storage for macro particle weighting needed if
         // the coherent and incoherent radiation of a single
         // macro-particle needs to be considered
-#if( __COHERENTINCOHERENTWEIGHTING__ == 1 )
         PMACC_SMEM( radWeighting_s, memory::Array< float_X, blockSize > );
-#endif
 
         // particle counter used if not all particles are considered for
         // radiation calculation
@@ -290,9 +288,7 @@ struct KernelRadiationParticles
                              * considered, the weighting of each macro-particle needs to be stored
                              * in order to be considered when the actual frequency calculation is done
                              */
-#if( __COHERENTINCOHERENTWEIGHTING__ == 1 )
                            radWeighting_s[saveParticleAt] = weighting;
-#endif
 
                             // mass of macro-particle
                             const float_X particle_mass = attribute::getMass(weighting,par);
@@ -318,8 +314,6 @@ struct KernelRadiationParticles
                                                                     t);
 
 
-                        // if coherent and incoherent of single macro-particle is considered
-#if( __COHERENTINCOHERENTWEIGHTING__ == 1 )
                             // get charge of single electron ! (weighting=1.0f)
                             const picongpu::float_X particle_charge = frame::getCharge<FRAME>();
 
@@ -328,17 +322,7 @@ struct KernelRadiationParticles
                             real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
                               particle_charge *
                               picongpu::float_64(DELTA_T);
-#else
-                            // if coherent and incoherent of single macro-particle is NOT considered
 
-                            // get charge of entire macro-particle
-                            const picongpu::float_X particle_charge = attribute::getCharge(weighting,par);
-
-                            // compute real amplitude of macro-particle
-                            real_amplitude_s[saveParticleAt] = amplitude3.get_vector(look) *
-                              particle_charge *
-                              picongpu::float_64(DELTA_T);
-#endif
 
                             // retarded time stored in shared memory
                             t_ret_s[saveParticleAt] = amplitude3.get_t_ret(look);
@@ -386,11 +370,8 @@ struct KernelRadiationParticles
                     const picongpu::float_64 omega = freqFkt(o);
 
 
-                    // if coherent and incoherent radiation of a single macro-particle
-                    // is considered, create a form factor object
-#    if (__COHERENTINCOHERENTWEIGHTING__==1)
+                    // create a form factor object
                     const radFormFactor::radFormFactor myRadFormFactor{ };
-#    endif
 
                     /* Particle loop: thread runs through loaded particle data
                      *
@@ -410,18 +391,9 @@ struct KernelRadiationParticles
                              ****************************************************/
 
 
-                            // if coherent/incoherent radiation of single macro-particle
-                            // is considered
-                            // the form factor influences the real amplitude
-#    if (__COHERENTINCOHERENTWEIGHTING__==1)
+                            // calulate the form factor's' influences to the real amplitude
                             const vector_64 weighted_real_amp = real_amplitude_s[j] * precisionCast<float_64 >
                               (myRadFormFactor(radWeighting_s[j], omega, look));
-#    else
-                            // if coherent/incoherent radiation of single macro-particle
-                            // is NOT considered
-                            // no change on real amplitude is performed
-                            const vector_64 weighted_real_amp = real_amplitude_s[j];
-#    endif
 
                             // complex amplitude for j-th particle
                             Amplitude amplitude_add(weighted_real_amp,

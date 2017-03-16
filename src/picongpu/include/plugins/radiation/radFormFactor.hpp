@@ -187,4 +187,23 @@ namespace picongpu
     };
   } // radFormFactor_incoherent
 
+
+  namespace radFormFactor_coherent
+  {
+    struct radFormFactor
+    {
+      /** Form Factor for a coherent charge distribution:
+        *
+        * @param N = macro particle weighting
+        * @param omega = frequency at which to calculate the  form factor
+        * @param observer_unit_vec = observation direction
+        * @return the Form Factor: \f$ \sqrt( | \mathcal{F} |^2 == \sqrt(weighting) \f$
+        */
+      HDINLINE float_X operator()(const float_X N, const float_X omega, const vector_X observer_unit_vec) const
+      {
+        return N;
+      }
+    };
+  } // radFormFactor_coherent
+
 }
