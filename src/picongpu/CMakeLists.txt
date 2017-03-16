@@ -161,7 +161,7 @@ endif(PARAM_OVERWRITES)
 
 
 ################################################################################
-# load cuda_memtest project
+# load cuda_memtest and mpiInfo projects
 ################################################################################
 
 option(CUDAMEMTEST_ENABLE "Build cuda_memtest and the helper mpiInfo \
@@ -186,10 +186,7 @@ if(CUDAMEMTEST_ENABLE)
                      "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
 
 
-    ############################################################################
-    # Load mpiInfo project
-    ############################################################################
-
+    # mpiInfo utility
     find_path(MPI_INFO_DIR
             NAMES CMakeLists.txt
             PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../mpiInfo"

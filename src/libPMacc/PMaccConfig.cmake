@@ -104,7 +104,6 @@ endif(CUDA_KEEP_FILES)
 
 if("${PMACC_CUDA_COMPILER}" STREQUAL "clang")
     add_definitions(-DPMACC_CUDA_COMPILER_CLANG=1)
-    #set(LIBS ${LIBS} cudart_static)
     set(CLANG_BUILD_FLAGS "-O3 -x cuda --cuda-path=${CUDA_TOOLKIT_ROOT_DIR}")
     # activation usage of FMA
     set(CLANG_BUILD_FLAGS "${CLANG_BUILD_FLAGS} -ffp-contract=fast")
@@ -174,9 +173,7 @@ elseif("${PMACC_CUDA_COMPILER}" STREQUAL "nvcc")
     endif(CUDA_KEEP_FILES)
 
 else()
-
     message(FATAL_ERROR "selected CUDA compiler '${PMACC_CUDA_COMPILER}' is not supported")
-
 endif()
 
 
@@ -280,7 +277,10 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_FENV_H")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    add_definitions(-DBOOST_NO_CXX11_SMART_PTR)
+    # suppress boost error
+    # 'no member named "impl" in "boost::detail::thread_move_t<boost::detail::nullary_function<void ()> >"'
+    # in 'boost/thread/detail/nullary_function.hpp'
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_SMART_PTR")
 endif()
 
 
