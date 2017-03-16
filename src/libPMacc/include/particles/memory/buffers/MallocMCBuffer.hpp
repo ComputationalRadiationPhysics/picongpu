@@ -25,9 +25,9 @@
 #include "dataManagement/ISimulationData.hpp"
 
 #include "mallocMC/mallocMC.hpp"
+
 #include <string>
 #include <memory>
-#include <utility>
 
 namespace PMacc
 {
@@ -63,12 +63,7 @@ namespace PMacc
 
         char* hostPtr;
         int64_t hostBufferOffset;
-        decltype(
-            std::declval<
-                T_DeviceHeap
-            >().getHeapLocations()[0]
-        ) deviceHeapInfo;
-
+        mallocMC::HeapInfo deviceHeapInfo;
     };
 
 
