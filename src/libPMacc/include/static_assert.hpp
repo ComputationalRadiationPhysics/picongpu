@@ -45,8 +45,17 @@ namespace PMacc
  * @param pmacc_unique_id pre compiler unique id
  * @param pmacc_typeInfo a type that is shown in error message
  */
-#define PMACC_STATIC_ASSERT_MSG_DO2(pmacc_cond, pmacc_msg, pmacc_unique_id, pmacc_typeInfo) \
-    BOOST_MPL_ASSERT_MSG(pmacc_cond,PMACC_JOIN(pmacc_msg,PMACC_JOIN(_________,pmacc_unique_id)),(pmacc_typeInfo))
+#if ( PMACC_CUDA_COMPILER_CLANG == 1 )
+/* device compile with clang: boost static assert can not be used
+ * error is: calling a `__host__` function from `__device__`
+ * Therefore C++11 `static_assert` is used
+ */
+#   define PMACC_STATIC_ASSERT_MSG_DO2(pmacc_cond, pmacc_msg, pmacc_unique_id, pmacc_typeInfo) \
+        static_assert(pmacc_cond,#pmacc_msg)
+#else
+#   define PMACC_STATIC_ASSERT_MSG_DO2(pmacc_cond, pmacc_msg, pmacc_unique_id, pmacc_typeInfo) \
+        BOOST_MPL_ASSERT_MSG(pmacc_cond,PMACC_JOIN(pmacc_msg,PMACC_JOIN(_________,pmacc_unique_id)),(pmacc_typeInfo))
+#endif
 
 /*! static assert with error message
  * @param pmacc_cond A condition which return true or false.

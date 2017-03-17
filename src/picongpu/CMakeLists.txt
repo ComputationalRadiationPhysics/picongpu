@@ -161,32 +161,41 @@ endif(PARAM_OVERWRITES)
 
 
 ################################################################################
-# load cuda_memtest project
+# load cuda_memtest and mpiInfo projects
 ################################################################################
 
-set(SAME_NVCC_FLAGS_IN_SUBPROJECTS OFF)
-find_path(CUDA_MEMTEST_DIR
-        NAMES CMakeLists.txt
-        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/cuda_memtest"
-        DOC "path to cuda_memtest"
-        )
+option(CUDAMEMTEST_ENABLE "Build cuda_memtest and the helper mpiInfo \
+                          (allow GPU health test before running PIConGPU)" ON)
 
-add_subdirectory(${CUDA_MEMTEST_DIR}
-                 "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
+if("${PMACC_CUDA_COMPILER}" STREQUAL "clang")
+    # cuda_memtest is not compiling with `clang`
+    set(CUDAMEMTEST_ENABLE OFF CACHE BOOL "Build cuda_memtest and the helper mpiInfo \
+                           (allow GPU health test before running PIConGPU)" FORCE)
+    message(STATUS "Disable 'cuda_memtest' build: not supported by clang")
+endif()
+
+if(CUDAMEMTEST_ENABLE)
+    set(SAME_NVCC_FLAGS_IN_SUBPROJECTS OFF)
+    find_path(CUDA_MEMTEST_DIR
+            NAMES CMakeLists.txt
+            PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/cuda_memtest"
+            DOC "path to cuda_memtest"
+            )
+
+    add_subdirectory(${CUDA_MEMTEST_DIR}
+                     "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
 
 
-################################################################################
-# Load mpiInfo project
-################################################################################
+    # mpiInfo utility
+    find_path(MPI_INFO_DIR
+            NAMES CMakeLists.txt
+            PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../mpiInfo"
+            DOC "path to mpiInfo"
+            )
 
-find_path(MPI_INFO_DIR
-        NAMES CMakeLists.txt
-        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../mpiInfo"
-        DOC "path to mpiInfo"
-        )
-
-add_subdirectory(${MPI_INFO_DIR}
-                 "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
+    add_subdirectory(${MPI_INFO_DIR}
+                     "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
+endif()
 
 
 ################################################################################
@@ -332,11 +341,24 @@ add_library(picongpu-hostonly
     ${SRCFILES}
 )
 
-cuda_add_executable(picongpu
-    ${CUDASRCFILES}
-)
+if("${PMACC_CUDA_COMPILER}" STREQUAL "clang")
+    add_executable(picongpu
+        ${CUDASRCFILES}
+    )
 
-target_link_libraries(picongpu ${LIBS} picongpu-hostonly m)
+    set_target_properties(picongpu PROPERTIES COMPILE_FLAGS ${CLANG_BUILD_FLAGS})
+    set_target_properties(picongpu PROPERTIES LINKER_LANGUAGE CXX)
+    set_source_files_properties(${CUDASRCFILES} PROPERTIES LANGUAGE CXX)
+
+    target_link_libraries(picongpu ${LIBS} picongpu-hostonly m )
+else()
+    cuda_add_executable(picongpu
+        ${CUDASRCFILES}
+        ${SRCFILES}
+    )
+
+    target_link_libraries(picongpu ${LIBS} picongpu-hostonly m)
+endif()
 
 ################################################################################
 # Install PIConGPU
