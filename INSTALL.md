@@ -239,7 +239,7 @@ Install
 
 ### Installation notes
 - Be sure to build all libraries/dependencies with the **same** gcc version.
-- Never set a environment variable to the source folder, always set them to the
+- Never set an environment variable to the source folder, always set them to the
   installation directory.
 
 *******************************************************************************
