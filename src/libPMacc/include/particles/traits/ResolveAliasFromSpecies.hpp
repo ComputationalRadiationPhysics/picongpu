@@ -50,13 +50,10 @@ namespace traits
  *   synchrotronPhotons<PIC_Photons>
  * > ParticleFlagsElectrons;
  *
- * typedef Particles<
- *   ParticleDescription<
- *       bmpl::string<'e'>,
- *       SuperCellSize,
- *       DefaultAttributesSeq,
- *       ParticleFlagsElectrons
- *   >
+ * typedef picongpu::Particles<
+ *     bmpl::string<'e'>,
+ *     ParticleFlagsElectrons,
+ *     DefaultAttributesSeq
  * > PIC_Electrons;
  *
  * typedef typename ResolveAliasFromSpecies<
