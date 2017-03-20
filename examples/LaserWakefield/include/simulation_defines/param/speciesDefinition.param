@@ -76,8 +76,8 @@ using ParticleFlagsElectrons = bmpl::vector<
 /* define species: electrons */
 using PIC_Electrons = Particles<
     bmpl::string< 'e' >,
-    DefaultParticleAttributes,
-    ParticleFlagsElectrons
+    ParticleFlagsElectrons,
+    DefaultParticleAttributes
 >;
 
 /*--------------------------- ions -------------------------------------------*/
@@ -106,8 +106,8 @@ using ParticleFlagsIons = bmpl::vector<
 /* define species: ions */
 using PIC_Ions = Particles<
     bmpl::string< 'i' >,
-    AttributeSeqIons,
-    ParticleFlagsIons
+    ParticleFlagsIons,
+    AttributeSeqIons
 >;
 
 /*########################### end species ####################################*/
