@@ -50,8 +50,8 @@ using namespace PMacc;
  */
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 class Particles : public ParticlesBase<
     ParticleDescription<

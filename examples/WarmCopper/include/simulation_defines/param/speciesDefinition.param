@@ -74,8 +74,8 @@ using ParticleFlagsPhotons = bmpl::vector<
 /* define species photons */
 using Photons = Particles<
     bmpl::string< 'p', 'h' >,
-    DefaultParticleAttributes,
-    ParticleFlagsPhotons
+    ParticleFlagsPhotons,
+    DefaultParticleAttributes
 >;
 
 /*--------------------------- electrons --------------------------------------*/
@@ -111,21 +111,21 @@ using ParticleFlagsElectrons = bmpl::vector<
 /* thermal bulk electrons */
 using BulkElectrons = Particles<
     bmpl::string< 'e', 't', 'h' >,
-    DefaultParticleAttributes,
     MakeSeq_t<
         ParticleFlagsElectrons,
         densityRatio< DensityRatioBulkElectrons >
-    >
+    >,
+    DefaultParticleAttributes
 >;
 
 /* non-thermal "hot"/prompt electrons */
 using PromptElectrons = Particles<
     bmpl::string< 'e', 'h', 'o', 't' >,
-    DefaultParticleAttributes,
     MakeSeq_t<
         ParticleFlagsElectrons,
         densityRatio< DensityRatioPromptElectrons >
-    >
+    >,
+    DefaultParticleAttributes
 >;
 
 /*--------------------------- ions -------------------------------------------*/
@@ -155,14 +155,14 @@ using ParticleFlagsCopper = bmpl::vector<
 /* define species ions */
 using CopperIons = Particles<
     bmpl::string< 'C', 'u' >,
+    ParticleFlagsCopper,
     MakeSeq_t<
         position< position_pic >,
         momentum,
         weighting,
         particleId,
         boundElectrons
-    >,
-    ParticleFlagsCopper
+    >
 >;
 
 /*########################### end species ####################################*/

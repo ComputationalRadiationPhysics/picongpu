@@ -56,13 +56,13 @@ using namespace PMacc;
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::Particles(
     const std::shared_ptr<DeviceHeap>& heap,
     MappingDesc cellDescription,
@@ -122,14 +122,14 @@ Particles<
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 void
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::createParticleBuffer( )
 {
     this->particlesBuffer->createParticleBuffer( );
@@ -137,14 +137,14 @@ Particles<
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 SimulationDataId
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::getUniqueId( )
 {
     return m_datasetID;
@@ -152,14 +152,14 @@ Particles<
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 void
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::synchronize( )
 {
     this->particlesBuffer->deviceToHost();
@@ -167,14 +167,14 @@ Particles<
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 void
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::syncToDevice( )
 {
 
@@ -182,28 +182,28 @@ Particles<
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 void
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::init( )
 {
 }
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 void
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::update(uint32_t )
 {
     typedef typename GetFlagType<FrameType,particlePusher<> >::type PusherAlias;
@@ -250,15 +250,15 @@ Particles<
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 template<typename T_DensityFunctor, typename T_PositionFunctor>
 void
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::initDensityProfile(
     T_DensityFunctor& densityFunctor,
     T_PositionFunctor& positionFunctor,
@@ -285,8 +285,8 @@ Particles<
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 template<
     typename T_SrcName,
@@ -297,8 +297,8 @@ template<
 void
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::deviceDeriveFrom(
     Particles<
         T_SrcName,
@@ -319,15 +319,15 @@ Particles<
 
 template<
     typename T_Name,
-    typename T_Attributes,
-    typename T_Flags
+    typename T_Flags,
+    typename T_Attributes
 >
 template< typename T_Functor>
 void
 Particles<
     T_Name,
-    T_Attributes,
-    T_Flags
+    T_Flags,
+    T_Attributes
 >::manipulateAllParticles( uint32_t currentStep, T_Functor& functor )
 {
 
