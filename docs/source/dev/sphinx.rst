@@ -1,5 +1,7 @@
 .. _development-sphinx:
 
+.. sectionauthor:: Axel Huebl
+
 Sphinx
 ======
 

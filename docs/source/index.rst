@@ -9,6 +9,14 @@ PIConGPU is a fully relativistic, many GPGPU, 3D3V particle-in-cell (PIC) code.
 The Particle-in-Cell algorithm is a central tool in plasma physics.
 It describes the dynamics of a plasma by computing the motion of electrons and ions in the plasma based on Maxwell's equations.
 
+How to Read This Document
+-------------------------
+
+Generally, you want to follow those pages in-order to get started.
+Individual chapters are based on the information of the chapters before.
+
+In case you are already fluent in compiling C++ projects and HPC, running PIC simulations or scientific data analysis feel free to jump the respective sections.
+
 .. attention::
    This documentation is just getting started.
    Learn more about how to improve it :ref:`here <development-sphinx>` and please contribute via pull requests! :-)
@@ -25,7 +33,8 @@ It describes the dynamics of a plasma by computing the motion of electrons and i
    :maxdepth: 1
 
    install/path
-   install/INSTALL.md
+   install/compile
+   install/dependencies
    install/profile
 
 .. toctree::

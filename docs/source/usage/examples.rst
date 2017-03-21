@@ -1,3 +1,5 @@
+.. _usage-examples:
+
 Example Setups
 ==============
 

@@ -1,5 +1,7 @@
 .. _usage-reference:
 
+.. sectionauthor:: Axel Huebl
+
 Reference
 =========
 

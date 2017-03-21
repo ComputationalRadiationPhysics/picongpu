@@ -115,7 +115,7 @@ For a detailed description, please refer to [LICENSE.md](LICENSE.md)
 Install
 -------
 
-See our notes in [INSTALL.md](INSTALL.md).
+See our notes in [INSTALL.rst](INSTALL.rst).
 
 Users
 -----
@@ -135,10 +135,7 @@ developers and maintainers directly.
 
 Instead, please sign up to our **PIConGPU-Users** mailing list so we can
 distribute and archive user questions:
-[Subscribe (Feed)](https://cg.hzdr.de/Lists/picongpu-users/List.html).
-You can **subscribe** by simply sending an e-mail to
-[picongpu-users-feed@hzdr.de](mailto:picongpu-users-feed@hzdr.de?subject=Subscribe me!)
-(and unsubscribe via [picongpu-users-off@hzdr.de](mailto:picongpu-users-off@hzdr.de?subject=Unsubscribe me!)).
+[Subscribe (select "Feed" on bottom left)](https://cg.hzdr.de/Lists/picongpu-users/List.html).
 
 Before you post a question, browse the PIConGPU
 [documentation](https://github.com/ComputationalRadiationPhysics/picongpu/search?l=markdown),
@@ -156,11 +153,8 @@ In addition, please consider using the collaborative features of GitHub if you
 have questions or comments on code or documentation. This will allow other
 users to see the piece of code or documentation you are referring to.
 
-Feel free to visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more
-about the PIC algorithm. Further ressources are the
-[user section](https://github.com/ComputationalRadiationPhysics/picongpu/wiki)
-of our wiki, documentation files in `.md` format in this repository and a
-[getting started video](http://www.youtube.com/watch?v=7ybsD8G4Rsk).
+Main ressources are in our [online manual](https://picongpu.readthedocs.io), the [user section](https://github.com/ComputationalRadiationPhysics/picongpu/wiki) of our wiki, documentation files in `.md` and `.rst` format in this repository and a [getting started video](http://www.youtube.com/watch?v=7ybsD8G4Rsk).
+Feel free to visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about the PIC algorithm.
 
 Software Upgrades
 -----------------

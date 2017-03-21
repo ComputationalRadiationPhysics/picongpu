@@ -1,3 +1,7 @@
+.. _usage-tbg:
+
+.. sectionauthor:: René Widera, Axel Huebl
+
 TBG
 ===
 
@@ -21,6 +25,8 @@ Example with Slurm
 .. include:: ../install/submit/taurus-tud/Slurm_Tutorial.rst
    :start-line: 3
 
+
+.. _usage-cfg:
 
 .cfg File Macros
 ^^^^^^^^^^^^^^^^
