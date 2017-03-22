@@ -150,7 +150,7 @@ A problem you have encountered might be the future problem of another user.
 In addition, please consider using the collaborative features of GitHub if you have questions or comments on code or documentation.
 This will allow other users to see the piece of code or documentation you are referring to.
 
-Main ressources are in our [online manual](https://picongpu.readthedocs.io), the [user section](https://github.com/ComputationalRadiationPhysics/picongpu/wiki) of our wiki, documentation files in [`.md` (Markdown)](http://commonmark.org/help/) and [`.rst` (reStructuredText)](http://www.sphinx-doc.org/en/stable/rest.html>) format in this repository and a [getting started video](http://www.youtube.com/watch?v=7ybsD8G4Rsk).
+Main ressources are in our [online manual](https://picongpu.readthedocs.io), the [user section](https://github.com/ComputationalRadiationPhysics/picongpu/wiki) of our wiki, documentation files in [`.md` (Markdown)](http://commonmark.org/help/) and [`.rst` (reStructuredText)](http://www.sphinx-doc.org/en/stable/rest.html) format in this repository and a [getting started video](http://www.youtube.com/watch?v=7ybsD8G4Rsk).
 Feel free to visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about the PIC algorithm.
 
 Software Upgrades

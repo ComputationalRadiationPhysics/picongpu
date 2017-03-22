@@ -25,7 +25,7 @@ You then set environment variables to find those installs.
 Spack
 ^^^^^
 
-[Spack]_ is a flexible package manager for HPC that can organize versions and dependencies for you.
+[Spack]_ is a flexible package manager for HPC systems that can organize versions and dependencies for you.
 It can be configured once for your hardware architecture to create optimally tuned binaries and provides module file support (e.g. [Lmod]_).
 Those auto-build modules manage your environment variables and allow easy switching between versions, configurations and compilers.
 
