@@ -1,4 +1,10 @@
-.. image:: ../logo/pic_logo.svg
+.. only:: html
+
+  .. image:: ../logo/pic_logo.svg
+
+.. only:: latex
+
+  .. image:: ../logo/pic_logo.pdf
 
 A particle-in-cell code for GPGPUs
 

@@ -33,7 +33,7 @@ References
 .. [Jackson]
     J.D. Jackson.
     *Electrodynamics*,
-    Wiley‐VCH Verlag GmbH & Co. KGaA (1975),
+    Wiley-VCH Verlag GmbH & Co. KGaA (1975),
     http://onlinelibrary.wiley.com/doi/10.1002/9783527600441.oe014
 
 .. [Salvat]
