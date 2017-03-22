@@ -1,5 +1,7 @@
 .. _pp-paraview:
 
+.. sectionauthor:: Axel Huebl
+
 ParaView
 ========
 

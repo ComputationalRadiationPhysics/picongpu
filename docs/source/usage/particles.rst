@@ -1,3 +1,5 @@
+.. _usage-particles:
+
 Particles
 =========
 

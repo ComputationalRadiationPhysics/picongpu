@@ -1,5 +1,7 @@
 .. _pp-python:
 
+.. sectionauthor:: Axel Huebl
+
 Python
 ======
 

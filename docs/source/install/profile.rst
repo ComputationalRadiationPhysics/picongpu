@@ -1,8 +1,16 @@
+.. _install-profile:
+
+.. sectionauthor:: Axel Huebl
+
+.. seealso::
+
+   You need to have all :ref:`dependencies installed <install-dependencies>` to complete this chapter.
+
 picongpu.profile
 ================
 
-Use a `picongpu.profile` file to set up your environment without colliding with other software.
-Ideally, store that file directly in your `$HOME/` and source it when after connecting to the machine the first time.
+Use a ``picongpu.profile`` file to set up your software environment without colliding with other software.
+Ideally, store that file directly in your ``$HOME/`` and source it after connecting to the machine:
 
 .. code-block:: bash
 

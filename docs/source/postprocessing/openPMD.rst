@@ -1,5 +1,7 @@
 .. _pp-openPMD:
 
+.. sectionauthor:: Axel Huebl
+
 openPMD
 =======
 

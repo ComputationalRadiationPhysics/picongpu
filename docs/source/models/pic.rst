@@ -1,5 +1,7 @@
 .. _model-pic:
 
+.. sectionauthor:: Axel Huebl
+
 The Particle-in-Cell Algorithm
 ==============================
 
