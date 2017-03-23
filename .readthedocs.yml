@@ -2,3 +2,5 @@ requirements_file: docs/requirements.txt
 
 formats:
     - htmlzip
+    - pdf
+    - epub
