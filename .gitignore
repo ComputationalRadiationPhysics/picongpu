@@ -8,6 +8,9 @@
 /*.cbp
 /*.layout
 
+# Visual Studio Code configuration files
+.vscode
+
 # python byte code
 *.pyc
 
