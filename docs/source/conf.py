@@ -57,8 +57,6 @@ breathe_domain_by_extension = {
     "loader"   : "cpp"
 }
 
-highlight_language = 'c++'
-
 if on_rtd:
     subprocess.call('cd ..; doxygen', shell=True)
 else:
@@ -145,6 +143,7 @@ latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
@@ -153,6 +152,7 @@ latex_elements = {
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
+    'preamble': r'\setcounter{tocdepth}{2}',
 
     # Latex figure (float) alignment
     #

@@ -10,7 +10,8 @@ In order to credit the work of others, we expect you to cite our latest paper de
 
 In addition to that and out of good scientific practice, you should document the version of PIConGPU that was used and any modifications you applied.
 A list of releases alongside a DOI to reference it can be found here:
-  https://github.com/ComputationalRadiationPhysics/picongpu/releases
+
+https://github.com/ComputationalRadiationPhysics/picongpu/releases
 
 
 Citation
@@ -32,6 +33,6 @@ Additional to the citation, please consider adding an acknowledgement of the fol
 
     We acknowledge all contributors to the open-source code PIConGPU for enabling our simulations.
 
-or
+or:
 
     We acknowledge [list of specific persons that helped you] and all further contributors to the open-source code PIConGPU for enabling our simulations.

@@ -1,3 +1,4 @@
+:orphan:
 .. only:: html
 
   .. image:: ../logo/pic_logo.svg
@@ -6,10 +7,7 @@
 
   .. image:: ../logo/pic_logo.pdf
 
-A particle-in-cell code for GPGPUs
-
-Introduction
-============
+*A particle-in-cell code for GPGPUs*
 
 PIConGPU is a fully relativistic, many GPGPU, 3D3V particle-in-cell (PIC) code.
 The Particle-in-Cell algorithm is a central tool in plasma physics.
@@ -34,6 +32,9 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
 .. _wiki: https://github.com/ComputationalRadiationPhysics/picongpu/wiki
 .. _official homepage: http://picongpu.hzdr.de
 
+************
+Installation
+************
 .. toctree::
    :caption: INSTALLATION
    :maxdepth: 1
@@ -43,6 +44,9 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    install/dependencies
    install/profile
 
+*****
+Usage
+*****
 .. toctree::
    :caption: USAGE
    :maxdepth: 1
@@ -55,6 +59,9 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    usage/tbg
    usage/examples
 
+******
+Models
+******
 .. toctree::
    :caption: MODELS
    :maxdepth: 1
@@ -64,6 +71,9 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    models/ionization
    models/photons
 
+***************
+Post-Processing
+***************
 .. toctree::
    :caption: Post-Processing
    :maxdepth: 2
@@ -72,6 +82,9 @@ In case you are already fluent in compiling C++ projects and HPC, running PIC si
    postprocessing/openPMD
    postprocessing/paraview
 
+***********
+Development
+***********
 .. toctree::
    :caption: DEVELOPMENT
    :maxdepth: 1

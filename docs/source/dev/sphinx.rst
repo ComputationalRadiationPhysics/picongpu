@@ -58,6 +58,13 @@ Please check your documentation build is successful and renders as you expected 
     # open it, e.g. with firefox :)
     firefox build/html/index.html
 
+    # now again for the pdf :)
+    make latexpdf
+
+    # open it, e.g. with okular
+    build/latex/PIConGPU.pdf
+
+
 Useful Links
 ------------
 
