@@ -17,6 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "simulation_defines.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 
 namespace picongpu
@@ -37,8 +38,10 @@ namespace detail
 HDINLINE LookupTableFunctor::LookupTableFunctor(LinInterpCursor linInterpCursor)
     : linInterpCursor(linInterpCursor)
 {
-    this->lnEMin = math::log(electron::MIN_ENERGY);
-    this->lnEMax = math::log(electron::MAX_ENERGY);
+    float_X const lnEMinTmp( electron::MIN_ENERGY );
+    float_X const lnEMaxTmp( electron::MAX_ENERGY );
+    this->lnEMin = math::log( lnEMinTmp );
+    this->lnEMax = math::log( lnEMaxTmp);
 }
 
 /** scaled differential cross section
