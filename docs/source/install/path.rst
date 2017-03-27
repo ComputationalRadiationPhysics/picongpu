@@ -26,7 +26,7 @@ Spack
 ^^^^^
 
 [Spack]_ is a flexible package manager for HPC systems that can organize versions and dependencies for you.
-It can be configured once for your hardware architecture to create optimally tuned binaries and provides module file support (e.g. [Lmod]_).
+It can be configured once for your hardware architecture to create optimally tuned binaries and provides modulefile support (e.g. [modules]_, [Lmod]_).
 Those auto-build modules manage your environment variables and allow easy switching between versions, configurations and compilers.
 
 Conda
@@ -61,7 +61,7 @@ User
 As a user, you ideally start with a configured compiler and MPI version for your HPC system (at least).
 Those and further dependencies can be set up by:
 
-- loading modules (e.g. via [Lmod]_)
+- loading modules (e.g. via [Lmod]_ or [modules]_)
 
 or self-adding them:
 
@@ -75,7 +75,7 @@ Root/Admin
 """"""""""
 
 Use your package manager to install drivers and core dependencies, e.g. via `apt-get install` as far as possible.
-Build furhter dependencies from source.
+Build further dependencies from source.
 
 Alternately, use [Spack]_ for all dependencies.
 
@@ -114,8 +114,15 @@ References
 .. [Spack]
         T. Gamblin and contributors.
         *A flexible package manager that supports multiple versions, configurations, platforms, and compilers*,
+        SC '15 Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (2015),
         `DOI:10.1145/2807591.2807623 <https://dx.doi.org/10.1145/2807591.2807623>`_,
         https://github.com/LLNL/spack
+
+.. [modules]
+        J.L. Furlani, P.W. Osel.
+        *Abstract Yourself With Modules*,
+        `Proceedings of the 10th USENIX conference on System administration (1996) <http://modules.sourceforge.net/docs/absmod.pdf>`_,
+        http://modules.sourceforge.net
 
 .. [Lmod]
         R. McLay and contributors.
