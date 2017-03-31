@@ -39,4 +39,4 @@ Job Control
   * `scontrol update timelimit=4:00:00 jobid=12345` change the walltime of the job
   * `scontrol update jobid=12345 dependency=afterany:54321` only start the job after job with id `54321` has finished
   * `scontrol hold jobid=12345` prevent the job from starting
-  * `scontrol unhold jobid=12345` release the job to be eligible for run (after it was set on hold)
+  * `scontrol release jobid=12345` or in short `scontrol release 12345` release the job to be eligible for run (after it was set on hold)
