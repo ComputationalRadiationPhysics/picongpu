@@ -58,6 +58,7 @@ Usage
    usage/plugin
    usage/tbg
    usage/examples
+   usage/workflows
 
 ******
 Models

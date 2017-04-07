@@ -1,3 +1,5 @@
+.. _usage-params-extensions:
+
 PIC Extensions
 --------------
 

@@ -1,3 +1,5 @@
+.. _usage-params-misc:
+
 Misc
 ----
 
