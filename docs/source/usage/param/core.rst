@@ -1,3 +1,5 @@
+.. _usage-params-core:
+
 PIC Core
 --------
 
