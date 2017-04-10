@@ -90,6 +90,14 @@ namespace picongpu
         float_X( 0. )
     );
 
+    
+    //! Voronoi cell of the macro particle
+    value_identifier(
+        int16_t,
+        voronoiCellId,
+        -1
+    );
+
     /** masking a particle for radiation
      *
      * The mask is used by the user defined filter
