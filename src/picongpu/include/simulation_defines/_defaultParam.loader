@@ -55,3 +55,4 @@
 #include "simulation_defines/param/particleCalorimeter.param"
 #include "simulation_defines/param/isaac.param"
 #include "simulation_defines/param/radiationObserver.param"
+#include "simulation_defines/param/particleMerging.param"

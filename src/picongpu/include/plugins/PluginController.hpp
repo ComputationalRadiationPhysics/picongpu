@@ -33,6 +33,7 @@
 #include "plugins/PositionsParticles.hpp"
 #include "plugins/BinEnergyParticles.hpp"
 #include "plugins/ChargeConservation.hpp"
+#include "plugins/particleMerging/ParticleMerger.hpp"
 #if(ENABLE_HDF5 == 1)
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/Radiation.hpp"
@@ -170,7 +171,8 @@ private:
         BinEnergyParticles<bmpl::_1>,
         LiveViewPlugin<bmpl::_1>,
         PositionsParticles<bmpl::_1>,
-        PngPlugin< Visualisation<bmpl::_1, PngCreator> >
+        PngPlugin< Visualisation<bmpl::_1, PngCreator> >,
+        plugins::particleMerging::ParticleMerger<bmpl::_1>
 #if(ENABLE_HDF5 == 1)
       , Radiation<bmpl::_1>
       , ParticleCalorimeter<bmpl::_1>
