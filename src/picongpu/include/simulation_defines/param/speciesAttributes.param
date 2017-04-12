@@ -65,7 +65,7 @@ value_identifier(float_X, weighting, 0.0);
 /** masking a particle for radiation
  *
  * The mask is used by the user defined filter
- * `RadiationParticleFilter` in `radiationConfig.param` to (de)select
+ * `RadiationParticleFilter` in `radiation.param` to (de)select
  * particles for the radiation calculation.
  */
 value_identifier(bool, radiationMask, false);
@@ -96,7 +96,7 @@ alias(shape);
 /*! alias for particle pusher @see species.param */
 alias(particlePusher);
 
-/*! alias for particle ionizer @see ionizerConfig.param */
+/*! alias for particle ionizer @see ionizer.param */
 alias(ionizer);
 
 /*! alias for ionization energy container @see ionizationEnergies.param */
@@ -117,12 +117,12 @@ alias(interpolation);
 /*! alias for particle current solver @see species.param */
 alias(current);
 
-/*! alias for particle flag: atomic numbers @see ionizerConfig.param
+/*! alias for particle flag: atomic numbers @see ionizer.param
  * - only reasonable for atoms / ions / nuclei
  */
 alias(atomicNumbers);
 
-/*! alias for particle flag: effective nuclear charge @see ionizerConfig.param
+/*! alias for particle flag: effective nuclear charge @see ionizer.param
  * - only reasonable for atoms / ions / nuclei
  */
 alias(effectiveNuclearCharge);
@@ -147,7 +147,7 @@ alias(chargeRatio);
 
 /*! alias for particle density ratio
  *
- * density ratio between default density @see `densityConfig.param` SI::BASE_DENSITY_SI
+ * density ratio between default density @see `density.param` SI::BASE_DENSITY_SI
  * and a user defined species
  *
  * default value: 1.0 if unset

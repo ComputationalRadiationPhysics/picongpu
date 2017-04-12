@@ -101,7 +101,7 @@ namespace ionization
 
                 float_64 const T_F = T_0 / (float_64(1.) + T_0);
 
-                /* for all the fitting parameters @see ionizerConfig.param */
+                /* for all the fitting parameters @see ionizer.param */
 
                 /** this is weird - I have to define temporary variables because
                  * otherwise the math::pow function won't recognize those at the

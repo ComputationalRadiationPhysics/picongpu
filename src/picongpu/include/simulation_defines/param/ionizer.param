@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* @file ionizerConfig.param
+/* @file ionizer.param
  *
  * Ionization Model Configuration
  *

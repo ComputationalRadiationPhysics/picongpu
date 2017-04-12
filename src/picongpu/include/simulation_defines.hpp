@@ -43,7 +43,7 @@ namespace picongpu
 //load starter after all user extension
 #include <simulation_defines/param/starter.param>
 
-#include <simulation_defines/param/componentsConfig.param>
+#include <simulation_defines/param/components.param>
 #include <simulation_classTypes.hpp>
 
 // ##### load unitless

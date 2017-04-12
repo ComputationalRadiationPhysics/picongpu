@@ -71,7 +71,7 @@ namespace ionization
      * - similar to BSIHydrogenLike
      *
      * - tries to account for electron shielding by issuing a lookup table of
-     *   effective atomic numbers for each electron shell @see ionizerConfig.param
+     *   effective atomic numbers for each electron shell @see ionizer.param
      * - unvalidated and still in development
      *
      * \tparam T_DestSpecies electron species to be created

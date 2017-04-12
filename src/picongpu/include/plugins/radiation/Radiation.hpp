@@ -21,7 +21,7 @@
 #pragma once
 
 #if(ENABLE_HDF5 != 1)
-#error The activated radiation plugin (radiationConfig.param) requires HDF5
+#error The activated radiation plugin (radiation.param) requires HDF5
 #endif
 
 #include "simulation_defines.hpp"
