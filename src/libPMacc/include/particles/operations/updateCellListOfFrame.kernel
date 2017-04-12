@@ -1,0 +1,133 @@
+/**
+ * Copyright 2014-2017 Marco Garten, Alexander Matthes
+ *
+ * This file is part of libPMacc.
+ *
+ * libPMacc is free software: you can redistribute it and/or modify
+ * it under the terms of either the GNU General Public License or
+ * the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * libPMacc is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License and the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * and the GNU Lesser General Public License along with libPMacc.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include "memory/shared/Allocate.hpp"
+#include "memory/Array.hpp"
+
+namespace PMacc
+{
+namespace particles
+{
+namespace operations
+{
+namespace kernel
+{
+
+struct UpdateCellListOfFrame
+{
+    template
+    <
+        size_t TileSize,
+        bool has_no_gaps = true,
+        typename T_CellEntryPoint,
+        typename T_CellCount,
+        typename T_FramePtr,
+        typename T_FrameNr
+    >
+    DINLINE void operator()(
+        T_CellEntryPoint& cellEntryPoint,
+        T_CellCount& cellCount,
+        T_FramePtr& frame,
+        T_FrameNr& frameNr
+    ) const
+    {
+        auto myParticle = frame[threadIdx.x];
+        if (has_no_gaps || myParticle[multiMask_])
+        {
+            //absolute position in frame list
+            auto myID = threadIdx.x + frameNr * TileSize;
+            auto & myCell = myParticle[localCellIdx_];
+            myParticle[picongpu::inCellOffset_] = ::atomicExch(&(cellEntryPoint[myCell]),myID);
+            ::atomicAdd(&(cellCount[myCell]),1);
+        }
+        __syncthreads( );
+    }
+};
+
+struct UpdateCellListOfFramesKernel
+{
+    template<class ParBox, class Mapping>
+    DINLINE void operator()( ParBox pb, Mapping mapper ) const
+    {
+        using namespace particles::operations;
+
+        enum
+        {
+            TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
+            Dim = Mapping::Dim
+        };
+
+        typedef typename ParBox::FramePtr FramePtr;
+
+        DataSpace<Dim> superCellIdx( mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) ) );
+
+        //data copied from right (last) to left (first)
+        PMACC_SMEM( firstFrame, FramePtr );
+        PMACC_SMEM( lastFrame, FramePtr );
+        PMACC_SMEM( frameNr, int );
+
+        //entry points for all particles in a cell
+        PMACC_SMEM( cellEntryPoint_sh, memory::Array< uint32_t, TileSize> );
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            cellEntryPoint_sh[i * blockDim.x + threadIdx.x] = 0xffffffff; // "-1" == not set
+        //number of particles in a cell
+        PMACC_SMEM( cellCount_sh, memory::Array< uint32_t, TileSize> );
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            cellCount_sh[i * blockDim.x + threadIdx.x] = 0;
+        __syncthreads( );
+
+        if ( threadIdx.x == 0 )
+        {
+            firstFrame = pb.getFirstFrame( DataSpace<Dim > (superCellIdx) );
+            lastFrame = pb.getLastFrame( DataSpace<Dim > (superCellIdx) );
+            frameNr = 0;
+        }
+        __syncthreads( );
+
+        while ( firstFrame.isValid( ) && firstFrame != lastFrame )
+        {
+            UpdateCellListOfFrame{}.template operator()<TileSize>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
+            if ( threadIdx.x == 0 )
+            {
+                firstFrame = pb.getNextFrame( firstFrame );
+                frameNr++;
+            }
+            __syncthreads( ); //wait control thread search new frame
+        }
+        if (firstFrame == lastFrame && firstFrame.isValid( ))
+            UpdateCellListOfFrame{}.template operator()<TileSize,false>(cellEntryPoint_sh, cellCount_sh, firstFrame, frameNr);
+        //Saving shared memory to buffers
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            pb.getCellEntryPoint( DataSpace<Dim > (superCellIdx) )[i * blockDim.x + threadIdx.x] = cellEntryPoint_sh[i * blockDim.x + threadIdx.x];
+        for (int i = 0; i < blockDim.x / TileSize; ++i)
+            pb.getCellCount( DataSpace<Dim > (superCellIdx) )[i * blockDim.x + threadIdx.x] = cellCount_sh[i * blockDim.x + threadIdx.x];
+    }
+};
+
+} //namespace kernel
+
+} //namespace operations
+} //namespace particles
+} //namespace PMacc

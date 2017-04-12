@@ -313,7 +313,14 @@ struct CallIonization
              * the last frame is not completely filled but every other before is full
              */
             electronsPtr->fillAllGaps();
-
+            /*constexpr auto TileSize =
+                PMacc::math::CT::volume<
+                    typename decltype(electronsPtr)::MappingDesc::SuperCellSize
+                >::type::value;
+            auto pBox = electronsPtr->getParticlesBuffer->getDeviceParticleBox();
+            PMACC_KERNEL(PMacc::particles::operations::kernel::UpdateCellListOfFramesKernel{})
+                (mapper.getGridDim(), (int)TileSize)
+                (pBox, mapper);*/
         }
     }
 
