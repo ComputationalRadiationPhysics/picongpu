@@ -101,7 +101,6 @@ public:
      */
     MySimulation() :
     laser(nullptr),
-    mallocMCBuffer(nullptr),
     myFieldSolver(nullptr),
     myCurrentInterpolation(nullptr),
     pushBGField(nullptr),
@@ -249,8 +248,6 @@ public:
 
         __delete(myFieldSolver);
 
-        dc.unshare( mallocMCBuffer->getUniqueId() );
-
         __delete(myCurrentInterpolation);
 
         /** unshare all registered ISimulationData sets
@@ -377,7 +374,8 @@ public:
 
         // initializing the heap for particles
         deviceHeap->destructiveResize(heapSize);
-        this->mallocMCBuffer = new MallocMCBuffer<DeviceHeap>(deviceHeap);
+        MallocMCBuffer<DeviceHeap>* mallocMCBuffer = new MallocMCBuffer<DeviceHeap>(deviceHeap);
+        dc.share( std::shared_ptr< ISimulationData >( mallocMCBuffer ) );
 
         ForEach< VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1> > createParticleBuffer;
         createParticleBuffer( deviceHeap );
@@ -724,7 +722,6 @@ private:
     }
 
 protected:
-    MallocMCBuffer<DeviceHeap> *mallocMCBuffer;
     std::shared_ptr<DeviceHeap> deviceHeap;
 
     // field solver
