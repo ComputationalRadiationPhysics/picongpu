@@ -159,7 +159,7 @@ Struct Factory
 
 Syntax to generate structs with all members inline.
 Allows to conveniently switch between variable and constant defined members without the need to declare or initialize them externally.
-See for example PIConGPU's densityConfig.param for usage.
+See for example PIConGPU's :ref:`density.param <usage-params-core>` for usage.
 
 .. doxygendefine:: PMACC_STRUCT
    :project: PIConGPU

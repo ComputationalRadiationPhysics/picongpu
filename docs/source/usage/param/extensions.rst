@@ -27,12 +27,12 @@ synchrotronPhotons.param
    :path: src/picongpu/include/simulation_defines/param/synchrotronPhotons.param
    :no-link:
 
-ionizerConfig.param
-^^^^^^^^^^^^^^^^^^^
+ionizer.param
+^^^^^^^^^^^^^
 
-.. doxygenfile:: ionizerConfig.param
+.. doxygenfile:: ionizer.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/ionizerConfig.param
+   :path: src/picongpu/include/simulation_defines/param/ionizer.param
    :no-link:
 
 ionizationEnergies.param
