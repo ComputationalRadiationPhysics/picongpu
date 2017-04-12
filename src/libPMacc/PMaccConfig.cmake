@@ -143,7 +143,7 @@ elseif("${PMACC_CUDA_COMPILER}" STREQUAL "nvcc")
     foreach(PMACC_CUDA_ARCH_ELEM ${CUDA_ARCH})
         # set flags to create device code for the given architecture
         set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}
-            "--generate-code arch=compute_${PMACC_CUDA_ARCH_ELEM},code=sm_${PMACC_CUDA_ARCH_ELEM}")
+            "--generate-code arch=compute_${PMACC_CUDA_ARCH_ELEM},code=sm_${PMACC_CUDA_ARCH_ELEM} --generate-code arch=compute_${PMACC_CUDA_ARCH_ELEM},code=compute_${PMACC_CUDA_ARCH_ELEM}")
     endforeach()
 
     if(CUDA_FAST_MATH)
