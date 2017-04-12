@@ -23,7 +23,7 @@
 
 #include "random/RNGProvider.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
-#include "dataManagement/DataConnector.hpp"
+#include "Environment.hpp"
 
 #include <memory>
 
@@ -60,8 +60,6 @@ namespace random
     {
         if(m_size.productOfComponents() == 0)
             throw std::invalid_argument("Cannot create RNGProvider with zero size");
-
-        Environment<T_dim>::get().DataConnector().share( std::shared_ptr< ISimulationData >( this ) );
     }
 
     template<uint32_t T_dim, class T_RNGMethod>

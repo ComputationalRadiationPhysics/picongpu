@@ -108,8 +108,7 @@ public:
     currentBGField(nullptr),
     cellDescription(nullptr),
     initialiserController(nullptr),
-    slidingWindow(false),
-    rngFactory(nullptr)
+    slidingWindow(false)
     {
     }
 
@@ -265,7 +264,6 @@ public:
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
-        __delete(rngFactory);
     }
 
     void notify(uint32_t)
@@ -320,10 +318,13 @@ public:
         if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value || !bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value || NumReqRNGs::value)
         {
             // create factory for the random number generator
-            this->rngFactory = new RNGFactory(Environment<simDim>::get().SubGrid().getLocalDomain().size);
-            // init factory
+            using RNGFactory = PMacc::random::RNGProvider< simDim, PMacc::random::methods::XorMin >;
+            auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
+
+            // init and share random number generator
             PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
-            this->rngFactory->init(gridCon.getScalarPosition());
+            rngFactory->init( gridCon.getScalarPosition() );
+            dc.share( std::shared_ptr< ISimulationData >( rngFactory ) );
         }
 
         // Initialize synchrotron functions, if there are synchrotron photon species
@@ -742,10 +743,6 @@ protected:
 
     // Synchrotron functions (used in synchrotronPhotons module)
     particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
-
-    // factory for the random number generator
-    typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
-    RNGFactory* rngFactory;
 
     // output classes
 
