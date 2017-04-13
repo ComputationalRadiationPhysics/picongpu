@@ -27,10 +27,10 @@
  *     positioning.
  *     Fills a particle species (`fillAllGaps()` is called).
  *     @tparam T_DensityFunctor  unary lambda functor with density description,
- *                               \see densityConfig.param
+ *                               \see density.param
  *                               \example densityProfiles::Homogenous,
  *     @tparam T_PositionFunctor unary lambda functor with position description,
- *                               \see particlesConfig.param
+ *                               \see particles.param
  *                               \example startPosition::Quiet
  *                                        startPosition::Random
  *     @tparam T_SpeciesType type of the used species,
@@ -48,7 +48,7 @@
  *     \warning does not call `fillAllGaps()` if one removes or
  *              adds particles with it (\see FillAllGaps below)
  *     @tparam T_Functor     unary lambda functor,
- *                           \see particleConfig.param
+ *                           \see particle.param
  *     @tparam T_SpeciesType type of the used species
  *
  * - ManipulateDeriveSpecies<T_ManipulateFunctor, T_SrcSpeciesType, T_DestSpeciesType>
@@ -58,7 +58,7 @@
  *     Note: `fillAllGaps()` is only called for the T_DestSpeciesType.
  *     @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle
  *                                 species: destination and source,
- *                                 \see particleConfig.param
+ *                                 \see particle.param
  *     @tparam T_SrcSpeciesType    source species
  *     @tparam T_DestSpeciesType   destination species
  *

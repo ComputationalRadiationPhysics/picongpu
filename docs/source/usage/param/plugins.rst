@@ -27,12 +27,12 @@ particleCalorimeter.param
    :path: src/picongpu/include/simulation_defines/param/particleCalorimeter.param
    :no-link:
 
-radiationConfig.param
-^^^^^^^^^^^^^^^^^^^^^
+radiation.param
+^^^^^^^^^^^^^^^
 
-.. doxygenfile:: radiationConfig.param
+.. doxygenfile:: radiation.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/radiationConfig.param
+   :path: src/picongpu/include/simulation_defines/param/radiation.param
    :no-link:
 
 radiationObserver.param

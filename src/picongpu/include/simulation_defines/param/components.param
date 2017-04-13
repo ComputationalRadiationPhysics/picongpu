@@ -48,7 +48,7 @@ namespace simulation_starter = defaultPIConGPU;
  *  - laserPlaneWave        : a plane wave
  *  - laserPolynom          : a polynomial laser envelope
  *
- * Adjust the settings of the selected profile in laserConfig.param
+ * Adjust the settings of the selected profile in laser.param
  */
 namespace laserProfile = laserNone;
 

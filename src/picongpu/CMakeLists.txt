@@ -314,7 +314,7 @@ endif(ISAAC_FOUND)
 ################################################################################
 
 find_path(PIC_EXTENSION_PATH
-    NAMES include/simulation_defines/param/componentsConfig.param
+    NAMES include/simulation_defines/param/components.param
     PATHS "${CMAKE_CURRENT_SOURCE_DIR}"
     DOC "search PATH to extension folder"
     NO_DEFAULT_PATH

@@ -34,10 +34,10 @@ namespace particles
  *     positioning.
  *     Fills a particle species (`fillAllGaps()` is called).
  *     @tparam T_GasFunctor      unary lambda functor with gas description,
- *                               \see gasConfig.param
+ *                               \see gas.param
  *                               \example gasProfiles::Homogenous,
  *     @tparam T_PositionFunctor unary lambda functor with position description,
- *                               \see particlesConfig.param
+ *                               \see particles.param
  *                               \example startPosition::Quiet
  *                                        startPosition::Random
  *     @tparam T_SpeciesType type of the used species,
@@ -55,7 +55,7 @@ namespace particles
  *     \warning does not call `fillAllGaps()` if one removes or
  *              adds particles with it (\see FillAllGaps below)
  *     @tparam T_Functor     unary lambda functor,
- *                           \see particleConfig.param
+ *                           \see particle.param
  *     @tparam T_SpeciesType type of the used species
  *
  * - ManipulateCloneSpecies<T_ManipulateFunctor, T_SrcSpeciesType, T_DestSpeciesType>
@@ -65,7 +65,7 @@ namespace particles
  *     Note: `fillAllGaps()` is only called for the T_DestSpeciesType.
  *     @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle
  *                                 species: destination and source,
- *                                 \see particleConfig.param
+ *                                 \see particle.param
  *     @tparam T_SrcSpeciesType    source species
  *     @tparam T_DestSpeciesType   destination species
  *
