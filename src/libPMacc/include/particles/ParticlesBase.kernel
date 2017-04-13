@@ -339,12 +339,11 @@ struct KernelFillGaps
             cellCount_sh = &PMacc::memory::shared::allocate< __COUNTER__, memory::Array< uint32_t, TileSize> >();
             //entry points for all particles in a cell
             for (int i = 0; i < blockDim.x / TileSize; ++i)
-                (*cellEntryPoint_sh)[i * blockDim.x + threadIdx.x] = 0xffffffff; // "-1" == not set
+                (*cellEntryPoint_sh)[i * blockDim.x + threadIdx.x] = INV_IDX; // "-1" == not set
             //number of particles in a cell
             for (int i = 0; i < blockDim.x / TileSize; ++i)
                 (*cellCount_sh)[i * blockDim.x + threadIdx.x] = 0;
         }
-
         __syncthreads( );
 
         if ( threadIdx.x == 0 )
@@ -403,8 +402,8 @@ struct KernelFillGaps
                 auto parDestFull = (firstFrame[threadIdx.x]);
                 /*enable particle*/
                 parDestFull[multiMask_] = 1;
-                /* we not update multiMask because copy from mem to mem is too slow
-                 * we have enabled particle explicit */
+                /* we do not update multiMask because copy from mem to mem is too slow
+                 * we have enabled particle explicitly */
                 auto parDest = deselect<multiMask>(parDestFull);
                 auto parSrc = (lastFrame[parIdx]);
                 assign( parDest, parSrc );

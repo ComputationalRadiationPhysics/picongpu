@@ -59,7 +59,7 @@ struct UpdateCellListOfFrame
             //absolute position in frame list
             auto myID = threadIdx.x + frameNr * TileSize;
             auto & myCell = myParticle[localCellIdx_];
-            myParticle[picongpu::inCellOffset_] = ::atomicExch(&(cellEntryPoint[myCell]),myID);
+            myParticle[inCellOffset_] = ::atomicExch(&(cellEntryPoint[myCell]),myID);
             ::atomicAdd(&(cellCount[myCell]),1);
         }
         __syncthreads( );
