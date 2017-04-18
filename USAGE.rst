@@ -41,10 +41,10 @@ TL;DR
 .. code-block:: bash
    :emphasize-lines: 1,4,5,8
 
-   $PICSRC/createParameterSet ~/paramSets/originalSet ~/paramSets/myLWFA
+   pic-create ~/paramSets/originalSet ~/paramSets/myLWFA
    
    cd ~/build
-   $PICSRC/configure $HOME/paramSets/myLWFA
+   pic-configure $HOME/paramSets/myLWFA
    make -j install
    
    cd ~/paramSets/myLWFA
@@ -58,7 +58,7 @@ TL;DR
    :emphasize-lines: 2
 
    # clone the LWFA example to $HOME/paramSets/myLWFA
-   $PICSRC/createParameterSet $PICSRC/examples/LaserWakefield/ $HOME/paramSets/myLWFA
+   pic-create $PICSRC/examples/LaserWakefield/ $HOME/paramSets/myLWFA
 
 Now edit ``$HOME/paramSets/case001/include/simulation_defines/param/*`` to change the :ref:`physical configuration of this parameter set <usage-params>`.
 
@@ -70,7 +70,7 @@ Hint: you can further create parameter sets from parameter sets.
 """""""""""""""""""""
 
 New ``.param`` files in inputs or changes of parameters in excisting files require a re-compile of PIConGPU.
-Our script ``$PICSRC/configure`` is a wrapper for CMake to quickly specify which parameter set and source version of PIConGPU shall be used.
+Our script ``pic-configure`` is a wrapper for CMake to quickly specify which parameter set and source version of PIConGPU shall be used.
 
 .. code-block:: bash
    :emphasize-lines: 7,12
@@ -81,7 +81,7 @@ Our script ``$PICSRC/configure`` is a wrapper for CMake to quickly specify which
    rm -rf ../build/*
 
    # configure case001
-   $PICSRC/configure $HOME/paramSets/myLWFA
+   pic-configure $HOME/paramSets/myLWFA
 
    # compile PIConGPU with the current parameter set (myLWFA)
    # - "make -j install" runs implicitly "make -j" and then "make install"
@@ -111,19 +111,19 @@ Further Reading
 
 Individual input files, their syntax and usage are explained in the following sections.
 
-See ``$PICSRC/createParameterSet --help`` for more options during parameter set creation:
+See ``pic-create --help`` for more options during parameter set creation:
 
-.. program-output:: ../../createParameterSet --help
+.. program-output:: ../../pic-create --help
 
-See ``$PICSRC/configure --help`` for more options during parameter set configuration:
+See ``pic-configure --help`` for more options during parameter set configuration:
 
-.. program-output:: ../../configure --help
+.. program-output:: ../../pic-configure --help
 
 After running configure you can run ``ccmake .`` to set additional compile options (optimizations, debug levels, hardware version, etc.).
 This will influence your build done via ``make``.
 
 You can pass further options to configure PIConGPU directly instead of using ``ccmake .``, by passing ``-c "-DOPTION1=VALUE1 -DOPTION2=VALUE2"``.
 
-The ``picongpu/`` directory of a run can also be reused to clone parameters via ``createParameterSet`` by using this run as origin directory or to create a new binary with ``configure``: e.g. ``$PICSRC/configure -i $HOME/paramSets/myLWFA2 $SCRATCH/runs/lwfa_001``.
+The ``picongpu/`` directory of a run can also be reused to clone parameters via ``pic-create`` by using this run as origin directory or to create a new binary with ``configure``: e.g. ``pic-configure -i $HOME/paramSets/myLWFA2 $SCRATCH/runs/lwfa_001``.
 
 See ``tbg --help`` :ref:`for more information <usage-tbg>` about the ``tbg`` tool.

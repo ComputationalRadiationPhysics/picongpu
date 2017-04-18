@@ -29,10 +29,10 @@ files_to_copy="cmakeFlags executeOnClone"
 
 help()
 {
-    echo "createParameterSet create a new parameter set"
-    echo "merge default picongpu paramter and given src"
+    echo "pic-create create a new parameter set for simulation input"
+    echo "merge default picongpu parameters and a given example's input"
     echo ""
-    echo "usage: createParameterSet [OPTION] [src_dir] dest_dir"
+    echo "usage: pic-create [OPTION] [src_dir] dest_dir"
     echo "If no src_dir is set picongpu a default case is cloned"
     echo ""
     echo "-f | --force         - merge data if destination already exists"
@@ -59,7 +59,7 @@ while true ; do
             ;;
         -h|--help)
             echo -e "$(help)"
-            exit 1
+            exit 0
             ;;
         --) shift; break;;
     esac

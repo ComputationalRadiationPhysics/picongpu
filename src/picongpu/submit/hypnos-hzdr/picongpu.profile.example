@@ -40,6 +40,7 @@ export MY_MAILNOTIFY="n"
 export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
+export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
 

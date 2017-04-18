@@ -33,17 +33,17 @@ export BOOST_ROOT=$BOOST_DIR
 export MPI_ROOT=$MPICH_DIR
 
 # vampirtrace (optional) ############################################
-#   configure with -c "-DVAMPIR_ENABLE=ON"
+#   pic-configure with -c "-DVAMPIR_ENABLE=ON"
 #   e.g.:
-#     $PICSRC/configure -c "-DVAMPIR_ENABLE=ON" ~/paramSets/case001
+#     pic-configure -c "-DVAMPIR_ENABLE=ON" ~/paramSets/case001
 #module load vampirtrace/5.14.4
 #export VT_ROOT=$VAMPIRTRACE_DIR
 
-# scorep (optional) ############################################
-#   configure with -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
-#                      -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`"
+# scorep (optional) #################################################
+#   pic-configure with -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
+#                          -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`"
 #   e.g.:
-#     SCOREP_WRAPPER=OFF $PICSRC/configure -a 35 \
+#     SCOREP_WRAPPER=OFF pic-configure -a 35 \
 #         -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
 #         -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`" \
 #         ~/paramSets/case001
@@ -81,6 +81,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib
 # helper variables and tools ########################################
 export PICSRC=$HOME/src/picongpu
 
+export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
 export PATH=$PATH:$SPLASH_ROOT/bin
 

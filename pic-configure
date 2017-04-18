@@ -60,7 +60,7 @@ while true ; do
             ;;
         -h|--help)
             echo -e "$(help)"
-            exit 1
+            exit 0
             ;;
         -c|--cmake)
             cmake_options="$2"
@@ -94,6 +94,6 @@ extension_param="-DPIC_EXTENSION_PATH=$extension_param"
 
 
 
-own_command="cmake $cmake_flags $install_path $extension_param $cmake_options $cuda_arch $this_dir"
+own_command="cmake $cmake_flags $install_path $extension_param $cmake_options $cuda_arch $this_dir/src/picongpu"
 echo -e "\033[32mcmake command:\033[0m $own_command"
 $own_command

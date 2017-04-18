@@ -122,6 +122,7 @@ PIConGPU source code
 - *environment*:
 
   - ``export PICSRC=$PICHOME/src/picongpu``
+  - ``export PATH=$PICSRC:$PATH``
   - ``export PATH=$PICSRC/src/tools/bin:$PATH``
 
 Optional Libraries

@@ -47,7 +47,7 @@ export CC=`which cc`
 export CXX=`which CC`
 
 export PICSRC=$HOME/src/picongpu
-# needed to call `tbg`
+export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
 
 # send me a mail on BEGIN, END, FAIL, REQUEUE, ALL,

@@ -23,7 +23,7 @@ help()
 {
     echo "compile given examples"
     echo ""
-    echo "usage: compile [OPTION] src_dir dest_dir"
+    echo "usage: pic-compile [OPTION] src_dir dest_dir"
     echo ""
     echo "-l                   - interprete all folders in src_dir as examples and"
     echo "                       compile each of it"

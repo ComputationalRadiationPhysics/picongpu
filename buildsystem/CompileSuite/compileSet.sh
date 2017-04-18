@@ -63,9 +63,9 @@ cS_this_dir=$(cd `dirname $0` && pwd)
     cd $cS_buildDir
 
     param_folder="$cS_tmpRun_path/params/$cS_example_name/cmakePreset_$cS_testFlagNr"
-    execute_and_validate $cS_this_dir/../../createParameterSet -f $cS_examples_path/$cS_example_name $param_folder
+    execute_and_validate $cS_this_dir/../../pic-create -f $cS_examples_path/$cS_example_name $param_folder
 
-    execute_and_validate $cS_this_dir/../../configure $cS_globalCMakeOptions -t $cS_testFlagNr $param_folder
+    execute_and_validate $cS_this_dir/../../pic-configure $cS_globalCMakeOptions -t $cS_testFlagNr $param_folder
     execute_and_validate make install
 
     echo "$myError" > ./returnCode
