@@ -59,7 +59,7 @@ while true ; do
             ;;
         -h|--help)
             echo -e "$(help)"
-            exit 1
+            exit 0
             ;;
         --) shift; break;;
     esac
