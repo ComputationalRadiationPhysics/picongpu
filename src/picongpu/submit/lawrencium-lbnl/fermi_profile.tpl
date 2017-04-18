@@ -54,6 +54,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # 2 gpus per node
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 2 ] ; then echo 2; else echo $TBG_tasks; fi`
@@ -77,7 +78,11 @@ echo 'Running program...'
 cd !TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
-source ~/picongpu.profile
+source !TBG_profile
+if [ $? -ne 0 ] ; then
+  echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
+  exit 1
+fi
 unset MODULES_NO_OUTPUT
 
 #set user rights to u=rwx;g=r-x;o=---
