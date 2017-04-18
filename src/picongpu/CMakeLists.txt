@@ -55,6 +55,30 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 11)
 
+
+################################################################################
+# Disallow in-source build
+################################################################################
+
+get_filename_component(SOURCE_DIR_ROOT ${PIConGPU_SOURCE_DIR}/../.. ABSOLUTE)
+string(FIND "${PIConGPU_BINARY_DIR}"
+            "${SOURCE_DIR_ROOT}" IN_SRC_POS)
+message(STATUS "BIN: ${PIConGPU_BINARY_DIR}")
+message(STATUS "SRC: ${PIConGPU_SOURCE_DIR}")
+message(STATUS "ROT: ${SOURCE_DIR_ROOT}")
+if(IN_SRC_POS GREATER -1)
+  message(FATAL_ERROR
+    "PICoNGPU requires an out of source build. "
+    "Please remove \n"
+    "  - CMakeCache.txt\n"
+    "  - CMakeFiles/\n"
+    "and create a separate build directory. "
+    "See: INSTALL.rst")
+endif()
+
+unset(IN_SRC_POS)
+
+
 ################################################################################
 # Find PMacc
 ################################################################################
