@@ -23,35 +23,30 @@ Hypnos (HZDR)
 
 .. literalinclude:: submit/hypnos-hzdr/picongpu.profile.example
    :language: bash
-   :linenos:
 
 Titan (ORNL)
 ------------
 
 .. literalinclude:: submit/titan-ornl/picongpu.profile.example
    :language: bash
-   :linenos:
 
 Piz Daint (CSCS)
 ----------------
 
 .. literalinclude:: submit/pizdaint-cscs/picongpu.profile.example
    :language: bash
-   :linenos:
 
 Taurus (TU Dresden)
 -------------------
 
 .. literalinclude:: submit/taurus-tud/picongpu.profile.example
    :language: bash
-   :linenos:
 
 Lawrencium (LBNL)
 -----------------
 
 .. literalinclude:: submit/lawrencium-lbnl/picongpu.profile.example
    :language: bash
-   :linenos:
 
 Judge (FZJ)
 -----------
