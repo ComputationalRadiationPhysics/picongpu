@@ -80,6 +80,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib
 
 # helper variables and tools ########################################
 export PICSRC=$HOME/src/picongpu
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
