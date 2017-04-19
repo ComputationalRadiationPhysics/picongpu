@@ -167,6 +167,8 @@ namespace writeMeta
             softwareVersion << PICONGPU_VERSION_MAJOR << "."
                             << PICONGPU_VERSION_MINOR << "."
                             << PICONGPU_VERSION_PATCH;
+            if( ! std::string(PICONGPU_VERSION_LABEL).empty() )
+                softwareVersion << "-" << PICONGPU_VERSION_LABEL;
             ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
                 "softwareVersion", "/", adios_string, 1, (void*)softwareVersion.str().c_str()));
 
