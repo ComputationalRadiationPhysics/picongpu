@@ -201,6 +201,8 @@ namespace writeMeta
             softwareVersion << PICONGPU_VERSION_MAJOR << "."
                             << PICONGPU_VERSION_MINOR << "."
                             << PICONGPU_VERSION_PATCH;
+            if( ! std::string(PICONGPU_VERSION_LABEL).empty() )
+                softwareVersion << "-" << PICONGPU_VERSION_LABEL;
             ColTypeString ctSoftwareVersion( softwareVersion.str().length() );
             dc->writeGlobalAttribute( threadParams->currentStep,
                                       ctSoftwareVersion, "softwareVersion",

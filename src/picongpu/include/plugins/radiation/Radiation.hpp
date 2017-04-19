@@ -899,6 +899,8 @@ private:
       softwareVersion << PICONGPU_VERSION_MAJOR << "."
                       << PICONGPU_VERSION_MINOR << "."
                       << PICONGPU_VERSION_PATCH;
+      if( ! std::string(PICONGPU_VERSION_LABEL).empty() )
+          softwareVersion << "-" << PICONGPU_VERSION_LABEL;
       splash::ColTypeString ctSoftwareVersion(softwareVersion.str().length());
       hdf5DataFile.writeGlobalAttribute( ctSoftwareVersion,
                                          "softwareVersion",
