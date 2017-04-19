@@ -22,6 +22,7 @@
 
 # settings that can be controlled by environment variables before submit
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
 .TBG_gpusPerNode=$(if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi)
@@ -34,7 +35,7 @@ echo 'Running program...'
 cd !TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
-. ~/picongpu.profile
+. !TBG_profile
 unset MODULES_NO_OUTPUT
 
 #set user rights to u=rwx;g=r-x;o=---

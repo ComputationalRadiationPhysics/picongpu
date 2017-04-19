@@ -34,6 +34,7 @@ alias getk20='qsub -I -q k20 -lwalltime=00:30:00 -lnodes=1:ppn=8'
 alias getlaser='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=16'
 
 export PICSRC=/home/`whoami`/src/picongpu
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
 export MY_MAILNOTIFY="n"

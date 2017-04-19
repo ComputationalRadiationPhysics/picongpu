@@ -47,6 +47,8 @@ export CC=`which cc`
 export CXX=`which CC`
 
 export PICSRC=$HOME/src/picongpu
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
 

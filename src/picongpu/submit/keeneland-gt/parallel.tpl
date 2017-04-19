@@ -41,6 +41,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # 3 gpus per node if we need more than 3 gpus else same count as TBG_tasks
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 3 ] ; then echo 3; else echo $TBG_tasks; fi`

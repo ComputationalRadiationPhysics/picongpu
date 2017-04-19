@@ -35,6 +35,7 @@ alias allocK20='salloc --time=0:30:00 --nodes=1 --ntasks-per-node=1 --cpus-per-t
 alias allocFermi='salloc --time=0:30:00 --nodes=1 --ntasks-per-node=2 --cpus-per-task=6 --partition mako_manycore'
 
 export PICSRC=$HOME/src/picongpu
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # fix pic-create: re-enable rsync
 #   ssh lrc-xfer.scs00

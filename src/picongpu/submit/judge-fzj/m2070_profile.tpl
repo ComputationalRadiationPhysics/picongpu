@@ -45,6 +45,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 #number of cores per parallel node / default is 2 cores per gpu on k20 queue
 
@@ -67,8 +68,11 @@ pwd
 
 
 export MODULES_NO_OUTPUT=1
-
-source ~/picongpu.profile
+source !TBG_profile
+if [ $? -ne 0 ] ; then
+  echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
+  exit 1
+fi
 
 mkdir simOutput 2> /dev/null
 cd simOutput

@@ -45,6 +45,7 @@
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_nameProject=${proj:-""}
+.TBG_profile=${PIC_PROFILE:-"${PROJWORK}/!TBG_nameProject/${USER}/picongpu.profile"}
 
 # use ceil to caculate nodes
 .TBG_nodes=!TBG_tasks
@@ -57,10 +58,9 @@ cd !TBG_dstPath
 echo -n "present working directory:"
 pwd
 
-
-source $PROJWORK/!TBG_nameProject/$USER/picongpu.profile 2>/dev/null
+source !TBG_profile 2>/dev/null
 if [ $? -ne 0 ] ; then
-  echo "Error: picongpu.profile not found in PROJWORK"
+  echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
   exit 1
 fi
 
