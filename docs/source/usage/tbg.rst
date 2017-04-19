@@ -35,4 +35,3 @@ Feel free to copy & paste sections of the files below into your `.cfg`, e.g. to 
 
 .. literalinclude:: ../../TBG_macros.cfg
    :language: bash
-   :linenos:
