@@ -63,9 +63,6 @@ set(CMAKE_CXX_STANDARD 11)
 get_filename_component(SOURCE_DIR_ROOT ${PIConGPU_SOURCE_DIR}/../.. ABSOLUTE)
 string(FIND "${PIConGPU_BINARY_DIR}"
             "${SOURCE_DIR_ROOT}" IN_SRC_POS)
-message(STATUS "BIN: ${PIConGPU_BINARY_DIR}")
-message(STATUS "SRC: ${PIConGPU_SOURCE_DIR}")
-message(STATUS "ROT: ${SOURCE_DIR_ROOT}")
 if(IN_SRC_POS GREATER -1)
   message(FATAL_ERROR
     "PICoNGPU requires an out of source build. "
@@ -302,7 +299,7 @@ endif(PNGwriter_FOUND)
 # ISAAC
 ################################################################################
 
-find_package(ISAAC 0.1.0 CONFIG QUIET)
+find_package(ISAAC 1.3.0 CONFIG QUIET)
 if(ISAAC_FOUND)
     message(STATUS "Found ISAAC: ${ISAAC_DIR}")
     SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
@@ -330,8 +327,14 @@ if(ISAAC_FOUND)
 
     add_definitions(-DENABLE_ISAAC=1)
 else(ISAAC_FOUND)
-    message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH" )
+    if(DEFINED ISAAC_DEPENDENCY_HINTS)
+        message(STATUS "ISAAC was found, but detected the following "
+                       "problems:" ${ISAAC_DEPENDENCY_HINTS})
+    else()
+        message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH")
+    endif()
 endif(ISAAC_FOUND)
+
 
 ################################################################################
 # Check if PIC_EXTENSION_PATH is relative or absolute
