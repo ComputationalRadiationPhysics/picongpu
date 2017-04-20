@@ -1,6 +1,285 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.3.0
+-----
+**Date:** 2017-04-..
+
+C++11: Bremsstrahlung, EmZ, Thomas-Fermi, Improved Lasers
+
+This is the first release of PIConGPU requiring C++11. We added a
+newly developed current solver (EmZ), support for the generation of
+Bremsstrahlung, Thomas-Fermi Ionization, Laguerre-modes in the
+Gaussian-Beam laser, in-simulation plane for laser initialization,
+new plugins for in situ visualization (ISAAC), a generalized particle
+calorimeter and a GPU resource monitor. Initial support for clang
+(host and device) has been added and our documentation has been
+streamlined to use Sphinx from now on.
+
+### Changes to "0.2.0"
+
+**.param & .unitless file changes:**
+ - use C++11 `constexpr` where possible and update arrays #1799 #1909
+ - use C++11 `using` instead of `typedef`
+ - removed `Config` suffix in file names #1965
+ - `gasConfig` is now `density`
+ - `speciesDefinition`: simplified `Particles<>` interface #1711 #1942
+ - `radiation`: replace `#defines` with clean C++ #1877 #1930 #1931 #1937
+
+**Basic Usage:**
+
+We renamed the default tools to create, setup and build a simulation.
+Please make sure to update your `picongpu.profile` with the latest
+syntax (e.g. new entries in `PATH`) and use from now on:
+ - `$PICSRC/createParameterSet` -> `pic-create`
+ - `$PICSRC/configure` -> `pic-configure`
+ - `$PICSRC/compile` -> `pic-compile`
+
+See the *Installation* and *Usage* chapters in our new documentation on
+  https://picongpu.readthedocs.io
+for detailed instructions.
+
+**New Features:**
+ - PIC:
+   - laser:
+     - allow to define the initialization plane #1796
+     - add transverse Laguerre-modes to standard Gaussian Beam #1580
+   - ionization:
+     - Thomas-Fermi impact ionization model #1754
+     - Z_eff, energies, isotope: Ag, He, C, O, Al, Cu #1804 #1860
+   - Add EmZ current deposition solver #1582
+   - FieldTmp: Multiple slots #1703
+   - Particle `StartPosition`: `OnePosition` #1753
+   - Add Bremsstrahlung #1504
+   - Add kinetic energy algorithm #1744
+   - Added species manipulators:
+     - `CopyAttribute` #1861
+     - `FreeRngImpl` #1866
+   - Clang compatible static assert usage #1911
+   - Use `PMACC_ASSERT` and `PMACC_VERIFY` #1662
+ - libPMacc:
+   - Improve PMacc testsystem #1589
+   - Add test for IdProvider #1590
+   - Specialize HasFlag and GetFlagType for Particle #1604
+   - Add generic atomicAdd #1606
+   - Add tests for all RNG generators #1494
+   - Extent function `twistVectorFieldAxes<>()` #1568
+   - Expression validation/assertion #1578
+   - Use PMacc assert and verify #1661
+   - GetNComponents: improve error message #1670
+   - Define `MakeSeq_t` #1708
+   - Add `Array<>` with static size #1725
+   - Add shared memory allocator #1726
+   - Explicit cast `blockIdx` and `threadIdx` to `dim3` #1742
+   - CMake: allow definition of multiple architectures #1729
+   - Add trait `FilterByIdentifier` #1859
+ - plugins:
+   - HDF5/ADIOS:
+     - MacroParticleCounter #1788
+     - Restart: Allow disabling of moving window #1668
+     - FieldTmp: MidCurrentDensityComponent #1561
+   - Radiation:
+     - Add pow compile time using c++11 #1653
+     - Add radiation form factor for spherical Gaussian charge distribution #1641
+   - Calorimeter: generalize (charged & uncharged) #1746
+   - PNG: help message if dependency is not compiled #1702
+   - Added:
+     - In situ: ISAAC Plugin #1474 #1630
+     - Resource log plugin #1457
+ - tools:
+   - Add a tpl file for k80 hypnos that automatically restarts #1567
+   - Python3 compatibility for plotNumericalHeating #1747
+   - Tpl: Variable Profile #1975
+   - Plot heating & charge conservation: file export #1637
+ - Support for clang as host && device compiler #1933
+
+**Bug Fixes:**
+ - PIC:
+   - Add missing minus sign wavepacket laser transversal #1722
+   - `RatioWeighting` (`DensityWeighting`) manipulator #1759
+   - `MovingWindow`: `slide_point` now can be set to zero. #1783
+   - `boundElectrons`: non-weighted attribute #1808
+   - Verify number of ionization energy levels == proton number #1809
+   - Ionization: charge of ionized ions #1844
+   - Particle manipulators: position offset #1852
+ - libPMacc:
+   - Avoid CUDA local memory usage of `Particle<>` #1579
+   - Event system deadlock on `MPI_Barrier` #1659
+   - ICC: `AllCombinations` #1646
+   - Device selection: guard valid range #1665
+   - `MapTuple`: broken compile with icc #1648
+   - Missing '%%' to use ptx special register #1737
+   - `ConstVector`: check arguments init full length #1803
+   - `CudaEvent`: cyclic include #1836
+   - Add missing `HDINLINE` #1825
+   - Remove `BOOST_BIND_NO_PLACEHOLDERS` #1849
+   - Remove CUDA native static shared memory #1929
+ - plugins:
+   - Write openPMD meta data without species #1718
+   - openPMD: iterationFormat only Basename #1751
+   - ADIOS trait for `bool` #1756
+   - Adjust `radAmplitude` python module after openPMD changes #1885
+   - HDF5/ADIOS: ill-placed helper `#include` #1846
+   - `#include`: never inside namespace #1835
+
+**Misc:**
+ - refactoring:
+   - PIC:
+     - Switch to c++11 only #1649
+     - Begin kernel names with upper case letter #1691
+     - Maxwell solver, use curl instance #1714
+     - Lehe solver: optimize performance #1715
+     - Simplify species definition #1711
+     - Add missing `math::` namespace to `tan()` #1740
+     - Remove usage of pmacc and boost auto #1743
+     - Add missing typename's #1741
+     - Change tenary if operator to `if` condition #1748
+     - Remove usage of `BOOST_AUTO` and `PMACC_AUTO` #1749
+     - mallocMC: organize setting #1779
+     - `ParticlesBase` allocate member memory #1791
+     - `Particle` constructor interface  #1792
+     - Species can omit a current solver #1794
+     - Use constexpr for arrays in  `gridConfig.param` #1799
+     - Update mallocMC #1798
+     - `DataConnector`: `#includes` #1800
+     - Improve Esirkepov speed #1797
+     - Ionization Methods: Const-Ness #1824
+     - Missing/wrong includes #1858
+     - Move functor `Manipulate` to separate file #1863
+     - Manipulator `FreeImpl` #1815
+     - Ionization: clean up params #1855
+     - MySimulation: remove particleStorage #1881
+     - New `DataConnector` for fields (& species) #1887
+     - Radiation filter functor: remove macros #1877
+     - Topic use remove shared keyword #1727
+     - Remove define `ENABLE_RADIATION` #1931
+     - Optimize `AssignedTrilinearInterpolation` #1936
+     - `Particles<>` interface  #1942
+     - Param/Unitless files: remove "config" suffix #1965
+     - Kernels: Refactor Functions to Functors #1669
+     - Gamma calculation #1857
+     - Include order in defaut loader #1864
+     - Remove `ENABLE_ELECTRONS/IONS` #1935
+     - Add `Line<>` default constructor #1588
+   - libPMacc:
+     - Particles exchange: avoid message spamming #1581
+     - Change minimum CMake version #1591
+     - CMake: handle PMacc as separate library #1692
+     - ForEach: remove boost preprocessor #1719
+     - Refactor `InheritLinearly` #1647
+     - Add missing `HDINLINE` prefix #1739
+     - Refactor .h files to .hpp files #1785
+     - Log: make events own level #1812
+     - float to int cast warnings #1819
+     - DataSpaceOperations: Simplify Formula #1805
+     - DataConnector: Shared Pointer Storage #1801
+     - Refactor `MPIReduce` #1888
+     - Environment refactoring #1890
+     - Refactor `MallocMCBuffer` share #1964
+     - Rename `typedef`s inside `ParticleBuffer` #1577
+     - Add typedefs for `Host`/`DeviceBuffer` #1595
+   - plugins:
+     - Source files: remove non-ASCII chars #1684
+     - Plugins: replace old analyzer naming #1924
+     - Radiation:
+       - Remove Nyquist limit switch #1930
+       - Remove precompiler flag for form factor #1937
+   - tools:
+     - Automatically restart from ADIOS output #1882
+     - Workflow: rename tools to set up a sim #1971
+     - Check if binary `cuda_memtest` exists #1897
+   - C++11 constexpr: remove boost macros #1655
+   - Cleanup: remove EOL white spaces #1682
+   - .cfg files: remove EOL white spaces #1690
+   - Style: more EOL #1695
+   - Test: remove more EOL white spaces #1685
+   - Style: replace all tabs with spaces #1698
+   - Pre-compiler spaces #1693
+   - Param: Type List Syntax #1709
+   - Refactor Density Profiles #1762
+   - Bunch Example: Add Single e- Setup #1755
+   - Use Travis `TRAVIS_PULL_REQUEST_SLUG` #1773
+   - ManipulateDeriveSpecies: Refactor Functors & Tests #1761
+   - Source Files: Move to Headers #1781
+   - Single Particle Tests: Use Standard MySimulation #1716
+   - Replace NULL with C++11 nullptr #1790
+ - documentation:
+   - Wrong comment random->quiet #1633
+   - Remove `sm_20` Comments #1664
+   - Empty Example & `TBG_macros.cfg` #1724
+   - License Header: Update 2017 #1733
+   - INSTALL.md:
+     - List Spack Packages #1764
+     - Update Hypnos Example #1807
+     - grammar error #1941
+   - TBG: Outdated Header #1806
+   - Wrong sign of `delta_angle` in radiation observer direction #1811
+   - Hypnos: Use CMake 3.7 #1823
+   - Doxygen:
+     - Warnings Radiation #1840
+     - Warnings Ionization #1839
+     - Warnings PMacc #1838
+     - Warnings Core #1837
+     - Floating Docstrings #1856
+     - Update `struct.hpp` #1879
+     - Update FieldTmp Operations #1789
+     - File Comments in Ionization #1842
+     - Copyright Header is no Doxygen #1841
+   - Sphinx:
+     - Introduce Sphinx + Breathe + Doxygen #1843
+     - PDF, Link rst/md, png #1944 #1948
+     - Examples #1851 #1870 #1878
+     - Models, PostProcessing #1921 #1923
+     - PMacc Kernel Start #1920
+     - Local Build Instructions #1922
+     - Python Tutorials #1872
+     - Core Param Files #1869
+     - Important Classes #1871
+     - .md files, tbg, profiles #1883
+     - `ForEach` & Identifier #1889
+     - References & Citation #1895
+     - Slurm #1896 #1952
+     - Restructure Install Instructions #1943
+     - Start a User Workflows Section #1955
+   - ReadTheDocs:
+     - Build PDF & EPUB #1947
+     - remove linenumbers #1974
+   - Changelog & Version 0.2.3 (master) #1847
+   - Comments and definition of `radiationObserver` default setup #1829
+   - Typos plot radiation tool #1853
+   - doc/ -> docs/ #1862
+   - Particles Init & Manipulators #1880
+   - INSTALL: Remove gimli #1884
+   - BibTex: Change ShortHand #1902
+   - Rename `slide_point` to `movePoint` #1917
+   - Shared memory allocator documenation #1928
+   - Add documentation on slurm job control #1945
+   - Typos, modules #1949
+   - Mention current solver `EmZ` and compile tests #1966
+ - Remove assert.hpp in radiation plugin #1667
+ - Checker script for `__global__` keyword #1672
+ - Compile suite: GCC 4.9.4 chain #1689
+ - Add TSC and PCS rad form factor shapes #1671
+ - Add amend option for tee in k80 autorestart tpl #1681
+ - Test: EOL and suggest solution #1696
+ - Test: check & remove pre-compiler spaces #1694
+ - Test: check & remove tabs #1697
+ - Travis: check PR destination #1732
+ - Travis: simple style checks #1675
+ - PositionFilter: remove (virtual) Destructor #1778
+ - Remove namespace workaround #1640
+ - Add Bremsstrahlung example #1818
+ - WarmCopper example: FLYlite benchmark #1821
+ - Add compile tests for radiation methods #1932
+ - Add visual studio code files to gitignore #1946
+ - Remove old QT in situ volume visualization #1735
+
+Thanks to Axel Huebl, René Widera, Alexander Matthes, Richard Pausch,
+Alexander Grund, Heiko Burau, Marco Garten, Alexander Debus,
+Erik Zenker, Bifeng Lei and Klaus Steiniger for contributions to this
+release!
+
+
 0.2.3
 -----
 **Date:** 2017-02-14
