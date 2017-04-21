@@ -24,6 +24,7 @@
 
 #include "pmacc_types.hpp"
 
+
 namespace PMacc
 {
 namespace mappings
@@ -40,7 +41,7 @@ namespace threads
     template<
         uint32_t T_domainSize,
         uint32_t T_workerSize,
-        uint32_t T_simdSize = 1
+        uint32_t T_simdSize = 1u
     >
     struct IdxConfig
     {
@@ -51,9 +52,9 @@ namespace threads
         /** SMID width */
         static constexpr uint32_t simdSize = T_simdSize;
 
-        /** number of collective iterations needed to address to address all indices */
+        /** number of collective iterations needed to address all indices */
         static constexpr uint32_t numCollIter =
-            (( domainSize + simdSize * workerSize - 1 ) / ( simdSize * workerSize));
+            ( domainSize + simdSize * workerSize - 1u ) / ( simdSize * workerSize);
     };
 
 } // namespace threads

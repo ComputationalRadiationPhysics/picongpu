@@ -25,6 +25,7 @@
 #include "mappings/threads/IdxConfig.hpp"
 #include "pmacc_types.hpp"
 
+
 namespace PMacc
 {
 namespace mappings
@@ -52,12 +53,12 @@ namespace threads
         uint32_t const m_workerIdx;
 
         static constexpr bool outerLoopCondition =
-            ( domainSize % (simdSize * workerSize) ) == 0 ||
-            ( simdSize * workerSize == 1 );
+            ( domainSize % (simdSize * workerSize) ) == 0u ||
+            ( simdSize * workerSize == 1u );
 
         static constexpr bool innerLoopCondition =
-            ( domainSize % simdSize ) == 0 ||
-            ( simdSize == 1 );
+            ( domainSize % simdSize ) == 0u ||
+            ( simdSize == 1u );
 
         /** constructor
          *
@@ -70,9 +71,9 @@ namespace threads
 
         /** execute a functor
          *
-         * @p functor is called for each index which is mapped to the worker.
-         * The functor must fulfill the following interface:
+         * @param functor is called for each index which is mapped to the worker
          *
+         * The functor must fulfill the following interface:
          * @code
          * template< typename ... T_Args >
          * void operator()( uint32_t const linearIdx, uint32_t const idx, T_Args && ... );
@@ -90,19 +91,19 @@ namespace threads
             T_Args && ... args
         ) const
         {
-            for( uint32_t i = 0; i < numCollIter; ++i )
+            for( uint32_t i = 0u; i < numCollIter; ++i )
             {
-                const uint32_t beginWorker = i * simdSize;
-                const uint32_t beginIdx = beginWorker * workerSize + simdSize * m_workerIdx;
+                uint32_t const beginWorker = i * simdSize;
+                uint32_t const beginIdx = beginWorker * workerSize + simdSize * m_workerIdx;
                 if(
                     outerLoopCondition ||
                     !innerLoopCondition ||
                     beginIdx < domainSize
                 )
                 {
-                    for( uint32_t j = 0; j < simdSize; ++j )
+                    for( uint32_t j = 0u; j < simdSize; ++j )
                     {
-                        const uint32_t localIdx = beginIdx + j;
+                        uint32_t const localIdx = beginIdx + j;
                         if(
                             innerLoopCondition ||
                             localIdx < domainSize
@@ -127,19 +128,19 @@ namespace threads
             T_Args && ... args
         ) const
         {
-            for( uint32_t i = 0; i < numCollIter; ++i )
+            for( uint32_t i = 0u; i < numCollIter; ++i )
             {
-                const uint32_t beginWorker = i * simdSize;
-                const uint32_t beginIdx = beginWorker * workerSize + simdSize * m_workerIdx;
+                uint32_t const beginWorker = i * simdSize;
+                uint32_t const beginIdx = beginWorker * workerSize + simdSize * m_workerIdx;
                 if(
                     outerLoopCondition ||
                     !innerLoopCondition ||
                     beginIdx < domainSize
                 )
                 {
-                    for( uint32_t j = 0; j < simdSize; ++j )
+                    for( uint32_t j = 0u; j < simdSize; ++j )
                     {
-                        const uint32_t localIdx = beginIdx + j;
+                        uint32_t const localIdx = beginIdx + j;
                         if(
                             innerLoopCondition ||
                             localIdx < domainSize
