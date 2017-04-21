@@ -72,21 +72,6 @@ find_package(CUDA 7.5 REQUIRED)
 
 
 ################################################################################
-# Build type (debug, release)
-################################################################################
-
-option(PIC_RELEASE "Build release version, disables all runtime asserts" OFF)
-if(PIC_RELEASE)
-    message(STATUS "Release version")
-    set(CMAKE_BUILD_TYPE Release)
-    add_definitions(-DNDEBUG)
-else(PIC_RELEASE)
-    message(STATUS "Debug version")
-    set(CMAKE_BUILD_TYPE Debug)
-endif(PIC_RELEASE)
-
-
-################################################################################
 # Find MPI
 ################################################################################
 
