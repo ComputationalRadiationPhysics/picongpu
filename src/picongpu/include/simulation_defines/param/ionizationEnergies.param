@@ -17,9 +17,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file
- * This file contains the ionization energies and conversion to corresponding
- * electric field strengths for different species.
+/** @file
+ *
+ * This file contains the ionization energies of commonly used elements of the
+ * periodic table. Each atomic species in PIConGPU can represent exactly one
+ * element. The ionization energies of that element are stored in a vector which
+ * contains the *name* and *proton number* as well as a list of
+ * *energy values*. The number of ionization levels must be equal to the
+ * proton number of the element.
  */
 
 #pragma once
