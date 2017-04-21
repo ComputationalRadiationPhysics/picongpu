@@ -43,7 +43,7 @@ namespace derivedAttributes
     LarmorPower::operator()( T_Particle& particle ) const
     {
 
-        static constexpr bool hasMomentumPrev1 = PMacc::traits::HasIdentifier<
+        constexpr bool hasMomentumPrev1 = PMacc::traits::HasIdentifier<
             typename T_Particle::FrameType,
             momentumPrev1
         >::type::value;
