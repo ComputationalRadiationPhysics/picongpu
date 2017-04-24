@@ -29,11 +29,6 @@
 
 #pragma once
 
-/** \todo Make compatible for multiple atom species
- * - Probably do some calculation from energy to required field strength (or do that model dependent)
- * - Introduce some clever way of storage, like matrices for different charge states of the same species
- * - future: even different states of excitation should be possible
- */
 
 namespace picongpu
 {
