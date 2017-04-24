@@ -24,18 +24,35 @@
 #include "pmacc_types.hpp"
 #include "memory/Array.hpp"
 #include <type_traits>
+#include <limits>
+
 
 namespace PMacc
 {
 namespace memory
 {
 
-    /* A memory pool of dynamic size containing indices
+    /** A memory pool of dynamic size containing indices.
      *
-     * \tparam T_Index type of index
-     * \tparam T_maxSize maximum number of indices
+     * At initial state the pool consists of consecutive indices according to
+     * the `size` parameter. A new index is created by calling `get()`.
+     * If the user releases an index, by calling
+     * `release()`, it will be recycled at the next `get()` call.
+     * Therefore the initial ordering is not preserved.
+     * This pool provides `begin()` and `end()` methods. The iteration is done
+     * reversely, allowing for additions and removal of the current element while
+     * iterating.
      *
-     * Warning: This class is not thread-safe!
+     * Scalings:
+     *  `<constructor>` ~ O(N)
+     *  `get()`         ~ O(1)
+     *  `release()`     ~ O(N)
+     *  `<iterating>`   ~ O(N) ~ std::array
+     *
+     * @warning: This class is not thread-safe!
+     *
+     * @tparam T_Index type of index
+     * @tparam T_maxSize maximum number of indices
      */
     template<
         typename T_Index,
@@ -45,7 +62,7 @@ namespace memory
     {
     private:
 
-        /* Reverse-iterator of the memory pool. The pool is iterated reversely
+        /** Reverse-iterator of the memory pool. The pool is iterated reversely
          * to ensure removal of the current element while iterating.
          */
         struct ReverseIterator
@@ -69,7 +86,7 @@ namespace memory
             }
 
             HDINLINE
-            bool operator!=( const ReverseIterator& other ) const
+            bool operator!=( ReverseIterator const & other ) const
             {
                 return this->pointer != other.pointer;
             }
@@ -85,9 +102,22 @@ namespace memory
 
         using Index = T_Index;
 
-        /* init pool with consecutive indices
+        PMACC_STATIC_ASSERT_MSG(
+            std::numeric_limits< Index >::is_integer,
+            _Index_type_must_be_an_integer_type
+        );
+        PMACC_STATIC_ASSERT_MSG(
+            std::numeric_limits< Index >::is_signed,
+            _Index_type_must_be_a_signed_type
+        );
+        PMACC_STATIC_ASSERT_MSG(
+            T_maxSize > 0u,
+            _maxSize_has_to_be_greater_than_zero
+        );
+
+        /** init pool with consecutive indices
          *
-         * \param size initial number of indices
+         * @param size initial number of indices
          */
         HDINLINE
         IndexPool( const Index size = 0 ) : m_size( size )
@@ -97,17 +127,17 @@ namespace memory
                 this->listIds[i] = static_cast< Index >( i );
         }
 
-        /* get a new index */
+        /** get a new index */
         HDINLINE
         Index get()
         {
-            if( this->m_size == T_maxSize - 1 )
+            if( this->m_size == T_maxSize - 1u )
                 return Index(-1);
 
             return this->listIds[this->m_size++];
         }
 
-        /* release an index */
+        /** release an index */
         HDINLINE
         void release( const Index idx )
         {
@@ -143,13 +173,13 @@ namespace memory
         HDINLINE
         ReverseIterator begin()
         {
-            return ReverseIterator( this->listIds.data() + this->m_size - 1 );
+            return ReverseIterator( this->listIds.data() + this->m_size - 1u );
         }
 
         HDINLINE
         ReverseIterator end()
         {
-            return ReverseIterator( this->listIds.data() - 1 );
+            return ReverseIterator( this->listIds.data() - 1u );
         }
     };
 
