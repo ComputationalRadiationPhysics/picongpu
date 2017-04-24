@@ -3,20 +3,20 @@
 PIC Core
 --------
 
-grid.param
-^^^^^^^^^^
-
-.. doxygenfile:: grid.param
-   :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/grid.param
-   :no-link:
-
 dimension.param
 ^^^^^^^^^^^^^^^
 
 .. doxygenfile:: dimension.param
    :project: PIConGPU
    :path: src/picongpu/include/simulation_defines/param/dimension.param
+   :no-link:
+
+grid.param
+^^^^^^^^^^
+
+.. doxygenfile:: grid.param
+   :project: PIConGPU
+   :path: src/picongpu/include/simulation_defines/param/grid.param
    :no-link:
 
 components.param
@@ -35,12 +35,12 @@ fieldSolver.param
    :path: src/picongpu/include/simulation_defines/param/fieldSolver.param
    :no-link:
 
-density.param
-^^^^^^^^^^^^^
+laser.param
+^^^^^^^^^^^
 
-.. doxygenfile:: density.param
+.. doxygenfile:: laser.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/density.param
+   :path: src/picongpu/include/simulation_defines/param/laser.param
    :no-link:
 
 pusher.param
@@ -51,28 +51,12 @@ pusher.param
    :path: src/picongpu/include/simulation_defines/param/pusher.param
    :no-link:
 
-laser.param
-^^^^^^^^^^^
-
-.. doxygenfile:: laser.param
-   :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/laser.param
-   :no-link:
-
-particle.param
-^^^^^^^^^^^^^^
-
-.. doxygenfile:: particle.param
-   :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/particle.param
-   :no-link:
-
-species.param
+density.param
 ^^^^^^^^^^^^^
 
-.. doxygenfile:: species.param
+.. doxygenfile:: density.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/species.param
+   :path: src/picongpu/include/simulation_defines/param/density.param
    :no-link:
 
 speciesAttributes.param
@@ -91,12 +75,28 @@ speciesConstants.param
    :path: src/picongpu/include/simulation_defines/param/speciesConstants.param
    :no-link:
 
+species.param
+^^^^^^^^^^^^^
+
+.. doxygenfile:: species.param
+   :project: PIConGPU
+   :path: src/picongpu/include/simulation_defines/param/species.param
+   :no-link:
+
 speciesDefinition.param
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfile:: speciesDefinition.param
    :project: PIConGPU
    :path: src/picongpu/include/simulation_defines/param/speciesDefinition.param
+   :no-link:
+
+particle.param
+^^^^^^^^^^^^^^
+
+.. doxygenfile:: particle.param
+   :project: PIConGPU
+   :path: src/picongpu/include/simulation_defines/param/particle.param
    :no-link:
 
 speciesInitialization.param
