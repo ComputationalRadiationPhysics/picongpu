@@ -113,7 +113,7 @@ value_identifier( float_X, MassRatioIons, 1836.152672 );
 value_identifier( float_X, ChargeRatioIons, -1.0 );
 
 /* ratio relative to BASE_DENSITY */
-value_identifier( float_X, DensityRatioIons, -1.0 );
+value_identifier( float_X, DensityRatioIons, 1.0 );
 
 using ParticleFlagsIons = bmpl::vector<
     particlePusher< UsedParticlePusher >,
