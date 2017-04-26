@@ -60,7 +60,7 @@ namespace picongpu
  *
  * Usage: Add flags to the list of particle flags that has the following structure
  *
- *        ionizer< particles::ionization::IonizationModel< Species2BCreated > >,
+ *        ionizers< MakeSeq_t< particles::ionization::IonizationModel< Species2BCreated > > >,
  *        atomicNumbers< ionization::atomicNumbers::Element_t >,
  *        effectiveNuclearCharge< ionization::effectiveNuclearCharge::Element_t >,
  *        ionizationEnergies< ionization::energies::AU::Element_t >

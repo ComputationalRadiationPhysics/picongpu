@@ -1,4 +1,5 @@
-/* Copyright 2014-2017 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl, Heiko Burau
+/* Copyright 2014-2017 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl,
+ *                     Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -96,8 +97,8 @@ alias(shape);
 /*! alias for particle pusher @see species.param */
 alias(particlePusher);
 
-/*! alias for particle ionizer @see ionizer.param */
-alias(ionizer);
+/*! alias for particle ionizers @see ionizer.param */
+alias(ionizers);
 
 /*! alias for ionization energy container @see ionizationEnergies.param */
 alias(ionizationEnergies);
