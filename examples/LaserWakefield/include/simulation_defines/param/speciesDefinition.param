@@ -1,5 +1,5 @@
 /* Copyright 2013-2017 Rene Widera, Marco Garten, Richard Pausch,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -94,8 +94,11 @@ using ParticleFlagsIons = bmpl::vector<
     massRatio< MassRatioIons >,
     chargeRatio< ChargeRatioIons >,
 #if( PARAM_IONIZATION == 1 )
-    ionizer<
-        particles::ionization::BSIEffectiveZ< PIC_Electrons >
+    ionizers<
+        MakeSeq_t<
+            particles::ionization::BSIEffectiveZ< PIC_Electrons >,
+            particles::ionization::ADKCircPol< PIC_Electrons >
+        >
     >,
     ionizationEnergies< ionization::energies::AU::Hydrogen_t >,
     effectiveNuclearCharge< ionization::effectiveNuclearCharge::Hydrogen_t >,
