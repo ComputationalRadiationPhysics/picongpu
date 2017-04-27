@@ -10,4 +10,4 @@ This section contains typical user workflows and best practices.
 
    workflows/numberOfCells
    workflows/resolution
-
+   workflows/laserPeakOnTarget
