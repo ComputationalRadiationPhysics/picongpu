@@ -45,7 +45,7 @@ namespace simulation_starter = defaultPIConGPU;
  *  - laserPulseFrontTilt   : Gaussian beam with a tilted pulse envelope
  *                            in 'x' direction
  *  - laserWavepacket       : wavepacket (Gaussian in time and space, not focusing)
- *  - laserPlaneWave        : a plane wave
+ *  - laserPlaneWave        : a plane wave (Gaussian in time)
  *  - laserPolynom          : a polynomial laser envelope
  *
  * Adjust the settings of the selected profile in laser.param

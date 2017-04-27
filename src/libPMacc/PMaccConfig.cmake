@@ -46,6 +46,18 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 
 
 ###############################################################################
+# Build Flags
+###############################################################################
+
+set(PMACC_BUILD_TYPE "Release;Debug")
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the build type for the project" FORCE)
+endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "${PMACC_BUILD_TYPE}")
+unset(PMACC_BUILD_TYPE)
+
+
+###############################################################################
 # Language Flags
 ###############################################################################
 
