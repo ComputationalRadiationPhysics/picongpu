@@ -75,7 +75,11 @@ namespace ionization
 
         using FrameType =  typename SrcSpecies::FrameType;
 
-        /* specify field to particle interpolation scheme */
+        /** specify field to particle interpolation scheme
+         *
+         * @todo this needs to be done independently/twice if ion species (rho) and electron
+         *       species (ene) are of different shape
+         */
         using Field2ParticleInterpolation = typename PMacc::traits::Resolve<
             typename GetFlagType<FrameType,interpolation<> >::type
         >::type;
@@ -166,6 +170,8 @@ namespace ionization
                 /* kernel call for weighted ion density calculation */
                 density->template computeValue< CORE + BORDER, DensitySolver >(*srcSpecies, currentStep);
                 dc.releaseData( SrcSpecies::FrameType::getName() );
+                EventTask densityEvent = density->asyncCommunication( __getTransactionEvent() );
+                densityEvent += density->asyncCommunicationGather( densityEvent );
 
                 /* load species without copying the particle data to the host */
                 auto destSpecies = dc.get< DestSpecies >( DestSpecies::FrameType::getName(), true );
@@ -173,6 +179,11 @@ namespace ionization
                 /* kernel call for weighted electron energy density calculation */
                 eneKinDens->template computeValue< CORE + BORDER, EnergyDensitySolver >(*destSpecies, currentStep);
                 dc.releaseData( DestSpecies::FrameType::getName() );
+                EventTask eneKinEvent = eneKinDens->asyncCommunication( __getTransactionEvent() );
+                eneKinEvent += eneKinDens->asyncCommunicationGather( eneKinEvent );
+
+                /* contributions from neighboring GPUs to our border area */
+                __setTransactionEvent( densityEvent + eneKinEvent );
 
                 /* initialize device-side density- and energy density field databox pointers */
                 rhoBox = density->getDeviceDataBox();
