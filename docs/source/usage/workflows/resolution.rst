@@ -3,6 +3,8 @@
 Changing the Resolution with a Fixed Target
 -------------------------------------------
 
+.. sectionauthor:: Axel Huebl
+
 One often wants to refine an already existing resolution in order to model a setup more precisely or to be able to model a higher density.
 
 #. change cell sizes and time step in :ref:`grid.param <usage-params-core>`

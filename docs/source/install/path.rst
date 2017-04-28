@@ -1,9 +1,9 @@
 .. _install-path:
 
-.. sectionauthor:: Axel Huebl
-
 Installation
 ============
+
+.. sectionauthor:: Axel Huebl
 
 Installing PIConGPU means :ref:`installing C++ libraries <install-dependencies>` that PIConGPU depends on and :ref:`setting environment variables <install-profile>` to find those dependencies.
 The first part is usually the job of a system administrator while the second part needs to be configured on the user-side.

@@ -1,9 +1,10 @@
 .. _usage-tbg:
 
-.. sectionauthor:: René Widera, Axel Huebl
-
 TBG
 ===
+
+.. sectionauthor:: Axel Huebl, Richard Pausch
+.. moduleauthor:: René Widera
 
 todo: explain idea and use case
 
@@ -18,14 +19,6 @@ Usage
 
 .. program-output:: ../../src/tools/bin/tbg --help
 
-
-Example with Slurm
-^^^^^^^^^^^^^^^^^^
-
-.. include:: ../install/submit/taurus-tud/Slurm_Tutorial.rst
-   :start-line: 3
-
-
 .. _usage-cfg:
 
 .cfg File Macros
@@ -35,3 +28,23 @@ Feel free to copy & paste sections of the files below into your `.cfg`, e.g. to 
 
 .. literalinclude:: ../../TBG_macros.cfg
    :language: bash
+
+Batch System Examples
+^^^^^^^^^^^^^^^^^^^^^
+
+Slurm
+"""""
+
+Slurm is a modern batch system, e.g. installed on the Taurus cluster at TU Dresden.
+
+.. include:: ../install/submit/taurus-tud/Slurm_Tutorial.rst
+   :start-line: 3
+
+PBS
+"""
+
+PBS (for *Portable Batch System*) is a widely distributed batch system that comes in several implementations (open, professional, etc.).
+It is used, e.g. on Hypnos at HZDR.
+
+.. note::
+   Please contribute an example.

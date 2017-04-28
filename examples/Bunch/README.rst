@@ -1,8 +1,8 @@
 Bunch: Thomson scattering from laser electron-bunch interaction
 ===============================================================
 
-* author:      Richard Pausch <r.pausch (at) hzdr.de>, Rene Widera <r.widera (at) hzdr.de>
-* maintainer:  Richard Pausch <r.pausch (at) hzdr.de>
+.. sectionauthor:: Richard Pausch <r.pausch (at) hzdr.de>
+.. moduleauthor:: Richard Pausch <r.pausch (at) hzdr.de>, Rene Widera <r.widera (at) hzdr.de>
 
 This is a simulation of an electron bunch that collides head-on with a laser pulse.
 Depending on the number of electrons in the bunch, their momentum and their distribution and depending on the laser wavelength and intensity, the emitted radiation differs.

@@ -1,8 +1,7 @@
 Empty: Default PIC Algorithm
 ============================
 
-* author:      Axel Huebl <a.huebl (at) hzdr.de>
-* maintainer:  Axel Huebl <a.huebl (at) hzdr.de>
+.. sectionauthor:: Axel Huebl <a.huebl (at) hzdr.de>
 
 This is an "empty" example, initializing a default particle-in-cell cycle with default algorithms [BirdsallLangdon]_ [HockneyEastwood]_ but without a specific test case.
 When run, it iterates a particle-in-cell algorithm on a vacuum without particles or electro-magnetic fields initialized, which are the default `.param` files in `src/picongpu/include/simulation_defines/param/`.

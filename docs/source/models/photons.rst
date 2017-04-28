@@ -1,6 +1,9 @@
 Photons
 =======
 
+.. sectionauthor:: Axel Huebl
+.. moduleauthor:: Heiko Burau
+
 Radiation reaction and (hard) photons: why and when are they needed.
 Models we implemented and verified:
 

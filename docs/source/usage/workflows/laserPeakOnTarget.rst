@@ -3,6 +3,8 @@
 Setting the Laser Initialization Cut-Off
 ----------------------------------------
 
+.. sectionauthor:: Axel Huebl
+
 Laser profiles for simulation are modeled with a temporal envelope.
 A common model assumes a Gaussian intensity distribution over time which by definition never sets to zero, so it needs to be cut-off to a reasonable range.
 

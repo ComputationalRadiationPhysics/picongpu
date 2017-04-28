@@ -1,7 +1,5 @@
 .. _install-dependencies:
 
-.. sectionauthor:: Axel Huebl
-
 .. seealso::
 
    You will need to understand how to use `the terminal <http://www.ks.uiuc.edu/Training/Tutorials/Reference/unixprimer.html>`_, what are `environment variables <http://unix.stackexchange.com/questions/44990/what-is-the-difference-between-path-and-ld-library-path/45106#45106>`_ and please read our :ref:`compiling introduction <install-source>`.
@@ -13,6 +11,8 @@
 
 Dependencies
 ============
+
+.. sectionauthor:: Axel Huebl
 
 Overview
 --------

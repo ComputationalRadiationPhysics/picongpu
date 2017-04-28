@@ -1,9 +1,9 @@
 .. _pp-python:
 
-.. sectionauthor:: Axel Huebl
-
 Python
 ======
+
+.. sectionauthor:: Axel Huebl
 
 If you are new to python, get your hands on the tutorials of the following important libraries to get started.
 

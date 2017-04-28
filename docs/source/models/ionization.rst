@@ -1,6 +1,8 @@
 Ionization
 ==========
 
+.. moduleauthor:: Marco Garten
+
 Field Ionization
 ----------------
 

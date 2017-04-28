@@ -2,7 +2,7 @@ Slurm examples
 ==============
 
 Job Submission
-""""""""""""""
+''''''''''''''
 
 PIConGPU job submission on the *Taurus* cluster at *TU Dresden*:
 
@@ -10,7 +10,7 @@ PIConGPU job submission on the *Taurus* cluster at *TU Dresden*:
 
 
 Job Control
-"""""""""""
+'''''''''''
 
 * interactive job:
 

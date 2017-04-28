@@ -1,8 +1,8 @@
 WarmCopper: Average Charge State Evolution of Copper Irradiated by a Laser
 ==========================================================================
 
-* author:      Axel Huebl <a.huebl (at) hzdr.de>, Hyun-Kyung Chung
-* maintainer:  Axel Huebl <a.huebl (at) hzdr.de>
+.. sectionauthor:: Axel Huebl <a.huebl (at) hzdr.de>
+.. moduleauthor:: Axel Huebl <a.huebl (at) hzdr.de>, Hyun-Kyung Chung
 
 This setup initializes a homogenous, non-moving, copper block irradiated by a laser with 10^18 W/cm^3 as a benchmark for [SCFLY]_ [#FLYlite]_ atomic population dynamics.
 We follow the setup from [FLYCHK]_ page 10, figure 4 assuming a quasi 0D setup with homogenous density of a 1+ ionized copper target.
