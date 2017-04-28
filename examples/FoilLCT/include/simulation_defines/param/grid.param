@@ -1,0 +1,103 @@
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Benjamin Worpitz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Definition of cell sizes and time step. Our cells are defining a regular,
+ * cartesian grid. Our explicit FDTD field solvers define an upper bound for
+ * the time step value in relation to the cell size for convergence. Make
+ * sure to resolve important wavelengths of your simulation, e.g. shortest
+ * plasma wavelength and central laser wavelength both spatially and
+ * temporarily.
+ *
+ * **Units in reduced dimensions**
+ *
+ * In 2D3V simulations, the CELL_DEPTH_SI (Z) cell length
+ * is still used for normalization of densities, etc..
+ *
+ * A 2D3V simulation in a cartesian PIC simulation such as
+ * ours only changes the degrees of freedom in motion for
+ * (macro) particles and all (field) information in z
+ * travels instantaneous, making the 2D3V simulation
+ * behave like the interaction of infinite "wire particles"
+ * in fields with perfect symmetry in Z.
+ *
+ */
+
+#pragma once
+
+
+namespace picongpu
+{
+    namespace SI
+    {
+        /** equals X
+         *  unit: meter */
+        constexpr float_64 CELL_WIDTH_SI = 0.8e-6 / 384.;
+        /** equals Y - the laser & moving window propagation direction
+         *  unit: meter */
+        constexpr float_64 CELL_HEIGHT_SI = CELL_WIDTH_SI;
+        /** equals Z
+         *  unit: meter */
+        constexpr float_64 CELL_DEPTH_SI = CELL_WIDTH_SI;
+
+        /** Duration of one timestep
+         *  unit: seconds                       CFL criteria for Yee MW Solver
+         *                                             2D: sqrt(2)
+         *                                             3D: sqrt(3)   */
+        constexpr float_64 DELTA_T_SI = CELL_WIDTH_SI / ( 1.4143 * SPEED_OF_LIGHT_SI );
+
+    } // namespace SI
+
+    /** Defines the size of the absorbing zone (in cells)
+     *
+     *  unit: none
+     */
+    constexpr uint32_t ABSORBER_CELLS[3][2] = {
+        {64, 64},  /*x direction [negative,positive]*/
+        {64, 64},  /*y direction [negative,positive]*/
+        {64, 64}   /*z direction [negative,positive]*/
+    };
+
+    /** Define the strength of the absorber for any direction
+     *
+     *  unit: none
+     */
+    constexpr float_X ABSORBER_STRENGTH[3][2] = {
+        {1.0e-3, 1.0e-3}, /*x direction [negative,positive]*/
+        {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
+        {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
+    };
+
+    /** When to start moving the co-moving window
+     *
+     *  Slide point model: A virtual photon starts at t=0 at the lower end
+     *  of the global simulation box in y-direction of the simulation.
+     *  When it reaches movePoint % of the global simulation box,
+     *  the co-moving window starts to move with the speed of light.
+     *
+     *  @note global simulation area: there is one additional "hidden" row
+     *        of gpus at the y-front, when you use the co-moving window.
+     *        1.0 would correspond to: start moving exactly when the above
+     *        described "virtual photon" from the lower end of the box' Y-axis
+     *        reaches the beginning of this "hidden" row of GPUs.
+     */
+    constexpr float_64 movePoint = 0.9;
+
+} // namespace picongpu
