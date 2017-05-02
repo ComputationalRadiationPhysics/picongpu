@@ -46,5 +46,5 @@ PBS
 PBS (for *Portable Batch System*) is a widely distributed batch system that comes in several implementations (open, professional, etc.).
 It is used, e.g. on Hypnos at HZDR.
 
-.. note::
-   Please contribute an example.
+.. include:: ../install/submit/hypnos-hzdr/PBS_Tutorial.rst
+   :start-line: 3
