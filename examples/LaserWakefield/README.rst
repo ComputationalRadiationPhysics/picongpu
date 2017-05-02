@@ -1,8 +1,8 @@
 LaserWakefield: Laser Electron Acceleration
 ===========================================
 
-* author:      Axel Huebl <a.huebl (at) hzdr.de>, René Widera, Heiko Burau, Richard Pausch, Marco Garten
-* maintainer:  Axel Huebl <a.huebl (at) hzdr.de>
+.. sectionauthor:: Axel Huebl <a.huebl (at) hzdr.de>
+.. moduleauthor:: Axel Huebl <a.huebl (at) hzdr.de>, René Widera, Heiko Burau, Richard Pausch, Marco Garten
 
 Setup for a laser-driven electron accelerator [TajimaDawson]_ in the blowout regime of an underdense plasma [Modena]_ [PukhovMeyerterVehn]_.
 A short (fs) laser beam with ultra-high intensity (a_0 >> 1), modeled as a finite Gaussian beam is focussed in a hydrogen gas target.

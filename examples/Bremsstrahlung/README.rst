@@ -1,8 +1,8 @@
 Bremsstrahlung: Emission of Bremsstrahlung from Laser-Foil Interaction
 ======================================================================
 
-* author:      Heiko Burau <h.burau (at) hzdr.de>
-* maintainer:  Heiko Burau <h.burau (at) hzdr.de>
+.. sectionauthor:: Heiko Burau <h.burau (at) hzdr.de>
+.. moduleauthor:: Heiko Burau <h.burau (at) hzdr.de>
 
 This is a simulation of a flat solid density target hit head-on by a high-intensity laser pulse. 
 At the front surface free electrons are accelerated up to ultra relativistic energies and start travelling through the bulk then. 

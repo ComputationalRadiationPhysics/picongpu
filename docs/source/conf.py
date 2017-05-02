@@ -28,6 +28,8 @@ from recommonmark.parser import CommonMarkParser
 # RTD
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
+show_authors = True
+
 # If your documentation needs a minimal Sphinx version, state it here.
 #
 # needs_sphinx = '1.0'

@@ -1,8 +1,9 @@
 .. _pp-paraview:
 
-.. sectionauthor:: Axel Huebl
-
 ParaView
 ========
+
+.. sectionauthor:: Axel Huebl
+.. moduleauthor:: Axel Huebl
 
 Please see https://github.com/ComputationalRadiationPhysics/picongpu/wiki/ParaView for now.

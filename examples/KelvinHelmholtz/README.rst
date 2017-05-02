@@ -1,8 +1,8 @@
 KelvinHelmholtz: Kelvin-Helmholtz Instability
 =============================================
 
-* author:      Axel Huebl <a.huebl (at) hzdr.de>, E. Paulo Alves, Thomas Grismayer
-* maintainer:  Axel Huebl <a.huebl (at) hzdr.de>
+.. sectionauthor:: Axel Huebl <a.huebl (at) hzdr.de>
+.. moduleauthor:: Axel Huebl <a.huebl (at) hzdr.de>, E. Paulo Alves, Thomas Grismayer
 
 This example simulates a shear-flow instability known as the Kelvin-Helmholtz Instability in a near-relativistic setup as studied in [Alves12]_, [Grismayer13]_, [Bussmann13]_.
 The default setup uses a pre-ionized quasi-neutral hydrogen plasma.

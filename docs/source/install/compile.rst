@@ -1,7 +1,5 @@
 .. _install-source:
 
-.. sectionauthor:: Axel Huebl
-
 .. seealso::
 
    You will need to understand how to use `the terminal <http://www.ks.uiuc.edu/Training/Tutorials/Reference/unixprimer.html>`_.
@@ -12,6 +10,8 @@
 
 Compiling from Source
 =====================
+
+.. sectionauthor:: Axel Huebl
 
 Don't be afraid young physicist, self-compiling C/C++ projects is easy, fun and profitable!
 
