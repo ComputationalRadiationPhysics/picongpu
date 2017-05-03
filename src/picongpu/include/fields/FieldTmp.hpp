@@ -26,9 +26,7 @@
 #include <vector>
 
 /*pic default*/
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_classTypes.hpp"
 
 #include "fields/Fields.def"
 #include "fields/SimulationFieldHelper.hpp"
@@ -88,9 +86,21 @@ namespace picongpu
 
         static std::string getName();
 
-        uint32_t getCommTag();
-
+        /** scatter data to neighboring GPUs
+         *
+         * Add data from the local guard of the GPU to the border of the neighboring GPUs.
+         * This method can be called before or after asyncCommunicationGather without
+         * explicit handling to avoid race conditions between both methods.
+         */
         virtual EventTask asyncCommunication( EventTask serialEvent );
+
+        /** gather data from neighboring GPUs
+         *
+         * Copy data from the border of neighboring GPUs into the local guard.
+         * This method can be called before or after asyncCommunication without
+         * explicit handling to avoid race conditions between both methods.
+         */
+        EventTask asyncCommunicationGather( EventTask serialEvent );
 
         void init( );
 
@@ -125,10 +135,14 @@ namespace picongpu
     private:
 
         GridBuffer<ValueType, simDim> *fieldTmp;
+        GridBuffer<ValueType, simDim>* fieldTmpRecv;
 
         uint32_t m_slotId;
 
-        uint32_t m_commTag;
+        EventTask m_scatterEv;
+        uint32_t m_commTagScatter;
+        EventTask m_gatherEv;
+        uint32_t m_commTagGather;
     };
 
 
