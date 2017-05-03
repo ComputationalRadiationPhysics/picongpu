@@ -42,7 +42,7 @@ namespace picongpu
 /** Ionization Model Configuration
  *
  * - None : no particle is ionized
- * - BSIHydrogenLike : simple barrier suppression ionization
+ * - BSI : simple barrier suppression ionization
  * - ADKLinPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
  *               -> linearly polarized lasers
  * - ADKCircPol : Ammosov-Delone-Krainov tunneling ionization (H-like)

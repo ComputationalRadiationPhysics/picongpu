@@ -40,7 +40,7 @@ namespace ionization
     template<bool T_polarizationType>
     struct AlgorithmADK;
 
-    struct AlgorithmBSIHydrogenLike;
+    struct AlgorithmBSI;
 
     struct AlgorithmBSIEffectiveZ;
 
