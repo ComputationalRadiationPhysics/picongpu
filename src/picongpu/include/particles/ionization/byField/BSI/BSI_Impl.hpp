@@ -25,7 +25,7 @@
 #include "fields/FieldE.hpp"
 
 #include "particles/ionization/byField/BSI/BSI.def"
-#include "particles/ionization/byField/BSI/AlgorithmBSIHydrogenLike.hpp"
+#include "particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
 #include "particles/ionization/ionization.hpp"
