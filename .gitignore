@@ -22,3 +22,7 @@ docs/xml/
 docs/doxygen_sqlite3.db
 # sphinx & breathe output
 docs/build/
+
+# generated docs output
+docs/source/models/field_ionization_comparison_c_ii_ionization.svg
+docs/source/models/field_ionization_effective_potentials.svg

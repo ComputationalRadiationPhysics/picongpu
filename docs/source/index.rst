@@ -69,7 +69,8 @@ Models
 
    models/pic
    models/LL_RR
-   models/ionization
+   models/field_ionization
+   models/collisional_ionization
    models/photons
 
 ***************
