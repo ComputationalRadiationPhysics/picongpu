@@ -313,6 +313,9 @@ struct CallIonization
              * the last frame is not completely filled but every other before is full
              */
             electronsPtr->fillAllGaps();
+            /* Call of the UpdateCellListOfFramesKernel functor for later correctness
+             * checks. Should be removed completely in the final merge to dev.
+             */
             /*constexpr auto TileSize =
                 PMacc::math::CT::volume<
                     typename decltype(electronsPtr)::MappingDesc::SuperCellSize

@@ -332,8 +332,9 @@ struct KernelFillGaps
 
         if (updateCellList)
         {
-            // if updateCellList == false this code is not compiled at all and no
-            // shared memory reserved from the cuda compiler.
+            /* if updateCellList == false this code is not compiled at all and no
+             * shared memory reserved from the cuda compiler.
+             */
             frameNr = &PMacc::memory::shared::allocate< __COUNTER__, int >();
             cellEntryPoint_sh = &PMacc::memory::shared::allocate< __COUNTER__, memory::Array< uint32_t, TileSize> >();
             cellCount_sh = &PMacc::memory::shared::allocate< __COUNTER__, memory::Array< uint32_t, TileSize> >();
