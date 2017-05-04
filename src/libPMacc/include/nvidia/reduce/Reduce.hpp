@@ -39,66 +39,169 @@ namespace reduce
 
 namespace kernel
 {
+    /** reduce elements within a buffer
+     *
+     * @tparam type element type within the buffer
+     */
     template< typename Type >
     struct Reduce
     {
-        template<typename Src, typename Dest, class Functor, class Functor2>
+
+        /** reduce buffer
+         *
+         * This method can be used to reduce a chunk of an array.
+         * This method is a **collective** method and needs to be called by all
+         * threads within a CUDA block.
+         *
+         * @tparam T_SrcBuffer type of the buffer
+         * @tparam T_DestBuffer type of result buffer
+         * @tparam T_Functor type of the binary functor to reduce two elements to the intermediate buffer
+         * @tparam T_DestFunctor type of the binary functor to reduce two elements to @destBuffer
+         *
+         * @param srcBuffer a class or a pointer with the `operator[](size_t)` (one dimensional access)
+         * @param bufferSize number of elements in @p srcBuffer
+         * @param destBuffer a class or a pointer with the `operator[](size_t)` (one dimensional access),
+         *        number of elements within the buffer must be at least one
+         * @param func binary functor for reduce which takes two arguments,
+         *        first argument is the source and get the new reduced value.
+         * @param destFunc binary functor for reduce which takes two arguments,
+         *        first argument is the source and get the new reduced value.
+         *
+         * @result void intermediate results are stored in @destBuffer,
+         *         the final result is stored in the first slot of @destBuffer
+         *         if the operator is called with one CUDA block
+         */
+        template<
+            typename T_SrcBuffer,
+            typename T_DestBuffer,
+            typename T_Functor,
+            typename T_DestFunctor
+        >
         DINLINE void operator()(
-            Src src, const uint32_t src_count,
-            Dest dest,
-            Functor func, Functor2 func2
+            T_SrcBuffer const & srcBuffer,
+            uint32_t const bufferSize,
+            T_DestBuffer destBuffer,
+            T_Functor & func,
+            T_DestFunctor & destFunc
         ) const
         {
-            const uint32_t localId = threadIdx.x;
-            const uint32_t tid = blockIdx.x * blockDim.x + localId;
-            const uint32_t globalThreadCount = gridDim.x * blockDim.x;
+            uint32_t const localId = threadIdx.x;
+            uint32_t const blockSize = blockDim.x;
+            uint32_t const tid = blockIdx.x * blockSize + localId;
+            uint32_t const globalThreadCount = gridDim.x * blockSize;
 
-            /* cuda can not handle extern shared memory were the type is
+            /* CUDA can not handle extern shared memory were the type is
              * defined by a template
-             * - therefore we use type int for the definition (dirty but OK) */
-            extern __shared__ int s_mem_extern[];
+             * - therefore we use type `int` for the definition (dirty but OK) */
+            extern __shared__ int s_mem_extern[ ];
             /* create a pointer with the right type*/
-            Type* s_mem=(Type*)s_mem_extern;
+            Type* s_mem=( Type* )s_mem_extern;
 
+            this->operator()(
+                localId,
+                blockSize,
+                tid,
+                globalThreadCount,
+                srcBuffer,
+                bufferSize,
+                func,
+                s_mem
+            );
 
+            if( localId == 0u )
+                destFunc(
+                    destBuffer[ blockIdx.x ],
+                    s_mem[ 0 ]
+                );
+        }
 
-            bool isActive = (tid < src_count);
+        /** reduce a buffer
+         *
+         * This method can be used to reduce a chunk of an array.
+         * This method is a **collective** method and needs to be called by all
+         * threads within a cuda block.
+         *
+         * @tparam T_SrcBuffer type of the buffer
+         * @tparam T_Functor type of the binary functor to reduce two elements
+         * @tparam T_SharedBuffer type of the shared memory buffer
+         *
+         * @param linearThreadIdxInBlock index of the thread within a CUDA block range [0,linearThreadIdxInBlock)
+         * @param numThreadsInBlock number of threads within a CUDA block
+         * @param linearReduceThreadIdx index of the thread, range [0,@p numReduceThreads]
+         * @param numReduceThreads number of threads which working together to reduce the array
+         * @param srcBuffer a class or a pointer with the `operator[](size_t)` (one dimensional access)
+         * @param bufferSize number of elements in @p srcBuffer
+         * @param func binary functor for reduce which takes two arguments,
+         *        first argument is the source and get the new reduced value.
+         * @param sharedMem shared memory buffer with storage for `linearThreadIdxInBlock` elements,
+         *        buffer must implement `operator[](size_t)` (one dimensional access)
+         *
+         * @result void the result is stored in the first slot of @p sharedMem
+         */
+        template<
+            typename T_SrcBuffer,
+            typename T_Functor,
+            typename T_SharedBuffer
+        >
+        DINLINE void
+        operator()(
+            uint32_t const linearThreadIdxInBlock,
+            uint32_t const numThreadsInBlock,
+            size_t const linearReduceThreadIdx,
+            size_t const numReduceThreads,
+            T_SrcBuffer const & srcBuffer,
+            size_t const bufferSize,
+            T_Functor const & func,
+            T_SharedBuffer & sharedMem
+        ) const
+        {
+            bool isActive = linearReduceThreadIdx < bufferSize;
 
-            if(isActive)
+            if( isActive )
             {
                 /*fill shared mem*/
-                Type r_value = src[tid];
+                Type r_value = srcBuffer[ linearReduceThreadIdx ];
                 /*reduce not read global memory to shared*/
-                uint32_t i = tid + globalThreadCount;
-                while (i < src_count)
+                uint32_t i = linearReduceThreadIdx + numReduceThreads;
+                while( i < bufferSize )
                 {
-                    func(r_value, src[i]);
-                    i += globalThreadCount;
+                    func(
+                        r_value,
+                        srcBuffer[ i ]
+                    );
+                    i += numReduceThreads;
                 }
-                s_mem[localId] = r_value;
+                sharedMem[ linearThreadIdxInBlock ] = r_value;
             }
 
-            __syncthreads();
+            __syncthreads( );
             /*now reduce shared memory*/
-            uint32_t chunk_count = blockDim.x;
+            uint32_t chunk_count = numThreadsInBlock;
 
-            while (chunk_count != 1)
+            while( chunk_count != 1u )
             {
                 /* Half number of chunks (rounded down) */
-                uint32_t active_threads = chunk_count / 2;
+                uint32_t active_threads = chunk_count / 2u;
 
                 /* New chunks is half number of chunks rounded up for uneven counts
-                 * --> local_tid=0 will reduce the single element for an odd number of values at the end */
-                chunk_count = (chunk_count + 1) / 2;
+                 * --> linearThreadIdxInBlock == 0 will reduce the single element for
+                 * an odd number of values at the end
+                 */
+                chunk_count = ( chunk_count + 1u ) / 2u;
 
-                isActive = (tid < src_count) && !(localId != 0 && localId >= active_threads);
-                if(isActive)
-                    func(s_mem[localId], s_mem[localId + chunk_count]);
+                isActive = ( linearReduceThreadIdx < bufferSize ) &&
+                    !(
+                        linearThreadIdxInBlock != 0u &&
+                        linearThreadIdxInBlock >= active_threads
+                    );
+                if( isActive )
+                    func(
+                        sharedMem[ linearThreadIdxInBlock ],
+                        sharedMem[ linearThreadIdxInBlock + chunk_count ]
+                    );
 
                 __syncthreads();
             }
-            if( localId == 0 )
-                func2(dest[blockIdx.x], s_mem[0]);
         }
     };
 }
@@ -123,7 +226,7 @@ namespace kernel
          *
          * @param func binary functor for reduce which takes two arguments, first argument is the source and get the new reduced value.
          * Functor must specialize the function getMPI_Op.
-         * @param src a class or a pointer where the reduce algorithm can access the value by operator [] (one dimension access)
+         * @param src a class or a pointer where the reduce algorithm can access the value by operator [] (one dimensional access)
          * @param n number of elements to reduce
          *
          * @return reduced value
