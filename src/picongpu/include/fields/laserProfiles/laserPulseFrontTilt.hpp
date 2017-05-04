@@ -102,7 +102,8 @@ namespace picongpu
             constexpr float_X focusPos = FOCUS_POS - laser::initPlaneY * CELL_HEIGHT;
 
             const float_X timeShift = phase / (float_X(2.0) * float_X(PI) * float_X(f)) + focusPos / SPEED_OF_LIGHT;
-            const float_X spaceShift = SPEED_OF_LIGHT * algorithms::math::tan(TILT_X) * timeShift / CELL_HEIGHT;
+            const float_X local_tilt_x = TILT_X;
+            const float_X spaceShift = SPEED_OF_LIGHT * algorithms::math::tan(local_tilt_x) * timeShift / CELL_HEIGHT;
             const float_X r2 = (posX + spaceShift) * (posX + spaceShift) + posZ * posZ;
 
 
