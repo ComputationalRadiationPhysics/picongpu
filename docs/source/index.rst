@@ -95,3 +95,12 @@ Development
    dev/picongpu
    dev/pmacc
    dev/doxyindex
+
+********************
+Programming Patterns
+********************
+.. toctree::
+   :caption: PROGRAMMING PATTERNS
+   :maxdepth: 1
+
+   prgpatterns/lockstep
