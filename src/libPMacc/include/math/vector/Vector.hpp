@@ -1,5 +1,5 @@
 /* Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz,
- *                     Alexander Grund
+ *                     Alexander Grund, Axel Huebl
  *
  * This file is part of libPMacc.
  *
@@ -33,6 +33,7 @@
 #include <boost/mpl/size.hpp>
 #include <boost/call_traits.hpp>
 #include <iostream>
+#include <type_traits>
 
 namespace PMacc
 {
@@ -187,6 +188,18 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
     {
         for (int i = 0; i < dim; i++)
             (*this)[i] = static_cast<type> (other[i]);
+    }
+
+    /** Allow static_cast / explicit cast to member type for 1D vector */
+    template<
+        int T_deferDim = T_dim,
+        typename = typename std::enable_if< T_deferDim == 1 >::type
+    >
+    HDINLINE
+    explicit
+    operator type()
+    {
+        return (*this)[0];
     }
 
     /**
