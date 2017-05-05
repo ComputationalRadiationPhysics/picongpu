@@ -1,0 +1,206 @@
+/* Copyright 2017 Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* PIConGPU */
+#include "particles/flylite/NonLTE.hpp"
+#include "particles/flylite/helperFields/LocalEnergyHistogram.hpp"
+#include "particles/flylite/helperFields/LocalEnergyHistogramFunctors.hpp"
+#include "particles/flylite/helperFields/LocalRateMatrix.hpp"
+#include "particles/flylite/helperFields/LocalDensity.hpp"
+#include "particles/flylite/helperFields/LocalDensityFunctors.hpp"
+#include "particles/particleToGrid/derivedAttributes/Density.def"
+#include "particles/traits/GetShape.hpp"
+
+/* PMacc */
+#include "Environment.hpp"
+#include "dataManagement/ISimulationData.hpp"
+#include "traits/GetNumWorkers.hpp"
+
+#include <memory>
+
+
+namespace picongpu
+{
+namespace particles
+{
+namespace flylite
+{
+    template<
+        //! @todo for multi ion species IPD: typename T_OtherIonsList
+
+        typename T_ElectronsList,
+        typename T_PhotonsList
+    >
+    void
+    NonLTE<
+        T_ElectronsList,
+        T_PhotonsList
+    >::init(
+        PMacc::DataSpace< simDim > const & gridSizeLocal,
+        std::string const ionSpeciesName
+    )
+    {
+        //! GPU-local number of cells in regular resolution (like FieldE & B)
+        PMacc::DataSpace< simDim > m_gridSizeLocal = gridSizeLocal;
+        //! GPU-local number of cells in averaged (reduced) resolution
+        PMacc::DataSpace< simDim > m_avgGridSizeLocal = m_gridSizeLocal / picongpu::flylite::spatialAverageBox::toRT();
+
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        /* once allocated for all ion species to share */
+        if( ! dc.hasId( helperFields::LocalEnergyHistogram::getName( "electrons" ) ) )
+            dc.share(
+                std::shared_ptr< ISimulationData >(
+                    new helperFields::LocalEnergyHistogram(
+                        "electrons",
+                        m_avgGridSizeLocal
+                    )
+                )
+            );
+
+        if( ! dc.hasId( helperFields::LocalEnergyHistogram::getName( "photons" ) ) )
+            dc.share(
+                std::shared_ptr< ISimulationData >(
+                    new helperFields::LocalEnergyHistogram(
+                        "photons",
+                        m_avgGridSizeLocal
+                    )
+                )
+            );
+
+        if( ! dc.hasId( helperFields::LocalDensity::getName( "electrons" ) ) )
+            dc.share(
+                std::shared_ptr< ISimulationData >(
+                    new helperFields::LocalDensity(
+                        "electrons",
+                        m_avgGridSizeLocal
+                    )
+                )
+            );
+
+        /* for each ion species */
+        if( ! dc.hasId( helperFields::LocalRateMatrix::getName( ionSpeciesName ) ) )
+            dc.share(
+                std::shared_ptr< ISimulationData >(
+                    new helperFields::LocalRateMatrix(
+                        ionSpeciesName,
+                        m_avgGridSizeLocal
+                    )
+                )
+            );
+
+        if( ! dc.hasId( helperFields::LocalDensity::getName( ionSpeciesName ) ) )
+            dc.share(
+                std::shared_ptr< ISimulationData >(
+                    new helperFields::LocalDensity(
+                        ionSpeciesName,
+                        m_avgGridSizeLocal
+                    )
+                )
+            );
+    }
+
+    template<
+        //! @todo for multi ion species IPD: typename T_OtherIonsList,
+
+        typename T_ElectronsList,
+        typename T_PhotonsList
+    >
+    template<
+        typename T_IonSpeciesType
+    >
+    void
+    NonLTE<
+        //! @todo for multi ion species IPD: T_OtherIonsList,
+
+        T_ElectronsList,
+        T_PhotonsList
+    >::update(
+        std::string const ionSpeciesName,
+        uint32_t currentStep
+    )
+    {
+        using IonSpeciesType = T_IonSpeciesType;
+
+        // calculate density fields and energy histograms
+        fillHelpers< IonSpeciesType >( ionSpeciesName, currentStep );
+
+        //! @todo calculate rate matrix
+        //! @todo implicit ODE solve to evolve populations
+        //! @todo modify f_e of free electrons
+        //! @todo modify f_ph of photon field (absorb)
+        //! @todo change charges, create electrons & photons
+    }
+
+    template<
+        //! @todo for multi ion species IPD: typename T_OtherIonsList,
+
+        typename T_ElectronsList,
+        typename T_PhotonsList
+    >
+    template<
+        typename T_IonSpeciesType
+    >
+    void
+    NonLTE<
+        //! @todo for multi ion species IPD: T_OtherIonsList,
+
+        T_ElectronsList,
+        T_PhotonsList
+    >::fillHelpers(
+        std::string const ionSpeciesName,
+        uint32_t currentStep
+    )
+    {
+        using IonSpeciesType = T_IonSpeciesType;
+
+        // calculate density fields
+        helperFields::FillLocalDensity< MakeSeq_t< IonSpeciesType > > fillDensityIons{};
+        fillDensityIons(
+            currentStep,
+            ionSpeciesName
+        );
+
+        helperFields::FillLocalDensity< T_ElectronsList > fillDensityElectrons{};
+        fillDensityElectrons(
+            currentStep,
+            "electrons"
+        );
+
+        // calculate energy histograms: f(e), f(ph)
+        helperFields::FillLocalEnergyHistogram< T_ElectronsList > fillEnergyHistogramElectrons{};
+        fillEnergyHistogramElectrons(
+            currentStep,
+            "electrons",
+            picongpu::flylite::electronMinEnergy,
+            picongpu::flylite::electronMaxEnergy
+        );
+
+        helperFields::FillLocalEnergyHistogram< T_PhotonsList > fillEnergyHistogramPhotons{};
+        fillEnergyHistogramPhotons(
+            currentStep,
+            "photons",
+            picongpu::flylite::photonMinEnergy,
+            picongpu::flylite::photonMaxEnergy
+        );
+    }
+
+} // namespace flylite
+} // namespace particles
+} // namespace picongpu

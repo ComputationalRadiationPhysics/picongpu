@@ -1,0 +1,280 @@
+/* Copyright 2017 Axel Huebl, Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "simulation_defines.hpp"
+
+// PMacc
+#include "dataManagement/ISimulationData.hpp"
+#include "dimensions/GridLayout.hpp"
+#include "nvidia/functors/Add.hpp"
+#include "memory/buffers/GridBuffer.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "memory/Array.hpp"
+#include "mappings/threads/ForEachIdx.hpp"
+#include "mappings/threads/IdxConfig.hpp"
+
+#include <string>
+#include <memory>
+
+
+namespace picongpu
+{
+namespace particles
+{
+namespace flylite
+{
+namespace helperFields
+{
+    /** Generate and add a local energy histogram
+     *
+     * Generate a (per-supercell) energy histogram and add it to global memory.
+     *
+     * @tparam T_numWorkers number of workers for lockstep execution per block,
+     *                      usually equal to the number of particles per frame
+     *                      (which is equal to the supercell size)
+     */
+    template< uint32_t T_numWorkers >
+    struct KernelAddLocalEnergyHistogram
+    {
+        /** Functor
+         *
+         * The functor is executed frame-list wise, meaning locally per
+         * supercell. All particles of a supercell generate a shared memory
+         * histogram and write that back into global memory. Particles outside
+         * of the range of the histogram are ignored and not counted.
+         *
+         * @todo In case the local averging in flylite shall be larger then a
+         * supercell (in integer multiples), the results need to be merged.
+         *
+         * @tparam T_ParBox PMacc::ParticlesBox, particle box type
+         * @tparam T_LocalEnergyHistogramBox PMacc::DataBox, local energy histograms,
+         *                                   e.g. for each supercell
+         *
+         * @param pb particles of a species
+         * @param energyHistogramBox box with global memory for each supercell's histogram
+         * @param minEnergy minimum energy to account for (eV)
+         * @param maxEnergy maximum energy to account for (eV)
+         */
+        template<
+            typename T_ParBox,
+            typename T_LocalEnergyHistogramBox,
+            typename T_Mapping
+        >
+        DINLINE void operator()(
+            T_ParBox & pb,
+            T_LocalEnergyHistogramBox & energyHistogramBox,
+            float_X const minEnergy,
+            float_X const maxEnergy,
+            T_Mapping const mapper
+        ) const
+        {
+            using picongpu::flylite::spatialAverageBox;
+            constexpr uint16_t numBins = picongpu::flylite::energies;
+            constexpr uint32_t numWorkers = T_numWorkers;
+
+            using namespace PMacc::mappings::threads;
+            using SuperCellSize = typename MappingDesc::SuperCellSize;
+            using FramePtr = typename T_ParBox::FramePtr;
+            constexpr uint32_t maxParticlesPerFrame = PMacc::math::CT::volume< SuperCellSize >::type::value;
+
+            PMACC_SMEM(
+                frame,
+                FramePtr
+            );
+            PMACC_SMEM(
+                particlesInSuperCell,
+                lcellId_t
+            );
+
+            // our workers per block are started 1D
+            uint32_t const workerIdx = threadIdx.x;
+
+            // supercell index of current (frame-wise) supercell including GUARD
+            DataSpace< simDim > const superCellIdx(
+                mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+            );
+            /* index inside local energy histogram in averaged space (has no GUARD)
+             * integer division: of we average over multiples of supercells
+             *                   this will select the right local energy
+             *                   histogram in global RAM
+             */
+            DataSpace< simDim > const localEnergyBlock =
+                ( superCellIdx - DataSpace< simDim >::create( GUARD_SIZE ) ) *
+                SuperCellSize::toRT() / spatialAverageBox::toRT();
+
+            /* shift the energyHistogramBox to the local spatial average box and
+             * get a reference on the histogram
+             */
+            auto & localEnergyHistogram = *energyHistogramBox.shift( localEnergyBlock );
+
+            // shared memory for local energy histogram
+            PMACC_SMEM(
+                shLocalEnergyHistogram,
+                memory::Array<
+                    float_X,
+                    numBins
+                >
+            );
+
+            using MasterOnly = IdxConfig<
+                1,
+                numWorkers
+            >;
+
+            // get frame lists of this supercell
+            ForEachIdx< MasterOnly >{ workerIdx }(
+                [&](
+                    uint32_t const,
+                    uint32_t const
+                )
+                {
+                    frame = pb.getLastFrame( superCellIdx );
+                    particlesInSuperCell = pb.getSuperCell( superCellIdx ).getSizeLastFrame( );
+                }
+            );
+
+            // empty the histogram to contain only zeroes
+            ForEachIdx<
+                IdxConfig<
+                    numWorkers,
+                    numWorkers
+                >
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    /* set all bins to 0 */
+                    for( int i = linearIdx; i < numBins; i += numWorkers )
+                        shLocalEnergyHistogram[ i ] = float_X( 0. );
+                }
+            );
+
+            __syncthreads();
+
+            // return if the supercell has no particles
+            if( !frame.isValid( ) )
+                return;
+
+            // iterate the frame list
+            while( frame.isValid() )
+            {
+                // move over all particles in a frame
+                ForEachIdx<
+                    IdxConfig<
+                        maxParticlesPerFrame,
+                        numWorkers
+                    >
+                >{ workerIdx }(
+                    [&](
+                        uint32_t const linearIdx,
+                        uint32_t const
+                    )
+                    {
+                        if( linearIdx < particlesInSuperCell )
+                        {
+                            auto const particle = frame[ linearIdx ];
+                            /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
+                             *                                   = c^2 * [p^2 + m^2*c^2]
+                             */
+                            float3_X const mom = particle[ momentum_ ];
+
+                            float_X const weighting = particle[ weighting_ ];
+                            float_X const mass = attribute::getMass(
+                                weighting,
+                                particle
+                            );
+
+                            // calculate kinetic energy of the macro particle
+                            float_X particleEnergy = KinEnergy< >( )(
+                                mom,
+                                mass
+                            );
+
+                            particleEnergy /= weighting;
+
+                            // calculate bin number
+                            int binNumber = math::floor(
+                                ( particleEnergy - minEnergy ) /
+                                ( maxEnergy - minEnergy ) * static_cast< float_X >( numBins )
+                            );
+
+                            /* all entries larger than maxEnergy or smaller
+                             * than minEnergy are ignored
+                             */
+                            if( binNumber >= 0 and binNumber < numBins )
+                            {
+                                // artifical norm for reduce
+                                float_X const normedWeighting = weighting /
+                                    float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
+
+                                atomicAddWrapper(
+                                    &( shLocalEnergyHistogram[ binNumber ] ),
+                                    normedWeighting
+                                );
+                            }
+                        }
+                    }
+                );
+
+                __syncthreads();
+
+                // go to next frame
+                ForEachIdx< MasterOnly >{ workerIdx }(
+                    [&](
+                        uint32_t const,
+                        uint32_t const
+                    )
+                    {
+                        frame = pb.getPreviousFrame( frame );
+                        particlesInSuperCell = maxParticlesPerFrame;
+                    }
+                );
+                __syncthreads();
+            }
+
+            // write histogram back to global memory (add)
+            ForEachIdx<
+                IdxConfig<
+                    numWorkers,
+                    numWorkers
+                >
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    for( int i = linearIdx; i < numBins; i += numWorkers )
+                        atomicAddWrapper(
+                            &( localEnergyHistogram[ i ] ),
+                            shLocalEnergyHistogram[ i ]
+                        );
+                }
+            );
+        }
+    };
+
+} // namespace helperFields
+} // namespace flylite
+} // namespace particles
+} // namespace picongpu

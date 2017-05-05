@@ -1,0 +1,150 @@
+/* Copyright 2017 Axel Huebl, Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "simulation_defines.hpp"
+
+// PMacc
+#include "dataManagement/ISimulationData.hpp"
+#include "dimensions/GridLayout.hpp"
+#include "nvidia/reduce/Reduce.hpp"
+#include "nvidia/functors/Add.hpp"
+#include "memory/buffers/GridBuffer.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "memory/Array.hpp"
+
+#include <string>
+#include <memory>
+
+
+namespace picongpu
+{
+namespace particles
+{
+namespace flylite
+{
+namespace helperFields
+{
+    /** Average a FieldTmp density to a smaller resolution
+     *
+     * Average a FieldTmp density to a smaller (per-supercell) resolution and
+     * add it to a local density field.
+     *
+     * @tparam T_numWorkers number of workers for lockstep execution per block,
+     *                      arbitrary for reduce since it will loop over the
+     *                      source size when necessary
+     */
+    template<
+        uint32_t T_numWorkers
+    >
+    struct KernelAverageDensity
+    {
+        /** Functor
+         *
+         * @tparam T_TmpBox PMacc::DataBox with full-resolution density
+         * @tparam T_LocalDensityBox PMacc::DataBox local density with less
+         *                           resolution
+         *
+         * @param fieldTmp PMacc::DataBox with FieldTmp density scalar field
+         * @param localDensity PMacc::DataBox with global memory, e.g. for each
+         *                     supercell's density
+         */
+        template<
+            typename T_TmpBox,
+            typename T_LocalDensityBox
+        >
+        DINLINE void operator()(
+            T_TmpBox fieldTmp,
+            T_LocalDensityBox localDensity
+        ) const
+        {
+            using picongpu::flylite::spatialAverageBox;
+            using ValueType = typename T_TmpBox::ValueType;
+            constexpr uint32_t numWorkers = T_numWorkers;
+
+            // cell index in the average box in reduced resolution
+            const DataSpace< simDim > avgBoxCell( blockIdx );
+            // first cell index inside FieldTmp (originating from BORDER) for block
+            const DataSpace< simDim > fieldTmpBlockOriginCell = avgBoxCell * spatialAverageBox::toRT();
+            // our workers per block are started 1D
+            const uint32_t linearThreadIdx( threadIdx.x );
+
+            // shift the fieldTmp to the start of average box
+            auto fieldTmpBlock = fieldTmp.shift( fieldTmpBlockOriginCell );
+
+            // shared memory for reduce
+            PMACC_SMEM(
+                shReduceBuffer,
+                memory::Array<
+                    ValueType,
+                    numWorkers
+                >
+            );
+
+            // re-map access indices to local average view
+            using D1Box = DataBoxDim1Access< T_TmpBox >;
+            D1Box d1access(
+                fieldTmpBlock,
+                spatialAverageBox::toRT()
+            );
+
+            __syncthreads();
+
+            nvidia::reduce::kernel::Reduce< ValueType > reduce{};
+
+            const uint32_t numAvgCells = PMacc::math::CT::volume< spatialAverageBox >::type::value;
+            reduce(
+                linearThreadIdx,
+                numWorkers,
+                /* block-wise reduce, every worker participates */
+                linearThreadIdx,
+                numWorkers,
+                /* access inside local average view */
+                d1access,
+                numAvgCells,
+                nvidia::functors::Add(),
+                shReduceBuffer
+            );
+
+            /* continue with master
+             *
+             * - before working with this field, multiply by
+             *   particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE
+             * - divide by for average by numAvgCells
+             * - write back to global
+             *
+             * - change those lines if you want to re-use this kernel for a vector field
+             */
+            if( linearThreadIdx == 0 )
+            {
+                ValueType localAverageResult = shReduceBuffer[ 0 ] *
+                    particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE /
+                    float_X( numAvgCells );
+
+                localDensity( avgBoxCell ) =
+                    static_cast< typename T_LocalDensityBox::ValueType >( localAverageResult );
+            }
+        }
+    };
+
+} // namespace helperFields
+} // namespace flylite
+} // namespace particles
+} // namespace picongpu

@@ -175,12 +175,14 @@ struct CallPopulationKineticsInit
 
 /** Calculate FLYlite population kinetics evolving one time step
  *
- * @tparam T_SpeciesName name of ion species
+ * @tparam T_SpeciesName name of ion species as PMacc::TypeAsIdentifier
  */
 template< typename T_SpeciesName >
 struct CallPopulationKinetics
 {
+    //! PMacc::TypeAsIdentifier for the particle species
     using SpeciesName = T_SpeciesName;
+    //! expects a picongpu::Particles class
     using SpeciesType = typename SpeciesName::type;
     using FrameType = typename SpeciesType::FrameType;
 
@@ -194,7 +196,7 @@ struct CallPopulationKinetics
     HINLINE void operator()( uint32_t currentStep ) const
     {
         PopulationKineticsSolver flylite{};
-        flylite.template update< SpeciesName >(
+        flylite.template update< SpeciesType >(
             FrameType::getName(),
             currentStep
         );
