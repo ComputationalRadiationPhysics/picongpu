@@ -31,6 +31,7 @@
 
 #include "mappings/kernel/StrideMapping.hpp"
 #include "traits/NumberOfExchanges.hpp"
+#include "traits/GetNumWorkers.hpp"
 #include "assert.hpp"
 
 #include <memory>
@@ -110,11 +111,14 @@ protected:
         StrideMapping<AREA, 3, MappingDesc> mapper(this->cellDescription);
         ParticlesBoxType pBox = particlesBuffer->getDeviceParticleBox();
 
+        constexpr uint32_t numWorkers = traits::GetNumWorkers<
+            math::CT::volume<typename FrameType::SuperCellSize>::type::value
+        >::value;
         __startTransaction(__getTransactionEvent());
         do
         {
-            PMACC_KERNEL(KernelShiftParticles{})
-                (mapper.getGridDim(), (int)TileSize)
+            PMACC_KERNEL(KernelShiftParticles< numWorkers >{})
+                (mapper.getGridDim(), numWorkers)
                 (pBox, mapper);
             PMACC_KERNEL(KernelFillGaps{})
                 (mapper.getGridDim(), (int)TileSize)
