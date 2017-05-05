@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "mappings/threads/ForEachIdx.hpp"
+#include "mappings/threads/IdxConfig.hpp"
 #include "dimensions/SuperCellDescription.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "dimensions/DataSpace.hpp"
@@ -30,55 +32,98 @@
 namespace PMacc
 {
 
-template<class BlockArea_, int MaxThreads_ = math::CT::volume<typename BlockArea_::SuperCellSize>::type::value >
+/** execute a functor on a domain
+ *
+ * For each argument passed to the functor the `operator()` is called.
+ * This is a **collective** functor and needs to be called by all worker within a block.
+ *
+ * @tparam T_BlockDomain domain description, type mist contain the definitions `SuperCellSize`,
+ *                       `FullSuperCellSize`, `OffsetOrigin` and `Dim`
+ * @tparam T_numWorkers number of workers which are used to execute this functor
+ */
+template<
+    typename T_BlockDomain,
+    uint32_t T_numWorkers = math::CT::volume<typename T_BlockDomain::SuperCellSize>::type::value
+>
 class ThreadCollective
 {
 private:
-    typedef typename BlockArea_::SuperCellSize SuperCellSize;
-    typedef typename BlockArea_::FullSuperCellSize FullSuperCellSize;
-    typedef typename BlockArea_::OffsetOrigin OffsetOrigin;
-    static constexpr int maxThreads = MaxThreads_;
+    /** size of the inner domain */
+    using SuperCellSize = typename T_BlockDomain::SuperCellSize;
 
-    enum
-    {
-        Dim = BlockArea_::Dim
-    };
+    /** full size of the domain including the guards around SuperCellSize */
+    using FullSuperCellSize = typename T_BlockDomain::FullSuperCellSize;
+
+    /** size of the negative guard */
+    using OffsetOrigin = typename T_BlockDomain::OffsetOrigin;
+
+    /** number of worker performing the functior */
+    static constexpr uint32_t numWorkers = T_numWorkers;
+
+    /** dimensionality of the index domain */
+    static constexpr uint32_t dim = T_BlockDomain::Dim;
+
+    /** index of the worker: range [0;numWorkers) */
+    PMACC_ALIGN( m_workerIdx, uint32_t const );
 
 public:
 
-    DINLINE ThreadCollective(const int threadIndex) : threadId(threadIndex)
+    /** constructor
+     *
+     * @param workerIdx worker index
+     */
+    DINLINE ThreadCollective( uint32_t const workerIdx ) :
+        m_workerIdx( workerIdx )
+    { }
+
+    /** constructor
+     *
+     * @warning this constructor is **deprecated** (assuming that the index domain
+     *          and the number of workers needs to be euqal is not good and avoid the
+     *          usage of alpaka)
+     *
+     * @param nDimWorkerIdx n dimensional worker index
+     */
+    DINLINE ThreadCollective( DataSpace< dim > const nDimWorkerIdx ) :
+        m_workerIdx( DataSpaceOperations< dim >::template map< SuperCellSize >( nDimWorkerIdx ) )
+    { }
+
+    /** execute a functor for each data point
+     *
+     * @tparam T_Functor type of the functor
+     * @tparam T_Args type of arguments given to the functor
+     *
+     * @param functor functor which is called for each data element in the domain
+     *                spanned by T_BlockDomain
+     * @param args the result of each argument of the `operator( relativeNDimensionalIdx )` call
+     *             with the relative index inside `T_BlockDomain` based on
+     *             the origin `T_BlockDomain::OffsetOrigin` is passed to the functor
+     */
+    template<
+        typename T_Functor,
+        typename ... T_Args
+    >
+    DINLINE void operator()(
+        T_Functor & functor,
+        T_Args && ... args
+    )
     {
+        mappings::threads::ForEachIdx<
+            mappings::threads::IdxConfig<
+                math::CT::volume<FullSuperCellSize>::type::value,
+                numWorkers
+            >
+        >{ m_workerIdx }(
+            [&]( uint32_t const linearIdx, uint32_t const )
+            {
+                DataSpace< dim > const relativeIdx(
+                    DataSpaceOperations< dim >::template map< FullSuperCellSize >( linearIdx ) -
+                    OffsetOrigin::toRT( )
+                );
+                functor( args( relativeIdx ) ... );
+            }
+        );
     }
-
-    DINLINE ThreadCollective(const DataSpace<Dim> threadIndex) :
-    threadId(DataSpaceOperations<Dim>::template map<SuperCellSize>(threadIndex))
-    {
-    }
-
-    template<class F, class P1, class P2>
-    DINLINE void operator()(F& f, P1& p1, P2& p2)
-    {
-        for (int i = threadId; i < math::CT::volume<FullSuperCellSize>::type::value; i += maxThreads)
-        {
-            const DataSpace<Dim> pos(DataSpaceOperations<Dim>::template map<FullSuperCellSize > (i) - OffsetOrigin::toRT());
-            f(p1(pos), p2(pos));
-        }
-    }
-
-    template<class F, class P1>
-    DINLINE void operator()(F& f, P1 & p1)
-    {
-        for (int i = threadId; i < math::CT::volume<FullSuperCellSize>::type::value; i += maxThreads)
-        {
-            const DataSpace<Dim> pos(DataSpaceOperations<Dim>::template map<FullSuperCellSize > (i) - OffsetOrigin::toRT());
-            f(p1(pos));
-        }
-    }
-
-
-private:
-    const PMACC_ALIGN(threadId, int);
-
 };
 
-}//namespace
+}//namespace PMacc
