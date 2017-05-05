@@ -83,7 +83,6 @@ struct UpdateCellListOfFramesKernel
 
         DataSpace<Dim> superCellIdx( mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) ) );
 
-        //data copied from right (last) to left (first)
         PMACC_SMEM( firstFrame, FramePtr );
         PMACC_SMEM( lastFrame, FramePtr );
         PMACC_SMEM( frameNr, int );
