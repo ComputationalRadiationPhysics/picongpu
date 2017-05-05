@@ -34,6 +34,8 @@ namespace threads
 
     /** describe a constant index domain
      *
+     * describe the size of the index domain and the number of workers to operate on the domain
+     *
      * @tparam T_domainSize number of indices in the domain
      * @tparam T_workerSize number of worker working on @p T_domainSize
      * @tparam T_simdSize SMID width
