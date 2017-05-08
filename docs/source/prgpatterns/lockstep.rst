@@ -5,11 +5,15 @@ Lockstep Programming Model
 
 .. sectionauthor:: René Widera
 
-The *lockstep programming model* separates code that is evaluated by workers (threads) collectively and independently.
-A problem is described by index domains. A index domain is **independent** from data but **can** be mapped to a data domain one to one but also with more complex mappings.
+The *lockstep programming model* structures code that is evaluated collectively and independently by workers (physical threads).
+Actual processing is described by one-dimensional index domains of *virtual workers* which can even be changed within a kernel.
+Mathematically, index domains are none-injective, total functions on physical workers.
+
+An index domain is **independent** from data but **can** be mapped to a data domain, e.g. one to one or with more complex mappings.
 
 Code which is implemented by the *lockstep programming model* is free of any dependencies between the number of worker and processed data elements.
-To simplify the implementation each index within a domain can be seen as a *virtual worker* which is processing one data element (like the common workflow to programming CUDA). Each *worker i* can be executed as N_i *virtual workers* (1:N_i).
+To simplify the implementation, each index within a domain can be seen as a *virtual worker* which is processing one data element (like the common workflow to programming CUDA).
+Each *worker* :math:`i` can be executed as :math:`N_i` *virtual workers* (:math:`1:N_i`).
 
 PMacc helpers
 -------------
@@ -29,21 +33,21 @@ Common Pattern
 Collective Loop
 ^^^^^^^^^^^^^^^
 
-* each worker needs to pass a loop N times)
-* in this example, there are more dates then workers that process them
+* each worker needs to pass a loop N times
+* in this example, there are more dates than workers that process them
 
 .. code-block:: bash
 
     // `frame` is a list which must be traversed collectively
-    while ( frame.isValid() )
+    while( frame.isValid() )
     {
-        const uint32_t workerIdx = threadIdx.x;
+        uint32_t const workerIdx = threadIdx.x;
         using ParticleDomCfg = IdxConfig<
             frameSize,
             numWorker
         >;
         ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
-       forEachParticle(
+        forEachParticle(
            [&]( uint32_t const linearIdx, uint32_t const idx )
            {
                // independent work
@@ -59,7 +63,7 @@ Non-Collective Loop
 
 .. code-block:: cpp
 
-    const uint32_t workerIdx = threadIdx.x;
+    uint32_t const workerIdx = threadIdx.x;
     using ParticleDomCfg = IdxConfig<
         frameSize,
         numWorker
@@ -83,14 +87,14 @@ Create a Context Variable
 
 .. code-block:: cpp
 
-    const uint32_t workerIdx = threadIdx.x;
+    uint32_t const workerIdx = threadIdx.x;
     using ParticleDomCfg = IdxConfig<
         frameSize,
         numWorker
     >;
     memory::CtxArray< int, ParticleDomCfg > vIdx(
         workerIdx,
-        [&]( uint32_t const linearIdx, uint32_t const ) -> DataSpace<dim>
+        [&]( uint32_t const linearIdx, uint32_t const ) -> int32_t
         {
             return linearIdx;
         }
