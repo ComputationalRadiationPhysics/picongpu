@@ -23,6 +23,8 @@
  *
  * - None : no particle is ionized
  * - BSI : simple barrier suppression ionization
+ * - BSIEffectiveZ : BSI taking electron shielding into account via an effective
+ *                   atomic number Z_eff
  * - ADKLinPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
  *               -> linearly polarized lasers
  * - ADKCircPol : Ammosov-Delone-Krainov tunneling ionization (H-like)
@@ -33,8 +35,6 @@
  *                 Attention: requires 2 FieldTmp slots @see memory.param
  *
  * Research and development:
- * - BSIEffectiveZ : BSI taking electron shielding into account via an effective
- *                   atomic number Z_eff
  * - BSIStarkShifted : BSI for hydrogen-like atoms and ions considering the
  *                     Stark upshift of ionization potentials
  *

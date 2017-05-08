@@ -50,7 +50,7 @@ namespace ionization
      *
      * - This model accounts for naive ion charge shielding by inner electrons
      *   as it assumes that the charge the electron 'feels' is equal to
-     *   `Z - #NumberOfBoundInnerShellElectrons`.
+     *   `proton number - number of inner shell electrons`.
      * - This model neglects the Stark upshift of ionization energies.
      *
      * \tparam T_DestSpecies electron species to be created
