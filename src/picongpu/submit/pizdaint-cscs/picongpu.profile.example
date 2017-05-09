@@ -7,31 +7,31 @@
 # if the wrong environment is loaded we switch to the gnu environment
 module li 2>&1 | grep "PrgEnv-cray" > /dev/null
 if [ $? -eq 0 ] ; then
-    module swap PrgEnv-cray PrgEnv-gnu/5.2.82
+    module swap PrgEnv-cray PrgEnv-gnu/6.0.3
 else
-    module load PrgEnv-gnu/5.2.82
+    module load PrgEnv-gnu/6.0.3
 fi
 
-module load cmake/3.3.2
-module load cudatoolkit/7.0.28-1.0502.10742.5.1
+module load CMake/3.6.2
+module load cudatoolkit/8.0.54_2.2.8_ga620558-2.1
 
 # Libraries ###################################################################
-module load boost/1.58.0
-module load cray-mpich/7.2.2
+module load cray-mpich/7.5.0
+module load cray-hdf5-parallel/1.10.0
 
 # Other Software ##############################################################
 #
-module load cray-hdf5-parallel/1.8.14
-module load zlib/1.2.8-CrayGNU-5.2.40
 
 # Environment #################################################################
 #
 # needs to be compiled by the user
+export BOOST_ROOT=$SCRATCH/lib/boost-1.62.0
 export PNGWRITER_ROOT=$SCRATCH/lib/pngwriter
-export SPLASH_ROOT=$SCRATCH/lib/splash
+export ADIOS_ROOT=$SCRATCH/lib/adios-1.11.1
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib/
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SPLASH_ROOT/lib/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_ROOT/lib/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ADIOS_ROOT/lib/
 
 export MPI_ROOT=$MPICH_DIR
 export HDF5_ROOT=$HDF5_DIR
@@ -75,5 +75,5 @@ getInteractive() {
         numNodes=$1
     fi
     # `--ntasks-per-core=2` activates intel hyper threading
-    salloc --time=1:00:00 --nodes="$numNodes" --ntasks-per-node=16 --ntasks-per-core=2 --partition normal --gres=gpu:1
+    salloc --time=1:00:00 --nodes="$numNodes" --ntasks-per-node=12 --ntasks-per-core=2 --partition normal --gres=gpu:1 --constraint=gpu
 }
