@@ -17,95 +17,199 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
+#include "simulation_defines.hpp"
+#include "mappings/threads/ForEachIdx.hpp"
+#include "mappings/threads/IdxConfig.hpp"
+
+
 namespace picongpu
 {
 namespace yeeSolver
 {
-using namespace PMacc;
+    using namespace PMacc;
 
-template< typename BlockDescription_ >
-struct KernelUpdateE
-{
+    /** compute electric field
+     *
+     * @tparam T_numWorkers number of workers
+     * @tparam T_BlockDescription field (electric and magnetic) domain description
+     */
     template<
-        typename T_Curl,
-        typename T_EBox,
-        typename T_BBox,
-        typename T_Mapping
+        uint32_t T_workers,
+        typename T_BlockDescription
     >
-    DINLINE void operator()(
-        const T_Curl& curl,
-        T_EBox fieldE,
-        T_BBox fieldB,
-        T_Mapping mapper
-    ) const
+    struct KernelUpdateE
     {
+        /** update electric field
+         *
+         * @tparam T_Curl curl functor type
+         * @tparam T_EBox PMacc::DataBox, electric field box type
+         * @tparam T_BBox PMacc::DataBox, magnetic field box type
+         * @tparam T_Mapping mapper functor type
+         *
+         * @param curl functor to calculate the electric field, interface must be
+         *             `operator()(T_BBox)`
+         * @param fieldE electric field iterator
+         * @param fieldB magnetic field iterator
+         * @param mapper functor to map a block to a supercell
+         */
+        template<
+            typename T_Curl,
+            typename T_EBox,
+            typename T_BBox,
+            typename T_Mapping
+        >
+        DINLINE void operator()(
+            T_Curl const & curl,
+            T_EBox fieldE,
+            T_BBox const fieldB,
+            T_Mapping mapper
+        ) const
+        {
+            using namespace mappings::threads;
 
-        auto cachedB = CachedBox::create < 0, typename T_BBox::ValueType > (BlockDescription_());
+            constexpr uint32_t cellsPerSuperCell = PMacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t numWorkers = T_workers;
 
-        nvidia::functors::Assign assign;
-        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
+            uint32_t const workerIdx = threadIdx.x;
 
-        const DataSpace<simDim > threadIndex(threadIdx);
-        auto fieldBBlock = fieldB.shift(blockCell);
+            auto cachedB = CachedBox::create<
+                0u,
+                typename T_BBox::ValueType
+            >( T_BlockDescription( ) );
 
-        ThreadCollective<BlockDescription_> collective(threadIndex);
-        collective(
-                  assign,
-                  cachedB,
-                  fieldBBlock
-                  );
+            nvidia::functors::Assign assign;
+            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) ) );
+            DataSpace< simDim > const blockCell = block * MappingDesc::SuperCellSize::toRT( );
 
-        __syncthreads();
+            auto fieldBBlock = fieldB.shift( blockCell );
 
-        const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
-        const float_X dt = DELTA_T;
+            ThreadCollective<
+                T_BlockDescription,
+                numWorkers
+            > collective( workerIdx );
 
-        fieldE(blockCell + threadIndex) += curl(cachedB.shift(DataSpace<simDim > (threadIdx))) * c2 * dt;
-    }
-};
+            collective(
+                assign,
+                cachedB,
+                fieldBBlock
+            );
 
-template< typename BlockDescription_ >
-struct KernelUpdateBHalf
-{
+            __syncthreads();
+
+            constexpr float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+            constexpr float_X dt = DELTA_T;
+
+            ForEachIdx<
+                IdxConfig<
+                    cellsPerSuperCell,
+                    numWorkers
+                >
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    /* cell index within the superCell */
+                    DataSpace< simDim > const cellIdx = DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
+
+                    fieldE( blockCell + cellIdx ) += curl( cachedB.shift( cellIdx ) ) * c2 * dt;
+                }
+            );
+        }
+    };
+
+    /** compute magnetic field
+     *
+     * @tparam T_numWorkers number of workers
+     * @tparam T_BlockDescription field (electric and magnetic) domain description
+     */
     template<
-        typename T_Curl,
-        typename T_EBox,
-        typename T_BBox,
-        typename T_Mapping
+        uint32_t T_workers,
+        typename T_BlockDescription
     >
-    DINLINE void operator()(
-        const T_Curl& curl,
-        T_BBox fieldB,
-        T_EBox fieldE,
-        T_Mapping mapper
-    ) const
+    struct KernelUpdateBHalf
     {
+        /** update magnetic field
+         *
+         * @tparam T_Curl curl functor type
+         * @tparam T_EBox PMacc::DataBox, electric field box type
+         * @tparam T_BBox PMacc::DataBox, magnetic field box type
+         * @tparam T_Mapping mapper functor type
+         *
+         * @param curl functor to calculate the electric field, interface must be
+         *             `operator()(T_EBox)`
+         * @param fieldB magnetic field iterator
+         * @param fieldE electric field iterator
+         * @param mapper functor to map a block to a supercell
+         */
+        template<
+            typename T_Curl,
+            typename T_EBox,
+            typename T_BBox,
+            typename T_Mapping
+        >
+        DINLINE void operator()(
+            T_Curl const & curl,
+            T_BBox fieldB,
+            T_EBox const fieldE,
+            T_Mapping mapper
+        ) const
+        {
+            using namespace mappings::threads;
 
-        auto cachedE = CachedBox::create < 0, typename T_EBox::ValueType > (BlockDescription_());
+            constexpr uint32_t cellsPerSuperCell = PMacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t numWorkers = T_workers;
 
-        nvidia::functors::Assign assign;
-        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
-        const DataSpace<simDim > threadIndex(threadIdx);
-        auto fieldEBlock = fieldE.shift(blockCell);
+            uint32_t const workerIdx = threadIdx.x;
 
-        ThreadCollective<BlockDescription_> collective(threadIndex);
-        collective(
-                  assign,
-                  cachedE,
-                  fieldEBlock
-                  );
+            auto cachedE = CachedBox::create<
+                0u,
+                typename T_EBox::ValueType
+            >( T_BlockDescription( ) );
 
+            nvidia::functors::Assign assign;
+            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) ) );
+            DataSpace< simDim > const blockCell = block * MappingDesc::SuperCellSize::toRT( );
 
-        __syncthreads();
+            auto fieldEBlock = fieldE.shift( blockCell );
 
-        const float_X dt = DELTA_T;
+            ThreadCollective<
+                T_BlockDescription,
+                numWorkers
+            > collective( workerIdx );
 
-        fieldB(blockCell + threadIndex) -= curl(cachedE.shift(threadIndex)) * float_X(0.5) * dt;
-    }
-};
+            collective(
+                assign,
+                cachedE,
+                fieldEBlock
+            );
 
-} // yeeSolver
+            __syncthreads();
 
-} // picongpu
+            constexpr float_X dt = DELTA_T;
+
+            ForEachIdx<
+                IdxConfig<
+                    cellsPerSuperCell,
+                    numWorkers
+                >
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    /* cell index within the superCell */
+                    DataSpace< simDim > const cellIdx = DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
+
+                    fieldB( blockCell + cellIdx ) -= curl( cachedE.shift( cellIdx ) ) * float_X( 0.5 ) * dt;
+                }
+            );
+        }
+    };
+
+} // namespace yeeSolver
+} // namespace picongpu
