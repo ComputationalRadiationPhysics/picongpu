@@ -34,6 +34,7 @@
 # TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
+#SBATCH --constraint=gpu
 
 #SBATCH -o stdout
 #SBATCH -e stderr
@@ -51,9 +52,9 @@
 # 1 gpus per node
 .TBG_gpusPerNode=1
 
-# number of cores to block per GPU - we got 8 cpus per gpu
-#   and we will be accounted 8 CPUs per GPU anyway
-.TBG_coresPerGPU=8
+# number of cores to block per GPU - we got 12 cpus per gpu
+#   and we will be accounted 12 CPUs per GPU anyway
+.TBG_coresPerGPU=12
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode=1
