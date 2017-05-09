@@ -1,0 +1,74 @@
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Anton Helm,
+ *                     Rene Widera, Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Select the laser profile and the field solver here.
+ */
+
+#pragma once
+
+
+namespace picongpu
+{
+    /** @namespace simulation_starter
+     *
+     * Simulation Starter Selection:
+     * This value does usually not need to be changed. Change only if you want to
+     * implement your own `SimulationHelper` (e.g. `MySimulation`) class.
+     *  - defaultPIConGPU         : default PIConGPU configuration
+     */
+    namespace simulation_starter = defaultPIConGPU;
+
+    /** @namespace laserProfile
+     *
+     * Laser Profile Selection:
+     *  - laserNone             : no laser init
+     *  - laserGaussianBeam     : Gaussian beam (focusing)
+     *  - laserPulseFrontTilt   : Gaussian beam with a tilted pulse envelope
+     *                            in 'x' direction
+     *  - laserWavepacket       : wavepacket (Gaussian in time and space, not focusing)
+     *  - laserPlaneWave        : a plane wave (Gaussian in time)
+     *  - laserPolynom          : a polynomial laser envelope
+     *
+     * Adjust the settings of the selected profile in laser.param
+     */
+    namespace laserProfile = laserPlaneWave;
+
+    /** @namespace fieldSolver
+     *
+     * Field Solver Selection:
+     *  - fieldSolverYee : standard Yee solver
+     *  - fieldSolverLehe: Num. Cherenkov free field solver in a chosen direction
+     *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
+     *  - fieldSolverNone: disable the vacuum update of E and B
+     *
+     * For development purposes:
+     *  - fieldSolverYeeNative : generic version of fieldSolverYee
+     *    (need more shared memory per GPU and is slow)
+     *
+     * Adjust the settings of the selected field solver in fieldSolver.param
+     */
+    namespace fieldSolver = fieldSolverYee;
+
+/** enable (1) or disable (0) current calculation (deprecated) */
+#define ENABLE_CURRENT 1
+
+}

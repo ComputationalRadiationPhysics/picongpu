@@ -1,0 +1,119 @@
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Felix Schmitt,
+ * Benjamin Worpitz, Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/int.hpp>
+
+#include "compileTime/conversion/MakeSeq.hpp"
+
+/* some forward declarations we need */
+#include "fields/Fields.def"
+#include "particles/particleToGrid/ComputeGridValuePerFrame.def"
+
+
+namespace picongpu
+{
+    /** FieldTmp output (calculated at runtime) *******************************
+     *
+     * Those operations derive scalar field quantities from particle species
+     * at runtime. Each value is mapped per cell. Some operations are identical
+     * up to a constant, so avoid writing those twice to save storage.
+     *
+     * you can choose any of these particle to grid projections:
+     *   - CreateDensityOperation: particle position + shape on the grid
+     *   - CreateChargeDensityOperation: density * charge
+     *       note: for species that do not change their charge state, this is
+     *             the same as the density times a constant for the charge
+     *   - CreateEnergyOperation: sum of kinetic particle energy per cell with
+     *                            respect to shape
+     *   - CreateEnergyDensityOperation: average kinetic particle energy per
+     *                                   cell times the particle density
+     *       note: this is the same as the sum of kinetic particle energy
+     *             divided by a constant for the cell volume
+     *   - CreateMomentumComponentOperation: ratio between a selected momentum
+     *                                       component and the absolute
+     *                                       momentum with respect to shape
+     *   - CreateLarmorPowerOperation: radiated larmor power
+     *                                 (species must contain the attribute `momentumPrev1`)
+     *
+     * for debugging:
+     *   - CreateMidCurrentDensityComponentOperation:
+     *       density * charge * velocity_component
+     *   - CreateCounterOperation: counts point like particles per cell
+     *   - CreateMacroCounterOperation: counts point like macro particles per cell
+     */
+    using namespace particleToGrid;
+
+    /* Density section for Hydrogen */
+    using Density_Seq = bmpl::transform<
+        MakeSeq_t< Hydrogen >,
+        CreateDensityOperation< bmpl::_1 >
+    >::type;
+
+    /* ChargeDensity section */
+    using ChargeDensity_Seq = bmpl::transform<
+        VectorAllSpecies,
+        CreateChargeDensityOperation< bmpl::_1 >
+    >::type;
+
+    /* EnergyDensity section */
+    using EnergyDensity_Seq = bmpl::transform<
+        VectorAllSpecies,
+        CreateEnergyDensityOperation< bmpl::_1 >
+    >::type;
+
+    /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
+     *
+     * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
+     */
+    using FieldTmpSolvers = MakeSeq_t<
+        Density_Seq,
+        ChargeDensity_Seq,
+        EnergyDensity_Seq
+    >;
+
+
+    /** FileOutputFields: Groups all Fields that shall be dumped *************/
+
+    /** Possible native fields: FieldE, FieldB, FieldJ
+     */
+    using NativeFileOutputFields = MakeSeq_t<
+        FieldE,
+        FieldB,
+        FieldJ
+    >;
+
+    using FileOutputFields = MakeSeq_t<
+        NativeFileOutputFields,
+        FieldTmpSolvers
+    >;
+
+
+    /** FileOutputParticles: Groups all Species that shall be dumped **********
+     *
+     * hint: to enable particle output set to
+     *   using FileOutputParticles = VectorAllSpecies;
+     */
+    using FileOutputParticles = bmpl::vector0<>;
+
+}

@@ -1,0 +1,110 @@
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitalization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
+
+#pragma once
+
+#include "particles/startPosition/functors.def"
+#include "particles/manipulators/manipulators.def"
+#include "nvidia/functors/Add.hpp"
+#include "nvidia/functors/Assign.hpp"
+#include "nvidia/rng/distributions/Uniform_float.hpp"
+#include "particles/traits/GetAtomicNumbers.hpp"
+
+
+namespace picongpu
+{
+namespace particles
+{
+
+    /** a particle with a weighting below MIN_WEIGHTING will not
+     *      be created / will be deleted
+     *
+     *  unit: none
+     *
+     * here we essentially allow any weighting since it has no real meaning in 2D3V
+     */
+    constexpr float_X MIN_WEIGHTING = 0.0000001;
+
+    /** Number of maximum particles per cell during density profile evaluation.
+     *
+     * Determines the weighting of a macro particle and with it, the number of
+     * particles "sampling" dynamics in phase space.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 6;
+
+namespace manipulators
+{
+    //! ionize ions once
+    struct OnceIonizedImpl
+    {
+        template< typename T_Particle >
+        DINLINE void operator()(
+            T_Particle& particle,
+            T_Particle&
+        )
+        {
+            constexpr float_X protonNumber = GetAtomicNumbers< T_Particle >::type::numberOfProtons;
+            particle[boundElectrons_] = protonNumber - 1;
+        }
+    };
+
+    //! definition of OnceIonized manipulator
+    using OnceIonized = FreeImpl< OnceIonizedImpl >;
+
+    //! changes the in-cell position of each particle of a species
+    using RandomPosition = RandomPositionImpl<>;
+
+} // namespace manipulators
+
+
+namespace startPosition
+{
+    struct RandomParameter
+    {
+        /** Count of particles per cell at initial state
+         *
+         *  unit: none */
+        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+    };
+    /** definition of random particle start */
+    using Random = RandomImpl< RandomParameter >;
+
+    struct QuietParam
+    {
+        /** Count of particles per cell per direction at initial state
+         *
+         *  unit: none */
+        using numParticlesPerDimension = mCT::Int< 2, 3 >;
+    };
+
+    /** definition of quiet particle start */
+    using Quiet = QuietImpl< QuietParam >;
+
+} // namespace startPosition
+} // namespace particles
+} // namespace picongpu
