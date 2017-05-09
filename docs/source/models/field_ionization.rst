@@ -22,14 +22,14 @@ PIConGPU features an adaptable ionization framework for arbitrary and combinable
     :widths: auto
     :name: atomic_units
 
-    ================    =====
-     AU                 SI
-    ================    =====
-    length              :math:`5.292 \cdot 10^{-11}\,\mathrm{m}`
-    time                :math:`2.419 \cdot 10^{-17}\,\mathrm{s}`
-    energy              :math:`4.360 \cdot 10^{-18}\,\mathrm{J}\quad` (= 27.21 eV = 1 Rydberg)
-    electrical field    :math:`5.142 \cdot 10^{11}\,\frac{\mathrm{V}}{\mathrm{m}}`
-    ================    =====
+    ================  ======================================================================
+    AU                SI
+    ================  ======================================================================
+    length            :math:`5.292 \cdot 10^{-11}\,\mathrm{m}`
+    time              :math:`2.419 \cdot 10^{-17}\,\mathrm{s}`
+    energy            :math:`4.360 \cdot 10^{-18}\,\mathrm{J}\quad` (= 27.21 eV = 1 Rydberg)
+    electrical field  :math:`5.142 \cdot 10^{11}\,\frac{\mathrm{V}}{\mathrm{m}}`
+    ================  ======================================================================
 
 Overview: Implemented Models
 ----------------------------
@@ -95,6 +95,7 @@ Ammosov-Delone-Krainov (ADK)
 """"""""""""""""""""""""""""
 
 .. math::
+   :nowrap:
 
     \begin{align}
         \Gamma_\mathrm{ADK} &= \underbrace{\sqrt{\frac{3 n^{*3} F}{\pi Z^3}}}_\text{lin. pol.} \frac{F D^2}{8 \pi Z} \exp\left(-\frac{2Z}{3n^{*3}F}\right) \\
