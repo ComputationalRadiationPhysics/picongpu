@@ -22,14 +22,14 @@ PIConGPU features an adaptable ionization framework for arbitrary and combinable
     :widths: auto
     :name: atomic_units
 
-    ================    =====
-     AU                 SI
-    ================    =====
-    length              :math:`5.292 \cdot 10^{-11}\,\mathrm{m}`
-    time                :math:`2.419 \cdot 10^{-17}\,\mathrm{s}`
-    energy              :math:`4.360 \cdot 10^{-18}\,\mathrm{J}\quad` (= 27.21 eV = 1 Rydberg)
-    electrical field    :math:`5.142 \cdot 10^{11}\,\frac{\mathrm{V}}{\mathrm{m}}`
-    ================    =====
+    ================  ======================================================================
+    AU                SI
+    ================  ======================================================================
+    length            :math:`5.292 \cdot 10^{-11}\,\mathrm{m}`
+    time              :math:`2.419 \cdot 10^{-17}\,\mathrm{s}`
+    energy            :math:`4.360 \cdot 10^{-18}\,\mathrm{J}\quad` (= 27.21 eV = 1 Rydberg)
+    electrical field  :math:`5.142 \cdot 10^{11}\,\frac{\mathrm{V}}{\mathrm{m}}`
+    ================  ======================================================================
 
 Overview: Implemented Models
 ----------------------------
@@ -95,6 +95,7 @@ Ammosov-Delone-Krainov (ADK)
 """"""""""""""""""""""""""""
 
 .. math::
+   :nowrap:
 
     \begin{align}
         \Gamma_\mathrm{ADK} &= \underbrace{\sqrt{\frac{3 n^{*3} F}{\pi Z^3}}}_\text{lin. pol.} \frac{F D^2}{8 \pi Z} \exp\left(-\frac{2Z}{3n^{*3}F}\right) \\
@@ -113,20 +114,12 @@ In the following comparison one can see the ``ADKLinPol`` ionization rates for t
 For a reference the rates for Hydrogen as well as the barrier suppression field strengths :math:`F_\mathrm{BSI}` have been plotted.
 They mark the transition from the tunneling to the barrier suppression regime.
 
-.. figure:: field_ionization_comparison_c_ii_ionization.svg
-    :name: field_ionization_comparison_c_ii_ionization
-    :alt: Comparison of ADK ionization rates for Carbon-II and Hydrogen
-
-    Comparison of ADK ionization rates for Carbon-II and Hydrogen.
+.. plot:: models/field_ionization_comparison_c_ii_ionization.py
 
 When we account for orbital structure in shielding of the ion charge :math:`Z` according to [ClementiRaimondi1963]_ in ``BSIEffectiveZ`` the barrier suppression field strengths of Hydrogen and Carbon-II are very close to one another.
 One would expect much earlier ionization of Hydrogen due to lower ionization energy. The following image shows how this can be explained by the shape of the ion potential that is assumed in this model.
 
-.. figure:: field_ionization_effective_potentials.svg
-    :name: field_ionization_effective_potentials
-    :alt: Effective atomic potentials of Carbon-II and Hydrogen in homogeneous electric field
-
-    Effective atomic potentials of Carbon-II and Hydrogen in homogeneous electric field :math:`F_\mathrm{BSI}` (C-II).
+.. plot:: models/field_ionization_effective_potentials.py
 
 References
 ----------
