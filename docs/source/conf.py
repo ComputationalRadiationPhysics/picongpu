@@ -43,20 +43,20 @@ if not on_rtd:
     extensions.append('sphinx.ext.githubpages')
 
 # breathe config
-breathe_projects = { 'PIConGPU': '../xml' }
+breathe_projects = {'PIConGPU': '../xml'}
 breathe_default_project = 'PIConGPU'
 
 breathe_domain_by_extension = {
-    "cu"       : "cpp",
-    "cpp"      : "cpp",
-    "kernel"   : "cpp",
-    "h"        : "cpp",
-    "hpp"      : "cpp",
-    "tpp"      : "cpp",
-    "def"      : "cpp",
-    "param"    : "cpp",
-    "unitless" : "cpp",
-    "loader"   : "cpp"
+    "cu":       "cpp",
+    "cpp":      "cpp",
+    "kernel":   "cpp",
+    "h":        "cpp",
+    "hpp":      "cpp",
+    "tpp":      "cpp",
+    "def":      "cpp",
+    "param":    "cpp",
+    "unitless": "cpp",
+    "loader":   "cpp"
 }
 
 if on_rtd:
@@ -67,8 +67,12 @@ else:
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # generate plots for the docs
-subprocess.call('cd models; python ./field_ionization_comparison_c_ii_ionization.py', shell=True)
-subprocess.call('cd models; python ./field_ionization_effective_potentials.py', shell=True)
+subprocess.call('cd models; ' +
+                'python ./field_ionization_comparison_c_ii_ionization.py',
+                shell=True)
+subprocess.call('cd models; ' +
+                'python ./field_ionization_effective_potentials.py',
+                shell=True)
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -123,7 +127,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = 'alabaster'
+# html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -193,8 +197,9 @@ texinfo_documents = [
     (master_doc, 'PIConGPU', u'PIConGPU Documentation',
      author, 'PIConGPU', 'A particle-in-cell code for GPGPU',
      """
-     PIConGPU is a fully relativistic, many GPGPU, 3D3V particle-in-cell (PIC) code.
-     The Particle-in-Cell algorithm is a central tool in plasma physics.
-     It describes the dynamics of a plasma by computing the motion of electrons and ions in the plasma based on Maxwell's equations.
+     PIConGPU is a fully relativistic, many GPGPU, 3D3V particle-in-cell (PIC)
+     code. The Particle-in-Cell algorithm is a central tool in plasma physics.
+     It describes the dynamics of a plasma by computing the motion of electrons
+     and ions in the plasma based on Maxwell's equations.
      """),
 ]

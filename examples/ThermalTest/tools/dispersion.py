@@ -19,7 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-#___________P A R A M E T E R S___________
+# ___________P A R A M E T E R S___________
 
 omega_plasma = 6.718e13     # SI unit: 1/s
 v_th = 1.0e8                # SI unit: m/s
@@ -27,7 +27,7 @@ c = 2.9979e8                # SI unit: m/s
 delta_t = 2.5e-15           # SI unit: s
 delta_z = c * delta_t       # SI unit: m
 
-#_________________________________________
+# _________________________________________
 
 from numpy import *
 from matplotlib import pyplot as plt
@@ -36,8 +36,8 @@ from matplotlib.ticker import FormatStrFormatter
 data_trans = loadtxt("eField_zt_trans.dat")
 data_long = loadtxt("eField_zt_long.dat")
 
-N_z = len(data_trans[:,0])
-N_t = len(data_trans[0,:])
+N_z = len(data_trans[:, 0])
+N_t = len(data_trans[0, :])
 
 omega_max = pi*(N_t-1)/(N_t*delta_t)/omega_plasma
 k_max = pi * (N_z-1)/(N_z*delta_z)
@@ -53,7 +53,8 @@ plt.ylabel(r"$\omega / \omega_{pe} $")
 
 data_trans = fft.fftshift(fft.fft2(data_trans))
 
-plt.imshow(abs(data_trans), extent=(-k_max, k_max, -omega_max, omega_max), aspect='auto', interpolation='nearest')
+plt.imshow(abs(data_trans), extent=(-k_max, k_max, -omega_max, omega_max),
+           aspect='auto', interpolation='nearest')
 plt.colorbar()
 
 # plot analytical dispersion relation
@@ -72,7 +73,8 @@ plt.ylabel(r"$\omega / \omega_{pe} $")
 
 data_long = fft.fftshift(fft.fft2(data_long))
 
-plt.imshow(abs(data_long), extent=(-k_max, k_max, -omega_max, omega_max), aspect='auto', interpolation='nearest')
+plt.imshow(abs(data_long), extent=(-k_max, k_max, -omega_max, omega_max),
+           aspect='auto', interpolation='nearest')
 plt.colorbar()
 
 # plot analytical dispersion relation

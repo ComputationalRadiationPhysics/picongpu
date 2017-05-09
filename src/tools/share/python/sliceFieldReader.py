@@ -17,7 +17,6 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 import numpy as _numpy
 import StringIO as _StringIO
 
@@ -78,9 +77,8 @@ def readFieldSlices(File):
         # go through all valid field vectors
         for x in range(N_x):
             fieldValue = line[x]
-            data[y,x,:] = map(float,fieldValue[1:-1].split(','))
+            data[y, x, :] = map(float, fieldValue[1:-1].split(','))
     return data
-
 
 
 if __name__ == '__main__':
@@ -90,12 +88,13 @@ if __name__ == '__main__':
     # set up command line argument parser
     parser = argparse.ArgumentParser(
         description='''This is just the test case for the python module to load
-                       data from PIConGPUs SliceFieldPrinter plug-in into python''',
+                       data from PIConGPUs SliceFieldPrinter plug-in into
+                       python''',
         epilog="For further questions, ask Richard Pausch.")
 
     parser.add_argument('file',
                         type=file,
-                        help="File with data of the SliceFieldPrinter plug-in.")
+                        help="File with data of the SliceFieldPrinter plugin.")
 
     args = parser.parse_args()
 
@@ -103,7 +102,6 @@ if __name__ == '__main__':
     data = readFieldSlices(args.file)
 
     # show data (field_x only)
-    plt.imshow(data[:,:,0])
+    plt.imshow(data[:, :, 0])
     plt.colorbar()
     plt.show()
-

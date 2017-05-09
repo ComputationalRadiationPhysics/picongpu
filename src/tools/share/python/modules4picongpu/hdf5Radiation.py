@@ -41,25 +41,20 @@ class radiationHDF5:
         self.timestep = self.get_timestep()
 
         # Amplitude
+        detectorAmplitude = self.h5_file["/data/{}/DetectorMesh/" +
+                                         "Amplitude".format(self.timestep)]
         # A_x
-        self.h5_Ax_Re = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
-                                     "/Amplitude/x_Re"]
-        self.h5_Ax_Im = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
-                                     "/Amplitude/x_Im"]
+        self.h5_Ax_Re = detectorAmplitude["x_Re"]
+        self.h5_Ax_Im = detectorAmplitude["x_Im"]
         # A_y
-        self.h5_Ay_Re = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
-                                     "/Amplitude/y_Re"]
-        self.h5_Ay_Im = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
-                                     "/Amplitude/y_Im"]
+        self.h5_Ay_Re = detectorAmplitude["y_Re"]
+        self.h5_Ay_Im = detectorAmplitude["y_Im"]
         # A_z
-        self.h5_Az_Re = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
-                                     "/Amplitude/z_Re"]
-        self.h5_Az_Im = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
-                                     "/Amplitude/z_Im"]
+        self.h5_Az_Re = detectorAmplitude["z_Re"]
+        self.h5_Az_Im = detectorAmplitude["z_Im"]
 
         # conversion factor for spectra from PIC units to SI units
-        self.convert_to_SI = self.h5_file["/data/{}/DetectorMesh".format(self.timestep) +
-                                          "/Amplitude"].attrs['unitSI']
+        self.convert_to_SI = detectorAmplitude.attrs['unitSI']
 
     def get_timestep(self):
         """Returns simulation timestep of the hdf5 data."""
