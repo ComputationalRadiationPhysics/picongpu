@@ -37,6 +37,7 @@ normalized to the maximum [per-species] charge in the simulation.
 Developer: Richard Pausch
 '''
 
+
 def set_colorbar(cb):
     """
     sets label and font size of color bar
