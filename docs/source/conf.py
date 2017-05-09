@@ -66,6 +66,10 @@ else:
     html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
+# generate plots for the docs
+subprocess.call('cd models; python ./field_ionization_comparison_c_ii_ionization.py', shell=True)
+subprocess.call('cd models; python ./field_ionization_effective_potentials.py', shell=True)
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

@@ -3,3 +3,7 @@ recommonmark
 sphinx
 breathe>=4.5
 sphinxcontrib.programoutput
+# generate plots
+matplotlib
+scipy
+numpy
