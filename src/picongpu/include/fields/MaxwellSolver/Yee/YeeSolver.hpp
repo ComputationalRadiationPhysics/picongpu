@@ -22,21 +22,19 @@
 #include "YeeSolver.def"
 
 #include "simulation_defines.hpp"
+#include "fields/FieldManipulator.hpp"
+#include "fields/MaxwellSolver/Yee/YeeSolver.kernel"
 
-#include "fields/SimulationFieldHelper.hpp"
+#include "traits/GetNumWorkers.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 #include "fields/FieldManipulator.hpp"
 #include "fields/MaxwellSolver/Yee/YeeSolver.kernel"
-
-#include "simulation_classTypes.hpp"
-#include "memory/boxes/SharedBox.hpp"
 #include "nvidia/functors/Assign.hpp"
 #include "mappings/threads/ThreadCollective.hpp"
 #include "memory/boxes/CachedBox.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "dataManagement/DataConnector.hpp"
 
+#include "dataManagement/DataConnector.hpp"
 
 namespace picongpu
 {
@@ -70,8 +68,13 @@ private:
                 > BlockArea;
 
         AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
-        PMACC_KERNEL(KernelUpdateE<BlockArea>{ })
-            (mapper.getGridDim(), SuperCellSize::toRT())(
+
+        constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
+            PMacc::math::CT::volume< SuperCellSize >::type::value
+        >::value;
+
+        PMACC_KERNEL(KernelUpdateE< numWorkers, BlockArea >{ })
+            ( mapper.getGridDim(), numWorkers )(
                 CurlB( ),
                 this->fieldE->getDeviceDataBox(),
                 this->fieldB->getDeviceDataBox(),
@@ -89,8 +92,13 @@ private:
                 > BlockArea;
 
         AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
-        PMACC_KERNEL(KernelUpdateBHalf<BlockArea>{ })
-            (mapper.getGridDim(), SuperCellSize::toRT())(
+
+        constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
+            PMacc::math::CT::volume< SuperCellSize >::type::value
+        >::value;
+
+        PMACC_KERNEL(KernelUpdateBHalf< numWorkers, BlockArea >{ })
+            ( mapper.getGridDim(), numWorkers )(
                 CurlE( ),
                 this->fieldB->getDeviceDataBox(),
                 this->fieldE->getDeviceDataBox(),
