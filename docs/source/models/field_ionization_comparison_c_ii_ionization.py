@@ -83,7 +83,7 @@ if __name__ == "__main__":
                       label="ADK C (eff) $ \quad Z = 3.136 = Z_\mathrm{eff}$")
     plt.vlines(E_H**2./(4*1), ymin, ymax,
                colors="{}".format(p_H[0].get_color()),
-               label="$F_\mathrm{BSI}$ H")
+               label="$F_\mathrm{BSI}$ H", linestyles="--")
 
     plt.vlines(E_C[1]**2. / (4*2), ymin, ymax,
                colors="{}".format(p_Csimple[0].get_color()),
