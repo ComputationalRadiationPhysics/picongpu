@@ -97,7 +97,7 @@ if __name__ == "__main__":
     plt.xlim([1e-2, 1e1])
     plt.yscale("log")
     plt.xscale("log")
-    plt.ylabel("ionization rate $\Gamma$ [Hz]")
+    plt.ylabel("ionization rate $\Gamma$ [\mathrm{s}^{-1}]")
     plt.xlabel("field strength $F$ [AU = 5.1422$\cdot 10^{11}$ V/m]")
     plt.legend(loc="best")
 
