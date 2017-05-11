@@ -38,46 +38,35 @@ namespace particles
      *  unit: none */
     constexpr float_X MIN_WEIGHTING = 10.0;
 
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1; //10;
 
 namespace manipulators
 {
-
-    CONST_VECTOR(float_X, 3, DriftParam_direction, 1.0, 0.0, 0.0);
-    struct Drift200keVParam
-    {
-        static constexpr float_64 gamma = 1.39139;
-        const DriftParam_direction_t direction;
-    };
-    /* define a drift equal to 200 keV for electrons */
-    using Assign200keVDrift = DriftImpl< Drift200keVParam, nvidia::functors::Assign >;
-
     struct TemperatureParam
     {
-        /*Initial temperature
+        /* Initial temperature e-
          *  unit: keV
          */
-        static constexpr float_64 temperature = 0.1;
+        static constexpr float_64 temperature = 2.0;
     };
-    /* definition of SetDrift start*/
     using AddTemperature = TemperatureImpl< TemperatureParam, nvidia::functors::Add >;
 
-    struct OnceIonizedImpl
+    struct SixTimesIonizedImpl
     {
         template< typename T_Particle >
         DINLINE void operator()( T_Particle& particle, T_Particle& )
         {
             /** number of bound electrons for a neutral atom */
-            constexpr float_X ion1plus =
+            constexpr float_X ion6plus =
                 GetAtomicNumbers< T_Particle >::type::numberOfProtons -
-                float_X(1);
+                float_X(6);
 
             /* set (Z - 1) bound electrons */
-            particle[boundElectrons_] = ion1plus;
+            particle[boundElectrons_] = ion6plus;
         }
     };
     /* definition of SetDrift start*/
-    using OnceIonized = FreeImpl< OnceIonizedImpl >;
+    using SixTimesIonized = FreeImpl< SixTimesIonizedImpl >;
 
 } //namespace manipulators
 

@@ -29,8 +29,9 @@
 #   - start with zero index
 #   - increase by 1, no gaps
 
-flags[0]="-DCUDA_ARCH=20 -DCMAKE_DISABLE_FIND_PACKAGE_ISAAC=True"
-flags[1]="-DCUDA_ARCH=20 -DCMAKE_DISABLE_FIND_PACKAGE_ISAAC=True -DPARAM_OVERWRITES:LIST=-DPARAM_ENABLE_PUSHER=1;-DPARAM_ENABLE_CURRENT=1"
+flags[0]="-DCUDA_ARCH=37"
+# K80: 37
+# P100: 60
 
 
 ################################################################################
