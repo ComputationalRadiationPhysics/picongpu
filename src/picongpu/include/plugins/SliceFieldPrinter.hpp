@@ -40,7 +40,7 @@ template<typename Field>
 class SliceFieldPrinter : public ILightweightPlugin
 {
 private:
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
     bool sliceIsOK;
     std::string fileName;
     int plane;
