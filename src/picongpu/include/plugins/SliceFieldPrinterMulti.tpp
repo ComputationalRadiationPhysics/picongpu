@@ -52,8 +52,8 @@ template<typename Field>
 void SliceFieldPrinterMulti<Field>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
-        ((this->prefix + ".frequency").c_str(),
-        po::value<std::vector<uint32_t> > (&this->notifyFrequency)->multitoken(), "notify frequency");
+        ((this->prefix + ".period").c_str(),
+        po::value<std::vector<uint32_t> > (&this->notifyFrequency)->multitoken(), "notify period");
     desc.add_options()
         ((this->prefix + ".fileName").c_str(),
         po::value<std::vector<std::string> > (&this->fileName)->multitoken(), "file name to store slices in");
