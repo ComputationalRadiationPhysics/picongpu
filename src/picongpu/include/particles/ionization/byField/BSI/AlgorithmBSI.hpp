@@ -24,7 +24,7 @@
 #include "particles/traits/GetAtomicNumbers.hpp"
 #include "traits/attribute/GetChargeState.hpp"
 
-/** @file AlgorithmBSIHydrogenLike.hpp
+/** @file AlgorithmBSI.hpp
  *
  * IONIZATION ALGORITHM for the BSI model
  *
@@ -42,7 +42,7 @@ namespace ionization
 
     /** Calculation for the Barrier Suppression Ionization model
      */
-    struct AlgorithmBSIHydrogenLike
+    struct AlgorithmBSI
     {
 
         /** Functor implementation
@@ -63,17 +63,21 @@ namespace ionization
         operator()( const EType eField, ParticleType& parentIon )
         {
 
-            const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
-            float_X chargeState = attribute::getChargeState(parentIon);
+            float_X const protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
+            float_X const chargeState = attribute::getChargeState(parentIon);
 
             /* verify that ion is not completely ionized */
             if (chargeState < protonNumber)
             {
-                uint32_t cs = math::float2int_rd(chargeState);
+                uint32_t const cs = math::float2int_rd(chargeState);
                 /* ionization potential in atomic units */
-                const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
+                float_X const iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
+                /* the charge that attracts the electron that is to be ionized:
+                 * equals `protonNumber - no. allInnerElectrons`
+                 */
+                float_X const effectiveCharge = chargeState + float_X(1.0);
                 /* critical field strength in atomic units */
-                float_X critField = iEnergy*iEnergy / (float_X(4.0) * protonNumber);
+                float_X const critField = iEnergy*iEnergy / (float_X(4.0) * effectiveCharge);
                 /* ionization condition */
                 if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField)
                 {

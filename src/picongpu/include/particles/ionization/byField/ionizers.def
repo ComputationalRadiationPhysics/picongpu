@@ -30,7 +30,7 @@
  */
 #include "particles/ionization/byField/ADK/ADK.def"
 /** contains definitions for:
- *  - BSIHydrogenLike
+ *  - BSI
  *  - BSIEffectiveZ
  *  - BSIStarkShifted
  */

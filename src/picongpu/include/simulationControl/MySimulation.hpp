@@ -74,6 +74,7 @@
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/FilterByIdentifier.hpp"
+#include "particles/traits/HasIonizersWithRNG.hpp"
 #include "particles/IdProvider.hpp"
 
 #include <boost/mpl/int.hpp>
@@ -294,25 +295,20 @@ public:
 
         laser = new LaserPhysics(cellDescription->getGridLayout());
 
-        // Make a list of all species that can be ionized
-        typedef typename PMacc::particles::traits::FilterByFlag
-        <
-            VectorAllSpecies,
-            ionizer<>
-        >::type VectorSpeciesWithIonizer;
-
-        /* Make a list of `boost::true_type`s and `boost::false_type`s for species that use or do not use the RNG during ionization */
-        typedef typename PMacc::OperateOnSeq<VectorSpeciesWithIonizer,picongpu::traits::UsesRNG<picongpu::traits::GetIonizer<bmpl::_> > >::type VectorIonizersUsingRNG;
-        /* define a type that contains the number of `boost::true_type`s when `::value` is accessed */
-        typedef typename boost::mpl::count<VectorIonizersUsingRNG, boost::true_type>::type NumReqRNGs;
-
         // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
 
-        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value || !bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value || NumReqRNGs::value)
+        // ... or if ionization methods need an RNG
+        using HasIonizerRNGs = typename traits::HasIonizersWithRNG< VectorAllSpecies >::type;
+        constexpr bool hasIonizerRNGs = HasIonizerRNGs::value;
+
+        if( !bmpl::empty<AllSynchrotronPhotonsSpecies>::value ||
+            !bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value ||
+            hasIonizerRNGs
+        )
         {
             // create factory for the random number generator
             using RNGFactory = PMacc::random::RNGProvider< simDim, PMacc::random::methods::XorMin >;
@@ -515,13 +511,12 @@ public:
 
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        /* Initialize ionization routine for each species with the flag `ionizer<>` */
-        typedef typename PMacc::particles::traits::FilterByFlag
-        <
+        /* Initialize ionization routine for each species with the flag `ionizers<>` */
+        using VectorSpeciesWithIonizers = typename PMacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
-            ionizer<>
-        >::type VectorSpeciesWithIonizer;
-        ForEach< VectorSpeciesWithIonizer, particles::CallIonization< bmpl::_1 > > particleIonization;
+            ionizers<>
+        >::type;
+        ForEach< VectorSpeciesWithIonizers, particles::CallIonization< bmpl::_1 > > particleIonization;
         particleIonization( cellDescription, currentStep );
 
         /* call the synchrotron radiation module for each radiating species (normally electrons) */

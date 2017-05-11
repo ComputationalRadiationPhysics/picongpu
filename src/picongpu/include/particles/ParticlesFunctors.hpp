@@ -1,5 +1,5 @@
 /* Copyright 2014-2017 Rene Widera, Marco Garten, Alexander Grund,
- *                     Heiko Burau
+ *                     Heiko Burau, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -27,7 +27,7 @@
 
 #include "Environment.hpp"
 #include "communication/AsyncCommunication.hpp"
-#include "particles/traits/GetIonizer.hpp"
+#include "particles/traits/GetIonizerList.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/GetPhotonCreator.hpp"
 #include "particles/traits/ResolveAliasFromSpecies.hpp"
@@ -254,25 +254,23 @@ struct PushAllSpecies
     }
 };
 
-/** \struct CallIonization
+/** Call an ionization method upon an ion species
  *
- * \brief Tests if species can be ionized and calls the kernel to do that
- *
- * \tparam T_SpeciesType type of particle species that is checked for ionization
+ * \tparam T_SpeciesType type of particle species that is going to be ionized with
+ *                       ionization scheme T_SelectIonizer
  */
-template<typename T_SpeciesType>
-struct CallIonization
+template< typename T_SpeciesType, typename T_SelectIonizer >
+struct CallIonizationScheme
 {
     using SpeciesType = T_SpeciesType;
+    using SelectIonizer = T_SelectIonizer;
     using FrameType = typename SpeciesType::FrameType;
 
-    /* SelectIonizer will be either the specified one or fallback: None */
-    using SelectIonizer = typename picongpu::traits::GetIonizer<SpeciesType>::type;
     /* define the type of the species to be created
     * from inside the ionization model specialization
     */
-   using DestSpecies = typename SelectIonizer::DestSpecies;
-   using DestFrameType = typename DestSpecies::FrameType;
+    using DestSpecies = typename SelectIonizer::DestSpecies;
+    using DestFrameType = typename DestSpecies::FrameType;
 
     /** Functor implementation
      *
@@ -289,41 +287,78 @@ struct CallIonization
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        /* only if an ionizer has been specified, this is executed */
-        typedef typename HasFlag<FrameType, ionizer<> >::type hasIonizer;
-        if (hasIonizer::value)
+        // alias for pointer on source species
+        auto srcSpeciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
+        // alias for pointer on destination species
+        auto electronsPtr = dc.get< DestSpecies >( DestFrameType::getName(), true );
+
+        // 3-dim vector : number of threads to be started in every dimension
+        auto block = MappingDesc::SuperCellSize::toRT();
+
+        AreaMapping< CORE + BORDER, MappingDesc > mapper( *cellDesc );
+        /** kernelIonizeParticles
+         *
+         * calls the ionization model and handles that electrons are created correctly
+         * while cycling through the particle frames
+         *
+         * kernel call : instead of name<<<blocks, threads>>> (args, ...)
+         * "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER"
+         * "threads" is calculated from the previously defined vector "block"
+         */
+        PMACC_KERNEL( particles::ionization::KernelIonizeParticles{} )
+            (mapper.getGridDim(), block)
+            ( srcSpeciesPtr->getDeviceParticlesBox( ),
+              electronsPtr->getDeviceParticlesBox( ),
+              SelectIonizer(currentStep),
+              mapper
+            );
+        /* fill the gaps in the created species' particle frames to ensure that only
+         * the last frame is not completely filled but every other before is full
+         */
+        electronsPtr->fillAllGaps();
+
+        dc.releaseData( FrameType::getName() );
+        dc.releaseData( DestFrameType::getName() );
+    }
+
+};
+
+/** Call all ionization schemes of an ion species
+ *
+ * Tests if species can be ionized and calls the kernels to do that
+ *
+ * \tparam T_SpeciesType type of particle species that is checked for ionization
+ */
+template< typename T_SpeciesType >
+struct CallIonization
+{
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
+
+    // SelectIonizer will be either the specified one or fallback: None
+    using SelectIonizerList = typename traits::GetIonizerList< SpeciesType >::type;
+
+    /** Functor implementation
+     *
+     * \tparam T_CellDescription contains the number of blocks and blocksize
+     *                           that is later passed to the kernel
+     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param currentStep The current time step
+     */
+    template<typename T_CellDescription>
+    HINLINE void operator()(
+        T_CellDescription* cellDesc,
+        const uint32_t currentStep
+    ) const
+    {
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        // only if an ionizer has been specified, this is executed
+        using hasIonizers = typename HasFlag< FrameType, ionizers<> >::type;
+        if (hasIonizers::value)
         {
-            /* alias for pointer on source species */
-            auto srcSpeciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
-            /* alias for pointer on destination species */
-            auto electronsPtr = dc.get< DestSpecies >( DestFrameType::getName(), true );
-
-            /* 3-dim vector : number of threads to be started in every dimension */
-            auto block = MappingDesc::SuperCellSize::toRT();
-
-            AreaMapping< CORE + BORDER, MappingDesc > mapper( *cellDesc );
-            /** kernelIonizeParticles
-             * \brief calls the ionization model and handles that electrons are created correctly
-             *        while cycling through the particle frames
-             *
-             * kernel call : instead of name<<<blocks, threads>>> (args, ...)
-             * "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER"
-             * "threads" is calculated from the previously defined vector "block"
-             */
-            PMACC_KERNEL( particles::ionization::KernelIonizeParticles{} )
-                (mapper.getGridDim(), block)
-                ( srcSpeciesPtr->getDeviceParticlesBox( ),
-                  electronsPtr->getDeviceParticlesBox( ),
-                  SelectIonizer(currentStep),
-                  mapper
-                );
-            /* fill the gaps in the created species' particle frames to ensure that only
-             * the last frame is not completely filled but every other before is full
-             */
-            electronsPtr->fillAllGaps();
-
-            dc.releaseData( FrameType::getName() );
-            dc.releaseData( DestFrameType::getName() );
+            ForEach< SelectIonizerList, CallIonizationScheme< SpeciesType, bmpl::_1 > > particleIonization;
+            particleIonization( cellDesc, currentStep );
         }
     }
 

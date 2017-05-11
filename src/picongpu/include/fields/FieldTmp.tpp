@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "simulation_defines.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/simulation/GridController.hpp"
 
@@ -61,13 +61,19 @@ namespace picongpu
     ) :
         SimulationFieldHelper<MappingDesc>( cellDescription ),
         fieldTmp( nullptr ),
+        fieldTmpRecv( nullptr ),
         m_slotId( slotId )
     {
-        m_commTag =
+        m_commTagScatter =
             ++PMacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
             SPECIES_FIRSTTAG;
+        m_commTagGather = ++PMacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
+            SPECIES_FIRSTTAG;
 
-        fieldTmp = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
+        fieldTmp = new GridBuffer <ValueType, simDim >( cellDescription.getGridLayout( ) );
+
+        if( fieldTmpSupportGatherCommunication )
+            fieldTmpRecv = new GridBuffer< ValueType, simDim >( fieldTmp->getDeviceBuffer(), cellDescription.getGridLayout( ) );
 
         /** \todo The exchange has to be resetted and set again regarding the
          *  temporary "Fill-"Functor we want to use.
@@ -165,9 +171,21 @@ namespace picongpu
                 };
 
             }
-            // std::cout << "ex " << i << " x=" << guardingCells[0] << " y=" << guardingCells[1] << " z=" << guardingCells[2] << std::endl;
-            fieldTmp->addExchangeBuffer( i, guardingCells, m_commTag );
+
+            fieldTmp->addExchangeBuffer( i, guardingCells, m_commTagScatter );
+
+            if( fieldTmpRecv )
+            {
+                /* guarding cells depend on direction
+                 * for negative direction use originGuard else endGuard (relative direction ZERO is ignored)
+                 * don't switch end and origin because this is a read buffer and not send buffer
+                 */
+                for ( uint32_t d = 0; d < simDim; ++d )
+                    guardingCells[d] = ( relativMask[d] == -1 ? originGuard[d] : endGuard[d] );
+                fieldTmpRecv->addExchange( GUARD, i, guardingCells, m_commTagGather );
+            }
         }
+
     }
 
     FieldTmp::~FieldTmp( )
@@ -224,14 +242,27 @@ namespace picongpu
     EventTask FieldTmp::asyncCommunication( EventTask serialEvent )
     {
         EventTask ret;
-        __startTransaction( serialEvent );
+        __startTransaction( serialEvent + m_gatherEv + m_scatterEv );
         FieldFactory::getInstance( ).createTaskFieldReceiveAndInsert( *this );
         ret = __endTransaction( );
 
-        __startTransaction( serialEvent );
+        __startTransaction( serialEvent + m_gatherEv + m_scatterEv);
         FieldFactory::getInstance( ).createTaskFieldSend( *this );
         ret += __endTransaction( );
+        m_scatterEv = ret;
         return ret;
+    }
+
+    EventTask FieldTmp::asyncCommunicationGather( EventTask serialEvent )
+    {
+        PMACC_VERIFY_MSG(
+            fieldTmpSupportGatherCommunication == true,
+            "fieldTmpSupportGatherCommunication in memory.param must be set to true"
+        );
+
+        if( fieldTmpRecv != nullptr )
+            m_gatherEv = fieldTmpRecv->asyncCommunication( serialEvent + m_scatterEv + m_gatherEv );
+        return m_gatherEv;
     }
 
     void FieldTmp::bashField( uint32_t exchangeType )
@@ -313,12 +344,6 @@ namespace picongpu
     FieldTmp::getName( )
     {
         return "FieldTmp";
-    }
-
-    uint32_t
-    FieldTmp::getCommTag( )
-    {
-        return m_commTag;
     }
 
 } // namespace picongpu

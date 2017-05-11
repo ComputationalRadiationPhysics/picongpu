@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.3.0
 -----
-**Date:** 2017-04-..
+**Date:** 2017-05-..
 
 C++11: Bremsstrahlung, EmZ, Thomas-Fermi, Improved Lasers
 
@@ -23,7 +23,9 @@ streamlined to use Sphinx from now on.
  - use C++11 `using` instead of `typedef`
  - removed `Config` suffix in file names #1965
  - `gasConfig` is now `density`
- - `speciesDefinition`: simplified `Particles<>` interface #1711 #1942
+ - `speciesDefinition`:
+   - simplified `Particles<>` interface #1711 #1942
+   - `ionizer< ... >` became a sequence of `ionizers< ... >` #1999
  - `radiation`: replace `#defines` with clean C++ #1877 #1930 #1931 #1937
 
 **Basic Usage:**
@@ -45,10 +47,16 @@ for detailed instructions.
      - allow to define the initialization plane #1796
      - add transverse Laguerre-modes to standard Gaussian Beam #1580
    - ionization:
-     - Thomas-Fermi impact ionization model #1754
+     - Thomas-Fermi impact ionization model #1754 #2003 #2007
      - Z_eff, energies, isotope: Ag, He, C, O, Al, Cu #1804 #1860
+     - BSI models restructured #2013
+     - multiple ionization algorithms can be applied per species,
+       e.g. cut-off barrier suppression ionization (BSI),
+       probabilistic field ionization (ADK) and collisional ionization #1999
    - Add EmZ current deposition solver #1582
-   - FieldTmp: Multiple slots #1703
+   - FieldTmp:
+     - Multiple slots #1703
+     - Gather support to fill GUARD #2009
    - Particle `StartPosition`: `OnePosition` #1753
    - Add Bremsstrahlung #1504
    - Add kinetic energy algorithm #1744
@@ -73,6 +81,7 @@ for detailed instructions.
    - Explicit cast `blockIdx` and `threadIdx` to `dim3` #1742
    - CMake: allow definition of multiple architectures #1729
    - Add trait `FilterByIdentifier` #1859
+   - Add CompileTime Accessor: Type #1998
  - plugins:
    - HDF5/ADIOS:
      - MacroParticleCounter #1788
@@ -100,7 +109,9 @@ for detailed instructions.
    - `MovingWindow`: `slide_point` now can be set to zero. #1783
    - `boundElectrons`: non-weighted attribute #1808
    - Verify number of ionization energy levels == proton number #1809
-   - Ionization: charge of ionized ions #1844
+   - Ionization:
+     - charge of ionized ions #1844
+     - ADK: fix effective principal quantum number `nEff` #2011
    - Particle manipulators: position offset #1852
  - libPMacc:
    - Avoid CUDA local memory usage of `Particle<>` #1579
@@ -132,8 +143,8 @@ for detailed instructions.
      - Simplify species definition #1711
      - Add missing `math::` namespace to `tan()` #1740
      - Remove usage of pmacc and boost auto #1743
-     - Add missing typename's #1741
-     - Change tenary if operator to `if` condition #1748
+     - Add missing `typename`s #1741
+     - Change ternary if operator to `if` condition #1748
      - Remove usage of `BOOST_AUTO` and `PMACC_AUTO` #1749
      - mallocMC: organize setting #1779
      - `ParticlesBase` allocate member memory #1791

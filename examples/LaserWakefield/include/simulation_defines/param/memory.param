@@ -56,4 +56,14 @@ constexpr uint32_t BYTES_EDGES = 32 * 1024; //32 kiB;
 /** number of scalar fields that are reserved as temporary fields */
 constexpr uint32_t fieldTmpNumSlots = 1;
 
+/** can `FieldTmp` gather neighbor information
+ *
+ * If `true` it is possible to call the method `asyncCommunicationGather()`
+ * to copy data from the border of neighboring GPU into the local guard.
+ * This is also known as building up a "ghost" or "halo" region in domain
+ * decomposition and only necessary for specific algorithms that extend
+ * the basic PIC cycle, e.g. with dependence on derived density or energy fields.
+ */
+constexpr bool fieldTmpSupportGatherCommunication = true;
+
 }//namespace picongpu
