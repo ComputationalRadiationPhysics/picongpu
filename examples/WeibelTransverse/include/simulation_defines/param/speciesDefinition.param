@@ -17,8 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -30,6 +28,8 @@
 #include <boost/mpl/string.hpp>
 
 #include "particles/ionization/byField/ionizers.def"
+#include "particles/ionization/byCollision/ionizers.def"
+
 
 namespace picongpu
 {
