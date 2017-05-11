@@ -29,6 +29,8 @@
 #include <boost/mpl/string.hpp>
 
 #include "particles/ionization/byField/ionizers.def"
+#include "particles/ionization/byCollision/ionizers.def"
+
 
 namespace picongpu
 {

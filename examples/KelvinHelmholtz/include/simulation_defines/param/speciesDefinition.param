@@ -17,7 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -37,6 +36,7 @@
     /* disable radiation calculation */
 #   define PARAM_RADIATION 0
 #endif
+
 
 namespace picongpu
 {
