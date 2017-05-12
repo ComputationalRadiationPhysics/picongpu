@@ -35,7 +35,8 @@
 
 #include "particles/ionization/byField/fieldIonizationCalc.def"
 #include "particles/ionization/byCollision/collisionalIonizationCalc.def"
-
+#include "particles/ionization/byField/ionizers.def"
+#include "particles/ionization/byCollision/ionizers.def"
 
 namespace picongpu
 {
