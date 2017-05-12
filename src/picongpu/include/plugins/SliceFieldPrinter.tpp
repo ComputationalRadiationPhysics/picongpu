@@ -65,7 +65,7 @@ void SliceFieldPrinter<Field>::pluginLoad()
       {
         /* in case the slice point is inside of [0.0,1.0] */
         sliceIsOK = true;
-        Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyFrequency);
+        Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyPeriod);
         namespace vec = ::PMacc::math;
         typedef SuperCellSize BlockDim;
 

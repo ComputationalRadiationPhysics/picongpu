@@ -52,8 +52,8 @@ template<typename Field>
 void SliceFieldPrinterMulti<Field>::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
-        ((this->prefix + ".frequency").c_str(),
-        po::value<std::vector<uint32_t> > (&this->notifyFrequency)->multitoken(), "notify frequency");
+        ((this->prefix + ".period").c_str(),
+        po::value<std::vector<uint32_t> > (&this->notifyPeriod)->multitoken(), "notify period");
     desc.add_options()
         ((this->prefix + ".fileName").c_str(),
         po::value<std::vector<std::string> > (&this->fileName)->multitoken(), "file name to store slices in");
@@ -71,11 +71,11 @@ std::string SliceFieldPrinterMulti<Field>::pluginGetName() const {return this->n
 template<typename Field>
 void SliceFieldPrinterMulti<Field>::pluginLoad()
 {
-    this->childs.resize(this->notifyFrequency.size());
+    this->childs.resize(this->notifyPeriod.size());
     for(uint32_t i = 0; i < this->childs.size(); i++)
     {
         this->childs[i].setMappingDescription(this->cellDescription);
-        this->childs[i].notifyFrequency = this->notifyFrequency[i];
+        this->childs[i].notifyPeriod = this->notifyPeriod[i];
         this->childs[i].fileName = this->fileName[i];
         this->childs[i].plane = this->plane[i];
         this->childs[i].slicePoint = this->slicePoint[i];

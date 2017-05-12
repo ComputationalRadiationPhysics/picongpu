@@ -39,7 +39,7 @@ class SliceFieldPrinterMulti : public ILightweightPlugin
 private:
     std::string name;
     std::string prefix;
-    std::vector<uint32_t> notifyFrequency;
+    std::vector<uint32_t> notifyPeriod;
     std::vector<std::string> fileName;
     std::vector<int> plane;
     std::vector<float_X> slicePoint;
