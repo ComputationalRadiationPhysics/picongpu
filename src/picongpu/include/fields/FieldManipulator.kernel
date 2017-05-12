@@ -104,7 +104,7 @@ __global__ void kernelAbsorbBorder(BoxedMemory field, uint32_t thickness, float_
         absorb < 0 > (field, thickness, absorber_strength, mapper, direction);
     else if (direction.y() != 0)
         absorb < 1 > (field, thickness, absorber_strength, mapper, direction);
-#if (SDIMDIM==DIM3)
+#if (SIMDIM==DIM3)
     else if (direction.z() != 0)
         absorb < 2 > (field, thickness, absorber_strength, mapper, direction);
 #endif
