@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -103,7 +103,7 @@ struct KernelAbsorbBorder
             absorb < 0 > (field, thickness, absorber_strength, mapper, direction);
         else if (direction.y() != 0)
             absorb < 1 > (field, thickness, absorber_strength, mapper, direction);
-#if( SDIMDIM==DIM3 )
+#if( SIMDIM==DIM3 )
         else if (direction.z() != 0)
             absorb < 2 > (field, thickness, absorber_strength, mapper, direction);
 #endif
