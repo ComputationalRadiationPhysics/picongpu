@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
 #include "traits/GetFlagType.hpp"
 #include "compileTime/accessors/Type.hpp"
