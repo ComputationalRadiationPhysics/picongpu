@@ -19,7 +19,28 @@
 
 /* @file ionizer.param
  *
- * Ionization Model Configuration
+ * This file contains the proton and neutron numbers of commonly used elements
+ * of the periodic table. The elements here should have a matching list of
+ * ionization energies in @see ionizationEnergies.param. Moreover this file
+ * contains a description of how to configure an ionization model for a species.
+ * Currently each species can only be assigned exactly one ionization model.
+ *
+ * Furthermore there are parameters for specific ionization models to be found
+ * here. That includes lists of screened nuclear charges as seen by bound
+ * electrons for the aforementioned elements as well as fitting parameters of
+ * the Thomas-Fermi ionization model.
+ */
+
+#pragma once
+
+#include "particles/ionization/byField/fieldIonizationCalc.def"
+#include "particles/ionization/byCollision/collisionalIonizationCalc.def"
+#include "particles/ionization/byField/ionizers.def"
+#include "particles/ionization/byCollision/ionizers.def"
+
+namespace picongpu
+{
+/** Ionization Model Configuration
  *
  * - None : no particle is ionized
  * - BSI : simple barrier suppression ionization
@@ -45,15 +66,6 @@
  *        effectiveNuclearCharge< ionization::effectiveNuclearCharge::Element_t >,
  *        ionizationEnergies< ionization::energies::AU::Element_t >
  */
-
-#pragma once
-
-#include "particles/ionization/byField/fieldIonizationCalc.def"
-#include "particles/ionization/byCollision/collisionalIonizationCalc.def"
-
-
-namespace picongpu
-{
 namespace ionization
 {
 /*! Specify (chemical) element
