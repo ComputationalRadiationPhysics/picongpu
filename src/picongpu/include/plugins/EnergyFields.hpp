@@ -1,5 +1,5 @@
 /* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -80,7 +80,7 @@ class EnergyFields : public ISimulationPlugin
 {
 private:
     MappingDesc *cellDescription;
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
 
     std::string pluginName;
     std::string pluginPrefix;
@@ -102,7 +102,7 @@ public:
     pluginName("EnergyFields: calculate the energy of the fields"),
     pluginPrefix(std::string("fields_energy")),
     filename(pluginPrefix + ".dat"),
-    notifyFrequency(0),
+    notifyPeriod(0),
     writeToFile(false),
     localReduce(nullptr)
     {
@@ -123,7 +123,7 @@ public:
     {
         desc.add_options()
             ((pluginPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable plugin [for each n-th step]");
+             po::value<uint32_t > (&notifyPeriod)->default_value(0), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -140,7 +140,7 @@ private:
 
     void pluginLoad()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             localReduce = new nvidia::reduce::Reduce(1024);
             writeToFile = mpiReduce.hasResult(mpi::reduceMethods::Reduce());
@@ -156,13 +156,13 @@ private:
                 //create header of the file
                 outFile << "#step total[Joule] Bx[Joule] By[Joule] Bz[Joule] Ex[Joule] Ey[Joule] Ez[Joule]" << " \n";
             }
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
     }
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             if (writeToFile)
             {

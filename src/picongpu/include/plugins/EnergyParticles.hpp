@@ -150,7 +150,7 @@ private:
 
     GridBuffer<float_64, DIM1> *gEnergy; /* energy values (global on GPU) */
     MappingDesc *cellDescription;
-    uint32_t notifyFrequency; /* periodocity of computing the particle energy */
+    uint32_t notifyPeriod; /* periodocity of computing the particle energy */
 
     std::string pluginName; /* name (used for output file too) */
     std::string pluginPrefix; /* prefix used for command line arguments */
@@ -169,7 +169,7 @@ public:
     filename(pluginPrefix + ".dat"),
     gEnergy(nullptr),
     cellDescription(nullptr),
-    notifyFrequency(0),
+    notifyPeriod(0),
     writeToFile(false)
     {
         /* register this plugin */
@@ -194,7 +194,7 @@ public:
     {
         desc.add_options()
             ((pluginPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency),
+             po::value<uint32_t > (&notifyPeriod),
              "compute kinetic and total energy [for each n-th step] enable plugin by setting a non-zero value");
     }
 
@@ -215,7 +215,7 @@ private:
     /** method to initialize plugin output and variables **/
     void pluginLoad()
     {
-        if (notifyFrequency > 0) /* only if plugin is called at least once */
+        if (notifyPeriod > 0) /* only if plugin is called at least once */
         {
             /* decide which MPI-rank writes output: */
             writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
@@ -241,14 +241,14 @@ private:
             }
 
             /* set how often the plugin should be executed while PIConGPU is running */
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
     }
 
     /** method to quit plugin **/
     void pluginUnload()
     {
-        if (notifyFrequency > 0) /* only if plugin is called at least once */
+        if (notifyPeriod > 0) /* only if plugin is called at least once */
         {
             if (writeToFile)
             {

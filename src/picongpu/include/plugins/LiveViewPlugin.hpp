@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Axel Huebl, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -71,7 +71,7 @@ namespace picongpu
         void pluginRegisterHelp(po::options_description& desc)
         {
             desc.add_options()
-                    ((pluginPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyFrequencys)->multitoken(), "enable images/visualisation [for each n-th step]")
+                    ((pluginPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyPeriod)->multitoken(), "enable images/visualisation [for each n-th step]")
                     ((pluginPrefix + ".ip").c_str(), po::value<std::vector<std::string > > (&ips)->multitoken(), "ip of server")
                     ((pluginPrefix + ".port").c_str(), po::value<std::vector<std::string > > (&ports)->multitoken(), "port of server")
                     ((pluginPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
@@ -89,7 +89,7 @@ namespace picongpu
         void pluginLoad()
         {
 
-            if (0 != notifyFrequencys.size())
+            if (0 != notifyPeriod.size())
             {
                 if (0 != slicePoints.size() &&
                     0 != ports.size() &&
@@ -98,7 +98,7 @@ namespace picongpu
                 {
                     for (int i = 0; i < (int) ports.size(); ++i)
                     {
-                        uint32_t frequ = getValue(notifyFrequencys, i);
+                        uint32_t frequ = getValue(notifyPeriod, i);
                         if (frequ != 0)
                         {
 
@@ -170,7 +170,7 @@ namespace picongpu
         std::string pluginName;
         std::string pluginPrefix;
 
-        std::vector<uint32_t> notifyFrequencys;
+        std::vector<uint32_t> notifyPeriod;
         std::vector<float_32> slicePoints;
         std::vector<std::string> ips;
         std::vector<std::string> ports;
