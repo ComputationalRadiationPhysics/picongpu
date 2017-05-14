@@ -1,6 +1,29 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.2.5
+-----
+**Date:** 2017-05-..
+
+Absorber in z in 3D3V, effective charge in ADK ionization
+
+The absorbing boundary conditions for fields in 3D3V simulations were
+not enabled in z direction. This caused unintended reflections of
+electro-magnetic fields in z since the 0.1.0 (beta) release.
+ADK ionization was fixed to the correct charge state (principal
+quantum number) which caused wrong ionization rates for all
+elements but Hydrogen.
+
+### Changes to "0.2.5"
+
+**Bug Fixes:**
+ - ADK ionization: effective principal quantum number nEff #2011
+ - 3D3V: missing absorber in z #2042
+
+Thanks to Marco Garten and Richard Pausch for spotting the issues and
+providing fixes!
+
+
 0.2.4
 -----
 **Date:** 2017-03-06
