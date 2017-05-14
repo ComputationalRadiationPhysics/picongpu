@@ -23,8 +23,13 @@ this_dir=`dirname $0`
 
 #only copy submit and params if we clone from default pic folder
 default_folder_to_copy="submit include/simulation_defines/param include/simulation_defines/unitless"
-#if we clone a project we copy full include 
-folder_to_clone="submit include"
+#if we clone a project we copy full include
+if [ -d "$1/pymodules" ] ; then
+    folder_to_clone="submit include pymodules"
+else
+    folder_to_clone="submit include"
+fi
+
 files_to_copy="cmakeFlags executeOnClone"
 
 help()
