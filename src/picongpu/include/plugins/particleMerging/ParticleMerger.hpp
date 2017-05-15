@@ -25,7 +25,7 @@
 #include "simulation_classTypes.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 
-#include "traits/HasFlag.hpp"
+#include "traits/HasIdentifier.hpp"
 
 #include <string>
 #include <iostream>
@@ -44,7 +44,7 @@ namespace particleMerging
 
     /** Implements a particle merging algorithm based on
     *
-    * Luu, P. T., Tückmantel, T., & Pukhov, A. (2016).
+    * Luu, P. T., Tueckmantel, T., & Pukhov, A. (2016).
     * Voronoi particle merging algorithm for PIC codes.
     * Computer Physics Communications, 202, 165-174.
     *
@@ -53,7 +53,7 @@ namespace particleMerging
     template<
         class T_ParticlesType,
         bool hasVoronoiCellId =
-            PMacc::traits::HasFlag<
+            PMacc::traits::HasIdentifier<
                 typename T_ParticlesType::FrameType,
                 voronoiCellId
             >::type::value
@@ -95,7 +95,8 @@ namespace particleMerging
 
         void notify(uint32_t currentStep)
         {
-            typedef typename MappingDesc::SuperCellSize SuperCellSize;
+            using SuperCellSize = MappingDesc::SuperCellSize;
+
             const PMacc::math::Int<simDim> coreBorderGuardSuperCells =
                 this->cellDescription->getGridSuperCells();
             const uint32_t guardSuperCells =
@@ -220,22 +221,22 @@ namespace particleMerging
             );
 
             // clean user parameters
-            PMACC_ASSERT_MSG(
+            PMACC_VERIFY_MSG(
                 this->minParticlesToMerge > 1,
                 std::string("[Plugin: ") + this->prefix + "] minParticlesToMerge"
                 " has to be greater than one."
             );
-            PMACC_ASSERT_MSG(
+            PMACC_VERIFY_MSG(
                 this->posSpreadThreshold >= float_X(0.0),
                 std::string("[Plugin: ") + this->prefix + "] posSpreadThreshold"
                 " has to be non-negative."
             );
-            PMACC_ASSERT_MSG(
-                this->absMomSpreadThreshold * this->relMomSpreadThreshold < float( 0.0 ),
+            PMACC_VERIFY_MSG(
+                this->absMomSpreadThreshold_mc * this->relMomSpreadThreshold < float( 0.0 ),
                 std::string("[Plugin: ") + this->prefix + "] either"
                 " absMomSpreadThreshold or relMomSpreadThreshold has to be given"
             );
-            PMACC_ASSERT_MSG(
+            PMACC_VERIFY_MSG(
                 this->minMeanEnergy >= float_X(0.0),
                 std::string("[Plugin: ") + this->prefix + "] minMeanEnergy"
                 " has to be non-negative."
@@ -295,10 +296,10 @@ namespace particleMerging
         }
 
     protected:
-        void setMappingDescription(MappingDesc*)
+        void setMappingDescription( MappingDesc* )
         {}
 
-        void pluginRegisterHelp(po::options_description&)
+        void pluginRegisterHelp( po::options_description& )
         {}
 
         void pluginUnload()
@@ -310,7 +311,7 @@ namespace particleMerging
         void checkpoint( uint32_t, const std::string )
         {}
 
-        void notify(uint32_t)
+        void notify( uint32_t )
         {}
     };
 

@@ -328,9 +328,7 @@ struct MacroWeighted<voronoiCellId>
 template<>
 struct WeightingPower<voronoiCellId>
 {
-    /* 1 * weighting^1 == weighting: real particles contibute linearily
-     * to the macro particle weighting
-     */
+    // the voronoiCellId attribute is not a physical parameter
     static float_64 get()
     {
         return 0.0;

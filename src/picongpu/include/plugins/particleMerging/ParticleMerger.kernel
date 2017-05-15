@@ -31,12 +31,9 @@ namespace plugins
 namespace particleMerging
 {
 
-using namespace PMacc;
-
-
     /** Implements a particle merging algorithm based on
      *
-     * Luu, P. T., Tückmantel, T., & Pukhov, A. (2016).
+     * Luu, P. T., Tueckmantel, T., & Pukhov, A. (2016).
      * Voronoi particle merging algorithm for PIC codes.
      * Computer Physics Communications, 202, 165-174.
      *
@@ -53,7 +50,7 @@ using namespace PMacc;
             MAX_VORONOI_CELLS
         >;
         using VoronoiIndexPool = memory::IndexPool<
-            int32_t,
+            voronoiCellId::type,
             MAX_VORONOI_CELLS
         >;
 
@@ -96,7 +93,7 @@ using namespace PMacc;
          *
          * @param cellIdx cell index
          */
-        DINLINE int32_t mapCellIdxToInitialVoronoiCell( const uint32_t cellIdx ) const
+        DINLINE voronoiCellId::type mapCellIdxToInitialVoronoiCell( const uint32_t cellIdx ) const
         {
             const DataSpace< simDim > cellIdxDim = DataSpaceOperations< simDim >::template map<
                 SuperCellSize
@@ -104,7 +101,7 @@ using namespace PMacc;
 
             const DataSpace< simDim > voronoiCellDim = cellIdxDim / 2;
 
-            return static_cast< int32_t >(
+            return static_cast< voronoiCellId::type >(
                 PMacc::math::linearize(
                     PMacc::math::CT::shrinkTo< SuperCellSize, simDim - 1 >::type::toRT() / 2,
                     voronoiCellDim
@@ -183,7 +180,7 @@ using namespace PMacc;
                 {
                     auto particle = frame[linearThreadIdx];
 
-                    const int32_t voronoiCellId = particle[voronoiCellId_];
+                    const voronoiCellId::type voronoiCellId = particle[voronoiCellId_];
                     if( voronoiCellId == -1 )
                         return;
 
@@ -210,7 +207,7 @@ using namespace PMacc;
                     case VoronoiStatus::splitting:
                         {
                             /* determine in what sub-Voronoi cell the particle falls */
-                            const int32_t subVoronoiCellId = voronoiCell.getSubVoronoiCell(
+                            const voronoiCellId::type subVoronoiCellId = voronoiCell.getSubVoronoiCell(
                                 position,
                                 momentum
                             );
@@ -269,7 +266,7 @@ using namespace PMacc;
             VoronoiIndexPool& voronoiIndexPool
         ) const
         {
-            for( int32_t voronoiCellId : voronoiIndexPool )
+            for( voronoiCellId::type voronoiCellId : voronoiIndexPool )
             {
                 VoronoiCell& voronoiCell = listVoronoiCells[voronoiCellId];
 
@@ -380,20 +377,22 @@ using namespace PMacc;
                 threadIndex
             );
 
-            /* number of initial Voronoi cells */
-            PMACC_SMEM( numInitialVoronoiCells, uint16_t );
             /* fixed-sized array of Voronoi cells */
             PMACC_SMEM( listVoronoiCells, ArrayVoronoiCells );
             /* holds indices of active Voronoi cells within `listVoronoiCells` */
             PMACC_SMEM( voronoiIndexPool, VoronoiIndexPool );
 
+            /* number of initial Voronoi cells
+             *
+             * `1u << simDim` is equivalent to `pow(2, simDim)` but can be
+             * calculated at compile-time to save a shared variable.
+             */
+            constexpr uint16_t numInitialVoronoiCells = PMacc::math::CT::volume<
+                SuperCellSize
+            >::type::value / ( 1u << simDim );
+
             if( linearThreadIdx == 0 )
             {
-                /* calculate number of initial Voronoi cells */
-                numInitialVoronoiCells = PMacc::math::CT::volume<
-                    SuperCellSize
-                >::type::value / pow( 2, simDim );
-
                 /* init index pool of Voronoi Cells */
                 voronoiIndexPool = VoronoiIndexPool( numInitialVoronoiCells );
             }

@@ -29,41 +29,37 @@ namespace plugins
 namespace particleMerging
 {
 
-    /* Status of a Voronoi cell
-     *
-     * collecting:
-     *  - a Voronoi cell is collecting particles (first state)
-     * splitting:
-     *  - the Voronoi cell is splitting thus all its particles have
-     *    to move to one of two sub-Voronoi cells
-     * abort:
-     *  - the cell needs to be destroyed. Before this can happen
-     *    all its particles need to clear their voronoiCellId attribute.
-     * readyForMerging:
-     *  - the Voronoi cell is ready for merging. After merging it is destroyed.
-     */
+    /** Status of a Voronoi cell */
     enum struct VoronoiStatus : uint8_t
     {
+        /* !< a Voronoi cell is collecting particles (first state) */
         collecting,
+        /* !< the Voronoi cell is splitting thus all its particles have
+         * to move to one of two sub-Voronoi cells */
         splitting,
+        /* !< the cell needs to be destroyed. Before this can happen
+         * all its particles need to clear their voronoiCellId attribute. */
         abort,
+        /* !< the Voronoi cell is ready for merging. After merging it is destroyed. */
         readyForMerging,
     };
 
 
-    /* Stage of a Voronoi cell
+    /** Stage of a Voronoi cell
      *
      * The spliiting process is two-fold: at first, the splitting is done regarding
      * only the spread in position and then by looking at the spread of momentum.
      */
     enum struct VoronoiSplittingStage : bool
     {
+        /* !< the spatial distribution is splitted */
         position,
+        /* !< the momentum distribution is splitted */
         momentum
     };
 
 
-    /* Represents a Voronoi cell */
+    /** Represents a Voronoi cell */
     struct VoronoiCell
     {
         VoronoiStatus status;
@@ -90,7 +86,7 @@ namespace particleMerging
             firstParticleFlag( 0 )
         {}
 
-
+        /** status setter */
         HDINLINE
         void setToAbort()
         {
@@ -98,6 +94,7 @@ namespace particleMerging
         }
 
 
+        /** status setter */
         HDINLINE
         void setToSplitting(
             const uint8_t splittingComponent,
@@ -111,12 +108,14 @@ namespace particleMerging
         }
 
 
+        /** status setter */
         HDINLINE
         void setToReadyForMerging()
         {
             this->status = VoronoiStatus::readyForMerging;
         }
 
+        /** check if the current thread is associated to the first particle */
         DINLINE
         bool isFirstParticle()
         {
@@ -124,6 +123,7 @@ namespace particleMerging
         }
 
 
+        /** add a particle to this Voronoi cell */
         DINLINE
         void addParticle(
             const floatD_X position,
@@ -165,6 +165,7 @@ namespace particleMerging
             this->meanSquaredValue /= this->numRealParticles;
         }
 
+        /** get the mean energy of this Voronoi cell if called in momentum stage */
         HDINLINE
         float_X getMeanEnergy( const float_X mass ) const
         {
@@ -174,6 +175,7 @@ namespace particleMerging
             );
         }
 
+        /** get the mean momentum squared of this Voronoi cell if called in momentum stage */
         HDINLINE
         float_X getMeanMomentum2() const
         {
@@ -181,7 +183,7 @@ namespace particleMerging
         }
 
 
-        /* determine in which of the two sub-Voronoi cells a particle falls */
+        /** determine in which of the two sub-Voronoi cells a particle falls */
         HDINLINE
         int32_t getSubVoronoiCell(
             const floatD_X position,
@@ -204,55 +206,53 @@ namespace particleMerging
         }
 
 
-        /** calculate the maxmimum squared spread in position
-         *
-         * @param component index of position component of maxmimum spread
-         */
+        /** auxillary function for getting the mean squared deviation in position or momentum */
         HDINLINE
-        float_X getMaxPositionSpread2( uint8_t& component ) const
+        float_X getMaxValueSpread2(
+            uint8_t& component,
+            const uint8_t dimension
+        ) const
         {
-            const float3_X meanPosition2 = this->meanValue * this->meanValue;
-            const float3_X posSpread2 = this->meanSquaredValue - meanPosition2;
+            const float3_X meanValue2 = this->meanValue * this->meanValue;
+            const float3_X valueSpread2 = this->meanSquaredValue - meanValue2;
 
             /* find component of most spread in position */
             component = 0;
-            float_X maxPosSpread2 = posSpread2[0];
-            for( uint8_t i = 1; i < simDim; i++ )
+            float_X maxValueSpread2 = valueSpread2[0];
+            for( uint8_t i = 1; i < dimension; i++ )
             {
-                if( posSpread2[i] > maxPosSpread2 )
+                if( valueSpread2[i] > maxValueSpread2 )
                 {
-                    maxPosSpread2 = posSpread2[i];
+                    maxValueSpread2 = valueSpread2[i];
                     component = i;
                 }
             }
 
-            return maxPosSpread2;
+            return maxValueSpread2;
+        }
+
+
+        /** calculate the maxmimum squared spread in position
+         *
+         * @param component index of position component of maxmimum spread
+         * @return maxmimum squared spread in position
+         */
+        HDINLINE
+        float_X getMaxPositionSpread2( uint8_t& component ) const
+        {
+            return this->getMaxValueSpread2( component, simDim );
         }
 
 
         /** calculate the maxmimum squared spread in momentum
          *
          * @param component index of momentum component of maxmimum spread
+         * @return maxmimum squared spread in momentum
          */
         HDINLINE
         float_X getMaxMomentumSpread2( uint8_t& component ) const
         {
-            const float3_X meanMomentum2 = this->meanValue * this->meanValue;
-            const float3_X momSpread2 = this->meanSquaredValue - meanMomentum2;
-
-            /* find component of most spread in momentum */
-            component = 0;
-            float_X maxMomSpread2 = momSpread2[0];
-            for( uint8_t i = 1; i < DIM3; i++ )
-            {
-                if( momSpread2[i] > maxMomSpread2 )
-                {
-                    maxMomSpread2 = momSpread2[i];
-                    component = i;
-                }
-            }
-
-            return maxMomSpread2;
+            return this->getMaxValueSpread2( component, DIM3 );
         }
     };
 

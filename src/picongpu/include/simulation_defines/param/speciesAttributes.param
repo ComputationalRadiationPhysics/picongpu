@@ -90,7 +90,7 @@ namespace picongpu
         float_X( 0. )
     );
 
-    
+
     //! Voronoi cell of the macro particle
     value_identifier(
         int16_t,
