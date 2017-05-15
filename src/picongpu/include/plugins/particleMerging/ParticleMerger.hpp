@@ -25,6 +25,8 @@
 #include "simulation_classTypes.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 
+#include "traits/HasFlag.hpp"
+
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -38,6 +40,7 @@ namespace particleMerging
 {
 
     using namespace PMacc;
+    namespace bmpl = boost::mpl;
 
     /** Implements a particle merging algorithm based on
     *
@@ -47,8 +50,19 @@ namespace particleMerging
     *
     * \tparam T_ParticlesType particle species
     */
+    template<
+        class T_ParticlesType,
+        bool hasVoronoiCellId =
+            PMacc::traits::HasFlag<
+                typename T_ParticlesType::FrameType,
+                voronoiCellId
+            >::type::value
+    >
+    struct ParticleMergerWrapped;
+
+
     template< class T_ParticlesType >
-    class ParticleMerger : public ISimulationPlugin
+    struct ParticleMergerWrapped< T_ParticlesType, true > : ISimulationPlugin
     {
     private:
         std::string name;
@@ -67,7 +81,7 @@ namespace particleMerging
     public:
         using ParticlesType = T_ParticlesType;
 
-        ParticleMerger() :
+        ParticleMergerWrapped() :
             name(
                 "ParticleMerger: merges several macroparticles with"
                 " similar position and momentum into a single one"
@@ -193,7 +207,7 @@ namespace particleMerging
             return this->name;
         }
 
-    private:
+    protected:
 
         void pluginLoad()
         {
@@ -247,6 +261,63 @@ namespace particleMerging
         void checkpoint( uint32_t, const std::string )
         {}
     };
+
+
+    template< class T_ParticlesType >
+    struct ParticleMergerWrapped< T_ParticlesType, false > : ISimulationPlugin
+    {
+    private:
+        std::string name;
+        std::string prefix;
+    uint32_t notifyPeriod;
+        MappingDesc* cellDescription;
+
+    public:
+        using ParticlesType = T_ParticlesType;
+
+        ParticleMergerWrapped() :
+            name(
+                "ParticleMerger: merges several macroparticles with"
+                " similar position and momentum into a single one.\n"
+                "plugin disabled. Enable plugin by adding the `voronoiCellId`"
+                " attribute to the particle attribute list."
+            ),
+            prefix( ParticlesType::FrameType::getName() + std::string("_merger") ),
+            notifyPeriod( 0 ),
+            cellDescription( nullptr )
+        {
+            Environment<>::get().PluginConnector().registerPlugin( this );
+        }
+
+        std::string pluginGetName() const
+        {
+            return this->name;
+        }
+
+    protected:
+        void setMappingDescription(MappingDesc*)
+        {}
+
+        void pluginRegisterHelp(po::options_description&)
+        {}
+
+        void pluginUnload()
+        {}
+
+        void restart( uint32_t, const std::string )
+        {}
+
+        void checkpoint( uint32_t, const std::string )
+        {}
+
+        void notify(uint32_t)
+        {}
+    };
+
+
+    template< typename T_ParticlesType >
+    struct ParticleMerger : ParticleMergerWrapped< T_ParticlesType >
+    {};
 
 } // namespace particleMerging
 } // namespace plugins
