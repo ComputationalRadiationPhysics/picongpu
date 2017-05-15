@@ -1,4 +1,4 @@
-/* Copyright 2016-2017 Marco Garten
+/* Copyright 2016-2017 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -59,12 +59,14 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct ThomasFermi_Impl
+    /** ThomasFermi_Impl
      *
-     * \brief Thomas-Fermi pressure ionization - Implementation
+     * Thomas-Fermi pressure ionization - Implementation
      *
-     * \tparam T_DestSpecies electron species to be created
-     * \tparam T_SrcSpecies particle species that is ionized
+     * @tparam T_IonizationAlgorithm functor that returns a number of
+     *         new free macro electrons to create, range: [0, boundElectrons]
+     * @tparam T_DestSpecies electron species to be created
+     * @tparam T_SrcSpecies particle species that is ionized
      */
     template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
     struct ThomasFermi_Impl
@@ -123,14 +125,14 @@ namespace ionization
 
             /** Solver for density of the ion species
              *
-             *  \todo Include all ion species because the model requires the
+             *  @todo Include all ion species because the model requires the
              *        density of ionic potential wells
              */
             using DensitySolver = typename particleToGrid::CreateDensityOperation<T_SrcSpecies>::type::Solver;
 
             /** Solver for energy density of the electron species
              *
-             *  \todo Include all electron species with a ForEach<VectorallSpecies,...>
+             *  @todo Include all electron species with a ForEach<VectorallSpecies,...>
              * instead of just the destination species
              */
             using EnergyDensitySolver = typename particleToGrid::CreateEnergyDensityOperation<T_DestSpecies>::type::Solver;
@@ -193,19 +195,20 @@ namespace ionization
 
             /** Initialization function on device
              *
-             * \brief Cache density and energy density fields on device
-             *        and initialize possible prerequisites for ionization, like e.g. random number generator.
+             * Cache density and energy density fields on device and initialize
+             * possible prerequisites for ionization, like e.g. random number
+             * generator.
              *
              * This function will be called inline on the device which must happen BEFORE threads diverge
              * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
              * initializing the field shared boxes in shared memory.
              *
              * @param blockCell Offset of the cell from the origin of the local domain
-             *                  <b>including guarding supercells</b> in units of cells
+             *                  *including guarding supercells* in units of cells
              * @param linearThreadIdx Linearized thread ID inside the block
              * @param localCellOffset Offset of the cell from the origin of the local
              *                        domain, i.e. from the @see BORDER
-             *                        <b>without guarding supercells</b>
+             *                        *without guarding supercells*
              */
             DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
             {
@@ -241,12 +244,13 @@ namespace ionization
 
             /** Functor implementation
              *
-             * \param ionFrame reference to frame of the to-be-ionized particles
-             * \param localIdx local (linear) index in super cell / frame
-             * \param newMacroElectrons reference to variable for each thread that stores the number
-             *        of macro electrons to be created during the current time step
+             * @param ionFrame reference to frame of the to-be-ionized particles
+             * @param localIdx local (linear) index in super cell / frame
+             * @param numNewFreeMacroElectrons reference to variable for each
+             *        thread that stores the number of macro electrons to be
+             *        created during the current time step
              */
-            DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
+            DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& numNewFreeMacroElectrons)
             {
                 /* alias for the single macro-particle */
                 auto particle = ionFrame[localIdx];
@@ -264,29 +268,31 @@ namespace ionization
                 ValueType_Ene kinEnergyV = Field2ParticleInterpolation()
                     (cachedEne.shift(localCell).toCursor(), pos, fieldPosEne());
 
-                /* define number of bound macro electrons before ionization */
-                float_X prevBoundElectrons = particle[boundElectrons_];
-
                 /* density in sim units */
-                float_X density = densityV[0];
+                float_X const density = densityV[0];
                 /* energy density in sim units */
-                float_X kinEnergyDensity = kinEnergyV[0];
+                float_X const kinEnergyDensity = kinEnergyV[0];
 
-                /* this is the point where actual ionization takes place */
+                /* Returns the new number of bound electrons for an integer number of macro electrons */
                 IonizationAlgorithm ionizeAlgo;
-                float_X newBoundElectrons = ionizeAlgo(
-                    kinEnergyDensity, density,
-                    particle, this->randomGen()
-                    );
+                numNewFreeMacroElectrons = ionizeAlgo(
+                    kinEnergyDensity,
+                    density,
+                    particle,
+                    this->randomGen()
+                );
 
-                particle[boundElectrons_] = newBoundElectrons;
-
-                /* safety check to avoid double counting since recombination is not yet implemented */
-                if (prevBoundElectrons > newBoundElectrons)
-                {
-                    /* determine number of new macro electrons to be created */
-                    newMacroElectrons = static_cast<unsigned int>(prevBoundElectrons - newBoundElectrons);
-                }
+                /** ionization of the ion by reducing the number of bound electrons
+                 *
+                 * optimization: only accesses global memory if the charge
+                 *               state did really change
+                 *
+                 * @warning substracting a float from a float can potentially
+                 *          create a negative boundElectrons number for the ion,
+                 *          see #1850 for details
+                 */
+                if( numNewFreeMacroElectrons > 0u )
+                    particle[ boundElectrons_ ] -= float_X( numNewFreeMacroElectrons );
             }
 
     };

@@ -1,4 +1,4 @@
-/* Copyright 2016-2017 Marco Garten
+/* Copyright 2016-2017 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -17,11 +17,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file AlgorithmThomasFermi.hpp
+/** @file AlgorithmThomasFermi.hpp
  *
  * IONIZATION ALGORITHM for the Thomas-Fermi model
- * - implements the calculation of average ionization degree and returns the
- *   new number of bound electrons
+ * - implements the calculation of the new number of free macro electrons
+ *   from the Thomas-Fermi average charge state
  * - is called with the IONIZATION MODEL, specifically by setting the flag in
  *   @see speciesDefinition.param
  */
@@ -41,118 +41,182 @@ namespace particles
 namespace ionization
 {
 
-    /** \struct AlgorithmThomasFermi
+    /** AlgorithmThomasFermi
      *
-     * \brief calculation for the Thomas-Fermi pressure ionization model
+     * ionization prediction for the Thomas-Fermi ionization model
      *
-     * This model uses local density and "temperature" values as input
-     * parameters. A physical temperature requires a defined equilibrium state.
-     * Typical high power laser-plasma interaction is highly
-     * non-equilibrated, though. The name "temperature" is kept to illustrate
-     * the origination from the Thomas-Fermi model. It is nevertheless
-     * more accurate to think of it as an averaged kinetic energy
-     * which is not backed by the model and should therefore only be used with
-     * a certain suspicion in such Non-LTE scenarios.
      */
     struct AlgorithmThomasFermi
     {
-        /** Functor implementation
+        /** Detailed Balance implementation of the Thomas-Fermi model
          *
-         * \tparam DensityType type of number
-         * \tparam KinEnergyDensityType type of kinetic energy density
-         * \tparam ParticleType type of particle to be ionized
+         * This model uses local density and "temperature" values as input
+         * parameters to calculate an average charge state.
+         * A physical temperature requires a defined equilibrium state.
+         * Typical high power laser-plasma interaction is highly
+         * non-equilibrated, though. The name "temperature" is kept to illustrate
+         * the origination from the Thomas-Fermi model. It is nevertheless
+         * more accurate to think of it as an averaged kinetic energy
+         * which is not backed by the model and should therefore only be used with
+         * a certain suspicion in such Non-LTE scenarios.
          *
-         * \param density number density value
-         * \param kinEnergyDensity kinetic energy density value
-         * \param parentIon particle instance to be ionized
-         * \param randNr random number
+         * @tparam ParticleType type of particle for which to calculate
+         *     an average charge state
+         *
+         * @param density number density value
+         * @param kinEnergyDensity kinetic energy density value
+         *
+         * @return average charge state prediction according to the Thomas-Fermi model
          */
-        template<typename KinEnergyDensityType, typename DensityType, typename ParticleType >
+        template< typename ParticleType >
         HDINLINE float_X
-        operator()( const KinEnergyDensityType kinEnergyDensity, const DensityType density, ParticleType& parentIon, float_X randNr )
+        detailedBalanceThomasFermi( float_X const kinEnergyDensity, float_X const density, ParticleType & parentIon )
         {
 
             /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU units */
             constexpr float_64 protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
             constexpr float_64 neutronNumber = GetAtomicNumbers<ParticleType>::type::numberOfNeutrons;
-            float_64 chargeState = attribute::getChargeState(parentIon);
 
-            /* ionization condition */
-            if (chargeState < protonNumber)
+            /* atomic mass number (usually A) A = N + Z */
+            constexpr float_64 massNumber = neutronNumber + protonNumber;
+
+            /** @TODO replace the static_cast<float_64> by casts to float_X
+             * or leave out entirely and compute everything in PIConGPU scaled units
+             */
+            float_64 const densityUnit = static_cast<float_64>(particleToGrid::derivedAttributes::Density().getUnit()[0]);
+            float_64 const kinEnergyDensityUnit = static_cast<float_64>(particleToGrid::derivedAttributes::EnergyDensity().getUnit()[0]);
+            /* convert from kinetic energy density to average kinetic energy per particle */
+            float_64 const kinEnergyUnit = kinEnergyDensityUnit / densityUnit;
+            float_64 const kinEnergy = kinEnergyDensity / density * kinEnergyUnit;
+            /** convert kinetic energy in J to "temperature" in eV by assuming an ideal electron gas
+             * E_kin = 3/2 k*T
+             */
+            constexpr float_64 convKinEnergyToTemperature = UNITCONV_Joule_to_keV * float_64(1.e3) * float_64(2./3.);
+            float_64 const temperature = kinEnergy * convKinEnergyToTemperature;
+
+            float_64 const T_0 = temperature/math::pow(protonNumber,float_64(4./3.));
+
+            float_64 const T_F = T_0 / (float_64(1.) + T_0);
+
+            /* for all the fitting parameters @see ionizer.param */
+
+            /** this is weird - I have to define temporary variables because
+             * otherwise the math::pow function won't recognize those at the
+             * exponent position */
+            constexpr float_64 TFA2_temp = thomasFermi::TFA2;
+            constexpr float_64 TFA4_temp = thomasFermi::TFA4;
+            constexpr float_64 TFBeta_temp = thomasFermi::TFBeta;
+
+            float_64 const A = thomasFermi::TFA1 * math::pow(T_0,TFA2_temp) + thomasFermi::TFA3 * math::pow(T_0,TFA4_temp);
+
+            float_64 const B = -math::exp(thomasFermi::TFB0 + thomasFermi::TFB1*T_F + thomasFermi::TFB2*math::pow(T_F,float_64(7.)));
+
+            float_64 const C = thomasFermi::TFC1 * T_F + thomasFermi::TFC2;
+
+            /* requires mass density in g/cm^3 */
+            constexpr float_64 nAvogadro = SI::N_AVOGADRO;
+            constexpr float_64 convM3ToCM3 = 1.e6;
+
+            float_64 const convToMassDensity = densityUnit * massNumber / nAvogadro / convM3ToCM3;
+            float_64 const massDensity = density * convToMassDensity;
+
+            constexpr float_64 invAtomicTimesMassNumber = float_64(1.) / (protonNumber * massNumber);
+            float_64 const R = massDensity * invAtomicTimesMassNumber;
+
+            float_64 const Q_1 = A * math::pow(R,B);
+
+            float_64 const Q = math::pow(math::pow(R,C) + math::pow(Q_1, C), float_64(1.) / C);
+
+            float_64 const x = thomasFermi::TFAlpha * math::pow(Q, TFBeta_temp);
+
+            /* Thomas-Fermi average ionization state */
+            float_X const ZStar = static_cast< float_X >(
+                protonNumber * x / (
+                    float_64(1.) + x +
+                    math::sqrt( float_64(1.) + float_64(2.) * x )
+                )
+            );
+
+            return ZStar;
+        }
+
+        /** Functor implementation
+         *
+         * Calling this functor gives a prediction for an integer number of new
+         * free macro electrons to create. This prediction is based on the
+         * average charge state in the Thomas-Fermi model.
+         * The functor calculates the integer number of bound electrons from
+         * this state by a Monte-Carlo step.
+         *
+         * @tparam ParticleType type of particle to be ionized
+         *
+         * @param ZStar average charge state in the Thomas-Fermi model
+         * @param parentIon particle instance to be ionized
+         * @param randNr random number
+         *
+         * @return numNewFreeMacroElectrons number of new macro electrons to
+         *         create, range: [0, boundElectrons]
+         */
+        template< typename ParticleType >
+        HDINLINE uint32_t
+        operator()( float_X const kinEnergyDensity, float_X const density, ParticleType & parentIon, float_X randNr )
+        {
+            float_64 const chargeState = attribute::getChargeState(parentIon);
+            /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU units */
+            constexpr float_64 protonNumber = GetAtomicNumbers< ParticleType >::type::numberOfProtons;
+
+            /* determine number of new free macro electrons
+             * to be created in the ionization routine
+             */
+            uint32_t numNewFreeMacroElectrons = 0u;
+
+            /* only ionize not-fully ionized ions */
+            if( chargeState < protonNumber )
             {
-                /* atomic mass number (usually A) A = N + Z */
-                constexpr float_64 massNumber = neutronNumber + protonNumber;
-
-                /** @TODO replace the static_cast<float_64> by casts to float_X
-                 * or leave out entirely and compute everything in PIConGPU scaled units
+                /* Thomas-Fermi calculation step:
+                 * Determines the new average charge state for each ion under
+                 * LTE conditions.
                  */
-                float_64 const densityUnit = static_cast<float_64>(particleToGrid::derivedAttributes::Density().getUnit()[0]);
-                float_64 const kinEnergyDensityUnit = static_cast<float_64>(particleToGrid::derivedAttributes::EnergyDensity().getUnit()[0]);
-                /* convert from kinetic energy density to average kinetic energy per particle */
-                float_64 const kinEnergyUnit = kinEnergyDensityUnit / densityUnit;
-                float_64 const kinEnergy = (kinEnergyDensity / density) * kinEnergyUnit;
-                /** convert kinetic energy in J to "temperature" in eV by assuming an ideal electron gas
-                 * E_kin = 3/2 k*T
+                float_X const ZStar = detailedBalanceThomasFermi(
+                    kinEnergyDensity,
+                    density,
+                    parentIon
+                );
+
+                /* integral part of the average charge state */
+                float_X intZStar;
+                /* fractional part of the average charge state */
+                float_X const fracZStar = math::modf( ZStar, &intZStar );
+
+                /* Determine new charge state.
+                 * We do a Monte-Carlo step to distribute charge states between
+                 * the two "surrounding" integer numbers if ZStar has a non-zero
+                 * fractional part.
                  */
-                constexpr float_64 convKinEnergyToTemperature = UNITCONV_Joule_to_keV * float_64(1.e3) * float_64(2./3.);
-                float_64 const temperature = kinEnergy * convKinEnergyToTemperature;
+                float_X const newChargeState =
+                    intZStar +
+                    float_X( 1.0 ) * ( randNr < fracZStar );
 
-                float_64 const T_0 = temperature/math::pow(protonNumber,float_64(4./3.));
-
-                float_64 const T_F = T_0 / (float_64(1.) + T_0);
-
-                /* for all the fitting parameters @see ionizer.param */
-
-                /** this is weird - I have to define temporary variables because
-                 * otherwise the math::pow function won't recognize those at the
-                 * exponent position */
-                constexpr float_64 TFA2_temp = thomasFermi::TFA2;
-                constexpr float_64 TFA4_temp = thomasFermi::TFA4;
-                constexpr float_64 TFBeta_temp = thomasFermi::TFBeta;
-
-                float_64 const A = thomasFermi::TFA1 * math::pow(T_0,TFA2_temp) + thomasFermi::TFA3 * math::pow(T_0,TFA4_temp);
-
-                float_64 const B = -math::exp(thomasFermi::TFB0 + thomasFermi::TFB1*T_F + thomasFermi::TFB2*math::pow(T_F,float_64(7.)));
-
-                float_64 const C = thomasFermi::TFC1 * T_F + thomasFermi::TFC2;
-
-                /* requires mass density in g/cm^3 */
-                constexpr float_64 nAvogadro = SI::N_AVOGADRO;
-                constexpr float_64 convM3ToCM3 = 1.e6;
-
-                float_64 const convToMassDensity = densityUnit * massNumber / nAvogadro / convM3ToCM3;
-                float_64 const massDensity = density * convToMassDensity;
-
-                constexpr float_64 invAtomicTimesMassNumber = float_64(1.) / (protonNumber * massNumber);
-                float_64 const R = massDensity * invAtomicTimesMassNumber;
-
-                float_64 const Q_1 = A * math::pow(R,B);
-
-                float_64 const Q = math::pow(math::pow(R,C) + math::pow(Q_1,C), float_64(1.)/C);
-
-                float_64 const x = thomasFermi::TFAlpha * math::pow(Q,TFBeta_temp);
-
-                /* Thomas-Fermi average ionization state */
-                float_64 const ZStar = protonNumber * x / (float_64(1.) + x + math::sqrt(float_64(1.) + float_64(2.)*x));
-
-                /* integral part of the charge state */
-                float_64 intZStar;
-                /* fractional part of the charge state */
-                float_X fracZStar = static_cast<float_X>(math::modf(ZStar,&intZStar));
-
-                /* determine charge state */
-                float_X const chargeState = static_cast<float_X>(intZStar) + float_X(1.0)*(randNr < fracZStar);
+                /* define number of bound macro electrons before ionization */
+                float_X const prevBoundElectrons = parentIon[ boundElectrons_ ];
 
                 /** determine the new number of bound electrons from the TF ionization state
                  * @TODO introduce partial macroparticle ionization / ionization distribution at some point
                  */
-                float_X const newBoundElectrons = protonNumber - chargeState;
+                float_X const newBoundElectrons = protonNumber - newChargeState;
 
-                return newBoundElectrons;
+                /* Only account for ionization: we only increase the charge
+                 * state of an ion if necessary, but ignore recombination of
+                 * electrons as prediced by the implemented detailed balance
+                 * algorithm.
+                 */
+                if( prevBoundElectrons > newBoundElectrons )
+                    numNewFreeMacroElectrons = static_cast< uint32_t >( prevBoundElectrons - newBoundElectrons );
             }
 
-            return float_X(0.);
+            return numNewFreeMacroElectrons;
         }
+
     };
 
 } // namespace ionization
