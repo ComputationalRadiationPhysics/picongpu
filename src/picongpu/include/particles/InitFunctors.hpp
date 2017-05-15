@@ -165,7 +165,6 @@ struct FillAllGaps
     using SpeciesType = T_SpeciesType;
     using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple>
     HINLINE void operator()( const uint32_t currentStep )
     {
         DataConnector &dc = Environment<>::get().DataConnector();
