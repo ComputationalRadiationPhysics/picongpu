@@ -96,26 +96,15 @@ namespace particles
             CopperIons,
             BulkElectrons
         >,
-        ManipulateDeriveSpecies<
-            manipulators::DensityWeighting,
-            CopperIons,
-            PromptElectrons
-        >,
-        /* Set the Cu ions to Cu_1+ */
+        /* Set the Cu ions to Cu_6+ */
         Manipulate<
-            manipulators::OnceIonized,
+            manipulators::SixTimesIonized,
             CopperIons
         >,
         /* Set initial temperature of bulk electrons */
         Manipulate<
             manipulators::AddTemperature,
             BulkElectrons
-        >,
-        /* Set initial drift (directed in this case) of delta-distributed 200 keV
-         * prompt electrons */
-        Manipulate<
-            manipulators::Assign200keVDrift,
-            PromptElectrons
         >
     >;
 

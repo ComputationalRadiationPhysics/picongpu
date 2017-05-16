@@ -31,7 +31,7 @@ namespace picongpu
          *  within 1 ps. We discretize the time in 1'000 equal steps.
          *
          *  unit: seconds */
-        constexpr float_64 DELTA_T_SI = 1.0e-12 / 1000.;
+        constexpr float_64 DELTA_T_SI = 6.e-15;
 
         /** epsilon to be >= 1 per mill close to CFL */
         constexpr float_64 EPS_CFL = 1.001;
