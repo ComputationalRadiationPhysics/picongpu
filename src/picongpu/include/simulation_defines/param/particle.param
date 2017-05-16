@@ -66,7 +66,7 @@ namespace manipulators
         static constexpr float_64 gamma = 1.0;
         const DriftParam_direction_t direction;
     };
-    /** definition of manipulator that assigns a dirft in X */
+    /** definition of manipulator that assigns a drift in X */
     using AssignXDrift = DriftImpl<
         DriftParam,
         nvidia::functors::Assign

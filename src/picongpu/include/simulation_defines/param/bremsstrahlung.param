@@ -30,7 +30,7 @@ namespace bremsstrahlung
  */
 namespace electron
 {
-    /** Minimal kinectic electron energy in MeV for the lookup table.
+    /** Minimal kinetic electron energy in MeV for the lookup table.
      * For electrons below this value Bremsstrahlung is not taken into account.
      */
     constexpr float_64 MIN_ENERGY_MeV = 0.5;

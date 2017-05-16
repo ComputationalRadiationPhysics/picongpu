@@ -53,7 +53,7 @@ namespace picongpu
      *   - CreateMomentumComponentOperation: ratio between a selected momentum
      *                                       component and the absolute
      *                                       momentum with respect to shape
-     *   - CreateLarmorPowerOperation: radiated larmor power
+     *   - CreateLarmorPowerOperation: radiated Larmor power
      *                                 (species must contain the attribute `momentumPrev1`)
      *
      * for debugging:

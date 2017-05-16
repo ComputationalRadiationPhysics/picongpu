@@ -26,7 +26,7 @@ namespace particles
 namespace synchrotronPhotons
 {
 
-/** enable synchtrotron photon emission */
+/** enable synchrotron photon emission */
 #ifndef ENABLE_SYNCHROTRON_PHOTONS
 #define ENABLE_SYNCHROTRON_PHOTONS 0
 #endif
@@ -43,8 +43,8 @@ constexpr float_64 SYNC_FUNCS_BESSEL_INTEGRAL_STEPWIDTH = 1.0e-3;
 /** Number of sampling points of the lookup table */
 constexpr uint32_t SYNC_FUNCS_NUM_SAMPLES = 8192;
 
-/** Photons of oszillation periods greater than a timestep are not created since the grid already accounts for them.
- * This cutoff ratio is defined as: photon-oszillation-period / timestep */
+/** Photons of oscillation periods greater than a timestep are not created since the grid already accounts for them.
+ * This cutoff ratio is defined as: photon-oscillation-period / timestep */
 constexpr float_64 SOFT_PHOTONS_CUTOFF_RATIO = 1.0;
 
 /** if the emission probability per timestep is higher than this value and the log level is set to
