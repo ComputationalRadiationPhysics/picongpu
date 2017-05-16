@@ -1,5 +1,5 @@
 /* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Felix Schmitt, Benjamin Worpitz
+ *                     Felix Schmitt, Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -84,7 +84,7 @@ class SumCurrents : public ILightweightPlugin
 {
 private:
     MappingDesc *cellDescription;
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
 
     GridBuffer<float3_X, DIM1> *sumcurrents;
 
@@ -92,7 +92,7 @@ public:
 
     SumCurrents() :
     cellDescription(nullptr),
-    notifyFrequency(0)
+    notifyPeriod(0)
     {
 
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -139,7 +139,7 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ("sumcurr.period", po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
+            ("sumcurr.period", po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -156,17 +156,17 @@ private:
 
     void pluginLoad()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             sumcurrents = new GridBuffer<float3_X, DIM1 > (DataSpace<DIM1 > (1)); //create one int on gpu und host
 
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
     }
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             __delete(sumcurrents);
         }

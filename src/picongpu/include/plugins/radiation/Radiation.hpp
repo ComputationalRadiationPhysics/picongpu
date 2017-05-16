@@ -97,7 +97,7 @@ private:
     radiation_frequencies::FreqFunctor freqFkt;
 
     MappingDesc *cellDescription;
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
     uint32_t dumpPeriod;
     uint32_t radStart;
     uint32_t radEnd;
@@ -157,7 +157,7 @@ public:
     filename_prefix(pluginPrefix),
     radiation(nullptr),
     cellDescription(nullptr),
-    notifyFrequency(0),
+    notifyPeriod(0),
     dumpPeriod(0),
     totalRad(false),
     lastRad(false),
@@ -213,7 +213,7 @@ public:
         if(dependenciesFulfilled)
         {
             desc.add_options()
-                ((pluginPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]")
+                ((pluginPrefix + ".period").c_str(), po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]")
                 ((pluginPrefix + ".dump").c_str(), po::value<uint32_t > (&dumpPeriod)->default_value(0), "dump integrated radiation from last dumped step [for each n-th step] (0 = only print data at end of simulation)")
                 ((pluginPrefix + ".lastRadiation").c_str(), po::bool_switch(&lastRad), "enable calculation of integrated radiation from last dumped step")
                 ((pluginPrefix + ".folderLastRad").c_str(), po::value<std::string > (&folderLastRad)->default_value("lastRad"), "folder in which the integrated radiation from last dumped step is written")
@@ -249,7 +249,7 @@ public:
     void restart(uint32_t timeStep, const std::string restartDirectory)
     {
         // only load backup if radiation is calculated:
-        if(notifyFrequency == 0)
+        if(notifyPeriod == 0)
             return;
 
         if(dependenciesFulfilled && isMaster)
@@ -266,7 +266,7 @@ public:
     void checkpoint(uint32_t timeStep, const std::string restartDirectory)
     {
         // only write backup if radiation is calculated:
-        if(notifyFrequency == 0)
+        if(notifyPeriod == 0)
             return;
 
         if(dependenciesFulfilled)
@@ -304,7 +304,7 @@ private:
             // allocate memory for all amplitudes for temporal data collection
             tmp_result = new Amplitude[elements_amplitude()];
 
-            if (notifyFrequency > 0)
+            if (notifyPeriod > 0)
             {
                 /*only rank 0 create a file*/
                 isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
@@ -315,7 +315,7 @@ private:
                 freqFkt = freqInit.getFunctor();
 
 
-                Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+                Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
                 PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
 
                 if (isMaster)
@@ -373,7 +373,7 @@ private:
 
     void pluginUnload()
     {
-        if(dependenciesFulfilled && notifyFrequency > 0)
+        if(dependenciesFulfilled && notifyPeriod > 0)
         {
 
             // Some funny things that make it possible for the kernel to calculate

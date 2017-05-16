@@ -1,5 +1,5 @@
 /* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -123,7 +123,7 @@ private:
     GridBuffer<float_32, DIM1> *localMaxIntensity;
     GridBuffer<float_32, DIM1> *localIntegratedIntensity;
     MappingDesc *cellDescription;
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
 
     std::string pluginName;
     std::string pluginPrefix;
@@ -144,7 +144,7 @@ public:
     localMaxIntensity(nullptr),
     localIntegratedIntensity(nullptr),
     cellDescription(nullptr),
-    notifyFrequency(0),
+    notifyPeriod(0),
     writeToFile(false)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -165,7 +165,7 @@ public:
     {
         desc.add_options()
             ((pluginPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
+             po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -182,7 +182,7 @@ private:
 
     void pluginLoad()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             writeToFile = Environment<simDim>::get().GridController().getGlobalRank() == 0;
             int yCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().y();
@@ -196,13 +196,13 @@ private:
                 createFile(pluginPrefix + "_integrated.dat", outFileIntegrated);
             }
 
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
         }
     }
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
             if (writeToFile)
             {

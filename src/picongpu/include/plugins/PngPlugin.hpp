@@ -1,4 +1,5 @@
-/* Copyright 2013-2017 Axel Huebl, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -72,7 +73,7 @@ namespace picongpu
         {
 #if( PIC_ENABLE_PNG == 1 )
             desc.add_options()
-                    ((pluginPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyFrequencys)->multitoken(), "enable data output [for each n-th step]")
+                    ((pluginPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyPeriod)->multitoken(), "enable data output [for each n-th step]")
                     ((pluginPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
                     ((pluginPrefix + ".slicePoint").c_str(), po::value<std::vector<float_32> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice")
                     ((pluginPrefix + ".folder").c_str(), po::value<std::vector<std::string> > (&folders)->multitoken(), "folder for output files");
@@ -93,14 +94,14 @@ namespace picongpu
         void pluginLoad()
         {
 
-            if (0 != notifyFrequencys.size())
+            if (0 != notifyPeriod.size())
             {
                 if (0 != slicePoints.size() &&
                     0 != axis.size())
                 {
                     for (int i = 0; i < (int) slicePoints.size(); ++i) /*!\todo: use vactor with max elements*/
                     {
-                        uint32_t frequ = getValue(notifyFrequencys, i);
+                        uint32_t frequ = getValue(notifyPeriod, i);
                         if (frequ != 0)
                         {
 
@@ -206,7 +207,7 @@ namespace picongpu
         std::string pluginName;
         std::string pluginPrefix;
 
-        std::vector<uint32_t> notifyFrequencys;
+        std::vector<uint32_t> notifyPeriod;
         std::vector<float_32> slicePoints;
         std::vector<std::string> folders;
         std::vector<std::string> axis;

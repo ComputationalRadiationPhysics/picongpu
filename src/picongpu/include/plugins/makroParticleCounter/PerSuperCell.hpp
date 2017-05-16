@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Rene Widera
+/* Copyright 2014-2017 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -116,7 +116,7 @@ private:
     typedef GridBuffer<size_t, simDim> GridBufferType;
 
     MappingDesc *cellDescription;
-    uint32_t notifyFrequency;
+    uint32_t notifyPeriod;
 
     std::string pluginName;
     std::string pluginPrefix;
@@ -136,7 +136,7 @@ public:
     pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesPerSuperCell")),
     foldername(pluginPrefix),
     cellDescription(nullptr),
-    notifyFrequency(0),
+    notifyPeriod(0),
     localResult(nullptr),
     dataCollector(nullptr)
     {
@@ -157,7 +157,7 @@ public:
     {
         desc.add_options()
             ((pluginPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
+             po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -174,9 +174,9 @@ private:
 
     void pluginLoad()
     {
-        if (notifyFrequency > 0)
+        if (notifyPeriod > 0)
         {
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
             /* local count of supercells without any guards*/
             DataSpace<simDim> localSuperCells(subGrid.getLocalDomain().size / SuperCellSize::toRT());
