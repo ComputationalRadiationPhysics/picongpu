@@ -56,14 +56,14 @@ public:
         //create size on device before any use of setCurrentSize
         if (useVectorAsBase)
         {
-            sizeOnDevice = false;
-            createSizeOnDevice(sizeOnDevice);
+            this->sizeOnDevice = false;
+            createSizeOnDevice(this->sizeOnDevice);
             createFakeData();
             this->data1D = true;
         }
         else
         {
-            createSizeOnDevice(sizeOnDevice);
+            createSizeOnDevice(this->sizeOnDevice);
             createData();
             this->data1D = false;
         }
