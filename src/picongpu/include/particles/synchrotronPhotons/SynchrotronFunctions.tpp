@@ -22,6 +22,13 @@
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "simulation_defines.hpp"
 #include <boost/array.hpp>
+/* `array_wrapper.hpp` must be included before `integrate.hpp` to avoid
+ * the error
+ * `boost/numeric/ublas/matrix.hpp(5977): error: namespace "boost::serialization" has no member "make_array"`
+ * in boost 1.64.0
+ * see boost issue https://svn.boost.org/trac/boost/ticket/12516
+ */
+#include <boost/serialization/array_wrapper.hpp>
 #include <boost/numeric/odeint/integrate/integrate.hpp>
 
 
