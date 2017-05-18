@@ -123,8 +123,8 @@ protected:
             PMACC_KERNEL(KernelFillGaps{})
                 (mapper.getGridDim(), (int)TileSize)
                 (pBox, mapper);
-            PMACC_KERNEL(KernelFillGapsLastFrame{})
-                (mapper.getGridDim(), (int)TileSize)
+            PMACC_KERNEL(KernelFillGapsLastFrame< numWorkers >{})
+                (mapper.getGridDim(), numWorkers)
                 (pBox, mapper);
         }
         while (mapper.next());
@@ -141,12 +141,16 @@ protected:
     {
         AreaMapping<AREA, MappingDesc> mapper(this->cellDescription);
 
+        constexpr uint32_t numWorkers = traits::GetNumWorkers<
+            math::CT::volume<typename FrameType::SuperCellSize>::type::value
+        >::value;
+
         PMACC_KERNEL(KernelFillGaps{})
             (mapper.getGridDim(), (int)TileSize)
             (particlesBuffer->getDeviceParticleBox(), mapper);
 
-        PMACC_KERNEL(KernelFillGapsLastFrame{})
-            (mapper.getGridDim(), (int)TileSize)
+        PMACC_KERNEL(KernelFillGapsLastFrame< numWorkers >{})
+            (mapper.getGridDim(), numWorkers)
             (particlesBuffer->getDeviceParticleBox(), mapper);
     }
 
