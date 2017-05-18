@@ -195,8 +195,13 @@ void FieldJ::bashField( uint32_t exchangeType )
     auto grid = mapper.getGridDim( );
 
     const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-    PMACC_KERNEL( KernelBashCurrent{} )
-        ( grid, mapper.getSuperCellSize( ) )
+
+    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
+        PMacc::math::CT::volume< SuperCellSize >::type::value
+    >::value;
+
+    PMACC_KERNEL( KernelBashCurrent< numWorkers >{} )
+        ( grid, numWorkers )
         ( fieldJ.getDeviceBuffer( ).getDataBox( ),
           fieldJ.getSendExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
           fieldJ.getSendExchange( exchangeType ).getDeviceBuffer( ).getDataSpace( ),
@@ -210,9 +215,13 @@ void FieldJ::insertField( uint32_t exchangeType )
 
     auto grid = mapper.getGridDim( );
 
-    const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-    PMACC_KERNEL( KernelInsertCurrent{} )
-        ( grid, mapper.getSuperCellSize( ) )
+    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
+        PMacc::math::CT::volume< SuperCellSize >::type::value
+    >::value;
+
+    const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim >( mapper.getExchangeType( ) );
+    PMACC_KERNEL( KernelInsertCurrent< numWorkers >{} )
+        ( grid, numWorkers )
         ( fieldJ.getDeviceBuffer( ).getDataBox( ),
           fieldJ.getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
           fieldJ.getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataSpace( ),
