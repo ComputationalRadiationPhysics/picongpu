@@ -213,18 +213,62 @@ void FieldE::laserManipulation( uint32_t currentStep )
         laserProfile::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
     );
 
-    DataSpace<simDim-1> gridBlocks;
-    DataSpace<simDim-1> blockSize;
-    gridBlocks.x()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).x( ) / SuperCellSize::x::value;
-    blockSize.x()=SuperCellSize::x::value;
-#if(SIMDIM ==DIM3)
-    gridBlocks.y()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).z( ) / SuperCellSize::z::value;
-    blockSize.y()=SuperCellSize::z::value;
-#endif
-    PMACC_KERNEL( KernelLaserE{} )
-        ( gridBlocks,
-          blockSize )
-        ( this->getDeviceDataBox( ), laser->getLaserManipulator( currentStep ) );
+    /* Calculate how many neighbors to the left we have
+     * to initialize the laser in the E-Field
+     *
+     * Example: Yee needs one neighbor to perform dB = curlE
+     *            -> initialize in y=0 plane
+     *          A second order solver could need 2 neighbors left:
+     *            -> initialize in y=0 and y=1 plane
+     *
+     * Question: Why do other codes initialize the B-Field instead?
+     * Answer:   Because our fields are defined on the lower cell side
+     *           (C-Style ftw). Therefore, our curls (for example Yee)
+     *           are shifted nabla+ <-> nabla- compared to Fortran codes
+     *           (in other words: curlLeft <-> curlRight)
+     *           for E and B.
+     *           For this reason, we have to initialize E instead of B.
+     *
+     * Problem: that's still not our case. For example our Yee does a
+     *          dE = curlLeft(B) - therefor, we should init B, too.
+     *
+     *
+     *  @todo: might also lack temporal offset since our formulas are E(x,z,t) instead of E(x,y,z,t)
+     *  `const int max_y_neighbors = Get<fieldSolver::FieldSolver::OffsetOrigin_E, 1 >::value;`
+     *
+     * @todo Right now, the phase could be wrong ( == is cloned)
+     *       @see LaserPhysics.hpp
+     *
+     * @todo What about the B-Field in the second plane?
+     *
+     */
+    constexpr int laserInitCellsInY = 1;
+
+    using LaserPlaneSizeInSuperCells = typename PMacc::math::CT::AssignIfInRange<
+            typename SuperCellSize::vector_type,
+            bmpl::integral_c< uint32_t, 1 >, /* y direction */
+            bmpl::integral_c< int, laserInitCellsInY >
+    >::type;
+
+    DataSpace<simDim> gridBlocks = fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ) / SuperCellSize::toRT();
+    // use the one supercell in y to initialize the laser plane
+    gridBlocks.y() = 1;
+
+    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
+        PMacc::math::CT::volume< LaserPlaneSizeInSuperCells >::type::value
+    >::value;
+    PMACC_KERNEL(
+        KernelLaserE<
+            numWorkers,
+            LaserPlaneSizeInSuperCells
+        >{}
+    )(
+        gridBlocks,
+        numWorkers
+    )(
+        this->getDeviceDataBox( ),
+        laser->getLaserManipulator( currentStep )
+    );
 }
 
 void FieldE::reset( uint32_t )
