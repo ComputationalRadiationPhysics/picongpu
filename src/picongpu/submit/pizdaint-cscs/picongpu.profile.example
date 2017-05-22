@@ -52,6 +52,8 @@ export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURC
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
 
+export PYTHONPATH=$PICSRC/src/tools/lib/python:$PYTHONPATH
+
 # send me a mail on BEGIN, END, FAIL, REQUEUE, ALL,
 # TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 export MY_MAILNOTIFY="FAIL"
