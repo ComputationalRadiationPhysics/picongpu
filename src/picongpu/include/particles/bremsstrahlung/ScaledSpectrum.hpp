@@ -63,7 +63,7 @@ struct LookupTableFunctor
     HDINLINE LookupTableFunctor(LinInterpCursor linInterpCursor);
     /** scaled differential cross section
      *
-     * @param Ekin kinectic energy of the incident electron
+     * @param Ekin kinetic energy of the incident electron
      * @param kappa energy loss normalized to Ekin
      */
     HDINLINE float_X operator()(const float_X Ekin, const float_X kappa) const;

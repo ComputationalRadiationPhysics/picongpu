@@ -30,7 +30,7 @@ namespace bremsstrahlung
 /** params related to the energy loss and deflection of the incident electron */
 namespace electron
 {
-    /** Minimal kinectic electron energy in MeV for the lookup table.
+    /** Minimal kinetic electron energy in MeV for the lookup table.
      *
      * For electrons below this value Bremsstrahlung is not taken into account.
      */
