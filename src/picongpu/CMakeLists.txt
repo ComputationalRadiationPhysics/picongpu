@@ -332,8 +332,9 @@ find_path(PIC_EXTENSION_PATH
     NO_CMAKE_SYSTEM_PATH
     )
 
-set(PIC_COPY_ON_INSTALL "include/simulation_defines" "submit" CACHE LIST
-    "Folder which is copied to installation path during install" )
+set(PIC_COPY_ON_INSTALL "include/simulation_defines;submit;lib"
+    CACHE LIST
+    "Folders that are copied to installation path during install" )
 
 include_directories(include)
 include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
