@@ -377,14 +377,14 @@ endif()
 install(TARGETS picongpu
          RUNTIME DESTINATION bin)
 
-#file(GLOB scripts_to_copy "${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.sh")
+#file(GLOB scripts_to_copy "${CMAKE_CURRENT_SOURCE_DIR}/bin/*.sh")
 #foreach(f ${scripts_to_copy})
 #   GET_FILENAME_COMPONENT(file_name ${f} NAME CACHE)
 #   install(FILES "${f}" DESTINATION bin PERMISSIONS OWNER_EXECUTE OWNER_READ
 #           OWNER_WRITE GROUP_READ GROUP_EXECUTE)
 #endforeach(f)
 
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/scripts/" DESTINATION bin
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin/" DESTINATION bin
     FILES_MATCHING PATTERN "*"
     PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE
     PATTERN .svn EXCLUDE
