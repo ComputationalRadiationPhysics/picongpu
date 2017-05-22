@@ -92,14 +92,14 @@ zlib
 
 boost
 """""
-- 1.57.0+ (``program options``, ``regex`` , ``filesystem``, ``system``, ``thread``, ``math`` and nearly all header-only libs)
+- 1.57.0+ (``program options``, ``regex`` , ``filesystem``, ``system``, ``thread``, ``math``, ``serialization`` and nearly all header-only libs)
 - download from `http://www.boost.org <http://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz/download>`_
-- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-math-dev``
+- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-math-dev libboost-serialization-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
 - *from source:*
 
-  - ``./bootstrap.sh --with-libraries=filesystem,program_options,regex,system,thread,math --prefix=$HOME/lib/boost``
+  - ``./bootstrap.sh --with-libraries=filesystem,program_options,regex,system,thread,math,serialization --prefix=$HOME/lib/boost``
   - ``./b2 -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
