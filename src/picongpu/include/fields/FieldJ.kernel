@@ -361,83 +361,153 @@ struct KernelAddCurrentToEMF
     }
 };
 
+/** copy the current from the local to the intermediate buffer
+ *
+ * @tparam T_numWorkers number of workers
+ */
+template< uint32_t T_numWorkers >
 struct KernelBashCurrent
 {
-    template<class Mapping>
-    DINLINE void operator()(J_DataBox fieldJ,
-                                      J_DataBox targetJ,
-                                      DataSpace<simDim> exchangeSize,
-                                      DataSpace<simDim> direction,
-                                      Mapping mapper) const
+    template< typename Mapping >
+    DINLINE void operator()(
+        J_DataBox const & fieldJ,
+        J_DataBox & targetJ,
+        DataSpace<simDim> const & exchangeSize,
+        DataSpace<simDim> const & direction,
+        Mapping mapper
+    ) const
     {
-        const DataSpace<simDim> blockCell(
-                                          mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
-                                          * Mapping::SuperCellSize::toRT()
-                                          );
-        const DataSpace<Mapping::Dim> threadIndex(threadIdx);
-        const DataSpace<Mapping::Dim> sourceCell(blockCell + threadIndex);
+        using namespace mappings::threads;
+
+        /* number of cells in a superCell */
+        constexpr uint32_t numCells = PMacc::math::CT::volume< SuperCellSize >::type::value;
+        constexpr uint32_t numWorkers = T_numWorkers;
+
+        uint32_t const workerIdx = threadIdx.x;
+
+        DataSpace< simDim > const blockCell(
+            mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+                * Mapping::SuperCellSize::toRT()
+        );
 
         /*origin in area from local GPU*/
-        DataSpace<simDim> nullSourceCell(
-                                         mapper.getSuperCellIndex(DataSpace<simDim > ())
-                                         * Mapping::SuperCellSize::toRT()
-                                         );
-        DataSpace<simDim> targetCell(sourceCell - nullSourceCell);
+        DataSpace< simDim > nullSourceCell(
+            mapper.getSuperCellIndex( DataSpace< simDim > () )
+                * Mapping::SuperCellSize::toRT()
+        );
 
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            if (direction[d] == -1)
+        ForEachIdx<
+            IdxConfig<
+                numCells,
+                numWorkers
+            >
+        >{ workerIdx }(
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
             {
-                if (threadIndex[d] < SuperCellSize::toRT()[d] - exchangeSize[d]) return;
-                targetCell[d] -= SuperCellSize::toRT()[d] - exchangeSize[d];
-            }
-            else if ((direction[d] == 1) && (threadIndex[d] >= exchangeSize[d])) return;
-        }
+                /* cell index within the superCell */
+                DataSpace< simDim > const cellIdx = DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
 
-        targetJ(targetCell) = fieldJ(sourceCell);
+                DataSpace<Mapping::Dim> const sourceCell( blockCell + cellIdx );
+                DataSpace<simDim> targetCell( sourceCell - nullSourceCell );
+
+                bool assignValue = true;
+
+                for( uint32_t d = 0; d < simDim; ++d )
+                {
+                    if( direction[ d ] == -1 )
+                    {
+                        if( cellIdx[ d ] < SuperCellSize::toRT()[ d ] - exchangeSize[ d ] )
+                            assignValue = false;
+                        targetCell[ d ] -= SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
+                    }
+                    else if( direction[d] == 1 && cellIdx[ d ] >= exchangeSize[d]  )
+                        assignValue = false;
+                }
+
+                if( assignValue )
+                    targetJ( targetCell ) = fieldJ( sourceCell );
+            }
+        );
     }
 };
 
+/** add the current from the intermediate to the local buffer
+ *
+ * @tparam T_numWorkers number of workers
+ */
+template< uint32_t T_numWorkers >
 struct KernelInsertCurrent
 {
-    template<class Mapping>
-    DINLINE void operator()(J_DataBox fieldJ,
-                                        J_DataBox sourceJ,
-                                        DataSpace<simDim> exchangeSize,
-                                        DataSpace<simDim> direction,
-                                        Mapping mapper) const
+    template< typename  Mapping >
+    DINLINE void operator()(
+        J_DataBox & fieldJ,
+        J_DataBox const & sourceJ,
+        DataSpace<simDim> const & exchangeSize,
+        DataSpace<simDim> const & direction,
+        Mapping mapper
+    ) const
     {
-        const DataSpace<Mapping::Dim> threadIndex(threadIdx);
-        const DataSpace<simDim> blockCell(
-                                          mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx))
-                                          * Mapping::SuperCellSize::toRT()
-                                          );
-        DataSpace<Mapping::Dim> targetCell(blockCell + threadIndex);
+        using namespace mappings::threads;
+
+        /* number of cells in a superCell */
+        constexpr uint32_t numCells = PMacc::math::CT::volume< SuperCellSize >::type::value;
+        constexpr uint32_t numWorkers = T_numWorkers;
+
+        uint32_t const workerIdx = threadIdx.x;
+
+        DataSpace< simDim > const  blockCell(
+            mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+                * Mapping::SuperCellSize::toRT()
+        );
 
         /*origin in area from local GPU*/
-        DataSpace<simDim> nullSourceCell(
-                                         mapper.getSuperCellIndex(DataSpace<simDim > ())
-                                         * Mapping::SuperCellSize::toRT()
-                                         );
-        DataSpace<simDim> sourceCell(targetCell - nullSourceCell);
+        DataSpace< simDim > nullSourceCell(
+            mapper.getSuperCellIndex( DataSpace< simDim > () )
+            * Mapping::SuperCellSize::toRT()
+        );
 
-        for (uint32_t d = 0; d < simDim; ++d)
-        {
-            if (direction[d] == 1)
+        ForEachIdx<
+            IdxConfig<
+                numCells,
+                numWorkers
+            >
+        >{ workerIdx }(
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
             {
-                if (threadIndex[d] < SuperCellSize::toRT()[d] - exchangeSize[d]) return;
-                sourceCell[d] -= SuperCellSize::toRT()[d] - exchangeSize[d];
-                targetCell[d] -= SuperCellSize::toRT()[d];
-            }
-            else if (direction[d] == -1)
-            {
-                if (threadIndex[d] >= exchangeSize[d]) return;
-                targetCell[d] += SuperCellSize::toRT()[d];
-            }
-        }
+                /* cell index within the superCell */
+                DataSpace< simDim > const cellIdx = DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
+                DataSpace< simDim > targetCell( blockCell + cellIdx );
+                DataSpace< simDim > sourceCell( targetCell - nullSourceCell );
 
-        fieldJ(targetCell) += sourceJ(sourceCell);
+                bool assignValue = true;
+
+                for( uint32_t d = 0; d < simDim; ++d )
+                {
+                    if( direction[ d ] == 1 )
+                    {
+                        if( cellIdx[ d ] < SuperCellSize::toRT()[ d ] - exchangeSize[ d ] )
+                            assignValue = false;
+                        sourceCell[ d ] -= SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
+                        targetCell[ d ] -= SuperCellSize::toRT()[ d ];
+                    }
+                    else if( direction[ d ] == -1 )
+                    {
+                        if( cellIdx[ d ] >= exchangeSize[ d ] )
+                            assignValue = false;
+                        targetCell[ d ] += SuperCellSize::toRT()[ d ];
+                    }
+                }
+                if( assignValue )
+                    fieldJ( targetCell ) += sourceJ( sourceCell );
+            }
+        );
     }
 };
 
-}
+} // namespace picongpu
