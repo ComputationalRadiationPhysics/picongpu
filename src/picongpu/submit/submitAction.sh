@@ -24,6 +24,10 @@ mkdir picongpu
 cp -r $TBG_projectPath/bin picongpu
 cp -r $TBG_projectPath/include picongpu
 cp -r $TBG_projectPath/submit picongpu
+if [ -d $TBG_projectPath/pymodules ]
+then
+  cp -r $TBG_projectPath/pymodules picongpu
+fi
 if [ -f $TBG_projectPath/cmakeFlags ]
 then
   cp $TBG_projectPath/cmakeFlags picongpu
