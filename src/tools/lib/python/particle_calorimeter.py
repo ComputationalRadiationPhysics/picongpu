@@ -22,7 +22,9 @@ License: GPLv3+
 import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
+from scipy import constants as sc
 import h5py
+import os
 
 
 class ParticleCalorimeter:
@@ -36,37 +38,51 @@ class ParticleCalorimeter:
     """
 
     def __init__(self,
-                 species_name="ph", sim="./",
-                 period=1000, num_bins_yaw=64, num_bins_pitch=64,
-                 num_bins_energy=1024, min_energy=10, max_energy=10000,
-                 logscale=False, opening_yaw=360, opening_pitch=180,
-                 pos_yaw=0, pos_pitch=0):
+                 species_name="e",
+                 species_filter="",
+                 sim="./",
+                 period=1000,
+                 num_bins_yaw=64,
+                 num_bins_pitch=64,
+                 num_bins_energy=1024,
+                 min_energy=10,
+                 max_energy=10000,
+                 logscale=False,
+                 opening_yaw=360,
+                 opening_pitch=180,
+                 pos_yaw=0,
+                 pos_pitch=0):
         """
         Parameters
         ----------
         species_name : string
             name of the species for which the particle calorimeter
-            should be plotted, e.g. "ph"
+            should be plotted (default: "e")
+        species_filter : string
+            file suffix for plugin output created by a run over a subselection
+            of the species according to an optional filter argument
+            (default: "")
         sim : string
-            path to simOutput directory
+            path to simOutput directory (default: "./")
         period : unsigned integer
-            output periodicity of the histogram
+            output periodicity of the histogram (default: 1000)
         num_bins_yaw : unsigned integer
-            number of bins resolving the yaw angle
+            number of bins resolving the yaw angle (default: 64)
         num_bins_pitch : unsigned integer
-            number of bins resolving the pitch angle
+            number of bins resolving the pitch angle (default: 64)
         num_bins_energy : unsigned integer
-            number of bins resolving the detected energies
+            number of bins resolving the detected energies (default: 1024)
         min_energy : float
-            minimum detectable energy in keV
+            minimum detectable energy in keV (default: 10)
         max_energy : float
-            maximum detectable energy in keV
-        logscale : boolen
+            maximum detectable energy in keV (default: 10000)
+        logscale : boolean
             if ``True`` the energy bins are logarithmically spaced
+            (default: False)
         opening_yaw : float
-            slit opening in x in meters
+            opening yaw angle in degrees (default: 360)
         opening_pitch : float
-            slit opening in z in meters
+            opening pitch angle in degrees (default: 180)
         pos_yaw : float
             yaw coordinate of the calorimeter position in degrees
             (default: +y-direction --> 0)
@@ -75,6 +91,7 @@ class ParticleCalorimeter:
             (default: +y-direction --> 0)
         """
         self.species_name = species_name
+        self.species_filter = species_filter
         self.sim = sim
         self.period = period
         self.num_bins_yaw = num_bins_yaw
@@ -88,9 +105,17 @@ class ParticleCalorimeter:
         self.pos_yaw = pos_yaw
         self.pos_pitch = pos_pitch
 
+        self.step = 0
+        self.stepStr = str(self.step)
+
         self.attribute_name = "calorimeter"
 
-        self.energy_range = np.linspace(self.min_energy,
+        if self.logscale == True:
+            self.energy_range = np.logspace(np.log10(self.min_energy),
+                                        np.log10(self.max_energy),
+                                        self.num_bins_energy)
+        else:
+            self.energy_range = np.linspace(self.min_energy,
                                         self.max_energy,
                                         self.num_bins_energy)
 
@@ -102,24 +127,31 @@ class ParticleCalorimeter:
         self.sim_unit = None
 
     def load_step(self,
-                  step=5000):
+                  step=0):
         """
-        Load an HDF5 File of a certain time step
+        Load an HDF5 file of a certain time step
 
         Parameters
         ----------
-        time : unsigned integer
-            PIConGPU output time step
+        step : unsigned integer
+            PIConGPU output time step (default: 0)
         """
         # convert the time step into a string
         self.stepStr = str(int(step))
 
-        self.calo_file = self.sim + "/simOutput/" \
-            + self.species_name + "_" \
-            + self.attribute_name + "/" \
-            + self.species_name + "_" \
-            + self.attribute_name + "_" \
-            + self.stepStr + "_0_0_0.h5"
+        filter_fname = ""
+        if self.species_filter != "":
+            filter_fname = "_"+ species_filter
+
+        self.calo_file = "/{}/simOutput/{}{}_{}/{}_{}_{}_0_0_0.h5".format(
+            self.sim,
+            self.species_name,
+            self.species_filter,
+            self.attribute_name,
+            self.species_name,
+            self.attribute_name,
+            self.stepStr
+        )
 
         if not os.path.isfile(self.calo_file):
             print(
@@ -136,6 +168,11 @@ class ParticleCalorimeter:
         self.calo_data = np.array(f['/data/' +
                                     self.stepStr + "/" +
                                     self.attribute_name])
+
+        self.calo_data = np.array(f['/data/{}/{}'.format(
+                            self.stepStr,
+                            self.attribute_name
+                            )])
         # simulation unit
         self.sim_unit = f['/data/' +
                           self.stepStr + "/" +
@@ -156,25 +193,41 @@ class ParticleCalorimeter:
                        with_outliers=False,
                        norm=False):
         """
+        Plots an energy histogram. Requires that the function
+        ``energy_histogram`` has been called before.
+
         Parameters
         ----------
         with_outliers : boolean
             plots also underflow and overflow bins if ``True``
+            (default: False)
         norm : boolean
             normalizes the histogram to the total number of counts
             in all bins if ``True``
+            (default: False)
         """
+        # check if `hist_data` is even filled with values to prevent a long
+        # error message
+        if np.sum(self.hist_data) <= 0:
+            print(
+                "There is no valid data for the histogram. "+
+                "You may have forgotten to execute `energy_histogram` first."
+            )
+            return
+
         # unit conversion: Joules to eV
-        J2EV = 1.602e-19
+        J2EV = sc.electron_volt
         # unit conversion: simUnit to EV
         simUnitEV = self.sim_unit / J2EV
+        # unit conversion factor: 1 eV in keV
+        EV2KEV = 1e-3
 
         figHist = plt.figure(0)
         axHist = figHist.add_subplot(111)
 
         # absolute histogram data [photon count]
         abs_hist_data = self.hist_data * \
-            simUnitEV / 1e3 / self.energy_range
+            simUnitEV * EV2KEV / self.energy_range
         energy_range = self.energy_range
 
         # remove outliers from data to plot
@@ -218,15 +271,17 @@ class ParticleCalorimeter:
                              half_pitch + self.pos_pitch)
 
         # unit conversion: Joules to eV
-        J2EV = 1.602e-19
+        J2EV = sc.electron_volt
         # unit conversion: simUnit to EV
         simUnitEV = self.sim_unit / J2EV
+        # unit conversion factor: 1 eV in keV
+        EV2KEV = 1e-3
 
         # data summed over the energy bins
-        calo_sum = np.sum(self.calo_data, axis=0) * simUnitEV / 1e3
+        calo_sum = np.sum(self.calo_data, axis=0) * simUnitEV * EV2KEV
 
         figCal = plt.figure(1)
-        axCal = figCal.add_subplot(111)
+        axCal = figCal.gca()
 
         caloPlot = axCal.imshow(
             calo_sum,

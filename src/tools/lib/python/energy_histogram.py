@@ -27,55 +27,53 @@ import h5py
 
 class EnergyHistogram:
     """
-    Class to help plotting data fromt the energyHistogram plugin.
+    Class to help plotting data from the energyHistogram plugin.
     """
     def __init__(
             self,
-            species_name="ph",
+            species_name="e",
+            species_filter="",
             sim="./",
             period=1000,
             bin_count=1024,
             min_energy=10,
-            max_energy=10000,
-            distance_to_detector=0,
-            slit_detector_x=None,
-            slit_detector_z=None):
+            max_energy=10000
+        ):
         """
         Parameters
         ----------
         species_name : string
             name of the species for which the energy histogram should be
-            plotted, e.g. "ph"
+            plotted (default: "e")
+        species_filter : string
+            file suffix for plugin output created by a run over a subselection
+            of the species according to an optional filter argument
+            (default: "")
         sim : string
-            path to simOutput directory
+            path to simOutput directory (default: "./")
         period : unsigned integer
-            output periodicity of the histogram
+            output periodicity of the histogram (default: 1000)
         bin_count : unsigned integer
-            energy resolution of the histogram (number of bins)
+            energy resolution of the histogram (number of bins) (default: 1024)
         min_energy : float
-            minimum detectable energy in keV
+            minimum detectable energy in keV (default: 10)
         max_energy : float
-            maximum detectable energy in keV
-        distance_to_detector : float
-            distance to detector in y-direction in meters (if == 0: all
-            particles are considered)
-        slit_detector_x : float
-            slit opening in x in meters
-        slit_detector_z : float
-            slit opening in z in meters
+            maximum detectable energy in keV (default: 10000)
         """
         self.species_name = species_name
+        self.species_filter = species_filter
         self.sim = sim
         self.period = period
         self.bin_count = bin_count
         self.min_energy = min_energy
         self.max_energy = max_energy
-        self.distance_to_detector = distance_to_detector
-        self.slit_detector_x = slit_detector_x
-        self.slit_detector_z = slit_detector_z
 
-        self.histFile = "{}/simOutput/{}_energyHistogram.dat".format(
-            sim, species_name)
+        filter_fname = ""
+        if self.species_filter != "":
+            filter_fname = "_"+ species_filter
+        self.histFile = "{}/simOutput/{}{}_energyHistogram.dat".format(
+            sim, species_name, filter_fname)
+
         # matrix with data in keV
         #   note: skips columns for iteration step, underflow bin (first 2) and
         #         overflow bin, summation of all bins (last two)
@@ -86,11 +84,12 @@ class EnergyHistogram:
         # binCount) in columns 2:1026
         self.bins = np.loadtxt(
             self.histFile,
-            comments='',
+            comments=None,
             usecols=range(
                 2,
-                2 + self.bin_count)
-            )[0, :]
+                2 + self.bin_count
+            )
+        )[0, :]
 
         # cumulates all counts of photons that have energies below
         # ``min_energy``
@@ -104,47 +103,55 @@ class EnergyHistogram:
         self.total_counts = np.loadtxt(self.histFile)[:, -1]
 
     def plot(self,
-             time=5000,
+             time=0,
              with_outliers=False,
              norm=False):
         """
         time : unsigned integer
             simulation time step for which the histogram is plotted
+            (default: 0)
         with_outliers : boolean
             plots also underflow and overflow bins if ``True``
+            (default: False)
         norm : boolean
             normalizes the histogram to the total number of counts
             in all bins if ``True``
+            (default: False)
         """
         iteration = int(time / self.period)
 
-        figEHist = plt.figure(0)
-        subEHist = figEHist.add_subplot(111)
+        fig = plt.figure(0)
+        ax = fig.gca()
 
         if (norm):
             # plot the bins normalized to the total number of counts in this
             # iteration
-            EHist = subEHist.plot(
+            EHist = ax.plot(
                 self.bins,
                 self.histData[iteration] / self.total_counts[iteration],
                 label=time
             )
         else:
             # plot the histogram without normalization
-            EHist = subEHist.plot(
+            EHist = ax.plot(
                 self.bins,
                 self.histData[iteration],
-                label=time)
+                label=time
+            )
 
-        subEHist.set_xscale("log")
-        subEHist.set_yscale("log")
-        subEHist.set_xlabel("energy [keV]")
-        subEHist.set_ylabel("count [arb. u.]")
-        subEHist.set_title("`{}` energy histogram".format(self.species_name))
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_xlabel("energy [keV]")
+        ax.set_ylabel("count [arb. u.]")
+
+        filter_title = ""
+        if self.species_filter != "":
+            filter_title = " ({})".format(self.species_filter)
+        ax.set_title("`{}`{} energy histogram".format(self.species_name, filter_title))
 
         if with_outliers:
             if norm:
-                EHistUnderFlow = subEHist.plot(
+                EHistUnderFlow = ax.plot(
                     self.min_energy,
                     self.underflow_bins[iteration] /
                     self.total_counts[iteration],
@@ -153,7 +160,7 @@ class EnergyHistogram:
                     ls='',
                     mew=2,
                     label="underflow bin")
-                EHistOverFlow = subEHist.plot(
+                EHistOverFlow = ax.plot(
                     self.max_energy,
                     self.overflow_bins[iteration] /
                     self.total_counts[iteration],
@@ -163,7 +170,7 @@ class EnergyHistogram:
                     mew=2,
                     label="overflow bin")
             else:
-                EHistUnderFlow = subEHist.plot(
+                EHistUnderFlow = ax.plot(
                     self.min_energy,
                     self.underflow_bins[iteration],
                     marker='+',
@@ -172,7 +179,7 @@ class EnergyHistogram:
                     mew=2,
                     label="underflow bin"
                 )
-                EHistOverFlow = subEHist.plot(
+                EHistOverFlow = ax.plot(
                     self.max_energy,
                     self.overflow_bins[iteration],
                     marker='+',
@@ -182,6 +189,9 @@ class EnergyHistogram:
                     label="overflow bin"
                 )
 
-        subEHist.set_xlim(.5 * self.min_energy, 2 * self.max_energy)
+        ax.set_xlim(.5 * self.min_energy, 2 * self.max_energy)
 
-        subEHist.legend(loc="best", title="counts after # steps")
+        ax.legend(loc="best", title="counts after # steps")
+
+        plt.draw()
+        plt.show()
