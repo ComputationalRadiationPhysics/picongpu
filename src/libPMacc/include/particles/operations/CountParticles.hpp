@@ -67,7 +67,7 @@ struct KernelCountParticles
         T_PBox & pb,
         uint64_cu* gCounter,
         T_Filter & filter,
-        T_Mapping & mapper
+        T_Mapping const & mapper
     ) const
     {
         using namespace mappings::threads;
@@ -145,12 +145,11 @@ struct KernelCountParticles
                 {
                     if( linearIdx < particlesInSuperCell )
                     {
-                        if(
-                            filter(
-                                *frame,
-                                linearIdx
-                            )
-                        )
+                        bool const useParticle = filter(
+                            *frame,
+                            linearIdx
+                        );
+                        if( useParticle )
                             nvidia::atomicAllInc( &counter );
                     }
                 }
@@ -171,8 +170,6 @@ struct KernelCountParticles
 
             __syncthreads( );
         }
-
-        __syncthreads( );
 
         onlyMaster(
             [&](
