@@ -109,7 +109,9 @@ public:
             size_t zipedSize = zip.compress(tmp + MessageHeader::bytes, ((char*) array) + MessageHeader::bytes, size - MessageHeader::bytes, 6);
             MessageHeader* header = (MessageHeader*) tmp;
             header->data.byte = (uint32_t) zipedSize;
-            write(SocketFD, tmp, zipedSize + MessageHeader::bytes);
+            int nbytes = write(SocketFD, tmp, zipedSize + MessageHeader::bytes);
+            if (nbytes < 0)
+                perror("a socket write error occured");
             __deleteArray(tmp);
         }
     }
