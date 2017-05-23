@@ -1,9 +1,13 @@
 .. _prgpatterns-lockstep:
 
+.. seealso::
+
+   In order to follow this section, you need to understand the `CUDA programming model <http://docs.nvidia.com/cuda/cuda-c-programming-guide/#programming-model>`_.
+
 Lockstep Programming Model
 ==========================
 
-.. sectionauthor:: René Widera
+.. sectionauthor:: René Widera, Axel Huebl
 
 The *lockstep programming model* structures code that is evaluated collectively and independently by workers (physical threads).
 Actual processing is described by one-dimensional index domains of *virtual workers* which can even be changed within a kernel.
@@ -27,8 +31,8 @@ PMacc helpers
 .. doxygenstruct:: PMacc::mappings::threads::ForEachIdx
    :project: PIConGPU
 
-Common Pattern
---------------
+Common Patterns
+---------------
 
 Collective Loop
 ^^^^^^^^^^^^^^^
@@ -66,7 +70,7 @@ Non-Collective Loop
     uint32_t const workerIdx = threadIdx.x;
     using ParticleDomCfg = IdxConfig<
         frameSize,
-        numWorker
+        numWorkers
     >;
     ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
     memory::CtxArray< int, ParticleDomCfg > vWorkerIdx( 0 );
@@ -90,7 +94,7 @@ Create a Context Variable
     uint32_t const workerIdx = threadIdx.x;
     using ParticleDomCfg = IdxConfig<
         frameSize,
-        numWorker
+        numWorkers
     >;
     memory::CtxArray< int, ParticleDomCfg > vIdx(
         workerIdx,
@@ -109,3 +113,41 @@ Create a Context Variable
             vIdx[ idx ] = linearIdx;
         }
     );
+
+
+Using a Master Worker
+^^^^^^^^^^^^^^^^^^^^^
+
+* only one *virtual worker* (called *master*) of all available ``numWorkers`` manipulates a shared data structure for all others
+
+.. code-block:: cpp
+
+    // example: allocate shared memory (uninitialized)
+    PMACC_SMEM(
+        finished,
+        bool
+    );
+
+    uint32_t const workerIdx = threadIdx.x;
+    ForEachIdx<
+        IdxConfig<
+            1,
+            numWorkers
+        >
+    > onlyMaster{ workerIdx };
+
+    // manipulate shared memory
+    onlyMaster(
+        [&](
+            uint32_t const,
+            uint32_t const
+        )
+        {
+            finished = true;
+        }
+    );
+
+    /* important: synchronize now, in case upcoming operations (with
+     * other workers) access that manipulated shared memory section
+     */
+    __syncthreads();
