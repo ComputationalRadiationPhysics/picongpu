@@ -352,7 +352,9 @@ struct KernelShiftParticles
 
 /** fill particle gaps in the last frame
  *
- * Copy all particles in a frame to the first storage places within a frame.
+ * Copy all particles in a frame to the storage places at the frame's beginning.
+ * This leaves the frame with a contiguous number of valid particles at
+ * the beginning and a subsequent, contiguous gap at the end.
  *
  * @tparam T_numWorkers number of workers
  */
@@ -440,7 +442,7 @@ struct KernelFillGapsLastFrame
                 numWorkers
             >;
 
-            /* context if a element within the frame is a particle */
+            /* context if an element within the frame is a particle */
             memory::CtxArray<
                 bool,
                 ParticleDomCfg
@@ -459,7 +461,7 @@ struct KernelFillGapsLastFrame
             /* loop over all particles in the frame */
             ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
 
-            //count particles in last frame
+            // count particles in last frame
             forEachParticle(
                 [&](
                     uint32_t const,
@@ -495,18 +497,19 @@ struct KernelFillGapsLastFrame
                 {
                     if ( linearIdx >= counterParticles && isParticleCtx[ idx ] )
                     {
-                        //any particle search a gap
+                        // any particle search a gap
                         int const srcGapIdx = nvidia::atomicAllInc( &srcGap );
                         int const gapIdx = gapIndices_sh[ srcGapIdx ];
                         auto parDestFull = lastFrame[ gapIdx ];
-                        /*enable particle*/
+                        /* enable particle */
                         parDestFull[ multiMask_ ] = 1;
-                        /* we not update multiMask because copy from mem to mem is to slow
-                         * we have enabled particle explicit */
+                        /* we do not update the multiMask because copying from mem to mem is too slow
+                         * we have to enabled particles explicitly
+                         */
                         auto parDest = deselect< multiMask >( parDestFull );
                         auto parSrc = ( lastFrame[ linearIdx ] );
                         assign( parDest, parSrc );
-                        parSrc[multiMask_] = 0; //delete old particle
+                        parSrc[multiMask_] = 0; // delete old particle
                     }
                 }
             );
