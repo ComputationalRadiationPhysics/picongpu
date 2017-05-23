@@ -40,15 +40,16 @@
 namespace picongpu
 {
 
-    /** Returns the electron density.
+    /** returns the particle density.
+     *
      *  That means:
-     *     The REAL number of electrons density in units of volume**-3,
+     *     The REAL number of particles density in units of volume**-3,
      *       normed to UNIT_LENGHT**3
-     *     That is NOT the macro electron density.
+     *     That is NOT the species' macro particle density.
      *
      * @param offset The gpu offset (left top front cell in 3D)
      * @param cellIdx the current cell on this gpu
-     * @return a float_X which stands for the real number of electrons per volume
+     * @return a float_X which stands for the real number of particles per volume
      */
     template<
         typename T_Species,
@@ -73,7 +74,7 @@ namespace picongpu
     /** fill supercell grid with particles
      *
      * @tparam T_numWorkers number of workers
-     * @tparam T_Species species type which is initialized
+     * @tparam T_Species picongpu::Particles, species type which is initialized
      */
     template<
         uint32_t T_numWorkers,
