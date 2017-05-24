@@ -78,7 +78,7 @@ struct KernelLaserE
                 DataSpace< simDim > const cellIdxInSuperCell = DataSpaceOperations<simDim>::template map< LaserPlaneSizeInSuperCell >( linearIdx );
                 /* cell index (relative to the local origin of the border)*/
                 auto cellIdx = superCellOffset + cellIdxInSuperCell;
-                cellIdx.y() += cell + laser::initPlaneY;
+                cellIdx.y() += laser::initPlaneY;
 
                 auto const eField = lMan.getManipulation( cellIdx );
                 if( laser::initPlaneY != 0 ) // compile time if
