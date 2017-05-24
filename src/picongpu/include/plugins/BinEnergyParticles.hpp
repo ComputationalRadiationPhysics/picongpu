@@ -34,6 +34,10 @@
 #include "memory/shared/Allocate.hpp"
 #include "basicOperations.hpp"
 #include "dimensions/DataSpace.hpp"
+#include "traits/GetNumWorkers.hpp"
+#include "mappings/threads/ForEachIdx.hpp"
+#include "mappings/threads/IdxConfig.hpp"
+#include "math/Vector.hpp"
 
 #include "common/txtFileHandling.hpp"
 
@@ -49,29 +53,66 @@ using namespace PMacc;
 
 namespace po = boost::program_options;
 
+/** calculate a energy histogram of a species
+ *
+ * if a detector is defined than only particle traversing the detector are counted
+ * else all particles are used
+ *
+ * @tparam T_numWorkers number of workers
+ */
+template< uint32_t T_numWorkers >
 struct KernelBinEnergyParticles
 {
     /* sum up the energy of all particles
+     *
      * the kinetic energy of all active particles will be calculated
+     *
+     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
+     * @tparam T_BinBox PMacc::DataBox, box type for the histogram in global memory
+     * @tparam T_Mapping type of the mapper to map a cuda block to a supercell index
+     *
+     * @param pb box with access to the particles of the current used species
+     * @param gBins box with memory for resulting histogram
+     * @param numBins number of bins in the histogram (must be fit into the shared memory)
+     * @param minEnergy particle energy for the first bin
+     * @param maxEnergy particle energy for the last bin
+     * @param maximumSlopeToDetectorX tangent of maximum opening angle to the detector in X direction
+     * @param maximumSlopeToDetectorZ tangent of maximum opening angle to the detector in Y direction
+     * @param mapper functor to map a cuda block to a supercells index
      */
-    template<class ParBox, class BinBox, class Mapping>
-    DINLINE void operator()(ParBox pb,
-                                             BinBox gBins, int numBins,
-                                             float_X minEnergy,
-                                             float_X maxEnergy,
-                                             float_X maximumSlopeToDetectorX,
-                                             float_X maximumSlopeToDetectorZ,
-                                             Mapping mapper) const
+    template<
+        typename T_ParBox,
+        typename T_BinBox,
+        typename T_Mapping
+    >
+    DINLINE void operator()(
+        T_ParBox & pb,
+        T_BinBox & gBins,
+        int const numBins,
+        float_X const minEnergy,
+        float_X const maxEnergy,
+        float_X const maximumSlopeToDetectorX,
+        float_X const maximumSlopeToDetectorZ,
+        T_Mapping const mapper
+    ) const
     {
+        using namespace PMacc::mappings::threads;
+        using SuperCellSize = typename MappingDesc::SuperCellSize;
+        using FramePtr = typename T_ParBox::FramePtr;
+        constexpr uint32_t maxParticlesPerFrame = PMacc::math::CT::volume< SuperCellSize >::type::value;
+        constexpr uint32_t numWorkers = T_numWorkers;
 
-        typedef typename MappingDesc::SuperCellSize Block;
-        typedef typename ParBox::FramePtr FramePtr;
+        PMACC_SMEM(
+            frame,
+            FramePtr
+        );
 
-        PMACC_SMEM( frame, FramePtr );
+        PMACC_SMEM(
+            particlesInSuperCell,
+            lcellId_t
+        );
 
-        PMACC_SMEM( particlesInSuperCell, lcellId_t );
-
-        const bool enableDetector = maximumSlopeToDetectorX != float_X(0.0) && maximumSlopeToDetectorZ != float_X(0.0);
+        bool const enableDetector = maximumSlopeToDetectorX != float_X( 0.0 ) && maximumSlopeToDetectorZ != float_X( 0.0 );
 
         /* shBins index can go from 0 to (numBins+2)-1
          * 0 is for <minEnergy
@@ -79,101 +120,165 @@ struct KernelBinEnergyParticles
          */
         extern __shared__ float_X shBin[]; /* size must be numBins+2 because we have <min and >max */
 
-        int realNumBins = numBins + 2;
+        int const realNumBins = numBins + 2;
 
+        uint32_t const workerIdx = threadIdx.x;
 
+        using MasterOnly = IdxConfig<
+            1,
+            numWorkers
+        >;
 
-        typedef typename Mapping::SuperCellSize SuperCellSize;
-        const int threads = PMacc::math::CT::volume<SuperCellSize>::type::value;
+        ForEachIdx< MasterOnly >{ workerIdx }(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
+            {
+                DataSpace< simDim > const superCellIdx(
+                    mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+                );
+                frame = pb.getLastFrame( superCellIdx );
+                particlesInSuperCell = pb.getSuperCell( superCellIdx ).getSizeLastFrame( );
+            }
+        );
 
-        const DataSpace<simDim > threadIndex(threadIdx);
-        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-
-        if (linearThreadIdx == 0)
-        {
-            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-            frame = pb.getLastFrame(superCellIdx);
-            particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
-        }
-        /* set all bins to 0 */
-        for (int i = linearThreadIdx; i < realNumBins; i += threads)
-        {
-            shBin[i] = float_X(0.);
-        }
+        ForEachIdx<
+            IdxConfig<
+                numWorkers,
+                numWorkers
+            >
+        >{ workerIdx }(
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
+            {
+                /* set all bins to 0 */
+                for( int i = linearIdx; i < realNumBins; i += numWorkers )
+                    shBin[ i ] = float_X( 0. );
+            }
+        );
 
         __syncthreads();
-        if (!frame.isValid())
+
+        if( !frame.isValid( ) )
           return; /* end kernel if we have no frames */
 
-        while (frame.isValid())
+        while( frame.isValid() )
         {
-            if (linearThreadIdx < particlesInSuperCell)
-            {
-                auto particle = frame[linearThreadIdx];
-                /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
-                 *                                   = c^2 * [p^2 + m^2*c^2] */
-                const float3_X mom = particle[momentum_];
-
-                bool calcParticle = true;
-
-                if (enableDetector && mom.y() > 0.0)
+            // move over all particles in a frame
+            ForEachIdx<
+                IdxConfig<
+                    maxParticlesPerFrame,
+                    numWorkers
+                >
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
                 {
-                    const float_X slopeMomX = abs(mom.x() / mom.y());
-                    const float_X slopeMomZ = abs(mom.z() / mom.y());
-                    if (slopeMomX >= maximumSlopeToDetectorX || slopeMomZ >= maximumSlopeToDetectorZ)
+                    if( linearIdx < particlesInSuperCell )
                     {
-                        calcParticle = false;
+                        auto const particle = frame[ linearIdx ];
+                        /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
+                         *                                   = c^2 * [p^2 + m^2*c^2]
+                         */
+                        float3_X const mom = particle[ momentum_ ];
+
+                        bool calcParticle = true;
+
+                        if( enableDetector && mom.y() > 0.0 )
+                        {
+                            float_X const slopeMomX = abs( mom.x( ) / mom.y( ) );
+                            float_X const slopeMomZ = abs( mom.z( ) / mom.y( ) );
+                            if( slopeMomX >= maximumSlopeToDetectorX || slopeMomZ >= maximumSlopeToDetectorZ )
+                                calcParticle = false;
+                        }
+
+                        if( calcParticle )
+                        {
+                            float_X const weighting = particle[ weighting_ ];
+                            float_X const mass = attribute::getMass(
+                                weighting,
+                                particle
+                            );
+
+                            // calculate kinetic energy of the macro particle
+                            float_X localEnergy = KinEnergy< >( )(
+                                mom,
+                                mass
+                            );
+
+                            localEnergy /= weighting;
+
+                            /* +1 move value from 1 to numBins+1 */
+                            int binNumber = math::floor(
+                                ( localEnergy - minEnergy ) /
+                                ( maxEnergy - minEnergy ) * static_cast< float_X >( numBins )
+                            )  + 1;
+
+                            int const maxBin = numBins + 1;
+
+                            /* all entries larger than maxEnergy go into bin maxBin */
+                            binNumber = binNumber < maxBin ? binNumber : maxBin;
+
+                            /* all entries smaller than minEnergy go into bin zero */
+                            binNumber = binNumber > 0 ? binNumber : 0;
+
+                            /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
+                             * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
+                             * I think this is a problem with extern shared mem and atmic (only on TESLA)
+                             * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
+                             *
+                             * uses a normed float weighting to avoid a overflow of the floating point result
+                             * for the reduced weighting if the particle weighting is very large
+                             */
+                            float_X const normedWeighting = weighting /
+                                float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
+                            atomicAddWrapper(
+                                &( shBin[ binNumber ] ),
+                                normedWeighting
+                            );
+                        }
                     }
                 }
+            );
 
-                if (calcParticle)
+            __syncthreads();
+
+            ForEachIdx< MasterOnly >{ workerIdx }(
+                [&](
+                    uint32_t const,
+                    uint32_t const
+                )
                 {
-                    const float_X weighting = particle[weighting_];
-                    const float_X mass = attribute::getMass(weighting,particle);
-
-                    // calculate kinetic energy of the macro particle
-                    float_X localEnergy = KinEnergy<>()(mom, mass);
-
-                    localEnergy /= weighting;
-
-                    /* +1 move value from 1 to numBins+1 */
-                    int binNumber = math::floor((localEnergy - minEnergy) /
-                                          (maxEnergy - minEnergy) * (float_32) numBins) + 1;
-
-                    const int maxBin = numBins + 1;
-
-                    /* all entries larger than maxEnergy go into bin maxBin */
-                    binNumber = binNumber < maxBin ? binNumber : maxBin;
-
-                    /* all entries smaller than minEnergy go into bin zero */
-                    binNumber = binNumber > 0 ? binNumber : 0;
-
-                    /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
-                     * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
-                     * I think this is a problem with extern shared mem and atmic (only on TESLA)
-                     * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
-                     */
-                    /* overflow for big weighting reduces in shared mem */
-                    /* atomicAdd(&(shBin[binNumber]), (uint32_t) weighting); */
-                    const float_X normedWeighting = float_X(weighting) / float_X(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-                    atomicAddWrapper(&(shBin[binNumber]), normedWeighting);
+                    frame = pb.getPreviousFrame( frame );
+                    particlesInSuperCell = maxParticlesPerFrame;
                 }
-            }
-            __syncthreads();
-            if (linearThreadIdx == 0)
-            {
-                frame = pb.getPreviousFrame(frame);
-                particlesInSuperCell = PMacc::math::CT::volume<Block>::type::value;
-            }
+            );
             __syncthreads();
         }
 
-        __syncthreads();
-        for (int i = linearThreadIdx; i < realNumBins; i += threads)
-        {
-            atomicAddWrapper(&(gBins[i]), float_64(shBin[i]));
-        }
-        __syncthreads();
+        ForEachIdx<
+            IdxConfig<
+                numWorkers,
+                numWorkers
+            >
+        >{ workerIdx }(
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
+            {
+                for( int i = linearIdx; i < realNumBins; i += numWorkers )
+                    atomicAddWrapper(
+                        &( gBins[ i ] ),
+                        float_64( shBin[ i ] )
+                    );
+            }
+        );
     }
 };
 
@@ -368,7 +473,6 @@ private:
     void calBinEnergyParticles(uint32_t currentStep)
     {
         gBins->getDeviceBuffer().setValue(0);
-        auto block = MappingDesc::SuperCellSize::toRT();
 
         DataConnector &dc = Environment<>::get().DataConnector();
         auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
@@ -385,15 +489,32 @@ private:
         }
 
         /* convert energy values from keV to PIConGPU units */
-        const float_X minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
-        const float_X maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
+        float_X const minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
+        float_X const maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
-        AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
-        PMACC_KERNEL(KernelBinEnergyParticles{})
-            (mapper.getGridDim(), block, (realNumBins) * sizeof (float_X))
-            (particles->getDeviceParticlesBox(),
-             gBins->getDeviceBuffer().getDataBox(), numBins, minEnergy,
-             maxEnergy, maximumSlopeToDetectorX, maximumSlopeToDetectorZ, mapper);
+        constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
+             PMacc::math::CT::volume< SuperCellSize >::type::value
+         >::value;
+
+        AreaMapping<
+            AREA,
+            MappingDesc
+        > mapper( *cellDescription );
+
+        PMACC_KERNEL( KernelBinEnergyParticles< numWorkers >{ } )(
+            mapper.getGridDim(),
+            numWorkers,
+            realNumBins * sizeof( float_X )
+        )(
+            particles->getDeviceParticlesBox( ),
+            gBins->getDeviceBuffer( ).getDataBox( ),
+            numBins,
+            minEnergy,
+            maxEnergy,
+            maximumSlopeToDetectorX,
+            maximumSlopeToDetectorZ,
+            mapper
+        );
 
         dc.releaseData( ParticlesType::FrameType::getName() );
         gBins->deviceToHost();
