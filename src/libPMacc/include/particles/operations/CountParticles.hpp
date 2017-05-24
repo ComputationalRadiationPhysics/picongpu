@@ -21,7 +21,6 @@
 
 #pragma once
 
-
 #include "pmacc_types.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
@@ -31,72 +30,160 @@
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "nvidia/atomic.hpp"
 #include "memory/shared/Allocate.hpp"
-
+#include "traits/GetNumWorkers.hpp"
+#include "mappings/threads/ForEachIdx.hpp"
+#include "mappings/threads/IdxConfig.hpp"
 
 
 namespace PMacc
 {
 
-/* count particles in an area
- * is not optimized, it checks any partcile position if its realy a particle
+/* count particles
+ *
+ * it is allowed to call this kernel on frames with holes (without calling fillAllGAps before)
+ *
+ * @tparam T_numWorkers number of workers
  */
+template< uint32_t T_numWorkers >
 struct KernelCountParticles
 {
-    template<class PBox, class Filter, class Mapping>
-    DINLINE void operator()(
-        PBox pb,
+    /** count particles
+     *
+     * @tparam T_PBox PMacc::ParticlesBox, particle box type
+     * @tparam T_Filter functor to filter particles
+     * @tparam T_Mapping supercell mapper functor type
+     *
+     * @param pb particle memory
+     * @param gCounter pointer for the result
+     * @param filter functor to filter particles those should be counted
+     * @param mapper functor to map a block to a supercell
+     */
+    template<
+        typename T_PBox,
+        typename T_Filter,
+        typename T_Mapping
+    >
+    DINLINE void operator( )(
+        T_PBox & pb,
         uint64_cu* gCounter,
-        Filter filter,
-        Mapping mapper
+        T_Filter & filter,
+        T_Mapping const & mapper
     ) const
     {
+        using namespace mappings::threads;
 
-        typedef typename PBox::FrameType FRAME;
-        typedef typename PBox::FramePtr FramePtr;
-        const uint32_t Dim = Mapping::Dim;
+        using Frame = typename T_PBox::FrameType;
+        using FramePtr = typename T_PBox::FramePtr;
+        constexpr uint32_t dim = T_Mapping::Dim;
+        constexpr uint32_t frameSize = math::CT::volume< typename Frame::SuperCellSize >::type::value;
+        constexpr uint32_t numWorkers = T_numWorkers;
 
-        PMACC_SMEM( frame, FramePtr );
-        PMACC_SMEM( counter, int );
-        PMACC_SMEM( particlesInSuperCell, lcellId_t );
+        PMACC_SMEM(
+            frame,
+            FramePtr
+        );
+        PMACC_SMEM(
+            counter,
+            int
+        );
+        PMACC_SMEM(
+            particlesInSuperCell,
+            lcellId_t
+        );
 
+        using SuperCellSize = typename T_Mapping::SuperCellSize;
 
-        typedef typename Mapping::SuperCellSize SuperCellSize;
+        DataSpace< dim > const threadIndex( threadIdx );
+        uint32_t const workerIdx = static_cast< uint32_t >(
+            DataSpaceOperations< dim >::template map< SuperCellSize >( threadIndex )
+        );
 
-        const DataSpace<Dim > threadIndex(threadIdx);
-        const int linearThreadIdx = DataSpaceOperations<Dim>::template map<SuperCellSize > (threadIndex);
-        const DataSpace<Dim> superCellIdx(mapper.getSuperCellIndex(DataSpace<Dim > (blockIdx)));
+        DataSpace< dim > const superCellIdx( mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) ) );
 
-        if (linearThreadIdx == 0)
-        {
-            frame = pb.getLastFrame(superCellIdx);
-            particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame();
-            counter = 0;
-        }
-        __syncthreads();
-        if (!frame.isValid())
+        ForEachIdx<
+            IdxConfig<
+                1,
+                numWorkers
+            >
+        > onlyMaster{ workerIdx };
+
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
+            {
+                frame = pb.getLastFrame( superCellIdx );
+                particlesInSuperCell = pb.getSuperCell( superCellIdx ).getSizeLastFrame( );
+                counter = 0;
+            }
+        );
+
+        __syncthreads( );
+
+        if( !frame.isValid() )
             return; //end kernel if we have no frames
-        filter.setSuperCellPosition((superCellIdx - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
-        while (frame.isValid())
+        filter.setSuperCellPosition(
+            ( superCellIdx - mapper.getGuardingSuperCells( ) ) *
+            mapper.getSuperCellSize( )
+        );
+
+        ForEachIdx<
+            IdxConfig<
+                frameSize,
+                numWorkers
+            >
+        > forEachParticle( workerIdx );
+
+        while( frame.isValid( ) )
         {
-            if (linearThreadIdx < particlesInSuperCell)
-            {
-                if (filter(*frame, linearThreadIdx))
-                    nvidia::atomicAllInc(&counter);
-            }
-            __syncthreads();
-            if (linearThreadIdx == 0)
-            {
-                frame = pb.getPreviousFrame(frame);
-                particlesInSuperCell = math::CT::volume<SuperCellSize>::type::value;
-            }
-            __syncthreads();
+            forEachParticle(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const idx
+                )
+                {
+                    if( linearIdx < particlesInSuperCell )
+                    {
+                        bool const useParticle = filter(
+                            *frame,
+                            linearIdx
+                        );
+                        if( useParticle )
+                            nvidia::atomicAllInc( &counter );
+                    }
+                }
+            );
+
+            __syncthreads( );
+
+            onlyMaster(
+                [&](
+                    uint32_t const,
+                    uint32_t const
+                )
+                {
+                    frame = pb.getPreviousFrame( frame );
+                    particlesInSuperCell = frameSize;
+                }
+            );
+
+            __syncthreads( );
         }
 
-        __syncthreads();
-        if (linearThreadIdx == 0)
-        {
-            atomicAdd(gCounter, (uint64_cu) counter);
-        }
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
+            {
+
+                atomicAdd(
+                    gCounter,
+                    static_cast< uint64_cu >( counter )
+                );
+            }
+        );
     }
 };
 
@@ -113,23 +200,33 @@ struct CountParticles
      * @return number of particles in defined area
      */
     template<uint32_t AREA, class PBuffer, class Filter, class CellDesc>
-    static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, Filter filter)
+    static uint64_cu countOnDevice( PBuffer& buffer, CellDesc cellDescription, Filter filter )
     {
-        GridBuffer<uint64_cu, DIM1> counter(DataSpace<DIM1>(1));
+        GridBuffer<
+            uint64_cu,
+            DIM1
+        > counter( DataSpace< DIM1 >( 1 ) );
 
-        auto block = CellDesc::SuperCellSize::toRT();
+        AreaMapping<
+            AREA,
+            CellDesc
+        > mapper( cellDescription );
+        constexpr uint32_t numWorkers = traits::GetNumWorkers<
+            math::CT::volume< typename CellDesc::SuperCellSize >::type::value
+        >::value;
 
-        AreaMapping<AREA, CellDesc> mapper(cellDescription);
+        PMACC_KERNEL( KernelCountParticles< numWorkers >{ } )(
+            mapper.getGridDim( ),
+            numWorkers
+        )(
+            buffer.getDeviceParticlesBox( ),
+            counter.getDeviceBuffer( ).getBasePointer( ),
+            filter,
+            mapper
+        );
 
-        PMACC_KERNEL(KernelCountParticles{})
-            (mapper.getGridDim(), block)
-            (buffer.getDeviceParticlesBox(),
-             counter.getDeviceBuffer().getBasePointer(),
-             filter,
-             mapper);
-
-        counter.deviceToHost();
-        return *(counter.getHostBuffer().getDataBox());
+        counter.deviceToHost( );
+        return *( counter.getHostBuffer( ).getDataBox( ) );
     }
 
     /** Get particle count
