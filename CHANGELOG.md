@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.2.5
 -----
-**Date:** 2017-05-..
+**Date:** 2017-05-24
 
 Absorber in z in 3D3V, effective charge in ADK ionization
 
@@ -20,8 +20,13 @@ elements but Hydrogen.
  - ADK ionization: effective principal quantum number nEff #2011
  - 3D3V: missing absorber in z #2042
 
-Thanks to Marco Garten and Richard Pausch for spotting the issues and
-providing fixes!
+**Misc:**
+ - compile-time warning in 2D live plugin #2063
+ - DeviceBufferIntern: fix shadowed member variable #2051
+ - speciesInitialization: remove extra typename in doc #2044
+
+Thanks to Marco Garten, Richard Pausch, René Widera and Axel Huebl
+for spotting the issues and providing fixes!
 
 
 0.2.4
