@@ -38,10 +38,11 @@
 #include "simulationControl/MovingWindow.hpp"
 
 #include "fields/numericalCellTypes/YeeCell.hpp"
+#include "particles/traits/GetMarginPusher.hpp"
 
 #include "traits/GetUniqueTypeId.hpp"
 #include "traits/Resolve.hpp"
-#include "particles/traits/GetMarginPusher.hpp"
+#include "traits/GetNumWorkers.hpp"
 
 #include <iostream>
 #include <limits>
@@ -253,7 +254,10 @@ template<
     typename T_Flags,
     typename T_Attributes
 >
-template<typename T_DensityFunctor, typename T_PositionFunctor>
+template<
+    typename T_DensityFunctor,
+    typename T_PositionFunctor
+>
 void
 Particles<
     T_Name,
@@ -265,20 +269,39 @@ Particles<
     const uint32_t currentStep
 )
 {
-    log<picLog::SIMULATION_STATE > ( "initialize density profile for species %1%" ) % FrameType::getName( );
+    log<picLog::SIMULATION_STATE >( "initialize density profile for species %1%" ) % FrameType::getName( );
 
-    const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
-    const SubGrid<simDim>& subGrid = Environment<simDim>::get( ).SubGrid( );
-    DataSpace<simDim> localCells = subGrid.getLocalDomain( ).size;
-    DataSpace<simDim> totalGpuCellOffset = subGrid.getLocalDomain( ).offset;
+    uint32_t const numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
+    SubGrid< simDim > const & subGrid = Environment< simDim >::get( ).SubGrid( );
+    DataSpace< simDim > localCells = subGrid.getLocalDomain( ).size;
+    DataSpace< simDim > totalGpuCellOffset = subGrid.getLocalDomain( ).offset;
     totalGpuCellOffset.y( ) += numSlides * localCells.y( );
 
-    auto block = MappingDesc::SuperCellSize::toRT( );
-    AreaMapping<CORE+BORDER,MappingDesc> mapper(this->cellDescription);
-    PMACC_KERNEL( KernelFillGridWithParticles< Particles >{} )
-        (mapper.getGridDim(), block)
-        ( densityFunctor, positionFunctor, totalGpuCellOffset, this->particlesBuffer->getDeviceParticleBox( ), mapper );
+    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
+        PMacc::math::CT::volume< SuperCellSize >::type::value
+    >::value;
 
+    AreaMapping<
+        CORE + BORDER,
+        MappingDesc
+    > mapper( this->cellDescription );
+    PMACC_KERNEL(
+        KernelFillGridWithParticles<
+            numWorkers,
+            Particles
+        >{}
+    )
+    (
+        mapper.getGridDim( ),
+        numWorkers
+    )
+    (
+        densityFunctor,
+        positionFunctor,
+        totalGpuCellOffset,
+        this->particlesBuffer->getDeviceParticleBox( ),
+        mapper
+    );
 
     this->fillAllGaps( );
 }
@@ -342,4 +365,4 @@ Particles<
         );
 }
 
-} // end namespace
+} // namespace picongpu
