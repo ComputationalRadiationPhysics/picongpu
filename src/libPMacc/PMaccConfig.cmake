@@ -295,6 +295,16 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_SMART_PTR")
 endif()
 
+# Boost 1.64.0 is broken with CUDA 8.0 and C++11
+#   https://github.com/ComputationalRadiationPhysics/picongpu/issues/2048
+#   fixed in CUDA 9.0 (ticket 1928813)
+if( (Boost_VERSION EQUAL 106400) AND
+    (CUDA_VERSION VERSION_EQUAL 8.0) )
+    message(FATAL_ERROR "Boost 1.64.0 and CUDA 8.0 are incompatible due to "
+                        "a bug in the CUDA compiler. Please use, e.g. Boost "
+                        "1.63.0 instead.")
+endif()
+
 
 ################################################################################
 # Find OpenMP
