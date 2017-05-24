@@ -24,7 +24,7 @@ this_dir=`dirname $0`
 #only copy submit and params if we clone from default pic folder
 default_folder_to_copy="submit include/simulation_defines/param include/simulation_defines/unitless"
 #if we clone a project we copy full include 
-folder_to_clone="submit include"
+folder_to_clone="submit bin include lib"
 files_to_copy="cmakeFlags executeOnClone"
 
 help()
@@ -127,10 +127,10 @@ if [ "$src_path" != "$this_dir/src/picongpu" ] ; then
     do
         dir_dst="$dst_path/$d"
         dir_src="$src_path/$d"
-        if [ ! -d "$dir_dst" ] ; then
+        if [ -d "$dir_src" ] ; then
             mkdir -p "$dir_dst"
+            rsync --inplace -q -avc --exclude=".*" $dir_src/* $dir_dst
         fi
-        rsync --inplace -q -avc --exclude=".*" $dir_src/* $dir_dst
     done
 fi
 
