@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.2.5
 -----
-**Date:** 2017-05-24
+**Date:** 2017-05-27
 
 Absorber in z in 3D3V, effective charge in ADK ionization
 
