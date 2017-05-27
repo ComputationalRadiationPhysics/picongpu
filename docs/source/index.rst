@@ -92,6 +92,7 @@ Development
    :maxdepth: 1
 
    dev/CONTRIBUTING.md
+   dev/styleguide
    dev/sphinx
    dev/picongpu
    dev/pmacc
