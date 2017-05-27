@@ -42,12 +42,12 @@ See the *Installation* and *Usage* chapters in our new documentation on
 for detailed instructions.
 
 **New Features:**
- - PIC:
+ - PIConGPU:
    - laser:
      - allow to define the initialization plane #1796
      - add transverse Laguerre-modes to standard Gaussian Beam #1580
    - ionization:
-     - Thomas-Fermi impact ionization model #1754 #2003 #2007
+     - Thomas-Fermi impact ionization model #1754 #2003 #2007 #2037 #2046
      - Z_eff, energies, isotope: Ag, He, C, O, Al, Cu #1804 #1860
      - BSI models restructured #2013
      - multiple ionization algorithms can be applied per species,
@@ -103,7 +103,8 @@ for detailed instructions.
  - Support for clang as host && device compiler #1933
 
 **Bug Fixes:**
- - PIC:
+ - PIConGPU:
+   - 3D3V: missing absorber in z #2042
    - Add missing minus sign wavepacket laser transversal #1722
    - `RatioWeighting` (`DensityWeighting`) manipulator #1759
    - `MovingWindow`: `slide_point` now can be set to zero. #1783
@@ -132,11 +133,13 @@ for detailed instructions.
    - Adjust `radAmplitude` python module after openPMD changes #1885
    - HDF5/ADIOS: ill-placed helper `#include` #1846
    - `#include`: never inside namespace #1835
+ - work-around for bug in boost 1.64.0 (odeint) + CUDA 7.5 #2053
+ - boost 1.64.0 + CUDA 8.0 are currently broken #2069
 
 **Misc:**
  - refactoring:
-   - PIC:
-     - Switch to c++11 only #1649
+   - PIConGPU:
+     - Switch to C++11 only #1649
      - Begin kernel names with upper case letter #1691
      - Maxwell solver, use curl instance #1714
      - Lehe solver: optimize performance #1715
@@ -160,7 +163,7 @@ for detailed instructions.
      - Manipulator `FreeImpl` #1815
      - Ionization: clean up params #1855
      - MySimulation: remove particleStorage #1881
-     - New `DataConnector` for fields (& species) #1887
+     - New `DataConnector` for fields (& species) #1887 #2045
      - Radiation filter functor: remove macros #1877
      - Topic use remove shared keyword #1727
      - Remove define `ENABLE_RADIATION` #1931
@@ -189,12 +192,14 @@ for detailed instructions.
      - Refactor `MallocMCBuffer` share #1964
      - Rename `typedef`s inside `ParticleBuffer` #1577
      - Add typedefs for `Host`/`DeviceBuffer` #1595
+     - DeviceBufferIntern: fix shadowed member variable #2051
    - plugins:
      - Source files: remove non-ASCII chars #1684
-     - Plugins: replace old analyzer naming #1924
+     - replace old analyzer naming #1924
      - Radiation:
        - Remove Nyquist limit switch #1930
        - Remove precompiler flag for form factor #1937
+     - compile-time warning in 2D live plugin #2063
    - tools:
      - Automatically restart from ADIOS output #1882
      - Workflow: rename tools to set up a sim #1971
@@ -219,6 +224,7 @@ for detailed instructions.
    - Remove `sm_20` Comments #1664
    - Empty Example & `TBG_macros.cfg` #1724
    - License Header: Update 2017 #1733
+   - speciesInitialization: remove extra typename in doc #2044
    - INSTALL.md:
      - List Spack Packages #1764
      - Update Hypnos Example #1807
@@ -226,6 +232,7 @@ for detailed instructions.
    - TBG: Outdated Header #1806
    - Wrong sign of `delta_angle` in radiation observer direction #1811
    - Hypnos: Use CMake 3.7 #1823
+   - Piz Daint: Update example environment #2030
    - Doxygen:
      - Warnings Radiation #1840
      - Warnings Ionization #1839

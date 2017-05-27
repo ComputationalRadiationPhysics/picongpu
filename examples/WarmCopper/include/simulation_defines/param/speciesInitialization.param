@@ -43,7 +43,7 @@
  *     @tparam T_SrcSpeciesType  source species
  *     @tparam T_DestSpeciesType destination species
  *
- * - Manipulate<T_Functor, typename T_SpeciesType>
+ * - Manipulate<T_Functor, T_SpeciesType>
  *     Run a user defined functor for every particle.
  *     \warning does not call `fillAllGaps()` if one removes or
  *              adds particles with it (\see FillAllGaps below)

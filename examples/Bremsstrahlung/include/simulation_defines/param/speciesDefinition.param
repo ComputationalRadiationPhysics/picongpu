@@ -28,7 +28,6 @@
 #include "particles/Particles.hpp"
 #include <boost/mpl/string.hpp>
 
-#include "particles/ionization/byField/ionizers.def"
 
 namespace picongpu
 {
