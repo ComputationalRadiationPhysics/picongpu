@@ -14,9 +14,8 @@ Contents
  - [Keep Track of Updates](#keep-track-of-updates)
  - [Pull Requests or *Being Social*](#pull-requests-or-being-social)
  - [Maintainer Notes](#maintainer-notes)
-3. [Coding Guide Lines](#coding-guide-lines)
-4. [Commit Rules](#commit-rules)
-5. [Test Suite Examples](#test-suite-examples)
+3. [Commit Rules](#commit-rules)
+4. [Test Suite Examples](#test-suite-examples)
 
 *******************************************************************************
 
@@ -280,32 +279,6 @@ Last but not least, [help.github.com](https://help.github.com/) has a very nice
 FAQ section.
 
 More [best practices](http://codeinthehole.com/writing/pull-requests-and-other-good-practices-for-teams-using-github/).
-
-*******************************************************************************
-
-Coding Guide Lines
-------------------
-
-Well - there are some! ;)
-- Please follow our recommendations in our
-  [wiki page](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Coding-Guide-Lines).
-- The `uncrustify` script [picongpu_uncrustify.cfg](docs/picongpu_uncrustify.cfg)
-  can be used for auto-formatting your code.
-
-Please **add the according license header** snippet to your *new files*:
-- for PIConGPU (GPLv3+): `src/tools/bin/addLicense <FileName>`
-- for libraries (LGPLv3+ & GPLv3+):
-  `export PROJECT_NAME=libPMacc && src/tools/bin/addLicense <FileName>`
-- delete other headers: `src/tools/bin/deleteHeadComment <FileName>`
-- add license to all .hpp files within a directory (recursive):
-  `export PROJECT_NAME=PIConGPU && src/tools/bin/findAndDo <PATH> "*.hpp" src/tools/bin/addLicense`
-- the default project name ist `PIConGPU` (case sensitive!) and adds the GPLv3+
-  only.
-
-Files in the directory `thirdParty/` are only imported from remote repositories
-as written in our [LICENSE](LICENSE.md). If you want to improve them, submit
-your pull requests there and open an issue for our **maintainers** to update
-to a new version of the according software.
 
 *******************************************************************************
 
