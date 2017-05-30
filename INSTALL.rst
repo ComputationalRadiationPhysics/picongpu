@@ -92,7 +92,7 @@ zlib
 
 boost
 """""
-- 1.57.0-1.63.0 (``program options``, ``regex`` , ``filesystem``, ``system``, ``thread``, ``math``, ``serialization`` and nearly all header-only libs)
+- 1.57.0-1.64.0 (``program options``, ``regex`` , ``filesystem``, ``system``, ``thread``, ``math``, ``serialization`` and nearly all header-only libs)
 - download from `http://www.boost.org <http://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz/download>`_
 - *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-math-dev libboost-serialization-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
