@@ -113,6 +113,12 @@ git
 - *Arch Linux:* ``sudo pacman --sync git``
 - *Spack:* ``spack install git``
 
+rsync
+"""""
+- *Debian/Ubuntu:* ``sudo apt-get install rsync``
+- *Arch Linux:* ``sudo pacman --sync rsync``
+- *Spack:* ``spack install rsync``
+
 PIConGPU source code
 """"""""""""""""""""
 - ``git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $HOME/src/picongpu``
