@@ -296,10 +296,6 @@ namespace picongpu
               direction, mapper );
     }
 
-    void FieldTmp::init( )
-    {
-    }
-
     FieldTmp::DataBoxType FieldTmp::getDeviceDataBox( )
     {
         return fieldTmp->getDeviceBuffer( ).getDataBox( );

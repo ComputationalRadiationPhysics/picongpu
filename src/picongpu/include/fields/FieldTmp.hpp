@@ -102,8 +102,6 @@ namespace picongpu
          */
         EventTask asyncCommunicationGather( EventTask serialEvent );
 
-        void init( );
-
         DataBoxType getDeviceDataBox( );
 
         DataBoxType getHostDataBox( );

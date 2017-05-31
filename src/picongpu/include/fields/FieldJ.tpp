@@ -228,10 +228,6 @@ void FieldJ::insertField( uint32_t exchangeType )
           direction, mapper );
 }
 
-void FieldJ::init( )
-{
-}
-
 GridLayout<simDim> FieldJ::getGridLayout( )
 {
     return cellDescription.getGridLayout( );
