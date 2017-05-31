@@ -526,112 +526,234 @@ struct KernelFillGapsLastFrame
     }
 };
 
+/** fill particle gaps in all frames
+ *
+ * Copy all particles from the end to the gaps at the beginning of the frame list.
+ *
+ * @tparam T_numWorkers number of workers
+ */
+template< uint32_t T_numWorkers >
 struct KernelFillGaps
 {
-    template<class ParBox, class Mapping>
-    DINLINE void operator()( ParBox pb, Mapping mapper ) const
+    /** fill particle gaps
+     *
+     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
+     * @tparam T_Mapping mapper functor type
+     *
+     * @param pb particle memory
+     * @param mapper functor to map a block to a supercell
+     */
+    template<
+        class T_ParBox,
+        class T_Mapping
+    >
+    DINLINE void operator()(
+        T_ParBox & pb,
+        T_Mapping const & mapper
+    ) const
     {
         using namespace particles::operations;
+        using namespace mappings::threads;
 
-        enum
-        {
-            TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
-            Dim = Mapping::Dim
-        };
+        using FramePtr = typename T_ParBox::FramePtr;
 
-        typedef typename ParBox::FramePtr FramePtr;
+        constexpr uint32_t frameSize = math::CT::volume< typename T_ParBox::FrameType::SuperCellSize >::type::value;
+        constexpr uint32_t dim = T_Mapping::Dim;
+        constexpr uint32_t numWorkers = T_numWorkers;
 
-        DataSpace<Dim> superCellIdx( mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) ) );
+        uint32_t const workerIdx = threadIdx.x;
 
-        //data copied from right (last) to left (first)
-        PMACC_SMEM( firstFrame, FramePtr );
-        PMACC_SMEM( lastFrame, FramePtr );
+        DataSpace< dim > const superCellIdx( mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) ) );
 
-        PMACC_SMEM( particleIndices_sh, memory::Array< int, TileSize> );
-        PMACC_SMEM( counterGaps, int );
-        PMACC_SMEM( counterParticles, int );
+        // data copied from right (last) to left (first)
+        PMACC_SMEM(
+            firstFrame,
+            FramePtr
+        );
+        PMACC_SMEM(
+            lastFrame,
+            FramePtr
+        );
 
+        PMACC_SMEM(
+            particleIndices_sh,
+            memory::Array<
+                int,
+                frameSize
+            >
+        );
+        // number of gaps in firstFrame frame
+        PMACC_SMEM(
+            counterGaps,
+            int
+        );
+        // number of particles in the lastFrame
+        PMACC_SMEM(
+            counterParticles,
+            int
+        );
 
-        if ( threadIdx.x == 0 )
-        {
-            firstFrame = pb.getFirstFrame( DataSpace<Dim > (superCellIdx) );
-            lastFrame = pb.getLastFrame( DataSpace<Dim > (superCellIdx) );
-        }
+        ForEachIdx<
+            IdxConfig<
+                1,
+                numWorkers
+            >
+        > onlyMaster{ workerIdx };
+
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
+            {
+                firstFrame = pb.getFirstFrame( DataSpace< dim >(superCellIdx) );
+                lastFrame = pb.getLastFrame( DataSpace< dim >(superCellIdx) );
+            }
+        );
+
         __syncthreads( );
 
         while ( firstFrame.isValid( ) && firstFrame != lastFrame )
         {
-
-            if ( threadIdx.x == 0 )
-            {
-                //\todo: check if we need control thread or can write to shared with all threads
-                counterGaps = 0;
-                counterParticles = 0;
-            }
-            int localGapIdx = INV_LOC_IDX; //later we cann call localGapIdx < X because X<INV_LOC_IDX
-
-            __syncthreads( );
-
-            // find gaps
-            if ( firstFrame[threadIdx.x][multiMask_] == 0 )
-            {
-                localGapIdx = nvidia::atomicAllInc( &counterGaps );
-            }
-            __syncthreads( );
-
-            if ( counterGaps == 0 )
-            {
-                if ( threadIdx.x == 0 )
+            onlyMaster(
+                [&](
+                    uint32_t const,
+                    uint32_t const
+                )
                 {
-                    firstFrame = pb.getNextFrame( firstFrame );
+                    counterGaps = 0;
+                    counterParticles = 0;
                 }
-                __syncthreads( ); //wait control thread search new frame
-                continue; //check next frame
-            }
+            );
 
-            // search particles for gaps
-            if ( lastFrame[threadIdx.x][multiMask_] == 1 )
-            {
-                int localParticleIdx = nvidia::atomicAllInc( &counterParticles );
-                particleIndices_sh[localParticleIdx] = threadIdx.x;
-            }
             __syncthreads( );
-            if ( localGapIdx < counterParticles )
-            {
-                const int parIdx = particleIndices_sh[localGapIdx];
-                auto parDestFull = (firstFrame[threadIdx.x]);
-                /*enable particle*/
-                parDestFull[multiMask_] = 1;
-                /* we not update multiMask because copy from mem to mem is to slow
-                 * we have enabled particle explicit */
-                auto parDest = deselect<multiMask>(parDestFull);
-                auto parSrc = (lastFrame[parIdx]);
-                assign( parDest, parSrc );
-                parSrc[multiMask_] = 0;
-            }
+
+            using ParticleDomCfg = IdxConfig<
+                frameSize,
+                numWorkers
+            >;
+            // loop over all particles in the frame
+            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
+
+            memory::CtxArray<
+                int,
+                ParticleDomCfg
+            > localGapIdxCtx( INV_LOC_IDX );
+
+            // find gaps in firstFrame
+            forEachParticle(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const idx
+                )
+                {
+                    if( firstFrame[ linearIdx ][ multiMask_ ] == 0 )
+                    {
+                        localGapIdxCtx[ idx ] = nvidia::atomicAllInc( &counterGaps );
+                    }
+                }
+            );
+
             __syncthreads( );
-            if ( threadIdx.x == 0 )
+
+            if( counterGaps != 0 )
             {
-                if ( counterGaps < counterParticles )
-                {
-                    //any gap in the first frame is filled
-                    firstFrame = pb.getNextFrame( firstFrame );
-                }
-                else if ( counterGaps > counterParticles )
-                {
-                    //we need more particles
-                    lastFrame = getPreviousFrameAndRemoveLastFrame( lastFrame, pb, superCellIdx );
-                }
-                else if ( counterGaps == counterParticles )
-                {
-                    lastFrame = getPreviousFrameAndRemoveLastFrame( lastFrame, pb, superCellIdx );
-                    if ( lastFrame.isValid( ) && lastFrame != firstFrame )
+                // count particles in lastFrame
+                forEachParticle(
+                    [&](
+                        uint32_t const linearIdx,
+                        uint32_t const idx
+                    )
+                    {
+                        // search particles for gaps
+                        if( lastFrame[ linearIdx ][ multiMask_ ] == 1 )
+                        {
+                            int const localParticleIdx = nvidia::atomicAllInc( &counterParticles );
+                            particleIndices_sh[ localParticleIdx ] = linearIdx;
+                        }
+                    }
+                );
+
+                __syncthreads( );
+
+                // copy particles from lastFrame to the gaps in firstFrame
+                forEachParticle(
+                    [&](
+                        uint32_t const linearIdx,
+                        uint32_t const idx
+                    )
+                    {
+                        if( localGapIdxCtx[ idx ] < counterParticles )
+                        {
+                            int const parIdx = particleIndices_sh[ localGapIdxCtx[ idx ] ];
+                            auto parDestFull = firstFrame[ linearIdx ];
+                            // enable particle
+                            parDestFull[ multiMask_ ] = 1;
+                            /* we not update multiMask because copy from mem to mem is to slow
+                             * we have enabled particle explicit
+                             */
+                            auto parDest = deselect< multiMask >( parDestFull );
+                            auto parSrc = lastFrame[ parIdx ];
+                            assign( parDest, parSrc );
+                            parSrc[ multiMask_ ] = 0;
+                        }
+                    }
+                );
+
+                __syncthreads( );
+
+                onlyMaster(
+                    [&](
+                        uint32_t const,
+                        uint32_t const
+                    )
+                    {
+                        if( counterGaps < counterParticles )
+                        {
+                            // any gap in the first frame is filled
+                            firstFrame = pb.getNextFrame( firstFrame );
+                        }
+                        else if( counterGaps > counterParticles )
+                        {
+                            // we need more particles
+                            lastFrame = getPreviousFrameAndRemoveLastFrame(
+                                lastFrame,
+                                pb,
+                                superCellIdx
+                            );
+                        }
+                        else if( counterGaps == counterParticles )
+                        {
+                            // update lastFrame and firstFrame
+                            lastFrame = getPreviousFrameAndRemoveLastFrame(
+                                lastFrame,
+                                pb,
+                                superCellIdx
+                            );
+                            if( lastFrame.isValid( ) && lastFrame != firstFrame )
+                            {
+                                firstFrame = pb.getNextFrame( firstFrame );
+                            }
+                        }
+                    }
+                );
+            }
+            else
+            {
+                // there are no gaps in firstFrame, goto to next frame
+                onlyMaster(
+                    [&](
+                        uint32_t const,
+                        uint32_t const
+                    )
                     {
                         firstFrame = pb.getNextFrame( firstFrame );
                     }
-                }
+                );
             }
+
             __syncthreads( );
+
         }
     }
 };
