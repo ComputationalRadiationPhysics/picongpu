@@ -81,8 +81,6 @@ namespace picongpu
 
         virtual EventTask asyncCommunication(EventTask serialEvent);
 
-        void init(LaserPhysics &laserPhysics);
-
         DataBoxType getDeviceDataBox();
 
         DataBoxType getHostDataBox();
@@ -105,8 +103,6 @@ namespace picongpu
 
 
         GridBuffer<ValueType,simDim> *fieldE;
-
-        LaserPhysics *laser;
     };
 
 

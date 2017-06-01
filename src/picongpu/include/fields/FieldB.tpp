@@ -161,11 +161,6 @@ EventTask FieldB::asyncCommunication( EventTask serialEvent )
     return eB;
 }
 
-void FieldB::init( LaserPhysics &laserPhysics )
-{
-    this->laser = &laserPhysics;
-}
-
 GridLayout<simDim> FieldB::getGridLayout( )
 {
 

@@ -38,7 +38,6 @@
 
 #include "eventSystem/EventSystem.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "fields/LaserPhysics.hpp"
 #include "nvidia/memory/MemoryInfo.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
 #include "simulationControl/MovingWindow.hpp"
@@ -101,7 +100,6 @@ public:
      * Constructor
      */
     MySimulation() :
-    laser(nullptr),
     myFieldSolver(nullptr),
     myCurrentInterpolation(nullptr),
     pushBGField(nullptr),
@@ -258,7 +256,6 @@ public:
          */
         dc.clean();
 
-        __delete(laser);
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
@@ -292,8 +289,6 @@ public:
         }
         pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
         currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
-
-        laser = new LaserPhysics(cellDescription->getGridLayout());
 
         // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
@@ -380,9 +375,6 @@ public:
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         IdProvider<simDim>::init();
-
-        fieldB->init( *laser );
-        fieldE->init( *laser );
 
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
