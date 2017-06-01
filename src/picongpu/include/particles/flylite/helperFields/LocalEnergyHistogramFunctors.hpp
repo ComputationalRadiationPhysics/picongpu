@@ -27,6 +27,7 @@
 #include "static_assert.hpp"
 #include "Environment.hpp"
 #include "algorithms/ForEach.hpp"
+#include "forward.hpp"
 
 #include <string>
 #include <memory>
@@ -63,7 +64,7 @@ namespace detail
          */
         void operator()(
             uint32_t currentStep,
-            std::shared_ptr< LocalEnergyHistogram > eneHistLocal,
+            std::shared_ptr< LocalEnergyHistogram > & eneHistLocal,
             float_X const minEnergy,
             float_X const maxEnergy
         )
@@ -132,7 +133,7 @@ namespace detail
          */
         void operator()(
             uint32_t currentStep,
-            std::string const speciesGroup,
+            std::string const & speciesGroup,
             float_X const minEnergy,
             float_X const maxEnergy
         )
@@ -152,7 +153,7 @@ namespace detail
 
             // add local energy histogram of each species in list
             ForEach< SpeciesList, detail::AddSingleEnergyHistogram< bmpl::_1 > > addSingleEnergyHistogram;
-            addSingleEnergyHistogram( currentStep, eneHistLocal, minEnergy, maxEnergy );
+            addSingleEnergyHistogram( currentStep, forward( eneHistLocal ), minEnergy, maxEnergy );
 
             /* note: for average != supercell the BORDER region would need to be
              *       build up via communication accordingly

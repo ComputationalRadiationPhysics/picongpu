@@ -53,7 +53,7 @@ namespace flylite
         T_PhotonsList
     >::init(
         PMacc::DataSpace< simDim > const & gridSizeLocal,
-        std::string const ionSpeciesName
+        std::string const & ionSpeciesName
     )
     {
         //! GPU-local number of cells in regular resolution (like FieldE & B)
@@ -63,7 +63,7 @@ namespace flylite
 
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        /* once allocated for all ion species to share */
+        // once allocated for all ion species to share
         if( ! dc.hasId( helperFields::LocalEnergyHistogram::getName( "electrons" ) ) )
             dc.share(
                 std::shared_ptr< ISimulationData >(
@@ -94,7 +94,7 @@ namespace flylite
                 )
             );
 
-        /* for each ion species */
+        // for each ion species
         if( ! dc.hasId( helperFields::LocalRateMatrix::getName( ionSpeciesName ) ) )
             dc.share(
                 std::shared_ptr< ISimulationData >(
@@ -132,7 +132,7 @@ namespace flylite
         T_ElectronsList,
         T_PhotonsList
     >::update(
-        std::string const ionSpeciesName,
+        std::string const & ionSpeciesName,
         uint32_t currentStep
     )
     {
@@ -164,7 +164,7 @@ namespace flylite
         T_ElectronsList,
         T_PhotonsList
     >::fillHelpers(
-        std::string const ionSpeciesName,
+        std::string const & ionSpeciesName,
         uint32_t currentStep
     )
     {

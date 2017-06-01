@@ -52,13 +52,13 @@ namespace flylite
         void
         init(
             PMacc::DataSpace< simDim > const & gridSizeLocal,
-            std::string const ionSpeciesName
+            std::string const & ionSpeciesName
         );
 
         /** Update atomic configurations
          *
          * Prepares auxiliary fields for the non-LTE atomic physics model and
-         * updates the configurations & charge state of an ion species.
+         * updates the configurations & charge states of an ion species.
          *
          * @tparam T_IonSpeciesType a picongpu::Particles class with an ion
          *                          species
@@ -71,7 +71,7 @@ namespace flylite
         >
         void
         update(
-            std::string const ionSpeciesName,
+            std::string const & ionSpeciesName,
             uint32_t currentStep
         );
 
@@ -89,7 +89,7 @@ namespace flylite
         >
         void
         fillHelpers(
-            std::string const ionSpeciesName,
+            std::string const & ionSpeciesName,
             uint32_t currentStep
         );
 

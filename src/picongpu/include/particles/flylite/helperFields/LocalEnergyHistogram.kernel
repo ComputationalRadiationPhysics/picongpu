@@ -31,9 +31,6 @@
 #include "mappings/threads/ForEachIdx.hpp"
 #include "mappings/threads/IdxConfig.hpp"
 
-#include <string>
-#include <memory>
-
 
 namespace picongpu
 {
@@ -62,7 +59,7 @@ namespace helperFields
          * of the range of the histogram are ignored and not counted.
          *
          * @todo In case the local averging in flylite shall be larger then a
-         * supercell (in integer multiples), the results need to be merged.
+         * supercell (in multiples of integers), the results need to be merged.
          *
          * @tparam T_ParBox PMacc::ParticlesBox, particle box type
          * @tparam T_LocalEnergyHistogramBox PMacc::DataBox, local energy histograms,
@@ -112,8 +109,8 @@ namespace helperFields
                 mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
             );
             /* index inside local energy histogram in averaged space (has no GUARD)
-             * integer division: of we average over multiples of supercells
-             *                   this will select the right local energy
+             * integer division: we average over multiples of supercells;
+             *                   this index selects the according local energy
              *                   histogram in global RAM
              */
             DataSpace< simDim > const localEnergyBlock =

@@ -28,7 +28,6 @@
 #include "memory/Array.hpp"
 
 #include <string>
-#include <memory>
 
 
 namespace picongpu
@@ -65,7 +64,7 @@ namespace helperFields
          * @param histSizeLocal spatial size of the local energy histogram
          */
         LocalRateMatrix(
-            std::string const ionSpeciesName,
+            std::string const & ionSpeciesName,
             DataSpace< simDim > const & histSizeLocal
         ) :
             m_rateMatrix( nullptr ),
@@ -81,7 +80,7 @@ namespace helperFields
         }
 
         static std::string
-        getName( std::string const speciesGroup )
+        getName( std::string const & speciesGroup )
         {
             return speciesGroup + "_RateMatrix";
         }

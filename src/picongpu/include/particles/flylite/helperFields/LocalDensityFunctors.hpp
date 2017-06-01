@@ -27,6 +27,7 @@
 #include "static_assert.hpp"
 #include "Environment.hpp"
 #include "algorithms/ForEach.hpp"
+#include "forward.hpp"
 
 #include <string>
 #include <memory>
@@ -68,7 +69,7 @@ namespace detail
          */
         void operator()(
             uint32_t currentStep,
-            std::shared_ptr< FieldTmp > fieldTmp
+            std::shared_ptr< FieldTmp > & fieldTmp
         )
         {
             DataConnector &dc = Environment<>::get().DataConnector();
@@ -104,7 +105,7 @@ namespace detail
          */
         void operator()(
             uint32_t currentStep,
-            std::string const speciesGroup
+            std::string const & speciesGroup
         )
         {
             // generating a density requires at least one slot in FieldTmp
@@ -125,7 +126,7 @@ namespace detail
 
             // add density of each species in list to FieldTmp
             ForEach< SpeciesList, detail::AddSingleDensity< bmpl::_1 > > addSingleDensity;
-            addSingleDensity( currentStep, fieldTmp );
+            addSingleDensity( currentStep, forward( fieldTmp ) );
 
             /* create valid density in the BORDER region
              * note: for average != supercell multiples the GUARD of fieldTmp

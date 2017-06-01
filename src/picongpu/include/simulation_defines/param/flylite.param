@@ -19,9 +19,10 @@
 
 /** @file
  *
- * Configuration file for the atomic particle population kinetics model FLYlite.
+ * This is the configuration file for the atomic particle population kinetics
+ * model FLYlite.
  * Its main purpose is non-LTE collisional-radiative modeling for transient
- * plasmas in high densities and/or interaction with (X-Ray) photon fields.
+ * plasmas at high densities and/or interaction with (X-Ray) photon fields.
  *
  * In simpler words, one can also use this module to simulate collisional
  * ionization processes without the assumption of a local thermal equilibrium
@@ -55,7 +56,7 @@ namespace flylite
         populations
     >;
 
-    /** ionization states of the atom (iz?)
+    /** ionization states of the atom (iz)
      *
      * range: [0, 255]
      */
@@ -64,8 +65,8 @@ namespace flylite
     /** number of energy bins
      *
      * energy steps used for local energy histograms
-     * @note: the actual number of bins will be 3 bins less:
-     *        we also need an overflow-, underflow- and sum-bin
+     * @note: no overflow- or underflow-bins are used, particles with energies
+     *        outside the range (see below) are ignored
      */
     constexpr uint16_t energies = 512u;
 
@@ -73,7 +74,7 @@ namespace flylite
      *
      * electron and photon histograms f(e) f(ph) are currently
      * calculated in a linearly binned histogram while particles with
-     * energies outside are ignored
+     * energies outside the ranges below are ignored
      *
      * unit: eV
      */
@@ -86,7 +87,7 @@ namespace flylite
      *
      * no seriously, per-supercell is the quickest way to average particle
      * quantities such as density, energy histogram, etc. and I won't implement
-     * an other size until needed
+     * another size until needed
      */
     using spatialAverageBox = SuperCellSize;
 } // namespace flylite

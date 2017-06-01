@@ -30,9 +30,6 @@
 #include "memory/shared/Allocate.hpp"
 #include "memory/Array.hpp"
 
-#include <string>
-#include <memory>
-
 
 namespace picongpu
 {
@@ -80,11 +77,11 @@ namespace helperFields
             constexpr uint32_t numWorkers = T_numWorkers;
 
             // cell index in the average box in reduced resolution
-            const DataSpace< simDim > avgBoxCell( blockIdx );
+            DataSpace< simDim > const avgBoxCell( blockIdx );
             // first cell index inside FieldTmp (originating from BORDER) for block
-            const DataSpace< simDim > fieldTmpBlockOriginCell = avgBoxCell * spatialAverageBox::toRT();
+            DataSpace< simDim > const fieldTmpBlockOriginCell = avgBoxCell * spatialAverageBox::toRT();
             // our workers per block are started 1D
-            const uint32_t linearThreadIdx( threadIdx.x );
+            uint32_t const linearThreadIdx( threadIdx.x );
 
             // shift the fieldTmp to the start of average box
             auto fieldTmpBlock = fieldTmp.shift( fieldTmpBlockOriginCell );
@@ -109,7 +106,7 @@ namespace helperFields
 
             nvidia::reduce::kernel::Reduce< ValueType > reduce{};
 
-            const uint32_t numAvgCells = PMacc::math::CT::volume< spatialAverageBox >::type::value;
+            uint32_t const numAvgCells = PMacc::math::CT::volume< spatialAverageBox >::type::value;
             reduce(
                 linearThreadIdx,
                 numWorkers,

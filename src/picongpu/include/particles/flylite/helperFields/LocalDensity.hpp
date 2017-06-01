@@ -57,7 +57,7 @@ namespace helperFields
          * @param sizeLocal spatial size of the local density value
          */
         LocalDensity(
-            std::string const speciesGroup,
+            std::string const & speciesGroup,
             DataSpace< simDim > const & sizeLocal
         ) :
             m_density( nullptr ),
@@ -73,7 +73,7 @@ namespace helperFields
         }
 
         static std::string
-        getName( std::string const speciesGroup )
+        getName( std::string const & speciesGroup )
         {
             return speciesGroup + "_LocalDensity";
         }

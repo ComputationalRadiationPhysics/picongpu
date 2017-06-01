@@ -28,7 +28,6 @@
 #include "memory/Array.hpp"
 
 #include <string>
-#include <memory>
 
 
 namespace picongpu
@@ -50,7 +49,10 @@ namespace helperFields
                 float_X,
                 picongpu::flylite::energies
             >;
-        GridBuffer< EnergyHistogram, simDim >* m_energyHistogram;
+        GridBuffer<
+            EnergyHistogram,
+            simDim
+        > * m_energyHistogram;
         std::string m_speciesGroup;
 
     public:
@@ -61,14 +63,17 @@ namespace helperFields
          * @param histSizeLocal spatial size of the local energy histogram
          */
         LocalEnergyHistogram(
-            std::string const speciesGroup,
+            std::string const & speciesGroup,
             DataSpace< simDim > const & histSizeLocal
         ) :
             m_energyHistogram( nullptr ),
             m_speciesGroup( speciesGroup )
         {
             m_energyHistogram =
-                new GridBuffer< EnergyHistogram, simDim >( histSizeLocal );
+                new GridBuffer<
+                    EnergyHistogram,
+                    simDim
+                >( histSizeLocal );
         }
 
         ~LocalEnergyHistogram()
@@ -77,7 +82,7 @@ namespace helperFields
         }
 
         static std::string
-        getName( std::string const speciesGroup )
+        getName( std::string const & speciesGroup )
         {
             return speciesGroup + "_LocalEnergyHistogram";
         }
@@ -88,7 +93,10 @@ namespace helperFields
             return getName( m_speciesGroup );
         }
 
-        GridBuffer< EnergyHistogram, simDim >&
+        GridBuffer<
+            EnergyHistogram,
+            simDim
+        > &
         getGridBuffer( )
         {
             return *m_energyHistogram;

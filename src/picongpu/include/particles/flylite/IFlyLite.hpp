@@ -25,6 +25,7 @@
 // PMacc
 #include "static_assert.hpp"
 
+#include <boost/core/ignore_unused.hpp>
 #include <string>
 
 
@@ -46,10 +47,10 @@ namespace flylite
          */
         virtual void init(
             PMacc::DataSpace< simDim > const & gridSizeLocal,
-            std::string const ionSpeciesName
+            std::string const & ionSpeciesName
         ) = 0;
 
-        /** Calculate evolution of populations for one time step
+        /** Calculate Evolution of Populations for One Time Step
          *
          * Interface for the update of the atomic populations during the PIC
          * cycle.
@@ -61,13 +62,16 @@ namespace flylite
             typename T_IonSpecies
         >
         void update(
-            std::string const ionSpeciesName,
+            std::string const & ionSpeciesName,
             uint32_t currentStep
         )
         {
+            boost::ignore_unused( ionSpeciesName, currentStep );
+
             PMACC_STATIC_ASSERT_MSG(
                 false,
-                FLYlite_the_update_method_for_ion_population_kinetics_is_not_implemented);
+                FLYlite_the_update_method_for_ion_population_kinetics_is_not_implemented
+            );
         }
 
     };
