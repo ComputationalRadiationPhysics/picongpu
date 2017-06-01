@@ -41,7 +41,7 @@ namespace PMacc
         ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
 
         constexpr uint32_t numWorkers = traits::GetNumWorkers<
-            math::CT::volume<typename FrameType::SuperCellSize>::type::value
+            math::CT::volume< typename FrameType::SuperCellSize >::type::value
         >::value;
 
         PMACC_KERNEL( KernelDeleteParticles< numWorkers >{ } )(
@@ -61,7 +61,7 @@ namespace PMacc
         AreaMapping<T_area, MappingDesc> mapper(this->cellDescription);
 
         constexpr uint32_t numWorkers = traits::GetNumWorkers<
-            math::CT::volume<typename FrameType::SuperCellSize>::type::value
+            math::CT::volume< typename FrameType::SuperCellSize >::type::value
         >::value;
 
         PMACC_KERNEL( KernelDeleteParticles< numWorkers >{ } )(

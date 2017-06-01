@@ -636,14 +636,16 @@ struct KernelFillGaps
     }
 };
 
-/** delete all particles within an area
+/** deletes all particles within an AREA
  *
  * @tparam T_numWorkers number of workers
  */
-template< uint32_t T_numWorkerrs >
+template< uint32_t T_numWorkers >
 struct KernelDeleteParticles
 {
-    /** delete all particles
+    /** deletes all particles
+     *
+     * @warning the particle memory of the particle is not byte wise zeroed
      *
      * @tparam T_ParticleBox PMacc::ParticlesBox, particle box type
      * @tparam T_Mapping mapper functor type
@@ -669,7 +671,7 @@ struct KernelDeleteParticles
 
         constexpr uint32_t dim = T_Mapping::Dim;
         constexpr uint32_t frameSize = math::CT::volume< typename FrameType::SuperCellSize >::type::value;
-        constexpr uint32_t numWorkers = T_numWorkerrs;
+        constexpr uint32_t numWorkers = T_numWorkers;
 
         DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) );
         uint32_t const workerIdx = threadIdx.x;
@@ -704,7 +706,7 @@ struct KernelDeleteParticles
                 frameSize,
                 numWorkers
             >;
-            /* loop over all particles in the frame */
+            // loop over all particles in the frame
             ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
 
             forEachParticle(
