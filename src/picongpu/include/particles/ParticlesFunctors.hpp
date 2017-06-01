@@ -109,21 +109,6 @@ struct LogMemoryStatisticsForSpecies
 };
 
 template<typename T_SpeciesType>
-struct CallInit
-{
-    using SpeciesType = T_SpeciesType;
-    using FrameType = typename SpeciesType::FrameType;
-
-    HINLINE void operator()() const
-    {
-        DataConnector &dc = Environment<>::get().DataConnector();
-        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
-        species->init();
-        dc.releaseData( FrameType::getName() );
-    }
-};
-
-template<typename T_SpeciesType>
 struct CallReset
 {
     using SpeciesType = T_SpeciesType;

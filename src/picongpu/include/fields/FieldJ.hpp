@@ -71,8 +71,6 @@ public:
 
     virtual EventTask asyncCommunication(EventTask serialEvent);
 
-    void init();
-
     GridLayout<simDim> getGridLayout();
 
     void reset(uint32_t currentStep);

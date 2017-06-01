@@ -383,20 +383,12 @@ public:
 
         fieldB->init( *laser );
         fieldE->init( *laser );
-        fieldJ->init( );
-        for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
-            fieldTmp.at( slot )->init();
 
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
 
         // create current interpolation
         this->myCurrentInterpolation = new fieldSolver::CurrentInterpolation;
-
-
-        ForEach< VectorAllSpecies, particles::CallInit<bmpl::_1> > particleInit;
-        particleInit( );
-
 
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);

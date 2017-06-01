@@ -82,8 +82,6 @@ public:
 
     void createParticleBuffer();
 
-    void init();
-
     void update(uint32_t currentStep);
 
     template<typename T_DensityFunctor, typename T_PositionFunctor>

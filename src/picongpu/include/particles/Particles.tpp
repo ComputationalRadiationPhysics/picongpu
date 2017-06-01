@@ -191,20 +191,6 @@ Particles<
     T_Name,
     T_Flags,
     T_Attributes
->::init( )
-{
-}
-
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
 >::update(uint32_t )
 {
     typedef typename GetFlagType<FrameType,particlePusher<> >::type PusherAlias;
