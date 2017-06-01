@@ -373,8 +373,8 @@ public:
         MallocMCBuffer<DeviceHeap>* mallocMCBuffer = new MallocMCBuffer<DeviceHeap>(deviceHeap);
         dc.share( std::shared_ptr< ISimulationData >( mallocMCBuffer ) );
 
-        ForEach< VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1> > createParticleBuffer;
-        createParticleBuffer( deviceHeap );
+        ForEach< VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<bmpl::_1> > logMemoryStatisticsForSpecies;
+        logMemoryStatisticsForSpecies( deviceHeap );
 
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);

@@ -91,7 +91,7 @@ struct CreateSpecies
 };
 
 template<typename T_SpeciesType>
-struct CallCreateParticleBuffer
+struct LogMemoryStatisticsForSpecies
 {
     using SpeciesType = T_SpeciesType;
     using FrameType = typename SpeciesType::FrameType;
@@ -105,11 +105,6 @@ struct CallCreateParticleBuffer
             deviceHeap->getAvailableSlots(sizeof (FrameType)) %
             sizeof (FrameType) %
             FrameType::getName();
-
-        DataConnector &dc = Environment<>::get().DataConnector();
-        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
-        species->createParticleBuffer();
-        dc.releaseData( FrameType::getName() );
     }
 };
 

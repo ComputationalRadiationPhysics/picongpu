@@ -189,10 +189,6 @@ public:
 
         superCells = new GridBuffer<SuperCellType, DIM > (superCellsCount);
 
-    }
-
-    void createParticleBuffer()
-    {
         reset();
     }
 
