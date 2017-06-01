@@ -120,8 +120,8 @@ protected:
             PMACC_KERNEL(KernelShiftParticles< numWorkers >{})
                 (mapper.getGridDim(), numWorkers)
                 (pBox, mapper);
-            PMACC_KERNEL(KernelFillGaps{})
-                (mapper.getGridDim(), (int)TileSize)
+            PMACC_KERNEL(KernelFillGaps< numWorkers >{})
+                (mapper.getGridDim(), numWorkers)
                 (pBox, mapper);
             PMACC_KERNEL(KernelFillGapsLastFrame< numWorkers >{})
                 (mapper.getGridDim(), numWorkers)
@@ -145,8 +145,8 @@ protected:
             math::CT::volume<typename FrameType::SuperCellSize>::type::value
         >::value;
 
-        PMACC_KERNEL(KernelFillGaps{})
-            (mapper.getGridDim(), (int)TileSize)
+        PMACC_KERNEL(KernelFillGaps< numWorkers >{})
+            (mapper.getGridDim(), numWorkers)
             (particlesBuffer->getDeviceParticleBox(), mapper);
 
         PMACC_KERNEL(KernelFillGapsLastFrame< numWorkers >{})
