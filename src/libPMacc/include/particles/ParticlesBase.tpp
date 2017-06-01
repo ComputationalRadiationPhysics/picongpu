@@ -81,19 +81,32 @@ namespace PMacc
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
-    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::bashParticles(uint32_t exchangeType)
+    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::bashParticles( uint32_t exchangeType )
     {
-        if (particlesBuffer->hasSendExchange(exchangeType))
+        if( particlesBuffer->hasSendExchange( exchangeType ) )
         {
-            ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
+            ExchangeMapping<
+                GUARD,
+                MappingDesc
+            > mapper(
+                this->cellDescription,
+                exchangeType
+            );
 
-            particlesBuffer->getSendExchangeStack(exchangeType).setCurrentSize(0);
-            auto grid = mapper.getGridDim();
+            particlesBuffer->getSendExchangeStack( exchangeType ).setCurrentSize( 0 );
 
-            PMACC_KERNEL(KernelBashParticles{})
-                    (grid, (int)TileSize)
-                    (particlesBuffer->getDeviceParticleBox(),
-                    particlesBuffer->getSendExchangeStack(exchangeType).getDeviceExchangePushDataBox(), mapper);
+            constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                math::CT::volume< typename FrameType::SuperCellSize >::type::value
+            >::value;
+
+            PMACC_KERNEL( KernelBashParticles< numWorkers >{ } )(
+                mapper.getGridDim( ),
+                numWorkers
+            )(
+                particlesBuffer->getDeviceParticleBox( ),
+                particlesBuffer->getSendExchangeStack( exchangeType ).getDeviceExchangePushDataBox( ),
+                mapper
+            );
         }
     }
 
