@@ -876,21 +876,21 @@ struct KernelDeleteParticles
     }
 };
 
-/** copy particle from the border to a exchange buffer
+/** copy particles from the guard to an exchange buffer
  *
  * @tparam T_numWorkers number of workers
  */
 template< uint32_t T_numWorkers >
-struct KernelBashParticles
+struct KernelCopyGuardToExchange
 {
-    /** copy border particle to a exchange buffer
+    /** copy guard particles to an exchange buffer
      *
      * @tparam T_ParBox PMacc::ParticlesBox, particle box type
      * @tparam T_ExchangeValueType frame type of the exchange buffer
      * @tparam T_Mapping mapper functor type
      *
      * @param pb particle memory
-     * @param border exchange buffer for particles
+     * @param exchangeBox exchange buffer for particles
      * @param mapper functor to map a block to a supercell
      */
     template<
@@ -899,13 +899,13 @@ struct KernelBashParticles
         typename T_Mapping
     >
     DINLINE void operator()(
-        T_ParBox pb,
+        T_ParBox & pb,
         ExchangePushDataBox<
             vint_t,
             T_ExchangeValueType,
             T_Mapping::Dim - 1
-        > border,
-        T_Mapping mapper
+        > & exchangeBox,
+        T_Mapping const & mapper
     ) const
     {
         using namespace particles::operations;
@@ -928,13 +928,24 @@ struct KernelBashParticles
             frame,
             FramePtr
         );
+
+        /* `exchangeChunk` is a view to a chunk of the memory in the exchange-
+         * The chunk contains between 0 and `numBashedParticles` particles
+         * and is updated for each frame.
+         */
         PMACC_SMEM(
-            hasMemory,
-            bool
-        );
-        PMACC_SMEM(
-            tmpBorder,
+            exchangeChunk,
             TileDataBox< T_ExchangeValueType >
+        );
+
+        /* flag: define if all particles from the current frame are copied to the
+         * exchange buffer
+         *
+         * `true` if all particles are copied, else `false`
+         */
+        PMACC_SMEM(
+            allParticlesCopied,
+            bool
         );
 
         ForEachIdx<
@@ -950,14 +961,14 @@ struct KernelBashParticles
                 uint32_t const
             )
             {
-                hasMemory = true;
+                allParticlesCopied = true;
                 frame = pb.getLastFrame( superCellIdx );
             }
         );
 
         __syncthreads( );
 
-        while ( frame.isValid( ) && hasMemory )
+        while ( frame.isValid( ) && allParticlesCopied )
         {
             using ParticleDomCfg = IdxConfig<
                 frameSize,
@@ -1008,7 +1019,8 @@ struct KernelBashParticles
                         uint32_t const
                     )
                     {
-                        tmpBorder = border.pushN(
+                        // try to get as many memory as particles in the current frame
+                        exchangeChunk = exchangeBox.pushN(
                             numBashedParticles,
                             // Compute the target supercell depending on the exchangeType
                             DataSpaceOperations< dim >::reduce(
@@ -1016,8 +1028,8 @@ struct KernelBashParticles
                                 mapper.getExchangeType( )
                             )
                         );
-                        if( tmpBorder.getSize( ) < numBashedParticles )
-                            hasMemory = false;
+                        if( exchangeChunk.getSize( ) < numBashParticles )
+                            allParticlesCopied = false;
                     }
                 );
 
@@ -1029,9 +1041,9 @@ struct KernelBashParticles
                         uint32_t const idx
                     )
                     {
-                        if( bashIdxCtx[ idx ] != INV_LOC_IDX && bashIdxCtx[ idx ] < tmpBorder.getSize( ) )
+                        if( bashIdxCtx[ idx ] != INV_LOC_IDX && bashIdxCtx[ idx ] < borderChunk.getSize( ) )
                         {
-                            auto parDest = tmpBorder[ bashIdxCtx[ idx ] ][ 0 ];
+                            auto parDest = exchangeChunk[ bashIdxCtx[ idx ] ][ 0 ];
                             auto parSrc = frame[ linearIdx ];
                             assign( parDest, parSrc );
                             parSrc[ multiMask_ ] = 0;
@@ -1047,10 +1059,10 @@ struct KernelBashParticles
                     uint32_t const
                 )
                 {
-                    /* do not remove the frame if we had not enough memory for
-                     * all particles in the tmpBorder buffer
+                    /* do not remove the frame if we had not copied
+                     * all particles from the current frame to the exchange buffer
                      */
-                    if ( hasMemory )
+                    if ( allParticlesCopied )
                         frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
                 }
             );

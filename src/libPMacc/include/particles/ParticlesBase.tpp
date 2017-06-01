@@ -99,7 +99,7 @@ namespace PMacc
                 math::CT::volume< typename FrameType::SuperCellSize >::type::value
             >::value;
 
-            PMACC_KERNEL( KernelBashParticles< numWorkers >{ } )(
+            PMACC_KERNEL( KernelCopyGuardToExchange< numWorkers >{ } )(
                 mapper.getGridDim( ),
                 numWorkers
             )(
