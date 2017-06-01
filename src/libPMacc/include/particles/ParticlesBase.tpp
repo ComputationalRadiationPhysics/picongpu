@@ -23,6 +23,7 @@
 
 #include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
+#include "traits/GetNumWorkers.hpp"
 
 #include "fields/SimulationFieldHelper.hpp"
 #include "mappings/kernel/ExchangeMapping.hpp"
@@ -38,11 +39,18 @@ namespace PMacc
     {
 
         ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
-        auto grid = mapper.getGridDim();
 
-        PMACC_KERNEL(KernelDeleteParticles{})
-                (grid, (int)TileSize)
-                (particlesBuffer->getDeviceParticleBox(), mapper);
+        constexpr uint32_t numWorkers = traits::GetNumWorkers<
+            math::CT::volume<typename FrameType::SuperCellSize>::type::value
+        >::value;
+
+        PMACC_KERNEL( KernelDeleteParticles< numWorkers >{ } )(
+            mapper.getGridDim( ),
+            numWorkers
+        )(
+            particlesBuffer->getDeviceParticleBox( ),
+            mapper
+        );
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
@@ -51,11 +59,18 @@ namespace PMacc
     {
 
         AreaMapping<T_area, MappingDesc> mapper(this->cellDescription);
-        auto grid = mapper.getGridDim();
 
-        PMACC_KERNEL(KernelDeleteParticles{})
-                (grid, (int)TileSize)
-                (particlesBuffer->getDeviceParticleBox(), mapper);
+        constexpr uint32_t numWorkers = traits::GetNumWorkers<
+            math::CT::volume<typename FrameType::SuperCellSize>::type::value
+        >::value;
+
+        PMACC_KERNEL( KernelDeleteParticles< numWorkers >{ } )(
+            mapper.getGridDim( ),
+            numWorkers
+        )(
+            particlesBuffer->getDeviceParticleBox( ),
+            mapper
+        );
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>

@@ -636,56 +636,119 @@ struct KernelFillGaps
     }
 };
 
+/** delete all particles within an area
+ *
+ * @tparam T_numWorkers number of workers
+ */
+template< uint32_t T_numWorkerrs >
 struct KernelDeleteParticles
 {
-    template< class T_ParticleBox, class Mapping>
+    /** delete all particles
+     *
+     * @tparam T_ParticleBox PMacc::ParticlesBox, particle box type
+     * @tparam T_Mapping mapper functor type
+     *
+     * @param pb particle memory
+     * @param mapper functor to map a block to a supercell
+     */
+    template<
+        class T_ParticleBox,
+        class T_Mapping
+    >
     DINLINE void operator()(
         T_ParticleBox pb,
-        Mapping mapper
+        T_Mapping const & mapper
     ) const
     {
         using namespace particles::operations;
+        using namespace mappings::threads;
 
-        typedef T_ParticleBox ParticleBox;
-        typedef typename ParticleBox::FrameType FrameType;
-        typedef typename ParticleBox::FramePtr FramePtr;
+        using ParticleBox = T_ParticleBox;
+        using FrameType = typename ParticleBox::FrameType;
+        using FramePtr = typename ParticleBox::FramePtr;
 
-        enum
-        {
-            Dim = Mapping::Dim
-        };
+        constexpr uint32_t dim = T_Mapping::Dim;
+        constexpr uint32_t frameSize = math::CT::volume< typename FrameType::SuperCellSize >::type::value;
+        constexpr uint32_t numWorkers = T_numWorkerrs;
 
-        DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
-        const int linearThreadIdx = threadIdx.x;
+        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) );
+        uint32_t const workerIdx = threadIdx.x;
 
-        PMACC_SMEM( frame, FramePtr );
+        PMACC_SMEM(
+            frame,
+            FramePtr
+        );
 
-        if ( linearThreadIdx == 0 )
-        {
-            frame = pb.getLastFrame( superCellIdx );
-        }
+        ForEachIdx<
+            IdxConfig<
+                1,
+                numWorkers
+            >
+        > onlyMaster{ workerIdx };
+
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
+            {
+                frame = pb.getLastFrame( superCellIdx );
+            }
+        );
 
         __syncthreads( );
 
-        while ( frame.isValid( ) )
+        while( frame.isValid( ) )
         {
+            using ParticleDomCfg = IdxConfig<
+                frameSize,
+                numWorkers
+            >;
+            /* loop over all particles in the frame */
+            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
 
-            auto particle = (frame[linearThreadIdx]);
-            particle[multiMask_] = 0; //delete particle
+            forEachParticle(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    auto particle = ( frame[ linearIdx ] );
+                    particle[ multiMask_ ] = 0; // delete particle
+                }
+            );
 
             __syncthreads( );
 
-            if ( linearThreadIdx == 0 )
-            {
-                //always remove the last frame
-                frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
-            }
+            onlyMaster(
+                [&](
+                    uint32_t const,
+                    uint32_t const
+                )
+                {
+                    // always remove the last frame
+                    frame = getPreviousFrameAndRemoveLastFrame(
+                        frame,
+                        pb,
+                        superCellIdx
+                    );
+                }
+            );
             __syncthreads( );
         }
 
-        if ( linearThreadIdx == 0 )
-            pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
-
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
+            {
+                /* all frames and particles are removed, set counter for particles
+                 * in the last frame to zero
+                 */
+                pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
+            }
+        );
     }
 };
 
