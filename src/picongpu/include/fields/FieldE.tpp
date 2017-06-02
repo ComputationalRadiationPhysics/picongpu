@@ -152,11 +152,6 @@ EventTask FieldE::asyncCommunication( EventTask serialEvent )
     return fieldE->asyncCommunication( serialEvent );
 }
 
-void FieldE::init( LaserPhysics &laserPhysics )
-{
-    this->laser = &laserPhysics;
-}
-
 FieldE::DataBoxType FieldE::getDeviceDataBox( )
 {
     return fieldE->getDeviceBuffer( ).getDataBox( );
@@ -257,6 +252,9 @@ void FieldE::laserManipulation( uint32_t currentStep )
     constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
         PMacc::math::CT::volume< LaserPlaneSizeInSuperCells >::type::value
     >::value;
+
+    LaserPhysics laser( fieldE->getGridLayout() );
+
     PMACC_KERNEL(
         KernelLaserE<
             numWorkers,
@@ -267,7 +265,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
         numWorkers
     )(
         this->getDeviceDataBox( ),
-        laser->getLaserManipulator( currentStep )
+        laser.getLaserManipulator( currentStep )
     );
 }
 
