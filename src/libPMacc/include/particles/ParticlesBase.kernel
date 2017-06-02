@@ -779,69 +779,156 @@ struct KernelBashParticles
     }
 };
 
-
+/** copy particles from exchange buffer into the border of the of the simulation
+ *
+ * @tparam T_numWorkers number of workers
+ */
+template< uint32_t T_numWorkers >
 struct KernelInsertParticles
 {
-    template<class ParBox, class BORDER, class Mapping>
-    DINLINE void operator()( ParBox pb,
-                                           ExchangePopDataBox<vint_t, BORDER, Mapping::Dim - 1 > border,
-                                           Mapping mapper ) const
+    /** copy particles from exchange buffer into the border of the of the simulation
+     *
+     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
+     * @tparam T_ExchangeValueType frame type of the exchange buffer
+     * @tparam T_Mapping mapper functor type
+     *
+     * @param pb particle memory
+     * @param border exchange buffer for particles
+     * @param mapper functor to map a block to a supercell
+     */
+    template<
+        typename T_ParBox,
+        typename T_ExchangeValueType,
+        typename T_Mapping
+    >
+    DINLINE void operator()(
+        T_ParBox & pb,
+        ExchangePopDataBox<
+            vint_t,
+            T_ExchangeValueType,
+            T_Mapping::Dim - 1
+        > & border,
+        T_Mapping const & mapper
+    ) const
     {
-
         using namespace particles::operations;
+        using namespace mappings::threads;
 
-        enum
-        {
-            TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
-            Dim = Mapping::Dim
-        };
+        constexpr uint32_t dim = T_Mapping::Dim;
+        constexpr uint32_t frameSize = math::CT::volume< typename T_ParBox::FrameType::SuperCellSize >::type::value;
+        constexpr uint32_t numWorkers = T_numWorkers;
 
-        typedef typename ParBox::FramePtr FramePtr;
-        PMACC_SMEM( frame, FramePtr );
-        PMACC_SMEM( elementCount, int );
-        PMACC_SMEM( tmpBorder, TileDataBox<BORDER> );
+        uint32_t const workerIdx = threadIdx.x;
 
+        using FramePtr = typename T_ParBox::FramePtr;
 
-        DataSpace < Mapping::Dim - 1 > superCell;
+        PMACC_SMEM(
+            frame,
+            FramePtr
+        );
+        PMACC_SMEM(
+            elementCount,
+            int
+        );
+        PMACC_SMEM(
+            tmpBorder,
+            TileDataBox< T_ExchangeValueType >
+        );
 
-        if ( threadIdx.x == 0 )
-        {
-            tmpBorder = border.get(blockIdx.x,superCell);
-            elementCount = tmpBorder.getSize( );
-            if ( elementCount > 0 )
+        using MasterOnly = IdxConfig<
+            1,
+            numWorkers
+        >;
+
+        /* compressed index of the the supercell
+         * can be uncompressed with `DataSpaceOperations < > ::extend()`
+         */
+        memory::CtxArray<
+            DataSpace< dim - 1 >,
+            MasterOnly
+        > compressedSuperCellIdxCtx{ };
+
+        ForEachIdx<
+            MasterOnly
+        > onlyMaster{ workerIdx };
+
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const idx
+            )
             {
-                frame = pb.getEmptyFrame( );
+                tmpBorder = border.get(
+                    blockIdx.x,
+                    compressedSuperCellIdxCtx[ idx ]
+                );
+                elementCount = tmpBorder.getSize( );
+                if ( elementCount > 0 )
+                {
+                    frame = pb.getEmptyFrame( );
+                }
             }
-        }
+        );
+
         __syncthreads( );
-        if ( threadIdx.x < elementCount )
-        {
-            auto parDestFull = (frame[threadIdx.x]);
-            parDestFull[multiMask_] = 1;
-            auto parSrc = ((tmpBorder[threadIdx.x])[0]);
-            /*we know that source has no multiMask*/
-            auto parDest = deselect<multiMask>(parDestFull);
-            assign( parDest, parSrc );
-        }
-        /*if this syncronize fix the kernel crash in spezial cases,
-         * I can't tell why.
+
+         /* loop over all particles in the frame */
+        ForEachIdx<
+            IdxConfig<
+                frameSize,
+                numWorkers
+            >
+        > forEachParticle{ workerIdx };
+
+        forEachParticle(
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
+            {
+                if( linearIdx < elementCount )
+                {
+                    auto parDestFull = ( frame[ linearIdx ] );
+                    parDestFull[ multiMask_ ] = 1;
+                    auto parSrc = ( (tmpBorder[ linearIdx ] )[ 0 ] );
+                    /*we know that source has no multiMask*/
+                    auto parDest = deselect<multiMask>( parDestFull );
+                    assign( parDest, parSrc );
+                }
+            }
+        );
+
+        /** @bug This synchronize fix the kernel crash in special cases,
+         * psychocoderHPC: I can't tell why.
          */
         __syncthreads( );
-        if ( (threadIdx.x == 0) && (elementCount > 0) )
-        {
-            // compute the super cell position in target frame to insert into
-            ///\todo: offset == simulation border should be passed to this func instead of being created here
-            DataSpace<Dim> dstSuperCell = DataSpaceOperations < Dim - 1 > ::extend( superCell,
-                                                                                    mapper.getExchangeType( ),
-                                                                                    mapper.getGridSuperCells( ),
-                                                                                    DataSpace<Dim>::create( mapper.getGuardingSuperCells( ) ) );
 
-            pb.setAsLastFrame( frame, dstSuperCell );
-        }
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const idx
+            )
+            {
+                if( elementCount > 0 )
+                {
+                    // compute the super cell position in target frame to insert into
+                    //! @todo: offset == simulation border should be passed to this func instead of being created here
+                    DataSpace< dim > dstSuperCell = DataSpaceOperations < dim - 1 > ::extend(
+                        compressedSuperCellIdxCtx[ idx ],
+                        mapper.getExchangeType( ),
+                        mapper.getGridSuperCells( ),
+                        DataSpace< dim >::create( mapper.getGuardingSuperCells( ) )
+                    );
 
+                    pb.setAsLastFrame(
+                        frame,
+                        dstSuperCell
+                    );
+                }
+            }
+        );
 
     }
 };
-
 
 } //namespace PMacc

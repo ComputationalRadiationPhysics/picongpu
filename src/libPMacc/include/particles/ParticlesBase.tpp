@@ -85,18 +85,31 @@ namespace PMacc
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
     void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::insertParticles(uint32_t exchangeType)
     {
-        if (particlesBuffer->hasReceiveExchange(exchangeType))
+        if( particlesBuffer->hasReceiveExchange( exchangeType ) )
         {
-
-            size_t grid(particlesBuffer->getReceiveExchangeStack(exchangeType).getHostCurrentSize());
-            if (grid != 0)
+            size_t grid( particlesBuffer->getReceiveExchangeStack( exchangeType ).getHostCurrentSize( ) );
+            if( grid != 0u )
             {
-                ExchangeMapping<GUARD, MappingDesc> mapper(this->cellDescription, exchangeType);
-                PMACC_KERNEL(KernelInsertParticles{})
-                        (grid, (int)TileSize)
-                        (particlesBuffer->getDeviceParticleBox(),
-                        particlesBuffer->getReceiveExchangeStack(exchangeType).getDeviceExchangePopDataBox(),
-                        mapper);
+                ExchangeMapping<
+                    GUARD,
+                    MappingDesc
+                > mapper(
+                    this->cellDescription,
+                    exchangeType
+                );
+
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    math::CT::volume< typename FrameType::SuperCellSize >::type::value
+                >::value;
+
+                PMACC_KERNEL( KernelInsertParticles< numWorkers >{ } )(
+                    grid,
+                    numWorkers
+                )(
+                    particlesBuffer->getDeviceParticleBox( ),
+                    particlesBuffer->getReceiveExchangeStack( exchangeType ).getDeviceExchangePopDataBox( ),
+                    mapper
+                );
             }
         }
     }
