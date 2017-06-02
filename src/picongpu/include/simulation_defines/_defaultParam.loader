@@ -30,6 +30,7 @@
 #include "simulation_defines/param/seed.param"
 #include "simulation_defines/param/precision.param"
 #include "simulation_defines/param/physicalConstants.param"
+#include "simulation_defines/param/flylite.param"
 #include "simulation_defines/param/speciesConstants.param"
 #include "simulation_defines/param/speciesAttributes.param"
 #include "simulation_defines/param/synchrotronPhotons.param"
