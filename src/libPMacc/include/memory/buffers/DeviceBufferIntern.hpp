@@ -83,7 +83,7 @@ public:
         this->data1D = false;
     }
 
-    virtual ~DeviceBufferIntern()
+    virtual ~DeviceBufferIntern() throw (std::runtime_error)
     {
         __startOperation(ITask::TASK_CUDA);
 
