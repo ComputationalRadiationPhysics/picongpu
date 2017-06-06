@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.3.0
 -----
-**Date:** 2017-05-..
+**Date:** 2017-06-..
 
 C++11: Bremsstrahlung, EmZ, Thomas-Fermi, Improved Lasers
 
@@ -133,8 +133,7 @@ for detailed instructions.
    - Adjust `radAmplitude` python module after openPMD changes #1885
    - HDF5/ADIOS: ill-placed helper `#include` #1846
    - `#include`: never inside namespace #1835
- - work-around for bug in boost 1.64.0 (odeint) + CUDA 7.5 #2053
- - boost 1.64.0 + CUDA 8.0 are currently broken #2069
+ - work-around for bug in boost 1.64.0 (odeint) + CUDA NVCC 7.5 & 8.0 #2053 #2076
 
 **Misc:**
  - refactoring:
