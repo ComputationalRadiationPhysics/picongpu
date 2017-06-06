@@ -1,0 +1,41 @@
+# Modules #####################################################################
+#
+
+# workaround for module system to be still
+# working after module purge
+export TMPMOD=$MODULEPATH
+        module purge
+export MODULEPATH=$TMPMOD
+
+        # Core Dependencies
+        module load gcc-4.7.0
+        module load cmake-3.2.3
+        module load openmpi-1.6-gcc
+        module load boost-1.56-gcc
+        module load cuda-6.5
+        # module load mallocmc/2.0.1
+
+        # Plugins (optional)
+        # module load pngwriter/0.5.4
+        module load hdf5-1.8.14-gcc
+
+        # either use libSplash or ADIOS for file I/O
+        #module load libmxml/2.8 filelib/adios/1.7.0
+
+        # Debug Tools
+        #module load valgrind/3.8.1
+        #module load vampirtrace/5.14.4-GPU
+
+
+# Environment #################################################################
+#
+
+# send me a mails on job (b)egin, (e)nd, (a)bortion or (n)o mails
+export MY_MAIL="user@example.com"
+export MY_MAILNOTIFY="n"
+
+export TBG_SUBMIT="qsub"
+export TBG_TPLFILE="submit/hypnos/k20_profile.tpl"
+
+export PNGWRITER_ROOT=$HOME/lib/pngwriter
+export SPLASH_ROOT=$HOME/lib/splash
