@@ -29,9 +29,7 @@ namespace traits
      * \see http://git.io/vROmP */
     constexpr uint32_t NUnitDimension = 7;
 
-    // pre-C++11 "scoped enumerator" work-around
-    namespace SIBaseUnits {
-    enum SIBaseUnits_t
+    enum class SIBaseUnits
     {
         length = 0,                   // L
         mass = 1,                     // M
@@ -41,7 +39,6 @@ namespace traits
         amountOfSubstance = 5,        // N
         luminousIntensity = 6,        // J
     };
-    }
 
 } // namespace traits
 } // namespace picongpu
