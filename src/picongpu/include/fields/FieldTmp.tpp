@@ -29,7 +29,6 @@
 
 #include "mappings/kernel/AreaMapping.hpp"
 #include "eventSystem/EventSystem.hpp"
-#include "mappings/kernel/ExchangeMapping.hpp"
 #include "fields/tasks/FieldFactory.hpp"
 
 #include "dimensions/SuperCellDescription.hpp"
@@ -40,13 +39,14 @@
 #include "fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include "math/Vector.hpp"
-
-#include <boost/mpl/accumulate.hpp>
+#include "fields/operations/CopyGuardToExchange.hpp"
+#include "fields/operations/AddExchangeToBorder.hpp"
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "traits/GetMargin.hpp"
 #include "traits/GetUniqueTypeId.hpp"
 
+#include <boost/mpl/accumulate.hpp>
 #include <string>
 #include <memory>
 
@@ -267,33 +267,20 @@ namespace picongpu
 
     void FieldTmp::bashField( uint32_t exchangeType )
     {
-        ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
-
-        auto grid = mapper.getGridDim( );
-
-        const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-        PMACC_KERNEL( KernelBashValue{} )
-            ( grid, mapper.getSuperCellSize( ) )
-            ( fieldTmp->getDeviceBuffer( ).getDataBox( ),
-              fieldTmp->getSendExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
-              fieldTmp->getSendExchange( exchangeType ).getDeviceBuffer( ).getDataSpace( ),
-              direction,
-              mapper );
+        PMacc::fields::operations::CopyGuardToExchange{ }(
+            *fieldTmp,
+            SuperCellSize{ },
+            exchangeType
+        );
     }
 
     void FieldTmp::insertField( uint32_t exchangeType )
     {
-        ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
-
-        auto grid = mapper.getGridDim( );
-
-        const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-        PMACC_KERNEL( KernelInsertValue{} )
-            ( grid, mapper.getSuperCellSize( ) )
-            ( fieldTmp->getDeviceBuffer( ).getDataBox( ),
-              fieldTmp->getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
-              fieldTmp->getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataSpace( ),
-              direction, mapper );
+        PMacc::fields::operations::AddExchangeToBorder{ }(
+            *fieldTmp,
+            SuperCellSize{ },
+            exchangeType
+        );
     }
 
     FieldTmp::DataBoxType FieldTmp::getDeviceDataBox( )
