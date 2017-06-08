@@ -50,7 +50,7 @@ namespace PMacc
         {
             state = Init;
             __startTransaction(initDependency);
-            parBase.bashParticles(exchange);
+            parBase.copyGuardToExchange(exchange);
             tmpEvent = __endTransaction();
             state = WaitForBash;
         }

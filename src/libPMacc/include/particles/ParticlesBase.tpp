@@ -81,7 +81,7 @@ namespace PMacc
     }
 
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
-    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::bashParticles( uint32_t exchangeType )
+    void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::copyGuardToExchange( uint32_t exchangeType )
     {
         if( particlesBuffer->hasSendExchange( exchangeType ) )
         {

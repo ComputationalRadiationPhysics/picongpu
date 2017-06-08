@@ -179,10 +179,11 @@ public:
     template<uint32_t T_area>
     void deleteParticlesInArea();
 
-    /* Bash particles in a direction.
-     * Copy all particles from the guard of a direction to the device exchange buffer
+    /** copy gard particles to intermediate exchange buffer
+     *
+     * Copy all particles from the guard of a direction to the device exchange buffer.
      */
-    void bashParticles(uint32_t exchangeType);
+    void copyGuardToExchange(uint32_t exchangeType);
 
     /* Insert all particles which are in device exchange buffer
      */
