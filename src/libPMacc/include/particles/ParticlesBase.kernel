@@ -231,6 +231,8 @@ struct KernelFillGapsLastFrame
 /** fill particle gaps in all frames
  *
  * Copy all particles from the end to the gaps at the beginning of the frame list.
+ * The functor fulfills the restriction that the last frame must be hold a contiguous
+ * number of valid particles at the beginning and a subsequent, contiguous gap at the end.
  *
  * @tparam T_numWorkers number of workers
  */
@@ -457,14 +459,28 @@ struct KernelFillGaps
             __syncthreads( );
 
         }
+
+        // fill all gaps in the last frame of the supercell
+        KernelFillGapsLastFrame< numWorkers >{ }(
+            pb,
+            mapper
+        );
     }
 };
 
+/** shift particles those leaving the supercell
+ *
+ * The functor fulfills the restriction that all frames expect the last
+ * must be filled with as many particles as can be stored in a frame.
+ *
+ * @tparam T_numWorkers number of workers
+ */
 template< uint32_t T_numWorkers >
 struct KernelShiftParticles
 {
-    /*! This kernel move particles to the next supercell
-     * This kernel can only run with a double checker board
+    /** This kernel move particles to the next supercell
+     *
+     * @warning this kernel can only run with a double checker board
      */
     template<
         class T_ParBox,
@@ -756,6 +772,11 @@ struct KernelShiftParticles
             }
         );
 
+        // fill all gaps in the frame list of the supercell
+        KernelFillGaps< numWorkers >{ }(
+            pb,
+            mapper
+        );
     }
 };
 
