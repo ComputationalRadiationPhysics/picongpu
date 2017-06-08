@@ -34,6 +34,8 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+
+// PMacc
 #include "particles/Identifier.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "dimensions/DataSpace.hpp"
@@ -45,131 +47,170 @@
 
 namespace picongpu
 {
+    /** relative (to cell origin) in-cell position of a particle
+     *
+     * With this definition we do not define any type like float3_X,
+     * float3_64, ...
+     * This is only a name without a specialization.
+     */
+    alias( position );
 
-/** relative (to cell origin) in-cell position of a particle
- * With this definition we not define any type like float3,double3,...
- * This is only a name without a specialization
- */
-alias(position);
+    //! unique identifier for a particle
+    value_identifier(
+        uint64_t,
+        particleId,
+        IdProvider< simDim >::getNewId()
+    );
 
-value_identifier(uint64_t,particleId,IdProvider<simDim>::getNewId());
+    //! specialization for the relative in-cell position
+    value_identifier(
+        floatD_X,
+        position_pic,
+        floatD_X::create( 0. )
+    );
 
-/** specialization for the relative in-cell position */
-value_identifier(floatD_X,position_pic,floatD_X::create(0.));
-/** momentum at timestep t */
-value_identifier(float3_X,momentum,float3_X::create(0.));
-/** momentum at (previous) timestep t-1 */
-value_identifier(float3_X,momentumPrev1,float3_X::create(0.));
-/** weighting of the macro particle */
-value_identifier(float_X, weighting, 0.0);
+    //! momentum at timestep t
+    value_identifier(
+        float3_X,
+        momentum,
+        float3_X::create( 0. )
+    );
 
-/** masking a particle for radiation
- *
- * The mask is used by the user defined filter
- * `RadiationParticleFilter` in `radiation.param` to (de)select
- * particles for the radiation calculation.
- */
-value_identifier(bool, radiationMask, false);
+    //! momentum at (previous) timestep t-1
+    value_identifier(
+        float3_X,
+        momentumPrev1,
+        float3_X::create( 0. )
+    );
 
-/** number of electrons bound to the atom / ion
- *
- * value type is float_X to avoid casts during the runtime
- * - float_X instead of integer types are reasonable because effective charge
- *   numbers are possible
- * - required for ion species if ionization is enabled
- *
- * \todo connect default to proton number
- */
-value_identifier(float_X,boundElectrons,float_X(0.0));
+    //! weighting of the macro particle
+    value_identifier(
+        float_X,
+        weighting,
+        float_X( 0. )
+    );
 
-/** atomic superconfiguration
- *
- * atomic configuration of an ion for collisional-radiative modeling
- *
- * \see flylite.param
- */
-value_identifier(
-    flylite::Superconfig,
-    superconfig,
-    flylite::Superconfig::create( 0. )
-);
+    /** masking a particle for radiation
+     *
+     * The mask is used by the user defined filter
+     * `RadiationParticleFilter` in radiation.param to (de)select
+     * particles for the radiation calculation.
+     */
+    value_identifier(
+        bool,
+        radiationMask,
+        false
+    );
 
-/** Total cell index of a particle.
- *
- *  The total cell index is a
- *  N-dimensional DataSpace given by a GPU's
- *    globalDomain.offset + localDomain.offset
- *  added to the N-dimensional cell index the particle belongs to on that GPU.
- */
-value_identifier(DataSpace<simDim>, totalCellIdx, DataSpace<simDim>());
+    /** number of electrons bound to the atom / ion
+     *
+     * value type is float_X to avoid casts during the runtime
+     * - float_X instead of integer types are reasonable because effective charge
+     *   numbers are possible
+     * - required for ion species if ionization is enabled
+     *
+     * @todo connect default to proton number
+     */
+    value_identifier(
+        float_X,
+        boundElectrons,
+        float_X( 0. )
+    );
 
-/*! alias for particle shape @see species.param */
-alias(shape);
+    /** atomic superconfiguration
+     *
+     * atomic configuration of an ion for collisional-radiative modeling,
+     * see also flylite.param
+     */
+    value_identifier(
+        flylite::Superconfig,
+        superconfig,
+        flylite::Superconfig::create( 0. )
+    );
 
-/*! alias for particle pusher @see species.param */
-alias(particlePusher);
+    /** Total cell index of a particle.
+     *
+     *  The total cell index is a
+     *  N-dimensional DataSpace given by a GPU's
+     *    `globalDomain.offset` + `localDomain.offset`
+     *  added to the N-dimensional cell index the particle belongs to on that GPU.
+     */
+    value_identifier(
+        DataSpace< simDim >,
+        totalCellIdx,
+        DataSpace< simDim >( )
+    );
 
-/*! alias for particle ionizers @see ionizer.param */
-alias(ionizers);
+    //! alias for particle shape, see also species.param
+    alias( shape );
 
-/*! alias for ionization energy container @see ionizationEnergies.param */
-alias(ionizationEnergies);
+    //! alias for particle pusher, see alsospecies.param
+    alias( particlePusher );
 
-/*! alias for synchrotronPhotons @see speciesDefinition.param */
-alias(synchrotronPhotons)
+    //! alias for particle ionizers, see also ionizer.param
+    alias( ionizers );
 
-/*! alias for ion species used for bremsstrahlung */
-alias(bremsstrahlungIons);
+    //! alias for ionization energy container, see also ionizationEnergies.param
+    alias( ionizationEnergies );
 
-/*! alias for photon species used for bremsstrahlung */
-alias(bremsstrahlungPhotons);
+    //! alias for synchrotronPhotons, see also speciesDefinition.param
+    alias( synchrotronPhotons )
 
-/*! alias for particle to field interpolation @see species.param */
-alias(interpolation);
+    //! alias for ion species used for bremsstrahlung
+    alias( bremsstrahlungIons );
 
-/*! alias for particle current solver @see species.param */
-alias(current);
+    //! alias for photon species used for bremsstrahlung
+    alias( bremsstrahlungPhotons );
 
-/*! alias for particle flag: atomic numbers @see ionizer.param
- * - only reasonable for atoms / ions / nuclei
- */
-alias(atomicNumbers);
+    //! alias for particle to field interpolation, see also species.param
+    alias( interpolation );
 
-/*! alias for particle flag: effective nuclear charge @see ionizer.param
- * - only reasonable for atoms / ions / nuclei
- */
-alias(effectiveNuclearCharge);
+    //! alias for particle current solver, see also species.param
+    alias( current );
 
-/*! alias for particle population kinetics model, e.g. FLYlite
- * @see flylite.param
- */
-alias(populationKinetics);
+    /** alias for particle flag: atomic numbers, see also ionizer.param
+     * - only reasonable for atoms / ions / nuclei
+     */
+    alias( atomicNumbers );
 
-/*! alias for particle mass ratio
- *
- * mass ratio between base particle @see `speciesConstants.param` SI::BASE_MASS_SI
- * and a user defined species
- *
- * default value: 1.0 if unset
- */
-alias(massRatio);
+    /** alias for particle flag: effective nuclear charge,
+     *
+     * - see also ionizer.param
+     * - only reasonable for atoms / ions / nuclei
+     */
+    alias( effectiveNuclearCharge );
 
-/*! alias for particle charge ratio
- *
- * charge ratio between base particle @see `speciesConstants.param` SI::BASE_CHARGE_SI
- * and a user defined species
- *
- * default value: 1.0 if unset
- */
-alias(chargeRatio);
+    /** alias for particle population kinetics model (e.g. FLYlite)
+     *
+     * see also flylite.param
+     */
+    alias( populationKinetics );
 
-/*! alias for particle density ratio
- *
- * density ratio between default density @see `density.param` SI::BASE_DENSITY_SI
- * and a user defined species
- *
- * default value: 1.0 if unset
- */
-alias(densityRatio);
+    /** alias for particle mass ratio
+     *
+     * mass ratio between base particle, see also
+     * speciesConstants.param `SI::BASE_MASS_SI` and a user defined species
+     *
+     * default value: 1.0 if unset
+     */
+    alias( massRatio );
 
-}
+    /** alias for particle charge ratio
+     *
+     * charge ratio between base particle, see also
+     * speciesConstants.param `SI::BASE_CHARGE_SI` and a user defined species
+     *
+     * default value: 1.0 if unset
+     */
+    alias( chargeRatio );
+
+    /** alias for particle density ratio
+     *
+     * density ratio between default density, see also
+     * density.param `SI::BASE_DENSITY_SI` and a user defined species
+     *
+     * default value: 1.0 if unset
+     */
+    alias( densityRatio );
+
+} // namespace picongpu
