@@ -39,7 +39,7 @@ namespace fields
 namespace operations
 {
 
-    /** add the intermediate to the local box
+    /** Add field values from a received temporary buffer (exchange) to the local box (border)
      *
      * @tparam T_numWorkers number of workers
      */
@@ -80,19 +80,19 @@ namespace operations
 
             using SuperCellSize = typename T_Mapping::SuperCellSize;
 
-            /* number of cells in a superCell */
+            // number of cells in a superCell
             constexpr uint32_t numCells = PMacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
             constexpr int dim = T_Mapping::Dim;
 
             uint32_t const workerIdx = threadIdx.x;
 
-            DataSpace< dim > const  blockCell(
+            DataSpace< dim > const blockCell(
                 mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) )
                     * SuperCellSize::toRT()
             );
 
-            /*origin in area from local GPU*/
+            // origin in area from local GPU
             DataSpace< dim > nullSourceCell(
                 mapper.getSuperCellIndex( DataSpace< dim > () )
                 * SuperCellSize::toRT()
@@ -109,30 +109,33 @@ namespace operations
                     uint32_t const
                 )
                 {
-                    /* cell index within the superCell */
+                    // cell index within the superCell
                     DataSpace< dim > const cellIdx = DataSpaceOperations< dim >::template map< SuperCellSize >( linearIdx );
                     DataSpace< dim > targetCell( blockCell + cellIdx );
                     DataSpace< dim > sourceCell( targetCell - nullSourceCell );
 
-                    bool assignValue = true;
+                    /* defines if the virtual worker needs to add the value from
+                     * the exchange box to the cell in the border
+                     */
+                    bool addValue = true;
 
                     for( uint32_t d = 0; d < dim; ++d )
                     {
                         if( direction[ d ] == 1 )
                         {
                             if( cellIdx[ d ] < SuperCellSize::toRT()[ d ] - exchangeSize[ d ] )
-                                assignValue = false;
+                                addValue = false;
                             sourceCell[ d ] -= SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
                             targetCell[ d ] -= SuperCellSize::toRT()[ d ];
                         }
                         else if( direction[ d ] == -1 )
                         {
                             if( cellIdx[ d ] >= exchangeSize[ d ] )
-                                assignValue = false;
+                                addValue = false;
                             targetCell[ d ] += SuperCellSize::toRT()[ d ];
                         }
                     }
-                    if( assignValue )
+                    if( addValue )
                         destBox( targetCell ) += exchangeBox( sourceCell );
                 }
             );
@@ -142,8 +145,8 @@ namespace operations
 
     /** add a exchange buffer to the border of the local buffer
      *
-     * CopyGuardToExchange is the contrarious operation for the neighboring
-     * device to create a exchange which can be added with this functor.
+     * CopyGuardToExchange is the opposite operation for the neighboring
+     * device to create an exchange which can be added with this functor.
      */
     struct AddExchangeToBorder
     {
@@ -181,9 +184,10 @@ namespace operations
                 SuperCellSize
             >;
 
-            /* use only the x dimension to determine the number of supercells in the guard
-             * PMacc restriction: all dimension must have the some number of guarding
-             * supercells.
+            /* use only the x dimension to determine the number of supercells in the GUARD
+             *
+             * @warning PMacc restriction: all dimension must have the some number of guarding
+             * supercells
              */
             int const numGuardSuperCells = destBuffer.getGridLayout().getGuard().x() /
                 SuperCellSize::x::value;

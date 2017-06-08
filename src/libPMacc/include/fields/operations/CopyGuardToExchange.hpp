@@ -39,14 +39,14 @@ namespace fields
 namespace operations
 {
 
-    /** copy guarding cells to the intermediate box
+    /** copy guarding cells to an intermediate buffer
      *
      * @tparam T_numWorkers number of workers
      */
     template< uint32_t T_numWorkers >
     struct KernelCopyGuardToExchange
     {
-        /** copy guarding cells to the intermediate box
+        /** copy guarding cells to an intermediate box
          *
          * @tparam T_ExchangeBox PMacc::ExchangeBox, type of the intermediate box
          * @tparam T_SrcBox PMacc::DataBox, type of the local box
@@ -77,7 +77,7 @@ namespace operations
 
             using SuperCellSize = typename T_Mapping::SuperCellSize;
 
-            /* number of cells in a superCell */
+            // number of cells in a superCell
             constexpr uint32_t numCells = PMacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
             constexpr int dim = T_Mapping::Dim;
@@ -89,7 +89,7 @@ namespace operations
                 SuperCellSize::toRT()
             );
 
-            /*origin in area from local GPU*/
+            // origin in area from local GPU
             DataSpace< dim > nullSourceCell(
                 mapper.getSuperCellIndex( DataSpace< dim > () ) *
                 SuperCellSize::toRT()
@@ -106,27 +106,30 @@ namespace operations
                     uint32_t const
                 )
                 {
-                    /* cell index within the superCell */
+                    // cell index within the superCell
                     DataSpace< dim > const cellIdx = DataSpaceOperations< dim >::template map< SuperCellSize >( linearIdx );
 
                     DataSpace< T_Mapping::Dim > const sourceCell( blockCell + cellIdx );
                     DataSpace< dim > targetCell( sourceCell - nullSourceCell );
 
-                    bool assignValue = true;
+                    /* defines if the virtual worker needs to copy the value of
+                     * the cell to to the exchange box
+                     */
+                    bool copyValue = true;
 
                     for( uint32_t d = 0; d < dim; ++d )
                     {
                         if( direction[ d ] == -1 )
                         {
                             if( cellIdx[ d ] < SuperCellSize::toRT()[ d ] - exchangeSize[ d ] )
-                                assignValue = false;
+                                copyValue = false;
                             targetCell[ d ] -= SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
                         }
                         else if( direction[d] == 1 && cellIdx[ d ] >= exchangeSize[d]  )
-                            assignValue = false;
+                            copyValue = false;
                     }
 
-                    if( assignValue )
+                    if( copyValue )
                         exchangeBox( targetCell ) = srcBox( sourceCell );
                 }
             );
@@ -135,7 +138,7 @@ namespace operations
 
     /** copy guard of the local buffer to the exchange buffer
      *
-     * AddExchangeToBorder is the contrarious operation for the neighboring
+     * AddExchangeToBorder is the opposite operation for the neighboring
      * device to add the exchange buffer to the local field.
      */
     struct CopyGuardToExchange
