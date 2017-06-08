@@ -119,8 +119,11 @@ rsync
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
 
-PIConGPU source code
-""""""""""""""""""""
+.. _install-dependencies-picongpu:
+
+PIConGPU Source Code
+^^^^^^^^^^^^^^^^^^^^
+
 - ``git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $HOME/src/picongpu``
 
   - *optional:* update the source code with ``cd $HOME/src/picongpu && git fetch && git pull``
