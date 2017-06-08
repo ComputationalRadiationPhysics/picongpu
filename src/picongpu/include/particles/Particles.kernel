@@ -20,20 +20,16 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "simulation_defines.hpp"
 #include "particles/frame_types.hpp"
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
-#include "simulation_types.hpp"
-#include "simulation_defines.hpp"
 
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/CachedBox.hpp"
-
-#include <curand_kernel.h>
 
 #include "nvidia/functors/Assign.hpp"
 #include "mappings/threads/ThreadCollective.hpp"
@@ -50,69 +46,155 @@
 #include "particles/InterpolationForPusher.hpp"
 #include "memory/shared/Allocate.hpp"
 #include "traits/HasFlag.hpp"
+#include "mappings/threads/ForEachIdx.hpp"
+#include "mappings/threads/IdxConfig.hpp"
+
 
 namespace picongpu
 {
 
-using namespace PMacc;
-
-
+/** derive new particles from a source species
+ *
+ * This functor prepare a source and destination particle box to call
+ * a user defined functor which allows o derive new particles out of
+ * another species.
+ *
+ * @tparam T_numWorkers number of workers
+ */
+template< uint32_t T_numWorkers >
 struct KernelDeriveParticles
 {
-    template<class T_MyParBox, class T_OtherFrameBox, class T_ManipulateFunctor, class Mapping>
-    DINLINE void operator()(T_MyParBox myBox, T_OtherFrameBox otherBox, T_ManipulateFunctor manipulateFunctor, Mapping mapper) const
+    /** frame wise derive new particles
+     *
+     * @tparam T_DestParBox PMacc::ParticlesBox, type of the destination species box
+     * @tparam T_SrcParBox PMacc::ParticlesBox, type of the source species box
+     * @tparam T_ManipulateFunctor type of the user functor to derive a particle
+     * @tparam T_Mapping mapping functor type
+     *
+     * @param destBox particles box for the destination species
+     * @param srcBox particles box of the source species
+     * @param manipulateFunctor functor to derive a particle out of another one
+     *                          must fulfill the interface particles::manipulators::IManipulator
+     * @param mapper functor to map a block to a supercell
+     */
+   template<
+        class T_DestParBox,
+        class T_SrcParBox,
+        class T_ManipulateFunctor,
+        class T_Mapping
+    >
+    DINLINE void operator()(
+        T_DestParBox & destBox,
+        T_SrcParBox & srcBox,
+        T_ManipulateFunctor & manipulateFunctor,
+        T_Mapping const & mapper
+    ) const
     {
         using namespace PMacc::particles::operations;
-        typedef typename T_MyParBox::FramePtr MyFramePtr;
-        typedef typename T_OtherFrameBox::FramePtr OtherFramePtr;
+        using namespace mappings::threads;
 
-        PMACC_SMEM( frame, OtherFramePtr );
+        using DestFramePtr = typename T_DestParBox::FramePtr;
+        using SrcFramePtr = typename T_SrcParBox::FramePtr;
 
-        PMACC_SMEM( myFrame, MyFramePtr );
+        constexpr uint32_t frameSize = PMacc::math::CT::volume< SuperCellSize >::type::value;
+        constexpr uint32_t numWorker = T_numWorkers;
 
+        uint32_t const workerIdx = threadIdx.x;
 
-        typedef typename Mapping::SuperCellSize SuperCellSize;
+        PMACC_SMEM(
+            srcFrame,
+            SrcFramePtr
+        );
+        PMACC_SMEM(
+            destFrame,
+            DestFramePtr
+        );
 
+        DataSpace< simDim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) );
 
-        const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
-        /* offset of the superCell (in cells, without any guards) to the origin of the local domain */
-        const DataSpace<simDim> localSuperCellOffset =
-            block * SuperCellSize::toRT()
-            - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+        // offset of the superCell (in cells, without any guards) to the origin of the local domain
+        DataSpace< simDim > const localSuperCellOffset =
+            superCellIdx * SuperCellSize::toRT( )
+            - mapper.getGuardingSuperCells( ) * SuperCellSize::toRT( );
 
-        if (threadIdx.x == 0)
-        {
-            frame = otherBox.getFirstFrame(block);
-            if (frame.isValid())
+        ForEachIdx<
+            IdxConfig<
+                1,
+                numWorker
+            >
+        > onlyMaster{ workerIdx };
+
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
             {
-                //we have everything to clone
-                myFrame = myBox.getEmptyFrame();
-            }
-        }
-        __syncthreads();
-        while (frame.isValid()) //move over all Frames
-        {
-            auto parDest = myFrame[threadIdx.x];
-            auto parSrc = frame[threadIdx.x];
-            assign(parDest, deselect<particleId>(parSrc));
-
-            manipulateFunctor(localSuperCellOffset,
-                              parDest, parSrc,
-                              true, parSrc[multiMask_] == 1);
-
-            __syncthreads();
-
-            if (threadIdx.x == 0)
-            {
-                myBox.setAsLastFrame(myFrame, block);
-
-                frame = otherBox.getNextFrame(frame);
-                if (frame.isValid())
+                srcFrame = srcBox.getFirstFrame( superCellIdx );
+                if( srcFrame.isValid( ) )
                 {
-                    myFrame = myBox.getEmptyFrame();
+                    // we have something to clone
+                    destFrame = destBox.getEmptyFrame( );
                 }
             }
-            __syncthreads();
+        );
+
+        __syncthreads( );
+
+        // move over all Frames
+        while( srcFrame.isValid( ) )
+        {
+            using ParticleDomCfg = IdxConfig<
+                frameSize,
+                numWorker
+            >;
+
+            // loop over all particles in the frame
+            ForEachIdx< ParticleDomCfg >{ workerIdx }
+            (
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    auto parDest = destFrame[ linearIdx ];
+                    auto parSrc = srcFrame[ linearIdx ];
+                    assign(
+                        parDest,
+                        deselect< particleId >( parSrc )
+                    );
+
+                    manipulateFunctor(
+                        localSuperCellOffset,
+                        parDest,
+                        parSrc,
+                        true,
+                        parSrc[ multiMask_ ] == 1
+                    );
+                }
+            );
+
+            __syncthreads( );
+
+            onlyMaster(
+                [&](
+                    uint32_t const,
+                    uint32_t const
+                )
+                {
+                    destBox.setAsLastFrame(
+                        destFrame,
+                        superCellIdx
+                    );
+
+                    srcFrame = srcBox.getNextFrame( srcFrame );
+                    if( srcFrame.isValid( ) )
+                    {
+                        destFrame = destBox.getEmptyFrame( );
+                    }
+                }
+            );
+            __syncthreads( );
         }
     }
 };
