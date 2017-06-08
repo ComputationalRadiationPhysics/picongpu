@@ -99,7 +99,7 @@ Ammosov-Delone-Krainov (ADK)
 
     \begin{align}
         \Gamma_\mathrm{ADK} &= \underbrace{\sqrt{\frac{3 n^{*3} F}{\pi Z^3}}}_\text{lin. pol.} \frac{F D^2}{8 \pi Z} \exp\left(-\frac{2Z}{3n^{*3}F}\right) \\
-        D &\equiv \left( \frac{4 \exp Z^3}{F n^{*4}} \right)^{n^*} \hspace{2cm} n^* = \frac{Z}{\sqrt{2 E_\mathrm{ip}}}
+        D &\equiv \left( \frac{4 \mathrm{e} Z^3}{F n^{*4}} \right)^{n^*} \hspace{2cm} n^* \equiv \frac{Z}{\sqrt{2 E_\mathrm{ip}}}
     \end{align}
 
 We implemented equation (7) from [DeloneKrainov]_ which is a *simplified result assuming s-states* (since we have no atomic structure implemented, yet).
