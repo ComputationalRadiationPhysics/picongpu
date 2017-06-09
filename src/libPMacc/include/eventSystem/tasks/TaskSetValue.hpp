@@ -24,11 +24,14 @@
 
 #include "dimensions/DataSpace.hpp"
 #include "mappings/simulation/EnvironmentController.hpp"
+#include "mappings/threads/ForEachIdx.hpp"
+#include "mappings/threads/IdxConfig.hpp"
 #include "memory/buffers/DeviceBuffer.hpp"
 #include "memory/boxes/DataBox.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "nvidia/gpuEntryFunction.hpp"
+#include "traits/GetNumWorkers.hpp"
 
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits.hpp>
@@ -82,20 +85,68 @@ getValue(T_Type& value)
 
 }
 
+/** set a value to all elements of a box
+ *
+ * @tparam T_numWorkers number of workers
+ * @tparam T_xChunkSize number of elements in x direction to prepare with one cuda block
+ */
+template<
+    uint32_t T_numWorkers,
+    uint32_t T_xChunkSize
+>
 struct KernelSetValue
 {
-    template <class DataBox, typename T_ValueType, typename Space>
-    DINLINE void operator()(DataBox data, const T_ValueType value, const Space size) const
+    /** set value to all elements
+     *
+     * @tparam T_DataBox PMacc::DataBox, type of the memory box
+     * @tparam T_ValueType type of the value
+     * @tparam T_SizeVecType PMacc::math::Vector, index type
+     *
+     * @param memBox box where all elements should be set to value
+     * @param value value to set to all elements of memBox
+     * @param size extents of memBox
+     */
+    template<
+        typename T_DataBox,
+        typename T_ValueType,
+        typename T_SizeVecType
+    >
+    DINLINE void
+    operator()(
+        T_DataBox & memBox,
+        T_ValueType const & value,
+        T_SizeVecType const & size
+    ) const
     {
-        const Space threadIndex(threadIdx);
-        const Space blockIndex(blockIdx);
-        const Space gridSize(blockDim);
+        using namespace mappings::threads;
+        using SizeVecType = T_SizeVecType;
 
-        Space idx(gridSize * blockIndex + threadIndex);
+        SizeVecType const blockIndex( blockIdx );
+        SizeVecType blockSize( SizeVecType::create( 1 ) );
+        blockSize.x( ) = T_xChunkSize;
 
-        if (idx.x() >= size.x())
-            return;
-        data(idx) = taskSetValueHelper::getValue(value);
+        constexpr uint32_t numWorkers = T_numWorkers;
+        uint32_t const workerIdx = threadIdx.x;
+
+        ForEachIdx<
+            IdxConfig<
+                T_xChunkSize,
+                numWorkers
+            >
+        >{ workerIdx }(
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
+            {
+                auto virtualWorkerIdx( SizeVecType::create( 0 ) );
+                virtualWorkerIdx.x( ) = linearIdx;
+
+                SizeVecType const idx( blockSize * blockIndex + virtualWorkerIdx );
+                if( idx.x() < size.x() )
+                    memBox( idx ) = taskSetValueHelper::getValue( value );
+            }
+        );
     }
 };
 
@@ -174,30 +225,42 @@ public:
 
     virtual void init()
     {
-        size_t current_size = this->destination->getCurrentSize();
-        const DataSpace<dim> area_size(this->destination->getCurrentDataSpace(current_size));
+        size_t current_size = this->destination->getCurrentSize( );
+        const DataSpace< dim > area_size( this->destination->getCurrentDataSpace( current_size ) );
 
-        if(area_size.productOfComponents() != 0)
+        if( area_size.productOfComponents() != 0 )
         {
             auto gridSize = area_size;
 
-            /* line wise thread blocks*/
-            gridSize.x() = ceil(double(gridSize.x()) / 256.);
+            // size of a chunk(in elements)
+            constexpr int xChunkSize = 256;
+            constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                xChunkSize
+            >::value;
 
-            auto destBox = this->destination->getDataBox();
+            // use chunks with 256 elements in x direction
+            gridSize.x() = ceil(
+                static_cast< double >( gridSize.x( ) ) /
+                static_cast< double >( xChunkSize )
+           );
+
+            auto destBox = this->destination->getDataBox( );
             nvidia::gpuEntryFunction<<<
                 gridSize,
-                256,
+                numWorkers,
                 0,
-                this->getCudaStream()
+                this->getCudaStream( )
             >>>(
-                KernelSetValue{},
+                KernelSetValue<
+                    numWorkers,
+                    xChunkSize
+                >{ },
                 destBox,
                 this->value,
                 area_size
             );
         }
-        this->activate();
+        this->activate( );
     }
 };
 
@@ -235,26 +298,45 @@ public:
         {
             auto gridSize = area_size;
 
-            /* line wise thread blocks*/
-            gridSize.x()= ceil(double(gridSize.x()) / 256.);
+            // size of a chunk(in elements)
+            constexpr int xChunkSize = 256;
+            constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                xChunkSize
+            >::value;
+
+            // use chunks with 256 elements in x direction
+            gridSize.x() = ceil(
+                static_cast< double >( gridSize.x( ) ) /
+                static_cast< double >( xChunkSize )
+            );
 
             ValueType* devicePtr = this->destination->getPointer();
 
-            CUDA_CHECK(cudaMallocHost(&valuePointer_host, sizeof (ValueType)));
+            CUDA_CHECK( cudaMallocHost(
+                &valuePointer_host,
+                sizeof( ValueType )
+            ));
             *valuePointer_host = this->value; //copy value to new place
 
-            CUDA_CHECK(cudaMemcpyAsync(
-                                       devicePtr, valuePointer_host, sizeof (ValueType),
-                                       cudaMemcpyHostToDevice, this->getCudaStream()));
+            CUDA_CHECK( cudaMemcpyAsync(
+                devicePtr,
+                valuePointer_host,
+                sizeof( ValueType ),
+                cudaMemcpyHostToDevice,
+                this->getCudaStream( )
+            ));
 
-            auto destBox = this->destination->getDataBox();
+            auto destBox = this->destination->getDataBox( );
             nvidia::gpuEntryFunction<<<
                 gridSize,
-                256,
+                numWorkers,
                 0,
                 this->getCudaStream()
             >>>(
-                KernelSetValue{},
+                KernelSetValue<
+                    numWorkers,
+                    xChunkSize
+                >{ },
                 destBox,
                 devicePtr,
                 area_size
