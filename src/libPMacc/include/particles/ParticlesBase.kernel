@@ -87,7 +87,7 @@ struct KernelFillGapsLastFrame
         constexpr uint32_t dim = T_Mapping::Dim;
         constexpr uint32_t numWorkers = T_numWorkers;
 
-        typedef typename T_ParBox::FramePtr FramePtr;
+        using FramePtr = typename T_ParBox::FramePtr;
 
         DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim > ( blockIdx ) );
 
@@ -468,17 +468,17 @@ struct KernelFillGaps
     }
 };
 
-/** shift particles those leaving the supercell
+/** shift particles leaving the supercell
  *
- * The functor fulfills the restriction that all frames expect the last
- * must be filled with as many particles as can be stored in a frame.
+ * The functor fulfills the restriction that all frames except the last
+ * must be fully filled with particles as can be stored in a frame.
  *
  * @tparam T_numWorkers number of workers
  */
 template< uint32_t T_numWorkers >
 struct KernelShiftParticles
 {
-    /** This kernel move particles to the next supercell
+    /** This kernel moves particles to the next supercell
      *
      * @warning this kernel can only run with a double checker board
      */
@@ -740,7 +740,7 @@ struct KernelShiftParticles
                     uint32_t const
                 )
                 {
-                    /* if the `low frame` is now full, each master thread removes it and
+                    /* if the `low frame` is full, each master thread
                      * uses the `high frame` (is invalid, if still empty) as the next
                      * `low frame` for the following iteration of the loop
                      */
