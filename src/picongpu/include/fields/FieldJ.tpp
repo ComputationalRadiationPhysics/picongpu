@@ -30,13 +30,13 @@
 #include "Environment.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "mappings/kernel/StrideMapping.hpp"
-#include "mappings/kernel/ExchangeMapping.hpp"
 #include "fields/tasks/FieldFactory.hpp"
 
 #include "fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include "math/Vector.hpp"
-
+#include "fields/operations/CopyGuardToExchange.hpp"
+#include "fields/operations/AddExchangeToBorder.hpp"
 #include "particles/traits/GetCurrentSolver.hpp"
 #include "traits/GetMargin.hpp"
 #include "traits/Resolve.hpp"
@@ -190,42 +190,20 @@ EventTask FieldJ::asyncCommunication( EventTask serialEvent )
 
 void FieldJ::bashField( uint32_t exchangeType )
 {
-    ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
-
-    auto grid = mapper.getGridDim( );
-
-    const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-
-    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-        PMacc::math::CT::volume< SuperCellSize >::type::value
-    >::value;
-
-    PMACC_KERNEL( KernelBashCurrent< numWorkers >{} )
-        ( grid, numWorkers )
-        ( fieldJ.getDeviceBuffer( ).getDataBox( ),
-          fieldJ.getSendExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
-          fieldJ.getSendExchange( exchangeType ).getDeviceBuffer( ).getDataSpace( ),
-          direction,
-          mapper );
+    PMacc::fields::operations::CopyGuardToExchange{ }(
+        fieldJ,
+        SuperCellSize{ },
+        exchangeType
+    );
 }
 
 void FieldJ::insertField( uint32_t exchangeType )
 {
-    ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
-
-    auto grid = mapper.getGridDim( );
-
-    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-        PMacc::math::CT::volume< SuperCellSize >::type::value
-    >::value;
-
-    const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim >( mapper.getExchangeType( ) );
-    PMACC_KERNEL( KernelInsertCurrent< numWorkers >{} )
-        ( grid, numWorkers )
-        ( fieldJ.getDeviceBuffer( ).getDataBox( ),
-          fieldJ.getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
-          fieldJ.getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataSpace( ),
-          direction, mapper );
+    PMacc::fields::operations::AddExchangeToBorder{ }(
+        fieldJ,
+        SuperCellSize{ },
+        exchangeType
+    );
 }
 
 GridLayout<simDim> FieldJ::getGridLayout( )
