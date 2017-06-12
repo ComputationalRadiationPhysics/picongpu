@@ -55,8 +55,8 @@ namespace picongpu
 
 /** derive new particles from a source species
  *
- * This functor prepare a source and destination particle box to call
- * a user defined functor which allows o derive new particles out of
+ * This functor prepares a source and destination particle box to call
+ * a user defined functor which allows to derive new particles out of
  * another species.
  *
  * @tparam T_numWorkers number of workers
@@ -64,7 +64,7 @@ namespace picongpu
 template< uint32_t T_numWorkers >
 struct KernelDeriveParticles
 {
-    /** frame wise derive new particles
+    /** frame-wise derive new particles
      *
      * @tparam T_DestParBox PMacc::ParticlesBox, type of the destination species box
      * @tparam T_SrcParBox PMacc::ParticlesBox, type of the source species box
