@@ -342,7 +342,14 @@ struct KernelAddCurrentToEMF
         const DataSpace<simDim > threadIndex(threadIdx);
         auto fieldJBlock = fieldJ.shift(blockCell);
 
-        ThreadCollective<BlockArea> collective(threadIndex);
+        ThreadCollective<
+            BlockArea,
+            PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+        > collective(
+            DataSpaceOperations< BlockArea::Dim >::template map<
+                typename BlockArea::SuperCellSize
+            >( threadIndex )
+        );
         collective(
                   assign,
                   cachedJ,

@@ -225,7 +225,10 @@ struct KernelMoveAndMarkParticles
        auto fieldBBlock = fieldB.shift(blockCell);
 
        nvidia::functors::Assign assign;
-       ThreadCollective<BlockDescription_> collective(linearThreadIdx);
+       ThreadCollective<
+           BlockDescription_,
+           PMacc::math::CT::volume< typename BlockDescription_::SuperCellSize >::type::value
+       > collective( linearThreadIdx );
        collective(
                  assign,
                  cachedB,
