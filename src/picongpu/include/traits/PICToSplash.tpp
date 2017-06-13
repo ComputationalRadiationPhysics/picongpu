@@ -51,6 +51,18 @@ namespace traits
     };
 
     template<>
+    struct PICToSplash<int16_t>
+    {
+        typedef splash::ColTypeInt16 type;
+    };
+
+    template<>
+    struct PICToSplash<uint16_t>
+    {
+        typedef splash::ColTypeUInt16 type;
+    };
+
+    template<>
     struct PICToSplash<int32_t>
     {
         typedef splash::ColTypeInt32 type;
