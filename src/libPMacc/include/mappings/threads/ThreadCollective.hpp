@@ -49,7 +49,7 @@ class ThreadCollective
 private:
     // size of the CORE (in elements per dimension)
     using CoreDomainSize = typename T_DataDomain::SuperCellSize;
-    // full size if the domain including the GUARD (in elements per dimension)
+    // full size of the domain including the GUARD (in elements per dimension)
     using DomainSize = typename T_DataDomain::FullSuperCellSize;
     // offset (in elements per dimension) from the GUARD origin to the CORE
     using OffsetOrigin = typename T_DataDomain::OffsetOrigin;
@@ -77,12 +77,12 @@ public:
      *
      * @tparam T_Functor type of the user functor, must have a `void operator()`
      *                   with as many arguments as args contains
-     * @tapram  T_Args type of the arguments, each type must implement an operator
-     *                 `template<typename T, typnme R> R operator(T)`
+     * @tparam T_Args type of the arguments, each type must implement an operator
+     *                 `template<typename T, typename R> R operator(T)`
      *
      * @param functor user defined functor
      * @param args arguments passed to the functor
-     *             The method `template<typename T, typnme R> R operator(T)`
+     *             The method `template<typename T, typename R> R operator(T)`
      *             is called for each argument, the result is passed to the
      *             functor `functor::operator()`.
      *             `T` is a N-dimensional vector of an index relative to the origin
@@ -109,11 +109,14 @@ public:
                 uint32_t const
             )
             {
-                DataSpace< dim > const pos(
+                /* offset (in elements) of the current processed element relative
+                 * to the origin of the core domain
+                 */
+                DataSpace< dim > const offset(
                     DataSpaceOperations< dim >::template map< DomainSize >( linearIdx ) -
                     OffsetOrigin::toRT( )
                 );
-                functor( args(pos) ... );
+                functor( args( offset ) ... );
             }
         );
     }

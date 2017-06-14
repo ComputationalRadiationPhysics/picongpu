@@ -159,11 +159,7 @@ public:
         ThreadCollective<
             BlockArea,
             PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
-        > collective(
-            DataSpaceOperations< BlockArea::Dim >::template map<
-                typename BlockArea::SuperCellSize
-            >( linearThreadIdx )
-        );
+        > collective( linearThreadIdx );
         collective(
                   assign,
                   cachedB,
