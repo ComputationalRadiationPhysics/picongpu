@@ -317,12 +317,23 @@ Particles<
     T_ManipulateFunctor& functor
 )
 {
-    auto block = PMacc::math::CT::volume<SuperCellSize>::type::value;
+    log< picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
 
-    log<picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
     AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
-    PMACC_KERNEL( KernelDeriveParticles{} )
-        (mapper.getGridDim(), block) ( this->getDeviceParticlesBox( ), src.getDeviceParticlesBox( ), functor, mapper );
+
+    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
+           PMacc::math::CT::volume< SuperCellSize >::type::value
+    >::value;
+
+    PMACC_KERNEL( KernelDeriveParticles< numWorkers >{ } )(
+        mapper.getGridDim(),
+        numWorkers
+    )(
+        this->getDeviceParticlesBox( ),
+        src.getDeviceParticlesBox( ),
+        functor,
+        mapper
+    );
     this->fillAllGaps( );
 }
 
