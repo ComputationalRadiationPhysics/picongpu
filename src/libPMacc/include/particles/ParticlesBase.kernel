@@ -876,92 +876,212 @@ struct KernelDeleteParticles
     }
 };
 
-struct KernelBashParticles
+/** copy particles from the guard to an exchange buffer
+ *
+ * @tparam T_numWorkers number of workers
+ */
+template< uint32_t T_numWorkers >
+struct KernelCopyGuardToExchange
 {
-    template< class ParBox, class BORDER, class Mapping>
+    /** copy guard particles to an exchange buffer
+     *
+     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
+     * @tparam T_ExchangeValueType frame type of the exchange buffer
+     * @tparam T_Mapping mapper functor type
+     *
+     * @param pb particle memory
+     * @param exchangeBox exchange buffer for particles
+     * @param mapper functor to map a block to a supercell
+     */
+    template<
+        typename T_ParBox,
+        typename T_ExchangeValueType,
+        typename T_Mapping
+    >
     DINLINE void operator()(
-        ParBox pb,
-        ExchangePushDataBox<vint_t, BORDER, Mapping::Dim - 1 > border,
-        Mapping mapper ) const
+        T_ParBox & pb,
+        ExchangePushDataBox<
+            vint_t,
+            T_ExchangeValueType,
+            T_Mapping::Dim - 1
+        > & exchangeBox,
+        T_Mapping const & mapper
+    ) const
     {
         using namespace particles::operations;
+        using namespace mappings::threads;
 
-        enum
-        {
-            TileSize = math::CT::volume<typename Mapping::SuperCellSize>::type::value,
-            Dim = Mapping::Dim
-        };
-        typedef typename ParBox::FramePtr FramePtr;
+        constexpr uint32_t dim = T_Mapping::Dim;
+        constexpr uint32_t frameSize = math::CT::volume< typename T_ParBox::FrameType::SuperCellSize >::type::value;
+        constexpr uint32_t numWorkers = T_numWorkers;
 
-        DataSpace<Dim> superCellIdx = mapper.getSuperCellIndex( DataSpace<Dim > (blockIdx) );
+        using FramePtr = typename T_ParBox::FramePtr;
 
-        PMACC_SMEM( numBashedParticles, int );
-        PMACC_SMEM( frame, FramePtr );
-        PMACC_SMEM( hasMemory, bool );
-        PMACC_SMEM( tmpBorder, TileDataBox<BORDER> );
+        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) );
+        uint32_t const workerIdx = threadIdx.x;
 
-        if ( threadIdx.x == 0 )
-        {
-            hasMemory = true;
-            frame = pb.getLastFrame( superCellIdx );
-        }
-        //\todo: eventuell ist es schneller, parallelen und seriellen Code zu trennen
+        // number of particles in the current handled frame
+        PMACC_SMEM(
+            numParticles,
+            int
+        );
+        PMACC_SMEM(
+            frame,
+            FramePtr
+        );
+
+        /* `exchangeChunk` is a view to a chunk of the memory in the exchange-
+         * The chunk contains between 0 and `numParticles` particles
+         * and is updated for each frame.
+         */
+        PMACC_SMEM(
+            exchangeChunk,
+            TileDataBox< T_ExchangeValueType >
+        );
+
+        /* flag: define if all particles from the current frame are copied to the
+         * exchange buffer
+         *
+         * `true` if all particles are copied, else `false`
+         */
+        PMACC_SMEM(
+            allParticlesCopied,
+            bool
+        );
+
+        ForEachIdx<
+            IdxConfig<
+                1,
+                numWorkers
+            >
+        > onlyMaster{ workerIdx };
+
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
+            {
+                allParticlesCopied = true;
+                frame = pb.getLastFrame( superCellIdx );
+            }
+        );
+
         __syncthreads( );
-        while ( frame.isValid( ) && hasMemory )
+
+        while ( frame.isValid( ) && allParticlesCopied )
         {
-            lcellId_t bashIdx = INV_LOC_IDX;
-            if ( threadIdx.x == 0 )
-                numBashedParticles = 0;
+            using ParticleDomCfg = IdxConfig<
+                frameSize,
+                numWorkers
+            >;
+
+            /* the index of the gap in the exchange box where the particle
+             * is copied to
+             */
+            memory::CtxArray<
+                lcellId_t,
+                ParticleDomCfg
+            >
+            exchangeGapIdxCtx( INV_LOC_IDX );
+
+            onlyMaster(
+                [&](
+                    uint32_t const,
+                    uint32_t const
+                )
+                {
+                    numParticles = 0;
+                }
+            );
+
             __syncthreads( );
 
-            if ( frame[threadIdx.x][multiMask_] == 1 )
-            {
-                bashIdx = nvidia::atomicAllInc( &numBashedParticles );
-            }
+             // loop over all particles in the frame
+            ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
+
+            forEachParticle(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const idx
+                )
+                {
+                    if ( frame[ linearIdx ][ multiMask_ ] == 1 )
+                    {
+                        exchangeGapIdxCtx[ idx ] = nvidia::atomicAllInc( &numParticles );
+                    }
+                }
+            );
             __syncthreads( );
 
-            if ( numBashedParticles > 0 )
+            if( numParticles > 0 )
             {
 
-                if ( threadIdx.x == 0 )
-                {
-                    // DataSpaceOperations<DIM2>::reduce computes target position for domainTile and exchangeType
-                    tmpBorder = border.pushN( numBashedParticles,
-                                              DataSpaceOperations<Dim>::reduce(
-                                                                                superCellIdx,
-                                                                                mapper.getExchangeType( ) ) );
-                    if ( tmpBorder.getSize( ) < numBashedParticles )
-                        hasMemory = false;
-                }
+                onlyMaster(
+                    [&](
+                        uint32_t const,
+                        uint32_t const
+                    )
+                    {
+                        // try to get as many memory as particles in the current frame
+                        exchangeChunk = exchangeBox.pushN(
+                            numParticles,
+                            // Compute the target supercell depending on the exchangeType
+                            DataSpaceOperations< dim >::reduce(
+                                superCellIdx,
+                                mapper.getExchangeType( )
+                            )
+                        );
+                        if( exchangeChunk.getSize( ) < numParticles )
+                            allParticlesCopied = false;
+                    }
+                );
+
                 __syncthreads( );
 
-                if ( bashIdx != INV_LOC_IDX && bashIdx < tmpBorder.getSize( ) )
-                {
-                    auto parDest = tmpBorder[bashIdx][0];
-                    auto parSrc = (frame[threadIdx.x]);
-                    assign( parDest, parSrc );
-                    parSrc[multiMask_] = 0;
-                }
+                forEachParticle(
+                    [&](
+                        uint32_t const linearIdx,
+                        uint32_t const idx
+                    )
+                    {
+                        if( exchangeGapIdxCtx[ idx ] != INV_LOC_IDX && exchangeGapIdxCtx[ idx ] < exchangeChunk.getSize( ) )
+                        {
+                            auto parDest = exchangeChunk[ exchangeGapIdxCtx[ idx ] ][ 0 ];
+                            auto parSrc = frame[ linearIdx ];
+                            assign( parDest, parSrc );
+                            parSrc[ multiMask_ ] = 0;
+                        }
+                    }
+                );
                 __syncthreads( );
+            }
 
-                if ( threadIdx.x == 0 && hasMemory )
+            onlyMaster(
+                [&](
+                    uint32_t const,
+                    uint32_t const
+                )
                 {
-                    //always remove the last frame
-                    frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
+                    /* do not remove the frame if we had not copied
+                     * all particles from the current frame to the exchange buffer
+                     */
+                    if ( allParticlesCopied )
+                        frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
                 }
-            }
-            else
-            {
-                //if we had no particles to copy than we are the last and only frame
-                if ( threadIdx.x == 0 )
-                {
-                    frame = getPreviousFrameAndRemoveLastFrame( frame, pb, superCellIdx );
-                }
-            }
+            );
+
             __syncthreads( );
         }
-        if ( threadIdx.x == 0 )
-            pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
+            {
+                pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
+            }
+        );
 
     }
 };
