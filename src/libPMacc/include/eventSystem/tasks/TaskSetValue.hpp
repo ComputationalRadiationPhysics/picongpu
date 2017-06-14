@@ -102,7 +102,7 @@ struct KernelSetValue
      * @tparam T_ValueType type of the value
      * @tparam T_SizeVecType PMacc::math::Vector, index type
      *
-     * @param memBox box where all elements should be set to value
+     * @param memBox box of which all elements shall be set to value
      * @param value value to set to all elements of memBox
      * @param size extents of memBox
      */
@@ -225,20 +225,24 @@ public:
 
     virtual void init()
     {
-        size_t current_size = this->destination->getCurrentSize( );
-        const DataSpace< dim > area_size( this->destination->getCurrentDataSpace( current_size ) );
+        // number of elements in destination
+        size_t const current_size = this->destination->getCurrentSize( );
+        // n-dimensional size of destination based on `current_size`
+        DataSpace< dim > const area_size( this->destination->getCurrentDataSpace( current_size ) );
 
         if( area_size.productOfComponents() != 0 )
         {
             auto gridSize = area_size;
 
-            // size of a chunk(in elements)
-            constexpr int xChunkSize = 256;
+            /* number of elements in x direction used to chunk the destination buffer
+             * for block parallel processing
+             */
+            constexpr uint32_t xChunkSize = 256;
             constexpr uint32_t numWorkers = traits::GetNumWorkers<
                 xChunkSize
             >::value;
 
-            // use chunks with 256 elements in x direction
+            // number of blocks in x direction
             gridSize.x() = ceil(
                 static_cast< double >( gridSize.x( ) ) /
                 static_cast< double >( xChunkSize )
@@ -298,13 +302,15 @@ public:
         {
             auto gridSize = area_size;
 
-            // size of a chunk(in elements)
+            /* number of elements in x direction used to chunk the destination buffer
+             * for block parallel processing
+             */
             constexpr int xChunkSize = 256;
             constexpr uint32_t numWorkers = traits::GetNumWorkers<
                 xChunkSize
             >::value;
 
-            // use chunks with 256 elements in x direction
+            // number of blocks in x direction
             gridSize.x() = ceil(
                 static_cast< double >( gridSize.x( ) ) /
                 static_cast< double >( xChunkSize )
