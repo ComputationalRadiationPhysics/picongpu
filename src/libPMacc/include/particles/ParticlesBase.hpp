@@ -120,12 +120,6 @@ protected:
             PMACC_KERNEL(KernelShiftParticles< numWorkers >{})
                 (mapper.getGridDim(), numWorkers)
                 (pBox, mapper);
-            PMACC_KERNEL(KernelFillGaps< numWorkers >{})
-                (mapper.getGridDim(), numWorkers)
-                (pBox, mapper);
-            PMACC_KERNEL(KernelFillGapsLastFrame< numWorkers >{})
-                (mapper.getGridDim(), numWorkers)
-                (pBox, mapper);
         }
         while (mapper.next());
 
@@ -146,10 +140,6 @@ protected:
         >::value;
 
         PMACC_KERNEL(KernelFillGaps< numWorkers >{})
-            (mapper.getGridDim(), numWorkers)
-            (particlesBuffer->getDeviceParticleBox(), mapper);
-
-        PMACC_KERNEL(KernelFillGapsLastFrame< numWorkers >{})
             (mapper.getGridDim(), numWorkers)
             (particlesBuffer->getDeviceParticleBox(), mapper);
     }
