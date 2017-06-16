@@ -3,7 +3,7 @@ Change Log / Release Log for PIConGPU
 
 0.3.0
 -----
-**Date:** 2017-06-..
+**Date:** 2017-06-16
 
 C++11: Bremsstrahlung, EmZ, Thomas-Fermi, Improved Lasers
 
