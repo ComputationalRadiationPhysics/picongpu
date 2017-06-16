@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -35,10 +34,6 @@ namespace PMacc
     public:
 
         HDINLINE TrueFilter()
-        {
-        }
-
-        HDINLINE virtual ~TrueFilter()
         {
         }
 

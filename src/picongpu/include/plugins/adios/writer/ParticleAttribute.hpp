@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2014-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -61,7 +60,7 @@ struct ParticleAttribute
 
         log<picLog::INPUT_OUTPUT > ("ADIOS:  (begin) write species attribute: %1%") % Identifier::getName();
 
-        ComponentType* tmpBfr = NULL;
+        ComponentType* tmpBfr = nullptr;
 
         if (elements > 0)
             tmpBfr = new ComponentType[elements];

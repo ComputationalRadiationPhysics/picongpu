@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera
+/* Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -25,6 +24,7 @@
 
 #include "eventSystem/EventSystem.hpp"
 #include "traits/NumberOfExchanges.hpp"
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -64,7 +64,7 @@ namespace PMacc
                     break;
                 case WaitForReceive:
 
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastReceiveEvent.getTaskId()))
                     {
                         state = InitInsert;
                         //bash is finished
@@ -80,17 +80,13 @@ namespace PMacc
                 case InitInsert:
                     break;
                 case WaitForInsert:
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
                         state=Wait;
-                        assert(lastSize <= maxSize);
+                        PMACC_ASSERT(lastSize <= maxSize);
                         //check for next bash round
                         if (lastSize == maxSize)
-                        {
-                            std::cerr << "recv max size " << maxSize << " particles" << std::endl;
                             init(); //call init and run a full send cycle
-
-                        }
                         else
                         {
                             state = Finished;
@@ -111,7 +107,7 @@ namespace PMacc
 
         virtual ~TaskReceiveParticlesExchange()
         {
-            notify(this->myId, RECVFINISHED, NULL);
+            notify(this->myId, RECVFINISHED, nullptr);
         }
 
         void event(id_t, EventType, IEventData*) { }

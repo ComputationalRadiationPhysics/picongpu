@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2016 Axel Huebl
+# Copyright 2013-2017 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -24,6 +24,7 @@
 cnf_scheduler_secret="..."
 cnf_scheduler="https://example.com?client="$cnf_scheduler_secret
 
+# temporary git & build directory: careful, will be purged!
 cnf_gitdir="$HOME/picongpu-src/"
 cnf_builddir="$HOME/build/"
 

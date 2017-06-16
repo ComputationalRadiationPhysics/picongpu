@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -44,9 +43,9 @@ struct GatherSlice
     GatherSlice() :
         mpiRank(-1),
         numRanks(0),
-        filteredData(NULL),
+        filteredData(nullptr),
         comm(MPI_COMM_NULL),
-        fullData(NULL),
+        fullData(nullptr),
         masterRank(0),
         isMPICommInitialized(false)
     {
@@ -129,7 +128,7 @@ struct GatherSlice
 
         char* recvHeader = new char[ MessageHeader::bytes * numRanks];
 
-        if (fullData == NULL && mpiRank == masterRank)
+        if (fullData == nullptr && mpiRank == masterRank)
             fullData = (char*) new ValueType[header.sim.size.productOfComponents()];
 
 
@@ -159,7 +158,7 @@ struct GatherSlice
         if (mpiRank == masterRank)
         {
             log<picLog::DOMAINS > ("Master create image");
-            if (filteredData == NULL)
+            if (filteredData == nullptr)
                 filteredData = (char*) new ValueType[header.sim.size.productOfComponents()];
 
             /*create box with valid memory*/
@@ -216,12 +215,12 @@ private:
     {
         mpiRank = -1;
         numRanks = 0;
-        if (filteredData != NULL)
+        if (filteredData != nullptr)
             delete[] filteredData;
-        filteredData = NULL;
-        if (fullData != NULL)
+        filteredData = nullptr;
+        if (fullData != nullptr)
             delete[] fullData;
-        fullData = NULL;
+        fullData = nullptr;
         if (isMPICommInitialized)
             MPI_CHECK(MPI_Comm_free(&comm));
         isMPICommInitialized = false;

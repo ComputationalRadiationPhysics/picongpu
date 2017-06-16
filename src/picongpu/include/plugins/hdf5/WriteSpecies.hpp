@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Felix Schmitt, Axel Huebl
+/* Copyright 2013-2017 Rene Widera, Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -18,10 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
-
 
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
@@ -29,8 +25,22 @@
 #include "traits/SIBaseUnits.hpp"
 #include "traits/PICToOpenPMD.hpp"
 #include "traits/HasIdentifier.hpp"
+#include "assert.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
+
+#include "plugins/output/WriteSpeciesCommon.hpp"
+#include "plugins/kernel/CopySpecies.kernel"
+#include "mappings/kernel/AreaMapping.hpp"
+
+#include "plugins/hdf5/writer/ParticleAttribute.hpp"
+
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "particles/ParticleDescription.hpp"
+#include "particles/traits/GetSpeciesFlagName.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -38,20 +48,10 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
-#include "compileTime/conversion/MakeSeq.hpp"
-
 #include <boost/type_traits.hpp>
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/kernel/CopySpecies.kernel"
-#include "mappings/kernel/AreaMapping.hpp"
-
-#include "plugins/hdf5/writer/ParticleAttribute.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "particles/ParticleDescription.hpp"
-#include "particles/traits/GetSpeciesFlagName.hpp"
-
 #include <string>
+
 
 namespace picongpu
 {
@@ -108,7 +108,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
         DataConnector &dc = Environment<>::get().DataConnector();
         /* load particle without copy particle data to host */
-        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
+        auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
 
         /* count number of particles for this species on the device */
         uint64_t numParticles = 0;
@@ -152,14 +152,14 @@ public:
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
-            dim3 block(PMacc::math::CT::volume<SuperCellSize>::type::value);
+            auto block = PMacc::math::CT::volume<SuperCellSize>::type::value;
 
             /* int: assume < 2e9 particles per GPU */
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
             /* this sanity check costs a little bit of time but hdf5 writing is slower */
-            __cudaKernel(copySpecies)
+            PMACC_KERNEL(CopySpecies{})
                 (mapper.getGridDim(), block)
                 (counterBuffer.getDeviceBuffer().getPointer(),
                  deviceFrame, speciesTmp->getDeviceParticlesBox(),
@@ -173,7 +173,7 @@ public:
             __getTransactionEvent().waitForFinished();
             log<picLog::INPUT_OUTPUT > ("HDF5:  all events are finished: %1%") % Hdf5FrameType::getName();
 
-            assert((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == numParticles);
+            PMACC_ASSERT((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == numParticles);
         }
 
         /* We rather do an allgather at this point then letting libSplash
@@ -243,10 +243,10 @@ public:
         /* write constant particle records to hdf5 file
          *   ions with variable charge due to a boundElectrons attribute do not write charge
          */
-        typedef typename PMacc::traits::HasIdentifier<
+        using hasBoundElectrons = typename PMacc::traits::HasIdentifier<
             FrameType,
             boundElectrons
-        >::type hasBoundElectrons;
+        >::type;
         if( ! hasBoundElectrons::value )
         {
             const float_64 charge( frame::getCharge<FrameType>() );

@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Rene Widera, Axel Huebl
+/* Copyright 2015-2017 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -47,9 +46,10 @@ struct AssignImpl
     template<typename T_Particle1, typename T_Particle2>
     DINLINE void operator()(const DataSpace<simDim>&,
                             T_Particle1& particleDest, T_Particle2& particleSrc,
-                            const bool, const bool)
+                            const bool isDesParticle, const bool isSrcParticle)
     {
-        PMacc::particles::operations::assign(particleDest, particleSrc);
+        if (isDesParticle && isSrcParticle)
+            PMacc::particles::operations::assign(particleDest, particleSrc);
     }
 
 };

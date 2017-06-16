@@ -1,7 +1,6 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Benjamin Schneider, Felix Schmitt,
+/* Copyright 2013-2017 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Erik Zenker
  *
  * This file is part of PIConGPU.
  *
@@ -20,13 +19,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
+#include "assert.hpp"
 
 #include "plugins/CountParticles.hpp"
 #include "plugins/EnergyParticles.hpp"
@@ -36,17 +34,14 @@
 #include "plugins/BinEnergyParticles.hpp"
 #include "plugins/ChargeConservation.hpp"
 #if(ENABLE_HDF5 == 1)
+#include "plugins/radiation/parameters.hpp"
+#include "plugins/radiation/Radiation.hpp"
 #include "plugins/particleCalorimeter/ParticleCalorimeter.hpp"
 #include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 #endif
 
 #if (ENABLE_INSITU_VOLVIS == 1)
 #include "plugins/InSituVolumeRenderer.hpp"
-#endif
-
-#if(ENABLE_RADIATION == 1)
-#include "plugins/radiation/parameters.hpp"
-#include "plugins/radiation/Radiation.hpp"
 #endif
 
 #include "simulation_classTypes.hpp"
@@ -57,13 +52,11 @@
 #include "plugins/ILightweightPlugin.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 
-#if(PIC_ENABLE_PNG==1)
 #include "plugins/output/images/PngCreator.hpp"
-#endif
 
 
-/// That's an abstract plugin for Png and Binary Density output
-/// \todo rename PngPlugin to ImagePlugin or similar
+// That's an abstract plugin for Png and Binary Density output
+// \todo rename PngPlugin to ImagePlugin or similar
 #include "plugins/PngPlugin.hpp"
 
 #if(SIMDIM==DIM3)
@@ -85,6 +78,12 @@
 #if (ENABLE_ADIOS == 1)
 #include "plugins/adios/ADIOSWriter.hpp"
 #endif
+
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+#include "plugins/IsaacPlugin.hpp"
+#endif
+
+#include "plugins/ResourceLog.hpp"
 
 namespace picongpu
 {
@@ -140,6 +139,10 @@ private:
 #if (ENABLE_HDF5 == 1)
       , hdf5::HDF5Writer
 #endif
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+      , isaacP::IsaacPlugin
+#endif
+    , ResourceLog
     > StandAlonePlugins;
 
 
@@ -166,14 +169,10 @@ private:
         EnergyParticles<bmpl::_1>,
         BinEnergyParticles<bmpl::_1>,
         LiveViewPlugin<bmpl::_1>,
-        PositionsParticles<bmpl::_1>
-#if(ENABLE_RADIATION == 1)
-      , Radiation<bmpl::_1>
-#endif
-#if(PIC_ENABLE_PNG==1)
-     , PngPlugin< Visualisation<bmpl::_1, PngCreator> >
-#endif
+        PositionsParticles<bmpl::_1>,
+        PngPlugin< Visualisation<bmpl::_1, PngCreator> >
 #if(ENABLE_HDF5 == 1)
+      , Radiation<bmpl::_1>
       , ParticleCalorimeter<bmpl::_1>
       , PerSuperCell<bmpl::_1>
       , PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, bmpl::_1>
@@ -220,7 +219,7 @@ public:
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-        assert(cellDescription != NULL);
+        PMACC_ASSERT(cellDescription != nullptr);
 
         for (std::list<ISimulationPlugin*>::iterator iter = plugins.begin();
              iter != plugins.end();

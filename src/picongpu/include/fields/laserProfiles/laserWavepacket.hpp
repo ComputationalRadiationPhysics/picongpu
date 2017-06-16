@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Stefan Tietze
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Stefan Tietze
  *
  * This file is part of PIConGPU.
  *
@@ -51,7 +50,11 @@ HINLINE float3_X laserLongitudinal(uint32_t currentStep, float_X& phase)
     // the front of the laser pulse.
     const float_64 mue = 0.5 * INIT_TIME;
 
-    const float_64 runTime = DELTA_T*currentStep - mue;
+    /* initialize the laser not in the first cell is equal to a negative shift
+     * in time
+     */
+    constexpr float_X laserTimeShift = laser::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+    const float_64 runTime = (DELTA_T * currentStep - laserTimeShift)  - mue;
     const float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
 
     const float_64 w = 2.0 * PI * f;

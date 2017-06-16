@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch,
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -27,9 +26,7 @@
 #include <vector>
 
 /*pic default*/
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_classTypes.hpp"
 
 #include "fields/Fields.def"
 #include "fields/SimulationFieldHelper.hpp"
@@ -47,10 +44,12 @@ namespace picongpu
     using namespace PMacc;
 
 
-    /** Tmp (at the moment: scalar) field for analysers and tmp data like
+    /** Tmp (at the moment: scalar) field for plugins and tmp data like
      *  "gridded" particle data (charge density, energy density, ...)
      */
-    class FieldTmp : public SimulationFieldHelper<MappingDesc>, public ISimulationData
+    class FieldTmp :
+        public SimulationFieldHelper<MappingDesc>,
+        public ISimulationData
     {
     public:
         typedef float1_X ValueType;
@@ -64,13 +63,16 @@ namespace picongpu
             return this->cellDescription;
         }
 
-        FieldTmp( MappingDesc cellDescription );
+        FieldTmp(
+            MappingDesc cellDescription,
+            uint32_t slotId
+        );
 
         virtual ~FieldTmp( );
 
         virtual void reset( uint32_t currentStep );
 
-        template<class FrameSolver >
+        template< class FrameSolver >
         HDINLINE static UnitValueType getUnit();
 
         /** powers of the 7 base measures
@@ -84,9 +86,21 @@ namespace picongpu
 
         static std::string getName();
 
-        static uint32_t getCommTag();
-
+        /** scatter data to neighboring GPUs
+         *
+         * Add data from the local guard of the GPU to the border of the neighboring GPUs.
+         * This method can be called before or after asyncCommunicationGather without
+         * explicit handling to avoid race conditions between both methods.
+         */
         virtual EventTask asyncCommunication( EventTask serialEvent );
+
+        /** gather data from neighboring GPUs
+         *
+         * Copy data from the border of neighboring GPUs into the local guard.
+         * This method can be called before or after asyncCommunication without
+         * explicit handling to avoid race conditions between both methods.
+         */
+        EventTask asyncCommunicationGather( EventTask serialEvent );
 
         void init( );
 
@@ -100,6 +114,8 @@ namespace picongpu
 
         template<uint32_t AREA, class FrameSolver, class ParticlesClass>
         void computeValue(ParticlesClass& parClass, uint32_t currentStep);
+
+        static SimulationDataId getUniqueId( uint32_t slotId );
 
         SimulationDataId getUniqueId();
 
@@ -117,8 +133,16 @@ namespace picongpu
         void insertField( uint32_t exchangeType );
 
     private:
-        GridBuffer<ValueType, simDim> *fieldTmp;
 
+        GridBuffer<ValueType, simDim> *fieldTmp;
+        GridBuffer<ValueType, simDim>* fieldTmpRecv;
+
+        uint32_t m_slotId;
+
+        EventTask m_scatterEv;
+        uint32_t m_commTagScatter;
+        EventTask m_gatherEv;
+        uint32_t m_commTagGather;
     };
 
 

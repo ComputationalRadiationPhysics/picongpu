@@ -13,7 +13,7 @@ There is one header file that will include *all* necessary files:
 Step 2a: choose policies
 -----------------------
 
-Each instance of a policy based allocator is composed through 5 **policies**. Each policy is expressed as a **policy class**. 
+Each instance of a policy based allocator is composed through 5 **policies**. Each policy is expressed as a **policy class**.
 
 Currently, there are the following policy classes available:
 
@@ -73,7 +73,7 @@ could create the following typedef instead:
 ```c++
 using namespace mallocMC;
 
-typedef mallocMC::Allocator< 
+typedef mallocMC::Allocator<
   CreationPolicies::Scatter<>,
   DistributionPolicies::XMallocSIMD<>,
   OOMPolicies::ReturnNull,
@@ -90,33 +90,39 @@ configuration struct defined above.
 Step 3: instantiate allocator
 -----------------------------
 
-To create a default instance of the ScatterAllocator type and add the necessary 
-functions, the following Macro has to be executed:
+To use the defined allocator type, create an instance with the desired heap size:
 
 ```c++
-MALLOCMC_SET_ALLOCATOR_TYPE(ScatterAllocator)
+ScatterAllocator sa( 512U * 1024U * 1024U ); // heap size of 512MiB
 ```
 
-This will set up the following functions in the namespace `mallocMC`:
+The allocator object offers the following methods
 
-| Name                  | description                                                                                                                                                                                                |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| mallocMC::initHeap()            | Initializes the heap. Must be called before any other calls to the allocator are permitted. Can take the desired size of the heap as a parameter                                                           |
-| mallocMC::finalizeHeap()        | Destroys the heap again                     |
-| mallocMC::malloc() | Allocates memory on the accelerator              |
-| mallocMC::free()     | Frees memory on the accelerator     |
-| mallocMC::getAvailableSlots()   | Determines number of allocatable slots of a certain size. This only works, if the chosen CreationPolicy supports it (can be found through `mallocMC::Traits<ScatterAllocator>::providesAvailableSlots`) |
+| Name | description |
+|---------------------- |-------------------------|
+| getAvailableSlots(size_t)   | Determines number of allocatable slots of a certain size. This only works, if the chosen CreationPolicy supports it (can be found through `mallocMC::Traits<ScatterAllocator>::providesAvailableSlots`) |
 
 
-Step 4: use dynamic memory allocation
--------------------------------------
+Step 4: use dynamic memory allocation in a kernel
+-------------------------------------------------
+
+A handle to the allocator object must be passed to each kernel. The handle type is defined as an internal type of the allocator. Inside the kernel, this handle can be used to request memory.
+
+The handle offers the following methods:
+
+| Name | description |
+|---------------------- |-------------------------|
+| malloc(size_t) | Allocates memory on the accelerator  |
+| free(size_t)     | Frees memory on the accelerator    |
+| getAvailableSlots()   | Determines number of allocatable slots of a certain size. This only works, if the chosen CreationPolicy supports it (can be found through `mallocMC::Traits<ScatterAllocator>::providesAvailableSlots`) |
+
 A simplistic example would look like this:
 ```c++
 #include <mallocMC/mallocMC.hpp>
 
 namespace mallocMC = MC;
 
-typedef MC::Allocator< 
+typedef MC::Allocator<
   MC::CreationPolicies::Scatter<>,
   MC::DistributionPolicies::XMallocSIMD<>,
   MC::OOMPolicies::ReturnNull,
@@ -124,25 +130,23 @@ typedef MC::Allocator<
   MC::AlignmentPolicies::Shrink<ShrinkConfig>
   > ScatterAllocator;
 
-MALLOCMC_SET_ALLOCATOR_TYPE(ScatterAllocator)
-
-__global__ exampleKernel()
+__global__ exampleKernel(ScatterAllocator::AllocatorHandle sah)
 {
   // some code ...
-  
-  int* a = (int*) MC::malloc(sizeof(int)*42);
-  
+
+  int* a = (int*) sah.malloc(sizeof(int)*42);
+
   // some more code, using *a
-  
-  MC::free(a);
+
+  sah.free(a);
 }
 
 int main(){
-  MC::initHeap(512); // heapsize of 512MB
+  ScatterAllocator sa( 1U * 512U * 1024U * 1024U ); // heap size of 512MiB
+  exampleKernel<<< 32, 32 >>>(sa);
 
-  exampleKernel<<<32,32>>>();
-
-  MC::finalizeHeap();
   return 0;
 }
 ```
+
+For more usage examples, have a look at the [examples](examples).

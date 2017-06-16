@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2017 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
@@ -49,7 +48,7 @@ namespace PMacc
 
 
         /*! Return a ITask pointer if ITask is not finished
-         * @return ITask pointer if Task is not finished else NULL
+         * @return ITask pointer if Task is not finished else nullptr
          */
         inline ITask* getITaskIfNotFinished(id_t taskId) const;
 
@@ -77,9 +76,7 @@ namespace PMacc
 
     private:
 
-        friend class Environment<DIM1>;
-        friend class Environment<DIM2>;
-        friend class Environment<DIM3>;
+        friend class detail::Environment;
 
         inline ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
 

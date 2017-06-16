@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau,
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau,
  *                     Rene Widera, Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -19,17 +18,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <string>
-#include <iostream>
-#include <fstream>
 #include <mpi.h>
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
@@ -39,9 +32,16 @@
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
 
-#include "algorithms/Gamma.hpp"
+#include "algorithms/KinEnergy.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "dataManagement/DataConnector.hpp"
 
 #include "common/txtFileHandling.hpp"
+
+#include <string>
+#include <iostream>
+#include <fstream>
+
 
 namespace picongpu
 {
@@ -52,107 +52,95 @@ namespace po = boost::program_options;
 /** This kernel computes the kinetic and total energy summed over
  *  all particles of a species.
  **/
-template<class ParBox, class DBox, class Mapping>
-__global__ void kernelEnergyParticles(ParBox pb,
-                                      DBox gEnergy,
-                                      Mapping mapper)
+struct KernelEnergyParticles
 {
-
-    typedef typename ParBox::FramePtr FramePtr;
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame; /* pointer to particle data frame */
-    __shared__ float_X shEnergyKin; /* shared kinetic energy */
-    __shared__ float_X shEnergy; /* shared total energy */
-
-    float_X _local_energyKin = float_X(0.0); /* sum kinetic energy for this thread */
-    float_X _local_energy = float_X(0.0); /* sum total energy for this thread */
-
-
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-
-    if (linearThreadIdx == 0) /* only thread 0 runs initial set up */
+    template<class ParBox, class DBox, class Mapping>
+    DINLINE void operator()(ParBox pb,
+                                          DBox gEnergy,
+                                          Mapping mapper) const
     {
-        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-        frame = pb.getLastFrame(superCellIdx); /* get first(=last) frame */
-        shEnergyKin = float_X(0.0); /* set shared kinetic energy to zero */
-        shEnergy = float_X(0.0); /* set shared total energy to zero */
-    }
 
-    __syncthreads(); /* wait till thread 0 finishes set up */
-    if (!frame.isValid())
-        return; /* end kernel if we have no frames */
+        typedef typename ParBox::FramePtr FramePtr;
+        PMACC_SMEM( frame, FramePtr ); /* pointer to particle data frame */
+        PMACC_SMEM( shEnergyKin, float_X ); /* shared kinetic energy */
+        PMACC_SMEM( shEnergy, float_X ); /* shared total energy */
 
-    /* this checks if the data loaded by a thread is filled with a particle
-     * or not. Only applies to the first loaded frame (=last frame) */
-    /* BUGFIX to issue #538
-     * volatile prohibits that the compiler creates wrong code*/
-    volatile bool isParticle = frame[linearThreadIdx][multiMask_];
+        float_X _local_energyKin = float_X(0.0); /* sum kinetic energy for this thread */
+        float_X _local_energy = float_X(0.0); /* sum total energy for this thread */
 
-    while (frame.isValid())
-    {
-        if (isParticle)
+
+        typedef typename Mapping::SuperCellSize SuperCellSize;
+
+        const DataSpace<simDim > threadIndex(threadIdx);
+        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+        if (linearThreadIdx == 0) /* only thread 0 runs initial set up */
         {
+            const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+            frame = pb.getLastFrame(superCellIdx); /* get first(=last) frame */
+            shEnergyKin = float_X(0.0); /* set shared kinetic energy to zero */
+            shEnergy = float_X(0.0); /* set shared total energy to zero */
+        }
 
-            PMACC_AUTO(particle,frame[linearThreadIdx]); /* get one particle */
-            const float3_X mom = particle[momentum_]; /* get particle momentum */
-            /* and compute square of absolute momentum of one particle: */
-            const float_X mom2 = mom.x() * mom.x() + mom.y() * mom.y() + mom.z() * mom.z();
+        __syncthreads(); /* wait till thread 0 finishes set up */
+        if (!frame.isValid())
+            return; /* end kernel if we have no frames */
 
-            const float_X weighting = particle[weighting_]; /* get macro particle weighting */
-            const float_X mass = attribute::getMass(weighting,particle); /* compute mass using weighting */
-            const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+        /* this checks if the data loaded by a thread is filled with a particle
+         * or not. Only applies to the first loaded frame (=last frame) */
+        /* BUGFIX to issue #538
+         * volatile prohibits that the compiler creates wrong code*/
+        volatile bool isParticle = frame[linearThreadIdx][multiMask_];
 
-            Gamma<> calcGamma; /* functor for computing relativistic gamma factor */
-            const float_X gamma = calcGamma(mom, mass); /* compute relativistic gamma */
-
-            if (gamma < GAMMA_THRESH) /* if particle energy is low enough: */
+        while (frame.isValid())
+        {
+            if (isParticle)
             {
-                /* not relativistic: use equation with more precision */
-                _local_energyKin += mom2 / (2.0f * mass);
-            }
-            else /* if particle is relativistic */
-            {
-                /* kinetic energy for particles: E = (gamma - 1) * m * c^2
-                 *                                    gamma = sqrt( 1 + (p/m/c)^2 )
-                 * _local_energyKin += (algorithms::math::sqrt(mom2 / (mass * mass * c2) 
-                 *                                             + 1.) - 1.) * mass * c2;
+
+                auto particle = frame[linearThreadIdx]; /* get one particle */
+                const float3_X mom = particle[momentum_]; /* get particle momentum */
+                /* and compute square of absolute momentum of one particle: */
+                const float_X mom2 = mom.x() * mom.x() + mom.y() * mom.y() + mom.z() * mom.z();
+
+                const float_X weighting = particle[weighting_]; /* get macro particle weighting */
+                const float_X mass = attribute::getMass(weighting,particle); /* compute mass using weighting */
+                const float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+
+                /* calculate kinetic energy of the macro particle */
+                _local_energyKin += KinEnergy<>()(mom, mass);
+
+                /* total energy for particles: E^2 = p^2*c^2 + m^2*c^4
+                 *                                   = c^2 * [p^2 + m^2*c^2]
                  */
-                _local_energyKin += (gamma - float_X(1.0)) * mass*c2;
+                _local_energy += algorithms::math::sqrt(mom2 + mass * mass * c2) * SPEED_OF_LIGHT;
+
             }
+            __syncthreads(); /* wait till all threads have added their particle energies */
 
-            /* total energy for particles: E^2 = p^2*c^2 + m^2*c^4
-             *                                   = c^2 * [p^2 + m^2*c^2]
-             */
-            _local_energy += algorithms::math::sqrt(mom2 + mass * mass * c2) * SPEED_OF_LIGHT;
-
+            /* get next particle frame */
+            if (linearThreadIdx == 0)
+            {
+                /* set frame to next particle frame */
+                frame = pb.getPreviousFrame(frame);
+            }
+            isParticle = true; /* all following frames are filled with particles */
+            __syncthreads(); /* wait till thread 0 is done */
         }
-        __syncthreads(); /* wait till all threads have added their particle energies */
 
-        /* get next particle frame */
-        if (linearThreadIdx == 0)
+        /* add energies on block level using shared memory */
+        atomicAddWrapper(&shEnergyKin, _local_energyKin); /* add kinetic energy */
+        atomicAddWrapper(&shEnergy, _local_energy);       /* add total energy */
+
+        __syncthreads(); /* wait till all threads have added their energies */
+
+        /* add energies on global level using global memory */
+        if (linearThreadIdx == 0) /* only done by thread 0 of a block */
         {
-            /* set frame to next particle frame */
-            frame = pb.getPreviousFrame(frame);
+            atomicAddWrapper(&(gEnergy[0]), (float_64) (shEnergyKin)); /* add kinetic energy */
+            atomicAddWrapper(&(gEnergy[1]), (float_64) (shEnergy));    /* add total energy */
         }
-        isParticle = true; /* all following frames are filled with particles */
-        __syncthreads(); /* wait till thread 0 is done */
     }
-
-    /* add energies on block level using shared memory */
-    atomicAddWrapper(&shEnergyKin, _local_energyKin); /* add kinetic energy */
-    atomicAddWrapper(&shEnergy, _local_energy);       /* add total energy */
-
-    __syncthreads(); /* wait till all threads have added their energies */
-
-    /* add energies on global level using global memory */
-    if (linearThreadIdx == 0) /* only done by thread 0 of a block */
-    {
-        atomicAddWrapper(&(gEnergy[0]), (float_64) (shEnergyKin)); /* add kinetic energy */
-        atomicAddWrapper(&(gEnergy[1]), (float_64) (shEnergy));    /* add total energy */
-    }
-}
+};
 
 template<class ParticlesType>
 class EnergyParticles : public ISimulationPlugin
@@ -160,14 +148,12 @@ class EnergyParticles : public ISimulationPlugin
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
-    ParticlesType *particles; /* pointer to particle data */
-
     GridBuffer<float_64, DIM1> *gEnergy; /* energy values (global on GPU) */
     MappingDesc *cellDescription;
     uint32_t notifyFrequency; /* periodocity of computing the particle energy */
 
-    std::string analyzerName; /* name (used for output file too) */
-    std::string analyzerPrefix; /* prefix used for command line arguments */
+    std::string pluginName; /* name (used for output file too) */
+    std::string pluginPrefix; /* prefix used for command line arguments */
     std::string filename; /* output file name */
 
     std::ofstream outFile; /* file output stream */
@@ -178,12 +164,11 @@ private:
 public:
 
     EnergyParticles() :
-    analyzerName("EnergyParticles: calculate the energy of a species"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_energy")),
-    filename(analyzerPrefix + ".dat"),
-    particles(NULL),
-    gEnergy(NULL),
-    cellDescription(NULL),
+    pluginName("EnergyParticles: calculate the energy of a species"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_energy")),
+    filename(pluginPrefix + ".dat"),
+    gEnergy(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0),
     writeToFile(false)
     {
@@ -200,11 +185,6 @@ public:
    * the energy **/
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector(); /* get data connector */
-
-        /* use data connector to get particle data */
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
         /* call the method that calls the plugin kernel */
         calculateEnergyParticles < CORE + BORDER > (currentStep);
     }
@@ -213,15 +193,15 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
+            ((pluginPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyFrequency),
-             "compute kinetic and total energy [for each n-th step] enable analyser by setting a non-zero value");
+             "compute kinetic and total energy [for each n-th step] enable plugin by setting a non-zero value");
     }
 
   /** method giving the plugin name (used by plugin control) **/
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
   /** set cell description in this plugin **/
@@ -252,7 +232,7 @@ private:
                 if (!outFile)
                 {
                     std::cerr << "Can't open file [" << filename
-                              << "] for output, diasble analyser output. " << std::endl;
+                              << "] for output, diasble plugin output. " << std::endl;
                     writeToFile = false;
                 }
 
@@ -311,14 +291,22 @@ private:
     template< uint32_t AREA>
     void calculateEnergyParticles(uint32_t currentStep)
     {
-        gEnergy->getDeviceBuffer().setValue(0.0); /* init global energy with zero */
-        dim3 block(MappingDesc::SuperCellSize::toRT().toDim3()); /* GPU parallelization */
+        DataConnector &dc = Environment<>::get().DataConnector(); /* get data connector */
+        /* use data connector to get particle data */
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
 
+        gEnergy->getDeviceBuffer().setValue(0.0); /* init global energy with zero */
+        auto block = MappingDesc::SuperCellSize::toRT(); /* GPU parallelization */
+
+        AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
         /* kernel call = sum all particle energies on GPU */
-        __picKernelArea(kernelEnergyParticles, *cellDescription, AREA)
-            (block)
+        PMACC_KERNEL(KernelEnergyParticles{})
+            (mapper.getGridDim(), block)
             (particles->getDeviceParticlesBox(),
-             gEnergy->getDeviceBuffer().getDataBox());
+             gEnergy->getDeviceBuffer().getDataBox(),
+             mapper);
+
+        dc.releaseData( ParticlesType::FrameType::getName() );
 
         gEnergy->deviceToHost(); /* get energy from GPU */
 

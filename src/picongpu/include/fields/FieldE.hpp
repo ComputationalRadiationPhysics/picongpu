@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -53,7 +52,7 @@ namespace picongpu
     public:
         typedef float3_X ValueType;
         typedef promoteType<float_64, ValueType>::type UnitValueType;
-        BOOST_STATIC_CONSTEXPR int numComponents = ValueType::dim;
+        static constexpr int numComponents = ValueType::dim;
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
 
@@ -82,7 +81,7 @@ namespace picongpu
 
         virtual EventTask asyncCommunication(EventTask serialEvent);
 
-        void init(FieldB &fieldB,LaserPhysics &laserPhysics);
+        void init(LaserPhysics &laserPhysics);
 
         DataBoxType getDeviceDataBox();
 
@@ -106,8 +105,6 @@ namespace picongpu
 
 
         GridBuffer<ValueType,simDim> *fieldE;
-
-        FieldB *fieldB;
 
         LaserPhysics *laser;
     };

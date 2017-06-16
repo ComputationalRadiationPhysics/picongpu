@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Rene Widera
+/* Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -18,84 +17,85 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 
 #include "mappings/kernel/AreaMapping.hpp"
+
+#include "plugins/ILightweightPlugin.hpp"
+
+#include "memory/buffers/GridBuffer.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "dataManagement/DataConnector.hpp"
+
+#include <splash/splash.h>
 
 #include <string>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
-#include "plugins/ILightweightPlugin.hpp"
-
-#include "memory/buffers/GridBuffer.hpp"
-
-
-#include <splash/splash.h>
-#include <sys/stat.h>
 
 namespace picongpu
 {
 using namespace PMacc;
 using namespace splash;
 
-template<class ParBox, class CounterBox, class Mapping>
-__global__ void CountMakroParticle(ParBox parBox, CounterBox counterBox, Mapping mapper)
+struct CountMakroParticle
 {
-
-    typedef MappingDesc::SuperCellSize SuperCellSize;
-    typedef typename ParBox::FrameType FrameType;
-    typedef typename ParBox::FramePtr FramePtr;
-
-    const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-    /* counterBox has no guarding supercells*/
-    const DataSpace<simDim> counterCell = block - mapper.getGuardingSuperCells();
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-
-    __shared__ uint64_cu counterValue;
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-
-    if (linearThreadIdx == 0)
+    template<class ParBox, class CounterBox, class Mapping>
+    DINLINE void operator()(ParBox parBox, CounterBox counterBox, Mapping mapper) const
     {
-        counterValue = 0;
-        frame = parBox.getLastFrame(block);
-        if (!frame.isValid())
-        {
-            counterBox(counterCell) = counterValue;
-        }
-    }
-    __syncthreads();
-    if (!frame.isValid())
-        return; //end kernel if we have no frames
 
-    bool isParticle = frame[linearThreadIdx][multiMask_];
+        typedef MappingDesc::SuperCellSize SuperCellSize;
+        typedef typename ParBox::FrameType FrameType;
+        typedef typename ParBox::FramePtr FramePtr;
 
-    while (frame.isValid())
-    {
-        if (isParticle)
-        {
-            atomicAdd(&counterValue, static_cast<uint64_cu> (1LU));
-        }
-        __syncthreads();
+        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        /* counterBox has no guarding supercells*/
+        const DataSpace<simDim> counterCell = block - mapper.getGuardingSuperCells();
+
+        const DataSpace<simDim > threadIndex(threadIdx);
+        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+        PMACC_SMEM( counterValue, uint64_cu );
+        PMACC_SMEM( frame, FramePtr );
+
         if (linearThreadIdx == 0)
         {
-            frame = parBox.getPreviousFrame(frame);
+            counterValue = 0;
+            frame = parBox.getLastFrame(block);
+            if (!frame.isValid())
+            {
+                counterBox(counterCell) = counterValue;
+            }
         }
-        isParticle = true;
         __syncthreads();
+        if (!frame.isValid())
+            return; //end kernel if we have no frames
+
+        bool isParticle = frame[linearThreadIdx][multiMask_];
+
+        while (frame.isValid())
+        {
+            if (isParticle)
+            {
+                atomicAdd(&counterValue, static_cast<uint64_cu> (1LU));
+            }
+            __syncthreads();
+            if (linearThreadIdx == 0)
+            {
+                frame = parBox.getPreviousFrame(frame);
+            }
+            isParticle = true;
+            __syncthreads();
+        }
+
+        if (linearThreadIdx == 0)
+            counterBox(counterCell) = counterValue;
     }
-
-    if (linearThreadIdx == 0)
-        counterBox(counterCell) = counterValue;
-}
-
+};
 /** Count makro particle of a species and write down the result to a global HDF5 file.
  *
  * - count the total number of makro particle per supercell
@@ -115,13 +115,11 @@ private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
     typedef GridBuffer<size_t, simDim> GridBufferType;
 
-    ParticlesType *particles;
-
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
     std::string foldername;
     mpi::MPIReduce reduce;
 
@@ -134,14 +132,13 @@ private:
 public:
 
     PerSuperCell() :
-    analyzerName("PerSuperCell: create hdf5 with macro particle count per superCell"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesPerSuperCell")),
-    foldername(analyzerPrefix),
-    particles(NULL),
-    cellDescription(NULL),
+    pluginName("PerSuperCell: create hdf5 with macro particle count per superCell"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesPerSuperCell")),
+    foldername(pluginPrefix),
+    cellDescription(nullptr),
     notifyFrequency(0),
-    localResult(NULL),
-    dataCollector(NULL)
+    localResult(nullptr),
+    dataCollector(nullptr)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -153,23 +150,19 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
         countMakroParticles < CORE + BORDER > (currentStep);
     }
 
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+            ((pluginPrefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
@@ -209,14 +202,20 @@ private:
     {
         openH5File();
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+
         /*############ count particles #######################################*/
         typedef MappingDesc::SuperCellSize SuperCellSize;
         AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
 
-        __cudaKernel(CountMakroParticle)
-            (mapper.getGridDim(), SuperCellSize::toRT().toDim3())
+        PMACC_KERNEL(CountMakroParticle{})
+            (mapper.getGridDim(), SuperCellSize::toRT())
             (particles->getDeviceParticlesBox(),
              localResult->getDeviceBuffer().getDataBox(), mapper);
+
+        dc.releaseData( ParticlesType::FrameType::getName() );
 
         localResult->deviceToHost();
 
@@ -266,7 +265,7 @@ private:
 
     void closeH5File()
     {
-        if (dataCollector != NULL)
+        if (dataCollector != nullptr)
         {
             std::string filename = (foldername + std::string("/makroParticlePerSupercell"));
             log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector with file: %1%") % filename;
@@ -277,7 +276,7 @@ private:
     void openH5File()
     {
 
-        if (dataCollector == NULL)
+        if (dataCollector == nullptr)
         {
             DataSpace<simDim> mpi_pos;
             DataSpace<simDim> mpi_size;

@@ -1,8 +1,16 @@
 PIConGPU - A Many GPGPU PIC Code
 ================================================================
 
+[![Code Status master](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/master.svg?label=master)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
+[![Code Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
+[![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=master)](http://picongpu.readthedocs.io/en/master/?badge=master)
+[![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=dev)](http://picongpu.readthedocs.io/en/dev/?badge=dev)
+[![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)](https://isocpp.org/)
+[![License PIConGPU](https://img.shields.io/badge/license-GPLv3-blue.svg?label=PIConGPU)](https://www.gnu.org/licenses/gpl-3.0.html)
+[![License PMacc](https://img.shields.io/badge/license-LGPLv3-blue.svg?label=PMacc)](https://www.gnu.org/licenses/lgpl-3.0.html)
+
 [![PIConGPU Presentation Video](http://img.youtube.com/vi/nwZuG-XtUDE/0.jpg)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
-[![PIConGPU Release](doc/logo/pic_logo_vert_158x360.png)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
+[![PIConGPU Release](docs/logo/pic_logo_vert_158x360.png)](http://www.youtube.com/watch?v=nwZuG-XtUDE)
 
 Introduction
 ------------
@@ -107,7 +115,7 @@ For a detailed description, please refer to [LICENSE.md](LICENSE.md)
 Install
 -------
 
-See our notes in [INSTALL.md](INSTALL.md).
+See our notes in [INSTALL.rst](INSTALL.rst).
 
 Users
 -----
@@ -127,10 +135,7 @@ developers and maintainers directly.
 
 Instead, please sign up to our **PIConGPU-Users** mailing list so we can
 distribute and archive user questions:
-[Subscribe (Feed)](https://cg.hzdr.de/Lists/picongpu-users/List.html).
-You can **subscribe** by simply sending an e-mail to
-[picongpu-users-feed@hzdr.de](mailto:picongpu-users-feed@hzdr.de?subject=Subscribe me!)
-(and unsubscribe via [picongpu-users-off@hzdr.de](mailto:picongpu-users-off@hzdr.de?subject=Unsubscribe me!)).
+[Subscribe (select "Feed" on bottom left)](https://cg.hzdr.de/Lists/picongpu-users/List.html).
 
 Before you post a question, browse the PIConGPU
 [documentation](https://github.com/ComputationalRadiationPhysics/picongpu/search?l=markdown),
@@ -139,20 +144,14 @@ Before you post a question, browse the PIConGPU
 [mailing list history](https://cg.hzdr.de/Lists/picongpu-users/List.html)
 to see if your question has been answered, already.
 
-PIConGPU is a collaborative project. We thus encourage users to engage in
-answering questions of other users and post solutions to problems to the
-list. A problem you have encountered might be the future problem of another
-user.
+PIConGPU is a collaborative project. We thus encourage users to engage in answering questions of other users and post solutions to problems to the list.
+A problem you have encountered might be the future problem of another user.
 
-In addition, please consider using the collaborative features of GitHub if you
-have questions or comments on code or documentation. This will allow other
-users to see the piece of code or documentation you are referring to.
+In addition, please consider using the collaborative features of GitHub if you have questions or comments on code or documentation.
+This will allow other users to see the piece of code or documentation you are referring to.
 
-Feel free to visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more
-about the PIC algorithm. Further ressources are the
-[user section](https://github.com/ComputationalRadiationPhysics/picongpu/wiki)
-of our wiki, documentation files in `.md` format in this repository and a
-[getting started video](http://www.youtube.com/watch?v=7ybsD8G4Rsk).
+Main ressources are in our [online manual](https://picongpu.readthedocs.io), the [user section](https://github.com/ComputationalRadiationPhysics/picongpu/wiki) of our wiki, documentation files in [`.md` (Markdown)](http://commonmark.org/help/) and [`.rst` (reStructuredText)](http://www.sphinx-doc.org/en/stable/rest.html) format in this repository and a [getting started video](http://www.youtube.com/watch?v=7ybsD8G4Rsk).
+Feel free to visit [picongpu.hzdr.de](http://picongpu.hzdr.de) to learn more about the PIC algorithm.
 
 Software Upgrades
 -----------------
@@ -202,37 +201,26 @@ Active Team
 
 - Heiko Burau*
 - Dr. Alexander Debus
-- Carlchristian Eckert
 - Marco Garten
-- Alexander Grund
 - Axel Huebl*
+- Alexander Matthes
 - Richard Pausch*
 - Rene Widera*
 
 ### Former Members, Contributions and Thanks
 
-The PIConGPU Team expresses its thanks to:
+The PIConGPU Team expresses its gratitude to:
 
-- Florian Berninger
-- Robert Dietrich
-- Wen Fu, Ph.D.
-- Anton Helm
-- Wolfgang Hoehnig
-- Maximilian Knespel
-- Dr. Remi Lehe
-- Felix Schmitt
-- Benjamin Schneider
-- Joseph Schuchart
-- Conrad Schumann
-- Klaus Steiniger
-- Stefan Tietze
-- Marija Vranic, Ph.D.
-- Benjamin Worpitz
-- Erik Zenker
+Florian Berninger, Robert Dietrich, Carlchristian Eckert, Wen Fu, Ph.D.,
+Alexander Grund, Anton Helm, Wolfgang Hoehnig, Maximilian Knespel,
+Dr. Remi Lehe, Felix Schmitt, Benjamin Schneider, Joseph Schuchart,
+Conrad Schumann, Klaus Steiniger, Stefan Tietze, Marija Vranic, Ph.D.,
+Benjamin Worpitz, Erik Zenker, Alexander Matthes
 
-Kudos to everyone who helped!
+Kudos to everyone, mentioned or unmentioned, who contributed further in any
+way!
 
 ********************************************************************************
 
-![image of an lwfa](doc/images/lwfa_grey.png "LWFA")
-![image of our strong scaling](doc/images/StrongScalingPIConGPU_log.png "Strong Scaling")
+![image of an lwfa](docs/images/lwfa_iso.png "LWFA")
+![image of our strong scaling](docs/images/StrongScalingPIConGPU_log.png "Strong Scaling")

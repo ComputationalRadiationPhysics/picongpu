@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
  *                     Benjamin Worpitz, Alexander Grund
  *
@@ -22,7 +21,9 @@
 
 #pragma once
 
-#include <cassert>
+#include "verify.hpp"
+#include "assert.hpp"
+
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
@@ -31,6 +32,9 @@
 #include "pmacc_types.hpp"
 #include "simulationControl/SimulationHelper.hpp"
 #include "simulation_defines.hpp"
+
+#include "particles/bremsstrahlung/ScaledSpectrum.hpp"
+#include "particles/bremsstrahlung/PhotonEmissionAngle.hpp"
 
 #include "eventSystem/EventSystem.hpp"
 #include "dimensions/GridLayout.hpp"
@@ -51,6 +55,8 @@
 #include "initialization/IInitPlugin.hpp"
 #include "initialization/ParserGridDistribution.hpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "particles/Manipulate.hpp"
+#include "particles/manipulators/manipulators.hpp"
 #include "random/methods/XorMin.hpp"
 #include "random/RNGProvider.hpp"
 
@@ -67,9 +73,13 @@
 #include "particles/InitFunctors.hpp"
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
+#include "particles/traits/FilterByIdentifier.hpp"
+#include "particles/traits/HasIonizersWithRNG.hpp"
 #include "particles/IdProvider.hpp"
 
 #include <boost/mpl/int.hpp>
+#include <memory>
+
 
 namespace picongpu
 {
@@ -91,23 +101,15 @@ public:
      * Constructor
      */
     MySimulation() :
-    laser(NULL),
-    fieldB(NULL),
-    fieldE(NULL),
-    fieldJ(NULL),
-    fieldTmp(NULL),
-    mallocMCBuffer(NULL),
-    myFieldSolver(NULL),
-    myCurrentInterpolation(NULL),
-    pushBGField(NULL),
-    currentBGField(NULL),
-    cellDescription(NULL),
-    initialiserController(NULL),
-    slidingWindow(false),
-    rngFactory(NULL)
+    laser(nullptr),
+    myFieldSolver(nullptr),
+    myCurrentInterpolation(nullptr),
+    pushBGField(nullptr),
+    currentBGField(nullptr),
+    cellDescription(nullptr),
+    initialiserController(nullptr),
+    slidingWindow(false)
     {
-        ForEach<VectorAllSpecies, particles::AssignNull<bmpl::_1>, MakeIdentifier<bmpl::_1> > setPtrToNull;
-        setPtrToNull(forward(particleStorage));
     }
 
     virtual void pluginRegisterHelp(po::options_description& desc)
@@ -232,40 +234,34 @@ public:
             if (isPeriodic[i] == 0)
             {
                 /*negativ direction*/
-                assert((int) ABSORBER_CELLS[i][0] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
+                PMACC_VERIFY((int) ABSORBER_CELLS[i][0] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
                 /*positiv direction*/
-                assert((int) ABSORBER_CELLS[i][1] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
+                PMACC_VERIFY((int) ABSORBER_CELLS[i][1] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
             }
         }
     }
 
     virtual void pluginUnload()
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
 
         SimulationHelper<simDim>::pluginUnload();
-        __delete(fieldB);
-
-        __delete(fieldE);
-
-        __delete(fieldJ);
-
-        __delete(fieldTmp);
-
-        __delete(mallocMCBuffer);
 
         __delete(myFieldSolver);
 
         __delete(myCurrentInterpolation);
 
-        ForEach<VectorAllSpecies, particles::CallDelete<bmpl::_1>, MakeIdentifier<bmpl::_1> > deleteParticleMemory;
-        deleteParticleMemory(forward(particleStorage));
+        /** unshare all registered ISimulationData sets
+         *
+         * @todo can be removed as soon as our Environment learns to shutdown in
+         *       a distinct order, e.g. DataConnector before CUDA context
+         */
+        dc.clean();
 
         __delete(laser);
         __delete(pushBGField);
         __delete(currentBGField);
         __delete(cellDescription);
-
-        __delete(rngFactory);
     }
 
     void notify(uint32_t)
@@ -276,39 +272,52 @@ public:
     virtual void init()
     {
         namespace nvmem = PMacc::nvidia::memory;
+
+        DataConnector &dc = Environment<>::get().DataConnector();
+
         // create simulation data such as fields and particles
-        fieldB = new FieldB(*cellDescription);
-        fieldE = new FieldE(*cellDescription);
-        fieldJ = new FieldJ(*cellDescription);
-        fieldTmp = new FieldTmp(*cellDescription);
+        auto fieldB = new FieldB( *cellDescription );
+        dc.share( std::shared_ptr< ISimulationData >( fieldB ) );
+        auto fieldE = new FieldE( *cellDescription );
+        dc.share( std::shared_ptr< ISimulationData >( fieldE ) );
+        auto fieldJ = new FieldJ( *cellDescription );
+        dc.share( std::shared_ptr< ISimulationData >( fieldJ ) );
+
+        std::vector< FieldTmp * > fieldTmp;
+        for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
+        {
+            auto newFld = new FieldTmp( *cellDescription, slot );
+            fieldTmp.push_back( newFld );
+            dc.share( std::shared_ptr< ISimulationData >( newFld ) );
+        }
         pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
         currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
 
         laser = new LaserPhysics(cellDescription->getGridLayout());
 
-        // Make a list of all species that can be ionized
-        typedef typename PMacc::particles::traits::FilterByFlag
-        <
-            VectorAllSpecies,
-            ionizer<>
-        >::type VectorSpeciesWithIonizer;
-
-        /* Make a list of `boost::true_type`s and `boost::false_type`s for species that use or do not use the RNG during ionization */
-        typedef typename PMacc::OperateOnSeq<VectorSpeciesWithIonizer,picongpu::traits::UsesRNG<picongpu::traits::GetIonizer<bmpl::_> > >::type VectorIonizersUsingRNG;
-        /* define a type that contains the number of `boost::true_type`s when `::value` is accessed */
-        typedef typename boost::mpl::count<VectorIonizersUsingRNG, boost::true_type>::type NumReqRNGs;
-
-        // Initialize random number generator and synchrotron functions, if there are synchrotron photon species
+        // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
+        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+                                                                bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
 
-        if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value || NumReqRNGs::value)
+        // ... or if ionization methods need an RNG
+        using HasIonizerRNGs = typename traits::HasIonizersWithRNG< VectorAllSpecies >::type;
+        constexpr bool hasIonizerRNGs = HasIonizerRNGs::value;
+
+        if( !bmpl::empty<AllSynchrotronPhotonsSpecies>::value ||
+            !bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value ||
+            hasIonizerRNGs
+        )
         {
             // create factory for the random number generator
-            this->rngFactory = new RNGFactory(Environment<simDim>::get().SubGrid().getLocalDomain().size);
-            // init factory
+            using RNGFactory = PMacc::random::RNGProvider< simDim, PMacc::random::methods::XorMin >;
+            auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
+
+            // init and share random number generator
             PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
-            this->rngFactory->init(gridCon.getScalarPosition());
+            rngFactory->init( gridCon.getScalarPosition() );
+            dc.share( std::shared_ptr< ISimulationData >( rngFactory ) );
         }
 
         // Initialize synchrotron functions, if there are synchrotron photon species
@@ -317,8 +326,24 @@ public:
             this->synchrotronFunctions.init();
         }
 
-        ForEach<VectorAllSpecies, particles::CreateSpecies<bmpl::_1>, MakeIdentifier<bmpl::_1> > createSpeciesMemory;
-        createSpeciesMemory(forward(particleStorage), cellDescription);
+        // Initialize bremsstrahlung lookup tables, if there are species containing bremsstrahlung photons
+        if(!bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value)
+        {
+            ForEach<
+                AllBremsstrahlungPhotonsSpecies,
+                particles::bremsstrahlung::FillScaledSpectrumMap< bmpl::_1 >
+            > fillScaledSpectrumMap;
+            fillScaledSpectrumMap(forward(this->scaledBremsstrahlungSpectrumMap));
+
+            this->bremsstrahlungPhotonAngle.init();
+        }
+
+        /* Create an empty allocator. This one is resized after all exchanges
+         * for particles are created */
+        deviceHeap.reset(new DeviceHeap(0));
+
+        ForEach< VectorAllSpecies, particles::CreateSpecies<bmpl::_1> > createSpeciesMemory;
+        createSpeciesMemory( deviceHeap, cellDescription );
 
         size_t freeGpuMem(0);
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
@@ -344,21 +369,23 @@ public:
             log<picLog::MEMORY > ("RAM is NOT shared between GPU and host.");
 
         // initializing the heap for particles
-        mallocMC::initHeap(heapSize);
-        this->mallocMCBuffer = new MallocMCBuffer();
+        deviceHeap->destructiveResize(heapSize);
+        MallocMCBuffer<DeviceHeap>* mallocMCBuffer = new MallocMCBuffer<DeviceHeap>(deviceHeap);
+        dc.share( std::shared_ptr< ISimulationData >( mallocMCBuffer ) );
 
-        ForEach<VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1>, MakeIdentifier<bmpl::_1> > createParticleBuffer;
-        createParticleBuffer(forward(particleStorage));
+        ForEach< VectorAllSpecies, particles::CallCreateParticleBuffer<bmpl::_1> > createParticleBuffer;
+        createParticleBuffer( deviceHeap );
 
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         IdProvider<simDim>::init();
 
-        fieldB->init(*fieldE, *laser);
-        fieldE->init(*fieldB, *laser);
-        fieldJ->init(*fieldE, *fieldB);
-        fieldTmp->init();
+        fieldB->init( *laser );
+        fieldE->init( *laser );
+        fieldJ->init( );
+        for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
+            fieldTmp.at( slot )->init();
 
         // create field solver
         this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
@@ -367,8 +394,8 @@ public:
         this->myCurrentInterpolation = new fieldSolver::CurrentInterpolation;
 
 
-        ForEach<VectorAllSpecies, particles::CallInit<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleInit;
-        particleInit(forward(particleStorage), fieldE, fieldB, fieldJ, fieldTmp);
+        ForEach< VectorAllSpecies, particles::CallInit<bmpl::_1> > particleInit;
+        particleInit( );
 
 
         /* add CUDA streams to the StreamController for concurrent execution */
@@ -388,8 +415,7 @@ public:
          * information such as local offsets in y-direction
          */
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        if( MovingWindow::getInstance().isSlidingWindowActive() )
-            gc.setStateAfterSlides(0);
+        gc.setStateAfterSlides(0);
 
         /* fill all objects registed in DataConnector */
         if (initialiserController)
@@ -416,8 +442,8 @@ public:
             else
             {
                 initialiserController->init();
-                ForEach<particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
-                initSpecies(forward(particleStorage), step);
+                ForEach< particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
+                initSpecies( step );
             }
         }
 
@@ -429,9 +455,14 @@ public:
             beginning of a simulation in movingWindowCheck()
             At restarts the external fields are already added and will be
             double-counted, so we remove it in advance. */
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
         if( step != 0 )
         {
             namespace nvfct = PMacc::nvidia::functors;
+
             (*pushBGField)( fieldE, nvfct::Sub(), FieldBackgroundE(fieldE->getUnit()),
                             step, FieldBackgroundE::InfluenceParticlePusher);
             (*pushBGField)( fieldB, nvfct::Sub(), FieldBackgroundB(fieldB->getUnit()),
@@ -444,12 +475,10 @@ public:
         EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(eRfieldB);
 
-        return step;
-    }
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
 
-    virtual ~MySimulation()
-    {
-        mallocMC::finalizeHeap();
+        return step;
     }
 
     /**
@@ -461,24 +490,60 @@ public:
     {
         namespace nvfct = PMacc::nvidia::functors;
 
-        /* Initialize ionization routine for each species with the flag `ionizer<>` */
-        typedef typename PMacc::particles::traits::FilterByFlag
+        typedef typename PMacc::particles::traits::FilterByIdentifier
         <
             VectorAllSpecies,
-            ionizer<>
-        >::type VectorSpeciesWithIonizer;
-        ForEach<VectorSpeciesWithIonizer, particles::CallIonization<bmpl::_1>, MakeIdentifier<bmpl::_1> > particleIonization;
-        particleIonization(forward(particleStorage), cellDescription, currentStep);
+            momentumPrev1
+        >::type VectorSpeciesWithMementumPrev1;
+
+        /* copy attribute momentum to momentumPrev1 */
+        ForEach<
+            VectorSpeciesWithMementumPrev1,
+            particles::Manipulate<
+                particles::manipulators::CopyAttribute<
+                    momentumPrev1,
+                    momentum
+                >,
+                bmpl::_1
+            >
+        > copyMomentumPrev1;
+        copyMomentumPrev1( currentStep );
+
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        /* Initialize ionization routine for each species with the flag `ionizers<>` */
+        using VectorSpeciesWithIonizers = typename PMacc::particles::traits::FilterByFlag<
+            VectorAllSpecies,
+            ionizers<>
+        >::type;
+        ForEach< VectorSpeciesWithIonizers, particles::CallIonization< bmpl::_1 > > particleIonization;
+        particleIonization( cellDescription, currentStep );
 
         /* call the synchrotron radiation module for each radiating species (normally electrons) */
         typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
 
-        ForEach<AllSynchrotronPhotonsSpecies,
-                particles::CallSynchrotronPhotons<bmpl::_1>,
-                MakeIdentifier<bmpl::_1> > synchrotronRadiation;
-        synchrotronRadiation(forward(particleStorage), cellDescription, currentStep, this->synchrotronFunctions);
+        ForEach<
+            AllSynchrotronPhotonsSpecies,
+            particles::CallSynchrotronPhotons< bmpl::_1 >
+        > synchrotronRadiation;
+        synchrotronRadiation( cellDescription, currentStep, this->synchrotronFunctions );
 
+        /* Bremsstrahlung */
+        typedef typename PMacc::particles::traits::FilterByFlag
+        <
+            VectorAllSpecies,
+            bremsstrahlungIons<>
+        >::type VectorSpeciesWithBremsstrahlung;
+        ForEach<
+            VectorSpeciesWithBremsstrahlung,
+            particles::CallBremsstrahlung< bmpl::_1 >
+        > particleBremsstrahlung;
+        particleBremsstrahlung(
+            cellDescription,
+            currentStep,
+            this->scaledBremsstrahlungSpectrumMap,
+            this->bremsstrahlungPhotonAngle);
 
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;
@@ -486,17 +551,22 @@ public:
 
         /* push all species */
         particles::PushAllSpecies pushAllSpecies;
-        pushAllSpecies(particleStorage, currentStep, initEvent, updateEvent, commEvent);
+        pushAllSpecies( currentStep, initEvent, updateEvent, commEvent );
 
         __setTransactionEvent(updateEvent);
         /** remove background field for particle pusher */
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
         (*pushBGField)(fieldE, nvfct::Sub(), FieldBackgroundE(fieldE->getUnit()),
                        currentStep, FieldBackgroundE::InfluenceParticlePusher);
         (*pushBGField)(fieldB, nvfct::Sub(), FieldBackgroundB(fieldB->getUnit()),
                        currentStep, FieldBackgroundB::InfluenceParticlePusher);
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
 
+        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
         FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
         fieldJ->assign( zeroJ );
 
@@ -509,8 +579,14 @@ public:
             VectorAllSpecies,
             current<>
         >::type VectorSpeciesWithCurrentSolver;
-        ForEach<VectorSpeciesWithCurrentSolver, ComputeCurrent<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeCurrent;
-        computeCurrent(forward(fieldJ),forward(particleStorage), currentStep);
+        ForEach<
+            VectorSpeciesWithCurrentSolver,
+            ComputeCurrent<
+                bmpl::_1,
+                bmpl::int_<CORE + BORDER>
+            >
+        > computeCurrent;
+        computeCurrent( currentStep );
 #endif
 
 #if  (ENABLE_CURRENT == 1)
@@ -543,6 +619,7 @@ public:
             }
         }
 #endif
+        dc.releaseData( FieldJ::getName() );
 
         this->myFieldSolver->update_afterCurrent(currentStep);
     }
@@ -562,19 +639,34 @@ public:
          */
         namespace nvfct = PMacc::nvidia::functors;
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
         (*pushBGField)( fieldE, nvfct::Add(), FieldBackgroundE(fieldE->getUnit()),
                         currentStep, FieldBackgroundE::InfluenceParticlePusher );
         (*pushBGField)( fieldB, nvfct::Add(), FieldBackgroundB(fieldB->getUnit()),
                         currentStep, FieldBackgroundB::InfluenceParticlePusher );
+
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
     }
 
     virtual void resetAll(uint32_t currentStep)
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
         fieldB->reset(currentStep);
         fieldE->reset(currentStep);
-        ForEach<VectorAllSpecies, particles::CallReset<bmpl::_1>, MakeIdentifier<bmpl::_1> > callReset;
-        callReset(forward(particleStorage), currentStep);
+        ForEach< VectorAllSpecies, particles::CallReset< bmpl::_1 > > callReset;
+        callReset( currentStep );
+
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
     }
 
     void slide(uint32_t currentStep)
@@ -586,15 +678,15 @@ public:
             log<picLog::SIMULATION_STATE > ("slide in step %1%") % currentStep;
             resetAll(currentStep);
             initialiserController->slide(currentStep);
-            ForEach<particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
-            initSpecies(forward(particleStorage), currentStep);
+            ForEach< particles::InitPipeline, particles::CallFunctor< bmpl::_1 > > initSpecies;
+            initSpecies( currentStep );
         }
     }
 
     virtual void setInitController(IInitPlugin *initController)
     {
 
-        assert(initController != NULL);
+        PMACC_ASSERT(initController != nullptr);
         this->initialiserController = initController;
     }
 
@@ -614,23 +706,18 @@ private:
         {
             // global size must be a devisor of supercell size
             // note: this is redundant, while using the local condition below
-            assert(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
+            PMACC_VERIFY(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
             // local size must be a devisor of supercell size
-            assert(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
+            PMACC_VERIFY(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
             // local size must be at least 3 supercells (1x core + 2x border)
             // note: size of border = guard_size (in supercells)
             // \todo we have to add the guard_x/y/z for modified supercells here
-            assert( (uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
+            PMACC_VERIFY((uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
         }
     }
 
 protected:
-    // fields
-    FieldB *fieldB;
-    FieldE *fieldE;
-    FieldJ *fieldJ;
-    FieldTmp *fieldTmp;
-    MallocMCBuffer *mallocMCBuffer;
+    std::shared_ptr<DeviceHeap> deviceHeap;
 
     // field solver
     fieldSolver::FieldSolver* myFieldSolver;
@@ -639,19 +726,15 @@ protected:
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* currentBGField;
 
-    typedef SeqToMap<VectorAllSpecies, TypeToPointerPair<bmpl::_1> >::type ParticleStorageMap;
-    typedef PMacc::math::MapTuple<ParticleStorageMap> ParticleStorage;
-
-    ParticleStorage particleStorage;
-
     LaserPhysics *laser;
+
+    // creates lookup tables for the bremsstrahlung effect
+    // map<atomic number, scaled bremsstrahlung spectrum>
+    std::map<float_X, particles::bremsstrahlung::ScaledSpectrum> scaledBremsstrahlungSpectrumMap;
+    particles::bremsstrahlung::GetPhotonAngle bremsstrahlungPhotonAngle;
 
     // Synchrotron functions (used in synchrotronPhotons module)
     particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
-
-    // factory for the random number generator
-    typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
-    RNGFactory* rngFactory;
 
     // output classes
 
@@ -676,3 +759,5 @@ protected:
 
 #include "fields/Fields.tpp"
 #include "particles/synchrotronPhotons/SynchrotronFunctions.tpp"
+#include "particles/bremsstrahlung/Bremsstrahlung.tpp"
+#include "particles/bremsstrahlung/ScaledSpectrum.tpp"

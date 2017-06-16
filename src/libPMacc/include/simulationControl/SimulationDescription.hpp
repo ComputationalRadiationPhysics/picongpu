@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Axel Huebl
+/* Copyright 2015-2017 Axel Huebl
  *
  * This file is part of libPMacc.
  *
@@ -112,9 +111,8 @@ protected:
     uint32_t currentStep;
 
 private:
-    friend class Environment<DIM1>;
-    friend class Environment<DIM2>;
-    friend class Environment<DIM3>;
+
+    friend class detail::Environment;
 
     static SimulationDescription& getInstance()
     {

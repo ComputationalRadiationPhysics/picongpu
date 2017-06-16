@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Axel Huebl
+/* Copyright 2013-2017 Heiko Burau, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -81,12 +80,17 @@ public:
 
         using namespace ::PMacc::math;
 
-        BOOST_AUTO(fieldE_coreBorder,
-             this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
-                   precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT())));
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+
+        auto fieldE_coreBorder =
+             fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
+                   precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT()));
 
         this->eField_zt[0] = new container::HostBuffer<float, 2 > (Size_t < 2 > (fieldE_coreBorder.size().z(), this->collectTimesteps));
         this->eField_zt[1] = new container::HostBuffer<float, 2 >(this->eField_zt[0]->size());
+
+        dc.releaseData( FieldE::getName() );
     }
 
     void pluginRegisterHelp(po::options_description& desc)
@@ -109,7 +113,7 @@ public:
     {
         using namespace ::PMacc::math;
 
-        PMACC_AUTO(&con,Environment<simDim>::get().GridController());
+        auto& con = Environment<simDim>::get().GridController();
         Size_t<SIMDIM> gpuDim = (Size_t<SIMDIM>)con.getGpuNodes();
         Int<3> gpuPos = (Int<3>)con.getPosition();
         zone::SphericZone<SIMDIM> gpuGatheringZone(Size_t<SIMDIM > (1, 1, gpuDim.z()));
@@ -167,9 +171,12 @@ public:
 
         using namespace math;
 
-        BOOST_AUTO(fieldE_coreBorder,
-           this->fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
-                precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT())));
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+
+        auto fieldE_coreBorder =
+           fieldE->getGridBuffer().getDeviceBuffer().cartBuffer().view(
+                precisionCast<int>(GuardDim().toRT()), -precisionCast<int>(GuardDim().toRT()));
 
         for (size_t z = 0; z < eField_zt[0]->size().x(); z++)
         {
@@ -185,16 +192,18 @@ public:
             }
         }
 
+        dc.releaseData( FieldE::getName() );
+
         if (currentStep == this->collectTimesteps + firstTimestep)
             writeOutput();
     }
 
 private:
     // number of timesteps which collect the data
-    BOOST_STATIC_CONSTEXPR uint32_t collectTimesteps = 512;
+    static constexpr uint32_t collectTimesteps = 512;
     // first timestep which collects data
     //   you may like to let the plasma develope/thermalize a little bit
-    BOOST_STATIC_CONSTEXPR uint32_t firstTimestep = 1024;
+    static constexpr uint32_t firstTimestep = 1024;
 
     container::HostBuffer<float, 2 >* eField_zt[2];
 

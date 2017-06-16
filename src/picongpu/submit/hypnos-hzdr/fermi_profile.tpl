@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2016 Axel Huebl, Anton Helm, Rene Widera
+# Copyright 2013-2017 Axel Huebl, Anton Helm, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -43,6 +43,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
@@ -59,9 +60,9 @@ echo 'Running program...'
 cd !TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
-source ~/picongpu.profile
+source !TBG_profile
 if [ $? -ne 0 ] ; then
-  echo "Error: ~/picongpu.profile not found!"
+  echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
   exit 1
 fi
 unset MODULES_NO_OUTPUT
@@ -75,7 +76,12 @@ cd simOutput
 #wait that all nodes see ouput folder
 sleep 1
 
-mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -x LD_LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+# test if cuda_memtest binary is available
+if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
+  mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -x LD_LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+else
+  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+fi
 
 if [ $? -eq 0 ] ; then
   mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output

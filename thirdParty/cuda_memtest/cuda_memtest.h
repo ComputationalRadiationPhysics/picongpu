@@ -4,7 +4,7 @@
  * University of Illinois/NCSA
  * Open Source License
  *
- * Copyright © 2009,    University of Illinois.  All rights reserved.
+ * Copyright 2009,    University of Illinois.  All rights reserved.
  *
  * Developed by:
  *

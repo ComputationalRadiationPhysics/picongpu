@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Alexander Grund
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -28,6 +27,7 @@ namespace allocator
 {
 
 template<typename Type, int T_dim>
+HDINLINE
 cursor::BufferCursor<Type, T_dim>
 DeviceMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 {
@@ -36,7 +36,7 @@ DeviceMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
     math::Size_t<T_dim-1> pitch;
     cudaPitchedPtr cudaData;
 
-    cudaData.ptr = NULL;
+    cudaData.ptr = nullptr;
     cudaData.pitch = 1;
     cudaData.xsize = size[0] * sizeof (Type);
     cudaData.ysize = 1;
@@ -66,18 +66,19 @@ DeviceMemAllocator<Type, T_dim>::allocate(const math::Size_t<T_dim>& size)
 #endif
 
 #ifdef __CUDA_ARCH__
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
     math::Size_t<T_dim-1> pitch;
     return cursor::BufferCursor<Type, T_dim>(dataPointer, pitch);
 #endif
 }
 
 template<typename Type>
+HDINLINE
 cursor::BufferCursor<Type, 1>
 DeviceMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 {
 #ifndef __CUDA_ARCH__
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
 
     if(size[0])
         CUDA_CHECK(cudaMalloc((void**)&dataPointer, size[0] * sizeof(Type)));
@@ -86,13 +87,14 @@ DeviceMemAllocator<Type, 1>::allocate(const math::Size_t<1>& size)
 #endif
 
 #ifdef __CUDA_ARCH__
-    Type* dataPointer = NULL;
+    Type* dataPointer = nullptr;
     return cursor::BufferCursor<Type, 1>(dataPointer, math::Size_t<0>());
 #endif
 }
 
 template<typename Type, int T_dim>
 template<typename TCursor>
+HDINLINE
 void DeviceMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
 {
 #ifndef __CUDA_ARCH__
@@ -102,6 +104,7 @@ void DeviceMemAllocator<Type, T_dim>::deallocate(const TCursor& cursor)
 
 template<typename Type>
 template<typename TCursor>
+HDINLINE
 void DeviceMemAllocator<Type, 1>::deallocate(const TCursor& cursor)
 {
 #ifndef __CUDA_ARCH__

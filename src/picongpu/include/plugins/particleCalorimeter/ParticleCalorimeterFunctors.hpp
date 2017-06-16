@@ -1,5 +1,4 @@
-/**
- * Copyright 2016 Heiko Burau
+/* Copyright 2016-2017 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -21,8 +20,10 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "algorithms/KinEnergy.hpp"
 #include "math/Vector.hpp"
 #include "algorithms/math.hpp"
+#include "memory/shared/Allocate.hpp"
 
 namespace picongpu
 {
@@ -59,7 +60,7 @@ struct CalorimeterFunctor
                        const float3_X calorimeterFrameVecX,
                        const float3_X calorimeterFrameVecY,
                        const float3_X calorimeterFrameVecZ) :
-        calorimeterCur(NULL, PMacc::math::Size_t<DIM2>()),
+        calorimeterCur(nullptr, PMacc::math::Size_t<DIM2>()),
         maxYaw(maxYaw),
         maxPitch(maxPitch),
         numBinsYaw(numBinsYaw),
@@ -117,7 +118,9 @@ struct CalorimeterFunctor
             const float_X weighting = particlesFrame[linearThreadIdx][weighting_];
             const float_X normedWeighting = weighting /
                                             static_cast<float_X>(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
-            const float_X energy = SPEED_OF_LIGHT * math::sqrt(mom2) / weighting;
+            const auto particle = particlesFrame[linearThreadIdx];
+            const float_X mass = attribute::getMass(weighting, particle);
+            const float_X energy = KinEnergy<>()(mom, mass) / weighting;
 
             int32_t energyBin = 0;
             if(this->numBinsEnergy > 1)
@@ -177,7 +180,7 @@ struct ParticleCalorimeterKernel
             threadIndex);
 
         typedef typename ParticlesBox::FramePtr ParticlesFramePtr;
-        __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<ParticlesFramePtr>::type particlesFrame;
+        PMACC_SMEM( particlesFrame, ParticlesFramePtr );
 
         /* find last frame in super cell
          */

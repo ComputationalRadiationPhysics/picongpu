@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera
+/* Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -45,6 +44,7 @@ DEFINE_VERBOSE_CLASS(PMaccVerbose)
     DEFINE_LOGLVL(8,MPI);
     DEFINE_LOGLVL(16,CUDA_RT);
     DEFINE_LOGLVL(32,COMMUNICATION);
+    DEFINE_LOGLVL(64,EVENT);
 )
 /*set default verbose lvl (integer number)*/
 (NOTHING::lvl|PMACC_VERBOSE_LVL);

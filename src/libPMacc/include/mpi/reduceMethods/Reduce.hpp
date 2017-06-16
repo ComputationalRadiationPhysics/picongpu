@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -24,7 +23,7 @@
 
 #include "pmacc_types.hpp"
 #include <mpi.h>
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 
 namespace PMacc
 {

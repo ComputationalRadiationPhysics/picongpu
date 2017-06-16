@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Marco Garten
+/* Copyright 2015-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -18,13 +17,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-/** forward declarations for ionization algorithms
+/** @file fieldIonizationCalc.def
  *
+ * forward declarations for ionization algorithms
  * ionization model has a < Name >
  * so the algorithm is called "Algorithm< Name >"
  */
+
+#pragma once
 
 namespace picongpu
 {
@@ -40,7 +40,7 @@ namespace ionization
     template<bool T_polarizationType>
     struct AlgorithmADK;
 
-    struct AlgorithmBSIHydrogenLike;
+    struct AlgorithmBSI;
 
     struct AlgorithmBSIEffectiveZ;
 

@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Alexander Grund
+/* Copyright 2015-2017 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -89,7 +88,7 @@ namespace random
         typedef T_Distribution Distribution;
         typedef typename boost::result_of<Distribution(RNGState&)>::type result_type;
 
-        HDINLINE Random(): m_rngState(NULL)
+        HDINLINE Random(): m_rngState(nullptr)
         {}
 
         HDINLINE Random(RNGState* m_rngState): m_rngState(m_rngState)

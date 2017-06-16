@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Marco Garten
+/* Copyright 2015-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -21,22 +20,23 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "traits/Resolve.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 
 #include "particles/ionization/byField/BSI/BSI.def"
-#include "particles/ionization/byField/BSI/AlgorithmBSIHydrogenLike.hpp"
+#include "particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
 #include "particles/ionization/ionization.hpp"
+#include "particles/ParticlesFunctors.hpp"
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "memory/boxes/DataBox.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+#include "traits/Resolve.hpp"
 
-#include "particles/ParticlesFunctors.hpp"
 
 namespace picongpu
 {
@@ -98,7 +98,7 @@ namespace ionization
             {
                 DataConnector &dc = Environment<>::get().DataConnector();
                 /* initialize pointers on host-side E-(B-)field databoxes */
-                FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
+                auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
                 /* initialize device-side E-(B-)field databoxes */
                 eBox = fieldE->getDeviceDataBox();
 
@@ -131,7 +131,7 @@ namespace ionization
 
                 ThreadCollective<BlockArea> collective(linearThreadIdx);
                 /* copy fields from global to shared */
-                PMACC_AUTO(fieldEBlock, eBox.shift(blockCell));
+                auto fieldEBlock = eBox.shift(blockCell);
                 collective(
                           assign,
                           cachedE,
@@ -149,7 +149,7 @@ namespace ionization
             DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
             {
                 /* alias for the single macro-particle */
-                PMACC_AUTO(particle,ionFrame[localIdx]);
+                auto particle = ionFrame[localIdx];
                 /* particle position, used for field-to-particle interpolation */
                 floatD_X pos = particle[position_];
                 const int particleCellIdx = particle[localCellIdx_];

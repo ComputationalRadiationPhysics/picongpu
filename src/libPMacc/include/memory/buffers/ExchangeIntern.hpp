@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -31,10 +30,9 @@
 
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/TaskReceive.hpp"
-
+#include "assert.hpp"
 #include "pmacc_types.hpp"
 
-#include <cassert>
 
 namespace PMacc
 {
@@ -49,10 +47,10 @@ namespace PMacc
 
         ExchangeIntern(DeviceBuffer<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
                        uint32_t communicationTag, uint32_t area = BORDER, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(NULL)
+        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(nullptr)
         {
 
-            assert(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
+            PMACC_ASSERT(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
 
             DataSpace<DIM> tmp_size = memoryLayout.getDataSpaceWithoutGuarding();
             /*
@@ -83,7 +81,7 @@ namespace PMacc
 
         ExchangeIntern(DataSpace<DIM> exchangeDataSpace, uint32_t exchange,
                        uint32_t communicationTag, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(NULL)
+        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(nullptr)
         {
             this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice);
            //  this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice,true);
@@ -208,7 +206,7 @@ namespace PMacc
 
         virtual bool hasDeviceDoubleBuffer()
         {
-            return deviceDoubleBuffer != NULL;
+            return deviceDoubleBuffer != nullptr;
         }
 
         virtual DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer()

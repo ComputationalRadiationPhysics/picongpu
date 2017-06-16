@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,17 +23,18 @@
 
 #include "simulation_defines.hpp"
 
-#include <fields/MaxwellSolver/DirSplitting/DirSplitting.kernel>
-#include <math/vector/Int.hpp>
-#include <dataManagement/DataConnector.hpp>
-#include <fields/FieldB.hpp>
-#include <fields/FieldE.hpp>
+#include "fields/MaxwellSolver/DirSplitting/DirSplitting.kernel"
+#include "dataManagement/DataConnector.hpp"
+#include "fields/FieldB.hpp"
+#include "fields/FieldE.hpp"
+#include "lambda/Expression.hpp"
+#include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
+#include "cuSTL/cursor/NestedCursor.hpp"
 #include "math/Vector.hpp"
-#include <cuSTL/algorithm/kernel/ForeachBlock.hpp>
-#include <lambda/Expression.hpp>
-#include <cuSTL/cursor/NestedCursor.hpp>
-#include <math/vector/TwistComponents.hpp>
-#include <math/vector/compile-time/TwistComponents.hpp>
+#include "math/vector/Int.hpp"
+#include "math/vector/TwistComponents.hpp"
+#include "math/vector/compile-time/TwistComponents.hpp"
+
 
 namespace picongpu
 {
@@ -58,14 +58,25 @@ struct ConditionCheck<DirSplitting, T_Dummy>
     /* Directional Splitting conditions:
      *
      * using SI units to avoid round off errors
+     *
+     * The compiler is allowed to evaluate an expression those not depends on a template parameter
+     * even if the class is never instantiated. In that case static assert is always
+     * evaluated (e.g. with clang), this results in an error if the condition is false.
+     * http://www.boost.org/doc/libs/1_60_0/doc/html/boost_staticassert.html
+     *
+     * A workaround is to add a template dependency to the expression.
+     * `sizeof(ANY_TYPE) != 0` is always true and defers the evaluation.
      */
     PMACC_CASSERT_MSG(DirectionSplitting_Set_dX_equal_dt_times_c____check_your_gridConfig_param_file,
-                      (SI::SPEED_OF_LIGHT_SI * SI::DELTA_T_SI) == SI::CELL_WIDTH_SI);
+                      (SI::SPEED_OF_LIGHT_SI * SI::DELTA_T_SI) == SI::CELL_WIDTH_SI &&
+                      (sizeof(T_Dummy) != 0));
     PMACC_CASSERT_MSG(DirectionSplitting_use_cubic_cells____check_your_gridConfig_param_file,
-                      SI::CELL_HEIGHT_SI == SI::CELL_WIDTH_SI);
+                      SI::CELL_HEIGHT_SI == SI::CELL_WIDTH_SI &&
+                      (sizeof(T_Dummy) != 0));
 #if (SIMDIM == DIM3)
     PMACC_CASSERT_MSG(DirectionSplitting_use_cubic_cells____check_your_gridConfig_param_file,
-                      SI::CELL_DEPTH_SI == SI::CELL_WIDTH_SI);
+                      SI::CELL_DEPTH_SI == SI::CELL_WIDTH_SI &&
+                      (sizeof(T_Dummy) != 0));
 #endif
 };
 
@@ -78,7 +89,7 @@ private:
         using namespace cursor::tools;
         using namespace PMacc::math;
 
-        PMACC_AUTO(gridSizeTwisted, twistComponents<OrientationTwist>(gridSize));
+        auto gridSizeTwisted = twistComponents<OrientationTwist>(gridSize);
 
         /* twist components of the supercell */
         typedef typename CT::TwistComponents<SuperCellSize, OrientationTwist>::type BlockDim;
@@ -98,17 +109,17 @@ public:
 
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
-        FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
-        BOOST_AUTO(fieldE_coreBorder,
-            fieldE.getGridBuffer().getDeviceBuffer().
+        auto fieldE_coreBorder =
+            fieldE->getGridBuffer().getDeviceBuffer().
                    cartBuffer().view(GuardDim().toRT(),
-                                     -GuardDim().toRT()));
-        BOOST_AUTO(fieldB_coreBorder,
-            fieldB.getGridBuffer().getDeviceBuffer().
+                                     -GuardDim().toRT());
+        auto fieldB_coreBorder =
+            fieldB->getGridBuffer().getDeviceBuffer().
             cartBuffer().view(GuardDim().toRT(),
-                              -GuardDim().toRT()));
+                              -GuardDim().toRT());
 
         using namespace cursor::tools;
         using namespace PMacc::math;
@@ -122,8 +133,8 @@ public:
                   fieldB_coreBorder.origin(),
                   gridSize);
 
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
 
         typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
         propagate<Orientation_Y>(
@@ -131,8 +142,8 @@ public:
                   fieldB_coreBorder.origin(),
                   gridSize);
 
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
 
         typedef PMacc::math::CT::Int<2,0,1> Orientation_Z;
         propagate<Orientation_Z>(
@@ -141,26 +152,29 @@ public:
                   gridSize);
 
         if (laserProfile::INIT_TIME > float_X(0.0))
-            dc.getData<FieldE > (FieldE::getName(), true).laserManipulation(currentStep);
+            fieldE->laserManipulation(currentStep);
 
-        __setTransactionEvent(fieldE.asyncCommunication(__getTransactionEvent()));
-        __setTransactionEvent(fieldB.asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
+        __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
+
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
     }
 
     void update_afterCurrent(uint32_t) const
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        FieldE& fieldE = dc.getData<FieldE > (FieldE::getName(), true);
-        FieldB& fieldB = dc.getData<FieldB > (FieldB::getName(), true);
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
-        EventTask eRfieldE = fieldE.asyncCommunication(__getTransactionEvent());
-        EventTask eRfieldB = fieldB.asyncCommunication(__getTransactionEvent());
+        EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
+        EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(eRfieldE);
         __setTransactionEvent(eRfieldB);
 
-        dc.releaseData(FieldE::getName());
-        dc.releaseData(FieldB::getName());
+        dc.releaseData( FieldE::getName() );
+        dc.releaseData( FieldB::getName() );
     }
 
     static PMacc::traits::StringProperty getStringProperties()

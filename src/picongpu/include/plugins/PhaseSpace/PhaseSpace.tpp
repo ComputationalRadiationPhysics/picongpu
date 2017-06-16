@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -20,8 +19,10 @@
 
 #pragma once
 
-#include <vector>
-#include <algorithm>
+#include "PhaseSpace.hpp"
+#include "PhaseSpaceFunctors.hpp"
+
+#include "DumpHBufferSplashP.hpp"
 
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/cursor/MultiIndexCursor.hpp"
@@ -32,14 +33,13 @@
 #include "cuSTL/algorithm/host/Foreach.hpp"
 #include "math/vector/Int.hpp"
 #include "math/vector/Size_t.hpp"
-
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
+#include "dataManagement/DataConnector.hpp"
 
-#include "PhaseSpace.hpp"
-#include "PhaseSpaceFunctors.hpp"
+#include <vector>
+#include <algorithm>
 
-#include "DumpHBufferSplashP.hpp"
 
 namespace picongpu
 {
@@ -51,8 +51,8 @@ namespace picongpu
                                                          const uint32_t _notifyPeriod,
                                                          const std::pair<float_X, float_X>& _p_range,
                                                          const AxisDescription& _element ) :
-    cellDescription(NULL), name(_name), prefix(_prefix), particles(NULL),
-    dBuffer(NULL), axis_p_range(_p_range), axis_element(_element),
+    cellDescription(nullptr), name(_name), prefix(_prefix),
+    dBuffer(nullptr), axis_p_range(_p_range), axis_element(_element),
     notifyPeriod(_notifyPeriod), isPlaneReduceRoot(false),
     commFileWriter(MPI_COMM_NULL), planeReduce(NULL)
     {
@@ -167,6 +167,10 @@ namespace picongpu
         const PMacc::math::Size_t<simDim> coreBorderCells = coreBorderSuperCells *
             precisionCast<size_t>( SuperCellSize().toRT() );
 
+        /* register particle species observer */
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto particles = dc.get< Species >( Species::FrameType::getName(), true );
+
         /* select CORE + BORDER for all cells
          * CORE + BORDER is contiguous, in cuSTL we call this a "topological spheric zone"
          */
@@ -175,7 +179,7 @@ namespace picongpu
         algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
 
         FunctorBlock<Species, SuperCellSize, float_PS, num_pbins, r_dir> functorBlock(
-            this->particles->getDeviceParticlesBox(), dBuffer->origin(),
+            particles->getDeviceParticlesBox(), dBuffer->origin(),
             this->axis_element.momentum, this->axis_p_range );
 
         forEachSuperCell( /* area to work on */
@@ -184,15 +188,13 @@ namespace picongpu
                           cursor::make_MultiIndexCursor<simDim>(),
                           functorBlock
                         );
+
+        dc.releaseData( Species::FrameType::getName() );
     }
 
     template<class AssignmentFunction, class Species>
     void PhaseSpace<AssignmentFunction, Species>::notify( uint32_t currentStep )
     {
-        /* register particle species observer */
-        DataConnector &dc = Environment<>::get().DataConnector();
-        this->particles = &(dc.getData<Species > (Species::FrameType::getName(), true));
-
         /* reset device buffer */
         this->dBuffer->assign( float_PS(0.0) );
 

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,7 +16,7 @@
  * along with PIConGPU.
  * If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 
 
 #pragma once
@@ -37,7 +36,7 @@ namespace picongpu
                 return;
             }
         }
-        
+
         namespace gray
         {
             HDINLINE void addRGB( float3_X& img,
@@ -52,7 +51,7 @@ namespace picongpu
                       + myChannel * value * opacity;
             }
         }
-        
+
         namespace grayInv
         {
             HDINLINE void addRGB( float3_X& img,
@@ -67,7 +66,7 @@ namespace picongpu
                       + myChannel * (float_X(1.0) - value ) * opacity;
             }
         }
-        
+
         namespace red
         {
             HDINLINE void addRGB( float3_X& img,
@@ -82,7 +81,7 @@ namespace picongpu
                       + myChannel * value * opacity;
             }
         }
-        
+
         namespace green
         {
             HDINLINE void addRGB( float3_X& img,
@@ -97,7 +96,7 @@ namespace picongpu
                       + myChannel * value * opacity;
             }
         }
-        
+
         namespace blue
         {
             HDINLINE void addRGB( float3_X& img,

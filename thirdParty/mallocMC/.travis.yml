@@ -1,31 +1,39 @@
 language: cpp
 
+sudo: required
+
+dist: trusty
+
 compiler:
   - gcc
 
 env:
   global:
     - INSTALL_DIR=~/mylibs
+    - CXXFLAGS="-Werror"
 
 script:
   - mkdir build_tmp && cd build_tmp
-  - CXXFLAGS="-Werror" cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $TRAVIS_BUILD_DIR
+  - cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $TRAVIS_BUILD_DIR
   - make
   - make install
   - make examples
 
 before_script:
-  - sudo add-apt-repository --yes ppa:smspillaz/cmake-2.8.12
+  - cat /etc/apt/sources.list
+  - cat /etc/apt/sources.list.d/*
+  - sudo apt-add-repository multiverse
   - sudo apt-get update -qq
+  - sudo dpkg --configure -a
+  - sudo apt-get install -f -qq
+  - sudo dpkg --get-selections | grep hold || { echo "All packages OK."; }
   - sudo apt-get install -q -y cmake-data cmake
   - sudo apt-get install -qq build-essential
-  - sudo apt-get install -qq gcc-4.4 g++-4.4
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.4 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.4
-  - gcc --version && g++ --version
+  - gcc --version && g++ --version # 4.8
+  - apt-cache search nvidia-*
   - sudo apt-get install -qq nvidia-common
-  - sudo apt-get install -qq nvidia-current
-  - sudo apt-get install -qq nvidia-cuda-toolkit nvidia-cuda-dev
-  - sudo apt-get install -qq libboost1.48-dev
+  - sudo apt-get install -qq nvidia-cuda-dev nvidia-cuda-toolkit # 5.5
+  - sudo apt-get install -qq libboost-dev # 1.54.0
   - sudo find /usr/ -name libcuda*.so
 
 after_script:

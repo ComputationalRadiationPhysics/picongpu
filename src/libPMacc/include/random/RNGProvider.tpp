@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Alexander Grund
+/* Copyright 2015-2017 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -24,6 +23,10 @@
 
 #include "random/RNGProvider.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
+#include "Environment.hpp"
+
+#include <memory>
+
 
 namespace PMacc
 {
@@ -32,29 +35,31 @@ namespace random
 
     namespace kernel {
 
-        template<class T_RNGMethod, class T_RNGBox, class T_Space>
-        __global__ void
-        initRNGProvider(T_RNGBox rngBox, uint32_t seed, const T_Space size)
+        template< typename T_RNGMethod>
+        struct InitRNGProvider
         {
-            const uint32_t linearTid = blockIdx.x * blockDim.x + threadIdx.x;
-            if(linearTid >= size.productOfComponents())
-                return;
+            template<class T_RNGBox, class T_Space>
+            DINLINE void
+            operator()(T_RNGBox rngBox, uint32_t seed, const T_Space size) const
+            {
+                const uint32_t linearTid = blockIdx.x * blockDim.x + threadIdx.x;
+                if(linearTid >= size.productOfComponents())
+                    return;
 
-            const T_Space cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
-            T_RNGMethod().init(rngBox(cellIdx), seed, linearTid);
-        }
+                const T_Space cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
+                T_RNGMethod().init(rngBox(cellIdx), seed, linearTid);
+            }
+        };
 
     }  // namespace kernel
 
     template<uint32_t T_dim, class T_RNGMethod>
     RNGProvider<T_dim, T_RNGMethod>::RNGProvider(const Space& size, const std::string& uniqueId):
-    		m_size(size), m_uniqueId(uniqueId.empty() ? getName() : uniqueId),
-    		buffer(new Buffer(size))
+            m_size(size), m_uniqueId(uniqueId.empty() ? getName() : uniqueId),
+            buffer(new Buffer(size))
     {
         if(m_size.productOfComponents() == 0)
             throw std::invalid_argument("Cannot create RNGProvider with zero size");
-
-        Environment<dim>::get().DataConnector().registerData(*this);
     }
 
     template<uint32_t T_dim, class T_RNGMethod>
@@ -64,9 +69,9 @@ namespace random
         const uint32_t blockSize = 256;
         const uint32_t gridSize = (m_size.productOfComponents() + blockSize - 1u) / blockSize; // Round up
 
-        PMACC_AUTO(bufferBox, buffer->getDeviceBuffer().getDataBox());
+        auto bufferBox = buffer->getDeviceBuffer().getDataBox();
 
-        __cudaKernel(kernel::initRNGProvider<RNGMethod>)
+        PMACC_KERNEL(kernel::InitRNGProvider<RNGMethod>{})
         (gridSize, blockSize)
         (bufferBox, seed, m_size);
     }
@@ -75,9 +80,10 @@ namespace random
     typename RNGProvider<T_dim, T_RNGMethod>::Handle
     RNGProvider<T_dim, T_RNGMethod>::createHandle(const std::string& id)
     {
-        RNGProvider& provider = Environment<>::get().DataConnector().getData<RNGProvider>(id, true);
-        Handle result(provider.getDeviceDataBox());
-        Environment<>::get().DataConnector().releaseData(id);
+        auto provider =
+            Environment<>::get().DataConnector().get< RNGProvider >( id, true );
+        Handle result( provider->getDeviceDataBox() );
+        Environment<>::get().DataConnector().releaseData( id );
         return result;
     }
 
@@ -91,14 +97,14 @@ namespace random
     }
 
     template<uint32_t T_dim, class T_RNGMethod>
-    RNGProvider<T_dim, T_RNGMethod>::Buffer&
+    typename RNGProvider<T_dim, T_RNGMethod>::Buffer&
     RNGProvider<T_dim, T_RNGMethod>::getStateBuffer()
     {
         return *buffer;
     }
 
     template<uint32_t T_dim, class T_RNGMethod>
-    RNGProvider<T_dim, T_RNGMethod>::DataBoxType
+    typename RNGProvider<T_dim, T_RNGMethod>::DataBoxType
     RNGProvider<T_dim, T_RNGMethod>::getDeviceDataBox()
     {
         return buffer->getDeviceBuffer().getDataBox();

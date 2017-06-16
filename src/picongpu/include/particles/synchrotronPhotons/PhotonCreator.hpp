@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Heiko Burau
+/* Copyright 2015-2017 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -21,8 +20,8 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+
 #include "SynchrotronFunctions.hpp"
-#include "pmacc_types.hpp"
 #include "algorithms/Gamma.hpp"
 #include "algorithms/math/defines/sqrt.hpp"
 #include "algorithms/math/defines/dot.hpp"
@@ -32,6 +31,8 @@
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
 #include "particles/traits/ResolveAliasFromSpecies.hpp"
+#include "fields/FieldB.hpp"
+#include "fields/FieldE.hpp"
 
 #include "random/methods/XorMin.hpp"
 #include "random/distributions/Uniform.hpp"
@@ -39,12 +40,11 @@
 
 #include "traits/Resolve.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
+#include "dataManagement/DataConnector.hpp"
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "memory/boxes/DataBox.hpp"
+
 
 namespace picongpu
 {
@@ -129,8 +129,8 @@ public:
     {
         DataConnector &dc = Environment<>::get().DataConnector();
         /* initialize pointers on host-side E-(B-)field databoxes */
-        FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
-        FieldB* fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
         /* initialize device-side E-(B-)field databoxes */
         eBox = fieldE->getDeviceDataBox();
         bBox = fieldB->getDeviceDataBox();
@@ -154,7 +154,7 @@ public:
         /* instance of nvidia assignment operator */
         nvidia::functors::Assign assign;
         /* copy fields from global to shared */
-        PMACC_AUTO(fieldBBlock, bBox.shift(blockCell));
+        auto fieldBBlock = bBox.shift(blockCell);
         ThreadCollective<BlockArea> collective(linearThreadIdx);
         collective(
                   assign,
@@ -162,7 +162,7 @@ public:
                   fieldBBlock
                   );
         /* copy fields from global to shared */
-        PMACC_AUTO(fieldEBlock, eBox.shift(blockCell));
+        auto fieldEBlock = eBox.shift(blockCell);
         collective(
                   assign,
                   cachedE,
@@ -244,7 +244,7 @@ public:
     {
         using namespace PMacc::algorithms;
 
-        PMACC_AUTO(particle, sourceFrame[localIdx]);
+        auto particle = sourceFrame[localIdx];
 
         /* particle position, used for field-to-particle interpolation */
         const floatD_X pos = particle[position_];
@@ -325,14 +325,13 @@ public:
     DINLINE void operator()(Electron& electron, Photon& photon) const
     {
         namespace parOp = PMacc::particles::operations;
-        PMACC_AUTO(destPhoton,
+        auto destPhoton =
             parOp::deselect<
                 boost::mpl::vector<
                     multiMask,
                     momentum
                 >
-            >(photon)
-        );
+            >(photon);
         parOp::assign( destPhoton, parOp::deselect<particleId>(electron) );
 
         photon[multiMask_] = 1;

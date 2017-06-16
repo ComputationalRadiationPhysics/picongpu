@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera
+/* Copyright 2013-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -39,7 +38,7 @@ class TaskFieldReceiveAndInsert : public MPITask
 public:
 
 
-    BOOST_STATIC_CONSTEXPR uint32_t Dim = picongpu::simDim;
+    static constexpr uint32_t Dim = picongpu::simDim;
 
     TaskFieldReceiveAndInsert(Field &buffer) :
     m_buffer(buffer),
@@ -71,7 +70,7 @@ public:
         case Init:
             break;
         case WaitForReceived:
-            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+            if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
             {
                 m_state = Insert;
             }
@@ -92,7 +91,7 @@ public:
         case Wait:
             break;
         case WaitInsertFinished:
-            if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
+            if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(m_tmpEvent.getTaskId()))
             {
                 m_state = Finish;
                 return true;
@@ -109,7 +108,7 @@ public:
 
     virtual ~TaskFieldReceiveAndInsert()
     {
-        notify(this->myId, RECVFINISHED, NULL);
+        notify(this->myId, RECVFINISHED, nullptr);
     }
 
     void event(id_t, EventType, IEventData*)

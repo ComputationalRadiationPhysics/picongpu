@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -22,13 +21,15 @@
 
 #pragma once
 
-#include "../ExprTypes.h"
-#include "../placeholder.h"
+#include "../ExprTypes.hpp"
+#include "../placeholder.hpp"
+#include "../Expression.hpp"
+#include "lambda/ProxyClass.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/front_inserter.hpp>
-#include "../Expression.hpp"
-#include <lambda/ProxyClass.hpp>
+
 
 namespace mpl = boost::mpl;
 

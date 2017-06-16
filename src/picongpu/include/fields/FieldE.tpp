@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -33,8 +32,6 @@
 #include "fields/FieldManipulator.hpp"
 #include "dimensions/SuperCellDescription.hpp"
 
-#include "FieldB.hpp"
-
 #include "fields/FieldE.kernel"
 
 #include "MaxwellSolver/Solvers.hpp"
@@ -42,23 +39,25 @@
 
 #include "math/Vector.hpp"
 
-#include <list>
-
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "traits/GetMargin.hpp"
 #include "traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
-#include <boost/mpl/accumulate.hpp>
 #include "fields/LaserPhysics.hpp"
+
+#include <boost/mpl/accumulate.hpp>
+
+#include <list>
+#include <memory>
+
 
 namespace picongpu
 {
 using namespace PMacc;
 
 FieldE::FieldE( MappingDesc cellDescription ) :
-SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldB( NULL )
+SimulationFieldHelper<MappingDesc>( cellDescription )
 {
     fieldE = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
     typedef typename PMacc::particles::traits::FilterByFlag
@@ -89,9 +88,9 @@ fieldB( NULL )
         GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin
         >::type UpperMarginInterpolationAndSolver;
 
-    /* Calculate upper and lower margin for pusher 
-       (currently all pusher use the interpolation of the species)  
-       and find maximum margin 
+    /* Calculate upper and lower margin for pusher
+       (currently all pusher use the interpolation of the species)
+       and find maximum margin
     */
     typedef typename PMacc::particles::traits::FilterByFlag
     <
@@ -153,12 +152,9 @@ EventTask FieldE::asyncCommunication( EventTask serialEvent )
     return fieldE->asyncCommunication( serialEvent );
 }
 
-void FieldE::init( FieldB &fieldB, LaserPhysics &laserPhysics )
+void FieldE::init( LaserPhysics &laserPhysics )
 {
-    this->fieldB = &fieldB;
     this->laser = &laserPhysics;
-
-    Environment<>::get().DataConnector().registerData( *this);
 }
 
 FieldE::DataBoxType FieldE::getDeviceDataBox( )
@@ -185,13 +181,37 @@ void FieldE::laserManipulation( uint32_t currentStep )
 {
     const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
+    /* initialize the laser not in the first cell is equal to a negative shift
+     * in time
+     */
+    constexpr float_X laserTimeShift = laser::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
     /* Disable laser if
      * - init time of laser is over or
      * - we have periodic boundaries in Y direction or
      * - we already performed a slide
      */
-    if ( ( currentStep * DELTA_T ) >= laserProfile::INIT_TIME ||
-         Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) || numSlides != 0 ) return;
+    if (
+        laserProfile::INIT_TIME == float_X(0.0) || /* laser is disabled e.g. laserNone */
+        ( currentStep * DELTA_T  - laserTimeShift ) >= laserProfile::INIT_TIME ||
+        Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) || numSlides != 0
+    )
+    {
+        return;
+    }
+    else
+    {
+        PMACC_VERIFY_MSG(
+            laser::initPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
+            "initPlaneY must be located in the top GPU"
+        );
+    }
+
+    PMACC_CASSERT_MSG(
+        __initPlaneY_needs_to_be_greate_than_the_top_absorber_cells_or_zero,
+        laser::initPlaneY > ABSORBER_CELLS[1][0] ||
+        laser::initPlaneY == 0 ||
+        laserProfile::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
+    );
 
     DataSpace<simDim-1> gridBlocks;
     DataSpace<simDim-1> blockSize;
@@ -201,7 +221,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
     gridBlocks.y()=fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ).z( ) / SuperCellSize::z::value;
     blockSize.y()=SuperCellSize::z::value;
 #endif
-    __cudaKernel( kernelLaserE )
+    PMACC_KERNEL( KernelLaserE{} )
         ( gridBlocks,
           blockSize )
         ( this->getDeviceDataBox( ), laser->getLaserManipulator( currentStep ) );

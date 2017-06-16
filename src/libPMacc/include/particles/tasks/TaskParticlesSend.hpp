@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera
+/* Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -83,7 +82,7 @@ public:
         case Init:
             break;
         case WaitForSend:
-            return NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+            return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
         default:
             return false;
         }
@@ -93,7 +92,7 @@ public:
 
     virtual ~TaskParticlesSend()
     {
-        notify(this->myId, RECVFINISHED, NULL);
+        notify(this->myId, RECVFINISHED, nullptr);
     }
 
     void event(id_t, EventType, IEventData*)

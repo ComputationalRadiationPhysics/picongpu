@@ -1,5 +1,4 @@
-/**
- * Copyright 2016 Erik Zenker
+/* Copyright 2016-2017 Erik Zenker
  *
  * This file is part of libPMacc.
  *
@@ -22,13 +21,14 @@
 
 // PMacc
 #include "Environment.hpp"
-#include <particles/operations/CountParticles.hpp>
+#include "particles/operations/CountParticles.hpp"
 #include "pmacc_types.hpp"
 #include "forward.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "algorithms/ForEach.hpp"
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/simulation/ResourceMonitor.hpp"
+
 
 namespace PMacc
 {
@@ -45,7 +45,7 @@ namespace PMacc
 
             uint64_cu totalNumParticles = 0;
             totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
-                    dc.getData<T_Species >(T_Species::FrameType::getName(), true),
+                    *dc.get<T_Species >(T_Species::FrameType::getName(), true),
                     cellDescription,
                     DataSpace<T_DIM::value>(),
                     localSize);

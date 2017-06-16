@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Rene Widera
+/* Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,7 +21,7 @@
 
 #include "simulation_defines.hpp"
 #include "traits/frame/GetMass.hpp"
-#include "traits/HasIdentifier.hpp"
+
 
 namespace picongpu
 {

@@ -73,7 +73,7 @@ namespace DistributionPolicies{
 #ifndef MALLOCMC_DP_XMALLOCSIMD_PAGESIZE
 #define MALLOCMC_DP_XMALLOCSIMD_PAGESIZE Properties::pagesize::value
 #endif
-      static const uint32 pagesize      = MALLOCMC_DP_XMALLOCSIMD_PAGESIZE;
+      BOOST_STATIC_CONSTEXPR uint32 pagesize      = MALLOCMC_DP_XMALLOCSIMD_PAGESIZE;
 
       //all the properties must be unsigned integers > 0
       BOOST_STATIC_ASSERT(!std::numeric_limits<typename Properties::pagesize::type>::is_signed);
@@ -83,7 +83,7 @@ namespace DistributionPolicies{
       BOOST_STATIC_ASSERT(static_cast<uint32>(pagesize) > 0);
 
     public:
-      static const uint32 _pagesize = pagesize;
+      BOOST_STATIC_CONSTEXPR uint32 _pagesize = pagesize;
 
       MAMC_ACCELERATOR
       uint32 collect(uint32 bytes){

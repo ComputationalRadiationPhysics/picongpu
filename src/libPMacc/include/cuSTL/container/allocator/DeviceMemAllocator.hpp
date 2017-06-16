@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -22,9 +21,11 @@
 
 #pragma once
 
-#include "math/vector/Size_t.hpp"
+#include "tag.hpp"
 #include "cuSTL/cursor/BufferCursor.hpp"
-#include "tag.h"
+
+#include "math/vector/Size_t.hpp"
+
 
 namespace PMacc
 {
@@ -35,7 +36,7 @@ template<typename Type, int T_dim>
 struct DeviceMemAllocator
 {
     typedef Type type;
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
     typedef cursor::BufferCursor<type, dim> Cursor;
     typedef allocator::tag::device tag;
 
@@ -50,7 +51,7 @@ template<typename Type>
 struct DeviceMemAllocator<Type, 1>
 {
     typedef Type type;
-    BOOST_STATIC_CONSTEXPR int dim = 1;
+    static constexpr int dim = 1;
     typedef cursor::BufferCursor<type, 1> Cursor;
     typedef allocator::tag::device tag;
 

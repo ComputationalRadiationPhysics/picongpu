@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Rene Widera, Axel Huebl, Benjamin Worpitz,
+/* Copyright 2014-2017 Rene Widera, Axel Huebl, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -27,8 +26,7 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "memory/buffers/Buffer.hpp"
 #include "memory/buffers/DeviceBuffer.hpp"
-
-#include <cassert>
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -55,7 +53,7 @@ public:
      */
     MappedBufferIntern(DataSpace<DIM> size):
     DeviceBuffer<TYPE, DIM>(size, size),
-    pointer(NULL), ownPointer(true)
+    pointer(nullptr), ownPointer(true)
     {
         CUDA_CHECK(cudaMallocHost(&pointer, size.productOfComponents() * sizeof (TYPE), cudaHostAllocMapped));
         reset(false);
@@ -99,13 +97,13 @@ public:
 
     void copyFrom(HostBuffer<TYPE, DIM>& other)
     {
-        assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
+        PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyHostToDevice(other, *this);
     }
 
     void copyFrom(DeviceBuffer<TYPE, DIM>& other)
     {
-        assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
+        PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyDeviceToDevice(other, *this);
     }
 
@@ -139,7 +137,7 @@ public:
 
     size_t* getCurrentSizeOnDevicePointer()
     {
-        return NULL;
+        return nullptr;
     }
 
     DataSpace<DIM> getOffset() const

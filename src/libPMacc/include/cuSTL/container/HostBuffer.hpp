@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Alexander Grund
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -26,15 +25,17 @@
 #include "cuSTL/container/copier/H2HCopier.hpp"
 #include "cuSTL/container/assigner/HostMemAssigner.hpp"
 #include "cuSTL/container/CartBuffer.hpp"
-#include "cuSTL/container/allocator/tag.h"
+#include "cuSTL/container/allocator/tag.hpp"
 #include "cuSTL/container/copier/Memcopy.hpp"
 
 #include <boost/assert.hpp>
 #include <boost/move/move.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_same.hpp>
+
 #include <exception>
 #include <sstream>
+
 
 namespace PMacc
 {
@@ -106,9 +107,9 @@ public:
     template<typename DBuffer>
     HINLINE
     typename boost::enable_if<
-		boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>,
-		HostBuffer&
-		>::type
+        boost::is_same<typename DBuffer::memoryTag, allocator::tag::device>,
+        HostBuffer&
+        >::type
     operator=(const DBuffer& rhs)
     {
         BOOST_STATIC_ASSERT((boost::is_same<typename DBuffer::type, Type>::value));

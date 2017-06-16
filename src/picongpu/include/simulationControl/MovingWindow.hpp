@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt, Alexander Debus
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -87,7 +86,7 @@ private:
              * depends on half cells.
              */
             const uint32_t virtualParticleInitialStartCell = math::ceil(
-                float_64(globalWindowSizeInMoveDirection) * (float_64(1.0) - slide_point)
+                float_64(globalWindowSizeInMoveDirection) * (float_64(1.0) - movePoint)
             );
 
             /* Is the time step when the virtual particle **passed** the GPU next to the last
@@ -105,7 +104,7 @@ private:
                 cellSizeInMoveDirection;
             /* Is the time step when the virtual particle **passed** the moving window
              * in the current to the next step
-             * Signed type of firstMoveStep to allow for edge case slide_point = 0.0
+             * Signed type of firstMoveStep to allow for edge case movePoint = 0.0
              * for a moving window right from the start of the simulation.
              */
             const int32_t firstMoveStep = math::ceil(
@@ -235,7 +234,7 @@ public:
      */
     uint32_t getSlideCounter(uint32_t currentStep)
     {
-        getCurrentSlideInfo(currentStep, NULL, NULL);
+        getCurrentSlideInfo(currentStep, nullptr, nullptr);
         return slideCounter;
     }
 
@@ -261,7 +260,7 @@ public:
 
         if (slidingWindowActive)
         {
-            getCurrentSlideInfo(currentStep, &doSlide, NULL);
+            getCurrentSlideInfo(currentStep, &doSlide, nullptr);
         }
 
         return doSlide;
@@ -319,7 +318,7 @@ public:
             window.globalDimensions.size.y() -= subGrid.getLocalDomain().size.y();
 
             float_64 offsetFirstGPU = 0.0;
-            getCurrentSlideInfo(currentStep, NULL, &offsetFirstGPU);
+            getCurrentSlideInfo(currentStep, nullptr, &offsetFirstGPU);
 
             /* while moving, the windows global offset within the global domain is between 0
              * and smaller than the local domain's size in y.

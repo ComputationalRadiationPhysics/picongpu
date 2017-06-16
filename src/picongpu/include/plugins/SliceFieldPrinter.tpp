@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -21,12 +20,14 @@
 
 #pragma once
 
+#include "SliceFieldPrinter.hpp"
+#include "fields/FieldB.hpp"
+#include "fields/FieldE.hpp"
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
 #include "dataManagement/DataConnector.hpp"
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
 #include "math/Vector.hpp"
 #include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
@@ -35,8 +36,9 @@
 #include "cuSTL/algorithm/kernel/run-time/Foreach.hpp"
 #include "cuSTL/algorithm/host/Foreach.hpp"
 #include "lambda/Expression.hpp"
-#include "SliceFieldPrinter.hpp"
+
 #include <sstream>
+
 
 namespace picongpu
 {
@@ -109,10 +111,10 @@ void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
       namespace vec = ::PMacc::math;
       typedef SuperCellSize BlockDim;
       DataConnector &dc = Environment<>::get().DataConnector();
-      BOOST_AUTO(field_coreBorder,
-                 dc.getData<Field > (Field::getName(), true).getGridBuffer().
+      auto field_coreBorder =
+                 dc.get< Field >( Field::getName(), true )->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
-                 view(BlockDim::toRT(), -BlockDim::toRT()));
+                 view(BlockDim::toRT(), -BlockDim::toRT());
 
       std::ostringstream filename;
       filename << this->fileName << "_" << currentStep << ".dat";

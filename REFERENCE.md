@@ -1,5 +1,5 @@
 ```
-@inproceedings{Bussmann:2013:RSR:2503210.2504564,
+@inproceedings{PIConGPU2013,
  author = {Bussmann, M. and Burau, H. and Cowan, T. E. and Debus, A. and Huebl, A. and Juckeland, G. and Kluge, T. and Nagel, W. E. and Pausch, R. and Schmitt, F. and Schramm, U. and Schuchart, J. and Widera, R.},
  title = {Radiative Signatures of the Relativistic Kelvin-Helmholtz Instability},
  booktitle = {Proceedings of the International Conference on High Performance Computing, Networking, Storage and Analysis},

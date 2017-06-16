@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Rene Widera
+/* Copyright 2015-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -28,13 +27,13 @@ namespace PMacc
 namespace expressions
 {
 
-/** set pointer to NULL
+/** set pointer to nullptr
  *
  * only allowed to use with a pointer
  */
 struct SetToNull
 {
-    /** set pointer to NULL
+    /** set pointer to nullptr
      *
      * @tparam T_Type any type/class
      *
@@ -43,7 +42,7 @@ struct SetToNull
     template<typename T_Type>
     HDINLINE void operator()( T_Type& ptr) const
     {
-        ptr = NULL;
+        ptr = nullptr;
     }
 };
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2017 Axel Huebl, Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -44,6 +44,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # get the ID of the last job of the submitting user waiting in the k20 queue
 .TBG_waitJob=`qstat -u $(whoami) | grep $TBG_queue | tail -n 1 | awk '{print $1}'`
@@ -63,9 +64,9 @@ echo 'Running program...'
 cd !TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
-source ~/picongpu.profile
+source !TBG_profile
 if [ $? -ne 0 ] ; then
-  echo "Error: ~/picongpu.profile not found!"
+  echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
   exit 1
 fi
 unset MODULES_NO_OUTPUT
@@ -79,10 +80,15 @@ cd simOutput
 #wait that all nodes see ouput folder
 sleep 1
 
-mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -x LD_LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+# test if cuda_memtest binary is available
+if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
+  mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -x LD_LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+else
+  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+fi
 
 if [ $? -eq 0 ] ; then
-  mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
+    mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi
 
 mpiexec --prefix $MPIHOME -x LIBRARY_PATH -x LD_LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks killall -9 picongpu 2>/dev/null || true

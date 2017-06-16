@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -18,18 +17,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
-
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 
-
-
-
-#if (ENABLE_RADIATION == 1 )
 
 namespace picongpu
 {
@@ -68,7 +59,3 @@ namespace picongpu
 
   }
 }
-
-
-#endif
-

@@ -1,5 +1,4 @@
-/**
- * Copyright 2016 Alexander Grund
+/* Copyright 2016-2017 Alexander Grund
  *
  * This file is part of PIConGPU.
  *
@@ -99,7 +98,7 @@ struct ReadNDScalars
 {
     void operator()(ThreadParams& params,
                 const std::string& name, T_Scalar* value,
-                const std::string& attrName = "", T_Attribute* attribute = NULL)
+                const std::string& attrName = "", T_Attribute* attribute = nullptr)
     {
         log<picLog::INPUT_OUTPUT>("HDF5: read %1%D scalars: %2%") % simDim % name;
 

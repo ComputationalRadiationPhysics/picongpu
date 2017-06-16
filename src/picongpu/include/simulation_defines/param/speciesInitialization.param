@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Rene Widera, Axel Huebl
+/* Copyright 2015-2017 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -18,27 +17,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include "particles/InitFunctors.hpp"
-
-namespace picongpu
-{
-namespace particles
-{
-
-/* Available species functors
+/** @file
+ *
+ * Available species functors
  *   in src/picongpu/include/particles/InitFunctors.hpp
  *
- * - CreateGas<T_GasFunctor, T_PositionFunctor, T_SpeciesType>
- *     Create particle distribution based on a gas profile and an in-cell
+ * - CreateDensity<T_DensityFunctor, T_PositionFunctor, T_SpeciesType>
+ *     Create particle distribution based on a density profile and an in-cell
  *     positioning.
  *     Fills a particle species (`fillAllGaps()` is called).
- *     @tparam T_GasFunctor      unary lambda functor with gas description,
- *                               \see gasConfig.param
- *                               \example gasProfiles::Homogenous,
+ *     @tparam T_DensityFunctor  unary lambda functor with density description,
+ *                               \see density.param
+ *                               \example densityProfiles::Homogenous,
  *     @tparam T_PositionFunctor unary lambda functor with position description,
- *                               \see particlesConfig.param
+ *                               \see particles.param
  *                               \example startPosition::Quiet
  *                                        startPosition::Random
  *     @tparam T_SpeciesType type of the used species,
@@ -56,7 +48,7 @@ namespace particles
  *     \warning does not call `fillAllGaps()` if one removes or
  *              adds particles with it (\see FillAllGaps below)
  *     @tparam T_Functor     unary lambda functor,
- *                           \see particleConfig.param
+ *                           \see particle.param
  *     @tparam T_SpeciesType type of the used species
  *
  * - ManipulateDeriveSpecies<T_ManipulateFunctor, T_SrcSpeciesType, T_DestSpeciesType>
@@ -66,7 +58,7 @@ namespace particles
  *     Note: `fillAllGaps()` is only called for the T_DestSpeciesType.
  *     @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle
  *                                 species: destination and source,
- *                                 \see particleConfig.param
+ *                                 \see particle.param
  *     @tparam T_SrcSpeciesType    source species
  *     @tparam T_DestSpeciesType   destination species
  *
@@ -78,11 +70,21 @@ namespace particles
  *     afterward to create a valid data structure.
  */
 
-/** InitPipeline define in which order species are initialized
- *
- * the functors are called in order (from first to last functor)
- */
-typedef mpl::vector<> InitPipeline;
+#pragma once
 
-} /* namespace particles */
-} /* namespace picongpu  */
+#include "particles/InitFunctors.hpp"
+
+
+namespace picongpu
+{
+namespace particles
+{
+
+    /** InitPipeline defines in which order species are initialized
+     *
+     * the functors are called in order (from first to last functor)
+     */
+    using InitPipeline = mpl::vector<>;
+
+} // namespace particles
+} // namespace picongpu

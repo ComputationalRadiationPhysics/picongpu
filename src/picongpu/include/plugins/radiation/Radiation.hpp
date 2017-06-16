@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Klaus Steiniger, Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -19,11 +18,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #if(ENABLE_HDF5 != 1)
-#error The activated radiation plugin (radiationConfig.param) requires HDF5
+#error The activated radiation plugin (radiation.param) requires HDF5
 #endif
 
 #include "simulation_defines.hpp"
@@ -31,28 +29,28 @@
 #include "traits/SplashToPIC.hpp"
 #include "traits/PICToSplash.hpp"
 
-#include "dimensions/DataSpaceOperations.hpp"
 
-#include "simulation_classTypes.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
+#include "plugins/radiation/Radiation.kernel"
+#include "plugins/radiation/ExecuteParticleFilter.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 #include "plugins/common/stringHelpers.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+#include "traits/HasIdentifier.hpp"
 
-#include "sys/stat.h"
-
-#include "plugins/radiation/Radiation.kernel"
-
-/* libSplash data output */
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+
 
 namespace picongpu
 {
@@ -88,13 +86,6 @@ private:
     typedef PIConGPUVerboseRadiation radLog;
 
     /**
-     * At the moment the ParticlesType is PIC_ELECTRONS
-     * (This special class which stores information about the momentum
-     * of the last two time steps)
-     */
-    ParticlesType *particles;
-
-    /**
      * Object that stores the complex radiated amplitude on host and device.
      * Radiated amplitude is a function of theta (looking direction) and
      * frequency. Layout of the radiation array is:
@@ -123,6 +114,16 @@ private:
     bool radPerGPU;
     std::string folderRadPerGPU;
     DataSpace<simDim> lastGPUpos;
+
+    /** defines if all kernel dependencies are full filled
+     *
+     * dependencies:
+     *   - species contains the attribute `momentumPrev1`
+     */
+    static constexpr bool dependenciesFulfilled = PMacc::traits::HasIdentifier<
+        typename ParticlesType::FrameType,
+        momentumPrev1
+    >::type::value;
 
     /**
      * Data structure for storage and summation of the intermediate values of
@@ -154,17 +155,16 @@ public:
     speciesName(ParticlesType::FrameType::getName()),
     pluginPrefix(speciesName + std::string("_radiation")),
     filename_prefix(pluginPrefix),
-    particles(NULL),
-    radiation(NULL),
-    cellDescription(NULL),
+    radiation(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0),
     dumpPeriod(0),
     totalRad(false),
     lastRad(false),
-    timeSumArray(NULL),
-    tmp_result(NULL),
-    detectorPositions(NULL),
-    detectorFrequencies(NULL),
+    timeSumArray(nullptr),
+    tmp_result(nullptr),
+    detectorPositions(nullptr),
+    detectorFrequencies(nullptr),
     isMaster(false),
     currentStep(0),
     radPerGPU(false),
@@ -189,12 +189,7 @@ public:
      */
     void notify(uint32_t currentStep)
     {
-
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
-        if (currentStep >= radStart)
+        if (dependenciesFulfilled && currentStep >= radStart)
         {
             // radEnd = 0 is default, calculates radiation until simulation
             // end
@@ -215,19 +210,27 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
 
-        desc.add_options()
-            ((pluginPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]")
-            ((pluginPrefix + ".dump").c_str(), po::value<uint32_t > (&dumpPeriod)->default_value(0), "dump integrated radiation from last dumped step [for each n-th step] (0 = only print data at end of simulation)")
-            ((pluginPrefix + ".lastRadiation").c_str(), po::bool_switch(&lastRad), "enable calculation of integrated radiation from last dumped step")
-            ((pluginPrefix + ".folderLastRad").c_str(), po::value<std::string > (&folderLastRad)->default_value("lastRad"), "folder in which the integrated radiation from last dumped step is written")
-            ((pluginPrefix + ".totalRadiation").c_str(), po::bool_switch(&totalRad), "enable calculation of integrated radiation from start of simulation")
-            ((pluginPrefix + ".folderTotalRad").c_str(), po::value<std::string > (&folderTotalRad)->default_value("totalRad"), "folder in which the integrated radiation from start of simulation is written")
-            ((pluginPrefix + ".start").c_str(), po::value<uint32_t > (&radStart)->default_value(2), "time index when radiation should start with calculation")
-            ((pluginPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
-            ((pluginPrefix + ".omegaList").c_str(), po::value<std::string > (&pathOmegaList)->default_value("_noPath_"), "path to file containing all frequencies to calculate")
-            ((pluginPrefix + ".radPerGPU").c_str(), po::bool_switch(&radPerGPU), "enable radiation output from each GPU individually")
-            ((pluginPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
-            ((pluginPrefix + ".compression").c_str(), po::bool_switch(&compressionOn), "enable compression of hdf5 output");
+        if(dependenciesFulfilled)
+        {
+            desc.add_options()
+                ((pluginPrefix + ".period").c_str(), po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]")
+                ((pluginPrefix + ".dump").c_str(), po::value<uint32_t > (&dumpPeriod)->default_value(0), "dump integrated radiation from last dumped step [for each n-th step] (0 = only print data at end of simulation)")
+                ((pluginPrefix + ".lastRadiation").c_str(), po::bool_switch(&lastRad), "enable calculation of integrated radiation from last dumped step")
+                ((pluginPrefix + ".folderLastRad").c_str(), po::value<std::string > (&folderLastRad)->default_value("lastRad"), "folder in which the integrated radiation from last dumped step is written")
+                ((pluginPrefix + ".totalRadiation").c_str(), po::bool_switch(&totalRad), "enable calculation of integrated radiation from start of simulation")
+                ((pluginPrefix + ".folderTotalRad").c_str(), po::value<std::string > (&folderTotalRad)->default_value("totalRad"), "folder in which the integrated radiation from start of simulation is written")
+                ((pluginPrefix + ".start").c_str(), po::value<uint32_t > (&radStart)->default_value(2), "time index when radiation should start with calculation")
+                ((pluginPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
+                ((pluginPrefix + ".omegaList").c_str(), po::value<std::string > (&pathOmegaList)->default_value("_noPath_"), "path to file containing all frequencies to calculate")
+                ((pluginPrefix + ".radPerGPU").c_str(), po::bool_switch(&radPerGPU), "enable radiation output from each GPU individually")
+                ((pluginPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
+                ((pluginPrefix + ".compression").c_str(), po::bool_switch(&compressionOn), "enable compression of hdf5 output");
+        }
+        else
+        {
+            desc.add_options()
+                (pluginPrefix.c_str(), "plugin disabled [missing species attribute `momentumPrev1`]");
+        }
     }
 
 
@@ -249,7 +252,7 @@ public:
         if(notifyFrequency == 0)
             return;
 
-        if(isMaster)
+        if(dependenciesFulfilled && isMaster)
         {
             // this will lead to wrong lastRad output right after the checkpoint if the restart point is
             // not a dump point. The correct lastRad data can be reconstructed from hdf5 data
@@ -266,15 +269,18 @@ public:
         if(notifyFrequency == 0)
             return;
 
-        // collect data GPU -> CPU -> Master
-        copyRadiationDeviceToHost();
-        collectRadiationOnMaster();
-        sumAmplitudesOverTime(tmp_result, timeSumArray);
-
-        // write backup file
-        if (isMaster)
+        if(dependenciesFulfilled)
         {
-            writeHDF5file(tmp_result, restartDirectory + "/" + speciesName + std::string("_radRestart_"));
+            // collect data GPU -> CPU -> Master
+            copyRadiationDeviceToHost();
+            collectRadiationOnMaster();
+            sumAmplitudesOverTime(tmp_result, timeSumArray);
+
+            // write backup file
+            if (isMaster)
+            {
+                writeHDF5file(tmp_result, restartDirectory + "/" + speciesName + std::string("_radRestart_"));
+            }
         }
     }
 
@@ -293,78 +299,81 @@ private:
      * is created.       */
     void pluginLoad()
     {
-        // allocate memory for all amplitudes for temporal data collection
-        tmp_result = new Amplitude[elements_amplitude()];
-
-        if (notifyFrequency > 0)
+        if(dependenciesFulfilled)
         {
-            /*only rank 0 create a file*/
-            isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
+            // allocate memory for all amplitudes for temporal data collection
+            tmp_result = new Amplitude[elements_amplitude()];
 
-            radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude())); //create one int on GPU and host
-
-            freqInit.Init(pathOmegaList);
-            freqFkt = freqInit.getFunctor();
-
-
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
-            PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
-
-            if (isMaster)
+            if (notifyFrequency > 0)
             {
-                timeSumArray = new Amplitude[elements_amplitude()];
+                /*only rank 0 create a file*/
+                isMaster = reduce.hasResult(mpi::reduceMethods::Reduce());
 
-                /* save detector position / observation direction */
-                detectorPositions = new vector_64[parameters::N_observer];
-                for(uint32_t detectorIndex=0; detectorIndex < parameters::N_observer; ++detectorIndex)
+                radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude())); //create one int on GPU and host
+
+                freqInit.Init(pathOmegaList);
+                freqFkt = freqInit.getFunctor();
+
+
+                Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
+                PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
+
+                if (isMaster)
                 {
-                    detectorPositions[detectorIndex] = radiation_observer::observation_direction(detectorIndex);
+                    timeSumArray = new Amplitude[elements_amplitude()];
+
+                    /* save detector position / observation direction */
+                    detectorPositions = new vector_64[parameters::N_observer];
+                    for(uint32_t detectorIndex=0; detectorIndex < parameters::N_observer; ++detectorIndex)
+                    {
+                        detectorPositions[detectorIndex] = radiation_observer::observation_direction(detectorIndex);
+                    }
+
+                    /* save detector frequencies */
+                    detectorFrequencies = new float_64[radiation_frequencies::N_omega];
+                    for(uint32_t detectorIndex=0; detectorIndex < radiation_frequencies::N_omega; ++detectorIndex)
+                    {
+                        detectorFrequencies[detectorIndex] = freqFkt(detectorIndex);
+                    }
+
                 }
 
-                /* save detector frequencies */
-                detectorFrequencies = new float_64[radiation_frequencies::N_omega];
-                for(uint32_t detectorIndex=0; detectorIndex < radiation_frequencies::N_omega; ++detectorIndex)
+                if (isMaster && totalRad)
                 {
-                    detectorFrequencies[detectorIndex] = freqFkt(detectorIndex);
+                    fs.createDirectory("radiationHDF5");
+                    fs.setDirectoryPermissions("radiationHDF5");
+                }
+
+
+                if (isMaster && radPerGPU)
+                {
+                    fs.createDirectory(folderRadPerGPU);
+                    fs.setDirectoryPermissions(folderRadPerGPU);
+                }
+
+                if (isMaster && totalRad)
+                {
+                    //create folder for total output
+                    fs.createDirectory(folderTotalRad);
+                    fs.setDirectoryPermissions(folderTotalRad);
+                    for (unsigned int i = 0; i < elements_amplitude(); ++i)
+                        timeSumArray[i] = Amplitude::zero();
+                }
+                if (isMaster && lastRad)
+                {
+                    //create folder for total output
+                    fs.createDirectory(folderLastRad);
+                    fs.setDirectoryPermissions(folderLastRad);
                 }
 
             }
-
-            if (isMaster && totalRad)
-            {
-                fs.createDirectory("radiationHDF5");
-                fs.setDirectoryPermissions("radiationHDF5");
-            }
-
-
-            if (isMaster && radPerGPU)
-            {
-                fs.createDirectory(folderRadPerGPU);
-                fs.setDirectoryPermissions(folderRadPerGPU);
-            }
-
-            if (isMaster && totalRad)
-            {
-                //create folder for total output
-                fs.createDirectory(folderTotalRad);
-                fs.setDirectoryPermissions(folderTotalRad);
-                for (unsigned int i = 0; i < elements_amplitude(); ++i)
-                    timeSumArray[i] = Amplitude::zero();
-            }
-            if (isMaster && lastRad)
-            {
-                //create folder for total output
-                fs.createDirectory(folderLastRad);
-                fs.setDirectoryPermissions(folderLastRad);
-            }
-
         }
     }
 
 
     void pluginUnload()
     {
-        if (notifyFrequency > 0)
+        if(dependenciesFulfilled && notifyFrequency > 0)
         {
 
             // Some funny things that make it possible for the kernel to calculate
@@ -550,7 +559,7 @@ private:
    *  Return:
    *  std::string - name
    *
-   * This method avoids initializing BOOST_STATIC_CONSTEXPR string arrays.
+   * This method avoids initializing static constexpr string arrays.
    */
   static const std::string dataLabels(int index)
   {
@@ -861,11 +870,11 @@ private:
                                          "iterationFormat",
                                          iterationFormat.c_str() );
 
-      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, NULL, "dt", &DELTA_T);
+      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, nullptr, "dt", &DELTA_T);
       const float_X time = float_X(currentStep) * DELTA_T;
-      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, NULL, "time", &time);
+      hdf5DataFile.writeAttribute(currentStep, splashFloatXType, nullptr, "time", &time);
       splash::ColTypeDouble ctDouble;
-      hdf5DataFile.writeAttribute(currentStep, ctDouble, NULL, "timeUnitSI", &UNIT_TIME);
+      hdf5DataFile.writeAttribute(currentStep, ctDouble, nullptr, "timeUnitSI", &UNIT_TIME);
 
       /* end required openPMD global attributes */
 
@@ -890,6 +899,8 @@ private:
       softwareVersion << PICONGPU_VERSION_MAJOR << "."
                       << PICONGPU_VERSION_MINOR << "."
                       << PICONGPU_VERSION_PATCH;
+      if( ! std::string(PICONGPU_VERSION_LABEL).empty() )
+          softwareVersion << "-" << PICONGPU_VERSION_LABEL;
       splash::ColTypeString ctSoftwareVersion(softwareVersion.str().length());
       hdf5DataFile.writeGlobalAttribute( ctSoftwareVersion,
                                          "softwareVersion",
@@ -1054,7 +1065,7 @@ private:
       /* check if restart file exists */
       if( !boost::filesystem::exists(filename.str()) )
       {
-          log<picLog::INPUT_OUTPUT > ("Radiation (%1%): restart file not found (%2%) - start with zero values") % 
+          log<picLog::INPUT_OUTPUT > ("Radiation (%1%): restart file not found (%2%) - start with zero values") %
                                       speciesName % filename.str();
       }
       else
@@ -1162,13 +1173,19 @@ private:
   {
       this->currentStep = currentStep;
 
+      DataConnector &dc = Environment<>::get().DataConnector();
+      auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+
+      /* execute the particle filter */
+      radiation::executeParticleFilter( particles, currentStep );
+
       /* the parallelization is ONLY over directions:
        * (a combined parallelization over direction AND frequencies
        * turned out to be slower on GPUs of the Fermi generation (sm_2x) (couple
        * percent) and definitely slower on Kepler GPUs (sm_3x, tested on K20))
        */
       const int N_observer = parameters::N_observer;
-      const dim3 gridDim_rad(N_observer);
+      const auto gridDim_rad = N_observer;
 
       /* number of threads per block = number of cells in a super cell
        *          = number of particles in a Frame
@@ -1178,7 +1195,7 @@ private:
        * Particles in a Frame can be accessed in parallel.
        */
 
-      const dim3 blockDim_rad(PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value);
+      const auto blockDim_rad = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
 
       // Some funny things that make it possible for the kernel to calculate
       // the absolute position of the particles
@@ -1190,7 +1207,7 @@ private:
 
 
       // PIC-like kernel call of the radiation kernel
-      __cudaKernel(kernelRadiationParticles)
+      PMACC_KERNEL(KernelRadiationParticles<dependenciesFulfilled>{})
         (gridDim_rad, blockDim_rad)
         (
          /*Pointer to particles memory on the device*/
@@ -1203,6 +1220,8 @@ private:
          freqFkt,
          subGrid.getGlobalDomain().size
          );
+
+      dc.releaseData( ParticlesType::FrameType::getName() );
 
       if (dumpPeriod != 0 && currentStep % dumpPeriod == 0)
       {

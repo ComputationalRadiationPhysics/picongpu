@@ -81,7 +81,7 @@ INSTALL(
 ###############################################################################
 # Executables
 ###############################################################################
-add_custom_target(examples DEPENDS mallocMC_Example01 mallocMC_Example02 VerifyHeap)
+add_custom_target(examples DEPENDS mallocMC_Example01 mallocMC_Example02 mallocMC_Example03 VerifyHeap)
 
 cuda_add_executable(mallocMC_Example01
                     EXCLUDE_FROM_ALL
@@ -89,10 +89,14 @@ cuda_add_executable(mallocMC_Example01
 cuda_add_executable(mallocMC_Example02
                     EXCLUDE_FROM_ALL
                     examples/mallocMC_example02.cu )
+cuda_add_executable(mallocMC_Example03
+                    EXCLUDE_FROM_ALL
+                    examples/mallocMC_example03.cu )
 cuda_add_executable(VerifyHeap
                     EXCLUDE_FROM_ALL
                     tests/verify_heap.cu )
 
 target_link_libraries(mallocMC_Example01 ${LIBS})
 target_link_libraries(mallocMC_Example02 ${LIBS})
+target_link_libraries(mallocMC_Example03 ${LIBS})
 target_link_libraries(VerifyHeap ${LIBS})

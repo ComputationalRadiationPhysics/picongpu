@@ -1,5 +1,5 @@
 #!/bin/bash -l
-# Copyright 2013-2016 Axel Huebl, Richard Pausch, Rene Widera
+# Copyright 2013-2017 Axel Huebl, Richard Pausch, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -34,6 +34,7 @@
 # TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
+#SBATCH --constraint=gpu
 
 #SBATCH -o stdout
 #SBATCH -e stderr
@@ -46,13 +47,14 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"${SCRATCH}/picongpu.profile"}
 
 # 1 gpus per node
 .TBG_gpusPerNode=1
 
-# number of cores to block per GPU - we got 8 cpus per gpu
-#   and we will be accounted 8 CPUs per GPU anyway
-.TBG_coresPerGPU=8
+# number of cores to block per GPU - we got 12 cpus per gpu
+#   and we will be accounted 12 CPUs per GPU anyway
+.TBG_coresPerGPU=12
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode=1
@@ -67,11 +69,24 @@ echo 'Running program...'
 cd !TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
-source $SCRATCH/picongpu.profile
+source !TBG_profile
+if [ $? -ne 0 ] ; then
+  echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
+  exit 1
+fi
 unset MODULES_NO_OUTPUT
 
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-# Run PIConGPU
-srun  -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams
+# test if cuda_memtest binary is available
+if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
+  srun  -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+else
+  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+fi
+
+if [ $? -eq 0 ] ; then
+  # Run PIConGPU
+  srun  -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams
+fi

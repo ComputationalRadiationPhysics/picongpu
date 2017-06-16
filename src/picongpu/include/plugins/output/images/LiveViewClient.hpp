@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -51,7 +50,7 @@ namespace picongpu
     struct LiveViewClient
     {
 
-        LiveViewClient(std::string ip, std::string port) : socket(NULL), m_ip(ip), m_port(port)
+        LiveViewClient(std::string ip, std::string port) : socket(nullptr), m_ip(ip), m_port(port)
         {
         }
 

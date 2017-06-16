@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera
+/* Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -46,11 +45,11 @@ namespace PMacc
          */
         template<class ParBase>
         EventTask createTaskParticlesReceive(ParBase &parBuffer,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         template<class ParBase>
         EventTask createTaskReceiveParticlesExchange(ParBase &parBase, uint32_t exchange,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a TaskSend.
@@ -60,18 +59,16 @@ namespace PMacc
          */
         template<class ParBase>
         EventTask createTaskParticlesSend(ParBase &parBase,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         template<class ParBase>
         EventTask createTaskSendParticlesExchange(ParBase &parBase, uint32_t exchange,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
 
     private:
 
-        friend class Environment<DIM1>;
-        friend class Environment<DIM2>;
-        friend class Environment<DIM3>;
+        friend class detail::Environment;
 
         /**
          * returns the instance of this factory

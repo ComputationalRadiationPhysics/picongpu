@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -42,7 +41,7 @@ public:
      * Constructor.
      * Creates the cudaStream_t object.
      */
-    EventStream() : stream(NULL)
+    EventStream() : stream(nullptr)
     {
         CUDA_CHECK(cudaStreamCreate(&stream));
     }

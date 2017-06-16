@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Felix Schmitt, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -21,18 +20,17 @@
 
 #pragma once
 
-#include <iostream>
-
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
-
-#include "simulation_classTypes.hpp"
 
 #include "fields/FieldJ.hpp"
 
 #include "dimensions/DataSpaceOperations.hpp"
 #include "plugins/ILightweightPlugin.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "dataManagement/DataConnector.hpp"
+
+#include <iostream>
+
 
 namespace picongpu
 {
@@ -42,48 +40,49 @@ namespace po = boost::program_options;
 
 typedef FieldJ::DataBoxType J_DataBox;
 
-template<class Mapping>
-__global__ void kernelSumCurrents(J_DataBox fieldJ, float3_X* gCurrent, Mapping mapper)
+struct KernelSumCurrents
 {
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-
-    __shared__ float3_X sh_sumJ;
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-
-    if (linearThreadIdx == 0)
+    template<class Mapping>
+    DINLINE void operator()(J_DataBox fieldJ, float3_X* gCurrent, Mapping mapper) const
     {
-        sh_sumJ = float3_X::create(0.0);
+        typedef typename Mapping::SuperCellSize SuperCellSize;
+
+        PMACC_SMEM( sh_sumJ, float3_X );
+
+        const DataSpace<simDim > threadIndex(threadIdx);
+        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+
+        if (linearThreadIdx == 0)
+        {
+            sh_sumJ = float3_X::create(0.0);
+        }
+
+        __syncthreads();
+
+
+        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        const DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + threadIndex);
+
+        const float3_X myJ = fieldJ(cell);
+
+        atomicAddWrapper(&(sh_sumJ.x()), myJ.x());
+        atomicAddWrapper(&(sh_sumJ.y()), myJ.y());
+        atomicAddWrapper(&(sh_sumJ.z()), myJ.z());
+
+        __syncthreads();
+
+        if (linearThreadIdx == 0)
+        {
+            atomicAddWrapper(&(gCurrent->x()), sh_sumJ.x());
+            atomicAddWrapper(&(gCurrent->y()), sh_sumJ.y());
+            atomicAddWrapper(&(gCurrent->z()), sh_sumJ.z());
+        }
     }
-
-    __syncthreads();
-
-
-    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-    const DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + threadIndex);
-
-    const float3_X myJ = fieldJ(cell);
-
-    atomicAddWrapper(&(sh_sumJ.x()), myJ.x());
-    atomicAddWrapper(&(sh_sumJ.y()), myJ.y());
-    atomicAddWrapper(&(sh_sumJ.z()), myJ.z());
-
-    __syncthreads();
-
-    if (linearThreadIdx == 0)
-    {
-        atomicAddWrapper(&(gCurrent->x()), sh_sumJ.x());
-        atomicAddWrapper(&(gCurrent->y()), sh_sumJ.y());
-        atomicAddWrapper(&(gCurrent->z()), sh_sumJ.z());
-    }
-}
+};
 
 class SumCurrents : public ILightweightPlugin
 {
 private:
-    FieldJ* fieldJ;
-
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
@@ -92,8 +91,7 @@ private:
 public:
 
     SumCurrents() :
-    fieldJ(NULL),
-    cellDescription(NULL),
+    cellDescription(nullptr),
     notifyFrequency(0)
     {
 
@@ -107,11 +105,6 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        fieldJ = &(dc.getData<FieldJ > (FieldJ::getName(), true));
-
-
         const int rank = Environment<simDim>::get().GridController().getGlobalRank();
         const float3_X gCurrent = getSumCurrents();
 
@@ -146,7 +139,7 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ("sumcurr.period", po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+            ("sumcurr.period", po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -181,13 +174,21 @@ private:
 
     float3_X getSumCurrents()
     {
-        sumcurrents->getDeviceBuffer().setValue(float3_X::create(0.0));
-        dim3 block(MappingDesc::SuperCellSize::toRT().toDim3());
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
 
-        __picKernelArea(kernelSumCurrents, *cellDescription, CORE + BORDER)
-            (block)
+        sumcurrents->getDeviceBuffer().setValue(float3_X::create(0.0));
+        auto block = MappingDesc::SuperCellSize::toRT();
+
+        AreaMapping<CORE + BORDER, MappingDesc> mapper(*cellDescription);
+        PMACC_KERNEL(KernelSumCurrents{})
+            (mapper.getGridDim(), block)
             (fieldJ->getDeviceDataBox(),
-             sumcurrents->getDeviceBuffer().getBasePointer());
+             sumcurrents->getDeviceBuffer().getBasePointer(),
+             mapper);
+
+        dc.releaseData( FieldJ::getName() );
+
         sumcurrents->deviceToHost();
         return sumcurrents->getHostBuffer().getDataBox()[0];
     }

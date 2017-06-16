@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -22,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "simulation_defines.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/simulation/GridController.hpp"
 
@@ -46,16 +45,35 @@
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "traits/GetMargin.hpp"
+#include "traits/GetUniqueTypeId.hpp"
+
+#include <string>
+#include <memory>
+
 
 namespace picongpu
 {
     using namespace PMacc;
 
-    FieldTmp::FieldTmp( MappingDesc cellDescription ) :
-    SimulationFieldHelper<MappingDesc>( cellDescription ),
-    fieldTmp( NULL )
+    FieldTmp::FieldTmp(
+        MappingDesc cellDescription,
+        uint32_t slotId
+    ) :
+        SimulationFieldHelper<MappingDesc>( cellDescription ),
+        fieldTmp( nullptr ),
+        fieldTmpRecv( nullptr ),
+        m_slotId( slotId )
     {
-        fieldTmp = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
+        m_commTagScatter =
+            ++PMacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
+            SPECIES_FIRSTTAG;
+        m_commTagGather = ++PMacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
+            SPECIES_FIRSTTAG;
+
+        fieldTmp = new GridBuffer <ValueType, simDim >( cellDescription.getGridLayout( ) );
+
+        if( fieldTmpSupportGatherCommunication )
+            fieldTmpRecv = new GridBuffer< ValueType, simDim >( fieldTmp->getDeviceBuffer(), cellDescription.getGridLayout( ) );
 
         /** \todo The exchange has to be resetted and set again regarding the
          *  temporary "Fill-"Functor we want to use.
@@ -153,9 +171,21 @@ namespace picongpu
                 };
 
             }
-            // std::cout << "ex " << i << " x=" << guardingCells[0] << " y=" << guardingCells[1] << " z=" << guardingCells[2] << std::endl;
-            fieldTmp->addExchangeBuffer( i, guardingCells, FIELD_TMP );
+
+            fieldTmp->addExchangeBuffer( i, guardingCells, m_commTagScatter );
+
+            if( fieldTmpRecv )
+            {
+                /* guarding cells depend on direction
+                 * for negative direction use originGuard else endGuard (relative direction ZERO is ignored)
+                 * don't switch end and origin because this is a read buffer and not send buffer
+                 */
+                for ( uint32_t d = 0; d < simDim; ++d )
+                    guardingCells[d] = ( relativMask[d] == -1 ? originGuard[d] : endGuard[d] );
+                fieldTmpRecv->addExchange( GUARD, i, guardingCells, m_commTagGather );
+            }
         }
+
     }
 
     FieldTmp::~FieldTmp( )
@@ -179,16 +209,24 @@ namespace picongpu
 
         do
         {
-            __cudaKernel( ( kernelComputeSupercells<BlockArea, AREA> ) )
+            PMACC_KERNEL( KernelComputeSupercells<BlockArea, AREA>{} )
                 ( mapper.getGridDim( ), mapper.getSuperCellSize( ) )
                 ( tmpBox,
                   pBox, solver, mapper );
         } while( mapper.next( ) );
     }
 
-    SimulationDataId FieldTmp::getUniqueId()
+
+    SimulationDataId
+    FieldTmp::getUniqueId( uint32_t slotId )
     {
-        return getName();
+        return getName() + std::to_string( slotId );
+    }
+
+    SimulationDataId
+    FieldTmp::getUniqueId()
+    {
+        return getUniqueId( m_slotId );
     }
 
     void FieldTmp::synchronize( )
@@ -204,24 +242,37 @@ namespace picongpu
     EventTask FieldTmp::asyncCommunication( EventTask serialEvent )
     {
         EventTask ret;
-        __startTransaction( serialEvent );
+        __startTransaction( serialEvent + m_gatherEv + m_scatterEv );
         FieldFactory::getInstance( ).createTaskFieldReceiveAndInsert( *this );
         ret = __endTransaction( );
 
-        __startTransaction( serialEvent );
+        __startTransaction( serialEvent + m_gatherEv + m_scatterEv);
         FieldFactory::getInstance( ).createTaskFieldSend( *this );
         ret += __endTransaction( );
+        m_scatterEv = ret;
         return ret;
+    }
+
+    EventTask FieldTmp::asyncCommunicationGather( EventTask serialEvent )
+    {
+        PMACC_VERIFY_MSG(
+            fieldTmpSupportGatherCommunication == true,
+            "fieldTmpSupportGatherCommunication in memory.param must be set to true"
+        );
+
+        if( fieldTmpRecv != nullptr )
+            m_gatherEv = fieldTmpRecv->asyncCommunication( serialEvent + m_scatterEv + m_gatherEv );
+        return m_gatherEv;
     }
 
     void FieldTmp::bashField( uint32_t exchangeType )
     {
         ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
 
-        dim3 grid = mapper.getGridDim( );
+        auto grid = mapper.getGridDim( );
 
         const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-        __cudaKernel( kernelBashValue )
+        PMACC_KERNEL( KernelBashValue{} )
             ( grid, mapper.getSuperCellSize( ) )
             ( fieldTmp->getDeviceBuffer( ).getDataBox( ),
               fieldTmp->getSendExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -234,10 +285,10 @@ namespace picongpu
     {
         ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
 
-        dim3 grid = mapper.getGridDim( );
+        auto grid = mapper.getGridDim( );
 
         const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-        __cudaKernel( kernelInsertValue )
+        PMACC_KERNEL( KernelInsertValue{} )
             ( grid, mapper.getSuperCellSize( ) )
             ( fieldTmp->getDeviceBuffer( ).getDataBox( ),
               fieldTmp->getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -247,7 +298,6 @@ namespace picongpu
 
     void FieldTmp::init( )
     {
-        Environment<>::get().DataConnector().registerData( *this );
     }
 
     FieldTmp::DataBoxType FieldTmp::getDeviceDataBox( )
@@ -296,11 +346,4 @@ namespace picongpu
         return "FieldTmp";
     }
 
-    uint32_t
-    FieldTmp::getCommTag( )
-    {
-        return FIELD_TMP;
-    }
-
 } // namespace picongpu
-

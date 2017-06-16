@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2014-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -22,11 +21,15 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "static_assert.hpp"
 #include "simulation_types.hpp"
 #include "plugins/hdf5/HDF5Writer.def"
 #include "plugins/hdf5/writer/Field.hpp"
 
+#include "dataManagement/DataConnector.hpp"
+
 #include <vector>
+
 
 namespace picongpu
 {
@@ -79,7 +82,7 @@ public:
 #ifndef __CUDA_ARCH__
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        T* field = &(dc.getData<T > (T::getName()));
+        auto field = dc.get< T >( T::getName() );
         params->gridLayout = field->getGridLayout();
 
         // convert in a std::vector of std::vector format for writeField API
@@ -107,7 +110,7 @@ public:
                           field->getHostDataBox(),
                           ValueType());
 
-        dc.releaseData(T::getName());
+        dc.releaseData( T::getName() );
 #endif
     }
 
@@ -170,19 +173,23 @@ private:
         /*## update field ##*/
 
         /*load FieldTmp without copy data to host*/
-        FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
+        PMACC_CASSERT_MSG(
+            _please_allocate_at_least_one_FieldTmp_in_memory_param,
+            fieldTmpNumSlots > 0
+        );
+        auto fieldTmp = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
         /*load particle without copy particle data to host*/
-        Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
+        auto speciesTmp = dc.get< Species >( Species::FrameType::getName(), true );
 
         fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType::create(0.0));
         /*run algorithm*/
-        fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params->currentStep);
+        fieldTmp->template computeValue< CORE + BORDER, Solver >(*speciesTmp, params->currentStep);
 
         EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(fieldTmpEvent);
         /* copy data to host that we can write same to disk*/
         fieldTmp->getGridBuffer().deviceToHost();
-        dc.releaseData(Species::FrameType::getName());
+        dc.releaseData( Species::FrameType::getName() );
         /*## finish update field ##*/
 
         /*wrap in a one-component vector for writeField API*/
@@ -210,7 +217,7 @@ private:
                           fieldTmp->getHostDataBox(),
                           ValueType());
 
-        dc.releaseData(FieldTmp::getName());
+        dc.releaseData( FieldTmp::getUniqueId( 0 ) );
 
     }
 

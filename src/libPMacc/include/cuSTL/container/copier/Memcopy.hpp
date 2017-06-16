@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -92,10 +91,10 @@ struct Memcopy<3>
             pitchedPtrSource.ysize = size.y();
 
             cudaMemcpy3DParms params;
-            params.srcArray = NULL;
+            params.srcArray = nullptr;
             params.srcPos = make_cudaPos(0,0,0);
             params.srcPtr = pitchedPtrSource;
-            params.dstArray = NULL;
+            params.dstArray = nullptr;
             params.dstPos = make_cudaPos(0,0,0);
             params.dstPtr = pitchedPtrDest;
             params.extent = make_cudaExtent(size.x() * sizeof(Type), size.y(), size.z());

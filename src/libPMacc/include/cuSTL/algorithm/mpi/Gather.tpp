@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Benjamin Worpitz, Alexander Grund
+/* Copyright 2013-2017 Heiko Burau, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -22,13 +21,15 @@
 
 #pragma once
 
-#include "mappings/simulation/GridController.hpp"
 #include "cuSTL/container/copier/Memcopy.hpp"
-#include "communication/manager_common.h"
+
+#include "mappings/simulation/GridController.hpp"
+#include "communication/manager_common.hpp"
 
 #include <iostream>
 #include <numeric>      // std::partial_sum
 #include <algorithm>    // std::copy
+
 
 namespace PMacc
 {
@@ -262,7 +263,7 @@ void Gather<dim>::operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy
                useTmpSrc ? static_cast<void*>(tmpSrc.getDataPointer()) : static_cast<void*>(source.getDataPointer()),
                source.size().productOfComponents() * sizeof(Type),
                MPI_CHAR,
-               root() ? static_cast<void*>(tmpDest.data()) : NULL,
+               root() ? static_cast<void*>(tmpDest.data()) : nullptr,
                srcBufferSizes1D_char.data(),
                srcBufferOffsets1D_char.data(),
                MPI_CHAR,

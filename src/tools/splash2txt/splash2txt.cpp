@@ -1,5 +1,4 @@
-/*
- * Copyright 2013-2016 Felix Schmitt, Axel Huebl, Rene Widera,
+/* Copyright 2013-2017 Felix Schmitt, Axel Huebl, Rene Widera,
  *                     Alexander Grund
  *
  * This file is part of splash2txt.
@@ -219,7 +218,7 @@ int main( int argc, char** argv )
         return 1;
     }
 
-    ITools *tools = NULL;
+    ITools *tools = nullptr;
     switch ( options.fileMode)
     {
         case FM_SPLASH: tools = new ToolsSplashParallel( options, mpi_topology, *outStream );

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera
+/* Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -24,6 +23,7 @@
 #pragma once
 
 #include "eventSystem/EventSystem.hpp"
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -44,7 +44,7 @@ namespace PMacc
         state(Constructor),
         maxSize(parBase.getParticlesBuffer().getSendExchangeStack(exchange).getMaxParticlesCount()),
         initDependency(__getTransactionEvent()),
-        lastSize(0),lastSendEvent(EventTask()){ }
+        lastSize(0),lastSendEvent(EventTask()),retryCounter(0){ }
 
         virtual void init()
         {
@@ -63,8 +63,8 @@ namespace PMacc
                     break;
                 case WaitForBash:
 
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()) &&
-                        NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()) &&
+                        nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                     {
                         state = InitSend;
                         //bash is finished
@@ -80,13 +80,13 @@ namespace PMacc
                 case InitSend:
                     break;
                 case WaitForSend:
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                     {
-                        assert(lastSize<=maxSize);
+                        PMACC_ASSERT(lastSize <= maxSize);
                         //check for next bash round
                         if (lastSize == maxSize)
                         {
-                            std::cerr<<"send max size "<<maxSize<<" particles"<<std::endl;
+                            ++retryCounter;
                             init(); //call init and run a full send cycle
 
                         }
@@ -95,7 +95,7 @@ namespace PMacc
                     }
                     break;
                 case WaitForSendEnd:
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(lastSendEvent.getTaskId()))
                     {
                         state = Finished;
                         return true;
@@ -112,7 +112,16 @@ namespace PMacc
 
         virtual ~TaskSendParticlesExchange()
         {
-            notify(this->myId, RECVFINISHED, NULL);
+            notify(this->myId, RECVFINISHED, nullptr);
+            if(retryCounter != 0)
+            {
+                std::cerr << "Send/receive buffer for species " <<
+                    ParBase::FrameType::getName() <<
+                    " is to small (max: " << maxSize <<
+                    ", direction: " << exchange <<
+                    ", retries: " << retryCounter <<
+                    ")" << std::endl;
+            }
         }
 
         void event(id_t, EventType, IEventData*) { }
@@ -145,6 +154,7 @@ namespace PMacc
         uint32_t exchange;
         size_t maxSize;
         size_t lastSize;
+        size_t retryCounter;
     };
 
 } //namespace PMacc

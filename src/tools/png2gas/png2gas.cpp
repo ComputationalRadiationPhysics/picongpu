@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Felix Schmitt, Axel Huebl, Richard Pausch
+/* Copyright 2014-2017 Felix Schmitt, Axel Huebl, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -106,10 +105,10 @@ bool parseCmdLine(int argc, char **argv, Options &options)
                 std::cerr << std::endl << desc << std::endl;
                 return false;
             }
-            
+
             options.dataOffset.set(offset[0], offset[1], offset[2]);
         }
-        
+
 
     } catch (const boost::program_options::error& e)
     {
@@ -126,7 +125,7 @@ int main(int argc, char **argv)
     if (!parseCmdLine(argc, argv, options))
         return -1;
 
-    MPI_Init(NULL, NULL);
+    MPI_Init(nullptr, nullptr);
 
     Dimensions data_size(options.dataSize);
     std::cout << "Creating density data with size " << data_size.toString() << std::endl;

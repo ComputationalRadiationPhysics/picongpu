@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Rene Widera, Alexander Grund
+/* Copyright 2015-2017 Rene Widera, Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -24,36 +23,41 @@
 
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "pmacc_types.hpp"
-#include "Environment.hpp"
 #include "eventSystem/EventSystem.hpp"
+
+#include <memory>
+
 
 namespace PMacc
 {
-
-MallocMCBuffer::MallocMCBuffer( ) : hostPtr( NULL ),hostBufferOffset(0)
-{
+template< typename T_DeviceHeap >
+MallocMCBuffer< T_DeviceHeap >::MallocMCBuffer( const std::shared_ptr<DeviceHeap>& deviceHeap ) :
+    hostPtr( nullptr ),
     /* currently mallocMC has only one heap */
-    this->deviceHeapInfo=mallocMC::getHeapLocations()[0];
-    Environment<>::get().DataConnector().registerData( *this);
+    deviceHeapInfo( deviceHeap->getHeapLocations( )[ 0 ] ),
+    hostBufferOffset( 0 )
+{
 }
 
-MallocMCBuffer::~MallocMCBuffer( )
+template< typename T_DeviceHeap >
+MallocMCBuffer< T_DeviceHeap >::~MallocMCBuffer( )
 {
-    if ( hostPtr != NULL )
+    if ( hostPtr != nullptr )
         cudaHostUnregister(hostPtr);
 
     __deleteArray(hostPtr);
 
 }
 
-void MallocMCBuffer::synchronize( )
+template< typename T_DeviceHeap >
+void MallocMCBuffer< T_DeviceHeap >::synchronize( )
 {
     /** \todo: we had no abstraction to create a host buffer and a pseudo
      *         device buffer (out of the mallocMC ptr) and copy both with our event
      *         system.
      *         WORKAROUND: use native cuda calls :-(
      */
-    if ( hostPtr == NULL )
+    if ( hostPtr == nullptr )
     {
         /* use `new` and than `cudaHostRegister` is faster than `cudaMallocHost`
          * but with the some result (create page-locked memory)

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,7 +19,7 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/ChargeDensity.def"
+#include "particles/particleToGrid/derivedAttributes/Counter.def"
 
 #include "simulation_defines.hpp"
 

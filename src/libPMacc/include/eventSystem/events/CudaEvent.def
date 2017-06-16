@@ -1,5 +1,4 @@
-/**
- * Copyright 2016 Rene Widera
+/* Copyright 2016-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -23,6 +22,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "assert.hpp"
 #include <cuda_runtime.h>
 
 

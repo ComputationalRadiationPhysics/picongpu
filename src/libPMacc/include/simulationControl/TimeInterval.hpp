@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -48,7 +47,7 @@ namespace PMacc
         static double getTime()
         {
             struct timeval act_time;
-            gettimeofday(&act_time, NULL);
+            gettimeofday(&act_time, nullptr);
             return (double)act_time.tv_sec*1000. + (double)act_time.tv_usec / 1000.;
         }
 

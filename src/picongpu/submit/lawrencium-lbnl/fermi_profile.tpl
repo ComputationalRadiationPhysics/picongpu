@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2016 Axel Huebl
+# Copyright 2013-2017 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -54,6 +54,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # 2 gpus per node
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 2 ] ; then echo 2; else echo $TBG_tasks; fi`
@@ -77,7 +78,11 @@ echo 'Running program...'
 cd !TBG_dstPath
 
 export MODULES_NO_OUTPUT=1
-source ~/picongpu.profile
+source !TBG_profile
+if [ $? -ne 0 ] ; then
+  echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
+  exit 1
+fi
 unset MODULES_NO_OUTPUT
 
 #set user rights to u=rwx;g=r-x;o=---
@@ -90,10 +95,15 @@ cd simOutput
 #   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
 export OMPI_MCA_mpi_leave_pinned=0
 
-# Run CUDA memtest to check GPU's health
-mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+# test if cuda_memtest binary is available
+if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
+  # Run CUDA memtest to check GPU's health
+  mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+else
+  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+fi
 
-# Run PIConGPU
 if [ $? -eq 0 ] ; then
+  # Run PIConGPU
   mpirun !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2017 Felix Schmitt, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -29,7 +28,7 @@
 
 namespace PMacc
 {
-     
+
     class TaskKernel : public StreamTask
     {
     public:
@@ -43,7 +42,7 @@ namespace PMacc
 
         virtual ~TaskKernel()
         {
-            notify(this->myId, KERNEL, NULL);
+            notify(this->myId, KERNEL, nullptr);
         }
 
         bool executeIntern()

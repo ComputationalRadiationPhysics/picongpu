@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera
+/* Copyright 2013-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -44,7 +43,7 @@ namespace picongpu
 //load starter after all user extension
 #include <simulation_defines/param/starter.param>
 
-#include <simulation_defines/param/componentsConfig.param>
+#include <simulation_defines/param/components.param>
 #include <simulation_classTypes.hpp>
 
 // ##### load unitless

@@ -1,5 +1,4 @@
-/**
- * Copyright 2017 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -61,7 +60,7 @@ struct KinEnergy
         }
         else
         {
-            const ValueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
+            constexpr ValueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
             /* kinetic energy for particles: E = (gamma - 1) * m * c^2 */
             kinEnergy = ( gamma - ValueType( 1.0 ) ) * mass * c2;
         }

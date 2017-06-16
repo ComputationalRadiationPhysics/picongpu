@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera,
  *                     Maximilian Knespel, Benjamin Worpitz
  *
  * This file is part of libPMacc.
@@ -60,7 +59,7 @@ struct MessageHeader
 struct GatherSlice
 {
 
-    GatherSlice() : mpiRank(-1), numRanks(0), filteredData(NULL), fullData(NULL), isMPICommInitialized(false)
+    GatherSlice() : mpiRank(-1), numRanks(0), filteredData(nullptr), fullData(nullptr), isMPICommInitialized(false)
     {
     }
 
@@ -71,15 +70,15 @@ struct GatherSlice
 
     void finalize()
     {
-        if (filteredData != NULL)
+        if (filteredData != nullptr)
         {
             delete[] filteredData;
-            filteredData=NULL;
+            filteredData=nullptr;
         }
-        if (fullData != NULL)
+        if (fullData != nullptr)
         {
             delete[] fullData;
-            fullData=NULL;
+            fullData=nullptr;
         }
         if (isMPICommInitialized)
         {
@@ -149,7 +148,7 @@ struct GatherSlice
 
         char* recvHeader = new char[ sizeof(MessageHeader)* numRanks];
 
-        if (fullData == NULL && mpiRank == 0)
+        if (fullData == nullptr && mpiRank == 0)
             fullData = (char*) new ValueType[header.nodeSize.productOfComponents() * numRanks];
 
 
@@ -167,7 +166,7 @@ struct GatherSlice
 
         if (mpiRank == 0)
         {
-            if (filteredData == NULL)
+            if (filteredData == nullptr)
                 filteredData = (char*) new ValueType[header.simSize.productOfComponents()];
 
             /*create box with valid memory*/

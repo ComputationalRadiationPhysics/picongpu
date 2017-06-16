@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -18,27 +17,35 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
+#include "static_assert.hpp"
+
+#include "fields/FieldJ.hpp"
+
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"
 #include "math/vector/Size_t.hpp"
 #include "math/vector/math_functor/abs.hpp"
 #include "math/vector/math_functor/max.hpp"
-#include "cuSTL/container/PseudoBuffer.hpp"
 #include "dataManagement/DataConnector.hpp"
-#include "fields/FieldJ.hpp"
 #include "math/Vector.hpp"
-#include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
+#include "cuSTL/container/PseudoBuffer.hpp"
+#include "cuSTL/cursor/NestedCursor.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
 #include "cuSTL/algorithm/host/Foreach.hpp"
-#include "cuSTL/cursor/NestedCursor.hpp"
-#include "lambda/Expression.hpp"
-#include <sstream>
-#include "algorithms/ForEach.hpp"
+#include "cuSTL/algorithm/mpi/Gather.hpp"
 #include "cuSTL/algorithm/kernel/Reduce.hpp"
+#include "lambda/Expression.hpp"
+#include "algorithms/ForEach.hpp"
 #include "nvidia/functors/Add.hpp"
+
 #include "common/txtFileHandling.hpp"
+
+#include <sstream>
+
 
 namespace picongpu
 {
@@ -46,7 +53,7 @@ namespace picongpu
 ChargeConservation::ChargeConservation()
     : name("ChargeConservation: Print the maximum charge deviation between particles and div E to textfile 'chargeConservation.dat'"),
       prefix("chargeConservation"), filename("chargeConservation.dat"),
-      cellDescription(NULL)
+      cellDescription(nullptr)
 {
     Environment<>::get().PluginConnector().registerPlugin(this);
 }
@@ -170,12 +177,12 @@ struct ComputeChargeDensity
         DataConnector &dc = Environment<>::get().DataConnector();
 
         /* load species without copying the particle data to the host */
-        SpeciesName* speciesTmp = &(dc.getData<SpeciesName >(SpeciesName::FrameType::getName(), true));
+        auto speciesTmp = dc.get< SpeciesName >( SpeciesName::FrameType::getName(), true );
 
         /* run algorithm */
         typedef typename CreateDensityOperation<SpeciesName>::type::Solver ChargeDensitySolver;
         fieldTmp->computeValue < area, ChargeDensitySolver > (*speciesTmp, currentStep);
-        dc.releaseData(SpeciesName::FrameType::getName());
+        dc.releaseData( SpeciesName::FrameType::getName() );
     }
 };
 
@@ -188,31 +195,35 @@ void ChargeConservation::notify(uint32_t currentStep)
     DataConnector &dc = Environment<>::get().DataConnector();
 
     /* load FieldTmp without copy data to host */
-    FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
+    PMACC_CASSERT_MSG(
+        _please_allocate_at_least_one_FieldTmp_in_memory_param,
+        fieldTmpNumSlots > 0
+    );
+    auto fieldTmp = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
     /* reset density values to zero */
     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
 
     /* calculate and add the charge density values from all species in FieldTmp */
     ForEach<VectorAllSpecies, picongpu::detail::ComputeChargeDensity<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeChargeDensity;
-    computeChargeDensity(forward(fieldTmp), currentStep);
+    computeChargeDensity(forward(fieldTmp.get()), currentStep);
 
     /* add results of all species that are still in GUARD to next GPUs BORDER */
     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
     __setTransactionEvent(fieldTmpEvent);
 
     /* cast libPMacc Buffer to cuSTL Buffer */
-    BOOST_AUTO(fieldTmp_coreBorder,
+    auto fieldTmp_coreBorder =
                  fieldTmp->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
-                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT()));
+                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());
 
     /* cast libPMacc Buffer to cuSTL Buffer */
-    BOOST_AUTO(fieldE_coreBorder,
-                 dc.getData<FieldE > (FieldE::getName(), true).getGridBuffer().
+    auto fieldE_coreBorder =
+                 dc.get< FieldE >( FieldE::getName(), true )->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
-                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT()));
+                      this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());
 
     /* run calculation: fieldTmp = | div E * eps_0 - rho | */
     using namespace lambda;

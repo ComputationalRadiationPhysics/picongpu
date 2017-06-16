@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Felix Schmitt, 
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Felix Schmitt,
  * Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -19,8 +18,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include <boost/mpl/vector.hpp>
@@ -29,9 +26,10 @@
 
 #include "compileTime/conversion/MakeSeq.hpp"
 
-/** some forward declarations we need */
+/* some forward declarations we need */
 #include "fields/Fields.def"
 #include "particles/particleToGrid/ComputeGridValuePerFrame.def"
+
 
 namespace picongpu
 {
@@ -47,7 +45,7 @@ namespace picongpu
      *       note: for species that do not change their charge state, this is
      *             the same as the density times a constant for the charge
      *   - CreateEnergyOperation: sum of kinetic particle energy per cell with
-     *                            respect to shape (deprecated)
+     *                            respect to shape
      *   - CreateEnergyDensityOperation: average kinetic particle energy per
      *                                   cell times the particle density
      *       note: this is the same as the sum of kinetic particle energy
@@ -56,64 +54,64 @@ namespace picongpu
      *                                       component and the absolute
      *                                       momentum with respect to shape
      *   - CreateLarmorPowerOperation: radiated larmor power
-     *                                 (needs ENABLE_RADIATION)
+     *                                 (species must contain the attribute `momentumPrev1`)
      *
      * for debugging:
      *   - CreateMidCurrentDensityComponentOperation:
      *       density * charge * velocity_component
      *   - CreateCounterOperation: counts point like particles per cell
+     *   - CreateMacroCounterOperation: counts point like macro particles per cell
      */
     using namespace particleToGrid;
 
     /* ChargeDensity section */
-    typedef bmpl::transform<
-            VectorAllSpecies,
-            CreateChargeDensityOperation<bmpl::_1>
-            >::type ChargeDensity_Seq;
-
-    /* ParticleCounter section */
-    typedef bmpl::transform<
-            VectorAllSpecies,
-            CreateCounterOperation<bmpl::_1>
-            >::type Counter_Seq;
+    using ChargeDensity_Seq = bmpl::transform<
+        VectorAllSpecies,
+        CreateChargeDensityOperation< bmpl::_1 >
+    >::type;
 
     /* EnergyDensity section */
-    typedef bmpl::transform<
-            VectorAllSpecies,
-            CreateEnergyDensityOperation<bmpl::_1>
-            >::type EnergyDensity_Seq;
+    using EnergyDensity_Seq = bmpl::transform<
+        VectorAllSpecies,
+        CreateEnergyDensityOperation< bmpl::_1 >
+    >::type;
 
     /* CreateMomentumComponentOperation section: define "component" as
        0=X (default), 1=Y or 2=Z (results: [-1.:1.])
      */
-    typedef bmpl::transform<
-            VectorAllSpecies,
-            CreateMomentumComponentOperation<bmpl::_1, bmpl::int_<0> >
-            >::type MomentumComponent_Seq;
+    using MomentumComponent_Seq = bmpl::transform<
+        VectorAllSpecies,
+        CreateMomentumComponentOperation<
+            bmpl::_1,
+            bmpl::int_< 0 >
+        >
+    >::type;
 
 
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *
      * FieldTmpSolvers is used in @see FieldTmp to calculate the exchange size
      */
-    typedef MakeSeq<
+    using FieldTmpSolvers = MakeSeq_t<
         ChargeDensity_Seq,
-        Counter_Seq,
         EnergyDensity_Seq,
         MomentumComponent_Seq
-    >::type FieldTmpSolvers;
+    >;
 
 
     /** FileOutputFields: Groups all Fields that shall be dumped *************/
 
     /** Possible native fields: FieldE, FieldB, FieldJ
      */
-    typedef MakeSeq<FieldE, FieldB>::type NativeFileOutputFields;
+    using NativeFileOutputFields = MakeSeq_t<
+        FieldE,
+        FieldB
+    >;
 
-    typedef MakeSeq<
+    using FileOutputFields = MakeSeq_t<
         NativeFileOutputFields,
         FieldTmpSolvers
-    >::type FileOutputFields;
+    >;
 
 
     /** FileOutputParticles: Groups all Species that shall be dumped **********
@@ -121,6 +119,6 @@ namespace picongpu
      * hint: to disable particle output set to
      *   typedef bmpl::vector0< > FileOutputParticles;
      */
-    typedef VectorAllSpecies FileOutputParticles;
+    using FileOutputParticles = VectorAllSpecies;
 
 }

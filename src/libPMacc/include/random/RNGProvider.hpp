@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Alexander Grund
+/* Copyright 2015-2017 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -41,10 +40,10 @@ namespace random
      * \tparam T_RNGMethod Method to use for random number generation
      */
     template<uint32_t T_dim, class T_RNGMethod = methods::Xor>
-    class RNGProvider: ISimulationData
+    class RNGProvider : public ISimulationData
     {
     public:
-        BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
+        static constexpr uint32_t dim = T_dim;
         typedef T_RNGMethod RNGMethod;
         typedef DataSpace<dim> Space;
 

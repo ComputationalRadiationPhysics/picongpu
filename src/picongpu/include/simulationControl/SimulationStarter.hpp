@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,7 +23,6 @@
 #include "simulation_defines.hpp"
 
 #include <boost/program_options/options_description.hpp>
-#include <cassert>
 #include <iostream>
 
 #include "simulation_defines.hpp"
@@ -40,7 +38,7 @@ namespace picongpu
 {
     using namespace PMacc;
 
-    template<class InitClass, class AnalyserClass, class SimulationClass>
+    template<class InitClass, class PluginClass, class SimulationClass>
     class SimulationStarter : public ISimulationStarter
     {
     private:
@@ -48,24 +46,24 @@ namespace picongpu
 
         SimulationClass* simulationClass;
         InitClass* initClass;
-        AnalyserClass* analyserClass;
+        PluginClass* pluginClass;
 
 
         MappingDesc* mappingDesc;
     public:
 
-        SimulationStarter() : mappingDesc(NULL)
+        SimulationStarter() : mappingDesc(nullptr)
         {
             simulationClass = new SimulationClass();
             initClass = new InitClass();
             simulationClass->setInitController(initClass);
-            analyserClass = new AnalyserClass();
+            pluginClass = new PluginClass();
         }
 
         virtual ~SimulationStarter()
         {
             __delete(initClass);
-            __delete(analyserClass);
+            __delete(pluginClass);
             __delete(simulationClass);
         }
 
@@ -104,9 +102,9 @@ namespace picongpu
             initClass->pluginRegisterHelp(initDesc);
             ap.addOptions(initDesc);
 
-            po::options_description analyserDesc(analyserClass->pluginGetName());
-            analyserClass->pluginRegisterHelp(analyserDesc);
-            ap.addOptions(analyserDesc);
+            po::options_description pluginDesc(pluginClass->pluginGetName());
+            pluginClass->pluginRegisterHelp(pluginDesc);
+            ap.addOptions(pluginDesc);
 
             // setup all boost::program_options and add to ArgsParser
             BoostOptionsList options = pluginConnector.registerHelp();
@@ -126,7 +124,7 @@ namespace picongpu
         {
             simulationClass->load();
             mappingDesc = simulationClass->getMappingDescription();
-            analyserClass->setMappingDescription(mappingDesc);
+            pluginClass->setMappingDescription(mappingDesc);
             initClass->setMappingDescription(mappingDesc);
         }
 
@@ -135,7 +133,7 @@ namespace picongpu
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
             pluginConnector.unloadPlugins();
             initClass->unload();
-            analyserClass->unload();
+            pluginClass->unload();
             simulationClass->unload();
         }
     private:

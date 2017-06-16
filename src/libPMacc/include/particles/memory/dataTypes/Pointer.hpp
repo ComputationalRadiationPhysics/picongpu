@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016  Rene Widera
+/* Copyright 2014-2017  Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -109,11 +108,11 @@ public:
     }
 
     /** check if the memory pointed to has a valid address
-     * @return false if memory adress is NULL else true
+     * @return false if memory adress is nullptr else true
      */
     HDINLINE bool isValid( ) const
     {
-        return ptr != NULL;
+        return ptr != nullptr;
     }
 
     PMACC_ALIGN( ptr, PtrType );

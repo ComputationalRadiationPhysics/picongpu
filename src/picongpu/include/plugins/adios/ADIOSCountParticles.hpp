@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Felix Schmitt, Axel Huebl
+/* Copyright 2014-2017 Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -22,11 +21,22 @@
 
 #include <mpi.h>
 
-#include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
 
 #include "plugins/ISimulationPlugin.hpp"
+
+#include "plugins/output/WriteSpeciesCommon.hpp"
+#include "particles/traits/GetSpeciesFlagName.hpp"
+#include "traits/PICToAdios.hpp"
+
+#include "mappings/kernel/AreaMapping.hpp"
+#include "math/Vector.hpp"
+#include "plugins/adios/writer/ParticleAttributeSize.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "dataManagement/DataConnector.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -34,21 +44,10 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
-#include "compileTime/conversion/MakeSeq.hpp"
-
 #include <boost/type_traits.hpp>
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "math/Vector.hpp"
-
-#include "traits/PICToAdios.hpp"
-#include "plugins/adios/writer/ParticleAttributeSize.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-
-#include "particles/traits/GetSpeciesFlagName.hpp"
-
 #include <string>
+
 
 namespace picongpu
 {
@@ -102,7 +101,7 @@ public:
             std::string(ADIOS_PATH_PARTICLES) + speciesGroup );
 
         /* load particle without copy particle data to host */
-        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
+        auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
 
         /* count total number of particles on the device */
         uint64_cu totalNumParticles = 0;
@@ -171,7 +170,7 @@ public:
             const uint64_t localTableSize = 5;
             traits::PICToAdios<uint64_t> adiosIndexType;
 
-            const char* path = NULL;
+            const char* path = nullptr;
             int64_t adiosSpeciesIndexVar = defineAdiosVar<DIM1>(
                 params->adiosGroupHandle,
                 (speciesPath + "particles_info").c_str(),

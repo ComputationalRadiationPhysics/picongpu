@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -40,9 +39,6 @@ class DefaultFilter : public Base
         HDINLINE DefaultFilter() : filterActive(false)
         {}
 
-        HDINLINE virtual ~DefaultFilter()
-        {}
-
         template<class FRAME>
         HDINLINE bool operator()(FRAME & frame,lcellId_t id)
         {
@@ -72,9 +68,6 @@ class DefaultFilter<NullFrame>
     public:
 
         HDINLINE DefaultFilter() : alwaysTrue(true)
-        {}
-
-        HDINLINE virtual ~DefaultFilter()
         {}
 
         template<class FRAME>

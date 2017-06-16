@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Rene Widera
+/* Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,22 +19,26 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include <boost/mpl/if.hpp>
+#include "fields/Fields.def"
+#include "compileTime/conversion/TypeToPointerPair.hpp"
+#include "particles/manipulators/manipulators.def"
+#include "particles/densityProfiles/IProfile.def"
+#include "particles/startPosition/IFunctor.def"
+#include "particles/Manipulate.hpp"
+
+#include "Environment.hpp"
+#include "traits/Resolve.hpp"
 #include "traits/HasFlag.hpp"
 #include "traits/GetFlagType.hpp"
-#include "fields/Fields.def"
 #include "math/MapTuple.hpp"
+
+#include <boost/mpl/if.hpp>
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/apply_wrap.hpp>
-#include "compileTime/conversion/TypeToPointerPair.hpp"
-#include "particles/manipulators/manipulators.def"
-#include "particles/gasProfiles/IProfile.def"
-#include "particles/startPosition/IFunctor.def"
-#include "traits/Resolve.hpp"
+
 
 namespace picongpu
 {
@@ -53,52 +56,50 @@ namespace particles
 template<typename T_Functor = bmpl::_1>
 struct CallFunctor
 {
-    typedef T_Functor Functor;
+    using Functor = T_Functor;
 
-    template<typename T_StorageTuple>
     HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
+        const uint32_t currentStep
+    )
     {
-        Functor()(tuple, currentStep);
+        Functor()( currentStep );
     }
 };
 
-/** create gas based on a gas profile and a position profile
+/** create density based on a normalized profile and a position profile
  *
- * constructor with current time step of gas and position profile is called
- * after the gas is created `fillAllGaps()` is called
+ * constructor with current time step of density and position profile is called
+ * after the density profile is created `fillAllGaps()` is called
  *
- * @tparam T_GasFunctor unary lambda functor with gas description
+ * @tparam T_DensityFunctor unary lambda functor with profile description
  * @tparam T_PositionFunctor unary lambda functor with position description
  * @tparam T_SpeciesType type of the used species
  */
-template<typename T_GasFunctor, typename T_PositionFunctor, typename T_SpeciesType = bmpl::_1>
-struct CreateGas
+template<typename T_DensityFunctor, typename T_PositionFunctor, typename T_SpeciesType = bmpl::_1>
+struct CreateDensity
 {
-    typedef T_SpeciesType SpeciesType;
-    typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
 
-    typedef typename bmpl::apply1<T_GasFunctor, SpeciesType>::type UserGasFunctor;
+    typedef typename bmpl::apply1<T_DensityFunctor, SpeciesType>::type UserDensityFunctor;
     /* add interface for compile time interface validation*/
-    typedef gasProfiles::IProfile<UserGasFunctor> GasFunctor;
+    typedef densityProfiles::IProfile<UserDensityFunctor> DensityFunctor;
 
     typedef typename bmpl::apply1<T_PositionFunctor, SpeciesType>::type UserPositionFunctor;
     /* add interface for compile time interface validation*/
     typedef startPosition::IFunctor<UserPositionFunctor> PositionFunctor;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
+    HINLINE void operator()( const uint32_t currentStep )
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
-        GasFunctor gasFunctor(currentStep);
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto speciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
+
+        DensityFunctor densityFunctor(currentStep);
         PositionFunctor positionFunctor(currentStep);
-        speciesPtr->initGas(gasFunctor, positionFunctor, currentStep);
+        speciesPtr->initDensityProfile(densityFunctor, positionFunctor, currentStep);
+
+        dc.releaseData( FrameType::getName() );
     }
 };
 
@@ -117,24 +118,24 @@ struct CreateGas
 template<typename T_ManipulateFunctor, typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
 struct ManipulateDeriveSpecies
 {
-    typedef T_DestSpeciesType DestSpeciesType;
-    typedef typename MakeIdentifier<DestSpeciesType>::type DestSpeciesName;
-    typedef T_SrcSpeciesType SrcSpeciesType;
-    typedef typename MakeIdentifier<SrcSpeciesType>::type SrcSpeciesName;
+    using DestSpeciesType = T_DestSpeciesType;
+    using DestFrameType = typename DestSpeciesType::FrameType;
+    using SrcSpeciesType = T_SrcSpeciesType;
+    using SrcFrameType = typename SrcSpeciesType::FrameType;
     typedef T_ManipulateFunctor ManipulateFunctor;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
+    HINLINE void operator()( const uint32_t currentStep )
     {
-        PMACC_AUTO(speciesPtr, tuple[DestSpeciesName()]);
-        PMACC_AUTO(srcSpeciesPtr, tuple[SrcSpeciesName()]);
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto speciesPtr = dc.get< DestSpeciesType >( DestFrameType::getName(), true );
+        auto srcSpeciesPtr = dc.get< SrcSpeciesType >( SrcFrameType::getName(), true );
 
         ManipulateFunctor manipulateFunctor(currentStep);
 
         speciesPtr->deviceDeriveFrom(*srcSpeciesPtr, manipulateFunctor);
+
+        dc.releaseData( DestFrameType::getName() );
+        dc.releaseData( SrcFrameType::getName() );
     }
 };
 
@@ -154,36 +155,6 @@ struct DeriveSpecies : ManipulateDeriveSpecies<manipulators::NoneImpl, T_SrcSpec
 };
 
 
-/** run a user defined functor for every particle
- *
- * - constructor with current time step is called for the functor on the host side
- * - \warning `fillAllGaps()` is not called
- *
- * @tparam T_Functor unary lambda functor
- * @tparam T_SpeciesType type of the used species
- */
-template<typename T_Functor, typename T_SpeciesType = bmpl::_1>
-struct Manipulate
-{
-    typedef T_SpeciesType SpeciesType;
-    typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
-
-    typedef typename bmpl::apply1<T_Functor, SpeciesType>::type UserFunctor;
-    typedef manipulators::IManipulator<UserFunctor> Functor;
-
-    template<typename T_StorageTuple>
-    HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
-    {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
-        Functor functor(currentStep);
-        speciesPtr->manipulateAllParticles(currentStep, functor);
-    }
-};
-
-
 /** call method fill all gaps of a species
  *
  * @tparam T_SpeciesType type of the species
@@ -191,17 +162,15 @@ struct Manipulate
 template<typename T_SpeciesType = bmpl::_1>
 struct FillAllGaps
 {
-    typedef T_SpeciesType SpeciesType;
-    typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()(
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep
-                            )
+    HINLINE void operator()( const uint32_t currentStep )
     {
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto speciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
         speciesPtr->fillAllGaps();
+        dc.releaseData( FrameType::getName() );
     }
 };
 

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,7 +19,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "simulation_defines.hpp"
 #include "traits/SIBaseUnits.hpp"
 #include <vector>
 
@@ -42,7 +41,7 @@ namespace derivedAttributes
         {
            /* L, M, T, I, theta, N, J
             *
-            * ChargeDensity is in Coulomb / cubic meter: Q / m^3 = I * t / m^3
+            * ChargeDensity is in Coulomb / cubic meter: Q / m^3 = A * s / m^3
             *   -> L^-3 * T * I
             */
            std::vector<float_64> unitDimension( 7, 0.0 );

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -23,7 +22,7 @@
 #include <mpi.h>
 
 #include "simulation_defines.hpp"
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 #include "pluginSystem/INotify.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
@@ -38,6 +37,7 @@
 #include <boost/mpl/min_max.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/accumulate.hpp>
+
 
 namespace picongpu
 {
@@ -55,7 +55,6 @@ namespace picongpu
         std::string name;
         std::string prefix;
         uint32_t notifyPeriod;
-        Species *particles;
         MappingDesc *cellDescription;
 
         /** plot to create: e.g. py, x from element_coordinate/momentum */
@@ -74,8 +73,8 @@ namespace picongpu
             bmpl::int_<0>,
             bmpl::max<bmpl::_1, bmpl::_2>
             >::type SuperCellsLongestEdge;
-        BOOST_STATIC_CONSTEXPR uint32_t maxShared = 32*1024; /* 32 KB */
-        BOOST_STATIC_CONSTEXPR uint32_t num_pbins = maxShared/(sizeof(float_PS)*SuperCellsLongestEdge::value);
+        static constexpr uint32_t maxShared = 32*1024; /* 32 KB */
+        static constexpr uint32_t num_pbins = maxShared/(sizeof(float_PS)*SuperCellsLongestEdge::value);
 
         container::DeviceBuffer<float_PS, 2>* dBuffer;
 

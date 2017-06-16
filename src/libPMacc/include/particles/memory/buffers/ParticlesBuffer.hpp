@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -49,6 +48,7 @@
 #include "particles/ParticleDescription.hpp"
 #include "particles/memory/dataTypes/ListPointer.hpp"
 
+#include <memory>
 
 namespace PMacc
 {
@@ -60,78 +60,112 @@ namespace PMacc
  * @tparam SuperCellSize_ TVec which descripe size of a superce
  * @tparam DIM dimension of the buffer (1-3)
  */
-template<typename T_ParticleDescription, class SuperCellSize_, unsigned DIM>
+template<typename T_ParticleDescription, class SuperCellSize_, typename T_DeviceHeap, unsigned DIM>
 class ParticlesBuffer
 {
 public:
 
     /** create static array
      */
-    template<uint32_t T_size>
+    template< uint32_t T_size >
     struct OperatorCreatePairStaticArray
     {
 
         template<typename X>
         struct apply
         {
-            typedef
-            bmpl::pair<X,
-            StaticArray< typename traits::Resolve<X>::type::type, bmpl::integral_c<uint32_t, T_size> >
+            typedef bmpl::pair<
+                X,
+                StaticArray<
+                    typename traits::Resolve<X>::type::type,
+                    bmpl::integral_c<uint32_t, T_size>
+                >
             > type;
         };
     };
 
-    typedef ExchangeMemoryIndex<vint_t, DIM - 1 > PopPushType;
+    /** type of the border frame management object
+     *
+     * contains:
+     *   - superCell position of the border frames inside a given range
+     *   - start position inside the exchange stack for frames
+     *   - number of frames corresponding to the superCell position
+     */
+    typedef ExchangeMemoryIndex<
+        vint_t,
+        DIM - 1
+    > BorderFrameIndex;
 
     typedef SuperCellSize_ SuperCellSize;
 
-    typedef
-    typename MakeSeq<
-    typename T_ParticleDescription::ValueTypeSeq,
-    localCellIdx,
-    multiMask
-    >::type full_particleList;
+    typedef typename MakeSeq<
+        typename T_ParticleDescription::ValueTypeSeq,
+        localCellIdx,
+        multiMask
+    >::type ParticleAttributeList;
+
+    typedef typename MakeSeq<
+        typename T_ParticleDescription::ValueTypeSeq,
+        localCellIdx
+    >::type ParticleAttributeListBorder;
 
     typedef
-    typename MakeSeq<
-    typename T_ParticleDescription::ValueTypeSeq,
-    localCellIdx
-    >::type border_particleList;
+    typename ReplaceValueTypeSeq<
+        T_ParticleDescription,
+        ParticleAttributeList
+    >::type FrameDescriptionWithManagementAttributes;
 
-    typedef
-    typename ReplaceValueTypeSeq<T_ParticleDescription, full_particleList>::type
-    ParticleDescriptionWithExtendedAttributes;
-
+    /** double linked list pointer */
     typedef
     typename MakeSeq<
         PreviousFramePtr<>,
         NextFramePtr<>
-    >::type PtrExtension;
+    >::type LinkedListPointer;
 
     /* extent particle description with pointer to a frame*/
-    typedef
-    typename ReplaceFrameExtensionSeq<ParticleDescriptionWithExtendedAttributes, PtrExtension>::type
-    ParticleDescriptionDefault;
+    typedef typename ReplaceFrameExtensionSeq<
+        FrameDescriptionWithManagementAttributes,
+        LinkedListPointer
+    >::type FrameDescription;
 
+    /** frame definition
+     *
+     * a group of particles is stored as frame
+     */
     typedef Frame<
-    OperatorCreatePairStaticArray<PMacc::math::CT::volume<SuperCellSize>::type::value >, ParticleDescriptionDefault> ParticleType;
+        OperatorCreatePairStaticArray<
+            PMacc::math::CT::volume< SuperCellSize >::type::value
+        >,
+        FrameDescription
+    > FrameType;
 
-    typedef
-    typename ReplaceValueTypeSeq<T_ParticleDescription, border_particleList>::type
-    ParticleDescriptionBorder;
+    typedef typename ReplaceValueTypeSeq<
+        T_ParticleDescription,
+        ParticleAttributeListBorder
+    >::type FrameDescriptionBorder;
 
-    typedef Frame<OperatorCreatePairStaticArray<1u >, ParticleDescriptionBorder> ParticleTypeBorder;
+    /** frame which is used to communicate particles to neighbors
+     *
+     * - each frame contains only one particle
+     * - local administration attributes of a particle are removed
+     */
+    typedef Frame<
+        OperatorCreatePairStaticArray< 1u >,
+        FrameDescriptionBorder
+    > FrameTypeBorder;
 
-
-    typedef ParticleType FrameType;
     typedef SuperCell<FrameType> SuperCellType;
+
+    typedef T_DeviceHeap DeviceHeap;
+    /* Type of the particle box which particle buffer create */
+    typedef ParticlesBox< FrameType, typename DeviceHeap::AllocatorHandle, DIM> ParticlesBoxType;
 
 private:
 
-    /*this is only for internel calculations*/
+    /* this enum is used only for internal calculations */
     enum
     {
-        SizeOfOneBorderElement = (sizeof (ParticleTypeBorder) + sizeof (PopPushType))
+        SizeOfOneBorderElement = (sizeof (FrameTypeBorder) + sizeof (BorderFrameIndex))
     };
 
 public:
@@ -139,18 +173,18 @@ public:
     /**
      * Constructor.
      *
+     * @param deviceHeap device heap memory allocator
      * @param layout number of cell per dimension
      * @param superCellSize size of one super cell
      * @param gpuMemory how many memory on device is used for this instance (in byte)
      */
-    ParticlesBuffer(DataSpace<DIM> layout, DataSpace<DIM> superCellSize) :
-    superCellSize(superCellSize), gridSize(layout), framesExchanges(NULL)
+    ParticlesBuffer(const std::shared_ptr<DeviceHeap>& deviceHeap, DataSpace<DIM> layout, DataSpace<DIM> superCellSize) :
+        m_deviceHeap(deviceHeap), superCellSize(superCellSize), gridSize(layout), framesExchanges(nullptr)
     {
 
-        exchangeMemoryIndexer = new GridBuffer<PopPushType, DIM1 > (DataSpace<DIM1 > (0));
-        framesExchanges = new GridBuffer< ParticleType, DIM1, ParticleTypeBorder > (DataSpace<DIM1 > (0));
+        exchangeMemoryIndexer = new GridBuffer<BorderFrameIndex, DIM1 > (DataSpace<DIM1 > (0));
+        framesExchanges = new GridBuffer< FrameType, DIM1, FrameTypeBorder > (DataSpace<DIM1 > (0));
 
-        //std::cout << "size: " << sizeof (ParticleType) << " " << sizeof (ParticleTypeBorder) << std::endl;
         DataSpace<DIM> superCellsCount = gridSize / superCellSize;
 
         superCells = new GridBuffer<SuperCellType, DIM > (superCellsCount);
@@ -191,11 +225,11 @@ public:
     void addExchange(Mask receive, size_t usedMemory, uint32_t communicationTag)
     {
 
-        size_t numBorderFrames = usedMemory / SizeOfOneBorderElement;
+        size_t numFrameTypeBorders = usedMemory / SizeOfOneBorderElement;
 
-        framesExchanges->addExchangeBuffer(receive, DataSpace<DIM1 > (numBorderFrames), communicationTag, true, false);
+        framesExchanges->addExchangeBuffer(receive, DataSpace<DIM1 > (numFrameTypeBorders), communicationTag, true, false);
 
-        exchangeMemoryIndexer->addExchangeBuffer(receive, DataSpace<DIM1 > (numBorderFrames), communicationTag | (1u << (20 - 5)), true, false);
+        exchangeMemoryIndexer->addExchangeBuffer(receive, DataSpace<DIM1 > (numFrameTypeBorders), communicationTag | (1u << (20 - 5)), true, false);
     }
 
     /**
@@ -203,11 +237,13 @@ public:
      *
      * @return device frames ParticlesBox
      */
-    ParticlesBox<ParticleType, DIM> getDeviceParticleBox()
+    ParticlesBoxType getDeviceParticleBox()
     {
 
-        return ParticlesBox<ParticleType, DIM > (
-                                                 superCells->getDeviceBuffer().getDataBox());
+        return ParticlesBoxType(
+            superCells->getDeviceBuffer().getDataBox(),
+            m_deviceHeap->getAllocatorHandle()
+        );
     }
 
     /**
@@ -215,13 +251,14 @@ public:
      *
      * @return host frames ParticlesBox
      */
-    ParticlesBox<ParticleType, DIM> getHostParticleBox(int64_t memoryOffset)
+    ParticlesBoxType getHostParticleBox(int64_t memoryOffset)
     {
 
-        return ParticlesBox<ParticleType, DIM > (
-                                                 superCells->getHostBuffer().getDataBox(),
-                                                 memoryOffset
-                                                );
+        return ParticlesBoxType (
+            superCells->getHostBuffer().getDataBox(),
+            m_deviceHeap->getAllocatorHandle(),
+            memoryOffset
+        );
     }
 
     /**
@@ -248,17 +285,17 @@ public:
         return framesExchanges->hasReceiveExchange(ex);
     }
 
-    StackExchangeBuffer<ParticleTypeBorder, PopPushType, DIM - 1 > getSendExchangeStack(uint32_t ex)
+    StackExchangeBuffer<FrameTypeBorder, BorderFrameIndex, DIM - 1 > getSendExchangeStack(uint32_t ex)
     {
 
-        return StackExchangeBuffer<ParticleTypeBorder, PopPushType, DIM - 1 >
+        return StackExchangeBuffer<FrameTypeBorder, BorderFrameIndex, DIM - 1 >
             (framesExchanges->getSendExchange(ex), exchangeMemoryIndexer->getSendExchange(ex));
     }
 
-    StackExchangeBuffer<ParticleTypeBorder, PopPushType, DIM - 1 > getReceiveExchangeStack(uint32_t ex)
+    StackExchangeBuffer<FrameTypeBorder, BorderFrameIndex, DIM - 1 > getReceiveExchangeStack(uint32_t ex)
     {
 
-        return StackExchangeBuffer<ParticleTypeBorder, PopPushType, DIM - 1 >
+        return StackExchangeBuffer<FrameTypeBorder, BorderFrameIndex, DIM - 1 >
             (framesExchanges->getReceiveExchange(ex), exchangeMemoryIndexer->getReceiveExchange(ex));
     }
 
@@ -301,7 +338,7 @@ public:
     DataSpace<DIM> getSuperCellsCount()
     {
 
-        assert(superCells != NULL);
+        PMACC_ASSERT(superCells != nullptr);
         return superCells->getGridLayout().getDataSpace();
     }
 
@@ -313,7 +350,7 @@ public:
     GridLayout<DIM> getSuperCellsLayout()
     {
 
-        assert(superCells != NULL);
+        PMACC_ASSERT(superCells != nullptr);
         return superCells->getGridLayout();
     }
 
@@ -335,14 +372,15 @@ public:
 
 
 private:
-    GridBuffer<PopPushType, DIM1> *exchangeMemoryIndexer;
+    GridBuffer<BorderFrameIndex, DIM1> *exchangeMemoryIndexer;
 
     GridBuffer<SuperCellType, DIM> *superCells;
     /*GridBuffer for hold borderFrames, we need a own buffer to create first exchanges without core memory*/
-    GridBuffer< ParticleType, DIM1, ParticleTypeBorder> *framesExchanges;
+    GridBuffer< FrameType, DIM1, FrameTypeBorder> *framesExchanges;
 
     DataSpace<DIM> superCellSize;
     DataSpace<DIM> gridSize;
+    std::shared_ptr<DeviceHeap> m_deviceHeap;
 
 };
 }

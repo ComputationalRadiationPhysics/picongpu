@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -40,7 +39,7 @@
  * @param type type of the arguments in ...
  * @param ... arguments
  */
-#define PMACC_COUNT_ARGS(type,...)  (sizeof((type[]){type(), ##__VA_ARGS__})/sizeof(type)-1u)
+#define PMACC_COUNT_ARGS(type,...)  (sizeof((type[]){type{}, ##__VA_ARGS__})/sizeof(type)-1u)
 
 /**
  * Check if ... has arguments or not

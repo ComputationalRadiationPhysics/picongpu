@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -19,22 +18,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <iostream>
-#include <fstream>
-
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
-
-#include "simulation_classTypes.hpp"
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
 
-#include "dimensions/DataSpaceOperations.hpp"
 #include "plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
@@ -43,8 +33,15 @@
 #include "nvidia/reduce/Reduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 #include "memory/boxes/DataBoxUnaryTransform.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
 
 #include "common/txtFileHandling.hpp"
+
+#include <iostream>
+#include <fstream>
+#include <memory>
+
 
 namespace picongpu
 {
@@ -82,14 +79,11 @@ struct squareComponentWise
 class EnergyFields : public ISimulationPlugin
 {
 private:
-    FieldE* fieldE;
-    FieldB* fieldB;
-
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
     std::string filename;
     std::ofstream outFile;
     /*only rank 0 create a file*/
@@ -104,15 +98,13 @@ private:
 public:
 
     EnergyFields() :
-    fieldE(NULL),
-    fieldB(NULL),
-    cellDescription(NULL),
-    analyzerName("EnergyFields: calculate the energy of the fields"),
-    analyzerPrefix(std::string("fields_energy")),
-    filename(analyzerPrefix + ".dat"),
+    cellDescription(nullptr),
+    pluginName("EnergyFields: calculate the energy of the fields"),
+    pluginPrefix(std::string("fields_energy")),
+    filename(pluginPrefix + ".dat"),
     notifyFrequency(0),
     writeToFile(false),
-    localReduce(NULL)
+    localReduce(nullptr)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -124,23 +116,19 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
-        fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
         getEnergyFields(currentStep);
     }
 
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable analyser [for each n-th step]");
+            ((pluginPrefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyFrequency)->default_value(0), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
@@ -212,6 +200,11 @@ private:
 
     void getEnergyFields(uint32_t currentStep)
     {
+        DataConnector &dc = Environment<>::get().DataConnector();
+
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
         /* idx == 0 -> fieldB
          * idx == 1 -> fieldE
          */
@@ -261,7 +254,7 @@ private:
 private:
 
     template<typename T_Field>
-    EneVectorType reduceField(T_Field* field)
+    EneVectorType reduceField( std::shared_ptr< T_Field > field )
     {
         /*define stacked DataBox's for reduce algorithm*/
         typedef DataBoxUnaryTransform<typename T_Field::DataBoxType, energyFields::squareComponentWise > TransformedBox;

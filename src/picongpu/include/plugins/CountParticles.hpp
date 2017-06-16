@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Rene Widera, Richard Pausch
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -20,17 +19,10 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 
 #include "plugins/ISimulationPlugin.hpp"
 
@@ -38,12 +30,17 @@
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
 #include "nvidia/functors/Max.hpp"
-
-#include "simulation_classTypes.hpp"
+#include "dataManagement/DataConnector.hpp"
 
 #include "particles/operations/CountParticles.hpp"
 
 #include "common/txtFileHandling.hpp"
+
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+
 
 namespace picongpu
 {
@@ -55,13 +52,11 @@ class CountParticles : public ISimulationPlugin
 private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
-    ParticlesType *particles;
-
     MappingDesc *cellDescription;
     uint32_t notifyPeriod;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
     std::string filename;
 
     std::ofstream outFile;
@@ -72,11 +67,10 @@ private:
 public:
 
     CountParticles() :
-    analyzerName("CountParticles: count macro particles of a species"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount")),
-    filename(analyzerPrefix + ".dat"),
-    particles(NULL),
-    cellDescription(NULL),
+    pluginName("CountParticles: count macro particles of a species"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount")),
+    filename(pluginPrefix + ".dat"),
+    cellDescription(nullptr),
     notifyPeriod(0),
     writeToFile(false)
     {
@@ -90,23 +84,19 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
         countParticles < CORE + BORDER > (currentStep);
     }
 
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
+            ((pluginPrefix + ".period").c_str(),
              po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
@@ -183,11 +173,16 @@ private:
         const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
         const DataSpace<simDim> localSize(subGrid.getLocalDomain().size);
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+
         /*count local particles*/
         size = PMacc::CountParticles::countOnDevice<AREA>(*particles,
                                                           *cellDescription,
                                                           DataSpace<simDim>(),
                                                           localSize);
+        dc.releaseData( ParticlesType::FrameType::getName() );
+
         uint64_cu reducedValueMax;
         if (picLog::log_level & picLog::CRITICAL::lvl)
         {

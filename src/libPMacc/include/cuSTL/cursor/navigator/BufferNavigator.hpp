@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -22,11 +21,14 @@
 
 #pragma once
 
-#include "math/Vector.hpp"
-#include "tag.h"
-#include <boost/type_traits/remove_pointer.hpp>
+#include "tag.hpp"
 #include "CartNavigator.hpp"
-#include <cuSTL/cursor/traits.hpp>
+#include "cuSTL/cursor/traits.hpp"
+
+#include "math/Vector.hpp"
+
+#include <boost/type_traits/remove_pointer.hpp>
+
 
 namespace PMacc
 {
@@ -38,7 +40,7 @@ class BufferNavigator
 {
 public:
     typedef tag::BufferNavigator tag;
-    BOOST_STATIC_CONSTEXPR int dim = T_dim;
+    static constexpr int dim = T_dim;
 private:
     math::Size_t<dim-1> pitch;
 public:
@@ -65,7 +67,7 @@ class BufferNavigator<1>
 {
 public:
     typedef tag::BufferNavigator tag;
-    BOOST_STATIC_CONSTEXPR int dim = 1;
+    static constexpr int dim = 1;
 
 public:
     HDINLINE
@@ -87,7 +89,7 @@ namespace traits
 template<int T_dim>
 struct dim<BufferNavigator<T_dim> >
 {
-    BOOST_STATIC_CONSTEXPR int value = T_dim;
+    static constexpr int value = T_dim;
 };
 
 } // traits

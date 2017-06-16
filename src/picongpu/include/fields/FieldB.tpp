@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -21,9 +20,7 @@
 
 #pragma once
 
-#include <iostream>
 #include "simulation_defines.hpp"
-
 
 #include "fields/FieldB.hpp"
 
@@ -39,16 +36,11 @@
 
 #include "dimensions/SuperCellDescription.hpp"
 
-#include "FieldE.hpp"
-
 #include "MaxwellSolver/Solvers.hpp"
 #include "fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include "math/Vector.hpp"
 
-#include <list>
-
-#include <boost/mpl/accumulate.hpp>
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 
@@ -56,14 +48,20 @@
 #include "traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
 
+#include <boost/mpl/accumulate.hpp>
+
+#include <list>
+#include <iostream>
+#include <memory>
+
+
 namespace picongpu
 {
 
 using namespace PMacc;
 
 FieldB::FieldB( MappingDesc cellDescription ) :
-SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldE( NULL )
+SimulationFieldHelper<MappingDesc>( cellDescription )
 {
     /*#####create FieldB###############*/
     fieldB = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
@@ -95,9 +93,9 @@ fieldE( NULL )
         GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin
         >::type UpperMarginInterpolationAndSolver;
 
-    /* Calculate upper and lower margin for pusher 
-       (currently all pusher use the interpolation of the species)  
-       and find maximum margin 
+    /* Calculate upper and lower margin for pusher
+       (currently all pusher use the interpolation of the species)
+       and find maximum margin
     */
     typedef typename PMacc::particles::traits::FilterByFlag
     <
@@ -163,13 +161,9 @@ EventTask FieldB::asyncCommunication( EventTask serialEvent )
     return eB;
 }
 
-void FieldB::init( FieldE &fieldE, LaserPhysics &laserPhysics )
+void FieldB::init( LaserPhysics &laserPhysics )
 {
-
-    this->fieldE = &fieldE;
     this->laser = &laserPhysics;
-
-    Environment<>::get().DataConnector().registerData( *this );
 }
 
 GridLayout<simDim> FieldB::getGridLayout( )

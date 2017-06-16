@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Felix Schmitt, Axel Huebl
+/* Copyright 2013-2017 Rene Widera, Felix Schmitt, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -25,6 +24,17 @@
 #include "plugins/adios/ADIOSWriter.def"
 #include "plugins/ISimulationPlugin.hpp"
 
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+#include "particles/ParticleDescription.hpp"
+#include "particles/operations/splitIntoListOfFrames.kernel"
+
+#include "plugins/output/WriteSpeciesCommon.hpp"
+#include "plugins/adios/restart/LoadParticleAttributesFromADIOS.hpp"
+
+#include "dataManagement/DataConnector.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -34,14 +44,6 @@
 #include <boost/mpl/find.hpp>
 #include <boost/type_traits.hpp>
 
-#include "compileTime/conversion/MakeSeq.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "particles/ParticleDescription.hpp"
-#include "particles/operations/splitIntoListOfFrames.kernel"
-
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/adios/restart/LoadParticleAttributesFromADIOS.hpp"
 
 namespace picongpu
 {
@@ -99,7 +101,7 @@ public:
         const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         /* load particle without copying particle data to host */
-        ThisSpecies* speciesTmp = &(dc.getData<ThisSpecies >(ThisSpecies::FrameType::getName(), true));
+        auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
 
         /* count total number of particles on the device */
         uint64_t totalNumParticles = 0;

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2017 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
@@ -23,7 +22,7 @@
 
 #pragma once
 
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 #include "communication/ICommunicator.hpp"
 #include "eventSystem/tasks/MPITask.hpp"
 #include "memory/buffers/Exchange.hpp"
@@ -60,8 +59,8 @@ public:
         if (this->isFinished())
             return true;
 
-        if (this->request == NULL)
-            throw std::runtime_error("request was NULL (call executeIntern after freed");
+        if (this->request == nullptr)
+            throw std::runtime_error("request was nullptr (call executeIntern after freed");
 
         int flag=0;
         MPI_CHECK(MPI_Test(this->request, &flag, &(this->status)));
@@ -69,7 +68,7 @@ public:
         if (flag) //finished
         {
             delete this->request;
-            this->request = NULL;
+            this->request = nullptr;
             setFinished();
             return true;
         }
@@ -83,7 +82,7 @@ public:
         MPI_CHECK(MPI_Get_count(&(this->status), MPI_CHAR, &recv_data_count));
 
 
-        IEventData *edata = new EventDataReceive(NULL, recv_data_count);
+        IEventData *edata = new EventDataReceive(nullptr, recv_data_count);
 
         notify(this->myId, RECVFINISHED, edata); /*add notify her*/
         __delete(edata);

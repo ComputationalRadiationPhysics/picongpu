@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Marco Garten
+/* Copyright 2015-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -20,12 +19,9 @@
 
 #pragma once
 
-#include <boost/type_traits/integral_constant.hpp>
-
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
 #include "traits/UsesRNG.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
@@ -33,15 +29,18 @@
 #include "particles/ionization/byField/ADK/ADK.def"
 #include "particles/ionization/byField/ADK/AlgorithmADK.hpp"
 #include "particles/ionization/ionization.hpp"
-
-#include "compileTime/conversion/TypeToPointerPair.hpp"
-#include "memory/boxes/DataBox.hpp"
-
 #include "particles/ionization/ionizationMethods.hpp"
 
 #include "random/methods/XorMin.hpp"
 #include "random/distributions/Uniform.hpp"
 #include "random/RNGProvider.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "compileTime/conversion/TypeToPointerPair.hpp"
+#include "memory/boxes/DataBox.hpp"
+#include "mappings/kernel/AreaMapping.hpp"
+
+#include <boost/type_traits/integral_constant.hpp>
+
 
 namespace picongpu
 {
@@ -125,8 +124,8 @@ namespace ionization
             {
                 DataConnector &dc = Environment<>::get().DataConnector();
                 /* initialize pointers on host-side E-(B-)field databoxes */
-                FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
-                FieldB* fieldB = &(dc.getData<FieldB > (FieldB::getName(), true));
+                auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+                auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
                 /* initialize device-side E-(B-)field databoxes */
                 eBox = fieldE->getDeviceDataBox();
                 bBox = fieldB->getDeviceDataBox();
@@ -152,7 +151,7 @@ namespace ionization
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
                 /* copy fields from global to shared */
-                PMACC_AUTO(fieldBBlock, bBox.shift(blockCell));
+                auto fieldBBlock = bBox.shift(blockCell);
                 ThreadCollective<BlockArea> collective(linearThreadIdx);
                 collective(
                           assign,
@@ -160,7 +159,7 @@ namespace ionization
                           fieldBBlock
                           );
                 /* copy fields from global to shared */
-                PMACC_AUTO(fieldEBlock, eBox.shift(blockCell));
+                auto fieldEBlock = eBox.shift(blockCell);
                 collective(
                           assign,
                           cachedE,
@@ -184,7 +183,7 @@ namespace ionization
             DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
             {
                 /* alias for the single macro-particle */
-                PMACC_AUTO(particle,ionFrame[localIdx]);
+                auto particle = ionFrame[localIdx];
                 /* particle position, used for field-to-particle interpolation */
                 floatD_X pos = particle[position_];
                 const int particleCellIdx = particle[localCellIdx_];

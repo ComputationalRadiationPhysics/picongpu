@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Rene Widera, Felix Schmitt
+/* Copyright 2014-2017 Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -20,10 +19,17 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "simulation_types.hpp"
 
 #include "plugins/ISimulationPlugin.hpp"
+
+#include "mappings/kernel/AreaMapping.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "compileTime/conversion/MakeSeq.hpp"
+#include "compileTime/conversion/RemoveFromSeq.hpp"
+#include "dataManagement/DataConnector.hpp"
+#include "traits/Resolve.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -31,14 +37,8 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/find.hpp>
-#include "compileTime/conversion/MakeSeq.hpp"
-
 #include <boost/type_traits.hpp>
 
-#include "mappings/kernel/AreaMapping.hpp"
-
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "traits/Resolve.hpp"
 
 namespace picongpu
 {
@@ -55,7 +55,7 @@ struct MallocMemory
     {
         typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
 
-        type* ptr = NULL;
+        type* ptr = nullptr;
         if (size != 0)
         {
             CUDA_CHECK(cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped));
@@ -78,7 +78,7 @@ struct MallocHostMemory
         typedef T_Attribute Attribute;
         typedef typename PMacc::traits::Resolve<Attribute>::type::type type;
 
-        type* ptr = NULL;
+        type* ptr = nullptr;
         if (size != 0)
         {
             ptr = new type[size];
@@ -91,7 +91,7 @@ struct MallocHostMemory
 
 /** copy species to host memory
  *
- * use `DataConnector::getData<...>()` to copy data
+ * use `DataConnector::get<...>()` to copy data
  */
 template<typename T_SpeciesType>
 struct CopySpeciesToHost
@@ -102,8 +102,8 @@ struct CopySpeciesToHost
     {
         /* DataConnector copies data to host */
         DataConnector &dc = Environment<>::get().DataConnector();
-        dc.getData<SpeciesType> (SpeciesType::FrameType::getName());
-        dc.releaseData(SpeciesType::FrameType::getName());
+        dc.get< SpeciesType >( SpeciesType::FrameType::getName() );
+        dc.releaseData( SpeciesType::FrameType::getName() );
     }
 };
 
@@ -115,9 +115,9 @@ struct GetDevicePtr
     {
         typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
 
-        type* ptr = NULL;
+        type* ptr = nullptr;
         type* srcPtr = src.getIdentifier(T_Type()).getPointer();
-        if (srcPtr != NULL)
+        if (srcPtr != nullptr)
         {
             CUDA_CHECK(cudaHostGetDevicePointer(&ptr, srcPtr, 0));
         }
@@ -134,10 +134,10 @@ struct FreeMemory
         typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
 
         type* ptr = value.getIdentifier(T_Type()).getPointer();
-        if (ptr != NULL)
+        if (ptr != nullptr)
         {
             CUDA_CHECK(cudaFreeHost(ptr));
-            ptr=NULL;
+            ptr=nullptr;
         }
     }
 };
@@ -157,10 +157,10 @@ struct FreeHostMemory
         typedef typename PMacc::traits::Resolve<Attribute>::type::type type;
 
         type* ptr = value.getIdentifier(Attribute()).getPointer();
-        if (ptr != NULL)
+        if (ptr != nullptr)
         {
             __deleteArray(ptr);
-            ptr=NULL;
+            ptr=nullptr;
         }
     }
 };

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of libPMacc.
@@ -24,7 +23,7 @@
 #pragma once
 
 #include "communication/ICommunicator.hpp"
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "memory/dataTypes/Mask.hpp"
 #include "pmacc_types.hpp"
@@ -81,7 +80,7 @@ public:
      */
     CommunicatorMPI() : hostRank(0)
     {
-        //MPI_Init(NULL, NULL);
+        //MPI_Init(nullptr, nullptr);
     }
 
     /*! dtor
@@ -244,6 +243,10 @@ public:
 
     bool setStateAfterSlides(size_t numSlides)
     {
+        // nothing happens
+        if(numSlides == 0)
+            return false;
+
         // we can only slide in y direction right now
         if(DIM < DIM2)
             return false;
@@ -259,7 +262,7 @@ public:
 
 
 protected:
-    /* Set the first found non charactor or number to 0 (NULL)
+    /* Set the first found non charactor or number to 0 (nullptr)
      * name like p1223(Pid=1233) is than p1223
      * in some MPI implementation /mpich) the hostname is unique
      */

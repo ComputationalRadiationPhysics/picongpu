@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -64,7 +63,7 @@ public:
             atomicExch(currentSizePointer, maxSize); //reset size to maxsize
             if (oldSize >= maxSize)
             {
-                return TileDataBox<VALUE > (NULL,
+                return TileDataBox<VALUE > (nullptr,
                                             DataSpace<DIM1 > (0),
                                             0);
             }

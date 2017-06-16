@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Felix Schmitt, Axel Huebl, Benjamin Worpitz,
+/* Copyright 2013-2017 Rene Widera, Felix Schmitt, Axel Huebl, Benjamin Worpitz,
  *                     Heiko Burau
  *
  * This file is part of libPMacc.
@@ -53,12 +52,12 @@ namespace PMacc
          */
         void registerPlugin(IPlugin *plugin)
         {
-            if (plugin != NULL)
+            if (plugin != nullptr)
             {
                 plugins.push_back(plugin);
             }
             else
-                throw PluginException("Registering NULL as a plugin is not allowed.");
+                throw PluginException("Registering nullptr as a plugin is not allowed.");
         }
 
         /**
@@ -122,13 +121,13 @@ namespace PMacc
          */
         void setNotificationPeriod(INotify* notifiedObj, uint32_t period)
         {
-            if (notifiedObj != NULL)
+            if (notifiedObj != nullptr)
             {
                 if (period > 0)
                     notificationList.push_back( std::make_pair(notifiedObj, period) );
             }
             else
-                throw PluginException("Notifications for a NULL object are not allowed.");
+                throw PluginException("Notifications for a nullptr object are not allowed.");
         }
 
         /**
@@ -197,7 +196,7 @@ namespace PMacc
                 iter++)
             {
                 Plugin* plugin = dynamic_cast<Plugin*>(*iter);
-                if(plugin != NULL)
+                if(plugin != nullptr)
                     result.push_back(plugin);
             }
             return result;
@@ -214,9 +213,7 @@ namespace PMacc
 
     private:
 
-        friend class Environment<DIM1>;
-        friend class Environment<DIM2>;
-        friend class Environment<DIM3>;
+        friend class detail::Environment;
 
         static PluginConnector& getInstance()
         {

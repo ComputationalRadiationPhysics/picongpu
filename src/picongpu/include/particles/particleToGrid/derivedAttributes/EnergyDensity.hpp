@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2017 Axel Huebl, Rene Widera, Heiko Burau
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -35,7 +34,7 @@ namespace derivedAttributes
     HDINLINE float1_64
     EnergyDensity::getUnit() const
     {
-        BOOST_CONSTEXPR_OR_CONST float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
+        constexpr float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
         return UNIT_ENERGY / UNIT_VOLUME;
     }
 
@@ -48,7 +47,7 @@ namespace derivedAttributes
         const float3_X mom = particle[momentum_];
         const float_X mass = attribute::getMass( weighting, particle );
 
-        BOOST_CONSTEXPR_OR_CONST float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
+        constexpr float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
 
         return KinEnergy<>()( mom, mass ) * INV_CELL_VOLUME;
     }

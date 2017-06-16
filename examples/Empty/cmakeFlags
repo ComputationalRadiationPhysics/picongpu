@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2016 Axel Huebl, Rene Widera
+# Copyright 2013-2017 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -29,7 +29,7 @@
 #   - start with zero index
 #   - increase by 1, no gaps
 
-flags[0]="-DCUDA_ARCH=sm_20"
+flags[0]="-DCUDA_ARCH=20"
 
 
 ################################################################################

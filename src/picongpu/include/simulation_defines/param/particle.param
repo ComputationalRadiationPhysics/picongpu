@@ -1,0 +1,201 @@
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Benjamin Worpitz,
+ *                     Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Configurations for particle manipulators. Set up and declare functors that
+ * can be used in speciesInitalization.param for particle species
+ * initialization and manipulation, such as temperature distributions, drifts,
+ * pre-ionization and in-cell position.
+ */
+
+#pragma once
+
+#include "particles/startPosition/functors.def"
+#include "particles/manipulators/manipulators.def"
+#include "nvidia/functors/Add.hpp"
+#include "nvidia/functors/Assign.hpp"
+#include "nvidia/rng/distributions/Uniform_float.hpp"
+
+
+namespace picongpu
+{
+namespace particles
+{
+
+    /** a particle with a weighting below MIN_WEIGHTING will not
+     *      be created / will be deleted
+     *
+     *  unit: none */
+    constexpr float_X MIN_WEIGHTING = 10.0;
+
+    /** Number of maximum particles per cell during density profile evaluation.
+     *
+     * Determines the weighting of a macro particle and with it, the number of
+     * particles "sampling" dynamics in phase space.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
+
+namespace manipulators
+{
+
+    /** Parameter for DriftParam
+     */
+    CONST_VECTOR(float_X,3,DriftParam_direction,1.0,0.0,0.0);
+    /** Parameter for a particle drift assignment
+     */
+    struct DriftParam
+    {
+        static constexpr float_64 gamma = 1.0;
+        const DriftParam_direction_t direction;
+    };
+    /** definition of manipulator that assigns a dirft in X */
+    using AssignXDrift = DriftImpl<
+        DriftParam,
+        nvidia::functors::Assign
+    >;
+
+
+    /** Parameter for a temperature assignment
+     */
+    struct TemperatureParam
+    {
+        /*Initial temperature
+         *  unit: keV
+         */
+        static constexpr float_64 temperature = 0.0;
+    };
+    /* definition a temperature assignment manipulator */
+    using AddTemperature = TemperatureImpl<
+        TemperatureParam,
+        nvidia::functors::Add
+    >;
+
+
+    /** Parameters for an assignment in a relative position selection
+     */
+    struct IfRelativeGlobalPositionParam
+    {
+        /* lowerBound is included in the range*/
+        static constexpr float_X lowerBound = 0.0;
+        /* upperBound is excluded in the range*/
+        static constexpr float_X upperBound = 0.5;
+        /* dimension for the filter
+         * x = 0; y= 1; z = 2
+         */
+        static constexpr uint32_t dimension = 0;
+    };
+    /** definition of a relative position selection that assigns a drift in X
+     */
+    using AssignXDriftToLowerHalfXPosition = IfRelativeGlobalPositionImpl<
+        IfRelativeGlobalPositionParam,
+        AssignXDrift
+    >;
+
+    /** Unary particle manipulator: double each weighting
+     */
+    struct DoubleWeightingFunctor
+    {
+        template< typename T_Particle >
+        DINLINE void operator()( T_Particle& particle )
+        {
+            particle[weighting_] *= float_X(2.0);
+        }
+    };
+
+    /** definition of a free particle manipulator: double weighting */
+    using DoubleWeighting = FreeImpl< DoubleWeightingFunctor >;
+
+    struct RandomEnabledRadiationFunctor
+    {
+        template< typename T_Rng, typename T_Particle >
+        DINLINE void operator()( T_Rng& rng, T_Particle& particle )
+        {
+            // enable radiation for 10% of the particles
+            particle[ radiationMask_ ] = rng() < ( 0.1 );
+        }
+    };
+
+    /* definition of RandomEnableRadiation start*/
+    typedef FreeRngImpl< RandomEnabledRadiationFunctor, nvidia::rng::distributions::Uniform_float > RandomEnabledRadiation;
+
+    /** changes the in-cell position of each particle of a species */
+    using RandomPosition = RandomPositionImpl<>;
+
+} // namespace manipulators
+
+
+namespace startPosition
+{
+
+    struct RandomParameter
+    {
+        /** Count of particles per cell at initial state
+         *
+         *  unit: none */
+        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+    };
+    /** definition of random particle start */
+    using Random = RandomImpl< RandomParameter >;
+
+    struct QuietParam
+    {
+        /** Count of particles per cell per direction at initial state
+         *
+         *  unit: none */
+        using numParticlesPerDimension = mCT::shrinkTo<
+            mCT::Int<
+                1,
+                TYPICAL_PARTICLES_PER_CELL,
+                1
+                >,
+            simDim
+        >::type;
+    };
+
+    /** definition of quiet particle start */
+    using Quiet = QuietImpl< QuietParam >;
+
+    /** sit directly in lower corner of the cell */
+    CONST_VECTOR(
+        float_X,
+        3,
+        InCellOffset,
+        /* each x, y, z in-cell position component in range [0.0, 1.0) */
+        0.0,
+        0.0,
+        0.0
+    );
+    struct OnePositionParameter
+    {
+        /** Count of particles per cell at initial state
+         *
+         *  unit: none */
+        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+
+        const InCellOffset_t inCellOffset;
+    };
+
+    /** definition of one specific position for particle start */
+    using OnePosition = OnePositionImpl< OnePositionParameter >;
+
+} // namespace startPosition
+} // namespace particles
+} // namespace picongpu

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2017 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
@@ -93,7 +92,7 @@ namespace PMacc
 
         virtual ~TaskReceive()
         {
-            notify(this->myId, RECVFINISHED, NULL);
+            notify(this->myId, RECVFINISHED, nullptr);
         }
 
         void event(id_t, EventType type, IEventData* data)
@@ -101,7 +100,7 @@ namespace PMacc
             switch (type)
             {
                 case RECVFINISHED:
-                    if (data != NULL)
+                    if (data != nullptr)
                     {
                         EventDataReceive *rdata = static_cast<EventDataReceive*> (data);
                         // std::cout<<" data rec "<<rdata->getReceivedCount()/sizeof(TYPE)<<std::endl;

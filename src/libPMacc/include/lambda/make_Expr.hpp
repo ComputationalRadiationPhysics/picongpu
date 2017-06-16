@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -23,9 +22,11 @@
 #pragma once
 
 #include "is_Expression.hpp"
-#include "ExprTypes.h"
+#include "ExprTypes.hpp"
 #include "pmacc_types.hpp"
+
 #include <boost/mpl/vector.hpp>
+
 
 namespace mpl = boost::mpl;
 

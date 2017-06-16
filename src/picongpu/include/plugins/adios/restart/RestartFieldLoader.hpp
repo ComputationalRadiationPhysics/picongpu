@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2014-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -37,7 +36,8 @@
 
 #include <string>
 #include <sstream>
-#include <stdexcept> // throw std::runtime_error
+#include <stdexcept>
+
 
 namespace picongpu
 {
@@ -67,7 +67,7 @@ public:
 
         DataSpace<simDim> local_domain_size = params->window.localDimensions.size;
 
-        PMACC_AUTO(destBox, field.getHostBuffer().getDataBox());
+        auto destBox = field.getHostBuffer().getDataBox();
         for (uint32_t n = 0; n < numComponents; ++n)
         {
             // Read the subdomain which belongs to our mpi position.
@@ -84,7 +84,7 @@ public:
                 datasetName.str();
 
             ADIOS_VARINFO* varInfo = adios_inq_var( params->fp, datasetName.str().c_str() );
-            if( varInfo == NULL )
+            if( varInfo == nullptr )
             {
                 std::string errMsg( adios_errmsg() );
                 if( errMsg.empty() ) errMsg = '\n';
@@ -166,7 +166,7 @@ public:
         ThreadParams *tp = params;
 
         /* load field without copying data to host */
-        FieldType* field = &(dc.getData<FieldType > (FieldType::getName(), true));
+        auto field = dc.get< FieldType >( FieldType::getName(), true );
 
         /* load from ADIOS */
         RestartFieldLoader::loadField(

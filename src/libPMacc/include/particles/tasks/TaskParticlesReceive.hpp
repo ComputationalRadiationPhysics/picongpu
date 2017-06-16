@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera
+/* Copyright 2013-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -82,7 +81,7 @@ namespace PMacc
                 case Init:
                     break;
                 case WaitForReceived:
-                    if (NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
+                    if (nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId()))
                         state = CallFillGaps;
                     break;
                 case CallFillGaps:
@@ -95,7 +94,7 @@ namespace PMacc
                 case WaitForFillGaps:
                     break;
                 case Finish:
-                    return NULL == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
+                    return nullptr == Environment<>::get().Manager().getITaskIfNotFinished(tmpEvent.getTaskId());
                 default:
                     return false;
             }
@@ -105,7 +104,7 @@ namespace PMacc
 
         virtual ~TaskParticlesReceive()
         {
-            notify(this->myId, RECVFINISHED, NULL);
+            notify(this->myId, RECVFINISHED, nullptr);
         }
 
         void event(id_t, EventType, IEventData*) { }

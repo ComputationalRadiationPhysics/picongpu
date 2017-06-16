@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Alexander Grund
  *
  * This file is part of PIConGPU.
@@ -197,15 +196,19 @@ public:
 
         /* load number of slides to initialize MovingWindow */
         uint32_t slides = 0;
-        mThreadParams.dataCollector->readAttribute(restartStep, NULL, "sim_slides", &slides);
+        mThreadParams.dataCollector->readAttribute(restartStep, nullptr, "sim_slides", &slides);
 
         /* apply slides to set gpus to last/written configuration */
         log<picLog::INPUT_OUTPUT > ("HDF5 setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter(slides, restartStep);
 
-        /* re-distribute the local offsets in y-direction */
-        if( MovingWindow::getInstance().isSlidingWindowActive() )
-            gc.setStateAfterSlides(slides);
+        /* re-distribute the local offsets in y-direction
+         * this will work for restarts with moving window still enabled
+         * and restarts that disable the moving window
+         * \warning enabling the moving window from a checkpoint that
+         *          had no moving window will not work
+         */
+        gc.setStateAfterSlides(slides);
 
         /* set window for restart, complete global domain */
         mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
@@ -248,7 +251,7 @@ private:
 
     void closeH5File()
     {
-        if (mThreadParams.dataCollector != NULL)
+        if (mThreadParams.dataCollector != nullptr)
         {
             log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector");
             mThreadParams.dataCollector->close();
@@ -258,7 +261,7 @@ private:
     void openH5File(const std::string h5Filename)
     {
         const uint32_t maxOpenFilesPerNode = 4;
-        if (mThreadParams.dataCollector == NULL)
+        if (mThreadParams.dataCollector == nullptr)
         {
             GridController<simDim> &gc = Environment<simDim>::get().GridController();
             mThreadParams.dataCollector = new ParallelDomainCollector(
@@ -424,7 +427,7 @@ private:
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
-        PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
+        auto idProviderState = IdProvider<simDim>::getState();
         log<picLog::INPUT_OUTPUT>("HDF5: Writing IdProvider state (StartId: %1%, NextId: %2%, maxNumProc: %3%)")
                 % idProviderState.startId % idProviderState.nextId % idProviderState.maxNumProc;
         WriteNDScalars<uint64_t, uint64_t>()(*threadParams,
@@ -437,7 +440,7 @@ private:
         WriteMeta writeMetaAttributes;
         writeMetaAttributes(threadParams);
 
-        return NULL;
+        return nullptr;
     }
 
     ThreadParams mThreadParams;

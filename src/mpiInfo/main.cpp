@@ -1,5 +1,4 @@
-/*
- * Copyright 2013-2016  Rene Widera
+/* Copyright 2013-2017  Rene Widera
  *
  * This file is part of mpiInfo.
  *
@@ -41,7 +40,7 @@ enum
     gridExchangeTag = 5
 };
 
-/* Set the first found non charactor or number to 0 (NULL)
+/* Set the first found non charactor or number to 0 (nullptr)
  * name like p1223(Pid=1233) is than p1223
  * in some MPI implementation /mpich) the hostname is unique
  */

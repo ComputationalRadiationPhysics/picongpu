@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -26,18 +25,18 @@
 #include "traits/PICToSplash.hpp"
 
 #include "plugins/PhaseSpace/AxisDescription.hpp"
-#include "communication/manager_common.h"
+#include "communication/manager_common.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 #include "math/vector/Int.hpp"
+#include "verify.hpp"
 
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <utility>
-#include <cassert>
 #include <mpi.h>
 #include <splash/splash.h>
 
@@ -111,7 +110,7 @@ namespace picongpu
             const int rLocalOffset = subGrid.getLocalDomain().offset[axis_element.space];
             const int rLocalSize = int(hBuffer.size().y() - 2*rGuardCells);
             const int rGlobalSize = subGrid.getGlobalDomain().size[axis_element.space];
-            assert( rLocalSize == subGrid.getLocalDomain().size[axis_element.space] );
+            PMACC_VERIFY( rLocalSize == subGrid.getLocalDomain().size[axis_element.space] );
 
             /* globalDomain of the phase space */
             splash::Dimensions globalPhaseSpace_size( hBuffer.size().x(),

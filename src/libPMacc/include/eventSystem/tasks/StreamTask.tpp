@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -26,14 +25,14 @@
 //#include "eventSystem/EventSystem.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
-#include "Environment.hpp"
+#include "assert.hpp"
 
 namespace PMacc
 {
 
 inline StreamTask::StreamTask( ) :
 ITask( ),
-stream( NULL ),
+stream( nullptr ),
 hasCudaEventHandle( false ),
 alwaysFinished( false )
 {
@@ -42,7 +41,7 @@ alwaysFinished( false )
 
 inline CudaEventHandle StreamTask::getCudaEventHandle( ) const
 {
-    assert( hasCudaEventHandle );
+    PMACC_ASSERT( hasCudaEventHandle );
     return cudaEvent;
 }
 
@@ -69,21 +68,21 @@ inline bool StreamTask::isFinished( )
 
 inline EventStream* StreamTask::getEventStream( )
 {
-    if ( stream == NULL )
+    if ( stream == nullptr )
         stream = __getEventStream( TASK_CUDA );
     return stream;
 }
 
 inline void StreamTask::setEventStream( EventStream* newStream )
 {
-    assert( newStream != NULL );
-    assert( stream == NULL ); //it is only allowed to set a stream if no stream is set before
+    PMACC_ASSERT( newStream != nullptr );
+    PMACC_ASSERT( stream == nullptr ); //it is only allowed to set a stream if no stream is set before
     this->stream = newStream;
 }
 
 inline cudaStream_t StreamTask::getCudaStream( )
 {
-    if ( stream == NULL )
+    if ( stream == nullptr )
         stream = Environment<>::get( ).TransactionManager( ).getEventStream( TASK_CUDA );
     return stream->getCudaStream( );
 }

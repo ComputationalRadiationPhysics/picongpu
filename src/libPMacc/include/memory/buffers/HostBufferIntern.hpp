@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -27,8 +26,7 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
-
-#include <cassert>
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -49,7 +47,7 @@ public:
      */
     HostBufferIntern(DataSpace<DIM> size) :
     HostBuffer<TYPE, DIM>(size, size),
-    pointer(NULL),ownPointer(true)
+    pointer(nullptr),ownPointer(true)
     {
         CUDA_CHECK(cudaMallocHost(&pointer, size.productOfComponents() * sizeof (TYPE)));
         reset(false);
@@ -57,7 +55,7 @@ public:
 
     HostBufferIntern(HostBufferIntern& source, DataSpace<DIM> size, DataSpace<DIM> offset=DataSpace<DIM>()) :
     HostBuffer<TYPE, DIM>(size, source.getPhysicalMemorySize()),
-    pointer(NULL),ownPointer(false)
+    pointer(nullptr),ownPointer(false)
     {
         pointer=&(source.getDataBox()(offset));/*fix me, this is a bad way*/
         reset(true);
@@ -93,7 +91,7 @@ public:
 
     void copyFrom(DeviceBuffer<TYPE, DIM>& other)
     {
-        assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
+        PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyDeviceToHost(other, *this);
     }
 
@@ -127,7 +125,7 @@ public:
     {
         __startOperation(ITask::TASK_HOST);
         size_t current_size = this->getCurrentSize();
-        PMACC_AUTO(memBox,getDataBox());
+        auto memBox = getDataBox();
         typedef DataBoxDim1Access<DataBoxType > D1Box;
         D1Box d1Box(memBox, this->getDataSpace());
         #pragma omp parallel for

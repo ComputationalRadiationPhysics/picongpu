@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Marco Garten, Rene Widera
+/* Copyright 2015-2017 Marco Garten, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -44,9 +43,9 @@ struct GetIonizationEnergies
     /* Extract ionization energy vector from AU namespace */
     typedef typename PMacc::traits::Resolve<FoundIonizationEnergiesAlias >::type type;
 
-    BOOST_STATIC_CONSTEXPR int protonNumber = static_cast<int>(GetAtomicNumbers<SpeciesType>::type::numberOfProtons);
+    static constexpr int protonNumber = static_cast<int>(GetAtomicNumbers<SpeciesType>::type::numberOfProtons);
     /* length of the ionization energy vector */
-    BOOST_STATIC_CONSTEXPR int vecLength = type::dim;
+    static constexpr int vecLength = type::dim;
     /* assert that the number of arguments in the vector equal the proton number */
     PMACC_CASSERT_MSG(
         __The_given_number_of_ionization_energies_should_be_exactly_the_proton_number_of_the_species__,

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
@@ -29,6 +28,7 @@
 #include "memory/boxes/DataBox.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
+#include "nvidia/gpuEntryFunction.hpp"
 
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits.hpp>
@@ -82,20 +82,22 @@ getValue(T_Type& value)
 
 }
 
-template <class DataBox, typename T_ValueType, typename Space>
-__global__ void kernelSetValue(DataBox data, const T_ValueType value, const Space size)
+struct KernelSetValue
 {
-    const Space threadIndex(threadIdx);
-    const Space blockIndex(blockIdx);
-    const Space gridSize(blockDim);
+    template <class DataBox, typename T_ValueType, typename Space>
+    DINLINE void operator()(DataBox data, const T_ValueType value, const Space size) const
+    {
+        const Space threadIndex(threadIdx);
+        const Space blockIndex(blockIdx);
+        const Space gridSize(blockDim);
 
-    Space idx(gridSize * blockIndex + threadIndex);
+        Space idx(gridSize * blockIndex + threadIndex);
 
-    if (idx.x() >= size.x())
-        return;
-    data(idx) = taskSetValueHelper::getValue(value);
-}
-
+        if (idx.x() >= size.x())
+            return;
+        data(idx) = taskSetValueHelper::getValue(value);
+    }
+};
 
 template <class TYPE, unsigned DIM>
 class DeviceBuffer;
@@ -114,7 +116,7 @@ class TaskSetValueBase : public StreamTask
 {
 public:
     typedef T_ValueType ValueType;
-    BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
+    static constexpr uint32_t dim = T_dim;
 
     TaskSetValueBase(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
     StreamTask(),
@@ -125,7 +127,7 @@ public:
 
     virtual ~TaskSetValueBase()
     {
-        notify(this->myId, SETVALUE, NULL);
+        notify(this->myId, SETVALUE, nullptr);
 
     }
 
@@ -158,7 +160,7 @@ class TaskSetValue<T_ValueType, T_dim, true> : public TaskSetValueBase<T_ValueTy
 {
 public:
     typedef T_ValueType ValueType;
-    BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
+    static constexpr uint32_t dim = T_dim;
 
     TaskSetValue(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
     TaskSetValueBase<ValueType, dim>(dst, value)
@@ -177,13 +179,23 @@ public:
 
         if(area_size.productOfComponents() != 0)
         {
-            dim3 gridSize = area_size;
+            auto gridSize = area_size;
 
             /* line wise thread blocks*/
-            gridSize.x = ceil(double(gridSize.x) / 256.);
+            gridSize.x() = ceil(double(gridSize.x()) / 256.);
 
-            kernelSetValue<<<gridSize, 256, 0, this->getCudaStream()>>>
-                (this->destination->getDataBox(), this->value, area_size);
+            auto destBox = this->destination->getDataBox();
+            nvidia::gpuEntryFunction<<<
+                gridSize,
+                256,
+                0,
+                this->getCudaStream()
+            >>>(
+                KernelSetValue{},
+                destBox,
+                this->value,
+                area_size
+            );
         }
         this->activate();
     }
@@ -199,19 +211,19 @@ class TaskSetValue<T_ValueType, T_dim, false> : public TaskSetValueBase<T_ValueT
 {
 public:
     typedef T_ValueType ValueType;
-    BOOST_STATIC_CONSTEXPR uint32_t dim = T_dim;
+    static constexpr uint32_t dim = T_dim;
 
     TaskSetValue(DeviceBuffer<ValueType, dim>& dst, const ValueType& value) :
-    TaskSetValueBase<ValueType, dim>(dst, value), valuePointer_host(NULL)
+    TaskSetValueBase<ValueType, dim>(dst, value), valuePointer_host(nullptr)
     {
     }
 
     virtual ~TaskSetValue()
     {
-        if (valuePointer_host != NULL)
+        if (valuePointer_host != nullptr)
         {
             CUDA_CHECK(cudaFreeHost(valuePointer_host));
-            valuePointer_host = NULL;
+            valuePointer_host = nullptr;
         }
     }
 
@@ -221,10 +233,10 @@ public:
         const DataSpace<dim> area_size(this->destination->getCurrentDataSpace(current_size));
         if(area_size.productOfComponents() != 0)
         {
-            dim3 gridSize = area_size;
+            auto gridSize = area_size;
 
             /* line wise thread blocks*/
-            gridSize.x = ceil(double(gridSize.x) / 256.);
+            gridSize.x()= ceil(double(gridSize.x()) / 256.);
 
             ValueType* devicePtr = this->destination->getPointer();
 
@@ -234,8 +246,19 @@ public:
             CUDA_CHECK(cudaMemcpyAsync(
                                        devicePtr, valuePointer_host, sizeof (ValueType),
                                        cudaMemcpyHostToDevice, this->getCudaStream()));
-            kernelSetValue<<<gridSize, 256, 0, this->getCudaStream()>>>
-                (this->destination->getDataBox(), devicePtr, area_size);
+
+            auto destBox = this->destination->getDataBox();
+            nvidia::gpuEntryFunction<<<
+                gridSize,
+                256,
+                0,
+                this->getCudaStream()
+            >>>(
+                KernelSetValue{},
+                destBox,
+                devicePtr,
+                area_size
+            );
         }
 
         this->activate();

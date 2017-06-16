@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -22,10 +21,14 @@
 
 #pragma once
 
+#include "memory/shared/Allocate.hpp"
+#include "memory/Array.hpp"
+#include "pmacc_types.hpp"
+
 #include <cuSTL/cursor/compile-time/BufferCursor.hpp>
 #include <math/vector/Float.hpp>
 #include <math/Vector.hpp>
-#include "pmacc_types.hpp"
+
 
 namespace PMacc
 {
@@ -72,7 +75,7 @@ public:
     }
 
     DINLINE SharedBox() :
-    fixedPointer(NULL)
+    fixedPointer(nullptr)
     {
     }
 
@@ -96,8 +99,14 @@ public:
     /* This call synchronizes a block and must be called from all threads and not inside a if clauses*/
     static DINLINE This init()
     {
-        __shared__ ValueType mem_sh[Size::x::value];
-        return This((ValueType*) mem_sh);
+        auto& mem_sh = PMacc::memory::shared::allocate<
+            T_id,
+            memory::Array<
+                ValueType,
+                math::CT::volume< Size >::type::value
+            >
+        >( );
+        return SharedBox( mem_sh.data() );
     }
 
 protected:
@@ -120,7 +129,7 @@ public:
     typedef SharedBox<ValueType, math::CT::Int<Size::x::value>, T_id > ReducedType;
     typedef SharedBox<ValueType, T_Vector, T_id, DIM2 > This;
 
-    HDINLINE SharedBox(ValueType* pointer = NULL) :
+    HDINLINE SharedBox(ValueType* pointer = nullptr) :
     fixedPointer(pointer)
     {
     }
@@ -155,8 +164,14 @@ public:
     /* This call synchronizes a block and must be called from all threads and not inside a if clauses*/
     static DINLINE This init()
     {
-        __shared__ ValueType mem_sh[Size::y::value][Size::x::value];
-        return This((ValueType*) mem_sh);
+        auto& mem_sh = PMacc::memory::shared::allocate<
+            T_id,
+            memory::Array<
+                ValueType,
+                math::CT::volume< Size >::type::value
+            >
+        >( );
+        return SharedBox( mem_sh.data() );
     }
 
     HDINLINE PMacc::cursor::CT::BufferCursor<ValueType, ::PMacc::math::CT::Int<sizeof (ValueType) * Size::x::value> >
@@ -196,7 +211,7 @@ public:
         return ReducedType(this->fixedPointer + idx *  (Size::x::value *Size::y::value));
     }
 
-    HDINLINE SharedBox(ValueType* pointer = NULL) :
+    HDINLINE SharedBox(ValueType* pointer = nullptr) :
     fixedPointer(pointer)
     {
     }
@@ -230,8 +245,14 @@ public:
     /*this call synchronize a block and must called from any thread and not inside a if clauses*/
     static DINLINE This init()
     {
-        __shared__ ValueType mem_sh[Size::z::value][Size::y::value][Size::x::value];
-        return This((ValueType*) mem_sh);
+        auto& mem_sh = PMacc::memory::shared::allocate<
+            T_id,
+            memory::Array<
+                ValueType,
+                math::CT::volume< Size >::type::value
+            >
+        >( );
+        return SharedBox( mem_sh.data() );
     }
 
 protected:

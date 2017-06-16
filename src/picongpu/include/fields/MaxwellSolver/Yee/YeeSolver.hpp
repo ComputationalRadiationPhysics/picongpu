@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -18,18 +17,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "YeeSolver.def"
 
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 
 #include "fields/SimulationFieldHelper.hpp"
-#include "dataManagement/ISimulationData.hpp"
-
+#include "fields/FieldE.hpp"
+#include "fields/FieldB.hpp"
+#include "fields/FieldManipulator.hpp"
+#include "fields/MaxwellSolver/Yee/YeeSolver.kernel"
 
 #include "simulation_classTypes.hpp"
 #include "memory/boxes/SharedBox.hpp"
@@ -37,11 +35,8 @@
 #include "mappings/threads/ThreadCollective.hpp"
 #include "memory/boxes/CachedBox.hpp"
 #include "dimensions/DataSpace.hpp"
-#include <fields/FieldE.hpp>
-#include <fields/FieldB.hpp>
+#include "dataManagement/DataConnector.hpp"
 
-#include "fields/FieldManipulator.hpp"
-#include "fields/MaxwellSolver/Yee/YeeSolver.kernel"
 
 namespace picongpu
 {
@@ -57,8 +52,8 @@ private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
 
-    FieldE* fieldE;
-    FieldB* fieldB;
+    std::shared_ptr< FieldE > fieldE;
+    std::shared_ptr< FieldB > fieldB;
     MappingDesc m_cellDescription;
 
     template<uint32_t AREA>
@@ -67,16 +62,21 @@ private:
         /* Courant-Friedrichs-Levy-Condition for Yee Field Solver: */
         PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_gridConfig_param_file,
             (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0);
-        
+
         typedef SuperCellDescription<
                 SuperCellSize,
                 typename CurlB::LowerMargin,
                 typename CurlB::UpperMargin
                 > BlockArea;
 
-        __picKernelArea((kernelUpdateE<BlockArea, CurlB>), m_cellDescription, AREA)
-                (SuperCellSize::toRT().toDim3())
-                (this->fieldE->getDeviceDataBox(), this->fieldB->getDeviceDataBox());
+        AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
+        PMACC_KERNEL(KernelUpdateE<BlockArea>{ })
+            (mapper.getGridDim(), SuperCellSize::toRT())(
+                CurlB( ),
+                this->fieldE->getDeviceDataBox(),
+                this->fieldB->getDeviceDataBox(),
+                mapper
+            );
     }
 
     template<uint32_t AREA>
@@ -88,10 +88,14 @@ private:
                 typename CurlE::UpperMargin
                 > BlockArea;
 
-        __picKernelArea((kernelUpdateBHalf<BlockArea, CurlE>), m_cellDescription, AREA)
-                (SuperCellSize::toRT().toDim3())
-                (this->fieldB->getDeviceDataBox(),
-                this->fieldE->getDeviceDataBox());
+        AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
+        PMACC_KERNEL(KernelUpdateBHalf<BlockArea>{ })
+            (mapper.getGridDim(), SuperCellSize::toRT())(
+                CurlE( ),
+                this->fieldB->getDeviceDataBox(),
+                this->fieldE->getDeviceDataBox(),
+                mapper
+            );
     }
 
 public:
@@ -100,8 +104,8 @@ public:
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        this->fieldE = &dc.getData<FieldE > (FieldE::getName(), true);
-        this->fieldB = &dc.getData<FieldB > (FieldB::getName(), true);
+        this->fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        this->fieldB = dc.get< FieldB >( FieldB::getName(), true );
     }
 
     void update_beforeCurrent(uint32_t)

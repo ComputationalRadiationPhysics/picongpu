@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -21,18 +20,18 @@
 
 #pragma once
 
-#include <string>
-#include <iostream>
-
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "simulation_types.hpp"
 
-#include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "algorithms/Gamma.hpp"
 #include "plugins/ILightweightPlugin.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "dataManagement/DataConnector.hpp"
+
+#include <string>
+#include <iostream>
+
 
 namespace picongpu
 {
@@ -93,71 +92,74 @@ struct SglParticle
 };
 
 /** write the position of a single particle to a file
- * \warning this analyser MUST NOT be used with more than one (global!)
+ * \warning this plugin MUST NOT be used with more than one (global!)
  * particle and is created for one-particle-test-purposes only
  */
-template<class ParBox, class FloatPos, class Mapping>
-__global__ void kernelPositionsParticles(ParBox pb,
-                                         SglParticle<FloatPos>* gParticle,
-                                         Mapping mapper)
+struct KernelPositionsParticles
 {
-
-    typedef typename ParBox::FramePtr FramePtr;
-    __shared__ typename PMacc::traits::GetEmptyDefaultConstructibleType<FramePtr>::type frame;
-
-
-    typedef typename Mapping::SuperCellSize SuperCellSize;
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-
-    if (linearThreadIdx == 0)
+    template<class ParBox, class FloatPos, class Mapping>
+    DINLINE void operator()(ParBox pb,
+                                             SglParticle<FloatPos>* gParticle,
+                                             Mapping mapper) const
     {
-        frame = pb.getLastFrame(superCellIdx);
-    }
 
-    __syncthreads();
-    if (!frame.isValid())
-        return; //end kernel if we have no frames
-
-    /* BUGFIX to issue #538
-     * volatile prohibits that the compiler creates wrong code*/
-    volatile bool isParticle = frame[linearThreadIdx][multiMask_];
-
-    while (frame.isValid())
-    {
-        if (isParticle)
-        {
-            PMACC_AUTO(particle,frame[linearThreadIdx]);
-            gParticle->position = particle[position_];
-            gParticle->momentum = particle[momentum_];
-            gParticle->weighting = particle[weighting_];
-            gParticle->mass = attribute::getMass(gParticle->weighting,particle);
-            gParticle->charge = attribute::getCharge(gParticle->weighting,particle);
-            gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
-
-            // storage number in the actual frame
-            const lcellId_t frameCellNr = particle[localCellIdx_];
-
-            // offset in the actual superCell = cell offset in the supercell
-            const DataSpace<simDim> frameCellOffset(DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (frameCellNr));
+        typedef typename ParBox::FramePtr FramePtr;
+        PMACC_SMEM( frame, FramePtr );
 
 
-            gParticle->globalCellOffset = (superCellIdx - mapper.getGuardingSuperCells())
-                * MappingDesc::SuperCellSize::toRT()
-                + frameCellOffset;
-        }
-        __syncthreads();
+        typedef typename Mapping::SuperCellSize SuperCellSize;
+
+        const DataSpace<simDim > threadIndex(threadIdx);
+        const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
+        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+
         if (linearThreadIdx == 0)
         {
-            frame = pb.getPreviousFrame(frame);
+            frame = pb.getLastFrame(superCellIdx);
         }
-        isParticle = true;
-        __syncthreads();
-    }
 
-}
+        __syncthreads();
+        if (!frame.isValid())
+            return; //end kernel if we have no frames
+
+        /* BUGFIX to issue #538
+         * volatile prohibits that the compiler creates wrong code*/
+        volatile bool isParticle = frame[linearThreadIdx][multiMask_];
+
+        while (frame.isValid())
+        {
+            if (isParticle)
+            {
+                auto particle = frame[linearThreadIdx];
+                gParticle->position = particle[position_];
+                gParticle->momentum = particle[momentum_];
+                gParticle->weighting = particle[weighting_];
+                gParticle->mass = attribute::getMass(gParticle->weighting,particle);
+                gParticle->charge = attribute::getCharge(gParticle->weighting,particle);
+                gParticle->gamma = Gamma<>()(gParticle->momentum, gParticle->mass);
+
+                // storage number in the actual frame
+                const lcellId_t frameCellNr = particle[localCellIdx_];
+
+                // offset in the actual superCell = cell offset in the supercell
+                const DataSpace<simDim> frameCellOffset(DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (frameCellNr));
+
+
+                gParticle->globalCellOffset = (superCellIdx - mapper.getGuardingSuperCells())
+                    * MappingDesc::SuperCellSize::toRT()
+                    + frameCellOffset;
+            }
+            __syncthreads();
+            if (linearThreadIdx == 0)
+            {
+                frame = pb.getPreviousFrame(frame);
+            }
+            isParticle = true;
+            __syncthreads();
+        }
+
+    }
+};
 
 template<class ParticlesType>
 class PositionsParticles : public ILightweightPlugin
@@ -166,24 +168,21 @@ private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
     typedef floatD_X FloatPos;
 
-    ParticlesType *particles;
-
     GridBuffer<SglParticle<FloatPos>, DIM1> *gParticle;
 
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
 
 public:
 
     PositionsParticles() :
-    analyzerName("PositionsParticles: write position of one particle of a species to std::cout"),
-    analyzerPrefix(ParticlesType::FrameType::getName() + std::string("_position")),
-    particles(NULL),
-    gParticle(NULL),
-    cellDescription(NULL),
+    pluginName("PositionsParticles: write position of one particle of a species to std::cout"),
+    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_position")),
+    gParticle(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0)
     {
 
@@ -196,17 +195,12 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        particles = &(dc.getData<ParticlesType > (ParticlesType::FrameType::getName(), true));
-
-
         const int rank = Environment<simDim>::get().GridController().getGlobalRank();
         const SglParticle<FloatPos> positionParticle = getPositionsParticles < CORE + BORDER > (currentStep);
 
         /*FORMAT OUTPUT*/
         if (positionParticle.mass != float_X(0.0))
-            std::cout << "[ANALYSIS] [" << rank << "] [COUNTER] [" << analyzerPrefix << "] [" << currentStep << "] "
+            std::cout << "[ANALYSIS] [" << rank << "] [COUNTER] [" << pluginPrefix << "] [" << currentStep << "] "
             << std::setprecision(16) << float_64(currentStep) * SI::DELTA_T_SI << " "
             << positionParticle << "\n"; // no flush
     }
@@ -214,13 +208,13 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+            ((pluginPrefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
@@ -249,17 +243,23 @@ private:
     template< uint32_t AREA>
     SglParticle<FloatPos> getPositionsParticles(uint32_t currentStep)
     {
-
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
         SglParticle<FloatPos> positionParticleTmp;
 
-        gParticle->getDeviceBuffer().setValue(positionParticleTmp);
-        dim3 block(SuperCellSize::toRT().toDim3());
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
 
-        __picKernelArea(kernelPositionsParticles, *cellDescription, AREA)
-            (block)
+        gParticle->getDeviceBuffer().setValue(positionParticleTmp);
+        auto block = SuperCellSize::toRT();
+
+        AreaMapping<AREA, MappingDesc> mapper(*cellDescription);
+        PMACC_KERNEL(KernelPositionsParticles{})
+            (mapper.getGridDim(), block)
             (particles->getDeviceParticlesBox(),
-             gParticle->getDeviceBuffer().getBasePointer());
+             gParticle->getDeviceBuffer().getBasePointer(),
+             mapper);
+
+        dc.releaseData( ParticlesType::FrameType::getName() );
         gParticle->deviceToHost();
 
         DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());

@@ -34,7 +34,7 @@
 
 namespace mallocMC{
 namespace CreationPolicies{
-    
+
   class OldMalloc
   {
     typedef boost::uint32_t uint32;
@@ -56,16 +56,9 @@ namespace CreationPolicies{
       return s && (p == NULL);
     }
 
-    template < typename T>
-    static void* initHeap(const T& obj, void* pool, size_t memsize){
-      T* dAlloc;
-      MALLOCMC_CUDA_CHECKED_CALL(cudaGetSymbolAddress((void**)&dAlloc,obj));
+    template < typename T >
+    static void* initHeap(T* dAlloc, void*, size_t){
       return dAlloc;
-    }   
-
-    template < typename T>
-    static void finalizeHeap(const T& obj, void* pool){
-      return;
     }
 
     static std::string classname(){

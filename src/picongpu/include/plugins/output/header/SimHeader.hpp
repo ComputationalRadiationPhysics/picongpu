@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -35,7 +34,7 @@ struct SimHeader
     uint32_t step;
     picongpu::float_32 scale[2];
     picongpu::float_32 cellSizeArr[2];
-    
+
 
     SimHeader() : step(0)
     {

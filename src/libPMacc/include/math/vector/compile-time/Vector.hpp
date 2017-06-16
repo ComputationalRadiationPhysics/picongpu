@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -135,7 +134,7 @@ struct Vector
         typedef typename mpl::at_c<mplVector, element>::type type;
     };
 
-    BOOST_STATIC_CONSTEXPR int dim = mpl::size<mplVector >::type::value;
+    static constexpr int dim = mpl::size<mplVector >::type::value;
 
     typedef typename detail::TypeSelector<x>::type type;
     typedef Vector<x, y, z> This;
@@ -317,10 +316,11 @@ struct shrinkTo<T_Vec, DIM1>
 
 /** Assign a type to a given component in the CT::Vector
  *
+ * defines a public type as result
+ *
  * @tparam T_Vec math::CT::Vector which should be changed
  * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<anyType,X>)
  * @tparam T_Value new value
- * @tparam[out] ::type
  */
 template<typename T_Vec, typename T_ComponentPos, typename T_Value>
 struct Assign;
@@ -346,12 +346,12 @@ struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_Integra
 /** Assign a type to a given component in the CT::Vector if position is not out of range
  *
  * if T_ComponentPos < T_Vec::dim ? T_Value is assigned to component T_ComponentPos
- * else nothing is done
+ * else nothing is done.
+ * defines a public type as result
  *
  * @tparam T_Vec math::CT::Vector which should be changed
  * @tparam T_ComponentPos number of component to changed (type must be bmpl::integral_c<anyType,X>)
  * @tparam T_Value new value
- * @tparam[out] ::type
  */
 template<typename T_Vec, typename T_ComponentPos, typename T_Value>
 struct AssignIfInRange
@@ -368,9 +368,10 @@ struct AssignIfInRange
 
 /** get element from a CT::Vector
  *
+ * defines a public type as result
+ *
  * @tparam T_Vec input CT::Vector
  * @tparam T_idx integral index of the component
- * @tparam[out] ::type result type
  */
 template<typename T_Vec,size_t T_idx>
 struct At_c
@@ -382,9 +383,10 @@ struct At_c
 
 /** get element from a CT::Vector
  *
+ * defines a public type as result
+ *
  * @tparam T_Vec input CT::Vector
  * @tparam T_Idx integral type index of the component (e.g. boost::mpl::int_<2>)
- * @tparam[out] ::type result type
  */
 template<typename T_Vec, typename T_Idx>
 struct At
@@ -396,9 +398,10 @@ struct At
 
 /** create CT::Vector with equal elements
  *
+ * defines a public type as result
+ *
  * @tparam T_dim count of components
  * @tparam T_Type type which is assigned to all components
- * @tparam[out] ::type result type
  */
 template<int T_dim, typename T_Type>
 struct make_Vector;

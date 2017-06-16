@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -21,7 +20,6 @@
 
 #pragma once
 
-#include <iostream>
 #include "simulation_defines.hpp"
 #include "FieldJ.hpp"
 #include "fields/FieldJ.kernel"
@@ -29,8 +27,7 @@
 
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
-#include "dataManagement/DataConnector.hpp"
-
+#include "Environment.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "mappings/kernel/StrideMapping.hpp"
 #include "mappings/kernel/ExchangeMapping.hpp"
@@ -40,11 +37,15 @@
 
 #include "math/Vector.hpp"
 
-#include <boost/mpl/accumulate.hpp>
 #include "particles/traits/GetCurrentSolver.hpp"
 #include "traits/GetMargin.hpp"
 #include "traits/Resolve.hpp"
 #include "traits/SIBaseUnits.hpp"
+
+#include <boost/mpl/accumulate.hpp>
+
+#include <iostream>
+#include <memory>
 
 
 namespace picongpu
@@ -54,19 +55,24 @@ using namespace PMacc;
 
 FieldJ::FieldJ( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
-fieldJ( cellDescription.getGridLayout( ) ), fieldE( NULL ), fieldB( NULL ), fieldJrecv( NULL )
+fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
 {
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
     /* cell margins the current might spread to due to particle shapes */
-    typedef bmpl::accumulate<
+    typedef typename PMacc::particles::traits::FilterByFlag<
         VectorAllSpecies,
+        current<>
+    >::type AllSpeciesWithCurrent;
+
+    typedef bmpl::accumulate<
+        AllSpeciesWithCurrent,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
         >::type LowerMarginShapes;
 
     typedef bmpl::accumulate<
-        VectorAllSpecies,
+        AllSpeciesWithCurrent,
         typename PMacc::math::CT::make_Int<simDim, 0>::type,
         PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
         >::type UpperMarginShapes;
@@ -172,7 +178,7 @@ EventTask FieldJ::asyncCommunication( EventTask serialEvent )
     FieldFactory::getInstance( ).createTaskFieldSend( *this );
     ret += __endTransaction( );
 
-    if( fieldJrecv != NULL )
+    if( fieldJrecv != nullptr )
     {
         EventTask eJ = fieldJrecv->asyncCommunication( ret );
         return eJ;
@@ -185,10 +191,10 @@ void FieldJ::bashField( uint32_t exchangeType )
 {
     ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
 
-    dim3 grid = mapper.getGridDim( );
+    auto grid = mapper.getGridDim( );
 
     const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-    __cudaKernel( kernelBashCurrent )
+    PMACC_KERNEL( KernelBashCurrent{} )
         ( grid, mapper.getSuperCellSize( ) )
         ( fieldJ.getDeviceBuffer( ).getDataBox( ),
           fieldJ.getSendExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -201,10 +207,10 @@ void FieldJ::insertField( uint32_t exchangeType )
 {
     ExchangeMapping<GUARD, MappingDesc> mapper( this->cellDescription, exchangeType );
 
-    dim3 grid = mapper.getGridDim( );
+    auto grid = mapper.getGridDim( );
 
     const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > ( mapper.getExchangeType( ) );
-    __cudaKernel( kernelInsertCurrent )
+    PMACC_KERNEL( KernelInsertCurrent{} )
         ( grid, mapper.getSuperCellSize( ) )
         ( fieldJ.getDeviceBuffer( ).getDataBox( ),
           fieldJ.getReceiveExchange( exchangeType ).getDeviceBuffer( ).getDataBox( ),
@@ -212,12 +218,8 @@ void FieldJ::insertField( uint32_t exchangeType )
           direction, mapper );
 }
 
-void FieldJ::init( FieldE &fieldE, FieldB &fieldB )
+void FieldJ::init( )
 {
-    this->fieldE = &fieldE;
-    this->fieldB = &fieldB;
-
-    Environment<>::get( ).DataConnector( ).registerData( *this );
 }
 
 GridLayout<simDim> FieldJ::getGridLayout( )
@@ -302,7 +304,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
 
     do
     {
-        __cudaKernel( ( kernelComputeCurrent<workerMultiplier, BlockArea, AREA> ) )
+        PMACC_KERNEL( KernelComputeCurrent<workerMultiplier, BlockArea, AREA>{} )
             ( mapper.getGridDim( ), blockSize )
             ( jBox,
               pBox, solver, mapper );
@@ -314,14 +316,21 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
 template<uint32_t AREA, class T_CurrentInterpolation>
 void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
 {
-    __picKernelArea( ( kernelAddCurrentToEMF ),
-                     cellDescription,
-                     AREA )
-        ( MappingDesc::SuperCellSize::toRT( ).toDim3( ) )
-        ( this->fieldE->getDeviceDataBox( ),
-          this->fieldB->getDeviceDataBox( ),
+    DataConnector &dc = Environment<>::get().DataConnector();
+    auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+    auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
+    AreaMapping<AREA, MappingDesc> mapper(cellDescription);
+    PMACC_KERNEL( KernelAddCurrentToEMF{} )
+        ( mapper.getGridDim(), MappingDesc::SuperCellSize::toRT( ) )
+        ( fieldE->getDeviceDataBox( ),
+          fieldB->getDeviceDataBox( ),
           this->fieldJ.getDeviceBuffer( ).getDataBox( ),
-          myCurrentInterpolation );
+          myCurrentInterpolation,
+          mapper
+        );
+    dc.releaseData( FieldE::getName() );
+    dc.releaseData( FieldB::getName() );
 }
 
 }

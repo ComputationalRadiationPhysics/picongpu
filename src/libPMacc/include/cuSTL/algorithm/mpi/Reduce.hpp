@@ -1,7 +1,6 @@
-#pragma once
 
 /**
- * Copyright 2013-2016 Heiko Burau
+ * Copyright 2013-2017 Heiko Burau
  *
  * This file is part of libPMacc.
  *

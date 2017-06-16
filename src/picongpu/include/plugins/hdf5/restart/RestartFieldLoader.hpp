@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
+/* Copyright 2014-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,19 +19,22 @@
 
 #pragma once
 
-#include <string>
-#include <sstream>
-#include <splash/splash.h>
-
-#include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
+
 #include "particles/frame_types.hpp"
-#include "dataManagement/DataConnector.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "dimensions/GridLayout.hpp"
 #include "fields/FieldE.hpp"
 #include "fields/FieldB.hpp"
 #include "simulationControl/MovingWindow.hpp"
+
+#include "dataManagement/DataConnector.hpp"
+#include "dimensions/DataSpace.hpp"
+#include "dimensions/GridLayout.hpp"
+
+#include <splash/splash.h>
+
+#include <string>
+#include <sstream>
+
 
 namespace picongpu
 {
@@ -77,7 +79,7 @@ public:
         for (uint32_t d = 0; d < simDim; ++d)
             local_domain_size[d] = params->window.localDimensions.size[d];
 
-        PMACC_AUTO(destBox, field.getHostBuffer().getDataBox());
+        auto destBox = field.getHostBuffer().getDataBox();
         for (uint32_t i = 0; i < numComponents; ++i)
         {
             // Read the subdomain which belongs to our mpi position.
@@ -156,7 +158,7 @@ public:
         ThreadParams *tp = params;
 
         /* load field without copying data to host */
-        FieldType* field = &(dc.getData<FieldType > (FieldType::getName(), true));
+        std::shared_ptr< FieldType > field = dc.get< FieldType >( FieldType::getName(), true );
 
         /* load from HDF5 */
         RestartFieldLoader::loadField(
@@ -165,7 +167,7 @@ public:
                 FieldType::getName(),
                 tp);
 
-        dc.releaseData(FieldType::getName());
+        dc.releaseData( FieldType::getName() );
 #endif
     }
 

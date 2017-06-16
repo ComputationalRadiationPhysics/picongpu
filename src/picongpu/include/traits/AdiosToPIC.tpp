@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -36,7 +35,7 @@ namespace traits
     {
         typedef int32_t type;
     };
-    
+
     template<>
     struct AdiosToPIC<adios_unsigned_integer>
     {
@@ -60,7 +59,7 @@ namespace traits
     {
         typedef float_32 type;
     };
-    
+
     template<>
     struct AdiosToPIC<adios_double>
     {

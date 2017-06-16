@@ -1,0 +1,68 @@
+/* Copyright 2013-2017 Rene Widera, Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "particles/startPosition/functors.def"
+#include "particles/manipulators/manipulators.def"
+#include "nvidia/functors/Add.hpp"
+#include "nvidia/functors/Assign.hpp"
+
+namespace picongpu
+{
+
+namespace particles
+{
+
+    /** a particle with a weighting below MIN_WEIGHTING will not
+     *      be created / will be deleted
+     *  unit: none */
+    constexpr float_X MIN_WEIGHTING = 1.0;
+
+    constexpr float_X TYPICAL_PARTICLES_PER_CELL = 100;
+
+namespace startPosition
+{
+
+    struct RandomParameter
+    {
+        /** Count of particles per cell at initial state
+         *  unit: none */
+        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+    };
+
+    /* definition of random particle start */
+    typedef RandomImpl< RandomParameter > Random;
+
+
+    struct QuietParameter
+    {
+        /** Count of particles per cell per direction at initial state
+         *  unit: none */
+        typedef mCT::shrinkTo<mCT::Int<1, 1, 1>, simDim>::type numParticlesPerDimension;
+    };
+
+    /* definition of quiet particle start*/
+    typedef QuietImpl<QuietParameter> Quiet;
+
+} //namespace startPosition
+
+} //namespace particles
+
+} //namespace picongpu

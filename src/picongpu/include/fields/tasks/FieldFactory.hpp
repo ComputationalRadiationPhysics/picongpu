@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera
+/* Copyright 2013-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -45,11 +44,11 @@ namespace PMacc
          */
         template<class Field>
         EventTask createTaskFieldReceiveAndInsert(Field &buffer,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         template<class Field>
         EventTask createTaskFieldReceiveAndInsertExchange(Field &buffer, uint32_t exchange,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * Creates a TaskSend.
@@ -59,11 +58,11 @@ namespace PMacc
          */
         template<class Field>
         EventTask createTaskFieldSend(Field &buffer,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         template<class Field>
         EventTask createTaskFieldSendExchange(Field &buffer, uint32_t exchange,
-        ITask *registeringTask = NULL);
+        ITask *registeringTask = nullptr);
 
         /**
          * returns the instance of this factory

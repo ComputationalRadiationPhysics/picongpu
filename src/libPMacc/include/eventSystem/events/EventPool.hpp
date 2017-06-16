@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Felix Schmitt, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -96,9 +95,8 @@ namespace PMacc
         }
 
     private:
-        friend class Environment< DIM1 >;
-        friend class Environment< DIM2 >;
-        friend class Environment< DIM3 >;
+
+        friend class detail::Environment;
 
         static EventPool& getInstance( )
         {
@@ -117,7 +115,7 @@ namespace PMacc
          */
         ~EventPool()
         {
-            log( ggLog::CUDA_RT( )+ggLog::MEMORY( ), "shutdown EventPool with %1% events" ) % getEventsCount( );
+            log( ggLog::CUDA_RT( )+ggLog::EVENT( ), "shutdown EventPool with %1% events" ) % getEventsCount( );
             isClosed = true;
             freeEvents.clear( );
             for( std::vector<CudaEvent*>::const_iterator iter = events.begin(); iter != events.end(); ++iter )

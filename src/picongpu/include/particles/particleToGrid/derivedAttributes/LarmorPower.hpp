@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch
+/* Copyright 2013-2017 Axel Huebl, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +19,7 @@
 
 #pragma once
 
+#include "static_assert.hpp"
 #include "particles/particleToGrid/derivedAttributes/LarmorPower.def"
 
 #include "simulation_defines.hpp"
@@ -42,6 +42,13 @@ namespace derivedAttributes
     DINLINE float_X
     LarmorPower::operator()( T_Particle& particle ) const
     {
+
+        constexpr bool hasMomentumPrev1 = PMacc::traits::HasIdentifier<
+            typename T_Particle::FrameType,
+            momentumPrev1
+        >::type::value;
+        PMACC_CASSERT_MSG_TYPE( species_must_have_the_attribute_momentumPrev1, T_Particle, hasMomentumPrev1 );
+
         /* read existing attributes */
         const float3_X mom = particle[momentum_];
         const float3_X mom_mt1 = particle[momentumPrev1_];

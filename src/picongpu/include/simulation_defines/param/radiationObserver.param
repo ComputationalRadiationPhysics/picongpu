@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -42,21 +41,21 @@ namespace picongpu
     HDINLINE vector_64 observation_direction(const int observation_id_extern)
     {
       /** compute observation directions for 2D virtual detector field
-       *  with its center pointing toward the +y direction
+       *  with its center pointing toward the +y direction (for theta=0, phi=0)
        *  with observation angles ranging from
        *  theta = [angle_theta_start : angle_theta_end]
        *  phi   = [angle_phi_start   : angle_phi_end  ]
-       *  every block index moves the phi angle from its start value toward
-       *  its end value until the observation_id_extern reaches N_split.
-       *  After that the theta angle moves further from its start
-       *  value towards its end value while phi is reset to its start
+       *  Every observation_id_extern index moves the phi angle from its
+       *  start value toward its end value until the observation_id_extern
+       *  reaches N_split. After that the theta angle moves further from its
+       *  start value towards its end value while phi is reset to its start
        *  value.
        *
        *  The unit vector pointing towards the observing virtual detector
        *  can be described using theta and phi by:
        *  x_value = sin(theta) * cos(phi)
-       *  y_value = sin(theta) * sin(phi)
-       *  z_value = cos(theta)
+       *  y_value = cos(theta)
+       *  z_value = sin(theta) * sin(phi)
        *  These are the standard spherical coordinates.
        *
        *  The default setup describes an detector array of
@@ -66,7 +65,7 @@ namespace picongpu
        */
 
       /* generate two indices from single block index */
-      BOOST_CONSTEXPR_OR_CONST int N_angle_split = 16; /* index split distance */
+      constexpr int N_angle_split = 16; /* index split distance */
       /* get column index for computing angle theta: */
       const int my_index_theta = observation_id_extern / N_angle_split;
       /* get row index for computing angle phi: */
@@ -75,21 +74,19 @@ namespace picongpu
 
       /* set up observation angle range */
       /* angles range for theta */
-      const picongpu::float_64 angle_theta_start = - picongpu::PI/8.0
-                                             + 0.5*picongpu::PI; /* [rad] */
-      const picongpu::float_64 angle_theta_end   = + picongpu::PI/8.0
-                                             + 0.5*picongpu::PI; /* [rad] */
+      const picongpu::float_64 angle_theta_start = - picongpu::PI/8.0; /* [rad] */
+      const picongpu::float_64 angle_theta_end   = + picongpu::PI/8.0; /* [rad] */
       /* angles range for phi */
-      BOOST_CONSTEXPR_OR_CONST picongpu::float_64 angle_phi_start = - picongpu::PI/8.0; /* [rad] */
-      BOOST_CONSTEXPR_OR_CONST picongpu::float_64 angle_phi_end   = + picongpu::PI/8.0; /* [rad] */
+      constexpr picongpu::float_64 angle_phi_start = - picongpu::PI/8.0; /* [rad] */
+      constexpr picongpu::float_64 angle_phi_end   = + picongpu::PI/8.0; /* [rad] */
 
 
       /* compute step with between two angles for range [angle_??_start : angle_??_end] */
-      BOOST_CONSTEXPR_OR_CONST int N_theta           = parameters::N_observer / N_angle_split;
-      const picongpu::float_64 delta_angle_theta =  (angle_theta_start -
-                       angle_theta_end) / (N_theta-1.0);
-      const picongpu::float_64 delta_angle_phi   =  (angle_phi_start -
-                       angle_phi_end)   / (N_angle_split-1.0);
+      constexpr int N_theta           = parameters::N_observer / N_angle_split;
+      const picongpu::float_64 delta_angle_theta =  (angle_theta_end -
+                       angle_theta_start) / (N_theta-1.0);
+      const picongpu::float_64 delta_angle_phi   =  (angle_phi_end -
+                       angle_phi_start)   / (N_angle_split-1.0);
 
       /* compute observation angles */
       const picongpu::float_64 theta(  my_index_theta * delta_angle_theta + angle_theta_start );
@@ -102,7 +99,7 @@ namespace picongpu
       picongpu::float_32 cosTheta;
       math::sincos(precisionCast<picongpu::float_32>(phi), sinPhi, cosPhi);
       math::sincos(precisionCast<picongpu::float_32>(theta), sinTheta, cosTheta);
-      return vector_64( sinTheta*sinPhi , sinTheta*cosPhi , cosTheta ) ;
+      return vector_64( sinTheta*cosPhi , cosTheta, sinTheta*sinPhi ) ;
 
     }
 

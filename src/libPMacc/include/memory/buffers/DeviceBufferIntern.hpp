@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
  *                     Alexander Grund
  *
  * This file is part of libPMacc.
@@ -27,8 +26,7 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "memory/buffers/DeviceBuffer.hpp"
 #include "memory/boxes/DataBox.hpp"
-
-#include <cassert>
+#include "assert.hpp"
 
 namespace PMacc
 {
@@ -212,7 +210,7 @@ public:
     void copyFrom(HostBuffer<TYPE, DIM>& other)
     {
 
-        assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
+        PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyHostToDevice(other, *this);
 
     }
@@ -220,7 +218,7 @@ public:
     void copyFrom(DeviceBuffer<TYPE, DIM>& other)
     {
 
-        assert(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
+        PMACC_ASSERT(this->isMyDataSpaceGreaterThan(other.getCurrentDataSpace()));
         Environment<>::get().Factory().createTaskCopyDeviceToDevice(other, *this);
 
     }
@@ -248,7 +246,7 @@ private:
     void createData()
     {
         __startOperation(ITask::TASK_CUDA);
-        data.ptr = NULL;
+        data.ptr = nullptr;
         data.pitch = 1;
         data.xsize = this->getDataSpace()[0] * sizeof (TYPE);
         data.ysize = 1;
@@ -284,7 +282,7 @@ private:
     void createFakeData()
     {
         __startOperation(ITask::TASK_CUDA);
-        data.ptr = NULL;
+        data.ptr = nullptr;
         data.pitch = 1;
         data.xsize = this->getDataSpace()[0] * sizeof (TYPE);
         data.ysize = 1;
@@ -306,7 +304,7 @@ private:
     void createSizeOnDevice(bool sizeOnDevice)
     {
         __startOperation(ITask::TASK_HOST);
-        sizeOnDevicePtr = NULL;
+        sizeOnDevicePtr = nullptr;
 
         if (sizeOnDevice)
         {

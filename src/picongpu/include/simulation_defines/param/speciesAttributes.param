@@ -1,5 +1,5 @@
-/**
- * Copyright 2014-2016 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl, Heiko Burau
+/* Copyright 2014-2017 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl,
+ *                     Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -18,6 +18,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * This file defines available attributes that can be stored with each particle
+ * of a particle species.
+ * Each attribute defined here needs to implement furthermore the traits
+ *   - Unit
+ *   - UnitDimension
+ *   - WeightingPower
+ *   - MacroWeighted
+ * in speciesAttributes.unitless for further information about these
+ * traits see therein.
+ */
+
 #pragma once
 
 #include "simulation_defines.hpp"
@@ -30,18 +43,6 @@
 #include "particles/IdProvider.def"
 
 
-/** \file speciesAttributes.param
- *
- * This file defines available attributes that can be stored with each particle
- * of a particle species.
- * Each attribute defined here needs to implement furthermore the traits
- *   - Unit
- *   - UnitDimension
- *   - WeightingPower
- *   - MacroWeighted
- * in \see speciesAttributes.unitless . For further information about these
- * traits see therein.
- */
 namespace picongpu
 {
 
@@ -61,8 +62,14 @@ value_identifier(float3_X,momentum,float3_X::create(0.));
 value_identifier(float3_X,momentumPrev1,float3_X::create(0.));
 /** weighting of the macro particle */
 value_identifier(float_X, weighting, 0.0);
-/** use this particle for radiation diagnostics */
-value_identifier(bool, radiationFlag, false);
+
+/** masking a particle for radiation
+ *
+ * The mask is used by the user defined filter
+ * `RadiationParticleFilter` in `radiation.param` to (de)select
+ * particles for the radiation calculation.
+ */
+value_identifier(bool, radiationMask, false);
 
 /** number of electrons bound to the atom / ion
  *
@@ -90,8 +97,8 @@ alias(shape);
 /*! alias for particle pusher @see species.param */
 alias(particlePusher);
 
-/*! alias for particle ionizer @see speciesDefinition.param */
-alias(ionizer);
+/*! alias for particle ionizers @see ionizer.param */
+alias(ionizers);
 
 /*! alias for ionization energy container @see ionizationEnergies.param */
 alias(ionizationEnergies);
@@ -99,42 +106,53 @@ alias(ionizationEnergies);
 /*! alias for synchrotronPhotons @see speciesDefinition.param */
 alias(synchrotronPhotons)
 
+/*! alias for ion species used for bremsstrahlung */
+alias(bremsstrahlungIons);
+
+/*! alias for photon species used for bremsstrahlung */
+alias(bremsstrahlungPhotons);
+
 /*! alias for particle to field interpolation @see species.param */
 alias(interpolation);
 
 /*! alias for particle current solver @see species.param */
 alias(current);
 
-/*! alias for particle flag: atomic numbers @see speciesDefinition.param
- * - only reasonable for atoms / ions / nuclei */
+/*! alias for particle flag: atomic numbers @see ionizer.param
+ * - only reasonable for atoms / ions / nuclei
+ */
 alias(atomicNumbers);
 
-/*! alias for particle flag: effective atomic numbers @see speciesDefinition.param
- * @see ionizerConfig.param
+/*! alias for particle flag: effective nuclear charge @see ionizer.param
+ * - only reasonable for atoms / ions / nuclei
  */
-alias(effectiveAtomicNumbers);
+alias(effectiveNuclearCharge);
 
 /*! alias for particle mass ratio
  *
- *  mass ratio between base particle @see `speciesConstants.param` SI::BASE_MASS_SI
- *  and a user defined species
+ * mass ratio between base particle @see `speciesConstants.param` SI::BASE_MASS_SI
+ * and a user defined species
+ *
+ * default value: 1.0 if unset
  */
 alias(massRatio);
 
 /*! alias for particle charge ratio
  *
- *  charge ratio between base particle @see `speciesConstants.param` SI::BASE_CHARGE_SI
- *  and a user defined species
+ * charge ratio between base particle @see `speciesConstants.param` SI::BASE_CHARGE_SI
+ * and a user defined species
+ *
+ * default value: 1.0 if unset
  */
 alias(chargeRatio);
 
 /*! alias for particle density ratio
  *
- * density ratio between default density @see `gasConfig.param` SI::GAS_DENSITY_SI
+ * density ratio between default density @see `density.param` SI::BASE_DENSITY_SI
  * and a user defined species
  *
- * densityRatio is an *optional* flag of a species
+ * default value: 1.0 if unset
  */
 alias(densityRatio);
 
-} //namespace picongpu
+}

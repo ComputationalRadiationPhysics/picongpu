@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -33,8 +32,8 @@ class SuperCell
 public:
 
     HDINLINE SuperCell() :
-    firstFramePtr(NULL),
-    lastFramePtr(NULL),
+    firstFramePtr(nullptr),
+    lastFramePtr(nullptr),
     mustShiftVal(false),
     sizeLastFrame(0)
     {

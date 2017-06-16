@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz,
  *                     Alexander Grund
  *
@@ -33,7 +32,7 @@
 #include <boost/mpl/placeholders.hpp>
 #include <boost/filesystem.hpp>
 
-// Allows use of C++11/C++98 compatibility macros like BOOST_CONSTEXPR
+// compatibility macros (compiler or C++ standard version specific)
 #include <boost/config.hpp>
 
 #include <builtin_types.h>
@@ -43,8 +42,6 @@
 #include <stdint.h>
 #include <stdexcept>
 
-#define PMACC_AUTO_TPL(var,...) BOOST_AUTO_TPL(var,(__VA_ARGS__))
-#define PMACC_AUTO(var,...) BOOST_AUTO(var,(__VA_ARGS__))
 
 namespace PMacc
 {
@@ -72,6 +69,9 @@ typedef long long int int64_cu;
 #else
 #   define PMACC_CUDA_ARCH __CUDA_ARCH__
 #endif
+
+/** PMacc global identifier for CUDA kernel */
+#define PMACC_GLOBAL_KEYWORD __location__(global)
 
 /*
  * Disable nvcc warning:
@@ -199,7 +199,7 @@ enum AreaType
     CORE = 1u, BORDER = 2u, GUARD = 4u
 };
 
-#define __delete(var) if((var)) { delete (var); var=NULL; }
-#define __deleteArray(var) if((var)) { delete[] (var); var=NULL; }
+#define __delete(var) if((var)) { delete (var); var=nullptr; }
+#define __deleteArray(var) if((var)) { delete[] (var); var=nullptr; }
 
 } //namespace PMacc

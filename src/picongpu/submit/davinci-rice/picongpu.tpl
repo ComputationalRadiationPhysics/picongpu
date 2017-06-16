@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2017 Axel Huebl, Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -46,6 +46,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}"
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 ## end tbg calculation
 
@@ -71,4 +72,13 @@ unset MODULES_NO_OUTPUT
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpirun -n TBG_tasks --display-map -am tbg/openib.conf --mca mpi_leave_pinned 0 ../picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
+# test if cuda_memtest binary is available
+if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
+  mpirun -n TBG_tasks --display-map -am tbg/openib.conf --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+else
+  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+fi
+
+if [ $? -eq 0 ] ; then
+  mpirun -n TBG_tasks --display-map -am tbg/openib.conf --mca mpi_leave_pinned 0 ../picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
+fi

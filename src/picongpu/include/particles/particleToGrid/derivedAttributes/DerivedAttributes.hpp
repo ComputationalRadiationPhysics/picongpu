@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Axel Huebl, Richard Pausch
+/* Copyright 2015-2017 Axel Huebl, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -22,7 +21,9 @@
 
 #include "particles/particleToGrid/derivedAttributes/Density.hpp"
 #include "particles/particleToGrid/derivedAttributes/Counter.hpp"
+#include "particles/particleToGrid/derivedAttributes/MacroCounter.hpp"
 #include "particles/particleToGrid/derivedAttributes/ChargeDensity.hpp"
+#include "particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.hpp"
 #include "particles/particleToGrid/derivedAttributes/EnergyDensity.hpp"
 #include "particles/particleToGrid/derivedAttributes/Energy.hpp"
 #include "particles/particleToGrid/derivedAttributes/MomentumComponent.hpp"

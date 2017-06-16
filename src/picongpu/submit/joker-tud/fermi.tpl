@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch
+# Copyright 2013-2017 Axel Huebl, Rene Widera, Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -44,6 +44,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
@@ -75,7 +76,12 @@ unset MODULES_NO_OUTPUT
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-$MPI_ROOT/bin/mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+# test if cuda_memtest binary is available
+if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
+  $MPI_ROOT/bin/mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+else
+  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+fi
 
 if [ $? -eq 0 ] ; then
    $MPI_ROOT/bin/mpirun  --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output

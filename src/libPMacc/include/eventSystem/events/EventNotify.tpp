@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -37,7 +36,7 @@ namespace PMacc
             std::set<IEvent*>::iterator iter = observers.begin( );
             for (; iter != observers.end( ); iter++ )
             {
-                if ( *iter != NULL )
+                if ( *iter != nullptr )
                     ( *iter )->event( eventId, type, data );
             }
             /* if notify is not called from destructor
@@ -48,7 +47,7 @@ namespace PMacc
 
             /**
              * \TODO are we sure that data won't be deleted anywhere else?
-             * if (data != NULL)
+             * if (data != nullptr)
              *  delete data;
              **/
 

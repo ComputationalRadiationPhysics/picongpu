@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2014-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz, Alexander Grund
  *
  * This file is part of PIConGPU.
@@ -22,15 +21,13 @@
 #pragma once
 
 #include "pmacc_types.hpp"
+#include "static_assert.hpp"
 #include "simulation_types.hpp"
 #include "plugins/adios/ADIOSWriter.def"
 
 #include "particles/frame_types.hpp"
 #include "particles/IdProvider.def"
-
-#include <adios.h>
-#include <adios_read.h>
-#include <adios_error.h>
+#include "assert.hpp"
 
 #include "fields/FieldB.hpp"
 #include "fields/FieldE.hpp"
@@ -49,19 +46,6 @@
 #include "traits/Limits.hpp"
 
 #include "plugins/ILightweightPlugin.hpp"
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/type_traits/is_same.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/begin_end.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/filesystem.hpp>
-
-#include <boost/type_traits.hpp>
-#if !defined(_WIN32)
-#include <unistd.h>
-#endif
 
 #include "plugins/adios/WriteMeta.hpp"
 #include "plugins/adios/WriteSpecies.hpp"
@@ -70,8 +54,25 @@
 #include "plugins/adios/restart/RestartFieldLoader.hpp"
 #include "plugins/adios/NDScalars.hpp"
 
+#include <adios.h>
+#include <adios_read.h>
+#include <adios_error.h>
+
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/type_traits/is_same.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/begin_end.hpp>
+#include <boost/mpl/find.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/type_traits.hpp>
+
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
 #include <pthread.h>
-#include <cassert>
 #include <sstream>
 #include <string>
 #include <list>
@@ -169,7 +170,7 @@ private:
 #ifndef __CUDA_ARCH__
             DataConnector &dc = Environment<simDim>::get().DataConnector();
 
-            T* field = &(dc.getData<T > (T::getName()));
+            auto field = dc.get< T >( T::getName() );
             params->gridLayout = field->getGridLayout();
 
             PICToAdios<ComponentType> adiosType;
@@ -180,7 +181,7 @@ private:
                        T::getName(),
                        field->getHostDataBox().getPointer());
 
-            dc.releaseData(T::getName());
+            dc.releaseData( T::getName() );
 #endif
         }
 
@@ -231,13 +232,17 @@ private:
             /*## update field ##*/
 
             /*load FieldTmp without copy data to host*/
-            FieldTmp* fieldTmp = &(dc.getData<FieldTmp > (FieldTmp::getName(), true));
+            PMACC_CASSERT_MSG(
+                _please_allocate_at_least_one_FieldTmp_in_memory_param,
+                fieldTmpNumSlots > 0
+            );
+            auto fieldTmp = dc.get< FieldTmp >( FieldTmp::getUniqueId( 0 ), true );
             /*load particle without copy particle data to host*/
-            Species* speciesTmp = &(dc.getData<Species >(Species::FrameType::getName(), true));
+            auto speciesTmp = dc.get< Species >( Species::FrameType::getName(), true );
 
             fieldTmp->getGridBuffer().getDeviceBuffer().setValue(ValueType::create(0.0));
             /*run algorithm*/
-            fieldTmp->computeValue < CORE + BORDER, Solver > (*speciesTmp, params->currentStep);
+            fieldTmp->template computeValue< CORE + BORDER, Solver >(*speciesTmp, params->currentStep);
 
             EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
             __setTransactionEvent(fieldTmpEvent);
@@ -258,7 +263,7 @@ private:
                        getName(),
                        fieldTmp->getHostDataBox().getPointer());
 
-            dc.releaseData(FieldTmp::getName());
+            dc.releaseData( FieldTmp::getUniqueId( 0 ) );
 
         }
 
@@ -275,11 +280,11 @@ private:
         const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
 
         /* parameter checking */
-        assert(unit.size() == nComponents);
-        assert(inCellPosition.size() == nComponents);
+        PMACC_ASSERT( unit.size() == nComponents );
+        PMACC_ASSERT( inCellPosition.size() == nComponents );
         for( uint32_t n = 0; n < nComponents; ++n )
-            assert(inCellPosition.at(n).size() == simDim );
-        assert(unitDimension.size() == 7); // seven openPMD base units
+            PMACC_ASSERT( inCellPosition.at(n).size() == simDim );
+        PMACC_ASSERT(unitDimension.size() == 7); // seven openPMD base units
 
         const std::string recordName( params->adiosBasePath +
             std::string(ADIOS_PATH_FIELDS) + name );
@@ -292,7 +297,7 @@ private:
                 datasetName << "/" << name_lookup_tpl[c];
 
             /* define adios var for field, e.g. field_FieldE_y */
-            const char* path = NULL;
+            const char* path = nullptr;
             int64_t adiosFieldVarId = defineAdiosVar<simDim>(
                     params->adiosGroupHandle,
                     datasetName.str().c_str(),
@@ -598,8 +603,8 @@ public:
 
         /** one could try ADIOS_READ_METHOD_BP_AGGREGATE too which might
          *  be beneficial for re-distribution on a different number of GPUs
-         *    would need: - export chunk_size=<size> in MB
-         *                - mpiTransportParams.c_str() in adios_read_init_method
+         *    would need: - `export chunk_size=SIZE # in MB`
+         *                - `mpiTransportParams.c_str()` in `adios_read_init_method`
          */
         ADIOS_CMD(adios_read_init_method(ADIOS_READ_METHOD_BP,
                                          mThreadParams.adiosComm,
@@ -646,7 +651,7 @@ public:
             /* could not read full stream */
             throw std::runtime_error("ADIOS: Stream terminated too early: " +
                                      std::string(adios_errmsg()) );
-        if (mThreadParams.fp == NULL)
+        if (mThreadParams.fp == nullptr)
             throw std::runtime_error("ADIOS: Error opening stream: " +
                                      std::string(adios_errmsg()) );
 
@@ -656,7 +661,7 @@ public:
         /* load number of slides to initialize MovingWindow */
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) read attr (%1% available)") %
             mThreadParams.fp->nattrs;
-        void* slidesPtr = NULL;
+        void* slidesPtr = nullptr;
         int slideSize;
         enum ADIOS_DATATYPES slidesType;
         ADIOS_CMD(adios_get_attr( mThreadParams.fp,
@@ -669,10 +674,10 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: value of sim_slides = %1%") %
             slides;
 
-        assert(slidesType == adiosUInt32Type.type);
-        assert(slideSize == sizeof(uint32_t)); // uint32_t in bytes
+        PMACC_ASSERT(slidesType == adiosUInt32Type.type);
+        PMACC_ASSERT(slideSize == sizeof(uint32_t)); // uint32_t in bytes
 
-        void* lastStepPtr = NULL;
+        void* lastStepPtr = nullptr;
         int lastStepSize;
         enum ADIOS_DATATYPES lastStepType;
         ADIOS_CMD(adios_get_attr( mThreadParams.fp,
@@ -684,17 +689,21 @@ public:
         log<picLog::INPUT_OUTPUT > ("ADIOS: value of iteration = %1%") %
             lastStep;
 
-        assert(lastStepType == adiosUInt32Type.type);
-        assert(lastStep == restartStep);
+        PMACC_ASSERT(lastStepType == adiosUInt32Type.type);
+        PMACC_ASSERT(lastStep == restartStep);
 
         /* apply slides to set gpus to last/written configuration */
         log<picLog::INPUT_OUTPUT > ("ADIOS: Setting slide count for moving window to %1%") % slides;
         MovingWindow::getInstance().setSlideCounter(slides, restartStep);
 
-        /* re-distribute the local offsets in y-direction */
+        /* re-distribute the local offsets in y-direction
+         * this will work for restarts with moving window still enabled
+         * and restarts that disable the moving window
+         * \warning enabling the moving window from a checkpoint that
+         *          had no moving window will not work
+         */
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        if( MovingWindow::getInstance().isSlidingWindowActive() )
-            gc.setStateAfterSlides(slides);
+        gc.setStateAfterSlides(slides);
 
         /* set window for restart, complete global domain */
         mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(restartStep);
@@ -808,7 +817,7 @@ private:
             DataConnector &dc = Environment<>::get().DataConnector();
 
             /* synchronizes the MallocMCBuffer to the host side */
-            dc.getData<MallocMCBuffer> (MallocMCBuffer::getName());
+            dc.get< MallocMCBuffer< DeviceHeap > >( MallocMCBuffer< DeviceHeap >::getName() );
 
             /* here we are copying all species to the host side since we
              * can not say at this point if this time step will need all of them
@@ -817,7 +826,7 @@ private:
             ForEach<FileCheckpointParticles, CopySpeciesToHost<bmpl::_1> > copySpeciesToHost;
             copySpeciesToHost();
             lastSpeciesSyncStep = currentStep;
-            dc.releaseData(MallocMCBuffer::getName());
+            dc.releaseData(MallocMCBuffer<DeviceHeap>::getName());
         }
 
         beginAdios(mThreadParams.adiosFilename);
@@ -1034,7 +1043,7 @@ private:
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) counting particles.");
 
-        PMACC_AUTO(idProviderState, IdProvider<simDim>::getState());
+        auto idProviderState = IdProvider<simDim>::getState();
         WriteNDScalars<uint64_t, uint64_t> writeIdProviderStartId("picongpu/idProvider/startId", "maxNumProc");
         WriteNDScalars<uint64_t, uint64_t> writeIdProviderNextId("picongpu/idProvider/nextId");
         writeIdProviderStartId.prepare(*threadParams, idProviderState.maxNumProc);
@@ -1110,7 +1119,7 @@ private:
         /*\todo: copied from adios example, we might not need this ? */
         MPI_CHECK(MPI_Barrier(threadParams->adiosComm));
 
-        return NULL;
+        return nullptr;
     }
 
     ThreadParams mThreadParams;

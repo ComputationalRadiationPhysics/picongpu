@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2014-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -67,7 +66,7 @@ struct AllCombinations<T_MplSeq, T_TmpResult, false >
     typedef T_MplSeq MplSeq;
     typedef T_TmpResult TmpResult;
 
-    BOOST_STATIC_CONSTEXPR uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
+    static constexpr uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
     typedef typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1 > > ::type LastElement;
     typedef bmpl::empty<LastElement> IsLastElementEmpty;
     typedef typename MakeSeq<LastElement>::type LastElementAsSequence;
@@ -135,11 +134,6 @@ struct AllCombinations<T_MplSeq, T_TmpResult, true >
  * If the number of elements in each sequence is S0, S1, ... S(N-1)
  * than the resulting sequence will contain S0 * S1 * ... S(N-1) tuples.
  *
- * @tparam T_MplSeq N-dimensional sequence with input values
- *                  or single type (e.g. bmpl::integral_c<uint32_t,5>)
- *                  (if T_MplSeq is only one type it will be transformed to a sequence)
- * @tparam[out] ::type MplSequence of N-tuples
- *
  * example:
  *
  * sequence  == [ ]
@@ -147,7 +141,13 @@ struct AllCombinations<T_MplSeq, T_TmpResult, true >
  *
  * T_MplSeq = [[1,2],[1],[4,3]]
  * combined to
- * ::type = [(1,1,4),(1,1,3),(2,1,4),(2,1,3)]
+ * AllCombinations<T_MplSeq>::type = [(1,1,4),(1,1,3),(2,1,4),(2,1,3)]
+ *
+ * @tparam T_MplSeq N-dimensional sequence with input values
+ *                  or single type (e.g. `bmpl::integral_c<uint32_t,5>`)
+ *                  (if `T_MplSeq` is only one type it will be transformed to a sequence)
+ * @typedef AllCombinations<T_MplSeq>::type
+ *          MplSequence of N-tuples
  */
 template<typename T_MplSeq>
 struct AllCombinations
@@ -156,7 +156,7 @@ struct AllCombinations
      * a sequence because all next algorithms can only work with sequences */
     typedef typename MakeSeq<T_MplSeq>::type MplSeq;
 
-    BOOST_STATIC_CONSTEXPR uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
+    static constexpr uint32_t rangeVectorSize = bmpl::size<MplSeq>::value;
     typedef typename bmpl::at<MplSeq, bmpl::integral_c<uint32_t, rangeVectorSize - 1 > > ::type LastElement;
     typedef bmpl::empty<LastElement> IsLastElementEmpty;
     typedef typename MakeSeq<LastElement>::type LastElementAsSequence;

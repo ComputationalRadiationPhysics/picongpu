@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# 
-# Copyright 2013-2016 Rene Widera
+#
+# Copyright 2013-2017 Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -43,16 +43,16 @@ for(r = 1; r <= NR; r++) {
     }
     print ""
   }
-}' 
+}'
 }
 
 
 if [ $# -eq 0 ] ; then
-	cat /dev/stdin | trans
+    cat /dev/stdin | trans
 elif [ $# -eq 1 ] ; then
-	cat $1 | trans
+    cat $1 | trans
 else
-	echo "call $0 [filename] to run program"
-	exit 1
+    echo "call $0 [filename] to run program"
+    exit 1
 fi
 exit 0

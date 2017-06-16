@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2017 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
@@ -112,9 +111,7 @@ namespace PMacc
 
     private:
 
-        friend class Environment<DIM1>;
-        friend class Environment<DIM2>;
-        friend class Environment<DIM3>;
+        friend class detail::Environment;
 
         /**
          * Constructor.

@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -32,6 +31,7 @@
 #include "memory/buffers/DeviceBufferIntern.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "memory/boxes/MultiBox.hpp"
+#include "assert.hpp"
 
 #include <algorithm>
 
@@ -42,8 +42,8 @@ template<typename Type_, uint32_t communicationTag_ = 0, bool sizeOnDevice_ = fa
         struct TypeDescriptionElement
 {
     typedef Type_ Type;
-    BOOST_STATIC_CONSTEXPR uint32_t communicationTag = communicationTag_;
-    BOOST_STATIC_CONSTEXPR bool sizeOnDevice = sizeOnDevice_;
+    static constexpr uint32_t communicationTag = communicationTag_;
+    static constexpr bool sizeOnDevice = sizeOnDevice_;
 
 
 };
@@ -62,7 +62,7 @@ template<typename Type_, uint32_t communicationTag_ = 0, bool sizeOnDevice_ = fa
  *  struct Mem
  *  {
  *    enum Names{VALUE1,VALUE2};
- *    BOOST_STATIC_CONSTEXPR uint32_t Count=2;
+ *    static constexpr uint32_t Count=2;
  *  };
  * @tparam BORDERTYPE optional type for border data in the buffers. TYPE is used by default.
  */
@@ -87,7 +87,7 @@ public:
      * @param firstCommunicationTag optional value which can be used to tag ('name') this buffer in communications
      * @param sizeOnDevice if true, size information exists on device, too.
      */
-    MultiGridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) : blobDeviceBuffer(NULL),blobHostBuffer(NULL)
+    MultiGridBuffer(const GridLayout<DIM>& gridLayout, bool sizeOnDevice = false) : blobDeviceBuffer(nullptr),blobHostBuffer(nullptr)
     {
         init(gridLayout, sizeOnDevice);
     }
@@ -99,7 +99,7 @@ public:
      * @param firstCommunicationTag optional value which can be used to tag ('name') this buffer in communications
      * @param sizeOnDevice if true, size information exists on device, too.
      */
-    MultiGridBuffer(DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) : blobDeviceBuffer(NULL),blobHostBuffer(NULL)
+    MultiGridBuffer(DataSpace<DIM>& dataSpace, bool sizeOnDevice = false) : blobDeviceBuffer(nullptr),blobHostBuffer(nullptr)
     {
         init(GridLayout<DIM > (dataSpace), sizeOnDevice);
     }
@@ -220,7 +220,7 @@ public:
 
     GridBuffer<Type, DIM>& getGridBuffer(typename BufferNames::Names name)
     {
-        assert(name >= 0 && name < BufferNames::Count);
+        PMACC_ASSERT(name >= 0 && name < BufferNames::Count);
         return *gridBuffers[name];
     }
 

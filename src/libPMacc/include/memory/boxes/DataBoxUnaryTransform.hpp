@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Rene Widera
+/* Copyright 2014-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -48,7 +47,7 @@ public:
 
     typedef typename UnaryFunctor::result ValueType;
     typedef ValueType RefValueType;
-    BOOST_STATIC_CONSTEXPR uint32_t Dim = Base::Dim;
+    static constexpr uint32_t Dim = Base::Dim;
 
     HDINLINE DataBoxUnaryTransform(const Base& base) : Base(base)
     {

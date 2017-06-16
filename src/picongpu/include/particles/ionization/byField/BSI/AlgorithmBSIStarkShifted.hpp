@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Marco Garten
+/* Copyright 2014-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -25,7 +24,9 @@
 #include "particles/traits/GetAtomicNumbers.hpp"
 #include "traits/attribute/GetChargeState.hpp"
 
-/** IONIZATION ALGORITHM for the BSIStarkShifted model
+/** @file AlgorithmBSIStarkShifted.hpp
+ *
+ * IONIZATION ALGORITHM for the BSIStarkShifted model
  *
  * - implements the calculation of ionization probability and changes charge states
  *   by decreasing the number of bound electrons

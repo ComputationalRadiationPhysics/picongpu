@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -52,7 +51,7 @@ struct MessageHeader
                 picongpu::Window vWindow,
                 Size2D transpose,
                 uint32_t currentStep,
-                picongpu::float_32* cellSizeArr = NULL,
+                picongpu::float_32* cellSizeArr = nullptr,
                 const PMacc::DataSpace<CellDesc::Dim> gpus = PMacc::DataSpace<CellDesc::Dim > ())
     {
         using namespace PMacc;
@@ -81,7 +80,7 @@ struct MessageHeader
         const DataSpace<Dim> windowSize = vWindow.globalDimensions.size;
         window.size = DataSpace<DIM2 > (windowSize[transpose.x()], windowSize[transpose.y()]);
 
-        if (cellSizeArr != NULL)
+        if (cellSizeArr != nullptr)
         {
             picongpu::float_32 scale[2];
             scale[0] = cellSizeArr[transpose.x()];

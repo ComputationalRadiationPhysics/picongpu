@@ -1,5 +1,4 @@
-/**
- * Copyright 2014-2016 Marco Garten
+/* Copyright 2014-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -22,7 +21,7 @@
 
 #include "pmacc_types.hpp"
 
-/** \file AlgorithNone.hpp
+/** \file AlgorithmNone.hpp
  *
  * IONIZATION ALGORITHM for the model None
  *

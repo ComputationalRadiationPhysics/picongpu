@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -29,8 +28,9 @@ namespace traits
 {
     /** Convert an Adios type to a PIConGPU Type
      *
-     * \tparam T_AdiosType Adios data type
-     * \return \p ::type as public typedef
+     * implements a public type as result of the trait
+     *
+     * @tparam T_AdiosType Adios data type
      */
     template<typename T_AdiosType>
     struct AdiosToPIC;

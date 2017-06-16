@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -62,7 +61,7 @@ public:
 
     typedef float3_X ValueType;
     typedef promoteType<float_64, ValueType>::type UnitValueType;
-    BOOST_STATIC_CONSTEXPR int numComponents = ValueType::dim;
+    static constexpr int numComponents = ValueType::dim;
 
     typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
 
@@ -72,7 +71,7 @@ public:
 
     virtual EventTask asyncCommunication(EventTask serialEvent);
 
-    void init(FieldE &fieldE, FieldB &fieldB);
+    void init();
 
     GridLayout<simDim> getGridLayout();
 
@@ -150,20 +149,22 @@ private:
     FieldB *fieldB;
 };
 
-template<typename T_SpeciesName, typename T_Area>
+template<typename T_SpeciesType, typename T_Area>
 struct ComputeCurrent
 {
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
-    template<typename T_StorageTuple>
-    HINLINE void operator()( FieldJ* fieldJ,
-                            T_StorageTuple& tuple,
-                            const uint32_t currentStep) const
+    HINLINE void operator()( const uint32_t currentStep ) const
     {
-        typedef T_SpeciesName SpeciesName;
-        typedef typename SpeciesName::type SpeciesType;
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
+        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
 
-        PMACC_AUTO(speciesPtr, tuple[SpeciesName()]);
-        fieldJ->computeCurrent<T_Area::value, SpeciesType> (*speciesPtr, currentStep);
+        fieldJ->computeCurrent< T_Area::value, SpeciesType >( *species, currentStep );
+
+        dc.releaseData( FrameType::getName() );
+        dc.releaseData( FieldJ::getName() );
     }
 };
 

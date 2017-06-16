@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Heiko Burau
+/* Copyright 2015-2017 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -23,6 +22,15 @@
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "simulation_defines.hpp"
 #include <boost/array.hpp>
+#if( BOOST_VERSION == 106400 )
+    /* `array_wrapper.hpp` must be included before `integrate.hpp` to avoid
+     * the error
+     * `boost/numeric/ublas/matrix.hpp(5977): error: namespace "boost::serialization" has no member "make_array"`
+     * in boost 1.64.0
+     * see boost issue https://svn.boost.org/trac/boost/ticket/12516
+     */
+#   include <boost/serialization/array_wrapper.hpp>
+#endif
 #include <boost/numeric/odeint/integrate/integrate.hpp>
 
 
@@ -48,7 +56,7 @@ HDINLINE float_X MapToLookupTable::operator()(const float_X x) const
      *
      * This is the inverse mapping of the mapping in @see:`SynchrotronFunctions::init()`
      */
-    const float_X x_m = PMacc::algorithms::math::pow(x, float_X(1.0/3.0));
+    const float_X x_m = math::pow(x, float_X(1.0/3.0));
 
     const float_X cutOff = static_cast<float_X>(SYNC_FUNCS_CUTOFF);
 

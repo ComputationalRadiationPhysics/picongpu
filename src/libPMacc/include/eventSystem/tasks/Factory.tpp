@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -44,7 +43,7 @@
 
 namespace PMacc
 {
-    
+
     /**
      * creates a TaskCopyHostToDevice
      * @param src HostBuffer to copy data from
@@ -211,16 +210,16 @@ namespace PMacc
     {
         TaskKernel* task = new TaskKernel(kernelname);
 
-        if (registeringTask != NULL)
+        if (registeringTask != nullptr)
             task->addObserver(registeringTask);
 
         return task;
     }
-    
+
 
     inline EventTask Factory::startTask(ITask& task, ITask *registeringTask )
     {
-        if (registeringTask != NULL){
+        if (registeringTask != nullptr){
             task.addObserver(registeringTask);
         }
         EventTask event(task.getId());
@@ -228,7 +227,7 @@ namespace PMacc
         task.init();
         Environment<>::get().Manager().addTask(&task);
         Environment<>::get().TransactionManager().setTransactionEvent(event);
-        
+
         return event;
     }
 

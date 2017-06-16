@@ -8,8 +8,17 @@
 /*.cbp
 /*.layout
 
+# Visual Studio Code configuration files
+.vscode
+
 # python byte code
 *.pyc
 
 # original backup files
 *.orig
+
+# doxygen output
+docs/xml/
+docs/doxygen_sqlite3.db
+# sphinx & breathe output
+docs/build/

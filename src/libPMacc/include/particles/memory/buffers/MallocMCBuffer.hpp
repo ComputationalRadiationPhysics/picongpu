@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Rene Widera
+/* Copyright 2015-2017 Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -26,16 +25,20 @@
 #include "dataManagement/ISimulationData.hpp"
 
 #include "mallocMC/mallocMC.hpp"
+
 #include <string>
+#include <memory>
 
 namespace PMacc
 {
 
+    template< typename T_DeviceHeap >
     class MallocMCBuffer : public ISimulationData
     {
     public:
+        using DeviceHeap = T_DeviceHeap;
 
-        MallocMCBuffer();
+        MallocMCBuffer( const std::shared_ptr<DeviceHeap>& deviceHeap );
 
         virtual ~MallocMCBuffer();
 
@@ -61,7 +64,6 @@ namespace PMacc
         char* hostPtr;
         int64_t hostBufferOffset;
         mallocMC::HeapInfo deviceHeapInfo;
-
     };
 
 

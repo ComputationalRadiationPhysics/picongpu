@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -25,7 +24,6 @@
 #include "eventSystem/EventSystem.hpp"
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/tasks/TaskLogicalAnd.hpp"
-#include <cassert>
 
 namespace PMacc
 {
@@ -41,7 +39,7 @@ namespace PMacc
     inline std::string EventTask::toString()
     {
         ITask* task=Environment<>::get().Manager().getITaskIfNotFinished(taskId);
-        if(task!=NULL)
+        if(task!=nullptr)
             return task->toString();
 
         return std::string();
@@ -54,7 +52,7 @@ namespace PMacc
 
     inline bool EventTask::isFinished()
     {
-        return (Environment<>::get().Manager().getITaskIfNotFinished(taskId) == NULL);
+        return (Environment<>::get().Manager().getITaskIfNotFinished(taskId) == nullptr);
     }
 
     inline void EventTask::waitForFinished() const
@@ -78,14 +76,14 @@ namespace PMacc
             return *this;
 
         ITask* myTask = manager.getITaskIfNotFinished(this->taskId);
-        if(myTask==NULL)
+        if(myTask==nullptr)
         {
             this->taskId=other.taskId;
             return *this;
         }
 
         ITask* otherTask = manager.getITaskIfNotFinished(other.taskId);
-        if(otherTask==NULL)
+        if(otherTask==nullptr)
         {
             return *this;
         }

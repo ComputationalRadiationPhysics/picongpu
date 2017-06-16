@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Alexander Grund
+/* Copyright 2015-2017 Alexander Grund
  *
  * This file is part of libPMacc.
  *
@@ -22,9 +21,16 @@
 
 #pragma once
 
+#include "pmacc_types.hpp"
+
 namespace PMacc {
 
-    template <unsigned DIM = DIM1>
+    template< uint32_t T_dim = DIM1 >
     class Environment;
 
-}  // namespace PMacc
+namespace detail
+{
+    struct Environment;
+
+} // namespace detail
+} // namespace PMacc

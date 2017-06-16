@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Heiko Burau, Rene Widera
  *
  * This file is part of libPMacc.
  *
@@ -22,8 +21,10 @@
 
 #pragma once
 
-#include "tag.h"
+#include "tag.hpp"
+
 #include "pmacc_types.hpp"
+
 
 namespace PMacc
 {

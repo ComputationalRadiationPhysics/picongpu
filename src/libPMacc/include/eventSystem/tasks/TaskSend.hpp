@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
+/* Copyright 2013-2017 Felix Schmitt, Rene Widera, Wolfgang Hoenig,
  *                     Benjamin Worpitz
  *
  * This file is part of libPMacc.
@@ -93,7 +92,7 @@ namespace PMacc
 
         virtual ~TaskSend()
         {
-            notify(this->myId, SENDFINISHED, NULL);
+            notify(this->myId, SENDFINISHED, nullptr);
         }
 
         void event(id_t, EventType type, IEventData*)

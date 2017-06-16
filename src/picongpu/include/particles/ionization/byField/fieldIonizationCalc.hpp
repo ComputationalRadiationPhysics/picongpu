@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Marco Garten
+/* Copyright 2015-2017 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -21,7 +20,7 @@
 #pragma once
 
 #include "particles/ionization/byField/ADK/AlgorithmADK.hpp"
-#include "particles/ionization/byField/BSI/AlgorithmBSIHydrogenLike.hpp"
+#include "particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
 #include "particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"

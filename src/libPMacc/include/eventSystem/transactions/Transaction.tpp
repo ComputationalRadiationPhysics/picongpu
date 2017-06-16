@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -54,7 +53,7 @@ void Transaction::operation( ITask::TaskType operation )
         Manager &manager = Environment<>::get( ).Manager( );
 
         ITask* baseTask = manager.getITaskIfNotFinished( this->baseEvent.getTaskId( ) );
-        if ( baseTask != NULL )
+        if ( baseTask != nullptr )
         {
             if ( baseTask->getTaskType( ) == ITask::TASK_CUDA )
             {
@@ -71,7 +70,7 @@ EventStream* Transaction::getEventStream( ITask::TaskType )
     Manager &manager = Environment<>::get( ).Manager( );
     ITask* baseTask = manager.getITaskIfNotFinished( this->baseEvent.getTaskId( ) );
 
-    if ( baseTask != NULL )
+    if ( baseTask != nullptr )
     {
         if ( baseTask->getTaskType( ) == ITask::TASK_CUDA )
         {

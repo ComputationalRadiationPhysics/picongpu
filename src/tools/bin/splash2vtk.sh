@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2016 Axel Huebl
+# Copyright 2013-2017 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -149,7 +149,7 @@ do
   #z=$((tz-1))
   #z=$tz
   echo "  <Piece Extent=\"1 $nx 1 $ny $z $zm\" Source=\"slab_$zm.vti\"/>" >> pslab.pvti
-  
+
   if [ $zm -lt $nz ]; then
     z=$((zm))
   else

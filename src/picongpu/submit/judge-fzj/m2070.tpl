@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2016 Axel Huebl, Rene Widera, Richard Pausch, Wen Fu
+# Copyright 2013-2017 Axel Huebl, Rene Widera, Richard Pausch, Wen Fu
 #
 # This file is part of PIConGPU.
 #
@@ -45,6 +45,7 @@
 .TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
+.TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 #number of cores per parallel node / default is 2 cores per gpu on k20 queue
 
@@ -81,7 +82,12 @@ export LD_LIBRARY_PATH=$BOOST_LIB_EXT:$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib:$CUDA
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-mpiexec -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+# test if cuda_memtest binary is available
+if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
+  mpiexec -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+else
+  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+fi
 
 if [ $? -eq 0 ] ; then
    mpiexec  -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output

@@ -49,8 +49,10 @@ get_driver_info(char* info, unsigned int len)
     if ( fgets(info, len, file) == NULL){
 	PRINTF("Warning: reading file failed\n");
 	info[0] = 0;
+	fclose(file);
 	return;
     }
+    fclose(file);
 
     PRINTF("%s", info);
 

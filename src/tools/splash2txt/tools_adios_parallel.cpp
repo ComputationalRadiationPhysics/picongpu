@@ -1,5 +1,4 @@
-/*
- * Copyright 2014-2016 Felix Schmitt, Conrad Schumann, Axel Huebl
+/* Copyright 2014-2017 Felix Schmitt, Conrad Schumann, Axel Huebl
  *
  * This file is part of splash2txt.
  *
@@ -62,7 +61,7 @@ void ToolsAdiosParallel::convertToText()
 
         pVarInfo = adios_inq_var(pFile, nodeName.c_str());
 
-        varTypeSize = adios_type_size(pVarInfo->type, NULL);
+        varTypeSize = adios_type_size(pVarInfo->type, nullptr);
 
         // get number of elements combined in a dataset
         for(int j = 0; j < pVarInfo->ndim; j++)
@@ -72,12 +71,12 @@ void ToolsAdiosParallel::convertToText()
         // allocate memory
         P = (uint8_t*) malloc (sizeof(uint8_t) * varTypeSize * varElement);
 
-        adios_schedule_read(pFile, NULL, nodeName.c_str(), 0, 1, P);
+        adios_schedule_read(pFile, nullptr, nodeName.c_str(), 0, 1, P);
 
         adios_perform_reads(pFile, 1);
 
         if(pVarInfo->ndim > 0)
-        {        
+        {
             for(int k = 0; k < varElement; k++)
             {
                 printValue(pVarInfo->type, &P[k*varTypeSize]);

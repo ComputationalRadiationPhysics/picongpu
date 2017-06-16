@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Benjamin Worpitz
  *
  * This file is part of libPMacc.
  *
@@ -26,9 +25,9 @@
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 #include "Environment.hpp"
+#include "assert.hpp"
 #include "pmacc_types.hpp"
 
-#include <cassert>
 #include <limits>
 
 namespace PMacc
@@ -55,7 +54,7 @@ namespace PMacc
          * @param physicalMemorySize size of the physical memory (in elements)
          */
         Buffer(DataSpace<DIM> size, DataSpace<DIM> physicalMemorySize) :
-        data_space(size), data1D(true), current_size(NULL), m_physicalMemorySize(physicalMemorySize)
+        data_space(size), data1D(true), current_size(nullptr), m_physicalMemorySize(physicalMemorySize)
         {
             CUDA_CHECK(cudaMallocHost(&current_size, sizeof (size_t)));
             *current_size = size.productOfComponents();
@@ -167,7 +166,7 @@ namespace PMacc
         virtual void setCurrentSize(const size_t newsize)
         {
             __startOperation(ITask::TASK_HOST);
-            assert(static_cast<size_t>(newsize) <= static_cast<size_t>(data_space.productOfComponents()));
+            PMACC_ASSERT(static_cast<size_t>(newsize) <= static_cast<size_t>(data_space.productOfComponents()));
             *current_size = newsize;
         }
 

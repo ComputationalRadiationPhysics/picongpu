@@ -1,5 +1,4 @@
-/**
- * Copyright 2013-2016 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -19,30 +18,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
-#include "simulation_types.hpp"
+#include <mpi.h>
 
-#include "simulation_classTypes.hpp"
+#include "simulation_defines.hpp"
+
+#include "plugins/ILightweightPlugin.hpp"
+#include "fields/FieldE.hpp"
+
+#include "memory/boxes/CachedBox.hpp"
+#include "basicOperations.hpp"
+#include "dimensions/SuperCellDescription.hpp"
+#include "math/Vector.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
+#include "memory/shared/Allocate.hpp"
+#include "memory/Array.hpp"
+#include "dataManagement/DataConnector.hpp"
 
 #include <string>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <mpi.h>
 
-#include "plugins/ILightweightPlugin.hpp"
-
-#include "fields/FieldE.hpp"
-#include "memory/boxes/CachedBox.hpp"
-#include "basicOperations.hpp"
-#include "dimensions/SuperCellDescription.hpp"
-#include "math/Vector.hpp"
 
 namespace picongpu
 {
@@ -51,67 +49,70 @@ using namespace PMacc;
 /* count particles in an area
  * is not optimized, it checks any particle position if it is really a particle
  */
-template<class FieldBox, class BoxMax, class BoxIntegral>
-__global__ void kernelIntensity(FieldBox field, DataSpace<simDim> cellsCount, BoxMax boxMax, BoxIntegral integralBox)
+struct KernelIntensity
 {
-
-    typedef MappingDesc::SuperCellSize SuperCellSize;
-    __shared__ float_X s_integrated[SuperCellSize::y::value];
-    __shared__ float_X s_max[SuperCellSize::y::value];
-
-
-    /*descripe size of a worker block for cached memory*/
-    typedef SuperCellDescription<
-        PMacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
-        > SuperCell2D;
-
-    PMACC_AUTO(s_field, CachedBox::create < 0, float_32> (SuperCell2D()));
-
-    int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
-    int yGlobal = y + SuperCellSize::y::value;
-    const DataSpace<DIM2> threadId(threadIdx);
-
-    if (threadId.x() == 0)
+    template<class FieldBox, class BoxMax, class BoxIntegral>
+    DINLINE void operator()(FieldBox field, DataSpace<simDim> cellsCount, BoxMax boxMax, BoxIntegral integralBox) const
     {
-        /*clear destination arrays*/
-        s_integrated[threadId.y()] = float_X(0.0);
-        s_max[threadId.y()] = float_X(0.0);
-    }
-    __syncthreads();
 
-    /*move cell wise over z direction(without garding cells)*/
-    for (int z = GUARD_SIZE * SuperCellSize::z::value; z < cellsCount.z() - GUARD_SIZE * SuperCellSize::z::value; ++z)
-    {
-        /*move supercell wise over x direction without guarding*/
-        for (int x = GUARD_SIZE * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GUARD_SIZE * SuperCellSize::x::value; x += SuperCellSize::x::value)
+        typedef MappingDesc::SuperCellSize SuperCellSize;
+        PMACC_SMEM( s_integrated, memory::Array< float_X,SuperCellSize::y::value > );
+        PMACC_SMEM( s_max, memory::Array< float_X, SuperCellSize::y::value > );
+
+
+        /*descripe size of a worker block for cached memory*/
+        typedef SuperCellDescription<
+            PMacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
+            > SuperCell2D;
+
+        auto s_field = CachedBox::create < 0, float_32 > (SuperCell2D());
+
+        int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
+        int yGlobal = y + SuperCellSize::y::value;
+        const DataSpace<DIM2> threadId(threadIdx);
+
+        if (threadId.x() == 0)
         {
-            const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
-            s_field(threadId) = math::abs2(field_at_point);
-            __syncthreads();
-            if (threadId.x() == 0)
-            {
-                /*master threads moves cell wise over 2D supercell*/
-                for (int x_local = 0; x_local < SuperCellSize::x::value; ++x_local)
-                {
-                    DataSpace<DIM2> localId(x_local, threadId.y());
-                    s_integrated[threadId.y()] += s_field(localId);
-                    s_max[threadId.y()] = fmaxf(s_max[threadId.y()], s_field(localId));
+            /*clear destination arrays*/
+            s_integrated[threadId.y()] = float_X(0.0);
+            s_max[threadId.y()] = float_X(0.0);
+        }
+        __syncthreads();
 
+        /*move cell wise over z direction(without garding cells)*/
+        for (int z = GUARD_SIZE * SuperCellSize::z::value; z < cellsCount.z() - GUARD_SIZE * SuperCellSize::z::value; ++z)
+        {
+            /*move supercell wise over x direction without guarding*/
+            for (int x = GUARD_SIZE * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GUARD_SIZE * SuperCellSize::x::value; x += SuperCellSize::x::value)
+            {
+                const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
+                s_field(threadId) = math::abs2(field_at_point);
+                __syncthreads();
+                if (threadId.x() == 0)
+                {
+                    /*master threads moves cell wise over 2D supercell*/
+                    for (int x_local = 0; x_local < SuperCellSize::x::value; ++x_local)
+                    {
+                        DataSpace<DIM2> localId(x_local, threadId.y());
+                        s_integrated[threadId.y()] += s_field(localId);
+                        s_max[threadId.y()] = fmaxf(s_max[threadId.y()], s_field(localId));
+
+                    }
                 }
             }
         }
+        __syncthreads();
+
+        if (threadId.x() == 0)
+        {
+            /*copy result to global array*/
+            integralBox[y] = s_integrated[threadId.y()];
+            boxMax[y] = s_max[threadId.y()];
+        }
+
+
     }
-    __syncthreads();
-
-    if (threadId.x() == 0)
-    {
-        /*copy result to global array*/
-        integralBox[y] = s_integrated[threadId.y()];
-        boxMax[y] = s_max[threadId.y()];
-    }
-
-
-}
+};
 
 class IntensityPlugin : public ILightweightPlugin
 {
@@ -124,8 +125,8 @@ private:
     MappingDesc *cellDescription;
     uint32_t notifyFrequency;
 
-    std::string analyzerName;
-    std::string analyzerPrefix;
+    std::string pluginName;
+    std::string pluginPrefix;
 
     std::ofstream outFileMax;
     std::ofstream outFileIntegrated;
@@ -138,11 +139,11 @@ public:
      * integrated is the integral of amplidude of X and Z on Y position (is V/m in cell volume)
      */
     IntensityPlugin() :
-    analyzerName("IntensityPlugin: calculate the maximum and integrated E-Field energy\nover laser propagation direction"),
-    analyzerPrefix(FieldE::getName() + std::string("_intensity")),
-    localMaxIntensity(NULL),
-    localIntegratedIntensity(NULL),
-    cellDescription(NULL),
+    pluginName("IntensityPlugin: calculate the maximum and integrated E-Field energy\nover laser propagation direction"),
+    pluginPrefix(FieldE::getName() + std::string("_intensity")),
+    localMaxIntensity(nullptr),
+    localIntegratedIntensity(nullptr),
+    cellDescription(nullptr),
     notifyFrequency(0),
     writeToFile(false)
     {
@@ -163,13 +164,13 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ((analyzerPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyFrequency), "enable analyser [for each n-th step]");
+            ((pluginPrefix + ".period").c_str(),
+             po::value<uint32_t > (&notifyFrequency), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
     {
-        return analyzerName;
+        return pluginName;
     }
 
     void setMappingDescription(MappingDesc *cellDescription)
@@ -191,8 +192,8 @@ private:
 
             if (writeToFile)
             {
-                createFile(analyzerPrefix + "_max.dat", outFileMax);
-                createFile(analyzerPrefix + "_integrated.dat", outFileIntegrated);
+                createFile(pluginPrefix + "_max.dat", outFileMax);
+                createFile(pluginPrefix + "_integrated.dat", outFileIntegrated);
             }
 
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyFrequency);
@@ -330,15 +331,15 @@ private:
     {
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        FieldE* fieldE = &(dc.getData<FieldE > (FieldE::getName(), true));
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
 
         /*start only worker for any supercell in laser propagation direction*/
-        dim3 grid(1, cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
+        DataSpace<DIM2> grid(1,cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
         /*use only 2D slice XY for supercell handling*/
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
-        dim3 block(PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT().toDim3());
+        auto block = PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT();
 
-        __cudaKernel(kernelIntensity)
+        PMACC_KERNEL(KernelIntensity{})
             (grid, block)
             (
              fieldE->getDeviceDataBox(),
@@ -346,6 +347,8 @@ private:
              localMaxIntensity->getDeviceBuffer().getDataBox(),
              localIntegratedIntensity->getDeviceBuffer().getDataBox()
              );
+
+        dc.releaseData( FieldE::getName() );
 
         localMaxIntensity->deviceToHost();
         localIntegratedIntensity->deviceToHost();
@@ -361,7 +364,7 @@ private:
         stream.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
         if (!stream)
         {
-            std::cerr << "Can't open file [" << filename << "] for output, diasble analyser output. " << std::endl;
+            std::cerr << "Can't open file [" << filename << "] for output, diasble plugin output. " << std::endl;
             writeToFile = false;
         }
         stream << "#step position_in_laser_propagation_direction" << std::endl;
