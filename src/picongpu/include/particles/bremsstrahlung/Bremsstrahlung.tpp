@@ -83,7 +83,11 @@ void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::init
     nvidia::functors::Assign assign;
     /* copy fields from global to shared */
     const auto fieldIonDensityBlock = ionDensityBox.shift(blockCell);
-    ThreadCollective<BlockArea> collective(linearThreadIdx);
+
+    ThreadCollective<
+        BlockArea,
+        PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+    > collective( linearThreadIdx );
     collective(
               assign,
               cachedIonDensity,

@@ -32,72 +32,61 @@
 namespace PMacc
 {
 
-/** execute a functor on a domain
+/** execute a functor for each cell of a domain
  *
- * For each argument passed to the functor the `operator()` is called.
- * This is a **collective** functor and needs to be called by all worker within a block.
+ * the user functor is executed on each elements of the full domain (GUARD +CORE)
  *
- * @tparam T_BlockDomain domain description, type mist contain the definitions `SuperCellSize`,
- *                       `FullSuperCellSize`, `OffsetOrigin` and `Dim`
- * @tparam T_numWorkers number of workers which are used to execute this functor
+ * @tparam T_DataDomain PMacc::SuperCellDescription, compile time data domain
+ *                      description with a CORE and GUARD
+ * @tparam T_numWorkers number of workers
  */
 template<
-    typename T_BlockDomain,
-    uint32_t T_numWorkers = math::CT::volume<typename T_BlockDomain::SuperCellSize>::type::value
+    typename T_DataDomain,
+    uint32_t T_numWorkers
 >
 class ThreadCollective
 {
 private:
-    /** size of the inner domain */
-    using SuperCellSize = typename T_BlockDomain::SuperCellSize;
+    // size of the CORE (in elements per dimension)
+    using CoreDomainSize = typename T_DataDomain::SuperCellSize;
+    // full size of the domain including the GUARD (in elements per dimension)
+    using DomainSize = typename T_DataDomain::FullSuperCellSize;
+    // offset (in elements per dimension) from the GUARD origin to the CORE
+    using OffsetOrigin = typename T_DataDomain::OffsetOrigin;
 
-    /** full size of the domain including the guards around SuperCellSize */
-    using FullSuperCellSize = typename T_BlockDomain::FullSuperCellSize;
-
-    /** size of the negative guard */
-    using OffsetOrigin = typename T_BlockDomain::OffsetOrigin;
-
-    /** number of worker performing the functior */
     static constexpr uint32_t numWorkers = T_numWorkers;
+    static constexpr uint32_t dim = T_DataDomain::Dim;
 
-    /** dimensionality of the index domain */
-    static constexpr uint32_t dim = T_BlockDomain::Dim;
-
-    /** index of the worker: range [0;numWorkers) */
-    PMACC_ALIGN( m_workerIdx, uint32_t const );
+    const PMACC_ALIGN(
+        m_workerIdx,
+        uint32_t
+    );
 
 public:
 
     /** constructor
      *
-     * @param workerIdx worker index
+     * @param workerIdx index of the worker
      */
     DINLINE ThreadCollective( uint32_t const workerIdx ) :
         m_workerIdx( workerIdx )
-    { }
+    {
+    }
 
-    /** constructor
+    /** execute the user functor for each element in the full domain
      *
-     * @warning this constructor is **deprecated** (assuming that the index domain
-     *          and the number of workers needs to be euqal is not good and avoid the
-     *          usage of alpaka)
+     * @tparam T_Functor type of the user functor, must have a `void operator()`
+     *                   with as many arguments as args contains
+     * @tparam T_Args type of the arguments, each type must implement an operator
+     *                 `template<typename T, typename R> R operator(T)`
      *
-     * @param nDimWorkerIdx n dimensional worker index
-     */
-    DINLINE ThreadCollective( DataSpace< dim > const nDimWorkerIdx ) :
-        m_workerIdx( DataSpaceOperations< dim >::template map< SuperCellSize >( nDimWorkerIdx ) )
-    { }
-
-    /** execute a functor for each data point
-     *
-     * @tparam T_Functor type of the functor
-     * @tparam T_Args type of arguments given to the functor
-     *
-     * @param functor functor which is called for each data element in the domain
-     *                spanned by T_BlockDomain
-     * @param args the result of each argument of the `operator( relativeNDimensionalIdx )` call
-     *             with the relative index inside `T_BlockDomain` based on
-     *             the origin `T_BlockDomain::OffsetOrigin` is passed to the functor
+     * @param functor user defined functor
+     * @param args arguments passed to the functor
+     *             The method `template<typename T, typename R> R operator(T)`
+     *             is called for each argument, the result is passed to the
+     *             functor `functor::operator()`.
+     *             `T` is a N-dimensional vector of an index relative to the origin
+     *             of data domain GUARD
      */
     template<
         typename T_Functor,
@@ -108,19 +97,26 @@ public:
         T_Args && ... args
     )
     {
-        mappings::threads::ForEachIdx<
-            mappings::threads::IdxConfig<
-                math::CT::volume<FullSuperCellSize>::type::value,
+        using namespace mappings::threads;
+        ForEachIdx<
+            IdxConfig<
+                math::CT::volume< DomainSize >::type::value,
                 numWorkers
             >
         >{ m_workerIdx }(
-            [&]( uint32_t const linearIdx, uint32_t const )
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
             {
-                DataSpace< dim > const relativeIdx(
-                    DataSpaceOperations< dim >::template map< FullSuperCellSize >( linearIdx ) -
+                /* offset (in elements) of the current processed element relative
+                 * to the origin of the core domain
+                 */
+                DataSpace< dim > const offset(
+                    DataSpaceOperations< dim >::template map< DomainSize >( linearIdx ) -
                     OffsetOrigin::toRT( )
                 );
-                functor( args( relativeIdx ) ... );
+                functor( args( offset ) ... );
             }
         );
     }

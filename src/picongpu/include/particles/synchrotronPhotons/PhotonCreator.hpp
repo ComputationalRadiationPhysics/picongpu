@@ -44,6 +44,7 @@
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "memory/boxes/DataBox.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
 
 
 namespace picongpu
@@ -155,7 +156,10 @@ public:
         nvidia::functors::Assign assign;
         /* copy fields from global to shared */
         auto fieldBBlock = bBox.shift(blockCell);
-        ThreadCollective<BlockArea> collective(linearThreadIdx);
+        ThreadCollective<
+            BlockArea,
+            PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+        > collective( linearThreadIdx );
         collective(
                   assign,
                   cachedB,

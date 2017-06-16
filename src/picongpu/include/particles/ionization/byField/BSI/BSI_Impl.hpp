@@ -129,7 +129,10 @@ namespace ionization
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
 
-                ThreadCollective<BlockArea> collective(linearThreadIdx);
+                ThreadCollective<
+                    BlockArea,
+                    PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+                > collective( linearThreadIdx );
                 /* copy fields from global to shared */
                 auto fieldEBlock = eBox.shift(blockCell);
                 collective(

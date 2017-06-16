@@ -26,7 +26,7 @@
 #include "nvidia/functors/Assign.hpp"
 #include "memory/boxes/CachedBox.hpp"
 #include "memory/dataTypes/Mask.hpp"
-
+#include "dimensions/DataSpaceOperations.hpp"
 #include "nvidia/rng/RNG.hpp"
 #include "nvidia/rng/methods/Xor.hpp"
 #include "nvidia/rng/distributions/Uniform_float.hpp"
@@ -58,7 +58,14 @@ namespace gol
                 const Space threadIndex(threadIdx);
                 auto buffRead_shifted = buffRead.shift(blockCell);
 
-                ThreadCollective<BlockArea> collective(threadIndex);
+                ThreadCollective<
+                    BlockArea,
+                    PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+                > collective(
+                    DataSpaceOperations< BlockArea::Dim >::template map<
+                        typename BlockArea::SuperCellSize
+                    >( threadIndex )
+                );
 
                 nvidia::functors::Assign assign;
                 collective(
