@@ -257,7 +257,7 @@ struct KernelManipulateAllParticles
 
 /** move over all particles
  *
- * Move frame-wise over all  and call a functor for each particle.
+ * Move frame-wise over a species and call a functor for each particle.
  * This kernel is optimized for the particle push step and handles the
  * special flag `mustShift` of the supercell to optimize the kernel shift particles
  * in PMacc.
@@ -317,7 +317,7 @@ struct KernelMoveAndMarkParticles
         // relative offset (in cells) to the supercell (including the guard)
         DataSpace< simDim > const superCellOffset = block * SuperCellSize::toRT();
 
-         using ParticleDomCfg = IdxConfig<
+        using ParticleDomCfg = IdxConfig<
             frameSize,
             numWorkers
         >;
@@ -327,7 +327,7 @@ struct KernelMoveAndMarkParticles
             int
         );
 
-        /* unique for each worker */
+        // current processed frame
         FramePtr frame;
         lcellId_t particlesInSuperCell;
 
@@ -354,7 +354,7 @@ struct KernelMoveAndMarkParticles
         auto cachedB = CachedBox::create <
             0,
             typename T_BBox::ValueType
-        >( T_DataDomain() );
+        >( T_DataDomain( ) );
         auto cachedE = CachedBox::create <
             1,
             typename T_EBox::ValueType
@@ -362,7 +362,7 @@ struct KernelMoveAndMarkParticles
 
         __syncthreads();
 
-        //end kernel if we have no frames
+        // end kernel if we have no frames
         if( !frame.isValid( ) )
            return;
 
@@ -424,8 +424,8 @@ struct KernelMoveAndMarkParticles
                 uint32_t const
             )
             {
-                /* set in SuperCell the mustShift flag which is a optimization
-                 * for shift particles and fillGaps
+                /* set in SuperCell the mustShift flag which is an optimization
+                 * for shift particles (PMacc::KernelShiftParticles)
                  */
                 if( mustShift == 1 )
                 {
