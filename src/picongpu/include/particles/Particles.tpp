@@ -193,41 +193,61 @@ Particles<
     T_Attributes
 >::update(uint32_t )
 {
-    typedef typename GetFlagType<FrameType,particlePusher<> >::type PusherAlias;
-    typedef typename PMacc::traits::Resolve<PusherAlias>::type ParticlePush;
+    using PusherAlias = typename GetFlagType<FrameType,particlePusher<> >::type;
+    using ParticlePush = typename PMacc::traits::Resolve<PusherAlias>::type;
 
-    typedef typename PMacc::traits::Resolve<
-        typename GetFlagType<FrameType,interpolation<> >::type
-        >::type InterpolationScheme;
+    using InterpolationScheme = typename PMacc::traits::Resolve<
+        typename GetFlagType<
+            FrameType,
+            interpolation< >
+        >::type
+    >::type;
 
-    typedef PushParticlePerFrame<ParticlePush, MappingDesc::SuperCellSize,
-        InterpolationScheme > FrameSolver;
+    using FrameSolver = PushParticlePerFrame<
+        ParticlePush,
+        MappingDesc::SuperCellSize,
+        InterpolationScheme
+    >;
 
-    DataConnector &dc = Environment<>::get().DataConnector();
-    auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
-    auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+    DataConnector & dc = Environment< >::get( ).DataConnector( );
+    auto fieldE = dc.get< FieldE >(
+        FieldE::getName(),
+        true
+    );
+    auto fieldB = dc.get< FieldB >(
+        FieldB::getName(),
+        true
+    );
 
     // adjust interpolation area in particle pusher to allow sub-sampling pushes
-    typedef typename GetLowerMarginPusher<Particles>::type LowerMargin;
-    typedef typename GetUpperMarginPusher<Particles>::type UpperMargin;
+    using LowerMargin = typename GetLowerMarginPusher< Particles >::type;
+    using UpperMargin = typename GetUpperMarginPusher< Particles >::type;
 
-    typedef SuperCellDescription<
+    using BlockArea = SuperCellDescription<
         typename MappingDesc::SuperCellSize,
         LowerMargin,
         UpperMargin
-        > BlockArea;
+    >;
 
-    auto block = MappingDesc::SuperCellSize::toRT();
+    AreaMapping<
+        CORE + BORDER,
+        MappingDesc
+    > mapper( this->cellDescription );
 
-    AreaMapping<CORE+BORDER,MappingDesc> mapper(this->cellDescription);
-    PMACC_KERNEL( KernelMoveAndMarkParticles<BlockArea>{} )
-        (mapper.getGridDim(), block)
-        ( this->getDeviceParticlesBox( ),
-          fieldE->getDeviceDataBox( ),
-          fieldB->getDeviceDataBox( ),
-          FrameSolver( ),
-          mapper
-          );
+    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
+        PMacc::math::CT::volume< SuperCellSize >::type::value
+    >::value;
+
+    PMACC_KERNEL( KernelMoveAndMarkParticles< numWorkers, BlockArea >{ } )(
+        mapper.getGridDim(),
+        numWorkers
+    )(
+        this->getDeviceParticlesBox( ),
+        fieldE->getDeviceDataBox( ),
+        fieldB->getDeviceDataBox( ),
+        FrameSolver( ),
+        mapper
+    );
 
     dc.releaseData( FieldE::getName() );
     dc.releaseData( FieldB::getName() );
