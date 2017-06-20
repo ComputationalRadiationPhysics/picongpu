@@ -15,6 +15,8 @@ Preparation
 First, decide where to store input files, a good place might be ``$HOME`` (``~``) because it is usually backed up.
 Second, decide where to store your output of simulations which needs to be placed on a high-bandwidth, large-storage file system which we will refer to as ``$SCRATCH``.
 
+For a first test you can also use your home directory ``$HOME`` as simulation directory ``$SCRATCH``.
+
 As in our :ref:`compiling from source <install-source>` section, we need a few directories to structure our workflow:
 
 .. code-block:: bash
