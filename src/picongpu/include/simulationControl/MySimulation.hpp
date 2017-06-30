@@ -466,10 +466,13 @@ public:
         {
             namespace nvfct = PMacc::nvidia::functors;
 
+            /* subtract the background field as it has been stored in the
+             * checkpoint: at its iteration step = currentStep - 1
+             */
             (*pushBGField)( fieldE, nvfct::Sub(), FieldBackgroundE(fieldE->getUnit()),
-                            step, FieldBackgroundE::InfluenceParticlePusher);
+                            step - 1u, FieldBackgroundE::InfluenceParticlePusher);
             (*pushBGField)( fieldB, nvfct::Sub(), FieldBackgroundB(fieldB->getUnit()),
-                            step, FieldBackgroundB::InfluenceParticlePusher);
+                            step - 1u, FieldBackgroundB::InfluenceParticlePusher);
         }
 
         // communicate all fields
