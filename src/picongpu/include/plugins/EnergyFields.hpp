@@ -217,8 +217,8 @@ private:
         localReducedFieldEnergy[1] = reduceField(fieldE);
 
         mpiReduce(nvidia::functors::Add(),
-                  &globalFieldEnergy,
-                  &localReducedFieldEnergy,
+                  globalFieldEnergy,
+                  localReducedFieldEnergy,
                   2,
                   mpi::reduceMethods::Reduce());
 
