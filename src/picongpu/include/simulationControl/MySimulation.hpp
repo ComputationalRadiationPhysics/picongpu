@@ -437,7 +437,7 @@ public:
                 }
 
                 initialiserController->restart((uint32_t)this->restartStep, this->restartDirectory);
-                step = this->restartStep + 1;
+                step = this->restartStep;
             }
             else
             {
@@ -459,7 +459,7 @@ public:
         auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
         auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
-        if( step != 0 )
+        if( this->restartRequested )
         {
             namespace nvfct = PMacc::nvidia::functors;
 
