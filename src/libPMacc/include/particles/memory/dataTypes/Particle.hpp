@@ -81,7 +81,31 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
      * ATTENTION: The pointer must be the last member to avoid local memory usage
      *            https://github.com/ComputationalRadiationPhysics/picongpu/pull/762
      */
-    PMACC_ALIGN(frame, FrameType* const);
+    PMACC_ALIGN(frame, FrameType*);
+
+    /** set particle handle to invalid
+     *
+     * This method set the particle handle to invalid. It is possible to proof with
+     * the method isHandleValid if the particle is valid.
+     * If the particle is set to invalid it is not allowed to call any method other
+     * than isHandleValid or setHandleInvalid.
+     */
+    HDINLINE void setHandleInvalid()
+    {
+        frame = nullptr;
+    }
+
+    /** check if particle handle is valid
+     *
+     * A valid particle handle means that the memory behind the handle can be used
+     * save, it not means that the particle multiMask is `>= 1`.
+     *
+     * @return true if the particle handle is valid, else false
+     */
+    HDINLINE bool isHandleValid() const
+    {
+        return frame != nullptr;
+    }
 
     /** create particle
      *
