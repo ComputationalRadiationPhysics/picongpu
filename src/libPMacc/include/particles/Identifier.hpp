@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Rene Widera, Alexander Grund
+/* Copyright 2013-2017 Rene Widera, Alexander Grund, Axel Huebl
  *
  * This file is part of libPMacc.
  *
@@ -26,24 +26,29 @@
 #include "identifier/alias.hpp"
 #include "particles/frame_types.hpp"
 
+
 namespace PMacc
 {
+    /** cell of a particle inside a supercell
+     *
+     * Value is a linear cell index inside the supercell
+     */
+    value_identifier(lcellId_t, localCellIdx, 0);
 
-/** position of a particle inside a supercell
- *
- * Value is a linear index inside the supercell
- */
-value_identifier(lcellId_t,localCellIdx,0);
+    /** state of a particle
+     *
+     * Particle might be valid or invalid in a particle frame.
+     * Valid particles can further be marked as candidates to leave a supercell.
+     * Possible multiMask values are:
+     *  - 0 (zero): no particle (invalid)
+     *  - 1: particle (valid)
+     *  - 2 to 27: (valid) particle that is about to leave its supercell but is
+     *             still stored in the current particle frame.
+     * Directions to leave the supercell are defined as follows.
+     * An ExchangeType = value - 1 (e.g. 27 - 1 = 26) means particle leaves supercell
+     * in the direction of FRONT(value=18) && TOP(value=6) && LEFT(value=2) which
+     * defines a diagonal movement over a supercell corner (18+6+2=26).
+     */
+    value_identifier(uint8_t, multiMask, 0);
 
-/** Is a value to set stages (is particle, is no particle,... of a particle
- *
- * if multiMask is set to:
- *  - 0 (zero) it is no particle
- *  - 1 it is a particle
- *  - 2 to 27 is used to define whether a particle leaf a supercell
- *    ExchangeType = value - 1 (e.g. 27 - 1 = 26 means particle leaves supercell
- *    over FRONT(value=18) TOP(value=6) LEFT(value=2) corner -> 18+6+2=26
- */
-value_identifier(uint8_t,multiMask,0);
-
-} //namespace PMacc
+} // namespace PMacc
