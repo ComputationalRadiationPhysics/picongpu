@@ -85,10 +85,11 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
 
     /** set particle handle to invalid
      *
-     * This method set the particle handle to invalid. It is possible to proof with
+     * This method sets the particle handle to invalid. It is possible to test with
      * the method isHandleValid if the particle is valid.
      * If the particle is set to invalid it is not allowed to call any method other
-     * than isHandleValid or setHandleInvalid.
+     * than isHandleValid or setHandleInvalid, but it does not mean the particle is
+     * deactivated outside of this instance.
      */
     HDINLINE void setHandleInvalid()
     {
@@ -98,7 +99,7 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     /** check if particle handle is valid
      *
      * A valid particle handle means that the memory behind the handle can be used
-     * save, it not means that the particle multiMask is `>= 1`.
+     * savely. A valid handle does not mean that the particle's multiMask is valid (>=1).
      *
      * @return true if the particle handle is valid, else false
      */
