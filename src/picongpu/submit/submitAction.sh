@@ -18,21 +18,34 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
+## check if input files are newer than the picongpu binary
+newerFiles=$(find $TBG_projectPath/include -type f \
+  -newer $TBG_projectPath/bin/picongpu)
+numNewerFiles=$(echo -e "$newerFiles" | wc -l)
+if [ $numNewerFiles -gt 0 ]
+then
+  (>&2 echo "WARNING: $numNewerFiles input file(s) in include/")
+  (>&2 echo "         have been modified since the last compile!")
+  (>&2 echo "         Did you forget to recompile?")
+  (>&2 echo "List of modified files:")
+  (>&2 echo -e "$newerFiles")
+fi
+
 ## copy memcheck programs
 cd $TBG_dstPath
 mkdir picongpu
-cp -r $TBG_projectPath/bin picongpu
-cp -r $TBG_projectPath/include picongpu
-cp -r $TBG_projectPath/submit picongpu
+cp -ar $TBG_projectPath/bin picongpu
+cp -ar $TBG_projectPath/include picongpu
+cp -ar $TBG_projectPath/submit picongpu
 if [ -d "$TBG_projectPath/lib" ]
 then
-  cp -r $TBG_projectPath/lib picongpu
+  cp -ar $TBG_projectPath/lib picongpu
 fi
 if [ -f $TBG_projectPath/cmakeFlags ]
 then
-  cp $TBG_projectPath/cmakeFlags picongpu
+  cp -a $TBG_projectPath/cmakeFlags picongpu
 fi
 cp -a $TBG_cfgPath/openib.conf tbg
-cp $TBG_cfgPath/cuda.filter tbg
-cp $TBG_cfgPath/scorep.filter tbg
-cp $0 tbg
+cp -a $TBG_cfgPath/cuda.filter tbg
+cp -a $TBG_cfgPath/scorep.filter tbg
+cp -a $0 tbg
