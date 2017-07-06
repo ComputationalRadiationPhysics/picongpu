@@ -67,6 +67,13 @@ speciesAttributes.param
    :path: src/picongpu/include/simulation_defines/param/speciesAttributes.param
    :no-link:
 
+The following species attributes are defined by PMacc and always stored with a particle:
+
+.. doxygenfile:: Identifier.hpp
+   :project: PIConGPU
+   :path: src/libPMacc/include/particles/Identifier.hpp
+   :no-link:
+
 speciesConstants.param
 ^^^^^^^^^^^^^^^^^^^^^^
 
