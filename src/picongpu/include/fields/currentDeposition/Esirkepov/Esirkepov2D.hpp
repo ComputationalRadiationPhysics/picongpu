@@ -151,28 +151,38 @@ struct Esirkepov<T_ParticleShape, DIM2>
         if(line.m_pos0[0] == line.m_pos1[0])
             return;
 
-        for(int j = begin; j < end + 1; ++j)
-            if(j < end + leaveCell[1])
+        /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
+         * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1)
+         */
+        const float_X currentSurfaceDensity = this->charge * ( float_X( 1.0 ) / float_X( CELL_VOLUME * DELTA_T ) ) * cellEdgeLength;
+
+        for( int j = begin; j < end + 1; ++j )
+            if( j < end + leaveCell[1] )
             {
-                /* This is the implementation of the FORTRAN W(i,j,k,1)/ C style W(i,j,k,0) version from
-                 * Esirkepov paper. All coordinates are rotated before thus we can
-                 * always use C style W(i,j,k,0).
-                 */
-                float_X tmp = S0(line, j, 1) + float_X(0.5) * DS(line, j, 1);
+                const float_X s0j = S0( line, j, 1 );
+                const float_X dsj = S1( line, j, 1 ) - s0j;
+
+                float_X tmp = -currentSurfaceDensity *
+                    (
+                        s0j +
+                        float_X( 0.5 ) * dsj
+                    );
 
                 float_X accumulated_J = float_X(0.0);
                 /* attention: inner loop has no upper bound `end + 1` because
                  * the current for the point `end` is always zero,
                  * therefore we skip the calculation
                  */
-                for(int i = begin; i < end; ++i)
-                    if(i < end + leaveCell[0] - 1)
+                for( int i = begin; i < end; ++i )
+                    if( i < end + leaveCell[0] - 1 )
                     {
-                        float_X W = DS(line, i, 0) * tmp;
-                        /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
-                         * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1) */
-                        accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;
-                        atomicAddWrapper(&((*cursorJ(i, j)).x()), accumulated_J);
+                        /* This is the implementation of the FORTRAN W(i,j,k,1)/ C style W(i,j,k,0) version from
+                         * Esirkepov paper. All coordinates are rotated before thus we can
+                         * always use C style W(i,j,k,0).
+                         */
+                        const float_X W = DS( line, i, 0 ) * tmp;
+                        accumulated_J += W;
+                        atomicAddWrapper( &( ( *cursorJ( i, j ) ).x() ), accumulated_J );
                     }
             }
 
@@ -184,26 +194,30 @@ struct Esirkepov<T_ParticleShape, DIM2>
                              const Line<float2_X>& line,
                              const float_X v_z)
     {
-        if(v_z == float_X( 0.0 ))
-                return;
+        if( v_z == float_X( 0.0 ) )
+            return;
 
-        for(int j = begin; j < end + 1; ++j)
-            if(j < end + leaveCell[1])
+        const float_X currentSurfaceDensityZ = this->charge * ( float_X( 1.0 ) / float_X( CELL_VOLUME ) ) * v_z;
+
+        for( int j = begin; j < end + 1; ++j )
+            if( j < end + leaveCell[1] )
             {
+                const float_X s0j = S0( line, j, 1 );
+                const float_X dsj = S1( line, j, 1 ) - s0j;
 
-                for(int i = begin; i < end + 1; ++i)
-                    if(i < end + leaveCell[0])
+                for( int i = begin; i < end + 1; ++i )
+                    if( i < end + leaveCell[0] )
                     {
-                        float_X W = S0(line, i, 0) * S0(line, j, 1) +
-                            float_X(0.5) * DS(line, i, 0) * S0(line, j, 1) +
-                            float_X(0.5) * S0(line, i, 0) * DS(line, j, 1)+
-                            (float_X(1.0) / float_X(3.0)) * DS(line, i, 0) * DS(line, j, 1);
+                        const float_X s0i = S0( line, i, 0 );
+                        const float_X dsi = S1( line, i, 0 ) - s0i;
+                        float_X W = s0i * S0( line, j, 1 ) +
+                            float_X( 0.5 ) * ( dsi * s0j + s0i * dsj ) +
+                            ( float_X( 1.0 ) / float_X( 3.0 ) ) * dsi * dsj;
 
-                        const float_X j_z = this->charge * (float_X(1.0) / float_X(CELL_VOLUME)) * W * v_z;
-                        atomicAddWrapper(&((*cursorJ(i, j)).z()), j_z);
+                        const float_X j_z = W * currentSurfaceDensityZ;
+                        atomicAddWrapper( &( ( *cursorJ( i, j ) ).z() ), j_z );
                     }
             }
-
     }
 
     /**
@@ -219,6 +233,17 @@ struct Esirkepov<T_ParticleShape, DIM2>
     DINLINE float_X S0(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
     {
         return ParticleAssign()(gridPoint - line.m_pos0[d]);
+    }
+
+    /** calculate S1 (see paper)
+     * @param line element with previous and current position of the particle
+     * @param gridPoint used grid point to evaluate assignment shape
+     * @param d dimension range {0,1,2} means {x,y,z}
+     *          different to Esirkepov paper, here we use C style
+     */
+    DINLINE float_X S1(const Line<float2_X>& line, const float_X gridPoint, const uint32_t d)
+    {
+        return ParticleAssign()(gridPoint - line.m_pos1[d]);
     }
 
     /** calculate DS (see paper)
