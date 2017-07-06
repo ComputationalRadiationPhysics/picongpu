@@ -39,8 +39,8 @@ namespace detail
 {
     /** Helper class to compare void with void
      *
-     * std::is_same not allows use void as type, by wrapping the type before
-     * compare we can workaround this limitation.
+     * std::is_same does not allow to use void as type. By wrapping the type before
+     * comparing, we can workaround this limitation.
      *
      * @tparam T_Type type to be wrapped
      */
@@ -129,7 +129,7 @@ namespace detail
     /** Interface for a user functor
      *
      * @tparam T_UserFunctor user functor type
-     * @tparam T_numArguments number which must be supported by T_UserFunctor
+     * @tparam T_numArguments number of arguments which must be supported by T_UserFunctor
      * @tparam T_ReturnType required return type of T_UserFunctor
      */
     template<
@@ -195,7 +195,7 @@ namespace detail
          *                     This can be e.g a supercell or cell offset and depends
          *                     of the context where the interface is specialized.
          * @param workerCfg configuration of the worker
-         * @return a instance of the user functor wrapped by the accelerator
+         * @return an instance of the user functor wrapped by the accelerator
          *         functor interface
          */
         template<
@@ -224,7 +224,7 @@ namespace detail
             );
         }
 
-        /** get the user functor name
+        /** get name of the user functor
          *
          * @return name to identify the functor
          */

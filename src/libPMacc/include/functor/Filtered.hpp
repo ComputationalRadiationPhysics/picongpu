@@ -38,7 +38,6 @@ namespace acc
 
     /** interface to combine a filter and a functor on the accelerator
      *
-     *
      * @tparam T_FilterOperator PMacc::filter::operators, type concatenate the
      *                          results of the filter
      * @tparam T_Filter PMacc::filter::Interface, type of the filter
@@ -68,22 +67,22 @@ namespace acc
 
         /** execute the functor depending of the filter result
          *
-         * Call the filter for each argument and if the combined result is true
+         * Call the filter for each argument. If the combined result is true
          * the user functor is called.
          *
-         * @param args arguments passed to the functor
-         *             - the filter is executed for each argument
-         *             - the functor get passed all arguments
+         * @param args arguments passed to the functor if the filter results of
+         *             each argument evaluate to true when combined
          */
         template< typename ... T_Args >
         DINLINE auto operator( )(  T_Args && ... args )
         -> void
         {
-            if(
-                T_FilterOperator{ }(
-                    ( *reinterpret_cast< Filter * >( this ) )( args ) ...
-                )
-            )
+            // call the filter on each argument and combine the results
+            bool const combinedResult = T_FilterOperator{ }(
+                ( *reinterpret_cast< Filter * >( this ) )( args ) ...
+            );
+
+            if( combinedResult )
                 ( *reinterpret_cast< Functor * >( this ) )( args ... );
         }
     };
@@ -110,8 +109,10 @@ namespace acc
 
     /** specialization of Filtered (with unary filter)
      *
-     * This specialization can only used if T_Filter is of the type PMacc::filter::Interface
-     * and T_Functor is of the type PMacc::filter::Interface
+     * This specialization can only be used if T_Filter is of the type PMacc::filter::Interface
+     * and T_Functor is of the type PMacc::functor::Interface.
+     * A unary filters means that each argument can only pass the same filter
+     * check before its results are combined.
      */
     template<
         typename T_FilterOperator,
@@ -239,7 +240,7 @@ namespace acc
             );
         }
 
-        /** get the of the filtered functor
+        /** get name the of the filtered functor
          *
          * @return combination of the filter and functor name, the names are
          *         separated by an underscore `_`

@@ -47,7 +47,7 @@ namespace operators
         /** get AND combined result
          *
          * @param args arguments to combine
-         * @return the input argument
+         * @return AND combination of all arguments
          */
         template<
             typename T_Arg1,
