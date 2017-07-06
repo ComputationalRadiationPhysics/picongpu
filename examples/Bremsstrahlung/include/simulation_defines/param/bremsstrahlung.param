@@ -124,7 +124,7 @@ namespace photon
      *
      * The emission probability is proportional to this parameter.
      */
-    constexpr float_64 WEIGHTING_RATIO = 100;
+    constexpr float_64 WEIGHTING_RATIO = 5;
 } // namespace photon
 
 } // namespace bremsstrahlung
