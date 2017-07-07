@@ -25,10 +25,8 @@ This exposes the ISAAC port to connect via the webclient to.
 .. code:: bash
 
     nivida-docker pull ax3l/picongpu
-    nvidia-docker run -d ax3l/picongpu -p 2459:2459 isaac
-    # in a second terminal
-    nvidia-docker run -it ax3l/picongpu start_lwfa.sh
-    # open a browser for the ISAAC client ...
+    nvidia-docker run -p 2459:2459 -t ax3l/picongpu:0.3.0 /bin/bash -lc start_lwfa
+    # open firefox and isaac client
 
 Maintainer / Developer
 ----------------------

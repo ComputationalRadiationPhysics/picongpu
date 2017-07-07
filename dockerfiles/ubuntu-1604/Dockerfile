@@ -77,4 +77,5 @@ RUN        /bin/bash -l -c ' \
                make -j install && \
                rm -rf ../build/*'
 
+COPY       start_lwfa.sh /usr/bin/start_lwfa
 CMD        /bin/bash -l
