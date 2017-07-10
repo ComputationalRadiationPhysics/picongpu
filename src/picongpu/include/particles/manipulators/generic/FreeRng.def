@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include "simulation_defines.hpp"
+
+#include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/placeholders.hpp>
 
 
@@ -28,12 +31,15 @@ namespace particles
 {
 namespace manipulators
 {
+namespace generic
+{
 
     /** call simple free user defined functor and provide a random number generator
      *
      *
      * @tparam T_Functor user defined unary functor
      * @tparam T_Distribution random number distribution
+     * @tparam T_Seed seed to initialize the random number generator
      * @tparam T_SpeciesType type of the species that shall be manipulated
      *
      * example: add
@@ -49,7 +55,7 @@ namespace manipulators
      *       }
      *   };
      *
-     *   typedef FreeRngImpl<
+     *   typedef FreeRng<
      *      RandomXFunctor,
      *      nvidia::rng::distributions::Uniform_float
      *   > RandomXPos;
@@ -60,10 +66,15 @@ namespace manipulators
     template<
         typename T_Functor,
         typename T_Distribution,
+        typename T_Seed = boost::mpl::integral_c<
+            size_t,
+            FREERNG_SEED
+        >,
         typename T_SpeciesType = boost::mpl::_1
     >
-    struct FreeRngImpl;
+    struct FreeRng;
 
+} // namespace generic
 } // namespace manipulators
 } // namespace particles
 } // namespace picongpu

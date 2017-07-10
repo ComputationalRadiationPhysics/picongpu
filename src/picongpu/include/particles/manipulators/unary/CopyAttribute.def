@@ -17,10 +17,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "particles/manipulators/FreeImpl.def"
+#include "particles/manipulators/generic/Free.def"
+
 
 namespace picongpu
 {
@@ -28,21 +28,44 @@ namespace particles
 {
 namespace manipulators
 {
+namespace unary
+{
+namespace detail
+{
 
-    namespace detail
+    /** helper functor to copy a particle source attribute to a destination attribute
+     *
+     * @tparam T_DestAttribute type of the destination attribute e.g. `momentumPrev1`
+     * @tparam T_SrcAttribute type of the source attribute e.g. `momentum`
+     */
+    template<
+        typename T_DestAttribute,
+        typename T_SrcAttribute
+    >
+    struct CopyAttribute
     {
-        /**  helper functor to copy a particle source attribute to a destination attribute
+        /** copy attribute
          *
-         * @tparam T_DestAttribute type of the destination attribute e.g. `momentumPrev1`
-         * @tparam T_SrcAttribute type of the source attribute e.g. `momentum`
+         * @tparam T_Particle PMacc::Particle, particle type
+         * @tparam T_Args PMacc::Particle, arbitrary number of particles types
+         *
+         * @param particle particle to be manipulated
+         * @param ... unused particles
          */
         template<
-            typename T_DestAttribute,
-            typename T_SrcAttribute
+            typename T_Particle,
+            typename ... T_Args
         >
-        struct CopyAttributeFunctor;
+        DINLINE void operator( )(
+            T_Particle & particle,
+            T_Args && ...
+        )
+        {
+            particle[ T_DestAttribute{ } ] = particle[ T_SrcAttribute{ } ];
+        }
+    };
 
-    } // namespace detail
+} // namespace detail
 
     /**  copy a particle source attribute to a destination attribute
      *
@@ -55,13 +78,14 @@ namespace manipulators
         typename T_DestAttribute,
         typename T_SrcAttribute
     >
-    using CopyAttribute = FreeImpl<
-        detail::CopyAttributeFunctor<
+    using CopyAttribute = generic::Free<
+        detail::CopyAttribute<
             T_DestAttribute,
             T_SrcAttribute
         >
     >;
 
-} //namespace manipulators
-} //namespace particles
-} //namespace picongpu
+} // namespace unary
+} // namespace manipulators
+} // namespace particles
+} // namespace picongpu

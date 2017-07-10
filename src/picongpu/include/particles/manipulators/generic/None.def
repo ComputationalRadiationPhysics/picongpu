@@ -1,4 +1,4 @@
-/* Copyright 2017 Rene Widera
+/* Copyright 2015-2017 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -17,10 +17,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include "particles/manipulators/FreeImpl.hpp"
+#include "particles/manipulators/generic/Free.def"
 
 
 namespace picongpu
@@ -29,28 +28,29 @@ namespace particles
 {
 namespace manipulators
 {
-
-    namespace detail
+namespace generic
+{
+namespace acc
+{
+    struct None
     {
-        template<
-            typename T_DestAttribute,
-            typename T_SrcAttribute
-        >
-        struct CopyAttributeFunctor
+        template< typename ... T_Args >
+        DINLINE void
+        operator( )( T_Args && ... )
         {
-            /** copy attribute
-             *
-             * @tparam T_Particle particle type
-             * @param particle particle to be manipulated
-             */
-            template< typename T_Particle >
-            DINLINE void operator()( T_Particle & particle )
-            {
-                particle[ T_DestAttribute{} ] = particle[ T_SrcAttribute{} ];
-            }
-        };
-    } // namespace detail
+        }
+    };
+} // namespace acc
 
-} //namespace manipulators
-} //namespace particles
-} //namespace picongpu
+    /** do nothing with the particle
+     *
+     * The call of this functor results in an empty operation
+     */
+    using None = Free<
+        acc::None
+    >;
+
+} // namespace generic
+} // namespace manipulators
+} // namespace particles
+} // namespace picongpu
