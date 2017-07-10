@@ -118,7 +118,7 @@ do
     if [ ! -d "$dir_dst" ] ; then
         mkdir -p "$dir_dst"
     fi
-    rsync --inplace -q -avc --exclude=".*" $dir_src/* $dir_dst
+    rsync --inplace -q -avc --exclude=".*" $dir_src/ $dir_dst
 done
 
 #copy all data from src_path if path is not picongpu default param path
@@ -129,7 +129,7 @@ if [ "$src_path" != "$this_dir/src/picongpu" ] ; then
         dir_src="$src_path/$d"
         if [ -d "$dir_src" ] ; then
             mkdir -p "$dir_dst"
-            rsync --inplace -q -avc --exclude=".*" $dir_src/* $dir_dst
+            rsync --inplace -q -avc --exclude=".*" $dir_src/ $dir_dst
         fi
     done
 fi
