@@ -23,6 +23,8 @@ DeriveSpecies
 Manipulate
 ^^^^^^^^^^
 
+Some of the particle manipulators further take the functors and filter (below) as arguments to manipulate attributes of particle species.
+
 .. doxygenstruct:: picongpu::particles::Manipulate
    :project: PIConGPU
 
@@ -38,74 +40,76 @@ FillAllGaps
 .. doxygenstruct:: picongpu::particles::FillAllGaps
    :project: PIConGPU
 
+Manipulation Filters
+--------------------
 
-Manipulation
-------------
+IsHandleValid
+^^^^^^^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::filter::IsHandleValid
+   :project: PIConGPU
+
+RelativeGlobalDomainPosition
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::filter::RelativeGlobalDomainPosition
+   :project: PIConGPU
+
+Manipulation Functors
+---------------------
 
 Some of the particle operations above can further take the following functors as arguments to manipulate attributes of particle species:
 
-AssignImpl
-^^^^^^^^^^
+Free
+^^^^
 
-.. doxygenstruct:: picongpu::particles::manipulators::AssignImpl
+.. doxygenstruct:: picongpu::particles::manipulators::generic::Free
+   :project: PIConGPU
+
+FreeRng
+^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::manipulators::generic::FreeRng
    :project: PIConGPU
 
 CopyAttribute
 ^^^^^^^^^^^^^
 
-.. doxygentypedef:: picongpu::particles::manipulators::CopyAttribute
+.. doxygentypedef:: picongpu::particles::manipulators::unary::CopyAttribute
+   :project: PIConGPU
+
+Drift
+^^^^^
+
+.. doxygenstruct:: picongpu::particles::manipulators::unary::Drift
+   :project: PIConGPU
+
+RandomPosition
+^^^^^^^^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::manipulators::unary::RandomPosition
+   :project: PIConGPU
+
+Temperature
+^^^^^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::manipulators::unary::Temperature
+   :project: PIConGPU
+
+Assign
+^^^^^^
+
+.. doxygenstruct:: picongpu::particles::manipulators::binary::Assign
    :project: PIConGPU
 
 DensityWeighting
 ^^^^^^^^^^^^^^^^
 
-.. doxygenstruct:: picongpu::particles::manipulators::DensityWeighting
-   :project: PIConGPU
-
-DriftImpl
-^^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::DriftImpl
-   :project: PIConGPU
-
-FreeImpl
-^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::FreeImpl
-   :project: PIConGPU
-
-FreeRngImpl
-^^^^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::FreeRngImpl
-   :project: PIConGPU
-
-IfRelativeGlobalPositionImpl
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::IfRelativeGlobalPositionImpl
+.. doxygenstruct:: picongpu::particles::manipulators::binary::DensityWeighting
    :project: PIConGPU
 
 ProtonTimesWeighting
 ^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenstruct:: picongpu::particles::manipulators::ProtonTimesWeighting
-   :project: PIConGPU
-
-RandomPositionImpl
-^^^^^^^^^^^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::RandomPositionImpl
-   :project: PIConGPU
-
-SetAttributeImpl
-^^^^^^^^^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::SetAttributeImpl
-   :project: PIConGPU
-
-TemperatureImpl
-^^^^^^^^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::TemperatureImpl
+.. doxygenstruct:: picongpu::particles::manipulators::binary::ProtonTimesWeighting
    :project: PIConGPU
