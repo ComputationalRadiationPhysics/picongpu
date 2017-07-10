@@ -52,7 +52,7 @@ struct TemperatureParam
     static constexpr float_64 temperature = 51.16;
 };
 /* definition of SetDrift start*/
-typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
+typedef unary::Temperature<TemperatureParam> AddTemperature;
 } //namespace manipulators
 
 namespace startPosition

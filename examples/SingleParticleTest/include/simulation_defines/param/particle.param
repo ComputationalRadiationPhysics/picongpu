@@ -63,7 +63,7 @@ namespace manipulators
     };
 
     /* definition of SetDrift start */
-    typedef DriftImpl<
+    typedef unary::Drift<
         DriftParam,
         nvidia::functors::Assign
     > AssignYDrift;

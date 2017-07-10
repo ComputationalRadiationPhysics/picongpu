@@ -24,7 +24,7 @@
 
 #include "particles/startPosition/functors.def"
 #include "particles/manipulators/manipulators.def"
-#include "nvidia/functors/Add.hpp"
+#include "particles/filter/filter.def"
 #include "nvidia/functors/Assign.hpp"
 
 namespace picongpu
@@ -71,7 +71,10 @@ namespace manipulators
         const DriftParamPositive_direction_t direction;
     };
     /* definition of SetDrift start*/
-    typedef DriftImpl<DriftParamPositive,nvidia::functors::Assign> AssignXDriftPositive;
+    typedef unary::Drift<
+        DriftParamPositive,
+        nvidia::functors::Assign
+    > AssignXDriftPositive;
 
     CONST_VECTOR(float_X,3,DriftParamNegative_direction,-1.0,0.0,0.0);
     struct DriftParamNegative
@@ -83,8 +86,11 @@ namespace manipulators
         static constexpr float_64 gamma = 1.021;
         const DriftParamNegative_direction_t direction;
     };
-    /* definition of SetDrift start*/
-    typedef DriftImpl<DriftParamNegative,nvidia::functors::Assign> AssignXDriftNegative;
+    /* definition of SetDrift start*/;
+    typedef unary::Drift<
+        DriftParamNegative,
+        nvidia::functors::Assign
+    > AssignXDriftNegative;
 
     struct TemperatureParam
     {
@@ -93,10 +99,13 @@ namespace manipulators
          */
         static constexpr float_64 temperature = 0.0005;
     };
-    /* definition of SetDrift start*/
-    typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
+    /* definition of AddTemperature start*/
+    typedef unary::Temperature< TemperatureParam > AddTemperature;
 
+} //namespace manipulators
 
+namespace filter
+{
     struct IfRelativeGlobalPositionParamLowQuarter
     {
         /* lowerBound is included in the range*/
@@ -109,7 +118,9 @@ namespace manipulators
         static constexpr uint32_t dimension = 1;
     };
     /* definition of SetDrift start*/
-    typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParamLowQuarter,AssignXDriftPositive> AssignXDriftPrositiveToLowerQuarterYPosition;
+    typedef filter::RelativeGlobalDomainPosition<
+        IfRelativeGlobalPositionParamLowQuarter
+    > LowerQuarterYPosition;
 
     struct IfRelativeGlobalPositionParamMiddleHalf
     {
@@ -123,7 +134,9 @@ namespace manipulators
         static constexpr uint32_t dimension = 1;
     };
     /* definition of SetDrift start*/
-    typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParamMiddleHalf,AssignXDriftNegative> AssignXDriftNegativeToMiddleHalfYPosition;
+    typedef filter::RelativeGlobalDomainPosition<
+        IfRelativeGlobalPositionParamMiddleHalf
+    > MiddleHalfYPosition;
 
     struct IfRelativeGlobalPositionParamUpperQuarter
     {
@@ -137,10 +150,10 @@ namespace manipulators
         static constexpr uint32_t dimension = 1;
     };
     /* definition of SetDrift start*/
-    typedef IfRelativeGlobalPositionImpl<IfRelativeGlobalPositionParamUpperQuarter,AssignXDriftPositive> AssignXDriftPrositiveToUpperQuarterYPosition;
+    typedef filter::RelativeGlobalDomainPosition<
+        IfRelativeGlobalPositionParamUpperQuarter
+    > UpperQuarterYPosition;
 
-} //namespace manipulators
-
+} //namespace filter
 } //namespace particles
-
 } //namespac picongpu

@@ -64,8 +64,7 @@ namespace manipulators
     {
         template< typename T_Particle >
         DINLINE void operator()(
-            T_Particle& particle,
-            T_Particle&
+            T_Particle& particle
         )
         {
             constexpr float_X protonNumber = GetAtomicNumbers< T_Particle >::type::numberOfProtons;
@@ -74,10 +73,10 @@ namespace manipulators
     };
 
     //! definition of OnceIonized manipulator
-    using OnceIonized = FreeImpl< OnceIonizedImpl >;
+    using OnceIonized = generic::Free< OnceIonizedImpl >;
 
     //! changes the in-cell position of each particle of a species
-    using RandomPosition = RandomPositionImpl<>;
+    using RandomPosition = unary::RandomPosition;
 
 } // namespace manipulators
 

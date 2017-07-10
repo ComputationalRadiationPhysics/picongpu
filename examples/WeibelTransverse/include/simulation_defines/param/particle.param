@@ -54,7 +54,7 @@ namespace manipulators
         const DriftParamElectrons_direction_t direction;
     };
     /* definition of SetDrift start*/
-    typedef DriftImpl<DriftParamElectrons,nvidia::functors::Assign> AssignZDriftElectrons;
+    typedef unary::Drift<DriftParamElectrons,nvidia::functors::Assign> AssignZDriftElectrons;
 
     CONST_VECTOR(float_X,3,DriftParamIons_direction,0.0,0.0,-1.0);
     struct DriftParamIons
@@ -67,7 +67,7 @@ namespace manipulators
         const DriftParamIons_direction_t direction;
     };
     /* definition of SetDrift start*/
-    typedef DriftImpl<DriftParamIons,nvidia::functors::Assign> AssignZDriftIons;
+    typedef unary::Drift<DriftParamIons,nvidia::functors::Assign> AssignZDriftIons;
 
     struct TemperatureParam
     {
@@ -77,7 +77,7 @@ namespace manipulators
         static constexpr float_64 temperature = 0.005;
     };
     /* definition of SetDrift start*/
-    typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
+    typedef unary::Temperature<TemperatureParam> AddTemperature;
 
 } //namespace manipulators
 

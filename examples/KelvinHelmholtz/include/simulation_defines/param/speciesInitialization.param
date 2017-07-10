@@ -84,12 +84,12 @@ namespace particles
 typedef mpl::vector<
     CreateDensity<densityProfiles::Homogenous, startPosition::Quiet, PIC_Electrons>,
     DeriveSpecies<PIC_Electrons, PIC_Ions>,
-    Manipulate<manipulators::AssignXDriftPrositiveToLowerQuarterYPosition, PIC_Ions>,
-    Manipulate<manipulators::AssignXDriftNegativeToMiddleHalfYPosition, PIC_Ions>,
-    Manipulate<manipulators::AssignXDriftPrositiveToUpperQuarterYPosition, PIC_Ions>,
-    Manipulate<manipulators::AssignXDriftPrositiveToLowerQuarterYPosition, PIC_Electrons>,
-    Manipulate<manipulators::AssignXDriftNegativeToMiddleHalfYPosition, PIC_Electrons>,
-    Manipulate<manipulators::AssignXDriftPrositiveToUpperQuarterYPosition, PIC_Electrons>,
+    Manipulate<manipulators::AssignXDriftPositive, PIC_Ions, filter::LowerQuarterYPosition>,
+    Manipulate<manipulators::AssignXDriftNegative, PIC_Ions, filter::MiddleHalfYPosition>,
+    Manipulate<manipulators::AssignXDriftPositive, PIC_Ions, filter::UpperQuarterYPosition>,
+    Manipulate<manipulators::AssignXDriftPositive, PIC_Electrons, filter::LowerQuarterYPosition>,
+    Manipulate<manipulators::AssignXDriftNegative, PIC_Electrons, filter::MiddleHalfYPosition>,
+    Manipulate<manipulators::AssignXDriftPositive, PIC_Electrons, filter::UpperQuarterYPosition>,
     Manipulate<manipulators::AddTemperature, PIC_Electrons>
 > InitPipeline;
 

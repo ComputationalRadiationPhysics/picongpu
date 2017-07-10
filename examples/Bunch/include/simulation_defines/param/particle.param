@@ -61,7 +61,7 @@ namespace manipulators
         const DriftParamNegative_direction_t direction;
     };
     /* definition of SetDrift start*/
-    typedef DriftImpl<
+    typedef unary::Drift<
         DriftParamNegative,
         nvidia::functors::Assign
     > AssignYDriftNegative;

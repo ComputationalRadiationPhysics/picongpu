@@ -71,11 +71,21 @@ typedef QuietImpl<QuietParameter> Quiet;
 namespace manipulators
 {
 
-    struct BoundElectronsWhenNeutral
+    struct SetIonToNeutral
     {
         /* space for attribute initial parameters */
+        template< typename T_Particle >
+        DINLINE void operator()( T_Particle & particle )
+        {
+            typedef T_Particle Particle;
+
+            /** Number of bound electrons at initial state of the neutral atom */
+            const float_X protonNumber = traits::GetAtomicNumbers< T_Particle >::type::numberOfProtons;
+
+            particle[ boundElectrons_ ] = protonNumber;
+        }
     };
-    typedef SetAttributeImpl<BoundElectronsWhenNeutral,nvidia::functors::Assign> SetBoundElectrons;
+    typedef generic::Free< SetIonToNeutral > SetBoundElectrons;
 } //namespace manipulators
 
 } //namespace particles
