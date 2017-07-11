@@ -41,7 +41,7 @@ namespace acc
 
         /** Increase weighting of particleDest by proton number of SrcParticle
          *
-         * The frame's `atomicNumber` `numberOfProtons`of `T_SrcParticle`
+         * The frame's `numberOfProtons`of `T_SrcParticle`
          * is used to increase the weighting of particleDest.
          * Useful to increase the weighting of macro electrons when cloned from an
          * ion with Z>1. Otherwise one would need Z macro electrons (each with the
@@ -84,7 +84,7 @@ namespace acc
      * of the new species' macro particles to be a multiplied by
      * the number of protons of the initial species.
      *
-     * As an example, this comes useful when initializing a quasi-neutral,
+     * As an example, this is useful when initializing a quasi-neutral,
      * pre-ionized plasma of ions and electrons. Electrons can be created
      * from ions via deriving and increasing their weight to avoid simulating
      * multiple macro electrons per macro ion (with Z>1).

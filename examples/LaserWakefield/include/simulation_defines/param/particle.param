@@ -78,7 +78,7 @@ namespace manipulators
         {
             using Particle = T_Particle;
 
-            /** Number of bound electrons at initial state of the neutral atom */
+            /** Number of bound electrons at initialization state of the neutral atom */
             float_X const protonNumber = traits::GetAtomicNumbers< T_Particle >::type::numberOfProtons;
 
             particle[ boundElectrons_ ] = protonNumber;

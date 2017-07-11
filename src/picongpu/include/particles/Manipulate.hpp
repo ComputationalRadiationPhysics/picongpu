@@ -40,7 +40,7 @@ namespace particles
      *
      * @tparam T_Functor unary lambda functor
      * @tparam T_SpeciesType type of the used species
-     * @tparam T_Filter picongpu::particles::filer, particle filter type to select particles
+     * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles
      */
     template<
         typename T_Functor,

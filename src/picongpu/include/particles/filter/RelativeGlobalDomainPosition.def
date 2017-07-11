@@ -41,7 +41,7 @@ namespace param
     };
 } // namespace param
 
-    /** filter particle depending of the global position
+    /** filter particle dependent on the global position
      *
      * Check if a particle is within a relative area in one direction of the global
      * domain.

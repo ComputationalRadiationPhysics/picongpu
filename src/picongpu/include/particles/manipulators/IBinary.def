@@ -43,8 +43,8 @@ namespace manipulators
      * @tparam T_BinaryFunctor binary particle functor, must contain
      *                         `void operator()(P1 & particle1, P2 & particle2, ...)`
      *                          and support at least two particles
-     * @tparam T_UnaryFilter unary particle filter, each particle of the `T_BinaryFunctor::operator()`
-     *                       is passed throw the filter, must contain `bool operator()(P particle)`
+     * @tparam T_UnaryFilter unary particle filter, must contain `bool operator()(P particle)`
+     *                       each particle of the `T_BinaryFunctor::operator()`is passed through the filter
      */
     template<
         typename T_BinaryFunctor,

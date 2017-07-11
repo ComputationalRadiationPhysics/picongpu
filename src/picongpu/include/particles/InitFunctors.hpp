@@ -116,7 +116,7 @@ struct CreateDensity
                                destination and source, \see src/picongpu/include/particles/manipulators
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
- * @tparam T_Filter picongpu::particles::filer, particle filter type to select particles
+ * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles
  */
 template<
     typename T_Functor,
@@ -165,7 +165,7 @@ struct ManipulateDeriveSpecies
  *
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
- * @tparam T_Filter picongpu::particles::filer, particle filter type to select particles
+ * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles
  */
 template<
     typename T_SrcSpeciesType,

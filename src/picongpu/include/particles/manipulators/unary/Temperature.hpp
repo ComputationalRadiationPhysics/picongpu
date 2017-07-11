@@ -78,7 +78,7 @@ namespace acc
 
             float_X const energy = ( ParamClass::temperature * UNITCONV_keV_to_Joule ) / UNIT_ENERGY;
 
-            // since energy is related to one particle,
+            // since energy is related to one particle
             // and our units are normalized for macro particle quanities
             // energy is quite small
             float_X const macroEnergy = macroWeighting * energy;

@@ -41,7 +41,7 @@ FillAllGaps
 Manipulation Functors
 ---------------------
 
-Some of the particle operations above can further take the following functors as arguments to manipulate attributes of particle species.
+Some of the particle operations above can take the following functors as arguments to manipulate attributes of particle species.
 A particle filter (see following section) is used to only manipulated selected particles of a species with a functor.
 
 Free
@@ -102,7 +102,7 @@ Manipulation Filters
 --------------------
 
 Most of the particle functors shall operate on all valid particles, where IsHandleValid is the default assumption.
-One can further limit the domain or subset of particles with filters such as the ones below (or define new ones).
+One can limit the domain or subset of particles with filters such as the ones below (or define new ones).
 
 IsHandleValid
 ^^^^^^^^^^^^^

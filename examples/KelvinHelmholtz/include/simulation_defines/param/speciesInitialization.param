@@ -81,7 +81,7 @@ namespace particles
  *
  * the functors are called in order (from first to last functor)
  */
-typedef mpl::vector<
+using InitPipeline = mpl::vector<
     CreateDensity<densityProfiles::Homogenous, startPosition::Quiet, PIC_Electrons>,
     DeriveSpecies<PIC_Electrons, PIC_Ions>,
     Manipulate<manipulators::AssignXDriftPositive, PIC_Ions, filter::LowerQuarterYPosition>,
@@ -91,7 +91,7 @@ typedef mpl::vector<
     Manipulate<manipulators::AssignXDriftNegative, PIC_Electrons, filter::MiddleHalfYPosition>,
     Manipulate<manipulators::AssignXDriftPositive, PIC_Electrons, filter::UpperQuarterYPosition>,
     Manipulate<manipulators::AddTemperature, PIC_Electrons>
-> InitPipeline;
+>;
 
 } /* namespace particles */
 } /* namespace picongpu  */

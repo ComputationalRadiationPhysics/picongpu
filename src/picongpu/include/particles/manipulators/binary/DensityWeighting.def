@@ -35,13 +35,13 @@ namespace binary
 namespace acc
 {
 
-    //! Re-scale the weighting of a cloned species by densityRatio
+    //! Re-scale the weighting of a cloned particle by densityRatio
     struct DensityWeighting
     {
-        /** Adjust the weighting of particleDes by densityRatio of own & Src particle
+        /** Adjust the weighting of particleDes by densityRatio of particleDes & Src particle
          *
          * While deriving a particle (particleDes) from another (T_SrcParticle), one
-         * can afterward directly normalize the weighting back to the intended density:
+         * can afterwards directly normalize the weighting back to the intended density:
          * - divide weighting with the `T_SrcParticle`'s densityRatio
          *   (to get macro particle weighting according to reference BASE_DENSITY * profile
          *    at this specific point in space & time)

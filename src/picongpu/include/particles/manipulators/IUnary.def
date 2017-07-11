@@ -42,8 +42,8 @@ namespace manipulators
      * @tparam T_UnaryFunctor unary particle functor, must contain
      *                         `void operator()(P & particle, ...)`
      *                          and support at least one particle
-     * @tparam T_UnaryFilter unary particle filter, each particle of the `T_UnaryFunctor::operator()`
-     *                       is passed throw the filter, must contain `bool operator()(P particle)`
+     * @tparam T_UnaryFilter unary particle filter must contain `bool operator()(P particle)`,
+     *                       each particle of the `T_UnaryFunctor::operator()` is passed through the filter
      */
     template<
         typename T_UnaryFunctor,

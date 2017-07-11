@@ -74,7 +74,7 @@ namespace acc
      *
      * Assign all matching attributes of a source particle to the destination
      * particle. Attributes that only exist in the destination species are initialized
-     * we the default value. Attributes that only exists in the particle will be ignored.
+     * with the default value. Attributes that only exists in the source particle will be ignored.
      */
     using Assign = generic::Free<
         acc::Assign
