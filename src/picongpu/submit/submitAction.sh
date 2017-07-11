@@ -22,7 +22,7 @@
 newerFiles=$(find $TBG_projectPath/include -type f \
   -newer $TBG_projectPath/bin/picongpu)
 numNewerFiles=$(echo -e "$newerFiles" | wc -l)
-if [ $numNewerFiles -gt 0 ]
+if [ $numNewerFiles -gt 0 ] && [ -n "$newerFiles" ]
 then
   (>&2 echo "WARNING: $numNewerFiles input file(s) in include/")
   (>&2 echo "         have been modified since the last compile!")
