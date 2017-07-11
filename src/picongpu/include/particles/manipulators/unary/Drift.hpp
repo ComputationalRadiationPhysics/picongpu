@@ -31,7 +31,7 @@ namespace manipulators
 {
 namespace unary
 {
-namespace detail
+namespace acc
 {
 
     /** manipulate the speed
@@ -93,7 +93,7 @@ namespace detail
         }
     };
 
-} // namespace detail
+} // namespace acc
 } // namespace unary
 } // namespace manipulators
 } // namespace particles

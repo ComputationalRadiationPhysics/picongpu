@@ -38,7 +38,7 @@ namespace particles
      *  unit: none */
     constexpr float_X MIN_WEIGHTING = 10.0;
 
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 4;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 4u;
 
 namespace manipulators
 {
@@ -54,7 +54,7 @@ namespace manipulators
         const DriftParamElectrons_direction_t direction;
     };
     /* definition of SetDrift start*/
-    typedef unary::Drift<DriftParamElectrons,nvidia::functors::Assign> AssignZDriftElectrons;
+    using AssignZDriftElectrons = unary::Drift<DriftParamElectrons,nvidia::functors::Assign>;
 
     CONST_VECTOR(float_X,3,DriftParamIons_direction,0.0,0.0,-1.0);
     struct DriftParamIons
@@ -67,7 +67,7 @@ namespace manipulators
         const DriftParamIons_direction_t direction;
     };
     /* definition of SetDrift start*/
-    typedef unary::Drift<DriftParamIons,nvidia::functors::Assign> AssignZDriftIons;
+    using AssignZDriftIons = unary::Drift<DriftParamIons,nvidia::functors::Assign>;
 
     struct TemperatureParam
     {
@@ -76,8 +76,8 @@ namespace manipulators
          */
         static constexpr float_64 temperature = 0.005;
     };
-    /* definition of SetDrift start*/
-    typedef unary::Temperature<TemperatureParam> AddTemperature;
+    /* definition of SetDrift start */
+    using AddTemperature = unary::Temperature<TemperatureParam>;
 
 } //namespace manipulators
 
@@ -89,11 +89,11 @@ namespace startPosition
     {
         /** Count of particles per cell per direction at initial state
          *  unit: none */
-       typedef mCT::shrinkTo<mCT::Int<TYPICAL_PARTICLES_PER_CELL/2, TYPICAL_PARTICLES_PER_CELL/2, 1>, simDim>::type numParticlesPerDimension;
+       using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<TYPICAL_PARTICLES_PER_CELL/2, TYPICAL_PARTICLES_PER_CELL/2, 1>, simDim>::type;
     };
 
-    /* definition of quiet particle start*/
-    typedef QuietImpl<QuietParam> Quiet;
+    /* definition of quiet particle start */
+    using Quiet = QuietImpl<QuietParam>;
 
 } //namespace startPosition
 } //namespace particles

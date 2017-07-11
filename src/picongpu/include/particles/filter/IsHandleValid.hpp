@@ -66,11 +66,11 @@ namespace acc
          *                        to the origin of the local domain
          * @param configuration of the worker
          */
-        template< typename T_WokerCfg >
+        template< typename T_WorkerCfg >
         DINLINE acc::IsHandleValid
         operator( )(
             DataSpace< simDim > const &,
-            T_WokerCfg const &
+            T_WorkerCfg const &
         )
         {
             return acc::IsHandleValid{ };

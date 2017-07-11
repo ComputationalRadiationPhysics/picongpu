@@ -35,14 +35,14 @@ namespace manipulators
 {
 namespace unary
 {
-namespace detail
+namespace acc
 {
     template<
         typename T_ParamClass,
         typename T_ValueFunctor
     >
     struct Temperature;
-} // namespace detail
+} // namespace acc
 
 namespace param
 {
@@ -58,8 +58,8 @@ namespace param
 
     /** change particle's momentum based on a temperature
      *
-     * allow to manipulate a temperature (randomly normal distributed)
-     * to a particle.
+     * allow to change the temperature (randomly normal distributed)
+     * of a particle.
      *
      * @tparam T_ParamClass param::TemperatureCfg, configuration parameter
      * @tparam T_ValueFunctor PMacc::nvidia::functors::*,  binary functor type to manipulate the momentum attribute
@@ -69,7 +69,7 @@ namespace param
         typename T_ValueFunctor = PMacc::nvidia::functors::Add
     >
     using Temperature = generic::FreeRng<
-        detail::Temperature<
+        acc::Temperature<
             T_ParamClass,
             T_ValueFunctor
         >,

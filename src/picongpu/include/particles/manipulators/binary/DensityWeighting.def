@@ -32,21 +32,10 @@ namespace manipulators
 {
 namespace binary
 {
-namespace detail
+namespace acc
 {
 
-    /** Re-scale the weighting of a cloned species by densityRatio
-     *
-     * When deriving species from each other, the new
-     * species "inherits" the macro-particle weighting
-     * of the first one.
-     * This functor can be used to manipulate the weighting
-     * of the new species' macro particles to satisfy the
-     * input densityRatio of it.
-     *
-     * note: needs the densityRatio flag on both species,
-     *       used by the GetDensityRatio trait.
-     */
+    //! Re-scale the weighting of a cloned species by densityRatio
     struct DensityWeighting
     {
         /** Adjust the weighting of particleDes by densityRatio of own & Src particle
@@ -93,13 +82,21 @@ namespace detail
         }
     };
 
-} // namespace detail
+} // namespace acc
 
     /** Re-scale the weighting of a cloned species by densityRatio
      *
-     * detail::DensityWeighting
+     * When deriving species from each other, the new
+     * species "inherits" the macro-particle weighting
+     * of the first one.
+     * This functor can be used to manipulate the weighting
+     * of the new species' macro particles to satisfy the
+     * input densityRatio of it.
+     *
+     * note: needs the densityRatio flag on both species,
+     *       used by the GetDensityRatio trait.
      */
-    using DensityWeighting = generic::Free< detail::DensityWeighting >;
+    using DensityWeighting = generic::Free< acc::DensityWeighting >;
 
 } // namespace binary
 } // namespace manipulators

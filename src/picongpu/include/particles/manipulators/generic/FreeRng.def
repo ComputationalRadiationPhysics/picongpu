@@ -55,10 +55,10 @@ namespace generic
      *       }
      *   };
      *
-     *   typedef FreeRng<
+     *   using RandomXPos = FreeRng<
      *      RandomXFunctor,
      *      nvidia::rng::distributions::Uniform_float
-     *   > RandomXPos;
+     *   >;
      *   particles::Manipulate< RandomXPos, SPECIES_NAME >
      *   @endcode
      *   to `InitPipeline` in `speciesInitialization.param`

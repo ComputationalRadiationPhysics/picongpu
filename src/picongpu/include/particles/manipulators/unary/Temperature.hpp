@@ -31,7 +31,7 @@ namespace manipulators
 {
 namespace unary
 {
-namespace detail
+namespace acc
 {
 
     /** manipulate the speed based on a temperature
@@ -74,14 +74,14 @@ namespace detail
                 rng(),
                 rng()
             );
-            const float_X macroWeighting = particle[ weighting_ ];
+            float_X const macroWeighting = particle[ weighting_ ];
 
-            const float_X energy = ( ParamClass::temperature * UNITCONV_keV_to_Joule ) / UNIT_ENERGY;
+            float_X const energy = ( ParamClass::temperature * UNITCONV_keV_to_Joule ) / UNIT_ENERGY;
 
             // since energy is related to one particle,
             // and our units are normalized for macro particle quanities
             // energy is quite small
-            const float_X macroEnergy = macroWeighting * energy;
+            float_X const macroEnergy = macroWeighting * energy;
             // non-rel, MW:
             //    p = m * v
             //            v ~ sqrt(k*T/m), k*T = E
@@ -100,7 +100,7 @@ namespace detail
             //        = sqrt( E * w * m_w )
             // Which makes sense, since it means that we use a macroMass
             // and a macroEnergy now.
-            const float3_X mom = tmpRand * ( float_X )math::sqrt(
+            float3_X const mom = tmpRand * ( float_X )math::sqrt(
                 precisionCast< sqrt_X >(
                     macroEnergy *
                     attribute::getMass(macroWeighting,particle)
@@ -110,7 +110,7 @@ namespace detail
         }
     };
 
-} // namespace detail
+} // namespace acc
 } // namespace unary
 } // namespace manipulators
 } // namespace particles

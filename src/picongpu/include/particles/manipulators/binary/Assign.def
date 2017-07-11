@@ -31,16 +31,10 @@ namespace manipulators
 {
 namespace binary
 {
-namespace detail
+namespace acc
 {
-    /** assign attributes of one particle to another
-     *
-     * Can be used as binary and higher order operator but only the first two
-     * particles are used for the assign operation.
-     *
-     * Assign all attributes of an source particle to a destination
-     * particle.
-     */
+
+    //! assign attributes of one particle to another
     struct Assign
     {
         /** execute assign operator
@@ -71,14 +65,19 @@ namespace detail
             );
         }
     };
-} // namespace detail
+} // namespace acc
 
     /** assign attributes of one particle to another
      *
-     * detail::Assign
+     * Can be used as binary and higher order operator but only the first two
+     * particles are used for the assign operation.
+     *
+     * Assign all matching attributes of a source particle to the destination
+     * particle. Attributes that only exist in the destination species are initialized
+     * we the default value. Attributes that only exists in the particle will be ignored.
      */
     using Assign = generic::Free<
-        detail::Assign
+        acc::Assign
     >;
 
 } // namespace binary

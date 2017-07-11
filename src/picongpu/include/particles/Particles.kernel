@@ -139,7 +139,7 @@ struct KernelDeriveParticles
             }
         );
 
-        auto accMinipulator = manipulateFunctor(
+        auto accManipulator = manipulateFunctor(
             localSuperCellOffset,
             WorkerCfg< numWorker >{ workerIdx }
         );
@@ -167,14 +167,14 @@ struct KernelDeriveParticles
                     if( parSrc[ multiMask_ ] != 1 )
                         parSrc.setHandleInvalid( );
 
-                    //! \todo us filtered functor
+                    //! @todo us filtered functor
                     if( parSrc.isHandleValid( ) )
                         assign(
                             parDest,
                             deselect< particleId >( parSrc )
                         );
 
-                    accMinipulator(
+                    accManipulator(
                         parDest,
                         parSrc
                     );
@@ -243,7 +243,7 @@ struct KernelManipulateAllParticles
         const DataSpace<simDim> localSuperCellOffset =
             superCellIdx - mapper.getGuardingSuperCells();
 
-        auto accMinipulator = particleFunctor(
+        auto accManipulator = particleFunctor(
             localSuperCellOffset,
             mappings::threads::WorkerCfg< PMacc::math::CT::volume<
                 SuperCellSize
@@ -256,7 +256,7 @@ struct KernelManipulateAllParticles
             auto particle = frame[linearThreadIdx];
             if( !isParticle )
                 particle.setHandleInvalid( );
-            accMinipulator( particle );
+            accManipulator( particle );
 
             __syncthreads();
             if (linearThreadIdx == 0)

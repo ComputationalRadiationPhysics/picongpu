@@ -52,7 +52,7 @@ namespace particles
      * Determines the weighting of a macro particle and with it, the number of
      * particles "sampling" dynamics in phase space.
      */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 2u;
 
 namespace manipulators
 {
@@ -110,8 +110,8 @@ namespace manipulators
         }
     };
 
-    /* definition of RandomEnableRadiation start*/
-    typedef generic::FreeRng< RandomEnabledRadiationFunctor, nvidia::rng::distributions::Uniform_float > RandomEnabledRadiation;
+    /* definition of RandomEnableRadiation start */
+    using RandomEnabledRadiation = generic::FreeRng< RandomEnabledRadiationFunctor, nvidia::rng::distributions::Uniform_float >;
 
     /** changes the in-cell position of each particle of a species */
     using RandomPosition = unary::RandomPosition;
@@ -124,17 +124,16 @@ namespace filter
      */
     struct IfRelativeGlobalPositionParam
     {
-        /* lowerBound is included in the range*/
+        /* lowerBound is included in the range */
         static constexpr float_X lowerBound = 0.0;
-        /* upperBound is excluded in the range*/
+        /* upperBound is excluded in the range */
         static constexpr float_X upperBound = 0.5;
         /* dimension for the filter
          * x = 0; y= 1; z = 2
          */
-        static constexpr uint32_t dimension = 0;
+        static constexpr uint32_t dimension = 0u;
     };
-    /** definition of a relative position selection that assigns a drift in X
-     */
+    /** definition of a relative position selection that assigns a drift in X */
     using AssignXDriftToLowerHalfXPosition = RelativeGlobalDomainPosition<
         IfRelativeGlobalPositionParam
     >;

@@ -42,7 +42,7 @@ namespace particles
      */
     constexpr float_X MIN_WEIGHTING = std::numeric_limits< float_X >::min();
 
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 1u;
 
 namespace manipulators
 {
@@ -63,10 +63,10 @@ namespace manipulators
     };
 
     /* definition of SetDrift start */
-    typedef unary::Drift<
+    using AssignYDrift = unary::Drift<
         DriftParam,
         nvidia::functors::Assign
-    > AssignYDrift;
+    >;
 
 } // namespace manipulators
 

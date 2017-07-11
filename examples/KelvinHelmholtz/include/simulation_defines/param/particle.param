@@ -40,11 +40,11 @@ namespace particles
         {
             /** Count of particles per cell per direction at initial state
              *  unit: none */
-           typedef mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type numParticlesPerDimension;
+           using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<5, 5, 1>, simDim>::type;
         };
 
-        /* definition of quiet particle start*/
-        typedef QuietImpl<QuietParam> Quiet;
+        /* definition of quiet particle start */
+        using Quiet = QuietImpl<QuietParam>;
 
     } //namespace startPosition
 
@@ -70,11 +70,11 @@ namespace manipulators
         static constexpr float_64 gamma = 1.021;
         const DriftParamPositive_direction_t direction;
     };
-    /* definition of SetDrift start*/
-    typedef unary::Drift<
+    /* definition of SetDrift start */
+    using AssignXDriftPositive = unary::Drift<
         DriftParamPositive,
         nvidia::functors::Assign
-    > AssignXDriftPositive;
+    >;
 
     CONST_VECTOR(float_X,3,DriftParamNegative_direction,-1.0,0.0,0.0);
     struct DriftParamNegative
@@ -86,11 +86,11 @@ namespace manipulators
         static constexpr float_64 gamma = 1.021;
         const DriftParamNegative_direction_t direction;
     };
-    /* definition of SetDrift start*/;
-    typedef unary::Drift<
+    /* definition of SetDrift start */;
+    using AssignXDriftNegative = unary::Drift<
         DriftParamNegative,
         nvidia::functors::Assign
-    > AssignXDriftNegative;
+    >;
 
     struct TemperatureParam
     {
@@ -100,7 +100,7 @@ namespace manipulators
         static constexpr float_64 temperature = 0.0005;
     };
     /* definition of AddTemperature start*/
-    typedef unary::Temperature< TemperatureParam > AddTemperature;
+    using AddTemperature = unary::Temperature< TemperatureParam >;
 
 } //namespace manipulators
 
@@ -108,51 +108,51 @@ namespace filter
 {
     struct IfRelativeGlobalPositionParamLowQuarter
     {
-        /* lowerBound is included in the range*/
+        /* lowerBound is included in the range */
         static constexpr float_X lowerBound = 0.0;
-        /* upperBound is excluded in the range*/
+        /* upperBound is excluded in the range */
         static constexpr float_X upperBound = 0.25;
         /* dimension for the filter
          * x = 0; y= 1; z = 2
          */
-        static constexpr uint32_t dimension = 1;
+        static constexpr uint32_t dimension = 1u;
     };
     /* definition of SetDrift start*/
-    typedef filter::RelativeGlobalDomainPosition<
+    using LowerQuarterYPosition = filter::RelativeGlobalDomainPosition<
         IfRelativeGlobalPositionParamLowQuarter
-    > LowerQuarterYPosition;
+    >;
 
     struct IfRelativeGlobalPositionParamMiddleHalf
     {
-        /* lowerBound is included in the range*/
+        /* lowerBound is included in the range */
         static constexpr float_X lowerBound = 0.25;
         /* upperBound is excluded in the range*/
         static constexpr float_X upperBound = 0.75;
         /* dimension for the filter
          * x = 0; y= 1; z = 2
          */
-        static constexpr uint32_t dimension = 1;
+        static constexpr uint32_t dimension = 1u;
     };
-    /* definition of SetDrift start*/
-    typedef filter::RelativeGlobalDomainPosition<
+    /* definition of SetDrift start */
+    using MiddleHalfYPosition = filter::RelativeGlobalDomainPosition<
         IfRelativeGlobalPositionParamMiddleHalf
-    > MiddleHalfYPosition;
+    >;
 
     struct IfRelativeGlobalPositionParamUpperQuarter
     {
-        /* lowerBound is included in the range*/
+        /* lowerBound is included in the range */
         static constexpr float_X lowerBound = 0.75;
-        /* upperBound is excluded in the range*/
+        /* upperBound is excluded in the range */
         static constexpr float_X upperBound = 1.0;
         /* dimension for the filter
          * x = 0; y= 1; z = 2
          */
-        static constexpr uint32_t dimension = 1;
+        static constexpr uint32_t dimension = 1u;
     };
-    /* definition of SetDrift start*/
-    typedef filter::RelativeGlobalDomainPosition<
+    /* definition of SetDrift start */
+    using UpperQuarterYPosition = filter::RelativeGlobalDomainPosition<
         IfRelativeGlobalPositionParamUpperQuarter
-    > UpperQuarterYPosition;
+    >;
 
 } //namespace filter
 } //namespace particles

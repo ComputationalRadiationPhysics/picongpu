@@ -30,7 +30,7 @@ namespace manipulators
 {
 namespace unary
 {
-namespace detail
+namespace acc
 {
 
     /** helper functor to copy a particle source attribute to a destination attribute
@@ -65,9 +65,9 @@ namespace detail
         }
     };
 
-} // namespace detail
+} // namespace acc
 
-    /**  copy a particle source attribute to a destination attribute
+    /** copy a particle source attribute to a destination attribute
      *
      * This is an unary functor and operates on one particle.
      *
@@ -79,7 +79,7 @@ namespace detail
         typename T_SrcAttribute
     >
     using CopyAttribute = generic::Free<
-        detail::CopyAttribute<
+        acc::CopyAttribute<
             T_DestAttribute,
             T_SrcAttribute
         >

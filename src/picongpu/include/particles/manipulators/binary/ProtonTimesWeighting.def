@@ -32,25 +32,10 @@ namespace manipulators
 {
 namespace binary
 {
-namespace detail
+namespace acc
 {
-    /** Re-scale the weighting of a cloned species by numberOfProtons
-     *
-     * When derive species from each other, the new
-     * species "inherits" the macro-particle weighting
-     * of the first one.
-     * This functor can be used to manipulate the weighting
-     * of the new species' macro particles to be a multiplied by
-     * the number of protons on the initial species.
-     *
-     * As an example, this comes useful when initializing a quasi-neutral,
-     * pre-ionized plasma of ions and electrons. Electrons can be created
-     * from ions via deriving and increasing their weight to avoid simulating
-     * multiple macro electrons per macro ion (with Z>1).
-     *
-     * note: needs the atomicNumbers flag on the initial species,
-     *       used by the GetAtomicNumbers trait.
-     */
+
+    //! Re-scale the weighting of a cloned species by numberOfProtons
     struct ProtonTimesWeighting
     {
 
@@ -68,10 +53,10 @@ namespace detail
          * @tparam T_Args PMacc::Particle, arbitrary number of particles types
          *
          * @param particleDest destination particle
-         * @param particleSrc source particle (the number of protons of this particle is used)
-         * @param ... unused particles
+         * @param source particle (the number of protons of this particle is used)
+         * @param unused particles
          *
-         * @see picongpu::particles::ManipulateDeriveSpecies , picongpu::kernelCloneParticles
+         * @see picongpu::particles::ManipulateDeriveSpecies , picongpu::particles::Manipulate
          */
         template<
             typename T_DesParticle,
@@ -88,14 +73,26 @@ namespace detail
             particleDest[ weighting_ ] *= protonNumber;
         }
     };
-} // namespace detail
+} // namespace acc
 
-
-    /* Re-scale the weighting of a cloned species by numberOfProtons
+    /** Re-scale the weighting of a cloned species by numberOfProtons
      *
-     * detail::ProtonTimesWeighting
+     * When deriving species from each other, the new
+     * species "inherits" the macro-particle weighting
+     * of the first one.
+     * This functor can be used to manipulate the weighting
+     * of the new species' macro particles to be a multiplied by
+     * the number of protons of the initial species.
+     *
+     * As an example, this comes useful when initializing a quasi-neutral,
+     * pre-ionized plasma of ions and electrons. Electrons can be created
+     * from ions via deriving and increasing their weight to avoid simulating
+     * multiple macro electrons per macro ion (with Z>1).
+     *
+     * note: needs the atomicNumbers flag on the initial species,
+     *       used by the GetAtomicNumbers trait.
      */
-    using ProtonTimesWeighting = generic::Free< detail::ProtonTimesWeighting >;
+    using ProtonTimesWeighting = generic::Free< acc::ProtonTimesWeighting >;
 
 } // namespace binary
 } // namespace manipulators

@@ -51,24 +51,24 @@ namespace param
          *  unit: none
          */
         static constexpr float_64 gamma = 1.021;
-        const DriftNegative_direction_t direction;
+        DriftNegative_direction_t const direction;
     };
 } // namespace param
 
-namespace detail
+namespace acc
 {
     template<
         typename T_ParamClass,
         typename T_ValueFunctor
     >
     struct Drift;
-} // namespace detail
+} // namespace acc
 
     /** change particle's momentum based on speed
      *
      * allow to manipulate a speed to a particle
      *
-     * @tparam T_ParamClass param::DriftInterface, configuration parameter
+     * @tparam T_ParamClass param::DriftCfg, configuration parameter
      * @tparam T_ValueFunctor PMacc::nvidia::functors::*,  binary functor type to manipulate the momentum attribute
      */
     template<
@@ -76,7 +76,7 @@ namespace detail
         typename T_ValueFunctor = PMacc::nvidia::functors::Add
     >
     using Drift = generic::Free<
-        detail::Drift<
+        acc::Drift<
             T_ParamClass,
             T_ValueFunctor
         >

@@ -79,24 +79,24 @@ namespace acc
         {
             using SuperCellSize = typename T_Particle::SuperCellSize;
 
-            const int particleCellIdx = particle[ localCellIdx_ ];
-            const DataSpace< simDim > cellInSuperCell( DataSpaceOperations< simDim >::
+            int const particleCellIdx = particle[ localCellIdx_ ];
+            DataSpace< simDim > const cellInSuperCell( DataSpaceOperations< simDim >::
                 template map< SuperCellSize >( particleCellIdx ) );
-            const DataSpace< simDim > globalParticleOffset(
+            DataSpace< simDim > const globalParticleOffset(
                 globalSuperCellOffset +
                 cellInSuperCell
             );
 
-            const float_X relativePosition = float_X( globalParticleOffset[ Params::dimension ] ) /
+            float_X const relativePosition = float_X( globalParticleOffset[ Params::dimension ] ) /
                 float_X( m_globalDomainSize[ Params::dimension ] );
 
             return ( Params::lowerBound <= relativePosition &&
                 relativePosition < Params::upperBound );
         }
 
-        DataSpace< simDim > m_localDomainOffset;
-        DataSpace< simDim > m_globalDomainSize;
-        DataSpace< simDim > m_localSuperCellOffset;
+        DataSpace< simDim > const m_localDomainOffset;
+        DataSpace< simDim > const m_globalDomainSize;
+        DataSpace< simDim > const m_localSuperCellOffset;
     };
 
 } // namespace acc
@@ -114,7 +114,7 @@ namespace acc
 
         HINLINE RelativeGlobalDomainPosition( )
         {
-            const SubGrid< simDim >& subGrid = Environment< simDim >::get( ).SubGrid( );
+            SubGrid< simDim > const & subGrid = Environment< simDim >::get( ).SubGrid( );
             globalDomainSize = subGrid.getGlobalDomain( ).size;
             localDomainOffset = subGrid.getLocalDomain( ).offset;
         }
@@ -126,11 +126,11 @@ namespace acc
          *                        to the origin of the local domain
          * @param configuration of the worker
          */
-        template< typename T_WokerCfg >
+        template< typename T_WorkerCfg >
         DINLINE acc::RelativeGlobalDomainPosition< Params >
         operator( )(
             DataSpace< simDim > const & localSuperCellOffset,
-            T_WokerCfg const &
+            T_WorkerCfg const &
         )
         {
             return acc::RelativeGlobalDomainPosition< Params >(

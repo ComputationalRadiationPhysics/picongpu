@@ -35,7 +35,7 @@ namespace manipulators
 {
 namespace unary
 {
-namespace detail
+namespace acc
 {
 
     /** set the particle attribute position
@@ -75,13 +75,13 @@ namespace detail
         }
     };
 
-} // namespace detail
+} // namespace acc
 
 
     /** Change the in cell position
      *
      * This functor changes the in-cell position of a particle.
-     * The new in-cell position is uniform distributed position between [0.0;1.0).
+     * The new in-cell position is uniformly distributed position between [0.0;1.0).
      *
      * example: add
      *   ```
@@ -90,7 +90,7 @@ namespace detail
      *   to `InitPipeline` in `speciesInitialization.param`
      */
     using RandomPosition = generic::FreeRng<
-        detail::RandomPosition,
+        acc::RandomPosition,
         nvidia::rng::distributions::Uniform_float,
         boost::mpl::integral_c<
             size_t,

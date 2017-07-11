@@ -61,10 +61,10 @@ namespace manipulators
         const DriftParamNegative_direction_t direction;
     };
     /* definition of SetDrift start*/
-    typedef unary::Drift<
+    using AssignYDriftNegative = unary::Drift<
         DriftParamNegative,
         nvidia::functors::Assign
-    > AssignYDriftNegative;
+    >;
 
 } // namespace manipulators
 
@@ -80,7 +80,7 @@ namespace startPosition
     };
 
     /* definition of random particle start */
-    typedef RandomImpl< RandomParameter > Random;
+    using Random = RandomImpl< RandomParameter >;
 
 
     /* sit directly in lower corner of the cell */
