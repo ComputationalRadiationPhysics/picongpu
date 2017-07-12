@@ -144,7 +144,7 @@ namespace radiation
      *   - goto file `speciesDefinition.param`
      *   - add the attribute `radiationMask` to the electron species
      */
-    using RadiationParticleFilter = picongpu::particles::manipulators::FreeImpl<
+    using RadiationParticleFilter = picongpu::particles::manipulators::generic::Free<
         GammaFilterFunctor
     >;
 

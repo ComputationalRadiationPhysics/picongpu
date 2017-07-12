@@ -27,6 +27,7 @@
 
 #include <utility>
 #include <type_traits>
+#include <string>
 
 
 namespace picongpu
@@ -35,19 +36,77 @@ namespace particles
 {
 namespace manipulators
 {
+namespace generic
+{
+namespace acc
+{
+    template<
+        typename T_Functor,
+        typename T_RngType
+    >
+    struct FreeRng : private T_Functor
+    {
+
+        using Functor = T_Functor;
+        using RngType = T_RngType;
+
+        DINLINE FreeRng(
+            Functor const & functor,
+            RngType const & rng
+        ) :
+            T_Functor( functor ), m_rng( rng )
+        {
+        }
+
+        /** call user functor
+         *
+         * The random number generator is initialized with the first call.
+         *
+         * @param particle particle which is given to the user functor
+         * @return void is used to enable the operator if the user functor except two arguments
+         */
+        template<
+            typename T_Particle,
+            typename ... T_Args
+        >
+        DINLINE
+        void operator()(
+            T_Particle& particle,
+            T_Args && ... args
+        )
+        {
+            namespace nvrng = nvidia::rng;
+
+            Functor::operator()(
+                m_rng,
+                particle,
+                args ...
+            );
+        }
+
+    private:
+
+        RngType m_rng;
+    };
+} // namespace acc
 
     template<
         typename T_Functor,
         typename T_Distribution,
+        typename T_Seed,
         typename T_SpeciesType
     >
-    struct FreeRngImpl : private T_Functor
+    struct FreeRng : private T_Functor
     {
 
         using Functor = T_Functor;
         using Distribution = T_Distribution;
         using SpeciesType = T_SpeciesType;
-        using SpeciesName = typename MakeIdentifier<SpeciesType>::type;
+
+        using RngType = PMacc::nvidia::rng::RNG<
+            nvidia::rng::methods::Xor,
+            Distribution
+        >;
 
         /** constructor
          *
@@ -60,7 +119,7 @@ namespace manipulators
          * @param is used to enable/disable the constructor (do not pass any value to this parameter)
          */
         template< typename DeferFunctor = Functor >
-        HINLINE FreeRngImpl(
+        HINLINE FreeRng(
             uint32_t currentStep,
             typename std::enable_if<
                 std::is_constructible<
@@ -68,7 +127,7 @@ namespace manipulators
                     uint32_t
                 >::value
             >::type* = 0
-        ) : Functor( currentStep ), isInitialized( false )
+        ) : Functor( currentStep )
         {
             hostInit( currentStep );
         }
@@ -83,72 +142,65 @@ namespace manipulators
          * @param is used to enable/disable the constructor (do not pass any value to this parameter)
          */
         template< typename DeferFunctor = Functor >
-        HINLINE FreeRngImpl(
+        HINLINE FreeRng(
             uint32_t currentStep,
             typename std::enable_if<
                 std::is_constructible< DeferFunctor >::value
             >::type* = 0
-        ) : Functor( ), isInitialized( false )
+        ) : Functor( )
         {
             hostInit( currentStep );
         }
 
-        /** call user functor
+        /** create functor for the accelerator
          *
-         * The random number generator is initialized with the first call.
-         *
-         * @param cell superCell index within the local volume
-         * @param unused
-         * @param isParticle1 define if the reference @p particleSpecies1 is valid
-         * @param unused
-         * @return void is used to enable the operator if the user functor except two arguments
+         * @tparam T_WorkerCfg PMacc::mappings::threads::WorkerCfg, configuration of the worker
+         * @param localSupercellOffset offset (in superCells, without any guards) relative
+         *                        to the origin of the local domain
+         * @param workerCfg configuration of the worker
          */
-        template<
-            typename T_Particle1,
-            typename T_Particle2
-        >
+        template< typename T_WorkerCfg >
         DINLINE
-        void operator()(
-            DataSpace< simDim > const & localSuperCellOffset,
-            T_Particle1& particle1,
-            T_Particle2&,
-            bool const isParticle1,
-            bool const
+        acc::FreeRng<
+            Functor,
+            RngType
+        > operator()(
+            DataSpace< simDim > const & localSupercellOffset,
+            T_WorkerCfg const & workerCfg
         )
         {
             namespace nvrng = nvidia::rng;
 
-            using FrameType = typename T_Particle1::FrameType;
+            using FrameType = typename SpeciesType::FrameType;
+            using SuperCellSize = typename FrameType::SuperCellSize;
 
-            if( !isInitialized )
-            {
-                /** @todo: it is a wrong assumption that the threadIdx can be used to
-                 * define the cell within the superCell. This is only allowed if we not
-                 * use alpaka. We need to distinguish between manipulators those are working on the
-                 * cell domain and on the particle domain.
-                 */
-                DataSpace< simDim > const threadIndex( threadIdx );
-                uint32_t const cellIdx = DataSpaceOperations< simDim >::map(
-                    localCells,
-                    localSuperCellOffset + threadIndex
-                );
-                rng = nvrng::create(
-                    nvidia::rng::methods::Xor(
-                        seed,
-                        cellIdx
-                    ),
-                    Distribution{}
-                );
-                isInitialized = true;
-            }
 
-            if( isParticle1 )
-            {
-                Functor::operator()(
-                    rng,
-                    particle1
-                );
-            }
+
+            uint32_t const cellIdx = DataSpaceOperations< simDim >::map(
+                localCells,
+                localSupercellOffset * SuperCellSize::toRT( ) +
+                    DataSpaceOperations< simDim >::template map< SuperCellSize >( workerCfg.getWorkerIdx( ) )
+            );
+            RngType const rng = nvrng::create(
+                nvidia::rng::methods::Xor(
+                    seed,
+                    cellIdx
+                ),
+                Distribution{}
+            );
+            return acc::FreeRng<
+                Functor,
+                RngType
+            >(
+                *reinterpret_cast< Functor * >( this ),
+                rng
+            );
+        }
+
+        HINLINE std::string
+        getName( ) const
+        {
+            return std::string("FreeRNG");
         }
 
     private:
@@ -177,7 +229,7 @@ namespace manipulators
                     FrameType,
                     uint32_t
                 >::uid() ^
-                FREERNG_SEED;
+                T_Seed::value;
             /* mixing the final seed with the current time step to avoid
              * correlations between time steps
              */
@@ -187,16 +239,11 @@ namespace manipulators
             localCells = subGrid.getLocalDomain().size;
         }
 
-        using RngType = PMacc::nvidia::rng::RNG<
-            nvidia::rng::methods::Xor,
-            Distribution
-        >;
-        RngType rng;
         DataSpace< simDim > localCells;
-        bool isInitialized;
         uint32_t seed;
     };
 
-} //namespace manipulators
-} //namespace particles
-} //namespace picongpu
+} // namepsace generic
+} // namespace manipulators
+} // namespace particles
+} // namespace picongpu

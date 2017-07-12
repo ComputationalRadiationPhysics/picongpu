@@ -56,6 +56,7 @@
 #include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "particles/Manipulate.hpp"
 #include "particles/manipulators/manipulators.hpp"
+#include "particles/filter/filter.hpp"
 #include "particles/flylite/NonLTE.tpp"
 #include "random/methods/XorMin.hpp"
 #include "random/RNGProvider.hpp"
@@ -503,7 +504,7 @@ public:
         ForEach<
             VectorSpeciesWithMementumPrev1,
             particles::Manipulate<
-                particles::manipulators::CopyAttribute<
+                particles::manipulators::unary::CopyAttribute<
                     momentumPrev1,
                     momentum
                 >,

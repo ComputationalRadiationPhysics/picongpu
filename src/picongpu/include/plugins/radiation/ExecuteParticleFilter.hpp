@@ -22,6 +22,7 @@
 #include "simulation_defines.hpp"
 
 #include "traits/HasIdentifier.hpp"
+#include "particles/Manipulate.hpp"
 
 #include <memory>
 
@@ -37,17 +38,17 @@ namespace radiation
     {
         /** get the attribute value of `radiationMask`
          *
-         * @param particle particle to be used
+         * @param species buffer
+         * @param currentStep current simulation time step
          * @return value of the attribute `radiationMask`
          */
         template< typename T_Species >
-        void operator()( std::shared_ptr<T_Species> species, const uint32_t currentStep )
+        void operator()( std::shared_ptr<T_Species> const &, const uint32_t currentStep )
         {
-            auto radiationEnableFunctor = picongpu::radiation::RadiationParticleFilter( currentStep );
-            species->manipulateAllParticles(
-                currentStep,
-                radiationEnableFunctor
-            );
+            picongpu::particles::Manipulate<
+                picongpu::radiation::RadiationParticleFilter,
+                T_Species
+            >{}( currentStep );
         }
     };
 

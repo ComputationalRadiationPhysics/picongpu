@@ -19,17 +19,10 @@
 
 #pragma once
 
-#include "particles/manipulators/IManipulator.hpp"
-#include "particles/manipulators/NoneImpl.hpp"
-#include "particles/manipulators/AssignImpl.hpp"
-#include "particles/manipulators/TemperatureImpl.hpp"
-#include "particles/manipulators/DriftImpl.hpp"
-#include "particles/manipulators/IfRelativeGlobalPositionImpl.hpp"
-#include "particles/manipulators/CreateParticlesFromParticleImpl.hpp"
-#include "particles/manipulators/FreeImpl.hpp"
-#include "particles/manipulators/SetAttributeImpl.hpp"
-#include "particles/manipulators/RandomPositionImpl.hpp"
-#include "particles/manipulators/DensityWeighting.hpp"
-#include "particles/manipulators/ProtonTimesWeighting.hpp"
-#include "particles/manipulators/CopyAttribute.hpp"
-#include "particles/manipulators/FreeRngImpl.hpp"
+//#include "particles/manipulators/IManipulator.hpp"
+
+#include "particles/manipulators/generic/Free.hpp"
+#include "particles/manipulators/generic/FreeRng.hpp"
+
+#include "particles/manipulators/unary/Temperature.hpp"
+#include "particles/manipulators/unary/Drift.hpp"

@@ -35,37 +35,37 @@ namespace mCT = PMacc::math::CT;
 namespace particles
 {
 
-/** a particle with a weighting below MIN_WEIGHTING will not
- *      be created / will be deleted
- *  unit: none */
-constexpr float_X MIN_WEIGHTING = 10.0;
+    /** a particle with a weighting below MIN_WEIGHTING will not
+     *      be created / will be deleted
+     *  unit: none */
+    constexpr float_X MIN_WEIGHTING = 10.0;
 
-constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 16;
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 16u;
 
 namespace manipulators
 {
-struct TemperatureParam
-{
-    /*Initial temperature
-     *  unit: keV
-     */
-    static constexpr float_64 temperature = 51.16;
-};
-/* definition of SetDrift start*/
-typedef TemperatureImpl<TemperatureParam,nvidia::functors::Add> AddTemperature;
+    struct TemperatureParam
+    {
+        /*Initial temperature
+         *  unit: keV
+         */
+        static constexpr float_64 temperature = 51.16;
+    };
+    /* definition of SetDrift start*/
+    using  AddTemperature = unary::Temperature< TemperatureParam> ;
 } //namespace manipulators
 
 namespace startPosition
 {
 
-struct RandomParameter
-{
-    /** Count of particles per cell at initial state
-     *  unit: none */
-    static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
-};
-/* definition of random particle start*/
-typedef RandomImpl<RandomParameter> Random;
+    struct RandomParameter
+    {
+        /** Count of particles per cell at initial state
+         *  unit: none */
+        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+    };
+    /* definition of random particle start*/
+    using Random = RandomImpl<RandomParameter>;
 
 }//namespace startPosition
 }//namespace particles

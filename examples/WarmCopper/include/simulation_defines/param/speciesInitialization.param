@@ -92,12 +92,12 @@ namespace particles
             CopperIons
         >,
         ManipulateDeriveSpecies<
-            manipulators::DensityWeighting,
+            manipulators::binary::DensityWeighting,
             CopperIons,
             BulkElectrons
         >,
         ManipulateDeriveSpecies<
-            manipulators::DensityWeighting,
+            manipulators::binary::DensityWeighting,
             CopperIons,
             PromptElectrons
         >,

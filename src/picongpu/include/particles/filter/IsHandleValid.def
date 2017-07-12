@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Axel Huebl
+/* Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -24,23 +24,15 @@ namespace picongpu
 {
 namespace particles
 {
-namespace manipulators
+namespace filter
 {
 
-/* Re-scale the weighting of a cloned species by densityRatio
- *
- * When deriving species from each other, the new
- * species "inherits" the macro-particle weighting
- * of the first one.
- * This functor can be used to manipulate the weighting
- * of the new species' macro particles to satisfy the
- * input densityRatio of it.
- *
- * note: needs the densityRatio flag on both species,
- *       used by the GetDensityRatio trait.
- */
-struct DensityWeighting;
+    /** check if a particle handle is valid
+     *
+     * the particle method `::isValidHandle()` is called.
+     */
+    struct IsHandleValid;
 
-} //namespace manipulators
+} //namespace filter
 } //namespace particles
 } //namespace picongpu

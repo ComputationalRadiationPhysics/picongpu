@@ -88,7 +88,7 @@ typedef mpl::vector<
         PIC_Ions
     >,
     ManipulateDeriveSpecies<
-        manipulators::ProtonTimesWeighting,
+        manipulators::binary::ProtonTimesWeighting,
         PIC_Ions,
         PIC_Electrons
     >,

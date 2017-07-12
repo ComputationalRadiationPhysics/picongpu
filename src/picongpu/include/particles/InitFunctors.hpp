@@ -26,6 +26,8 @@
 #include "particles/densityProfiles/IProfile.def"
 #include "particles/startPosition/IFunctor.def"
 #include "particles/Manipulate.hpp"
+#include "particles/filter/filter.def"
+#include "particles/manipulators/manipulators.def"
 
 #include "Environment.hpp"
 #include "traits/Resolve.hpp"
@@ -114,15 +116,30 @@ struct CreateDensity
                                destination and source, \see src/picongpu/include/particles/manipulators
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
+ * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles
  */
-template<typename T_ManipulateFunctor, typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
+template<
+    typename T_Functor,
+    typename T_SrcSpeciesType,
+    typename T_DestSpeciesType = bmpl::_1,
+    typename T_Filter = filter::IsHandleValid
+>
 struct ManipulateDeriveSpecies
 {
     using DestSpeciesType = T_DestSpeciesType;
     using DestFrameType = typename DestSpeciesType::FrameType;
     using SrcSpeciesType = T_SrcSpeciesType;
     using SrcFrameType = typename SrcSpeciesType::FrameType;
-    typedef T_ManipulateFunctor ManipulateFunctor;
+
+    using UserFunctor = typename bmpl::apply1<
+        T_Functor,
+        DestSpeciesType
+    >::type;
+
+    using Manipulator = manipulators::IBinary<
+        UserFunctor,
+        T_Filter
+    >;
 
     HINLINE void operator()( const uint32_t currentStep )
     {
@@ -130,9 +147,9 @@ struct ManipulateDeriveSpecies
         auto speciesPtr = dc.get< DestSpeciesType >( DestFrameType::getName(), true );
         auto srcSpeciesPtr = dc.get< SrcSpeciesType >( SrcFrameType::getName(), true );
 
-        ManipulateFunctor manipulateFunctor(currentStep);
+        Manipulator manipulator(currentStep);
 
-        speciesPtr->deviceDeriveFrom(*srcSpeciesPtr, manipulateFunctor);
+        speciesPtr->deviceDeriveFrom(*srcSpeciesPtr, manipulator);
 
         dc.releaseData( DestFrameType::getName() );
         dc.releaseData( SrcFrameType::getName() );
@@ -148,9 +165,19 @@ struct ManipulateDeriveSpecies
  *
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
+ * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles
  */
-template<typename T_SrcSpeciesType, typename T_DestSpeciesType = bmpl::_1>
-struct DeriveSpecies : ManipulateDeriveSpecies<manipulators::NoneImpl, T_SrcSpeciesType, T_DestSpeciesType>
+template<
+    typename T_SrcSpeciesType,
+    typename T_DestSpeciesType = bmpl::_1,
+    typename T_Filter = filter::IsHandleValid
+>
+struct DeriveSpecies : ManipulateDeriveSpecies<
+    manipulators::generic::None,
+    T_SrcSpeciesType,
+    T_DestSpeciesType,
+    T_Filter
+>
 {
 };
 

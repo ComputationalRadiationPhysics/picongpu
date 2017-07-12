@@ -48,6 +48,7 @@
 #include "traits/HasFlag.hpp"
 #include "mappings/threads/ForEachIdx.hpp"
 #include "mappings/threads/IdxConfig.hpp"
+#include "mappings/threads/WorkerCfg.hpp"
 
 
 namespace picongpu
@@ -114,8 +115,7 @@ struct KernelDeriveParticles
 
         // offset of the superCell (in cells, without any guards) to the origin of the local domain
         DataSpace< simDim > const localSuperCellOffset =
-            superCellIdx * SuperCellSize::toRT( )
-            - mapper.getGuardingSuperCells( ) * SuperCellSize::toRT( );
+            superCellIdx - mapper.getGuardingSuperCells( );
 
         ForEachIdx<
             IdxConfig<
@@ -139,6 +139,11 @@ struct KernelDeriveParticles
             }
         );
 
+        auto accManipulator = manipulateFunctor(
+            localSuperCellOffset,
+            WorkerCfg< numWorker >{ workerIdx }
+        );
+
         __syncthreads( );
 
         // move over all Frames
@@ -159,17 +164,19 @@ struct KernelDeriveParticles
                 {
                     auto parDest = destFrame[ linearIdx ];
                     auto parSrc = srcFrame[ linearIdx ];
-                    assign(
-                        parDest,
-                        deselect< particleId >( parSrc )
-                    );
+                    if( parSrc[ multiMask_ ] != 1 )
+                        parSrc.setHandleInvalid( );
 
-                    manipulateFunctor(
-                        localSuperCellOffset,
+                    //! @todo us filtered functor
+                    if( parSrc.isHandleValid( ) )
+                        assign(
+                            parDest,
+                            deselect< particleId >( parSrc )
+                        );
+
+                    accManipulator(
                         parDest,
-                        parSrc,
-                        true,
-                        parSrc[ multiMask_ ] == 1
+                        parSrc
                     );
                 }
             );
@@ -234,15 +241,22 @@ struct KernelManipulateAllParticles
 
         /* offset of the superCell (in cells, without any guards) to the origin of the local domain */
         const DataSpace<simDim> localSuperCellOffset =
-            superCellIdx * SuperCellSize::toRT()
-            - mapper.getGuardingSuperCells() * SuperCellSize::toRT();
+            superCellIdx - mapper.getGuardingSuperCells();
 
+        auto accManipulator = particleFunctor(
+            localSuperCellOffset,
+            mappings::threads::WorkerCfg< PMacc::math::CT::volume<
+                SuperCellSize
+            >::type::value >( linearThreadIdx )
+        );
         __syncthreads();
 
         while (frame.isValid())
         {
             auto particle = frame[linearThreadIdx];
-            particleFunctor(localSuperCellOffset, particle, particle, isParticle, isParticle);
+            if( !isParticle )
+                particle.setHandleInvalid( );
+            accManipulator( particle );
 
             __syncthreads();
             if (linearThreadIdx == 0)

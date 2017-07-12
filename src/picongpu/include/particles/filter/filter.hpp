@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Rene Widera
+/* Copyright 2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,19 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-namespace picongpu
-{
-namespace particles
-{
-namespace manipulators
-{
-
-template<typename T_ParamClass, typename T_Functor, typename T_SpeciesType = bmpl::_1>
-struct IfRelativeGlobalPositionImpl;
-
-} //namespace manipulators
-} //namespace particles
-} //namespace picongpu
+#include "particles/filter/RelativeGlobalDomainPosition.hpp"
+#include "particles/filter/IsHandleValid.hpp"

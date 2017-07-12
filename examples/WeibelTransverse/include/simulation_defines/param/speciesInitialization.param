@@ -93,7 +93,7 @@ typedef mpl::vector<
          * of electrons and ions is quasi neutral!
          * alternatively, use manipulators::ProtonTimesWeighting
          */
-        manipulators::DensityWeighting,
+        manipulators::binary::DensityWeighting,
         PIC_Ions,
         PIC_Electrons
     >,

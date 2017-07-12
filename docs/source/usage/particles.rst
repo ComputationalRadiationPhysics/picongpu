@@ -38,74 +38,86 @@ FillAllGaps
 .. doxygenstruct:: picongpu::particles::FillAllGaps
    :project: PIConGPU
 
+Manipulation Functors
+---------------------
 
-Manipulation
-------------
+Some of the particle operations above can take the following functors as arguments to manipulate attributes of particle species.
+A particle filter (see following section) is used to only manipulated selected particles of a species with a functor.
 
-Some of the particle operations above can further take the following functors as arguments to manipulate attributes of particle species:
+Free
+^^^^
 
-AssignImpl
-^^^^^^^^^^
+.. doxygenstruct:: picongpu::particles::manipulators::generic::Free
+   :project: PIConGPU
 
-.. doxygenstruct:: picongpu::particles::manipulators::AssignImpl
+FreeRng
+^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::manipulators::generic::FreeRng
    :project: PIConGPU
 
 CopyAttribute
 ^^^^^^^^^^^^^
 
-.. doxygentypedef:: picongpu::particles::manipulators::CopyAttribute
+.. doxygentypedef:: picongpu::particles::manipulators::unary::CopyAttribute
+   :project: PIConGPU
+
+Drift
+^^^^^
+
+.. doxygentypedef:: picongpu::particles::manipulators::unary::Drift
+   :project: PIConGPU
+
+RandomPosition
+^^^^^^^^^^^^^^
+
+.. doxygentypedef:: picongpu::particles::manipulators::unary::RandomPosition
+   :project: PIConGPU
+
+Temperature
+^^^^^^^^^^^
+
+.. doxygentypedef:: picongpu::particles::manipulators::unary::Temperature
+   :project: PIConGPU
+
+Assign
+^^^^^^
+
+.. doxygentypedef:: picongpu::particles::manipulators::binary::Assign
    :project: PIConGPU
 
 DensityWeighting
 ^^^^^^^^^^^^^^^^
 
-.. doxygenstruct:: picongpu::particles::manipulators::DensityWeighting
-   :project: PIConGPU
-
-DriftImpl
-^^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::DriftImpl
-   :project: PIConGPU
-
-FreeImpl
-^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::FreeImpl
-   :project: PIConGPU
-
-FreeRngImpl
-^^^^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::FreeRngImpl
-   :project: PIConGPU
-
-IfRelativeGlobalPositionImpl
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doxygenstruct:: picongpu::particles::manipulators::IfRelativeGlobalPositionImpl
+.. doxygentypedef:: picongpu::particles::manipulators::binary::DensityWeighting
    :project: PIConGPU
 
 ProtonTimesWeighting
 ^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenstruct:: picongpu::particles::manipulators::ProtonTimesWeighting
+.. doxygentypedef:: picongpu::particles::manipulators::binary::ProtonTimesWeighting
    :project: PIConGPU
 
-RandomPositionImpl
-^^^^^^^^^^^^^^^^^^
+Manipulation Filters
+--------------------
 
-.. doxygenstruct:: picongpu::particles::manipulators::RandomPositionImpl
+Most of the particle functors shall operate on all valid particles, where IsHandleValid is the default assumption.
+One can limit the domain or subset of particles with filters such as the ones below (or define new ones).
+
+IsHandleValid
+^^^^^^^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::filter::IsHandleValid
    :project: PIConGPU
 
-SetAttributeImpl
-^^^^^^^^^^^^^^^^
+RelativeGlobalDomainPosition
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenstruct:: picongpu::particles::manipulators::SetAttributeImpl
+.. doxygenstruct:: picongpu::particles::filter::RelativeGlobalDomainPosition
    :project: PIConGPU
 
-TemperatureImpl
-^^^^^^^^^^^^^^^
+Define a New Particle Filter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenstruct:: picongpu::particles::manipulators::TemperatureImpl
-   :project: PIConGPU
+.. note::
+   Not yet implemented.

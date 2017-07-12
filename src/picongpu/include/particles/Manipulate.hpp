@@ -20,6 +20,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
+#include "particles/filter/filter.def"
 #include "particles/manipulators/manipulators.def"
 
 #include "Environment.hpp"
@@ -39,10 +40,12 @@ namespace particles
      *
      * @tparam T_Functor unary lambda functor
      * @tparam T_SpeciesType type of the used species
+     * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles
      */
     template<
         typename T_Functor,
-        typename T_SpeciesType = bmpl::_1
+        typename T_SpeciesType = bmpl::_1,
+        typename T_Filter = filter::IsHandleValid
     >
     struct Manipulate
     {
@@ -53,18 +56,25 @@ namespace particles
             T_Functor,
             SpeciesType
         >::type;
-        using Functor = manipulators::IManipulator< UserFunctor >;
+
+        using Manipulator = manipulators::IUnary<
+            UserFunctor,
+            T_Filter
+        >;
 
         HINLINE void
         operator()( const uint32_t currentStep )
         {
             DataConnector &dc = Environment<>::get().DataConnector();
-            auto speciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
+            auto speciesPtr = dc.get< SpeciesType >(
+                FrameType::getName(),
+                true
+            );
 
-            Functor functor( currentStep );
+            Manipulator manipulator( currentStep );
             speciesPtr->manipulateAllParticles(
                 currentStep,
-                functor
+                manipulator
             );
 
             dc.releaseData( FrameType::getName() );

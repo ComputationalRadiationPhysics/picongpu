@@ -93,22 +93,22 @@ namespace particles
         /* derive the other two ion species and adjust their weighting to have always all
          * three of macro ions present in a cell, even in cut-off regions of the density profile */
         ManipulateDeriveSpecies<
-            manipulators::DensityWeighting,
+            manipulators::binary::DensityWeighting,
             Hydrogen,
             Carbon
         >,
         ManipulateDeriveSpecies<
-            manipulators::DensityWeighting,
+            manipulators::binary::DensityWeighting,
             Hydrogen,
             Nitrogen
         >,
         // randomize C & N in-cell
         Manipulate<
-            manipulators::RandomPosition,
+            manipulators::unary::RandomPosition,
             Carbon
         >,
         Manipulate<
-            manipulators::RandomPosition,
+            manipulators::unary::RandomPosition,
             Nitrogen
         >,
         // partial pre-ionization: set bound electrons for C & N
