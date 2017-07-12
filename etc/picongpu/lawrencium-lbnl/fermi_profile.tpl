@@ -96,14 +96,14 @@ cd simOutput
 export OMPI_MCA_mpi_leave_pinned=0
 
 # test if cuda_memtest binary is available
-if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
+if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
   # Run CUDA memtest to check GPU's health
-  mpirun !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+  mpirun !TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
 fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  mpirun !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
+  mpirun !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi

@@ -59,4 +59,4 @@ export PYTHONPATH=$PICSRC/src/tools/lib/python:$PYTHONPATH
 #   - PBS/Torque (qsub)
 #   - "k20" queue
 export TBG_SUBMIT="qsub"
-export TBG_TPLFILE="submit/hypnos-hzdr/k20_profile.tpl"
+export TBG_TPLFILE="etc/picongpu/hypnos-hzdr/k20_profile.tpl"

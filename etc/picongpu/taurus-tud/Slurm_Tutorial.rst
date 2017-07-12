@@ -6,7 +6,7 @@ Job Submission
 
 PIConGPU job submission on the *Taurus* cluster at *TU Dresden*:
 
-* ``tbg -s sbatch -c submit/0008gpus.cfg -t submit/taurus-tud/k80_profile.tpl $SCRATCH/runs/test-001``
+* ``tbg -s sbatch -c etc/picongpu/0008gpus.cfg -t etc/picongpu/taurus-tud/k80_profile.tpl $SCRATCH/runs/test-001``
 
 
 Job Control

@@ -68,8 +68,8 @@ fi
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-#aprun  -N 1 -n !TBG_nodes !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+#aprun  -N 1 -n !TBG_nodes !TBG_dstPath/input/bin/cuda_memtest.sh
 
 #if [ $? -eq 0 ] ; then
-aprun  -N 1 -n !TBG_nodes  !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams | tee output
+aprun  -N 1 -n !TBG_nodes  !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
 #fi

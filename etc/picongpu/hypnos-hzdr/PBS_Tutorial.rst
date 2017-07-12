@@ -6,7 +6,7 @@ Job Submission
 
 PIConGPU job submission on the *Hypnos* cluster at *HZDR*:
 
-* ``tbg -s qsub -c submit/0008gpus.cfg -t submit/hypnos-hzdr/k20_profile.tpl /bigdata/hplsim/<...>/test-001``
+* ``tbg -s qsub -c etc/picongpu/0008gpus.cfg -t etc/picongpu/hypnos-hzdr/k20_profile.tpl /bigdata/hplsim/<...>/test-001``
 
 Where ``<...>`` is one of:
 

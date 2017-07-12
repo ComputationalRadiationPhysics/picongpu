@@ -80,13 +80,13 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 
 # test if cuda_memtest binary is available
-if [ -f !TBG_dstPath/picongpu/bin/cuda_memtest ] ; then
-  srun  -n !TBG_tasks !TBG_dstPath/picongpu/bin/cuda_memtest.sh
+if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
+  srun  -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
 fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  srun  -n !TBG_tasks !TBG_dstPath/picongpu/bin/picongpu !TBG_author !TBG_programParams
+  srun  -n !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi

@@ -35,7 +35,7 @@ export MPI_ROOT=$MPICH_DIR
 # vampirtrace (optional) ############################################
 #   pic-configure with -c "-DVAMPIR_ENABLE=ON"
 #   e.g.:
-#     pic-configure -c "-DVAMPIR_ENABLE=ON" ~/paramSets/case001
+#     pic-configure -c "-DVAMPIR_ENABLE=ON" ~/picInputs/case001
 #module load vampirtrace/5.14.4
 #export VT_ROOT=$VAMPIRTRACE_DIR
 
@@ -46,7 +46,7 @@ export MPI_ROOT=$MPICH_DIR
 #     SCOREP_WRAPPER=OFF pic-configure -a 35 \
 #         -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
 #         -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`" \
-#         ~/paramSets/case001
+#         ~/picInputs/case001
 #     export SCOREP_WRAPPER_INSTRUMENTER_FLAGS="--cuda --mpp=mpi"
 #     make -j
 #     make install
@@ -91,4 +91,4 @@ alias getInteractive="qsub -I -A $proj -q debug -l nodes=1,walltime=30:00"
 
 # "tbg" default options #######################################################
 export TBG_SUBMIT="qsub"
-export TBG_TPLFILE="submit/titan-ornl/batch_profile.tpl"
+export TBG_TPLFILE="etc/picongpu/titan-ornl/batch_profile.tpl"

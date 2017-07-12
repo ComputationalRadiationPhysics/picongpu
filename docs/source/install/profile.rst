@@ -23,7 +23,7 @@ Hypnos (HZDR)
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
 
-.. literalinclude:: submit/hypnos-hzdr/picongpu.profile.example
+.. literalinclude:: profiles/hypnos-hzdr/picongpu.profile.example
    :language: bash
 
 Titan (ORNL)
@@ -31,7 +31,7 @@ Titan (ORNL)
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libSplash, libpng and PNGwriter <install-dependencies>` manually.
 
-.. literalinclude:: submit/titan-ornl/picongpu.profile.example
+.. literalinclude:: profiles/titan-ornl/picongpu.profile.example
    :language: bash
 
 Piz Daint (CSCS)
@@ -39,7 +39,7 @@ Piz Daint (CSCS)
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, PNGwriter and ADIOS <install-dependencies>` manually.
 
-.. literalinclude:: submit/pizdaint-cscs/picongpu.profile.example
+.. literalinclude:: profiles/pizdaint-cscs/picongpu.profile.example
    :language: bash
 
 Taurus (TU Dresden)
@@ -47,7 +47,7 @@ Taurus (TU Dresden)
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and libSplash <install-dependencies>` manually.
 
-.. literalinclude:: submit/taurus-tud/picongpu.profile.example
+.. literalinclude:: profiles/taurus-tud/picongpu.profile.example
    :language: bash
 
 Lawrencium (LBNL)
@@ -56,7 +56,7 @@ Lawrencium (LBNL)
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, PNGwriter and libSplash <install-dependencies>` manually.
 Additionally, you need to make the ``rsync`` command available as written below.
 
-.. literalinclude:: submit/lawrencium-lbnl/picongpu.profile.example
+.. literalinclude:: profiles/lawrencium-lbnl/picongpu.profile.example
    :language: bash
 
 Judge (FZJ)

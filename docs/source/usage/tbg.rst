@@ -37,7 +37,7 @@ Slurm
 
 Slurm is a modern batch system, e.g. installed on the Taurus cluster at TU Dresden.
 
-.. include:: ../install/submit/taurus-tud/Slurm_Tutorial.rst
+.. include:: ../install/profiles/taurus-tud/Slurm_Tutorial.rst
    :start-line: 3
 
 PBS
@@ -46,5 +46,5 @@ PBS
 PBS (for *Portable Batch System*) is a widely distributed batch system that comes in several implementations (open, professional, etc.).
 It is used, e.g. on Hypnos at HZDR.
 
-.. include:: ../install/submit/hypnos-hzdr/PBS_Tutorial.rst
+.. include:: ../install/profiles/hypnos-hzdr/PBS_Tutorial.rst
    :start-line: 3
