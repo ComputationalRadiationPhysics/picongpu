@@ -71,7 +71,7 @@ The following species attributes are defined by pmacc and always stored with a p
 
 .. doxygenfile:: Identifier.hpp
    :project: PIConGPU
-   :path: src/libPMacc/include/particles/Identifier.hpp
+   :path: include/pmacc/particles/Identifier.hpp
    :no-link:
 
 speciesConstants.param

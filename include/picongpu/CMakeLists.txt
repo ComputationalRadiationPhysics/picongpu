@@ -80,7 +80,7 @@ unset(IN_SRC_POS)
 # Find pmacc
 ################################################################################
 
-find_package(pmacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../src/libPMacc")
+find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../pmacc")
 include_directories(SYSTEM ${pmacc_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${pmacc_LIBRARIES})
 add_definitions(${pmacc_DEFINITIONS})

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "debug/VerboseLog.hpp"
+#include "pmacc/debug/VerboseLog.hpp"
 
 #include <stdint.h>
 

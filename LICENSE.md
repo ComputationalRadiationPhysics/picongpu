@@ -23,7 +23,7 @@ The **main simulation** is licensed under the **GPLv3+**. See
  - `buildsystem`
  - `examples`
  - `doc`
- - `src/picongpu`
+ - `inlcude/picongpu`
  - `src/tools` (without `splash2txt`)
  - `src/mpiInfo`
 
@@ -33,7 +33,8 @@ The **main simulation** is licensed under the **GPLv3+**. See
 All **libraries** are *dual licensed* under the **GLPv3+ and LGPLv3+**. See
 [COPYING](COPYING) and [COPYING.LESSER](COPYING.LESSER).
 If not stated otherwise explicitly, that affects:
- - `src/libPMacc`
+ - `inlcude/pmacc`
+ - `share/pmacc`
  - `src/tools/splash2txt`
 
 
