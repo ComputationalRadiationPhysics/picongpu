@@ -37,7 +37,7 @@
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "identifier/value_identifier.hpp"
 
-#include "traits/FilterByFlag.hpp"
+#include "particles/traits/FilterByFlag.hpp"
 #include "picongpu/particles/Particles.hpp"
 #include <boost/mpl/string.hpp>
 
