@@ -22,9 +22,9 @@
 this_dir=`dirname $0`
 
 #only copy submit and params if we clone from default pic folder
-default_folder_to_copy="submit include/simulation_defines/param include/simulation_defines/unitless"
+default_folder_to_copy="etc/picongpu include/picongpu/simulation_defines/param include/picongpu/simulation_defines/unitless"
 #if we clone a project we copy full include 
-folder_to_clone="submit bin include lib"
+folder_to_clone="etc/picongpu bin include/picongpu lib"
 files_to_copy="cmakeFlags executeOnClone"
 
 help()
@@ -68,7 +68,7 @@ done
 
 cmake_path="$*"
 
-default_param_dir="$this_dir/include/picongpu"
+default_param_dir="$this_dir"
 
 if [ $# -eq 0 ] || [ $# -gt 2 ] ; then
     echo "Missing destination directory or to many directories were given." >&2
@@ -90,7 +90,7 @@ if [ ! -d "$src_path" ] ; then
 fi
 
 if [ -d "$src_path/include/picongpu" ] ; then
-    src_path="$src_path/include/picongpu"
+    src_path="$src_path"
 fi
 
 if [ -d "$dst_path" ] && [ "$force_param" -eq 0 ] ; then
@@ -122,7 +122,7 @@ do
 done
 
 #copy all data from src_path if path is not picongpu default param path
-if [ "$src_path" != "$this_dir/include/picongpu" ] ; then
+if [ "$src_path" != "$this_dir" ] ; then
     for d in $selected_default_folder_to_copy
     do
         dir_dst="$dst_path/$d"

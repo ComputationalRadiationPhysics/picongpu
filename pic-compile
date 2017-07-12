@@ -67,7 +67,6 @@ dir_exists "$examples_path" "source"
 examples_path=`absulte_path $examples_path`
 
 cmake_path="$*"
-default_param_dir="$this_dir/include/picongpu"
 
 mkdir -p "$tmpRun_path"
 dir_exists "$tmpRun_path" "destination"

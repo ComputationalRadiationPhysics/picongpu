@@ -80,7 +80,7 @@ unset(IN_SRC_POS)
 # Find PMacc
 ################################################################################
 
-find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../libPMacc")
+find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../src/libPMacc")
 include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${PMacc_LIBRARIES})
 add_definitions(${PMacc_DEFINITIONS})
@@ -196,7 +196,7 @@ if(CUDAMEMTEST_ENABLE)
     # mpiInfo utility
     find_path(MPI_INFO_DIR
             NAMES CMakeLists.txt
-            PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../mpiInfo"
+            PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../src/mpiInfo"
             DOC "path to mpiInfo"
             )
 
@@ -335,11 +335,12 @@ find_path(PIC_EXTENSION_PATH
     NO_CMAKE_SYSTEM_PATH
     )
 
-set(PIC_COPY_ON_INSTALL "include/simulation_defines;submit;lib"
+set(PIC_COPY_ON_INSTALL "include/picongpu/simulation_defines;etc/picongpu;lib"
     CACHE LIST
     "Folders that are copied to installation path during install" )
 
-include_directories(include)
+# enforce that all picongpu includes must be prefixed with `picongpu/`
+include_directories(..)
 include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 
 
@@ -389,7 +390,7 @@ install(TARGETS picongpu
 #           OWNER_WRITE GROUP_READ GROUP_EXECUTE)
 #endforeach(f)
 
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin/" DESTINATION bin
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin/" DESTINATION bin
     FILES_MATCHING PATTERN "*"
     PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE
     PATTERN .svn EXCLUDE
@@ -406,8 +407,8 @@ if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR
       #if source not exists than copy
       if(NOT EXISTS "${CMAKE_INSTALL_PREFIX}/${dir}")
           #copy important subfolders from extension path (default PIConGPU parameter)
-          if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/")
-            install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${dir}/."
+          if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../${dir}/")
+            install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../${dir}/."
               DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"
               PATTERN .svn EXCLUDE
               PATTERN .git EXCLUDE
