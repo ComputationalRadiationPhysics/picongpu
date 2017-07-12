@@ -24,7 +24,7 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 
-/** Fixture that initializes libPMacc for a given dimensionality */
+/** Fixture that initializes PMacc for a given dimensionality */
 template<unsigned T_dim>
 struct PMaccFixture
 {

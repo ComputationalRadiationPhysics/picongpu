@@ -90,7 +90,7 @@ for i in issues:
     if "affects latest release" in pr_labels_names:
         if "core" in pr_labels_names:
             bugs["core"].append(i.title + " #" + str(pr_nr))
-        elif "libPMacc" in pr_labels_names:
+        elif "PMacc" in pr_labels_names:
             bugs["pmacc"].append(i.title + " #" + str(pr_nr))
         elif "plugin" in pr_labels_names:
             bugs["plugin"].append(i.title + " #" + str(pr_nr))
@@ -102,7 +102,7 @@ for i in issues:
     if "feature" in pr_labels_names:
         if "core" in pr_labels_names:
             features["core"].append(i.title + " #" + str(pr_nr))
-        elif "libPMacc" in pr_labels_names:
+        elif "PMacc" in pr_labels_names:
             features["pmacc"].append(i.title + " #" + str(pr_nr))
         elif "plugin" in pr_labels_names:
             features["plugin"].append(i.title + " #" + str(pr_nr))
@@ -114,7 +114,7 @@ for i in issues:
     if "refactoring" in pr_labels_names:
         if "core" in pr_labels_names:
             refactoring["core"].append(i.title + " #" + str(pr_nr))
-        elif "libPMacc" in pr_labels_names:
+        elif "PMacc" in pr_labels_names:
             refactoring["pmacc"].append(i.title + " #" + str(pr_nr))
         elif "plugin" in pr_labels_names:
             refactoring["plugin"].append(i.title + " #" + str(pr_nr))
@@ -133,7 +133,7 @@ print("**New Features:**")
 print(" - PIC:")
 for p in features["core"]:
     print("   - " + p)
-print(" - libPMacc:")
+print(" - PMacc:")
 for p in features["pmacc"]:
     print("   - " + p)
 print(" - plugins:")
@@ -150,7 +150,7 @@ print("**Bug Fixes:**")
 print(" - PIC:")
 for p in bugs["core"]:
     print("   - " + p)
-print(" - libPMacc:")
+print(" - PMacc:")
 for p in bugs["pmacc"]:
     print("   - " + p)
 print(" - plugins:")
@@ -168,7 +168,7 @@ print(" - refactoring:")
 print("   - PIC:")
 for p in refactoring["core"]:
     print("     - " + p)
-print("   - libPMacc:")
+print("   - PMacc:")
 for p in refactoring["pmacc"]:
     print("     - " + p)
 print("   - plugins:")

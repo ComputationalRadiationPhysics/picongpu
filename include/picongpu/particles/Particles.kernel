@@ -573,7 +573,7 @@ struct PushParticlePerFrame
          * y=2 for dir = -1
          */
         int direction = 1;
-        uint32_t exchangeType = 1; // see libPMacc/include/types.h for RIGHT, BOTTOM and BACK
+        uint32_t exchangeType = 1; // see inlcude/pmacc/types.h for RIGHT, BOTTOM and BACK
         for (uint32_t i = 0; i < simDim; ++i)
         {
             direction += (dir[i] == -1 ? 2 : dir[i]) * exchangeType;

@@ -211,14 +211,14 @@ void ChargeConservation::notify(uint32_t currentStep)
     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
     __setTransactionEvent(fieldTmpEvent);
 
-    /* cast libPMacc Buffer to cuSTL Buffer */
+    /* cast PMacc Buffer to cuSTL Buffer */
     auto fieldTmp_coreBorder =
                  fieldTmp->getGridBuffer().
                  getDeviceBuffer().cartBuffer().
                  view(this->cellDescription->getGuardingSuperCells()*BlockDim::toRT(),
                       this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());
 
-    /* cast libPMacc Buffer to cuSTL Buffer */
+    /* cast PMacc Buffer to cuSTL Buffer */
     auto fieldE_coreBorder =
                  dc.get< FieldE >( FieldE::getName(), true )->getGridBuffer().
                  getDeviceBuffer().cartBuffer().

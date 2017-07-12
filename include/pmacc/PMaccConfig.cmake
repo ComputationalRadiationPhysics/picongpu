@@ -342,7 +342,7 @@ if(PMACC_BLOCKING_KERNEL)
     set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_SYNC_KERNEL=1")
 endif(PMACC_BLOCKING_KERNEL)
 
-set(PMACC_VERBOSE "0" CACHE STRING "set verbose level for libPMacc")
+set(PMACC_VERBOSE "0" CACHE STRING "set verbose level for PMacc")
 set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} "-DPMACC_VERBOSE_LVL=${PMACC_VERBOSE}")
 
 # PMacc header files

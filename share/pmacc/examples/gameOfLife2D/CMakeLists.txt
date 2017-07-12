@@ -58,7 +58,7 @@ set(CMAKE_CXX_STANDARD 11)
 # Find pmacc
 ################################################################################
 
-find_package(pmacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../libPMacc")
+find_package(pmacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/pmacc")
 include_directories(SYSTEM ${pmacc_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${pmacc_LIBRARIES})
 add_definitions(${pmacc_DEFINITIONS})

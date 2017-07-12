@@ -58,7 +58,7 @@ namespace ionization
  * well-known system, i.e. the Hydrogen atom.
  *
  * for PMACC_CONST_VECTOR usage,
- * @see libPMacc/include/math/ConstVector.hpp
+ * @see include/pmacc/math/ConstVector.hpp
  * for finding ionization energies,
  * @url http://physics.nist.gov/PhysRefData/ASD/ionEnergy.html
  *
