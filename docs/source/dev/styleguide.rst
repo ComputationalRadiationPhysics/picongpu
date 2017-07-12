@@ -29,7 +29,7 @@ Please **add the according license header** snippet to your *new files*:
 
 * for PIConGPU (GPLv3+): ``src/tools/bin/addLicense <FileName>``
 * for libraries (LGPLv3+ & GPLv3+):
-  ``export PROJECT_NAME=libPMacc && src/tools/bin/addLicense <FileName>``
+  ``export PROJECT_NAME=PMacc && src/tools/bin/addLicense <FileName>``
 * delete other headers: ``src/tools/bin/deleteHeadComment <FileName>``
 * add license to all ``.hpp`` files within a directory (recursive):
   ``export PROJECT_NAME=PIConGPU && src/tools/bin/findAndDo <PATH> "*.hpp" src/tools/bin/addLicense``

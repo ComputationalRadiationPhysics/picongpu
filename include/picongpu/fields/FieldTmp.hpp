@@ -32,7 +32,7 @@
 #include "pmacc/fields/SimulationFieldHelper.hpp"
 #include "pmacc/dataManagement/ISimulationData.hpp"
 
-/*libPMacc*/
+/*PMacc*/
 #include "pmacc/memory/buffers/GridBuffer.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/memory/boxes/DataBox.hpp"

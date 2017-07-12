@@ -43,7 +43,7 @@
 #include <stdexcept>
 
 
-namespace PMacc
+namespace pmacc
 {
 
 namespace bmpl = boost::mpl;
