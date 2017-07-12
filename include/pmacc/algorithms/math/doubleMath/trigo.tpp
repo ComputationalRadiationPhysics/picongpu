@@ -16,7 +16,7 @@
  * for more details.
  *
  * You should have received a copy of the GNU General Public License
- * and the GNU Lesser General Public License along with libPMacc.
+ * and the GNU Lesser General Public License along with PMacc.
  * If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
