@@ -113,7 +113,7 @@ struct CreateDensity
  * the destination species
  *
  * @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle species:
-                               destination and source, \see src/picongpu/include/particles/manipulators
+                               destination and source, \see include/picongpu/particles/manipulators
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
  * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles

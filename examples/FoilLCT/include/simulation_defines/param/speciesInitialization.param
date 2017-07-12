@@ -20,7 +20,7 @@
 /** @file
  *
  * Available species functors
- *   in src/picongpu/include/particles/InitFunctors.hpp
+ *   in include/picongpu/particles/InitFunctors.hpp
  *
  * - CreateDensity<T_DensityFunctor, T_PositionFunctor, T_SpeciesType>
  *     Create particle distribution based on a density profile and an in-cell
