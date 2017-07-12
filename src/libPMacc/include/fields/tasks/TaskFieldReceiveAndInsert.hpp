@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
 #include "eventSystem/EventSystem.hpp"
 #include "fields/tasks/FieldFactory.hpp"
 #include "eventSystem/tasks/ITask.hpp"
