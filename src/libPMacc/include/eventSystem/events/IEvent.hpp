@@ -24,7 +24,7 @@
 
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     class IEventData;
@@ -53,4 +53,4 @@ namespace PMacc
         virtual void event(id_t eventId, EventType type, IEventData* data) = 0;
     };
 
-} //namespace PMacc
+} //namespace pmacc

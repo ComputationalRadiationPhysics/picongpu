@@ -50,16 +50,16 @@
 namespace mpl = boost::mpl;
 
 // forward declaration
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
 template<typename Expr>
 struct ExprFunctor;
 } // lambda
-} // PMacc
+} // pmacc
 
-namespace PMacc
+namespace pmacc
 {
 namespace result_of
 {
@@ -76,9 +76,9 @@ BOOST_PP_REPEAT_FROM_TO(1, LAMBDA_MAX_PARAMS, FUNCTOR, _)
 #undef FUNCTOR
 
 } // result_of
-} // PMacc
+} // pmacc
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -106,7 +106,7 @@ struct ExprFunctor
 #define OPERATOR_CALL(Z,N,_)                                                                        \
         template<BOOST_PP_ENUM_PARAMS(N, typename Arg)>                                                 \
         HDINLINE                                                                                        \
-        typename ::PMacc::result_of::Functor<ExprFunctor<Expr>, BOOST_PP_ENUM_PARAMS(N, Arg)>::type     \
+        typename ::pmacc::result_of::Functor<ExprFunctor<Expr>, BOOST_PP_ENUM_PARAMS(N, Arg)>::type     \
         operator()(BOOST_PP_ENUM_BINARY_PARAMS(N, const Arg, &arg)) const                               \
         {                                                                                               \
             typedef mpl::vector<BOOST_PP_ENUM(N, CREF_TYPE_LIST, _)> ArgTypes;                             \
@@ -156,4 +156,4 @@ make_Functor(const Expression<ExprType, Childs>& expr)
 }
 
 } // lambda
-} // PMacc
+} // pmacc

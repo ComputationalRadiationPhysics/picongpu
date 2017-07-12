@@ -23,7 +23,7 @@
 
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -46,4 +46,4 @@ HDINLINE const Data& operator()(const Data& data) const
 };
 
 } // math
-} // PMacc
+} // pmacc

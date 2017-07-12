@@ -23,7 +23,7 @@
 #include <vector>  /* std::vector */
 #include <cstdlib> /* std::size_t */
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -54,5 +54,5 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc
 

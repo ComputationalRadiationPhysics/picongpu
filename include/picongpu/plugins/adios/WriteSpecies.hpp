@@ -54,7 +54,7 @@ namespace picongpu
 
 namespace adios
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /** Write copy particle to host memory and dump to ADIOS file
  *
@@ -99,7 +99,7 @@ public:
         /* count total number of particles on the device */
         log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) count particles: %1%") % AdiosFrameType::getName();
         uint64_cu totalNumParticles = 0;
-        totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
+        totalNumParticles = pmacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params->cellDescription),
                                                                                     params->localWindowToDomainOffset,
@@ -131,7 +131,7 @@ public:
             int globalParticleOffset = 0;
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
-            PMacc::particles::operations::ConcatListOfFrames<simDim> concatListOfFrames(mapper.getGridDim());
+            pmacc::particles::operations::ConcatListOfFrames<simDim> concatListOfFrames(mapper.getGridDim());
 
             concatListOfFrames(
                                 globalParticleOffset,

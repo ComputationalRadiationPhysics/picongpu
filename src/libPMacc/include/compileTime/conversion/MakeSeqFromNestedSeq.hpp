@@ -27,7 +27,7 @@
 #include "compileTime/conversion/JoinToSeq.hpp"
 #include <boost/mpl/fold.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
 /** combine all elements of the input type to a single vector
@@ -51,4 +51,4 @@ public:
     >::type type;
 };
 
-} //namespace PMacc
+} //namespace pmacc

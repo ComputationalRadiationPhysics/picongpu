@@ -26,7 +26,7 @@
 
 #include <mpi.h>
 
-namespace PMacc
+namespace pmacc
 {
 
 /*! Interface for communication
@@ -87,4 +87,4 @@ public:
     virtual DataSpace<DIM3> getPeriodic() const = 0;
 };
 
-} //namespace PMacc
+} //namespace pmacc

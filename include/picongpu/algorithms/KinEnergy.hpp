@@ -26,7 +26,7 @@
 namespace picongpu
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 /** Computes the kinetic energy of a particle given its momentum and mass.
  *

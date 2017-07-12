@@ -25,7 +25,7 @@
 #include "pmacc_types.hpp"
 #include <boost/mpl/identity.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace compileTime
 {
@@ -48,4 +48,4 @@ struct Identity : bmpl::identity<T>
 
 }//namespace compileTime
 
-}//namespace  PMacc
+}//namespace  pmacc

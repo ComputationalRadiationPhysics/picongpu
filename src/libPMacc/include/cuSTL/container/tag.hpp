@@ -22,7 +22,7 @@
 #ifndef CONTAINER_TAG_H
 #define CONTAINER_TAG_H
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -34,6 +34,6 @@ struct DeviceBuffer;
 }
 
 } // container
-} // PMacc
+} // pmacc
 
 #endif // CONTAINER_TAG_H

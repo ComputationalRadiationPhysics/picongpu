@@ -27,7 +27,7 @@
 #include "eventSystem/streams/EventStream.hpp"
 #include "assert.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 inline StreamTask::StreamTask( ) :
@@ -94,4 +94,4 @@ inline void StreamTask::activate( )
     hasCudaEventHandle = true;
 }
 
-} //namespace PMacc
+} //namespace pmacc

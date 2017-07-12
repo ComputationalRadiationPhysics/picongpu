@@ -49,13 +49,13 @@ namespace manipulators
         typename T_UnaryFunctor,
         typename T_UnaryFilter = filter::IsHandleValid
     >
-    using IUnary = PMacc::functor::Filtered<
-        PMacc::filter::operators::And,
-        PMacc::filter::Interface<
+    using IUnary = pmacc::functor::Filtered<
+        pmacc::filter::operators::And,
+        pmacc::filter::Interface<
             T_UnaryFilter,
             1u
         >,
-        PMacc::functor::Interface<
+        pmacc::functor::Interface<
             T_UnaryFunctor,
             1u,
             void

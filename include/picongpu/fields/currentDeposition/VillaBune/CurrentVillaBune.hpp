@@ -33,7 +33,7 @@ namespace picongpu
 {
 namespace currentSolver
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<typename T_ParticleShape>
 struct VillaBune
@@ -62,9 +62,9 @@ struct VillaBune
         addCurrentSplitX(oldPos, pos, charge, boxJ_par, deltaTime);
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "VillaBune" );
+        pmacc::traits::StringProperty propList( "name", "VillaBune" );
         return propList;
     }
 
@@ -232,8 +232,8 @@ namespace traits
 template<typename T_ParticleShape>
 struct GetMargin<picongpu::currentSolver::VillaBune<T_ParticleShape> >
 {
-    typedef ::PMacc::math::CT::Int < 1, 1, 1 > LowerMargin;
-    typedef ::PMacc::math::CT::Int < 2, 2, 2 > UpperMargin;
+    typedef ::pmacc::math::CT::Int < 1, 1, 1 > LowerMargin;
+    typedef ::pmacc::math::CT::Int < 2, 2, 2 > UpperMargin;
 };
 
 } //namespace traits

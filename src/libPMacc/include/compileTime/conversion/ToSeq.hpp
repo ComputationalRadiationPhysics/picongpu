@@ -27,7 +27,7 @@
 #include <boost/mpl/if.hpp>
 
 
-namespace PMacc
+namespace pmacc
 {
 
 /** cast type to boost mpl vector
@@ -40,4 +40,4 @@ struct ToSeq
     typedef typename bmpl::if_<bmpl::is_sequence< T_Type >,T_Type,bmpl::vector1<T_Type> >::type type;
 };
 
-}//namespace PMacc
+}//namespace pmacc

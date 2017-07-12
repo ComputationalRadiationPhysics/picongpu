@@ -47,8 +47,8 @@ struct FieldToParticleInterpolationNative
 
     static constexpr int lowerMargin = supp / 2;
     static constexpr int upperMargin = (supp + 1) / 2;
-    typedef typename PMacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
 
     template<class Cursor, class VecVector_ >
     HDINLINE float3_X operator()(Cursor field, const floatD_X& particlePos,
@@ -69,17 +69,17 @@ struct FieldToParticleInterpolationNative
          * _1[mpl::int_<0>()] is equivalent to _1[0] but has no runtime cost.
          */
 
-        auto field_x = PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 0 > ()]);
+        auto field_x = pmacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 0 > ()]);
         floatD_X pos_tmp(particlePos);
         ShiftCoordinateSystemNative<supp>()(field_x, pos_tmp, fieldPos.x());
         float_X result_x = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_x, pos_tmp);
 
-        auto field_y = PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 1 > ()]);
+        auto field_y = pmacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 1 > ()]);
         pos_tmp = particlePos;
         ShiftCoordinateSystemNative<supp>()(field_y, pos_tmp, fieldPos.y());
         float_X result_y = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_y, pos_tmp);
 
-        auto field_z = PMacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 2 > ()]);
+        auto field_z = pmacc::cursor::make_FunctorCursor(field, _1[mpl::int_ < 2 > ()]);
         pos_tmp = particlePos;
         ShiftCoordinateSystemNative<supp>()(field_z, pos_tmp, fieldPos.z());
         float_X result_z = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_z, pos_tmp);

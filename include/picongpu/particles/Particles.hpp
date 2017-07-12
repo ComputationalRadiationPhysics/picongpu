@@ -39,7 +39,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /** particle species
  *
@@ -116,9 +116,9 @@ public:
 
     void syncToDevice();
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList;
+        pmacc::traits::StringProperty propList;
         const DataSpace<DIM3> periodic =
             Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
 

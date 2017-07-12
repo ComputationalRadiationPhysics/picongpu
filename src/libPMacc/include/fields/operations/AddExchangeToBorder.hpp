@@ -32,7 +32,7 @@
 #include <boost/core/ignore_unused.hpp>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace fields
 {
@@ -51,9 +51,9 @@ namespace operations
          * The `template< typename T> operator+( T const & rhs )` must be defined for
          * the value type of exchangeBox and destBox.
          *
-         * @tparam T_DestBox PMacc::DataBox, type of the local box
-         * @tparam T_ExchangeBox PMacc::ExchangeBox, type of the intermediate box
-         * @tparam T_Extent PMacc::DataSpace, type to describe n-dimensional sizes
+         * @tparam T_DestBox pmacc::DataBox, type of the local box
+         * @tparam T_ExchangeBox pmacc::ExchangeBox, type of the intermediate box
+         * @tparam T_Extent pmacc::DataSpace, type to describe n-dimensional sizes
          * @tparam T_Mapping mapper functor type
          *
          * @param destBox box to a local field
@@ -81,7 +81,7 @@ namespace operations
             using SuperCellSize = typename T_Mapping::SuperCellSize;
 
             // number of cells in a superCell
-            constexpr uint32_t numCells = PMacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t numCells = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
             constexpr int dim = T_Mapping::Dim;
 
@@ -156,8 +156,8 @@ namespace operations
          * The `template< typename T> operator+( T const & rhs )` must be defined for
          * the value type of the buffer.
          *
-         * @tparam T_DestBuffer PMacc::GridBuffer, type of the used buffer
-         * @tparam T_SuperCellSize PMacc::math::CT::vector, size of the supercell in each direction
+         * @tparam T_DestBuffer pmacc::GridBuffer, type of the used buffer
+         * @tparam T_SuperCellSize pmacc::math::CT::vector, size of the supercell in each direction
          *
          * @param destBuffer destination buffer with exchanges
          * @param superCellSize compile time supercell size
@@ -186,7 +186,7 @@ namespace operations
 
             /* use only the x dimension to determine the number of supercells in the GUARD
              *
-             * @warning PMacc restriction: all dimension must have the some number of guarding
+             * @warning pmacc restriction: all dimension must have the some number of guarding
              * supercells
              */
             int const numGuardSuperCells = destBuffer.getGridLayout().getGuard().x() /
@@ -206,8 +206,8 @@ namespace operations
                 exchangeType
             );
 
-            constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-                PMacc::math::CT::volume< SuperCellSize >::type::value
+            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+                pmacc::math::CT::volume< SuperCellSize >::type::value
             >::value;
 
             const DataSpace< dim > direction = Mask::getRelativeDirections< dim >(
@@ -229,4 +229,4 @@ namespace operations
 
 } // namespace operations
 } // namespace fields
-} // namespace PMacc
+} // namespace pmacc

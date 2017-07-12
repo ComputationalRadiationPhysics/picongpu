@@ -46,7 +46,7 @@
 #endif
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace exec
 {
@@ -189,7 +189,7 @@ namespace exec
                 std::string( "Crash before kernel call " ) + kernelInfo
             );
 
-            PMacc::TaskKernel* taskKernel = PMacc::Environment<>::get().Factory().createTaskKernel(
+            pmacc::TaskKernel* taskKernel = pmacc::Environment<>::get().Factory().createTaskKernel(
                 typeid( kernelName ).name()
             );
 
@@ -267,7 +267,7 @@ namespace exec
         );
     }
 } // namespace exec
-} // namespace PMacc
+} // namespace pmacc
 
 
 /** create a kernel object out of a functor instance
@@ -276,7 +276,7 @@ namespace exec
  *
  * @param ... instance of kernel functor
  */
-#define PMACC_KERNEL( ... ) PMacc::exec::kernel( __VA_ARGS__, __FILE__,  static_cast< size_t >( __LINE__ ) )
+#define PMACC_KERNEL( ... ) pmacc::exec::kernel( __VA_ARGS__, __FILE__,  static_cast< size_t >( __LINE__ ) )
 
 
 #include "eventSystem/events/kernelEvents.tpp"

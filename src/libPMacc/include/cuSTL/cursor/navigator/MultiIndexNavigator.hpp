@@ -26,7 +26,7 @@
 #include "cuSTL/cursor/traits.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -57,5 +57,5 @@ struct dim<MultiIndexNavigator<T_dim> >
 }
 
 } // cursor
-} // PMacc
+} // pmacc
 

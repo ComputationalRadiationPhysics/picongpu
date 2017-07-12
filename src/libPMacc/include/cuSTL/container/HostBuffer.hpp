@@ -37,7 +37,7 @@
 #include <sstream>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -139,5 +139,5 @@ public:
 };
 
 } // container
-} // PMacc
+} // pmacc
 

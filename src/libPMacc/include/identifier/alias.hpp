@@ -30,11 +30,11 @@
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 identifier(pmacc_void);
 identifier(pmacc_isAlias);
-} //namespace PMacc
+} //namespace pmacc
 
 #ifdef __CUDACC__
 #   define PMACC_alias_CUDA(name,id)                                          \
@@ -48,7 +48,7 @@ identifier(pmacc_isAlias);
 /*define special makros for creating classes which are only used as identifer*/
 #define PMACC_alias(name,id)                                                   \
     namespace PMACC_JOIN(placeholder_definition,id) {                          \
-        template<typename T_Type=PMacc::pmacc_void,typename T_IsAlias=PMacc::pmacc_isAlias> \
+        template<typename T_Type=pmacc::pmacc_void,typename T_IsAlias=pmacc::pmacc_isAlias> \
         struct name                                                            \
         {                                                                      \
             static std::string getName()                                       \
@@ -82,13 +82,13 @@ identifier(pmacc_isAlias);
  */
 #define alias(name) PMACC_alias(name,__COUNTER__)
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
 
 template<template<typename,typename> class T_Object, typename T_AnyType>
-struct Resolve<T_Object<T_AnyType,PMacc::pmacc_isAlias> >
+struct Resolve<T_Object<T_AnyType,pmacc::pmacc_isAlias> >
 {
     /*solve recursive if alias is nested*/
     typedef typename  bmpl::if_<
@@ -99,4 +99,4 @@ struct Resolve<T_Object<T_AnyType,PMacc::pmacc_isAlias> >
 };
 
 } //namespace traits
-} //namespace PMacc
+} //namespace pmacc

@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -44,4 +44,4 @@ CartBuffer<Type, _Size, Allocator, Copier, Assigner>::origin() const
 
 } // CT
 } // container
-} // PMacc
+} // pmacc

@@ -32,7 +32,7 @@
 #include <boost/type_traits.hpp>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -191,4 +191,4 @@ namespace detail
 
 } // namespace forEach
 } // namespace algorithms
-} // namespace PMacc
+} // namespace pmacc

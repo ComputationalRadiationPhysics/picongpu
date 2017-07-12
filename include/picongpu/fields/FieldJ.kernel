@@ -44,7 +44,7 @@
 namespace picongpu
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 typedef FieldJ::DataBoxType J_DataBox;
 
@@ -65,8 +65,8 @@ struct KernelComputeCurrent
      * The current for the supercell including the guards is cached in shared memory
      * and scattered at the end of the functor to the global memory.
      *
-     * @tparam JBox PMacc::DataBox, particle current box type
-     * @tparam ParBox PMacc::ParticlesBox, particle box type
+     * @tparam JBox pmacc::DataBox, particle current box type
+     * @tparam ParBox pmacc::ParticlesBox, particle box type
      * @tparam Mapping mapper functor type
      * @tparam FrameSolver frame solver functor type
      *
@@ -97,7 +97,7 @@ struct KernelComputeCurrent
         /** @todo numParticlesPerFrame should be max number of particles within a frame
          * and not a magic number derived from SuperCellSize
          */
-        constexpr uint32_t numParticlesPerFrame = PMacc::math::CT::volume< SuperCellSize >::type::value;
+        constexpr uint32_t numParticlesPerFrame = pmacc::math::CT::volume< SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 
         /* We work with virtual CUDA blocks if we have more workers than particles.
@@ -344,7 +344,7 @@ struct KernelAddCurrentToEMF
 
         ThreadCollective<
             BlockArea,
-            PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+            pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
         > collective(
             DataSpaceOperations< BlockArea::Dim >::template map<
                 typename BlockArea::SuperCellSize

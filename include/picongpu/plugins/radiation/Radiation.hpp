@@ -54,7 +54,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 namespace po = boost::program_options;
 
@@ -120,7 +120,7 @@ private:
      * dependencies:
      *   - species contains the attribute `momentumPrev1`
      */
-    static constexpr bool dependenciesFulfilled = PMacc::traits::HasIdentifier<
+    static constexpr bool dependenciesFulfilled = pmacc::traits::HasIdentifier<
         typename ParticlesType::FrameType,
         momentumPrev1
     >::type::value;
@@ -316,7 +316,7 @@ private:
 
 
                 Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
-                PMacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
+                pmacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
 
                 if (isMaster)
                 {
@@ -1195,7 +1195,7 @@ private:
        * Particles in a Frame can be accessed in parallel.
        */
 
-      const auto blockDim_rad = PMacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
+      const auto blockDim_rad = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
 
       // Some funny things that make it possible for the kernel to calculate
       // the absolute position of the particles

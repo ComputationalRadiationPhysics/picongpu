@@ -39,7 +39,7 @@ struct GetAtomicNumbers
     PMACC_CASSERT_MSG(This_species_has_no_atomic_numbers,hasAtomicNumbers::value==true);
 
     typedef typename GetFlagType<FrameType,atomicNumbers<> >::type FoundAtomicNumbersAlias;
-    typedef typename PMacc::traits::Resolve<FoundAtomicNumbersAlias >::type type;
+    typedef typename pmacc::traits::Resolve<FoundAtomicNumbersAlias >::type type;
 };
 } //namespace traits
 

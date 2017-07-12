@@ -25,7 +25,7 @@
 #include "eventSystem/tasks/TaskKernel.hpp"
 #include "Environment.hpp"
 
-namespace PMacc{
+namespace pmacc{
 
     void TaskKernel::activateChecks()
     {
@@ -35,4 +35,4 @@ namespace PMacc{
         Environment<>::get().Manager().addTask(this);
         __setTransactionEvent(EventTask(this->getId()));
     }
-} //namespace PMacc
+} //namespace pmacc

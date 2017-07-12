@@ -24,7 +24,7 @@
 #include "pmacc_types.hpp"
 #include "static_assert.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace errorHandlerPolicies
 {
@@ -51,4 +51,4 @@ struct ThrowValueNotFound
 };
 
 } // namespace errorHandlerPolicies
-} // namespace PMacc
+} // namespace pmacc

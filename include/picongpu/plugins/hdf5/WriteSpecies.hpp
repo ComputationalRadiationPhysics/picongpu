@@ -57,7 +57,7 @@ namespace picongpu
 
 namespace hdf5
 {
-using namespace PMacc;
+using namespace pmacc;
 
 // = ColTypeUInt64_5Array
 TYPE_ARRAY(UInt64_5, H5T_INTEL_U64, uint64_t, 5);
@@ -116,7 +116,7 @@ public:
         /* at this point we cast to uint64_t, before we assume that per GPU
          * less then 1e9 (int range) particles will be counted
          */
-        numParticles = uint64_t( PMacc::CountParticles::countOnDevice< CORE + BORDER >(
+        numParticles = uint64_t( pmacc::CountParticles::countOnDevice< CORE + BORDER >(
             *speciesTmp,
             *(params->cellDescription),
             params->localWindowToDomainOffset,
@@ -151,7 +151,7 @@ public:
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
-            auto block = PMacc::math::CT::volume<SuperCellSize>::type::value;
+            auto block = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
             /* int: assume < 2e9 particles per GPU */
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
@@ -242,7 +242,7 @@ public:
         /* write constant particle records to hdf5 file
          *   ions with variable charge due to a boundElectrons attribute do not write charge
          */
-        using hasBoundElectrons = typename PMacc::traits::HasIdentifier<
+        using hasBoundElectrons = typename pmacc::traits::HasIdentifier<
             FrameType,
             boundElectrons
         >::type;
@@ -359,7 +359,7 @@ public:
          *         global domain offsets (slides), etc.
          * extent: size of this particle patch, upper bound is excluded
          */
-        const PMacc::Selection<simDim>& globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
+        const pmacc::Selection<simDim>& globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
         const std::string name_lookup[] = {"x", "y", "z"};
         for (uint32_t d = 0; d < simDim; ++d)
         {

@@ -26,7 +26,7 @@
 #include "pmacc_types.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace allocator
 {
@@ -41,5 +41,5 @@ struct EmptyAllocator
 };
 
 } // allocator
-} // PMacc
+} // pmacc
 

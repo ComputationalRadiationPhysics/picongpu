@@ -25,7 +25,7 @@
 #include <cmath>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -57,4 +57,4 @@ struct Abs2<float>
 
 } //namespace math
 } //namespace algorithms
-} // namespace PMacc
+} // namespace pmacc

@@ -24,7 +24,7 @@
 
 #include "eventSystem/events/EventTask.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 class EventStream;

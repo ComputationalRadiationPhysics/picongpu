@@ -27,7 +27,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<typename CalorimeterCur>
 struct CalorimeterFunctor
@@ -60,7 +60,7 @@ struct CalorimeterFunctor
                        const float3_X calorimeterFrameVecX,
                        const float3_X calorimeterFrameVecY,
                        const float3_X calorimeterFrameVecZ) :
-        calorimeterCur(nullptr, PMacc::math::Size_t<DIM2>()),
+        calorimeterCur(nullptr, pmacc::math::Size_t<DIM2>()),
         maxYaw(maxYaw),
         maxPitch(maxPitch),
         numBinsYaw(numBinsYaw),
@@ -88,7 +88,7 @@ struct CalorimeterFunctor
 
         /* rotate dirVec into the calorimeter frame. This coordinate transformation
          * is performed by a matrix vector multiplication. */
-        using namespace PMacc::algorithms::math;
+        using namespace pmacc::algorithms::math;
         dirVec = float3_X(dot(this->calorimeterFrameVecX, dirVec),
                           dot(this->calorimeterFrameVecY, dirVec),
                           dot(this->calorimeterFrameVecZ, dirVec));
@@ -158,25 +158,25 @@ struct ParticleCalorimeterKernel
         calorimeterFunctor(calorimeterFunctor)
     {}
 
-    DINLINE void operator()(const PMacc::math::Int<simDim>& cellIndex)
+    DINLINE void operator()(const pmacc::math::Int<simDim>& cellIndex)
     {
         /* definitions for domain variables, like indices of blocks and threads */
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
         /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-        const PMacc::math::Int<simDim> block = cellIndex / SuperCellSize::toRT();
+        const pmacc::math::Int<simDim> block = cellIndex / SuperCellSize::toRT();
 
         /* multi-dim offset from the origin of the local domain on GPU
          * to the origin of the block of the in unit of cells
          */
-        const PMacc::math::Int<simDim> blockCell = block * SuperCellSize::toRT();
+        const pmacc::math::Int<simDim> blockCell = block * SuperCellSize::toRT();
 
         /* multi-dim vector from origin of the block to a cell in units of cells */
-        const PMacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
+        const pmacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
 
         /* conversion from a multi-dim cell coordinate to a linear coordinate of the cell in its super cell */
-        const int linearThreadIdx = PMacc::math::linearize(
-            PMacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
+        const int linearThreadIdx = pmacc::math::linearize(
+            pmacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
             threadIndex);
 
         typedef typename ParticlesBox::FramePtr ParticlesFramePtr;

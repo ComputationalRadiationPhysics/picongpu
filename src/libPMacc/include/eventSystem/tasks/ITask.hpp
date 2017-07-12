@@ -31,7 +31,7 @@
 #include <set>
 
 
-namespace PMacc
+namespace pmacc
 {
     /**
      * Abstract base class for all tasks.
@@ -123,4 +123,4 @@ namespace PMacc
         TaskType myType;
     };
 
-} //namespace PMacc
+} //namespace pmacc

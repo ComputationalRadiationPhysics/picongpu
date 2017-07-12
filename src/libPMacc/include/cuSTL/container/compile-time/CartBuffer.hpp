@@ -28,7 +28,7 @@
 #include "cuSTL/cursor/accessor/PointerAccessor.hpp"
 #include <cuSTL/zone/compile-time/SphericZone.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -73,7 +73,7 @@ public:
 
 } // CT
 } // container
-} // PMacc
+} // pmacc
 
 #include "CartBuffer.tpp"
 

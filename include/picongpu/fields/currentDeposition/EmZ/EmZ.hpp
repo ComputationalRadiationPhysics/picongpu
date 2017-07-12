@@ -41,8 +41,8 @@ struct EmZ
 
     static constexpr int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
     static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
-    typedef typename PMacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
 
     static constexpr int begin = -currentLowerMargin + 1;
@@ -51,7 +51,7 @@ struct EmZ
 
     /** deposit the current of a particle
      *
-     * @tparam DataBoxJ any PMacc DataBox
+     * @tparam DataBoxJ any pmacc DataBox
      *
      * @param dataBoxJ box shifted to the cell of particle
      * @param posEnd position of the particle after it is pushed
@@ -150,10 +150,10 @@ struct EmZ
         }
     }
 
-    static PMacc::traits::StringProperty
+    static pmacc::traits::StringProperty
     getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "EmZ" );
+        pmacc::traits::StringProperty propList( "name", "EmZ" );
         return propList;
     }
 

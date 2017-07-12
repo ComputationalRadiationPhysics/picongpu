@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -37,7 +37,7 @@ struct FFT
 
 } // kernel
 } // algorithm
-} // PMacc
+} // pmacc
 
 #include "FFT.tpp"
 

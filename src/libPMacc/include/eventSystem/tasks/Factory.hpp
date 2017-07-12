@@ -28,7 +28,7 @@
 
 #include <string>
 
-namespace PMacc
+namespace pmacc
 {
     template <class TYPE, unsigned DIM>
     class HostBuffer;
@@ -178,5 +178,5 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc
 

@@ -25,7 +25,7 @@
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/tasks/TaskLogicalAnd.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     inline EventTask::EventTask(id_t taskId) :

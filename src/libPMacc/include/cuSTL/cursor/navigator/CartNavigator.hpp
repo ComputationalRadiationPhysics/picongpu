@@ -27,7 +27,7 @@
 #include "cuSTL/cursor/traits.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -71,5 +71,5 @@ struct dim<CartNavigator<T_dim> >
 } // traits
 
 } // cursor
-} // PMacc
+} // pmacc
 

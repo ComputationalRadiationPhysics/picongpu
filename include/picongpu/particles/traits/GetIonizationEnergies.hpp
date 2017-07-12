@@ -41,7 +41,7 @@ struct GetIonizationEnergies
 
     typedef typename GetFlagType<FrameType,ionizationEnergies<> >::type FoundIonizationEnergiesAlias;
     /* Extract ionization energy vector from AU namespace */
-    typedef typename PMacc::traits::Resolve<FoundIonizationEnergiesAlias >::type type;
+    typedef typename pmacc::traits::Resolve<FoundIonizationEnergiesAlias >::type type;
 
     static constexpr int protonNumber = static_cast<int>(GetAtomicNumbers<SpeciesType>::type::numberOfProtons);
     /* length of the ionization energy vector */

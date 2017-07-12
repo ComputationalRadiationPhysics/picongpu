@@ -61,8 +61,8 @@ int main(int argc, char **argv)
             break;
     };
 
-    /* finalize the PMacc context */
-    PMacc::Environment<>::get().finalize();
+    /* finalize the pmacc context */
+    pmacc::Environment<>::get().finalize();
 
     return errorCode;
 }

@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -45,5 +45,5 @@ struct MarkerAccessor
 };
 
 } // cursor
-} // PMacc
+} // pmacc
 

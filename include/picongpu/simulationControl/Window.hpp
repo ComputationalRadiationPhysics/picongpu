@@ -24,7 +24,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /**
  * Window describes sizes and offsets.

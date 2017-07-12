@@ -31,7 +31,7 @@
 #include <list>
 #include <stdexcept>
 
-namespace PMacc
+namespace pmacc
 {
 
     /** Manages a pool of cudaEvent_t objects and gives access to them. */

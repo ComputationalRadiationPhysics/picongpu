@@ -29,7 +29,7 @@
 #include <stdint.h>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace allocator
 {
@@ -65,7 +65,7 @@ struct HostMemAllocator<Type, 1>
 };
 
 } // allocator
-} // PMacc
+} // pmacc
 
 #include "HostMemAllocator.tpp"
 

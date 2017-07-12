@@ -30,7 +30,7 @@
 #include "mappings/simulation/EnvironmentController.hpp"
 #include "memory/buffers/Exchange.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 
@@ -143,5 +143,5 @@ namespace PMacc
         size_t newBufferSize;
     };
 
-} //namespace PMacc
+} //namespace pmacc
 

@@ -43,7 +43,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 // The fieldJ saves the current density j
 //

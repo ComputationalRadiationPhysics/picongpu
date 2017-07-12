@@ -27,7 +27,7 @@
 #include "eventSystem/events/EventTask.hpp"
 #include "eventSystem/tasks/StreamTask.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 Transaction::Transaction( EventTask event ) : baseEvent( event )
@@ -85,4 +85,4 @@ EventStream* Transaction::getEventStream( ITask::TaskType )
     return Environment<>::get( ).StreamController( ).getNextStream( );
 }
 
-} //namespace PMacc
+} //namespace pmacc

@@ -74,11 +74,11 @@ void ChargeConservation::pluginLoad()
 
     Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyPeriod);
 
-    PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
-    using namespace PMacc::math;
+    pmacc::GridController<simDim>& con = pmacc::Environment<simDim>::get().GridController();
+    using namespace pmacc::math;
     Size_t<simDim> gpuDim = (Size_t<simDim>)con.getGpuNodes();
     zone::SphericZone<simDim> zone_allGPUs(gpuDim);
-    this->allGPU_reduce = AllGPU_reduce(new PMacc::algorithm::mpi::Reduce<simDim>(zone_allGPUs));
+    this->allGPU_reduce = AllGPU_reduce(new pmacc::algorithm::mpi::Reduce<simDim>(zone_allGPUs));
 
     if(this->allGPU_reduce->root())
     {
@@ -227,7 +227,7 @@ void ChargeConservation::notify(uint32_t currentStep)
 
     /* run calculation: fieldTmp = | div E * eps_0 - rho | */
     using namespace lambda;
-    using namespace PMacc::math::math_functor;
+    using namespace pmacc::math::math_functor;
     typedef picongpu::detail::Div<simDim, typename FieldTmp::ValueType> myDiv;
     algorithm::kernel::Foreach<BlockDim>()
         (fieldTmp_coreBorder.zone(), fieldTmp_coreBorder.origin(),
@@ -237,7 +237,7 @@ void ChargeConservation::notify(uint32_t currentStep)
     /* reduce charge derivation (fieldTmp) to get the maximum value */
     typename FieldTmp::ValueType maxChargeDiff =
         algorithm::kernel::Reduce()
-            (fieldTmp_coreBorder.origin(), fieldTmp_coreBorder.zone(), PMacc::nvidia::functors::Max());
+            (fieldTmp_coreBorder.origin(), fieldTmp_coreBorder.zone(), pmacc::nvidia::functors::Max());
 
     /* reduce again across mpi cluster */
     container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_host(1);

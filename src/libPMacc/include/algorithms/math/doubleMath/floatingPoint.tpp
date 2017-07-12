@@ -27,7 +27,7 @@
 #include <cmath>
 #include <limits>
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -127,4 +127,4 @@ struct Float2int_rn<double>
 
 } //namespace math
 } //namespace algorithms
-} // namespace PMacc
+} // namespace pmacc

@@ -27,7 +27,7 @@
 #include "memory/dataTypes/Mask.hpp"
 #include "math/Vector.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     /**

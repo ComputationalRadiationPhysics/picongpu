@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-// PMacc
+// pmacc
 #include "dataManagement/ISimulationData.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "memory/buffers/GridBuffer.hpp"

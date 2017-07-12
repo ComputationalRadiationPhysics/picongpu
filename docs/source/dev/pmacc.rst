@@ -1,4 +1,4 @@
-Important PMacc Classes
+Important pmacc Classes
 =======================
 
 This is very, very small selection of classes of interest to get you started.
@@ -11,7 +11,7 @@ This is very, very small selection of classes of interest to get you started.
 Environment
 -----------
 
-.. doxygenclass:: PMacc::Environment
+.. doxygenclass:: pmacc::Environment
    :project: PIConGPU
    :members:
    :protected-members:
@@ -20,7 +20,7 @@ Environment
 DataConnector
 -------------
 
-.. doxygenclass:: PMacc::DataConnector
+.. doxygenclass:: pmacc::DataConnector
    :project: PIConGPU
    :members:
    :protected-members:
@@ -29,7 +29,7 @@ DataConnector
 DataSpace
 ---------
 
-.. doxygenclass:: PMacc::DataSpace
+.. doxygenclass:: pmacc::DataSpace
    :project: PIConGPU
    :members:
    :protected-members:
@@ -38,7 +38,7 @@ DataSpace
 Vector
 ------
 
-.. doxygenclass:: PMacc::Vector
+.. doxygenclass:: pmacc::Vector
    :project: PIConGPU
    :members:
    :protected-members:
@@ -47,7 +47,7 @@ Vector
 SuperCell
 ---------
 
-.. doxygenclass:: PMacc::SuperCell
+.. doxygenclass:: pmacc::SuperCell
    :project: PIConGPU
    :members:
    :protected-members:
@@ -56,7 +56,7 @@ SuperCell
 GridBuffer
 ----------
 
-.. doxygenclass:: PMacc::GridBuffer
+.. doxygenclass:: pmacc::GridBuffer
    :project: PIConGPU
    :members:
    :protected-members:
@@ -65,7 +65,7 @@ GridBuffer
 SimulationFieldHelper
 ---------------------
 
-.. doxygenclass:: PMacc::SimulationFieldHelper
+.. doxygenclass:: pmacc::SimulationFieldHelper
    :project: PIConGPU
    :members:
    :protected-members:
@@ -74,7 +74,7 @@ SimulationFieldHelper
 ParticlesBase
 -------------
 
-.. doxygenclass:: PMacc::ParticlesBase
+.. doxygenclass:: pmacc::ParticlesBase
    :members:
    :protected-members:
    :undoc-members:
@@ -82,7 +82,7 @@ ParticlesBase
 ParticleDescription
 -------------------
 
-.. doxygenclass:: PMacc::ParticleDescription
+.. doxygenclass:: pmacc::ParticleDescription
    :project: PIConGPU
    :members:
    :protected-members:
@@ -91,7 +91,7 @@ ParticleDescription
 ParticleBox
 -----------
 
-.. doxygenclass:: PMacc::ParticleBox
+.. doxygenclass:: pmacc::ParticleBox
    :project: PIConGPU
    :members:
    :protected-members:
@@ -100,7 +100,7 @@ ParticleBox
 Frame
 -----
 
-.. doxygenclass:: PMacc::Frame
+.. doxygenclass:: pmacc::Frame
    :project: PIConGPU
    :members:
    :protected-members:
@@ -109,7 +109,7 @@ Frame
 IPlugin
 -------
 
-.. doxygenclass:: PMacc::IPlugin
+.. doxygenclass:: pmacc::IPlugin
    :project: PIConGPU
    :members:
    :protected-members:
@@ -118,7 +118,7 @@ IPlugin
 PluginConnector
 ---------------
 
-.. doxygenclass:: PMacc::PluginConnector
+.. doxygenclass:: pmacc::PluginConnector
    :project: PIConGPU
    :members:
    :protected-members:
@@ -127,7 +127,7 @@ PluginConnector
 SimulationHelper
 ----------------
 
-.. doxygenclass:: PMacc::SimulationHelper
+.. doxygenclass:: pmacc::SimulationHelper
    :project: PIConGPU
    :members:
    :protected-members:
@@ -136,7 +136,7 @@ SimulationHelper
 ForEach
 -------
 
-.. doxygenstruct:: PMacc::algorithms::forEach::ForEach
+.. doxygenstruct:: pmacc::algorithms::forEach::ForEach
    :project: PIConGPU
    :members:
    :protected-members:
@@ -145,7 +145,7 @@ ForEach
 Kernel Start
 ------------
 
-.. doxygenstruct:: PMacc::exec::Kernel
+.. doxygenstruct:: pmacc::exec::Kernel
    :project: PIConGPU
    :members:
    :protected-members:

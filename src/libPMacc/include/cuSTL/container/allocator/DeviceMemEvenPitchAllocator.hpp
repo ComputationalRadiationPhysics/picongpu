@@ -27,7 +27,7 @@
 #include "math/vector/Size_t.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace allocator
 {
@@ -59,7 +59,7 @@ struct DeviceMemEvenPitch<Type, 1>
 };
 
 } // allocator
-} // PMacc
+} // pmacc
 
 #include "DeviceMemEvenPitchAllocator.tpp"
 

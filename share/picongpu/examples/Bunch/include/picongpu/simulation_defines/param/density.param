@@ -102,10 +102,10 @@ namespace densityProfiles
             const float3_64 position_start_SI( 1.024e-5, 9.072e-5, 1.024e-5 );
 
             /* from all cells ... */
-            const PMacc::math::UInt64< simDim > cell_id( position_SI / cellSize_SI.shrink< simDim >() );
+            const pmacc::math::UInt64< simDim > cell_id( position_SI / cellSize_SI.shrink< simDim >() );
 
             /* ... we calculate the corresponding "center" cell to init the particle in ... */
-            const PMacc::math::UInt64< simDim > cell_start(
+            const pmacc::math::UInt64< simDim > cell_start(
                 precisionCast< uint64_t >(
                     math::floor(
                         position_start_SI.shrink< simDim >() /

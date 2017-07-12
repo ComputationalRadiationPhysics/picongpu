@@ -49,7 +49,7 @@ namespace types
         typename T_Type,
         uint8_t T_populations
     >
-    using Superconfig = PMacc::math::Vector<
+    using Superconfig = pmacc::math::Vector<
         T_Type,
         T_populations
     >;

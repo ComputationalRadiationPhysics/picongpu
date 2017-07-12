@@ -22,7 +22,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -41,4 +41,4 @@ HDINLINE typename Cross< T1, T2 >::result cross(const T1& value, const T2& value
 }
 } //namespace math
 } //namespace algorithms
-}//namespace PMacc
+}//namespace pmacc

@@ -30,7 +30,7 @@
 
 namespace gol
 {
-using namespace PMacc;
+using namespace pmacc;
 
 struct MessageHeader
 {

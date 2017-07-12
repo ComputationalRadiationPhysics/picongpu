@@ -73,7 +73,7 @@ namespace twts
     template<>
     HDINLINE float3_X
     EField::getTWTSEfield_Normalized<DIM3>(
-                const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+                const pmacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
                 const float_64 time) const
     {
         float3_64 pos(float3_64::create(0.0));
@@ -85,10 +85,10 @@ namespace twts
     template<>
     HDINLINE float3_X
     EField::getTWTSEfield_Normalized_Ey<DIM3>(
-                const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+                const pmacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
                 const float_64 time) const
     {
-        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        typedef pmacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
@@ -119,7 +119,7 @@ namespace twts
     template<>
     HDINLINE float3_X
     EField::getTWTSEfield_Normalized<DIM2>(
-        const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+        const pmacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
         const float_64 time) const
     {
         /* Ex->Ez, so also the grid cell offset for Ez has to be used. */
@@ -133,10 +133,10 @@ namespace twts
     template<>
     HDINLINE float3_X
     EField::getTWTSEfield_Normalized_Ey<DIM2>(
-        const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+        const pmacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
         const float_64 time) const
     {
-        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        typedef pmacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
@@ -177,7 +177,7 @@ namespace twts
         const float_64 time_SI = float_64(currentStep) * dt - tdelay;
         const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
 
-        const PMacc::math::Vector<floatD_64,detail::numComponents> eFieldPositions_SI =
+        const pmacc::math::Vector<floatD_64,detail::numComponents> eFieldPositions_SI =
               detail::getFieldPositions_SI(cellIdx, halfSimSize,
                 fieldPosE(), unit_length, focus_y_SI, phi);
 
@@ -201,8 +201,8 @@ namespace twts
     HDINLINE EField::float_T
     EField::calcTWTSEx( const float3_64& pos, const float_64 time) const
     {
-        typedef PMacc::math::Complex<float_T> complex_T;
-        typedef PMacc::math::Complex<float_64> complex_64;
+        typedef pmacc::math::Complex<float_T> complex_T;
+        typedef pmacc::math::Complex<float_64> complex_64;
         /* Unit of speed */
         const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /* Unit of time */

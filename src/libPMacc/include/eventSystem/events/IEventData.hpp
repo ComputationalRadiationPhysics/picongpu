@@ -24,7 +24,7 @@
 
 #include "eventSystem/events/EventNotify.hpp"
 
-namespace PMacc
+namespace pmacc
 {
     // forward declaration
     class EventNotify;
@@ -53,4 +53,4 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc

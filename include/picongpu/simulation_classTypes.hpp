@@ -32,7 +32,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     //short name for access verbose types of picongpu
     typedef PIConGPUVerbose picLog;

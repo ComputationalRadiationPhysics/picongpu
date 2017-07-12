@@ -52,7 +52,7 @@
 namespace picongpu
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 FieldJ::FieldJ( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription ),
@@ -61,33 +61,33 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
     const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
     /* cell margins the current might spread to due to particle shapes */
-    typedef typename PMacc::particles::traits::FilterByFlag<
+    typedef typename pmacc::particles::traits::FilterByFlag<
         VectorAllSpecies,
         current<>
     >::type AllSpeciesWithCurrent;
 
     typedef bmpl::accumulate<
         AllSpeciesWithCurrent,
-        typename PMacc::math::CT::make_Int<simDim, 0>::type,
-        PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
+        typename pmacc::math::CT::make_Int<simDim, 0>::type,
+        pmacc::math::CT::max<bmpl::_1, GetLowerMargin< GetCurrentSolver<bmpl::_2> > >
         >::type LowerMarginShapes;
 
     typedef bmpl::accumulate<
         AllSpeciesWithCurrent,
-        typename PMacc::math::CT::make_Int<simDim, 0>::type,
-        PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
+        typename pmacc::math::CT::make_Int<simDim, 0>::type,
+        pmacc::math::CT::max<bmpl::_1, GetUpperMargin< GetCurrentSolver<bmpl::_2> > >
         >::type UpperMarginShapes;
 
     /* margins are always positive, also for lower margins
      * additional current interpolations and current filters on FieldJ might
      * spread the dependencies on neighboring cells
      *   -> use max(shape,filter) */
-    typedef PMacc::math::CT::max<
+    typedef pmacc::math::CT::max<
         LowerMarginShapes,
         GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin
         >::type LowerMargin;
 
-    typedef PMacc::math::CT::max<
+    typedef pmacc::math::CT::max<
         UpperMarginShapes,
         GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin
         >::type UpperMargin;
@@ -190,7 +190,7 @@ EventTask FieldJ::asyncCommunication( EventTask serialEvent )
 
 void FieldJ::bashField( uint32_t exchangeType )
 {
-    PMacc::fields::operations::CopyGuardToExchange{ }(
+    pmacc::fields::operations::CopyGuardToExchange{ }(
         fieldJ,
         SuperCellSize{ },
         exchangeType
@@ -199,7 +199,7 @@ void FieldJ::bashField( uint32_t exchangeType )
 
 void FieldJ::insertField( uint32_t exchangeType )
 {
-    PMacc::fields::operations::AddExchangeToBorder{ }(
+    pmacc::fields::operations::AddExchangeToBorder{ }(
         fieldJ,
         SuperCellSize{ },
         exchangeType
@@ -266,7 +266,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
     const int workerMultiplier = 2;
 
     typedef typename ParticlesClass::FrameType FrameType;
-    typedef typename PMacc::traits::Resolve<
+    typedef typename pmacc::traits::Resolve<
         typename GetFlagType<FrameType, current<> >::type
     >::type ParticleCurrentSolver;
 
@@ -283,8 +283,8 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
     FieldJ::DataBoxType jBox = this->fieldJ.getDeviceBuffer( ).getDataBox( );
     FrameSolver solver( DELTA_T );
 
-    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-        PMacc::math::CT::volume< SuperCellSize >::type::value * workerMultiplier
+    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+        pmacc::math::CT::volume< SuperCellSize >::type::value * workerMultiplier
     >::value;
 
     do

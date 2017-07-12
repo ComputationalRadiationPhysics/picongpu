@@ -33,7 +33,7 @@
 
 namespace mpl = boost::mpl;
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -205,5 +205,5 @@ struct TerminalTL<Expression<exprTypes::subscript, mpl::vector<Child0, Child1> >
 
 } // CT
 } // lambda
-} // PMacc
+} // pmacc
 

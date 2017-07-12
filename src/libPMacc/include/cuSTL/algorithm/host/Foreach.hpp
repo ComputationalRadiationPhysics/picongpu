@@ -33,7 +33,7 @@
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -128,5 +128,5 @@ struct Foreach
 
 } // host
 } // algorithm
-} // PMacc
+} // pmacc
 

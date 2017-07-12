@@ -32,7 +32,7 @@
 #include <algorithm>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -161,4 +161,4 @@ void Reduce<dim>::operator()
 
 } // mpi
 } // algorithm
-} // PMacc
+} // pmacc

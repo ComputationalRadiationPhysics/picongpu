@@ -50,7 +50,7 @@ namespace acc
          *
          * @tparam T_DestParticle type of the particle species with weighting to manipulate
          * @tparam T_SrcParticle type of the particle species with proton number Z
-         * @tparam T_Args PMacc::Particle, arbitrary number of particles types
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
          *
          * @param particleDest destination particle
          * @param source particle (the number of protons of this particle is used)

@@ -27,7 +27,7 @@ namespace picongpu
 {
 namespace currentSolver
 {
-using namespace PMacc;
+using namespace pmacc;
 
 
 /**

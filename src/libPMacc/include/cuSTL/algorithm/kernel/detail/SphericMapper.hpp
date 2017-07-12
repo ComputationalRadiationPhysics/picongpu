@@ -26,7 +26,7 @@
 
 #include <boost/mpl/void.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -238,4 +238,4 @@ struct SphericMapper<3, mpl::void_>
 } // detail
 } // kernel
 } // algorithm
-} // PMacc
+} // pmacc

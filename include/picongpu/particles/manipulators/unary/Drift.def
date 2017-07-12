@@ -69,11 +69,11 @@ namespace acc
      * allow to manipulate a speed to a particle
      *
      * @tparam T_ParamClass param::DriftCfg, configuration parameter
-     * @tparam T_ValueFunctor PMacc::nvidia::functors::*,  binary functor type to manipulate the momentum attribute
+     * @tparam T_ValueFunctor pmacc::nvidia::functors::*,  binary functor type to manipulate the momentum attribute
      */
     template<
         typename T_ParamClass = param::DriftCfg,
-        typename T_ValueFunctor = PMacc::nvidia::functors::Add
+        typename T_ValueFunctor = pmacc::nvidia::functors::Add
     >
     using Drift = generic::Free<
         acc::Drift<

@@ -32,7 +32,7 @@
 #include <sstream>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -87,7 +87,7 @@ namespace detail
     HDINLINE void notifyEventSystem<allocator::tag::device>()
     {
 #ifndef __CUDA_ARCH__
-        using namespace PMacc;
+        using namespace pmacc;
         __startOperation(ITask::TASK_CUDA);
 #endif
     }
@@ -96,7 +96,7 @@ namespace detail
     HDINLINE void notifyEventSystem<allocator::tag::host>()
     {
 #ifndef __CUDA_ARCH__
-        using namespace PMacc;
+        using namespace pmacc;
         __startOperation(ITask::TASK_HOST);
 #endif
     }
@@ -360,4 +360,4 @@ std::ostream& operator<<(std::ostream& s, const CartBuffer<Type, 3, Allocator, C
 }
 
 } // container
-} // PMacc
+} // pmacc

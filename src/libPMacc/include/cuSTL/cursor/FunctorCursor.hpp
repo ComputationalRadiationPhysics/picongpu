@@ -27,7 +27,7 @@
 #include "lambda/make_Functor.hpp"
 #include <boost/type_traits/remove_reference.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -53,5 +53,5 @@ Cursor<FunctorAccessor<typename lambda::result_of::make_Functor<Functor>::type,
 }
 
 } // cursor
-} // PMacc
+} // pmacc
 

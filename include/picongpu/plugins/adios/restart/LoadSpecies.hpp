@@ -50,7 +50,7 @@ namespace picongpu
 
 namespace adios
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /** Load species from ADIOS checkpoint file
  *
@@ -98,7 +98,7 @@ public:
 
         std::string particlePath = params->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) +
                                    FrameType::getName() + std::string("/");
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         /* load particle without copying particle data to host */
         auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
@@ -168,7 +168,7 @@ public:
 
         if (totalNumParticles != 0)
         {
-            PMacc::particles::operations::splitIntoListOfFrames(
+            pmacc::particles::operations::splitIntoListOfFrames(
                 *speciesTmp,
                 deviceFrame,
                 totalNumParticles,

@@ -26,7 +26,7 @@
 
 struct NodeHeader
 {
-    typedef PMacc::DataSpace<DIM2> Size2D;
+    typedef pmacc::DataSpace<DIM2> Size2D;
 
     Size2D maxSize;
     Size2D size;

@@ -26,7 +26,7 @@
 
 #include <stack>
 
-namespace PMacc
+namespace pmacc
 {
 // forward declaration
 template<unsigned DIM>

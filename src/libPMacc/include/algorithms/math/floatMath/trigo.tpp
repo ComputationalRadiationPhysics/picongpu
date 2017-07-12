@@ -27,7 +27,7 @@
 #include <cmath>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -133,10 +133,10 @@ struct Sinc<float>
 
     HDINLINE float operator( )(const float& value )
     {
-        if(PMacc::algorithms::math::abs(value) < FLT_EPSILON)
+        if(pmacc::algorithms::math::abs(value) < FLT_EPSILON)
             return 1.0;
         else
-            return PMacc::algorithms::math::sin( value )/value;
+            return pmacc::algorithms::math::sin( value )/value;
     }
 };
 
@@ -153,4 +153,4 @@ struct Atan2<float>
 
 } //namespace math
 } //namespace algorithms
-} // namespace PMacc
+} // namespace pmacc

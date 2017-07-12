@@ -26,7 +26,7 @@
 #include "math/Vector.hpp"
 #include "traits/Limits.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -89,4 +89,4 @@ struct make_Int<3, val>
 
 } // CT
 } // math
-} // PMacc
+} // pmacc

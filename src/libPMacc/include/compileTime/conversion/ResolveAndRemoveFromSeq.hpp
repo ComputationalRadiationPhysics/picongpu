@@ -27,13 +27,13 @@
 #include "compileTime/conversion/ResolveAliases.hpp"
 #include "compileTime/errorHandlerPolicies/ReturnValue.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** Resolve and remove types from a sequence
  *
  * @tparam T_MPLSeqSrc source sequence from were we delete types
- * @tparam T_MPLSeqObjectsToRemove sequence with types which should be deleted (PMacc aliases are allowed)
+ * @tparam T_MPLSeqObjectsToRemove sequence with types which should be deleted (pmacc aliases are allowed)
  */
 template<
 typename T_MPLSeqSrc,
@@ -47,4 +47,4 @@ struct ResolveAndRemoveFromSeq
     typedef typename RemoveFromSeq<MPLSeqSrc, ResolvedSeqWithObjectsToRemove>::type type;
 };
 
-}//namespace PMacc
+}//namespace pmacc

@@ -84,7 +84,7 @@ namespace picongpu
 namespace adios
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 
 
@@ -95,9 +95,9 @@ int64_t defineAdiosVar(int64_t group_id,
                        const char * name,
                        const char * path,
                        enum ADIOS_DATATYPES type,
-                       PMacc::math::UInt64<DIM> dimensions,
-                       PMacc::math::UInt64<DIM> globalDimensions,
-                       PMacc::math::UInt64<DIM> offset,
+                       pmacc::math::UInt64<DIM> dimensions,
+                       pmacc::math::UInt64<DIM> globalDimensions,
+                       pmacc::math::UInt64<DIM> offset,
                        bool compression,
                        std::string compressionMethod)
 {
@@ -368,7 +368,7 @@ private:
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
         globalSlideOffset.y() += numSlides * localDomain.size.y();
 
@@ -530,7 +530,7 @@ public:
     /* select MPI method, #OSTs and #aggregators */
     mpiTransportParams(""),
     notifyPeriod(0),
-    lastSpeciesSyncStep(PMacc::traits::limits::Max<uint32_t>::value)
+    lastSpeciesSyncStep(pmacc::traits::limits::Max<uint32_t>::value)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -771,7 +771,7 @@ private:
      */
     void notificationReceived(uint32_t currentStep, bool isCheckpoint)
     {
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         mThreadParams.isCheckpoint = isCheckpoint;
         mThreadParams.currentStep = currentStep;
         mThreadParams.cellDescription = this->cellDescription;
@@ -966,7 +966,7 @@ private:
         threadParams->adiosGroupSize = 0;
 
         /* y direction can be negative for first gpu */
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         DataSpace<simDim> particleOffset(localDomain.offset);
         particleOffset.y() -= threadParams->window.globalDimensions.offset.y();
 
@@ -1113,7 +1113,7 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: closing file: %1%") % threadParams->fullFilename;
         ADIOS_CMD(adios_close(threadParams->adiosFileHandle));
 
-        /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
+        /* avoid deadlock between not finished pmacc tasks and MPI_Barrier */
         __getTransactionEvent().waitForFinished();
         /*\todo: copied from adios example, we might not need this ? */
         MPI_CHECK(MPI_Barrier(threadParams->adiosComm));

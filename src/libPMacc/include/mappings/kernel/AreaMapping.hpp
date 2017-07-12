@@ -26,7 +26,7 @@
 #include "dimensions/DataSpace.hpp"
 #include "mappings/kernel/AreaMappingMethods.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     template<uint32_t areaType, class baseClass>
@@ -81,4 +81,4 @@ namespace PMacc
 
     };
 
-} // namespace PMacc
+} // namespace pmacc

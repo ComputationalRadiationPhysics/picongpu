@@ -29,7 +29,7 @@
 #include <type_traits> // std::is_same
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace functor
 {
@@ -236,4 +236,4 @@ namespace detail
     };
 
 } // namespace functor
-} // namespace PMacc
+} // namespace pmacc

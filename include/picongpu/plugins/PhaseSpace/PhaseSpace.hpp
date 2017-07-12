@@ -41,7 +41,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
     namespace po = boost::program_options;
 
     template<class T_AssignmentFunction, class T_Species>
@@ -79,7 +79,7 @@ namespace picongpu
         container::DeviceBuffer<float_PS, 2>* dBuffer;
 
         /** reduce functor to a single host per plane */
-        PMacc::algorithm::mpi::Reduce<simDim>* planeReduce;
+        pmacc::algorithm::mpi::Reduce<simDim>* planeReduce;
         bool isPlaneReduceRoot;
         /** MPI communicator that contains the root ranks of the \p planeReduce
          */

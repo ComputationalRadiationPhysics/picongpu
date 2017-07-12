@@ -102,8 +102,8 @@ namespace particleMerging
             const DataSpace< simDim > voronoiCellDim = cellIdxDim / 2;
 
             return static_cast< voronoiCellId::type >(
-                PMacc::math::linearize(
-                    PMacc::math::CT::shrinkTo< SuperCellSize, simDim - 1 >::type::toRT() / 2,
+                pmacc::math::linearize(
+                    pmacc::math::CT::shrinkTo< SuperCellSize, simDim - 1 >::type::toRT() / 2,
                     voronoiCellDim
                 )
             );
@@ -117,7 +117,7 @@ namespace particleMerging
          *
          * @param cellIdx cell index
          */
-        DINLINE void initVoronoiCellIdAttribute( const PMacc::math::Int<simDim>& cellIdx )
+        DINLINE void initVoronoiCellIdAttribute( const pmacc::math::Int<simDim>& cellIdx )
         {
             particleAccess::Cell2Particle< SuperCellSize > forEachFrame;
             forEachFrame(
@@ -168,7 +168,7 @@ namespace particleMerging
          * @param listVoronoiCells fixed-sized array of Voronoi cells
          */
         DINLINE void processParticles(
-            const PMacc::math::Int<simDim>& cellIdx,
+            const pmacc::math::Int<simDim>& cellIdx,
             ArrayVoronoiCells& listVoronoiCells
         )
         {
@@ -365,15 +365,15 @@ namespace particleMerging
          *
          * @param cellIndex n-dim. cell index from the origin of the local domain
          */
-        DINLINE void operator()( const PMacc::math::Int<simDim>& cellIndex )
+        DINLINE void operator()( const pmacc::math::Int<simDim>& cellIndex )
         {
             /* multi-dim vector from origin of the super cell to a cell in units of cells */
-            const PMacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
+            const pmacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
 
             /* conversion from a multi-dim cell coordinate to a linear coordinate
              * of the cell in its super cell */
-            const int linearThreadIdx = PMacc::math::linearize(
-                PMacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
+            const int linearThreadIdx = pmacc::math::linearize(
+                pmacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
                 threadIndex
             );
 
@@ -387,7 +387,7 @@ namespace particleMerging
              * `1u << simDim` is equivalent to `pow(2, simDim)` but can be
              * calculated at compile-time to save a shared variable.
              */
-            constexpr uint16_t numInitialVoronoiCells = PMacc::math::CT::volume<
+            constexpr uint16_t numInitialVoronoiCells = pmacc::math::CT::volume<
                 SuperCellSize
             >::type::value / ( 1u << simDim );
 

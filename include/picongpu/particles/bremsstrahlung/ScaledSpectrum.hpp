@@ -55,9 +55,9 @@ namespace detail
  */
 struct LookupTableFunctor
 {
-    typedef typename ::PMacc::result_of::Functor<
-        ::PMacc::cursor::tools::LinearInterp<float_X>,
-        ::PMacc::cursor::BufferCursor<float_X, DIM2> >::type LinInterpCursor;
+    typedef typename ::pmacc::result_of::Functor<
+        ::pmacc::cursor::tools::LinearInterp<float_X>,
+        ::pmacc::cursor::BufferCursor<float_X, DIM2> >::type LinInterpCursor;
 
     typedef float_X type;
 
@@ -98,7 +98,7 @@ public:
     typedef detail::LookupTableFunctor LookupTableFunctor;
 private:
 
-    typedef boost::shared_ptr<PMacc::container::DeviceBuffer<float_X, DIM2> > MyBuf;
+    typedef boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2> > MyBuf;
     MyBuf dBufScaledSpectrum;
     MyBuf dBufStoppingPower;
 
@@ -164,7 +164,7 @@ struct FillScaledSpectrumMap
 {
     typedef T_ElectronSpecies ElectronSpecies;
 
-    typedef typename PMacc::particles::traits::ResolveAliasFromSpecies<
+    typedef typename pmacc::particles::traits::ResolveAliasFromSpecies<
         ElectronSpecies,
         bremsstrahlungIons<>
     >::type IonSpecies;

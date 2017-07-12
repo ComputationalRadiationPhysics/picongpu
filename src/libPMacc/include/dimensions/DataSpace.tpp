@@ -30,7 +30,7 @@
 #include "algorithms/TypeCast.hpp"
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 namespace traits
@@ -57,22 +57,22 @@ namespace precisionCast
 {
 
 template<unsigned T_Dim>
-struct TypeCast<int, PMacc::DataSpace<T_Dim> >
+struct TypeCast<int, pmacc::DataSpace<T_Dim> >
 {
-    typedef const PMacc::DataSpace<T_Dim>& result;
+    typedef const pmacc::DataSpace<T_Dim>& result;
 
-    HDINLINE result operator( )(const PMacc::DataSpace<T_Dim>& vector ) const
+    HDINLINE result operator( )(const pmacc::DataSpace<T_Dim>& vector ) const
     {
         return vector;
     }
 };
 
 template<typename T_CastToType, unsigned T_Dim>
-struct TypeCast<T_CastToType, PMacc::DataSpace<T_Dim>  >
+struct TypeCast<T_CastToType, pmacc::DataSpace<T_Dim>  >
 {
-    typedef ::PMacc::math::Vector<T_CastToType, T_Dim> result;
+    typedef ::pmacc::math::Vector<T_CastToType, T_Dim> result;
 
-    HDINLINE result operator( )(const PMacc::DataSpace<T_Dim>& vector ) const
+    HDINLINE result operator( )(const pmacc::DataSpace<T_Dim>& vector ) const
     {
         return result( vector );
     }
@@ -81,4 +81,4 @@ struct TypeCast<T_CastToType, PMacc::DataSpace<T_Dim>  >
 } //namespace typecast
 } //namespace algorithms
 
-} //namespace PMacc
+} //namespace pmacc

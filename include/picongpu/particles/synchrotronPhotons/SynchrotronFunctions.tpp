@@ -101,11 +101,11 @@ void SynchrotronFunctions::init()
 {
     const uint32_t numSamples = SYNC_FUNCS_NUM_SAMPLES;
 
-    this->dBuf_SyncFuncs[first] = MyBuf(new PMacc::container::DeviceBuffer<float_X, DIM1>(numSamples));
-    this->dBuf_SyncFuncs[second] = MyBuf(new PMacc::container::DeviceBuffer<float_X, DIM1>(numSamples));
+    this->dBuf_SyncFuncs[first] = MyBuf(new pmacc::container::DeviceBuffer<float_X, DIM1>(numSamples));
+    this->dBuf_SyncFuncs[second] = MyBuf(new pmacc::container::DeviceBuffer<float_X, DIM1>(numSamples));
 
-    PMacc::container::HostBuffer<float_X, DIM1> hBuf_F_1(numSamples);
-    PMacc::container::HostBuffer<float_X, DIM1> hBuf_F_2(numSamples);
+    pmacc::container::HostBuffer<float_X, DIM1> hBuf_F_1(numSamples);
+    pmacc::container::HostBuffer<float_X, DIM1> hBuf_F_2(numSamples);
 
     for(uint32_t sampleIdx = 0u; sampleIdx < numSamples; sampleIdx++)
     {
@@ -132,7 +132,7 @@ void SynchrotronFunctions::init()
 SynchrotronFunctions::SyncFuncCursor
 SynchrotronFunctions::getCursor(SynchrotronFunctions::Select syncFunction) const
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     detail::MapToLookupTable::LinInterpCursor linInterpCursor =
         cursor::tools::LinearInterp<float_X>()(this->dBuf_SyncFuncs[syncFunction]->origin());

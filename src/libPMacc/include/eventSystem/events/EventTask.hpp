@@ -25,7 +25,7 @@
 
 #include <string>
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -102,6 +102,6 @@ namespace PMacc
         id_t taskId;
     };
 
-} //namespace PMacc
+} //namespace pmacc
 
 

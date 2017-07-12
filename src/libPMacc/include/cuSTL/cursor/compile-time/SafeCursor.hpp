@@ -24,7 +24,7 @@
 #include <cuSTL/cursor/traits.hpp>
 #include <math/vector/Int.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -39,7 +39,7 @@ class SafeCursor : public Cursor
 {
 private:
     typedef SafeCursor<Cursor, LowerExtent, UpperExtent> This;
-    static constexpr int dim = PMacc::cursor::traits::dim<Cursor>::value;
+    static constexpr int dim = pmacc::cursor::traits::dim<Cursor>::value;
     math::Int<dim> offset;
 public:
     HDINLINE SafeCursor(const Cursor& cursor)
@@ -126,5 +126,5 @@ make_SafeCursor(const Cursor& cursor, LowerExtent, UpperExtent)
 
 } // CT
 } // cursor
-} // PMacc
+} // pmacc
 

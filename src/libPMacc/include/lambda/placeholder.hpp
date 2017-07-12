@@ -24,7 +24,7 @@
 
 #include <boost/mpl/int.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -33,4 +33,4 @@ template<int I>
 struct placeholder {};
 
 } // namespace lambda
-} // namespace PMacc
+} // namespace pmacc

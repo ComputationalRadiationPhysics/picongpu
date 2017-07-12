@@ -59,7 +59,7 @@ public:
         const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
         const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         field.getHostBuffer().setValue(float3_X::create(0.0));
 
@@ -181,7 +181,7 @@ public:
 
 };
 
-using namespace PMacc;
+using namespace pmacc;
 
 } /* namespace adios */
 } /* namespace picongpu */

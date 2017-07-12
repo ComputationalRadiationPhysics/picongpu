@@ -22,7 +22,7 @@
 #include "picongpu/particles/flylite/helperFields/LocalDensity.hpp"
 #include "picongpu/particles/flylite/helperFields/LocalDensity.kernel"
 
-// PMacc
+// pmacc
 #include "pmacc_types.hpp"
 #include "static_assert.hpp"
 #include "Environment.hpp"
@@ -142,8 +142,8 @@ namespace detail
                 helperFields::LocalDensity::getName( speciesGroup ),
                 true
             );
-            constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-                PMacc::math::CT::volume< SuperCellSize >::type::value
+            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+                pmacc::math::CT::volume< SuperCellSize >::type::value
             >::value;
             PMACC_KERNEL( helperFields::KernelAverageDensity< numWorkers >{ } )
             (

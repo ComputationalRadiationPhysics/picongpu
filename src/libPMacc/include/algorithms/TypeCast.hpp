@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -48,4 +48,4 @@ HDINLINE typename TypeCast<CastToType, Type>::result precisionCast(const Type& v
 
 } //namespace precisionCast
 } //namespace algorithms
-}//namespace PMacc
+}//namespace pmacc

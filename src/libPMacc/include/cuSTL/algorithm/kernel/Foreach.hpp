@@ -38,7 +38,7 @@
 
 #include "eventSystem/events/kernelEvents.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -64,7 +64,7 @@ namespace kernel
                                                                                                             \
         auto blockDim = BlockDim::toRT();                                                                   \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                  \
-        using namespace PMacc;                                                                              \
+        using namespace pmacc;                                                                              \
         PMACC_KERNEL(detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size), blockDim)                    \
                   /* c0_shifted, c1_shifted, ... */                                                         \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                   \
@@ -72,7 +72,7 @@ namespace kernel
 
 /** Foreach algorithm that calls a cuda kernel
  *
- * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
+ * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cuda blockDim.
  *
  * blockDim has to fit into the computing volume.
  * E.g. (8,8,4) fits into (256, 256, 256)
@@ -99,5 +99,5 @@ struct Foreach
 
 } // kernel
 } // algorithm
-} // PMacc
+} // pmacc
 

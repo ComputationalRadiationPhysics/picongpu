@@ -28,7 +28,7 @@
 #include <string>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace functor
 {
@@ -38,10 +38,10 @@ namespace acc
 
     /** interface to combine a filter and a functor on the accelerator
      *
-     * @tparam T_FilterOperator PMacc::filter::operators, type concatenate the
+     * @tparam T_FilterOperator pmacc::filter::operators, type concatenate the
      *                          results of the filter
-     * @tparam T_Filter PMacc::filter::Interface, type of the filter
-     * @tparam T_Functor PMacc::functor::Interface, type of the functor
+     * @tparam T_Filter pmacc::filter::Interface, type of the filter
+     * @tparam T_Functor pmacc::functor::Interface, type of the functor
      */
     template<
         typename T_FilterOperator,
@@ -95,10 +95,10 @@ namespace acc
      * the accelerator instance is evaluated by the filter and if the
      * combined result is true the functor is executed.
      *
-     * @tparam T_FilterOperator PMacc::filter::operators, type concatenate the
+     * @tparam T_FilterOperator pmacc::filter::operators, type concatenate the
      *                          results of the filter
-     * @tparam T_Filter PMacc::filter::Interface, type of the filter
-     * @tparam T_Functor PMacc::functor::Interface, type of the functor
+     * @tparam T_Filter pmacc::filter::Interface, type of the filter
+     * @tparam T_Functor pmacc::functor::Interface, type of the functor
      */
     template<
         typename T_FilterOperator,
@@ -109,8 +109,8 @@ namespace acc
 
     /** specialization of Filtered (with unary filter)
      *
-     * This specialization can only be used if T_Filter is of the type PMacc::filter::Interface
-     * and T_Functor is of the type PMacc::functor::Interface.
+     * This specialization can only be used if T_Filter is of the type pmacc::filter::Interface
+     * and T_Functor is of the type pmacc::functor::Interface.
      * A unary filters means that each argument can only pass the same filter
      * check before its results are combined.
      */
@@ -253,4 +253,4 @@ namespace acc
     };
 
 } // namespace functor
-} // namespace PMacc
+} // namespace pmacc

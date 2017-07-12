@@ -54,7 +54,7 @@ struct RandomImpl
         mpi::SeedPerRank<simDim> seedPerRank;
         GlobalSeed globalSeed;
         seed = globalSeed() ^
-               PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
+               pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
                POSITION_SEED;
         seed = seedPerRank(seed) ^ currentStep;
 
@@ -121,7 +121,7 @@ struct RandomImpl
     }
 
 protected:
-    typedef PMacc::nvidia::rng::RNG<rngMethods::Xor, rngDistributions::Uniform_float> RngType;
+    typedef pmacc::nvidia::rng::RNG<rngMethods::Xor, rngDistributions::Uniform_float> RngType;
 
     PMACC_ALIGN(rng, RngType);
     PMACC_ALIGN(seed,uint32_t);

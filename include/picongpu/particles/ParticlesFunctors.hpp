@@ -137,7 +137,7 @@ struct CallPopulationKineticsInit
     using SpeciesType = typename SpeciesName::type;
     using FrameType = typename SpeciesType::FrameType;
 
-    using PopulationKineticsSolver = typename PMacc::traits::Resolve<
+    using PopulationKineticsSolver = typename pmacc::traits::Resolve<
         typename GetFlagType<
             FrameType,
             populationKinetics<>
@@ -145,7 +145,7 @@ struct CallPopulationKineticsInit
     >::type;
 
     HINLINE void operator()(
-        PMacc::DataSpace< simDim > gridSizeLocal
+        pmacc::DataSpace< simDim > gridSizeLocal
     ) const
     {
         PopulationKineticsSolver flylite;
@@ -155,18 +155,18 @@ struct CallPopulationKineticsInit
 
 /** Calculate FLYlite population kinetics evolving one time step
  *
- * @tparam T_SpeciesName name of ion species as PMacc::TypeAsIdentifier
+ * @tparam T_SpeciesName name of ion species as pmacc::TypeAsIdentifier
  */
 template< typename T_SpeciesName >
 struct CallPopulationKinetics
 {
-    //! PMacc::TypeAsIdentifier for the particle species
+    //! pmacc::TypeAsIdentifier for the particle species
     using SpeciesName = T_SpeciesName;
     //! expects a picongpu::Particles class
     using SpeciesType = typename SpeciesName::type;
     using FrameType = typename SpeciesType::FrameType;
 
-    using PopulationKineticsSolver = typename PMacc::traits::Resolve<
+    using PopulationKineticsSolver = typename pmacc::traits::Resolve<
         typename GetFlagType<
             FrameType,
             populationKinetics<>
@@ -264,7 +264,7 @@ struct PushAllSpecies
         EventList commEventList;
 
         /* push all species */
-        typedef typename PMacc::particles::traits::FilterByFlag
+        typedef typename pmacc::particles::traits::FilterByFlag
         <
             VectorAllSpecies,
             particlePusher<>
@@ -414,11 +414,11 @@ struct CallBremsstrahlung
     using ElectronSpecies = T_ElectronSpecies;
     using ElectronFrameType = typename ElectronSpecies::FrameType;
 
-    using IonSpecies = typename PMacc::particles::traits::ResolveAliasFromSpecies<
+    using IonSpecies = typename pmacc::particles::traits::ResolveAliasFromSpecies<
         ElectronSpecies,
         bremsstrahlungIons<>
     >::type;
-    using PhotonSpecies = typename PMacc::particles::traits::ResolveAliasFromSpecies<
+    using PhotonSpecies = typename pmacc::particles::traits::ResolveAliasFromSpecies<
         ElectronSpecies,
         bremsstrahlungPhotons<>
     >::type;

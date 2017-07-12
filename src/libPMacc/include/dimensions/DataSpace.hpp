@@ -25,7 +25,7 @@
 #include "math/Vector.hpp"
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -183,6 +183,6 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc
 
 #include "dimensions/DataSpace.tpp"

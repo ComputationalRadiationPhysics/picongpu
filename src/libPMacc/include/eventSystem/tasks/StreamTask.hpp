@@ -24,7 +24,7 @@
 #include "eventSystem/tasks/ITask.hpp"
 #include "eventSystem/events/CudaEventHandle.hpp"
 
-namespace PMacc
+namespace pmacc
 {
     class EventStream;
 
@@ -107,4 +107,4 @@ namespace PMacc
         bool alwaysFinished;
     };
 
-} //namespace PMacc
+} //namespace pmacc

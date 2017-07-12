@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-// PMacc
+// pmacc
 #include "dataManagement/ISimulationData.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "nvidia/reduce/Reduce.hpp"
@@ -55,12 +55,12 @@ namespace helperFields
     {
         /** Functor
          *
-         * @tparam T_TmpBox PMacc::DataBox with full-resolution density
-         * @tparam T_LocalDensityBox PMacc::DataBox local density with less
+         * @tparam T_TmpBox pmacc::DataBox with full-resolution density
+         * @tparam T_LocalDensityBox pmacc::DataBox local density with less
          *                           resolution
          *
-         * @param fieldTmp PMacc::DataBox with FieldTmp density scalar field
-         * @param localDensity PMacc::DataBox with global memory, e.g. for each
+         * @param fieldTmp pmacc::DataBox with FieldTmp density scalar field
+         * @param localDensity pmacc::DataBox with global memory, e.g. for each
          *                     supercell's density
          */
         template<
@@ -106,7 +106,7 @@ namespace helperFields
 
             nvidia::reduce::kernel::Reduce< ValueType > reduce{};
 
-            uint32_t const numAvgCells = PMacc::math::CT::volume< spatialAverageBox >::type::value;
+            uint32_t const numAvgCells = pmacc::math::CT::volume< spatialAverageBox >::type::value;
             reduce(
                 linearThreadIdx,
                 numWorkers,

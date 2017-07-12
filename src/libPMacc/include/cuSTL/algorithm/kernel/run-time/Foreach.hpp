@@ -44,7 +44,7 @@
 #include "eventSystem/events/kernelEvents.hpp"
 #include "Environment.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -144,7 +144,7 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDim)
             this->_blockDim.z()                                                                                     \
         );                                                                                                          \
         kernel::detail::SphericMapper<Zone::dim> mapper;                                                            \
-        using namespace PMacc;                                                                                      \
+        using namespace pmacc;                                                                                      \
         PMACC_KERNEL(kernel::detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockDim)   \
                 /*   c0_shifted, ..., cN_shifted    */                                                              \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                           \
@@ -190,4 +190,4 @@ struct Foreach
 } // namespace RT
 } // namespace kernel
 } // namespace algorithm
-} // namespace PMacc
+} // namespace pmacc

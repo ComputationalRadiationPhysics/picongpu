@@ -31,7 +31,7 @@ namespace picongpu
 {
 namespace leheSolver
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     typedef CurlELehe< picongpu::fieldSolverLehe::CherenkovFreeDir > CurlELeheDir;
 

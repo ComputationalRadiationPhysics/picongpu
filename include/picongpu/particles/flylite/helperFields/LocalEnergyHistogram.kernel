@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-// PMacc
+// pmacc
 #include "dataManagement/ISimulationData.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "nvidia/functors/Add.hpp"
@@ -61,8 +61,8 @@ namespace helperFields
          * @todo In case the local averging in flylite shall be larger then a
          * supercell (in multiples of integers), the results need to be merged.
          *
-         * @tparam T_ParBox PMacc::ParticlesBox, particle box type
-         * @tparam T_LocalEnergyHistogramBox PMacc::DataBox, local energy histograms,
+         * @tparam T_ParBox pmacc::ParticlesBox, particle box type
+         * @tparam T_LocalEnergyHistogramBox pmacc::DataBox, local energy histograms,
          *                                   e.g. for each supercell
          *
          * @param pb particles of a species
@@ -87,10 +87,10 @@ namespace helperFields
             constexpr uint16_t numBins = picongpu::flylite::energies;
             constexpr uint32_t numWorkers = T_numWorkers;
 
-            using namespace PMacc::mappings::threads;
+            using namespace pmacc::mappings::threads;
             using SuperCellSize = typename MappingDesc::SuperCellSize;
             using FramePtr = typename T_ParBox::FramePtr;
-            constexpr uint32_t maxParticlesPerFrame = PMacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t maxParticlesPerFrame = pmacc::math::CT::volume< SuperCellSize >::type::value;
 
             PMACC_SMEM(
                 frame,

@@ -25,7 +25,7 @@
 #include "math/vector/Int.hpp"
 #include "math/vector/Size_t.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace zone
 {
@@ -56,7 +56,7 @@ struct SphericZone
                          const math::Int<dim>& offset) : size(size), offset(offset) {}
 
     /* Returns whether pos is within the zone */
-    HDINLINE bool within(const PMacc::math::Int<T_dim>& pos) const
+    HDINLINE bool within(const pmacc::math::Int<T_dim>& pos) const
     {
         bool result = true;
         for(int i = 0; i < T_dim; i++)
@@ -66,5 +66,5 @@ struct SphericZone
 };
 
 } // zone
-} // PMacc
+} // pmacc
 

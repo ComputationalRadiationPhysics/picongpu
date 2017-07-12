@@ -22,7 +22,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -59,4 +59,4 @@ HDINLINE typename Log10< T1 >::result log10(const T1& value)
 
 } //namespace math
 } //namespace algorithms
-}//namespace PMacc
+}//namespace pmacc

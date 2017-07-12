@@ -27,7 +27,7 @@
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/EventSystem.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -157,5 +157,5 @@ namespace PMacc
         id_t task2;
     };
 
-} //namespace PMacc
+} //namespace pmacc
 

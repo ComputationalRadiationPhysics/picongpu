@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -39,4 +39,4 @@ HDINLINE typename Dot< T1, T2 >::result dot(const T1& value, const T2& value2)
 }
 } //namespace math
 } //namespace algorithms
-}//namespace PMacc
+}//namespace pmacc

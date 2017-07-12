@@ -30,7 +30,7 @@ namespace picongpu
     struct AssignedTrilinearInterpolation;
 } // namespace picongpu
 
-namespace PMacc
+namespace pmacc
 {
 namespace result_of
 {
@@ -46,7 +46,7 @@ namespace result_of
     };
 
 } // result_of
-} // PMacc
+} // pmacc
 
 namespace picongpu
 {
@@ -79,12 +79,12 @@ namespace picongpu
             const T_Cursor& cursor,
             const float3_X & pos
         )
-        -> typename ::PMacc::result_of::Functor<
+        -> typename ::pmacc::result_of::Functor<
             AssignedTrilinearInterpolation,
             T_Cursor
         >::type
         {
-            using type = typename ::PMacc::result_of::Functor<
+            using type = typename ::pmacc::result_of::Functor<
                 AssignedTrilinearInterpolation,
                 T_Cursor
             >::type;
@@ -123,12 +123,12 @@ namespace picongpu
             T_Cursor const & cursor,
             float2_X const & pos
         )
-        -> typename ::PMacc::result_of::Functor<
+        -> typename ::pmacc::result_of::Functor<
             AssignedTrilinearInterpolation,
             T_Cursor
         >::type
         {
-            using type = typename ::PMacc::result_of::Functor<
+            using type = typename ::pmacc::result_of::Functor<
                 AssignedTrilinearInterpolation,
                 T_Cursor
             >::type;
@@ -150,9 +150,9 @@ namespace picongpu
         static
         auto
         getStringProperties()
-        -> PMacc::traits::StringProperty
+        -> pmacc::traits::StringProperty
         {
-            PMacc::traits::StringProperty propList(
+            pmacc::traits::StringProperty propList(
                 "name",
                 "uniform"
             );

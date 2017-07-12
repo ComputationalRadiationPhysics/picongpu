@@ -22,7 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-// PMacc
+// pmacc
 #include "static_assert.hpp"
 
 #include <boost/core/ignore_unused.hpp>
@@ -46,7 +46,7 @@ namespace flylite
          * @param ionSpeciesName unique name for the ion species
          */
         virtual void init(
-            PMacc::DataSpace< simDim > const & gridSizeLocal,
+            pmacc::DataSpace< simDim > const & gridSizeLocal,
             std::string const & ionSpeciesName
         ) = 0;
 

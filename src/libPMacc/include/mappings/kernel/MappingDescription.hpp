@@ -29,7 +29,7 @@
 #include "dimensions/GridLayout.hpp"
 #include "math/Vector.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /**
@@ -124,4 +124,4 @@ protected:
 
 };
 
-} // namespace PMacc
+} // namespace pmacc

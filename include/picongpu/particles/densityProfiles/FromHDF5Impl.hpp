@@ -85,7 +85,7 @@ private:
         deviceDataBox = fieldBuffer.getDeviceBuffer().getDataBox();
 
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(0);
         const uint32_t maxOpenFilesPerNode = 1;
 

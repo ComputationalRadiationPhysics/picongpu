@@ -27,7 +27,7 @@
 #include "picongpu/particles/particleToGrid/derivedAttributes/Density.def"
 #include "picongpu/particles/traits/GetShape.hpp"
 
-/* PMacc */
+/* pmacc */
 #include "Environment.hpp"
 #include "dataManagement/ISimulationData.hpp"
 #include "traits/GetNumWorkers.hpp"
@@ -52,14 +52,14 @@ namespace flylite
         T_ElectronsList,
         T_PhotonsList
     >::init(
-        PMacc::DataSpace< simDim > const & gridSizeLocal,
+        pmacc::DataSpace< simDim > const & gridSizeLocal,
         std::string const & ionSpeciesName
     )
     {
         //! GPU-local number of cells in regular resolution (like FieldE & B)
-        PMacc::DataSpace< simDim > m_gridSizeLocal = gridSizeLocal;
+        pmacc::DataSpace< simDim > m_gridSizeLocal = gridSizeLocal;
         //! GPU-local number of cells in averaged (reduced) resolution
-        PMacc::DataSpace< simDim > m_avgGridSizeLocal = m_gridSizeLocal / picongpu::flylite::spatialAverageBox::toRT();
+        pmacc::DataSpace< simDim > m_avgGridSizeLocal = m_gridSizeLocal / picongpu::flylite::spatialAverageBox::toRT();
 
         DataConnector &dc = Environment<>::get().DataConnector();
 

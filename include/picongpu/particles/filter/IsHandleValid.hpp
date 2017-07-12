@@ -38,7 +38,7 @@ namespace acc
 
         /** check particle handle
          *
-         * @tparam T_Particle PMacc::Particles, type of the particle
+         * @tparam T_Particle pmacc::Particles, type of the particle
          * @param particle  particle which is checked
          * @return true if particle handle is valid, else false
          */
@@ -61,7 +61,7 @@ namespace acc
 
         /** create filter for the accelerator
          *
-         * @tparam T_WorkerCfg PMacc::mappings::threads::WorkerCfg, configuration of the worker
+         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
          * @param offset (in superCells, without any guards) relative
          *                        to the origin of the local domain
          * @param configuration of the worker

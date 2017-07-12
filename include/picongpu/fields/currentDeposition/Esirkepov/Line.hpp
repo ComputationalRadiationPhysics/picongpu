@@ -28,7 +28,7 @@ namespace picongpu
 {
 namespace currentSolver
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<typename T_Type>
 struct Line

@@ -35,7 +35,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
 
     namespace po = boost::program_options;

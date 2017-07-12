@@ -61,7 +61,7 @@
 namespace picongpu
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 class ThermalTestSimulation : public MySimulation
 {
@@ -76,7 +76,7 @@ public:
     {
         MySimulation::init();
 
-        using namespace ::PMacc::math;
+        using namespace ::pmacc::math;
 
         DataConnector &dc = Environment<>::get().DataConnector();
         auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
@@ -109,7 +109,7 @@ public:
 
     void writeOutput()
     {
-        using namespace ::PMacc::math;
+        using namespace ::pmacc::math;
 
         auto& con = Environment<simDim>::get().GridController();
         Size_t<SIMDIM> gpuDim = (Size_t<SIMDIM>)con.getGpuNodes();
@@ -205,7 +205,7 @@ private:
 
     container::HostBuffer<float, 2 >* eField_zt[2];
 
-    typedef PMacc::math::CT::Size_t < 16, 16, 1 > BlockDim;
+    typedef pmacc::math::CT::Size_t < 16, 16, 1 > BlockDim;
     typedef SuperCellSize GuardDim;
 };
 

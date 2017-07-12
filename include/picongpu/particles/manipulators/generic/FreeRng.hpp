@@ -103,7 +103,7 @@ namespace acc
         using Distribution = T_Distribution;
         using SpeciesType = T_SpeciesType;
 
-        using RngType = PMacc::nvidia::rng::RNG<
+        using RngType = pmacc::nvidia::rng::RNG<
             nvidia::rng::methods::Xor,
             Distribution
         >;
@@ -154,7 +154,7 @@ namespace acc
 
         /** create functor for the accelerator
          *
-         * @tparam T_WorkerCfg PMacc::mappings::threads::WorkerCfg, configuration of the worker
+         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
          * @param localSupercellOffset offset (in superCells, without any guards) relative
          *                        to the origin of the local domain
          * @param workerCfg configuration of the worker
@@ -225,7 +225,7 @@ namespace acc
              *   - a fix id for this functor `FREERNG_SEED` (defined in `seed.param`)
              */
             seed = globalSeed() ^
-                PMacc::traits::GetUniqueTypeId<
+                pmacc::traits::GetUniqueTypeId<
                     FrameType,
                     uint32_t
                 >::uid() ^

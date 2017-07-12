@@ -43,7 +43,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<class ParticlesType>
 class CountParticles : public ISimulationPlugin
@@ -176,7 +176,7 @@ private:
         auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
 
         /*count local particles*/
-        size = PMacc::CountParticles::countOnDevice<AREA>(*particles,
+        size = pmacc::CountParticles::countOnDevice<AREA>(*particles,
                                                           *cellDescription,
                                                           DataSpace<simDim>(),
                                                           localSize);

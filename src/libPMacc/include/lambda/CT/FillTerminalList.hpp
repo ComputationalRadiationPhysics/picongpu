@@ -25,7 +25,7 @@
 #include "Expression.hpp"
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -221,5 +221,5 @@ struct FillTerminalList<lambda::Expression<exprTypes::subscript, mpl::vector<Chi
 
 } // CT
 } // lambda
-} // PMacc
+} // pmacc
 

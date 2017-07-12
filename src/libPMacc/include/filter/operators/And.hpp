@@ -22,7 +22,7 @@
 #pragma once
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace filter
 {
@@ -62,4 +62,4 @@ namespace operators
 
 } // namespace operators
 } // namespace filter
-} // namespace PMacc
+} // namespace pmacc

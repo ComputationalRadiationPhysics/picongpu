@@ -30,7 +30,7 @@
 
 namespace mpl = boost::mpl;
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -86,5 +86,5 @@ expr(const T& t)
 }
 
 } // lambda
-} // PMacc
+} // pmacc
 

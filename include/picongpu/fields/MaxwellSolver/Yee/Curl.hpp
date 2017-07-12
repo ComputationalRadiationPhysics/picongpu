@@ -26,7 +26,7 @@ namespace picongpu
 {
 namespace yeeSolver
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<class Difference>
 struct Curl

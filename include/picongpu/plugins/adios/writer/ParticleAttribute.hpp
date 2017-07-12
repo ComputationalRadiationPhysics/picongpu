@@ -30,7 +30,7 @@ namespace picongpu
 
 namespace adios
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /** write attribute of a particle to adios file
  *
@@ -53,7 +53,7 @@ struct ParticleAttribute
     {
 
         typedef T_Identifier Identifier;
-        typedef typename PMacc::traits::Resolve<Identifier>::type::type ValueType;
+        typedef typename pmacc::traits::Resolve<Identifier>::type::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 

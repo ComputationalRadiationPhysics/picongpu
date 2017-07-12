@@ -30,10 +30,10 @@
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/insert.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
-/** Translate all PMacc alias types to full specialized types
+/** Translate all pmacc alias types to full specialized types
  *
  * Use lookup sequence to translate types
  * The policy is used if the type from T_MPLSeq is not in T_MPLSeqLookup a compile time error is triggered
@@ -65,4 +65,4 @@ struct ResolveAliases
     >::type type;
 };
 
-}//namespace PMacc
+}//namespace pmacc

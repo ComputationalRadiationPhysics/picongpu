@@ -29,7 +29,7 @@
 
 
 
-namespace PMacc
+namespace pmacc
 {
 
     template<class Field>
@@ -124,5 +124,5 @@ namespace PMacc
         uint32_t m_exchange;
     };
 
-} //namespace PMacc
+} //namespace pmacc
 

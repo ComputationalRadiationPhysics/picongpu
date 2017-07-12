@@ -27,7 +27,7 @@
 #include <cuda_runtime.h>
 #include "eventSystem/events/CudaEvent.def"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** handle to CudaEvent */

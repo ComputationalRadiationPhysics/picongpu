@@ -49,7 +49,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 namespace po = boost::program_options;
 
@@ -67,8 +67,8 @@ struct KernelBinEnergyParticles
      *
      * the kinetic energy of all active particles will be calculated
      *
-     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
-     * @tparam T_BinBox PMacc::DataBox, box type for the histogram in global memory
+     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
+     * @tparam T_BinBox pmacc::DataBox, box type for the histogram in global memory
      * @tparam T_Mapping type of the mapper to map a cuda block to a supercell index
      *
      * @param pb box with access to the particles of the current used species
@@ -96,10 +96,10 @@ struct KernelBinEnergyParticles
         T_Mapping const mapper
     ) const
     {
-        using namespace PMacc::mappings::threads;
+        using namespace pmacc::mappings::threads;
         using SuperCellSize = typename MappingDesc::SuperCellSize;
         using FramePtr = typename T_ParBox::FramePtr;
-        constexpr uint32_t maxParticlesPerFrame = PMacc::math::CT::volume< SuperCellSize >::type::value;
+        constexpr uint32_t maxParticlesPerFrame = pmacc::math::CT::volume< SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 
         PMACC_SMEM(
@@ -492,8 +492,8 @@ private:
         float_X const minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
         float_X const maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
 
-        constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-             PMacc::math::CT::volume< SuperCellSize >::type::value
+        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+             pmacc::math::CT::volume< SuperCellSize >::type::value
          >::value;
 
         AreaMapping<

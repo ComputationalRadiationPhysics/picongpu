@@ -64,11 +64,11 @@ namespace precision64Bit
 typedef double precisionType;
 }
 
-namespace math = PMacc::algorithms::math;
-using namespace PMacc::algorithms::precisionCast;
-using namespace PMacc::algorithms::promoteType;
-using namespace PMacc::algorithms::forEach;
-using namespace PMacc::traits;
+namespace math = pmacc::algorithms::math;
+using namespace pmacc::algorithms::precisionCast;
+using namespace pmacc::algorithms::promoteType;
+using namespace pmacc::algorithms::forEach;
+using namespace pmacc::traits;
 using namespace picongpu::traits;
 
 }

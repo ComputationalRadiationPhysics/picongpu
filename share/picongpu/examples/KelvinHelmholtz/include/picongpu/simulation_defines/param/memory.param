@@ -34,7 +34,7 @@ namespace picongpu
 constexpr size_t reservedGpuMemorySize = 400 *1024*1024;
 
 /* short namespace*/
-namespace mCT=PMacc::math::CT;
+namespace mCT=pmacc::math::CT;
 /** size of a superCell
  *
  * volume of a superCell must be <= 1024

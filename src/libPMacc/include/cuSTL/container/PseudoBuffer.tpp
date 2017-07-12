@@ -21,14 +21,14 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
 
 template<typename Type, int dim>
 template<typename _Type>
-PseudoBuffer<Type, dim>::PseudoBuffer(PMacc::DeviceBuffer<_Type, dim>& devBuffer)
+PseudoBuffer<Type, dim>::PseudoBuffer(pmacc::DeviceBuffer<_Type, dim>& devBuffer)
 {
     cudaPitchedPtr cudaData = devBuffer.getCudaPitched();
     this->dataPointer = (Type*)cudaData.ptr;
@@ -43,7 +43,7 @@ PseudoBuffer<Type, dim>::PseudoBuffer(PMacc::DeviceBuffer<_Type, dim>& devBuffer
 
 template<typename Type, int dim>
 template<typename _Type>
-PseudoBuffer<Type, dim>::PseudoBuffer(PMacc::HostBuffer<_Type, dim>& hostBuffer)
+PseudoBuffer<Type, dim>::PseudoBuffer(pmacc::HostBuffer<_Type, dim>& hostBuffer)
 {
     this->dataPointer = (Type*)hostBuffer.getBasePointer();
     this->_size = (math::Size_t<dim>)hostBuffer.getDataSpace();
@@ -56,4 +56,4 @@ PseudoBuffer<Type, dim>::PseudoBuffer(PMacc::HostBuffer<_Type, dim>& hostBuffer)
 }
 
 } // container
-} // PMacc
+} // pmacc

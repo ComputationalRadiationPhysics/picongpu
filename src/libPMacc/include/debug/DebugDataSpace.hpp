@@ -27,7 +27,7 @@
 #include <string>
 #include <sstream>
 
-namespace PMacc
+namespace pmacc
 {
 
     /**

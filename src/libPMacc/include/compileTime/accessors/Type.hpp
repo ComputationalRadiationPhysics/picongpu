@@ -25,7 +25,7 @@
 #include <boost/mpl/placeholders.hpp>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace compileTime
 {
@@ -45,4 +45,4 @@ namespace accessors
 
 } // namespace accessors
 } // namespace compileTime
-} // namespace PMacc
+} // namespace pmacc

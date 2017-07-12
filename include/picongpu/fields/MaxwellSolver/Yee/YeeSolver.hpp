@@ -40,7 +40,7 @@ namespace picongpu
 {
 namespace yeeSolver
 {
-using namespace PMacc;
+using namespace pmacc;
 
 
 template<class CurlE, class CurlB>
@@ -69,8 +69,8 @@ private:
 
         AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
 
-        constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-            PMacc::math::CT::volume< SuperCellSize >::type::value
+        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+            pmacc::math::CT::volume< SuperCellSize >::type::value
         >::value;
 
         PMACC_KERNEL(KernelUpdateE< numWorkers, BlockArea >{ })
@@ -93,8 +93,8 @@ private:
 
         AreaMapping<AREA, MappingDesc> mapper(m_cellDescription);
 
-        constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-            PMacc::math::CT::volume< SuperCellSize >::type::value
+        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+            pmacc::math::CT::volume< SuperCellSize >::type::value
         >::value;
 
         PMACC_KERNEL(KernelUpdateBHalf< numWorkers, BlockArea >{ })
@@ -144,9 +144,9 @@ public:
         __setTransactionEvent(eRfieldB);
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "Yee" );
+        pmacc::traits::StringProperty propList( "name", "Yee" );
         return propList;
     }
 };

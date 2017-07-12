@@ -58,7 +58,7 @@
 namespace picongpu
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 FieldB::FieldB( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription )
@@ -66,29 +66,29 @@ SimulationFieldHelper<MappingDesc>( cellDescription )
     /*#####create FieldB###############*/
     fieldB = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
 
-    typedef typename PMacc::particles::traits::FilterByFlag
+    typedef typename pmacc::particles::traits::FilterByFlag
     <
         VectorAllSpecies,
         interpolation<>
     >::type VectorSpeciesWithInterpolation;
     typedef bmpl::accumulate<
         VectorSpeciesWithInterpolation,
-        typename PMacc::math::CT::make_Int<simDim, 0>::type,
-        PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
+        typename pmacc::math::CT::make_Int<simDim, 0>::type,
+        pmacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
         >::type LowerMarginInterpolation;
 
     typedef bmpl::accumulate<
         VectorSpeciesWithInterpolation,
-        typename PMacc::math::CT::make_Int<simDim, 0>::type,
-        PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
+        typename pmacc::math::CT::make_Int<simDim, 0>::type,
+        pmacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
         >::type UpperMarginInterpolation;
 
     /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
-    typedef PMacc::math::CT::max<
+    typedef pmacc::math::CT::max<
         LowerMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_B>::LowerMargin
         >::type LowerMarginInterpolationAndSolver;
-    typedef PMacc::math::CT::max<
+    typedef pmacc::math::CT::max<
         UpperMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin
         >::type UpperMarginInterpolationAndSolver;
@@ -97,7 +97,7 @@ SimulationFieldHelper<MappingDesc>( cellDescription )
        (currently all pusher use the interpolation of the species)
        and find maximum margin
     */
-    typedef typename PMacc::particles::traits::FilterByFlag
+    typedef typename pmacc::particles::traits::FilterByFlag
     <
         VectorSpeciesWithInterpolation,
         particlePusher<>
@@ -105,13 +105,13 @@ SimulationFieldHelper<MappingDesc>( cellDescription )
     typedef bmpl::accumulate<
         VectorSpeciesWithPusherAndInterpolation,
         LowerMarginInterpolationAndSolver,
-        PMacc::math::CT::max<bmpl::_1, GetLowerMarginPusher<bmpl::_2> >
+        pmacc::math::CT::max<bmpl::_1, GetLowerMarginPusher<bmpl::_2> >
         >::type LowerMargin;
 
     typedef bmpl::accumulate<
         VectorSpeciesWithPusherAndInterpolation,
         UpperMarginInterpolationAndSolver,
-        PMacc::math::CT::max<bmpl::_1, GetUpperMarginPusher<bmpl::_2> >
+        pmacc::math::CT::max<bmpl::_1, GetUpperMarginPusher<bmpl::_2> >
         >::type UpperMargin;
 
     const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );

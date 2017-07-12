@@ -28,7 +28,7 @@
 
 #include <set>
 
-namespace PMacc
+namespace pmacc
 {
 
         inline void EventNotify::notify( id_t eventId, EventType type, IEventData *data )
@@ -53,4 +53,4 @@ namespace PMacc
 
         }
 
-} //namespace PMacc
+} //namespace pmacc

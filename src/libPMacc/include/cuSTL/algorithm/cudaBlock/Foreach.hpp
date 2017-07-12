@@ -28,7 +28,7 @@
 #include "math/VectorOperations.hpp"
 #include "forward.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -52,7 +52,7 @@ namespace cudaBlock
         const int blockVolume = math::CT::volume<BlockDim>::type::value;           \
                                                                                    \
         typedef typename math::Int<Zone::dim> PosType;                             \
-        using namespace PMacc::algorithms::precisionCast;                          \
+        using namespace pmacc::algorithms::precisionCast;                          \
                                                                                    \
         for(int i = this->linearThreadIdx; i < dataVolume; i += blockVolume)       \
         {                                                                          \
@@ -65,7 +65,7 @@ namespace cudaBlock
 
 /** Foreach algorithm that is executed by one cuda thread block
  *
- * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
+ * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cuda blockDim.
  *
  * BlockDim could also be obtained from cuda itself at runtime but
  * it is faster to know it at compile-time.
@@ -101,4 +101,4 @@ public:
 
 } // cudaBlock
 } // algorithm
-} // PMacc
+} // pmacc

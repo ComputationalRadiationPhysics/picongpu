@@ -25,7 +25,7 @@
 #include <cuSTL/cursor/navigator/compile-time/TwistAxesNavigator.hpp>
 #include <cuSTL/cursor/accessor/TwistAxesAccessor.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -45,7 +45,7 @@ template<typename T_NavigatorPerm, typename T_AccessorPerm, typename T_Cursor>
 struct TwistVectorFieldAxes
 {
     typedef Cursor<TwistAxesAccessor<T_Cursor, T_AccessorPerm>,
-                   PMacc::cursor::CT::TwistAxesNavigator<T_NavigatorPerm>,
+                   pmacc::cursor::CT::TwistAxesNavigator<T_NavigatorPerm>,
                    T_Cursor> type;
 };
 
@@ -60,7 +60,7 @@ struct TwistVectorFieldAxes
  *
  * e.g.: new_cur = twistVectorFieldAxes<math::CT::Int<1,2,0> >(cur); // x -> y, y -> z, z -> x
  *
- * \tparam T_Permutation compile-time vector (PMacc::math::CT::Int) that describes the mapping.
+ * \tparam T_Permutation compile-time vector (pmacc::math::CT::Int) that describes the mapping.
  * x-axis -> T_Permutation::at<0>, y-axis -> T_Permutation::at<1>, ...
  *
  */
@@ -71,7 +71,7 @@ twistVectorFieldAxes(const T_Cursor& cursor)
 {
     return typename result_of::TwistVectorFieldAxes<T_Permutation, T_Permutation, T_Cursor>::type
         (TwistAxesAccessor<T_Cursor, T_Permutation>(),
-        PMacc::cursor::CT::TwistAxesNavigator<T_Permutation>(),
+        pmacc::cursor::CT::TwistAxesNavigator<T_Permutation>(),
         cursor);
 }
 
@@ -91,7 +91,7 @@ twistVectorFieldAxes(const T_Cursor& cursor, const T_Permutation& /*permutation*
 {
     return typename result_of::TwistVectorFieldAxes<T_Permutation, T_Permutation, T_Cursor>::type
         (TwistAxesAccessor<T_Cursor, T_Permutation>(),
-        PMacc::cursor::CT::TwistAxesNavigator<T_Permutation>(),
+        pmacc::cursor::CT::TwistAxesNavigator<T_Permutation>(),
         cursor);
 }
 
@@ -112,10 +112,10 @@ twistVectorFieldAxes(const T_Cursor& cursor,
 {
     return typename result_of::TwistVectorFieldAxes<T_NavigatorPerm, T_AccessorPerm, T_Cursor>::type
         (TwistAxesAccessor<T_Cursor, T_AccessorPerm>(),
-        PMacc::cursor::CT::TwistAxesNavigator<T_NavigatorPerm>(),
+        pmacc::cursor::CT::TwistAxesNavigator<T_NavigatorPerm>(),
         cursor);
 }
 
 } // tools
 } // cursor
-} // PMacc
+} // pmacc

@@ -41,7 +41,7 @@
 #include "eventSystem/streams/EventStream.hpp"
 #include "eventSystem/streams/StreamController.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -232,7 +232,7 @@ namespace PMacc
     }
 
 
-} //namespace PMacc
+} //namespace pmacc
 
 
 

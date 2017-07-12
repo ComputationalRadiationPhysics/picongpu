@@ -54,7 +54,7 @@ namespace picongpu
 
 namespace adios
 {
-using namespace PMacc;
+using namespace pmacc;
 
 
 
@@ -105,7 +105,7 @@ public:
 
         /* count total number of particles on the device */
         uint64_cu totalNumParticles = 0;
-        totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
+        totalNumParticles = pmacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params->cellDescription),
                                                                                     params->localWindowToDomainOffset,
@@ -176,9 +176,9 @@ public:
                 (speciesPath + "particles_info").c_str(),
                 path,
                 adiosIndexType.type,
-                PMacc::math::UInt64<DIM1>(localTableSize),
-                PMacc::math::UInt64<DIM1>(localTableSize * uint64_t(gc.getGlobalSize()) ),
-                PMacc::math::UInt64<DIM1>(localTableSize * uint64_t(gc.getGlobalRank()) ),
+                pmacc::math::UInt64<DIM1>(localTableSize),
+                pmacc::math::UInt64<DIM1>(localTableSize * uint64_t(gc.getGlobalSize()) ),
+                pmacc::math::UInt64<DIM1>(localTableSize * uint64_t(gc.getGlobalRank()) ),
                 true,
                 params->adiosCompression);
 

@@ -23,7 +23,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<typename Type_>
 struct Set

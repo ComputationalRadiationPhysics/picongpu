@@ -35,7 +35,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     template<class InitClass, class PluginClass, class SimulationClass>
     class SimulationStarter : public ISimulationStarter

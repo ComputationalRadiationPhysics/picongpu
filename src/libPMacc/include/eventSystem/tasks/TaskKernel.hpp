@@ -26,7 +26,7 @@
 #include "eventSystem/tasks/StreamTask.hpp"
 #include "eventSystem/streams/EventStream.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     class TaskKernel : public StreamTask
@@ -74,5 +74,5 @@ namespace PMacc
         std::string kernelName;
     };
 
-} //namespace PMacc
+} //namespace pmacc
 

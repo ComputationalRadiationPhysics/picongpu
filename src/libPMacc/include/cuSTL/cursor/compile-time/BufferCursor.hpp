@@ -26,7 +26,7 @@
 #include <cuSTL/cursor/navigator/compile-time/BufferNavigator.hpp>
 #include <cuSTL/cursor/traits.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -62,5 +62,5 @@ struct dim<CT::BufferCursor<Type, Pitch> >
 } // traits
 
 } // cursor
-} // PMacc
+} // pmacc
 

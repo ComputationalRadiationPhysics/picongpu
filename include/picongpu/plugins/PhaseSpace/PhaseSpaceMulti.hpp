@@ -33,7 +33,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
     namespace po = boost::program_options;
 
     template<class T_AssignmentFunction, class T_Species>

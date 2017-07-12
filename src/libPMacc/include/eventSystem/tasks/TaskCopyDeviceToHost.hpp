@@ -30,7 +30,7 @@
 
 #include <iomanip>
 
-namespace PMacc
+namespace pmacc
 {
 
     template <class TYPE, unsigned DIM>
@@ -197,4 +197,4 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc

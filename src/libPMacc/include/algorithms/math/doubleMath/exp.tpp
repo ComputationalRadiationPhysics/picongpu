@@ -26,7 +26,7 @@
 #include <cmath>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -69,4 +69,4 @@ struct Log10<double>
 
 } //namespace math
 } //namespace algorithms
-} // namespace PMacc
+} // namespace pmacc

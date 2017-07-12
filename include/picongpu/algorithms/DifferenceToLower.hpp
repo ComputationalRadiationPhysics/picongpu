@@ -25,7 +25,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 
 /** calculate difference to lower value
@@ -41,8 +41,8 @@ struct DifferenceToLower
     static constexpr uint32_t dim = T_Dim;
 
 
-    typedef typename PMacc::math::CT::make_Int<dim, 1>::type OffsetOrigin;
-    typedef typename PMacc::math::CT::make_Int<dim, 0>::type OffsetEnd;
+    typedef typename pmacc::math::CT::make_Int<dim, 1>::type OffsetOrigin;
+    typedef typename pmacc::math::CT::make_Int<dim, 0>::type OffsetEnd;
 
     /** calculate the difference for a given direction
      *

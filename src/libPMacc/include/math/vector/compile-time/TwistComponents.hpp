@@ -23,7 +23,7 @@
 
 #include "math/vector/compile-time/Vector.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -38,8 +38,8 @@ namespace CT
  *
  * Example:
  *
- * typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
- * typedef typename PMacc::math::CT::TwistComponents<BlockDim, Orientation_Y>::type TwistedBlockDim;
+ * typedef pmacc::math::CT::Int<1,2,0> Orientation_Y;
+ * typedef typename pmacc::math::CT::TwistComponents<BlockDim, Orientation_Y>::type TwistedBlockDim;
  */
 template<typename Vec, typename Axes, int dim=Vec::dim>
 struct TwistComponents;
@@ -63,4 +63,4 @@ struct TwistComponents<Vec, Axes, DIM3>
 
 } // namespace CT
 } // namespace math
-} // namespace PMacc
+} // namespace pmacc

@@ -41,7 +41,7 @@ namespace picongpu
 
 namespace adios
 {
-using namespace PMacc;
+using namespace pmacc;
 
 
 namespace po = boost::program_options;
@@ -109,9 +109,9 @@ struct ThreadParams
     std::string adiosBasePath;              /* base path for the current step */
     std::string adiosCompression;           /* ADIOS data transform compression method */
 
-    PMacc::math::UInt64<simDim> fieldsSizeDims;
-    PMacc::math::UInt64<simDim> fieldsGlobalSizeDims;
-    PMacc::math::UInt64<simDim> fieldsOffsetDims;
+    pmacc::math::UInt64<simDim> fieldsSizeDims;
+    pmacc::math::UInt64<simDim> fieldsGlobalSizeDims;
+    pmacc::math::UInt64<simDim> fieldsOffsetDims;
 
     std::list<int64_t> adiosFieldVarIds;        /* var IDs for fields in order of appearance */
     std::list<int64_t> adiosParticleAttrVarIds; /* var IDs for particle attributes in order of appearance */
@@ -160,9 +160,9 @@ int64_t defineAdiosVar(int64_t group_id,
                        const char * name,
                        const char * path,
                        enum ADIOS_DATATYPES type,
-                       PMacc::math::UInt64<DIM> dimensions,
-                       PMacc::math::UInt64<DIM> globalDimensions,
-                       PMacc::math::UInt64<DIM> offset,
+                       pmacc::math::UInt64<DIM> dimensions,
+                       pmacc::math::UInt64<DIM> globalDimensions,
+                       pmacc::math::UInt64<DIM> offset,
                        bool compression,
                        std::string compressionMethod);
 

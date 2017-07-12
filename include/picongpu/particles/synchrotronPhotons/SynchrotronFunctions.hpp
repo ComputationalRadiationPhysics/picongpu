@@ -44,9 +44,9 @@ namespace detail
  */
 struct MapToLookupTable
 {
-    typedef typename ::PMacc::result_of::Functor<
-        ::PMacc::cursor::tools::LinearInterp<float_X>,
-        ::PMacc::cursor::BufferCursor<float_X, DIM1> >::type LinInterpCursor;
+    typedef typename ::pmacc::result_of::Functor<
+        ::pmacc::cursor::tools::LinearInterp<float_X>,
+        ::pmacc::cursor::BufferCursor<float_X, DIM1> >::type LinInterpCursor;
 
     typedef float_X type;
 
@@ -67,9 +67,9 @@ struct MapToLookupTable
     HDINLINE float_X operator()(const float_X x) const;
 };
 
-typedef ::PMacc::cursor::Cursor<
+typedef ::pmacc::cursor::Cursor<
     MapToLookupTable,
-    ::PMacc::cursor::PlusNavigator,
+    ::pmacc::cursor::PlusNavigator,
     float_X> SyncFuncCursor;
 
 } // namespace detail
@@ -85,7 +85,7 @@ public:
     typedef detail::SyncFuncCursor SyncFuncCursor;
 private:
 
-    typedef boost::shared_ptr<PMacc::container::DeviceBuffer<float_X, DIM1> > MyBuf;
+    typedef boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM1> > MyBuf;
     MyBuf dBuf_SyncFuncs[2]; // two synchrotron functions
 
     struct BesselK

@@ -28,7 +28,7 @@
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/contains.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
 /* remove types from a sequence
@@ -51,4 +51,4 @@ struct RemoveFromSeq
     typedef typename bmpl::remove_if< T_MPLSeqSrc, hasId<bmpl::_> >::type type;
 };
 
-}//namespace PMacc
+}//namespace pmacc

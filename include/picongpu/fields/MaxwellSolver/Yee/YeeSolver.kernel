@@ -28,7 +28,7 @@ namespace picongpu
 {
 namespace yeeSolver
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     /** compute electric field
      *
@@ -44,8 +44,8 @@ namespace yeeSolver
         /** update electric field
          *
          * @tparam T_Curl curl functor type
-         * @tparam T_EBox PMacc::DataBox, electric field box type
-         * @tparam T_BBox PMacc::DataBox, magnetic field box type
+         * @tparam T_EBox pmacc::DataBox, electric field box type
+         * @tparam T_BBox pmacc::DataBox, magnetic field box type
          * @tparam T_Mapping mapper functor type
          *
          * @param curl functor to calculate the electric field, interface must be
@@ -69,7 +69,7 @@ namespace yeeSolver
         {
             using namespace mappings::threads;
 
-            constexpr uint32_t cellsPerSuperCell = PMacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_workers;
 
             uint32_t const workerIdx = threadIdx.x;
@@ -135,8 +135,8 @@ namespace yeeSolver
         /** update magnetic field
          *
          * @tparam T_Curl curl functor type
-         * @tparam T_EBox PMacc::DataBox, electric field box type
-         * @tparam T_BBox PMacc::DataBox, magnetic field box type
+         * @tparam T_EBox pmacc::DataBox, electric field box type
+         * @tparam T_BBox pmacc::DataBox, magnetic field box type
          * @tparam T_Mapping mapper functor type
          *
          * @param curl functor to calculate the electric field, interface must be
@@ -160,7 +160,7 @@ namespace yeeSolver
         {
             using namespace mappings::threads;
 
-            constexpr uint32_t cellsPerSuperCell = PMacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_workers;
 
             uint32_t const workerIdx = threadIdx.x;

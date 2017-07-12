@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -49,5 +49,5 @@ HDINLINE typename RSqrt< T1 >::result rsqrt(const T1& value)
 
 } //namespace math
 } //namespace algorithms
-}//namespace PMacc
+}//namespace pmacc
 

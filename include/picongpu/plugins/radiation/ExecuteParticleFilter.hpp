@@ -83,7 +83,7 @@ namespace radiation
     template< typename T_Species >
     void executeParticleFilter( std::shared_ptr<T_Species>& species, const uint32_t currentStep )
     {
-        constexpr bool hasRadiationFilter = ::PMacc::traits::HasIdentifier<
+        constexpr bool hasRadiationFilter = ::pmacc::traits::HasIdentifier<
             typename T_Species::FrameType,
             radiationMask
         >::type::value;

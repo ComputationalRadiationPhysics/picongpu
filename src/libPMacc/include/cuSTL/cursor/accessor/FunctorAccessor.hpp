@@ -25,7 +25,7 @@
 #include <forward.hpp>
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -35,7 +35,7 @@ struct FunctorAccessor
 {
     _Functor functor;
 
-    typedef typename ::PMacc::result_of::Functor<_Functor, ArgType>::type type;
+    typedef typename ::pmacc::result_of::Functor<_Functor, ArgType>::type type;
 
     HDINLINE FunctorAccessor(const _Functor& functor) : functor(functor) {}
 
@@ -52,5 +52,5 @@ struct FunctorAccessor
 };
 
 } // cursor
-} // PMacc
+} // pmacc
 

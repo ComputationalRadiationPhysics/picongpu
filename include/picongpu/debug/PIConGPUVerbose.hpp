@@ -33,7 +33,7 @@ namespace picongpu
 DEFINE_VERBOSE_CLASS(PIConGPUVerbose)
 (
     /* define log lvl for later use
-     * e.g. log<PMaccLogLvl::NOTHING>("TEXT");*/
+     * e.g. log<pmaccLogLvl::NOTHING>("TEXT");*/
     DEFINE_LOGLVL(0,NOTHING);
     DEFINE_LOGLVL(1,PHYSICS);
     DEFINE_LOGLVL(2,DOMAINS);

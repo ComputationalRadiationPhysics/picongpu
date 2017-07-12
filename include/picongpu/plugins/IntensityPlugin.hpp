@@ -44,7 +44,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /* count particles in an area
  * is not optimized, it checks any particle position if it is really a particle
@@ -62,7 +62,7 @@ struct KernelIntensity
 
         /*descripe size of a worker block for cached memory*/
         typedef SuperCellDescription<
-            PMacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
+            pmacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
             > SuperCell2D;
 
         auto s_field = CachedBox::create < 0, float_32 > (SuperCell2D());
@@ -337,7 +337,7 @@ private:
         DataSpace<DIM2> grid(1,cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
         /*use only 2D slice XY for supercell handling*/
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
-        auto block = PMacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT();
+        auto block = pmacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT();
 
         PMACC_KERNEL(KernelIntensity{})
             (grid, block)

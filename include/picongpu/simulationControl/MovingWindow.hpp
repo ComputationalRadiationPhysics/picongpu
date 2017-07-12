@@ -26,7 +26,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /**
  * Singleton class managing the moving window, slides.

@@ -36,7 +36,7 @@ namespace picongpu
 
 namespace hdf5
 {
-using namespace PMacc;
+using namespace pmacc;
 
 using namespace splash;
 
@@ -69,7 +69,7 @@ struct ParticleAttribute
     {
 
         typedef T_Identifier Identifier;
-        typedef typename PMacc::traits::Resolve<Identifier>::type::type ValueType;
+        typedef typename pmacc::traits::Resolve<Identifier>::type::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;
@@ -106,7 +106,7 @@ struct ParticleAttribute
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(threadParams->currentStep);
         globalSlideOffset.y() += numSlides * localDomain.size.y();
 

@@ -25,7 +25,7 @@
 
 #include <boost/mpl/pair.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
 
@@ -46,4 +46,4 @@ struct TypeToPair
 
 
 
-}//namespace PMacc
+}//namespace pmacc

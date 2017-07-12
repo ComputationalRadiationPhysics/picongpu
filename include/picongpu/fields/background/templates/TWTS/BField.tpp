@@ -73,10 +73,10 @@ namespace twts
     template<>
     HDINLINE float3_X
     BField::getTWTSBfield_Normalized<DIM3>(
-            const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
+            const pmacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
-        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        typedef pmacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
@@ -114,10 +114,10 @@ namespace twts
     template<>
     HDINLINE float3_X
     BField::getTWTSBfield_Normalized_Ey<DIM3>(
-            const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
+            const pmacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
-        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        typedef pmacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
@@ -147,10 +147,10 @@ namespace twts
     template<>
     HDINLINE float3_X
     BField::getTWTSBfield_Normalized<DIM2>(
-            const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
+            const pmacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
-        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        typedef pmacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
@@ -210,10 +210,10 @@ namespace twts
     template<>
     HDINLINE float3_X
     BField::getTWTSBfield_Normalized_Ey<DIM2>(
-            const PMacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
+            const pmacc::math::Vector<floatD_64,detail::numComponents>& bFieldPositions_SI,
             const float_64 time) const
     {
-        typedef PMacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
+        typedef pmacc::math::Vector<float3_64,detail::numComponents> PosVecVec;
         PosVecVec pos(PosVecVec::create(
                                            float3_64::create(0.0)
                                        ));
@@ -272,7 +272,7 @@ namespace twts
         const float_64 time_SI = float_64(currentStep) * dt - tdelay;
         const fieldSolver::numericalCellType::traits::FieldPosition<FieldB> fieldPosB;
 
-        const PMacc::math::Vector<floatD_64,detail::numComponents> bFieldPositions_SI =
+        const pmacc::math::Vector<floatD_64,detail::numComponents> bFieldPositions_SI =
               detail::getFieldPositions_SI(cellIdx, halfSimSize,
                 fieldPosB(), unit_length, focus_y_SI, phi);
         /* Single TWTS-Pulse */
@@ -295,8 +295,8 @@ namespace twts
     HDINLINE BField::float_T
     BField::calcTWTSBy( const float3_64& pos, const float_64 time ) const
     {
-        typedef PMacc::math::Complex<float_T> complex_T;
-        typedef PMacc::math::Complex<float_64> complex_64;
+        typedef pmacc::math::Complex<float_T> complex_T;
+        typedef pmacc::math::Complex<float_64> complex_64;
         /* Unit of speed */
         const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /* Unit of time */
@@ -452,7 +452,7 @@ namespace twts
     HDINLINE BField::float_T
     BField::calcTWTSBz_Ex( const float3_64& pos, const float_64 time ) const
     {
-        typedef PMacc::math::Complex<float_T> complex_T;
+        typedef pmacc::math::Complex<float_T> complex_T;
         /** Unit of Speed */
         const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /** Unit of time */
@@ -580,8 +580,8 @@ namespace twts
     HDINLINE BField::float_T
     BField::calcTWTSBz_Ey( const float3_64& pos, const float_64 time ) const
     {
-        typedef PMacc::math::Complex<float_T> complex_T;
-        typedef PMacc::math::Complex<float_64> complex_64;
+        typedef pmacc::math::Complex<float_T> complex_T;
+        typedef pmacc::math::Complex<float_64> complex_64;
         /** Unit of speed */
         const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /** Unit of time */

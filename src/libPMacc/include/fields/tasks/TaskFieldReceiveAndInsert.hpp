@@ -30,7 +30,7 @@
 #include <iostream>
 #include "traits/NumberOfExchanges.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 template<class Field>
@@ -142,4 +142,4 @@ private:
 
 };
 
-} //namespace PMacc
+} //namespace pmacc

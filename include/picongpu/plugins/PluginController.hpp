@@ -85,7 +85,7 @@
 namespace picongpu
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 /**
  * Plugin management controller for user-level plugins.
@@ -109,13 +109,13 @@ private:
 
     /** apply the 1st vector component to the 2nd
      *
-     * @tparam T_TupleVector vector of type PMacc::math::CT::vector<dataType,plugin>
+     * @tparam T_TupleVector vector of type pmacc::math::CT::vector<dataType,plugin>
      *                       with two components
      */
     template<typename T_TupleVector>
     struct ApplyDataToPlugin :
-    bmpl::apply1<typename PMacc::math::CT::At<T_TupleVector, bmpl::int_<1> >::type,
-    typename PMacc::math::CT::At<T_TupleVector, bmpl::int_<0> >::type >
+    bmpl::apply1<typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<1> >::type,
+    typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<0> >::type >
     {
     };
 

@@ -26,7 +26,7 @@
 #include "eventSystem/EventSystem.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 template<class CellDescription>
@@ -56,4 +56,4 @@ protected:
     CellDescription cellDescription;
 };
 
-} //namespace PMacc
+} //namespace pmacc

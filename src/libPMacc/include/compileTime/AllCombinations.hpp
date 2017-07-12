@@ -36,7 +36,7 @@
 #include <boost/mpl/empty.hpp>
 #include <boost/type_traits/is_same.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace bmpl = boost::mpl;
 
@@ -95,7 +95,7 @@ struct AllCombinations<T_MplSeq, T_TmpResult, false >
 
         typedef typename bmpl::transform<
                 InVector,
-                PMacc::math::CT::Assign<
+                pmacc::math::CT::Assign<
                     bmpl::_1,
                     T_ComponentPos,
                     Element
@@ -173,7 +173,7 @@ struct AllCombinations
     typedef math::CT::Vector<> EmptyVector;
     typedef typename bmpl::transform<
     TmpVector,
-    PMacc::math::CT::Assign<EmptyVector, bmpl::integral_c<uint32_t, rangeVectorSize - 1 >, bmpl::_1>
+    pmacc::math::CT::Assign<EmptyVector, bmpl::integral_c<uint32_t, rangeVectorSize - 1 >, bmpl::_1>
     >::type FirstList;
 
     /* result type: MplSequence of N-tuples */
@@ -182,4 +182,4 @@ struct AllCombinations
 };
 
 
-}//namespace PMacc
+}//namespace pmacc

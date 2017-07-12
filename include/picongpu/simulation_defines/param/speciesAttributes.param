@@ -35,7 +35,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-// PMacc
+// pmacc
 #include "particles/Identifier.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "dimensions/DataSpace.hpp"

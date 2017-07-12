@@ -28,7 +28,7 @@
 #include <map>
 #include <set>
 
-namespace PMacc
+namespace pmacc
 {
     // forward declaration
     class EventTask;
@@ -98,4 +98,4 @@ namespace PMacc
         TaskMap passiveTasks;
     };
 
-} //namespace PMacc
+} //namespace pmacc

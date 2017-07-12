@@ -31,7 +31,7 @@
 #include <boost/mpl/copy.hpp>
 #include <boost/type_traits/is_same.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
 /**
@@ -73,4 +73,4 @@ public:
         bmpl::identity<MapType> >::type::type type;
 };
 
-}//namespace PMacc
+}//namespace pmacc

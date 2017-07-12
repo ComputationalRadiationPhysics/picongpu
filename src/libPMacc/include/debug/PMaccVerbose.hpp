@@ -29,14 +29,14 @@
 #define PMACC_VERBOSE_LVL 0
 #endif
 
-namespace PMacc
+namespace pmacc
 {
 
 /*create verbose class*/
-DEFINE_VERBOSE_CLASS(PMaccVerbose)
+DEFINE_VERBOSE_CLASS(pmaccVerbose)
 (
     /* define log lvl for later use
-     * e.g. log<PMaccLogLvl::NOTHING>("TEXT");*/
+     * e.g. log<pmaccLogLvl::NOTHING>("TEXT");*/
     DEFINE_LOGLVL(0,NOTHING);
     DEFINE_LOGLVL(1,MEMORY);
     DEFINE_LOGLVL(2,INFO);

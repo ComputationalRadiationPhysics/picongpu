@@ -23,7 +23,7 @@
 
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -42,5 +42,5 @@ struct CursorAccessor
 };
 
 } // cursor
-} // PMacc
+} // pmacc
 

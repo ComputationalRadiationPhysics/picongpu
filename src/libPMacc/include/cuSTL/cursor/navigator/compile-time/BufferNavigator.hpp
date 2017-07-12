@@ -24,7 +24,7 @@
 #include <boost/type_traits/remove_pointer.hpp>
 #include "math/vector/Int.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -84,5 +84,5 @@ struct BufferNavigator<Pitch, 3>
 
 } // CT
 } // cursor
-} // PMacc
+} // pmacc
 

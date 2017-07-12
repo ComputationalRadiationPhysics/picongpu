@@ -27,7 +27,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /** compute the electric field of the laser
  *
@@ -54,7 +54,7 @@ struct KernelLaserE
             LaserPlaneSizeInSuperCell::y::value <= SuperCellSize::y::value
         );
 
-        constexpr uint32_t planeSize = PMacc::math::CT::volume< LaserPlaneSizeInSuperCell >::type::value;
+        constexpr uint32_t planeSize = pmacc::math::CT::volume< LaserPlaneSizeInSuperCell >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 
         const uint32_t workerIdx = threadIdx.x;

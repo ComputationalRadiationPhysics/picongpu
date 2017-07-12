@@ -39,9 +39,9 @@ namespace acc
     {
         /** execute assign operator
          *
-         * @tparam T_DestParticle PMacc::Particle, type of the destination particle
-         * @tparam T_SrcParticle PMacc::Particle, type of the source particle
-         * @tparam T_Args PMacc::Particle, arbitrary number of particles types
+         * @tparam T_DestParticle pmacc::Particle, type of the destination particle
+         * @tparam T_SrcParticle pmacc::Particle, type of the source particle
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
          *
          * @param particleDest destination particle
          * @param particleSrc source particle
@@ -59,7 +59,7 @@ namespace acc
             T_Args && ...
         )
         {
-            PMacc::particles::operations::assign(
+            pmacc::particles::operations::assign(
                     particleDest,
                     particleSrc
             );

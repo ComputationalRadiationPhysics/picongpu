@@ -24,7 +24,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /** This kernel is only called for guard particles.
  */

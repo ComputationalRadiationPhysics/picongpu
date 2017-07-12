@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -33,5 +33,5 @@ struct dim;
 
 } // traits
 } // cursor
-} // PMacc
+} // pmacc
 

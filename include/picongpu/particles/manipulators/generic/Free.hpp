@@ -121,7 +121,7 @@ namespace acc
 
         /** create device functor
          *
-         * @tparam T_WorkerCfg PMacc::mappings::threads::WorkerCfg, configuration of the worker
+         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
          *
          * @param offset (in supercells, without any guards) to the
          *         origin of the local domain

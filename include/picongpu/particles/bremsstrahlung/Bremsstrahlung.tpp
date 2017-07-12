@@ -86,7 +86,7 @@ void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::init
 
     ThreadCollective<
         BlockArea,
-        PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+        pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
     > collective( linearThreadIdx );
     collective(
               assign,
@@ -107,7 +107,7 @@ DINLINE
 float3_X Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::scatterByTheta
     (const float3_X vec, const float_X theta)
 {
-    using namespace PMacc::algorithms;
+    using namespace pmacc::algorithms;
 
     float_X sinTheta, cosTheta;
     math::sincos(theta, sinTheta, cosTheta);
@@ -137,7 +137,7 @@ template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpe
 DINLINE
 unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::numNewParticles(FrameType& sourceFrame, int localIdx)
 {
-    using namespace PMacc::algorithms;
+    using namespace pmacc::algorithms;
 
     auto particle = sourceFrame[localIdx];
 
@@ -233,7 +233,7 @@ void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::operator(
     (Electron& electron, Photon& photon)
 {
     auto destPhoton =
-        PMacc::particles::operations::deselect<
+        pmacc::particles::operations::deselect<
             boost::mpl::vector<
                 multiMask,
                 momentum,
@@ -241,7 +241,7 @@ void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::operator(
             >
         >(photon);
 
-    namespace parOp = PMacc::particles::operations;
+    namespace parOp = pmacc::particles::operations;
     parOp::assign( destPhoton, parOp::deselect<particleId>(electron) );
 
     const float3_X elMom = electron[momentum_];

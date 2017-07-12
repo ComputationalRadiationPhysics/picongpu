@@ -72,7 +72,7 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
         if (linearThreadIdx == 0) \
         { \
             frame = pb.getPreviousFrame(frame); \
-            particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value; \
+            particlesInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value; \
         } \
         __syncthreads(); \
     } \

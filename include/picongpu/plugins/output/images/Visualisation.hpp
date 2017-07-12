@@ -54,7 +54,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 
 // normalize EM fields to typical laser or plasma quantities

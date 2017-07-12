@@ -24,7 +24,7 @@
 #include "pmacc_types.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace mappings
 {
@@ -60,4 +60,4 @@ namespace threads
 
 } // namespace threads
 } // namespace mappings
-} // namespace PMacc
+} // namespace pmacc

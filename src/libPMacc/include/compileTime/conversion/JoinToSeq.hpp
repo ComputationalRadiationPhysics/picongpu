@@ -28,7 +28,7 @@
 #include <boost/mpl/front_inserter.hpp>
 #include "compileTime/conversion/ToSeq.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** Join both input types to one boost mpl sequence
@@ -50,4 +50,4 @@ public:
     >::type type;
 };
 
-} //namespace PMacc
+} //namespace pmacc

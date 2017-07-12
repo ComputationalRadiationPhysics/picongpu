@@ -22,7 +22,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace expressions
 {
@@ -47,4 +47,4 @@ struct SetToNull
 };
 
 }//namespace expressions
-}//namespace PMacc
+}//namespace pmacc

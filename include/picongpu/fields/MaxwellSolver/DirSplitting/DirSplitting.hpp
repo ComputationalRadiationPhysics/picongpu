@@ -40,7 +40,7 @@ namespace picongpu
 {
 namespace dirSplitting
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /** Check Directional Splitting grid and time conditions
  *
@@ -87,7 +87,7 @@ private:
     void propagate(CursorE cursorE, CursorB cursorB, GridSize gridSize) const
     {
         using namespace cursor::tools;
-        using namespace PMacc::math;
+        using namespace pmacc::math;
 
         auto gridSizeTwisted = twistComponents<OrientationTwist>(gridSize);
 
@@ -95,7 +95,7 @@ private:
         typedef typename CT::TwistComponents<SuperCellSize, OrientationTwist>::type BlockDim;
 
         algorithm::kernel::ForeachBlock<BlockDim> foreach;
-        foreach(zone::SphericZone<3>(PMacc::math::Size_t<3>(BlockDim::x::value, gridSizeTwisted.y(), gridSizeTwisted.z())),
+        foreach(zone::SphericZone<3>(pmacc::math::Size_t<3>(BlockDim::x::value, gridSizeTwisted.y(), gridSizeTwisted.z())),
                 cursor::make_NestedCursor(twistVectorFieldAxes<OrientationTwist>(cursorE)),
                 cursor::make_NestedCursor(twistVectorFieldAxes<OrientationTwist>(cursorB)),
                 DirSplittingKernel<BlockDim>((int)gridSizeTwisted.x()));
@@ -122,12 +122,12 @@ public:
                               -GuardDim().toRT());
 
         using namespace cursor::tools;
-        using namespace PMacc::math;
+        using namespace pmacc::math;
 
-        PMacc::math::Size_t<3> gridSize = fieldE_coreBorder.size();
+        pmacc::math::Size_t<3> gridSize = fieldE_coreBorder.size();
 
 
-        typedef PMacc::math::CT::Int<0,1,2> Orientation_X;
+        typedef pmacc::math::CT::Int<0,1,2> Orientation_X;
         propagate<Orientation_X>(
                   fieldE_coreBorder.origin(),
                   fieldB_coreBorder.origin(),
@@ -136,7 +136,7 @@ public:
         __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
 
-        typedef PMacc::math::CT::Int<1,2,0> Orientation_Y;
+        typedef pmacc::math::CT::Int<1,2,0> Orientation_Y;
         propagate<Orientation_Y>(
                   fieldE_coreBorder.origin(),
                   fieldB_coreBorder.origin(),
@@ -145,7 +145,7 @@ public:
         __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
         __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
 
-        typedef PMacc::math::CT::Int<2,0,1> Orientation_Z;
+        typedef pmacc::math::CT::Int<2,0,1> Orientation_Z;
         propagate<Orientation_Z>(
                   fieldE_coreBorder.origin(),
                   fieldB_coreBorder.origin(),
@@ -177,9 +177,9 @@ public:
         dc.releaseData( FieldB::getName() );
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "DS" );
+        pmacc::traits::StringProperty propList( "name", "DS" );
         return propList;
     }
 };

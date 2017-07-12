@@ -26,7 +26,7 @@
 #include <stdexcept>
 #include <sstream>
 
-namespace PMacc
+namespace pmacc
 {
     /** abort program with an exception
      *

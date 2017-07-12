@@ -25,7 +25,7 @@
 #include "lambda/Expression.hpp"
 #include "algorithms/math/defines/trigo.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -48,5 +48,5 @@ lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sin<double>> > _sind
 
 } // math_functor
 } // math
-} // PMacc
+} // pmacc
 

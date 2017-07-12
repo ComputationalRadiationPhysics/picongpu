@@ -31,7 +31,7 @@ namespace picongpu
 {
     namespace noSolver
     {
-        using namespace PMacc;
+        using namespace pmacc;
 
         /** Check Yee grid and time conditions
          *
@@ -72,9 +72,9 @@ namespace picongpu
 
             }
 
-            static PMacc::traits::StringProperty getStringProperties()
+            static pmacc::traits::StringProperty getStringProperties()
             {
-                PMacc::traits::StringProperty propList( "name", "none" );
+                pmacc::traits::StringProperty propList( "name", "none" );
                 return propList;
             }
         };

@@ -30,7 +30,7 @@
 
 namespace mpl = boost::mpl;
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -163,14 +163,14 @@ namespace traits
 
 /* type trait to get the cursor's dimension if it has one */
 template<typename _Accessor, typename _Navigator, typename _Marker>
-struct dim< PMacc::cursor::Cursor<_Accessor, _Navigator, _Marker> >
+struct dim< pmacc::cursor::Cursor<_Accessor, _Navigator, _Marker> >
 {
-    static constexpr int value = PMacc::cursor::traits::dim<typename Cursor<_Accessor, _Navigator, _Marker>::Navigator >::value;
+    static constexpr int value = pmacc::cursor::traits::dim<typename Cursor<_Accessor, _Navigator, _Marker>::Navigator >::value;
 };
 
 } // traits
 
 } // cursor
-} // PMacc
+} // pmacc
 
 

@@ -44,7 +44,7 @@ namespace isaacP
 {
 
 
-using namespace PMacc;
+using namespace pmacc;
 using namespace ::isaac;
 
 ISAAC_NO_HOST_DEVICE_WARNING

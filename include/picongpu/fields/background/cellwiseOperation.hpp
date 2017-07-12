@@ -33,7 +33,7 @@ namespace picongpu
 {
 namespace cellwiseOperation
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     struct KernelCellwiseOperation
     {
@@ -88,7 +88,7 @@ namespace cellwiseOperation
          *
          * \tparam ValFunctor A Value-Producing functor for a given cell
          *                    in time and space
-         * \tparam OpFunctor A manipulating functor like PMacc::nvidia::functors::add
+         * \tparam OpFunctor A manipulating functor like pmacc::nvidia::functors::add
          */
         template<class T_Field, class T_OpFunctor, class T_ValFunctor>
         void

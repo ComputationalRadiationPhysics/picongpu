@@ -29,7 +29,7 @@
  * @param name name of the log lvl, name is needet later to call log<name>(...)
  */
 #define DEFINE_LOGLVL(code,name)                            \
-    typedef PMacc::LogLvl < code, thisClass > name;         \
+    typedef pmacc::LogLvl < code, thisClass > name;         \
     friend inline std::string getLogName(const name)        \
     {                                                       \
         return std::string(#name);                          \

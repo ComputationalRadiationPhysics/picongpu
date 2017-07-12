@@ -26,7 +26,7 @@
 #include "navigator/MultiIndexNavigator.hpp"
 #include "math/vector/Int.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -49,5 +49,5 @@ cursor::Cursor<cursor::MarkerAccessor<math::Int<dim> >, MultiIndexNavigator<dim>
 }
 
 } // cursor
-} // PMacc
+} // pmacc
 

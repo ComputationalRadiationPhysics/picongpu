@@ -33,7 +33,7 @@ namespace picongpu
 {
 namespace currentSolver
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<typename T_ParticleShape>
 struct Esirkepov<T_ParticleShape, DIM3>
@@ -43,8 +43,8 @@ struct Esirkepov<T_ParticleShape, DIM3>
 
     static constexpr int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
     static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
-    typedef PMacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
-    typedef PMacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
+    typedef pmacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
+    typedef pmacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
     float_X charge;
 
@@ -107,13 +107,13 @@ struct Esirkepov<T_ParticleShape, DIM3>
         using namespace cursor::tools;
         cptCurrent1D(
             DataSpace<simDim>(leaveCell.y(),leaveCell.z(),leaveCell.x()),
-            twistVectorFieldAxes<PMacc::math::CT::Int < 1, 2, 0 > >(cursorJ),
+            twistVectorFieldAxes<pmacc::math::CT::Int < 1, 2, 0 > >(cursorJ),
             rotateOrigin < 1, 2, 0 > (line),
             cellSize.x()
         );
         cptCurrent1D(
             DataSpace<simDim>(leaveCell.z(),leaveCell.x(),leaveCell.y()),
-            twistVectorFieldAxes<PMacc::math::CT::Int < 2, 0, 1 > >(cursorJ),
+            twistVectorFieldAxes<pmacc::math::CT::Int < 2, 0, 1 > >(cursorJ),
             rotateOrigin < 2, 0, 1 > (line),
             cellSize.y()
         );
@@ -234,9 +234,9 @@ struct Esirkepov<T_ParticleShape, DIM3>
         return ParticleAssign()(gridPoint - line.m_pos1[d]) - ParticleAssign()(gridPoint - line.m_pos0[d]);
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "Esirkepov" );
+        pmacc::traits::StringProperty propList( "name", "Esirkepov" );
         return propList;
     }
 };

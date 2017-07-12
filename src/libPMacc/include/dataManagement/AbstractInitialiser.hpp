@@ -24,7 +24,7 @@
 #include "dataManagement/ISimulationData.hpp"
 #include "dataManagement/IDataSorter.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     /**

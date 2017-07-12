@@ -29,14 +29,14 @@
 #include "dimensions/DataSpace.hpp"
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** execute a functor for each cell of a domain
  *
  * the user functor is executed on each elements of the full domain (GUARD +CORE)
  *
- * @tparam T_DataDomain PMacc::SuperCellDescription, compile time data domain
+ * @tparam T_DataDomain pmacc::SuperCellDescription, compile time data domain
  *                      description with a CORE and GUARD
  * @tparam T_numWorkers number of workers
  */
@@ -122,4 +122,4 @@ public:
     }
 };
 
-}//namespace PMacc
+}//namespace pmacc

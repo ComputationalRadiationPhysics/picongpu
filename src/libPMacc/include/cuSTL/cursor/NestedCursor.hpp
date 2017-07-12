@@ -25,7 +25,7 @@
 #include "navigator/CursorNavigator.hpp"
 #include "Cursor.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -43,5 +43,5 @@ Cursor<MarkerAccessor<TCursor>, CursorNavigator, TCursor> make_NestedCursor(cons
 }
 
 } // cursor
-} // PMacc
+} // pmacc
 

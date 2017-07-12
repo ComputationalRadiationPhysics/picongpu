@@ -37,10 +37,10 @@ namespace detail
     /** Calculate the SI position vectors that later enter the Ex(r, t), By(r, t)
      *  and Bz(r ,t) calculations as r.
      *  \param cellIdx The total cell id counted from the start at timestep 0. */
-    HDINLINE PMacc::math::Vector<floatD_64,numComponents>
+    HDINLINE pmacc::math::Vector<floatD_64,numComponents>
     getFieldPositions_SI(const DataSpace<simDim>& cellIdx,
                          const DataSpace<simDim>& halfSimSize,
-                         const PMacc::math::Vector<floatD_X, numComponents>& fieldOnGridPositions,
+                         const pmacc::math::Vector<floatD_X, numComponents>& fieldOnGridPositions,
                          const float_64 unit_length,
                          const float_64 focus_y_SI,
                          const float_X phi )
@@ -58,11 +58,11 @@ namespace detail
         /* For staggered fields (e.g. Yee-grid), obtain the fractional cell index components and add
          * that to the total cell indices. The physical field coordinate origin is transversally
          * centered with respect to the global simulation volume.
-         * PMacc::math::Vector<floatD_X, numComponents> fieldPositions =
+         * pmacc::math::Vector<floatD_X, numComponents> fieldPositions =
          *                fieldSolver::numericalCellType::traits::FieldPosition<FieldE>(); */
-        PMacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
+        pmacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
 
-        PMacc::math::Vector<floatD_64,numComponents> fieldPositions_SI;
+        pmacc::math::Vector<floatD_64,numComponents> fieldPositions_SI;
 
         for( uint32_t i = 0; i < numComponents; ++i ) /* cellIdx Ex, Ey and Ez */
         {

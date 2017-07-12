@@ -33,7 +33,7 @@
 
 //#define DEBUG_EVENTS
 
-namespace PMacc
+namespace pmacc
 {
 
 inline Manager::~Manager( )

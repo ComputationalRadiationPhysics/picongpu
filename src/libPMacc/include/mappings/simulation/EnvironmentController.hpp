@@ -25,7 +25,7 @@
 
 #include "communication/ICommunicator.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 template<unsigned DIM>
@@ -84,4 +84,4 @@ private:
 
 };
 
-} //namespace PMacc
+} //namespace pmacc

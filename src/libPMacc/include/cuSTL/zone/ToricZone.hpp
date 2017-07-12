@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include "../vector/Size_t.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace zone
 {
@@ -44,5 +44,5 @@ struct ToricZone
 };
 
 } // zone
-} // PMacc
+} // pmacc
 

@@ -40,10 +40,10 @@ namespace particles
 namespace ionization
 {
 
-    using namespace PMacc;
+    using namespace pmacc;
 
     /* operations on particles */
-    namespace partOp = PMacc::particles::operations;
+    namespace partOp = pmacc::particles::operations;
 
     /** \struct WriteElectronIntoFrame
      *

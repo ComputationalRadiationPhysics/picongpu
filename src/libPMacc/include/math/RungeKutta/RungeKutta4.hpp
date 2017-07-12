@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -74,4 +74,4 @@ struct RungeKutta4
 
 
 } //namespace math
-} //namespace PMacc
+} //namespace pmacc

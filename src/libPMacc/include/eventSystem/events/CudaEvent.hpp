@@ -28,7 +28,7 @@
 #include <cuda_runtime.h>
 
 
-namespace PMacc
+namespace pmacc
 {
     CudaEvent::CudaEvent( ) : isRecorded( false ), finished( true ), refCounter( 0u )
     {
@@ -99,4 +99,4 @@ namespace PMacc
         CUDA_CHECK(cudaEventRecord(event, stream));
     }
 
-} // namepsace PMacc
+} // namepsace pmacc

@@ -46,7 +46,7 @@ namespace frame
 template<typename T_Frame>
 HDINLINE float_X getMass()
 {
-    typedef typename PMacc::traits::Resolve<
+    typedef typename pmacc::traits::Resolve<
         typename GetFlagType<T_Frame, massRatio<> >::type
         >::type MassRatioValue;
 
@@ -62,7 +62,7 @@ HDINLINE float_X getMass()
 template<typename T_Frame>
 HDINLINE float_X getCharge()
 {
-    typedef typename PMacc::traits::Resolve<
+    typedef typename pmacc::traits::Resolve<
         typename GetFlagType<T_Frame, chargeRatio<> >::type
         >::type ChargeRatioValue;
 

@@ -31,7 +31,7 @@
 #include <cuda_runtime_api.h>
 #include <cuda.h>
 
-namespace PMacc
+namespace pmacc
 {
 
 
@@ -83,4 +83,4 @@ private:
     DeviceBuffer<TYPE, DIM> *buffer;
 };
 
-} //namespace PMacc
+} //namespace pmacc

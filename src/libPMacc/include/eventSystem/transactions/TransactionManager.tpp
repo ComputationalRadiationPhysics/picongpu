@@ -24,7 +24,7 @@
 #include "eventSystem/EventSystem.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 
 inline TransactionManager::~TransactionManager() /*noexcept(false)*/

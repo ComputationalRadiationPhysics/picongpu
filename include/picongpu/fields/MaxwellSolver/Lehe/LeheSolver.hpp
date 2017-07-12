@@ -32,7 +32,7 @@ namespace leheSolver
 } // namespace leheSolver
 } // namespace picongpu
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
@@ -49,4 +49,4 @@ namespace traits
         }
     };
 } // namespace traits
-} // namespace PMacc
+} // namespace pmacc

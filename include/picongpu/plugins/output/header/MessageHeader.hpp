@@ -34,7 +34,7 @@
 #include <cstdlib>
 
 
-typedef PMacc::DataSpace<DIM2> Size2D;
+typedef pmacc::DataSpace<DIM2> Size2D;
 
 struct MessageHeader
 {
@@ -51,9 +51,9 @@ struct MessageHeader
                 Size2D transpose,
                 uint32_t currentStep,
                 picongpu::float_32* cellSizeArr = nullptr,
-                const PMacc::DataSpace<CellDesc::Dim> gpus = PMacc::DataSpace<CellDesc::Dim > ())
+                const pmacc::DataSpace<CellDesc::Dim> gpus = pmacc::DataSpace<CellDesc::Dim > ())
     {
-        using namespace PMacc;
+        using namespace pmacc;
         using namespace picongpu;
 
         enum

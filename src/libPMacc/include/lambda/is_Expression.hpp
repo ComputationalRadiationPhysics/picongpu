@@ -24,7 +24,7 @@
 #include <boost/mpl/bool.hpp>
 namespace mpl = boost::mpl;
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -36,5 +36,5 @@ struct is_Expression
 };
 
 } // lambda
-} // PMacc
+} // pmacc
 

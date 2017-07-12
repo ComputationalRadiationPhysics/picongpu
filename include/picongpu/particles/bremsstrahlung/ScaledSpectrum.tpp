@@ -124,16 +124,16 @@ void ScaledSpectrum::init(const float_64 targetZ)
 
     // there is a margin of one cell to make the linear interpolation valid for border cells.
     this->dBufScaledSpectrum = MyBuf(
-        new PMacc::container::DeviceBuffer<float_X, DIM2>(
+        new pmacc::container::DeviceBuffer<float_X, DIM2>(
             electron::NUM_SAMPLES_EKIN + 1,
             electron::NUM_SAMPLES_KAPPA + 1));
     this->dBufStoppingPower = MyBuf(
-        new PMacc::container::DeviceBuffer<float_X, DIM2>(
+        new pmacc::container::DeviceBuffer<float_X, DIM2>(
             electron::NUM_SAMPLES_EKIN + 1,
             electron::NUM_SAMPLES_KAPPA + 1));
 
-    PMacc::container::HostBuffer<float_X, DIM2> hBufScaledSpectrum(this->dBufScaledSpectrum->size());
-    PMacc::container::HostBuffer<float_X, DIM2> hBufStoppingPower(this->dBufStoppingPower->size());
+    pmacc::container::HostBuffer<float_X, DIM2> hBufScaledSpectrum(this->dBufScaledSpectrum->size());
+    pmacc::container::HostBuffer<float_X, DIM2> hBufStoppingPower(this->dBufStoppingPower->size());
     hBufScaledSpectrum.assign(float_X(0.0));
     hBufStoppingPower.assign(float_X(0.0));
 
@@ -201,7 +201,7 @@ void ScaledSpectrum::init(const float_64 targetZ)
 detail::LookupTableFunctor ScaledSpectrum::getScaledSpectrumFunctor() const
 {
     LookupTableFunctor::LinInterpCursor linInterpCursor =
-        PMacc::cursor::tools::LinearInterp<float_X>()(this->dBufScaledSpectrum->origin());
+        pmacc::cursor::tools::LinearInterp<float_X>()(this->dBufScaledSpectrum->origin());
 
     return LookupTableFunctor(linInterpCursor);
 }
@@ -213,7 +213,7 @@ detail::LookupTableFunctor ScaledSpectrum::getScaledSpectrumFunctor() const
 detail::LookupTableFunctor ScaledSpectrum::getStoppingPowerFunctor() const
 {
     LookupTableFunctor::LinInterpCursor linInterpCursor =
-        PMacc::cursor::tools::LinearInterp<float_X>()(this->dBufStoppingPower->origin());
+        pmacc::cursor::tools::LinearInterp<float_X>()(this->dBufStoppingPower->origin());
 
     return LookupTableFunctor(linInterpCursor);
 }

@@ -38,7 +38,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 
 namespace po = boost::program_options;
@@ -89,7 +89,7 @@ public:
 
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
 
-        /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
+        /* avoid deadlock between not finished pmacc tasks and MPI_Barrier */
         __getTransactionEvent().waitForFinished();
         /* can be spared for better scalings, but guarantees the user
          * that the restart was successful */

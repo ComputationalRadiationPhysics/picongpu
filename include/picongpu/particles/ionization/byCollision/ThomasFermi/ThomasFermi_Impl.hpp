@@ -82,7 +82,7 @@ namespace ionization
          * @todo this needs to be done independently/twice if ion species (rho) and electron
          *       species (ene) are of different shape
          */
-        using Field2ParticleInterpolation = typename PMacc::traits::Resolve<
+        using Field2ParticleInterpolation = typename pmacc::traits::Resolve<
             typename GetFlagType<FrameType,interpolation<> >::type
         >::type;
 
@@ -105,8 +105,8 @@ namespace ionization
             using IonizationAlgorithm =  T_IonizationAlgorithm;
 
             /* random number generator */
-            using RNGFactory = PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin>;
-            using Distribution = PMacc::random::distributions::Uniform<float>;
+            using RNGFactory = pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin>;
+            using Distribution = pmacc::random::distributions::Uniform<float>;
             using RandomGen = typename RNGFactory::GetRandomType<Distribution>::type;
             RandomGen randomGen;
 
@@ -223,7 +223,7 @@ namespace ionization
                 auto fieldRhoBlock = rhoBox.shift(blockCell);
                 ThreadCollective<
                     BlockArea,
-                    PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+                    pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
                 > collective( linearThreadIdx );
                 collective(
                           assign,

@@ -66,7 +66,7 @@ void SliceFieldPrinter<Field>::pluginLoad()
         /* in case the slice point is inside of [0.0,1.0] */
         sliceIsOK = true;
         Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyPeriod);
-        namespace vec = ::PMacc::math;
+        namespace vec = ::pmacc::math;
         typedef SuperCellSize BlockDim;
 
         vec::Size_t<simDim> size = vec::Size_t<simDim>(this->cellDescription->getGridSuperCells()) * precisionCast<size_t>(BlockDim::toRT())
@@ -108,7 +108,7 @@ void SliceFieldPrinter<Field>::notify(uint32_t currentStep)
 {
     if(sliceIsOK)
     {
-      namespace vec = ::PMacc::math;
+      namespace vec = ::pmacc::math;
       typedef SuperCellSize BlockDim;
       DataConnector &dc = Environment<>::get().DataConnector();
       auto field_coreBorder =
@@ -126,9 +126,9 @@ template<typename Field>
 template<typename TField>
 void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float slicePoint, std::string filename)
 {
-    namespace vec = PMacc::math;
+    namespace vec = pmacc::math;
 
-    PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
+    pmacc::GridController<simDim>& con = pmacc::Environment<simDim>::get().GridController();
     vec::Size_t<simDim> gpuDim = (vec::Size_t<simDim>)con.getGpuNodes();
     vec::Size_t<simDim> globalGridSize = gpuDim * field.size();
     int globalPlane = globalGridSize[nAxis] * slicePoint;

@@ -19,7 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-// PMacc
+// pmacc
 #include "Environment.hpp"
 #include "particles/operations/CountParticles.hpp"
 #include "pmacc_types.hpp"
@@ -30,7 +30,7 @@
 #include "mappings/simulation/ResourceMonitor.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
     template<typename T_DIM, typename T_Species>
     struct MyCountParticles
@@ -44,7 +44,7 @@ namespace PMacc
             const DataSpace<T_DIM::value> localSize(subGrid.getLocalDomain().size);
 
             uint64_cu totalNumParticles = 0;
-            totalNumParticles = PMacc::CountParticles::countOnDevice < CORE + BORDER > (
+            totalNumParticles = pmacc::CountParticles::countOnDevice < CORE + BORDER > (
                     *dc.get<T_Species >(T_Species::FrameType::getName(), true),
                     cellDescription,
                     DataSpace<T_DIM::value>(),
@@ -76,4 +76,4 @@ namespace PMacc
         return particleCounts;
     }
 
-} //namespace PMacc
+} //namespace pmacc

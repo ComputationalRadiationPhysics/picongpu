@@ -25,7 +25,7 @@
 #include <cuSTL/cursor/navigator/compile-time/TwistAxesNavigator.hpp>
 #include <cuSTL/cursor/accessor/CursorAccessor.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -38,7 +38,7 @@ namespace tools
  * the components of the passed int-vector are reordered according to the Axes
  * parameter and then passed to the nested cursor.
  *
- * \tparam Axes compile-time vector (PMacc::math::CT::Int) that descripes the mapping.
+ * \tparam Axes compile-time vector (pmacc::math::CT::Int) that descripes the mapping.
  * x-axis -> Axes::at<0>, y-axis -> Axes::at<1>, ...
  */
 template<typename Axes, typename TCursor>
@@ -52,5 +52,5 @@ twistAxes(const TCursor& cursor)
 
 } // tools
 } // cursor
-} // PMacc
+} // pmacc
 

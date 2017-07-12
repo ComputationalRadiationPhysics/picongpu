@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc {
+namespace pmacc {
 namespace communication {
 
     /**
@@ -70,4 +70,4 @@ namespace communication {
     }
 
 }  // namespace communication
-}  // namespace PMacc
+}  // namespace pmacc

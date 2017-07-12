@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -47,5 +47,5 @@ HDINLINE typename Fmod< T1>::result fmod(T1 x, T1 y)
 
 } //namespace math
 } //namespace algorithms
-} //namespace PMacc
+} //namespace pmacc
 

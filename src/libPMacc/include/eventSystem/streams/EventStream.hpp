@@ -26,7 +26,7 @@
 
 #include <cuda_runtime.h>
 
-namespace PMacc
+namespace pmacc
 {
 
 /**

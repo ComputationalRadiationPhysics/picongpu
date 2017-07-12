@@ -24,7 +24,7 @@
 #include "math/vector/Size_t.hpp"
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cudaWrapper
 {
@@ -104,4 +104,4 @@ struct Memcopy<3>
 };
 
 } // cudaWrapper
-} // PMacc
+} // pmacc

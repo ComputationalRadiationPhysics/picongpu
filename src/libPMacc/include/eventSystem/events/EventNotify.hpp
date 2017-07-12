@@ -26,7 +26,7 @@
 
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     class IEventData;
@@ -74,5 +74,5 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc
 

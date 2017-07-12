@@ -26,7 +26,7 @@
 #include "eventSystem/events/kernelEvents.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace exec
 {
@@ -60,4 +60,4 @@ namespace exec
         );
     }
 } // namespace exec
-} // namespace PMacc
+} // namespace pmacc

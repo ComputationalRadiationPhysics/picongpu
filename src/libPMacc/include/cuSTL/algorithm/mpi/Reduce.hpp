@@ -27,7 +27,7 @@
 #include "cuSTL/zone/SphericZone.hpp"
 #include <vector>
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -90,6 +90,6 @@ public:
 
 } // mpi
 } // algorithm
-} // PMacc
+} // pmacc
 
 #include "cuSTL/algorithm/mpi/Reduce.tpp"

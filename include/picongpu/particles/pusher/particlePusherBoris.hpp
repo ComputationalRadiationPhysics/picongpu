@@ -34,8 +34,8 @@ struct Push
     /* this is an optional extension for sub-sampling pushes that enables grid to particle interpolation
      * for particle positions outside the super cell in one push
      */
-    typedef typename PMacc::math::CT::make_Int<simDim,0>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<simDim,0>::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim,0>::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim,0>::type UpperMargin;
 
     template<typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Pos, typename T_Mom, typename T_Mass,
              typename T_Charge, typename T_Weighting>
@@ -80,9 +80,9 @@ struct Push
 
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "Boris" );
+        pmacc::traits::StringProperty propList( "name", "Boris" );
         return propList;
     }
 };

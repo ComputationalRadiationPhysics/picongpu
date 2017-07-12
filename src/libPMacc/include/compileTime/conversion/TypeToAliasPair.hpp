@@ -26,7 +26,7 @@
 #include <boost/mpl/pair.hpp>
 #include "compileTime/conversion/TypeToPair.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** create boost mpl pair
@@ -46,13 +46,13 @@ struct TypeToAliasPair
 
 /** specialisation if T_Type is a pmacc alias*/
 template<template<typename,typename> class T_Alias,typename T_Type>
-struct TypeToAliasPair< T_Alias<T_Type,PMacc::pmacc_isAlias> >
+struct TypeToAliasPair< T_Alias<T_Type,pmacc::pmacc_isAlias> >
 {
     typedef
-    bmpl::pair< T_Alias<pmacc_void,PMacc::pmacc_isAlias> ,
-            T_Alias<T_Type,PMacc::pmacc_isAlias> >
+    bmpl::pair< T_Alias<pmacc_void,pmacc::pmacc_isAlias> ,
+            T_Alias<T_Type,pmacc::pmacc_isAlias> >
             type;
 };
 
 
-}//namespace PMacc
+}//namespace pmacc

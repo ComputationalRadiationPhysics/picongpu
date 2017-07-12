@@ -77,7 +77,7 @@ namespace picongpu
 namespace hdf5
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 using namespace splash;
 
@@ -298,7 +298,7 @@ private:
      */
     void notificationReceived(uint32_t currentStep, bool isCheckpoint)
     {
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         mThreadParams.isCheckpoint = isCheckpoint;
         mThreadParams.currentStep = currentStep;
         mThreadParams.cellDescription = this->cellDescription;

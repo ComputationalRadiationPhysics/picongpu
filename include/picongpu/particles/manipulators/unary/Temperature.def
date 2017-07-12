@@ -62,11 +62,11 @@ namespace param
      * of a particle.
      *
      * @tparam T_ParamClass param::TemperatureCfg, configuration parameter
-     * @tparam T_ValueFunctor PMacc::nvidia::functors::*,  binary functor type to manipulate the momentum attribute
+     * @tparam T_ValueFunctor pmacc::nvidia::functors::*,  binary functor type to manipulate the momentum attribute
      */
     template<
         typename T_ParamClass = param::TemperatureCfg,
-        typename T_ValueFunctor = PMacc::nvidia::functors::Add
+        typename T_ValueFunctor = pmacc::nvidia::functors::Add
     >
     using Temperature = generic::FreeRng<
         acc::Temperature<

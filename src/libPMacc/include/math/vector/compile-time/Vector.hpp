@@ -38,7 +38,7 @@
 
 #include <stdint.h>
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -326,21 +326,21 @@ template<typename T_Vec, typename T_ComponentPos, typename T_Value>
 struct Assign;
 
 template<typename T_Value, typename T_0, typename T_1, typename T_2, typename T_IntegralType>
-struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType,0> , T_Value>
+struct Assign<pmacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType,0> , T_Value>
 {
-    typedef PMacc::math::CT::Vector<T_Value, T_1, T_2> type;
+    typedef pmacc::math::CT::Vector<T_Value, T_1, T_2> type;
 };
 
 template<typename T_Value, typename T_0, typename T_1, typename T_2, typename T_IntegralType>
-struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType,1>, T_Value>
+struct Assign<pmacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType,1>, T_Value>
 {
-    typedef PMacc::math::CT::Vector<T_0, T_Value, T_2> type;
+    typedef pmacc::math::CT::Vector<T_0, T_Value, T_2> type;
 };
 
 template<typename T_Value, typename T_0, typename T_1, typename T_2, typename T_IntegralType>
-struct Assign<PMacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType,2>, T_Value>
+struct Assign<pmacc::math::CT::Vector<T_0, T_1, T_2>, bmpl::integral_c<T_IntegralType,2>, T_Value>
 {
-    typedef PMacc::math::CT::Vector<T_0, T_1, T_Value> type;
+    typedef pmacc::math::CT::Vector<T_0, T_1, T_Value> type;
 };
 
 /** Assign a type to a given component in the CT::Vector if position is not out of range
@@ -359,7 +359,7 @@ struct AssignIfInRange
     typedef bmpl::integral_c<size_t,T_Vec::dim> VectorDim;
     typedef typename bmpl::if_<
     bmpl::less<T_ComponentPos, VectorDim>,
-        typename PMacc::math::CT::Assign<T_Vec,T_ComponentPos,T_Value>::type,
+        typename pmacc::math::CT::Assign<T_Vec,T_ComponentPos,T_Value>::type,
         T_Vec
         >::type type;
 };
@@ -409,21 +409,21 @@ struct make_Vector;
 template<typename T_Type>
 struct make_Vector<1, T_Type>
 {
-    typedef PMacc::math::CT::Vector<T_Type> type;
+    typedef pmacc::math::CT::Vector<T_Type> type;
 };
 
 template<typename T_Type>
 struct make_Vector<2, T_Type>
 {
-    typedef PMacc::math::CT::Vector<T_Type, T_Type> type;
+    typedef pmacc::math::CT::Vector<T_Type, T_Type> type;
 };
 
 template<typename T_Type>
 struct make_Vector<3, T_Type>
 {
-    typedef PMacc::math::CT::Vector<T_Type, T_Type, T_Type> type;
+    typedef pmacc::math::CT::Vector<T_Type, T_Type, T_Type> type;
 };
 
 } // CT
 } // math
-} // PMacc
+} // pmacc

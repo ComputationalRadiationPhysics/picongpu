@@ -47,8 +47,8 @@ struct FieldToParticleInterpolation
 
     static constexpr int lowerMargin = supp / 2 ;
     static constexpr int upperMargin = (supp + 1) / 2;
-    typedef typename PMacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
 
     /*(supp + 1) % 2 is 1 for even supports else 0*/
     static constexpr int begin = -supp / 2 + (supp + 1) % 2;
@@ -72,12 +72,12 @@ struct FieldToParticleInterpolation
          * Here it is: return the i-component of the field-vector.
          */
 
-        typedef typename PMacc::math::CT::make_Int<simDim,supp>::type Supports;
+        typedef typename pmacc::math::CT::make_Int<simDim,supp>::type Supports;
 
         typename Cursor::ValueType result;
         for(uint32_t i = 0; i < Cursor::ValueType::dim; i++)
         {
-            auto fieldComponent = PMacc::cursor::make_FunctorCursor(field, _1[i]);
+            auto fieldComponent = pmacc::cursor::make_FunctorCursor(field, _1[i]);
             floatD_X particlePosShifted = particlePos;
             ShiftCoordinateSystem<Supports>()(fieldComponent, particlePosShifted, fieldPos[i]);
             result[i] = InterpolationMethod::template interpolate<AssignmentFunction, begin, end > (fieldComponent, particlePosShifted);
@@ -86,7 +86,7 @@ struct FieldToParticleInterpolation
         return result;
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
         GetStringProperties<InterpolationMethod> propList;
         return propList;

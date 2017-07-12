@@ -31,7 +31,7 @@
 #include <algorithm>    // std::copy
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -70,9 +70,9 @@ struct ContiguousPitch<DIM1, Type>
 template<int dim>
 Gather<dim>::Gather(const zone::SphericZone<dim>& p_zone) : comm(MPI_COMM_NULL)
 {
-    using namespace PMacc::math;
+    using namespace pmacc::math;
 
-    PMacc::GridController<dim>& con = PMacc::Environment<dim>::get().GridController();
+    pmacc::GridController<dim>& con = pmacc::Environment<dim>::get().GridController();
     Int<dim> pos = con.getPosition();
 
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
@@ -207,7 +207,7 @@ template<typename Type, int memDim, class T_Alloc, class T_Copy, class T_Assign,
 void Gather<dim>::operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign>& dest,
                              container::CartBuffer<Type, memDim, T_Alloc2, T_Copy2, T_Assign2>& source, int dir) const
 {
-    using namespace PMacc::math;
+    using namespace pmacc::math;
 
     if(!this->m_participate) return;
     typedef container::CartBuffer<Type, memDim, T_Alloc, T_Copy, T_Assign> DestBuffer;
@@ -275,4 +275,4 @@ void Gather<dim>::operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy
 
 } // mpi
 } // algorithm
-} // PMacc
+} // pmacc

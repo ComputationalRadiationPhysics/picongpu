@@ -36,7 +36,7 @@ namespace picongpu
 
 namespace hdf5
 {
-using namespace PMacc;
+using namespace pmacc;
 
 using namespace splash;
 
@@ -66,7 +66,7 @@ struct LoadParticleAttributesFromHDF5
     {
 
         typedef T_Identifier Identifier;
-        typedef typename PMacc::traits::Resolve<Identifier>::type::type ValueType;
+        typedef typename pmacc::traits::Resolve<Identifier>::type::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
         typedef typename PICToSplash<ComponentType>::type SplashType;

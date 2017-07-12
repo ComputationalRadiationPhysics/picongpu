@@ -56,7 +56,7 @@ namespace currentSolver
             const float_X x_2
         ) const
         {
-            using namespace PMacc;
+            using namespace pmacc;
             i_1 = math::floor( x_1 );
             i_2 = math::floor( x_2 );
 

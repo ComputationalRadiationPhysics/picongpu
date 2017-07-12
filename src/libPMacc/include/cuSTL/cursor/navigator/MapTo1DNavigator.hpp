@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -74,4 +74,4 @@ public:
 };
 
 } // namespace cursor
-} // namespace PMacc
+} // namespace pmacc

@@ -24,7 +24,7 @@
 #include "CartBuffer.hpp"
 #include "../allocator/compile-time/SharedMemAllocator.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -43,4 +43,4 @@ struct SharedBuffer
 
 } // CT
 } // container
-} // PMacc
+} // pmacc

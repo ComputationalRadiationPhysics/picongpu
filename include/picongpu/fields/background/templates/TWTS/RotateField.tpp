@@ -38,9 +38,9 @@ namespace detail
     struct RotateField;
 
     template <typename T_Type, typename T_AngleType>
-    struct RotateField<PMacc::math::Vector<T_Type,3>, T_AngleType >
+    struct RotateField<pmacc::math::Vector<T_Type,3>, T_AngleType >
     {
-        typedef PMacc::math::Vector<T_Type,3> result;
+        typedef pmacc::math::Vector<T_Type,3> result;
         typedef T_AngleType AngleType;
         HDINLINE result
         operator()( const result& fieldPosVector,
@@ -64,9 +64,9 @@ namespace detail
     };
 
     template <typename T_Type, typename T_AngleType>
-    struct RotateField<PMacc::math::Vector<T_Type,2>, T_AngleType >
+    struct RotateField<pmacc::math::Vector<T_Type,2>, T_AngleType >
     {
-        typedef PMacc::math::Vector<T_Type,2> result;
+        typedef pmacc::math::Vector<T_Type,2> result;
         typedef T_AngleType AngleType;
         HDINLINE result
         operator()( const result& fieldPosVector,

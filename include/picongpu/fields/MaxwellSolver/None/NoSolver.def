@@ -31,20 +31,20 @@ class NoSolver;
 
 namespace traits
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<>
 struct GetMargin<picongpu::noSolver::NoSolver, FIELD_B>
 {
-    typedef typename PMacc::math::CT::make_Int< simDim, 0 >::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int< simDim, 0 >::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int< simDim, 0 >::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int< simDim, 0 >::type UpperMargin;
 };
 
 template<>
 struct GetMargin<picongpu::noSolver::NoSolver, FIELD_E>
 {
-    typedef typename PMacc::math::CT::make_Int< simDim, 0 >::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int< simDim, 0 >::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int< simDim, 0 >::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int< simDim, 0 >::type UpperMargin;
 };
 
 } //namespace traits

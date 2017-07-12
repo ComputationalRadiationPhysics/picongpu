@@ -28,7 +28,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 }
 
 /* IMPORTANT we need to use #include <...> for local files

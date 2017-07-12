@@ -21,7 +21,7 @@
 
 #pragma once
 
-// PMacc
+// pmacc
 #include "Environment.hpp"
 #include "mappings/simulation/ResourceMonitor.hpp"
 
@@ -50,7 +50,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
 
     class ResourceLog : public ILightweightPlugin

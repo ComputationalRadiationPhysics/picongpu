@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -39,5 +39,5 @@ struct PlusNavigator
 };
 
 } // namespace cursor
-} // namespace PMacc
+} // namespace pmacc
 

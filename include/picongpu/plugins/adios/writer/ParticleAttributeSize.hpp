@@ -33,7 +33,7 @@ namespace picongpu
 
 namespace adios
 {
-using namespace PMacc;
+using namespace pmacc;
 
 
 
@@ -58,7 +58,7 @@ struct ParticleAttributeSize
     {
 
         typedef T_Identifier Identifier;
-        typedef typename PMacc::traits::Resolve<Identifier>::type::type ValueType;
+        typedef typename pmacc::traits::Resolve<Identifier>::type::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 
@@ -101,9 +101,9 @@ struct ParticleAttributeSize
                 datasetName.str().c_str(),
                 path,
                 adiosType.type,
-                PMacc::math::UInt64<DIM1>(elements),
-                PMacc::math::UInt64<DIM1>(globalElements),
-                PMacc::math::UInt64<DIM1>(globalOffset),
+                pmacc::math::UInt64<DIM1>(elements),
+                pmacc::math::UInt64<DIM1>(globalElements),
+                pmacc::math::UInt64<DIM1>(globalOffset),
                 true,
                 params->adiosCompression);
 

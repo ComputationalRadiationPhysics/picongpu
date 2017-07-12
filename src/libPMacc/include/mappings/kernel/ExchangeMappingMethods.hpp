@@ -26,7 +26,7 @@
 #include "dimensions/DataSpace.hpp"
 #include "memory/dataTypes/Mask.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -315,4 +315,4 @@ namespace PMacc
         }
     };
 
-}//namespace PMacc
+}//namespace pmacc

@@ -32,7 +32,7 @@ namespace currentSolver
 {
 namespace emz
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     template<
         typename ParticleAssign
@@ -116,12 +116,12 @@ namespace emz
              */
             using namespace cursor::tools;
             cptCurrent1D(
-                twistVectorFieldAxes< PMacc::math::CT::Int < 1, 2, 0 > >( cursorJ ),
+                twistVectorFieldAxes< pmacc::math::CT::Int < 1, 2, 0 > >( cursorJ ),
                 rotateOrigin< 1, 2, 0 >( line ),
                 cellSize.x( ) * chargeDensity / DELTA_T
             );
             cptCurrent1D(
-                twistVectorFieldAxes< PMacc::math::CT::Int < 2, 0, 1 > >( cursorJ ),
+                twistVectorFieldAxes< pmacc::math::CT::Int < 2, 0, 1 > >( cursorJ ),
                 rotateOrigin< 2, 0, 1 >( line ),
                 cellSize.y( ) * chargeDensity / DELTA_T
             );
@@ -218,7 +218,7 @@ namespace emz
                 cellSize.x( ) * chargeDensity / DELTA_T
             );
             cptCurrent1D(
-                twistVectorFieldAxes< PMacc::math::CT::Int < 1, 0 > >( cursorJ ),
+                twistVectorFieldAxes< pmacc::math::CT::Int < 1, 0 > >( cursorJ ),
                 rotateOrigin < 1, 0 > ( line ),
                 cellSize.y( ) * chargeDensity / DELTA_T
             );

@@ -36,7 +36,7 @@ namespace picongpu
 namespace hdf5
 {
 
-using namespace PMacc;
+using namespace pmacc;
 using namespace splash;
 
 /**

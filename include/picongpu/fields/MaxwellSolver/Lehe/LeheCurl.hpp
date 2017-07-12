@@ -28,7 +28,7 @@ namespace picongpu
 {
     namespace leheSolver
     {
-        using namespace PMacc;
+        using namespace pmacc;
 
 
         template< class Direction >
@@ -38,8 +38,8 @@ namespace picongpu
         template< >
         struct CurlELehe< ::picongpu::fieldSolverLehe::CherenkovFreeDirection_X >
         {
-            typedef PMacc::math::CT::Int< 1, 1, 1 > LowerMargin;
-            typedef PMacc::math::CT::Int< 2, 2, 2 > UpperMargin;
+            typedef pmacc::math::CT::Int< 1, 1, 1 > LowerMargin;
+            typedef pmacc::math::CT::Int< 2, 2, 2 > UpperMargin;
 
             float_X mySin;
 
@@ -181,8 +181,8 @@ namespace picongpu
         template< >
         struct CurlELehe< ::picongpu::fieldSolverLehe::CherenkovFreeDirection_Y >
         {
-            typedef PMacc::math::CT::Int< 1, 1, 1 > LowerMargin;
-            typedef PMacc::math::CT::Int< 2, 2, 2 > UpperMargin;
+            typedef pmacc::math::CT::Int< 1, 1, 1 > LowerMargin;
+            typedef pmacc::math::CT::Int< 2, 2, 2 > UpperMargin;
 
             float_X mySin;
 

@@ -35,7 +35,7 @@ namespace gol
 {
     namespace kernel
     {
-        using namespace PMacc;
+        using namespace pmacc;
 
         struct Evolution
         {
@@ -60,7 +60,7 @@ namespace gol
 
                 ThreadCollective<
                     BlockArea,
-                    PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+                    pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
                 > collective(
                     DataSpaceOperations< BlockArea::Dim >::template map<
                         typename BlockArea::SuperCellSize

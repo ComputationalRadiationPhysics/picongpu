@@ -22,7 +22,7 @@
 #ifndef CURSOR_NAVIGATOR_TAG_H
 #define CURSOR_NAVIGATOR_TAG_H
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -33,6 +33,6 @@ struct CartNavigator;
 struct MultiIndexNavigator;
 } // tag
 } // cursor
-} // PMacc
+} // pmacc
 
 #endif // CURSOR_NAVIGATOR_TAG_H

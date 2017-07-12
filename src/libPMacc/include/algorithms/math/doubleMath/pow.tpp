@@ -25,7 +25,7 @@
 #include "pmacc_types.hpp"
 #include <cmath>
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -66,4 +66,4 @@ struct Pow<double, int>
 
 } //namespace math
 } //namespace algorithms
-} // namespace PMacc
+} // namespace pmacc

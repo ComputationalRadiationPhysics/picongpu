@@ -25,7 +25,7 @@
 #include "pmacc_types.hpp"
 #include "mappings/simulation/GridController.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
         /**
@@ -131,5 +131,5 @@ namespace PMacc
             }
         };
 
-} //namespace PMacc
+} //namespace pmacc
 

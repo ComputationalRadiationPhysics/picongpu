@@ -50,9 +50,9 @@ void createParticlesFromSpecies(T_SourceSpecies& sourceSpecies,
                                 T_CellDescription* cellDesc)
 {
     typedef typename MappingDesc::SuperCellSize SuperCellSize;
-    const PMacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc->getGridSuperCells();
+    const pmacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc->getGridSuperCells();
     const uint32_t guardSuperCells = cellDesc->getGuardingSuperCells();
-    const PMacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2*guardSuperCells;
+    const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2*guardSuperCells;
 
     /* Functor holding the actual generic particle creation kernel */
     auto createParticlesKernel = make_CreateParticlesKernel(
@@ -63,7 +63,7 @@ void createParticlesFromSpecies(T_SourceSpecies& sourceSpecies,
 
     /* This zone represents the core+border area with guard offset in unit of cells */
     const zone::SphericZone<simDim> zone(
-        static_cast<PMacc::math::Size_t<simDim> >(coreBorderSuperCells * SuperCellSize::toRT()),
+        static_cast<pmacc::math::Size_t<simDim> >(coreBorderSuperCells * SuperCellSize::toRT()),
         guardSuperCells * SuperCellSize::toRT());
 
     algorithm::kernel::Foreach<SuperCellSize> foreach;

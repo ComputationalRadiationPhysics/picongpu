@@ -32,7 +32,7 @@
 #include <boost/mpl/back_inserter.hpp>
 #include <boost/type_traits.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
 /** run an unary operator on each element of a sequence
@@ -65,4 +65,4 @@ struct OperateOnSeq
             >::type type;
 };
 
-}//namespace PMacc
+}//namespace pmacc

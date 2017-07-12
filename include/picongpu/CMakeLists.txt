@@ -77,13 +77,13 @@ unset(IN_SRC_POS)
 
 
 ################################################################################
-# Find PMacc
+# Find pmacc
 ################################################################################
 
-find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../src/libPMacc")
-include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${PMacc_LIBRARIES})
-add_definitions(${PMacc_DEFINITIONS})
+find_package(pmacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../src/libPMacc")
+include_directories(SYSTEM ${pmacc_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${pmacc_LIBRARIES})
+add_definitions(${pmacc_DEFINITIONS})
 
 
 ################################################################################

@@ -43,7 +43,7 @@
 namespace picongpu
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 
 
@@ -53,7 +53,7 @@ struct MallocMemory
     template<typename ValueType >
     HINLINE void operator()(ValueType& v1, const size_t size) const
     {
-        typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
+        typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
 
         type* ptr = nullptr;
         if (size != 0)
@@ -76,7 +76,7 @@ struct MallocHostMemory
     HINLINE void operator()(ValueType& v1, const size_t size) const
     {
         typedef T_Attribute Attribute;
-        typedef typename PMacc::traits::Resolve<Attribute>::type::type type;
+        typedef typename pmacc::traits::Resolve<Attribute>::type::type type;
 
         type* ptr = nullptr;
         if (size != 0)
@@ -113,7 +113,7 @@ struct GetDevicePtr
     template<typename ValueType >
     HINLINE void operator()(ValueType& dest, ValueType& src)
     {
-        typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
+        typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
 
         type* ptr = nullptr;
         type* srcPtr = src.getIdentifier(T_Type()).getPointer();
@@ -131,7 +131,7 @@ struct FreeMemory
     template<typename ValueType >
     HINLINE void operator()(ValueType& value) const
     {
-        typedef typename PMacc::traits::Resolve<T_Type>::type::type type;
+        typedef typename pmacc::traits::Resolve<T_Type>::type::type type;
 
         type* ptr = value.getIdentifier(T_Type()).getPointer();
         if (ptr != nullptr)
@@ -154,7 +154,7 @@ struct FreeHostMemory
     HINLINE void operator()(ValueType& value) const
     {
         typedef T_Attribute Attribute;
-        typedef typename PMacc::traits::Resolve<Attribute>::type::type type;
+        typedef typename pmacc::traits::Resolve<Attribute>::type::type type;
 
         type* ptr = value.getIdentifier(Attribute()).getPointer();
         if (ptr != nullptr)
@@ -173,7 +173,7 @@ struct OperatorCreateVectorBox
     {
         typedef
         bmpl::pair< InType,
-        PMacc::VectorDataBox< typename PMacc::traits::Resolve<InType>::type::type > >
+        pmacc::VectorDataBox< typename pmacc::traits::Resolve<InType>::type::type > >
         type;
     };
 };

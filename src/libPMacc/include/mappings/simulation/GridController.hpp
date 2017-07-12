@@ -28,7 +28,7 @@
 #include "communication/CommunicatorMPI.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
         /**
@@ -298,4 +298,4 @@ namespace PMacc
         template <unsigned DIM>
         CommunicatorMPI<DIM> GridController<DIM>::comm;
 
-} //namespace PMacc
+} //namespace pmacc

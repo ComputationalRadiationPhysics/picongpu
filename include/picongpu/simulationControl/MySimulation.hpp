@@ -84,7 +84,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /**
  * Global simulation controller class.
@@ -270,7 +270,7 @@ public:
 
     virtual void init()
     {
-        namespace nvmem = PMacc::nvidia::memory;
+        namespace nvmem = pmacc::nvidia::memory;
 
         DataConnector &dc = Environment<>::get().DataConnector();
 
@@ -293,9 +293,9 @@ public:
         currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
 
         // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
-        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+        typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
-        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+        typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
 
         // ... or if ionization methods need an RNG
@@ -308,11 +308,11 @@ public:
         )
         {
             // create factory for the random number generator
-            using RNGFactory = PMacc::random::RNGProvider< simDim, PMacc::random::methods::XorMin >;
+            using RNGFactory = pmacc::random::RNGProvider< simDim, pmacc::random::methods::XorMin >;
             auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
 
             // init and share random number generator
-            PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
+            pmacc::GridController<simDim>& gridCon = pmacc::Environment<simDim>::get().GridController();
             rngFactory->init( gridCon.getScalarPosition() );
             dc.share( std::shared_ptr< ISimulationData >( rngFactory ) );
         }
@@ -342,7 +342,7 @@ public:
         /* Allocate helper fields for FLYlite population kinetics for atomic physics
          * (histograms, rate matrix, etc.)
          */
-        using AllFlyLiteIons = typename PMacc::particles::traits::FilterByFlag<
+        using AllFlyLiteIons = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
             populationKinetics<>
         >::type;
@@ -364,7 +364,7 @@ public:
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         if(freeGpuMem < reservedGpuMemorySize)
         {
-            PMacc::log< picLog::MEMORY > ("%1% MiB free memory < %2% MiB required reserved memory")
+            pmacc::log< picLog::MEMORY > ("%1% MiB free memory < %2% MiB required reserved memory")
                 % (freeGpuMem / 1024 / 1024) % (reservedGpuMemorySize / 1024 / 1024) ;
             std::stringstream msg;
             msg << "Cannot reserve "
@@ -465,7 +465,7 @@ public:
 
         if( this->restartRequested )
         {
-            namespace nvfct = PMacc::nvidia::functors;
+            namespace nvfct = pmacc::nvidia::functors;
 
             (*pushBGField)( fieldE, nvfct::Sub(), FieldBackgroundE(fieldE->getUnit()),
                             step, FieldBackgroundE::InfluenceParticlePusher);
@@ -492,9 +492,9 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
-        namespace nvfct = PMacc::nvidia::functors;
+        namespace nvfct = pmacc::nvidia::functors;
 
-        typedef typename PMacc::particles::traits::FilterByIdentifier
+        typedef typename pmacc::particles::traits::FilterByIdentifier
         <
             VectorAllSpecies,
             momentumPrev1
@@ -516,7 +516,7 @@ public:
         DataConnector &dc = Environment<>::get().DataConnector();
 
         /* Initialize ionization routine for each species with the flag `ionizers<>` */
-        using VectorSpeciesWithIonizers = typename PMacc::particles::traits::FilterByFlag<
+        using VectorSpeciesWithIonizers = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
             ionizers<>
         >::type;
@@ -524,7 +524,7 @@ public:
         particleIonization( cellDescription, currentStep );
 
         /* FLYlite population kinetics for atomic physics */
-        using AllFlyLiteIons = typename PMacc::particles::traits::FilterByFlag<
+        using AllFlyLiteIons = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
             populationKinetics<>
         >::type;
@@ -537,7 +537,7 @@ public:
         populationKinetics( currentStep );
 
         /* call the synchrotron radiation module for each radiating species (normally electrons) */
-        typedef typename PMacc::particles::traits::FilterByFlag<VectorAllSpecies,
+        typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
 
         ForEach<
@@ -547,7 +547,7 @@ public:
         synchrotronRadiation( cellDescription, currentStep, this->synchrotronFunctions );
 
         /* Bremsstrahlung */
-        typedef typename PMacc::particles::traits::FilterByFlag
+        typedef typename pmacc::particles::traits::FilterByFlag
         <
             VectorAllSpecies,
             bremsstrahlungIons<>
@@ -591,7 +591,7 @@ public:
         (*currentBGField)(fieldJ, nvfct::Add(), FieldBackgroundJ(fieldJ->getUnit()),
                           currentStep, FieldBackgroundJ::activated);
 #if (ENABLE_CURRENT == 1)
-        typedef typename PMacc::particles::traits::FilterByFlag
+        typedef typename pmacc::particles::traits::FilterByFlag
         <
             VectorAllSpecies,
             current<>
@@ -654,7 +654,7 @@ public:
          * Hence the background field is visible for all plugins
          * in between the time steps.
          */
-        namespace nvfct = PMacc::nvidia::functors;
+        namespace nvfct = pmacc::nvidia::functors;
 
         DataConnector &dc = Environment<>::get().DataConnector();
 

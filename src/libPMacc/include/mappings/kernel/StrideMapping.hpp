@@ -27,7 +27,7 @@
 #include "mappings/kernel/StrideMappingMethods.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 template<uint32_t areaType, uint32_t stride, class baseClass>
@@ -107,4 +107,4 @@ private:
 
 };
 
-} // namespace PMacc
+} // namespace pmacc

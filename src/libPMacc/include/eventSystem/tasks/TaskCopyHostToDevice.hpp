@@ -28,7 +28,7 @@
 
 #include <cuda_runtime_api.h>
 
-namespace PMacc
+namespace pmacc
 {
 
     template <class TYPE, unsigned DIM>
@@ -193,4 +193,4 @@ namespace PMacc
     };
 
 
-} //namespace PMacc
+} //namespace pmacc

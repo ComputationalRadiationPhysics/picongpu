@@ -23,7 +23,7 @@
 
 #include "math/vector/Int.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -39,5 +39,5 @@ struct CursorNavigator
 };
 
 } // cursor
-} // PMacc
+} // pmacc
 

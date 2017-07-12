@@ -30,7 +30,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
 
     struct uint8_t3
@@ -97,8 +97,8 @@ namespace picongpu
         memcpy(fakeHeader, &header, sizeof(MessageHeader));
 
         uint8_t3 * buffer = (uint8_t3*) (array + MessageHeader::bytes);
-        typedef PMacc::PitchedBox<uint8_t3, DIM2> PitchBox;
-        typedef PMacc::DataBox<PitchBox > PicBox;
+        typedef pmacc::PitchedBox<uint8_t3, DIM2> PitchBox;
+        typedef pmacc::DataBox<PitchBox > PicBox;
 
 
         PicBox smallPic(PitchBox(buffer, Size2D(), sizeof (uint8_t3) * size.x()));

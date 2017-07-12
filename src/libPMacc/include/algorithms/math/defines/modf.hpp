@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -40,4 +40,4 @@ HDINLINE typename Modf<T>::result modf(T value, T* intpart)
 
 } //namespace math
 } //namespace algorithms
-}//namespace PMacc
+}//namespace pmacc

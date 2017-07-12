@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -39,4 +39,4 @@ HDINLINE static typename Erf< T1 >::result erf(const T1& value)
 
 } /* namespace math */
 } /* namespace algorithms */
-} /* namespace PMacc */
+} /* namespace pmacc */

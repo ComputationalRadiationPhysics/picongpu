@@ -23,7 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/flylite/IFlyLite.hpp"
 
-/* PMacc */
+/* pmacc */
 #include "dimensions/DataSpace.hpp"
 
 #include <memory>
@@ -51,7 +51,7 @@ namespace flylite
         virtual
         void
         init(
-            PMacc::DataSpace< simDim > const & gridSizeLocal,
+            pmacc::DataSpace< simDim > const & gridSizeLocal,
             std::string const & ionSpeciesName
         );
 

@@ -79,7 +79,7 @@ namespace ionization
         typedef typename SrcSpecies::FrameType FrameType;
 
         /* specify field to particle interpolation scheme */
-        typedef typename PMacc::traits::Resolve<
+        typedef typename pmacc::traits::Resolve<
             typename GetFlagType<FrameType,interpolation<> >::type
         >::type Field2ParticleInterpolation;
 
@@ -102,8 +102,8 @@ namespace ionization
             typedef T_IonizationAlgorithm IonizationAlgorithm;
 
             /* random number generator */
-            typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
-            typedef PMacc::random::distributions::Uniform<float> Distribution;
+            typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin> RNGFactory;
+            typedef pmacc::random::distributions::Uniform<float> Distribution;
             typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
             RandomGen randomGen;
 
@@ -154,7 +154,7 @@ namespace ionization
                 auto fieldBBlock = bBox.shift(blockCell);
                 ThreadCollective<
                     BlockArea,
-                    PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+                    pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
                 > collective( linearThreadIdx );
                 collective(
                           assign,

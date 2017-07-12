@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -43,4 +43,4 @@ namespace promoteType
 
 } //namespace promoteType
 } //namespace algorithms
-} //namespace PMacc
+} //namespace pmacc

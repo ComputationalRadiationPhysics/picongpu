@@ -33,7 +33,7 @@
 #include <memory>
 
 
-namespace PMacc
+namespace pmacc
 {
     /** Singleton class which collects and shares simulation data
      *

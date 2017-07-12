@@ -33,7 +33,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace PMacc
+namespace pmacc
 {
     /**
      * Manages a pool of EventStreams and gives access to them.
@@ -137,4 +137,4 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc

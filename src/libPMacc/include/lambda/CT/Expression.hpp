@@ -23,7 +23,7 @@
 
 #include "../Expression.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -159,4 +159,4 @@ struct Expression<lambda::Expression<exprTypes::subscript, mpl::vector<_Child0, 
 
 } // CT
 } // lambda
-} // PMacc
+} // pmacc

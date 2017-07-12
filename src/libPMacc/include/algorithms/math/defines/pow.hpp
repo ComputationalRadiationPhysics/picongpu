@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -47,4 +47,4 @@ HDINLINE typename Pow< T1, T2 >::result pow(const T1& base,const T2& exponent)
 
 } //namespace math
 } //namespace algorithms
-}//namespace PMacc
+}//namespace pmacc

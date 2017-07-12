@@ -24,7 +24,7 @@
 
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace compileTime
 {
@@ -48,4 +48,4 @@ struct First
 
 }//namespace compileTime
 
-}//namespace  PMacc
+}//namespace  pmacc

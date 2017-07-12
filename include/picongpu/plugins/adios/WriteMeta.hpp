@@ -39,7 +39,7 @@ namespace picongpu
 {
 namespace adios
 {
-using namespace PMacc;
+using namespace pmacc;
 
 namespace writeMeta
 {

@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -58,4 +58,4 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
 } // namespace detail
 } // namespace kernel
 } // namespace algorithm
-} // namespace PMacc
+} // namespace pmacc

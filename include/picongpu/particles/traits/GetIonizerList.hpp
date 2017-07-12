@@ -53,15 +53,15 @@ namespace traits
         >::type;
 
         // this now resolves the alias into the actual object type, a list of ionizers
-        using FoundIonizerList = typename PMacc::traits::Resolve< FoundIonizersAlias >::type;
+        using FoundIonizerList = typename pmacc::traits::Resolve< FoundIonizersAlias >::type;
 
-        using type = typename PMacc::OperateOnSeq<
+        using type = typename pmacc::OperateOnSeq<
             FoundIonizerList,
             bmpl::apply1<
                 bmpl::_1,
                 SpeciesType
             >,
-            PMacc::compileTime::accessors::Type<>
+            pmacc::compileTime::accessors::Type<>
         >::type;
     };
 

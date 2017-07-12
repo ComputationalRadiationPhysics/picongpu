@@ -38,7 +38,7 @@
 
 namespace mpl = boost::mpl;
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -166,7 +166,7 @@ struct Eval<lambda::Expression<exprTypes::divide, mpl::vector<Child0, Child1> >,
         \
         BOOST_PP_REPEAT_FROM_TO(1, N, TD_ARG, _) \
         \
-        typedef typename ::PMacc::result_of::Functor<_Functor, BOOST_PP_ENUM_PARAMS(BOOST_PP_DEC(N), Arg)>::type type; \
+        typedef typename ::pmacc::result_of::Functor<_Functor, BOOST_PP_ENUM_PARAMS(BOOST_PP_DEC(N), Arg)>::type type; \
     };
 
 BOOST_PP_REPEAT_FROM_TO(2, LAMBDA_MAX_PARAMS, OPERATOR_CALL, _)
@@ -380,5 +380,5 @@ struct Eval<CT::Expression<lambda::Expression<exprTypes::subscript, mpl::vector<
 
 } // CT
 } // lambda
-} // PMacc
+} // pmacc
 

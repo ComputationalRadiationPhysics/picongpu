@@ -29,7 +29,7 @@
 
 #include <mpi.h>
 
-namespace PMacc
+namespace pmacc
 {
 
 template <class TYPE, unsigned DIM>
@@ -96,5 +96,5 @@ private:
     MPI_Status status;
 };
 
-} //namespace PMacc
+} //namespace pmacc
 

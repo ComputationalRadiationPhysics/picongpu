@@ -39,7 +39,7 @@ namespace particles
 namespace creation
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 /** Functor with main kernel for particle creation
  *
@@ -77,25 +77,25 @@ struct CreateParticlesKernel
      *
      * @param cellIndex n-dim. cell index from the origin of the local domain
      */
-    DINLINE void operator()(const PMacc::math::Int<simDim>& cellIndex)
+    DINLINE void operator()(const pmacc::math::Int<simDim>& cellIndex)
     {
         /* definitions for domain variables, like indices of blocks and threads */
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
         /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-        const PMacc::math::Int<simDim> block = cellIndex / SuperCellSize::toRT();
+        const pmacc::math::Int<simDim> block = cellIndex / SuperCellSize::toRT();
 
         /* multi-dim offset from the origin of the local domain on GPU
          * to the origin of the block of the in unit of cells
          */
-        const PMacc::math::Int<simDim> blockCell = block * SuperCellSize::toRT();
+        const pmacc::math::Int<simDim> blockCell = block * SuperCellSize::toRT();
 
         /* multi-dim vector from origin of the block to a cell in units of cells */
-        const PMacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
+        const pmacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
 
         /* conversion from a multi-dim cell coordinate to a linear coordinate of the cell in its super cell */
-        const int linearThreadIdx = PMacc::math::linearize(
-            PMacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
+        const int linearThreadIdx = pmacc::math::linearize(
+            pmacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
             threadIndex);
 
         /* "particle box" : container/iterator where the particles live in
@@ -105,11 +105,11 @@ struct CreateParticlesKernel
         typedef typename ParBoxTarget::FramePtr TargetFramePtr;
 
         /* for not mixing operations::assign up with the nvidia functor assign */
-        namespace partOp = PMacc::particles::operations;
+        namespace partOp = pmacc::particles::operations;
 
         PMACC_SMEM( sourceFrame, SourceFramePtr );
         PMACC_SMEM( targetFrame, TargetFramePtr );
-        const lcellId_t maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+        const lcellId_t maxParticlesInFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
         /* find last frame in super cell
          */
@@ -122,7 +122,7 @@ struct CreateParticlesKernel
         if (!sourceFrame.isValid())
             return; // end method if we have no frames
 
-        const PMacc::math::Int<simDim> localCellIndex = cellIndex - this->guardSuperCells * SuperCellSize::toRT();
+        const pmacc::math::Int<simDim> localCellIndex = cellIndex - this->guardSuperCells * SuperCellSize::toRT();
 
         /* init particle creator functor     */
         particleCreator.init(blockCell, linearThreadIdx, localCellIndex);

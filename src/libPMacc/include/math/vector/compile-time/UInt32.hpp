@@ -26,7 +26,7 @@
 #include <boost/mpl/integral_c.hpp>
 #include "traits/Limits.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -68,4 +68,4 @@ struct UInt32<x, y> : public CT::Vector<mpl::integral_c<uint32_t, x>,
 
 } // CT
 } // math
-} // PMacc
+} // pmacc

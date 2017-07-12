@@ -53,7 +53,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     FieldTmp::FieldTmp(
         MappingDesc cellDescription,
@@ -65,9 +65,9 @@ namespace picongpu
         m_slotId( slotId )
     {
         m_commTagScatter =
-            ++PMacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
+            ++pmacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
             SPECIES_FIRSTTAG;
-        m_commTagGather = ++PMacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
+        m_commTagGather = ++pmacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
             SPECIES_FIRSTTAG;
 
         fieldTmp = new GridBuffer <ValueType, simDim >( cellDescription.getGridLayout( ) );
@@ -83,7 +83,7 @@ namespace picongpu
          */
         const DataSpace<simDim> coreBorderSize = cellDescription.getGridLayout( ).getDataSpaceWithoutGuarding( );
 
-        typedef typename PMacc::particles::traits::FilterByFlag
+        typedef typename pmacc::particles::traits::FilterByFlag
         <
             VectorAllSpecies,
             interpolation<>
@@ -92,26 +92,26 @@ namespace picongpu
         /* ------------------ lower margin  ----------------------------------*/
         typedef bmpl::accumulate<
             VectorSpeciesWithInterpolation,
-            typename PMacc::math::CT::make_Int<simDim, 0>::type,
-            PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
+            typename pmacc::math::CT::make_Int<simDim, 0>::type,
+            pmacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
         >::type SpeciesLowerMargin;
 
         typedef bmpl::accumulate<
             FieldTmpSolvers,
-            typename PMacc::math::CT::make_Int<simDim, 0>::type,
-            PMacc::math::CT::max<bmpl::_1, GetLowerMargin< bmpl::_2 > >
+            typename pmacc::math::CT::make_Int<simDim, 0>::type,
+            pmacc::math::CT::max<bmpl::_1, GetLowerMargin< bmpl::_2 > >
         >::type FieldTmpLowerMargin;
 
-        typedef PMacc::math::CT::max<
+        typedef pmacc::math::CT::max<
             SpeciesLowerMargin,
             FieldTmpLowerMargin>::type SpeciesFieldTmpLowerMargin;
 
-        typedef PMacc::math::CT::max<
+        typedef pmacc::math::CT::max<
             GetMargin<fieldSolver::FieldSolver, FIELD_B>::LowerMargin,
             GetMargin<fieldSolver::FieldSolver, FIELD_E>::LowerMargin>::type
             FieldSolverLowerMargin;
 
-        typedef PMacc::math::CT::max<
+        typedef pmacc::math::CT::max<
             SpeciesFieldTmpLowerMargin,
             FieldSolverLowerMargin>::type LowerMargin;
 
@@ -120,26 +120,26 @@ namespace picongpu
 
         typedef bmpl::accumulate<
             VectorSpeciesWithInterpolation,
-            typename PMacc::math::CT::make_Int<simDim, 0>::type,
-            PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
+            typename pmacc::math::CT::make_Int<simDim, 0>::type,
+            pmacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
         >::type SpeciesUpperMargin;
 
         typedef bmpl::accumulate<
             FieldTmpSolvers,
-            typename PMacc::math::CT::make_Int<simDim, 0>::type,
-            PMacc::math::CT::max<bmpl::_1, GetUpperMargin< bmpl::_2 > >
+            typename pmacc::math::CT::make_Int<simDim, 0>::type,
+            pmacc::math::CT::max<bmpl::_1, GetUpperMargin< bmpl::_2 > >
         >::type FieldTmpUpperMargin;
 
-        typedef PMacc::math::CT::max<
+        typedef pmacc::math::CT::max<
             SpeciesUpperMargin,
             FieldTmpUpperMargin>::type SpeciesFieldTmpUpperMargin;
 
-        typedef PMacc::math::CT::max<
+        typedef pmacc::math::CT::max<
             GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin,
             GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin>::type
             FieldSolverUpperMargin;
 
-        typedef PMacc::math::CT::max<
+        typedef pmacc::math::CT::max<
             SpeciesFieldTmpUpperMargin,
             FieldSolverUpperMargin>::type UpperMargin;
 
@@ -267,7 +267,7 @@ namespace picongpu
 
     void FieldTmp::bashField( uint32_t exchangeType )
     {
-        PMacc::fields::operations::CopyGuardToExchange{ }(
+        pmacc::fields::operations::CopyGuardToExchange{ }(
             *fieldTmp,
             SuperCellSize{ },
             exchangeType
@@ -276,7 +276,7 @@ namespace picongpu
 
     void FieldTmp::insertField( uint32_t exchangeType )
     {
-        PMacc::fields::operations::AddExchangeToBorder{ }(
+        pmacc::fields::operations::AddExchangeToBorder{ }(
             *fieldTmp,
             SuperCellSize{ },
             exchangeType

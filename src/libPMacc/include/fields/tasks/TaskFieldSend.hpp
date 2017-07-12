@@ -29,7 +29,7 @@
 #include "eventSystem/events/EventDataReceive.hpp"
 #include "traits/NumberOfExchanges.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     template<class Field>
@@ -106,4 +106,4 @@ namespace PMacc
         EventTask tmpEvent;
     };
 
-} //namespace PMacc
+} //namespace pmacc

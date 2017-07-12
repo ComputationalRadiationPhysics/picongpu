@@ -25,7 +25,7 @@
 #include "lambda/Expression.hpp"
 #include "algorithms/math/defines/abs.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -51,11 +51,11 @@ namespace result_of
 {
 
 template<typename Type>
-struct Functor<PMacc::math::math_functor::Abs, Type>
+struct Functor<pmacc::math::math_functor::Abs, Type>
 {
     typedef Type type;
 };
 
 } // result_of
 
-} // PMacc
+} // pmacc

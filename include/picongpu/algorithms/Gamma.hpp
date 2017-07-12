@@ -38,7 +38,7 @@ namespace picongpu
         T_MassType const mass
     ) const
     {
-        using namespace PMacc;
+        using namespace pmacc;
 
         valueType const fMom2 = math::abs2( precisionCast< valueType >( mom ) );
         constexpr valueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;

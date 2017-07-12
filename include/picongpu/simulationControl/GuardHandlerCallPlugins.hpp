@@ -36,14 +36,14 @@ namespace picongpu
  */
 struct GuardHandlerCallPlugins
 {
-    typedef PMacc::particles::policies::ExchangeParticles HandleExchanged;
+    typedef pmacc::particles::policies::ExchangeParticles HandleExchanged;
     typedef GuardHandlerCallPlugins HandleNotExchanged;
 
     template< class T_Particles >
     void
     handleOutgoing(T_Particles& particles, const int32_t direction) const
     {
-        typedef std::list<PMacc::IPlugin*> Plugins;
+        typedef std::list<pmacc::IPlugin*> Plugins;
         Plugins plugins = Environment<>::get().PluginConnector().getAllPlugins();
 
         for(Plugins::iterator iter = plugins.begin(); iter != plugins.end(); iter++)

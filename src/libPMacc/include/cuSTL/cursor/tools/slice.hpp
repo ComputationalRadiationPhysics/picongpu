@@ -26,7 +26,7 @@
 #include "cuSTL/cursor/navigator/CartNavigator.hpp"
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -102,5 +102,5 @@ slice(const TCursor& cur)
 
 } // tools
 } // cursor
-} // PMacc
+} // pmacc
 

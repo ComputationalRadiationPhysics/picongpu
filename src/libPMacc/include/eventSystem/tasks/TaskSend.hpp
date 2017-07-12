@@ -30,7 +30,7 @@
 #include "mappings/simulation/EnvironmentController.hpp"
 #include "memory/buffers/Exchange.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 
@@ -133,5 +133,5 @@ namespace PMacc
         state_t state;
     };
 
-} //namespace PMacc
+} //namespace pmacc
 

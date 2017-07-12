@@ -22,7 +22,7 @@
 #ifndef ALLOCATOR_TAG_H
 #define ALLOCATOR_TAG_H
 
-namespace PMacc
+namespace pmacc
 {
 namespace allocator
 {
@@ -33,6 +33,6 @@ struct device;
 struct unspecified;
 } // tag
 } // allocator
-} // PMacc
+} // pmacc
 
 #endif // ALLOCATOR_TAG_H

@@ -50,14 +50,14 @@ namespace traits
         using VectorSpecies = T_VectorSpecies;
 
         // make a list of all species that can be ionized
-        using VectorSpeciesWithIonizer = typename PMacc::particles::traits::FilterByFlag<
+        using VectorSpeciesWithIonizer = typename pmacc::particles::traits::FilterByFlag<
             VectorSpecies,
             ionizers<>
         >::type;
 
         // make a list of all ionizers that will be used by all species
-        using AllUsedIonizers = typename PMacc::MakeSeqFromNestedSeq<
-            typename PMacc::OperateOnSeq<
+        using AllUsedIonizers = typename pmacc::MakeSeqFromNestedSeq<
+            typename pmacc::OperateOnSeq<
                 VectorSpeciesWithIonizer,
                 GetIonizerList< bmpl::_1 >
             >::type
@@ -66,7 +66,7 @@ namespace traits
         /* make a list of `boost::true_type`s and `boost::false_type`s for species that use or do
          * not use the RNG during ionization
          */
-        using AllIonizersUsingRNG = typename PMacc::OperateOnSeq<
+        using AllIonizersUsingRNG = typename pmacc::OperateOnSeq<
             AllUsedIonizers,
             picongpu::traits::UsesRNG< bmpl::_1 >
         >::type;

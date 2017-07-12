@@ -43,7 +43,7 @@ namespace picongpu
 
 namespace hdf5
 {
-using namespace PMacc;
+using namespace pmacc;
 
 namespace writeMeta
 {

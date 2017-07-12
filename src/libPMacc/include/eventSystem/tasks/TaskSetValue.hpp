@@ -39,7 +39,7 @@
 #include <cuda_runtime_api.h>
 #include <cuda.h>
 
-namespace PMacc
+namespace pmacc
 {
 namespace taskSetValueHelper
 {
@@ -98,9 +98,9 @@ struct KernelSetValue
 {
     /** set value to all elements
      *
-     * @tparam T_DataBox PMacc::DataBox, type of the memory box
+     * @tparam T_DataBox pmacc::DataBox, type of the memory box
      * @tparam T_ValueType type of the value
-     * @tparam T_SizeVecType PMacc::math::Vector, index type
+     * @tparam T_SizeVecType pmacc::math::Vector, index type
      *
      * @param memBox box of which all elements shall be set to value
      * @param value value to set to all elements of memBox
@@ -357,4 +357,4 @@ private:
 
 };
 
-} //namespace PMacc
+} //namespace pmacc

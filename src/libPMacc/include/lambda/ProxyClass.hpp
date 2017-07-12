@@ -23,7 +23,7 @@
 
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -89,4 +89,4 @@ public:
 
 } // CT
 } // lambda
-} // PMacc
+} // pmacc

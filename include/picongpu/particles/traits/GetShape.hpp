@@ -31,7 +31,7 @@ namespace traits
 template<typename T_Species>
 struct GetShape
 {
-    typedef typename PMacc::traits::Resolve<
+    typedef typename pmacc::traits::Resolve<
         typename GetFlagType<typename T_Species::FrameType, shape<> >::type
     >::type type;
 };

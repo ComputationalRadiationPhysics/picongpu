@@ -54,7 +54,7 @@ namespace acc
          *
          * @tparam T_DesParticle type of the particle species with weighting to manipulate
          * @tparam T_SrcParticle type of the particle species one cloned from
-         * @tparam T_Args PMacc::Particle, arbitrary number of particles types
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
          *
          * @param particleDest destination particle
          * @param particleSrc source particle (the density ratio of this particle is used)

@@ -60,7 +60,7 @@ namespace picongpu
          * \param mpiComm communicator of the participating ranks
          */
         template<typename T_Type, int T_bufDim>
-        void operator()( const PMacc::container::HostBuffer<T_Type, T_bufDim>& hBuffer,
+        void operator()( const pmacc::container::HostBuffer<T_Type, T_bufDim>& hBuffer,
                          const AxisDescription axis_element,
                          const std::pair<float_X, float_X> axis_p_range,
                          const float_64 pRange_unit,
@@ -90,8 +90,8 @@ namespace picongpu
             ParallelDomainCollector pdc(
                 mpiComm, MPI_INFO_NULL, Dimensions(size, 1, 1), 10 );
 
-            PMacc::GridController<simDim>& gc =
-                PMacc::Environment<simDim>::get().GridController();
+            pmacc::GridController<simDim>& gc =
+                pmacc::Environment<simDim>::get().GridController();
             DataCollector::FileCreationAttr fAttr;
             Dimensions mpiPosition( gc.getPosition()[axis_element.space], 0, 0 );
             fAttr.mpiPosition.set( mpiPosition );

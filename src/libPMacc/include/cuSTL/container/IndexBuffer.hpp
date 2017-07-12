@@ -30,7 +30,7 @@
 #include "../cursor/accessor/MarkerAccessor.hpp"
 #include "../zone/SphericZone.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -90,5 +90,5 @@ public:
 };
 
 } // container
-} // PMacc
+} // pmacc
 

@@ -157,7 +157,7 @@ public:
     template <unsigned T_dim>
     HDINLINE float3_X
     getTWTSEfield_Normalized(
-            const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+            const pmacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
             const float_64 time) const;
 
     /** Calculate the E-field vector of the "in-plane polarized" TWTS laser in SI units.
@@ -167,7 +167,7 @@ public:
     template <unsigned T_dim>
     HDINLINE float3_X
     getTWTSEfield_Normalized_Ey(
-            const PMacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
+            const pmacc::math::Vector<floatD_64,detail::numComponents>& eFieldPositions_SI,
             const float_64 time) const;
 
 };

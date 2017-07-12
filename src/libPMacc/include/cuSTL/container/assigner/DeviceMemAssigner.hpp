@@ -35,7 +35,7 @@
 
 #include <stdint.h>
 
-namespace PMacc
+namespace pmacc
 {
 namespace assigner
 {
@@ -75,4 +75,4 @@ struct DeviceMemAssigner
 };
 
 } // assigner
-} // PMacc
+} // pmacc

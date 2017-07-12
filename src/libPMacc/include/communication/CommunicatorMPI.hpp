@@ -34,7 +34,7 @@
 #include <utility>
 #include <map>
 
-namespace PMacc
+namespace pmacc
 {
 
 namespace detail
@@ -428,7 +428,7 @@ private:
     MPI_Comm topology;
     //! array for exchangetype-to-rank conversion \see ExchangeTypeToRank
     int ranks[27];
-    //! size of PMacc [cx,cy,cz]
+    //! size of pmacc [cx,cy,cz]
     int dims[3];
     //! \see getCommunicationMask
     Mask communicationMask;
@@ -441,4 +441,4 @@ private:
     int mpiSize;
 };
 
-} //namespace PMacc
+} //namespace pmacc

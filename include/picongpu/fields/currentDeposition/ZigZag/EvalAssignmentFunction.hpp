@@ -36,7 +36,7 @@ namespace picongpu
 {
 namespace currentSolverZigZag
 {
-using namespace PMacc;
+using namespace pmacc;
 
 
 /** calculate the assignment factor

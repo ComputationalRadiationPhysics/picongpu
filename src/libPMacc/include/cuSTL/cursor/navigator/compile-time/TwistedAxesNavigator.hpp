@@ -23,7 +23,7 @@
 
 #include "math/Vector.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -68,5 +68,5 @@ struct TwistedAxesNavigator<Axes, 3>
 
 } // CT
 } // cursor
-} // PMacc
+} // pmacc
 

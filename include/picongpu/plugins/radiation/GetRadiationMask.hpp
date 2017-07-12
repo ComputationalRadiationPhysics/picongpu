@@ -74,7 +74,7 @@ namespace picongpu
     template< typename T_Particle >
     HDINLINE bool getRadiationMask( const T_Particle& particle )
     {
-        constexpr bool hasRadiationMask = PMacc::traits::HasIdentifier<
+        constexpr bool hasRadiationMask = pmacc::traits::HasIdentifier<
             typename T_Particle::FrameType,
             radiationMask
         >::type::value;

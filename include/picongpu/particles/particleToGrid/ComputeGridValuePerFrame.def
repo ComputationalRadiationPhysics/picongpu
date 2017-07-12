@@ -53,8 +53,8 @@ public:
 
     static constexpr int lowerMargin = supp / 2;
     static constexpr int upperMargin = (supp + 1) / 2;
-    typedef typename PMacc::math::CT::make_Int<simDim, lowerMargin>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<simDim, upperMargin>::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim, upperMargin>::type UpperMargin;
 
     HDINLINE ComputeGridValuePerFrame()
     {

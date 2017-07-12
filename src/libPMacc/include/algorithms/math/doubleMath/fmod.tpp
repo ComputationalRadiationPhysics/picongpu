@@ -24,7 +24,7 @@
 #include "pmacc_types.hpp"
 #include <cmath>
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -48,5 +48,5 @@ struct Fmod<double>
 
 } //namespace math
 } //namespace algorithms
-} //namespace PMacc
+} //namespace pmacc
 

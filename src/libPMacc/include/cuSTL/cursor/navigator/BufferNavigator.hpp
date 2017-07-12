@@ -30,7 +30,7 @@
 #include <boost/type_traits/remove_pointer.hpp>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -95,5 +95,5 @@ struct dim<BufferNavigator<T_dim> >
 } // traits
 
 } //cursor
-} // PMacc
+} // pmacc
 

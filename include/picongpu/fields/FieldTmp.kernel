@@ -41,7 +41,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     template< class BlockDescription_, uint32_t AREA >
     struct KernelComputeSupercells
@@ -77,7 +77,7 @@ namespace picongpu
 
             ThreadCollective<
                 BlockDescription_,
-                PMacc::math::CT::volume< typename BlockDescription_::SuperCellSize >::type::value
+                pmacc::math::CT::volume< typename BlockDescription_::SuperCellSize >::type::value
             > collective( linearThreadIdx );
             collective( set, cachedVal );
 
@@ -92,7 +92,7 @@ namespace picongpu
                 if( linearThreadIdx == 0 )
                 {
                     frame = boxPar.getPreviousFrame( frame );
-                    particlesInSuperCell = PMacc::math::CT::volume<SuperCellSize>::type::value;
+                    particlesInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
                 }
                 __syncthreads( );
             }

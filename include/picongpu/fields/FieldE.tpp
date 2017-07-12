@@ -54,13 +54,13 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 FieldE::FieldE( MappingDesc cellDescription ) :
 SimulationFieldHelper<MappingDesc>( cellDescription )
 {
     fieldE = new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) );
-    typedef typename PMacc::particles::traits::FilterByFlag
+    typedef typename pmacc::particles::traits::FilterByFlag
     <
         VectorAllSpecies,
         interpolation<>
@@ -68,22 +68,22 @@ SimulationFieldHelper<MappingDesc>( cellDescription )
 
     typedef bmpl::accumulate<
         VectorSpeciesWithInterpolation,
-        typename PMacc::math::CT::make_Int<simDim, 0>::type,
-        PMacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
+        typename pmacc::math::CT::make_Int<simDim, 0>::type,
+        pmacc::math::CT::max<bmpl::_1, GetLowerMargin< GetInterpolation<bmpl::_2> > >
         >::type LowerMarginInterpolation;
 
     typedef bmpl::accumulate<
         VectorSpeciesWithInterpolation,
-        typename PMacc::math::CT::make_Int<simDim, 0>::type,
-        PMacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
+        typename pmacc::math::CT::make_Int<simDim, 0>::type,
+        pmacc::math::CT::max<bmpl::_1, GetUpperMargin< GetInterpolation<bmpl::_2> > >
         >::type UpperMarginInterpolation;
 
     /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
-    typedef PMacc::math::CT::max<
+    typedef pmacc::math::CT::max<
         LowerMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_E>::LowerMargin
         >::type LowerMarginInterpolationAndSolver;
-    typedef PMacc::math::CT::max<
+    typedef pmacc::math::CT::max<
         UpperMarginInterpolation,
         GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin
         >::type UpperMarginInterpolationAndSolver;
@@ -92,7 +92,7 @@ SimulationFieldHelper<MappingDesc>( cellDescription )
        (currently all pusher use the interpolation of the species)
        and find maximum margin
     */
-    typedef typename PMacc::particles::traits::FilterByFlag
+    typedef typename pmacc::particles::traits::FilterByFlag
     <
         VectorSpeciesWithInterpolation,
         particlePusher<>
@@ -100,13 +100,13 @@ SimulationFieldHelper<MappingDesc>( cellDescription )
     typedef bmpl::accumulate<
         VectorSpeciesWithPusherAndInterpolation,
         LowerMarginInterpolationAndSolver,
-        PMacc::math::CT::max<bmpl::_1, GetLowerMarginPusher<bmpl::_2> >
+        pmacc::math::CT::max<bmpl::_1, GetLowerMarginPusher<bmpl::_2> >
         >::type LowerMargin;
 
     typedef bmpl::accumulate<
         VectorSpeciesWithPusherAndInterpolation,
         UpperMarginInterpolationAndSolver,
-        PMacc::math::CT::max<bmpl::_1, GetUpperMarginPusher<bmpl::_2> >
+        pmacc::math::CT::max<bmpl::_1, GetUpperMarginPusher<bmpl::_2> >
         >::type UpperMargin;
 
     const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
@@ -239,7 +239,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
      */
     constexpr int laserInitCellsInY = 1;
 
-    using LaserPlaneSizeInSuperCells = typename PMacc::math::CT::AssignIfInRange<
+    using LaserPlaneSizeInSuperCells = typename pmacc::math::CT::AssignIfInRange<
             typename SuperCellSize::vector_type,
             bmpl::integral_c< uint32_t, 1 >, /* y direction */
             bmpl::integral_c< int, laserInitCellsInY >
@@ -249,8 +249,8 @@ void FieldE::laserManipulation( uint32_t currentStep )
     // use the one supercell in y to initialize the laser plane
     gridBlocks.y() = 1;
 
-    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-        PMacc::math::CT::volume< LaserPlaneSizeInSuperCells >::type::value
+    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+        pmacc::math::CT::volume< LaserPlaneSizeInSuperCells >::type::value
     >::value;
 
     LaserPhysics laser( fieldE->getGridLayout() );

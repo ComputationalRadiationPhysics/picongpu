@@ -28,15 +28,15 @@ namespace picongpu
 {
 namespace currentInterpolation
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<uint32_t T_dim>
 struct None
 {
     static constexpr uint32_t dim = T_dim;
 
-    typedef typename PMacc::math::CT::make_Int<dim, 0>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<dim, 0>::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int<dim, 0>::type UpperMargin;
 
     template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
     HDINLINE void operator()(DataBoxE fieldE,
@@ -49,9 +49,9 @@ struct None
         fieldE(self) -= fieldJ(self) * (float_X(1.0) / EPS0) * deltaT;
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "none" );
+        pmacc::traits::StringProperty propList( "name", "none" );
         return propList;
     }
 };

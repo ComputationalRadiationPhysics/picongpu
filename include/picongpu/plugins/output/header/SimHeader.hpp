@@ -26,7 +26,7 @@
 
 struct SimHeader
 {
-    typedef PMacc::DataSpace<DIM2> Size2D;
+    typedef pmacc::DataSpace<DIM2> Size2D;
 
     Size2D size;
     Size2D nodes;

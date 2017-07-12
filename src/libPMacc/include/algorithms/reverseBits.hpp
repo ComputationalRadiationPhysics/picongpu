@@ -26,7 +26,7 @@
 #include <boost/type_traits.hpp>
 #include <climits>
 
-namespace PMacc {
+namespace pmacc {
 
 /**
  * Reverses the bit in an unsigned integral value
@@ -59,4 +59,4 @@ reverseBits(T value)
     return result;
 }
 
-}  // namespace PMacc
+}  // namespace pmacc

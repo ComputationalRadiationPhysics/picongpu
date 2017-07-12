@@ -38,7 +38,7 @@ namespace acc
      *
      * @tparam T_ParamClass picongpu::particles::manipulators::unary::param::TemperatureCfg,
      *                      type with compile configuration
-     * @tparam T_ValueFunctor PMacc::nvidia::functors, binary operator type to reduce current and new value
+     * @tparam T_ValueFunctor pmacc::nvidia::functors, binary operator type to reduce current and new value
      */
     template<
         typename T_ParamClass,
@@ -48,9 +48,9 @@ namespace acc
     {
         /** manipulate the speed of the particle
          *
-         * @tparam T_Rng PMacc::nvidia::rng::RNG, type of the random number generator
-         * @tparam T_Particle PMacc::Particle, particle type
-         * @tparam T_Args PMacc::Particle, arbitrary number of particles types
+         * @tparam T_Rng pmacc::nvidia::rng::RNG, type of the random number generator
+         * @tparam T_Particle pmacc::Particle, particle type
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
          *
          * @param rng random number generator
          * @param particle particle to be manipulated

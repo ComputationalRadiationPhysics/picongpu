@@ -23,7 +23,7 @@
 /** \file
  *
  * Calculation utilities to be relocated together with `plugins/radiation/utilities.hpp`
- * to a more appropriate place in a more generic PMacc-y way
+ * to a more appropriate place in a more generic pmacc-y way
  */
 
 namespace picongpu

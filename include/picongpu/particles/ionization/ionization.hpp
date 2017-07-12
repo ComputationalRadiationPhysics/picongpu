@@ -44,7 +44,7 @@ namespace particles
 namespace ionization
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 
 struct KernelIonizeParticles
@@ -78,7 +78,7 @@ struct KernelIonizeParticles
         typedef typename ParBoxElectrons::FramePtr ElectronFramePtr;
 
         /* specify field to particle interpolation scheme */
-        typedef typename PMacc::traits::Resolve<
+        typedef typename pmacc::traits::Resolve<
             typename GetFlagType<IONFRAME,interpolation<> >::type
         >::type InterpolationScheme;
 
@@ -94,7 +94,7 @@ struct KernelIonizeParticles
             > BlockDescription_;
 
         /* for not mixing operations::assign up with the nvidia functor assign */
-        namespace partOp = PMacc::particles::operations;
+        namespace partOp = pmacc::particles::operations;
 
         /* definitions for domain variables, like indices of blocks and threads */
         typedef typename BlockDescription_::SuperCellSize SuperCellSize;
@@ -129,7 +129,7 @@ struct KernelIonizeParticles
         if (linearThreadIdx == 0)
         {
             ionFrame = ionBox.getLastFrame(block);
-            maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+            maxParticlesInFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
         }
 
         __syncthreads();
@@ -302,7 +302,7 @@ struct KernelIonizeParticles
             if (linearThreadIdx == 0)
             {
                 ionFrame = ionBox.getPreviousFrame(ionFrame);
-                maxParticlesInFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+                maxParticlesInFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
             }
             __syncthreads();
         }

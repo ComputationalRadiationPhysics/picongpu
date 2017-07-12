@@ -29,7 +29,7 @@
 #include "math/vector/Vector.hpp"
 #include "result_of_Functor.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -47,9 +47,9 @@ struct LinearInterp
     Cursor<
         LinearInterpAccessor<T_Cursor>,
         PlusNavigator,
-        PMacc::math::Vector<
+        pmacc::math::Vector<
             T_PositionComp,
-            PMacc::cursor::traits::dim<
+            pmacc::cursor::traits::dim<
                 T_Cursor>::value
             >
         >
@@ -59,9 +59,9 @@ struct LinearInterp
         return make_Cursor(
             LinearInterpAccessor<T_Cursor>(cur),
             PlusNavigator(),
-            PMacc::math::Vector<
+            pmacc::math::Vector<
                 T_PositionComp,
-                PMacc::cursor::traits::dim<T_Cursor>::value>::create(0.0));
+                pmacc::cursor::traits::dim<T_Cursor>::value>::create(0.0));
     }
 };
 
@@ -74,12 +74,12 @@ namespace result_of
 template<typename T_Cursor, typename T_PositionComp>
 struct Functor<cursor::tools::LinearInterp<T_PositionComp>, T_Cursor>
 {
-    typedef PMacc::cursor::Cursor<
+    typedef pmacc::cursor::Cursor<
         cursor::LinearInterpAccessor<T_Cursor>,
         cursor::PlusNavigator,
-        PMacc::math::Vector<
+        pmacc::math::Vector<
             T_PositionComp,
-            PMacc::cursor::traits::dim<
+            pmacc::cursor::traits::dim<
                 T_Cursor
             >::value
         >
@@ -88,5 +88,5 @@ struct Functor<cursor::tools::LinearInterp<T_PositionComp>, T_Cursor>
 
 } // namespace result_of
 
-} // namespace PMacc
+} // namespace pmacc
 

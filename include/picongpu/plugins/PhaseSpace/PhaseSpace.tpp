@@ -43,7 +43,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     template<class AssignmentFunction, class Species>
     PhaseSpace<AssignmentFunction, Species>::PhaseSpace( const std::string _name,
@@ -77,12 +77,12 @@ namespace picongpu
          *                         spatial y and z direction to node with
          *                         lowest y and z position and same x range
          */
-        PMacc::GridController<simDim>& gc = PMacc::Environment<simDim>::get().GridController();
-        PMacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
-        PMacc::math::Int<simDim> gpuPos = gc.getPosition();
+        pmacc::GridController<simDim>& gc = pmacc::Environment<simDim>::get().GridController();
+        pmacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
+        pmacc::math::Int<simDim> gpuPos = gc.getPosition();
 
         /* my plane means: the r_element I am calculating should be 1GPU in width */
-        PMacc::math::Size_t<simDim> sizeTransversalPlane(gpuDim);
+        pmacc::math::Size_t<simDim> sizeTransversalPlane(gpuDim);
         sizeTransversalPlane[this->axis_element.space] = 1;
 
         for( int planePos = 0; planePos <= (int)gpuDim[this->axis_element.space]; ++planePos )
@@ -90,7 +90,7 @@ namespace picongpu
             /* my plane means: the offset for the transversal plane to my r_element
              * should be zero
              */
-            PMacc::math::Int<simDim> longOffset(PMacc::math::Int<simDim>::create(0));
+            pmacc::math::Int<simDim> longOffset(pmacc::math::Int<simDim>::create(0));
             longOffset[this->axis_element.space] = planePos;
 
             zone::SphericZone<simDim> zoneTransversalPlane( sizeTransversalPlane, longOffset );
@@ -100,9 +100,9 @@ namespace picongpu
             bool isInGroup   = ( gpuPos[this->axis_element.space] == planePos );
             if( isInGroup )
             {
-                PMacc::math::Int<simDim> inPlaneGPU(gpuPos);
+                pmacc::math::Int<simDim> inPlaneGPU(gpuPos);
                 inPlaneGPU[this->axis_element.space] = 0;
-                if( inPlaneGPU == PMacc::math::Int<simDim>::create(0) )
+                if( inPlaneGPU == pmacc::math::Int<simDim>::create(0) )
                     isGroupRoot = true;
             }
 
@@ -162,9 +162,9 @@ namespace picongpu
     template<uint32_t r_dir>
     void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace( )
     {
-        const PMacc::math::Int<simDim> guardCells = SuperCellSize().toRT() * int(GUARD_SIZE);
-        const PMacc::math::Size_t<simDim> coreBorderSuperCells( this->cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
-        const PMacc::math::Size_t<simDim> coreBorderCells = coreBorderSuperCells *
+        const pmacc::math::Int<simDim> guardCells = SuperCellSize().toRT() * int(GUARD_SIZE);
+        const pmacc::math::Size_t<simDim> coreBorderSuperCells( this->cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
+        const pmacc::math::Size_t<simDim> coreBorderCells = coreBorderSuperCells *
             precisionCast<size_t>( SuperCellSize().toRT() );
 
         /* register particle species observer */

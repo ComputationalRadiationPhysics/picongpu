@@ -36,7 +36,7 @@ namespace picongpu
 
 namespace adios
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /** Load attribute of a species from ADIOS checkpoint file
  *
@@ -64,7 +64,7 @@ struct LoadParticleAttributesFromADIOS
     {
 
         typedef T_Identifier Identifier;
-        typedef typename PMacc::traits::Resolve<Identifier>::type::type ValueType;
+        typedef typename pmacc::traits::Resolve<Identifier>::type::type ValueType;
         const uint32_t components = GetNComponents<ValueType>::value;
         typedef typename GetComponentsType<ValueType>::type ComponentType;
 

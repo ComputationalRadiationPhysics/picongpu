@@ -40,7 +40,7 @@ namespace picongpu
 {
 namespace currentSolver
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /** functor to get shape factor
  *
@@ -144,8 +144,8 @@ struct ZigZag
 
     static constexpr int currentLowerMargin = supp / 2 + 1;
     static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
-    typedef typename PMacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
     /* calculate grid point where we calculate the assigned values
      * grid points are independent of particle position if we use
@@ -184,9 +184,9 @@ struct ZigZag
             /* create support information to shift our coordinate system
              * use support of the particle assignment function
              */
-            typedef typename PMacc::math::CT::make_Int<simDim, supp>::type Supports_full;
+            typedef typename pmacc::math::CT::make_Int<simDim, supp>::type Supports_full;
             /* set evaluation direction to the support of the cloud particle shape function*/
-            typedef typename PMacc::math::CT::AssignIfInRange<
+            typedef typename pmacc::math::CT::AssignIfInRange<
                 typename Supports_full::This,
                 bmpl::integral_c<uint32_t, dir>,
                 bmpl::integral_c<int, supp_dir> >::type Supports_direction;
@@ -200,12 +200,12 @@ struct ZigZag
             ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldPosJ()[dir]);
 
             /* define grid points where we evaluate the shape function*/
-            typedef typename PMacc::math::CT::make_Vector<
+            typedef typename pmacc::math::CT::make_Vector<
                 simDim,
                 boost::mpl::range_c<int, begin, end > >::type Size_full;
 
             /* set grid points for the evaluation direction*/
-            typedef typename PMacc::math::CT::AssignIfInRange<
+            typedef typename pmacc::math::CT::AssignIfInRange<
                 typename Size_full::This,
                 bmpl::integral_c<uint32_t, dir>,
                 boost::mpl::range_c<int, dir_begin, dir_end > >::type::mplVector Size;
@@ -306,9 +306,9 @@ struct ZigZag
         }
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "ZigZag" );
+        pmacc::traits::StringProperty propList( "name", "ZigZag" );
         return propList;
     }
 

@@ -45,7 +45,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     class FieldB : public SimulationFieldHelper<MappingDesc>, public ISimulationData
     {

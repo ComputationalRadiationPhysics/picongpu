@@ -38,7 +38,7 @@ namespace plugins
 namespace particleMerging
 {
 
-    using namespace PMacc;
+    using namespace pmacc;
     namespace bmpl = boost::mpl;
 
     /** Implements a particle merging algorithm based on
@@ -52,7 +52,7 @@ namespace particleMerging
     template<
         class T_ParticlesType,
         bool hasVoronoiCellId =
-            PMacc::traits::HasIdentifier<
+            pmacc::traits::HasIdentifier<
                 typename T_ParticlesType::FrameType,
                 voronoiCellId
             >::type::value
@@ -96,16 +96,16 @@ namespace particleMerging
         {
             using SuperCellSize = MappingDesc::SuperCellSize;
 
-            const PMacc::math::Int<simDim> coreBorderGuardSuperCells =
+            const pmacc::math::Int<simDim> coreBorderGuardSuperCells =
                 this->cellDescription->getGridSuperCells();
             const uint32_t guardSuperCells =
                 this->cellDescription->getGuardingSuperCells();
-            const PMacc::math::Int<simDim> coreBorderSuperCells =
+            const pmacc::math::Int<simDim> coreBorderSuperCells =
                 coreBorderGuardSuperCells - 2 * guardSuperCells;
 
             /* this zone represents the core+border area with guard offset in unit of cells */
             const zone::SphericZone< simDim > zone(
-                static_cast< PMacc::math::Size_t< simDim > >(
+                static_cast< pmacc::math::Size_t< simDim > >(
                     coreBorderSuperCells * SuperCellSize::toRT()
                 ),
                 guardSuperCells * SuperCellSize::toRT()

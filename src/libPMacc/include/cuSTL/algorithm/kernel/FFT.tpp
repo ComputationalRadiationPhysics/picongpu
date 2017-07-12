@@ -26,7 +26,7 @@
 #include "cuSTL/zone/SphericZone.hpp"
 #include <cufft.h>
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -48,4 +48,4 @@ void FFT<2>::operator()(const Zone& p_zone, const DestCursor& destCursor, const 
 
 } // kernel
 } // algorithm
-} // PMacc
+} // pmacc

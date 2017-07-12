@@ -39,8 +39,8 @@ namespace picongpu
             /* this is an optional extension for sub-sampling pushes that enables grid to particle interpolation
              * for particle positions outside the super cell in one push
              */
-            typedef typename PMacc::math::CT::make_Int<simDim,0>::type LowerMargin;
-            typedef typename PMacc::math::CT::make_Int<simDim,0>::type UpperMargin;
+            typedef typename pmacc::math::CT::make_Int<simDim,0>::type LowerMargin;
+            typedef typename pmacc::math::CT::make_Int<simDim,0>::type UpperMargin;
 
             enum coords
             {
@@ -189,9 +189,9 @@ namespace picongpu
                 pos += dr;
             }
 
-            static PMacc::traits::StringProperty getStringProperties()
+            static pmacc::traits::StringProperty getStringProperties()
             {
-                PMacc::traits::StringProperty propList( "name", "other" );
+                pmacc::traits::StringProperty propList( "name", "other" );
                 propList["param"] = "semi analytical, Axel Huebl (2011)";
                 return propList;
             }

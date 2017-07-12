@@ -25,7 +25,7 @@
 #include <cmath>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -45,4 +45,4 @@ struct Erf<double>
 
 } /* namespace math */
 } /* namespace algorithms */
-} /* namespace PMacc */
+} /* namespace pmacc */

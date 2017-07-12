@@ -26,7 +26,7 @@
 #include "dimensions/GridLayout.hpp"
 #include "Selection.hpp"
 
-namespace PMacc
+namespace pmacc
 {
     /**
       * Groups local, global and total domain information.
@@ -154,7 +154,7 @@ namespace PMacc
     };
 
 
-} //namespace PMacc
+} //namespace pmacc
 
 
 

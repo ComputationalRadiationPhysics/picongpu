@@ -41,7 +41,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
 
     /** Tmp (at the moment: scalar) field for plugins and tmp data like

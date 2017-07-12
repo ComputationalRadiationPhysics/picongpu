@@ -31,7 +31,7 @@
 #include <sstream>
 #include <stdint.h>
 
-namespace PMacc
+namespace pmacc
 {
 
 
@@ -150,6 +150,6 @@ log(const LogLvl, const char* msg)
 
 
 
-} //namespace PMacc
+} //namespace pmacc
 
 

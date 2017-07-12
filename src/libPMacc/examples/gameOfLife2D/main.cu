@@ -133,8 +133,8 @@ int main( int argc, char **argv )
     sim.start( );
     sim.finalize( );
 
-    /* finalize the PMacc context */
-    PMacc::Environment<>::get().finalize();
+    /* finalize the pmacc context */
+    pmacc::Environment<>::get().finalize();
 
     return 0;
 }

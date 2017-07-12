@@ -23,7 +23,7 @@
 #include "parameters.hpp"
 #include "mpi/GetMPI_StructAsArray.hpp"
 
-typedef PMacc::math::Complex<picongpu::float_64> complex_64;
+typedef pmacc::math::Complex<picongpu::float_64> complex_64;
 
 /** class to store 3 complex numbers for the radiated amplitude
  */
@@ -133,7 +133,7 @@ private:
 };
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace mpi
 {
@@ -148,7 +148,7 @@ namespace mpi
   };
 
 }//namespace mpi
-}//namespace PMacc
+}//namespace pmacc
 
 
 

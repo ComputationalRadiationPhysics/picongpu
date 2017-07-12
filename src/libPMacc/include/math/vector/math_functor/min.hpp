@@ -26,7 +26,7 @@
 #include "lambda/Expression.hpp"
 #include "algorithms/math/defines/comparison.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -59,5 +59,5 @@ struct Functor<math::math_functor::Min, Type, Type>
 
 }
 
-} // PMacc
+} // pmacc
 

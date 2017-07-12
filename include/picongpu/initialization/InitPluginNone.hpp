@@ -27,7 +27,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     class InitPluginNone : public IInitPlugin
     {

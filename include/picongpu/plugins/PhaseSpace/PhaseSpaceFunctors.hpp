@@ -33,7 +33,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     /** Atomic Add Functor
      *
@@ -89,8 +89,8 @@ namespace picongpu
 
             /* cell id in this block */
             const int linearCellIdx = particle[localCellIdx_];
-            const PMacc::math::UInt32<simDim> cellIdx(
-                PMacc::math::MapToPos<simDim>()( SuperCellSize(), linearCellIdx ) );
+            const pmacc::math::UInt32<simDim> cellIdx(
+                pmacc::math::MapToPos<simDim>()( SuperCellSize(), linearCellIdx ) );
 
             const uint32_t r_bin    = cellIdx[r_dir];
             const float_X weighting = particle[weighting_];
@@ -162,18 +162,18 @@ namespace picongpu
          *                         \see cuSTL/algorithm/kernel/ForeachBlock.hpp
          */
         DINLINE void
-        operator()( const PMacc::math::Int<simDim>& indexBlockOffset )
+        operator()( const pmacc::math::Int<simDim>& indexBlockOffset )
         {
             /** \todo write math::Vector constructor that supports dim3 */
-            const PMacc::math::Int<simDim> indexGlobal = indexBlockOffset;
+            const pmacc::math::Int<simDim> indexGlobal = indexBlockOffset;
 
             /* create shared mem */
             const int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
-            typedef typename PMacc::math::CT::Int<num_pbins, blockCellsInDir> dBufferSizeInBlock;
+            typedef typename pmacc::math::CT::Int<num_pbins, blockCellsInDir> dBufferSizeInBlock;
             container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock;
 
             /* init shared mem */
-            PMacc::algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
+            pmacc::algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
             {
                 using namespace lambda;
                 DECLARE_PLACEHOLDERS();

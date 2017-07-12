@@ -26,7 +26,7 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/ITask.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -84,7 +84,7 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc
 
 #include "fields/tasks/FieldFactory.tpp"
 

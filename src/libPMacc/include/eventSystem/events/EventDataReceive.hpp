@@ -24,7 +24,7 @@
 
 #include "eventSystem/events/IEventData.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     class EventDataReceive : public IEventData
@@ -45,4 +45,4 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc

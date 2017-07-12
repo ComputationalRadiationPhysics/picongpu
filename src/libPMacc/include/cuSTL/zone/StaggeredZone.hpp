@@ -25,7 +25,7 @@
 #include "vector/Vector.hpp"
 #include "SphericZone.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace zone
 {
@@ -43,5 +43,5 @@ struct StaggeredZone : public SphericZone<T_dim>
 };
 
 } // zone
-} // PMacc
+} // pmacc
 

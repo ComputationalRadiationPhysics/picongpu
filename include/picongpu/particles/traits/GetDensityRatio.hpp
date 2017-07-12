@@ -49,7 +49,7 @@ struct GetDensityRatio
 {
     typedef typename T_Species::FrameType FrameType;
     typedef typename HasFlag<FrameType, densityRatio<> >::type hasDensityRatio;
-    typedef typename PMacc::traits::Resolve<
+    typedef typename pmacc::traits::Resolve<
         typename GetFlagType<
             FrameType, densityRatio<>
         >::type

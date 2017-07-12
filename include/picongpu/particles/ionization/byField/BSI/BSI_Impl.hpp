@@ -62,7 +62,7 @@ namespace ionization
         typedef typename SrcSpecies::FrameType FrameType;
 
         /* specify field to particle interpolation scheme */
-        typedef typename PMacc::traits::Resolve<
+        typedef typename pmacc::traits::Resolve<
             typename GetFlagType<FrameType,interpolation<> >::type
         >::type Field2ParticleInterpolation;
 
@@ -131,7 +131,7 @@ namespace ionization
 
                 ThreadCollective<
                     BlockArea,
-                    PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+                    pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
                 > collective( linearThreadIdx );
                 /* copy fields from global to shared */
                 auto fieldEBlock = eBox.shift(blockCell);

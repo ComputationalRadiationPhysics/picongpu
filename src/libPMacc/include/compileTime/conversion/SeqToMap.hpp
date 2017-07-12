@@ -35,7 +35,7 @@
 
 #include "compileTime/accessors/Identity.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** convert boost mpl sequence to a mpl map
@@ -68,4 +68,4 @@ struct SeqToMap
             >::type type;
 };
 
-}//namespace PMacc
+}//namespace pmacc

@@ -41,7 +41,7 @@
 
 #include <stdint.h>
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -138,6 +138,6 @@ public:
 };
 
 } // container
-} // PMacc
+} // pmacc
 
 #include "CartBuffer.tpp"

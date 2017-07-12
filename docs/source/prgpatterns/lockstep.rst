@@ -19,16 +19,16 @@ Code which is implemented by the *lockstep programming model* is free of any dep
 To simplify the implementation, each index within a domain can be seen as a *virtual worker* which is processing one data element (like the common workflow to programming CUDA).
 Each *worker* :math:`i` can be executed as :math:`N_i` *virtual workers* (:math:`1:N_i`).
 
-PMacc helpers
+pmacc helpers
 -------------
 
-.. doxygenstruct:: PMacc::mappings::threads::IdxConfig
+.. doxygenstruct:: pmacc::mappings::threads::IdxConfig
    :project: PIConGPU
 
-.. doxygenstruct:: PMacc::memory::CtxArray
+.. doxygenstruct:: pmacc::memory::CtxArray
    :project: PIConGPU
 
-.. doxygenstruct:: PMacc::mappings::threads::ForEachIdx
+.. doxygenstruct:: pmacc::mappings::threads::ForEachIdx
    :project: PIConGPU
 
 Common Patterns

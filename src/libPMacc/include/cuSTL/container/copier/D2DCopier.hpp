@@ -28,7 +28,7 @@
 #include "cuSTL/cursor/navigator/MapTo1DNavigator.hpp"
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace copier
 {
@@ -69,4 +69,4 @@ struct D2DCopier
 };
 
 } // copier
-} // PMacc
+} // pmacc

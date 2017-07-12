@@ -27,7 +27,7 @@
 #include "math/vector/Size_t.hpp"
 #include <cuSTL/cursor/traits.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -66,12 +66,12 @@ namespace traits
 template<typename Type, int T_dim>
 struct dim<BufferCursor<Type, T_dim> >
 {
-    static constexpr int value = PMacc::cursor::traits::dim<
+    static constexpr int value = pmacc::cursor::traits::dim<
         Cursor<PointerAccessor<Type>, BufferNavigator<T_dim>, Type*> >::value;
 };
 
 } // traits
 
 } // cursor
-} // PMacc
+} // pmacc
 

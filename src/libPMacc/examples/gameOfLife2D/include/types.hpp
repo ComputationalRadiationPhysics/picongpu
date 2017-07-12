@@ -26,7 +26,7 @@
 
 namespace gol
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     typedef DataSpace<DIM2> Space;
     typedef GridController<DIM2> GC;

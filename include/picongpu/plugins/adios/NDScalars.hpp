@@ -50,7 +50,7 @@ struct WriteNDScalars
     void prepare(ThreadParams& params, T_Attribute attribute = T_Attribute())
     {
         typedef traits::PICToAdios<T_Scalar> AdiosSkalarType;
-        typedef PMacc::math::UInt64<simDim> Dimensions;
+        typedef pmacc::math::UInt64<simDim> Dimensions;
 
         log<picLog::INPUT_OUTPUT> ("ADIOS: prepare write %1%D scalars: %2%") % simDim % name;
 

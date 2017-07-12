@@ -76,7 +76,7 @@ struct PhotonCreator
     typedef typename ElectronSpecies::FrameType FrameType;
 
     /* specify field to particle interpolation scheme */
-    typedef typename PMacc::particles::traits::ResolveAliasFromSpecies<
+    typedef typename pmacc::particles::traits::ResolveAliasFromSpecies<
         ElectronSpecies,
         interpolation<>
     >::type Field2ParticleInterpolation;
@@ -113,8 +113,8 @@ private:
     PMACC_ALIGN(photon_mom, float3_X);
 
     /* random number generator */
-    typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
-    typedef PMacc::random::distributions::Uniform<float> Distribution;
+    typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin> RNGFactory;
+    typedef pmacc::random::distributions::Uniform<float> Distribution;
     typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
     RandomGen randomGen;
 
@@ -158,7 +158,7 @@ public:
         auto fieldBBlock = bBox.shift(blockCell);
         ThreadCollective<
             BlockArea,
-            PMacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
+            pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
         > collective( linearThreadIdx );
         collective(
                   assign,
@@ -246,7 +246,7 @@ public:
      */
     DINLINE unsigned int numNewParticles(FrameType& sourceFrame, int localIdx)
     {
-        using namespace PMacc::algorithms;
+        using namespace pmacc::algorithms;
 
         auto particle = sourceFrame[localIdx];
 
@@ -328,7 +328,7 @@ public:
     template<typename Electron, typename Photon>
     DINLINE void operator()(Electron& electron, Photon& photon) const
     {
-        namespace parOp = PMacc::particles::operations;
+        namespace parOp = pmacc::particles::operations;
         auto destPhoton =
             parOp::deselect<
                 boost::mpl::vector<

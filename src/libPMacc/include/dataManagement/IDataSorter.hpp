@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
     /**
      * Interface for a simulation data sorting class.

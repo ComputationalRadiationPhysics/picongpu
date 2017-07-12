@@ -29,7 +29,7 @@ namespace picongpu
 {
 namespace currentSolver
 {
-using namespace PMacc;
+using namespace pmacc;
 
 template<typename ParticleShape = picongpu::particles::shapes::CIC>
 struct VillaBune;

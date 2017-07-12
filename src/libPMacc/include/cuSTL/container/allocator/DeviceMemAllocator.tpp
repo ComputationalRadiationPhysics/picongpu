@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace allocator
 {
@@ -113,4 +113,4 @@ void DeviceMemAllocator<Type, 1>::deallocate(const TCursor& cursor)
 }
 
 } // allocator
-} // PMacc
+} // pmacc

@@ -56,7 +56,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 namespace po = boost::program_options;
 
@@ -129,7 +129,7 @@ struct KernelRadiationParticles
          * for all frequencies
          */
 
-        const int blockSize=PMacc::math::CT::volume<Block>::type::value;
+        const int blockSize=pmacc::math::CT::volume<Block>::type::value;
         // vectorial part of the integrand in the Jackson formula
         PMACC_SMEM( real_amplitude_s, memory::Array< vector_64, blockSize > );
 

@@ -48,7 +48,7 @@
 
 namespace picongpu
 {
-using namespace PMacc;
+using namespace pmacc;
 
 namespace po = boost::program_options;
 
@@ -89,8 +89,8 @@ private:
     float3_X calorimeterFrameVecY;
     float3_X calorimeterFrameVecZ;
 
-    typedef PMacc::container::DeviceBuffer<float_X, DIM3> DBufCalorimeter;
-    typedef PMacc::container::HostBuffer<float_X, DIM3> HBufCalorimeter;
+    typedef pmacc::container::DeviceBuffer<float_X, DIM3> DBufCalorimeter;
+    typedef pmacc::container::HostBuffer<float_X, DIM3> HBufCalorimeter;
 
     /* device calorimeter buffer for a single gpu */
     DBufCalorimeter* dBufCalorimeter;
@@ -107,7 +107,7 @@ private:
     typedef boost::shared_ptr<MyCalorimeterFunctor> MyCalorimeterFunctorPtr;
     MyCalorimeterFunctorPtr calorimeterFunctor;
 
-    typedef boost::shared_ptr<PMacc::algorithm::mpi::Reduce<simDim> > AllGPU_reduce;
+    typedef boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim> > AllGPU_reduce;
     AllGPU_reduce allGPU_reduce;
 
     void restart(uint32_t restartStep, const std::string restartDirectory)
@@ -117,7 +117,7 @@ private:
 
         HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->size());
 
-        PMacc::GridController<simDim>& gridCon = PMacc::Environment<simDim>::get().GridController();
+        pmacc::GridController<simDim>& gridCon = pmacc::Environment<simDim>::get().GridController();
         pmacc::CommunicatorMPI<simDim>& comm = gridCon.getCommunicator();
         uint32_t rank = comm.getRank();
 
@@ -146,7 +146,7 @@ private:
             /* rank 0 divides and distributes the calorimeter to all ranks in equal parts */
             uint32_t numRanks = gridCon.getGlobalSize();
             using namespace lambda;
-            PMacc::algorithm::host::Foreach()(hBufLeftParsCalorimeter.zone(),
+            pmacc::algorithm::host::Foreach()(hBufLeftParsCalorimeter.zone(),
                                               hBufLeftParsCalorimeter.origin(),
                                               _1 = _1 / float_X(numRanks));
         }
@@ -208,7 +208,7 @@ private:
 
     void pluginLoad()
     {
-        namespace pm = PMacc::math;
+        namespace pm = pmacc::math;
 
         if(this->notifyPeriod == 0)
             return;
@@ -256,10 +256,10 @@ private:
         this->dBufLeftParsCalorimeter->assign(float_X(0.0));
 
         /* create mpi reduce algorithm */
-        PMacc::GridController<simDim>& con = PMacc::Environment<simDim>::get().GridController();
+        pmacc::GridController<simDim>& con = pmacc::Environment<simDim>::get().GridController();
         pm::Size_t<simDim> gpuDim = (pm::Size_t<simDim>)con.getGpuNodes();
         zone::SphericZone<simDim> zone_allGPUs(gpuDim);
-        this->allGPU_reduce = AllGPU_reduce(new PMacc::algorithm::mpi::Reduce<simDim>(zone_allGPUs));
+        this->allGPU_reduce = AllGPU_reduce(new pmacc::algorithm::mpi::Reduce<simDim>(zone_allGPUs));
 
         /* calculate rotated calorimeter frame from posYaw_deg and posPitch_deg */
         const float_64 posYaw_rad = this->posYaw_deg * float_64(M_PI / 180.0);
@@ -440,13 +440,13 @@ public:
         /* create zone */
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
 
-        const PMacc::math::Int<simDim> coreBorderGuardSuperCells = this->cellDescription->getGridSuperCells();
+        const pmacc::math::Int<simDim> coreBorderGuardSuperCells = this->cellDescription->getGridSuperCells();
         const uint32_t guardSuperCells = this->cellDescription->getGuardingSuperCells();
-        const PMacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2*guardSuperCells;
+        const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2*guardSuperCells;
 
         /* this zone represents the core+border area with guard offset in unit of cells */
         const zone::SphericZone<simDim> zone(
-            static_cast<PMacc::math::Size_t<simDim> >(coreBorderSuperCells * SuperCellSize::toRT()),
+            static_cast<pmacc::math::Size_t<simDim> >(coreBorderSuperCells * SuperCellSize::toRT()),
             guardSuperCells * SuperCellSize::toRT());
 
         /* kernel call */

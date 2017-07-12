@@ -25,9 +25,9 @@
 #include "dimensions/DataSpace.hpp"
 #include "math/Vector.hpp"
 
-namespace PMacc
+namespace pmacc
 {
-    namespace ct = PMacc::math::CT;
+    namespace ct = pmacc::math::CT;
 
     /** Define a SuperCell with guarding cells
      *

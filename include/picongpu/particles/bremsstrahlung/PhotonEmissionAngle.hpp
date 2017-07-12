@@ -56,9 +56,9 @@ namespace detail
  */
 struct GetPhotonAngleFunctor
 {
-    typedef typename ::PMacc::result_of::Functor<
-        ::PMacc::cursor::tools::LinearInterp<float_X>,
-        ::PMacc::cursor::BufferCursor<float_X, DIM2> >::type LinInterpCursor;
+    typedef typename ::pmacc::result_of::Functor<
+        ::pmacc::cursor::tools::LinearInterp<float_X>,
+        ::pmacc::cursor::BufferCursor<float_X, DIM2> >::type LinInterpCursor;
 
     typedef float_X type;
 
@@ -115,7 +115,7 @@ struct GetPhotonAngle
 
 private:
 
-    typedef boost::shared_ptr<PMacc::container::DeviceBuffer<float_X, DIM2> > MyBuf;
+    typedef boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2> > MyBuf;
     MyBuf dBufTheta;
 
     /** probability density at polar angle theta.
@@ -224,11 +224,11 @@ public:
     void init()
     {
         // there is a margin of one cell to make the linear interpolation valid for border cells.
-        this->dBufTheta = MyBuf(new PMacc::container::DeviceBuffer<float_X, DIM2>(
+        this->dBufTheta = MyBuf(new pmacc::container::DeviceBuffer<float_X, DIM2>(
             photon::NUM_SAMPLES_DELTA + 1,
             photon::NUM_SAMPLES_GAMMA + 1));
 
-        PMacc::container::HostBuffer<float_X, DIM2> hBufTheta(this->dBufTheta->size());
+        pmacc::container::HostBuffer<float_X, DIM2> hBufTheta(this->dBufTheta->size());
         hBufTheta.assign(float_X(0.0));
         auto curTheta = hBufTheta.origin();
 
@@ -260,7 +260,7 @@ public:
     GetPhotonAngleFunctor getPhotonAngleFunctor() const
     {
         GetPhotonAngleFunctor::LinInterpCursor linInterpCursor =
-            PMacc::cursor::tools::LinearInterp<float_X>()(this->dBufTheta->origin());
+            pmacc::cursor::tools::LinearInterp<float_X>()(this->dBufTheta->origin());
 
         return GetPhotonAngleFunctor(linInterpCursor);
     }

@@ -24,7 +24,7 @@
 #include "pmacc_types.hpp"
 #include "math/vector/TwistComponents.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace cursor
 {
@@ -49,4 +49,4 @@ struct TwistAxesAccessor
 };
 
 } // cursor
-} // PMacc
+} // pmacc

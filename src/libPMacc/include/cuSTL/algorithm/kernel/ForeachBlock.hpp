@@ -38,7 +38,7 @@
 #include "eventSystem/tasks/TaskKernel.hpp"
 #include "eventSystem/events/kernelEvents.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -92,7 +92,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
                                                                                                             \
         auto blockDim = ThreadBlock::toRT();                                                                \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                  \
-        using namespace PMacc;                                                                              \
+        using namespace pmacc;                                                                              \
         PMACC_KERNEL(detail::KernelForeachBlock{})(mapper.cudaGridDim(p_zone.size), blockDim)               \
                     /* c0_shifted, c1_shifted, ... */                                                       \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                   \
@@ -104,7 +104,7 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
  * shifts them to the top left (front) corner cell of their corresponding cuda block.
  * So if BlockDim is 4x4x4 it shifts 64 cursors to (0,0,0), 64 to (4,0,0), 64 to (8,0,0), ...
  *
- * \tparam BlockDim 3D compile-time vector (PMacc::math::CT::Int) of the size of the cuda blockDim.
+ * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cuda blockDim.
  * \tparam ThreadBlock ignored
  */
 template<typename BlockDim, typename ThreadBlock = BlockDim>
@@ -128,5 +128,5 @@ struct ForeachBlock
 
 } // kernel
 } // algorithm
-} // PMacc
+} // pmacc
 

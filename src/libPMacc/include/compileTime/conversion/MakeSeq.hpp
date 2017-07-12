@@ -26,7 +26,7 @@
 #include <boost/mpl/vector.hpp>
 #include "compileTime/conversion/MakeSeqFromNestedSeq.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** combine all input types to one sequence
@@ -54,4 +54,4 @@ struct MakeSeq
 template< typename... T_Args >
 using MakeSeq_t = typename MakeSeq< T_Args... >::type;
 
-} //namespace PMacc
+} //namespace pmacc

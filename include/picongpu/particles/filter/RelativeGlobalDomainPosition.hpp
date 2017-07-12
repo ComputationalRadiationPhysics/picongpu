@@ -121,7 +121,7 @@ namespace acc
 
         /** create filter for the accelerator
          *
-         * @tparam T_WorkerCfg PMacc::mappings::threads::WorkerCfg, configuration of the worker
+         * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
          * @param localSupercellOffset offset (in superCells, without any guards) relative
          *                        to the origin of the local domain
          * @param configuration of the worker

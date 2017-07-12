@@ -22,7 +22,7 @@
 #pragma once
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -219,4 +219,4 @@ operator/(const Complex<T_Type>& lhs, const Complex<T_Type>& rhs)
 }
 
 } //namespace math
-} //namespace PMacc
+} //namespace pmacc

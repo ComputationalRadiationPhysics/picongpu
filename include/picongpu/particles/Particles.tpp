@@ -53,7 +53,7 @@ namespace picongpu
 {
 
 
-using namespace PMacc;
+using namespace pmacc;
 
 template<
     typename T_Name,
@@ -83,7 +83,7 @@ Particles<
 
     log<picLog::MEMORY > ( "size for all exchange = %1% MiB" ) % ( (float_64) sizeOfExchanges / 1024. / 1024. );
 
-    const uint32_t commTag = PMacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() + SPECIES_FIRSTTAG;
+    const uint32_t commTag = pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() + SPECIES_FIRSTTAG;
     log<picLog::MEMORY > ( "communication tag for species %1%: %2%" ) % FrameType::getName( ) % commTag;
 
     this->particlesBuffer->addExchange( Mask( LEFT ) + Mask( RIGHT ),
@@ -194,9 +194,9 @@ Particles<
 >::update(uint32_t )
 {
     using PusherAlias = typename GetFlagType<FrameType,particlePusher<> >::type;
-    using ParticlePush = typename PMacc::traits::Resolve<PusherAlias>::type;
+    using ParticlePush = typename pmacc::traits::Resolve<PusherAlias>::type;
 
-    using InterpolationScheme = typename PMacc::traits::Resolve<
+    using InterpolationScheme = typename pmacc::traits::Resolve<
         typename GetFlagType<
             FrameType,
             interpolation< >
@@ -234,8 +234,8 @@ Particles<
         MappingDesc
     > mapper( this->cellDescription );
 
-    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-        PMacc::math::CT::volume< SuperCellSize >::type::value
+    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+        pmacc::math::CT::volume< SuperCellSize >::type::value
     >::value;
 
     PMACC_KERNEL( KernelMoveAndMarkParticles< numWorkers, BlockArea >{ } )(
@@ -283,8 +283,8 @@ Particles<
     DataSpace< simDim > totalGpuCellOffset = subGrid.getLocalDomain( ).offset;
     totalGpuCellOffset.y( ) += numSlides * localCells.y( );
 
-    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-        PMacc::math::CT::volume< SuperCellSize >::type::value
+    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+        pmacc::math::CT::volume< SuperCellSize >::type::value
     >::value;
 
     AreaMapping<
@@ -341,8 +341,8 @@ Particles<
 
     AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
 
-    constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-           PMacc::math::CT::volume< SuperCellSize >::type::value
+    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+           pmacc::math::CT::volume< SuperCellSize >::type::value
     >::value;
 
     PMACC_KERNEL( KernelDeriveParticles< numWorkers >{ } )(

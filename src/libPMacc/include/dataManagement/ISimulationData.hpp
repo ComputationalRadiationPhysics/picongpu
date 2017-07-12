@@ -24,7 +24,7 @@
 
 #include <string>
 
-namespace PMacc
+namespace pmacc
 {
     typedef std::string SimulationDataId;
 

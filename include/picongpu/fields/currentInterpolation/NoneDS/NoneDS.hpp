@@ -33,7 +33,7 @@ namespace picongpu
 {
 namespace currentInterpolation
 {
-using namespace PMacc;
+using namespace pmacc;
 
 namespace detail
 {
@@ -43,8 +43,8 @@ namespace detail
         static constexpr uint32_t dim = T_simDim;
 
         /* UpperMargin is actually 0 in direction of T_plane */
-        typedef typename PMacc::math::CT::make_Int<dim, 0>::type LowerMargin;
-        typedef typename PMacc::math::CT::make_Int<dim, 1>::type UpperMargin;
+        typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
+        typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
 
         template<typename DataBox>
         HDINLINE float_X operator()(DataBox field) const
@@ -131,8 +131,8 @@ struct NoneDS
 {
     static constexpr uint32_t dim = T_simDim;
 
-    typedef typename PMacc::math::CT::make_Int<dim, 0>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<dim, 1>::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
 
     template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
     HDINLINE void operator()(DataBoxE fieldE,
@@ -167,9 +167,9 @@ struct NoneDS
         fieldB(self) += jAvgB * constB;
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "none" );
+        pmacc::traits::StringProperty propList( "name", "none" );
         return propList;
     }
 };

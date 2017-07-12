@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -131,4 +131,4 @@ atan2(const T1& val1, const T1& val2)
 
 } /* namespace math */
 } /* namespace algorithms */
-} /* namespace PMacc */
+} /* namespace pmacc */

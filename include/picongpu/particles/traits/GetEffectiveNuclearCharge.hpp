@@ -42,7 +42,7 @@ namespace traits
 
         using FoundEffectiveNuclearChargeAlias = typename GetFlagType<FrameType,effectiveNuclearCharge<> >::type;
         /* Extract vector of effective atomic numbers */
-        using type = typename PMacc::traits::Resolve<FoundEffectiveNuclearChargeAlias >::type;
+        using type = typename pmacc::traits::Resolve<FoundEffectiveNuclearChargeAlias >::type;
 
         static constexpr int protonNumber = static_cast<int>(GetAtomicNumbers<SpeciesType>::type::numberOfProtons);
         /* length of the ionization energy vector */

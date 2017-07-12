@@ -27,7 +27,7 @@
 
 namespace picongpu
 {
-    using namespace PMacc;
+    using namespace pmacc;
 
     /**
      * Interface for a simulation plugin in PIConGPU which has a MappingDesc.

@@ -22,7 +22,7 @@
 namespace picongpu
 {
 
-    using namespace PMacc;
+    using namespace pmacc;
 
     struct Velocity
     {

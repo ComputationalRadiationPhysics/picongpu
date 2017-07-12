@@ -33,7 +33,7 @@ namespace picongpu
 {
 namespace currentSolver
 {
-using namespace PMacc;
+using namespace pmacc;
 
 /**
  * Implements the current deposition algorithm from T.Zh. Esirkepov
@@ -51,8 +51,8 @@ struct Esirkepov<T_ParticleShape, DIM2>
 
     static constexpr int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;
     static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
-    typedef typename PMacc::math::CT::make_Int<DIM2, currentLowerMargin>::type LowerMargin;
-    typedef typename PMacc::math::CT::make_Int<DIM2, currentUpperMargin>::type UpperMargin;
+    typedef typename pmacc::math::CT::make_Int<DIM2, currentLowerMargin>::type LowerMargin;
+    typedef typename pmacc::math::CT::make_Int<DIM2, currentUpperMargin>::type UpperMargin;
 
     static constexpr int begin = -currentLowerMargin + 1;
     static constexpr int end = begin + supp;
@@ -119,7 +119,7 @@ struct Esirkepov<T_ParticleShape, DIM2>
         );
         cptCurrent1D(DataSpace<DIM2>(
             leaveCell[1],leaveCell[0]),
-            twistVectorFieldAxes<PMacc::math::CT::Int < 1, 0 > >(cursorJ),
+            twistVectorFieldAxes<pmacc::math::CT::Int < 1, 0 > >(cursorJ),
             rotateOrigin < 1, 0 > (line),
             cellSize.y()
         );
@@ -257,9 +257,9 @@ struct Esirkepov<T_ParticleShape, DIM2>
         return ParticleAssign()(gridPoint - line.m_pos1[d]) - ParticleAssign()(gridPoint - line.m_pos0[d]);
     }
 
-    static PMacc::traits::StringProperty getStringProperties()
+    static pmacc::traits::StringProperty getStringProperties()
     {
-        PMacc::traits::StringProperty propList( "name", "Esirkepov" );
+        pmacc::traits::StringProperty propList( "name", "Esirkepov" );
         return propList;
     }
 };

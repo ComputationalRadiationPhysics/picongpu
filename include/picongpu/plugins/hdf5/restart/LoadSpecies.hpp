@@ -52,7 +52,7 @@ namespace picongpu
 
 namespace hdf5
 {
-using namespace PMacc;
+using namespace pmacc;
 
 using namespace splash;
 
@@ -103,8 +103,8 @@ public:
         const std::string speciesSubGroup(
             std::string("particles/") + FrameType::getName() + std::string("/")
         );
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-        const PMacc::Selection<simDim>& globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
 
         // load particle without copying particle data to host
         auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
@@ -188,7 +188,7 @@ public:
 
         if (totalNumParticles != 0)
         {
-            PMacc::particles::operations::splitIntoListOfFrames(
+            pmacc::particles::operations::splitIntoListOfFrames(
                 *speciesTmp,
                 deviceFrame,
                 totalNumParticles,

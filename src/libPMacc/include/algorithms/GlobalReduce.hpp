@@ -27,7 +27,7 @@
 #include "mpi/MPIReduce.hpp"
 #include "traits/GetValueType.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithms
 {
@@ -75,8 +75,8 @@ public:
         return globalResult;
     }
 private:
-    ::PMacc::nvidia::reduce::Reduce reduce;
-    ::PMacc::mpi::MPIReduce mpi_reduce;
+    ::pmacc::nvidia::reduce::Reduce reduce;
+    ::pmacc::mpi::MPIReduce mpi_reduce;
 };
 }
 }

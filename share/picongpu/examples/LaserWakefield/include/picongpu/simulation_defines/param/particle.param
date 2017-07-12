@@ -29,7 +29,7 @@
 namespace picongpu
 {
 /* short namespace*/
-namespace mCT = PMacc::math::CT;
+namespace mCT = pmacc::math::CT;
 
 // Macro Particle Configuration -------------------------------------------
 

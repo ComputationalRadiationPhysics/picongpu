@@ -34,7 +34,7 @@ namespace picongpu
 namespace hdf5
 {
 
-using namespace PMacc;
+using namespace pmacc;
 using namespace splash;
 
 struct Field
@@ -96,7 +96,7 @@ struct Field
          * ATTENTION: splash offset are globalSlideOffset + picongpu offsets
          */
         DataSpace<simDim> globalSlideOffset;
-        const PMacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
+        const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(params->currentStep);
         globalSlideOffset.y() += numSlides * localDomain.size.y();
 

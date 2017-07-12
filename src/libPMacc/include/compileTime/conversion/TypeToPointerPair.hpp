@@ -26,7 +26,7 @@
 #include <boost/mpl/pair.hpp>
 
 
-namespace PMacc
+namespace pmacc
 {
 
 /** Wrapper to use any type as identifier
@@ -72,4 +72,4 @@ struct TypeToPointerPair
     typedef bmpl::pair< typename MakeIdentifier<T_Type>::type , TypePtr > type;
 };
 
-}//namespace PMacc
+}//namespace pmacc

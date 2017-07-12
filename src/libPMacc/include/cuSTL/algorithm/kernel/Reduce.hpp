@@ -26,7 +26,7 @@
 #include <nvidia/reduce/Reduce.hpp>
 #include <cuSTL/cursor/navigator/MapTo1DNavigator.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace algorithm
 {
@@ -55,7 +55,7 @@ struct Reduce
                                                    myNavi,
                                                    srcCursor_shifted);
 
-        PMacc::nvidia::reduce::Reduce reduce(1024);
+        pmacc::nvidia::reduce::Reduce reduce(1024);
         return reduce(functor, _srcCursor, p_zone.size.productOfComponents());
     }
 
@@ -63,4 +63,4 @@ struct Reduce
 
 } // kernel
 } // algorithm
-} // PMacc
+} // pmacc

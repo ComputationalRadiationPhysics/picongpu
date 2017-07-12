@@ -23,7 +23,7 @@
 #include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.hpp"
 #include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.kernel"
 
-// PMacc
+// pmacc
 #include "static_assert.hpp"
 #include "Environment.hpp"
 #include "algorithms/ForEach.hpp"
@@ -86,8 +86,8 @@ namespace detail
             > mapper( cellDescription );
 
             // add energy histogram on top of existing data
-            constexpr uint32_t numWorkers = PMacc::traits::GetNumWorkers<
-                PMacc::math::CT::volume< SuperCellSize >::type::value
+            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+                pmacc::math::CT::volume< SuperCellSize >::type::value
             >::value;
             PMACC_KERNEL( helperFields::KernelAddLocalEnergyHistogram< numWorkers >{ } )
             (

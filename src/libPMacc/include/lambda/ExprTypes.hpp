@@ -22,7 +22,7 @@
 #ifndef LAMBDA_KERNEL_EXPRTYPES_H
 #define LAMBDA_KERNEL_EXPRTYPES_H
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -41,6 +41,6 @@ struct subscript;
 
 } // exprTypes
 } // lambda
-} // PMacc
+} // pmacc
 
 #endif // LAMBDA_KERNEL_EXPRTYPES_H

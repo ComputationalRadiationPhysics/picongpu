@@ -40,7 +40,7 @@ struct KernelSetValueOnDeviceMemory
     }
 };
 
-namespace PMacc
+namespace pmacc
 {
 
 template <class TYPE, unsigned DIM>
@@ -105,5 +105,5 @@ private:
     const size_t size;
 };
 
-} //namespace PMacc
+} //namespace pmacc
 

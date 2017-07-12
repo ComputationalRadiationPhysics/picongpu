@@ -23,7 +23,7 @@
 
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace errorHandlerPolicies
 {
@@ -42,4 +42,4 @@ struct ReturnType
 };
 
 } // namespace errorHandlerPolicies
-} // namespace PMacc
+} // namespace pmacc

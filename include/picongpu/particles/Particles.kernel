@@ -65,8 +65,8 @@ struct KernelDeriveParticles
 {
     /** frame-wise derive new particles
      *
-     * @tparam T_DestParBox PMacc::ParticlesBox, type of the destination species box
-     * @tparam T_SrcParBox PMacc::ParticlesBox, type of the source species box
+     * @tparam T_DestParBox pmacc::ParticlesBox, type of the destination species box
+     * @tparam T_SrcParBox pmacc::ParticlesBox, type of the source species box
      * @tparam T_ManipulateFunctor type of the user functor to derive a particle
      * @tparam T_Mapping mapping functor type
      *
@@ -89,13 +89,13 @@ struct KernelDeriveParticles
         T_Mapping const & mapper
     ) const
     {
-        using namespace PMacc::particles::operations;
+        using namespace pmacc::particles::operations;
         using namespace mappings::threads;
 
         using DestFramePtr = typename T_DestParBox::FramePtr;
         using SrcFramePtr = typename T_SrcParBox::FramePtr;
 
-        constexpr uint32_t frameSize = PMacc::math::CT::volume< SuperCellSize >::type::value;
+        constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
         constexpr uint32_t numWorker = T_numWorkers;
 
         uint32_t const workerIdx = threadIdx.x;
@@ -243,7 +243,7 @@ struct KernelManipulateAllParticles
 
         auto accManipulator = particleFunctor(
             localSuperCellOffset,
-            mappings::threads::WorkerCfg< PMacc::math::CT::volume<
+            mappings::threads::WorkerCfg< pmacc::math::CT::volume<
                 SuperCellSize
             >::type::value >( linearThreadIdx )
         );
@@ -272,10 +272,10 @@ struct KernelManipulateAllParticles
  * Move frame-wise over a species and call a functor for each particle.
  * This kernel is optimized for the particle push step and handles the
  * special flag `mustShift` of the supercell to optimize the kernel shift particles
- * in PMacc.
+ * in pmacc.
  *
  * @tparam T_numWorkers number of workers
- * @tparam T_DataDomain PMacc::SuperCellDescription, compile time data domain
+ * @tparam T_DataDomain pmacc::SuperCellDescription, compile time data domain
  *                      description with a CORE and GUARD
  */
 template<
@@ -286,9 +286,9 @@ struct KernelMoveAndMarkParticles
 {
     /** update all particles
      *
-     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
-     * @tparam T_EBox PMacc::DataBox, electric field box type
-     * @tparam T_BBox PMacc::DataBox, magnetic field box type
+     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
+     * @tparam T_EBox pmacc::DataBox, electric field box type
+     * @tparam T_BBox pmacc::DataBox, magnetic field box type
      * @tparam T_ParticleFunctor particle functor type
      * @tparam T_Mapping mapper functor type
      *
@@ -315,7 +315,7 @@ struct KernelMoveAndMarkParticles
     {
         using namespace mappings::threads;
 
-        constexpr uint32_t frameSize = PMacc::math::CT::volume< SuperCellSize >::type::value;
+        constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 
         uint32_t const workerIdx = threadIdx.x;
@@ -437,7 +437,7 @@ struct KernelMoveAndMarkParticles
             )
             {
                 /* set in SuperCell the mustShift flag which is an optimization
-                 * for shift particles (PMacc::KernelShiftParticles)
+                 * for shift particles (pmacc::KernelShiftParticles)
                  */
                 if( mustShift == 1 )
                 {

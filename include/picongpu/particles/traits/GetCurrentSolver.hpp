@@ -30,7 +30,7 @@ namespace traits
 template<typename T_Species>
 struct GetCurrentSolver
 {
-    typedef typename PMacc::traits::Resolve<
+    typedef typename pmacc::traits::Resolve<
         typename GetFlagType<typename T_Species::FrameType, current<> >::type
     >::type type;
 };

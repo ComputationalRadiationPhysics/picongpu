@@ -27,7 +27,7 @@
 #include "dimensions/DataSpace.hpp"
 #include <stdexcept>
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -72,7 +72,7 @@ namespace PMacc
          * @param base object of base class baseClass (see template parameters)
          * @param direction exchange direction to map to
          */
-        HINLINE BorderMapping(const BaseClass& base, PMacc::ExchangeType direction): BaseClass(base), m_direction(direction)
+        HINLINE BorderMapping(const BaseClass& base, pmacc::ExchangeType direction): BaseClass(base), m_direction(direction)
         {
             PMACC_ASSERT(direction != 0);
         }
@@ -80,7 +80,7 @@ namespace PMacc
         /**
          * Returns the exchange direction used by this mapper
          */
-        HDINLINE PMacc::ExchangeType
+        HDINLINE pmacc::ExchangeType
         getDirection() const
         {
             return m_direction;
@@ -129,6 +129,6 @@ namespace PMacc
             return result;
         }
     private:
-        PMACC_ALIGN(m_direction, const PMacc::ExchangeType);
+        PMACC_ALIGN(m_direction, const pmacc::ExchangeType);
     };
-} // namespace PMacc
+} // namespace pmacc

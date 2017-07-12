@@ -47,7 +47,7 @@ namespace traits
     struct
     GetSpeciesFlagName
     {
-        typedef typename PMacc::traits::Resolve<
+        typedef typename pmacc::traits::Resolve<
             typename GetFlagType<
                 typename T_Species::FrameType,
                 T_Flag

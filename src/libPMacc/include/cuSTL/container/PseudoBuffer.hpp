@@ -25,7 +25,7 @@
 #include "memory/buffers/HostBuffer.hpp"
 #include "cuSTL/container/CartBuffer.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -34,13 +34,13 @@ template<typename Type, int dim>
 struct PseudoBuffer : public container::CartBuffer<Type, dim>
 {
     template<typename _Type>
-    PseudoBuffer(PMacc::DeviceBuffer<_Type, dim>& devBuffer);
+    PseudoBuffer(pmacc::DeviceBuffer<_Type, dim>& devBuffer);
     template<typename _Type>
-    PseudoBuffer(PMacc::HostBuffer<_Type, dim>& hostBuffer);
+    PseudoBuffer(pmacc::HostBuffer<_Type, dim>& hostBuffer);
 };
 
 } // container
-} // PMacc
+} // pmacc
 
 #include "PseudoBuffer.tpp"
 

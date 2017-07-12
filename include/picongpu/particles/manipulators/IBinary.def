@@ -50,13 +50,13 @@ namespace manipulators
         typename T_BinaryFunctor,
         typename T_UnaryFilter = filter::IsHandleValid
     >
-    using IBinary = PMacc::functor::Filtered<
-        PMacc::filter::operators::And,
-        PMacc::filter::Interface<
+    using IBinary = pmacc::functor::Filtered<
+        pmacc::filter::operators::And,
+        pmacc::filter::Interface<
             T_UnaryFilter,
             1u
         >,
-        PMacc::functor::Interface<
+        pmacc::functor::Interface<
             T_BinaryFunctor,
             2u,
             void

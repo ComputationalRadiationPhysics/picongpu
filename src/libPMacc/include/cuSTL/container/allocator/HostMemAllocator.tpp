@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace allocator
 {
@@ -100,4 +100,4 @@ void HostMemAllocator<Type, 1>::deallocate(const TCursor& cursor)
 }
 
 } // allocator
-} // PMacc
+} // pmacc

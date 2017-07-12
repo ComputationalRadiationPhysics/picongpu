@@ -25,7 +25,7 @@
 #include "Memcopy.hpp"
 #include "pmacc_types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace copier
 {
@@ -47,4 +47,4 @@ struct H2HCopier
 };
 
 } // copier
-} // PMacc
+} // pmacc

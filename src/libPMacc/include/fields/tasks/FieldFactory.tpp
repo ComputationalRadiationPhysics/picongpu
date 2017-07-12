@@ -30,7 +30,7 @@
 #include "eventSystem/tasks/Factory.hpp"
 #include "eventSystem/tasks/ITask.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     template<class Field>
@@ -71,7 +71,7 @@ namespace PMacc
 
 
 
-} //namespace PMacc
+} //namespace pmacc
 
 
 

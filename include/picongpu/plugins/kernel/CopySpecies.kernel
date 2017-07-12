@@ -31,7 +31,7 @@
 namespace picongpu
 {
 
-using namespace PMacc;
+using namespace pmacc;
 
 
 struct CopySpecies
@@ -68,7 +68,7 @@ struct CopySpecies
         const T_Mapping mapper
     ) const
     {
-        using namespace PMacc::particles::operations;
+        using namespace pmacc::particles::operations;
 
         typedef T_DestFrame DestFrameType;
         typedef typename T_SrcBox::FrameType SrcFrameType;

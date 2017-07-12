@@ -46,8 +46,8 @@ namespace acc
     {
         /** copy attribute
          *
-         * @tparam T_Particle PMacc::Particle, particle type
-         * @tparam T_Args PMacc::Particle, arbitrary number of particles types
+         * @tparam T_Particle pmacc::Particle, particle type
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
          *
          * @param particle particle to be manipulated
          * @param ... unused particles

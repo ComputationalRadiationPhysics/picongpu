@@ -50,7 +50,7 @@
 
 namespace mpl = boost::mpl;
 
-namespace PMacc
+namespace pmacc
 {
 namespace lambda
 {
@@ -196,4 +196,4 @@ struct is_Expression<Expression<_ExprType, _Childs> >
 DECLARE_PLACEHOLDERS()
 
 } // lambda
-} // PMacc
+} // pmacc

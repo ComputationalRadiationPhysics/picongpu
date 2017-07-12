@@ -66,7 +66,7 @@ struct Bremsstrahlung
     typedef typename ElectronSpecies::FrameType FrameType;
 
     /* specify field to particle interpolation scheme */
-    typedef typename PMacc::traits::Resolve<
+    typedef typename pmacc::traits::Resolve<
         typename GetFlagType<FrameType,interpolation<> >::type
         >::type Field2ParticleInterpolation;
 
@@ -100,8 +100,8 @@ private:
     PMACC_ALIGN(photonMom, float3_X);
 
     /* random number generator */
-    typedef PMacc::random::RNGProvider<simDim, PMacc::random::methods::XorMin> RNGFactory;
-    typedef PMacc::random::distributions::Uniform<float> Distribution;
+    typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin> RNGFactory;
+    typedef pmacc::random::distributions::Uniform<float> Distribution;
     typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
     RandomGen randomGen;
 

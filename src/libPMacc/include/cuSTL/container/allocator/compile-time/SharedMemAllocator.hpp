@@ -28,7 +28,7 @@
 #include "pmacc_types.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace allocator
 {
@@ -47,7 +47,7 @@ struct SharedMemAllocator<Type, Size, 1, uid>
 
     __device__ static Cursor allocate()
     {
-        auto& shMem = PMacc::memory::shared::allocate<
+        auto& shMem = pmacc::memory::shared::allocate<
             uid,
             memory::Array<
                 Type,
@@ -68,7 +68,7 @@ struct SharedMemAllocator<Type, Size, 2, uid>
 
     __device__ static Cursor allocate()
     {
-        auto& shMem = PMacc::memory::shared::allocate<
+        auto& shMem = pmacc::memory::shared::allocate<
             uid,
             memory::Array<
                 Type,
@@ -90,7 +90,7 @@ struct SharedMemAllocator<Type, Size, 3, uid>
 
     __device__ static Cursor allocate()
     {
-        auto& shMem = PMacc::memory::shared::allocate<
+        auto& shMem = pmacc::memory::shared::allocate<
             uid,
             memory::Array<
                 Type,
@@ -103,5 +103,5 @@ struct SharedMemAllocator<Type, Size, 3, uid>
 
 } // CT
 } // allocator
-} // PMacc
+} // pmacc
 

@@ -26,7 +26,7 @@
 
 namespace mpl = boost::mpl;
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -67,4 +67,4 @@ struct Float<X, Y>
 
 } // CT
 } // math
-} // PMacc
+} // pmacc

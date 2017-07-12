@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace container
 {
@@ -72,4 +72,4 @@ private:
 
 
 } // container
-} // PMacc
+} // pmacc

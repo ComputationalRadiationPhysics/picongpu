@@ -33,8 +33,8 @@ namespace traits
     /** \tparam floatD_X position of the component in the cell
      *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
      */
-    typedef const ::PMacc::math::Vector<float2_X,DIM3> VectorVector2D3V;
-    typedef const ::PMacc::math::Vector<float3_X,DIM3> VectorVector3D3V;
+    typedef const ::pmacc::math::Vector<float2_X,DIM3> VectorVector2D3V;
+    typedef const ::pmacc::math::Vector<float3_X,DIM3> VectorVector3D3V;
 
     template<typename T_Field, uint32_t T_simDim = simDim>
     struct FieldPosition;
@@ -150,8 +150,8 @@ namespace traits
     template<uint32_t T_simDim>
     struct FieldPosition<FieldTmp, T_simDim>
     {
-        typedef PMacc::math::Vector<float_X, T_simDim> FieldPos;
-        typedef PMacc::math::Vector<FieldPos, DIM1> ReturnType;
+        typedef pmacc::math::Vector<float_X, T_simDim> FieldPos;
+        typedef pmacc::math::Vector<FieldPos, DIM1> ReturnType;
 
         /// boost::result_of hints
         template<class> struct result;
