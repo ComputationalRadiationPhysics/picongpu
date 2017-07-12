@@ -35,8 +35,8 @@ fi
 cd $TBG_dstPath
 mkdir input
 cp -ar $TBG_projectPath/bin input
-cp -ar $TBG_projectPath/include/picongpu input
-cp -ar $TBG_projectPath/submit input
+cp -ar $TBG_projectPath/include input
+cp -ar $TBG_projectPath/etc input
 if [ -d "$TBG_projectPath/lib" ]
 then
   cp -ar $TBG_projectPath/lib input
