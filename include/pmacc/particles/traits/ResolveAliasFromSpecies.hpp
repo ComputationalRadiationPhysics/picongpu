@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "particles/memory/frames/Frame.hpp"
-#include "traits/GetFlagType.hpp"
-#include "traits/Resolve.hpp"
-#include "identifier/alias.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/particles/memory/frames/Frame.hpp"
+#include "pmacc/traits/GetFlagType.hpp"
+#include "pmacc/traits/Resolve.hpp"
+#include "pmacc/identifier/alias.hpp"
 
 namespace PMacc
 {

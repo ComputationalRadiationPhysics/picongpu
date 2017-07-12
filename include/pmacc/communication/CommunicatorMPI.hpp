@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include "communication/ICommunicator.hpp"
-#include "communication/manager_common.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "memory/dataTypes/Mask.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/communication/ICommunicator.hpp"
+#include "pmacc/communication/manager_common.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
+#include "pmacc/types.hpp"
 
 #include <mpi.h>
 

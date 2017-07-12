@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "debug/VerboseLogMakros.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/debug/VerboseLogMakros.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/format.hpp>
 

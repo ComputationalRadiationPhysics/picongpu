@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "mappings/threads/WorkerCfg.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/mappings/threads/WorkerCfg.hpp"
 
 #include <boost/core/ignore_unused.hpp>
 #include <string>

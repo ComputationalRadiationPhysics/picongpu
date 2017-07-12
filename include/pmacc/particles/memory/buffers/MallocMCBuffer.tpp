@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "particles/memory/buffers/MallocMCBuffer.hpp"
-#include "pmacc_types.hpp"
-#include "eventSystem/EventSystem.hpp"
+#include "pmacc/particles/memory/buffers/MallocMCBuffer.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 
 #include <memory>
 

@@ -22,13 +22,13 @@
 
 #pragma once
 
-#include "dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
 
-#include "traits/GetComponentsType.hpp"
-#include "traits/GetNComponents.hpp"
-#include "algorithms/math.hpp"
-#include "algorithms/TypeCast.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/traits/GetComponentsType.hpp"
+#include "pmacc/traits/GetNComponents.hpp"
+#include "pmacc/algorithms/math.hpp"
+#include "pmacc/algorithms/TypeCast.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

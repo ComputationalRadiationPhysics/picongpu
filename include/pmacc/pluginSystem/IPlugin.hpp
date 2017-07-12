@@ -27,7 +27,7 @@
 
 #include <boost/program_options/options_description.hpp>
 
-#include "pluginSystem/INotify.hpp"
+#include "pmacc/pluginSystem/INotify.hpp"
 
 namespace PMacc
 {

@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "mappings/kernel/MappingDescription.hpp"
-#include "mappings/kernel/ExchangeMapping.hpp"
-#include "fields/tasks/FieldFactory.hpp"
-#include "math/Vector.hpp"
-#include "traits/GetNumWorkers.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/mappings/kernel/MappingDescription.hpp"
+#include "pmacc/mappings/kernel/ExchangeMapping.hpp"
+#include "pmacc/fields/tasks/FieldFactory.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <boost/core/ignore_unused.hpp>
 

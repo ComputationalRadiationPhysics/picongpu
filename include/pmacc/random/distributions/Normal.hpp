@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 namespace PMacc
 {
@@ -47,4 +47,4 @@ namespace distributions
 }  // namespace random
 }  // namespace PMacc
 
-#include "random/distributions/normal/Normal_float.hpp"
+#include "pmacc/random/distributions/normal/Normal_float.hpp"

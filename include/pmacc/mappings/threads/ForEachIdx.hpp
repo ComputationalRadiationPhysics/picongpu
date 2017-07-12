@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "mappings/threads/IdxConfig.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace pmacc

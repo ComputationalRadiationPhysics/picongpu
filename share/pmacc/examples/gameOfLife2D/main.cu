@@ -19,7 +19,7 @@
  */
 
 #include "types.hpp"
-#include "Environment.hpp"
+#include "pmacc/Environment.hpp"
 #include "Simulation.hpp"
 
 #include <boost/program_options.hpp>

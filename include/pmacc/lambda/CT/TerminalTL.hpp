@@ -24,7 +24,7 @@
 #include "../ExprTypes.hpp"
 #include "../placeholder.hpp"
 #include "../Expression.hpp"
-#include "lambda/ProxyClass.hpp"
+#include "pmacc/lambda/ProxyClass.hpp"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/copy.hpp>

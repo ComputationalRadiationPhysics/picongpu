@@ -21,17 +21,17 @@
 
 #pragma once
 
-#include "dimensions/GridLayout.hpp"
-#include "mappings/simulation/GridController.hpp"
-#include "memory/buffers/Exchange.hpp"
-#include "memory/dataTypes/Mask.hpp"
-#include "memory/buffers/DeviceBufferIntern.hpp"
-#include "memory/buffers/HostBufferIntern.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
+#include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
+#include "pmacc/memory/buffers/HostBufferIntern.hpp"
 
-#include "eventSystem/tasks/Factory.hpp"
-#include "eventSystem/tasks/TaskReceive.hpp"
-#include "assert.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
+#include "pmacc/eventSystem/tasks/TaskReceive.hpp"
+#include "pmacc/assert.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace PMacc

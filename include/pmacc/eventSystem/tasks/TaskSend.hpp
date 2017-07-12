@@ -22,13 +22,13 @@
 
 #pragma once
 
-#include "eventSystem/tasks/Factory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/tasks/TaskReceive.hpp"
-#include "eventSystem/tasks/TaskCopyDeviceToHost.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "mappings/simulation/EnvironmentController.hpp"
-#include "memory/buffers/Exchange.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/eventSystem/tasks/TaskReceive.hpp"
+#include "pmacc/eventSystem/tasks/TaskCopyDeviceToHost.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/mappings/simulation/EnvironmentController.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
 
 namespace pmacc
 {

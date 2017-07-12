@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "functor/Interface.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/functor/Interface.hpp"
 
 
 namespace pmacc

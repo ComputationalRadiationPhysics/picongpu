@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "dataManagement/ISimulationData.hpp"
-#include "dataManagement/IDataSorter.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
+#include "pmacc/dataManagement/IDataSorter.hpp"
 
 namespace pmacc
 {

@@ -22,12 +22,12 @@
 #pragma once
 
 #include <stdexcept>
-#include "verify.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "mappings/simulation/GridController.hpp"
-#include "dimensions/GridLayout.hpp"
-#include "math/Vector.hpp"
+#include "pmacc/verify.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/math/Vector.hpp"
 
 namespace pmacc
 {

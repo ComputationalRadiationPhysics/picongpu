@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "static_assert.hpp"
+#include "pmacc/static_assert.hpp"
 #include <boost/type_traits.hpp>
 #include <climits>
 

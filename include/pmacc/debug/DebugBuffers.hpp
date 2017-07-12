@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "memory/buffers/HostBuffer.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/memory/buffers/HostBuffer.hpp"
+#include "pmacc/types.hpp"
 
 #include <string>
 #include <sstream>

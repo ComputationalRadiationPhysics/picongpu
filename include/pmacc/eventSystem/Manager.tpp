@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "eventSystem/streams/StreamController.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "eventSystem/Manager.hpp"
-#include "assert.hpp"
+#include "pmacc/eventSystem/streams/StreamController.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/assert.hpp"
 
 #include <cstdlib>
 #include <cstdio>

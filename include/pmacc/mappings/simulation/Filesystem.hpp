@@ -22,8 +22,8 @@
 #pragma once
 
 #include <boost/filesystem.hpp>
-#include "pmacc_types.hpp"
-#include "mappings/simulation/GridController.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
 
 namespace pmacc
 {

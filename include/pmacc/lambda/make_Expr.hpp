@@ -23,7 +23,7 @@
 
 #include "is_Expression.hpp"
 #include "ExprTypes.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/mpl/vector.hpp>
 

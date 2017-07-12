@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
 
 #include <string>
 #include <sstream>

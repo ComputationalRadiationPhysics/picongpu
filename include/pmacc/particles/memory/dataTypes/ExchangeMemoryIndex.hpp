@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "dimensions/DataSpace.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/types.hpp"
 
 namespace PMacc
 {

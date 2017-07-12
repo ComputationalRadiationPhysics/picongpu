@@ -22,12 +22,12 @@
 #pragma once
 
 #include "IdProvider.def"
-#include "Environment.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "algorithms/reverseBits.hpp"
-#include "nvidia/atomic.hpp"
-#include "memory/buffers/HostDeviceBuffer.hpp"
-#include "debug/PMaccVerbose.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/algorithms/reverseBits.hpp"
+#include "pmacc/nvidia/atomic.hpp"
+#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
+#include "pmacc/debug/PMaccVerbose.hpp"
 
 namespace PMacc {
 

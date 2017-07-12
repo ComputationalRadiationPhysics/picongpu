@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "memory/boxes/PitchedBox.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/memory/boxes/PitchedBox.hpp"
 
 namespace PMacc
 {

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 namespace PMacc
 {
@@ -56,5 +56,5 @@ namespace distributions
 }  // namespace random
 }  // namespace PMacc
 
-#include "random/distributions/uniform/Uniform_float.hpp"
-#include "random/distributions/uniform/Uniform_Integral32Bit.hpp"
+#include "pmacc/random/distributions/uniform/Uniform_float.hpp"
+#include "pmacc/random/distributions/uniform/Uniform_Integral32Bit.hpp"

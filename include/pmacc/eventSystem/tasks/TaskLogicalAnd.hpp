@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
-#include "eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 
 namespace pmacc
 {

@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "random/RNGState.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/random/RNGState.hpp"
 #include <boost/utility/result_of.hpp>
 
 namespace PMacc

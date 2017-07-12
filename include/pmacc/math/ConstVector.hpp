@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "math/vector/Vector.hpp"
-#include "ppFunctions.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/math/vector/Vector.hpp"
+#include "pmacc/ppFunctions.hpp"
+#include "pmacc/types.hpp"
 
 /* select namespace depending on __CUDA_ARCH__ compiler flag*/
 #ifdef __CUDA_ARCH__ //we are on gpu

@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "eventSystem/events/CudaEvent.def"
-#include "eventSystem/events/CudaEventHandle.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/eventSystem/events/CudaEvent.def"
+#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/types.hpp"
 
 #include <cuda_runtime.h>
 

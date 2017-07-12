@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/mpl/pair.hpp>
-#include "compileTime/conversion/TypeToPair.hpp"
+#include "pmacc/compileTime/conversion/TypeToPair.hpp"
 
 namespace pmacc
 {

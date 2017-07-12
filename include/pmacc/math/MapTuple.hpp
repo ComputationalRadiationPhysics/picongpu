@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "particles/boostExtension/InheritLinearly.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/particles/boostExtension/InheritLinearly.hpp"
 
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/at.hpp>

@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "Environment.hpp"
-#include "algorithms/reverseBits.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/algorithms/reverseBits.hpp"
 #include <limits>
 
 namespace PMacc

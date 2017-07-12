@@ -23,11 +23,11 @@
 #pragma once
 
 #include <mallocMC/mallocMC.hpp>
-#include "particles/frame_types.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "particles/memory/dataTypes/SuperCell.hpp"
-#include "memory/boxes/PitchedBox.hpp"
-#include "particles/memory/dataTypes/FramePointer.hpp"
+#include "pmacc/particles/frame_types.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/particles/memory/dataTypes/SuperCell.hpp"
+#include "pmacc/memory/boxes/PitchedBox.hpp"
+#include "pmacc/particles/memory/dataTypes/FramePointer.hpp"
 
 namespace PMacc
 {

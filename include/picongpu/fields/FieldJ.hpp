@@ -28,7 +28,7 @@
 #include "pmacc/types.hpp"
 #include "picongpu/simulation_defines.hpp"
 
-#include "Fields.def"
+#include "pmacc/fields.def"
 #include "pmacc/fields/SimulationFieldHelper.hpp"
 #include "pmacc/dataManagement/ISimulationData.hpp"
 

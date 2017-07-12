@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "eventSystem/EventSystem.hpp"
-#include "assert.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/assert.hpp"
 
 namespace PMacc
 {

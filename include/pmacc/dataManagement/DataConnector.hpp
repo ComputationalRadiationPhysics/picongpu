@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "dataManagement/ISimulationData.hpp"
-#include "dataManagement/AbstractInitialiser.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
+#include "pmacc/dataManagement/AbstractInitialiser.hpp"
 
-#include "assert.hpp"
+#include "pmacc/assert.hpp"
 
 #include <vector>
 #include <algorithm>

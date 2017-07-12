@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "mappings/kernel/ExchangeMappingMethods.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/mappings/kernel/ExchangeMappingMethods.hpp"
 
 namespace pmacc
 {

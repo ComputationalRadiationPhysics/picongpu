@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "Environment.hpp"
-//#include "eventSystem/EventSystem.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
-#include "eventSystem/streams/EventStream.hpp"
-#include "assert.hpp"
+#include "pmacc/Environment.hpp"
+//#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/assert.hpp"
 
 namespace pmacc
 {

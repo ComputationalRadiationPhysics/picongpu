@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "eventSystem/events/IEventData.hpp"
+#include "pmacc/eventSystem/events/IEventData.hpp"
 
 namespace pmacc
 {

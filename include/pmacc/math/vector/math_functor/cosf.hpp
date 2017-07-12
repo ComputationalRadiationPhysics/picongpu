@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "lambda/Expression.hpp"
-#include "algorithms/math/defines/trigo.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/lambda/Expression.hpp"
+#include "pmacc/algorithms/math/defines/trigo.hpp"
 
 namespace pmacc
 {

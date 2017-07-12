@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "Environment.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "traits/NumberOfExchanges.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/traits/NumberOfExchanges.hpp"
 
 namespace PMacc
 {

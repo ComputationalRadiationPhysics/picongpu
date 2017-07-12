@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "Environment.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/Environment.hpp"
 
 namespace PMacc {
 namespace particles {

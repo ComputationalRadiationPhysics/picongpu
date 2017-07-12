@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
 
 namespace pmacc
 {

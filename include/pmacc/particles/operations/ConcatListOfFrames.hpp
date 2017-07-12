@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "math/vector/compile-time/Vector.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/math/vector/compile-time/Vector.hpp"
 
 namespace PMacc
 {

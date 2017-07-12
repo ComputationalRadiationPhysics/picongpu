@@ -23,10 +23,10 @@
 #pragma once
 
 
-#include "nvidia/functors/Assign.hpp"
-#include "traits/GetValueType.hpp"
-#include "pmacc_types.hpp"
-#include "memory/buffers/GridBuffer.hpp"
+#include "pmacc/nvidia/functors/Assign.hpp"
+#include "pmacc/traits/GetValueType.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
 
 #include <boost/type_traits.hpp>
 

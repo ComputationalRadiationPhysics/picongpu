@@ -21,17 +21,17 @@
 
 #pragma once
 
-#include "dimensions/DataSpace.hpp"
-#include "dimensions/GridLayout.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "mappings/simulation/EnvironmentController.hpp"
-#include "memory/dataTypes/Mask.hpp"
-#include "memory/buffers/ExchangeIntern.hpp"
-#include "memory/buffers/HostBufferIntern.hpp"
-#include "memory/buffers/DeviceBufferIntern.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "memory/boxes/MultiBox.hpp"
-#include "assert.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/mappings/simulation/EnvironmentController.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
+#include "pmacc/memory/buffers/ExchangeIntern.hpp"
+#include "pmacc/memory/buffers/HostBufferIntern.hpp"
+#include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/memory/boxes/MultiBox.hpp"
+#include "pmacc/assert.hpp"
 
 #include <algorithm>
 

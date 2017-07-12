@@ -31,9 +31,9 @@
 
 #pragma once
 
-#include "preprocessor/facilities.hpp"
-#include "math/ConstVector.hpp"
-#include "math/Vector.hpp"
+#include "pmacc/preprocessor/facilities.hpp"
+#include "pmacc/math/ConstVector.hpp"
+#include "pmacc/math/Vector.hpp"
 
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/punctuation.hpp>

@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "eventSystem/EventSystem.hpp"
-#include "eventSystem/streams/EventStream.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
-#include "eventSystem/events/kernelEvents.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "nvidia/gpuEntryFunction.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/events/kernelEvents.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/nvidia/gpuEntryFunction.hpp"
 
 #include <cuda_runtime_api.h>
 #include <cuda.h>

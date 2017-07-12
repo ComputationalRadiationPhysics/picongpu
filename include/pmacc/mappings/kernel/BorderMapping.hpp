@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "assert.hpp"
-#include "dimensions/DataSpace.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/assert.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
 #include <stdexcept>
 
 namespace pmacc

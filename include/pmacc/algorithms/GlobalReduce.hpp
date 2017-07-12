@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
-#include "nvidia/reduce/Reduce.hpp"
-#include "mpi/MPIReduce.hpp"
-#include "traits/GetValueType.hpp"
+#include "pmacc/nvidia/reduce/Reduce.hpp"
+#include "pmacc/mpi/MPIReduce.hpp"
+#include "pmacc/traits/GetValueType.hpp"
 
 namespace pmacc
 {

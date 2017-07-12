@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "particles/memory/dataTypes/Pointer.hpp"
-#include "traits/GetEmptyDefaultConstructibleType.hpp"
-#include "expressions/DoNothing.hpp"
-#include "expressions/SetToNull.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/particles/memory/dataTypes/Pointer.hpp"
+#include "pmacc/traits/GetEmptyDefaultConstructibleType.hpp"
+#include "pmacc/expressions/DoNothing.hpp"
+#include "pmacc/expressions/SetToNull.hpp"
 
 
 namespace PMacc

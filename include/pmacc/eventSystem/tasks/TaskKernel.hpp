@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "eventSystem/tasks/StreamTask.hpp"
-#include "eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/streams/EventStream.hpp"
 
 namespace pmacc
 {

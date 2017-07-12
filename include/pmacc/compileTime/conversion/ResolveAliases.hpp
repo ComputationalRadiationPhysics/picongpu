@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "compileTime/GetKeyFromAlias.hpp"
-#include "compileTime/errorHandlerPolicies/ThrowValueNotFound.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/compileTime/GetKeyFromAlias.hpp"
+#include "pmacc/compileTime/errorHandlerPolicies/ThrowValueNotFound.hpp"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/transform.hpp>

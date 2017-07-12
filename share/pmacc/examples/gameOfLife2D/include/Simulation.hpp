@@ -23,18 +23,18 @@
 #pragma once
 
 #include "types.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "mappings/simulation/SubGrid.hpp"
-#include "mappings/kernel/MappingDescription.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "memory/dataTypes/Mask.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/mappings/simulation/SubGrid.hpp"
+#include "pmacc/mappings/kernel/MappingDescription.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
 
 #include "Evolution.hpp"
-#include "eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 
 #include "GatherSlice.hpp"
-#include "traits/NumberOfExchanges.hpp"
+#include "pmacc/traits/NumberOfExchanges.hpp"
 
 #include <string>
 #include "PngCreator.hpp"

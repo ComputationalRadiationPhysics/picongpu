@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "mpi/GetMPI_Op.hpp"
-#include "algorithms/math.hpp"
+#include "pmacc/mpi/GetMPI_Op.hpp"
+#include "pmacc/algorithms/math.hpp"
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 namespace PMacc
 {

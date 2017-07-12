@@ -26,7 +26,7 @@
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/back_inserter.hpp>
 #include <boost/mpl/front_inserter.hpp>
-#include "compileTime/conversion/ToSeq.hpp"
+#include "pmacc/compileTime/conversion/ToSeq.hpp"
 
 namespace pmacc
 {

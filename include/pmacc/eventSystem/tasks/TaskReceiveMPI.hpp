@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "communication/manager_common.hpp"
-#include "communication/ICommunicator.hpp"
-#include "eventSystem/tasks/MPITask.hpp"
-#include "memory/buffers/Exchange.hpp"
+#include "pmacc/communication/manager_common.hpp"
+#include "pmacc/communication/ICommunicator.hpp"
+#include "pmacc/eventSystem/tasks/MPITask.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
 
 #include <mpi.h>
 

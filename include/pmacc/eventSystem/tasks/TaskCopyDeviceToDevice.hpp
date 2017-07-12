@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "eventSystem/EventSystem.hpp"
-#include "eventSystem/streams/EventStream.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/types.hpp"
 
 #include <cuda_runtime_api.h>
 

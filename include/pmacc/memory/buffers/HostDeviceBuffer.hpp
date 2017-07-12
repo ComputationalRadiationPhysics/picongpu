@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "memory/buffers/HostBufferIntern.hpp"
-#include "memory/buffers/DeviceBufferIntern.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/memory/buffers/HostBufferIntern.hpp"
+#include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
 #include <boost/type_traits.hpp>
 
 namespace PMacc {
@@ -115,4 +115,4 @@ namespace PMacc {
 
 }  // namespace PMacc
 
-#include "memory/buffers/HostDeviceBuffer.tpp"
+#include "pmacc/memory/buffers/HostDeviceBuffer.tpp"

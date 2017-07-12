@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "random/distributions/Normal.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/random/distributions/Normal.hpp"
 
 namespace PMacc
 {

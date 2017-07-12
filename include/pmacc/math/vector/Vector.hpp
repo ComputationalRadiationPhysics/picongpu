@@ -25,10 +25,10 @@
 #include <math/vector/accessor/StandardAccessor.hpp>
 #include <math/vector/navigator/StandardNavigator.hpp>
 #include <lambda/Expression.hpp>
-#include "result_of_Functor.hpp"
-#include "static_assert.hpp"
-#include "pmacc_types.hpp"
-#include "algorithms/math.hpp"
+#include "pmacc/result_of_Functor.hpp"
+#include "pmacc/static_assert.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/algorithms/math.hpp"
 
 #include <boost/mpl/size.hpp>
 #include <boost/call_traits.hpp>

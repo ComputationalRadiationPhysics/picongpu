@@ -23,14 +23,14 @@
 #pragma once
 
 
-#include "math/Vector.hpp"
-#include "algorithms/math.hpp"
-#include "algorithms/TypeCast.hpp"
-#include "algorithms/PromoteType.hpp"
-#include "mpi/GetMPI_StructAsArray.hpp"
-#include "traits/GetComponentsType.hpp"
-#include "traits/GetNComponents.hpp"
-#include "traits/GetInitializedInstance.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/algorithms/math.hpp"
+#include "pmacc/algorithms/TypeCast.hpp"
+#include "pmacc/algorithms/PromoteType.hpp"
+#include "pmacc/mpi/GetMPI_StructAsArray.hpp"
+#include "pmacc/traits/GetComponentsType.hpp"
+#include "pmacc/traits/GetNComponents.hpp"
+#include "pmacc/traits/GetInitializedInstance.hpp"
 
 namespace PMacc
 {

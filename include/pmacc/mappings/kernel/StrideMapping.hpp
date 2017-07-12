@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "mappings/kernel/StrideMappingMethods.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/mappings/kernel/StrideMappingMethods.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
 
 namespace pmacc
 {

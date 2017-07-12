@@ -21,32 +21,32 @@
 
 #pragma once
 
-#include "particles/frame_types.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "particles/memory/boxes/ParticlesBox.hpp"
-#include "dimensions/GridLayout.hpp"
-#include "memory/dataTypes/Mask.hpp"
-#include "particles/memory/buffers/StackExchangeBuffer.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "particles/memory/dataTypes/SuperCell.hpp"
+#include "pmacc/particles/frame_types.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
+#include "pmacc/particles/memory/buffers/StackExchangeBuffer.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/particles/memory/dataTypes/SuperCell.hpp"
 
-#include "math/Vector.hpp"
+#include "pmacc/math/Vector.hpp"
 
-#include "particles/boostExtension/InheritGenerators.hpp"
-#include "compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/particles/boostExtension/InheritGenerators.hpp"
+#include "pmacc/compileTime/conversion/MakeSeq.hpp"
 
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/back_inserter.hpp>
 
-#include "particles/memory/frames/Frame.hpp"
-#include "particles/Identifier.hpp"
-#include "particles/memory/dataTypes/StaticArray.hpp"
+#include "pmacc/particles/memory/frames/Frame.hpp"
+#include "pmacc/particles/Identifier.hpp"
+#include "pmacc/particles/memory/dataTypes/StaticArray.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
-#include "particles/ParticleDescription.hpp"
-#include "particles/memory/dataTypes/ListPointer.hpp"
+#include "pmacc/particles/ParticleDescription.hpp"
+#include "pmacc/particles/memory/dataTypes/ListPointer.hpp"
 
 #include <memory>
 

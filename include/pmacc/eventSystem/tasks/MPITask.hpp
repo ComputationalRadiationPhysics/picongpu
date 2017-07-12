@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "eventSystem/tasks/ITask.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
 
 #include <mpi.h>
 

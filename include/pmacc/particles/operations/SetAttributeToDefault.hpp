@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "traits/Resolve.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/traits/Resolve.hpp"
 
 namespace PMacc
 {

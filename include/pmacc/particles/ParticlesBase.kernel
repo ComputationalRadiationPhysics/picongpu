@@ -19,24 +19,24 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pmacc_types.hpp"
-#include "particles/memory/boxes/ParticlesBox.hpp"
-#include "particles/memory/boxes/PushDataBox.hpp"
-#include "particles/memory/boxes/TileDataBox.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "mappings/kernel/ExchangeMapping.hpp"
-#include "particles/memory/boxes/ExchangePushDataBox.hpp"
-#include "particles/memory/boxes/ExchangePopDataBox.hpp"
-#include "memory/CtxArray.hpp"
-#include "mappings/threads/ForEachIdx.hpp"
-#include "mappings/threads/IdxConfig.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
+#include "pmacc/particles/memory/boxes/PushDataBox.hpp"
+#include "pmacc/particles/memory/boxes/TileDataBox.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/mappings/kernel/ExchangeMapping.hpp"
+#include "pmacc/particles/memory/boxes/ExchangePushDataBox.hpp"
+#include "pmacc/particles/memory/boxes/ExchangePopDataBox.hpp"
+#include "pmacc/memory/CtxArray.hpp"
+#include "pmacc/mappings/threads/ForEachIdx.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
 
-#include "particles/operations/Assign.hpp"
-#include "particles/operations/Deselect.hpp"
-#include "traits/NumberOfExchanges.hpp"
-#include "nvidia/atomic.hpp"
-#include "memory/shared/Allocate.hpp"
-#include "memory/Array.hpp"
+#include "pmacc/particles/operations/Assign.hpp"
+#include "pmacc/particles/operations/Deselect.hpp"
+#include "pmacc/traits/NumberOfExchanges.hpp"
+#include "pmacc/nvidia/atomic.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/memory/Array.hpp"
 
 namespace PMacc
 {

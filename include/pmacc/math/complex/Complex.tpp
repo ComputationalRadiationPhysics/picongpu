@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "algorithms/math.hpp"
-#include "algorithms/TypeCast.hpp"
-#include "math/Complex.hpp"
+#include "pmacc/algorithms/math.hpp"
+#include "pmacc/algorithms/TypeCast.hpp"
+#include "pmacc/math/Complex.hpp"
 
 #include <cmath>
 

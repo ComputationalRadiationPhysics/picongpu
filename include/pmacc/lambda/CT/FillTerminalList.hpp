@@ -23,7 +23,7 @@
 
 #include "../Expression.hpp"
 #include "Expression.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

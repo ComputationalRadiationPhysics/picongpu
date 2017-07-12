@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include "ExprTypes.hpp"
 #include "placeholder.hpp"
 #include "is_Expression.hpp"
 #include "make_Expr.hpp"
 #include "make_Expr.hpp"
-#include "math/Tuple.hpp"
+#include "pmacc/math/Tuple.hpp"
 
 #include <boost/mpl/void.hpp>
 #include <boost/mpl/vector.hpp>

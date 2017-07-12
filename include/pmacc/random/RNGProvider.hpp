@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "random/methods/Xor.hpp"
-#include "random/Random.hpp"
-#include "random/RNGHandle.hpp"
-#include "memory/buffers/HostDeviceBuffer.hpp"
-#include "dataManagement/ISimulationData.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/random/methods/Xor.hpp"
+#include "pmacc/random/Random.hpp"
+#include "pmacc/random/RNGHandle.hpp"
+#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
 
 namespace PMacc
 {
@@ -127,4 +127,4 @@ namespace random
 }  // namespace random
 }  // namespace PMacc
 
-#include "random/RNGProvider.tpp"
+#include "pmacc/random/RNGProvider.tpp"

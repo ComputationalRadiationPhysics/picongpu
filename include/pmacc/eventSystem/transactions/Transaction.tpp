@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "eventSystem/transactions/Transaction.hpp"
+#include "pmacc/eventSystem/transactions/Transaction.hpp"
 
-#include "eventSystem/streams/StreamController.hpp"
-#include "eventSystem/events/EventTask.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/streams/StreamController.hpp"
+#include "pmacc/eventSystem/events/EventTask.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
 namespace pmacc
 {

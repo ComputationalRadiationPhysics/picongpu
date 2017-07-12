@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "pluginSystem/INotify.hpp"
-#include "pluginSystem/IPlugin.hpp"
+#include "pmacc/pluginSystem/INotify.hpp"
+#include "pmacc/pluginSystem/IPlugin.hpp"
 
 #include <vector>
 #include <list>

@@ -23,14 +23,14 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
-#include "mappings/simulation/GridController.hpp"
-#include "dimensions/DataSpace.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
 #include "TimeInterval.hpp"
-#include "dataManagement/DataConnector.hpp"
-#include "Environment.hpp"
-#include "pluginSystem/IPlugin.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/pluginSystem/IPlugin.hpp"
 #include <boost/filesystem.hpp>
 #include <iostream>
 #include <iomanip>

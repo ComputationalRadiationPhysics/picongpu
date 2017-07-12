@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 namespace PMacc
 {
@@ -50,4 +50,4 @@ struct Min;
 } //namespace traits
 } //namespace PMacc
 
-#include "traits/Limits.tpp"
+#include "pmacc/traits/Limits.tpp"

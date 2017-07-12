@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 
 
 namespace pmacc

@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "memory/dataTypes/Mask.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
 
-#include "communication/ICommunicator.hpp"
+#include "pmacc/communication/ICommunicator.hpp"
 
 namespace pmacc
 {

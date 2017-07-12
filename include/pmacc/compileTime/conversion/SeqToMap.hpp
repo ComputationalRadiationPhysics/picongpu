@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/copy.hpp>
@@ -33,7 +33,7 @@
 #include <boost/type_traits.hpp>
 
 
-#include "compileTime/accessors/Identity.hpp"
+#include "pmacc/compileTime/accessors/Identity.hpp"
 
 namespace pmacc
 {

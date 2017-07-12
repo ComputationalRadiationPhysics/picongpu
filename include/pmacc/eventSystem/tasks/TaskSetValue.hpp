@@ -22,16 +22,16 @@
 
 #pragma once
 
-#include "dimensions/DataSpace.hpp"
-#include "mappings/simulation/EnvironmentController.hpp"
-#include "mappings/threads/ForEachIdx.hpp"
-#include "mappings/threads/IdxConfig.hpp"
-#include "memory/buffers/DeviceBuffer.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
-#include "nvidia/gpuEntryFunction.hpp"
-#include "traits/GetNumWorkers.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/mappings/simulation/EnvironmentController.hpp"
+#include "pmacc/mappings/threads/ForEachIdx.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/memory/buffers/DeviceBuffer.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/nvidia/gpuEntryFunction.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits.hpp>

@@ -22,8 +22,8 @@
 #pragma once
 
 #include <cuSTL/container/HostBuffer.hpp>
-#include "memory/buffers/Buffer.hpp"
-#include "dimensions/DataSpace.hpp"
+#include "pmacc/memory/buffers/Buffer.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
 
 namespace PMacc
 {

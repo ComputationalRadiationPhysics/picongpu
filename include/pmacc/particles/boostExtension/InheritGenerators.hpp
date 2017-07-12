@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "particles/memory/frames/NullFrame.hpp"
+#include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/deref.hpp>
 #include <boost/mpl/pop_front.hpp>

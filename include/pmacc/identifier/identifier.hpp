@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "ppFunctions.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/ppFunctions.hpp"
 
 /* No namespace is needed because we only have defines*/
 

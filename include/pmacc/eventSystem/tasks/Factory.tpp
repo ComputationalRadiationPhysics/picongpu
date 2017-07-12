@@ -21,25 +21,25 @@
 
 #pragma once
 
-#include "eventSystem/tasks/Factory.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
 
-#include "memory/buffers/HostBuffer.hpp"
-#include "memory/buffers/DeviceBuffer.hpp"
-#include "memory/buffers/Exchange.hpp"
+#include "pmacc/memory/buffers/HostBuffer.hpp"
+#include "pmacc/memory/buffers/DeviceBuffer.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
 
-#include "eventSystem/tasks/TaskCopyDeviceToHost.hpp"
-#include "eventSystem/tasks/TaskCopyHostToDevice.hpp"
-#include "eventSystem/tasks/TaskCopyDeviceToDevice.hpp"
-#include "eventSystem/tasks/TaskKernel.hpp"
-#include "eventSystem/tasks/TaskReceive.hpp"
-#include "eventSystem/tasks/TaskSend.hpp"
-#include "eventSystem/tasks/TaskSetValue.hpp"
-#include "eventSystem/tasks/TaskSetCurrentSizeOnDevice.hpp"
-#include "eventSystem/tasks/TaskSendMPI.hpp"
-#include "eventSystem/tasks/TaskReceiveMPI.hpp"
-#include "eventSystem/tasks/TaskGetCurrentSizeFromDevice.hpp"
-#include "eventSystem/streams/EventStream.hpp"
-#include "eventSystem/streams/StreamController.hpp"
+#include "pmacc/eventSystem/tasks/TaskCopyDeviceToHost.hpp"
+#include "pmacc/eventSystem/tasks/TaskCopyHostToDevice.hpp"
+#include "pmacc/eventSystem/tasks/TaskCopyDeviceToDevice.hpp"
+#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
+#include "pmacc/eventSystem/tasks/TaskReceive.hpp"
+#include "pmacc/eventSystem/tasks/TaskSend.hpp"
+#include "pmacc/eventSystem/tasks/TaskSetValue.hpp"
+#include "pmacc/eventSystem/tasks/TaskSetCurrentSizeOnDevice.hpp"
+#include "pmacc/eventSystem/tasks/TaskSendMPI.hpp"
+#include "pmacc/eventSystem/tasks/TaskReceiveMPI.hpp"
+#include "pmacc/eventSystem/tasks/TaskGetCurrentSizeFromDevice.hpp"
+#include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/eventSystem/streams/StreamController.hpp"
 
 namespace pmacc
 {

@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "identifier/value_identifier.hpp"
-#include "identifier/alias.hpp"
-#include "particles/frame_types.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/identifier/value_identifier.hpp"
+#include "pmacc/identifier/alias.hpp"
+#include "pmacc/particles/frame_types.hpp"
 
 
 namespace PMacc

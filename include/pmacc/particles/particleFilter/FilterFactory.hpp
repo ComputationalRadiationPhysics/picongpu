@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "particles/boostExtension/InheritGenerators.hpp"
-#include "compileTime/conversion/MakeSeq.hpp"
-#include "particles/particleFilter/system/TrueFilter.hpp"
-#include "particles/particleFilter/system/DefaultFilter.hpp"
+#include "pmacc/particles/boostExtension/InheritGenerators.hpp"
+#include "pmacc/compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/particles/particleFilter/system/TrueFilter.hpp"
+#include "pmacc/particles/particleFilter/system/DefaultFilter.hpp"
 
-#include "particles/memory/frames/NullFrame.hpp"
+#include "pmacc/particles/memory/frames/NullFrame.hpp"
 
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/vector.hpp>

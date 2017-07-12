@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/if.hpp>

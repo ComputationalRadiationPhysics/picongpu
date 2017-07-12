@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include "compileTime/conversion/SeqToMap.hpp"
-#include "compileTime/conversion/TypeToAliasPair.hpp"
-#include "compileTime/conversion/TypeToPair.hpp"
-#include "compileTime/conversion/MakeSeqFromNestedSeq.hpp"
-#include "compileTime/conversion/MakeSeq.hpp"
-#include "math/Vector.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/compileTime/conversion/SeqToMap.hpp"
+#include "pmacc/compileTime/conversion/TypeToAliasPair.hpp"
+#include "pmacc/compileTime/conversion/TypeToPair.hpp"
+#include "pmacc/compileTime/conversion/MakeSeqFromNestedSeq.hpp"
+#include "pmacc/compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>

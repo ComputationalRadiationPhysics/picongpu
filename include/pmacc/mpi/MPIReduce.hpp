@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include "communication/manager_common.hpp"
-#include "mpi/reduceMethods/AllReduce.hpp"
-#include "mpi/GetMPI_StructAsArray.hpp"
-#include "mpi/GetMPI_Op.hpp"
-#include "assert.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/communication/manager_common.hpp"
+#include "pmacc/mpi/reduceMethods/AllReduce.hpp"
+#include "pmacc/mpi/GetMPI_StructAsArray.hpp"
+#include "pmacc/mpi/GetMPI_Op.hpp"
+#include "pmacc/assert.hpp"
+#include "pmacc/types.hpp"
 
 #include <mpi.h>
 

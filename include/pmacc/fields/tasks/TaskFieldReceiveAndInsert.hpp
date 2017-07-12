@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "eventSystem/EventSystem.hpp"
-#include "fields/tasks/FieldFactory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/tasks/MPITask.hpp"
-#include "eventSystem/events/EventDataReceive.hpp"
-#include "eventSystem/EventSystem.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/fields/tasks/FieldFactory.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/eventSystem/tasks/MPITask.hpp"
+#include "pmacc/eventSystem/events/EventDataReceive.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 #include <iostream>
-#include "traits/NumberOfExchanges.hpp"
+#include "pmacc/traits/NumberOfExchanges.hpp"
 
 namespace pmacc
 {

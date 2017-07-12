@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include <boost/mpl/identity.hpp>
 
 namespace pmacc

@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "math/Vector.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {
@@ -185,4 +185,4 @@ namespace pmacc
 
 } //namespace pmacc
 
-#include "dimensions/DataSpace.tpp"
+#include "pmacc/dimensions/DataSpace.tpp"

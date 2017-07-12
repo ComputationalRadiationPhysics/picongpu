@@ -23,8 +23,8 @@
 
 #include <stdint.h>
 #include <boost/mpl/integral_c.hpp>
-#include "math/Vector.hpp"
-#include "traits/Limits.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/traits/Limits.hpp"
 
 namespace pmacc
 {

@@ -22,8 +22,8 @@
 #pragma once
 
 
-#include "pmacc_types.hpp"
-#include "nvidia/warp.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/nvidia/warp.hpp"
 #include <boost/type_traits.hpp>
 #include <math_functions.h>
 #include <device_functions.h>

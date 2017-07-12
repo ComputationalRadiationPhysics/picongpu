@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "dimensions/DataSpace.hpp"
-#include "mappings/simulation/GridController.hpp"
-#include "dimensions/GridLayout.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
 #include "Selection.hpp"
 
 namespace pmacc

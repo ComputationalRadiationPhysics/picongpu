@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "compileTime/accessors/Identity.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/compileTime/accessors/Identity.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/copy.hpp>

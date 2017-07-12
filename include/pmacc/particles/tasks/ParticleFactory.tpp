@@ -22,14 +22,14 @@
 
 #pragma once
 
-#include "Environment.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "particles/tasks/ParticleFactory.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/particles/tasks/ParticleFactory.hpp"
 
-#include "particles/tasks/TaskSendParticlesExchange.hpp"
-#include "particles/tasks/TaskReceiveParticlesExchange.hpp"
-#include "particles/tasks/TaskParticlesReceive.hpp"
-#include "particles/tasks/TaskParticlesSend.hpp"
+#include "pmacc/particles/tasks/TaskSendParticlesExchange.hpp"
+#include "pmacc/particles/tasks/TaskReceiveParticlesExchange.hpp"
+#include "pmacc/particles/tasks/TaskParticlesReceive.hpp"
+#include "pmacc/particles/tasks/TaskParticlesSend.hpp"
 
 namespace PMacc
 {

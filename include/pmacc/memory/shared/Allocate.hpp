@@ -22,8 +22,8 @@
 #pragma once
 
 
-#include "pmacc_types.hpp"
-#include "memory/Array.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/memory/Array.hpp"
 
 
 namespace PMacc

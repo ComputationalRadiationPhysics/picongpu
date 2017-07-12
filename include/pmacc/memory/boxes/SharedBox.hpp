@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "memory/shared/Allocate.hpp"
-#include "memory/Array.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/types.hpp"
 
 #include <cuSTL/cursor/compile-time/BufferCursor.hpp>
 #include <math/vector/Float.hpp>

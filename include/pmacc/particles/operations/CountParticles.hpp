@@ -21,18 +21,18 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "particles/memory/dataTypes/FramePointer.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include "pmacc/particles/memory/dataTypes/FramePointer.hpp"
 
-#include "particles/particleFilter/FilterFactory.hpp"
-#include "particles/particleFilter/PositionFilter.hpp"
-#include "nvidia/atomic.hpp"
-#include "memory/shared/Allocate.hpp"
-#include "traits/GetNumWorkers.hpp"
-#include "mappings/threads/ForEachIdx.hpp"
-#include "mappings/threads/IdxConfig.hpp"
+#include "pmacc/particles/particleFilter/FilterFactory.hpp"
+#include "pmacc/particles/particleFilter/PositionFilter.hpp"
+#include "pmacc/nvidia/atomic.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
+#include "pmacc/mappings/threads/ForEachIdx.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
 
 
 namespace PMacc

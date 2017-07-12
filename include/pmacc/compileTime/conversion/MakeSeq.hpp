@@ -24,7 +24,7 @@
 
 
 #include <boost/mpl/vector.hpp>
-#include "compileTime/conversion/MakeSeqFromNestedSeq.hpp"
+#include "pmacc/compileTime/conversion/MakeSeqFromNestedSeq.hpp"
 
 namespace pmacc
 {

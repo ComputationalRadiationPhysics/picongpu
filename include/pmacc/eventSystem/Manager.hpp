@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "eventSystem/tasks/ITask.hpp"
-#include "Environment.def"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/Environment.def"
 
 #include <map>
 #include <set>

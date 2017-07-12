@@ -21,23 +21,23 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "particles/boostExtension/InheritLinearly.hpp"
-#include "traits/HasIdentifier.hpp"
-#include "traits/HasFlag.hpp"
-#include "traits/GetFlagType.hpp"
-#include "compileTime/GetKeyFromAlias.hpp"
-#include "compileTime/conversion/ResolveAliases.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "particles/operations/CopyIdentifier.hpp"
-#include "algorithms/ForEach.hpp"
-#include "RefWrapper.hpp"
-#include "static_assert.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/particles/boostExtension/InheritLinearly.hpp"
+#include "pmacc/traits/HasIdentifier.hpp"
+#include "pmacc/traits/HasFlag.hpp"
+#include "pmacc/traits/GetFlagType.hpp"
+#include "pmacc/compileTime/GetKeyFromAlias.hpp"
+#include "pmacc/compileTime/conversion/ResolveAliases.hpp"
+#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
+#include "pmacc/particles/operations/CopyIdentifier.hpp"
+#include "pmacc/algorithms/ForEach.hpp"
+#include "pmacc/RefWrapper.hpp"
+#include "pmacc/static_assert.hpp"
 
-#include "particles/operations/Assign.hpp"
-#include "particles/operations/Deselect.hpp"
-#include "particles/operations/SetAttributeToDefault.hpp"
-#include "compileTime/errorHandlerPolicies/ReturnValue.hpp"
+#include "pmacc/particles/operations/Assign.hpp"
+#include "pmacc/particles/operations/Deselect.hpp"
+#include "pmacc/particles/operations/SetAttributeToDefault.hpp"
+#include "pmacc/compileTime/errorHandlerPolicies/ReturnValue.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/mpl/if.hpp>

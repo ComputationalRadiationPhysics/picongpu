@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "mappings/threads/ForEachIdx.hpp"
-#include "mappings/threads/IdxConfig.hpp"
-#include "dimensions/SuperCellDescription.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/mappings/threads/ForEachIdx.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/dimensions/SuperCellDescription.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

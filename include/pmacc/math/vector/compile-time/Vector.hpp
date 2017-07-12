@@ -33,8 +33,8 @@
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/accumulate.hpp>
 #include <boost/mpl/less.hpp>
-#include "math/Vector.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/types.hpp"
 
 #include <stdint.h>
 

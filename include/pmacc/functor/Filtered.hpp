@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "filter/Interface.hpp"
-#include "mappings/threads/WorkerCfg.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/filter/Interface.hpp"
+#include "pmacc/mappings/threads/WorkerCfg.hpp"
 
 #include <string>
 

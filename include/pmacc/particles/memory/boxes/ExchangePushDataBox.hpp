@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include "particles/memory/dataTypes/ExchangeMemoryIndex.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "particles/memory/boxes/TileDataBox.hpp"
-#include "particles/memory/boxes/PushDataBox.hpp"
+#include "pmacc/particles/memory/dataTypes/ExchangeMemoryIndex.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/particles/memory/boxes/TileDataBox.hpp"
+#include "pmacc/particles/memory/boxes/PushDataBox.hpp"
 
-#include "memory/boxes/DataBox.hpp"
-#include "memory/boxes/PitchedBox.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/memory/boxes/PitchedBox.hpp"
 
 namespace PMacc
 {

@@ -21,15 +21,15 @@
 
 #pragma once
 
-#include "Environment.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "traits/GetNumWorkers.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
-#include "fields/SimulationFieldHelper.hpp"
-#include "mappings/kernel/ExchangeMapping.hpp"
+#include "pmacc/fields/SimulationFieldHelper.hpp"
+#include "pmacc/mappings/kernel/ExchangeMapping.hpp"
 
-#include "particles/memory/boxes/ParticlesBox.hpp"
-#include "particles/memory/buffers/ParticlesBuffer.hpp"
+#include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
+#include "pmacc/particles/memory/buffers/ParticlesBuffer.hpp"
 
 
 namespace PMacc
@@ -144,4 +144,4 @@ namespace PMacc
 
 } //namespace PMacc
 
-#include "particles/AsyncCommunicationImpl.hpp"
+#include "pmacc/particles/AsyncCommunicationImpl.hpp"

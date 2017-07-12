@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "eventSystem/events/CudaEvent.def"
-#include "eventSystem/events/CudaEventHandle.hpp"
-#include "debug/VerboseLog.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/eventSystem/events/CudaEvent.def"
+#include "pmacc/eventSystem/events/CudaEventHandle.hpp"
+#include "pmacc/debug/VerboseLog.hpp"
+#include "pmacc/types.hpp"
 
 #include <vector>
 #include <list>

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "math/vector/compile-time/Size_t.hpp"
+#include "pmacc/math/vector/compile-time/Size_t.hpp"
 #include <stdint.h>
 
 namespace PMacc

@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include "dimensions/DataSpace.hpp"
-#include "eventSystem/tasks/Factory.hpp"
-#include "memory/buffers/DeviceBuffer.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "assert.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
+#include "pmacc/memory/buffers/DeviceBuffer.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/assert.hpp"
 
 namespace PMacc
 {

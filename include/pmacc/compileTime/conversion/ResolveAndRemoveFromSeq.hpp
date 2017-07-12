@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "compileTime/conversion/ResolveAliases.hpp"
-#include "compileTime/errorHandlerPolicies/ReturnValue.hpp"
+#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
+#include "pmacc/compileTime/conversion/ResolveAliases.hpp"
+#include "pmacc/compileTime/errorHandlerPolicies/ReturnValue.hpp"
 
 namespace pmacc
 {

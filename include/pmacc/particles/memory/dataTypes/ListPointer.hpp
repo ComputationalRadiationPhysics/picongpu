@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "particles/memory/dataTypes/Pointer.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/particles/memory/dataTypes/Pointer.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace PMacc

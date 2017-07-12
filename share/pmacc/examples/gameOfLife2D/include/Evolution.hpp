@@ -21,15 +21,15 @@
 #pragma once
 
 #include "types.hpp"
-#include "math/Vector.hpp"
-#include "mappings/threads/ThreadCollective.hpp"
-#include "nvidia/functors/Assign.hpp"
-#include "memory/boxes/CachedBox.hpp"
-#include "memory/dataTypes/Mask.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "nvidia/rng/RNG.hpp"
-#include "nvidia/rng/methods/Xor.hpp"
-#include "nvidia/rng/distributions/Uniform_float.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/mappings/threads/ThreadCollective.hpp"
+#include "pmacc/nvidia/functors/Assign.hpp"
+#include "pmacc/memory/boxes/CachedBox.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/nvidia/rng/RNG.hpp"
+#include "pmacc/nvidia/rng/methods/Xor.hpp"
+#include "pmacc/nvidia/rng/distributions/Uniform_float.hpp"
 
 namespace gol
 {

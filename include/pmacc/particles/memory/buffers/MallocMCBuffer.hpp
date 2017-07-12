@@ -22,7 +22,7 @@
 #pragma once
 
 
-#include "dataManagement/ISimulationData.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
 
 #include "mallocMC/mallocMC.hpp"
 
@@ -69,4 +69,4 @@ namespace PMacc
 
 } // namespace PMacc
 
-#include "particles/memory/buffers/MallocMCBuffer.tpp"
+#include "pmacc/particles/memory/buffers/MallocMCBuffer.tpp"

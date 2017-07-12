@@ -25,9 +25,9 @@
 #include "../placeholder.hpp"
 #include "../ExprTypes.hpp"
 
-#include "pmacc_types.hpp"
-#include "math/Tuple.hpp"
-#include "RefWrapper.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/math/Tuple.hpp"
+#include "pmacc/RefWrapper.hpp"
 
 #include <boost/mpl/void.hpp>
 #include <boost/mpl/int.hpp>

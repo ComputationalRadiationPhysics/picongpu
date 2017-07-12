@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "eventSystem/tasks/ITask.hpp"
-#include "eventSystem/streams/EventStream.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
+#include "pmacc/eventSystem/streams/EventStream.hpp"
+#include "pmacc/types.hpp"
 
 #include <string>
 

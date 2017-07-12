@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "eventSystem/events/EventNotify.hpp"
-#include "eventSystem/events/IEvent.hpp"
-#include "pmacc_types.hpp"
-#include "assert.hpp"
+#include "pmacc/eventSystem/events/EventNotify.hpp"
+#include "pmacc/eventSystem/events/IEvent.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/assert.hpp"
 
 #include <string>
 #include <set>

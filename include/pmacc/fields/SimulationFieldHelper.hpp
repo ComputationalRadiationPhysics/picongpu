@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "dimensions/GridLayout.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "mappings/kernel/MappingDescription.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/mappings/kernel/MappingDescription.hpp"
 
 namespace pmacc
 {

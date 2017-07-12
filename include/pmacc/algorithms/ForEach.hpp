@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "compileTime/accessors/Identity.hpp"
-#include "forward.hpp"
+#include "pmacc/compileTime/accessors/Identity.hpp"
+#include "pmacc/forward.hpp"
 
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/transform.hpp>

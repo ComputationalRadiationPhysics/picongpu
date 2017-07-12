@@ -21,4 +21,4 @@
 
 #pragma once
 
-#include "math/RungeKutta/RungeKutta4.hpp"
+#include "pmacc/math/RungeKutta/RungeKutta4.hpp"

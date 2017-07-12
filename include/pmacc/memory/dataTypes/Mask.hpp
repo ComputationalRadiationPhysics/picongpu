@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
-#include "dimensions/DataSpace.hpp"
-#include "traits/NumberOfExchanges.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/traits/NumberOfExchanges.hpp"
 
 namespace PMacc
 {

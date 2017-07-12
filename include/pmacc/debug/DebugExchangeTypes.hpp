@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "memory/dataTypes/Mask.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/memory/dataTypes/Mask.hpp"
+#include "pmacc/types.hpp"
 
 #include <string>
 #include <sstream>

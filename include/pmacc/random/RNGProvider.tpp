@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "random/RNGProvider.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "Environment.hpp"
+#include "pmacc/random/RNGProvider.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/Environment.hpp"
 
 #include <memory>
 

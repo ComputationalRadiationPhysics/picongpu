@@ -22,12 +22,12 @@
 #pragma once
 
 
-#include "pmacc_types.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "traits/GetNComponents.hpp"
-#include "eventSystem/EventSystem.hpp"
-#include "Environment.hpp"
-#include "nvidia/gpuEntryFunction.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/traits/GetNComponents.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/nvidia/gpuEntryFunction.hpp"
 
 #include <string>
 
@@ -279,4 +279,4 @@ namespace exec
 #define PMACC_KERNEL( ... ) pmacc::exec::kernel( __VA_ARGS__, __FILE__,  static_cast< size_t >( __LINE__ ) )
 
 
-#include "eventSystem/events/kernelEvents.tpp"
+#include "pmacc/eventSystem/events/kernelEvents.tpp"

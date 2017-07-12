@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "memory/buffers/Exchange.hpp"
+#include "pmacc/memory/buffers/Exchange.hpp"
 
-#include "eventSystem/tasks/Factory.hpp"
-#include "eventSystem/tasks/ITask.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
 
 namespace pmacc
 {
@@ -86,5 +86,5 @@ namespace pmacc
 
 } //namespace pmacc
 
-#include "fields/tasks/FieldFactory.tpp"
+#include "pmacc/fields/tasks/FieldFactory.tpp"
 

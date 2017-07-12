@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "eventSystem/Manager.hpp"
-#include "eventSystem/tasks/StreamTask.hpp"
-#include "eventSystem/transactions/Transaction.hpp"
-#include "eventSystem/transactions/TransactionManager.hpp"
-#include "eventSystem/events/EventTask.hpp"
-#include "eventSystem/events/EventNotify.hpp"
-#include "eventSystem/tasks/Factory.hpp"
+#include "pmacc/eventSystem/Manager.hpp"
+#include "pmacc/eventSystem/tasks/StreamTask.hpp"
+#include "pmacc/eventSystem/transactions/Transaction.hpp"
+#include "pmacc/eventSystem/transactions/TransactionManager.hpp"
+#include "pmacc/eventSystem/events/EventTask.hpp"
+#include "pmacc/eventSystem/events/EventNotify.hpp"
+#include "pmacc/eventSystem/tasks/Factory.hpp"

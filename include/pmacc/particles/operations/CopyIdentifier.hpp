@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "particles/Identifier.hpp"
-#include "traits/HasIdentifier.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/particles/Identifier.hpp"
+#include "pmacc/traits/HasIdentifier.hpp"
 
 namespace PMacc
 {

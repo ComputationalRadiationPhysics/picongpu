@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "eventSystem/EventSystem.hpp"
-#include "traits/NumberOfExchanges.hpp"
-#include "assert.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/traits/NumberOfExchanges.hpp"
+#include "pmacc/assert.hpp"
 
 namespace PMacc
 {

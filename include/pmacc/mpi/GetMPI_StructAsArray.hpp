@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "mpi/MPI_StructAsArray.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/mpi/MPI_StructAsArray.hpp"
 
 namespace PMacc
 {
@@ -46,6 +46,6 @@ PMacc::mpi::MPI_StructAsArray getMPI_StructAsArray()
 
 }//namespace PMacc
 
-#include "mpi/GetMPI_StructAsArray.tpp"
+#include "pmacc/mpi/GetMPI_StructAsArray.tpp"
 
 

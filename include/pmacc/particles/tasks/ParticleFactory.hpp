@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "Environment.def"
-#include "eventSystem/EventSystem.hpp"
+#include "pmacc/Environment.def"
+#include "pmacc/eventSystem/EventSystem.hpp"
 
 namespace PMacc
 {

@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include "is_Expression.hpp"
 #include "CT/TerminalTL.hpp"
 #include "CT/Expression.hpp"
 #include "CT/Eval.hpp"
 #include "CT/FillTerminalList.hpp"
 #include <math/Tuple.hpp>
-#include "RefWrapper.hpp"
+#include "pmacc/RefWrapper.hpp"
 #include <boost/type_traits/is_reference.hpp>
 
 #include <boost/mpl/if.hpp>

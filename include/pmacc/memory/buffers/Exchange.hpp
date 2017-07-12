@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "memory/buffers/DeviceBuffer.hpp"
-#include "memory/buffers/HostBuffer.hpp"
+#include "pmacc/memory/buffers/DeviceBuffer.hpp"
+#include "pmacc/memory/buffers/HostBuffer.hpp"
 
 namespace PMacc
 {

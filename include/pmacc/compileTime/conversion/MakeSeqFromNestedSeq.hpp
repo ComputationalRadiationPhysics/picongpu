@@ -23,8 +23,8 @@
 #pragma once
 
 #include <boost/mpl/vector.hpp>
-#include "compileTime/conversion/ToSeq.hpp"
-#include "compileTime/conversion/JoinToSeq.hpp"
+#include "pmacc/compileTime/conversion/ToSeq.hpp"
+#include "pmacc/compileTime/conversion/JoinToSeq.hpp"
 #include <boost/mpl/fold.hpp>
 
 namespace pmacc
