@@ -33,17 +33,17 @@ fi
 
 ## copy memcheck programs
 cd $TBG_dstPath
-mkdir picongpu
-cp -ar $TBG_projectPath/bin picongpu
-cp -ar $TBG_projectPath/include picongpu
-cp -ar $TBG_projectPath/submit picongpu
+mkdir input
+cp -ar $TBG_projectPath/bin input
+cp -ar $TBG_projectPath/include/picongpu input
+cp -ar $TBG_projectPath/submit input
 if [ -d "$TBG_projectPath/lib" ]
 then
-  cp -ar $TBG_projectPath/lib picongpu
+  cp -ar $TBG_projectPath/lib input
 fi
 if [ -f $TBG_projectPath/cmakeFlags ]
 then
-  cp -a $TBG_projectPath/cmakeFlags picongpu
+  cp -a $TBG_projectPath/cmakeFlags input
 fi
 cp -a $TBG_cfgPath/openib.conf tbg
 cp -a $TBG_cfgPath/cuda.filter tbg
