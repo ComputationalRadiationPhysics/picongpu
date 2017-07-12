@@ -22,7 +22,7 @@
 #include "simulation_defines.hpp"
 #include "pmacc_types.hpp"
 
-#include "fields/currentInterpolation/None/None.def"
+#include "picongpu/fields/currentInterpolation/None/None.def"
 
 namespace picongpu
 {

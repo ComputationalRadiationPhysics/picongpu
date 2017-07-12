@@ -21,15 +21,15 @@
 
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
-#include "traits/UsesRNG.hpp"
+#include "picongpu/traits/UsesRNG.hpp"
 
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 
-#include "particles/ionization/byField/ADK/ADK.def"
-#include "particles/ionization/byField/ADK/AlgorithmADK.hpp"
-#include "particles/ionization/ionization.hpp"
-#include "particles/ionization/ionizationMethods.hpp"
+#include "picongpu/particles/ionization/byField/ADK/ADK.def"
+#include "picongpu/particles/ionization/byField/ADK/AlgorithmADK.hpp"
+#include "picongpu/particles/ionization/ionization.hpp"
+#include "picongpu/particles/ionization/ionizationMethods.hpp"
 
 #include "random/methods/XorMin.hpp"
 #include "random/distributions/Uniform.hpp"

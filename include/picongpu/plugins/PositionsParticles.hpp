@@ -25,7 +25,7 @@
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "algorithms/Gamma.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "memory/shared/Allocate.hpp"
 #include "dataManagement/DataConnector.hpp"
 

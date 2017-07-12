@@ -23,16 +23,16 @@
 #include "pmacc_types.hpp"
 #include "static_assert.hpp"
 #include "simulation_types.hpp"
-#include "plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
 
 #include "particles/frame_types.hpp"
 #include "particles/IdProvider.def"
 #include "assert.hpp"
 
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
-#include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.hpp"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/fields/FieldTmp.hpp"
 #include "particles/operations/CountParticles.hpp"
 
 #include "dataManagement/DataConnector.hpp"
@@ -45,14 +45,14 @@
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "traits/Limits.hpp"
 
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 
-#include "plugins/adios/WriteMeta.hpp"
-#include "plugins/adios/WriteSpecies.hpp"
-#include "plugins/adios/ADIOSCountParticles.hpp"
-#include "plugins/adios/restart/LoadSpecies.hpp"
-#include "plugins/adios/restart/RestartFieldLoader.hpp"
-#include "plugins/adios/NDScalars.hpp"
+#include "picongpu/plugins/adios/WriteMeta.hpp"
+#include "picongpu/plugins/adios/WriteSpecies.hpp"
+#include "picongpu/plugins/adios/ADIOSCountParticles.hpp"
+#include "picongpu/plugins/adios/restart/LoadSpecies.hpp"
+#include "picongpu/plugins/adios/restart/RestartFieldLoader.hpp"
+#include "picongpu/plugins/adios/NDScalars.hpp"
 
 #include <adios.h>
 #include <adios_read.h>

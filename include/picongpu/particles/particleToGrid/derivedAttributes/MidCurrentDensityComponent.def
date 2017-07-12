@@ -21,7 +21,7 @@
 
 #include "simulation_defines.hpp"
 #include "static_assert.hpp"
-#include "traits/SIBaseUnits.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 #include <vector>
 
 

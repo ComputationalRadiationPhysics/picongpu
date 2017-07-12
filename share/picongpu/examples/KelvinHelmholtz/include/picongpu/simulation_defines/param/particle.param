@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "particles/startPosition/functors.def"
-#include "particles/manipulators/manipulators.def"
-#include "particles/filter/filter.def"
+#include "picongpu/particles/startPosition/functors.def"
+#include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/filter/filter.def"
 #include "nvidia/functors/Assign.hpp"
 
 namespace picongpu

@@ -23,10 +23,10 @@
 
 #include "simulation_defines.hpp"
 
-#include "fields/MaxwellSolver/DirSplitting/DirSplitting.kernel"
+#include "picongpu/fields/MaxwellSolver/DirSplitting/DirSplitting.kernel"
 #include "dataManagement/DataConnector.hpp"
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 #include "lambda/Expression.hpp"
 #include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
 #include "cuSTL/cursor/NestedCursor.hpp"

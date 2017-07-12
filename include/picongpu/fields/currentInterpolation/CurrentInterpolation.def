@@ -18,6 +18,6 @@
  */
 
 
-#include "fields/currentInterpolation/None/None.def"
-#include "fields/currentInterpolation/Binomial/Binomial.def"
-#include "fields/currentInterpolation/NoneDS/NoneDS.def"
+#include "picongpu/fields/currentInterpolation/None/None.def"
+#include "picongpu/fields/currentInterpolation/Binomial/Binomial.def"
+#include "picongpu/fields/currentInterpolation/NoneDS/NoneDS.def"

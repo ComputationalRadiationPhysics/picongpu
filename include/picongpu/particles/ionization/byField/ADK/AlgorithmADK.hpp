@@ -21,11 +21,11 @@
 
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "particles/traits/GetAtomicNumbers.hpp"
-#include "particles/traits/GetIonizationEnergies.hpp"
-#include "traits/attribute/GetChargeState.hpp"
+#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
+#include "picongpu/particles/traits/GetIonizationEnergies.hpp"
+#include "picongpu/traits/attribute/GetChargeState.hpp"
 #include "algorithms/math/floatMath/floatingPoint.tpp"
-#include "particles/ionization/utilities.hpp"
+#include "picongpu/particles/ionization/utilities.hpp"
 
 /** \file AlgorithmADK.hpp
  *

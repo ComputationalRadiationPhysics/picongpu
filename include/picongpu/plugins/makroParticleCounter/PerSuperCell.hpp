@@ -23,7 +23,7 @@
 
 #include "mappings/kernel/AreaMapping.hpp"
 
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 
 #include "memory/buffers/GridBuffer.hpp"
 #include "memory/shared/Allocate.hpp"

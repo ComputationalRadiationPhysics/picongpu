@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 #include <boost/shared_ptr.hpp>
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
 

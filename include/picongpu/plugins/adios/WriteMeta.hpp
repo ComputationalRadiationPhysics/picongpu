@@ -20,15 +20,15 @@
 #pragma once
 #include "simulation_defines.hpp"
 
-#include "plugins/adios/ADIOSWriter.def"
-#include "plugins/common/stringHelpers.hpp"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/common/stringHelpers.hpp"
 #include "Environment.hpp"
 
 #include "fields/FieldManipulator.hpp"
-#include "fields/currentInterpolation/CurrentInterpolation.hpp"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 
-#include "traits/SIBaseUnits.hpp"
-#include "traits/PICToAdios.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/traits/PICToAdios.hpp"
 
 #include <string>
 #include <sstream>

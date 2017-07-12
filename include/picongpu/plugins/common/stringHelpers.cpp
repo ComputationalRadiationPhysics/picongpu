@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "plugins/common/stringHelpers.hpp"
+#include "picongpu/plugins/common/stringHelpers.hpp"
 
 
 namespace picongpu

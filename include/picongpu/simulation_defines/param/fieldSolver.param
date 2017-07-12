@@ -42,7 +42,7 @@
 
 #pragma once
 
-#include "fields/currentInterpolation/CurrentInterpolation.def"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
 
 
 namespace picongpu

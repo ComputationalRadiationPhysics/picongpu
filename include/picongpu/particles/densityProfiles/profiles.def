@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include "particles/densityProfiles/IProfile.def"
-#include "particles/densityProfiles/FreeFormulaImpl.def"
-#include "particles/densityProfiles/GaussianImpl.def"
-#include "particles/densityProfiles/HomogenousImpl.def"
-#include "particles/densityProfiles/LinearExponentialImpl.def"
-#include "particles/densityProfiles/GaussianCloudImpl.def"
-#include "particles/densityProfiles/SphereFlanksImpl.def"
-#include "particles/densityProfiles/FromHDF5Impl.def"
+#include "picongpu/particles/densityProfiles/IProfile.def"
+#include "picongpu/particles/densityProfiles/FreeFormulaImpl.def"
+#include "picongpu/particles/densityProfiles/GaussianImpl.def"
+#include "picongpu/particles/densityProfiles/HomogenousImpl.def"
+#include "picongpu/particles/densityProfiles/LinearExponentialImpl.def"
+#include "picongpu/particles/densityProfiles/GaussianCloudImpl.def"
+#include "picongpu/particles/densityProfiles/SphereFlanksImpl.def"
+#include "picongpu/particles/densityProfiles/FromHDF5Impl.def"

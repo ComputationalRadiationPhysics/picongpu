@@ -29,16 +29,16 @@
 
 #include "simulation_defines.hpp"
 
-#include "plugins/hdf5/HDF5Writer.def"
-#include "traits/SplashToPIC.hpp"
-#include "traits/PICToSplash.hpp"
+#include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/traits/SplashToPIC.hpp"
+#include "picongpu/traits/PICToSplash.hpp"
 
 #include "particles/frame_types.hpp"
 
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
-#include "fields/FieldJ.hpp"
-#include "fields/FieldTmp.hpp"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/fields/FieldTmp.hpp"
 #include "particles/particleFilter/FilterFactory.hpp"
 #include "particles/particleFilter/PositionFilter.hpp"
 #include "particles/operations/CountParticles.hpp"
@@ -52,7 +52,7 @@
 #include "simulationControl/MovingWindow.hpp"
 #include "math/Vector.hpp"
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -63,12 +63,12 @@
 
 #include <boost/type_traits.hpp>
 
-#include "plugins/hdf5/WriteMeta.hpp"
-#include "plugins/hdf5/WriteFields.hpp"
-#include "plugins/hdf5/WriteSpecies.hpp"
-#include "plugins/hdf5/restart/LoadSpecies.hpp"
-#include "plugins/hdf5/restart/RestartFieldLoader.hpp"
-#include "plugins/hdf5/NDScalars.hpp"
+#include "picongpu/plugins/hdf5/WriteMeta.hpp"
+#include "picongpu/plugins/hdf5/WriteFields.hpp"
+#include "picongpu/plugins/hdf5/WriteSpecies.hpp"
+#include "picongpu/plugins/hdf5/restart/LoadSpecies.hpp"
+#include "picongpu/plugins/hdf5/restart/RestartFieldLoader.hpp"
+#include "picongpu/plugins/hdf5/NDScalars.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"
 
 namespace picongpu

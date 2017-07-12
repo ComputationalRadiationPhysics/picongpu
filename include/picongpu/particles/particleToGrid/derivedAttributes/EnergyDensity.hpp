@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/EnergyDensity.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensity.def"
 
 #include "simulation_defines.hpp"
 #include "algorithms/KinEnergy.hpp"

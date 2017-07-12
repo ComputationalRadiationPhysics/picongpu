@@ -21,12 +21,12 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/Particles.hpp"
+#include "picongpu/particles/Particles.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "particles/ParticlesInit.kernel"
+#include "picongpu/particles/ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
 #include "simulationControl/MovingWindow.hpp"
-#include "traits/Resolve.hpp"
+#include "picongpu/traits/Resolve.hpp"
 #include "math/vector/Int.hpp"
 #include "nvidia/atomic.hpp"
 #include "memory/shared/Allocate.hpp"

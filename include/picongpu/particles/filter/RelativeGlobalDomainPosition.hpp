@@ -22,7 +22,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/filter/RelativeGlobalDomainPosition.def"
+#include "picongpu/particles/filter/RelativeGlobalDomainPosition.def"
 
 namespace picongpu
 {

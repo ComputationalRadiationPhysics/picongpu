@@ -20,14 +20,14 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "fields/Fields.def"
+#include "picongpu/fields/Fields.def"
 #include "compileTime/conversion/TypeToPointerPair.hpp"
-#include "particles/manipulators/manipulators.def"
-#include "particles/densityProfiles/IProfile.def"
-#include "particles/startPosition/IFunctor.def"
-#include "particles/Manipulate.hpp"
-#include "particles/filter/filter.def"
-#include "particles/manipulators/manipulators.def"
+#include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/densityProfiles/IProfile.def"
+#include "picongpu/particles/startPosition/IFunctor.def"
+#include "picongpu/particles/Manipulate.hpp"
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/manipulators/manipulators.def"
 
 #include "Environment.hpp"
 #include "traits/Resolve.hpp"

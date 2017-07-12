@@ -22,19 +22,19 @@
 
 #include "simulation_defines.hpp"
 #include "traits/HasFlag.hpp"
-#include "fields/Fields.def"
+#include "picongpu/fields/Fields.def"
 #include "math/MapTuple.hpp"
 
 #include "Environment.hpp"
 #include "communication/AsyncCommunication.hpp"
-#include "particles/traits/GetIonizerList.hpp"
+#include "picongpu/particles/traits/GetIonizerList.hpp"
 #include "particles/traits/FilterByFlag.hpp"
-#include "particles/traits/GetPhotonCreator.hpp"
+#include "picongpu/particles/traits/GetPhotonCreator.hpp"
 #include "particles/traits/ResolveAliasFromSpecies.hpp"
-#include "particles/flylite/IFlyLite.hpp"
-#include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-#include "particles/bremsstrahlung/Bremsstrahlung.hpp"
-#include "particles/creation/creation.hpp"
+#include "picongpu/particles/flylite/IFlyLite.hpp"
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
+#include "picongpu/particles/creation/creation.hpp"
 
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>

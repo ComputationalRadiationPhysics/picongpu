@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/creation/creation.kernel"
+#include "picongpu/particles/creation/creation.kernel"
 #include "simulation_defines.hpp"
 #include "cuSTL/algorithm/kernel/Foreach.hpp"
 #include "cuSTL/cursor/MultiIndexCursor.hpp"

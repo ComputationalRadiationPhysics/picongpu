@@ -20,8 +20,8 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/filter/filter.def"
-#include "particles/manipulators/manipulators.def"
+#include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/manipulators/manipulators.def"
 
 #include "Environment.hpp"
 

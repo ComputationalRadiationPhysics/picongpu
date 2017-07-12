@@ -24,7 +24,7 @@
 
 #include "pmacc_types.hpp"
 #include "particles/operations/Assign.hpp"
-#include "traits/attribute/GetMass.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 
 #include "nvidia/rng/RNG.hpp"
 #include "nvidia/rng/methods/Xor.hpp"

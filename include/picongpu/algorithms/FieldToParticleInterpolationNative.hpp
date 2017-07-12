@@ -24,7 +24,7 @@
 #include "simulation_defines.hpp"
 #include <cuSTL/cursor/FunctorCursor.hpp>
 #include "math/Vector.hpp"
-#include "algorithms/ShiftCoordinateSystemNative.hpp"
+#include "picongpu/algorithms/ShiftCoordinateSystemNative.hpp"
 
 namespace picongpu
 {

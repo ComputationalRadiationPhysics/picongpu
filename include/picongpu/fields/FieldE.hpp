@@ -36,7 +36,7 @@
 /*libPMacc*/
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/simulation/GridController.hpp"
-#include "fields/LaserPhysics.def"
+#include "picongpu/fields/LaserPhysics.def"
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 

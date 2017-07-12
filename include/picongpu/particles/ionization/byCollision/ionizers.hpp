@@ -26,4 +26,4 @@
 
 #pragma once
 
-#include "particles/ionization/byCollision/ThomasFermi/ThomasFermi_Impl.hpp"
+#include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi_Impl.hpp"

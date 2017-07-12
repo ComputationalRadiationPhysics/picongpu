@@ -22,7 +22,7 @@
 
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "math/vector/Float.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 
 #include <string>
 

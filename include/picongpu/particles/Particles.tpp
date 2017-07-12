@@ -23,13 +23,13 @@
 #include "simulation_defines.hpp"
 #include "Particles.hpp"
 
-#include "particles/Particles.kernel"
+#include "picongpu/particles/Particles.kernel"
 
 #include "dataManagement/DataConnector.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
 #include "ParticlesInit.kernel"
@@ -37,8 +37,8 @@
 
 #include "simulationControl/MovingWindow.hpp"
 
-#include "fields/numericalCellTypes/YeeCell.hpp"
-#include "particles/traits/GetMarginPusher.hpp"
+#include "picongpu/fields/numericalCellTypes/YeeCell.hpp"
+#include "picongpu/particles/traits/GetMarginPusher.hpp"
 
 #include "traits/GetUniqueTypeId.hpp"
 #include "traits/Resolve.hpp"

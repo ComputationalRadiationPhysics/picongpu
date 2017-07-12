@@ -28,11 +28,11 @@
 
 #define PIC_VERBOSE_RADIATION 3
 
-#include "plugins/radiation/parameters.hpp"
-#include "plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
+#include "picongpu/plugins/radiation/parameters.hpp"
+#include "picongpu/plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
 #include "algorithms/Gamma.def"
-#include "traits/attribute/GetMass.hpp"
-#include "particles/manipulators/manipulators.def"
+#include "picongpu/traits/attribute/GetMass.hpp"
+#include "picongpu/particles/manipulators/manipulators.def"
 
 namespace picongpu
 {

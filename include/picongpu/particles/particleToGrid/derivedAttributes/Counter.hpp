@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/Counter.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/Counter.def"
 
 #include "simulation_defines.hpp"
 

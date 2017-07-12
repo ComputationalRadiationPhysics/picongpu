@@ -21,8 +21,8 @@
 #pragma once
 
 #include "SliceFieldPrinter.hpp"
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"

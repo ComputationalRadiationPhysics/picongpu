@@ -20,9 +20,9 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "traits/GetMargin.hpp"
-#include "particles/traits/GetInterpolation.hpp"
-#include "particles/traits/GetPusher.hpp"
+#include "picongpu/traits/GetMargin.hpp"
+#include "picongpu/particles/traits/GetInterpolation.hpp"
+#include "picongpu/particles/traits/GetPusher.hpp"
 
 
 namespace picongpu

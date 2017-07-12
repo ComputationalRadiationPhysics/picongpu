@@ -19,21 +19,21 @@
 
 #pragma once
 
-//#include "particles/manipulators/IManipulator.def"
-//#include "particles/manipulators/NoneImpl.def"
+//#include "picongpu/particles/manipulators/IManipulator.def"
+//#include "picongpu/particles/manipulators/NoneImpl.def"
 
-#include "particles/manipulators/IUnary.def"
-#include "particles/manipulators/IBinary.def"
+#include "picongpu/particles/manipulators/IUnary.def"
+#include "picongpu/particles/manipulators/IBinary.def"
 
-#include "particles/manipulators/generic/Free.def"
-#include "particles/manipulators/generic/FreeRng.def"
-#include "particles/manipulators/generic/None.def"
+#include "picongpu/particles/manipulators/generic/Free.def"
+#include "picongpu/particles/manipulators/generic/FreeRng.def"
+#include "picongpu/particles/manipulators/generic/None.def"
 
-#include "particles/manipulators/unary/Temperature.def"
-#include "particles/manipulators/unary/Drift.def"
-#include "particles/manipulators/unary/CopyAttribute.def"
-#include "particles/manipulators/unary/RandomPosition.def"
+#include "picongpu/particles/manipulators/unary/Temperature.def"
+#include "picongpu/particles/manipulators/unary/Drift.def"
+#include "picongpu/particles/manipulators/unary/CopyAttribute.def"
+#include "picongpu/particles/manipulators/unary/RandomPosition.def"
 
-#include "particles/manipulators/binary/DensityWeighting.def"
-#include "particles/manipulators/binary/Assign.def"
-#include "particles/manipulators/binary/ProtonTimesWeighting.def"
+#include "picongpu/particles/manipulators/binary/DensityWeighting.def"
+#include "picongpu/particles/manipulators/binary/Assign.def"
+#include "picongpu/particles/manipulators/binary/ProtonTimesWeighting.def"

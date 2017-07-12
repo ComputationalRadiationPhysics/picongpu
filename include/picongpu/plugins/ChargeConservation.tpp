@@ -21,7 +21,7 @@
 
 #include "static_assert.hpp"
 
-#include "fields/FieldJ.hpp"
+#include "picongpu/fields/FieldJ.hpp"
 
 #include "math/vector/Int.hpp"
 #include "math/vector/Float.hpp"

@@ -21,7 +21,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "fields/LaserPhysics.def"
+#include "picongpu/fields/LaserPhysics.def"
 #include "dimensions/GridLayout.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include <cmath>

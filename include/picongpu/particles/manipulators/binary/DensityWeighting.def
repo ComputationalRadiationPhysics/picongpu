@@ -20,8 +20,8 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/manipulators/generic/Free.def"
-#include "particles/traits/GetDensityRatio.hpp"
+#include "picongpu/particles/manipulators/generic/Free.def"
+#include "picongpu/particles/traits/GetDensityRatio.hpp"
 
 
 namespace picongpu

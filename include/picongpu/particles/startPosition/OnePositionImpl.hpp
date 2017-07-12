@@ -22,8 +22,8 @@
 
 
 #include "simulation_defines.hpp"
-#include "particles/startPosition/MacroParticleCfg.hpp"
-#include "particles/startPosition/IFunctor.def"
+#include "picongpu/particles/startPosition/MacroParticleCfg.hpp"
+#include "picongpu/particles/startPosition/IFunctor.def"
 
 namespace picongpu
 {

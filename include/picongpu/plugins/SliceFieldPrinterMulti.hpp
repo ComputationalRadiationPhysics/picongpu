@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "plugins/SliceFieldPrinter.hpp"
+#include "picongpu/plugins/SliceFieldPrinter.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "math/vector/Float.hpp"
 

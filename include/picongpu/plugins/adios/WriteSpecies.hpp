@@ -21,13 +21,13 @@
 #pragma once
 
 #include "simulation_types.hpp"
-#include "plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "assert.hpp"
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/adios/writer/ParticleAttribute.hpp"
+#include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
+#include "picongpu/plugins/adios/writer/ParticleAttribute.hpp"
 
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"

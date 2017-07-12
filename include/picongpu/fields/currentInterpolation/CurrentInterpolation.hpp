@@ -18,6 +18,6 @@
  */
 
 
-#include "fields/currentInterpolation/None/None.hpp"
-#include "fields/currentInterpolation/Binomial/Binomial.hpp"
-#include "fields/currentInterpolation/NoneDS/NoneDS.hpp"
+#include "picongpu/fields/currentInterpolation/None/None.hpp"
+#include "picongpu/fields/currentInterpolation/Binomial/Binomial.hpp"
+#include "picongpu/fields/currentInterpolation/NoneDS/NoneDS.hpp"

@@ -19,4 +19,4 @@
 
 #pragma once
 
-#include "particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
+#include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"

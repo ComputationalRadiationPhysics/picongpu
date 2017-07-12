@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "plugins/particleMerging/VoronoiCell.hpp"
+#include "picongpu/plugins/particleMerging/VoronoiCell.hpp"
 #include "particles/access/Cell2Particle.hpp"
 #include "memory/Array.hpp"
 #include "memory/IndexPool.hpp"

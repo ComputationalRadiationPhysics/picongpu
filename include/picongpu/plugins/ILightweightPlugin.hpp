@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
 namespace picongpu
 {

@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include "plugins/particleMerging/ParticleMerger.kernel"
+#include "picongpu/plugins/particleMerging/ParticleMerger.kernel"
 
 #include "simulation_defines.hpp"
 #include "simulation_classTypes.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "traits/HasIdentifier.hpp"
 

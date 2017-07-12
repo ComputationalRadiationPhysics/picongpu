@@ -21,4 +21,4 @@
 #pragma once
 
 /** Load pre-defined templates (implementation) */
-#include "fields/background/templates/TWTS/TWTS.tpp"
+#include "picongpu/fields/background/templates/TWTS/TWTS.tpp"

@@ -22,8 +22,8 @@
 #include "ParticleCalorimeterFunctors.hpp"
 #include "ParticleCalorimeter.kernel"
 
-#include "traits/PICToSplash.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/traits/PICToSplash.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"

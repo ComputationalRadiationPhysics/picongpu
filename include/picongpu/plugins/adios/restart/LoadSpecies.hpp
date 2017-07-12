@@ -21,8 +21,8 @@
 
 #include "simulation_types.hpp"
 
-#include "plugins/adios/ADIOSWriter.def"
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
@@ -30,8 +30,8 @@
 #include "particles/ParticleDescription.hpp"
 #include "particles/operations/splitIntoListOfFrames.kernel"
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/adios/restart/LoadParticleAttributesFromADIOS.hpp"
+#include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
+#include "picongpu/plugins/adios/restart/LoadParticleAttributesFromADIOS.hpp"
 
 #include "dataManagement/DataConnector.hpp"
 

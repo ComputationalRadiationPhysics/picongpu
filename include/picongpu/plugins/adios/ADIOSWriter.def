@@ -34,7 +34,7 @@
 #include "simulation_types.hpp"
 #include "particles/frame_types.hpp"
 #include "simulationControl/MovingWindow.hpp"
-#include "traits/PICToAdios.hpp"
+#include "picongpu/traits/PICToAdios.hpp"
 
 namespace picongpu
 {

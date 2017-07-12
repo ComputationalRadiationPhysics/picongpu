@@ -27,7 +27,7 @@
 #include "cuSTL/cursor/tools/twistVectorFieldAxes.hpp"
 #include "cuSTL/cursor/compile-time/SafeCursor.hpp"
 
-#include "fields/currentDeposition/Esirkepov/Line.hpp"
+#include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 
 
 namespace picongpu

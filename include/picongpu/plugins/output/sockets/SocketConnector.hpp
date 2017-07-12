@@ -21,7 +21,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "plugins/output/header/MessageHeader.hpp"
+#include "picongpu/plugins/output/header/MessageHeader.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -34,7 +34,7 @@
 
 #include <iostream>
 
-#include "plugins/output/compression/ZipConnector.hpp"
+#include "picongpu/plugins/output/compression/ZipConnector.hpp"
 #include <sstream>
 
 namespace picongpu

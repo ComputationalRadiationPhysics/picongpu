@@ -26,65 +26,65 @@
 #include "simulation_types.hpp"
 #include "assert.hpp"
 
-#include "plugins/CountParticles.hpp"
-#include "plugins/EnergyParticles.hpp"
-#include "plugins/EnergyFields.hpp"
-#include "plugins/SumCurrents.hpp"
-#include "plugins/PositionsParticles.hpp"
-#include "plugins/BinEnergyParticles.hpp"
-#include "plugins/ChargeConservation.hpp"
-#include "plugins/particleMerging/ParticleMerger.hpp"
+#include "picongpu/plugins/CountParticles.hpp"
+#include "picongpu/plugins/EnergyParticles.hpp"
+#include "picongpu/plugins/EnergyFields.hpp"
+#include "picongpu/plugins/SumCurrents.hpp"
+#include "picongpu/plugins/PositionsParticles.hpp"
+#include "picongpu/plugins/BinEnergyParticles.hpp"
+#include "picongpu/plugins/ChargeConservation.hpp"
+#include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
 #if(ENABLE_HDF5 == 1)
-#include "plugins/radiation/parameters.hpp"
-#include "plugins/radiation/Radiation.hpp"
-#include "plugins/particleCalorimeter/ParticleCalorimeter.hpp"
-#include "plugins/PhaseSpace/PhaseSpaceMulti.hpp"
+#include "picongpu/plugins/radiation/parameters.hpp"
+#include "picongpu/plugins/radiation/Radiation.hpp"
+#include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
+#include "picongpu/plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 #endif
 
 #if (ENABLE_INSITU_VOLVIS == 1)
-#include "plugins/InSituVolumeRenderer.hpp"
+#include "picongpu/plugins/InSituVolumeRenderer.hpp"
 #endif
 
 #include "simulation_classTypes.hpp"
 
 #include "mappings/kernel/MappingDescription.hpp"
 
-#include "plugins/LiveViewPlugin.hpp"
-#include "plugins/ILightweightPlugin.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/LiveViewPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "plugins/output/images/PngCreator.hpp"
+#include "picongpu/plugins/output/images/PngCreator.hpp"
 
 
 // That's an abstract plugin for Png and Binary Density output
 // \todo rename PngPlugin to ImagePlugin or similar
-#include "plugins/PngPlugin.hpp"
+#include "picongpu/plugins/PngPlugin.hpp"
 
 #if(SIMDIM==DIM3)
-#include "plugins/IntensityPlugin.hpp"
+#include "picongpu/plugins/IntensityPlugin.hpp"
 #endif
-#include "plugins/SliceFieldPrinterMulti.hpp"
+#include "picongpu/plugins/SliceFieldPrinterMulti.hpp"
 
-#include "plugins/output/images/Visualisation.hpp"
+#include "picongpu/plugins/output/images/Visualisation.hpp"
 
 #include <list>
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #if (ENABLE_HDF5 == 1)
-#include "plugins/hdf5/HDF5Writer.hpp"
-#include "plugins/makroParticleCounter/PerSuperCell.hpp"
+#include "picongpu/plugins/hdf5/HDF5Writer.hpp"
+#include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #endif
 
 #if (ENABLE_ADIOS == 1)
-#include "plugins/adios/ADIOSWriter.hpp"
+#include "picongpu/plugins/adios/ADIOSWriter.hpp"
 #endif
 
 #if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
-#include "plugins/IsaacPlugin.hpp"
+#include "picongpu/plugins/IsaacPlugin.hpp"
 #endif
 
-#include "plugins/ResourceLog.hpp"
+#include "picongpu/plugins/ResourceLog.hpp"
 
 namespace picongpu
 {

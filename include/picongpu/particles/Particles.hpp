@@ -23,11 +23,11 @@
 #include "pmacc_types.hpp"
 #include "simulation_classTypes.hpp"
 
-#include "fields/Fields.def"
-#include "fields/Fields.hpp"
+#include "picongpu/fields/Fields.def"
+#include "picongpu/fields/Fields.hpp"
 #include "particles/ParticlesBase.hpp"
 #include "particles/memory/buffers/ParticlesBuffer.hpp"
-#include "particles/manipulators/manipulators.def"
+#include "picongpu/particles/manipulators/manipulators.def"
 #include "particles/ParticleDescription.hpp"
 
 #include "memory/dataTypes/Mask.hpp"

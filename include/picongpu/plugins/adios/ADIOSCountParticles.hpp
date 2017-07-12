@@ -22,17 +22,17 @@
 #include <mpi.h>
 
 #include "simulation_types.hpp"
-#include "plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
+#include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "particles/traits/GetSpeciesFlagName.hpp"
-#include "traits/PICToAdios.hpp"
+#include "picongpu/traits/PICToAdios.hpp"
 
 #include "mappings/kernel/AreaMapping.hpp"
 #include "math/Vector.hpp"
-#include "plugins/adios/writer/ParticleAttributeSize.hpp"
+#include "picongpu/plugins/adios/writer/ParticleAttributeSize.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "dataManagement/DataConnector.hpp"

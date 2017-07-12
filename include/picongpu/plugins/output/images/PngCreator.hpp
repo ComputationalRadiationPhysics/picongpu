@@ -28,7 +28,7 @@
 #include <iomanip>
 
 #include "memory/boxes/DataBox.hpp"
-#include "plugins/output/header/MessageHeader.hpp"
+#include "picongpu/plugins/output/header/MessageHeader.hpp"
 
 #include <boost/thread.hpp>
 
@@ -128,4 +128,4 @@ namespace picongpu
 
 } /* namespace picongpu */
 
-#include "plugins/output/images/PngCreator.tpp"
+#include "picongpu/plugins/output/images/PngCreator.tpp"

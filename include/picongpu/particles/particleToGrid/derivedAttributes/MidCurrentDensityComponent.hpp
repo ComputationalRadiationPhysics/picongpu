@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.def"
 
 #include "simulation_defines.hpp"
 

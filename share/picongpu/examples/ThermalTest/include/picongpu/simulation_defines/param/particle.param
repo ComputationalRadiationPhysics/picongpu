@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "particles/startPosition/functors.def"
-#include "particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
+#include "picongpu/particles/manipulators/manipulators.def"
 #include "nvidia/functors/Add.hpp"
 
 namespace picongpu

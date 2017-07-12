@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "plugins/common/particlePatches.hpp"
+#include "picongpu/plugins/common/particlePatches.hpp"
 
 
 namespace picongpu

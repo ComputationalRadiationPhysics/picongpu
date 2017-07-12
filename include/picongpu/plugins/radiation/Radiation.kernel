@@ -35,13 +35,13 @@
 #include "mappings/kernel/AreaMapping.hpp"
 
 
-#include "plugins/radiation/parameters.hpp"
-#include "plugins/radiation/check_consistency.hpp"
-#include "plugins/radiation/particle.hpp"
-#include "plugins/radiation/amplitude.hpp"
-#include "plugins/radiation/calc_amplitude.hpp"
-#include "plugins/radiation/windowFunctions.hpp"
-#include "plugins/radiation/GetRadiationMask.hpp"
+#include "picongpu/plugins/radiation/parameters.hpp"
+#include "picongpu/plugins/radiation/check_consistency.hpp"
+#include "picongpu/plugins/radiation/particle.hpp"
+#include "picongpu/plugins/radiation/amplitude.hpp"
+#include "picongpu/plugins/radiation/calc_amplitude.hpp"
+#include "picongpu/plugins/radiation/windowFunctions.hpp"
+#include "picongpu/plugins/radiation/GetRadiationMask.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"
@@ -51,9 +51,9 @@
 #include "memory/Array.hpp"
 
 
-#include "plugins/radiation/nyquist_low_pass.hpp"
+#include "picongpu/plugins/radiation/nyquist_low_pass.hpp"
 
-#include "plugins/radiation/radFormFactor.hpp"
+#include "picongpu/plugins/radiation/radFormFactor.hpp"
 #include "sys/stat.h"
 
 

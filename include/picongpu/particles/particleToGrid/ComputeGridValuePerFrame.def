@@ -31,9 +31,9 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "fields/Fields.def"
-#include "particles/traits/GetShape.hpp"
-#include "particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
+#include "picongpu/fields/Fields.def"
+#include "picongpu/particles/traits/GetShape.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 
 #include <boost/mpl/int.hpp>
 #include <vector>

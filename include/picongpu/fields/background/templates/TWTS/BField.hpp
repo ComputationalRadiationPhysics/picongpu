@@ -24,7 +24,7 @@
 
 #include "math/Vector.hpp"
 #include "dimensions/DataSpace.hpp"
-#include "fields/background/templates/TWTS/numComponents.hpp"
+#include "picongpu/fields/background/templates/TWTS/numComponents.hpp"
 
 namespace picongpu
 {

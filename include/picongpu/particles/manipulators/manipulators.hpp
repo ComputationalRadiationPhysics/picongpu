@@ -19,10 +19,10 @@
 
 #pragma once
 
-//#include "particles/manipulators/IManipulator.hpp"
+//#include "picongpu/particles/manipulators/IManipulator.hpp"
 
-#include "particles/manipulators/generic/Free.hpp"
-#include "particles/manipulators/generic/FreeRng.hpp"
+#include "picongpu/particles/manipulators/generic/Free.hpp"
+#include "picongpu/particles/manipulators/generic/FreeRng.hpp"
 
-#include "particles/manipulators/unary/Temperature.hpp"
-#include "particles/manipulators/unary/Drift.hpp"
+#include "picongpu/particles/manipulators/unary/Temperature.hpp"
+#include "picongpu/particles/manipulators/unary/Drift.hpp"

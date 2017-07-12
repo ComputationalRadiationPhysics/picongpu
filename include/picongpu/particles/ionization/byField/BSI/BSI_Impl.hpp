@@ -21,15 +21,15 @@
 
 #include "simulation_defines.hpp"
 
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 
-#include "particles/ionization/byField/BSI/BSI.def"
-#include "particles/ionization/byField/BSI/AlgorithmBSI.hpp"
-#include "particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
-#include "particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
-#include "particles/ionization/ionization.hpp"
-#include "particles/ParticlesFunctors.hpp"
+#include "picongpu/particles/ionization/byField/BSI/BSI.def"
+#include "picongpu/particles/ionization/byField/BSI/AlgorithmBSI.hpp"
+#include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
+#include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
+#include "picongpu/particles/ionization/ionization.hpp"
+#include "picongpu/particles/ParticlesFunctors.hpp"
 
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "memory/boxes/DataBox.hpp"

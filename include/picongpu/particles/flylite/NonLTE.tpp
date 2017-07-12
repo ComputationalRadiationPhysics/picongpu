@@ -18,14 +18,14 @@
  */
 
 /* PIConGPU */
-#include "particles/flylite/NonLTE.hpp"
-#include "particles/flylite/helperFields/LocalEnergyHistogram.hpp"
-#include "particles/flylite/helperFields/LocalEnergyHistogramFunctors.hpp"
-#include "particles/flylite/helperFields/LocalRateMatrix.hpp"
-#include "particles/flylite/helperFields/LocalDensity.hpp"
-#include "particles/flylite/helperFields/LocalDensityFunctors.hpp"
-#include "particles/particleToGrid/derivedAttributes/Density.def"
-#include "particles/traits/GetShape.hpp"
+#include "picongpu/particles/flylite/NonLTE.hpp"
+#include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.hpp"
+#include "picongpu/particles/flylite/helperFields/LocalEnergyHistogramFunctors.hpp"
+#include "picongpu/particles/flylite/helperFields/LocalRateMatrix.hpp"
+#include "picongpu/particles/flylite/helperFields/LocalDensity.hpp"
+#include "picongpu/particles/flylite/helperFields/LocalDensityFunctors.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/Density.def"
+#include "picongpu/particles/traits/GetShape.hpp"
 
 /* PMacc */
 #include "Environment.hpp"

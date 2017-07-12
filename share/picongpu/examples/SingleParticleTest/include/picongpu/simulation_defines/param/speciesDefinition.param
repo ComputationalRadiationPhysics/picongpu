@@ -22,11 +22,11 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/Identifier.hpp"
+#include "picongpu/particles/Identifier.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "identifier/value_identifier.hpp"
 
-#include "particles/Particles.hpp"
+#include "picongpu/particles/Particles.hpp"
 #include <boost/mpl/string.hpp>
 
 

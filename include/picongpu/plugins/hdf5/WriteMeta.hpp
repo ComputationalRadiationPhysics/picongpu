@@ -23,16 +23,16 @@
 
 #include "simulation_defines.hpp"
 
-#include "plugins/hdf5/HDF5Writer.def"
-#include "plugins/common/stringHelpers.hpp"
+#include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/plugins/common/stringHelpers.hpp"
 #include "Environment.hpp"
 
-#include "fields/FieldManipulator.hpp"
-#include "fields/currentInterpolation/CurrentInterpolation.hpp"
+#include "picongpu/fields/FieldManipulator.hpp"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 
-#include "traits/SIBaseUnits.hpp"
-#include "traits/SplashToPIC.hpp"
-#include "traits/PICToSplash.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/traits/SplashToPIC.hpp"
+#include "picongpu/traits/PICToSplash.hpp"
 
 #include <string>
 #include <sstream>

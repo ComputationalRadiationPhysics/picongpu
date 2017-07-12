@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "particles/startPosition/IFunctor.hpp"
-#include "particles/startPosition/QuietImpl.hpp"
-#include "particles/startPosition/RandomImpl.hpp"
-#include "particles/startPosition/OnePositionImpl.hpp"
+#include "picongpu/particles/startPosition/IFunctor.hpp"
+#include "picongpu/particles/startPosition/QuietImpl.hpp"
+#include "picongpu/particles/startPosition/RandomImpl.hpp"
+#include "picongpu/particles/startPosition/OnePositionImpl.hpp"

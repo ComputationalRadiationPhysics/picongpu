@@ -24,9 +24,9 @@
 #include <iostream>
 
 #include "simulation_defines.hpp"
-#include "particles/Particles.hpp"
+#include "picongpu/particles/Particles.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "particles/ParticlesInit.kernel"
+#include "picongpu/particles/ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
 #include "simulationControl/MovingWindow.hpp"
 #include "traits/Resolve.hpp"
@@ -34,7 +34,7 @@
 
 #include "pmacc_types.hpp"
 
-#include "particles/ionization/ionizationMethods.hpp"
+#include "picongpu/particles/ionization/ionizationMethods.hpp"
 #include "memory/shared/Allocate.hpp"
 
 namespace picongpu

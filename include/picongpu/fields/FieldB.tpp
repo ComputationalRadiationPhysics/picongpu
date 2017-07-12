@@ -22,9 +22,9 @@
 
 #include "simulation_defines.hpp"
 
-#include "fields/FieldB.hpp"
+#include "picongpu/fields/FieldB.hpp"
 
-#include "fields/LaserPhysics.hpp"
+#include "picongpu/fields/LaserPhysics.hpp"
 
 #include "eventSystem/EventSystem.hpp"
 #include "dataManagement/DataConnector.hpp"
@@ -32,20 +32,20 @@
 #include "mappings/kernel/ExchangeMapping.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 
-#include "fields/FieldManipulator.hpp"
+#include "picongpu/fields/FieldManipulator.hpp"
 
 #include "dimensions/SuperCellDescription.hpp"
 
 #include "MaxwellSolver/Solvers.hpp"
-#include "fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include "math/Vector.hpp"
 
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 
-#include "traits/GetMargin.hpp"
-#include "traits/SIBaseUnits.hpp"
+#include "picongpu/traits/GetMargin.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
 
 #include <boost/mpl/accumulate.hpp>

@@ -19,5 +19,5 @@
 
 #pragma once
 
-#include "particles/filter/RelativeGlobalDomainPosition.def"
-#include "particles/filter/IsHandleValid.def"
+#include "picongpu/particles/filter/RelativeGlobalDomainPosition.def"
+#include "picongpu/particles/filter/IsHandleValid.def"

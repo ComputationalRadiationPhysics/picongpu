@@ -29,22 +29,22 @@
 #include "eventSystem/EventSystem.hpp"
 #include "mappings/kernel/ExchangeMapping.hpp"
 
-#include "fields/FieldManipulator.hpp"
+#include "picongpu/fields/FieldManipulator.hpp"
 #include "dimensions/SuperCellDescription.hpp"
 
-#include "fields/FieldE.kernel"
+#include "picongpu/fields/FieldE.kernel"
 
 #include "MaxwellSolver/Solvers.hpp"
-#include "fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include "math/Vector.hpp"
 
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
-#include "traits/GetMargin.hpp"
-#include "traits/SIBaseUnits.hpp"
+#include "picongpu/traits/GetMargin.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 #include "particles/traits/GetMarginPusher.hpp"
-#include "fields/LaserPhysics.hpp"
+#include "picongpu/fields/LaserPhysics.hpp"
 
 #include <boost/mpl/accumulate.hpp>
 

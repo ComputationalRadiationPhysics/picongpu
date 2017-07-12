@@ -22,7 +22,7 @@
 
 #include "simulation_defines.hpp"
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "algorithms/Gamma.hpp"
 #include "algorithms/KinEnergy.hpp"
 

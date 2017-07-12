@@ -21,7 +21,7 @@
 
 #include "simulation_types.hpp"
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "mappings/kernel/AreaMapping.hpp"
 #include "dataManagement/DataConnector.hpp"

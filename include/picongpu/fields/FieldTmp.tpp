@@ -29,21 +29,21 @@
 
 #include "mappings/kernel/AreaMapping.hpp"
 #include "eventSystem/EventSystem.hpp"
-#include "fields/tasks/FieldFactory.hpp"
+#include "picongpu/fields/tasks/FieldFactory.hpp"
 
 #include "dimensions/SuperCellDescription.hpp"
 
-#include "fields/FieldTmp.kernel"
+#include "picongpu/fields/FieldTmp.kernel"
 
 #include "MaxwellSolver/Solvers.hpp"
-#include "fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include "math/Vector.hpp"
 #include "fields/operations/CopyGuardToExchange.hpp"
 #include "fields/operations/AddExchangeToBorder.hpp"
 #include "particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
-#include "traits/GetMargin.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 #include "traits/GetUniqueTypeId.hpp"
 
 #include <boost/mpl/accumulate.hpp>

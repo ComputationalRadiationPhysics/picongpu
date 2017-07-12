@@ -22,12 +22,12 @@
 #include "simulation_defines.hpp"
 #include "Environment.hpp"
 
-#include "simulationControl/MySimulation.hpp"
+#include "picongpu/simulationControl/MySimulation.hpp"
 
 #include "simulationControl/SimulationHelper.hpp"
 #include "simulation_classTypes.hpp"
 
-#include "fields/FieldE.hpp"
+#include "picongpu/fields/FieldE.hpp"
 
 #include "dimensions/GridLayout.hpp"
 #include "simulation_types.hpp"
@@ -39,7 +39,7 @@
 
 #include <cassert>
 
-#include "plugins/PluginController.hpp"
+#include "picongpu/plugins/PluginController.hpp"
 
 #include "cuSTL/container/DeviceBuffer.hpp"
 #include "cuSTL/container/HostBuffer.hpp"

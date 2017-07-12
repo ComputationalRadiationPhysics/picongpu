@@ -22,10 +22,10 @@
 
 #include "simulation_defines.hpp"
 
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"

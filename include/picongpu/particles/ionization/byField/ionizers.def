@@ -28,11 +28,11 @@
  *  - ADKLinPol
  *  - ADKCircPol
  */
-#include "particles/ionization/byField/ADK/ADK.def"
+#include "picongpu/particles/ionization/byField/ADK/ADK.def"
 /** contains definitions for:
  *  - BSI
  *  - BSIEffectiveZ
  *  - BSIStarkShifted
  */
-#include "particles/ionization/byField/BSI/BSI.def"
-#include "particles/ionization/byField/Keldysh/Keldysh.def"
+#include "picongpu/particles/ionization/byField/BSI/BSI.def"
+#include "picongpu/particles/ionization/byField/Keldysh/Keldysh.def"

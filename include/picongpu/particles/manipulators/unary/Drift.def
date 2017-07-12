@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/manipulators/generic/Free.def"
+#include "picongpu/particles/manipulators/generic/Free.def"
 #include "nvidia/functors/Add.hpp"
 
 

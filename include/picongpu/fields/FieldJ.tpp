@@ -22,7 +22,7 @@
 
 #include "simulation_defines.hpp"
 #include "FieldJ.hpp"
-#include "fields/FieldJ.kernel"
+#include "picongpu/fields/FieldJ.kernel"
 
 
 #include "particles/memory/boxes/ParticlesBox.hpp"
@@ -32,15 +32,15 @@
 #include "mappings/kernel/StrideMapping.hpp"
 #include "fields/tasks/FieldFactory.hpp"
 
-#include "fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include "math/Vector.hpp"
 #include "fields/operations/CopyGuardToExchange.hpp"
 #include "fields/operations/AddExchangeToBorder.hpp"
 #include "particles/traits/GetCurrentSolver.hpp"
-#include "traits/GetMargin.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 #include "traits/Resolve.hpp"
-#include "traits/SIBaseUnits.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 #include "traits/GetNumWorkers.hpp"
 
 #include <boost/mpl/accumulate.hpp>

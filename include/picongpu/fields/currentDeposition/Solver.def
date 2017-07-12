@@ -18,10 +18,10 @@
  */
 
 
-#include "fields/currentDeposition/Esirkepov/Esirkepov.def"
-#include "fields/currentDeposition/ZigZag/ZigZag.def"
-#include "fields/currentDeposition/EmZ/EmZ.def"
+#include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.def"
+#include "picongpu/fields/currentDeposition/ZigZag/ZigZag.def"
+#include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
 
 #if(SIMDIM==DIM3)
-#include "fields/currentDeposition/VillaBune/CurrentVillaBune.def"
+#include "picongpu/fields/currentDeposition/VillaBune/CurrentVillaBune.def"
 #endif

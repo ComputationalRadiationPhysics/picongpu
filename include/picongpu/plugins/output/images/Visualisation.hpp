@@ -22,13 +22,13 @@
 #include "simulation_defines.hpp"
 #include "assert.hpp"
 
-#include "fields/FieldB.hpp"
-#include "fields/FieldE.hpp"
-#include "fields/FieldJ.hpp"
+#include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/FieldJ.hpp"
 
-#include "plugins/ILightweightPlugin.hpp"
-#include "plugins/output/header/MessageHeader.hpp"
-#include "plugins/output/GatherSlice.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/output/header/MessageHeader.hpp"
+#include "picongpu/plugins/output/GatherSlice.hpp"
 #include "simulationControl/MovingWindow.hpp"
 
 #include "algorithms/GlobalReduce.hpp"

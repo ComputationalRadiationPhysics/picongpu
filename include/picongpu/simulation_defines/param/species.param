@@ -31,7 +31,7 @@
 #include "algorithms/FieldToParticleInterpolation.hpp"
 #include "algorithms/AssignedTrilinearInterpolation.hpp"
 
-#include "fields/currentDeposition/Solver.def"
+#include "picongpu/fields/currentDeposition/Solver.def"
 
 #include "particles/InitFunctors.hpp"
 #include "particles/flylite/NonLTE.def"

@@ -20,7 +20,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "traits/frame/GetCharge.hpp"
+#include "picongpu/traits/frame/GetCharge.hpp"
 #include "traits/HasIdentifier.hpp"
 #include "particles/traits/GetAtomicNumbers.hpp"
 

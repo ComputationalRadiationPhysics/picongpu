@@ -20,7 +20,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/densityProfiles/IProfile.def"
+#include "picongpu/particles/densityProfiles/IProfile.def"
 
 
 namespace picongpu

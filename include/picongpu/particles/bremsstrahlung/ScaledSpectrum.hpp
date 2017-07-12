@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/traits/GetAtomicNumbers.hpp"
+#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/navigator/PlusNavigator.hpp"

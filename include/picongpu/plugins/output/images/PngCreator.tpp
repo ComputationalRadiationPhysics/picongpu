@@ -21,9 +21,9 @@
 
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
-#include "plugins/output/images/PngCreator.hpp"
+#include "picongpu/plugins/output/images/PngCreator.hpp"
 #include "memory/boxes/DataBox.hpp"
-#include "plugins/output/header/MessageHeader.hpp"
+#include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "verify.hpp"
 
 #include <string>

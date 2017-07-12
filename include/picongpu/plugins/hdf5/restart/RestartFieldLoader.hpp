@@ -22,8 +22,8 @@
 #include "simulation_defines.hpp"
 
 #include "particles/frame_types.hpp"
-#include "fields/FieldE.hpp"
-#include "fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/FieldB.hpp"
 #include "simulationControl/MovingWindow.hpp"
 
 #include "dataManagement/DataConnector.hpp"

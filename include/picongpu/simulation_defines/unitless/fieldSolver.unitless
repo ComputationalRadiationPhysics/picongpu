@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "fields/MaxwellSolver/None/NoSolver.def"
-#include "fields/MaxwellSolver/Yee/YeeSolver.def"
+#include "picongpu/fields/MaxwellSolver/None/NoSolver.def"
+#include "picongpu/fields/MaxwellSolver/Yee/YeeSolver.def"
 #if(SIMDIM==DIM3)
-#include "fields/MaxwellSolver/DirSplitting/DirSplitting.def"
-#include "fields/MaxwellSolver/Lehe/LeheSolver.def"
+#include "picongpu/fields/MaxwellSolver/DirSplitting/DirSplitting.def"
+#include "picongpu/fields/MaxwellSolver/Lehe/LeheSolver.def"
 #endif
 
-#include "fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 
 namespace picongpu

@@ -29,10 +29,10 @@
 #include "mappings/simulation/SubGrid.hpp"
 #include "math/Complex.hpp"
 
-#include "fields/background/templates/TWTS/RotateField.tpp"
-#include "fields/background/templates/TWTS/GetInitialTimeDelay_SI.tpp"
-#include "fields/background/templates/TWTS/getFieldPositions_SI.tpp"
-#include "fields/background/templates/TWTS/EField.hpp"
+#include "picongpu/fields/background/templates/TWTS/RotateField.tpp"
+#include "picongpu/fields/background/templates/TWTS/GetInitialTimeDelay_SI.tpp"
+#include "picongpu/fields/background/templates/TWTS/getFieldPositions_SI.tpp"
+#include "picongpu/fields/background/templates/TWTS/EField.hpp"
 
 namespace picongpu
 {

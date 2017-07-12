@@ -22,12 +22,12 @@
 #include "simulation_defines.hpp"
 #include "pmacc_types.hpp"
 
-#include "fields/currentInterpolation/None/None.def"
+#include "picongpu/fields/currentInterpolation/None/None.def"
 #include "algorithms/DifferenceToUpper.hpp"
 #include "algorithms/LinearInterpolateWithUpper.hpp"
 #include "traits/GetComponentsType.hpp"
 
-#include "fields/MaxwellSolver/Yee/Curl.hpp"
+#include "picongpu/fields/MaxwellSolver/Yee/Curl.hpp"
 
 
 namespace picongpu

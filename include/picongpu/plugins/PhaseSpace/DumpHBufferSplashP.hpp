@@ -21,10 +21,10 @@
 
 #include "simulation_defines.hpp"
 
-#include "traits/SplashToPIC.hpp"
-#include "traits/PICToSplash.hpp"
+#include "picongpu/traits/SplashToPIC.hpp"
+#include "picongpu/traits/PICToSplash.hpp"
 
-#include "plugins/PhaseSpace/AxisDescription.hpp"
+#include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
 #include "communication/manager_common.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "mappings/simulation/SubGrid.hpp"

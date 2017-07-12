@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include "particles/shapes.hpp"
+#include "picongpu/particles/shapes.hpp"
 #include "algorithms/FieldToParticleInterpolationNative.hpp"
 #include "algorithms/FieldToParticleInterpolation.hpp"
 #include "algorithms/AssignedTrilinearInterpolation.hpp"
-#include "particles/shapes.hpp"
+#include "picongpu/particles/shapes.hpp"
 
-#include "fields/currentDeposition/Solver.def"
+#include "picongpu/fields/currentDeposition/Solver.def"
 
 
 namespace picongpu

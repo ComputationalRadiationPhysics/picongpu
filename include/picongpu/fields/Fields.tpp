@@ -21,7 +21,7 @@
 #pragma once
 
 
-#include "fields/FieldB.tpp"
-#include "fields/FieldE.tpp"
-#include "fields/FieldJ.tpp"
-#include "fields/FieldTmp.tpp"
+#include "picongpu/fields/FieldB.tpp"
+#include "picongpu/fields/FieldE.tpp"
+#include "picongpu/fields/FieldJ.tpp"
+#include "picongpu/fields/FieldTmp.tpp"

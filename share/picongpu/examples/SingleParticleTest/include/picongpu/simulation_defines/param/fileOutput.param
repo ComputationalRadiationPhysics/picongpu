@@ -27,8 +27,8 @@
 #include "compileTime/conversion/MakeSeq.hpp"
 
 /* some forward declarations we need */
-#include "fields/Fields.def"
-#include "particles/particleToGrid/ComputeGridValuePerFrame.def"
+#include "picongpu/fields/Fields.def"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 
 namespace picongpu

@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "traits/Unit.hpp"
-#include "traits/UnitDimension.hpp"
+#include "picongpu/traits/Unit.hpp"
+#include "picongpu/traits/UnitDimension.hpp"
 
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"

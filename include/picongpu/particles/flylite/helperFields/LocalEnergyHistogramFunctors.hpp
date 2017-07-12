@@ -20,8 +20,8 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/flylite/helperFields/LocalEnergyHistogram.hpp"
-#include "particles/flylite/helperFields/LocalEnergyHistogram.kernel"
+#include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.hpp"
+#include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.kernel"
 
 // PMacc
 #include "static_assert.hpp"

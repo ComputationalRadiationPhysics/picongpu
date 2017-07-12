@@ -26,7 +26,7 @@
 
 #include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"

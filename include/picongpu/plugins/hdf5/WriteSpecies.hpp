@@ -21,19 +21,19 @@
 
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
-#include "plugins/hdf5/HDF5Writer.def"
-#include "traits/SIBaseUnits.hpp"
-#include "traits/PICToOpenPMD.hpp"
-#include "traits/HasIdentifier.hpp"
+#include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/traits/PICToOpenPMD.hpp"
+#include "picongpu/traits/HasIdentifier.hpp"
 #include "assert.hpp"
 
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/kernel/CopySpecies.kernel"
+#include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
+#include "picongpu/plugins/kernel/CopySpecies.kernel"
 #include "mappings/kernel/AreaMapping.hpp"
 
-#include "plugins/hdf5/writer/ParticleAttribute.hpp"
+#include "picongpu/plugins/hdf5/writer/ParticleAttribute.hpp"
 
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"

@@ -20,12 +20,12 @@
 
 #pragma once
 
-#include "traits/frame/GetCharge.hpp"
-#include "traits/frame/GetMass.hpp"
-#include "traits/attribute/GetCharge.hpp"
-#include "traits/attribute/GetChargeState.hpp"
-#include "traits/attribute/GetMass.hpp"
-#include "fields/currentDeposition/Solver.hpp"
+#include "picongpu/traits/frame/GetCharge.hpp"
+#include "picongpu/traits/frame/GetMass.hpp"
+#include "picongpu/traits/attribute/GetCharge.hpp"
+#include "picongpu/traits/attribute/GetChargeState.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
+#include "picongpu/fields/currentDeposition/Solver.hpp"
 #include "particles/Particles.tpp"
 #include "particles/ionization/byField/ionizers.hpp"
 #include "particles/ionization/byCollision/ionizers.hpp"

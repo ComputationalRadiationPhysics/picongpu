@@ -28,12 +28,12 @@
 
 #pragma once
 
-#include "particles/startPosition/functors.def"
-#include "particles/manipulators/manipulators.def"
+#include "picongpu/particles/startPosition/functors.def"
+#include "picongpu/particles/manipulators/manipulators.def"
 #include "nvidia/functors/Add.hpp"
 #include "nvidia/functors/Assign.hpp"
 #include "nvidia/rng/distributions/Uniform_float.hpp"
-#include "particles/traits/GetAtomicNumbers.hpp"
+#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 
 namespace picongpu

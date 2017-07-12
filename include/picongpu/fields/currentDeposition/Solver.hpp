@@ -18,13 +18,13 @@
  */
 
 
-#include "fields/currentDeposition/Esirkepov/Esirkepov.hpp"
-#include "fields/currentDeposition/Esirkepov/EsirkepovNative.hpp"
-#include "fields/currentDeposition/ZigZag/ZigZag.hpp"
-#include "fields/currentDeposition/EmZ/EmZ.hpp"
+#include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.hpp"
+#include "picongpu/fields/currentDeposition/Esirkepov/EsirkepovNative.hpp"
+#include "picongpu/fields/currentDeposition/ZigZag/ZigZag.hpp"
+#include "picongpu/fields/currentDeposition/EmZ/EmZ.hpp"
 
 #if(SIMDIM==DIM3)
-#include "fields/currentDeposition/VillaBune/CurrentVillaBune.hpp"
+#include "picongpu/fields/currentDeposition/VillaBune/CurrentVillaBune.hpp"
 #endif
 
-#include "fields/numericalCellTypes/YeeCell.hpp"
+#include "picongpu/fields/numericalCellTypes/YeeCell.hpp"

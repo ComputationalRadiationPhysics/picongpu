@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "plugins/common/particlePatches.hpp"
+#include "picongpu/plugins/common/particlePatches.hpp"
 
 #if( ENABLE_HDF5 == 1 )
 #  include <splash/splash.h>

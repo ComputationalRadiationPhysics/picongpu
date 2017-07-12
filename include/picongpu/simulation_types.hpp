@@ -26,10 +26,10 @@
 #include "algorithms/ForEach.hpp"
 #include "algorithms/math.hpp"
 #include "traits/GetStringProperties.hpp"
-#include "traits/GetMargin.hpp"
+#include "picongpu/traits/GetMargin.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/NumberOfExchanges.hpp"
-#include "traits/GetDataBoxType.hpp"
+#include "picongpu/traits/GetDataBoxType.hpp"
 
 namespace picongpu
 {

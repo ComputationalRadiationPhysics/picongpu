@@ -25,9 +25,9 @@
 #include "basicOperations.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include <cuSTL/cursor/compile-time/SafeCursor.hpp>
-#include "fields/currentDeposition/Esirkepov/Esirkepov.def"
-#include "fields/currentDeposition/Esirkepov/Line.hpp"
-#include "fields/currentDeposition/RelayPoint.hpp"
+#include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.def"
+#include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
+#include "picongpu/fields/currentDeposition/RelayPoint.hpp"
 
 namespace picongpu
 {
@@ -245,4 +245,4 @@ struct Esirkepov<T_ParticleShape, DIM3>
 
 } //namespace picongpu
 
-#include "fields/currentDeposition/Esirkepov/Esirkepov2D.hpp"
+#include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov2D.hpp"

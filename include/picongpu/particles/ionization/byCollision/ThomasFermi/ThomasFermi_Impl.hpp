@@ -21,14 +21,14 @@
 
 #include "simulation_defines.hpp"
 #include "traits/Resolve.hpp"
-#include "traits/UsesRNG.hpp"
+#include "picongpu/traits/UsesRNG.hpp"
 
-#include "fields/FieldTmp.hpp"
+#include "picongpu/fields/FieldTmp.hpp"
 
-#include "particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
-#include "particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
-#include "particles/ionization/ionization.hpp"
-#include "particles/ionization/ionizationMethods.hpp"
+#include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
+#include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
+#include "picongpu/particles/ionization/ionization.hpp"
+#include "picongpu/particles/ionization/ionizationMethods.hpp"
 
 #include "random/methods/XorMin.hpp"
 #include "random/distributions/Uniform.hpp"

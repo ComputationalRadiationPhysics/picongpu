@@ -23,11 +23,11 @@
 #include "simulation_defines.hpp"
 #include "dimensions/DataSpace.hpp"
 
-#include "plugins/output/header/DataHeader.hpp"
-#include "plugins/output/header/NodeHeader.hpp"
-#include "plugins/output/header/SimHeader.hpp"
-//#include "plugins/output/header/ColorHeader.hpp"
-#include "plugins/output/header/WindowHeader.hpp"
+#include "picongpu/plugins/output/header/DataHeader.hpp"
+#include "picongpu/plugins/output/header/NodeHeader.hpp"
+#include "picongpu/plugins/output/header/SimHeader.hpp"
+//#include "picongpu/plugins/output/header/ColorHeader.hpp"
+#include "picongpu/plugins/output/header/WindowHeader.hpp"
 
 #include "simulationControl/Window.hpp"
 

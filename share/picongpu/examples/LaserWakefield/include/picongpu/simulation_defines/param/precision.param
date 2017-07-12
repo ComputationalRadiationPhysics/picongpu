@@ -49,4 +49,4 @@ namespace precisionTrigonemetric = precisionPIConGPU;
 
 }//namespace picongpu
 
-#include "simulation_defines/unitless/precision.unitless"
+#include "picongpu/simulation_defines/unitless/precision.unitless"

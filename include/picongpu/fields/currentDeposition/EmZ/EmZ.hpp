@@ -21,10 +21,10 @@
 
 #include "cuSTL/cursor/Cursor.hpp"
 
-#include "fields/currentDeposition/EmZ/EmZ.def"
-#include "fields/currentDeposition/RelayPoint.hpp"
-#include "fields/currentDeposition/EmZ/DepositCurrent.hpp"
-#include "fields/currentDeposition/Esirkepov/Line.hpp"
+#include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
+#include "picongpu/fields/currentDeposition/RelayPoint.hpp"
+#include "picongpu/fields/currentDeposition/EmZ/DepositCurrent.hpp"
+#include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 
 namespace picongpu
 {

@@ -21,9 +21,9 @@
 
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
-#include "plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "debug/VerboseLog.hpp"
-#include "traits/PICToAdios.hpp"
+#include "picongpu/traits/PICToAdios.hpp"
 #include <adios.h>
 #include <adios_read.h>
 #include <adios_error.h>

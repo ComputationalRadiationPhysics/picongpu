@@ -93,9 +93,9 @@ namespace picongpu
 }
 
     /* include implemented laser profiles */
-#include "fields/laserProfiles/laserPulseFrontTilt.hpp"
-#include "fields/laserProfiles/laserGaussianBeam.hpp"
-#include "fields/laserProfiles/laserWavepacket.hpp"
-#include "fields/laserProfiles/laserPlaneWave.hpp"
-#include "fields/laserProfiles/laserPolynom.hpp"
-#include "fields/laserProfiles/laserNone.hpp"
+#include "picongpu/fields/laserProfiles/laserPulseFrontTilt.hpp"
+#include "picongpu/fields/laserProfiles/laserGaussianBeam.hpp"
+#include "picongpu/fields/laserProfiles/laserWavepacket.hpp"
+#include "picongpu/fields/laserProfiles/laserPlaneWave.hpp"
+#include "picongpu/fields/laserProfiles/laserPolynom.hpp"
+#include "picongpu/fields/laserProfiles/laserNone.hpp"

@@ -24,8 +24,8 @@
 
 #include "simulation_defines.hpp"
 
-#include "plugins/ILightweightPlugin.hpp"
-#include "fields/FieldE.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/fields/FieldE.hpp"
 
 #include "memory/boxes/CachedBox.hpp"
 #include "basicOperations.hpp"

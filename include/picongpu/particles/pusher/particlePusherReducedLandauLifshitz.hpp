@@ -24,7 +24,7 @@
 #include "simulation_defines.hpp"
 #include "math/Vector.hpp"
 #include "math/RungeKutta.hpp"
-#include "particles/interpolationMemoryPolicy/ShiftToValidRange.hpp"
+#include "picongpu/particles/interpolationMemoryPolicy/ShiftToValidRange.hpp"
 
 
 namespace picongpu

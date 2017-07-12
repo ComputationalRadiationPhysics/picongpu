@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "particles/flylite/helperFields/LocalDensity.hpp"
-#include "particles/flylite/helperFields/LocalDensity.kernel"
+#include "picongpu/particles/flylite/helperFields/LocalDensity.hpp"
+#include "picongpu/particles/flylite/helperFields/LocalDensity.kernel"
 
 // PMacc
 #include "pmacc_types.hpp"

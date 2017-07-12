@@ -23,8 +23,8 @@
 #include "pmacc_types.hpp"
 #include "static_assert.hpp"
 #include "simulation_types.hpp"
-#include "plugins/hdf5/HDF5Writer.def"
-#include "plugins/hdf5/writer/Field.hpp"
+#include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/plugins/hdf5/writer/Field.hpp"
 
 #include "dataManagement/DataConnector.hpp"
 

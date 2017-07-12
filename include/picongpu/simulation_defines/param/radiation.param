@@ -39,7 +39,7 @@
 #include "plugins/radiation/parameters.hpp"
 #include "plugins/radiation/debug/PIConGPUVerboseLogRadiation.hpp"
 #include "algorithms/Gamma.def"
-#include "traits/attribute/GetMass.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
 #include "particles/manipulators/manipulators.def"
 
 namespace picongpu

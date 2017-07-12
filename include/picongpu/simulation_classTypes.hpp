@@ -27,7 +27,7 @@
 #include "math/Vector.hpp"
 #include "eventSystem/EventSystem.hpp"
 
-#include "debug/PIConGPUVerbose.hpp"
+#include "picongpu/debug/PIConGPUVerbose.hpp"
 
 
 namespace picongpu

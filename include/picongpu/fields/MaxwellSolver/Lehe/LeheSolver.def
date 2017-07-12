@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "fields/MaxwellSolver/Lehe/LeheCurl.hpp"
-#include "fields/MaxwellSolver/Yee/YeeSolver.def"
+#include "picongpu/fields/MaxwellSolver/Lehe/LeheCurl.hpp"
+#include "picongpu/fields/MaxwellSolver/Yee/YeeSolver.def"
 
 
 namespace picongpu

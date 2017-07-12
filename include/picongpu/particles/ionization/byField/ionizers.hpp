@@ -26,6 +26,6 @@
  * that implements what the model actually DOES
  */
 
-#include "particles/ionization/byField/ADK/ADK_Impl.hpp"
-#include "particles/ionization/byField/BSI/BSI_Impl.hpp"
-#include "particles/ionization/byField/Keldysh/Keldysh_Impl.hpp"
+#include "picongpu/particles/ionization/byField/ADK/ADK_Impl.hpp"
+#include "picongpu/particles/ionization/byField/BSI/BSI_Impl.hpp"
+#include "picongpu/particles/ionization/byField/Keldysh/Keldysh_Impl.hpp"

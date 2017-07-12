@@ -24,8 +24,8 @@
 
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
-#include "plugins/adios/ADIOSWriter.def"
-#include "traits/PICToOpenPMD.hpp"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/traits/PICToOpenPMD.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"

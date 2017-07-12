@@ -35,7 +35,7 @@
 #include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/if.hpp>
 #include "compileTime/AllCombinations.hpp"
-#include "fields/currentDeposition/ZigZag/EvalAssignmentFunction.hpp"
+#include "picongpu/fields/currentDeposition/ZigZag/EvalAssignmentFunction.hpp"
 
 namespace picongpu
 {

@@ -23,7 +23,7 @@
 //Needs to be the very first
 #include <boost/fusion/include/mpl.hpp>
 
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "dataManagement/DataConnector.hpp"
 #include "static_assert.hpp"
 

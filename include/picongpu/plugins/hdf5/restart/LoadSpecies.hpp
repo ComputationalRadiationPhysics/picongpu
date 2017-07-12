@@ -21,14 +21,14 @@
 
 #include "simulation_types.hpp"
 
-#include "plugins/hdf5/HDF5Writer.def"
-#include "plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "plugins/output/WriteSpeciesCommon.hpp"
-#include "plugins/hdf5/restart/LoadParticleAttributesFromHDF5.hpp"
+#include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
+#include "picongpu/plugins/hdf5/restart/LoadParticleAttributesFromHDF5.hpp"
 
-#include "plugins/common/particlePatches.hpp"
-#include "plugins/hdf5/openPMD/patchReader.hpp"
+#include "picongpu/plugins/common/particlePatches.hpp"
+#include "picongpu/plugins/hdf5/openPMD/patchReader.hpp"
 
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "compileTime/conversion/RemoveFromSeq.hpp"

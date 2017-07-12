@@ -20,7 +20,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "fields/Fields.hpp"
+#include "picongpu/fields/Fields.hpp"
 #include "simulationControl/MovingWindow.hpp"
 
 #include "static_assert.hpp"

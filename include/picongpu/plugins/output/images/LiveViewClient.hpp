@@ -19,13 +19,13 @@
 
 #pragma once
 
-#include "plugins/output/sockets/SocketConnector.hpp"
+#include "picongpu/plugins/output/sockets/SocketConnector.hpp"
 
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 #include "simulation_types.hpp"
 
-#include "plugins/output/header/MessageHeader.hpp"
+#include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 #include "memory/boxes/DataBox.hpp"
 

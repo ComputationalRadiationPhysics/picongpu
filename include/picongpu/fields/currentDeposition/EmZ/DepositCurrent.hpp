@@ -23,8 +23,8 @@
 #include "basicOperations.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 
-#include "fields/currentDeposition/EmZ/EmZ.def"
-#include "fields/currentDeposition/Esirkepov/Line.hpp"
+#include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
+#include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 
 namespace picongpu
 {

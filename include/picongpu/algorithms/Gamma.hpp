@@ -20,7 +20,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "algorithms/Gamma.def"
+#include "picongpu/algorithms/Gamma.def"
 
 
 namespace picongpu

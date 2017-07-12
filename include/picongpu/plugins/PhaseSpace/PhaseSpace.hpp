@@ -29,7 +29,7 @@
 #include "cuSTL/algorithm/mpi/Reduce.hpp"
 #include "math/Vector.hpp"
 
-#include "plugins/PhaseSpace/AxisDescription.hpp"
+#include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
 
 #include <string>
 #include <utility>

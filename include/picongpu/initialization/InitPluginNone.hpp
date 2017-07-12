@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "initialization/IInitPlugin.hpp"
+#include "picongpu/initialization/IInitPlugin.hpp"
 
 
 

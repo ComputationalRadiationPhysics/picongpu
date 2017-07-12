@@ -25,7 +25,7 @@
 #include "traits/GetFlagType.hpp"
 #include "traits/Resolve.hpp"
 
-#include "particles/synchrotronPhotons/PhotonCreator.def"
+#include "picongpu/particles/synchrotronPhotons/PhotonCreator.def"
 
 namespace picongpu
 {

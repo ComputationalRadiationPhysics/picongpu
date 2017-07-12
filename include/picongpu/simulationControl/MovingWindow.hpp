@@ -22,7 +22,7 @@
 #include "pmacc_types.hpp"
 #include "simulation_defines.hpp"
 
-#include "simulationControl/Window.hpp"
+#include "picongpu/simulationControl/Window.hpp"
 
 namespace picongpu
 {

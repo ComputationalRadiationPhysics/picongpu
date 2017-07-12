@@ -25,8 +25,8 @@
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
 
-#include "fields/FieldE.hpp"
-#include "fields/FieldB.hpp"
+#include "picongpu/fields/FieldE.hpp"
+#include "picongpu/fields/FieldB.hpp"
 
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/CachedBox.hpp"
@@ -43,7 +43,7 @@
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
 #include "nvidia/atomic.hpp"
-#include "particles/InterpolationForPusher.hpp"
+#include "picongpu/particles/InterpolationForPusher.hpp"
 #include "memory/shared/Allocate.hpp"
 #include "traits/HasFlag.hpp"
 #include "mappings/threads/ForEachIdx.hpp"

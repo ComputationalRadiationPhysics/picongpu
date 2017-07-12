@@ -26,14 +26,14 @@
 
 #include "simulation_defines.hpp"
 
-#include "traits/SplashToPIC.hpp"
-#include "traits/PICToSplash.hpp"
+#include "picongpu/traits/SplashToPIC.hpp"
+#include "picongpu/traits/PICToSplash.hpp"
 
 
-#include "plugins/radiation/Radiation.kernel"
-#include "plugins/radiation/ExecuteParticleFilter.hpp"
-#include "plugins/ISimulationPlugin.hpp"
-#include "plugins/common/stringHelpers.hpp"
+#include "picongpu/plugins/radiation/Radiation.kernel"
+#include "picongpu/plugins/radiation/ExecuteParticleFilter.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/common/stringHelpers.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"

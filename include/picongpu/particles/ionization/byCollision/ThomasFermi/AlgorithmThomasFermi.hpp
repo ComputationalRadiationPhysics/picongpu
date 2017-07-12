@@ -29,8 +29,8 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "particles/traits/GetAtomicNumbers.hpp"
-#include "traits/attribute/GetChargeState.hpp"
+#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
+#include "picongpu/traits/attribute/GetChargeState.hpp"
 
 #include "algorithms/math/floatMath/floatingPoint.tpp"
 

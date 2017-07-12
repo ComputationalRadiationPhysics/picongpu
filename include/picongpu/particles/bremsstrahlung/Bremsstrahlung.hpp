@@ -22,7 +22,7 @@
 #include "simulation_defines.hpp"
 #include "ScaledSpectrum.hpp"
 #include "PhotonEmissionAngle.hpp"
-#include "fields/FieldTmp.hpp"
+#include "picongpu/fields/FieldTmp.hpp"
 
 #include "random/methods/XorMin.hpp"
 #include "random/distributions/Uniform.hpp"

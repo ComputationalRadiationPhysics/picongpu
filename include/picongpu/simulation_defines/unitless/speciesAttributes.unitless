@@ -21,9 +21,9 @@
 #pragma once
 
 #include <vector>
-#include "traits/Unit.hpp"
-#include "traits/UnitDimension.hpp"
-#include "traits/SIBaseUnits.hpp"
+#include "picongpu/traits/Unit.hpp"
+#include "picongpu/traits/UnitDimension.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 #include "particles/traits/MacroWeighted.hpp"
 #include "particles/traits/WeightingPower.hpp"
 

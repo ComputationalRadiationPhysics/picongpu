@@ -25,8 +25,8 @@
 #include "compileTime/conversion/MakeSeqFromNestedSeq.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 
-#include "traits/UsesRNG.hpp"
-#include "particles/traits/GetIonizerList.hpp"
+#include "picongpu/traits/UsesRNG.hpp"
+#include "picongpu/particles/traits/GetIonizerList.hpp"
 
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/contains.hpp>

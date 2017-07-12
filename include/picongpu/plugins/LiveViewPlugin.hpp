@@ -27,11 +27,11 @@
 #include "dimensions/DataSpace.hpp"
 
 #include "simulation_classTypes.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 #include <vector>
 #include <list>
-#include "plugins/output/images/Visualisation.hpp"
-#include "plugins/output/images/LiveViewClient.hpp"
+#include "picongpu/plugins/output/images/Visualisation.hpp"
+#include "picongpu/plugins/output/images/LiveViewClient.hpp"
 
 #include <stdexcept>
 

@@ -21,7 +21,7 @@
 
 #include "functor/Filtered.hpp"
 #include "functor/Interface.hpp"
-#include "particles/filter/filter.def"
+#include "picongpu/particles/filter/filter.def"
 #include "filter/Interface.hpp"
 #include "filter/operators/And.hpp"
 

@@ -28,7 +28,7 @@
 /*pic default*/
 #include "simulation_defines.hpp"
 
-#include "fields/Fields.def"
+#include "picongpu/fields/Fields.def"
 #include "fields/SimulationFieldHelper.hpp"
 #include "dataManagement/ISimulationData.hpp"
 

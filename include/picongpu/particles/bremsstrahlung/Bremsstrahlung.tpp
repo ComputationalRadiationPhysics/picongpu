@@ -20,12 +20,12 @@
 #pragma once
 
 #include "algorithms/Gamma.hpp"
-#include "traits/frame/GetMass.hpp"
-#include "traits/frame/GetCharge.hpp"
-#include "particles/particleToGrid/ComputeGridValuePerFrame.def"
+#include "picongpu/traits/frame/GetMass.hpp"
+#include "picongpu/traits/frame/GetCharge.hpp"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 #include "particles/operations/Assign.hpp"
 #include "particles/operations/Deselect.hpp"
-#include "particles/traits/GetAtomicNumbers.hpp"
+#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 #include "dataManagement/DataConnector.hpp"
 #include "algorithms/math/defines/sqrt.hpp"

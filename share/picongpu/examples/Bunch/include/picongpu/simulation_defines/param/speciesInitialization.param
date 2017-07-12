@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/InitFunctors.hpp"
+#include "picongpu/particles/InitFunctors.hpp"
 
 namespace picongpu
 {

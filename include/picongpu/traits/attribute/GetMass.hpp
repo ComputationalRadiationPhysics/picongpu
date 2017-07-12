@@ -20,7 +20,7 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "traits/frame/GetMass.hpp"
+#include "picongpu/traits/frame/GetMass.hpp"
 
 
 namespace picongpu

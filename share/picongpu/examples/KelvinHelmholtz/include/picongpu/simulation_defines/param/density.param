@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "particles/densityProfiles/profiles.def"
+#include "picongpu/particles/densityProfiles/profiles.def"
 
 
 namespace picongpu

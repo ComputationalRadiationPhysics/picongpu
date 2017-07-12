@@ -22,10 +22,10 @@
 
 #include "simulation_defines.hpp"
 
-#include "fields/FieldJ.hpp"
+#include "picongpu/fields/FieldJ.hpp"
 
 #include "dimensions/DataSpaceOperations.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "memory/shared/Allocate.hpp"
 #include "dataManagement/DataConnector.hpp"
 

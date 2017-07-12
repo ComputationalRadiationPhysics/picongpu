@@ -23,8 +23,8 @@
 #include "pmacc_types.hpp"
 
 #include "math/Vector.hpp"
-#include "particles/particleToGrid/ComputeGridValuePerFrame.def"
-#include "particles/particleToGrid/derivedAttributes/DerivedAttributes.hpp"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.hpp"
 
 #include "algorithms/Gamma.hpp"
 

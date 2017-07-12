@@ -20,10 +20,10 @@
 #pragma once
 
 #include "simulation_defines.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 
-#include "plugins/PhaseSpace/AxisDescription.hpp"
-#include "plugins/PhaseSpace/PhaseSpace.hpp"
+#include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
+#include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 
 #include <boost/program_options/options_description.hpp>
 

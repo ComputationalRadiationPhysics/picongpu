@@ -20,9 +20,9 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "plugins/adios/ADIOSWriter.def"
-#include "plugins/adios/restart/ReadAttribute.hpp"
-#include "traits/PICToAdios.hpp"
+#include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/adios/restart/ReadAttribute.hpp"
+#include "picongpu/traits/PICToAdios.hpp"
 #include "Environment.hpp"
 #include <stdexcept>
 

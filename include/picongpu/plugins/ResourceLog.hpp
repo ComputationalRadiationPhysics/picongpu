@@ -26,7 +26,7 @@
 #include "mappings/simulation/ResourceMonitor.hpp"
 
 // PIConGPU
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "ILightweightPlugin.hpp"
 #include "simulation_defines.hpp"
 

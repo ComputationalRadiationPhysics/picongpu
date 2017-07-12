@@ -24,9 +24,9 @@
 
 #include "pmacc_types.hpp"
 #include "simulation_types.hpp"
-#include "plugins/hdf5/HDF5Writer.def"
-#include "traits/PICToSplash.hpp"
-#include "traits/PICToOpenPMD.hpp"
+#include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/traits/PICToSplash.hpp"
+#include "picongpu/traits/PICToOpenPMD.hpp"
 #include "traits/GetComponentsType.hpp"
 #include "traits/GetNComponents.hpp"
 #include "traits/Resolve.hpp"

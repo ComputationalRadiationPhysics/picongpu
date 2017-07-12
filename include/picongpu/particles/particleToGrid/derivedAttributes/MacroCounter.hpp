@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/MacroCounter.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/MacroCounter.def"
 
 #include "simulation_defines.hpp"
 

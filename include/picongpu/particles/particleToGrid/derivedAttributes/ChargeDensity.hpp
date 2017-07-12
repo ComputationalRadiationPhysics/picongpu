@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/particleToGrid/derivedAttributes/ChargeDensity.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/ChargeDensity.def"
 
 #include "simulation_defines.hpp"
 

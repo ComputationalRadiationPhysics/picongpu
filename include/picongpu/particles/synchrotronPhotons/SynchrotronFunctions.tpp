@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "simulation_defines.hpp"
 #include <boost/array.hpp>
 #if( BOOST_VERSION == 106400 )
