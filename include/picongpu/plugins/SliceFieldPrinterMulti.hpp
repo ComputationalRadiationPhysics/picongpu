@@ -21,8 +21,8 @@
 #pragma once
 
 #include "picongpu/plugins/SliceFieldPrinter.hpp"
-#include "pmacc/cuSTL/container/DeviceBuffer.hpp"
-#include "pmacc/math/vector/Float.hpp"
+#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
+#include <pmacc/math/vector/Float.hpp>
 
 #include <string>
 

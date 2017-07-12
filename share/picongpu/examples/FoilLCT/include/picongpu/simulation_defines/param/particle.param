@@ -30,9 +30,9 @@
 
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
-#include "pmacc/nvidia/functors/Add.hpp"
-#include "pmacc/nvidia/functors/Assign.hpp"
-#include "pmacc/nvidia/rng/distributions/Uniform_float.hpp"
+#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 

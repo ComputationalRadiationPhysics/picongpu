@@ -22,12 +22,12 @@
 #include <mpi.h>
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/communication/manager_common.hpp"
-#include "pmacc/pluginSystem/INotify.hpp"
-#include "pmacc/cuSTL/container/DeviceBuffer.hpp"
-#include "pmacc/cuSTL/container/HostBuffer.hpp"
-#include "pmacc/cuSTL/algorithm/mpi/Reduce.hpp"
-#include "pmacc/math/Vector.hpp"
+#include <pmacc/communication/manager_common.hpp>
+#include <pmacc/pluginSystem/INotify.hpp>
+#include <pmacc/cuSTL/container/DeviceBuffer.hpp>
+#include <pmacc/cuSTL/container/HostBuffer.hpp>
+#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
+#include <pmacc/math/Vector.hpp>
 
 #include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
 

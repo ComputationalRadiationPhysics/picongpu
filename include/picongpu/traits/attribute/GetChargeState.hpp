@@ -20,8 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/traits/HasIdentifier.hpp"
-#include "pmacc/algorithms/TypeCast.hpp"
+#include <pmacc/traits/HasIdentifier.hpp>
+#include <pmacc/algorithms/TypeCast.hpp>
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 namespace picongpu

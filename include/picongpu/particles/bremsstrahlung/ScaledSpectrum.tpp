@@ -18,7 +18,7 @@
  */
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/cuSTL/container/HostBuffer.hpp"
+#include <pmacc/cuSTL/container/HostBuffer.hpp>
 
 namespace picongpu
 {

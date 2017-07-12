@@ -21,11 +21,11 @@
 
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
-#include "pmacc/cuSTL/cursor/Cursor.hpp"
-#include "pmacc/cuSTL/cursor/navigator/PlusNavigator.hpp"
-#include "pmacc/cuSTL/cursor/tools/LinearInterp.hpp"
-#include "pmacc/cuSTL/cursor/BufferCursor.hpp"
-#include "pmacc/algorithms/math.hpp"
+#include <pmacc/cuSTL/cursor/Cursor.hpp>
+#include <pmacc/cuSTL/cursor/navigator/PlusNavigator.hpp>
+#include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
+#include <pmacc/cuSTL/cursor/BufferCursor.hpp>
+#include <pmacc/algorithms/math.hpp>
 #include <boost/array.hpp>
 #if( BOOST_VERSION == 106400 )
     /* `array_wrapper.hpp` must be included before `integrate.hpp` to avoid

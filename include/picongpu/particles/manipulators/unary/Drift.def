@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/particles/manipulators/generic/Free.def"
-#include "pmacc/nvidia/functors/Add.hpp"
+#include <pmacc/nvidia/functors/Add.hpp>
 
 
 namespace picongpu

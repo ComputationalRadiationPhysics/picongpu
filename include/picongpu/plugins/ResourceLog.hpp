@@ -22,8 +22,8 @@
 #pragma once
 
 // pmacc
-#include "pmacc/Environment.hpp"
-#include "pmacc/mappings/simulation/ResourceMonitor.hpp"
+#include <pmacc/Environment.hpp>
+#include <pmacc/mappings/simulation/ResourceMonitor.hpp>
 
 // PIConGPU
 #include "picongpu/plugins/ILightweightPlugin.hpp"
@@ -239,4 +239,4 @@ namespace picongpu
     };
 }
 
-#include "pmacc/mappings/simulation/ResourceMonitor.tpp"
+#include <pmacc/mappings/simulation/ResourceMonitor.tpp>

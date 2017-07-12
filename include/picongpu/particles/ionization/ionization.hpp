@@ -25,17 +25,17 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/Particles.hpp"
-#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include "picongpu/particles/ParticlesInit.kernel"
-#include "pmacc/mappings/simulation/GridController.hpp"
+#include <pmacc/mappings/simulation/GridController.hpp>
 #include "picongpu/simulationControl/MovingWindow.hpp"
-#include "pmacc/traits/Resolve.hpp"
-#include "pmacc/nvidia/atomic.hpp"
+#include <pmacc/traits/Resolve.hpp>
+#include <pmacc/nvidia/atomic.hpp>
 
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 
 #include "picongpu/particles/ionization/ionizationMethods.hpp"
-#include "pmacc/memory/shared/Allocate.hpp"
+#include <pmacc/memory/shared/Allocate.hpp>
 
 namespace picongpu
 {

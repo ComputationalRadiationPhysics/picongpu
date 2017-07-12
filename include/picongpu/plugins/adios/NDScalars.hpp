@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/plugins/adios/restart/ReadAttribute.hpp"
 #include "picongpu/traits/PICToAdios.hpp"
-#include "pmacc/Environment.hpp"
+#include <pmacc/Environment.hpp>
 #include <stdexcept>
 
 namespace picongpu {

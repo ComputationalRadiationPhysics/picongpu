@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/math/vector/Int.hpp"
+#include <pmacc/types.hpp>
+#include <pmacc/math/vector/Int.hpp>
 
 namespace picongpu
 {

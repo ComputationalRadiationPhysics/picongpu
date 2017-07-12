@@ -20,12 +20,12 @@
 
 #pragma once
 
-#include "pmacc/static_assert.hpp"
+#include <pmacc/static_assert.hpp>
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/plugins/hdf5/writer/Field.hpp"
 
-#include "pmacc/dataManagement/DataConnector.hpp"
+#include <pmacc/dataManagement/DataConnector.hpp>
 
 #include <vector>
 

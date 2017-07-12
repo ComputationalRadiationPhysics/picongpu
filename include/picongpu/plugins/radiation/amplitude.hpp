@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "pmacc/math/Complex.hpp"
+#include <pmacc/math/Complex.hpp>
 #include "parameters.hpp"
-#include "pmacc/mpi/GetMPI_StructAsArray.hpp"
+#include <pmacc/mpi/GetMPI_StructAsArray.hpp>
 
 typedef pmacc::math::Complex<picongpu::float_64> complex_64;
 

@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/math/Vector.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
+#include <pmacc/types.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
 #include "picongpu/fields/background/templates/TWTS/numComponents.hpp"
 
 namespace picongpu

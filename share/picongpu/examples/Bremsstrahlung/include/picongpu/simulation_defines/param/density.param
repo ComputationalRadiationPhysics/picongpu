@@ -22,7 +22,7 @@
 
 #include "picongpu/particles/densityProfiles/profiles.def"
 /* preprocessor struct generator */
-#include "pmacc/preprocessor/struct.hpp"
+#include <pmacc/preprocessor/struct.hpp>
 
 namespace picongpu
 {

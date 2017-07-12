@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "pmacc/pluginSystem/IPlugin.hpp"
+#include <pmacc/pluginSystem/IPlugin.hpp>
 #include "picongpu/ArgsParser.hpp"
 #include "picongpu/simulation_defines.hpp"
 

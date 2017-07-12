@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "pmacc/math/Vector.hpp"
+#include <pmacc/math/Vector.hpp>
 
 namespace picongpu
 {

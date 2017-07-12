@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/traits/Resolve.hpp"
+#include <pmacc/traits/Resolve.hpp>
 #include "picongpu/traits/UsesRNG.hpp"
 
 #include "picongpu/fields/FieldTmp.hpp"
@@ -30,13 +30,13 @@
 #include "picongpu/particles/ionization/ionization.hpp"
 #include "picongpu/particles/ionization/ionizationMethods.hpp"
 
-#include "pmacc/random/methods/XorMin.hpp"
-#include "pmacc/random/distributions/Uniform.hpp"
-#include "pmacc/random/RNGProvider.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
-#include "pmacc/compileTime/conversion/TypeToPointerPair.hpp"
-#include "pmacc/memory/boxes/DataBox.hpp"
-#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include <pmacc/random/methods/XorMin.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
+#include <pmacc/random/RNGProvider.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/memory/boxes/DataBox.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include <boost/type_traits/integral_constant.hpp>
 

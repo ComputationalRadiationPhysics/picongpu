@@ -20,8 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/traits/GetFlagType.hpp"
-#include "pmacc/traits/Resolve.hpp"
+#include <pmacc/traits/GetFlagType.hpp>
+#include <pmacc/traits/Resolve.hpp>
 
 namespace picongpu
 {

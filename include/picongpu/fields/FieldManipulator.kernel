@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/nvidia/atomic.hpp"
-#include "pmacc/memory/shared/Allocate.hpp"
+#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 
 namespace picongpu
 {

@@ -19,13 +19,13 @@
 
 #pragma once
 
-#include "pmacc/mappings/simulation/GridController.hpp"
-#include "pmacc/memory/boxes/PitchedBox.hpp"
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/memory/boxes/PitchedBox.hpp>
 #include "header/MessageHeader.hpp"
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 
 #include <mpi.h>
 

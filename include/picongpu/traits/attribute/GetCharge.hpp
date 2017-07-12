@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
-#include "pmacc/traits/HasIdentifier.hpp"
+#include <pmacc/traits/HasIdentifier.hpp>
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 namespace picongpu

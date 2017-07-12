@@ -24,16 +24,16 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/MaxwellSolver/DirSplitting/DirSplitting.kernel"
-#include "pmacc/dataManagement/DataConnector.hpp"
+#include <pmacc/dataManagement/DataConnector.hpp>
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "pmacc/lambda/Expression.hpp"
-#include "pmacc/cuSTL/algorithm/kernel/ForeachBlock.hpp"
-#include "pmacc/cuSTL/cursor/NestedCursor.hpp"
-#include "pmacc/math/Vector.hpp"
-#include "pmacc/math/vector/Int.hpp"
-#include "pmacc/math/vector/TwistComponents.hpp"
-#include "pmacc/math/vector/compile-time/TwistComponents.hpp"
+#include <pmacc/lambda/Expression.hpp>
+#include <pmacc/cuSTL/algorithm/kernel/ForeachBlock.hpp>
+#include <pmacc/cuSTL/cursor/NestedCursor.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/math/vector/Int.hpp>
+#include <pmacc/math/vector/TwistComponents.hpp>
+#include <pmacc/math/vector/compile-time/TwistComponents.hpp>
 
 
 namespace picongpu

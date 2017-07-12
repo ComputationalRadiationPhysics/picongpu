@@ -22,7 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.def"
-#include "pmacc/math/Vector.hpp"
+#include <pmacc/math/Vector.hpp>
 
 namespace picongpu
 {

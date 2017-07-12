@@ -31,11 +31,11 @@
 #include "picongpu/particles/ionization/ionization.hpp"
 #include "picongpu/particles/ParticlesFunctors.hpp"
 
-#include "pmacc/compileTime/conversion/TypeToPointerPair.hpp"
-#include "pmacc/memory/boxes/DataBox.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
-#include "pmacc/mappings/kernel/AreaMapping.hpp"
-#include "pmacc/traits/Resolve.hpp"
+#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/memory/boxes/DataBox.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/traits/Resolve.hpp>
 
 
 namespace picongpu

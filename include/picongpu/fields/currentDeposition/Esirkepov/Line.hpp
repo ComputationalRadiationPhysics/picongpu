@@ -22,7 +22,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 
 namespace picongpu
 {

@@ -23,7 +23,7 @@
 
 #include "NoSolver.def"
 
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 
 

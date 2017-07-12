@@ -20,10 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/nvidia/rng/RNG.hpp"
-#include "pmacc/nvidia/rng/methods/Xor.hpp"
-#include "pmacc/mpi/SeedPerRank.hpp"
-#include "pmacc/traits/GetUniqueTypeId.hpp"
+#include <pmacc/nvidia/rng/RNG.hpp>
+#include <pmacc/nvidia/rng/methods/Xor.hpp>
+#include <pmacc/mpi/SeedPerRank.hpp>
+#include <pmacc/traits/GetUniqueTypeId.hpp>
 
 #include <utility>
 #include <type_traits>

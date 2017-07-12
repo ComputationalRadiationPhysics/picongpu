@@ -29,10 +29,10 @@
 #include <iostream>  // std::cerr
 #include <stdexcept> // throw std::runtime_error
 
-#include "pmacc/types.hpp"
-#include "pmacc/math/Vector.hpp"
+#include <pmacc/types.hpp>
+#include <pmacc/math/Vector.hpp>
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/particles/frame_types.hpp"
+#include <pmacc/particles/frame_types.hpp>
 #include "picongpu/simulationControl/MovingWindow.hpp"
 #include "picongpu/traits/PICToAdios.hpp"
 

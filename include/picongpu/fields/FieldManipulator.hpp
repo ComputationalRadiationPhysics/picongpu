@@ -20,8 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/mappings/simulation/GridController.hpp"
-#include "pmacc/memory/dataTypes/Mask.hpp"
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/memory/dataTypes/Mask.hpp>
 #include "FieldManipulator.kernel"
 #include "picongpu/simulationControl/MovingWindow.hpp"
 

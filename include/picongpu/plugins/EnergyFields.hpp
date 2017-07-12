@@ -27,14 +27,14 @@
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "pmacc/mpi/reduceMethods/Reduce.hpp"
-#include "pmacc/mpi/MPIReduce.hpp"
-#include "pmacc/nvidia/functors/Add.hpp"
-#include "pmacc/nvidia/reduce/Reduce.hpp"
-#include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
-#include "pmacc/memory/boxes/DataBoxUnaryTransform.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/nvidia/reduce/Reduce.hpp>
+#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
+#include <pmacc/memory/boxes/DataBoxUnaryTransform.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
 
 #include "common/txtFileHandling.hpp"
 

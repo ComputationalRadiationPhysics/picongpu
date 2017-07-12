@@ -25,10 +25,10 @@
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/traits/PICToSplash.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
-#include "pmacc/traits/GetComponentsType.hpp"
-#include "pmacc/traits/GetNComponents.hpp"
-#include "pmacc/traits/Resolve.hpp"
-#include "pmacc/assert.hpp"
+#include <pmacc/traits/GetComponentsType.hpp>
+#include <pmacc/traits/GetNComponents.hpp>
+#include <pmacc/traits/Resolve.hpp>
+#include <pmacc/assert.hpp>
 
 
 namespace picongpu

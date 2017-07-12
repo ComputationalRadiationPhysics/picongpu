@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.def"
-#include "pmacc/compileTime/conversion/TypeToPointerPair.hpp"
+#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/densityProfiles/IProfile.def"
 #include "picongpu/particles/startPosition/IFunctor.def"
@@ -29,11 +29,11 @@
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 
-#include "pmacc/Environment.hpp"
-#include "pmacc/traits/Resolve.hpp"
-#include "pmacc/traits/HasFlag.hpp"
-#include "pmacc/traits/GetFlagType.hpp"
-#include "pmacc/math/MapTuple.hpp"
+#include <pmacc/Environment.hpp>
+#include <pmacc/traits/Resolve.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/GetFlagType.hpp>
+#include <pmacc/math/MapTuple.hpp>
 
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/plus.hpp>

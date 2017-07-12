@@ -22,9 +22,9 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/traits/PICToSplash.hpp"
-#include "pmacc/traits/GetComponentsType.hpp"
-#include "pmacc/traits/GetNComponents.hpp"
-#include "pmacc/assert.hpp"
+#include <pmacc/traits/GetComponentsType.hpp>
+#include <pmacc/traits/GetNComponents.hpp>
+#include <pmacc/assert.hpp>
 
 #include <string>
 

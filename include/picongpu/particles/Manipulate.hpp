@@ -23,7 +23,7 @@
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 
-#include "pmacc/Environment.hpp"
+#include <pmacc/Environment.hpp>
 
 #include <boost/mpl/apply.hpp>
 

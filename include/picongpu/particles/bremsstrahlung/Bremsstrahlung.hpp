@@ -24,11 +24,11 @@
 #include "PhotonEmissionAngle.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 
-#include "pmacc/random/methods/XorMin.hpp"
-#include "pmacc/random/distributions/Uniform.hpp"
-#include "pmacc/random/RNGProvider.hpp"
+#include <pmacc/random/methods/XorMin.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
+#include <pmacc/random/RNGProvider.hpp>
 
-#include "pmacc/traits/Resolve.hpp"
+#include <pmacc/traits/Resolve.hpp>
 
 
 namespace picongpu

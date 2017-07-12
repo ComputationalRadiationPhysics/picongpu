@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
-#include "pmacc/math/vector/Int.hpp"
+#include <pmacc/types.hpp>
+#include <pmacc/math/vector/Int.hpp>
 
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/vector.hpp>
-#include "pmacc/compileTime/AllCombinations.hpp"
+#include <pmacc/compileTime/AllCombinations.hpp>
 
 namespace picongpu
 {

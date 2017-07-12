@@ -23,7 +23,7 @@
 
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
-#include "pmacc/nvidia/functors/Add.hpp"
+#include <pmacc/nvidia/functors/Add.hpp>
 
 namespace picongpu
 {

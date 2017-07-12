@@ -21,7 +21,7 @@
 #pragma once
 
 #include <cmath>
-#include "pmacc/basicOperations.hpp"
+#include <pmacc/basicOperations.hpp>
 
 namespace picongpu
 {

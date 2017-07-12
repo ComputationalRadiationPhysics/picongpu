@@ -21,14 +21,14 @@
 #pragma once
 
 #include "version.hpp"
-#include "pmacc/algorithms/TypeCast.hpp"
-#include "pmacc/algorithms/PromoteType.hpp"
-#include "pmacc/algorithms/ForEach.hpp"
-#include "pmacc/algorithms/math.hpp"
-#include "pmacc/traits/GetStringProperties.hpp"
+#include <pmacc/algorithms/TypeCast.hpp>
+#include <pmacc/algorithms/PromoteType.hpp>
+#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/algorithms/math.hpp>
+#include <pmacc/traits/GetStringProperties.hpp>
 #include "picongpu/traits/GetMargin.hpp"
-#include "pmacc/traits/GetComponentsType.hpp"
-#include "pmacc/traits/NumberOfExchanges.hpp"
+#include <pmacc/traits/GetComponentsType.hpp>
+#include <pmacc/traits/NumberOfExchanges.hpp>
 #include "picongpu/traits/GetDataBoxType.hpp"
 
 namespace picongpu

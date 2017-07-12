@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/cursor/Cursor.hpp"
+#include <pmacc/cuSTL/cursor/Cursor.hpp>
 
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
 #include "picongpu/fields/currentDeposition/RelayPoint.hpp"

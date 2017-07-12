@@ -26,11 +26,11 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/ArgsParser.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/mappings/simulation/GridController.hpp"
-#include "pmacc/dimensions/GridLayout.hpp"
-#include "pmacc/mappings/kernel/MappingDescription.hpp"
-#include "pmacc/pluginSystem/PluginConnector.hpp"
+#include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/dimensions/GridLayout.hpp>
+#include <pmacc/mappings/kernel/MappingDescription.hpp>
+#include <pmacc/pluginSystem/PluginConnector.hpp>
 #include "picongpu/simulationControl/ISimulationStarter.hpp"
 
 namespace picongpu

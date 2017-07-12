@@ -27,15 +27,15 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
-#include "pmacc/particles/traits/GetSpeciesFlagName.hpp"
+#include <pmacc/particles/traits/GetSpeciesFlagName.hpp>
 #include "picongpu/traits/PICToAdios.hpp"
 
-#include "pmacc/mappings/kernel/AreaMapping.hpp"
-#include "pmacc/math/Vector.hpp"
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/math/Vector.hpp>
 #include "picongpu/plugins/adios/writer/ParticleAttributeSize.hpp"
-#include "pmacc/compileTime/conversion/MakeSeq.hpp"
-#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
+#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>

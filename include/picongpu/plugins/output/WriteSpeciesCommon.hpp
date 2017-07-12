@@ -23,12 +23,12 @@
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "pmacc/mappings/kernel/AreaMapping.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
-#include "pmacc/compileTime/conversion/MakeSeq.hpp"
-#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
-#include "pmacc/traits/Resolve.hpp"
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/traits/Resolve.hpp>
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>

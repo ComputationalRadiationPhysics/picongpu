@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "pmacc/static_assert.hpp"
+#include <pmacc/static_assert.hpp>
 
 
 PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_below_one, ( picongpu::radiationNyquist::NyquistFactor < 1.0 ) );

@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 
-#include "pmacc/Environment.hpp"
+#include <pmacc/Environment.hpp>
 
-#include "pmacc/pluginSystem/PluginConnector.hpp"
+#include <pmacc/pluginSystem/PluginConnector.hpp>
 
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
@@ -32,7 +32,7 @@
 #include "picongpu/initialization/SimStartInitialiser.hpp"
 
 #include "picongpu/initialization/IInitPlugin.hpp"
-#include "pmacc/assert.hpp"
+#include <pmacc/assert.hpp>
 
 #include <boost/mpl/find.hpp>
 

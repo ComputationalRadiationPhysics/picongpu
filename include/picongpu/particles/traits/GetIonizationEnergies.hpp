@@ -20,10 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/static_assert.hpp"
-#include "pmacc/traits/GetFlagType.hpp"
-#include "pmacc/traits/Resolve.hpp"
-#include "pmacc/particles/memory/frames/Frame.hpp"
+#include <pmacc/static_assert.hpp>
+#include <pmacc/traits/GetFlagType.hpp>
+#include <pmacc/traits/Resolve.hpp>
+#include <pmacc/particles/memory/frames/Frame.hpp>
 
 namespace picongpu
 {

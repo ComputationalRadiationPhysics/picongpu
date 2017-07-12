@@ -23,11 +23,11 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/startPosition/MacroParticleCfg.hpp"
-#include "pmacc/nvidia/rng/RNG.hpp"
-#include "pmacc/nvidia/rng/methods/Xor.hpp"
-#include "pmacc/nvidia/rng/distributions/Uniform_float.hpp"
-#include "pmacc/mpi/SeedPerRank.hpp"
-#include "pmacc/traits/GetUniqueTypeId.hpp"
+#include <pmacc/nvidia/rng/RNG.hpp>
+#include <pmacc/nvidia/rng/methods/Xor.hpp>
+#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
+#include <pmacc/mpi/SeedPerRank.hpp>
+#include <pmacc/traits/GetUniqueTypeId.hpp>
 
 namespace picongpu
 {

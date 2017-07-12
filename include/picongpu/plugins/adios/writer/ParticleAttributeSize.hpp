@@ -25,8 +25,8 @@
 #include "picongpu/traits/PICToOpenPMD.hpp"
 #include "picongpu/traits/GetComponentsType.hpp"
 #include "picongpu/traits/GetNComponents.hpp"
-#include "pmacc/traits/Resolve.hpp"
-#include "pmacc/assert.hpp"
+#include <pmacc/traits/Resolve.hpp>
+#include <pmacc/assert.hpp>
 
 namespace picongpu
 {

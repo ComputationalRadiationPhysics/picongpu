@@ -21,7 +21,7 @@
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include <boost/shared_ptr.hpp>
-#include "pmacc/cuSTL/algorithm/mpi/Reduce.hpp"
+#include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
 
 namespace picongpu
 {

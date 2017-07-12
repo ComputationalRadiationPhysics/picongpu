@@ -30,12 +30,12 @@
 #include "picongpu/plugins/common/particlePatches.hpp"
 #include "picongpu/plugins/hdf5/openPMD/patchReader.hpp"
 
-#include "pmacc/compileTime/conversion/MakeSeq.hpp"
-#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
-#include "pmacc/mappings/kernel/AreaMapping.hpp"
-#include "pmacc/particles/ParticleDescription.hpp"
-#include "pmacc/particles/operations/splitIntoListOfFrames.kernel"
-#include "pmacc/dataManagement/DataConnector.hpp"
+#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/particles/ParticleDescription.hpp>
+#include <pmacc/particles/operations/splitIntoListOfFrames.kernel>
+#include <pmacc/dataManagement/DataConnector.hpp>
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>

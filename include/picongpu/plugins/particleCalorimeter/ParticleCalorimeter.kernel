@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "pmacc/math/Vector.hpp"
-#include "pmacc/memory/shared/Allocate.hpp"
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
 
 namespace picongpu
 {

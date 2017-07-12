@@ -21,9 +21,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "pmacc/compileTime/conversion/OperateOnSeq.hpp"
-#include "pmacc/compileTime/conversion/MakeSeqFromNestedSeq.hpp"
-#include "pmacc/particles/traits/FilterByFlag.hpp"
+#include <pmacc/compileTime/conversion/OperateOnSeq.hpp>
+#include <pmacc/compileTime/conversion/MakeSeqFromNestedSeq.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
 
 #include "picongpu/traits/UsesRNG.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"

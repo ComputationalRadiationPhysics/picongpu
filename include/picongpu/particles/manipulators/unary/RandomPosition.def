@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/manipulators/generic/FreeRng.def"
 
-#include "pmacc/nvidia/rng/distributions/Uniform_float.hpp"
+#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
 
 #include <boost/mpl/integral_c.hpp>
 

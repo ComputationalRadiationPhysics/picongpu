@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/cursor/Cursor.hpp"
-#include "pmacc/basicOperations.hpp"
-#include "pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp"
+#include <pmacc/cuSTL/cursor/Cursor.hpp>
+#include <pmacc/basicOperations.hpp>
+#include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"

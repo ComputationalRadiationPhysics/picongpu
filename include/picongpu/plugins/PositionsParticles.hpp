@@ -22,12 +22,12 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "pmacc/memory/shared/Allocate.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 
 #include <string>
 #include <iostream>

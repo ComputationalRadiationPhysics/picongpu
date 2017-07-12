@@ -20,10 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/types.hpp"
-#include "pmacc/particles/memory/frames/Frame.hpp"
-#include "pmacc/traits/GetFlagType.hpp"
-#include "pmacc/traits/Resolve.hpp"
+#include <pmacc/types.hpp>
+#include <pmacc/particles/memory/frames/Frame.hpp>
+#include <pmacc/traits/GetFlagType.hpp>
+#include <pmacc/traits/Resolve.hpp>
 
 #include "picongpu/particles/synchrotronPhotons/PhotonCreator.def"
 

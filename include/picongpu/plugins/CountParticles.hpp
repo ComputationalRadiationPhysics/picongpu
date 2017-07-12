@@ -21,17 +21,17 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "pmacc/mpi/reduceMethods/Reduce.hpp"
-#include "pmacc/mpi/MPIReduce.hpp"
-#include "pmacc/nvidia/functors/Add.hpp"
-#include "pmacc/nvidia/functors/Max.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/nvidia/functors/Max.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 
-#include "pmacc/particles/operations/CountParticles.hpp"
+#include <pmacc/particles/operations/CountParticles.hpp>
 
 #include "common/txtFileHandling.hpp"
 

@@ -24,10 +24,10 @@
 
 #include "picongpu/fields/FieldJ.hpp"
 
-#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "pmacc/memory/shared/Allocate.hpp"
-#include "pmacc/dataManagement/DataConnector.hpp"
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/dataManagement/DataConnector.hpp>
 
 #include <iostream>
 

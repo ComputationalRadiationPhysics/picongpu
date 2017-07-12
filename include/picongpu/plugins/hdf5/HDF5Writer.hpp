@@ -33,24 +33,24 @@
 #include "picongpu/traits/SplashToPIC.hpp"
 #include "picongpu/traits/PICToSplash.hpp"
 
-#include "pmacc/particles/frame_types.hpp"
+#include <pmacc/particles/frame_types.hpp>
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
-#include "pmacc/particles/particleFilter/FilterFactory.hpp"
-#include "pmacc/particles/particleFilter/PositionFilter.hpp"
-#include "pmacc/particles/operations/CountParticles.hpp"
-#include "pmacc/particles/IdProvider.def"
+#include <pmacc/particles/particleFilter/FilterFactory.hpp>
+#include <pmacc/particles/particleFilter/PositionFilter.hpp>
+#include <pmacc/particles/operations/CountParticles.hpp>
+#include <pmacc/particles/IdProvider.def>
 
-#include "pmacc/dataManagement/DataConnector.hpp"
-#include "pmacc/mappings/simulation/GridController.hpp"
-#include "pmacc/mappings/simulation/SubGrid.hpp"
-#include "pmacc/dimensions/GridLayout.hpp"
-#include "pmacc/pluginSystem/PluginConnector.hpp"
+#include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/mappings/simulation/SubGrid.hpp>
+#include <pmacc/dimensions/GridLayout.hpp>
+#include <pmacc/pluginSystem/PluginConnector.hpp>
 #include "picongpu/simulationControl/MovingWindow.hpp"
-#include "pmacc/math/Vector.hpp"
+#include <pmacc/math/Vector.hpp>
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include <boost/mpl/vector.hpp>
@@ -69,7 +69,7 @@
 #include "picongpu/plugins/hdf5/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/hdf5/restart/RestartFieldLoader.hpp"
 #include "picongpu/plugins/hdf5/NDScalars.hpp"
-#include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
+#include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
 
 namespace picongpu
 {

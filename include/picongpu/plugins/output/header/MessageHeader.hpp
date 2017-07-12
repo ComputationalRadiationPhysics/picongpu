@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/dimensions/DataSpace.hpp"
+#include <pmacc/dimensions/DataSpace.hpp>
 
 #include "picongpu/plugins/output/header/DataHeader.hpp"
 #include "picongpu/plugins/output/header/NodeHeader.hpp"

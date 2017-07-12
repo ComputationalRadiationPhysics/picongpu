@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include <fstream>
 #include <cstdio>
-#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 
 
 namespace picongpu

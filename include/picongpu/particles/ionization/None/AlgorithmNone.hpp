@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 
 /** \file AlgorithmNone.hpp
  *

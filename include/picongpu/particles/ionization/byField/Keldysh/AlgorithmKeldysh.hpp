@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/particles/traits/GetIonizationEnergies.hpp"
 #include "picongpu/traits/attribute/GetChargeState.hpp"
-#include "pmacc/algorithms/math/floatMath/floatingPoint.tpp"
+#include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
 #include "picongpu/particles/ionization/utilities.hpp"
 
 /* IONIZATION ALGORITHM for the Keldysh model

@@ -44,7 +44,7 @@ namespace generic
      *
      * example: add
      *   @code{.cpp}
-     *   #include "pmacc/nvidia/rng/distributions/Uniform_float.hpp"
+     *   #include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
      *
      *   struct RandomXFunctor
      *   {

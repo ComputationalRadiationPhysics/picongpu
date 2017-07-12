@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/traits/HasIdentifier.hpp"
+#include <pmacc/traits/HasIdentifier.hpp>
 
 namespace picongpu
 {

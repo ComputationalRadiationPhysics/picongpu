@@ -23,7 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "pmacc/dimensions/DataSpace.hpp"
+#include <pmacc/dimensions/DataSpace.hpp>
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include <vector>
