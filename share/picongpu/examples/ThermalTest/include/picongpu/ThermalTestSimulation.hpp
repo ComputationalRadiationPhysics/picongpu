@@ -25,7 +25,6 @@
 #include "picongpu/simulationControl/MySimulation.hpp"
 
 #include "simulationControl/SimulationHelper.hpp"
-#include "simulation_classTypes.hpp"
 
 #include "picongpu/fields/FieldE.hpp"
 

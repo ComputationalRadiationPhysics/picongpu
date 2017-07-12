@@ -23,8 +23,8 @@
 
 #include "picongpu/plugins/PluginController.hpp"
 #include "picongpu/initialization/InitialiserController.hpp"
-#include "ThermalTestSimulation.hpp"
-#include "simulationControl/SimulationStarter.hpp"
+#include "picongpu/ThermalTestSimulation.hpp"
+#include "picongpu/simulationControl/SimulationStarter.hpp"
 
 
 namespace picongpu
