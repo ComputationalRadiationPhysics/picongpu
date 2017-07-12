@@ -88,23 +88,23 @@ fi
 # Updates #####################################################################
 
 # PIConGPU version.hpp
-#   src/picongpu/include/version.hpp
+#   include/picongpu/version.hpp
 sed -i 's/'\
 '[[:blank:]]*#[[:blank:]]*define[[:blank:]]\+PICONGPU_VERSION_MAJOR[[:blank:]]\+.*/'\
 '#define PICONGPU_VERSION_MAJOR '$MAJOR'/g' \
-    $REPO_DIR/src/picongpu/include/version.hpp
+    $REPO_DIR/include/picongpu/version.hpp
 sed -i 's/'\
 '[[:blank:]]*#[[:blank:]]*define[[:blank:]]\+PICONGPU_VERSION_MINOR[[:blank:]]\+.*/'\
 '#define PICONGPU_VERSION_MINOR '$MINOR'/g' \
-    $REPO_DIR/src/picongpu/include/version.hpp
+    $REPO_DIR/include/picongpu/version.hpp
 sed -i 's/'\
 '[[:blank:]]*#[[:blank:]]*define[[:blank:]]\+PICONGPU_VERSION_PATCH[[:blank:]]\+.*/'\
 '#define PICONGPU_VERSION_PATCH '$PATCH'/g' \
-    $REPO_DIR/src/picongpu/include/version.hpp
+    $REPO_DIR/include/picongpu/version.hpp
 sed -i 's/'\
 '[[:blank:]]*#[[:blank:]]*define[[:blank:]]\+PICONGPU_VERSION_LABEL[[:blank:]]\+.*/'\
 '#define PICONGPU_VERSION_LABEL "'$SUFFIX'"/g' \
-    $REPO_DIR/src/picongpu/include/version.hpp
+    $REPO_DIR/include/picongpu/version.hpp
 
 # sphinx / RTD
 #   docs/source/conf.py

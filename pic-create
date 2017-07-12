@@ -68,7 +68,7 @@ done
 
 cmake_path="$*"
 
-default_param_dir="$this_dir/src/picongpu"
+default_param_dir="$this_dir/include/picongpu"
 
 if [ $# -eq 0 ] || [ $# -gt 2 ] ; then
     echo "Missing destination directory or to many directories were given." >&2
@@ -89,8 +89,8 @@ if [ ! -d "$src_path" ] ; then
     echo "$src_path not exists" >&2
 fi
 
-if [ -d "$src_path/src/picongpu" ] ; then
-    src_path="$src_path/src/picongpu"
+if [ -d "$src_path/include/picongpu" ] ; then
+    src_path="$src_path/include/picongpu"
 fi
 
 if [ -d "$dst_path" ] && [ "$force_param" -eq 0 ] ; then
@@ -122,7 +122,7 @@ do
 done
 
 #copy all data from src_path if path is not picongpu default param path
-if [ "$src_path" != "$this_dir/src/picongpu" ] ; then
+if [ "$src_path" != "$this_dir/include/picongpu" ] ; then
     for d in $selected_default_folder_to_copy
     do
         dir_dst="$dst_path/$d"
