@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <pmacc_types.hpp>
-#include <particles/IdProvider.hpp>
-#include <memory/buffers/HostDeviceBuffer.hpp>
-#include <eventSystem/EventSystem.hpp>
+#include <pmacc/types.hpp>
+#include <pmacc/particles/IdProvider.hpp>
+#include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
+#include <pmacc/eventSystem/EventSystem.hpp>
 
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
