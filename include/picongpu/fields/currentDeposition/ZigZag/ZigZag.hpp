@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/basicOperations.hpp"
-#include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
+#include "pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp"
 #include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
 #include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
 #include <boost/mpl/for_each.hpp>

@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <cuSTL/cursor/Cursor.hpp>
-#include <cuSTL/cursor/accessor/CursorAccessor.hpp>
-#include <nvidia/reduce/Reduce.hpp>
-#include <cuSTL/cursor/navigator/MapTo1DNavigator.hpp>
+#include "pmacc/cuSTL/cursor/Cursor.hpp"
+#include "pmacc/cuSTL/cursor/accessor/CursorAccessor.hpp"
+#include "pmacc/nvidia/reduce/Reduce.hpp"
+#include "pmacc/cuSTL/cursor/navigator/MapTo1DNavigator.hpp"
 
 namespace pmacc
 {

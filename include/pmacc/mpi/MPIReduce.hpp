@@ -31,7 +31,7 @@
 #include <mpi.h>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace mpi
 {
@@ -77,7 +77,7 @@ struct MPIReduce
     {
         if (!isMPICommInitialized)
             participate(true);
-        return this->hasResult(::PMacc::mpi::reduceMethods::AllReduce());
+        return this->hasResult(::pmacc::mpi::reduceMethods::AllReduce());
     }
 
     /* Activate participation for reduce algorithm.
@@ -156,9 +156,9 @@ struct MPIReduce
         method(func,
                dest,
                src,
-               n * ::PMacc::mpi::getMPI_StructAsArray<ValueType > ().sizeMultiplier,
-               ::PMacc::mpi::getMPI_StructAsArray<ValueType > ().dataType,
-               ::PMacc::mpi::getMPI_Op<Functor > (),
+               n * ::pmacc::mpi::getMPI_StructAsArray<ValueType > ().sizeMultiplier,
+               ::pmacc::mpi::getMPI_StructAsArray<ValueType > ().dataType,
+               ::pmacc::mpi::getMPI_Op<Functor > (),
                comm);
     }
 
@@ -181,7 +181,7 @@ struct MPIReduce
     {
         if (!isMPICommInitialized)
             participate(true);
-        this->operator ()(func, dest, src, n, ::PMacc::mpi::reduceMethods::AllReduce());
+        this->operator ()(func, dest, src, n, ::pmacc::mpi::reduceMethods::AllReduce());
     }
 
 
@@ -193,4 +193,4 @@ private:
     bool isMPICommInitialized;
 };
 } // namespace mpi
-} // namespace PMacc
+} // namespace pmacc

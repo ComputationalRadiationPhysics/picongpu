@@ -35,7 +35,7 @@
 #include <boost/mpl/back_inserter.hpp>
 #include <boost/mpl/front_inserter.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
 
@@ -57,7 +57,7 @@ public:
 
 };
 
-}//namespace PMacc
+}//namespace pmacc
 
 
 

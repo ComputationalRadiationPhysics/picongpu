@@ -28,7 +28,7 @@
  */
 #define TO_BITS(x) (~((-1) << (x)))
 
-namespace PMacc
+namespace pmacc
 {
 
     /**

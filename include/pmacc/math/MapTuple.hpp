@@ -30,7 +30,7 @@
 #include <boost/utility/result_of.hpp>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {

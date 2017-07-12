@@ -30,7 +30,7 @@
 
 #include <limits>
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -201,4 +201,4 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc

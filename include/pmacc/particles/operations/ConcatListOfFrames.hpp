@@ -25,7 +25,7 @@
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/math/vector/compile-time/Vector.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace particles
 {
@@ -86,7 +86,7 @@ struct ConcatListOfFrames
             T_Filter filter = particleFilter;
             DataSpace<T_dim> blockIdx(DataSpaceOperations<T_dim>::map(m_gridDim, linearBlockIdx));
 
-            using namespace PMacc::particles::operations;
+            using namespace pmacc::particles::operations;
 
             typedef T_DestFrame DestFrameType;
             typedef typename T_SrcBox::FrameType SrcFrameType;
@@ -96,7 +96,7 @@ struct ConcatListOfFrames
             typedef typename Mapping::SuperCellSize SuperCellSize;
 
 
-            const int particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+            const int particlesPerFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
             int localIdxs[particlesPerFrame];
 
             const DataSpace<Mapping::Dim> superCellIdx = mapper.getSuperCellIndex(blockIdx);
@@ -152,4 +152,4 @@ struct ConcatListOfFrames
 
 } //namespace operations
 } //namespace particles
-} //namespace PMacc
+} //namespace pmacc

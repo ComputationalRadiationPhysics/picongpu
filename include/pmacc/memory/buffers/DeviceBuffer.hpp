@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include <cuSTL/container/view/View.hpp>
-#include <cuSTL/container/DeviceBuffer.hpp>
-#include <math/vector/Int.hpp>
-#include <math/vector/Size_t.hpp>
-#include <memory/buffers/Buffer.hpp>
+#include "pmacc/cuSTL/container/view/View.hpp"
+#include "pmacc/cuSTL/container/DeviceBuffer.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
+#include "pmacc/memory/buffers/Buffer.hpp"
 #include "pmacc/types.hpp"
 
 #include <cuda_runtime.h>
@@ -34,7 +34,7 @@
 
 #include <stdexcept>
 
-namespace PMacc
+namespace pmacc
 {
     class EventTask;
 
@@ -161,4 +161,4 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc

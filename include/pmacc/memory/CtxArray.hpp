@@ -29,7 +29,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace PMacc
+namespace pmacc
 {
 namespace memory
 {
@@ -109,4 +109,4 @@ namespace memory
     };
 
 } // namespace memory
-} // namespace PMacc
+} // namespace pmacc

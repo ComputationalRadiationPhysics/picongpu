@@ -21,7 +21,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc/particles.hpp"
+#include "picongpu/particles/Particles.hpp"
 
 #include "picongpu/particles/Particles.kernel"
 
@@ -32,7 +32,7 @@
 #include "picongpu/fields/FieldE.hpp"
 
 #include "pmacc/particles/memory/buffers/ParticlesBuffer.hpp"
-#include "pmacc/particlesInit.kernel"
+#include "picongpu/particles/ParticlesInit.kernel"
 #include "pmacc/mappings/simulation/GridController.hpp"
 
 #include "picongpu/simulationControl/MovingWindow.hpp"

@@ -35,7 +35,7 @@
 
 #include <algorithm>
 
-namespace PMacc
+namespace pmacc
 {
 
 template<typename Type_, uint32_t communicationTag_ = 0, bool sizeOnDevice_ = false >

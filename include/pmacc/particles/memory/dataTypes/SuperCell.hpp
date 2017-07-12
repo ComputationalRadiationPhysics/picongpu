@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 template <class TYPE>

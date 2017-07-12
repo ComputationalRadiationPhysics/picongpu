@@ -29,7 +29,7 @@
 #include "pmacc/memory/boxes/PitchedBox.hpp"
 #include "pmacc/particles/memory/dataTypes/FramePointer.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /**

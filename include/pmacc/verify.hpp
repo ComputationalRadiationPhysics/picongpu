@@ -31,7 +31,7 @@
  * @param expr expression to be evaluated
  */
 #define PMACC_VERIFY( expr )                                                   \
-    ( !!(expr) ) ? ( (void) 0 ) : PMacc::abortWithError( #expr, __FILE__, __LINE__ )
+    ( !!(expr) ) ? ( (void) 0 ) : pmacc::abortWithError( #expr, __FILE__, __LINE__ )
 
 /** verify expression with message
  *
@@ -42,4 +42,4 @@
  *            expression is evaluated to false
  */
 #define PMACC_VERIFY_MSG( expr, msg )                                          \
-    ( !!(expr) ) ? ( (void) 0 ) : PMacc::abortWithError( #expr, __FILE__, __LINE__, msg )
+    ( !!(expr) ) ? ( (void) 0 ) : pmacc::abortWithError( #expr, __FILE__, __LINE__, msg )

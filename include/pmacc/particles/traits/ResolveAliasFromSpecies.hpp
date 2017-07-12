@@ -27,7 +27,7 @@
 #include "pmacc/traits/Resolve.hpp"
 #include "pmacc/identifier/alias.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace particles
 {
@@ -69,19 +69,19 @@ template<typename T_SpeciesType, typename T_Alias>
 struct ResolveAliasFromSpecies;
 
 template<typename T_SpeciesType, template<typename,typename> class T_Object, typename T_AnyType>
-struct ResolveAliasFromSpecies<T_SpeciesType, T_Object<T_AnyType,PMacc::pmacc_isAlias> >
+struct ResolveAliasFromSpecies<T_SpeciesType, T_Object<T_AnyType,pmacc::pmacc_isAlias> >
 {
     typedef T_SpeciesType SpeciesType;
-    typedef T_Object<T_AnyType,PMacc::pmacc_isAlias> Alias;
+    typedef T_Object<T_AnyType,pmacc::pmacc_isAlias> Alias;
     typedef typename SpeciesType::FrameType FrameType;
 
     /* The following line only fetches the alias */
-    typedef typename PMacc::traits::GetFlagType<FrameType, Alias >::type FoundAlias;
+    typedef typename pmacc::traits::GetFlagType<FrameType, Alias >::type FoundAlias;
 
     /* This now resolves the alias into the actual object type */
-    typedef typename PMacc::traits::Resolve<FoundAlias>::type type;
+    typedef typename pmacc::traits::Resolve<FoundAlias>::type type;
 }; // struct ResolveAliasFromSpecies
 
 } // namespace traits
 } // namespace particles
-} // namespace PMacc
+} // namespace pmacc

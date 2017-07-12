@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 #include "pmacc/mpi/MPI_StructAsArray.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace mpi
 {
@@ -37,14 +37,14 @@ struct GetMPI_StructAsArray;
 }//namespace intern
 
 template<typename Type>
-PMacc::mpi::MPI_StructAsArray getMPI_StructAsArray()
+pmacc::mpi::MPI_StructAsArray getMPI_StructAsArray()
 {
     return def::GetMPI_StructAsArray<Type > ()();
 }
 
 } //namespace mpi
 
-}//namespace PMacc
+}//namespace pmacc
 
 #include "pmacc/mpi/GetMPI_StructAsArray.tpp"
 

@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <cuSTL/cursor/Cursor.hpp>
-#include <cuSTL/cursor/accessor/PointerAccessor.hpp>
-#include <cuSTL/cursor/navigator/compile-time/BufferNavigator.hpp>
-#include <cuSTL/cursor/traits.hpp>
+#include "pmacc/cuSTL/cursor/Cursor.hpp"
+#include "pmacc/cuSTL/cursor/accessor/PointerAccessor.hpp"
+#include "pmacc/cuSTL/cursor/navigator/compile-time/BufferNavigator.hpp"
+#include "pmacc/cuSTL/cursor/traits.hpp"
 
 namespace pmacc
 {

@@ -26,7 +26,7 @@
 #include "pmacc/memory/buffers/Exchange.hpp"
 #include "pmacc/assert.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 

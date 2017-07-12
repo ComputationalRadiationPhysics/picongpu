@@ -24,11 +24,10 @@
 #include "pmacc/types.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 
-namespace pmath = PMacc::math;
-namespace pmacc = PMacc;
+namespace pmath = pmacc::math;
 
 template<typename T_Type, typename T_size>
 class StaticArray
@@ -67,4 +66,4 @@ public:
     }
 };
 
-} //namespace PMacc
+} //namespace pmacc

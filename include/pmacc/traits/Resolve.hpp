@@ -22,7 +22,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
@@ -45,4 +45,4 @@ struct Resolve
 
 }//namespace traits
 
-}//namespace PMacc
+}//namespace pmacc

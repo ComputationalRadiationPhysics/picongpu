@@ -21,7 +21,7 @@
 
 #include "pmacc/types.hpp"
 #include <boost/type_traits/remove_reference.hpp>
-#include <result_of_Functor.hpp>
+#include "pmacc/result_of_Functor.hpp"
 
 
 // forward declaration

@@ -23,7 +23,7 @@
 
 #include "Vector.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {

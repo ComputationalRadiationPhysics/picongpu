@@ -23,9 +23,9 @@
 
 #include "pmacc/types.hpp"
 #include <curand_kernel.h>
-#include <random/methods/Xor.hpp>
+#include "pmacc/random/methods/Xor.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -88,4 +88,4 @@ namespace methods
 
 }  // namespace methods
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc

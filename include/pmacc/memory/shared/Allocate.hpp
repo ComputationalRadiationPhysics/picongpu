@@ -26,7 +26,7 @@
 #include "pmacc/memory/Array.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace memory
 {
@@ -101,14 +101,14 @@ namespace shared
 
 } // namespace shared
 } // namespace memory
-} // namespace PMacc
+} // namespace pmacc
 
 /** allocate shared memory
  *
  * @warning Do not use this macro within a factory method. This macro contains
  * a pre compiler counter which is only increased once per source code line.
  * You must not use this macro to create an aliased pointer to shared memory.
- * Please use `PMacc::memory::shared::allocate< id, type >()` to create shared memory
+ * Please use `pmacc::memory::shared::allocate< id, type >()` to create shared memory
  * which is used outside of the method where it is created.
  *
  * @code
@@ -131,7 +131,7 @@ namespace shared
  *     int& getSharedMem( )
  *     {
  *         // create new shared memory for each `T_id`
- *         auto& sharedMem = PMacc::memory::shared::allocate< T_id, int >()
+ *         auto& sharedMem = pmacc::memory::shared::allocate< T_id, int >()
  *         return sharedMem;
  *     }
  * };
@@ -140,4 +140,4 @@ namespace shared
  * @param varName name of the variable
  * @param ... type of the variable
  */
-#define PMACC_SMEM( varName, ... ) auto & varName = PMacc::memory::shared::allocate< __COUNTER__, __VA_ARGS__ >( )
+#define PMACC_SMEM( varName, ... ) auto & varName = pmacc::memory::shared::allocate< __COUNTER__, __VA_ARGS__ >( )

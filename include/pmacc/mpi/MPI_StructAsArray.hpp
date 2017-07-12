@@ -25,7 +25,7 @@
 
 #include <mpi.h>
 
-namespace PMacc
+namespace pmacc
 {
     namespace mpi
     {

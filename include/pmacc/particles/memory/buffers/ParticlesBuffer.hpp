@@ -50,7 +50,7 @@
 
 #include <memory>
 
-namespace PMacc
+namespace pmacc
 {
 
 /**
@@ -134,7 +134,7 @@ public:
      */
     typedef Frame<
         OperatorCreatePairStaticArray<
-            PMacc::math::CT::volume< SuperCellSize >::type::value
+            pmacc::math::CT::volume< SuperCellSize >::type::value
         >,
         FrameDescription
     > FrameType;

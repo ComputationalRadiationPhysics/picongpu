@@ -38,7 +38,7 @@
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
 #include <boost/static_assert.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {

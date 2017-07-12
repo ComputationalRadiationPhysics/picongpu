@@ -28,7 +28,7 @@
 #include <vector>
 #include <list>
 
-namespace PMacc
+namespace pmacc
 {
     namespace po = boost::program_options;
 

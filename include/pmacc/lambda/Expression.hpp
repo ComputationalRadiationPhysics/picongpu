@@ -22,11 +22,11 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "ExprTypes.hpp"
-#include "placeholder.hpp"
-#include "is_Expression.hpp"
-#include "make_Expr.hpp"
-#include "make_Expr.hpp"
+#include "pmacc/lambda/ExprTypes.hpp"
+#include "pmacc/lambda/placeholder.hpp"
+#include "pmacc/lambda/is_Expression.hpp"
+#include "pmacc/lambda/make_Expr.hpp"
+#include "pmacc/lambda/make_Expr.hpp"
 #include "pmacc/math/Tuple.hpp"
 
 #include <boost/mpl/void.hpp>

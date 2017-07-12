@@ -98,7 +98,7 @@ struct IdProviderTest
         constexpr uint32_t numIdsPerThread = 2;
         constexpr uint32_t numIds = numThreads * numIdsPerThread;
 
-        typedef PMacc::IdProvider<T_dim> IdProvider;
+        typedef pmacc::IdProvider<T_dim> IdProvider;
         IdProvider::init();
         // Check initial state
         typename IdProvider::State state = IdProvider::getState();
@@ -118,7 +118,7 @@ struct IdProviderTest
         IdProvider::setState(state);
         BOOST_REQUIRE_EQUAL(IdProvider::getNewId(), state.nextId);
         // Generate the same IDs on the device
-        PMacc::HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
+        pmacc::HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
         PMACC_KERNEL(GenerateIds<IdProvider>{})(numBlocks, numThreadsPerBlock)
                 (idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
         idBuf.deviceToHost();

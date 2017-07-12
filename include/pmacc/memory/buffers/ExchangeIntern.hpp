@@ -34,7 +34,7 @@
 #include "pmacc/types.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 
     /**

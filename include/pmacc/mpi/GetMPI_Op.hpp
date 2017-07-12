@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 #include <mpi.h>
 
-namespace PMacc
+namespace pmacc
 {
     namespace mpi
     {

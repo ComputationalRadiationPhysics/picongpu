@@ -26,7 +26,7 @@
 #include "pmacc/traits/NumberOfExchanges.hpp"
 #include "pmacc/assert.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     template<class ParBase>
@@ -144,4 +144,4 @@ namespace PMacc
         size_t lastSize;
     };
 
-} //namespace PMacc
+} //namespace pmacc

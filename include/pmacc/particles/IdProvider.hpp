@@ -29,7 +29,7 @@
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/debug/PMaccVerbose.hpp"
 
-namespace PMacc {
+namespace pmacc{
 
     namespace idDetail {
 
@@ -185,4 +185,4 @@ namespace PMacc {
         return static_cast<uint64_t>(newIdBuf.getHostBuffer().getDataBox()(0));
     }
 
-}  // namespace PMacc
+}  // namespace pmacc

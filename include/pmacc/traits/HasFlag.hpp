@@ -22,7 +22,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
@@ -46,4 +46,4 @@ bool hasFlag(const T_Object& obj,const T_Key& key)
 
 }//namespace traits
 
-}//namespace PMacc
+}//namespace pmacc

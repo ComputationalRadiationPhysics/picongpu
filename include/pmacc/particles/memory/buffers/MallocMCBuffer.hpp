@@ -29,7 +29,7 @@
 #include <string>
 #include <memory>
 
-namespace PMacc
+namespace pmacc
 {
 
     template< typename T_DeviceHeap >
@@ -67,6 +67,6 @@ namespace PMacc
     };
 
 
-} // namespace PMacc
+} // namespace pmacc
 
 #include "pmacc/particles/memory/buffers/MallocMCBuffer.tpp"

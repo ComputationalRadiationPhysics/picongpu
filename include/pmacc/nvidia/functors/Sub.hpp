@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace nvidia
 {
@@ -40,4 +40,4 @@ namespace functors
     };
 } // namespace functors
 } // namespace nvidia
-} // namespace PMacc
+} // namespace pmacc

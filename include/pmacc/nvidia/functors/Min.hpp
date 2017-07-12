@@ -27,7 +27,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace nvidia
 {
@@ -43,16 +43,16 @@ namespace functors
     };
 } // namespace functors
 } // namespace nvidia
-} // namespace PMacc
+} // namespace pmacc
 
-namespace PMacc
+namespace pmacc
 {
 namespace mpi
 {
     template<>
-    MPI_Op getMPI_Op<PMacc::nvidia::functors::Min>()
+    MPI_Op getMPI_Op<pmacc::nvidia::functors::Min>()
     {
         return MPI_MIN;
     }
 } // namespace mpi
-} // namespace PMacc
+} // namespace pmacc

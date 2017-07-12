@@ -29,7 +29,7 @@
 #include <boost/mpl/inherit_linearly.hpp>
 #include <boost/mpl/placeholders.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace detail
 {
@@ -70,4 +70,4 @@ namespace detail
     {
     };
 
-} //namespace PMacc
+} //namespace pmacc

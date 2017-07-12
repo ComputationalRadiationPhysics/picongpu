@@ -28,7 +28,7 @@
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/assert.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /**
@@ -322,4 +322,4 @@ private:
     bool useOtherMemory;
 };
 
-} //namespace PMacc
+} //namespace pmacc

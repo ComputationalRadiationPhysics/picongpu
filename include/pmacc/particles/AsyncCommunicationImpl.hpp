@@ -24,10 +24,10 @@
 #include "pmacc/types.hpp"
 #include "pmacc/communication/AsyncCommunication.hpp"
 #include "pmacc/Environment.hpp"
-#include "pmacc/particlesBase.hpp"
+#include "pmacc/particles/ParticlesBase.hpp"
 #include <boost/type_traits.hpp>
 
-namespace PMacc {
+namespace pmacc{
 
     /**
      * Trait that should return true if T is a particle species
@@ -60,4 +60,4 @@ namespace PMacc {
         };
 
     }  // namespace communication
-}  // namespace PMacc
+}  // namespace pmacc

@@ -202,4 +202,4 @@ enum AreaType
 #define __delete(var) if((var)) { delete (var); var=nullptr; }
 #define __deleteArray(var) if((var)) { delete[] (var); var=nullptr; }
 
-} //namespace PMacc
+} //namespace pmacc

@@ -26,7 +26,7 @@
 #include <device_functions.h>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace nvidia
 {
@@ -105,4 +105,4 @@ DINLINE double warpBroadcast(double data, const int32_t srcLaneId)
 #endif
 
 } //namespace nvidia
-} //namespace PMacc
+} //namespace pmacc

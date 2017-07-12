@@ -28,7 +28,7 @@
 #include <memory>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -135,4 +135,4 @@ namespace random
     }
 
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc

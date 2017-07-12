@@ -26,10 +26,9 @@
 #include <vector>
 
 /*pic default*/
-#include "pmacc/types.hpp"
 #include "picongpu/simulation_defines.hpp"
 
-#include "pmacc/fields.def"
+#include "picongpu/fields/Fields.def"
 #include "pmacc/fields/SimulationFieldHelper.hpp"
 #include "pmacc/dataManagement/ISimulationData.hpp"
 

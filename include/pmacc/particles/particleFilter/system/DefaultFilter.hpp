@@ -25,7 +25,7 @@
 #include "pmacc/particles/frame_types.hpp"
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 

@@ -22,7 +22,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
@@ -47,4 +47,4 @@ struct GetEmptyDefaultConstructibleType;
 
 }//namespace traits
 
-}//namespace PMacc
+}//namespace pmacc

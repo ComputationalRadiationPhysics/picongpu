@@ -23,7 +23,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
     /*
      * INotify interface.

@@ -60,9 +60,9 @@
  *     static const float2_64 center_SI = float2_64(1.134e-5, 1.134e-5);
  *   @endcode
  */
-#define PMACC_C_VECTOR(type,name,...) (0,(typename PMacc::traits::GetValueType<type>::type, \
+#define PMACC_C_VECTOR(type,name,...) (0,(typename pmacc::traits::GetValueType<type>::type, \
                                           name,                                             \
-                                          PMacc::traits::GetNComponents<type>::value,       \
+                                          pmacc::traits::GetNComponents<type>::value,       \
                                           __VA_ARGS__))
 
 
@@ -140,9 +140,9 @@
 #define PMACC_VECTOR_DIM(type,dim,name,...)                                    \
         (5,                                                                    \
          (                                                                     \
-          (PMacc::math::Vector<type,dim>),                                     \
+          (pmacc::math::Vector<type,dim>),                                     \
           name,                                                                \
-          PMacc::math::Vector<type,dim>(__VA_ARGS__)                           \
+          pmacc::math::Vector<type,dim>(__VA_ARGS__)                           \
          )                                                                     \
         )
 

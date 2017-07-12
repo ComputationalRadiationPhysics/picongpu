@@ -25,7 +25,7 @@
 #include "pmacc/Environment.def"
 #include "pmacc/eventSystem/EventSystem.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     /**
@@ -86,4 +86,4 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc

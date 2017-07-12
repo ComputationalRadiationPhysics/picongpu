@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <cuSTL/container/HostBuffer.hpp>
+#include "pmacc/cuSTL/container/HostBuffer.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     class EventTask;
@@ -97,4 +97,4 @@ namespace PMacc
         }
     };
 
-} //namespace PMacc
+} //namespace pmacc

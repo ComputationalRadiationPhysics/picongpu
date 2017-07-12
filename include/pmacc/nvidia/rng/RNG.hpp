@@ -25,7 +25,7 @@
 #include <curand_kernel.h>
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace nvidia
 {
@@ -82,10 +82,10 @@ private:
  * \return class which can used to generate random numbers
  */
 template<class RngMethod, class Distribution>
-DINLINE typename PMacc::nvidia::rng::RNG<RngMethod, Distribution> create(const RngMethod & rngMethod,
+DINLINE typename pmacc::nvidia::rng::RNG<RngMethod, Distribution> create(const RngMethod & rngMethod,
                                                                          const Distribution & distribution)
 {
-    return PMacc::nvidia::rng::RNG<RngMethod, Distribution > (rngMethod, distribution);
+    return pmacc::nvidia::rng::RNG<RngMethod, Distribution > (rngMethod, distribution);
 }
 
 }

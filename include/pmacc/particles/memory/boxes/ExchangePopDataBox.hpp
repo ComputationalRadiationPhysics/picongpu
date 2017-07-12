@@ -27,7 +27,7 @@
 #include "pmacc/memory/boxes/DataBox.hpp"
 #include "pmacc/memory/boxes/PitchedBox.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 

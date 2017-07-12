@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace mpi
 {
@@ -113,5 +113,5 @@ struct GetMPI_StructAsArray<double >
 } //namespace def
 }//namespace mpi
 
-}//namespace PMacc
+}//namespace pmacc
 

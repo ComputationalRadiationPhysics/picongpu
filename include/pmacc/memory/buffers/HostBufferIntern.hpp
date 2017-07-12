@@ -28,7 +28,7 @@
 #include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
 #include "pmacc/assert.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /**

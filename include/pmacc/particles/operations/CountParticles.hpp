@@ -35,7 +35,7 @@
 #include "pmacc/mappings/threads/IdxConfig.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 
 /* count particles
@@ -49,7 +49,7 @@ struct KernelCountParticles
 {
     /** count particles
      *
-     * @tparam T_PBox PMacc::ParticlesBox, particle box type
+     * @tparam T_PBox pmacc::ParticlesBox, particle box type
      * @tparam T_Filter functor to filter particles
      * @tparam T_Mapping supercell mapper functor type
      *
@@ -239,7 +239,7 @@ struct CountParticles
     template< class PBuffer, class Filter, class CellDesc>
     static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, Filter filter)
     {
-        return PMacc::CountParticles::countOnDevice < CORE + BORDER + GUARD > (buffer, cellDescription, filter);
+        return pmacc::CountParticles::countOnDevice < CORE + BORDER + GUARD > (buffer, cellDescription, filter);
     }
 
     /** Get particle count
@@ -260,7 +260,7 @@ struct CountParticles
         MyParticleFilter filter;
         filter.setStatus(true); /*activeate filter pipline*/
         filter.setWindowPosition(origin, size);
-        return PMacc::CountParticles::countOnDevice<AREA>(buffer, cellDescription, filter);
+        return pmacc::CountParticles::countOnDevice<AREA>(buffer, cellDescription, filter);
     }
 
     /** Get particle count
@@ -274,9 +274,9 @@ struct CountParticles
     template< class PBuffer, class Filter, class CellDesc, class Space>
     static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, const Space& origin, const Space& size)
     {
-        return PMacc::CountParticles::countOnDevice < CORE + BORDER + GUARD > (buffer, cellDescription, origin, size);
+        return pmacc::CountParticles::countOnDevice < CORE + BORDER + GUARD > (buffer, cellDescription, origin, size);
     }
 
 };
 
-} //namespace PMacc
+} //namespace pmacc

@@ -78,11 +78,11 @@ namespace PMACC_JOIN(pmacc_static_const_storage,id)                            \
         }                                                                      \
     };                                                                         \
     /*define a const vector type, ConstArrayStorage is used as Storage policy*/\
-    typedef const PMacc::math::Vector<                                         \
+    typedef const pmacc::math::Vector<                                         \
         Type,                                                                  \
         Dim,                                                                   \
-        PMacc::math::StandardAccessor,                                         \
-        PMacc::math::StandardNavigator,                                        \
+        pmacc::math::StandardAccessor,                                         \
+        pmacc::math::StandardNavigator,                                        \
         ConstArrayStorage > PMACC_JOIN(Name,_t);                               \
 } /* namespace pmacc_static_const_storage + id */                              \
 using namespace PMACC_JOIN(pmacc_static_const_storage,id)

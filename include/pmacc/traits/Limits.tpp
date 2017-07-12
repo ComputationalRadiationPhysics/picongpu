@@ -26,7 +26,7 @@
 
 #include <climits>
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
@@ -53,4 +53,4 @@ struct Max<uint64_t>
 
 } //namespace limits
 } //namespace traits
-} //namespace PMacc
+} //namespace pmacc

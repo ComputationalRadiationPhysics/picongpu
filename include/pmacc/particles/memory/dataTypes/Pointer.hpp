@@ -26,7 +26,7 @@
 #include "pmacc/expressions/SetToNull.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 
 /** wrapper for native C pointer
@@ -128,4 +128,4 @@ struct GetEmptyDefaultConstructibleType<Pointer<T_Type, T_InitMethod> >
 };
 } //namespace traits
 
-} //namespace PMacc
+} //namespace pmacc

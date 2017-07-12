@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 #include "pmacc/Environment.hpp"
 
-namespace PMacc {
+namespace pmacc{
 namespace particles {
 namespace policies {
 
@@ -51,4 +51,4 @@ namespace policies {
 
 }  // namespace policies
 }  // namespace particles
-}  // namespace PMacc
+}  // namespace pmacc

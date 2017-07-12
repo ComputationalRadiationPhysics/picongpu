@@ -25,7 +25,7 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 
 /** DataBox which apply a unary functor on every operator () and [] access
@@ -83,4 +83,4 @@ public:
 
 };
 
-} //namespace PMacc
+} //namespace pmacc

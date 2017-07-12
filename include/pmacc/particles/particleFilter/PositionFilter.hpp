@@ -27,7 +27,7 @@
 #include "pmacc/particles/memory/frames/NullFrame.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 
@@ -112,4 +112,4 @@ struct GetPositionFilter<DIM2>
 };
 
 
-} //namespace PMacc
+} //namespace pmacc

@@ -26,7 +26,7 @@
 
 #include <cstring> // memset
 
-namespace PMacc
+namespace pmacc
 {
 
 namespace nvidia
@@ -124,6 +124,6 @@ private:
 };
 } //namespace memory
 } //namespace nvidia
-} //namespace PMacc
+} //namespace pmacc
 
 

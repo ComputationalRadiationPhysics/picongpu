@@ -28,7 +28,7 @@
 #include <memory>
 
 
-namespace PMacc
+namespace pmacc
 {
 template< typename T_DeviceHeap >
 MallocMCBuffer< T_DeviceHeap >::MallocMCBuffer( const std::shared_ptr<DeviceHeap>& deviceHeap ) :
@@ -75,4 +75,4 @@ void MallocMCBuffer< T_DeviceHeap >::synchronize( )
 
 }
 
-} //namespace PMacc
+} //namespace pmacc

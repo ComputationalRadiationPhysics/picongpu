@@ -25,12 +25,12 @@
 #include "pmacc/memory/Array.hpp"
 #include "pmacc/types.hpp"
 
-#include <cuSTL/cursor/compile-time/BufferCursor.hpp>
-#include <math/vector/Float.hpp>
-#include <math/Vector.hpp>
+#include "pmacc/cuSTL/cursor/compile-time/BufferCursor.hpp"
+#include "pmacc/math/vector/Float.hpp"
+#include "pmacc/math/Vector.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 
 /** create shared memory on gpu
@@ -99,7 +99,7 @@ public:
     /* This call synchronizes a block and must be called from all threads and not inside a if clauses*/
     static DINLINE This init()
     {
-        auto& mem_sh = PMacc::memory::shared::allocate<
+        auto& mem_sh = pmacc::memory::shared::allocate<
             T_id,
             memory::Array<
                 ValueType,
@@ -164,7 +164,7 @@ public:
     /* This call synchronizes a block and must be called from all threads and not inside a if clauses*/
     static DINLINE This init()
     {
-        auto& mem_sh = PMacc::memory::shared::allocate<
+        auto& mem_sh = pmacc::memory::shared::allocate<
             T_id,
             memory::Array<
                 ValueType,
@@ -174,10 +174,10 @@ public:
         return SharedBox( mem_sh.data() );
     }
 
-    HDINLINE PMacc::cursor::CT::BufferCursor<ValueType, ::PMacc::math::CT::Int<sizeof (ValueType) * Size::x::value> >
+    HDINLINE pmacc::cursor::CT::BufferCursor<ValueType, ::pmacc::math::CT::Int<sizeof (ValueType) * Size::x::value> >
     toCursor() const
     {
-        return PMacc::cursor::CT::BufferCursor<ValueType, ::PMacc::math::CT::Int<sizeof (ValueType) * Size::x::value> >
+        return pmacc::cursor::CT::BufferCursor<ValueType, ::pmacc::math::CT::Int<sizeof (ValueType) * Size::x::value> >
             ((ValueType*) fixedPointer);
     }
 
@@ -233,11 +233,11 @@ public:
         return fixedPointer;
     }
 
-    HDINLINE PMacc::cursor::CT::BufferCursor<ValueType, ::PMacc::math::CT::Int<sizeof (ValueType) * Size::x::value,
+    HDINLINE pmacc::cursor::CT::BufferCursor<ValueType, ::pmacc::math::CT::Int<sizeof (ValueType) * Size::x::value,
     sizeof (ValueType) * Size::x::value * Size::y::value> >
     toCursor() const
     {
-        return PMacc::cursor::CT::BufferCursor<ValueType, ::PMacc::math::CT::Int<sizeof (ValueType) * Size::x::value,
+        return pmacc::cursor::CT::BufferCursor<ValueType, ::pmacc::math::CT::Int<sizeof (ValueType) * Size::x::value,
             sizeof (ValueType) * Size::x::value * Size::y::value> >
             ((ValueType*)fixedPointer);
     }
@@ -245,7 +245,7 @@ public:
     /*this call synchronize a block and must called from any thread and not inside a if clauses*/
     static DINLINE This init()
     {
-        auto& mem_sh = PMacc::memory::shared::allocate<
+        auto& mem_sh = pmacc::memory::shared::allocate<
             T_id,
             memory::Array<
                 ValueType,

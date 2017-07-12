@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -45,6 +45,6 @@ namespace distributions
 
 }  // namespace distributions
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc
 
 #include "pmacc/random/distributions/normal/Normal_float.hpp"

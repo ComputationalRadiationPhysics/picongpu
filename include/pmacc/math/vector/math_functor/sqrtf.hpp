@@ -25,7 +25,7 @@
 #include "pmacc/lambda/Expression.hpp"
 #include "pmacc/algorithms/math/defines/sqrt.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {

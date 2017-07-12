@@ -27,7 +27,7 @@
 #include <boost/mpl/placeholders.hpp>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace particles
 {
@@ -53,7 +53,7 @@ namespace traits
         template< typename T_Species >
         struct HasIdentifier
         {
-            using type = typename ::PMacc::traits::HasIdentifier<
+            using type = typename ::pmacc::traits::HasIdentifier<
                 typename T_Species::FrameType,
                 Identifier
             >::type;
@@ -67,4 +67,4 @@ namespace traits
 
 }//namespace traits
 }//namespace particles
-}//namespace PMacc
+}//namespace pmacc

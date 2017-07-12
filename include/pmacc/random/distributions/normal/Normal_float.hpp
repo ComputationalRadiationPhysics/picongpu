@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 #include "pmacc/random/distributions/Normal.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -54,4 +54,4 @@ namespace detail
 }  // namespace detail
 }  // namespace distributions
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc

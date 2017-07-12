@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
     /** IsSameType< typeA, typeB >
      *
@@ -43,4 +43,4 @@ namespace PMacc
         static constexpr bool result = true;
     };
 
-} // namespace PMacc
+} // namespace pmacc

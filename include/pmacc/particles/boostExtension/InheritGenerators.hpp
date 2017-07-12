@@ -34,7 +34,7 @@
 
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 20
 
-namespace PMacc
+namespace pmacc
 {
 
 template <class list_>
@@ -64,7 +64,7 @@ struct TypelistLinearInherit<Head,Vec,false>
 /** Rule if head is a class which can inherit from other class
  */
 template < template<class> class Head, class Vec>
-struct TypelistLinearInherit<Head<PMacc::NullFrame>, Vec ,false>
+struct TypelistLinearInherit<Head<pmacc::NullFrame>, Vec ,false>
 {
     typedef Head<typename LinearInherit<Vec>::type > type;
 };
@@ -85,7 +85,7 @@ struct TypelistLinearInherit<Head, Vec ,true>
 /** Create a data structure which inherit linearly
  * \tparam vec_ boost mpl vector with classes
  *
- * class A<PMacc::NullFrame>;
+ * class A<pmacc::NullFrame>;
  * LinearInherit<mpl::vector<A<>,B> >::type return
  *
  * typedef A<B> type;

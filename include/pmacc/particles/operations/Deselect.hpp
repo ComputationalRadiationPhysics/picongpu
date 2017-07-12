@@ -28,7 +28,7 @@
 #include "pmacc/compileTime/conversion/ToSeq.hpp"
 #include <boost/utility/result_of.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace particles
 {
@@ -64,4 +64,4 @@ deselect(T_Object& object)
 
 }//operators
 }//namespace particles
-} //namespace PMacc
+} //namespace pmacc

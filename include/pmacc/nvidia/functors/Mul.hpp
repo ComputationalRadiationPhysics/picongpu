@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 #include "pmacc/mpi/GetMPI_Op.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace nvidia
 {
@@ -41,16 +41,16 @@ namespace functors
     };
 } // namespace functors
 } // namespace nvidia
-} // namespace PMacc
+} // namespace pmacc
 
-namespace PMacc
+namespace pmacc
 {
 namespace mpi
 {
     template<>
-    MPI_Op getMPI_Op<PMacc::nvidia::functors::Mul>()
+    MPI_Op getMPI_Op<pmacc::nvidia::functors::Mul>()
     {
         return MPI_PROD;
     }
 } // namespace mpi
-} // namespace PMacc
+} // namespace pmacc

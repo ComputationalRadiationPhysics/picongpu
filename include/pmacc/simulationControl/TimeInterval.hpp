@@ -29,7 +29,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace PMacc
+namespace pmacc
 {
 
     class TimeIntervall
@@ -121,4 +121,4 @@ namespace PMacc
         double start;
         double end;
     };
-} //namespace PMacc
+} //namespace pmacc

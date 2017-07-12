@@ -25,7 +25,7 @@
 #include "accessor/PointerAccessor.hpp"
 #include "navigator/BufferNavigator.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
-#include <cuSTL/cursor/traits.hpp>
+#include "pmacc/cuSTL/cursor/traits.hpp"
 
 namespace pmacc
 {

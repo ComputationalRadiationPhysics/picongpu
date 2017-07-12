@@ -31,7 +31,7 @@
 #include "pmacc/particles/tasks/TaskParticlesReceive.hpp"
 #include "pmacc/particles/tasks/TaskParticlesSend.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     template<class ParBase>
@@ -72,7 +72,7 @@ namespace PMacc
 
 
 
-} //namespace PMacc
+} //namespace pmacc
 
 
 

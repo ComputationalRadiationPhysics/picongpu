@@ -26,7 +26,7 @@
 #include "pmacc/memory/boxes/PitchedBox.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 template<class TYPE>

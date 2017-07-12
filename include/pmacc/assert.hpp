@@ -44,7 +44,7 @@
      * @param expr expression to be evaluated
      */
 #   define PMACC_ASSERT( expr )                                                \
-    ( !!(expr) ) ? ( (void) 0 ) : PMacc::abortWithError( #expr, __FILE__, __LINE__ )
+    ( !!(expr) ) ? ( (void) 0 ) : pmacc::abortWithError( #expr, __FILE__, __LINE__ )
 
     /** assert check with message
      *
@@ -55,6 +55,6 @@
      *            expression is evaluated to false
      */
 #   define PMACC_ASSERT_MSG( expr, msg )                                       \
-    ( !!(expr) ) ? ( (void) 0 ) : PMacc::abortWithError( #expr, __FILE__, __LINE__, msg )
+    ( !!(expr) ) ? ( (void) 0 ) : pmacc::abortWithError( #expr, __FILE__, __LINE__, msg )
 
 #endif

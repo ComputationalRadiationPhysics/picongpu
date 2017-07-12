@@ -28,7 +28,7 @@
 #include <ostream>
 #include <math_functions.h>
 
-namespace PMacc
+namespace pmacc
 {
 namespace
 {
@@ -50,7 +50,7 @@ DINLINE void atomicAddWrapper(double* inAddress, double value)
 
 }
 
-} //namespace PMacc
+} //namespace pmacc
 
 /* CUDA STD structs and CPP STD ostream */
 template <class T>

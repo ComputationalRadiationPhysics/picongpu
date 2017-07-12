@@ -29,7 +29,7 @@
 
 #include "pmacc/pluginSystem/INotify.hpp"
 
-namespace PMacc
+namespace pmacc
 {
     namespace po = boost::program_options;
 

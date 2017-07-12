@@ -24,7 +24,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
@@ -48,6 +48,6 @@ struct Min;
 
 } //namespace limits
 } //namespace traits
-} //namespace PMacc
+} //namespace pmacc
 
 #include "pmacc/traits/Limits.tpp"

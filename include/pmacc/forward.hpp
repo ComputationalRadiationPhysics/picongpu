@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 #include "pmacc/RefWrapper.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** functor to get forwarded value
@@ -92,4 +92,4 @@ forward(T_Type& arg)
     return arg;
 }
 
-} // namespace PMacc
+} // namespace pmacc

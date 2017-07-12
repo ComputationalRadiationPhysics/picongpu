@@ -26,7 +26,7 @@
 #include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
 #include <boost/type_traits.hpp>
 
-namespace PMacc {
+namespace pmacc{
 
     /** Buffer that contains a host and device buffer and allows synchronizing those 2 */
     template<typename T_Type, unsigned T_dim>
@@ -113,6 +113,6 @@ namespace PMacc {
 
     };
 
-}  // namespace PMacc
+}  // namespace pmacc
 
 #include "pmacc/memory/buffers/HostDeviceBuffer.tpp"

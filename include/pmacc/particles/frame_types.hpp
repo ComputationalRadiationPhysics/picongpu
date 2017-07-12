@@ -29,7 +29,7 @@
 //define which index means that a local cell index is invalid
 #define INV_LOC_IDX 0xFFFF
 
-namespace PMacc
+namespace pmacc
 {
     /**
      * Is used for indirect pointer layer.

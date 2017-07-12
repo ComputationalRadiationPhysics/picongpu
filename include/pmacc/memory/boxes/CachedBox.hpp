@@ -27,7 +27,7 @@
 #include "pmacc/memory/boxes/SharedBox.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
     namespace intern
     {

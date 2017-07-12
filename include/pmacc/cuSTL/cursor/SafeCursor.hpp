@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <cuSTL/cursor/traits.hpp>
-#include <math/vector/Int.hpp>
-#include <cuSTL/cursor/Cursor.hpp>
+#include "pmacc/cuSTL/cursor/traits.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/cuSTL/cursor/Cursor.hpp"
 
 namespace pmacc
 {

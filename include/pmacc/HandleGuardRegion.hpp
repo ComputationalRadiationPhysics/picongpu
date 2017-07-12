@@ -21,7 +21,7 @@
 
 #pragma once
 
-namespace PMacc {
+namespace pmacc{
 
     /**
      * Property struct that exposes policies for handling data in the guard region
@@ -48,4 +48,4 @@ namespace PMacc {
         typedef T_HandleNotExchanged HandleNotExchanged;
     };
 
-}  // namespace PMacc
+}  // namespace pmacc

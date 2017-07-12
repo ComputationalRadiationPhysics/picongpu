@@ -27,7 +27,7 @@
 #include "pmacc/particles/frame_types.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
     /** cell of a particle inside a supercell
      *
@@ -51,4 +51,4 @@ namespace PMacc
      */
     value_identifier(uint8_t, multiMask, 0);
 
-} // namespace PMacc
+} // namespace pmacc

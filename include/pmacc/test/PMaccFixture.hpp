@@ -30,15 +30,15 @@ struct PMaccFixture
 {
     PMaccFixture()
     {
-        const PMacc::DataSpace<T_dim> devices = PMacc::DataSpace<T_dim>::create(1);
-        const PMacc::DataSpace<T_dim> periodic = PMacc::DataSpace<T_dim>::create(1);
-        PMacc::Environment<T_dim>::get().initDevices(devices, periodic);
+        const pmacc::DataSpace<T_dim> devices = pmacc::DataSpace<T_dim>::create(1);
+        const pmacc::DataSpace<T_dim> periodic = pmacc::DataSpace<T_dim>::create(1);
+        pmacc::Environment<T_dim>::get().initDevices(devices, periodic);
     }
 
     ~PMaccFixture()
     {
         /* finalize the PMacc context */
-        PMacc::Environment<>::get().finalize();
+        pmacc::Environment<>::get().finalize();
     }
 };
 

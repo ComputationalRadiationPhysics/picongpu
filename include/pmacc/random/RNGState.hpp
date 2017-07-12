@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -55,4 +55,4 @@ namespace random
     };
 
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc

@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 namespace traits
@@ -57,5 +57,5 @@ struct NumberOfExchanges<DIM3>
 
 } //namespace traits
 
-}// namespace PMacc
+}// namespace pmacc
 

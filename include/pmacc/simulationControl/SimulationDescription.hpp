@@ -25,7 +25,7 @@
 
 #include <string>
 
-namespace PMacc
+namespace pmacc
 {
 namespace simulationControl
 {
@@ -129,4 +129,4 @@ private:
 };
 
 } // namespace simulationControl
-} // namespace PMacc
+} // namespace pmacc

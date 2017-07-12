@@ -26,7 +26,7 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 template<class T_Base>
@@ -42,39 +42,39 @@ public:
     typedef typename Base::RefValueType RefValueType;
 
 
-    HDINLINE RefValueType operator()(const PMacc::DataSpace<DIM1> &idx = PMacc::DataSpace<DIM1>()) const
+    HDINLINE RefValueType operator()(const pmacc::DataSpace<DIM1> &idx = pmacc::DataSpace<DIM1>()) const
     {
-        const PMacc::DataSpace<Dim> real_idx(DataSpaceOperations<Dim>::map(originalSize, idx.x()));
+        const pmacc::DataSpace<Dim> real_idx(DataSpaceOperations<Dim>::map(originalSize, idx.x()));
         return Base::operator()(real_idx);
     }
 
-    HDINLINE RefValueType operator()(const PMacc::DataSpace<DIM1> &idx = PMacc::DataSpace<DIM1>())
+    HDINLINE RefValueType operator()(const pmacc::DataSpace<DIM1> &idx = pmacc::DataSpace<DIM1>())
     {
-        const PMacc::DataSpace<Dim> real_idx(DataSpaceOperations<Dim>::map(originalSize, idx.x()));
+        const pmacc::DataSpace<Dim> real_idx(DataSpaceOperations<Dim>::map(originalSize, idx.x()));
         return Base::operator()(real_idx);
     }
 
     HDINLINE RefValueType operator[](const int idx) const
     {
-        const PMacc::DataSpace<Dim> real_idx(DataSpaceOperations<Dim>::map(originalSize, idx));
+        const pmacc::DataSpace<Dim> real_idx(DataSpaceOperations<Dim>::map(originalSize, idx));
         return Base::operator()(real_idx);
     }
 
     HDINLINE RefValueType operator[](const int idx)
     {
-        const PMacc::DataSpace<Dim> real_idx(DataSpaceOperations<Dim>::map(originalSize, idx));
+        const pmacc::DataSpace<Dim> real_idx(DataSpaceOperations<Dim>::map(originalSize, idx));
         return Base::operator()(real_idx);
     }
 
-    HDINLINE DataBoxDim1Access(const Base base, const PMacc::DataSpace<Dim> originalSize) : Base(base), originalSize(originalSize)
+    HDINLINE DataBoxDim1Access(const Base base, const pmacc::DataSpace<Dim> originalSize) : Base(base), originalSize(originalSize)
     {
     }
 
-    HDINLINE DataBoxDim1Access(const PMacc::DataSpace<Dim> originalSize) : Base(), originalSize(originalSize)
+    HDINLINE DataBoxDim1Access(const pmacc::DataSpace<Dim> originalSize) : Base(), originalSize(originalSize)
     {
     }
 private:
-    const PMACC_ALIGN(originalSize, PMacc::DataSpace<Dim>);
+    const PMACC_ALIGN(originalSize, pmacc::DataSpace<Dim>);
 
 };
 

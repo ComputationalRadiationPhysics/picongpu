@@ -25,7 +25,7 @@
 #include "pmacc/types.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 
 template<typename T_Type = bmpl::_1>
@@ -40,4 +40,4 @@ struct NextFramePtr
     PMACC_ALIGN(nextFrame, Pointer<T_Type>);
 };
 
-} //namespace PMacc
+} //namespace pmacc

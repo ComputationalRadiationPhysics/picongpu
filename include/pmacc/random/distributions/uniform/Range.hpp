@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -76,4 +76,4 @@ namespace uniform
 }  // namespace uniform
 }  // namespace distributions
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc

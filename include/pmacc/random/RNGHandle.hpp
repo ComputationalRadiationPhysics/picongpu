@@ -25,7 +25,7 @@
 #include "pmacc/random/Random.hpp"
 #include "pmacc/Environment.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -41,7 +41,7 @@ namespace random
         typedef typename RNGProvider::DataBoxType RNGBox;
         typedef typename RNGProvider::RNGMethod RNGMethod;
         typedef typename RNGMethod::StateType RNGState;
-        typedef PMacc::DataSpace<rngDim> RNGSpace;
+        typedef pmacc::DataSpace<rngDim> RNGSpace;
 
         template<class T_Distribution>
         struct GetRandomType
@@ -99,4 +99,4 @@ namespace random
     };
 
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc

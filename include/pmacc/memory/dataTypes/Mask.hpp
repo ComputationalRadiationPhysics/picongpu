@@ -27,7 +27,7 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     /**

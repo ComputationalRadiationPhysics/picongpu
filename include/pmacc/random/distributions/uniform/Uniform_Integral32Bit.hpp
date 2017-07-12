@@ -25,7 +25,7 @@
 #include "pmacc/random/distributions/Uniform.hpp"
 #include <boost/type_traits.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -63,4 +63,4 @@ namespace detail
 }  // namespace detail
 }  // namespace distributions
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc

@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <math/vector/navigator/PermutedNavigator.hpp>
-#include <math/vector/navigator/StackedNavigator.hpp>
+#include "pmacc/math/vector/navigator/PermutedNavigator.hpp"
+#include "pmacc/math/vector/navigator/StackedNavigator.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {

@@ -24,9 +24,9 @@
 
 #include "pmacc/types.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
-#include <cuSTL/cursor/BufferCursor.hpp>
+#include "pmacc/cuSTL/cursor/BufferCursor.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 template<typename TYPE, unsigned DIM>
@@ -232,11 +232,11 @@ public:
         return fixedPointer;
     }
 
-    HDINLINE PMacc::cursor::BufferCursor<TYPE, DIM3>
+    HDINLINE pmacc::cursor::BufferCursor<TYPE, DIM3>
     toCursor() const
     {
-        return PMacc::cursor::BufferCursor<TYPE, DIM3>
-            ((TYPE*)fixedPointer, ::PMacc::math::Size_t<2>(pitch, pitch2D));
+        return pmacc::cursor::BufferCursor<TYPE, DIM3>
+            ((TYPE*)fixedPointer, ::pmacc::math::Size_t<2>(pitch, pitch2D));
     }
 
 protected:

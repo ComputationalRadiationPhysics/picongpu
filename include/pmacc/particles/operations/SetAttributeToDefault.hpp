@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 #include "pmacc/traits/Resolve.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** set an attribute of a particle to its default value
@@ -44,11 +44,11 @@ struct SetAttributeToDefault
     HDINLINE
     void operator()(T_Particle& particle)
     {
-        typedef typename PMacc::traits::Resolve<Attribute>::type ResolvedAttr;
+        typedef typename pmacc::traits::Resolve<Attribute>::type ResolvedAttr;
         /* set attribute to it's user defined default value */
         particle[Attribute()] = ResolvedAttr::getValue();
     }
 };
 
 
-}//namespace PMacc
+}//namespace pmacc

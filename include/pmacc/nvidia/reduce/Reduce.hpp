@@ -30,7 +30,7 @@
 
 #include <boost/type_traits.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace nvidia
 {
@@ -257,7 +257,7 @@ namespace kernel
             uint32_t blocks = threads / 2 / blockcount;
             if (blocks == 0) blocks = 1;
             PMACC_KERNEL(kernel::Reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(src, n, dest, func,
-                                                                                                    PMacc::nvidia::functors::Assign());
+                                                                                                    pmacc::nvidia::functors::Assign());
             n = blocks;
             blockcount = optimalThreadsPerBlock(n, sizeof (Type));
             blocks = n / 2 / blockcount;
@@ -280,7 +280,7 @@ namespace kernel
                 {
 
                     PMACC_KERNEL(kernel::Reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(dest, n, dest, func,
-                                                                                                            PMacc::nvidia::functors::Assign());
+                                                                                                            pmacc::nvidia::functors::Assign());
                 }
 
                 n = blocks;

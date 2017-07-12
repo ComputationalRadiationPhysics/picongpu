@@ -25,7 +25,7 @@
 #include "pmacc/random/distributions/Uniform.hpp"
 #include "pmacc/random/distributions/uniform/Range.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -80,7 +80,7 @@ namespace detail
         operator()(StateType& state) const
         {
             const float randomValue =
-                PMacc::random::distributions::Uniform<
+                pmacc::random::distributions::Uniform<
                     uniform::ExcludeZero<float>,
                     RNGMethod
             >()(state);
@@ -138,7 +138,7 @@ namespace detail
             do
             {
                 const float randomValue =
-                    PMacc::random::distributions::Uniform<
+                    pmacc::random::distributions::Uniform<
                         uniform::ExcludeZero<float>,
                         RNGMethod
                     >()(state);
@@ -156,7 +156,7 @@ namespace detail
      */
     template<class T_RNGMethod>
     class Uniform<float, T_RNGMethod, void> :
-        public PMacc::random::distributions::Uniform<
+        public pmacc::random::distributions::Uniform<
             uniform::ExcludeOne<float>::Use24Bit,
             T_RNGMethod
         >
@@ -169,7 +169,7 @@ namespace detail
      */
     template<class T_RNGMethod>
     class Uniform<uniform::ExcludeOne<float>, T_RNGMethod, void> :
-        public PMacc::random::distributions::Uniform<
+        public pmacc::random::distributions::Uniform<
             uniform::ExcludeOne<float>::Use24Bit,
             T_RNGMethod
         >
@@ -179,4 +179,4 @@ namespace detail
 }  // namespace detail
 }  // namespace distributions
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc

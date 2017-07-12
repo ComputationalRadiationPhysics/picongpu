@@ -37,7 +37,7 @@
 #include <memory>
 
 
-namespace PMacc
+namespace pmacc
 {
 
 /* Tag used for marking particle types */
@@ -202,6 +202,6 @@ public:
 
 };
 
-} //namespace PMacc
+} //namespace pmacc
 
 #include "pmacc/particles/ParticlesBase.tpp"

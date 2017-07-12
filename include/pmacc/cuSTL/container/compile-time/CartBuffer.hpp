@@ -26,7 +26,7 @@
 #include "pmacc/cuSTL/cursor/compile-time/BufferCursor.hpp"
 #include "pmacc/cuSTL/cursor/navigator/CartNavigator.hpp"
 #include "pmacc/cuSTL/cursor/accessor/PointerAccessor.hpp"
-#include <cuSTL/zone/compile-time/SphericZone.hpp>
+#include "pmacc/cuSTL/zone/compile-time/SphericZone.hpp"
 
 namespace pmacc
 {

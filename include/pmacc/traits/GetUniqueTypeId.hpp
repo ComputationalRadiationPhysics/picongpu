@@ -28,7 +28,7 @@
 #include <stdexcept>
 #include <boost/numeric/conversion/bounds.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
@@ -108,4 +108,4 @@ struct GetUniqueTypeId
 
 }//namespace traits
 
-}//namespace PMacc
+}//namespace pmacc

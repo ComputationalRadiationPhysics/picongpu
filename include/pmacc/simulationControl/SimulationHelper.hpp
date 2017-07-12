@@ -36,7 +36,7 @@
 #include <iomanip>
 #include <fstream>
 
-namespace PMacc
+namespace pmacc
 {
 
 /**
@@ -454,4 +454,4 @@ private:
 
 };
 
-} // namespace PMacc
+} // namespace pmacc

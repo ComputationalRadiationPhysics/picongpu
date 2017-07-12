@@ -22,7 +22,7 @@
 #pragma once
 
 #include <boost/type_traits/add_const.hpp>
-#include <forward.hpp>
+#include "pmacc/forward.hpp"
 #include "pmacc/types.hpp"
 
 namespace pmacc

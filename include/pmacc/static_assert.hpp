@@ -25,7 +25,7 @@
 #include "pmacc/ppFunctions.hpp"
 #include <boost/mpl/assert.hpp>
 
-namespace PMacc
+namespace pmacc
 {
     /*type to create assert failures*/
     struct StaticAssertError
@@ -63,7 +63,7 @@ namespace PMacc
  * @param ... (optional) a type that is shown in error message
  */
 #define PMACC_STATIC_ASSERT_MSG(pmacc_cond,pmacc_msg,...)                      \
-    PMACC_STATIC_ASSERT_MSG_DO2(pmacc_cond,pmacc_msg,__COUNTER__,typename PMacc::GetStaticAssertInfoType<__VA_ARGS__>::type)
+    PMACC_STATIC_ASSERT_MSG_DO2(pmacc_cond,pmacc_msg,__COUNTER__,typename pmacc::GetStaticAssertInfoType<__VA_ARGS__>::type)
 
 /*! static assert
  * @param pmacc_cond A condition which return true or false.

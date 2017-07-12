@@ -27,7 +27,7 @@
 #include "pmacc/expressions/SetToNull.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 
 /** wrapper for native C pointer to a PMacc frame
@@ -110,4 +110,4 @@ struct GetEmptyDefaultConstructibleType<FramePointer<T_Type, T_InitMethod> >
 };
 } //namespace traits
 
-} //namespace PMacc
+} //namespace pmacc

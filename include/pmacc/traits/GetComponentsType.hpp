@@ -23,7 +23,7 @@
 
 #include <boost/type_traits.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
 namespace traits
@@ -47,5 +47,5 @@ namespace traits
 
 } //namespace traits
 
-}// namespace PMacc
+}// namespace pmacc
 

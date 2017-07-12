@@ -25,10 +25,10 @@
 #include "pmacc/particles/Identifier.hpp"
 #include "pmacc/traits/HasIdentifier.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
-namespace pmath = PMacc::math;
+namespace pmath = pmacc::math;
 
 
 template<typename T_Key>
@@ -44,4 +44,4 @@ struct CopyIdentifier
 
 };
 
-}//namespace PMacc
+}//namespace pmacc

@@ -49,11 +49,10 @@
 #include "pmacc/particles/ParticleDescription.hpp"
 #include <boost/mpl/string.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
-namespace pmath = PMacc::math;
-namespace pmacc = PMacc;
+namespace pmath = pmacc::math;
 
 /** Frame is a storage for arbitrary number >0 of Particles with attributes
  *
@@ -170,12 +169,12 @@ typename T_CreatePairOperator,
 typename T_ParticleDescription
 >
 struct HasIdentifier<
-PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>,
+pmacc::Frame<T_CreatePairOperator, T_ParticleDescription>,
 T_IdentifierName
 >
 {
 private:
-    typedef PMacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
+    typedef pmacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
 public:
     typedef typename FrameType::ValueTypeSeq ValueTypeSeq;
     /* if T_IdentifierName is void_ than we have no T_IdentifierName in our Sequence.
@@ -191,10 +190,10 @@ typename T_CreatePairOperator,
 typename T_ParticleDescription
 >
 struct HasFlag<
-PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>, T_IdentifierName>
+pmacc::Frame<T_CreatePairOperator, T_ParticleDescription>, T_IdentifierName>
 {
 private:
-    typedef PMacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
+    typedef pmacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
     typedef typename GetFlagType<FrameType, T_IdentifierName>::type SolvedAliasName;
     typedef typename FrameType::FlagList FlagList;
 public:
@@ -207,10 +206,10 @@ typename T_CreatePairOperator,
 typename T_ParticleDescription
 >
 struct GetFlagType<
-PMacc::Frame<T_CreatePairOperator, T_ParticleDescription>, T_IdentifierName>
+pmacc::Frame<T_CreatePairOperator, T_ParticleDescription>, T_IdentifierName>
 {
 private:
-    typedef PMacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
+    typedef pmacc::Frame<T_CreatePairOperator, T_ParticleDescription> FrameType;
     typedef typename FrameType::FlagList FlagList;
 public:
 
@@ -219,4 +218,4 @@ public:
 
 } //namespace traits
 
-}//namespace PMacc
+}//namespace pmacc

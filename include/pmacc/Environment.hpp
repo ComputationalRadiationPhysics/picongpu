@@ -42,7 +42,7 @@
 #include <cuda_runtime.h>
 #include <mpi.h>
 
-namespace PMacc
+namespace pmacc
 {
 
 namespace detail
@@ -57,9 +57,9 @@ namespace detail
 
         friend Environment;
 
-        friend PMacc::Environment<DIM1>;
-        friend PMacc::Environment<DIM2>;
-        friend PMacc::Environment<DIM3>;
+        friend pmacc::Environment<DIM1>;
+        friend pmacc::Environment<DIM2>;
+        friend pmacc::Environment<DIM3>;
 
         EnvironmentContext( ) :
             m_isMpiInitialized( false ),
@@ -153,7 +153,7 @@ namespace detail
          *
          * @return instance of StreamController
          */
-        PMacc::StreamController& StreamController()
+        pmacc::StreamController& StreamController()
         {
             PMACC_ASSERT_MSG(
                 EnvironmentContext::getInstance().isDeviceSelected(),
@@ -166,7 +166,7 @@ namespace detail
          *
          * @return instance of Manager
          */
-        PMacc::Manager& Manager()
+        pmacc::Manager& Manager()
         {
             return Manager::getInstance();
         }
@@ -175,7 +175,7 @@ namespace detail
          *
          * @return instance of TransactionManager
          */
-        PMacc::TransactionManager& TransactionManager() const
+        pmacc::TransactionManager& TransactionManager() const
         {
             PMACC_ASSERT_MSG(
                 EnvironmentContext::getInstance().isDeviceSelected(),
@@ -188,7 +188,7 @@ namespace detail
          *
          * @return instance of EnvironmentController
          */
-        PMacc::EnvironmentController& EnvironmentController()
+        pmacc::EnvironmentController& EnvironmentController()
         {
             PMACC_ASSERT_MSG(
                 EnvironmentContext::getInstance().isMpiInitialized(),
@@ -201,7 +201,7 @@ namespace detail
          *
          * @return instance of Factory
          */
-        PMacc::Factory& Factory()
+        pmacc::Factory& Factory()
         {
             PMACC_ASSERT_MSG(
                 EnvironmentContext::getInstance().isMpiInitialized() &&
@@ -215,7 +215,7 @@ namespace detail
          *
          * @return instance of EventPool
          */
-        PMacc::EventPool& EventPool()
+        pmacc::EventPool& EventPool()
         {
             PMACC_ASSERT_MSG(
                 EnvironmentContext::getInstance().isDeviceSelected(),
@@ -228,7 +228,7 @@ namespace detail
          *
          * @return instance of ParticleFactory
          */
-        PMacc::ParticleFactory& ParticleFactory()
+        pmacc::ParticleFactory& ParticleFactory()
         {
             return ParticleFactory::getInstance();
         }
@@ -237,7 +237,7 @@ namespace detail
          *
          * @return instance of DataConnector
          */
-        PMacc::DataConnector& DataConnector()
+        pmacc::DataConnector& DataConnector()
         {
             return DataConnector::getInstance();
         }
@@ -246,7 +246,7 @@ namespace detail
          *
          * @return instance of PluginConnector
          */
-        PMacc::PluginConnector& PluginConnector()
+        pmacc::PluginConnector& PluginConnector()
         {
             return PluginConnector::getInstance();
         }
@@ -286,35 +286,35 @@ public:
      *
      * @return instance of GridController
      */
-    PMacc::GridController< T_dim >& GridController()
+    pmacc::GridController< T_dim >& GridController()
     {
         PMACC_ASSERT_MSG(
             detail::EnvironmentContext::getInstance().isMpiInitialized(),
             "Environment< DIM >::initDevices() must be called before this method!"
         );
-        return PMacc::GridController< T_dim >::getInstance();
+        return pmacc::GridController< T_dim >::getInstance();
     }
 
     /** get the singleton SubGrid
      *
      * @return instance of SubGrid
      */
-    PMacc::SubGrid< T_dim >& SubGrid()
+    pmacc::SubGrid< T_dim >& SubGrid()
     {
         PMACC_ASSERT_MSG(
             detail::EnvironmentContext::getInstance().isSubGridDefined(),
             "Environment< DIM >::initGrids() must be called before this method!"
         );
-        return PMacc::SubGrid< T_dim >::getInstance();
+        return pmacc::SubGrid< T_dim >::getInstance();
     }
 
     /** get the singleton Filesystem
      *
      * @return instance of Filesystem
      */
-    PMacc::Filesystem< T_dim >& Filesystem()
+    pmacc::Filesystem< T_dim >& Filesystem()
     {
-        return PMacc::Filesystem< T_dim >::getInstance();
+        return pmacc::Filesystem< T_dim >::getInstance();
     }
 
     /** get the singleton Environment< DIM >
@@ -428,7 +428,7 @@ namespace detail
     {
         if( m_isMpiInitialized )
         {
-            PMacc::Environment<>::get().Manager().waitForAllTasks();
+            pmacc::Environment<>::get().Manager().waitForAllTasks();
             // Required by scorep for flushing the buffers
             cudaDeviceSynchronize();
             m_isMpiInitialized = false;
@@ -519,15 +519,15 @@ namespace detail
     }
 
 } // namespace detail
-} // namespace PMacc
+} // namespace pmacc
 
 /* No namespace for macro defines */
 
 /** start a dependency chain */
-#define __startTransaction(...) (PMacc::Environment<>::get().TransactionManager().startTransaction(__VA_ARGS__))
+#define __startTransaction(...) (pmacc::Environment<>::get().TransactionManager().startTransaction(__VA_ARGS__))
 
 /** end a opened dependency chain */
-#define __endTransaction() (PMacc::Environment<>::get().TransactionManager().endTransaction())
+#define __endTransaction() (pmacc::Environment<>::get().TransactionManager().endTransaction())
 
 /** mark the begin of an operation
  *
@@ -536,7 +536,7 @@ namespace detail
  * @param opType place were the operation is running
  *               possible places are: `ITask::TASK_CUDA`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
  */
-#define __startOperation(opType) (PMacc::Environment<>::get().TransactionManager().startOperation(opType))
+#define __startOperation(opType) (pmacc::Environment<>::get().TransactionManager().startOperation(opType))
 
 /** get a `EventStream` that must be used for cuda calls
  *
@@ -545,13 +545,13 @@ namespace detail
  * @param opType place were the operation is running
  *               possible places are: `ITask::TASK_CUDA`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
  */
-#define __getEventStream(opType) (PMacc::Environment<>::get().TransactionManager().getEventStream(opType))
+#define __getEventStream(opType) (pmacc::Environment<>::get().TransactionManager().getEventStream(opType))
 
 /** get the event of the current transaction */
-#define __getTransactionEvent() (PMacc::Environment<>::get().TransactionManager().getTransactionEvent())
+#define __getTransactionEvent() (pmacc::Environment<>::get().TransactionManager().getTransactionEvent())
 
 /** set a event to the current transaction */
-#define __setTransactionEvent(event) (PMacc::Environment<>::get().TransactionManager().setTransactionEvent((event)))
+#define __setTransactionEvent(event) (pmacc::Environment<>::get().TransactionManager().setTransactionEvent((event)))
 
 #include "pmacc/eventSystem/EventSystem.tpp"
 #include "pmacc/particles/tasks/ParticleFactory.tpp"

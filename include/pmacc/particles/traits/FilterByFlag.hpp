@@ -26,7 +26,7 @@
 #include <boost/mpl/copy_if.hpp>
 #include <boost/mpl/placeholders.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace particles
 {
@@ -47,7 +47,7 @@ struct FilterByFlag
     template<typename T_Species>
     struct HasFlag
     {
-        typedef typename ::PMacc::traits::HasFlag<
+        typedef typename ::pmacc::traits::HasFlag<
             typename T_Species::FrameType,
             Flag>::type type;
     };
@@ -57,4 +57,4 @@ struct FilterByFlag
 
 }//namespace traits
 }//namespace particles
-}//namespace PMacc
+}//namespace pmacc

@@ -27,7 +27,7 @@
 #include <limits>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace memory
 {
@@ -184,4 +184,4 @@ namespace memory
     };
 
 } // namespace memory
-} // namespace PMacc
+} // namespace pmacc

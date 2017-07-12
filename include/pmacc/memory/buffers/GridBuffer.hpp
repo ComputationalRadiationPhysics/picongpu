@@ -33,7 +33,7 @@
 #include <algorithm>
 #include <set>
 
-namespace PMacc
+namespace pmacc
 {
 namespace privateGridBuffer
 {

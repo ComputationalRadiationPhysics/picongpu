@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <math/vector/accessor/StandardAccessor.hpp>
-#include <math/vector/navigator/StandardNavigator.hpp>
-#include <lambda/Expression.hpp>
+#include "pmacc/math/vector/accessor/StandardAccessor.hpp"
+#include "pmacc/math/vector/navigator/StandardNavigator.hpp"
+#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/result_of_Functor.hpp"
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"
@@ -35,7 +35,7 @@
 #include <iostream>
 #include <type_traits>
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -790,7 +790,7 @@ struct Abs2
     template<typename Type, int dim >
     HDINLINE Type operator()(const Vector<Type, dim>& vec)
     {
-        return PMacc::algorithms::math::abs2(vec);
+        return pmacc::algorithms::math::abs2(vec);
     }
 };
 
@@ -799,7 +799,7 @@ struct Abs
     template<typename Type, int dim >
     HDINLINE Type operator()(const Vector<Type, dim>& vec)
     {
-        return PMacc::algorithms::math::abs(vec);
+        return pmacc::algorithms::math::abs(vec);
     }
 };
 
@@ -821,4 +821,4 @@ struct Functor<math::Abs, TVector>
 };
 
 } //namespace result_of
-} //namespace PMacc
+} //namespace pmacc

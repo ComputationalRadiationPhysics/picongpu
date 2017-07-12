@@ -25,7 +25,7 @@
 #include <string>
 #include <iostream>
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
@@ -131,4 +131,4 @@ namespace traits
     };
 
 } // namespace traits
-} // namespace PMacc
+} // namespace pmacc

@@ -28,7 +28,7 @@
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/dataManagement/ISimulationData.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -125,6 +125,6 @@ namespace random
     };
 
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc
 
 #include "pmacc/random/RNGProvider.tpp"

@@ -48,11 +48,10 @@
 #include <boost/mpl/copy_if.hpp>
 #include <boost/mpl/not.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 
-namespace pmath = PMacc::math;
-namespace pmacc = PMacc;
+namespace pmath = pmacc::math;
 
 /** A single particle of a @see Frame
  *
@@ -183,12 +182,12 @@ template<
     typename T_ValueTypeSeq
 >
 struct HasIdentifier<
-    PMacc::Particle< T_FrameType, T_ValueTypeSeq >,
+    pmacc::Particle< T_FrameType, T_ValueTypeSeq >,
     T_Key
 >
 {
 private:
-    typedef PMacc::Particle<T_FrameType, T_ValueTypeSeq> ParticleType;
+    typedef pmacc::Particle<T_FrameType, T_ValueTypeSeq> ParticleType;
     typedef typename ParticleType::ValueTypeSeq ValueTypeSeq;
 public:
     /* If T_Key can not be found in the T_ValueTypeSeq of this Particle class,
@@ -209,7 +208,7 @@ template<
     typename T_ValueTypeSeq
 >
 struct HasFlag<
-    PMacc::Particle<T_FrameType, T_ValueTypeSeq>,
+    pmacc::Particle<T_FrameType, T_ValueTypeSeq>,
     T_Key
 >: public HasFlag<T_FrameType, T_Key>
 {};
@@ -220,7 +219,7 @@ template<
     typename T_ValueTypeSeq
 >
 struct GetFlagType<
-    PMacc::Particle<T_FrameType, T_ValueTypeSeq>,
+    pmacc::Particle<T_FrameType, T_ValueTypeSeq>,
     T_Key
 >: public GetFlagType<T_FrameType, T_Key>
 {};
@@ -245,12 +244,12 @@ typename T_FrameType2, typename T_ValueTypeSeq2
 >
 struct Assign
 <
-PMacc::Particle<T_FrameType1, T_ValueTypeSeq1>,
-PMacc::Particle<T_FrameType2, T_ValueTypeSeq2>
+pmacc::Particle<T_FrameType1, T_ValueTypeSeq1>,
+pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>
 >
 {
-    typedef PMacc::Particle<T_FrameType1, T_ValueTypeSeq1> Dest;
-    typedef PMacc::Particle<T_FrameType2, T_ValueTypeSeq2> Src;
+    typedef pmacc::Particle<T_FrameType1, T_ValueTypeSeq1> Dest;
+    typedef pmacc::Particle<T_FrameType2, T_ValueTypeSeq2> Src;
 
     typedef typename Dest::ValueTypeSeq DestTypeSeq;
     typedef typename Src::ValueTypeSeq SrcTypeSeq;
@@ -305,12 +304,12 @@ typename T_FrameType, typename T_ValueTypeSeq
 struct Deselect
 <
 T_MPLSeqWithObjectsToRemove,
-PMacc::Particle<T_FrameType, T_ValueTypeSeq>
+pmacc::Particle<T_FrameType, T_ValueTypeSeq>
 >
 {
     typedef T_FrameType FrameType;
     typedef T_ValueTypeSeq ValueTypeSeq;
-    typedef PMacc::Particle<FrameType, ValueTypeSeq> ParticleType;
+    typedef pmacc::Particle<FrameType, ValueTypeSeq> ParticleType;
     typedef T_MPLSeqWithObjectsToRemove MPLSeqWithObjectsToRemove;
 
     /* translate aliases to full specialized identifier*/
@@ -318,7 +317,7 @@ PMacc::Particle<T_FrameType, T_ValueTypeSeq>
     /* remove types from original particle attribute list*/
     typedef typename RemoveFromSeq<ValueTypeSeq, ResolvedSeqWithObjectsToRemove>::type NewValueTypeSeq;
     /* new particle type*/
-    typedef PMacc::Particle<FrameType, NewValueTypeSeq> ResultType;
+    typedef pmacc::Particle<FrameType, NewValueTypeSeq> ResultType;
 
     template<class> struct result;
 
@@ -339,4 +338,4 @@ PMacc::Particle<T_FrameType, T_ValueTypeSeq>
 } //namespace operations
 } //namespace particles
 
-} //namespace PMacc
+} //namespace pmacc

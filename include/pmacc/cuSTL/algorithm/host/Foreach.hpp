@@ -24,7 +24,7 @@
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/math/vector/Int.hpp"
 #include "pmacc/lambda/make_Functor.hpp"
-#include <forward.hpp>
+#include "pmacc/forward.hpp"
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>

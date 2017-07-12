@@ -33,7 +33,7 @@ namespace pmacc
 {
 
 /*create verbose class*/
-DEFINE_VERBOSE_CLASS(pmaccVerbose)
+DEFINE_VERBOSE_CLASS(PMaccVerbose)
 (
     /* define log lvl for later use
      * e.g. log<pmaccLogLvl::NOTHING>("TEXT");*/

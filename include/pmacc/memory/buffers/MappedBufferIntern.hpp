@@ -28,7 +28,7 @@
 #include "pmacc/memory/buffers/DeviceBuffer.hpp"
 #include "pmacc/assert.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** Implementation of the DeviceBuffer interface for cuda mapped memory

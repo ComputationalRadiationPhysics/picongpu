@@ -25,7 +25,7 @@
 #include <mpi.h>
 #include "pmacc/communication/manager_common.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace mpi
 {
@@ -56,6 +56,6 @@ struct AllReduce
 
 } /*namespace mpi*/
 
-} /*namespace PMacc*/
+} /*namespace pmacc*/
 
 

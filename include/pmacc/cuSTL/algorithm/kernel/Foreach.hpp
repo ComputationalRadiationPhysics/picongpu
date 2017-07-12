@@ -27,7 +27,7 @@
 #include "pmacc/lambda/make_Functor.hpp"
 #include "detail/SphericMapper.hpp"
 #include "detail/ForeachKernel.hpp"
-#include <forward.hpp>
+#include "pmacc/forward.hpp"
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>

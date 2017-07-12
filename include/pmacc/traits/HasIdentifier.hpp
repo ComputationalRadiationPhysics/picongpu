@@ -24,7 +24,7 @@
 
 #include "pmacc/static_assert.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {
@@ -63,4 +63,4 @@ bool hasIdentifier(const T_Object& obj,const T_Key& key)
 
 }//namespace traits
 
-}//namespace PMacc
+}//namespace pmacc

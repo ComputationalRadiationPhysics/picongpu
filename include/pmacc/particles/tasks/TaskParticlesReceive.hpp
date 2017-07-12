@@ -26,7 +26,7 @@
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/traits/NumberOfExchanges.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     template<class T_Particles>
@@ -134,4 +134,4 @@ namespace PMacc
 
     };
 
-} //namespace PMacc
+} //namespace pmacc

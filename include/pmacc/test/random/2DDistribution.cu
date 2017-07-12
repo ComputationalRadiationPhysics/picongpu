@@ -34,8 +34,8 @@
 #include <fstream>
 #include <limits>
 
-typedef PMacc::DataSpace<DIM2> Space2D;
-typedef PMacc::DataSpace<DIM3> Space3D;
+typedef pmacc::DataSpace<DIM2> Space2D;
+typedef pmacc::DataSpace<DIM3> Space3D;
 
 struct RandomFiller
 {
@@ -55,7 +55,7 @@ struct RandomFiller
 template<class T_RNGProvider>
 struct GetRandomIdx
 {
-    typedef PMacc::random::distributions::Uniform<float> Distribution;
+    typedef pmacc::random::distributions::Uniform<float> Distribution;
     typedef typename T_RNGProvider::GetRandomType<Distribution>::type Random;
 
     HINLINE GetRandomIdx(): rand(T_RNGProvider::template createRandom<Distribution>())
@@ -70,7 +70,7 @@ struct GetRandomIdx
     DINLINE Space2D
     operator()(Space2D size)
     {
-        using PMacc::algorithms::math::float2int_rd;
+        using pmacc::algorithms::math::float2int_rd;
         return Space2D(float2int_rd(rand() * size.x()), float2int_rd(rand() * size.y()));
     }
 private:
@@ -145,7 +145,7 @@ void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_Device
 template<class T_Method>
 void runTest(uint32_t numSamples)
 {
-    typedef PMacc::random::RNGProvider<2, T_Method> RNGProvider;
+    typedef pmacc::random::RNGProvider<2, T_Method> RNGProvider;
 
     const std::string rngName = RNGProvider::RNGMethod::getName();
     std::cout << std::endl << "Running test for " << rngName
@@ -156,7 +156,7 @@ void runTest(uint32_t numSamples)
     // Size of the rng provider (= number of states used)
     const Space2D rngSize(256, 256);
 
-    PMacc::HostDeviceBuffer<uint32_t, 2> detector(size);
+    pmacc::HostDeviceBuffer<uint32_t, 2> detector(size);
     RNGProvider rngProvider(rngSize);
     rngProvider.init(0x42133742);
 
@@ -188,14 +188,14 @@ void runTest(uint32_t numSamples)
             if(val < minVal)
                 minVal = val;
             totalNumSamples += val;
-            mean += PMacc::math::linearize(size.shrink<1>(1), idx) * static_cast<uint64_t>(val);
+            mean += pmacc::math::linearize(size.shrink<1>(1), idx) * static_cast<uint64_t>(val);
         }
     }
     PMACC_ASSERT(totalNumSamples == uint64_t(rngSize.productOfComponents()) * uint64_t(numSamples));
     // Expected value: (n-1)/2
     double Ex = (size.productOfComponents() - 1) / 2.;
     // Variance: (n^2 - 1) / 12
-    double var = (PMacc::algorithms::math::pow<double>(size.productOfComponents(), 2) - 1.) / 12.;
+    double var = (pmacc::algorithms::math::pow<double>(size.productOfComponents(), 2) - 1.) / 12.;
     // Mean value
     mean /= totalNumSamples;
     double errSq = 0;
@@ -206,7 +206,7 @@ void runTest(uint32_t numSamples)
         {
             Space2D idx(x, y);
             uint32_t val = box(idx);
-            errSq += val * PMacc::algorithms::math::pow<double>(PMacc::math::linearize(size.shrink<1>(1), idx) - mean, 2);
+            errSq += val * pmacc::algorithms::math::pow<double>(pmacc::math::linearize(size.shrink<1>(1), idx) - mean, 2);
         }
     }
     double stdDev = sqrt(errSq/(totalNumSamples - 1));
@@ -225,14 +225,14 @@ void runTest(uint32_t numSamples)
 int main(int argc, char** argv)
 {
     MPI_Init( &argc, &argv );
-    PMacc::Environment<2>::get().initDevices(Space2D::create(1), Space2D::create(0));
+    pmacc::Environment<2>::get().initDevices(Space2D::create(1), Space2D::create(0));
 
     const uint32_t numSamples = (argc > 1) ? atoi(argv[1]) : 1000;
 
-    runTest<PMacc::random::methods::Xor>(numSamples);
-    runTest<PMacc::random::methods::XorMin>(numSamples);
-    runTest<PMacc::random::methods::MRG32k3a>(numSamples);
-    runTest<PMacc::random::methods::MRG32k3aMin>(numSamples);
+    runTest<pmacc::random::methods::Xor>(numSamples);
+    runTest<pmacc::random::methods::XorMin>(numSamples);
+    runTest<pmacc::random::methods::MRG32k3a>(numSamples);
+    runTest<pmacc::random::methods::MRG32k3aMin>(numSamples);
 
     MPI_Finalize();
 }

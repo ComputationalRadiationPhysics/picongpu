@@ -30,7 +30,7 @@
 #include <climits>
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace nvidia
 {
@@ -215,4 +215,4 @@ atomicAdd(T_Type* ptr, const T_Type value)
 }
 
 } //namespace nvidia
-} //namespace PMacc
+} //namespace pmacc

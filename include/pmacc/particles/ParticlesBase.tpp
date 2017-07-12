@@ -32,7 +32,7 @@
 #include "pmacc/particles/memory/buffers/ParticlesBuffer.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
     template<typename T_ParticleDescription, class MappingDesc, typename T_DeviceHeap>
     void ParticlesBase<T_ParticleDescription, MappingDesc, T_DeviceHeap>::deleteGuardParticles(uint32_t exchangeType)
@@ -142,6 +142,6 @@ namespace PMacc
         }
     }
 
-} //namespace PMacc
+} //namespace pmacc
 
 #include "pmacc/particles/AsyncCommunicationImpl.hpp"

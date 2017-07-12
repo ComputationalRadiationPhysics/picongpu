@@ -31,7 +31,7 @@
 #include "pmacc/memory/shared/Allocate.hpp"
 #include "pmacc/memory/Array.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace particles
 {
@@ -68,14 +68,14 @@ namespace kernel
             const T_CellDescription cellDesc
         ) const
         {
-            using namespace PMacc::particles::operations;
+            using namespace pmacc::particles::operations;
 
             typedef T_SrcFrame SrcFrameType;
             typedef typename T_DestBox::FrameType DestFrameType;
             typedef typename T_DestBox::FramePtr DestFramePtr;
             typedef typename T_CellDescription::SuperCellSize SuperCellSize;
             constexpr unsigned NumDims = T_DestBox::Dim;
-            constexpr uint32_t particlesPerFrame = PMacc::math::CT::volume<SuperCellSize>::type::value;
+            constexpr uint32_t particlesPerFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
             PMACC_SMEM( destFramePtr, memory::Array< DestFramePtr, particlesPerFrame > );
             PMACC_SMEM( linearSuperCellIds, memory::Array< int, particlesPerFrame > );
@@ -187,7 +187,7 @@ HINLINE void splitIntoListOfFrames(
     const T_LogLvl& logLvl = T_LogLvl()
 )
 {
-    const uint32_t cellsInSuperCell = PMacc::math::CT::volume<typename T_CellDescription::SuperCellSize>::type::value;
+    const uint32_t cellsInSuperCell = pmacc::math::CT::volume<typename T_CellDescription::SuperCellSize>::type::value;
 
     /* counter is used to apply for work, count used frames and count loaded particles
      * [0] -> offset for loading particles
@@ -235,4 +235,4 @@ HINLINE void splitIntoListOfFrames(
 
 } //namespace operations
 } //namespace particles
-} //namespace PMacc
+} //namespace pmacc

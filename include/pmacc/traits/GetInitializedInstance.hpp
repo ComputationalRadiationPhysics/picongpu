@@ -24,7 +24,7 @@
 #include "pmacc/math/vector/Vector.hpp"
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace traits
 {

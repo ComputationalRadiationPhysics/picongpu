@@ -38,7 +38,7 @@
 #include "pmacc/memory/shared/Allocate.hpp"
 #include "pmacc/memory/Array.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 template<typename T_ParticleBox, typename T_SuperCellIdxType>
@@ -65,7 +65,7 @@ struct KernelFillGapsLastFrame
 {
     /** fill particle gaps
      *
-     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
+     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
      * @tparam T_Mapping mapper functor type
      *
      * @param boxPar particle memory
@@ -241,7 +241,7 @@ struct KernelFillGaps
 {
     /** fill particle gaps
      *
-     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
+     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
      * @tparam T_Mapping mapper functor type
      *
      * @param pb particle memory
@@ -791,7 +791,7 @@ struct KernelDeleteParticles
      *
      * @warning the particle memory of the particle is not byte wise zeroed
      *
-     * @tparam T_ParticleBox PMacc::ParticlesBox, particle box type
+     * @tparam T_ParticleBox pmacc::ParticlesBox, particle box type
      * @tparam T_Mapping mapper functor type
      *
      * @param pb particle memory
@@ -907,7 +907,7 @@ struct KernelCopyGuardToExchange
 {
     /** copy guard particles to an exchange buffer
      *
-     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
+     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
      * @tparam T_ExchangeValueType frame type of the exchange buffer
      * @tparam T_Mapping mapper functor type
      *
@@ -1117,7 +1117,7 @@ struct KernelInsertParticles
 {
     /** copy particles from exchange buffer into the border of the simulation
      *
-     * @tparam T_ParBox PMacc::ParticlesBox, particle box type
+     * @tparam T_ParBox pmacc::ParticlesBox, particle box type
      * @tparam T_ExchangeValueType frame type of the exchange buffer
      * @tparam T_Mapping mapper functor type
      *
@@ -1260,4 +1260,4 @@ struct KernelInsertParticles
     }
 };
 
-} //namespace PMacc
+} //namespace pmacc

@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 #include "pmacc/math/Vector.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace math
 {
@@ -86,4 +86,4 @@ namespace math
     };
 
 } /* namespace math */
-} /* namespace PMacc */
+} /* namespace pmacc */

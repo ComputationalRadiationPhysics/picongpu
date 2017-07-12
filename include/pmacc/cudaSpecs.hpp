@@ -24,7 +24,7 @@
 #include "pmacc/math/vector/compile-time/Size_t.hpp"
 #include <stdint.h>
 
-namespace PMacc
+namespace pmacc
 {
 namespace cudaSpecs
 {
@@ -42,4 +42,4 @@ constexpr uint32_t maxNumThreadsPerBlock = 1024;
 typedef math::CT::Size_t<1024, 1024, 64> MaxNumThreadsPerBlockDim;
 
 } // namespace cudaSpecs
-} // namespace PMacc
+} // namespace pmacc

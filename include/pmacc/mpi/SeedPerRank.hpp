@@ -26,7 +26,7 @@
 #include "pmacc/algorithms/reverseBits.hpp"
 #include <limits>
 
-namespace PMacc
+namespace pmacc
 {
 namespace mpi
 {
@@ -55,7 +55,7 @@ namespace mpi
         uint32_t
         operator()( uint32_t localSeed )
         {
-            auto& gc = PMacc::Environment<T_DIM>::get().GridController();
+            auto& gc = pmacc::Environment<T_DIM>::get().GridController();
 
             uint32_t rank = gc.getGlobalRank( );
             /* We put the rank into the upper bits to allow values which start

@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc {
+namespace pmacc{
 
     /**
      * Provider for globally unique ids (even across ranks)
@@ -88,4 +88,4 @@ namespace PMacc {
         static uint64_t m_startId;
     };
 
-}  // namespace PMacc
+}  // namespace pmacc

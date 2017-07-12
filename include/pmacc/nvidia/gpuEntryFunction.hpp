@@ -26,7 +26,7 @@
 
 #pragma once
 
-namespace PMacc
+namespace pmacc
 {
 namespace nvidia
 {
@@ -48,4 +48,4 @@ namespace nvidia
         kernel( args ... );
     }
 } //namespace nvidia
-} //namespace PMacc
+} //namespace pmacc

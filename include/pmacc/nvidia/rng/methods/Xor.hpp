@@ -25,7 +25,7 @@
 #include <curand_kernel.h>
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace nvidia
 {

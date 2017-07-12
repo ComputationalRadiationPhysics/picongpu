@@ -25,7 +25,7 @@
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/assert.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
     template<class ParBase>
@@ -157,4 +157,4 @@ namespace PMacc
         size_t retryCounter;
     };
 
-} //namespace PMacc
+} //namespace pmacc

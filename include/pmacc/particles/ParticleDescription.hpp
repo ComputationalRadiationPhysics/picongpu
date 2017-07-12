@@ -27,7 +27,7 @@
 #include <boost/mpl/vector.hpp>
 #include "pmacc/compileTime/conversion/ToSeq.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 
 /** ParticleDescription defines attributes, methods and flags of a particle
@@ -124,4 +124,4 @@ struct ReplaceFrameExtensionSeq
     > type;
 };
 
-} //namespace PMacc
+} //namespace pmacc

@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 
 
-namespace PMacc
+namespace pmacc
 {
 namespace particles
 {
@@ -46,4 +46,4 @@ HDINLINE void assign(T_Dest& dest,const T_Src& src)
 
 }//operators
 }//namespace particles
-} //namespace PMacc
+} //namespace pmacc

@@ -25,7 +25,7 @@
 #include "pmacc/random/RNGState.hpp"
 #include <boost/utility/result_of.hpp>
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -106,4 +106,4 @@ namespace random
     };
 
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc

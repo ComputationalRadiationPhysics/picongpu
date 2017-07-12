@@ -23,7 +23,7 @@
 
 #include "pmacc/types.hpp"
 
-namespace PMacc
+namespace pmacc
 {
 namespace random
 {
@@ -54,7 +54,7 @@ namespace distributions
 
 }  // namespace distributions
 }  // namespace random
-}  // namespace PMacc
+}  // namespace pmacc
 
 #include "pmacc/random/distributions/uniform/Uniform_float.hpp"
 #include "pmacc/random/distributions/uniform/Uniform_Integral32Bit.hpp"

@@ -40,8 +40,8 @@ struct setValueTest
 
         for(size_t i = 0; i < nElementsPerDim.size(); ++i)
         {
-            ::PMacc::DataSpace<T_Dim::value> const dataSpace = ::PMacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
-            ::PMacc::HostBufferIntern<Data, T_Dim::value> hostBufferIntern(dataSpace);
+            ::pmacc::DataSpace<T_Dim::value> const dataSpace = ::pmacc::DataSpace<T_Dim::value>::create(nElementsPerDim[i]);
+            ::pmacc::HostBufferIntern<Data, T_Dim::value> hostBufferIntern(dataSpace);
 
             const Data value = 255;
             hostBufferIntern.setValue(value);

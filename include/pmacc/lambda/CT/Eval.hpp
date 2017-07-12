@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "Expression.hpp"
+#include "pmacc/lambda/Expression.hpp"
 #include "../placeholder.hpp"
 #include "../ExprTypes.hpp"
 
@@ -33,7 +33,7 @@
 #include <boost/mpl/int.hpp>
 #include <boost/type_traits/add_reference.hpp>
 #include <boost/type_traits/remove_reference.hpp>
-#include <math/Tuple.hpp>
+#include "pmacc/math/Tuple.hpp"
 
 
 namespace mpl = boost::mpl;

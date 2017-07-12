@@ -23,7 +23,7 @@
 
 #include "HostDeviceBuffer.hpp"
 
-namespace PMacc {
+namespace pmacc{
 
     template<typename T_Type, unsigned T_dim>
     HostDeviceBuffer<T_Type, T_dim>::HostDeviceBuffer(const DataSpace<T_dim>& size, bool sizeOnDevice)
@@ -93,4 +93,4 @@ namespace PMacc {
         hostBuffer->copyFrom(*deviceBuffer);
     }
 
-}  // namespace PMacc
+}  // namespace pmacc
