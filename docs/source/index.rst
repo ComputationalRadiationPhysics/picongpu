@@ -94,6 +94,7 @@ Development
    dev/CONTRIBUTING.md
    dev/styleguide
    dev/sphinx
+   dev/doxygen
    dev/picongpu
    dev/pmacc
    dev/doxyindex
