@@ -1,6 +1,6 @@
 # Copyright 2016-2017 Alexander Grund
 #
-# This file is part of libPMacc.
+# This file is part of PMacc.
 #
 # PMacc is free software: you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or

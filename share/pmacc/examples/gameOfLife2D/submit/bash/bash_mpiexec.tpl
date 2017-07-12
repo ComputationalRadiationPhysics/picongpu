@@ -2,7 +2,7 @@
 #
 # Copyright 2013-2017 Rene Widera, Axel Huebl
 #
-# This file is part of libPMacc.
+# This file is part of PMacc.
 #
 # PMacc is free software: you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or
