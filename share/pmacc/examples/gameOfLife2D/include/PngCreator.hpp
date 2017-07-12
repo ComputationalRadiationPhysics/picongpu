@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "pmacc/types.hpp"
+#include <pmacc/types.hpp>
 #include <pngwriter.h>
 
 namespace gol
