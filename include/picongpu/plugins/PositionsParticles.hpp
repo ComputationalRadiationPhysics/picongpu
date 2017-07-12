@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "mappings/kernel/AreaMapping.hpp"
 
-#include "algorithms/Gamma.hpp"
+#include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "memory/shared/Allocate.hpp"
 #include "dataManagement/DataConnector.hpp"

@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "cuSTL/container/HostBuffer.hpp"
 
 namespace picongpu

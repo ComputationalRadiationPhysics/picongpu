@@ -23,12 +23,12 @@
 
 #include <iostream>
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/Particles.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "picongpu/particles/ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 #include "traits/Resolve.hpp"
 #include "nvidia/atomic.hpp"
 

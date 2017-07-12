@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
-#include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"

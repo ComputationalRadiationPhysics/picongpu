@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"

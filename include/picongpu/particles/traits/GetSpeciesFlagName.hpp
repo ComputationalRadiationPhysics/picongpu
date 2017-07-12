@@ -18,7 +18,7 @@
  */
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "traits/HasFlag.hpp"
 #include "traits/GetFlagType.hpp"

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "algorithms/Gamma.hpp"
+#include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/traits/frame/GetMass.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"

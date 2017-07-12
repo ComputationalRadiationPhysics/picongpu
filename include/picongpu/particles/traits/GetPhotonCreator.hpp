@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "pmacc_types.hpp"
 #include "particles/memory/frames/Frame.hpp"
 #include "traits/GetFlagType.hpp"

@@ -28,5 +28,5 @@
 #include "picongpu/particles/densityProfiles/SphereFlanksImpl.hpp"
 
 #if( ENABLE_HDF5 == 1 )
-#    include "particles/densityProfiles/FromHDF5Impl.hpp"
+#    include "picongpu/particles/densityProfiles/FromHDF5Impl.hpp"
 #endif

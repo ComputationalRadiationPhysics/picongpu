@@ -19,14 +19,14 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "basicOperations.hpp"
 #include "cuSTL/cursor/Cursor.hpp"
 #include "cuSTL/cursor/tools/twistVectorFieldAxes.hpp"
 #include "cuSTL/cursor/compile-time/SafeCursor.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
-#include "algorithms/Velocity.hpp"
+#include "picongpu/algorithms/Velocity.hpp"
 
 
 namespace picongpu

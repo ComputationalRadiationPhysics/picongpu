@@ -23,7 +23,7 @@
 
 #include "pmacc_types.hpp"
 #include "pluginSystem/PluginConnector.hpp"
-#include "plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ILightweightPlugin.hpp"
 
 
 namespace picongpu

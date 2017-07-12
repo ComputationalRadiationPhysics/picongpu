@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "Environment.hpp"
 
 #include "picongpu/simulationControl/MySimulation.hpp"
@@ -30,12 +30,11 @@
 #include "picongpu/fields/FieldE.hpp"
 
 #include "dimensions/GridLayout.hpp"
-#include "simulation_types.hpp"
 #include "eventSystem/EventSystem.hpp"
 
 #include "nvidia/memory/MemoryInfo.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
-#include "ArgsParser.hpp"
+#include "picongpu/ArgsParser.hpp"
 
 #include <cassert>
 

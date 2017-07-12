@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "mappings/threads/ForEachIdx.hpp"
 #include "mappings/threads/IdxConfig.hpp"
 

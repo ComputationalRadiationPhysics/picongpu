@@ -27,7 +27,7 @@
 #include <list>
 #include <vector>
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/traits/SplashToPIC.hpp"
@@ -49,7 +49,7 @@
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "pluginSystem/PluginConnector.hpp"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 #include "math/Vector.hpp"
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"

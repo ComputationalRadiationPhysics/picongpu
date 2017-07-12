@@ -21,7 +21,7 @@
 
 #include "pmacc_types.hpp"
 #include "Environment.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "mappings/kernel/AreaMapping.hpp"
 #include "math/Vector.hpp"

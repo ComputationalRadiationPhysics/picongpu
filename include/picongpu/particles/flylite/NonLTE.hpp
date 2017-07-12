@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/particles/flylite/NonLTE.def"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/flylite/IFlyLite.hpp"
 
 /* PMacc */

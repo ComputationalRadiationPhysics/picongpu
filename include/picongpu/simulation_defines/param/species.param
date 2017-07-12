@@ -26,16 +26,16 @@
 
 #pragma once
 
-#include "particles/shapes.hpp"
-#include "algorithms/FieldToParticleInterpolationNative.hpp"
-#include "algorithms/FieldToParticleInterpolation.hpp"
-#include "algorithms/AssignedTrilinearInterpolation.hpp"
+#include "picongpu/particles/shapes.hpp"
+#include "picongpu/algorithms/FieldToParticleInterpolationNative.hpp"
+#include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
+#include "picongpu/algorithms/AssignedTrilinearInterpolation.hpp"
 
 #include "picongpu/fields/currentDeposition/Solver.def"
 
-#include "particles/InitFunctors.hpp"
-#include "particles/flylite/NonLTE.def"
-#include "particles/manipulators/manipulators.def"
+#include "picongpu/particles/InitFunctors.hpp"
+#include "picongpu/particles/flylite/NonLTE.def"
+#include "picongpu/particles/manipulators/manipulators.def"
 
 
 namespace picongpu

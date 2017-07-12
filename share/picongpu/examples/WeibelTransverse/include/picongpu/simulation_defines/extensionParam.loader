@@ -19,5 +19,3 @@
 
 #pragma once
 
-// #include "picongpu/simulation_defines/param/testExtension.param"
-

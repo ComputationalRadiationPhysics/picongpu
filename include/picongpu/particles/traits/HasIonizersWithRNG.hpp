@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "compileTime/conversion/OperateOnSeq.hpp"
 #include "compileTime/conversion/MakeSeqFromNestedSeq.hpp"

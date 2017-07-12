@@ -21,8 +21,7 @@
 
 #include "picongpu/plugins/particleMerging/ParticleMerger.kernel"
 
-#include "simulation_defines.hpp"
-#include "simulation_classTypes.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "traits/HasIdentifier.hpp"

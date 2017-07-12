@@ -19,14 +19,14 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "pmacc_types.hpp"
 
 #include "math/Vector.hpp"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.hpp"
 
-#include "algorithms/Gamma.hpp"
+#include "picongpu/algorithms/Gamma.hpp"
 
 #include <vector>
 

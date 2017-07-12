@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "algorithms/FieldToParticleInterpolationNative.hpp"
-#include "algorithms/FieldToParticleInterpolation.hpp"
-#include "algorithms/AssignedTrilinearInterpolation.hpp"
+#include "picongpu/algorithms/FieldToParticleInterpolationNative.hpp"
+#include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
+#include "picongpu/algorithms/AssignedTrilinearInterpolation.hpp"
 #include "picongpu/particles/shapes.hpp"
 
 #include "picongpu/fields/currentDeposition/Solver.def"

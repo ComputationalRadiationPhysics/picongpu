@@ -19,17 +19,17 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "SynchrotronFunctions.hpp"
-#include "algorithms/Gamma.hpp"
+#include "picongpu/algorithms/Gamma.hpp"
 #include "algorithms/math/defines/sqrt.hpp"
 #include "algorithms/math/defines/dot.hpp"
 #include "algorithms/math/defines/cross.hpp"
 #include "picongpu/traits/frame/GetMass.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
-#include "picongpu/particles/operations/Assign.hpp"
-#include "picongpu/particles/operations/Deselect.hpp"
+#include "particles/operations/Assign.hpp"
+#include "particles/operations/Deselect.hpp"
 #include "particles/traits/ResolveAliasFromSpecies.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"

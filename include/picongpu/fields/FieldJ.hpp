@@ -26,8 +26,7 @@
 
 /*pic default*/
 #include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
-#include "simulation_classTypes.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "Fields.def"
 #include "fields/SimulationFieldHelper.hpp"
@@ -40,7 +39,7 @@
 #include "memory/boxes/PitchedBox.hpp"
 
 #include "math/Vector.hpp"
-#include "particles/Particles.hpp"
+#include "picongpu/particles/Particles.hpp"
 
 namespace picongpu
 {

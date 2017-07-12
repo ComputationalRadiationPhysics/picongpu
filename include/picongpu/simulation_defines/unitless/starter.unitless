@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "initialization/InitialiserController.hpp"
-#include "plugins/PluginController.hpp"
-#include "simulationControl/MySimulation.hpp"
-#include "simulationControl/SimulationStarter.hpp"
+#include "picongpu/initialization/InitialiserController.hpp"
+#include "picongpu/plugins/PluginController.hpp"
+#include "picongpu/simulationControl/MySimulation.hpp"
+#include "picongpu/simulationControl/SimulationStarter.hpp"
 
 /* Define a starter for the simulation with the name "SimStarter"
  *

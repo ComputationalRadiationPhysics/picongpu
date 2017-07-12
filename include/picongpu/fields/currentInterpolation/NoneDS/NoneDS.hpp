@@ -19,12 +19,11 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
-#include "pmacc_types.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/currentInterpolation/None/None.def"
-#include "algorithms/DifferenceToUpper.hpp"
-#include "algorithms/LinearInterpolateWithUpper.hpp"
+#include "picongpu/algorithms/DifferenceToUpper.hpp"
+#include "picongpu/algorithms/LinearInterpolateWithUpper.hpp"
 #include "traits/GetComponentsType.hpp"
 
 #include "picongpu/fields/MaxwellSolver/Yee/Curl.hpp"

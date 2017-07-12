@@ -27,7 +27,7 @@
 #include "cuSTL/container/compile-time/SharedBuffer.hpp"
 #include "math/Vector.hpp"
 #include "math/VectorOperations.hpp"
-#include "particles/access/Cell2Particle.hpp"
+#include "picongpu/particles/access/Cell2Particle.hpp"
 
 #include "PhaseSpace.hpp"
 

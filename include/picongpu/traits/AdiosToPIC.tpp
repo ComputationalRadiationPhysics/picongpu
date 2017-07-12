@@ -22,7 +22,7 @@
 #if (ENABLE_ADIOS==1)
 #include <adios.h>
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 namespace picongpu
 {

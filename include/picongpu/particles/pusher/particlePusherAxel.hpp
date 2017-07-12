@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 // That is a sum over two out of 3 coordinates, as described in the script
 // above. (See Ref.!)

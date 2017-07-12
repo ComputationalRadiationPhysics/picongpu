@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "traits/HasIdentifier.hpp"
-#include "particles/Manipulate.hpp"
+#include "picongpu/particles/Manipulate.hpp"
 
 #include <memory>
 

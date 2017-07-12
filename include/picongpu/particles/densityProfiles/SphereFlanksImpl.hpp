@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 
 namespace picongpu
 {

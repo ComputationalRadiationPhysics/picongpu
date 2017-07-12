@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "ScaledSpectrum.hpp"
 #include "PhotonEmissionAngle.hpp"
 #include "picongpu/fields/FieldTmp.hpp"

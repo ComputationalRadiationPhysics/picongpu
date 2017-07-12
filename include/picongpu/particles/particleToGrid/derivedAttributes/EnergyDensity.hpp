@@ -21,8 +21,8 @@
 
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensity.def"
 
-#include "simulation_defines.hpp"
-#include "algorithms/KinEnergy.hpp"
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/algorithms/KinEnergy.hpp"
 
 namespace picongpu
 {

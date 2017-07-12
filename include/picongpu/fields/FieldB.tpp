@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/FieldB.hpp"
 
@@ -41,12 +41,12 @@
 
 #include "math/Vector.hpp"
 
-#include "particles/traits/GetInterpolation.hpp"
+#include "picongpu/particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 
 #include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
-#include "particles/traits/GetMarginPusher.hpp"
+#include "picongpu/particles/traits/GetMarginPusher.hpp"
 
 #include <boost/mpl/accumulate.hpp>
 

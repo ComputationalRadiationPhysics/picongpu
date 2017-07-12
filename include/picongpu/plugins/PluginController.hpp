@@ -21,9 +21,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
-#include "simulation_types.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "assert.hpp"
 
 #include "picongpu/plugins/CountParticles.hpp"
@@ -44,8 +42,6 @@
 #if (ENABLE_INSITU_VOLVIS == 1)
 #include "picongpu/plugins/InSituVolumeRenderer.hpp"
 #endif
-
-#include "simulation_classTypes.hpp"
 
 #include "mappings/kernel/MappingDescription.hpp"
 

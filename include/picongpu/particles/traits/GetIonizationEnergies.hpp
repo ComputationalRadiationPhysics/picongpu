@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "static_assert.hpp"
 #include "traits/GetFlagType.hpp"
 #include "traits/Resolve.hpp"

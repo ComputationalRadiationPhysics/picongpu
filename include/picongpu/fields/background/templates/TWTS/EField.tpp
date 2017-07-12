@@ -21,8 +21,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
-#include "simulation_classTypes.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "math/Vector.hpp"
 #include "dimensions/DataSpace.hpp"

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.def"
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"

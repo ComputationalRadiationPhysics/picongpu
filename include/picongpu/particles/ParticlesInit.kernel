@@ -19,14 +19,12 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/Particles.hpp"
 #include "memory/boxes/DataBox.hpp"
 #include "memory/boxes/PitchedBox.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 
-#include "simulation_defines.hpp"
-#include "plugins/radiation/parameters.hpp"
 #include "particles/operations/SetAttributeToDefault.hpp"
 #include "compileTime/conversion/ResolveAndRemoveFromSeq.hpp"
 #include "picongpu/particles/startPosition/MacroParticleCfg.hpp"

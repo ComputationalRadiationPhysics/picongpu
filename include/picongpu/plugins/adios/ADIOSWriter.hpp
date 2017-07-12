@@ -20,9 +20,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
 #include "static_assert.hpp"
-#include "simulation_types.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 
 #include "particles/frame_types.hpp"
@@ -40,7 +39,7 @@
 #include "mappings/simulation/SubGrid.hpp"
 #include "dimensions/GridLayout.hpp"
 #include "pluginSystem/PluginConnector.hpp"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 #include "math/Vector.hpp"
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "traits/Limits.hpp"

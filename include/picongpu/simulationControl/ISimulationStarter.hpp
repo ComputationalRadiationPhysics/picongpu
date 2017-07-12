@@ -21,9 +21,8 @@
 #pragma once
 
 #include "pluginSystem/IPlugin.hpp"
-#include "ArgsParser.hpp"
-#include "simulation_defines.hpp"
-#include "pmacc_types.hpp"
+#include "picongpu/ArgsParser.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 namespace picongpu
 {

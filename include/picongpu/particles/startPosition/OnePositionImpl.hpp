@@ -21,7 +21,7 @@
 #pragma once
 
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/startPosition/MacroParticleCfg.hpp"
 #include "picongpu/particles/startPosition/IFunctor.def"
 

@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "particles/frame_types.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 
 #include "dataManagement/DataConnector.hpp"
 #include "dimensions/DataSpace.hpp"

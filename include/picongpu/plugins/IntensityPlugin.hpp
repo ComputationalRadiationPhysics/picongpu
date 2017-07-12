@@ -22,7 +22,7 @@
 
 #include <mpi.h>
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/fields/FieldE.hpp"

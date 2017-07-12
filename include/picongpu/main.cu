@@ -27,10 +27,10 @@
  * @author Heiko Burau, Rene Widera, Wolfgang Hoenig, Felix Schmitt, Axel Huebl, Michael Bussmann, Guido Juckeland
  */
 
-#include "ArgsParser.hpp"
+#include "picongpu/ArgsParser.hpp"
 #include "Environment.hpp"
 
-#include <simulation_defines.hpp>
+#include <picongpu/simulation_defines.hpp>
 
 
 /*! start of PIConGPU

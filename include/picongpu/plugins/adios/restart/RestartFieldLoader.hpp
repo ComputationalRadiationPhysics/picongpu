@@ -21,14 +21,14 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 
 #include "particles/frame_types.hpp"
 #include "dataManagement/DataConnector.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "dimensions/GridLayout.hpp"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 
 #include <adios.h>
 #include <adios_read.h>

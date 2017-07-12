@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.hpp"
 #include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.kernel"
 

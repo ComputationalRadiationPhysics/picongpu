@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.def"
 #include "math/Vector.hpp"
 

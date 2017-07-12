@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "memory/buffers/GridBuffer.hpp"
 #include "mappings/simulation/GridController.hpp"
 
@@ -29,7 +29,7 @@
 
 #include "mappings/kernel/AreaMapping.hpp"
 #include "eventSystem/EventSystem.hpp"
-#include "picongpu/fields/tasks/FieldFactory.hpp"
+#include "fields/tasks/FieldFactory.hpp"
 
 #include "dimensions/SuperCellDescription.hpp"
 
@@ -41,7 +41,7 @@
 #include "math/Vector.hpp"
 #include "fields/operations/CopyGuardToExchange.hpp"
 #include "fields/operations/AddExchangeToBorder.hpp"
-#include "particles/traits/GetInterpolation.hpp"
+#include "picongpu/particles/traits/GetInterpolation.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 #include "traits/GetUniqueTypeId.hpp"

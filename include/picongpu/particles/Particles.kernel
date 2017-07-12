@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "particles/frame_types.hpp"
 #include "particles/memory/boxes/ParticlesBox.hpp"
 #include "particles/memory/boxes/TileDataBox.hpp"
@@ -33,8 +33,6 @@
 
 #include "nvidia/functors/Assign.hpp"
 #include "mappings/threads/ThreadCollective.hpp"
-
-#include "plugins/radiation/parameters.hpp"
 
 #include "nvidia/rng/RNG.hpp"
 #include "nvidia/rng/methods/Xor.hpp"

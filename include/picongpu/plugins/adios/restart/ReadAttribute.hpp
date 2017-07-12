@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "simulation_types.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "debug/VerboseLog.hpp"
 #include "picongpu/traits/PICToAdios.hpp"

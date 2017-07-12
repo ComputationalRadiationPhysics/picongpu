@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include <cuSTL/cursor/FunctorCursor.hpp>
 #include "math/Vector.hpp"
 #include "picongpu/algorithms/ShiftCoordinateSystem.hpp"

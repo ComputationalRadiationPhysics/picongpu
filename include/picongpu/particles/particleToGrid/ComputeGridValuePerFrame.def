@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/traits/GetShape.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"

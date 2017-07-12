@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 #include "pmacc_types.hpp"
-#include <simulation_types.hpp>
+#include <picongpu/simulation_types.hpp>
 #include "pmacc_renamings.hpp"
 
 
@@ -37,17 +37,17 @@ namespace picongpu
  */
 
 //##### load param
-#include <simulation_defines/_defaultParam.loader>
-#include <simulation_defines/extensionParam.loader>
+#include <picongpu/simulation_defines/_defaultParam.loader>
+#include <picongpu/simulation_defines/extensionParam.loader>
 
 //load starter after all user extension
-#include <simulation_defines/param/starter.param>
+#include <picongpu/simulation_defines/param/starter.param>
 
-#include <simulation_defines/param/components.param>
-#include <simulation_classTypes.hpp>
+#include <picongpu/simulation_defines/param/components.param>
+#include <picongpu/simulation_classTypes.hpp>
 
 // ##### load unitless
-#include <simulation_defines/_defaultUnitless.loader>
-#include <simulation_defines/extensionUnitless.loader>
+#include <picongpu/simulation_defines/_defaultUnitless.loader>
+#include <picongpu/simulation_defines/extensionUnitless.loader>
 //load starter after user extensions and all params are loaded
-#include <simulation_defines/unitless/starter.unitless>
+#include <picongpu/simulation_defines/unitless/starter.unitless>

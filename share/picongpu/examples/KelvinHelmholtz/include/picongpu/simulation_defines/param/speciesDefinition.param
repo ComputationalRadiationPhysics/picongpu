@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "particles/Identifier.hpp"
 #include "compileTime/conversion/MakeSeq.hpp"
 #include "identifier/value_identifier.hpp"
 
-#include "picongpu/particles/traits/FilterByFlag.hpp"
+#include "particles/traits/FilterByFlag.hpp"
 #include "picongpu/particles/Particles.hpp"
 #include <boost/mpl/string.hpp>
 

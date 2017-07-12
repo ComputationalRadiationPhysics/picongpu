@@ -21,7 +21,7 @@
 
 #include "DirSplitting.def"
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/MaxwellSolver/DirSplitting/DirSplitting.kernel"
 #include "dataManagement/DataConnector.hpp"

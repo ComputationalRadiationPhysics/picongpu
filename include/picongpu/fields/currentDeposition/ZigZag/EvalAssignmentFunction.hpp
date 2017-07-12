@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "pmacc_types.hpp"
 #include "dimensions/DataSpace.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
-#include "algorithms/FieldToParticleInterpolation.hpp"
-#include "algorithms/ShiftCoordinateSystem.hpp"
+#include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
+#include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/copy.hpp>

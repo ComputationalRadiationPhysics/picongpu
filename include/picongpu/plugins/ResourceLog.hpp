@@ -28,7 +28,7 @@
 // PIConGPU
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "ILightweightPlugin.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 // Boost
 #include <boost/property_tree/ptree.hpp>

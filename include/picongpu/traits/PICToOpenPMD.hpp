@@ -23,7 +23,7 @@
 #include "picongpu/traits/UnitDimension.hpp"
 
 #include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include <string>
 #include <vector>

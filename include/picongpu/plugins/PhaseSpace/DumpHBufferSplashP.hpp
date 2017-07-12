@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/traits/SplashToPIC.hpp"
 #include "picongpu/traits/PICToSplash.hpp"

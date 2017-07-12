@@ -22,7 +22,7 @@
 #include "static_assert.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/LarmorPower.def"
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 
 namespace picongpu

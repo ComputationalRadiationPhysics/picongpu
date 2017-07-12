@@ -21,7 +21,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "math/Vector.hpp"
 #include "math/RungeKutta.hpp"
 #include "picongpu/particles/interpolationMemoryPolicy/ShiftToValidRange.hpp"

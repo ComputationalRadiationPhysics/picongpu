@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "assert.hpp"
 
 #include "picongpu/fields/FieldB.hpp"
@@ -29,7 +29,7 @@
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "picongpu/plugins/output/GatherSlice.hpp"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 
 #include "algorithms/GlobalReduce.hpp"
 #include "memory/boxes/DataBoxDim1Access.hpp"

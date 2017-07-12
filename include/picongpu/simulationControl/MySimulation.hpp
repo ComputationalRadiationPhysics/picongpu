@@ -31,10 +31,10 @@
 
 #include "pmacc_types.hpp"
 #include "simulationControl/SimulationHelper.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
-#include "particles/bremsstrahlung/ScaledSpectrum.hpp"
-#include "particles/bremsstrahlung/PhotonEmissionAngle.hpp"
+#include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
+#include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
 
 #include "eventSystem/EventSystem.hpp"
 #include "dimensions/GridLayout.hpp"
@@ -51,13 +51,13 @@
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/fields/background/cellwiseOperation.hpp"
-#include "initialization/IInitPlugin.hpp"
-#include "initialization/ParserGridDistribution.hpp"
-#include "particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-#include "particles/Manipulate.hpp"
-#include "particles/manipulators/manipulators.hpp"
-#include "particles/filter/filter.hpp"
-#include "particles/flylite/NonLTE.tpp"
+#include "picongpu/initialization/IInitPlugin.hpp"
+#include "picongpu/initialization/ParserGridDistribution.hpp"
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#include "picongpu/particles/Manipulate.hpp"
+#include "picongpu/particles/manipulators/manipulators.hpp"
+#include "picongpu/particles/filter/filter.hpp"
+#include "picongpu/particles/flylite/NonLTE.tpp"
 #include "random/methods/XorMin.hpp"
 #include "random/RNGProvider.hpp"
 
@@ -70,12 +70,12 @@
 #include "compileTime/conversion/TypeToPointerPair.hpp"
 
 #include "algorithms/ForEach.hpp"
-#include "particles/ParticlesFunctors.hpp"
-#include "particles/InitFunctors.hpp"
+#include "picongpu/particles/ParticlesFunctors.hpp"
+#include "picongpu/particles/InitFunctors.hpp"
 #include "particles/memory/buffers/MallocMCBuffer.hpp"
 #include "particles/traits/FilterByFlag.hpp"
 #include "particles/traits/FilterByIdentifier.hpp"
-#include "particles/traits/HasIonizersWithRNG.hpp"
+#include "picongpu/particles/traits/HasIonizersWithRNG.hpp"
 #include "particles/IdProvider.hpp"
 
 #include <boost/mpl/int.hpp>
@@ -775,6 +775,6 @@ protected:
 } /* namespace picongpu */
 
 #include "picongpu/fields/Fields.tpp"
-#include "particles/synchrotronPhotons/SynchrotronFunctions.tpp"
-#include "particles/bremsstrahlung/Bremsstrahlung.tpp"
-#include "particles/bremsstrahlung/ScaledSpectrum.tpp"
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"
+#include "picongpu/particles/bremsstrahlung/Bremsstrahlung.tpp"
+#include "picongpu/particles/bremsstrahlung/ScaledSpectrum.tpp"

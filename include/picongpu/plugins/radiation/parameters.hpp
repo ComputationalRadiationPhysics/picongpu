@@ -21,7 +21,7 @@
 
 
 #include "vector.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 
 typedef cuda_vec<picongpu::float3_X, picongpu::float_X> vector_X;

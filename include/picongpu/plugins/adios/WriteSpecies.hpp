@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "simulation_types.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "assert.hpp"
 

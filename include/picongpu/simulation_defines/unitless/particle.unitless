@@ -23,4 +23,4 @@
 
 
 /* include implemented particle initializations */
-#include "particles/startPosition/functors.hpp"
+#include "picongpu/particles/startPosition/functors.hpp"

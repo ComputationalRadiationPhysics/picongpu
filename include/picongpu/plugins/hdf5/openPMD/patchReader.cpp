@@ -19,7 +19,7 @@
 
 #if( ENABLE_HDF5 == 1 )
 
-#  include "plugins/hdf5/openPMD/patchReader.hpp"
+#  include "picongpu/plugins/hdf5/openPMD/patchReader.hpp"
 
 
 namespace picongpu

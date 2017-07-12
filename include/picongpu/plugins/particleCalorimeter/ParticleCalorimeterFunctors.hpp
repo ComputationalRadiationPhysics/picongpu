@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
-#include "algorithms/KinEnergy.hpp"
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/algorithms/KinEnergy.hpp"
 #include "math/Vector.hpp"
 #include "algorithms/math.hpp"
 #include "memory/shared/Allocate.hpp"

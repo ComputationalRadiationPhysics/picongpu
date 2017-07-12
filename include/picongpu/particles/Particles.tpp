@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "Particles.hpp"
 
 #include "picongpu/particles/Particles.kernel"
@@ -35,7 +35,7 @@
 #include "ParticlesInit.kernel"
 #include "mappings/simulation/GridController.hpp"
 
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 
 #include "picongpu/fields/numericalCellTypes/YeeCell.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"

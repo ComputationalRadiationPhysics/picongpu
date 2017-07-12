@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/filter/RelativeGlobalDomainPosition.def"
 
 namespace picongpu

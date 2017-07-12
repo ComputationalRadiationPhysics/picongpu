@@ -20,4 +20,4 @@
 
 #pragma once
 
-#include "particles/manipulators/manipulators.hpp"
+#include "picongpu/particles/manipulators/manipulators.hpp"

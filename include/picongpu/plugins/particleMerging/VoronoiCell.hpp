@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "algorithms/KinEnergy.hpp"
+#include "picongpu/algorithms/KinEnergy.hpp"
 #include "pmacc_types.hpp"
 
 namespace picongpu

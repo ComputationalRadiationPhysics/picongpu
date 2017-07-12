@@ -22,7 +22,7 @@
 #pragma once
 
 #include "LeheSolver.def"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 namespace picongpu
 {

@@ -26,12 +26,9 @@
 #include <fstream>
 #include <cstdlib>
 
-#include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
-#include "simulation_types.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
+#include "picongpu/simulation_defines.hpp"
 
-#include "simulation_classTypes.hpp"
+#include "dimensions/DataSpaceOperations.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 
 

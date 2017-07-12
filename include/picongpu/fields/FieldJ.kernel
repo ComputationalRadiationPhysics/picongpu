@@ -23,19 +23,19 @@
 #include "pmacc_types.hpp"
 #include "particles/frame_types.hpp"
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "FieldJ.hpp"
 #include "particles/memory/boxes/ParticlesBox.hpp"
 
 
-#include "algorithms/Velocity.hpp"
+#include "picongpu/algorithms/Velocity.hpp"
 
 #include "memory/boxes/CachedBox.hpp"
 #include "dimensions/DataSpaceOperations.hpp"
 #include "nvidia/functors/Add.hpp"
 #include "mappings/threads/ThreadCollective.hpp"
-#include "algorithms/Set.hpp"
+#include "picongpu/algorithms/Set.hpp"
 #include "mappings/threads/ForEachIdx.hpp"
 #include "mappings/threads/IdxConfig.hpp"
 #include "memory/CtxArray.hpp"

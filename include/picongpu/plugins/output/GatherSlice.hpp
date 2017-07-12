@@ -23,7 +23,7 @@
 #include "memory/boxes/PitchedBox.hpp"
 #include "header/MessageHeader.hpp"
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "pmacc_types.hpp"
 

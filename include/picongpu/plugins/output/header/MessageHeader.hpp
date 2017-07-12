@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "dimensions/DataSpace.hpp"
 
 #include "picongpu/plugins/output/header/DataHeader.hpp"
@@ -29,7 +28,7 @@
 //#include "picongpu/plugins/output/header/ColorHeader.hpp"
 #include "picongpu/plugins/output/header/WindowHeader.hpp"
 
-#include "simulationControl/Window.hpp"
+#include "picongpu/simulationControl/Window.hpp"
 
 #include <iostream>
 #include <cstdlib>

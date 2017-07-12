@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
-#include "FieldJ.hpp"
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldJ.kernel"
 
 
@@ -37,7 +37,7 @@
 #include "math/Vector.hpp"
 #include "fields/operations/CopyGuardToExchange.hpp"
 #include "fields/operations/AddExchangeToBorder.hpp"
-#include "particles/traits/GetCurrentSolver.hpp"
+#include "picongpu/particles/traits/GetCurrentSolver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 #include "traits/Resolve.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"

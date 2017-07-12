@@ -21,17 +21,17 @@
 
 #pragma once
 
-#include "algorithms/Gamma.hpp"
-#include "algorithms/Velocity.hpp"
+#include "picongpu/algorithms/Gamma.hpp"
+#include "picongpu/algorithms/Velocity.hpp"
 
 
-#include "particles/pusher/particlePusherBoris.hpp"
-#include "particles/pusher/particlePusherVay.hpp"
-#include "particles/pusher/particlePusherFree.hpp"
-#include "particles/pusher/particlePusherPhoton.hpp"
-#include "particles/pusher/particlePusherReducedLandauLifshitz.hpp"
+#include "picongpu/particles/pusher/particlePusherBoris.hpp"
+#include "picongpu/particles/pusher/particlePusherVay.hpp"
+#include "picongpu/particles/pusher/particlePusherFree.hpp"
+#include "picongpu/particles/pusher/particlePusherPhoton.hpp"
+#include "picongpu/particles/pusher/particlePusherReducedLandauLifshitz.hpp"
 #if(SIMDIM==DIM3)
-#include "particles/pusher/particlePusherAxel.hpp"
+#include "picongpu/particles/pusher/particlePusherAxel.hpp"
 #endif
 
 namespace picongpu

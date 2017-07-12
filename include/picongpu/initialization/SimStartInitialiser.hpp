@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_types.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "dataManagement/AbstractInitialiser.hpp"
 //#include "dataManagement/DataConnector.hpp"
 

@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "Curl.hpp"
-#include "algorithms/DifferenceToUpper.hpp"
-#include "algorithms/DifferenceToLower.hpp"
+#include "picongpu/fields/MaxwellSolver/Yee/Curl.hpp"
+#include "picongpu/algorithms/DifferenceToUpper.hpp"
+#include "picongpu/algorithms/DifferenceToLower.hpp"
 
 namespace picongpu
 {

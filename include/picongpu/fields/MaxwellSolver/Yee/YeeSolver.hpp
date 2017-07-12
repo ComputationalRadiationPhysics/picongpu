@@ -21,7 +21,7 @@
 
 #include "YeeSolver.def"
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/YeeSolver.kernel"
 

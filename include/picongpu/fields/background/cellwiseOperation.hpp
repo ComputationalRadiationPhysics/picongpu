@@ -20,13 +20,13 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "basicOperations.hpp"
 
 #include "dimensions/DataSpace.hpp"
 #include "mappings/simulation/SubGrid.hpp"
 #include "mappings/kernel/MappingDescription.hpp"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 
 
 namespace picongpu

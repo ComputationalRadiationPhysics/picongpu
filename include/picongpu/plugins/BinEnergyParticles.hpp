@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "algorithms/Gamma.hpp"
-#include "algorithms/KinEnergy.hpp"
+#include "picongpu/algorithms/Gamma.hpp"
+#include "picongpu/algorithms/KinEnergy.hpp"
 
 #include "mpi/reduceMethods/Reduce.hpp"
 #include "mpi/MPIReduce.hpp"

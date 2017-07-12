@@ -28,7 +28,7 @@
 
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"
-#include "particles/particleToGrid/ComputeGridValuePerFrame.def"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 
 namespace picongpu

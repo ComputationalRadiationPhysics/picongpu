@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "static_assert.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 #include <vector>

@@ -21,9 +21,7 @@
 
 #include "picongpu/plugins/output/sockets/SocketConnector.hpp"
 
-#include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
-#include "simulation_types.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "memory/boxes/PitchedBox.hpp"

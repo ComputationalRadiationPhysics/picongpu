@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/manipulators/generic/FreeRng.def"
 #include "nvidia/rng/distributions/Normal_float.hpp"
 #include "nvidia/functors/Add.hpp"

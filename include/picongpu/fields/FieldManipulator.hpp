@@ -19,12 +19,11 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
-#include "simulation_classTypes.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "memory/dataTypes/Mask.hpp"
 #include "FieldManipulator.kernel"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 
 #include <string>
 #include <sstream>

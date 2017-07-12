@@ -28,4 +28,4 @@ namespace picongpu
         float_X( SI::BASE_DENSITY_SI * UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH );
 }
 
-#include "particles/densityProfiles/profiles.hpp"
+#include "picongpu/particles/densityProfiles/profiles.hpp"

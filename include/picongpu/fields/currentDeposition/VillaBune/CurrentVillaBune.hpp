@@ -22,12 +22,12 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "basicOperations.hpp"
 #include "math/Vector.hpp"
 #include "traits/IsSameType.hpp"
-#include "particles/shapes/CIC.hpp"
+#include "picongpu/particles/shapes/CIC.hpp"
 
 namespace picongpu
 {

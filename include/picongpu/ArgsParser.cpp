@@ -22,7 +22,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "ArgsParser.hpp"
+#include "picongpu/ArgsParser.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>

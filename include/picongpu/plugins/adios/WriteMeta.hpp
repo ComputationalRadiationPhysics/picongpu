@@ -18,7 +18,7 @@
  */
 
 #pragma once
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"

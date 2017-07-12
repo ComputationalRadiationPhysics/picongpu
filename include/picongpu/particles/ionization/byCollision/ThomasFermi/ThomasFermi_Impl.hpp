@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "traits/Resolve.hpp"
 #include "picongpu/traits/UsesRNG.hpp"
 

@@ -24,7 +24,7 @@
 #error The activated radiation plugin (radiation.param) requires HDF5
 #endif
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/traits/SplashToPIC.hpp"
 #include "picongpu/traits/PICToSplash.hpp"

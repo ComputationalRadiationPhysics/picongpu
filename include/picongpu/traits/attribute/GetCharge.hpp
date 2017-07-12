@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
 #include "traits/HasIdentifier.hpp"
-#include "particles/traits/GetAtomicNumbers.hpp"
+#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 namespace picongpu
 {

@@ -20,7 +20,7 @@
 #pragma once
 
 #include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
 #include "memory/boxes/DataBox.hpp"
 #include "picongpu/plugins/output/header/MessageHeader.hpp"

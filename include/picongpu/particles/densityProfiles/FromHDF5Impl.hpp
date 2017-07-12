@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.hpp"
-#include "simulationControl/MovingWindow.hpp"
+#include "picongpu/simulationControl/MovingWindow.hpp"
 
 #include "static_assert.hpp"
 #include "memory/buffers/GridBuffer.hpp"

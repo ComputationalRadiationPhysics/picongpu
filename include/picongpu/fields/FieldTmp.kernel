@@ -25,7 +25,7 @@
 #include "particles/frame_types.hpp"
 #include "basicOperations.hpp"
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "FieldTmp.hpp"
 #include "particles/memory/boxes/ParticlesBox.hpp"
@@ -34,7 +34,7 @@
 #include "dimensions/DataSpaceOperations.hpp"
 #include "nvidia/functors/Add.hpp"
 #include "mappings/threads/ThreadCollective.hpp"
-#include "algorithms/Set.hpp"
+#include "picongpu/algorithms/Set.hpp"
 
 #include "particles/frame_types.hpp"
 #include "memory/shared/Allocate.hpp"

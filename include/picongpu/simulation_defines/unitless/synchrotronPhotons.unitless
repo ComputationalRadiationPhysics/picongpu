@@ -41,4 +41,4 @@ constexpr float_X SOFT_PHOTONS_CUTOFF_MOM = static_cast<float_X>(
 } // namespace particles
 } // namespace picongpu
 
-#include "particles/synchrotronPhotons/PhotonCreator.hpp"
+#include "picongpu/particles/synchrotronPhotons/PhotonCreator.hpp"

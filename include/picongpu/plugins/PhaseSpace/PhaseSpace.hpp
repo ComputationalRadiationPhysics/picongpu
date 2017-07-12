@@ -21,7 +21,7 @@
 
 #include <mpi.h>
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "communication/manager_common.hpp"
 #include "pluginSystem/INotify.hpp"
 #include "cuSTL/container/DeviceBuffer.hpp"

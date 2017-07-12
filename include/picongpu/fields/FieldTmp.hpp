@@ -26,7 +26,7 @@
 #include <vector>
 
 /*pic default*/
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/fields/Fields.def"
 #include "fields/SimulationFieldHelper.hpp"

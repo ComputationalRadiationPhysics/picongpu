@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "math/Vector.hpp"
 #include "basicOperations.hpp"

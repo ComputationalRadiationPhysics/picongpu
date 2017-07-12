@@ -19,14 +19,13 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
 #include <boost/program_options/options_description.hpp>
 #include <iostream>
 
-#include "simulation_defines.hpp"
-#include "ArgsParser.hpp"
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/ArgsParser.hpp"
 #include "dimensions/DataSpace.hpp"
 #include "mappings/simulation/GridController.hpp"
 #include "dimensions/GridLayout.hpp"

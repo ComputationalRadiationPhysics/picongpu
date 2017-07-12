@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include <fstream>
 #include <cstdio>
 #include "memory/buffers/GridBuffer.hpp"

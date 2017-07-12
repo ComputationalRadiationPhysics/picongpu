@@ -22,9 +22,8 @@
 
 #include <mpi.h>
 
-#include "simulation_defines.hpp"
+#include "picongpu/simulation_defines.hpp"
 
-#include "simulation_classTypes.hpp"
 #include "mappings/kernel/AreaMapping.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
@@ -32,7 +31,7 @@
 #include "mpi/MPIReduce.hpp"
 #include "nvidia/functors/Add.hpp"
 
-#include "algorithms/KinEnergy.hpp"
+#include "picongpu/algorithms/KinEnergy.hpp"
 #include "memory/shared/Allocate.hpp"
 #include "dataManagement/DataConnector.hpp"
 

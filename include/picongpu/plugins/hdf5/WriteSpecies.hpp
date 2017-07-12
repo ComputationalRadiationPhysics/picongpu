@@ -19,12 +19,11 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "simulation_types.hpp"
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/traits/SIBaseUnits.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
-#include "picongpu/traits/HasIdentifier.hpp"
+#include "traits/HasIdentifier.hpp"
 #include "assert.hpp"
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
@@ -39,7 +38,7 @@
 #include "compileTime/conversion/RemoveFromSeq.hpp"
 #include "dataManagement/DataConnector.hpp"
 #include "particles/ParticleDescription.hpp"
-#include "particles/traits/GetSpeciesFlagName.hpp"
+#include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
