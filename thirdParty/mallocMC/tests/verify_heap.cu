@@ -48,7 +48,7 @@
 
 //include the Heap with the arguments given in the config
 #include "src/include/mallocMC/mallocMC_utils.hpp"
-#include "verify_heap_config.hpp"
+#include "pmacc/verify_heap_config.hpp"
 
 // global variable for verbosity, might change due to user input '--verbose'
 bool verbose = false;

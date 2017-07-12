@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
-#include "memory/boxes/DataBox.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
-#include "verify.hpp"
+#include "pmacc/verify.hpp"
 
 #include <string>
 #include <iostream>

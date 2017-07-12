@@ -19,13 +19,13 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "Environment.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/Environment.hpp"
 #include "picongpu/simulation_defines.hpp"
 
-#include "mappings/kernel/AreaMapping.hpp"
-#include "math/Vector.hpp"
-#include "eventSystem/EventSystem.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
 
 #include "picongpu/debug/PIConGPUVerbose.hpp"
 

@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "math/Vector.hpp"
-#include "cuSTL/cursor/compile-time/BufferCursor.hpp"
-#include "cuSTL/cursor/navigator/CartNavigator.hpp"
-#include "cuSTL/cursor/accessor/PointerAccessor.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/cuSTL/cursor/compile-time/BufferCursor.hpp"
+#include "pmacc/cuSTL/cursor/navigator/CartNavigator.hpp"
+#include "pmacc/cuSTL/cursor/accessor/PointerAccessor.hpp"
 #include <cuSTL/zone/compile-time/SphericZone.hpp>
 
 namespace pmacc

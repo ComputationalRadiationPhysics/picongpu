@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "mpi.h"
-#include "math/vector/Int.hpp"
-#include "cuSTL/container/HostBuffer.hpp"
-#include "cuSTL/zone/SphericZone.hpp"
+#include "pmacc/mpi.h"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/cuSTL/container/HostBuffer.hpp"
+#include "pmacc/cuSTL/zone/SphericZone.hpp"
 #include <vector>
 
 namespace pmacc
@@ -92,4 +92,4 @@ public:
 } // algorithm
 } // pmacc
 
-#include "cuSTL/algorithm/mpi/Reduce.tpp"
+#include "pmacc/cuSTL/algorithm/mpi/Reduce.tpp"

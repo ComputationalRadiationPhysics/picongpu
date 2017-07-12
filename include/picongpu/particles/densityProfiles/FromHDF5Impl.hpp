@@ -23,10 +23,10 @@
 #include "picongpu/fields/Fields.hpp"
 #include "picongpu/simulationControl/MovingWindow.hpp"
 
-#include "static_assert.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "memory/boxes/DataBoxDim1Access.hpp"
-#include "dataManagement/DataConnector.hpp"
+#include "pmacc/static_assert.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
 
 #include <splash/splash.h>
 

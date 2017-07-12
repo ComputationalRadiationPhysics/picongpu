@@ -19,7 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "PMaccFixture.hpp"
+#include "pmacc/test/PMaccFixture.hpp"
 
 // STL
 #include <stdint.h> /* uint8_t */
@@ -36,14 +36,14 @@
 #include <mpi.h> /* MPI_Init, MPI_Finalize */
 
 // PMacc
-#include <Environment.hpp>
-#include <dimensions/DataSpace.hpp>
-#include <memory/buffers/HostBufferIntern.hpp>
-#include <memory/buffers/HostBuffer.hpp>
-#include <memory/buffers/DeviceBufferIntern.hpp>
-#include <memory/buffers/DeviceBuffer.hpp>
-#include <dimensions/DataSpace.hpp>
-#include "pmacc_types.hpp" /* DIM1,DIM2,DIM3 */
+#include <pmacc/Environment.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/memory/buffers/HostBufferIntern.hpp>
+#include <pmacc/memory/buffers/HostBuffer.hpp>
+#include <pmacc/memory/buffers/DeviceBufferIntern.hpp>
+#include <pmacc/memory/buffers/DeviceBuffer.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
+#include "pmacc/types.hpp" /* DIM1,DIM2,DIM3 */
 
 
 /*******************************************************************************

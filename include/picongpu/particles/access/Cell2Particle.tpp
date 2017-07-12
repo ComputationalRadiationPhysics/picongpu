@@ -20,9 +20,9 @@
 #pragma once
 
 #include <stdint.h>
-#include "math/Vector.hpp"
-#include "math/MapTuple.hpp"
-#include "memory/shared/Allocate.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/math/MapTuple.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
 #include <boost/mpl/void.hpp>
 
 namespace particleAccess

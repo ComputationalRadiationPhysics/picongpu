@@ -21,8 +21,8 @@
 
 #include "picongpu/particles/creation/creation.kernel"
 #include "picongpu/simulation_defines.hpp"
-#include "cuSTL/algorithm/kernel/Foreach.hpp"
-#include "cuSTL/cursor/MultiIndexCursor.hpp"
+#include "pmacc/cuSTL/algorithm/kernel/Foreach.hpp"
+#include "pmacc/cuSTL/cursor/MultiIndexCursor.hpp"
 
 namespace picongpu
 {

@@ -22,22 +22,22 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
-#include "assert.hpp"
+#include "pmacc/assert.hpp"
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "picongpu/plugins/adios/writer/ParticleAttribute.hpp"
 
-#include "compileTime/conversion/MakeSeq.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "dataManagement/DataConnector.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "particles/ParticleDescription.hpp"
-#include "particles/operations/ConcatListOfFrames.hpp"
-#include "particles/particleFilter/FilterFactory.hpp"
-#include "particles/particleFilter/PositionFilter.hpp"
-#include "particles/memory/buffers/MallocMCBuffer.hpp"
+#include "pmacc/compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include "pmacc/particles/ParticleDescription.hpp"
+#include "pmacc/particles/operations/ConcatListOfFrames.hpp"
+#include "pmacc/particles/particleFilter/FilterFactory.hpp"
+#include "pmacc/particles/particleFilter/PositionFilter.hpp"
+#include "pmacc/particles/memory/buffers/MallocMCBuffer.hpp"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>

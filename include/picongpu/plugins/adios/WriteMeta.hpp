@@ -22,9 +22,9 @@
 
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
-#include "Environment.hpp"
+#include "pmacc/Environment.hpp"
 
-#include "fields/FieldManipulator.hpp"
+#include "pmacc/fields/FieldManipulator.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 
 #include "picongpu/traits/SIBaseUnits.hpp"

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 namespace picongpu
 {

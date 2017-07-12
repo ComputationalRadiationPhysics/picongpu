@@ -22,13 +22,13 @@
 #include "picongpu/simulation_defines.hpp"
 
 // pmacc
-#include "dataManagement/ISimulationData.hpp"
-#include "dimensions/GridLayout.hpp"
-#include "nvidia/reduce/Reduce.hpp"
-#include "nvidia/functors/Add.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "memory/shared/Allocate.hpp"
-#include "memory/Array.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/nvidia/reduce/Reduce.hpp"
+#include "pmacc/nvidia/functors/Add.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/memory/Array.hpp"
 
 
 namespace picongpu

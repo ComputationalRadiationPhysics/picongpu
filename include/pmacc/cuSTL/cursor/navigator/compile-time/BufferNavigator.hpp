@@ -22,7 +22,7 @@
 #pragma once
 
 #include <boost/type_traits/remove_pointer.hpp>
-#include "math/vector/Int.hpp"
+#include "pmacc/math/vector/Int.hpp"
 
 namespace pmacc
 {

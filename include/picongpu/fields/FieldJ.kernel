@@ -20,26 +20,26 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "particles/frame_types.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/particles/frame_types.hpp"
 
 #include "picongpu/simulation_defines.hpp"
 
 #include "FieldJ.hpp"
-#include "particles/memory/boxes/ParticlesBox.hpp"
+#include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
 
 
 #include "picongpu/algorithms/Velocity.hpp"
 
-#include "memory/boxes/CachedBox.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "nvidia/functors/Add.hpp"
-#include "mappings/threads/ThreadCollective.hpp"
+#include "pmacc/memory/boxes/CachedBox.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/nvidia/functors/Add.hpp"
+#include "pmacc/mappings/threads/ThreadCollective.hpp"
 #include "picongpu/algorithms/Set.hpp"
-#include "mappings/threads/ForEachIdx.hpp"
-#include "mappings/threads/IdxConfig.hpp"
-#include "memory/CtxArray.hpp"
-#include "particles/frame_types.hpp"
+#include "pmacc/mappings/threads/ForEachIdx.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/memory/CtxArray.hpp"
+#include "pmacc/particles/frame_types.hpp"
 
 namespace picongpu
 {

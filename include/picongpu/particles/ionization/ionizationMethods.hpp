@@ -22,16 +22,16 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "particles/operations/Assign.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/particles/operations/Assign.hpp"
 #include "picongpu/traits/attribute/GetMass.hpp"
 
-#include "nvidia/rng/RNG.hpp"
-#include "nvidia/rng/methods/Xor.hpp"
-#include "nvidia/rng/distributions/Uniform_float.hpp"
-#include "mpi/SeedPerRank.hpp"
-#include "traits/GetUniqueTypeId.hpp"
-#include "particles/operations/Deselect.hpp"
+#include "pmacc/nvidia/rng/RNG.hpp"
+#include "pmacc/nvidia/rng/methods/Xor.hpp"
+#include "pmacc/nvidia/rng/distributions/Uniform_float.hpp"
+#include "pmacc/mpi/SeedPerRank.hpp"
+#include "pmacc/traits/GetUniqueTypeId.hpp"
+#include "pmacc/particles/operations/Deselect.hpp"
 
 namespace picongpu
 {

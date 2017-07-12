@@ -21,7 +21,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include <picongpu/simulation_types.hpp>
 #include "pmacc_renamings.hpp"
 

@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include <math/vector/Float.hpp>
-#include "math/Vector.hpp"
+#include "pmacc/math/Vector.hpp"
 #include <cuSTL/container/compile-time/SharedBuffer.hpp>
 #include <cuSTL/algorithm/cudaBlock/Foreach.hpp>
 #include <lambda/Expression.hpp>

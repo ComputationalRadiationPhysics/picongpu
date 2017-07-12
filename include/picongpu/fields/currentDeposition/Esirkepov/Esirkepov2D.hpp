@@ -20,10 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "basicOperations.hpp"
-#include "cuSTL/cursor/Cursor.hpp"
-#include "cuSTL/cursor/tools/twistVectorFieldAxes.hpp"
-#include "cuSTL/cursor/compile-time/SafeCursor.hpp"
+#include "pmacc/basicOperations.hpp"
+#include "pmacc/cuSTL/cursor/Cursor.hpp"
+#include "pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp"
+#include "pmacc/cuSTL/cursor/compile-time/SafeCursor.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 #include "picongpu/algorithms/Velocity.hpp"

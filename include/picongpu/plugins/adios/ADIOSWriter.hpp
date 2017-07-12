@@ -20,29 +20,29 @@
 
 #pragma once
 
-#include "static_assert.hpp"
+#include "pmacc/static_assert.hpp"
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 
-#include "particles/frame_types.hpp"
-#include "particles/IdProvider.def"
-#include "assert.hpp"
+#include "pmacc/particles/frame_types.hpp"
+#include "pmacc/particles/IdProvider.def"
+#include "pmacc/assert.hpp"
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
-#include "particles/operations/CountParticles.hpp"
+#include "pmacc/particles/operations/CountParticles.hpp"
 
-#include "dataManagement/DataConnector.hpp"
-#include "mappings/simulation/GridController.hpp"
-#include "mappings/simulation/SubGrid.hpp"
-#include "dimensions/GridLayout.hpp"
-#include "pluginSystem/PluginConnector.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/mappings/simulation/SubGrid.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/pluginSystem/PluginConnector.hpp"
 #include "picongpu/simulationControl/MovingWindow.hpp"
-#include "math/Vector.hpp"
-#include "particles/memory/buffers/MallocMCBuffer.hpp"
-#include "traits/Limits.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/particles/memory/buffers/MallocMCBuffer.hpp"
+#include "pmacc/traits/Limits.hpp"
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 

@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "cuSTL/algorithm/host/Foreach.hpp"
-#include "lambda/placeholder.hpp"
+#include "pmacc/cuSTL/algorithm/host/Foreach.hpp"
+#include "pmacc/lambda/placeholder.hpp"
 
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/int.hpp>

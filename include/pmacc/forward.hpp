@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "RefWrapper.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/RefWrapper.hpp"
 
 namespace PMacc
 {

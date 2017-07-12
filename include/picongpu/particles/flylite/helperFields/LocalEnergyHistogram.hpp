@@ -22,10 +22,10 @@
 #include "picongpu/simulation_defines.hpp"
 
 // pmacc
-#include "dataManagement/ISimulationData.hpp"
-#include "dimensions/GridLayout.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "memory/Array.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/memory/Array.hpp"
 
 #include <string>
 

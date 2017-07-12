@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include "picongpu/simulation_defines.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "basicOperations.hpp"
-#include "math/Vector.hpp"
-#include "traits/IsSameType.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/basicOperations.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/traits/IsSameType.hpp"
 #include "picongpu/particles/shapes/CIC.hpp"
 
 namespace picongpu

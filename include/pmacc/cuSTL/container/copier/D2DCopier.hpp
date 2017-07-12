@@ -23,10 +23,10 @@
 #pragma once
 
 #include "Memcopy.hpp"
-#include "cuSTL/cursor/BufferCursor.hpp"
-#include "cuSTL/cursor/accessor/CursorAccessor.hpp"
-#include "cuSTL/cursor/navigator/MapTo1DNavigator.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/cuSTL/cursor/BufferCursor.hpp"
+#include "pmacc/cuSTL/cursor/accessor/CursorAccessor.hpp"
+#include "pmacc/cuSTL/cursor/navigator/MapTo1DNavigator.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

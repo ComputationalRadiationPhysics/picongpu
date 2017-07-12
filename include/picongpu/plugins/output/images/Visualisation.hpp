@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "assert.hpp"
+#include "pmacc/assert.hpp"
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
@@ -31,22 +31,22 @@
 #include "picongpu/plugins/output/GatherSlice.hpp"
 #include "picongpu/simulationControl/MovingWindow.hpp"
 
-#include "algorithms/GlobalReduce.hpp"
-#include "memory/boxes/DataBoxDim1Access.hpp"
-#include "nvidia/functors/Max.hpp"
-#include "nvidia/atomic.hpp"
-#include "memory/shared/Allocate.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "memory/boxes/SharedBox.hpp"
-#include "memory/boxes/PitchedBox.hpp"
-#include "memory/buffers/GridBuffer.hpp"
-#include "particles/memory/boxes/ParticlesBox.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "mappings/kernel/MappingDescription.hpp"
-#include "mappings/simulation/GridController.hpp"
-#include "dataManagement/DataConnector.hpp"
-#include "math/Vector.hpp"
+#include "pmacc/algorithms/GlobalReduce.hpp"
+#include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
+#include "pmacc/nvidia/functors/Max.hpp"
+#include "pmacc/nvidia/atomic.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/memory/boxes/SharedBox.hpp"
+#include "pmacc/memory/boxes/PitchedBox.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/mappings/kernel/MappingDescription.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/math/Vector.hpp"
 
 #include <string>
 #include <cfloat>

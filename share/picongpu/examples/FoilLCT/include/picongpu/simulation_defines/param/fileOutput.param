@@ -24,7 +24,7 @@
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/int.hpp>
 
-#include "compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/compileTime/conversion/MakeSeq.hpp"
 
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"

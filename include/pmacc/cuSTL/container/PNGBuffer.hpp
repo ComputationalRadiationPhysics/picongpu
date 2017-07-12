@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include "cuSTL/cursor/Cursor.hpp"
-#include "cuSTL/cursor/navigator/MultiIndexNavigator.hpp"
-#include "math/vector/Int.hpp"
-#include "math/vector/Size_t.hpp"
-#include "math/vector/Float.hpp"
-#include "cuSTL/zone/SphericZone.hpp"
+#include "pmacc/cuSTL/cursor/Cursor.hpp"
+#include "pmacc/cuSTL/cursor/navigator/MultiIndexNavigator.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
+#include "pmacc/math/vector/Float.hpp"
+#include "pmacc/cuSTL/zone/SphericZone.hpp"
 #include <pngwriter.h>
 #include <string>
 

@@ -21,8 +21,8 @@
 
 #include "picongpu/plugins/particleMerging/VoronoiCell.hpp"
 #include "picongpu/particles/access/Cell2Particle.hpp"
-#include "memory/Array.hpp"
-#include "memory/IndexPool.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/memory/IndexPool.hpp"
 
 namespace picongpu
 {

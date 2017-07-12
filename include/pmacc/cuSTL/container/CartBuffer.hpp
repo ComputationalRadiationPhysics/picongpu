@@ -21,16 +21,16 @@
 
 #pragma once
 
-#include "cuSTL/container/allocator/EmptyAllocator.hpp"
-#include "cuSTL/cursor/BufferCursor.hpp"
-#include "cuSTL/cursor/navigator/CartNavigator.hpp"
-#include "cuSTL/cursor/accessor/PointerAccessor.hpp"
-#include "cuSTL/cursor/SafeCursor.hpp"
-#include "cuSTL/zone/SphericZone.hpp"
-#include "cuSTL/container/view/View.hpp"
-#include "math/vector/Size_t.hpp"
-#include "math/vector/UInt32.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/cuSTL/container/allocator/EmptyAllocator.hpp"
+#include "pmacc/cuSTL/cursor/BufferCursor.hpp"
+#include "pmacc/cuSTL/cursor/navigator/CartNavigator.hpp"
+#include "pmacc/cuSTL/cursor/accessor/PointerAccessor.hpp"
+#include "pmacc/cuSTL/cursor/SafeCursor.hpp"
+#include "pmacc/cuSTL/zone/SphericZone.hpp"
+#include "pmacc/cuSTL/container/view/View.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
+#include "pmacc/math/vector/UInt32.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/mpl/void.hpp>
 #include <boost/mpl/int.hpp>

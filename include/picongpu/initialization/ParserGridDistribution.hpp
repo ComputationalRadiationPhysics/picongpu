@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "verify.hpp"
+#include "pmacc/verify.hpp"
 #include <vector>   // std::vector
 #include <string>   // std::string
 #include <utility>  // std::pair

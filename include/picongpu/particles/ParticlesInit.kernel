@@ -21,19 +21,19 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/Particles.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "memory/boxes/PitchedBox.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/memory/boxes/PitchedBox.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
 
-#include "particles/operations/SetAttributeToDefault.hpp"
-#include "compileTime/conversion/ResolveAndRemoveFromSeq.hpp"
+#include "pmacc/particles/operations/SetAttributeToDefault.hpp"
+#include "pmacc/compileTime/conversion/ResolveAndRemoveFromSeq.hpp"
 #include "picongpu/particles/startPosition/MacroParticleCfg.hpp"
 #include "picongpu/particles/traits/GetDensityRatio.hpp"
-#include "nvidia/atomic.hpp"
-#include "memory/shared/Allocate.hpp"
-#include "memory/CtxArray.hpp"
-#include "mappings/threads/ForEachIdx.hpp"
-#include "mappings/threads/IdxConfig.hpp"
+#include "pmacc/nvidia/atomic.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/memory/CtxArray.hpp"
+#include "pmacc/mappings/threads/ForEachIdx.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
 
 namespace picongpu
 {

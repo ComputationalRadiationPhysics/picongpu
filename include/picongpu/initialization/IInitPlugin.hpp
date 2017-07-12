@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "pluginSystem/PluginConnector.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/pluginSystem/PluginConnector.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 
 

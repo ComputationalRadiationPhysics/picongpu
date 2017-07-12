@@ -23,7 +23,7 @@
 
 #include "tag.hpp"
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace pmacc

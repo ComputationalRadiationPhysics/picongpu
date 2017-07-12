@@ -22,8 +22,8 @@
 #pragma once
 
 #include "tag.hpp"
-#include "math/vector/Int.hpp"
-#include "cuSTL/cursor/traits.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/cuSTL/cursor/traits.hpp"
 
 
 namespace pmacc

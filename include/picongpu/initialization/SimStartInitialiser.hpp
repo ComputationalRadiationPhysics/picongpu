@@ -20,10 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "dataManagement/AbstractInitialiser.hpp"
-//#include "dataManagement/DataConnector.hpp"
+#include "pmacc/dataManagement/AbstractInitialiser.hpp"
+//#include "pmacc/dataManagement/DataConnector.hpp"
 
-#include "Environment.hpp"
+#include "pmacc/Environment.hpp"
 
 namespace picongpu
 {

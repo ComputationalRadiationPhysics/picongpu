@@ -23,9 +23,9 @@
 
 
 #include "picongpu/simulation_defines.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "nvidia/atomic.hpp"
-#include "memory/shared/Allocate.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/nvidia/atomic.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
 
 
 namespace picongpu

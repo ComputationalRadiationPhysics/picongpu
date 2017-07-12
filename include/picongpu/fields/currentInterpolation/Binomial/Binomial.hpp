@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 #include "picongpu/fields/currentInterpolation/None/None.def"
 

@@ -22,7 +22,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "assert.hpp"
+#include "pmacc/assert.hpp"
 
 #include "picongpu/plugins/CountParticles.hpp"
 #include "picongpu/plugins/EnergyParticles.hpp"
@@ -43,7 +43,7 @@
 #include "picongpu/plugins/InSituVolumeRenderer.hpp"
 #endif
 
-#include "mappings/kernel/MappingDescription.hpp"
+#include "pmacc/mappings/kernel/MappingDescription.hpp"
 
 #include "picongpu/plugins/LiveViewPlugin.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"

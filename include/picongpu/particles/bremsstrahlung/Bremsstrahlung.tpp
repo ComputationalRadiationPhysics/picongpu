@@ -23,14 +23,14 @@
 #include "picongpu/traits/frame/GetMass.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
-#include "particles/operations/Assign.hpp"
-#include "particles/operations/Deselect.hpp"
+#include "pmacc/particles/operations/Assign.hpp"
+#include "pmacc/particles/operations/Deselect.hpp"
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
-#include "dataManagement/DataConnector.hpp"
-#include "algorithms/math/defines/sqrt.hpp"
-#include "algorithms/math/defines/dot.hpp"
-#include "algorithms/math/defines/cross.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/algorithms/math/defines/sqrt.hpp"
+#include "pmacc/algorithms/math/defines/dot.hpp"
+#include "pmacc/algorithms/math/defines/cross.hpp"
 
 
 namespace picongpu

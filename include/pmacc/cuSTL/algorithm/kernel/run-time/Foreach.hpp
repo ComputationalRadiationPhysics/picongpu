@@ -21,15 +21,15 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "verify.hpp"
-#include "cudaSpecs.hpp"
-#include "static_assert.hpp"
-#include "math/vector/Size_t.hpp"
-#include "math/vector/Int.hpp"
-#include "lambda/make_Functor.hpp"
-#include "cuSTL/algorithm/kernel/detail/SphericMapper.hpp"
-#include "cuSTL/algorithm/kernel/detail/ForeachKernel.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/verify.hpp"
+#include "pmacc/cudaSpecs.hpp"
+#include "pmacc/static_assert.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/lambda/make_Functor.hpp"
+#include "pmacc/cuSTL/algorithm/kernel/detail/SphericMapper.hpp"
+#include "pmacc/cuSTL/algorithm/kernel/detail/ForeachKernel.hpp"
 #include <forward.hpp>
 
 #include <boost/preprocessor/repetition/enum.hpp>
@@ -40,9 +40,9 @@
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
 #include <boost/math/common_factor_rt.hpp>
 
-#include "eventSystem/tasks/TaskKernel.hpp"
-#include "eventSystem/events/kernelEvents.hpp"
-#include "Environment.hpp"
+#include "pmacc/eventSystem/tasks/TaskKernel.hpp"
+#include "pmacc/eventSystem/events/kernelEvents.hpp"
+#include "pmacc/Environment.hpp"
 
 namespace pmacc
 {

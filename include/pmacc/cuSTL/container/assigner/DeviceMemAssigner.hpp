@@ -22,13 +22,13 @@
 
 #pragma once
 
-#include "verify.hpp"
-#include "cuSTL/cursor/BufferCursor.hpp"
-#include "cuSTL/zone/SphericZone.hpp"
-#include "cuSTL/algorithm/kernel/run-time/Foreach.hpp"
-#include "lambda/Expression.hpp"
-#include "math/vector/Size_t.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/verify.hpp"
+#include "pmacc/cuSTL/cursor/BufferCursor.hpp"
+#include "pmacc/cuSTL/zone/SphericZone.hpp"
+#include "pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp"
+#include "pmacc/lambda/Expression.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/math/common_factor_rt.hpp>
 #include <boost/mpl/placeholders.hpp>

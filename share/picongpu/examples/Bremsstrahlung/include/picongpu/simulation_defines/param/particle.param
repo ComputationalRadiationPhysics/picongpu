@@ -21,8 +21,8 @@
 
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
-#include "nvidia/functors/Add.hpp"
-#include "nvidia/functors/Assign.hpp"
+#include "pmacc/nvidia/functors/Add.hpp"
+#include "pmacc/nvidia/functors/Assign.hpp"
 
 namespace picongpu
 {

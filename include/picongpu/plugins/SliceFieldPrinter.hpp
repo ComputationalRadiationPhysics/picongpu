@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "cuSTL/container/DeviceBuffer.hpp"
-#include "math/vector/Float.hpp"
+#include "pmacc/cuSTL/container/DeviceBuffer.hpp"
+#include "pmacc/math/vector/Float.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 
 #include <string>

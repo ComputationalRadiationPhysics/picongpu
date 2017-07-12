@@ -32,7 +32,7 @@
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/traits/attribute/GetChargeState.hpp"
 
-#include "algorithms/math/floatMath/floatingPoint.tpp"
+#include "pmacc/algorithms/math/floatMath/floatingPoint.tpp"
 
 namespace picongpu
 {

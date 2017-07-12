@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "debug/abortWithError.hpp"
+#include "pmacc/debug/abortWithError.hpp"
 
 /** verify expression
  *

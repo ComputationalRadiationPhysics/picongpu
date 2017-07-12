@@ -23,7 +23,7 @@
 
 
 #include <builtin_types.h>
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include <string>
 #include <ostream>
 #include <math_functions.h>

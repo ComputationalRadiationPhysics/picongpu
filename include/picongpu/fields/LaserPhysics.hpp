@@ -22,8 +22,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/LaserPhysics.def"
-#include "dimensions/GridLayout.hpp"
-#include "mappings/simulation/SubGrid.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/mappings/simulation/SubGrid.hpp"
 #include <cmath>
 
 

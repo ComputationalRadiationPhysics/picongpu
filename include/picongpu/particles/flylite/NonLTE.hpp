@@ -24,7 +24,7 @@
 #include "picongpu/particles/flylite/IFlyLite.hpp"
 
 /* pmacc */
-#include "dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
 
 #include <memory>
 

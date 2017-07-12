@@ -27,14 +27,14 @@
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/fields/FieldE.hpp"
 
-#include "memory/boxes/CachedBox.hpp"
-#include "basicOperations.hpp"
-#include "dimensions/SuperCellDescription.hpp"
-#include "math/Vector.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "memory/shared/Allocate.hpp"
-#include "memory/Array.hpp"
-#include "dataManagement/DataConnector.hpp"
+#include "pmacc/memory/boxes/CachedBox.hpp"
+#include "pmacc/basicOperations.hpp"
+#include "pmacc/dimensions/SuperCellDescription.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
 
 #include <string>
 #include <iostream>

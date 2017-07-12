@@ -22,9 +22,9 @@
 #pragma once
 
 #include "tag.hpp"
-#include "cuSTL/cursor/BufferCursor.hpp"
+#include "pmacc/cuSTL/cursor/BufferCursor.hpp"
 
-#include "math/vector/Size_t.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
 
 
 namespace pmacc

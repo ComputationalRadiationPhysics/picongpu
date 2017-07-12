@@ -24,16 +24,16 @@
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "compileTime/conversion/MakeSeq.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "particles/ParticleDescription.hpp"
-#include "particles/operations/splitIntoListOfFrames.kernel"
+#include "pmacc/compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include "pmacc/particles/ParticleDescription.hpp"
+#include "pmacc/particles/operations/splitIntoListOfFrames.kernel"
 
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "picongpu/plugins/adios/restart/LoadParticleAttributesFromADIOS.hpp"
 
-#include "dataManagement/DataConnector.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>

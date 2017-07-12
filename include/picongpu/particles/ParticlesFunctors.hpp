@@ -21,16 +21,16 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "traits/HasFlag.hpp"
+#include "pmacc/traits/HasFlag.hpp"
 #include "picongpu/fields/Fields.def"
-#include "math/MapTuple.hpp"
+#include "pmacc/math/MapTuple.hpp"
 
-#include "Environment.hpp"
-#include "communication/AsyncCommunication.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/communication/AsyncCommunication.hpp"
 #include "picongpu/particles/traits/GetIonizerList.hpp"
-#include "particles/traits/FilterByFlag.hpp"
+#include "pmacc/particles/traits/FilterByFlag.hpp"
 #include "picongpu/particles/traits/GetPhotonCreator.hpp"
-#include "particles/traits/ResolveAliasFromSpecies.hpp"
+#include "pmacc/particles/traits/ResolveAliasFromSpecies.hpp"
 #include "picongpu/particles/flylite/IFlyLite.hpp"
 #include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"

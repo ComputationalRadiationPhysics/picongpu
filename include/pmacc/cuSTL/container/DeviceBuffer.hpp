@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "cuSTL/container/allocator/DeviceMemAllocator.hpp"
-#include "cuSTL/container/copier/D2DCopier.hpp"
-#include "cuSTL/container/assigner/DeviceMemAssigner.hpp"
-#include "cuSTL/container/CartBuffer.hpp"
-#include "cuSTL/container/allocator/tag.hpp"
-#include "cuSTL/container/copier/Memcopy.hpp"
+#include "pmacc/cuSTL/container/allocator/DeviceMemAllocator.hpp"
+#include "pmacc/cuSTL/container/copier/D2DCopier.hpp"
+#include "pmacc/cuSTL/container/assigner/DeviceMemAssigner.hpp"
+#include "pmacc/cuSTL/container/CartBuffer.hpp"
+#include "pmacc/cuSTL/container/allocator/tag.hpp"
+#include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
 #include <boost/assert.hpp>
 #include <boost/move/move.hpp>

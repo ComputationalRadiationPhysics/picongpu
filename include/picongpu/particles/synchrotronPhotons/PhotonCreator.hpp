@@ -23,28 +23,28 @@
 
 #include "SynchrotronFunctions.hpp"
 #include "picongpu/algorithms/Gamma.hpp"
-#include "algorithms/math/defines/sqrt.hpp"
-#include "algorithms/math/defines/dot.hpp"
-#include "algorithms/math/defines/cross.hpp"
+#include "pmacc/algorithms/math/defines/sqrt.hpp"
+#include "pmacc/algorithms/math/defines/dot.hpp"
+#include "pmacc/algorithms/math/defines/cross.hpp"
 #include "picongpu/traits/frame/GetMass.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
-#include "particles/operations/Assign.hpp"
-#include "particles/operations/Deselect.hpp"
-#include "particles/traits/ResolveAliasFromSpecies.hpp"
+#include "pmacc/particles/operations/Assign.hpp"
+#include "pmacc/particles/operations/Deselect.hpp"
+#include "pmacc/particles/traits/ResolveAliasFromSpecies.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 
-#include "random/methods/XorMin.hpp"
-#include "random/distributions/Uniform.hpp"
-#include "random/RNGProvider.hpp"
+#include "pmacc/random/methods/XorMin.hpp"
+#include "pmacc/random/distributions/Uniform.hpp"
+#include "pmacc/random/RNGProvider.hpp"
 
-#include "traits/Resolve.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "dataManagement/DataConnector.hpp"
+#include "pmacc/traits/Resolve.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
 
-#include "compileTime/conversion/TypeToPointerPair.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
+#include "pmacc/compileTime/conversion/TypeToPointerPair.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
 
 
 namespace picongpu

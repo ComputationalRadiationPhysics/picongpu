@@ -24,8 +24,8 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
-#include "memory/boxes/PitchedBox.hpp"
-#include "memory/boxes/DataBox.hpp"
+#include "pmacc/memory/boxes/PitchedBox.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
 
 
 namespace picongpu

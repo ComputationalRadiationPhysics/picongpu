@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "math/vector/Size_t.hpp"
-#include "math/vector/Int.hpp"
-#include "lambda/make_Functor.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/lambda/make_Functor.hpp"
 #include <forward.hpp>
 
 #include <boost/preprocessor/repetition/enum.hpp>

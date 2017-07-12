@@ -25,20 +25,20 @@
 #include <vector>
 
 /*pic default*/
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include "picongpu/simulation_defines.hpp"
 
 #include "Fields.def"
-#include "fields/SimulationFieldHelper.hpp"
-#include "dataManagement/ISimulationData.hpp"
+#include "pmacc/fields/SimulationFieldHelper.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
 
 /*libPMacc*/
-#include "memory/buffers/GridBuffer.hpp"
-#include "mappings/simulation/GridController.hpp"
-#include "memory/boxes/DataBox.hpp"
-#include "memory/boxes/PitchedBox.hpp"
+#include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/memory/boxes/DataBox.hpp"
+#include "pmacc/memory/boxes/PitchedBox.hpp"
 
-#include "math/Vector.hpp"
+#include "pmacc/math/Vector.hpp"
 #include "picongpu/particles/Particles.hpp"
 
 namespace picongpu

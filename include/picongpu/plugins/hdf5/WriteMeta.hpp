@@ -25,7 +25,7 @@
 
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/plugins/common/stringHelpers.hpp"
-#include "Environment.hpp"
+#include "pmacc/Environment.hpp"
 
 #include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"

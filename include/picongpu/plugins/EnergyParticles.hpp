@@ -24,16 +24,16 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "mappings/kernel/AreaMapping.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include "mpi/reduceMethods/Reduce.hpp"
-#include "mpi/MPIReduce.hpp"
-#include "nvidia/functors/Add.hpp"
+#include "pmacc/mpi/reduceMethods/Reduce.hpp"
+#include "pmacc/mpi/MPIReduce.hpp"
+#include "pmacc/nvidia/functors/Add.hpp"
 
 #include "picongpu/algorithms/KinEnergy.hpp"
-#include "memory/shared/Allocate.hpp"
-#include "dataManagement/DataConnector.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
 
 #include "common/txtFileHandling.hpp"
 

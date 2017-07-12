@@ -23,7 +23,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/simulationControl/MovingWindow.hpp"

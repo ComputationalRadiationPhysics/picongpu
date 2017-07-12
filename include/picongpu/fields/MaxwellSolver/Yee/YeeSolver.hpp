@@ -25,16 +25,16 @@
 #include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/YeeSolver.kernel"
 
-#include "traits/GetNumWorkers.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/YeeSolver.kernel"
-#include "nvidia/functors/Assign.hpp"
-#include "mappings/threads/ThreadCollective.hpp"
-#include "memory/boxes/CachedBox.hpp"
+#include "pmacc/nvidia/functors/Assign.hpp"
+#include "pmacc/mappings/threads/ThreadCollective.hpp"
+#include "pmacc/memory/boxes/CachedBox.hpp"
 
-#include "dataManagement/DataConnector.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
 
 namespace picongpu
 {

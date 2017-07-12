@@ -23,7 +23,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include <cuSTL/cursor/FunctorCursor.hpp>
-#include "math/Vector.hpp"
+#include "pmacc/math/Vector.hpp"
 #include "picongpu/algorithms/ShiftCoordinateSystemNative.hpp"
 
 namespace picongpu

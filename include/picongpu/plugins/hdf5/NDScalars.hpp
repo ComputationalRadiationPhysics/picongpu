@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/traits/PICToSplash.hpp"
-#include "Environment.hpp"
+#include "pmacc/Environment.hpp"
 
 namespace picongpu {
 namespace hdf5 {

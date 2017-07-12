@@ -25,24 +25,24 @@
 
 #include "picongpu/particles/Particles.kernel"
 
-#include "dataManagement/DataConnector.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
 
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 
-#include "particles/memory/buffers/ParticlesBuffer.hpp"
+#include "pmacc/particles/memory/buffers/ParticlesBuffer.hpp"
 #include "ParticlesInit.kernel"
-#include "mappings/simulation/GridController.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
 
 #include "picongpu/simulationControl/MovingWindow.hpp"
 
 #include "picongpu/fields/numericalCellTypes/YeeCell.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"
 
-#include "traits/GetUniqueTypeId.hpp"
-#include "traits/Resolve.hpp"
-#include "traits/GetNumWorkers.hpp"
+#include "pmacc/traits/GetUniqueTypeId.hpp"
+#include "pmacc/traits/Resolve.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <iostream>
 #include <limits>

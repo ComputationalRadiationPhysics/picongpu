@@ -23,7 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 // pmacc
-#include "static_assert.hpp"
+#include "pmacc/static_assert.hpp"
 
 #include <boost/core/ignore_unused.hpp>
 #include <string>

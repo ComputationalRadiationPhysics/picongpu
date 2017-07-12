@@ -21,23 +21,23 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "particles/frame_types.hpp"
-#include "basicOperations.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/particles/frame_types.hpp"
+#include "pmacc/basicOperations.hpp"
 
 #include "picongpu/simulation_defines.hpp"
 
 #include "FieldTmp.hpp"
-#include "particles/memory/boxes/ParticlesBox.hpp"
+#include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
 
-#include "memory/boxes/CachedBox.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "nvidia/functors/Add.hpp"
-#include "mappings/threads/ThreadCollective.hpp"
+#include "pmacc/memory/boxes/CachedBox.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/nvidia/functors/Add.hpp"
+#include "pmacc/mappings/threads/ThreadCollective.hpp"
 #include "picongpu/algorithms/Set.hpp"
 
-#include "particles/frame_types.hpp"
-#include "memory/shared/Allocate.hpp"
+#include "pmacc/particles/frame_types.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
 
 namespace picongpu
 {

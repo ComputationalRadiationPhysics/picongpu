@@ -21,14 +21,14 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "particles/frame_types.hpp"
+#include "pmacc/particles/frame_types.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/simulationControl/MovingWindow.hpp"
 
-#include "dataManagement/DataConnector.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "dimensions/GridLayout.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
 
 #include <splash/splash.h>
 

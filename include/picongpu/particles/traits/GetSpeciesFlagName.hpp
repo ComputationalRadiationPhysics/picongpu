@@ -20,9 +20,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "traits/HasFlag.hpp"
-#include "traits/GetFlagType.hpp"
-#include "traits/Resolve.hpp"
+#include "pmacc/traits/HasFlag.hpp"
+#include "pmacc/traits/GetFlagType.hpp"
+#include "pmacc/traits/Resolve.hpp"
 
 #include <string>
 

@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "cuSTL/container/copier/Memcopy.hpp"
+#include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
-#include "lambda/make_Functor.hpp"
-#include "mappings/simulation/GridController.hpp"
-#include "communication/manager_common.hpp"
+#include "pmacc/lambda/make_Functor.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/communication/manager_common.hpp"
 
 #include <iostream>
 #include <utility>

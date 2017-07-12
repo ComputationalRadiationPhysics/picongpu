@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "math/Vector.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/math/Vector.hpp"
 
 
 namespace picongpu

@@ -21,12 +21,12 @@
 
 #include <utility>
 
-#include "cuSTL/cursor/MultiIndexCursor.hpp"
-#include "cuSTL/algorithm/cudaBlock/Foreach.hpp"
-#include "cuSTL/algorithm/kernel/ForeachBlock.hpp"
-#include "cuSTL/container/compile-time/SharedBuffer.hpp"
-#include "math/Vector.hpp"
-#include "math/VectorOperations.hpp"
+#include "pmacc/cuSTL/cursor/MultiIndexCursor.hpp"
+#include "pmacc/cuSTL/algorithm/cudaBlock/Foreach.hpp"
+#include "pmacc/cuSTL/algorithm/kernel/ForeachBlock.hpp"
+#include "pmacc/cuSTL/container/compile-time/SharedBuffer.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/math/VectorOperations.hpp"
 #include "picongpu/particles/access/Cell2Particle.hpp"
 
 #include "PhaseSpace.hpp"

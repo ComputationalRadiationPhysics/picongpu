@@ -24,7 +24,7 @@
 #include "picongpu/fields/currentInterpolation/None/None.def"
 #include "picongpu/algorithms/DifferenceToUpper.hpp"
 #include "picongpu/algorithms/LinearInterpolateWithUpper.hpp"
-#include "traits/GetComponentsType.hpp"
+#include "pmacc/traits/GetComponentsType.hpp"
 
 #include "picongpu/fields/MaxwellSolver/Yee/Curl.hpp"
 

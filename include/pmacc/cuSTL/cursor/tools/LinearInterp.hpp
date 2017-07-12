@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "cuSTL/cursor/Cursor.hpp"
-#include "cuSTL/cursor/accessor/LinearInterpAccessor.hpp"
-#include "cuSTL/cursor/navigator/PlusNavigator.hpp"
-#include "cuSTL/cursor/traits.hpp"
-#include "math/vector/Vector.hpp"
-#include "result_of_Functor.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/cuSTL/cursor/Cursor.hpp"
+#include "pmacc/cuSTL/cursor/accessor/LinearInterpAccessor.hpp"
+#include "pmacc/cuSTL/cursor/navigator/PlusNavigator.hpp"
+#include "pmacc/cuSTL/cursor/traits.hpp"
+#include "pmacc/math/vector/Vector.hpp"
+#include "pmacc/result_of_Functor.hpp"
 
 namespace pmacc
 {

@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "cuSTL/container/copier/Memcopy.hpp"
+#include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
-#include "mappings/simulation/GridController.hpp"
-#include "communication/manager_common.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/communication/manager_common.hpp"
 
 #include <iostream>
 #include <numeric>      // std::partial_sum

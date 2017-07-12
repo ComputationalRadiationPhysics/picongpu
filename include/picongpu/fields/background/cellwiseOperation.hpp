@@ -19,13 +19,13 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 #include "picongpu/simulation_defines.hpp"
-#include "basicOperations.hpp"
+#include "pmacc/basicOperations.hpp"
 
-#include "dimensions/DataSpace.hpp"
-#include "mappings/simulation/SubGrid.hpp"
-#include "mappings/kernel/MappingDescription.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/mappings/simulation/SubGrid.hpp"
+#include "pmacc/mappings/kernel/MappingDescription.hpp"
 #include "picongpu/simulationControl/MovingWindow.hpp"
 
 

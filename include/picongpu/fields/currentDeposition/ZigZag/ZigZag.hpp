@@ -20,8 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "basicOperations.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/basicOperations.hpp"
 #include <cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
 #include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
@@ -33,7 +33,7 @@
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/if.hpp>
-#include "compileTime/AllCombinations.hpp"
+#include "pmacc/compileTime/AllCombinations.hpp"
 #include "picongpu/fields/currentDeposition/ZigZag/EvalAssignmentFunction.hpp"
 
 namespace picongpu

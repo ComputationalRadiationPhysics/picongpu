@@ -22,7 +22,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "debug/VerboseLog.hpp"
+#include "pmacc/debug/VerboseLog.hpp"
 
 namespace picongpu
 {

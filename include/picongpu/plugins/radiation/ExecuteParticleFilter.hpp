@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 
-#include "traits/HasIdentifier.hpp"
+#include "pmacc/traits/HasIdentifier.hpp"
 #include "picongpu/particles/Manipulate.hpp"
 
 #include <memory>

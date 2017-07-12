@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "math/vector/Size_t.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
+#include "pmacc/types.hpp"
 
 #include <boost/mpl/void.hpp>
 

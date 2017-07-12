@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "cuSTL/cursor/compile-time/BufferCursor.hpp"
-#include "memory/shared/Allocate.hpp"
-#include "memory/Array.hpp"
-#include "math/Vector.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/cuSTL/cursor/compile-time/BufferCursor.hpp"
+#include "pmacc/memory/shared/Allocate.hpp"
+#include "pmacc/memory/Array.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/types.hpp"
 
 
 namespace pmacc

@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "math/Vector.hpp"
-#include "mappings/kernel/MappingDescription.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/mappings/kernel/MappingDescription.hpp"
 
 namespace picongpu
 {

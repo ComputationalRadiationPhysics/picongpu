@@ -24,10 +24,10 @@
 #include "picongpu/particles/flylite/helperFields/LocalEnergyHistogram.kernel"
 
 // pmacc
-#include "static_assert.hpp"
-#include "Environment.hpp"
-#include "algorithms/ForEach.hpp"
-#include "forward.hpp"
+#include "pmacc/static_assert.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/algorithms/ForEach.hpp"
+#include "pmacc/forward.hpp"
 
 #include <string>
 #include <memory>

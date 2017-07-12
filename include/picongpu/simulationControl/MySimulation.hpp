@@ -21,28 +21,28 @@
 
 #pragma once
 
-#include "verify.hpp"
-#include "assert.hpp"
+#include "pmacc/verify.hpp"
+#include "pmacc/assert.hpp"
 
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
 #include <boost/mpl/count.hpp>
 
-#include "pmacc_types.hpp"
-#include "simulationControl/SimulationHelper.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/simulationControl/SimulationHelper.hpp"
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
 #include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
 
-#include "eventSystem/EventSystem.hpp"
-#include "dimensions/GridLayout.hpp"
-#include "nvidia/memory/MemoryInfo.hpp"
-#include "mappings/kernel/MappingDescription.hpp"
+#include "pmacc/eventSystem/EventSystem.hpp"
+#include "pmacc/dimensions/GridLayout.hpp"
+#include "pmacc/nvidia/memory/MemoryInfo.hpp"
+#include "pmacc/mappings/kernel/MappingDescription.hpp"
 #include "picongpu/simulationControl/MovingWindow.hpp"
-#include "mappings/simulation/SubGrid.hpp"
-#include "mappings/simulation/GridController.hpp"
+#include "pmacc/mappings/simulation/SubGrid.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
 
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
@@ -58,25 +58,25 @@
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
-#include "random/methods/XorMin.hpp"
-#include "random/RNGProvider.hpp"
+#include "pmacc/random/methods/XorMin.hpp"
+#include "pmacc/random/RNGProvider.hpp"
 
-#include "nvidia/reduce/Reduce.hpp"
-#include "memory/boxes/DataBoxDim1Access.hpp"
-#include "nvidia/functors/Add.hpp"
-#include "nvidia/functors/Sub.hpp"
+#include "pmacc/nvidia/reduce/Reduce.hpp"
+#include "pmacc/memory/boxes/DataBoxDim1Access.hpp"
+#include "pmacc/nvidia/functors/Add.hpp"
+#include "pmacc/nvidia/functors/Sub.hpp"
 
-#include "compileTime/conversion/SeqToMap.hpp"
-#include "compileTime/conversion/TypeToPointerPair.hpp"
+#include "pmacc/compileTime/conversion/SeqToMap.hpp"
+#include "pmacc/compileTime/conversion/TypeToPointerPair.hpp"
 
-#include "algorithms/ForEach.hpp"
+#include "pmacc/algorithms/ForEach.hpp"
 #include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/InitFunctors.hpp"
-#include "particles/memory/buffers/MallocMCBuffer.hpp"
-#include "particles/traits/FilterByFlag.hpp"
-#include "particles/traits/FilterByIdentifier.hpp"
+#include "pmacc/particles/memory/buffers/MallocMCBuffer.hpp"
+#include "pmacc/particles/traits/FilterByFlag.hpp"
+#include "pmacc/particles/traits/FilterByIdentifier.hpp"
 #include "picongpu/particles/traits/HasIonizersWithRNG.hpp"
-#include "particles/IdProvider.hpp"
+#include "pmacc/particles/IdProvider.hpp"
 
 #include <boost/mpl/int.hpp>
 #include <memory>

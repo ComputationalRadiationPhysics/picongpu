@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include "particles/policies/ExchangeParticles.hpp"
-#include "pluginSystem/IPlugin.hpp"
+#include "pmacc/particles/policies/ExchangeParticles.hpp"
+#include "pmacc/pluginSystem/IPlugin.hpp"
 #include <list>
 
 namespace picongpu

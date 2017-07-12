@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "assert.hpp"
+#include "pmacc/assert.hpp"
 
 #include <string>
 #include "zlib.h"

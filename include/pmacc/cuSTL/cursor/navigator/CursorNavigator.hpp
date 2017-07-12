@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "math/vector/Int.hpp"
+#include "pmacc/math/vector/Int.hpp"
 
 namespace pmacc
 {

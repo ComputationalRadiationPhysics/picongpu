@@ -20,10 +20,10 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "traits/Resolve.hpp"
-#include "traits/GetFlagType.hpp"
-#include "compileTime/accessors/Type.hpp"
-#include "compileTime/conversion/OperateOnSeq.hpp"
+#include "pmacc/traits/Resolve.hpp"
+#include "pmacc/traits/GetFlagType.hpp"
+#include "pmacc/compileTime/accessors/Type.hpp"
+#include "pmacc/compileTime/conversion/OperateOnSeq.hpp"
 
 #include <boost/mpl/apply.hpp>
 

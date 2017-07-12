@@ -28,9 +28,9 @@
 #include "picongpu/particles/traits/GetShape.hpp"
 
 /* pmacc */
-#include "Environment.hpp"
-#include "dataManagement/ISimulationData.hpp"
-#include "traits/GetNumWorkers.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <memory>
 

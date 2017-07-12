@@ -25,13 +25,13 @@
 #include "picongpu/traits/PICToSplash.hpp"
 
 #include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
-#include "communication/manager_common.hpp"
-#include "mappings/simulation/GridController.hpp"
-#include "mappings/simulation/SubGrid.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "cuSTL/container/HostBuffer.hpp"
-#include "math/vector/Int.hpp"
-#include "verify.hpp"
+#include "pmacc/communication/manager_common.hpp"
+#include "pmacc/mappings/simulation/GridController.hpp"
+#include "pmacc/mappings/simulation/SubGrid.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/cuSTL/container/HostBuffer.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/verify.hpp"
 
 #include <string>
 #include <fstream>

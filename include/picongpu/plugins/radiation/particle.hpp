@@ -21,7 +21,7 @@
 
 #include <stdint.h>
 
-#include "math/Vector.hpp"
+#include "pmacc/math/Vector.hpp"
 #include "utilities.hpp"
 #include "taylor.hpp"
 

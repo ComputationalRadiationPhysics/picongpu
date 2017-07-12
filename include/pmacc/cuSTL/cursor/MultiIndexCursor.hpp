@@ -24,7 +24,7 @@
 #include "Cursor.hpp"
 #include "accessor/MarkerAccessor.hpp"
 #include "navigator/MultiIndexNavigator.hpp"
-#include "math/vector/Int.hpp"
+#include "pmacc/math/vector/Int.hpp"
 
 namespace pmacc
 {

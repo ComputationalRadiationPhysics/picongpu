@@ -19,16 +19,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pmacc_types.hpp"
-#include "memory/buffers/HostDeviceBuffer.hpp"
-#include "random/RNGProvider.hpp"
-#include "random/distributions/Uniform.hpp"
-#include "random/methods/Xor.hpp"
-#include "random/methods/XorMin.hpp"
-#include "random/methods/MRG32k3a.hpp"
-#include "random/methods/MRG32k3aMin.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "assert.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
+#include "pmacc/random/RNGProvider.hpp"
+#include "pmacc/random/distributions/Uniform.hpp"
+#include "pmacc/random/methods/Xor.hpp"
+#include "pmacc/random/methods/XorMin.hpp"
+#include "pmacc/random/methods/MRG32k3a.hpp"
+#include "pmacc/random/methods/MRG32k3aMin.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/assert.hpp"
 #include <stdint.h>
 #include <iostream>
 #include <fstream>

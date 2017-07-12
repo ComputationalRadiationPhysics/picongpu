@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "cuSTL/cursor/Cursor.hpp"
-#include "cuSTL/cursor/navigator/BufferNavigator.hpp"
-#include "cuSTL/cursor/navigator/CartNavigator.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/cuSTL/cursor/Cursor.hpp"
+#include "pmacc/cuSTL/cursor/navigator/BufferNavigator.hpp"
+#include "pmacc/cuSTL/cursor/navigator/CartNavigator.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

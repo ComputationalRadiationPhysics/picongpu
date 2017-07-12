@@ -23,21 +23,21 @@
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/traits/SIBaseUnits.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
-#include "traits/HasIdentifier.hpp"
-#include "assert.hpp"
+#include "pmacc/traits/HasIdentifier.hpp"
+#include "pmacc/assert.hpp"
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
-#include "mappings/kernel/AreaMapping.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
 
 #include "picongpu/plugins/hdf5/writer/ParticleAttribute.hpp"
 
-#include "compileTime/conversion/MakeSeq.hpp"
-#include "compileTime/conversion/RemoveFromSeq.hpp"
-#include "dataManagement/DataConnector.hpp"
-#include "particles/ParticleDescription.hpp"
+#include "pmacc/compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/particles/ParticleDescription.hpp"
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 
 #include <boost/mpl/vector.hpp>

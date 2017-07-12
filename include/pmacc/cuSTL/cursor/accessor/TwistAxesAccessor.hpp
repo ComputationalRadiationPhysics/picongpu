@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "math/vector/TwistComponents.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/math/vector/TwistComponents.hpp"
 
 namespace pmacc
 {

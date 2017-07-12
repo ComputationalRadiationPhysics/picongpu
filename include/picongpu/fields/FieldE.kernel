@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include "math/Vector.hpp"
-#include "dimensions/DataSpace.hpp"
-#include "memory/boxes/CachedBox.hpp"
-#include "nvidia/functors/Assign.hpp"
-#include "mappings/threads/ThreadCollective.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/memory/boxes/CachedBox.hpp"
+#include "pmacc/nvidia/functors/Assign.hpp"
+#include "pmacc/mappings/threads/ThreadCollective.hpp"
 
 namespace picongpu
 {

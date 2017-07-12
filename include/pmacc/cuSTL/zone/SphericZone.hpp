@@ -22,8 +22,8 @@
 #pragma once
 
 #include <stdint.h>
-#include "math/vector/Int.hpp"
-#include "math/vector/Size_t.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
 
 namespace pmacc
 {

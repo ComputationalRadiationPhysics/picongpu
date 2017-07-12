@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "math/vector/Size_t.hpp"
-#include "math/Vector.hpp"
-#include "cuSTL/zone/SphericZone.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/cuSTL/zone/SphericZone.hpp"
 #include <cufft.h>
 
 namespace pmacc

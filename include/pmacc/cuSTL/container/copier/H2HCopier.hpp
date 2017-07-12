@@ -23,7 +23,7 @@
 #pragma once
 
 #include "Memcopy.hpp"
-#include "pmacc_types.hpp"
+#include "pmacc/types.hpp"
 
 namespace pmacc
 {

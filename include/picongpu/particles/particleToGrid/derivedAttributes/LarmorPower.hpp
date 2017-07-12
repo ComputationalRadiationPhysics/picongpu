@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "static_assert.hpp"
+#include "pmacc/static_assert.hpp"
 #include "picongpu/particles/particleToGrid/derivedAttributes/LarmorPower.def"
 
 #include "picongpu/simulation_defines.hpp"

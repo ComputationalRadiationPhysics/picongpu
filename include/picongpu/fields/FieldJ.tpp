@@ -25,23 +25,23 @@
 #include "picongpu/fields/FieldJ.kernel"
 
 
-#include "particles/memory/boxes/ParticlesBox.hpp"
+#include "pmacc/particles/memory/boxes/ParticlesBox.hpp"
 
-#include "Environment.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "mappings/kernel/StrideMapping.hpp"
-#include "fields/tasks/FieldFactory.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include "pmacc/mappings/kernel/StrideMapping.hpp"
+#include "pmacc/fields/tasks/FieldFactory.hpp"
 
 #include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 
-#include "math/Vector.hpp"
-#include "fields/operations/CopyGuardToExchange.hpp"
-#include "fields/operations/AddExchangeToBorder.hpp"
+#include "pmacc/math/Vector.hpp"
+#include "pmacc/fields/operations/CopyGuardToExchange.hpp"
+#include "pmacc/fields/operations/AddExchangeToBorder.hpp"
 #include "picongpu/particles/traits/GetCurrentSolver.hpp"
 #include "picongpu/traits/GetMargin.hpp"
-#include "traits/Resolve.hpp"
+#include "pmacc/traits/Resolve.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
-#include "traits/GetNumWorkers.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <boost/mpl/accumulate.hpp>
 

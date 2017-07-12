@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include "pmacc_types.hpp"
-#include "math/vector/Size_t.hpp"
-#include "math/vector/Int.hpp"
-#include "lambda/make_Functor.hpp"
+#include "pmacc/types.hpp"
+#include "pmacc/math/vector/Size_t.hpp"
+#include "pmacc/math/vector/Int.hpp"
+#include "pmacc/lambda/make_Functor.hpp"
 #include "detail/SphericMapper.hpp"
 #include "detail/ForeachKernel.hpp"
 #include <forward.hpp>
@@ -36,7 +36,7 @@
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
 
-#include "eventSystem/events/kernelEvents.hpp"
+#include "pmacc/eventSystem/events/kernelEvents.hpp"
 
 namespace pmacc
 {

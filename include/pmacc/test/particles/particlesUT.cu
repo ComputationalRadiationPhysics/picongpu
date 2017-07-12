@@ -19,7 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "PMaccFixture.hpp"
+#include "pmacc/test/PMaccFixture.hpp"
 #include <boost/test/unit_test.hpp>
 
 #if TEST_DIM == 2

@@ -35,13 +35,13 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/common/stringHelpers.hpp"
 
-#include "mpi/reduceMethods/Reduce.hpp"
-#include "mpi/MPIReduce.hpp"
-#include "nvidia/functors/Add.hpp"
-#include "dimensions/DataSpaceOperations.hpp"
-#include "dataManagement/DataConnector.hpp"
-#include "mappings/kernel/AreaMapping.hpp"
-#include "traits/HasIdentifier.hpp"
+#include "pmacc/mpi/reduceMethods/Reduce.hpp"
+#include "pmacc/mpi/MPIReduce.hpp"
+#include "pmacc/nvidia/functors/Add.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/mappings/kernel/AreaMapping.hpp"
+#include "pmacc/traits/HasIdentifier.hpp"
 
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>

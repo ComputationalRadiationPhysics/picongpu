@@ -24,8 +24,8 @@
 #include <boost/fusion/include/mpl.hpp>
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "dataManagement/DataConnector.hpp"
-#include "static_assert.hpp"
+#include "pmacc/dataManagement/DataConnector.hpp"
+#include "pmacc/static_assert.hpp"
 
 #include <isaac.hpp>
 

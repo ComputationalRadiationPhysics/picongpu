@@ -31,9 +31,9 @@
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/filter/filter.def"
-#include "nvidia/functors/Add.hpp"
-#include "nvidia/functors/Assign.hpp"
-#include "nvidia/rng/distributions/Uniform_float.hpp"
+#include "pmacc/nvidia/functors/Add.hpp"
+#include "pmacc/nvidia/functors/Assign.hpp"
+#include "pmacc/nvidia/rng/distributions/Uniform_float.hpp"
 
 
 namespace picongpu
