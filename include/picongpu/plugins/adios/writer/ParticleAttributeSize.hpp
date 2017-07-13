@@ -23,8 +23,8 @@
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/traits/PICToAdios.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
-#include "picongpu/traits/GetComponentsType.hpp"
-#include "picongpu/traits/GetNComponents.hpp"
+#include <pmacc/traits/GetComponentsType.hpp>
+#include <pmacc/traits/GetNComponents.hpp>
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/assert.hpp>
 

@@ -27,7 +27,7 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
-#include <pmacc/particles/traits/GetSpeciesFlagName.hpp>
+#include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/traits/PICToAdios.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
