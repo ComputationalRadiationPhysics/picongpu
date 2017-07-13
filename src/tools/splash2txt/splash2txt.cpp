@@ -218,7 +218,7 @@ int main( int argc, char** argv )
         return 1;
     }
 
-    ITools *tools = nullptr;
+    ITools *tools = NULL;
     switch ( options.fileMode)
     {
         case FM_SPLASH: tools = new ToolsSplashParallel( options, mpi_topology, *outStream );
