@@ -8,7 +8,7 @@ fileOutput.param
 
 .. doxygenfile:: fileOutput.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/fileOutput.param
+   :path: include/picongpu/simulation_defines/param/fileOutput.param
    :no-link:
 
 isaac.param
@@ -16,7 +16,7 @@ isaac.param
 
 .. doxygenfile:: isaac.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/isaac.param
+   :path: include/picongpu/simulation_defines/param/isaac.param
    :no-link:
 
 particleCalorimeter.param
@@ -24,7 +24,7 @@ particleCalorimeter.param
 
 .. doxygenfile:: particleCalorimeter.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/particleCalorimeter.param
+   :path: include/picongpu/simulation_defines/param/particleCalorimeter.param
    :no-link:
 
 particleMerger.param
@@ -32,7 +32,7 @@ particleMerger.param
 
 .. doxygenfile:: particleMerger.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/particleMerger.param
+   :path: include/picongpu/simulation_defines/param/particleMerger.param
    :no-link:
 
 radiation.param
@@ -40,7 +40,7 @@ radiation.param
 
 .. doxygenfile:: radiation.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/radiation.param
+   :path: include/picongpu/simulation_defines/param/radiation.param
    :no-link:
 
 radiationObserver.param
@@ -48,7 +48,7 @@ radiationObserver.param
 
 .. doxygenfile:: radiationObserver.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/radiationObserver.param
+   :path: include/picongpu/simulation_defines/param/radiationObserver.param
    :no-link:
 
 visualization.param
@@ -56,7 +56,7 @@ visualization.param
 
 .. doxygenfile:: visualization.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/visualization.param
+   :path: include/picongpu/simulation_defines/param/visualization.param
    :no-link:
 
 visColorScales.param
@@ -64,6 +64,6 @@ visColorScales.param
 
 .. doxygenfile:: visColorScales.param
    :project: PIConGPU
-   :path: src/picongpu/include/simulation_defines/param/visColorScales.param
+   :path: include/picongpu/simulation_defines/param/visColorScales.param
    :no-link:
 

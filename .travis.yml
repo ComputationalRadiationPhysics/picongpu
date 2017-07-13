@@ -11,9 +11,10 @@ script:
   #############################################################################
   # Conformance with Alpaka: Do not write __global__ CUDA kernels directly    #
   #############################################################################
-  - test/hasCudaGlobalKeyword src/libPMacc
-  - test/hasCudaGlobalKeyword src/picongpu
-  - test/hasCudaGlobalKeyword examples
+  - test/hasCudaGlobalKeyword include/pmacc
+  - test/hasCudaGlobalKeyword share/pmacc/examples
+  - test/hasCudaGlobalKeyword include/picongpu
+  - test/hasCudaGlobalKeyword share/picongpu/examples
 
   #############################################################################
   # Disallow end-of-line (EOL) white spaces                                   #

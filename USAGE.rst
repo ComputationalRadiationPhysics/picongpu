@@ -27,7 +27,7 @@ As in our :ref:`compiling from source <install-source>` section, we need a few d
     mkdir $HOME/build
 
     # PIConGPU input files
-    mkdir $HOME/paramSets
+    mkdir $HOME/picInputs
     # PIConGPU simulation output
     mkdir $SCRATCH/runs
 
@@ -43,14 +43,14 @@ TL;DR
 .. code-block:: bash
    :emphasize-lines: 1,4,5,8
 
-   pic-create ~/paramSets/originalSet ~/paramSets/myLWFA
+   pic-create ~/picInputs/originalSet ~/picInputs/myLWFA
    
    cd ~/build
-   pic-configure $HOME/paramSets/myLWFA
+   pic-configure $HOME/picInputs/myLWFA
    make -j install
    
-   cd ~/paramSets/myLWFA
-   tbg -s qsub -c submit/0016gpus.cfg -t submit/hypnos-hzdr/k20_profile.tpl $SCRATCH/runs/lwfa_001
+   cd ~/picInputs/myLWFA
+   tbg -s qsub -c etc/picongpu/0016gpus.cfg -t etc/picongpu/hypnos-hzdr/k20_profile.tpl $SCRATCH/runs/lwfa_001
 
 
 1. Create an Input (Parameter) Set
@@ -59,12 +59,12 @@ TL;DR
 .. code-block:: bash
    :emphasize-lines: 2
 
-   # clone the LWFA example to $HOME/paramSets/myLWFA
-   pic-create $PICSRC/examples/LaserWakefield/ $HOME/paramSets/myLWFA
+   # clone the LWFA example to $HOME/picInputs/myLWFA
+   pic-create $PICSRC/examples/LaserWakefield/ $HOME/picInputs/myLWFA
 
-Now edit ``$HOME/paramSets/case001/include/simulation_defines/param/*`` to change the :ref:`physical configuration of this parameter set <usage-params>`.
+Now edit ``$HOME/picInputs/myLWFA/include/picongpu/simulation_defines/param/*`` to change the :ref:`physical configuration of this parameter set <usage-params>`.
 
-Now edit ``$HOME/paramSets/case001/submit/*.cfg`` to adjust :ref:`runtime parameters (simulation size, number of GPUs, plugins, ...) <usage-cfg>`.
+Now edit ``$HOME/picInputs/myLWFA/etc/picongpu/*.cfg`` to adjust :ref:`runtime parameters (simulation size, number of GPUs, plugins, ...) <usage-cfg>`.
 
 Hint: you can further create parameter sets from parameter sets.
 
@@ -83,7 +83,7 @@ Our script ``pic-configure`` is a wrapper for CMake to quickly specify which par
    rm -rf ../build/*
 
    # configure case001
-   pic-configure $HOME/paramSets/myLWFA
+   pic-configure $HOME/picInputs/myLWFA
 
    # compile PIConGPU with the current parameter set (myLWFA)
    # - "make -j install" runs implicitly "make -j" and then "make install"
@@ -100,13 +100,13 @@ If you adjust ``.param`` input files just now, you can just go back to ``$HOME/b
    :emphasize-lines: 5
 
    # go to param set with up-to-date PIConGPU binaries
-   cd $HOME/paramSets/myLWFA
+   cd $HOME/picInputs/myLWFA
    
    # example run for the HPC System "hypnos" using a PBS batch system
-   tbg -s qsub -c submit/0016gpus.cfg -t submit/hypnos-hzdr/k20_profile.tpl $SCRATCH/runs/lwfa_001
+   tbg -s qsub -c etc/picongpu/0016gpus.cfg -t etc/picongpu/hypnos-hzdr/k20_profile.tpl $SCRATCH/runs/lwfa_001
 
 This will create the directory ``$SCRATCH/runs/lwfa_001`` were all simulation output will be written to.
-``tbg`` will further create a subfolder ``picongpu/`` in the directory of the run with the same structure as ``myLWFA`` to archive your input files.
+``tbg`` will further create a subfolder ``input/`` in the directory of the run with the same structure as ``myLWFA`` to archive your input files.
 
 Further Reading
 ---------------
@@ -126,6 +126,6 @@ This will influence your build done via ``make``.
 
 You can pass further options to configure PIConGPU directly instead of using ``ccmake .``, by passing ``-c "-DOPTION1=VALUE1 -DOPTION2=VALUE2"``.
 
-The ``picongpu/`` directory of a run can also be reused to clone parameters via ``pic-create`` by using this run as origin directory or to create a new binary with ``configure``: e.g. ``pic-configure -i $HOME/paramSets/myLWFA2 $SCRATCH/runs/lwfa_001``.
+The ``input/`` directory of a run can also be reused to clone parameters via ``pic-create`` by using this run as origin directory or to create a new binary with ``configure``: e.g. ``pic-configure -i $HOME/picInputs/myLWFA2 $SCRATCH/runs/lwfa_001``.
 
 See ``tbg --help`` :ref:`for more information <usage-tbg>` about the ``tbg`` tool.

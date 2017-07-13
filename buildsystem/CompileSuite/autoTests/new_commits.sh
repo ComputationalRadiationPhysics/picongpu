@@ -100,7 +100,7 @@ touch "$thisDir"runGuard
 
             # compile all examples, fetch output and return code
             $cnf_gitdir/pic-compile -l -q -j $cnf_numParallel \
-                                $cnf_gitdir/examples $cnf_builddir \
+                                $cnf_gitdir/share/picongpu/examples $cnf_builddir \
                                 &> $cnf_builddir/outputColored
 
             echo $? > $cnf_builddir"/returnCode"

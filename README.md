@@ -105,8 +105,8 @@ Software License
 ----------------
 
 *PIConGPU* is licensed under the **GPLv3+**. Furthermore, you can develop your
-own particle-mesh algorithms based on our general library *libPMacc* that is
-shipped alongside PIConGPU. *libPMacc* is *dual licensed* under both the
+own particle-mesh algorithms based on our general library *PMacc* that is
+shipped alongside PIConGPU. *PMacc* is *dual licensed* under both the
 **GPLv3+ and LGPLv3+**.
 For a detailed description, please refer to [LICENSE.md](LICENSE.md)
 

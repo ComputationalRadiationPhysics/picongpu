@@ -1,0 +1,131 @@
+/* Copyright 2013-2017 Rene Widera, Felix Schmitt
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+
+#pragma once
+
+
+#include "picongpu/simulation_defines.hpp"
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+
+
+namespace picongpu
+{
+
+using namespace pmacc;
+
+
+struct CopySpecies
+{
+    /** copy particle of a species to a host frame
+     *
+     * @tparam T_DestFrame type of destination frame
+     * @tparam T_SrcBox type of the data box of source memory
+     * @tparam T_Filter type of filer with particle selection rules
+     * @tparam T_Space type of coordinate description
+     * @tparam T_Identifier type of identifier for the particle cellIdx
+     * @tparam T_Mapping type of the mapper to map cuda idx to supercells
+     *
+     * @param counter pointer to a device counter to reserve memory in destFrame
+     * @param destFrame frame were we store particles in host memory (no Databox<...>)
+     * @param srcBox ParticlesBox with frames
+     * @param filer filer with rules to select particles
+     * @param domainOffset offset to a user-defined domain. Can, e.g. be used to
+     *                     calculate a totalCellIdx relative to
+     *                     globalDomain.offset + localDomain.offset
+     * @param domainCellIdxIdentifier the identifier for the particle cellIdx
+     *                                that is calculated with respect to
+     *                                domainOffset
+     * @param mapper map cuda idx to supercells
+     */
+    template<class T_DestFrame, class T_SrcBox, class T_Filter, class T_Space, class T_Identifier, class T_Mapping>
+    DINLINE void operator()(
+        int* counter,
+        T_DestFrame destFrame,
+        T_SrcBox srcBox,
+        T_Filter filter,
+        const T_Space domainOffset,
+        const T_Identifier domainCellIdxIdentifier,
+        const T_Mapping mapper
+    ) const
+    {
+        using namespace pmacc::particles::operations;
+
+        typedef T_DestFrame DestFrameType;
+        typedef typename T_SrcBox::FrameType SrcFrameType;
+        typedef typename T_SrcBox::FramePtr SrcFramePtr;
+
+        typedef T_Mapping Mapping;
+        typedef typename Mapping::SuperCellSize Block;
+
+        PMACC_SMEM( srcFramePtr, SrcFramePtr );
+        PMACC_SMEM( localCounter, int );
+        PMACC_SMEM( globalOffset, int );
+
+        int storageOffset;
+
+
+        const DataSpace<Mapping::Dim> block = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
+        const DataSpace<Mapping::Dim> superCellPosition((block - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
+        filter.setSuperCellPosition(superCellPosition);
+        if (threadIdx.x == 0)
+        {
+            localCounter = 0;
+            srcFramePtr = srcBox.getFirstFrame(block);
+        }
+        __syncthreads();
+        while (srcFramePtr.isValid()) //move over all Frames
+        {
+            auto parSrc = (srcFramePtr[threadIdx.x]);
+            storageOffset = -1;
+            /*count particle in frame*/
+            if (parSrc[multiMask_] == 1 && filter(*srcFramePtr, threadIdx.x))
+                storageOffset = nvidia::atomicAllInc(&localCounter);
+            __syncthreads();
+            if (threadIdx.x == 0)
+            {
+                /*reserve host memory for particle*/
+                globalOffset = atomicAdd(counter, localCounter);
+            }
+            __syncthreads();
+            if (storageOffset != -1)
+            {
+                auto parDest = destFrame[globalOffset + storageOffset];
+                auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
+                assign(parDestNoDomainIdx, parSrc);
+                /* calculate cell index for user-defined domain */
+                DataSpace<Mapping::Dim> localCell(DataSpaceOperations<Mapping::Dim>::template map<Block>(parSrc[localCellIdx_]));
+                parDest[domainCellIdxIdentifier] = domainOffset + superCellPosition + localCell;
+            }
+            __syncthreads();
+            if (threadIdx.x == 0)
+            {
+                /*get next frame in supercell*/
+                srcFramePtr = srcBox.getNextFrame(srcFramePtr);
+                localCounter = 0;
+            }
+            __syncthreads();
+        }
+    }
+};
+} //namespace picongpu
+

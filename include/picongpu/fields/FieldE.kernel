@@ -1,0 +1,107 @@
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
+#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/mappings/threads/ThreadCollective.hpp>
+
+namespace picongpu
+{
+using namespace pmacc;
+
+/** compute the electric field of the laser
+ *
+ * @tparam T_numWorkers number of workers
+ * @tparam T_LaserPlaneSizeInSuperCell number of cells per dimension which
+ *  initialize the laser (size must be less or equal than the supercell size)
+ */
+template<
+    uint32_t T_numWorkers,
+    typename T_LaserPlaneSizeInSuperCell
+>
+struct KernelLaserE
+{
+    template< typename EBox >
+    DINLINE void operator()(
+        EBox fieldE,
+        LaserManipulator lMan
+    ) const
+    {
+        using LaserPlaneSizeInSuperCell = T_LaserPlaneSizeInSuperCell;
+
+        PMACC_CASSERT_MSG(
+            __LaserPlaneSizeInSuperCell_y_must_be_less_or_equal_than_SuperCellSize_y,
+            LaserPlaneSizeInSuperCell::y::value <= SuperCellSize::y::value
+        );
+
+        constexpr uint32_t planeSize = pmacc::math::CT::volume< LaserPlaneSizeInSuperCell >::type::value;
+        constexpr uint32_t numWorkers = T_numWorkers;
+
+        const uint32_t workerIdx = threadIdx.x;
+
+        /* offset in cells to the superCell of the local GPU (relative from the local origin of the border) */
+        DataSpace< simDim > const superCellOffset = DataSpace< simDim >( blockIdx ) * SuperCellSize::toRT();
+
+        mappings::threads::ForEachIdx<
+            mappings::threads::IdxConfig<
+                planeSize,
+                numWorkers
+            >
+        > { workerIdx }(
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
+            {
+                /* cell index within the superCell */
+                DataSpace< simDim > const cellIdxInSuperCell = DataSpaceOperations<simDim>::template map< LaserPlaneSizeInSuperCell >( linearIdx );
+                /* cell index (relative to the local origin of the border)*/
+                auto cellIdx = superCellOffset + cellIdxInSuperCell;
+                cellIdx.y() += laser::initPlaneY;
+
+                auto const eField = lMan.getManipulation( cellIdx );
+                if( laser::initPlaneY != 0 ) // compile time if
+                {
+                    /* If the laser is not initialized in the first cell we emit a
+                     * negatively and positively propagating wave. Therefore we need to multiply the
+                     * amplitude with a correction factor depending of the cell size in
+                     * propagation direction.
+                     * The negatively propagating wave is damped by the absorber.
+                     *
+                     * The `correctionFactor` assume that the wave is moving in y direction.
+                     */
+                    auto correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * float_X( 2. );
+                    /* jump over the guard of the electric field */
+                    fieldE( cellIdx + SuperCellSize::toRT() * GUARD_SIZE ) +=  correctionFactor * eField;
+                }
+                else
+                {
+                    /* jump over the guard of the electric field */
+                    fieldE( cellIdx + SuperCellSize::toRT() * GUARD_SIZE ) = eField;
+                }
+            }
+        );
+    }
+};
+
+}
