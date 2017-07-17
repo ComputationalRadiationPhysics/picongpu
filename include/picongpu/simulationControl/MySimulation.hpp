@@ -421,6 +421,10 @@ public:
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
         gc.setStateAfterSlides(0);
 
+        DataConnector &dc = Environment<>::get().DataConnector();
+        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+
         /* fill all objects registed in DataConnector */
         if (initialiserController)
         {
@@ -442,6 +446,20 @@ public:
 
                 initialiserController->restart((uint32_t)this->restartStep, this->restartDirectory);
                 step = this->restartStep;
+
+                /** restore background fields in GUARD
+                 *
+                 * loads the outer GUARDS of the global domain for absorbing/open boundary condtions
+                 *
+                 * @todo as soon as we add GUARD fields to the checkpoint data, e.g. for PML boundary
+                 *       conditions, this section needs to be removed
+                 */
+                cellwiseOperation::CellwiseOperation< GUARD > guardBGField( *cellDescription );
+                namespace nvfct = pmacc::nvidia::functors;
+                guardBGField( fieldE, nvfct::Add(), FieldBackgroundE( fieldE->getUnit() ),
+                              step, FieldBackgroundE::InfluenceParticlePusher );
+                guardBGField( fieldB, nvfct::Add(), FieldBackgroundB( fieldB->getUnit() ),
+                              step, FieldBackgroundB::InfluenceParticlePusher );
             }
             else
             {
@@ -455,25 +473,7 @@ public:
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
         log<picLog::MEMORY > ("free mem after all particles are initialized %1% MiB") % (freeGpuMem / 1024 / 1024);
 
-        /** a background field for the particle pusher might be added at the
-            beginning of a simulation in movingWindowCheck()
-            At restarts the external fields are already added and will be
-            double-counted, so we remove it in advance. */
-        DataConnector &dc = Environment<>::get().DataConnector();
-        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
-        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
-
-        if( this->restartRequested )
-        {
-            namespace nvfct = pmacc::nvidia::functors;
-
-            (*pushBGField)( fieldE, nvfct::Sub(), FieldBackgroundE(fieldE->getUnit()),
-                            step, FieldBackgroundE::InfluenceParticlePusher);
-            (*pushBGField)( fieldB, nvfct::Sub(), FieldBackgroundB(fieldB->getUnit()),
-                            step, FieldBackgroundB::InfluenceParticlePusher);
-        }
-
-        // communicate all fields
+        // generate valid GUARDS (overwrite)
         EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
         __setTransactionEvent(eRfieldE);
         EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
@@ -648,26 +648,39 @@ public:
             slide(currentStep);
         }
 
-        /** add background field: the movingWindowCheck is just at the start
-         * of a time step before all the plugins are called (and the step
-         * itself is performed for this time step).
-         * Hence the background field is visible for all plugins
-         * in between the time steps.
+        /* do not double-add background field on restarts
+         * (contained in checkpoint data)
          */
-        namespace nvfct = pmacc::nvidia::functors;
+        bool addBgFields = true;
+        if( this->restartRequested )
+        {
+            if( this->restartStep == int32_t(currentStep) )
+                addBgFields = false;
+        }
 
-        DataConnector &dc = Environment<>::get().DataConnector();
+        if( addBgFields )
+        {
+            /** add background field: the movingWindowCheck is just at the start
+             * of a time step before all the plugins are called (and the step
+             * itself is performed for this time step).
+             * Hence the background field is visible for all plugins
+             * in between the time steps.
+             */
+            namespace nvfct = pmacc::nvidia::functors;
 
-        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
-        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
+            DataConnector &dc = Environment<>::get().DataConnector();
 
-        (*pushBGField)( fieldE, nvfct::Add(), FieldBackgroundE(fieldE->getUnit()),
-                        currentStep, FieldBackgroundE::InfluenceParticlePusher );
-        (*pushBGField)( fieldB, nvfct::Add(), FieldBackgroundB(fieldB->getUnit()),
-                        currentStep, FieldBackgroundB::InfluenceParticlePusher );
+            auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
+            auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
-        dc.releaseData( FieldE::getName() );
-        dc.releaseData( FieldB::getName() );
+            (*pushBGField)( fieldE, nvfct::Add(), FieldBackgroundE(fieldE->getUnit()),
+                            currentStep, FieldBackgroundE::InfluenceParticlePusher );
+            (*pushBGField)( fieldB, nvfct::Add(), FieldBackgroundB(fieldB->getUnit()),
+                            currentStep, FieldBackgroundB::InfluenceParticlePusher );
+
+            dc.releaseData( FieldE::getName() );
+            dc.releaseData( FieldB::getName() );
+        }
     }
 
     virtual void resetAll(uint32_t currentStep)

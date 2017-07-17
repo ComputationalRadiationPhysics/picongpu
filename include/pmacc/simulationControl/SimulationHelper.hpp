@@ -231,7 +231,6 @@ public:
             TimeIntervall tSimCalculation;
             TimeIntervall tRound;
             double roundAvg = 0.0;
-            Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
 
             /* Since in the main loop movingWindow is called always before the dump, we also call it here for consistency.
              * This becomes only important, if movingWindowCheck does more than merely checking for a slide.
@@ -261,13 +260,14 @@ public:
                 tRound.toggleEnd();
                 roundAvg += tRound.getInterval();
 
+                /* NEXT TIMESTEP STARTS HERE */
                 currentStep++;
                 Environment<>::get().SimulationDescription().setCurrentStep( currentStep );
-                /*output after a round*/
+                /* output times after a round */
                 dumpTimes(tSimCalculation, tRound, roundAvg, currentStep);
 
                 movingWindowCheck(currentStep);
-                /*dump after simulated step*/
+                /* dump at the beginning of the simulated step */
                 dumpOneStep(currentStep);
             }
 
