@@ -402,6 +402,71 @@ class addParticles2Checkpoint:
         self.writePatch()
 
 
+
+    def changeNameToZeroTS(self, string):
+        """
+        convert hdf5 path to iteration zero
+        """
+        tmp = string.rsplit('/')
+        tmp[2] = '0'
+        return_value = "/".join(tmp)
+        return return_value
+
+    def compareAttrs(self, d, file2):
+        """
+        compare all attibutes of this dataset or group between both files
+        """
+        counter = 0
+
+        try:
+            for i in d.attrs.items():
+                if not i[0] in ['sim_slides', 'time', 'gridGlobalOffset', 'shape']:
+                    path = self.changeNameToZeroTS( d.name )
+
+                    value_new = file2[path].attrs[i[0]]
+                    value_old = i[1]
+
+                    if not np.all(np.equal(value_new, value_old)):
+                        print("ERROR different attributes: {}".format(path + "  " + i[0]))
+                        print(value_new, value_old)
+                        counter += 1
+        except KeyError:
+            print("    could not compare {}".format(d))
+
+        return counter
+
+    def goThroughHDF5File(self, d, file2):
+        """
+        go through hdf5 file and count differences in attrs
+        """
+        counter = 0
+        for i in d.items():
+            counter +=  self.compareAttrs(i[1], file2)
+            if(type(i[1]) == h5py._hl.group.Group):
+                counter += self.goThroughHDF5File(i[1], file2)
+
+
+        return counter
+
+
+
+    def verifyUnits(self, cpFileName):
+        """
+        verify that all unitSI attributes are equal between cpFileName and new simulation
+        """
+        f1 = h5py.File(cpFileName, "r")
+        f2 = h5py.File(self.filename, "r")
+        counter = self.goThroughHDF5File(f1['/data'], f2)
+        f2.close()
+        f1.close()
+
+        if counter == 0:
+            return True
+        else:
+            print("Number of differences in attrs: {}".format(counter))
+            return False
+
+
     def copyCheckpoint(self, cpFileName):
         """
         Copy data (fields and particles) from a checkpoint into the
@@ -411,20 +476,26 @@ class addParticles2Checkpoint:
         cpFileName: string
                     path to the checkpoint file to copy from
         """
-        # load particle data
-        self.print("load  particles")
-        self.tabs +=1
-        self.loadParticles(cpFileName)
-        self.tabs -=1
+        # verify that all attrs are equal:
+        if self.verifyUnits(cpFileName):
 
-        # write these particles to own checkpoint
-        self.print("write particles")
-        self.tabs +=1
-        self.writeParticles()
-        self.tabs -=1
+            # load particle data
+            self.print("load  particles")
+            self.tabs +=1
+            self.loadParticles(cpFileName)
+            self.tabs -=1
 
-        # copy field data
-        self.print("copy fields")
-        self.tabs +=1
-        self.copyFields(cpFileName)
-        self.tabs -=1
+            # write these particles to own checkpoint
+            self.print("write particles")
+            self.tabs +=1
+            self.writeParticles()
+            self.tabs -=1
+
+            # copy field data
+            self.print("copy fields")
+            self.tabs +=1
+            self.copyFields(cpFileName)
+            self.tabs -=1
+
+        else:
+            print("Attributes differ - Did not copy check point!")
