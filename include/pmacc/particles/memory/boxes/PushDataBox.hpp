@@ -23,7 +23,7 @@
 
 
 #pragma once
-#include <cuda.h>
+
 
 #include "pmacc/particles/memory/boxes/TileDataBox.hpp"
 

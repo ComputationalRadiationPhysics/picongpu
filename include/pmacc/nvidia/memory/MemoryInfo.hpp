@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <cuda.h>
+
 #include "pmacc/types.hpp"
 
 #include <cstring> // memset

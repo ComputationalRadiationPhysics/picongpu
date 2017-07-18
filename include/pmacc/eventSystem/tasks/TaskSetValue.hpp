@@ -36,8 +36,8 @@
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits.hpp>
 
-#include <cuda_runtime_api.h>
-#include <cuda.h>
+
+
 
 namespace pmacc
 {

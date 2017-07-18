@@ -29,8 +29,8 @@
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/nvidia/gpuEntryFunction.hpp"
 
-#include <cuda_runtime_api.h>
-#include <cuda.h>
+
+
 
 struct KernelSetValueOnDeviceMemory
 {

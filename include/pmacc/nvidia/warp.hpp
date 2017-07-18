@@ -23,7 +23,6 @@
 
 
 #include "pmacc/types.hpp"
-#include <device_functions.h>
 
 
 namespace pmacc

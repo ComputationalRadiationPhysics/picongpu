@@ -26,7 +26,6 @@
 #include "pmacc/nvidia/warp.hpp"
 #include <boost/type_traits.hpp>
 #include <math_functions.h>
-#include <device_functions.h>
 #include <climits>
 
 

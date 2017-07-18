@@ -39,7 +39,6 @@
 #include "pmacc/communication/manager_common.hpp"
 #include "pmacc/assert.hpp"
 
-#include <cuda_runtime.h>
 #include <mpi.h>
 
 namespace pmacc
