@@ -30,140 +30,265 @@
 #include <pmacc/nvidia/rng/RNG.hpp>
 #include <pmacc/nvidia/rng/methods/Xor.hpp>
 #include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
 
 namespace gol
 {
-    namespace kernel
-    {
-        using namespace pmacc;
+namespace kernel
+{
+    using namespace pmacc;
 
-        struct Evolution
-        {
-            template<class BoxReadOnly, class BoxWriteOnly, class Mapping>
-            DINLINE void operator()(BoxReadOnly buffRead,
-                                      BoxWriteOnly buffWrite,
-                                      uint32_t rule,
-                                      Mapping mapper) const
-            {
-                typedef typename BoxReadOnly::ValueType Type;
-                typedef SuperCellDescription<
-                        typename Mapping::SuperCellSize,
-                        math::CT::Int< 1, 1 >,
-                        math::CT::Int< 1, 1 >
-                        > BlockArea;
-                auto cache = CachedBox::create < 0, Type > (BlockArea());
-
-                const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
-                const Space blockCell = block * Mapping::SuperCellSize::toRT();
-                const Space threadIndex(threadIdx);
-                auto buffRead_shifted = buffRead.shift(blockCell);
-
-                ThreadCollective<
-                    BlockArea,
-                    pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
-                > collective(
-                    DataSpaceOperations< BlockArea::Dim >::template map<
-                        typename BlockArea::SuperCellSize
-                    >( threadIndex )
-                );
-
-                nvidia::functors::Assign assign;
-                collective(
-                          assign,
-                          cache,
-                          buffRead_shifted
-                          );
-                __syncthreads();
-
-                Type neighbors = 0;
-                for (uint32_t i = 1; i < 9; ++i)
-                {
-                    Space offset(Mask::getRelativeDirections<DIM2 > (i));
-                    neighbors += cache(threadIndex + offset);
-                }
-
-                Type isLife = cache(threadIndex);
-                isLife = (bool)(((!isLife)*(1 << (neighbors + 9))) & rule) +
-                        (bool)(((isLife)*(1 << (neighbors))) & rule);
-
-                buffWrite(blockCell + threadIndex) = isLife;
-            }
-        };
-
-        struct RandomInit
-        {
-            template<class BoxWriteOnly, class Mapping>
-            DINLINE void operator()(BoxWriteOnly buffWrite,
-                                       uint32_t seed,
-                                       float fraction,
-                                       Mapping mapper) const
-            {
-                /* get position in grid in units of SuperCells from blockID */
-                const Space block(mapper.getSuperCellIndex(Space(blockIdx)));
-                /* convert position in unit of cells */
-                const Space blockCell = block * Mapping::SuperCellSize::toRT();
-                /* convert CUDA dim3 to DataSpace<DIM3> */
-                const Space threadIndex(threadIdx);
-                const uint32_t cellIdx = DataSpaceOperations<DIM2>::map(
-                        mapper.getGridSuperCells() * Mapping::SuperCellSize::toRT(),
-                        blockCell + threadIndex);
-
-                /* get uniform random number from seed  */
-                auto rng = nvidia::rng::create(
-                                    nvidia::rng::methods::Xor(seed, cellIdx),
-                                    nvidia::rng::distributions::Uniform_float());
-
-                /* write 1(white) if uniform random number 0<rng<1 is smaller than 'fraction' */
-                buffWrite(blockCell + threadIndex) = (rng() <= fraction);
-            }
-        };
-    }
-
-    template<class MappingDesc>
+    /** run game of life stencil
+     *
+     * evaluate each cell in the supercell
+     *
+     * @tparam T_numWorkers number of workers
+     */
+    template< uint32_t T_numWorkers >
     struct Evolution
     {
-        MappingDesc mapping;
+        /** run stencil for a supercell
+         *
+         * @tparam T_BoxReadOnly PMacc::DataBox, box type of the old grid data
+         * @tparam T_BoxWriteOnly PMacc::DataBox, box type of the new grid data
+         * @tparam T_Mapping mapping functor type
+         *
+         * @param buffRead buffer with cell data of the current step
+         * @param buffWrite buffer for the updated cell data
+         * @param rule description of the rule as bitmap mask
+         * @param mapper functor to map a block to a supercell
+         */
+        template<
+            typename T_BoxReadOnly,
+            typename T_BoxWriteOnly,
+            typename T_Mapping
+        >
+        DINLINE void operator()(
+            T_BoxReadOnly const & buffRead,
+            T_BoxWriteOnly & buffWrite,
+            uint32_t const rule,
+            T_Mapping const & mapper
+        ) const
+        {
+            using namespace mappings::threads;
+
+            using Type = typename T_BoxReadOnly::ValueType;
+            using SuperCellSize = typename T_Mapping::SuperCellSize;
+            using BlockArea = SuperCellDescription<
+                SuperCellSize,
+                math::CT::Int< 1, 1 >,
+                math::CT::Int< 1, 1 >
+            >;
+            auto cache = CachedBox::create <
+                0,
+                Type
+            > ( BlockArea( ) );
+
+            Space const block( mapper.getSuperCellIndex( Space( blockIdx ) ) );
+            Space const blockCell = block * T_Mapping::SuperCellSize::toRT( );
+
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
+            uint32_t const workerIdx = threadIdx.x;
+
+            auto buffRead_shifted = buffRead.shift( blockCell );
+
+            ThreadCollective<
+                BlockArea,
+                numWorkers
+            > collective( workerIdx );
+
+            nvidia::functors::Assign assign;
+            collective(
+                assign,
+                cache,
+                buffRead_shifted
+            );
+
+            __syncthreads();
+
+            ForEachIdx<
+                IdxConfig<
+                    cellsPerSuperCell,
+                    numWorkers
+                >
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    // cell index within the superCell
+                    DataSpace< DIM2 > const cellIdx = DataSpaceOperations< DIM2 >::template map< SuperCellSize >( linearIdx );
+
+                    Type neighbors = 0;
+                    for (uint32_t i = 1; i < 9; ++i)
+                    {
+                        Space const offset( Mask::getRelativeDirections< DIM2 > ( i ) );
+                        neighbors += cache( cellIdx + offset );
+                    }
+
+                    Type isLife = cache( cellIdx );
+                    isLife = static_cast< bool >( ( (!isLife)*( 1 << (neighbors + 9) ) ) & rule ) +
+                        static_cast< bool >( ( isLife*( 1 << ( neighbors ) ) ) & rule );
+
+                    buffWrite( blockCell + cellIdx ) = isLife;
+                }
+            );
+        }
+    };
+
+    /** initialize each cell
+     *
+     * randomly activate each cell within a supercell
+     *
+     * @tparam T_numWorkers number of workers
+     */
+    template< uint32_t T_numWorkers >
+    struct RandomInit
+    {
+        /** initialize each cell
+         *
+         * @tparam T_BoxWriteOnly PMacc::DataBox, box type of the new grid data
+         * @tparam T_Mapping mapping functor type
+         *
+         * @param buffRead buffer with cell data of the current step
+         * @param seed random number generator seed
+         * @param threshold threshold to activate a cell, range [0.0;1.0]
+         *                  if random number is <= threshold than the cell will
+         *                  be activated
+         * @param mapper functor to map a block to a supercell
+         */
+        template<
+            typename T_BoxWriteOnly,
+            typename T_Mapping
+        >
+        DINLINE void operator()(
+            T_BoxWriteOnly & buffWrite,
+            uint32_t const seed,
+            float const threshold,
+            T_Mapping const & mapper
+        ) const
+        {
+            using namespace mappings::threads;
+
+            using SuperCellSize = typename T_Mapping::SuperCellSize;
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
+            uint32_t const workerIdx = threadIdx.x;
+
+            // get position in grid in units of SuperCells from blockID
+            Space const block( mapper.getSuperCellIndex( Space( blockIdx ) ) );
+            // convert position in unit of cells
+            Space const blockCell = block * T_Mapping::SuperCellSize::toRT( );
+            // convert CUDA dim3 to DataSpace<DIM3>
+            Space const threadIndex(threadIdx);
+
+            uint32_t const globalUniqueId = DataSpaceOperations< DIM2 >::map(
+                mapper.getGridSuperCells() * T_Mapping::SuperCellSize::toRT(),
+                blockCell + DataSpaceOperations< DIM2 >::template map< SuperCellSize >( workerIdx )
+            );
+
+            // get uniform random number from seed
+            auto rng = nvidia::rng::create(
+                nvidia::rng::methods::Xor( seed, globalUniqueId ),
+                nvidia::rng::distributions::Uniform_float( )
+            );
+
+            ForEachIdx<
+                IdxConfig<
+                    cellsPerSuperCell,
+                    numWorkers
+                >
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    // cell index within the superCell
+                    DataSpace< DIM2 > const cellIdx = DataSpaceOperations< DIM2 >::template map< SuperCellSize >( linearIdx );
+                    // write 1(white) if uniform random number 0<rng<1 is smaller than 'threshold'
+                    buffWrite( blockCell + cellIdx ) = static_cast< bool >( rng() <= threshold );
+                }
+            );
+        }
+    };
+} // namespace kernel
+
+    template< typename T_MappingDesc >
+    struct Evolution
+    {
+        T_MappingDesc mapping;
         uint32_t rule;
 
-        Evolution(uint32_t rule) : rule(rule)
+        Evolution( uint32_t rule ) : rule( rule )
         {
 
         }
 
-        void init(const MappingDesc & desc)
+        void init( T_MappingDesc const & desc )
         {
             mapping = desc;
         }
 
-        template<class DBox>
-        void initEvolution(const DBox & writeBox, float fraction)
+        template< typename DBox >
+        void initEvolution(
+            DBox const & writeBox,
+            float const fraction
+        )
         {
-            AreaMapping < CORE + BORDER, MappingDesc > mapper(mapping);
-            GridController<DIM2>& gc = Environment<DIM2>::get().GridController();
-            uint32_t seed = gc.getGlobalSize() + gc.getGlobalRank();
+            AreaMapping <
+                CORE + BORDER,
+                T_MappingDesc
+            > mapper( mapping );
+            constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                math::CT::volume< typename T_MappingDesc::SuperCellSize >::type::value
+            >::value;
 
-            PMACC_KERNEL(kernel::RandomInit{})
-                    (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT())
-                    (
-                     writeBox,
-                     seed,
-                     fraction,
-                     mapper);
+            GridController< DIM2 >& gc = Environment< DIM2 >::get( ).GridController( );
+            uint32_t seed = gc.getGlobalSize( ) + gc.getGlobalRank( );
+
+            PMACC_KERNEL( kernel::RandomInit< numWorkers >{ } )(
+                mapper.getGridDim( ),
+                numWorkers
+            )(
+                writeBox,
+                seed,
+                fraction,
+                mapper
+            );
         }
 
-        template<uint32_t Area, class DBox>
-        void run(const DBox& readBox, const DBox & writeBox)
+        template<
+            uint32_t Area,
+            typename DBox
+        >
+        void run(
+            DBox const & readBox,
+            DBox const & writeBox
+        )
         {
-            AreaMapping < Area, MappingDesc > mapper(mapping);
-            PMACC_KERNEL(kernel::Evolution{})
-                    (mapper.getGridDim(), MappingDesc::SuperCellSize::toRT())
-                    (readBox,
-                     writeBox,
-                     rule,
-                     mapper);
+            AreaMapping <
+                Area,
+                T_MappingDesc
+            > mapper( mapping );
+            constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                math::CT::volume< typename T_MappingDesc::SuperCellSize >::type::value
+            >::value;
+
+            PMACC_KERNEL( kernel::Evolution< numWorkers >{ } )(
+                mapper.getGridDim( ),
+                numWorkers
+            )(
+                readBox,
+                writeBox,
+                rule,
+                mapper
+            );
         }
     };
-}
 
-
-
+} // namespace gol
