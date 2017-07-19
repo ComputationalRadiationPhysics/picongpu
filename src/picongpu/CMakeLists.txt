@@ -353,6 +353,7 @@ add_library(picongpu-hostonly
     STATIC
     ${SRCFILES}
 )
+target_link_libraries(picongpu-hostonly ${LIBS} m)
 
 if("${PMACC_CUDA_COMPILER}" STREQUAL "clang")
     add_executable(picongpu
