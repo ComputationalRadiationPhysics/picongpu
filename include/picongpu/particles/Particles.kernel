@@ -204,7 +204,7 @@ struct KernelDeriveParticles
     }
 };
 
-/** manipulate particle of a species
+/** manipulate particles of a species
  *
  * This functor prepares a particle box to call
  * a user defined unary functor which allows to manipulate the particles.
@@ -326,7 +326,10 @@ struct KernelManipulateAllParticles
                     // call manipulator even if the particle is not valid
                     accManipulator( particle );
 
-                    // assume that all other frames has no gaps
+                    /* only the last frame is allowed to be non-full: all following
+                     * frames' particles will be valid, since we iterate the list of
+                     * frames from back to front
+                     */
                     isParticleCtx[ idx ] = true;
                 }
             );
