@@ -362,24 +362,34 @@ template<
     typename T_Flags,
     typename T_Attributes
 >
-template< typename T_Functor>
+template< typename T_Functor >
 void
 Particles<
     T_Name,
     T_Flags,
     T_Attributes
->::manipulateAllParticles( uint32_t currentStep, T_Functor& functor )
+>::manipulateAllParticles(
+    uint32_t currentStep,
+    T_Functor & functor
+)
 {
+    AreaMapping<
+        CORE + BORDER,
+        MappingDesc
+    > mapper( this->cellDescription );
 
-    auto block = MappingDesc::SuperCellSize::toRT( );
+    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+        pmacc::math::CT::volume< SuperCellSize >::type::value
+    >::value;
 
-    AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
-    PMACC_KERNEL( KernelManipulateAllParticles{} )
-        (mapper.getGridDim(), block)
-        ( this->particlesBuffer->getDeviceParticleBox( ),
-          functor,
-          mapper
-        );
+    PMACC_KERNEL( KernelManipulateAllParticles< numWorkers >{ } )(
+        mapper.getGridDim( ),
+        numWorkers
+    )(
+        this->particlesBuffer->getDeviceParticleBox( ),
+        functor,
+        mapper
+    );
 }
 
 } // namespace picongpu
