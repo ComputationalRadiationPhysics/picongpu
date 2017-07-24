@@ -188,8 +188,10 @@ if __name__ == "__main__":
 
     ax1 = plt.subplot(121)
     ax1.set_xlabel(r"$t\,[\Delta t]$", fontsize=20)
-    ax1.set_ylabel(r"$\mathrm{max}|d|\,[\rho_\mathrm{max}(0)]$",
-                   fontsize=20)
+    ax1.set_ylabel(
+        r"$\mathrm{max}|d|\,[\rho_\mathrm{max}(0)]$",
+        fontsize=20
+    )
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
     # always use scientific notation
@@ -198,8 +200,10 @@ if __name__ == "__main__":
 
     ax2 = plt.subplot(122)
     ax2.set_xlabel(r"$t\,[\Delta t]$", fontsize=20)
-    ax2.set_ylabel(r"$\left<|d|\right> \pm \sigma_d\,[\rho_\mathrm{max}(0)]$",
-                   fontsize=20)
+    ax2.set_ylabel(
+        r"$\left<|d|\right> \pm \sigma_d\,[\rho_\mathrm{max}(0)]$",
+        fontsize=20
+    )
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
     # always use scientific notation

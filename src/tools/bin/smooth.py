@@ -18,7 +18,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 from __future__ import division
-import numpy
+import numpy as np
 
 __doc__ = "This is the 'smooth' module which provides several functions that\n\
 provide methods to smooth data from simulation or experiments.\n\
@@ -101,7 +101,7 @@ def gaussWindow(N, sigma):
     # +/- range bins to calculate
     length = (N/float(sigma))
     # not normalized
-    return numpy.exp(-0.5 * (numpy.linspace(-length, length, N))**2)
+    return np.exp(-0.5 * (np.linspace(-length, length, N))**2)
 
 
 def smooth(x, sigma, window_len=11, fkt=gaussWindow):
@@ -127,7 +127,7 @@ def smooth(x, sigma, window_len=11, fkt=gaussWindow):
 
     """
     # check input:
-    if type(x) != numpy.ndarray:
+    if type(x) != np.ndarray:
         error_msg = "ERROR: input needs to by a 1D numpy array. " + \
                     "Data type is {}".format(type(x))
         raise Exception(error_msg)
@@ -140,13 +140,13 @@ def smooth(x, sigma, window_len=11, fkt=gaussWindow):
 
     # extending the data at the beginning and at the end
     # to apply the window at the borders
-    s = numpy.r_[x[window_len-1:0:-1], x, x[-1:-window_len:-1]]
+    s = np.r_[x[window_len-1:0:-1], x, x[-1:-window_len:-1]]
 
     w = fkt(window_len, sigma)  # compute window values
 
     # smooth data by convolution with window function
     #   smoothed data with borders
-    y = numpy.convolve(w/w.sum(), s, mode='valid')
+    y = np.convolve(w/w.sum(), s, mode='valid')
     #   usually window_len is odd, and int-devision is used
     overlap = window_len//2
 
@@ -186,7 +186,7 @@ def smooth2D(data, sigma_x=10, len_x=50, sigma_y=10, len_y=50,
 
     """
     # check input
-    if type(data) != numpy.ndarray:
+    if type(data) != np.ndarray:
         error_msg = "ERROR: input needs to by a 2D numpy array. " + \
                     "Data type is {}".format(type(data))
         raise Exception(error_msg)

@@ -92,7 +92,8 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
         if field_name[-14:] == "_chargeDensity":
             # load species density
             species_Density = np.array(
-                f["/data/{}/fields/".format(timestep) + field_name])
+                f["/data/{}/fields/".format(timestep) + field_name]
+            )
             # choose norm to be the maximal charge density of all species
             norm = np.max([norm, np.amax(np.abs(species_Density))])
             # add charge density to total charge density
