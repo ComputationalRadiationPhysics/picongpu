@@ -45,7 +45,6 @@
 #include <pmacc/cuSTL/algorithm/kernel/Reduce.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
-#include <pmacc/lambda/Expression.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/cuSTL/cursor/tools/slice.hpp>
 #include <pmacc/cuSTL/cursor/FunctorCursor.hpp>
@@ -65,6 +64,29 @@ using namespace pmacc;
 
 class ThermalTestSimulation : public MySimulation
 {
+    struct Add {
+        template<typename T_Type>
+        HDINLINE T_Type operator()(
+            const T_Type& first,
+            const T_Type& second
+        ) const {
+            return first + second;
+        }
+    };
+
+    template<typename T_Type>
+    struct GetComponent {
+        using Type = T_Type;
+        const uint32_t component;
+
+        HDINLINE GetComponent(const uint32_t component) : component(component) {}
+
+        template<typename Array>
+        HDINLINE Type& operator()(Array& array) const {
+            return array[this->component];
+        }
+    };
+
 public:
 
     ThermalTestSimulation()
@@ -130,7 +152,7 @@ public:
 
                 algorithm::mpi::Reduce<3> reduce(gpuReducingZone, reduceRoot);
 
-                reduce(eField_zt_reduced, *(eField_zt[i]), lambda::_1 + lambda::_2);
+                reduce(eField_zt_reduced, *(eField_zt[i]), Add());
             }
             if(!reduceRoot) continue;
 
@@ -183,10 +205,12 @@ public:
             {
                 *(eField_zt[i]->origin()(z, currentStep - firstTimestep)) =
                     algorithm::kernel::Reduce()
-                        (cursor::make_FunctorCursor(cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
-                                                    lambda::_1[i == 0 ? 0 : 2]),
-                         reduceZone,
-                         nvidia::functors::Add());
+                        (cursor::make_FunctorCursor(
+                            cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
+                            GetComponent<typename FieldE::ValueType>(i == 0 ? 0 : 2)
+                        ),
+                        reduceZone,
+                        nvidia::functors::Add());
             }
         }
 

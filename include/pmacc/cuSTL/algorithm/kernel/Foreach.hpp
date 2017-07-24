@@ -24,7 +24,6 @@
 #include "pmacc/types.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/math/vector/Int.hpp"
-#include "pmacc/lambda/make_Functor.hpp"
 #include "detail/SphericMapper.hpp"
 #include "detail/ForeachKernel.hpp"
 #include "pmacc/forward.hpp"
@@ -67,7 +66,7 @@ namespace kernel
         using namespace pmacc;                                                                              \
         PMACC_KERNEL(detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size), blockDim)                    \
                   /* c0_shifted, c1_shifted, ... */                                                         \
-            (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                   \
+            (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                   \
     }
 
 /** Foreach algorithm that calls a cuda kernel

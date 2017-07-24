@@ -33,7 +33,6 @@
 #include <pmacc/cuSTL/cursor/tools/slice.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
-#include <pmacc/lambda/Expression.hpp>
 #include "SliceFieldPrinterMulti.hpp"
 #include <sstream>
 

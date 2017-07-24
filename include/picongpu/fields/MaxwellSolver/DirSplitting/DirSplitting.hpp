@@ -27,7 +27,6 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include <pmacc/lambda/Expression.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/ForeachBlock.hpp>
 #include <pmacc/cuSTL/cursor/NestedCursor.hpp>
 #include <pmacc/math/Vector.hpp>

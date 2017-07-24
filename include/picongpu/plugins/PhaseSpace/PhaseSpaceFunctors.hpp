@@ -45,7 +45,7 @@ namespace picongpu
         typedef void result_type;
 
         DINLINE void
-        operator()( Type& dest, const Type src )
+        operator()( Type& dest, const Type src ) const
         {
             atomicAddWrapper( &dest, src );
         }
@@ -139,6 +139,14 @@ namespace picongpu
         uint32_t p_element;
         std::pair<float_X, float_X> axis_p_range;
 
+        struct AssignZero
+        {
+            template<typename T_Type>
+            HDINLINE void operator()(T_Type& arg) const {
+                arg = float_PS(0.0);
+            }
+        };
+
         /** Constructor to transfer params to device
          *
          * \param pb ParticleBox for a species
@@ -175,11 +183,9 @@ namespace picongpu
             /* init shared mem */
             pmacc::algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
             {
-                using namespace lambda;
-                DECLARE_PLACEHOLDERS();
                 forEachThreadInBlock( dBufferInBlock.zone(),
                                       dBufferInBlock.origin(),
-                                      _1 = float_PS(0.0) );
+                                      AssignZero() );
             }
             __syncthreads();
 

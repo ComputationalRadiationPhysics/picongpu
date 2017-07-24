@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/algorithms/math/defines/trigo.hpp"
 
 namespace pmacc
@@ -42,9 +41,6 @@ struct Sin
         return algorithms::math::sin(value);
     }
 };
-
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sin<float>> > _sinf;
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sin<double>> > _sind;
 
 } // math_functor
 } // math

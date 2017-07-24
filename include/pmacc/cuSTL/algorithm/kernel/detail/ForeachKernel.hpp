@@ -35,7 +35,7 @@ namespace kernel
 namespace detail
 {
 
-#define SHIFTACCESS_CURSOR(Z, N, _) forward(c ## N [cellIndex])
+#define SHIFTACCESS_CURSOR(Z, N, _) c ## N [cellIndex]
 
 #define KERNEL_FOREACH(Z, N, _) \
 /*                        typename C0, ..., typename CN     */ \
@@ -44,7 +44,7 @@ template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor>
 DINLINE void operator()(Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) const \
 { \
     math::Int<Mapper::dim> cellIndex(mapper(dim3(blockIdx), dim3(threadIdx))); \
-/*          forward(c0[cellIndex]), ..., forward(cN[cellIndex])     */ \
+/*          c0[cellIndex]), ..., cN[cellIndex]     */ \
     functor(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
 }
 

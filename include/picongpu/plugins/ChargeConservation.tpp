@@ -38,7 +38,6 @@
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/Reduce.hpp>
-#include <pmacc/lambda/Expression.hpp>
 #include <pmacc/algorithms/ForEach.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
 
@@ -186,6 +185,29 @@ struct ComputeChargeDensity
     }
 };
 
+struct CalculateAndAssignChargeDeviation {
+    template<typename T_Rho, typename T_FieldE>
+    HDINLINE void operator()(
+        T_Rho& rho,
+        const T_FieldE& fieldECursor
+    ) const {
+        typedef Div<simDim, typename FieldTmp::ValueType> MyDiv;
+
+        /* rho := | div E * eps_0 - rho | */
+        rho.x() = abs((MyDiv{}(fieldECursor) * EPS0 - rho).x());
+    }
+};
+
+struct Max {
+    template<typename T_Type>
+    HDINLINE T_Type operator()(
+        const T_Type& first,
+        const T_Type& second
+    ) const {
+        return max( first, second );
+    }
+};
+
 } // namespace detail
 
 void ChargeConservation::notify(uint32_t currentStep)
@@ -226,13 +248,14 @@ void ChargeConservation::notify(uint32_t currentStep)
                       this->cellDescription->getGuardingSuperCells()*-BlockDim::toRT());
 
     /* run calculation: fieldTmp = | div E * eps_0 - rho | */
-    using namespace lambda;
     using namespace pmacc::math::math_functor;
     typedef picongpu::detail::Div<simDim, typename FieldTmp::ValueType> myDiv;
-    algorithm::kernel::Foreach<BlockDim>()
-        (fieldTmp_coreBorder.zone(), fieldTmp_coreBorder.origin(),
+    algorithm::kernel::Foreach<BlockDim>()(
+        fieldTmp_coreBorder.zone(),
+        fieldTmp_coreBorder.origin(),
         cursor::make_NestedCursor(fieldE_coreBorder.origin()),
-            _1 = _abs(expr(myDiv())(_2) * EPS0 - _1));
+        ::picongpu::detail::CalculateAndAssignChargeDeviation()
+    );
 
     /* reduce charge derivation (fieldTmp) to get the maximum value */
     typename FieldTmp::ValueType maxChargeDiff =
@@ -243,7 +266,14 @@ void ChargeConservation::notify(uint32_t currentStep)
     container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_host(1);
     *maxChargeDiff_host.origin() = maxChargeDiff;
     container::HostBuffer<typename FieldTmp::ValueType, 1> maxChargeDiff_cluster(1);
-    (*this->allGPU_reduce)(maxChargeDiff_cluster, maxChargeDiff_host, _max(_1, _2));
+    (*this->allGPU_reduce)(
+        maxChargeDiff_cluster,
+        maxChargeDiff_host,
+        ::pmacc::algorithms::math::Max<
+            typename FieldTmp::ValueType,
+            typename FieldTmp::ValueType
+        >()
+    );
 
     if(!this->allGPU_reduce->root()) return;
 

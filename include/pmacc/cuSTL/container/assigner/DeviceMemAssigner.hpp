@@ -26,7 +26,6 @@
 #include "pmacc/cuSTL/cursor/BufferCursor.hpp"
 #include "pmacc/cuSTL/zone/SphericZone.hpp"
 #include "pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp"
-#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/types.hpp"
 
@@ -47,6 +46,18 @@ struct DeviceMemAssigner
 {
     static constexpr int dim = T_Dim::value;
     typedef T_CartBuffer CartBuffer;
+
+    template<typename T_Type>
+    struct AssignValue {
+        using Type = T_Type;
+        const Type value;
+
+        AssignValue(const Type& value) : value(value) {}
+
+        HDINLINE void operator()(Type& target) const {
+            target = this->value;
+        }
+    };
 
     template<typename Type>
     HINLINE void assign(const Type& value)
@@ -70,7 +81,7 @@ struct DeviceMemAssigner
         PMACC_VERIFY(blockDim.productOfComponents() <= 1024);
 
         algorithm::kernel::RT::Foreach foreach(blockDim);
-        foreach(myZone, cursor, lambda::_1 = value);
+        foreach(myZone, cursor, AssignValue<Type>(value));
     }
 };
 

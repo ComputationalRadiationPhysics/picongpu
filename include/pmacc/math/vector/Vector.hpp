@@ -24,7 +24,6 @@
 
 #include "pmacc/math/vector/accessor/StandardAccessor.hpp"
 #include "pmacc/math/vector/navigator/StandardNavigator.hpp"
-#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/result_of_Functor.hpp"
 #include "pmacc/static_assert.hpp"
 #include "pmacc/types.hpp"

@@ -45,6 +45,16 @@ namespace picongpu
 {
     using namespace pmacc;
 
+    struct Add {
+        template<typename T_Type>
+        HDINLINE T_Type operator()(
+            const T_Type& first,
+            const T_Type& second
+        ) const {
+            return first + second;
+        }
+    };
+
     template<class AssignmentFunction, class Species>
     PhaseSpace<AssignmentFunction, Species>::PhaseSpace( const std::string _name,
                                                          const std::string _prefix,
@@ -218,7 +228,6 @@ namespace picongpu
          *                         spatial y and z direction to node with
          *                         lowest y and z position and same x range
          */
-        using namespace lambda;
         container::HostBuffer<float_PS, 2> hReducedBuffer( hBuffer.size() );
         hReducedBuffer.assign( float_PS(0.0) );
 
@@ -226,7 +235,7 @@ namespace picongpu
                              hReducedBuffer,
                              hBuffer,
                              /* the functors return value will be written to dst */
-                             _1 + _2 );
+                             Add() );
 
         /** all non-reduce-root processes are done now */
         if( !this->isPlaneReduceRoot )

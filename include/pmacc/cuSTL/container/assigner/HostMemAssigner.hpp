@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/cuSTL/algorithm/host/Foreach.hpp"
-#include "pmacc/lambda/placeholder.hpp"
 
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/int.hpp>
@@ -43,15 +42,26 @@ struct HostMemAssigner
     static constexpr int dim = T_Dim::value;
     typedef T_CartBuffer CartBuffer;
 
+    template<typename T_Type>
+    struct AssignValue {
+        using Type = T_Type;
+        const Type value;
+
+        AssignValue(const Type& value) : value(value) {}
+
+        HDINLINE void operator()(Type& target) const {
+            target = this->value;
+        }
+    };
+
     template<typename Type>
     HINLINE void assign(const Type& value)
     {
         // "Curiously recurring template pattern"
         CartBuffer* buffer = static_cast<CartBuffer*>(this);
 
-        using namespace lambda;
         algorithm::host::Foreach foreach;
-        foreach(buffer->zone(), buffer->origin(), _1 = value);
+        foreach(buffer->zone(), buffer->origin(), AssignValue<Type>(value));
     }
 };
 

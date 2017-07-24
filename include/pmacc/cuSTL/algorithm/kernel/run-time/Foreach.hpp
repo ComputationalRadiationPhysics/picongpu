@@ -27,7 +27,6 @@
 #include "pmacc/static_assert.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/math/vector/Int.hpp"
-#include "pmacc/lambda/make_Functor.hpp"
 #include "pmacc/cuSTL/algorithm/kernel/detail/SphericMapper.hpp"
 #include "pmacc/cuSTL/algorithm/kernel/detail/ForeachKernel.hpp"
 #include "pmacc/forward.hpp"
@@ -147,7 +146,7 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDim)
         using namespace pmacc;                                                                                      \
         PMACC_KERNEL(kernel::detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockDim)   \
                 /*   c0_shifted, ..., cN_shifted    */                                                              \
-            (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), lambda::make_Functor(functor));                           \
+            (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                           \
     }
 
 /** Foreach algorithm that calls a cuda kernel
