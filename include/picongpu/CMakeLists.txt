@@ -235,7 +235,6 @@ endif(ADIOS_FOUND)
 
 # CMake
 add_definitions(-DCMAKE_VERSION=${CMAKE_VERSION})
-add_definitions(-DCMAKE_GENERATOR=${CMAKE_GENERATOR})
 add_definitions(-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
 
 # OS & Host Architecture

@@ -70,8 +70,6 @@ namespace picongpu
 
         std::stringstream cmake;
         cmake << BOOST_PP_STRINGIZE(CMAKE_VERSION);
-        std::stringstream cmakeGenerator;
-        cmakeGenerator << BOOST_PP_STRINGIZE(CMAKE_GENERATOR);
 
         std::stringstream cuda;
         cuda << CUDA_VERSION;
@@ -142,8 +140,7 @@ namespace picongpu
         cliText << "  arch:       " << arch.str() << std::endl;
         cliText << "  CXX:        " << cxx.str()
                 << " (" << cxxVersion.str() << ")" << std::endl;
-        cliText << "  CMake:      " << cmake.str()
-                << " (" << cmakeGenerator.str() << ")" << std::endl;
+        cliText << "  CMake:      " << cmake.str() << std::endl;
         cliText << "  CUDA:       " << cuda.str() << std::endl;
         cliText << "  mallocMC:   " << mallocMC.str() << std::endl;
         cliText << "  Boost:      " << boost.str() << std::endl;
