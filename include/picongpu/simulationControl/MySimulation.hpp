@@ -32,6 +32,7 @@
 #include <pmacc/types.hpp>
 #include <pmacc/simulationControl/SimulationHelper.hpp>
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/versionFormat.hpp"
 
 #include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
 #include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
@@ -108,7 +109,8 @@ public:
     currentBGField(nullptr),
     cellDescription(nullptr),
     initialiserController(nullptr),
-    slidingWindow(false)
+    slidingWindow(false),
+    showVersionOnce(false)
     {
     }
 
@@ -116,6 +118,8 @@ public:
     {
         SimulationHelper<simDim>::pluginRegisterHelp(desc);
         desc.add_options()
+            ("versionOnce", po::value<bool>(&showVersionOnce)->zero_tokens(), "print version information once and start")
+
             ("devices,d", po::value<std::vector<uint32_t> > (&devices)->multitoken(), "number of devices in each dimension")
 
             ("grid,g", po::value<std::vector<uint32_t> > (&gridSize)->multitoken(),
@@ -181,8 +185,17 @@ public:
         }
 
         Environment<simDim>::get().initDevices(gpus, isPeriodic);
+        pmacc::GridController< simDim > & gc = pmacc::Environment<simDim>::get().GridController();
 
-        DataSpace<simDim> myGPUpos(Environment<simDim>::get().GridController().getPosition());
+        DataSpace<simDim> myGPUpos(gc.getPosition());
+
+        if( gc.getGlobalRank() == 0 )
+        {
+            if( showVersionOnce )
+            {
+                void( getSoftwareVersions( std::cout ) );
+            }
+        }
 
         // calculate the number of local grid cells and
         // the local cell offset to the global box
@@ -216,7 +229,7 @@ public:
 
         checkGridConfiguration(global_grid_size, cellDescription->getGridLayout());
 
-        if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
+        if (gc.getGlobalRank() == 0)
         {
             if (slidingWindow)
                 log<picLog::PHYSICS > ("Sliding Window is ON");
@@ -784,6 +797,7 @@ protected:
     std::vector<std::string> gridDistribution;
 
     bool slidingWindow;
+    bool showVersionOnce;
 };
 } /* namespace picongpu */
 
