@@ -18,16 +18,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/versionFormat.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
+
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
 
 namespace picongpu
 {
@@ -77,6 +79,7 @@ namespace picongpu
             desc.add_options()
                     ( "help,h", "print help message and exit" )
                     ( "validate", "validate command line parameters and exit" )
+                    ( "version,v", "print version information and exit" )
                     ( "config,c", po::value<std::vector<std::string> > ( &config_files )->multitoken( ), "Config file(s)" )
                     ;
 
@@ -109,6 +112,12 @@ namespace picongpu
             if ( vm.count( "help" ) )
             {
                 std::cerr << desc << "\n";
+                return SUCCESS_EXIT;
+            }
+            // print versions of dependent software
+            if ( vm.count( "version" ) )
+            {
+                void( getSoftwareVersions( std::cout ) );
                 return SUCCESS_EXIT;
             }
             // no parameters set: required parameters (e.g., -g) will be missing
