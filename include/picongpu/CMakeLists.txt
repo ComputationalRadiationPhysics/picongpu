@@ -230,6 +230,24 @@ endif(ADIOS_FOUND)
 
 
 ################################################################################
+# Additional defines for PIConGPU outputs
+################################################################################
+
+# CMake
+add_definitions(-DCMAKE_VERSION=${CMAKE_VERSION})
+add_definitions(-DCMAKE_GENERATOR=${CMAKE_GENERATOR})
+add_definitions(-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE})
+
+# OS & Host Architecture
+add_definitions(-DCMAKE_SYSTEM=${CMAKE_SYSTEM})
+add_definitions(-DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR})
+
+# Compiler
+add_definitions(-DCMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID})
+add_definitions(-DCMAKE_CXX_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION})
+
+
+################################################################################
 # Warnings
 ################################################################################
 
