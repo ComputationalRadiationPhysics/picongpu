@@ -29,18 +29,18 @@ delta_z = c * delta_t       # SI unit: m
 
 # _________________________________________
 
-from numpy import *
+import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
-data_trans = loadtxt("eField_zt_trans.dat")
-data_long = loadtxt("eField_zt_long.dat")
+data_trans = np.loadtxt("eField_zt_trans.dat")
+data_long = np.loadtxt("eField_zt_long.dat")
 
 N_z = len(data_trans[:, 0])
 N_t = len(data_trans[0, :])
 
-omega_max = pi*(N_t-1)/(N_t*delta_t)/omega_plasma
-k_max = pi * (N_z-1)/(N_z*delta_z)
+omega_max = np.pi*(N_t-1)/(N_t*delta_t)/omega_plasma
+k_max = np.pi * (N_z-1)/(N_z*delta_z)
 
 # __________________transversal plot______________________
 
@@ -51,15 +51,15 @@ ax.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
 plt.xlabel(r"$k [1/m]$")
 plt.ylabel(r"$\omega / \omega_{pe} $")
 
-data_trans = fft.fftshift(fft.fft2(data_trans))
+data_trans = np.fft.fftshift(np.fft.fft2(data_trans))
 
-plt.imshow(abs(data_trans), extent=(-k_max, k_max, -omega_max, omega_max),
+plt.imshow(np.abs(data_trans), extent=(-k_max, k_max, -omega_max, omega_max),
            aspect='auto', interpolation='nearest')
 plt.colorbar()
 
 # plot analytical dispersion relation
-x = linspace(-k_max, k_max, 200)
-y = sqrt(c**2 * x**2 + omega_plasma**2)/omega_plasma
+x = np.linspace(-k_max, k_max, 200)
+y = np.sqrt(c**2 * x**2 + omega_plasma**2)/omega_plasma
 plt.plot(x, y, 'r--', linewidth=1)
 
 # ___________________longitudinal plot_____________________
@@ -71,15 +71,15 @@ ax.yaxis.set_major_formatter(FormatStrFormatter('%0.0f'))
 plt.xlabel(r"$k [1/m]$")
 plt.ylabel(r"$\omega / \omega_{pe} $")
 
-data_long = fft.fftshift(fft.fft2(data_long))
+data_long = np.fft.fftshift(np.fft.fft2(data_long))
 
-plt.imshow(abs(data_long), extent=(-k_max, k_max, -omega_max, omega_max),
+plt.imshow(np.abs(data_long), extent=(-k_max, k_max, -omega_max, omega_max),
            aspect='auto', interpolation='nearest')
 plt.colorbar()
 
 # plot analytical dispersion relation
-x = linspace(-k_max, k_max, 200)
-y = sqrt(3 * v_th**2 * x**2 + omega_plasma**2)/omega_plasma
+x = np.linspace(-k_max, k_max, 200)
+y = np.sqrt(3 * v_th**2 * x**2 + omega_plasma**2)/omega_plasma
 plt.plot(x, y, 'r--', linewidth=1)
 
 plt.show()

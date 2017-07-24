@@ -17,10 +17,8 @@
 # along with PIConGPU.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-
-import numpy
-import sys
 from __future__ import division
+import numpy
 
 __doc__ = "This is the 'smooth' module which provides several functions that\n\
 provide methods to smooth data from simulation or experiments.\n\
@@ -76,8 +74,8 @@ def makeOddNumber(number, larger=True):
         else:
             return number - 1
     else:
-        error_msg = "ERROR: {} -> number (= {}) neather odd " + \
-                    "nor even".format(self.func_name, number)
+        error_msg = "ERROR: number (= {}) neather odd " + \
+                    "nor even".format(number)
         raise Exception(error_msg)
 
 
@@ -130,14 +128,14 @@ def smooth(x, sigma, window_len=11, fkt=gaussWindow):
     """
     # check input:
     if type(x) != numpy.ndarray:
-        error_msg = "ERROR: {} input needs to by a 1D numpy array. " + \
-                    "Data type is {}".format(self.func_name, type(x))
+        error_msg = "ERROR: input needs to by a 1D numpy array. " + \
+                    "Data type is {}".format(type(x))
         raise Exception(error_msg)
 
     if len(x.shape) != 1:
         # not a 1D array
-        error_msg = "ERROR: {} input needs to by a 1D numpy array. " + \
-                    "Data shape is {}".format(self.func_name, x.shape)
+        error_msg = "ERROR: input needs to by a 1D numpy array. " + \
+                    "Data shape is {}".format(x.shape)
         raise Exception(error_msg)
 
     # extending the data at the beginning and at the end
@@ -189,8 +187,8 @@ def smooth2D(data, sigma_x=10, len_x=50, sigma_y=10, len_y=50,
     """
     # check input
     if type(data) != numpy.ndarray:
-        error_msg = "ERROR: {} input needs to by a 2D numpy array. " + \
-                    "Data type is {}".format(self.func_name, type(data))
+        error_msg = "ERROR: input needs to by a 2D numpy array. " + \
+                    "Data type is {}".format(type(data))
         raise Exception(error_msg)
 
     # make a copy since python is handling arrays by reference
@@ -198,8 +196,8 @@ def smooth2D(data, sigma_x=10, len_x=50, sigma_y=10, len_y=50,
 
     if len(data.shape) != 2:
         # not a 2D array
-        error_msg = "ERROR: {} input needs to by a 2D numpy array. " + \
-                    "Data shape is {}".format(self.func_name, data.shape)
+        error_msg = "ERROR: input needs to by a 2D numpy array. " + \
+                    "Data shape is {}".format(data.shape)
         raise Exception(error_msg)
 
     # make add window bins (maximum value included)
