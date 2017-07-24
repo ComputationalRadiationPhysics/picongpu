@@ -1,6 +1,11 @@
 language: cpp
 sudo: false
 
+addons:
+  apt:
+    packages:
+      - python-flake8
+
 script:
   #############################################################################
   # Disallow PRs to `ComputationalRadiationPhysics/picongpu` branch `master`  #
@@ -35,3 +40,8 @@ script:
   # Disallow spaces before pre-compiler macros                                #
   #############################################################################
   - test/hasSpaceBeforePrecompiler
+
+  #############################################################################
+  # Test Python Files for PEP8 conformance                                    #
+  #############################################################################
+  - flake8 --exclude=thirdParty .
