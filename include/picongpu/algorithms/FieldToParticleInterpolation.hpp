@@ -24,31 +24,12 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/cuSTL/cursor/FunctorCursor.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
 #include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
 
 namespace picongpu
 {
 
-template<typename T_Type>
-struct GetComponent
-{
-    using Type = T_Type;
-    using result_type = Type;
-    uint32_t component;
-
-    HDINLINE GetComponent(const GetComponent&) = default;
-    HDINLINE GetComponent(const uint32_t component) : component(component) {}
-    HDINLINE GetComponent& operator=(const GetComponent& other) {
-        this->component = other.component;
-        return *this;
-    }
-
-    template<typename T_Vector>
-    HDINLINE Type& operator()(T_Vector& vector) const
-    {
-        return vector[this->component];
-    }
-};
 /** interpolate field which are defined on a grid to a point inside of a grid
  *
  * interpolate around a point from -AssignmentFunction::support/2 to
@@ -91,7 +72,7 @@ struct FieldToParticleInterpolation
         {
             auto fieldComponent = pmacc::cursor::make_FunctorCursor(
                 field,
-                GetComponent<float_X>(i)
+                pmacc::algorithm::functor::GetComponent<float_X>(i)
             );
             floatD_X particlePosShifted = particlePos;
             ShiftCoordinateSystem<Supports>()(fieldComponent, particlePosShifted, fieldPos[i]);

@@ -22,9 +22,11 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/algorithms/ShiftCoordinateSystemNative.hpp"
+
 #include <pmacc/cuSTL/cursor/FunctorCursor.hpp>
 #include <pmacc/math/Vector.hpp>
-#include "picongpu/algorithms/ShiftCoordinateSystemNative.hpp"
+#include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
 
 namespace picongpu
 {
@@ -50,20 +52,6 @@ struct FieldToParticleInterpolationNative
     typedef typename pmacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
     typedef typename pmacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
 
-    template<typename T_Type>
-    struct GetComponent {
-        using Type = T_Type;
-        using result_type = Type;
-        const uint32_t component;
-
-        HDINLINE GetComponent(const uint32_t component) : component(component) {}
-
-        template<typename Array>
-        HDINLINE Type& operator()(Array& array) const {
-            return array[this->component];
-        }
-    };
-
     template<class Cursor, class VecVector_ >
     HDINLINE float3_X operator()(Cursor field, const floatD_X& particlePos,
                                  const VecVector_ & fieldPos)
@@ -74,17 +62,17 @@ struct FieldToParticleInterpolationNative
          * is turned so that E_scalar does the interpolation for the z-component.
          */
 
-        auto field_x = pmacc::cursor::make_FunctorCursor(field, GetComponent<float_X>(0));
+        auto field_x = pmacc::cursor::make_FunctorCursor(field, pmacc::algorithm::functor::GetComponent<float_X>(0));
         floatD_X pos_tmp(particlePos);
         ShiftCoordinateSystemNative<supp>()(field_x, pos_tmp, fieldPos.x());
         float_X result_x = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_x, pos_tmp);
 
-        auto field_y = pmacc::cursor::make_FunctorCursor(field, GetComponent<float_X>(1));
+        auto field_y = pmacc::cursor::make_FunctorCursor(field, pmacc::algorithm::functor::GetComponent<float_X>(1));
         pos_tmp = particlePos;
         ShiftCoordinateSystemNative<supp>()(field_y, pos_tmp, fieldPos.y());
         float_X result_y = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_y, pos_tmp);
 
-        auto field_z = pmacc::cursor::make_FunctorCursor(field, GetComponent<float_X>(2));
+        auto field_z = pmacc::cursor::make_FunctorCursor(field, pmacc::algorithm::functor::GetComponent<float_X>(2));
         pos_tmp = particlePos;
         ShiftCoordinateSystemNative<supp>()(field_z, pos_tmp, fieldPos.z());
         float_X result_z = InterpolationMethod::template interpolate<AssignmentFunction, -lowerMargin, upperMargin > (field_z, pos_tmp);

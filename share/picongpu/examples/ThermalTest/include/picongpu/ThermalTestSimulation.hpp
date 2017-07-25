@@ -56,6 +56,8 @@
 #include <pmacc/math/vector/math_functor/sqrtf.hpp>
 #include <pmacc/math/vector/math_functor/cosf.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
+#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 
 namespace picongpu
 {
@@ -64,29 +66,6 @@ using namespace pmacc;
 
 class ThermalTestSimulation : public MySimulation
 {
-    struct Add {
-        template<typename T_Type>
-        HDINLINE T_Type operator()(
-            const T_Type& first,
-            const T_Type& second
-        ) const {
-            return first + second;
-        }
-    };
-
-    template<typename T_Type>
-    struct GetComponent {
-        using Type = T_Type;
-        const uint32_t component;
-
-        HDINLINE GetComponent(const uint32_t component) : component(component) {}
-
-        template<typename Array>
-        HDINLINE Type& operator()(Array& array) const {
-            return array[this->component];
-        }
-    };
-
 public:
 
     ThermalTestSimulation()
@@ -152,7 +131,7 @@ public:
 
                 algorithm::mpi::Reduce<3> reduce(gpuReducingZone, reduceRoot);
 
-                reduce(eField_zt_reduced, *(eField_zt[i]), Add());
+                reduce(eField_zt_reduced, *(eField_zt[i]), pmacc::algorithm::functor::Add());
             }
             if(!reduceRoot) continue;
 
@@ -207,7 +186,7 @@ public:
                     algorithm::kernel::Reduce()
                         (cursor::make_FunctorCursor(
                             cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
-                            GetComponent<typename FieldE::ValueType>(i == 0 ? 0 : 2)
+                            pmacc::algorithm::functor::GetComponent<typename FieldE::ValueType::type>(i == 0 ? 0 : 2)
                         ),
                         reduceZone,
                         nvidia::functors::Add());

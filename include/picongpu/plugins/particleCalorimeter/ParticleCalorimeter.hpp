@@ -35,6 +35,7 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/algorithms/math.hpp>
+#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
@@ -101,24 +102,16 @@ private:
     /* host calorimeter buffer for summation of all mpi ranks */
     HBufCalorimeter* hBufTotalCalorimeter;
 
-    struct Add {
-        template<typename T_Type>
-        HDINLINE T_Type operator()(
-            const T_Type& first,
-            const T_Type& second
-        ) const {
-            return first + second;
-        }
-    };
-
     template<typename T_Type>
-    struct DivideInPlace {
+    struct DivideInPlace
+    {
         using Type = T_Type;
         const Type divisor;
 
         DivideInPlace( const Type& divisor ) : divisor( divisor ) {}
 
-        HDINLINE void operator()( T_Type& val ) const {
+        HDINLINE void operator()( T_Type& val ) const
+        {
             val = val / this->divisor;
         }
     };
@@ -193,7 +186,7 @@ private:
         hBufLeftParsCalorimeter = *this->dBufLeftParsCalorimeter;
 
         /* mpi reduce */
-        (*this->allGPU_reduce)(hBufTotal, hBufLeftParsCalorimeter, Add());
+        (*this->allGPU_reduce)(hBufTotal, hBufLeftParsCalorimeter, pmacc::algorithm::functor::Add{});
         if(!this->allGPU_reduce->root())
             return;
 
@@ -477,7 +470,7 @@ public:
         *this->hBufCalorimeter = *this->dBufCalorimeter;
 
         /* mpi reduce */
-        (*this->allGPU_reduce)(*this->hBufTotalCalorimeter, *this->hBufCalorimeter, Add());
+        (*this->allGPU_reduce)(*this->hBufTotalCalorimeter, *this->hBufCalorimeter, pmacc::algorithm::functor::Add{});
         if(!this->allGPU_reduce->root())
             return;
 

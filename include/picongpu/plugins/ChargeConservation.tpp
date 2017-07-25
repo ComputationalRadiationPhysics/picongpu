@@ -185,26 +185,18 @@ struct ComputeChargeDensity
     }
 };
 
-struct CalculateAndAssignChargeDeviation {
+struct CalculateAndAssignChargeDeviation
+{
     template<typename T_Rho, typename T_FieldE>
     HDINLINE void operator()(
         T_Rho& rho,
         const T_FieldE& fieldECursor
-    ) const {
+    ) const
+    {
         typedef Div<simDim, typename FieldTmp::ValueType> MyDiv;
 
         /* rho := | div E * eps_0 - rho | */
-        rho.x() = abs((MyDiv{}(fieldECursor) * EPS0 - rho).x());
-    }
-};
-
-struct Max {
-    template<typename T_Type>
-    HDINLINE T_Type operator()(
-        const T_Type& first,
-        const T_Type& second
-    ) const {
-        return max( first, second );
+        rho.x() = math::abs((MyDiv{}(fieldECursor) * EPS0 - rho).x());
     }
 };
 

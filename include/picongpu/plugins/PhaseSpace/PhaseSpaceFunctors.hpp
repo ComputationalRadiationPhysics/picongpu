@@ -27,6 +27,7 @@
 #include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/VectorOperations.hpp>
+#include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
 #include "picongpu/particles/access/Cell2Particle.hpp"
 
 #include "PhaseSpace.hpp"
@@ -139,14 +140,6 @@ namespace picongpu
         uint32_t p_element;
         std::pair<float_X, float_X> axis_p_range;
 
-        struct AssignZero
-        {
-            template<typename T_Type>
-            HDINLINE void operator()(T_Type& arg) const {
-                arg = float_PS(0.0);
-            }
-        };
-
         /** Constructor to transfer params to device
          *
          * \param pb ParticleBox for a species
@@ -185,7 +178,7 @@ namespace picongpu
             {
                 forEachThreadInBlock( dBufferInBlock.zone(),
                                       dBufferInBlock.origin(),
-                                      AssignZero() );
+                                      pmacc::algorithm::functor::AssignValue<float_PS>(0.0) );
             }
             __syncthreads();
 

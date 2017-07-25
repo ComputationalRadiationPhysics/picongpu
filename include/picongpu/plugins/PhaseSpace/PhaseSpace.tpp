@@ -36,6 +36,7 @@
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -44,16 +45,6 @@
 namespace picongpu
 {
     using namespace pmacc;
-
-    struct Add {
-        template<typename T_Type>
-        HDINLINE T_Type operator()(
-            const T_Type& first,
-            const T_Type& second
-        ) const {
-            return first + second;
-        }
-    };
 
     template<class AssignmentFunction, class Species>
     PhaseSpace<AssignmentFunction, Species>::PhaseSpace( const std::string _name,
@@ -235,7 +226,7 @@ namespace picongpu
                              hReducedBuffer,
                              hBuffer,
                              /* the functors return value will be written to dst */
-                             Add() );
+                             pmacc::algorithm::functor::Add() );
 
         /** all non-reduce-root processes are done now */
         if( !this->isPlaneReduceRoot )

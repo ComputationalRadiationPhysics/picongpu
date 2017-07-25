@@ -29,6 +29,8 @@
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/types.hpp"
 
+#include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
+
 #include <boost/math/common_factor_rt.hpp>
 #include <boost/mpl/placeholders.hpp>
 
@@ -46,18 +48,6 @@ struct DeviceMemAssigner
 {
     static constexpr int dim = T_Dim::value;
     typedef T_CartBuffer CartBuffer;
-
-    template<typename T_Type>
-    struct AssignValue {
-        using Type = T_Type;
-        const Type value;
-
-        AssignValue(const Type& value) : value(value) {}
-
-        HDINLINE void operator()(Type& target) const {
-            target = this->value;
-        }
-    };
 
     template<typename Type>
     HINLINE void assign(const Type& value)
@@ -81,7 +71,7 @@ struct DeviceMemAssigner
         PMACC_VERIFY(blockDim.productOfComponents() <= 1024);
 
         algorithm::kernel::RT::Foreach foreach(blockDim);
-        foreach(myZone, cursor, AssignValue<Type>(value));
+        foreach(myZone, cursor, pmacc::algorithm::functor::AssignValue<Type>(value));
     }
 };
 

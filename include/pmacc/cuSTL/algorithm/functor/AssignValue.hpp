@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Heiko Burau, Rene Widera
+/* Copyright 2017 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -21,40 +21,34 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/algorithm/host/Foreach.hpp"
-
-#include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
-
-#include <boost/mpl/placeholders.hpp>
-#include <boost/mpl/int.hpp>
-
-#include <stdint.h>
+#include "pmacc/types.hpp"
 
 
 namespace pmacc
 {
-namespace assigner
+namespace algorithm
+{
+namespace functor
 {
 
-namespace bmpl = boost::mpl;
-
-template<typename T_Dim = bmpl::_1, typename T_CartBuffer = bmpl::_2>
-struct HostMemAssigner
-{
-    static constexpr int dim = T_Dim::value;
-    typedef T_CartBuffer CartBuffer;
-
-    template<typename Type>
-    HINLINE void assign(const Type& value)
+    template< typename T_Type>
+    struct AssignValue
     {
-        // "Curiously recurring template pattern"
-        CartBuffer* buffer = static_cast<CartBuffer*>(this);
+        using Type = T_Type;
+        Type m_value;
 
-        algorithm::host::Foreach foreach;
-        foreach(buffer->zone(), buffer->origin(), pmacc::algorithm::functor::AssignValue<Type>(value));
-    }
-};
+        HDINLINE
+        AssignValue( Type const & value ) :
+            m_value( value )
+        { }
 
-} // assigner
+        HDINLINE void
+        operator()( Type & arg ) const
+        {
+            arg = m_value;
+        }
+    };
+
+} // functor
+} // algorithm
 } // pmacc
-
