@@ -26,6 +26,7 @@ Authors: Axel Huebl
 License: GPLv3+
 """
 import matplotlib as mpl
+import numpy as np
 from energy_histogram import EnergyHistogram
 
 

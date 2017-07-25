@@ -1,7 +1,5 @@
 import matplotlib as mpl
 from matplotlib import pyplot as plt
-from scipy.misc import factorial as mfac
-from scipy.special import gamma as gam
 import numpy as np
 
 

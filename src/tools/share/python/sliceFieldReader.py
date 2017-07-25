@@ -18,7 +18,6 @@
 #
 
 import numpy as _numpy
-import StringIO as _StringIO
 
 
 def readFieldSlices(File):
