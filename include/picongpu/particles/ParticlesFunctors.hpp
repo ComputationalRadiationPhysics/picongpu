@@ -35,6 +35,7 @@
 #include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
 #include "picongpu/particles/creation/creation.hpp"
+#include "picongpu/particles/ionization/ionization.hpp"
 
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
