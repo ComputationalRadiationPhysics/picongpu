@@ -22,12 +22,12 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/types.hpp>
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
-#include <pmacc/basicOperations.hpp>
 #include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include <pmacc/cuSTL/cursor/compile-time/SafeCursor.hpp>
 #include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.def"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 #include "picongpu/fields/currentDeposition/RelayPoint.hpp"
+
 
 namespace picongpu
 {

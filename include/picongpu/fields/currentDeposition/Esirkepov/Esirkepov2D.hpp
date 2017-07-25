@@ -20,7 +20,6 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/basicOperations.hpp>
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
 #include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include <pmacc/cuSTL/cursor/compile-time/SafeCursor.hpp>

@@ -32,7 +32,6 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
-#include <pmacc/basicOperations.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>

@@ -17,17 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/basicOperations.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/traits/IsSameType.hpp>
 #include "picongpu/particles/shapes/CIC.hpp"
+
 
 namespace picongpu
 {

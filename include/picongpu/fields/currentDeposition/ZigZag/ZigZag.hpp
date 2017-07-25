@@ -21,7 +21,6 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/dimensions/DataSpace.hpp>
-#include <pmacc/basicOperations.hpp>
 #include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include "picongpu/algorithms/FieldToParticleInterpolation.hpp"
 #include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
@@ -35,6 +34,7 @@
 #include <boost/mpl/if.hpp>
 #include <pmacc/compileTime/AllCombinations.hpp>
 #include "picongpu/fields/currentDeposition/ZigZag/EvalAssignmentFunction.hpp"
+
 
 namespace picongpu
 {
