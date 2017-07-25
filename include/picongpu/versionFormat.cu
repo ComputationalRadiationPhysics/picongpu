@@ -19,10 +19,9 @@
 
 #include "picongpu/versionFormat.hpp"
 
-#include <boost/program_options.hpp>
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/cmdline.hpp>
-#include <boost/program_options/variables_map.hpp>
+#include <boost/version.hpp>
+// work-around: mallocMC PR #142
+#include <boost/config.hpp>
 #include <boost/preprocessor/stringize.hpp>
 
 #include <cuda.h>
