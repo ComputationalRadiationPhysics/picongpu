@@ -58,6 +58,7 @@ typedef long long int int64_cu;
 
 #define HDINLINE __device__ __host__ __forceinline__
 #define DINLINE __device__ __forceinline__
+#define DEVICEONLY __device__
 #define HINLINE __host__ inline
 
 /**

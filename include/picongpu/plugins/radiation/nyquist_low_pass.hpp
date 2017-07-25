@@ -33,7 +33,7 @@ public:
      * \f$omega_{Nyquist} = (\pi - \epsilon )/(\delta t * (1 - \vec(\beta) * \vec(n)))\f$
      * so that all Amplitudes for higher frequencies can be ignored
     **/
-    __device__ __host__ __forceinline__ NyquistLowPass(const vector_64& n, const Particle& particle)
+    HDINLINE NyquistLowPass(const vector_64& n, const Particle& particle)
       : omegaNyquist((picongpu::PI - 0.01)/
            (picongpu::DELTA_T *
             One_minus_beta_times_n()(n, particle)))
@@ -42,14 +42,14 @@ public:
     /**
      * default constructor - needed for allocating shared memory on GPU (Radiation.hpp kernel)
     **/
-    __device__ __host__ __forceinline__ NyquistLowPass(void)
+    HDINLINE NyquistLowPass(void)
     { }
 
 
     /**
      * checks if frequency omega is below Nyquist frequency
     **/
-    __device__ __host__ __forceinline__ bool check(const picongpu::float_32 omega)
+    HDINLINE bool check(const picongpu::float_32 omega)
     {
         return omega < omegaNyquist * picongpu::radiationNyquist::NyquistFactor;
     }

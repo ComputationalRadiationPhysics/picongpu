@@ -38,15 +38,16 @@ struct Push
     typedef typename pmacc::math::CT::make_Int<simDim,0>::type UpperMargin;
 
     template<typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Pos, typename T_Mom, typename T_Mass,
-             typename T_Charge, typename T_Weighting>
-        __host__ DINLINE void operator()(
-                                            const T_FunctorFieldB functorBField,
-                                            const T_FunctorFieldE functorEField,
-                                            T_Pos& pos,
-                                            T_Mom& mom,
-                                            const T_Mass mass,
-                                            const T_Charge charge,
-                                            const T_Weighting)
+    typename T_Charge, typename T_Weighting>
+    HDINLINE void operator()(
+        const T_FunctorFieldB functorBField,
+        const T_FunctorFieldE functorEField,
+        T_Pos& pos,
+        T_Mom& mom,
+        const T_Mass mass,
+        const T_Charge charge,
+        const T_Weighting
+    )
     {
         typedef T_Mom MomType;
 

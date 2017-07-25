@@ -45,7 +45,7 @@ struct SharedMemAllocator<Type, Size, 1, uid>
     static constexpr int dim = 1;
     typedef cursor::CT::BufferCursor<type, math::CT::UInt32<> > Cursor;
 
-    __device__ static Cursor allocate()
+    DEVICEONLY static Cursor allocate()
     {
         auto& shMem = pmacc::memory::shared::allocate<
             uid,
@@ -66,7 +66,7 @@ struct SharedMemAllocator<Type, Size, 2, uid>
     static constexpr int dim = 2;
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
-    __device__ static Cursor allocate()
+    DEVICEONLY static Cursor allocate()
     {
         auto& shMem = pmacc::memory::shared::allocate<
             uid,
@@ -88,7 +88,7 @@ struct SharedMemAllocator<Type, Size, 3, uid>
     static constexpr int dim = 3;
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
-    __device__ static Cursor allocate()
+    DEVICEONLY static Cursor allocate()
     {
         auto& shMem = pmacc::memory::shared::allocate<
             uid,
