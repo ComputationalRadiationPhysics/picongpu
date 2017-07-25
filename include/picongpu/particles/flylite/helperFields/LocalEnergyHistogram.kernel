@@ -30,6 +30,7 @@
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/nvidia/atomic.hpp>
 
 
 namespace picongpu
@@ -224,7 +225,7 @@ namespace helperFields
                                 float_X const normedWeighting = weighting /
                                     float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
 
-                                atomicAddWrapper(
+                                nvidia::atomicAdd(
                                     &( shLocalEnergyHistogram[ binNumber ] ),
                                     normedWeighting
                                 );
@@ -262,7 +263,7 @@ namespace helperFields
                 )
                 {
                     for( int i = linearIdx; i < numBins; i += numWorkers )
-                        atomicAddWrapper(
+                        nvidia::atomicAdd(
                             &( localEnergyHistogram[ i ] ),
                             shLocalEnergyHistogram[ i ]
                         );

@@ -24,6 +24,7 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/algorithms/math.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/nvidia/atomic.hpp>
 
 namespace picongpu
 {
@@ -136,7 +137,7 @@ struct CalorimeterFunctor
                 energyBin = energyBin > 0 ? energyBin : 0;
             }
 
-            atomicAddWrapper(&(*this->calorimeterCur(yawBin, pitchBin, energyBin)),
+            nvidia::atomicAdd(&(*this->calorimeterCur(yawBin, pitchBin, energyBin)),
                              energy * normedWeighting);
         }
     }

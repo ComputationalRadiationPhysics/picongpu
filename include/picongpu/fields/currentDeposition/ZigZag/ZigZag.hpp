@@ -123,7 +123,7 @@ struct AssignChargeToCell
         /* shift memory cursor to cell (grid point)*/
         auto cursorToValue = cursor(GridPointVec::toRT());
         /* add current to component of the cell*/
-        atomicAddWrapper(&((*cursorToValue)[currentComponent]), j);
+        nvidia::atomicAdd(&((*cursorToValue)[currentComponent]), j);
     }
 };
 

@@ -24,6 +24,8 @@
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/traits/IsSameType.hpp>
+#include <pmacc/nvidia/atomic.hpp>
+
 #include "picongpu/particles/shapes/CIC.hpp"
 
 
@@ -135,20 +137,20 @@ private:
         const float_X rho_dtY = charge * (float_X(1.0) / (CELL_WIDTH * CELL_DEPTH * deltaTime));
         const float_X rho_dtZ = charge * (float_X(1.0) / (CELL_WIDTH * CELL_HEIGHT * deltaTime));
 
-        atomicAddWrapper(&(mem[1][1][0].x()), rho_dtX * (deltaPos.x() * meanPos.y() * meanPos.z() + tmp));
-        atomicAddWrapper(&(mem[1][0][0].x()), rho_dtX * (deltaPos.x() * (float_X(1.0) - meanPos.y()) * meanPos.z() - tmp));
-        atomicAddWrapper(&(mem[0][1][0].x()), rho_dtX * (deltaPos.x() * meanPos.y() * (float_X(1.0) - meanPos.z()) - tmp));
-        atomicAddWrapper(&(mem[0][0][0].x()), rho_dtX * (deltaPos.x() * (float_X(1.0) - meanPos.y()) * (float_X(1.0) - meanPos.z()) + tmp));
+        nvidia::atomicAdd(&(mem[1][1][0].x()), rho_dtX * (deltaPos.x() * meanPos.y() * meanPos.z() + tmp));
+        nvidia::atomicAdd(&(mem[1][0][0].x()), rho_dtX * (deltaPos.x() * (float_X(1.0) - meanPos.y()) * meanPos.z() - tmp));
+        nvidia::atomicAdd(&(mem[0][1][0].x()), rho_dtX * (deltaPos.x() * meanPos.y() * (float_X(1.0) - meanPos.z()) - tmp));
+        nvidia::atomicAdd(&(mem[0][0][0].x()), rho_dtX * (deltaPos.x() * (float_X(1.0) - meanPos.y()) * (float_X(1.0) - meanPos.z()) + tmp));
 
-        atomicAddWrapper(&(mem[1][0][1].y()), rho_dtY * (deltaPos.y() * meanPos.z() * meanPos.x() + tmp));
-        atomicAddWrapper(&(mem[0][0][1].y()), rho_dtY * (deltaPos.y() * (float_X(1.0) - meanPos.z()) * meanPos.x() - tmp));
-        atomicAddWrapper(&(mem[1][0][0].y()), rho_dtY * (deltaPos.y() * meanPos.z() * (float_X(1.0) - meanPos.x()) - tmp));
-        atomicAddWrapper(&(mem[0][0][0].y()), rho_dtY * (deltaPos.y() * (float_X(1.0) - meanPos.z()) * (float_X(1.0) - meanPos.x()) + tmp));
+        nvidia::atomicAdd(&(mem[1][0][1].y()), rho_dtY * (deltaPos.y() * meanPos.z() * meanPos.x() + tmp));
+        nvidia::atomicAdd(&(mem[0][0][1].y()), rho_dtY * (deltaPos.y() * (float_X(1.0) - meanPos.z()) * meanPos.x() - tmp));
+        nvidia::atomicAdd(&(mem[1][0][0].y()), rho_dtY * (deltaPos.y() * meanPos.z() * (float_X(1.0) - meanPos.x()) - tmp));
+        nvidia::atomicAdd(&(mem[0][0][0].y()), rho_dtY * (deltaPos.y() * (float_X(1.0) - meanPos.z()) * (float_X(1.0) - meanPos.x()) + tmp));
 
-        atomicAddWrapper(&(mem[0][1][1].z()), rho_dtZ * (deltaPos.z() * meanPos.x() * meanPos.y() + tmp));
-        atomicAddWrapper(&(mem[0][1][0].z()), rho_dtZ * (deltaPos.z() * (float_X(1.0) - meanPos.x()) * meanPos.y() - tmp));
-        atomicAddWrapper(&(mem[0][0][1].z()), rho_dtZ * (deltaPos.z() * meanPos.x() * (float_X(1.0) - meanPos.y()) - tmp));
-        atomicAddWrapper(&(mem[0][0][0].z()), rho_dtZ * (deltaPos.z() * (float_X(1.0) - meanPos.x()) * (float_X(1.0) - meanPos.y()) + tmp));
+        nvidia::atomicAdd(&(mem[0][1][1].z()), rho_dtZ * (deltaPos.z() * meanPos.x() * meanPos.y() + tmp));
+        nvidia::atomicAdd(&(mem[0][1][0].z()), rho_dtZ * (deltaPos.z() * (float_X(1.0) - meanPos.x()) * meanPos.y() - tmp));
+        nvidia::atomicAdd(&(mem[0][0][1].z()), rho_dtZ * (deltaPos.z() * meanPos.x() * (float_X(1.0) - meanPos.y()) - tmp));
+        nvidia::atomicAdd(&(mem[0][0][0].z()), rho_dtZ * (deltaPos.z() * (float_X(1.0) - meanPos.x()) * (float_X(1.0) - meanPos.y()) + tmp));
 
     }
 

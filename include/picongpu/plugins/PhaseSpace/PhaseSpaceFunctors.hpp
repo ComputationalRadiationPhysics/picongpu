@@ -28,6 +28,8 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/VectorOperations.hpp>
 #include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
+#include <pmacc/nvidia/atomic.hpp>
+
 #include "picongpu/particles/access/Cell2Particle.hpp"
 
 #include "PhaseSpace.hpp"
@@ -48,7 +50,7 @@ namespace picongpu
         DINLINE void
         operator()( Type& dest, const Type src ) const
         {
-            atomicAddWrapper( &dest, src );
+            nvidia::atomicAdd( &dest, src );
         }
     };
 
@@ -110,7 +112,7 @@ namespace picongpu
                 p_bin = num_pbins - 1;
 
             /** \todo take particle shape into account */
-            atomicAddWrapper( &(*curDBufferOriginInBlock( p_bin, r_bin )),
+            nvidia::atomicAdd( &(*curDBufferOriginInBlock( p_bin, r_bin )),
                               particleChargeDensity );
         }
     };
