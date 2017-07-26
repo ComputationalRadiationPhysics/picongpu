@@ -22,9 +22,12 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+#include "pmacc/memory/buffers/HostBuffer.hpp"
+#include "pmacc/memory/buffers/DeviceBuffer.hpp"
 #include "pmacc/memory/buffers/HostBufferIntern.hpp"
 #include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
 #include <boost/type_traits.hpp>
+
 
 namespace pmacc{
 
@@ -35,8 +38,8 @@ namespace pmacc{
         typedef HostBufferIntern<T_Type, T_dim> HostBufferType;
         typedef DeviceBufferIntern<T_Type, T_dim> DeviceBufferType;
     public:
-        typedef HostBuffer<T_Type, T_dim> HostBuffer;
-        typedef DeviceBuffer<T_Type, T_dim> DeviceBuffer;
+        typedef HostBuffer<T_Type, T_dim> HBuffer;
+        typedef DeviceBuffer<T_Type, T_dim> DBuffer;
         typedef typename HostBufferType::DataBoxType DataBoxType;
         PMACC_CASSERT_MSG(DataBoxTypes_must_match, boost::is_same<DataBoxType, typename DeviceBufferType::DataBoxType>::value);
 
@@ -57,7 +60,7 @@ namespace pmacc{
          * Sizes should match. If size is smaller than the buffer size, then only the part near the origin is used.
          * Passing a size bigger than the buffer is undefined.
          */
-        HostDeviceBuffer(DeviceBuffer& otherDeviceBuffer, const DataSpace<T_dim>& size, bool sizeOnDevice = false);
+        HostDeviceBuffer(DBuffer& otherDeviceBuffer, const DataSpace<T_dim>& size, bool sizeOnDevice = false);
 
         /**
          * Constructor that reuses the given buffers instead of creating own ones.
@@ -65,9 +68,9 @@ namespace pmacc{
          * Passing a size bigger than the buffer (minus the offset) is undefined.
          */
         HostDeviceBuffer(
-                   HostBuffer& otherHostBuffer,
+                   HBuffer& otherHostBuffer,
                    const DataSpace<T_dim>& offsetHost,
-                   DeviceBuffer& otherDeviceBuffer,
+                   DBuffer& otherDeviceBuffer,
                    const DataSpace<T_dim>& offsetDevice,
                    const GridLayout<T_dim> size,
                    bool sizeOnDevice = false);
@@ -77,16 +80,16 @@ namespace pmacc{
         /**
          * Returns the internal data buffer on host side
          *
-         * @return internal HostBuffer
+         * @return internal HBuffer
          */
-        HINLINE HostBuffer& getHostBuffer() const;
+        HINLINE HBuffer& getHostBuffer() const;
 
         /**
          * Returns the internal data buffer on device side
          *
-         * @return internal DeviceBuffer
+         * @return internal DBuffer
          */
-        HINLINE DeviceBuffer& getDeviceBuffer() const;
+        HINLINE DBuffer& getDeviceBuffer() const;
 
         /**
          * Resets both internal buffers.
@@ -108,8 +111,8 @@ namespace pmacc{
          */
         HINLINE void deviceToHost();
     private:
-        HostBufferType* hostBuffer;
-        DeviceBufferType* deviceBuffer;
+        HBuffer* hostBuffer;
+        DBuffer* deviceBuffer;
 
     };
 
