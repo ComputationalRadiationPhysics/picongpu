@@ -147,12 +147,10 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
     this->pitch = other.pitch;
 }
 
-#define COMMA ,
-
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::CartBuffer
-(BOOST_RV_REF(CartBuffer<Type COMMA T_dim COMMA Allocator COMMA Copier COMMA Assigner>) other) : refCount(nullptr)
+(CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&& other) : refCount(nullptr)
 {
     this->dataPointer = other.dataPointer;
     this->refCount = other.refCount;
@@ -202,7 +200,7 @@ template<typename Type, int T_dim, typename Allocator, typename Copier, typename
 HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
-(BOOST_COPY_ASSIGN_REF(CartBuffer) rhs)
+(const CartBuffer& rhs)
 {
 #ifndef __CUDA_ARCH__
     if(rhs.size() != this->size())
@@ -222,7 +220,7 @@ template<typename Type, int T_dim, typename Allocator, typename Copier, typename
 HDINLINE
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>&
 CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
-(BOOST_RV_REF(CartBuffer) rhs)
+(CartBuffer&& rhs)
 {
 #ifndef __CUDA_ARCH__
     if(rhs.size() != this->size())
@@ -243,8 +241,6 @@ CartBuffer<Type, T_dim, Allocator, Copier, Assigner>::operator=
     rhs.refCount = nullptr;
     return *this;
 }
-
-#undef COMMA
 
 template<typename Type, int T_dim, typename Allocator, typename Copier, typename Assigner>
 HDINLINE

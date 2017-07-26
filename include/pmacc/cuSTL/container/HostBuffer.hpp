@@ -57,8 +57,7 @@ private:
     typedef CartBuffer<Type, T_dim, allocator::HostMemAllocator<Type, T_dim>,
                                   copier::H2HCopier<T_dim>,
                                   assigner::HostMemAssigner<> > Base;
-    /* makes this class able to emulate a r-value reference */
-    BOOST_COPYABLE_AND_MOVABLE(HostBuffer)
+
 protected:
     HostBuffer() {}
 public:
@@ -95,10 +94,10 @@ public:
         *this->refCount = (ownMemory) ? 1 : 2;
     }
     HINLINE HostBuffer(const Base& base) : Base(base) {}
-    HINLINE HostBuffer(BOOST_RV_REF(HostBuffer) obj): Base(boost::move(static_cast<Base&>(obj))) {}
+    HINLINE HostBuffer(HostBuffer&& obj): Base(boost::move(static_cast<Base&>(obj))) {}
 
     HINLINE HostBuffer&
-    operator=(BOOST_RV_REF(HostBuffer) rhs)
+    operator=(HostBuffer&& rhs)
     {
         Base::operator=(boost::move(static_cast<Base&>(rhs)));
         return *this;
@@ -131,7 +130,7 @@ public:
         return *this;
     }
 
-    HINLINE HostBuffer& operator=(BOOST_COPY_ASSIGN_REF(HostBuffer) rhs)
+    HINLINE HostBuffer& operator=(const HostBuffer& rhs)
     {
         Base::operator=(rhs);
         return *this;
