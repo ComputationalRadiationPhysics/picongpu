@@ -30,12 +30,12 @@
 #include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
 #include <boost/assert.hpp>
-#include <boost/move/move.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 #include <exception>
 #include <sstream>
+#include <utility>
 
 
 namespace pmacc
@@ -99,12 +99,12 @@ public:
 #endif
     }
     HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
-    HDINLINE DeviceBuffer(DeviceBuffer&& obj): Base(boost::move(static_cast<Base&>(obj))) {}
+    HDINLINE DeviceBuffer(DeviceBuffer&& obj): Base(std::move(static_cast<Base&>(obj))) {}
 
     HDINLINE DeviceBuffer&
     operator=(DeviceBuffer&& rhs)
     {
-        Base::operator=(boost::move(static_cast<Base&>(rhs)));
+        Base::operator=(std::move(static_cast<Base&>(rhs)));
         return *this;
     }
 

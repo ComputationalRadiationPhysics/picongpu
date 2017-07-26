@@ -29,12 +29,12 @@
 #include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
 #include <boost/assert.hpp>
-#include <boost/move/move.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 #include <exception>
 #include <sstream>
+#include <utility>
 
 
 namespace pmacc
@@ -94,12 +94,12 @@ public:
         *this->refCount = (ownMemory) ? 1 : 2;
     }
     HINLINE HostBuffer(const Base& base) : Base(base) {}
-    HINLINE HostBuffer(HostBuffer&& obj): Base(boost::move(static_cast<Base&>(obj))) {}
+    HINLINE HostBuffer(HostBuffer&& obj): Base(std::move(static_cast<Base&>(obj))) {}
 
     HINLINE HostBuffer&
     operator=(HostBuffer&& rhs)
     {
-        Base::operator=(boost::move(static_cast<Base&>(rhs)));
+        Base::operator=(std::move(static_cast<Base&>(rhs)));
         return *this;
     }
 
