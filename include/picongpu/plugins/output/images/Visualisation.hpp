@@ -47,6 +47,7 @@
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/nvidia/atomic.hpp>
 
 #include <string>
 #include <cfloat>
@@ -327,7 +328,7 @@ struct KernelPaintParticles3D
 #endif
                 {
                     const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
-                    atomicAddWrapper(&(counter(reducedCell)), particle[weighting_] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                    nvidia::atomicAdd(&(counter(reducedCell)), particle[weighting_] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
                 }
             }
             __syncthreads();

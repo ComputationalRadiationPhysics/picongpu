@@ -22,12 +22,14 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/types.hpp>
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
-#include <pmacc/basicOperations.hpp>
 #include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include <pmacc/cuSTL/cursor/compile-time/SafeCursor.hpp>
+#include <pmacc/nvidia/atomic.hpp>
+
 #include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.def"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 #include "picongpu/fields/currentDeposition/RelayPoint.hpp"
+
 
 namespace picongpu
 {
@@ -194,7 +196,7 @@ struct Esirkepov<T_ParticleShape, DIM3>
                                  */
                                 const float_X W = DS( line, k, 2 ) * tmp;
                                 accumulated_J += W;
-                                atomicAddWrapper( &( ( *cursorJ( i, j, k ) ).z() ), accumulated_J );
+                                nvidia::atomicAdd( &( ( *cursorJ( i, j, k ) ).z() ), accumulated_J );
                             }
                     }
             }

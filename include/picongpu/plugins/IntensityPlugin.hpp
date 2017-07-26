@@ -28,7 +28,6 @@
 #include "picongpu/fields/FieldE.hpp"
 
 #include <pmacc/memory/boxes/CachedBox.hpp>
-#include <pmacc/basicOperations.hpp>
 #include <pmacc/dimensions/SuperCellDescription.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>

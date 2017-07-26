@@ -21,7 +21,6 @@
 
 #include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/basicOperations.hpp>
 
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>

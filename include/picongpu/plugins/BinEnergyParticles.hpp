@@ -32,12 +32,12 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
-#include <pmacc/basicOperations.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/nvidia/atomic.hpp>
 
 #include "common/txtFileHandling.hpp"
 
@@ -237,7 +237,7 @@ struct KernelBinEnergyParticles
                              */
                             float_X const normedWeighting = weighting /
                                 float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
-                            atomicAddWrapper(
+                            nvidia::atomicAdd(
                                 &( shBin[ binNumber ] ),
                                 normedWeighting
                             );
@@ -273,7 +273,7 @@ struct KernelBinEnergyParticles
             )
             {
                 for( int i = linearIdx; i < realNumBins; i += numWorkers )
-                    atomicAddWrapper(
+                    nvidia::atomicAdd(
                         &( gBins[ i ] ),
                         float_64( shBin[ i ] )
                     );

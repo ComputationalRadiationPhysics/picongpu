@@ -29,6 +29,7 @@
 #include "picongpu/algorithms/Gamma.hpp"
 
 #include <vector>
+#include <pmacc/nvidia/atomic.hpp>
 
 namespace picongpu
 {
@@ -116,7 +117,7 @@ ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()
          * note: the .x() is used because FieldTmp is a scalar field with only
          * one "x" component
          */
-        atomicAddWrapper(&(fieldTmpShiftToParticle(offsetParticleCellToCurrentCell).x()),
+        nvidia::atomicAdd(&(fieldTmpShiftToParticle(offsetParticleCellToCurrentCell).x()),
                          assign * particleAttr);
     }
 }

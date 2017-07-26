@@ -34,6 +34,7 @@
 #include "picongpu/algorithms/KinEnergy.hpp"
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/nvidia/atomic.hpp>
 
 #include "common/txtFileHandling.hpp"
 
@@ -127,16 +128,16 @@ struct KernelEnergyParticles
         }
 
         /* add energies on block level using shared memory */
-        atomicAddWrapper(&shEnergyKin, _local_energyKin); /* add kinetic energy */
-        atomicAddWrapper(&shEnergy, _local_energy);       /* add total energy */
+        nvidia::atomicAdd(&shEnergyKin, _local_energyKin); /* add kinetic energy */
+        nvidia::atomicAdd(&shEnergy, _local_energy);       /* add total energy */
 
         __syncthreads(); /* wait till all threads have added their energies */
 
         /* add energies on global level using global memory */
         if (linearThreadIdx == 0) /* only done by thread 0 of a block */
         {
-            atomicAddWrapper(&(gEnergy[0]), (float_64) (shEnergyKin)); /* add kinetic energy */
-            atomicAddWrapper(&(gEnergy[1]), (float_64) (shEnergy));    /* add total energy */
+            nvidia::atomicAdd(&(gEnergy[0]), (float_64) (shEnergyKin)); /* add kinetic energy */
+            nvidia::atomicAdd(&(gEnergy[1]), (float_64) (shEnergy));    /* add total energy */
         }
     }
 };

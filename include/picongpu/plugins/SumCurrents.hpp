@@ -28,6 +28,7 @@
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/nvidia/atomic.hpp>
 
 #include <iostream>
 
@@ -65,17 +66,17 @@ struct KernelSumCurrents
 
         const float3_X myJ = fieldJ(cell);
 
-        atomicAddWrapper(&(sh_sumJ.x()), myJ.x());
-        atomicAddWrapper(&(sh_sumJ.y()), myJ.y());
-        atomicAddWrapper(&(sh_sumJ.z()), myJ.z());
+        nvidia::atomicAdd(&(sh_sumJ.x()), myJ.x());
+        nvidia::atomicAdd(&(sh_sumJ.y()), myJ.y());
+        nvidia::atomicAdd(&(sh_sumJ.z()), myJ.z());
 
         __syncthreads();
 
         if (linearThreadIdx == 0)
         {
-            atomicAddWrapper(&(gCurrent->x()), sh_sumJ.x());
-            atomicAddWrapper(&(gCurrent->y()), sh_sumJ.y());
-            atomicAddWrapper(&(gCurrent->z()), sh_sumJ.z());
+            nvidia::atomicAdd(&(gCurrent->x()), sh_sumJ.x());
+            nvidia::atomicAdd(&(gCurrent->y()), sh_sumJ.y());
+            nvidia::atomicAdd(&(gCurrent->z()), sh_sumJ.z());
         }
     }
 };

@@ -25,6 +25,7 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #include <pmacc/traits/HasIdentifier.hpp>
+#include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 
 #include <string>
 #include <iostream>
