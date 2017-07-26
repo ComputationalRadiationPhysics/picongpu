@@ -42,7 +42,6 @@ struct Reduce
     /* \param srcCursor Cursor located at the origin of the area of reduce
      * \param p_zone Zone of cells spanning the area of reduce
      * \param functor Functor with two arguments which returns the result of the reduce operation.
-     *        Can also be a lambda expression.
      */
     template<typename SrcCursor, typename Zone, typename NVidiaFunctor>
     typename SrcCursor::ValueType operator()(const SrcCursor& srcCursor, const Zone& p_zone, const NVidiaFunctor& functor)

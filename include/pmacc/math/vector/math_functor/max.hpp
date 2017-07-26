@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/algorithms/math/defines/comparison.hpp"
 
 namespace pmacc
@@ -41,8 +40,6 @@ struct Max
         return algorithms::math::max(a,b);
     }
 };
-
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Max> > _max;
 
 } // math_vector
 } // math

@@ -26,9 +26,10 @@
 #include "pmacc/cuSTL/cursor/BufferCursor.hpp"
 #include "pmacc/cuSTL/zone/SphericZone.hpp"
 #include "pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp"
-#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/types.hpp"
+
+#include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
 
 #include <boost/math/common_factor_rt.hpp>
 #include <boost/mpl/placeholders.hpp>
@@ -70,7 +71,7 @@ struct DeviceMemAssigner
         PMACC_VERIFY(blockDim.productOfComponents() <= 1024);
 
         algorithm::kernel::RT::Foreach foreach(blockDim);
-        foreach(myZone, cursor, lambda::_1 = value);
+        foreach(myZone, cursor, pmacc::algorithm::functor::AssignValue<Type>(value));
     }
 };
 

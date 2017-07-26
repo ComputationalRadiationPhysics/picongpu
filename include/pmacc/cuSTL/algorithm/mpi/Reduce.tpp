@@ -23,7 +23,6 @@
 
 #include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
-#include "pmacc/lambda/make_Functor.hpp"
 #include "pmacc/mappings/simulation/GridController.hpp"
 #include "pmacc/communication/manager_common.hpp"
 
@@ -140,15 +139,13 @@ struct MPI_User_Op
 } // detail
 
 template<int dim>
-template<typename Type, int conDim, typename ExprOrFunctor>
+template<typename Type, int conDim, typename Functor>
 void Reduce<dim>::operator()
                    (container::HostBuffer<Type, conDim>& dest,
                     const container::HostBuffer<Type, conDim>& src,
-                    ExprOrFunctor) const
+                    Functor) const
 {
     if(!this->m_participate) return;
-
-    typedef typename lambda::result_of::make_Functor<ExprOrFunctor>::type Functor;
 
     MPI_Op user_op;
     MPI_CHECK(MPI_Op_create(&detail::MPI_User_Op<Functor, Type>::callback, 1, &user_op));

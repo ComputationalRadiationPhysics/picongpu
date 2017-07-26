@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Heiko Burau, Rene Widera
+/* Copyright 2017 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -21,16 +21,34 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
 
-#include <boost/mpl/int.hpp>
 
 namespace pmacc
 {
-namespace lambda
+namespace algorithm
+{
+namespace functor
 {
 
-template<int I>
-struct placeholder {};
+    template< typename T_Type>
+    struct AssignValue
+    {
+        using Type = T_Type;
+        Type m_value;
 
-} // namespace lambda
-} // namespace pmacc
+        HDINLINE
+        AssignValue( Type const & value ) :
+            m_value( value )
+        { }
+
+        HDINLINE void
+        operator()( Type & arg ) const
+        {
+            arg = m_value;
+        }
+    };
+
+} // functor
+} // algorithm
+} // pmacc

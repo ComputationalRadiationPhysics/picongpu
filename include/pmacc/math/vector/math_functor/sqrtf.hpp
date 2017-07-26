@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/algorithms/math/defines/sqrt.hpp"
 
 namespace pmacc
@@ -41,8 +40,6 @@ struct Sqrtf
         return algorithms::math::sqrt(value);
     }
 };
-
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Sqrtf> > _sqrtf;
 
 } // math_functor
 } // math

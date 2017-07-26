@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/algorithms/math/defines/comparison.hpp"
 
 namespace pmacc
@@ -42,8 +41,6 @@ struct Min
         return algorithms::math::min(a,b);
     }
 };
-
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Min> > _min;
 
 } // math_functor
 } // math

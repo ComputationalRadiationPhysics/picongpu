@@ -45,7 +45,6 @@
 #include <pmacc/cuSTL/algorithm/kernel/Reduce.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
-#include <pmacc/lambda/Expression.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/cuSTL/cursor/tools/slice.hpp>
 #include <pmacc/cuSTL/cursor/FunctorCursor.hpp>
@@ -57,6 +56,8 @@
 #include <pmacc/math/vector/math_functor/sqrtf.hpp>
 #include <pmacc/math/vector/math_functor/cosf.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
+#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 
 namespace picongpu
 {
@@ -130,7 +131,7 @@ public:
 
                 algorithm::mpi::Reduce<3> reduce(gpuReducingZone, reduceRoot);
 
-                reduce(eField_zt_reduced, *(eField_zt[i]), lambda::_1 + lambda::_2);
+                reduce(eField_zt_reduced, *(eField_zt[i]), pmacc::algorithm::functor::Add());
             }
             if(!reduceRoot) continue;
 
@@ -183,10 +184,12 @@ public:
             {
                 *(eField_zt[i]->origin()(z, currentStep - firstTimestep)) =
                     algorithm::kernel::Reduce()
-                        (cursor::make_FunctorCursor(cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
-                                                    lambda::_1[i == 0 ? 0 : 2]),
-                         reduceZone,
-                         nvidia::functors::Add());
+                        (cursor::make_FunctorCursor(
+                            cursor::tools::slice(fieldE_coreBorder.origin()(0, 0, z)),
+                            pmacc::algorithm::functor::GetComponent<typename FieldE::ValueType::type>(i == 0 ? 0 : 2)
+                        ),
+                        reduceZone,
+                        nvidia::functors::Add());
             }
         }
 

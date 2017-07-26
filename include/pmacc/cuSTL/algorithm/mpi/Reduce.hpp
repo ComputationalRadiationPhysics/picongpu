@@ -70,7 +70,6 @@ public:
      * \param dest destination container
      * \param src source container
      * \param ExprOrFunctor functor with two arguments which returns the result of the reduce operation.
-     *        May also be a lambda expression (e.g. _1 + _2).
      *
      * Since only the functor's type is given, the functor must have a standart constructor.
      *

@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Heiko Burau, Rene Widera
+/* Copyright 2017 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -21,20 +21,29 @@
 
 #pragma once
 
-#include <boost/mpl/bool.hpp>
-namespace mpl = boost::mpl;
+#include "pmacc/types.hpp"
+
 
 namespace pmacc
 {
-namespace lambda
+namespace algorithm
+{
+namespace functor
 {
 
-template<typename Type>
-struct is_Expression
-{
-    typedef mpl::bool_<false> type;
-};
+    struct Add
+    {
+        template< typename T_Type >
+        HDINLINE T_Type
+        operator()(
+            T_Type const & first,
+            T_Type const & second
+        ) const
+        {
+            return first + second;
+        }
+    };
 
-} // lambda
+} // functor
+} // algorithm
 } // pmacc
-

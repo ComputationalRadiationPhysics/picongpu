@@ -24,6 +24,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/cuSTL/cursor/FunctorCursor.hpp>
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
 #include "picongpu/algorithms/ShiftCoordinateSystem.hpp"
 
 namespace picongpu
@@ -54,30 +55,25 @@ struct FieldToParticleInterpolation
     static constexpr int begin = -supp / 2 + (supp + 1) % 2;
     static constexpr int end = begin+supp-1;
 
+
     template<class Cursor, class VecVector>
     HDINLINE typename Cursor::ValueType operator()(Cursor field,
                                                    const floatD_X& particlePos,
                                                    const VecVector& fieldPos)
     {
-        using namespace lambda;
-        DECLARE_PLACEHOLDERS() // declares _1, _2, _3, ... in device code
-
         /**\brief:
          * The following calls seperate the vector interpolation into
          * independent scalar interpolations.
          */
-
-        /** _1[i] means:
-         * Create a functor which returns [i] applied on the first paramter.
-         * Here it is: return the i-component of the field-vector.
-         */
-
         typedef typename pmacc::math::CT::make_Int<simDim,supp>::type Supports;
 
         typename Cursor::ValueType result;
         for(uint32_t i = 0; i < Cursor::ValueType::dim; i++)
         {
-            auto fieldComponent = pmacc::cursor::make_FunctorCursor(field, _1[i]);
+            auto fieldComponent = pmacc::cursor::make_FunctorCursor(
+                field,
+                pmacc::algorithm::functor::GetComponent<float_X>(i)
+            );
             floatD_X particlePosShifted = particlePos;
             ShiftCoordinateSystem<Supports>()(fieldComponent, particlePosShifted, fieldPos[i]);
             result[i] = InterpolationMethod::template interpolate<AssignmentFunction, begin, end > (fieldComponent, particlePosShifted);

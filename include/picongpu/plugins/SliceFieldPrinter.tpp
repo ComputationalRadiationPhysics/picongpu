@@ -35,7 +35,6 @@
 #include <pmacc/cuSTL/cursor/tools/slice.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/run-time/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
-#include <pmacc/lambda/Expression.hpp>
 
 #include <sstream>
 
@@ -145,7 +144,6 @@ void SliceFieldPrinter<Field>::printSlice(const TField& field, int nAxis, float 
 
     if(!gather.participate()) return;
 
-    using namespace lambda;
 #if(SIMDIM==DIM3)
     vec::UInt32<3> twistedAxesVec((nAxis+1)%3, (nAxis+2)%3, nAxis);
 

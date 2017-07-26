@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Heiko Burau, Rene Widera
+/* Copyright 2017 Heiko Burau
  *
  * This file is part of PMacc.
  *
@@ -19,28 +19,37 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAMBDA_KERNEL_EXPRTYPES_H
-#define LAMBDA_KERNEL_EXPRTYPES_H
+#pragma once
+
+#include "pmacc/types.hpp"
+
 
 namespace pmacc
 {
-namespace lambda
+namespace algorithm
 {
-namespace exprTypes
+namespace functor
 {
 
-struct terminal;
-struct plus;
-struct minus;
-struct multiply;
-struct divide;
-struct assign;
-struct comma;
-struct call;
-struct subscript;
+    template< typename T_Type >
+    struct GetComponent
+    {
+        using Type = T_Type;
+        using result_type = Type;
+        uint32_t m_component;
 
-} // exprTypes
-} // lambda
+        HDINLINE GetComponent( uint32_t const component ) :
+            m_component( component )
+        { }
+
+        template< typename Array >
+        HDINLINE Type &
+        operator()( Array & array ) const
+        {
+            return array[ m_component ];
+        }
+    };
+
+} // functor
+} // algorithm
 } // pmacc
-
-#endif // LAMBDA_KERNEL_EXPRTYPES_H

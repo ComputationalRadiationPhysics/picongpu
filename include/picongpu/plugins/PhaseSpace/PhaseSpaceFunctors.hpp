@@ -27,6 +27,7 @@
 #include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/VectorOperations.hpp>
+#include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
 #include "picongpu/particles/access/Cell2Particle.hpp"
 
 #include "PhaseSpace.hpp"
@@ -45,7 +46,7 @@ namespace picongpu
         typedef void result_type;
 
         DINLINE void
-        operator()( Type& dest, const Type src )
+        operator()( Type& dest, const Type src ) const
         {
             atomicAddWrapper( &dest, src );
         }
@@ -175,11 +176,9 @@ namespace picongpu
             /* init shared mem */
             pmacc::algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
             {
-                using namespace lambda;
-                DECLARE_PLACEHOLDERS();
                 forEachThreadInBlock( dBufferInBlock.zone(),
                                       dBufferInBlock.origin(),
-                                      _1 = float_PS(0.0) );
+                                      pmacc::algorithm::functor::AssignValue<float_PS>(0.0) );
             }
             __syncthreads();
 

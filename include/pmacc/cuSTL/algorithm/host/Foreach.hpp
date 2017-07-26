@@ -23,8 +23,6 @@
 
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/math/vector/Int.hpp"
-#include "pmacc/lambda/make_Functor.hpp"
-#include "pmacc/forward.hpp"
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -45,7 +43,7 @@ namespace host
 #endif
 
 #define SHIFT_CURSOR_ZONE(Z, N, _) C ## N c ## N ## _shifted = c ## N (p_zone.offset);
-#define SHIFTACCESS_SHIFTEDCURSOR(Z, N, _) forward(c ## N ## _shifted [cellIndex])
+#define SHIFTACCESS_SHIFTEDCURSOR(Z, N, _) c ## N ## _shifted [cellIndex]
 
 namespace detail
 {
@@ -88,8 +86,6 @@ namespace detail
     {                                                                          \
         BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                               \
                                                                                \
-        typename lambda::result_of::make_Functor<Functor>::type fun            \
-            = lambda::make_Functor(functor);                                   \
         detail::GetRange<Zone::dim> getRange;                                  \
         for(int z = 0; z < getRange(p_zone).z(); z++)                           \
         {                                                                      \
@@ -99,7 +95,7 @@ namespace detail
                 {                                                              \
                     math::Int<Zone::dim> cellIndex =                           \
                         math::Int<3u>(x, y, z).shrink<Zone::dim>();            \
-                    fun(BOOST_PP_ENUM(N, SHIFTACCESS_SHIFTEDCURSOR, _));       \
+                    functor(BOOST_PP_ENUM(N, SHIFTACCESS_SHIFTEDCURSOR, _));       \
                 }                                                              \
             }                                                                  \
         }                                                                      \

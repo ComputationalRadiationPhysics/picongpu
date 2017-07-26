@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/algorithms/math/defines/abs.hpp"
 
 namespace pmacc
@@ -41,8 +40,6 @@ struct Abs
         return algorithms::math::abs(x);
     }
 };
-
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Abs> > _abs;
 
 } // math_vector
 } // math

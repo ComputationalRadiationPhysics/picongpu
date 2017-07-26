@@ -36,6 +36,7 @@
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -218,7 +219,6 @@ namespace picongpu
          *                         spatial y and z direction to node with
          *                         lowest y and z position and same x range
          */
-        using namespace lambda;
         container::HostBuffer<float_PS, 2> hReducedBuffer( hBuffer.size() );
         hReducedBuffer.assign( float_PS(0.0) );
 
@@ -226,7 +226,7 @@ namespace picongpu
                              hReducedBuffer,
                              hBuffer,
                              /* the functors return value will be written to dst */
-                             _1 + _2 );
+                             pmacc::algorithm::functor::Add() );
 
         /** all non-reduce-root processes are done now */
         if( !this->isPlaneReduceRoot )

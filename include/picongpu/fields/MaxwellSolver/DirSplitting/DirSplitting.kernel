@@ -24,8 +24,9 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
 #include <pmacc/cuSTL/algorithm/cudaBlock/Foreach.hpp>
-#include <pmacc/lambda/Expression.hpp>
 #include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
+#include <pmacc/nvidia/functors/Assign.hpp>
+
 
 namespace picongpu
 {
@@ -69,9 +70,6 @@ struct DirSplittingKernel
         CacheE cacheE;
         CacheB cacheB;
 
-        using namespace lambda;
-        DECLARE_PLACEHOLDERS();
-
         float3_X fieldE_old;
         float3_X fieldB_old;
         int threadPos_x = threadIdx.x;
@@ -79,8 +77,8 @@ struct DirSplittingKernel
         algorithm::cudaBlock::Foreach<BlockDim> foreach;
         for (int x_offset = 0; x_offset < this->m_totalLength; x_offset += BlockDim::x::value)
         {
-            foreach(typename CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), _1 = _2);
-            foreach(typename CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), _1 = _2);
+            foreach(typename CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
+            foreach(typename CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
             __syncthreads();
 
             auto cursorE = cacheE.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z);
@@ -100,8 +98,8 @@ struct DirSplittingKernel
             propagate(cursorE, cursorB);
 
             typedef zone::CT::SphericZone<BlockDim> BlockZone;
-            foreach(BlockZone(), cacheE.origin()(1, 0, 0), globalE(x_offset, 0, 0), _2 = _1);
-            foreach(BlockZone(), cacheB.origin()(1, 0, 0), globalB(x_offset, 0, 0), _2 = _1);
+            foreach(BlockZone(), globalE(x_offset, 0, 0), cacheE.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
+            foreach(BlockZone(), globalB(x_offset, 0, 0), cacheB.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
 
             __syncthreads();
 

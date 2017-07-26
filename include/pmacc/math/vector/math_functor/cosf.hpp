@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/lambda/Expression.hpp"
 #include "pmacc/algorithms/math/defines/trigo.hpp"
 
 namespace pmacc
@@ -41,8 +40,6 @@ struct Cosf
         return algorithms::math::cos(value);
     }
 };
-
-lambda::Expression<lambda::exprTypes::terminal, mpl::vector<Cosf> > _cosf;
 
 } // math_functor
 } // math

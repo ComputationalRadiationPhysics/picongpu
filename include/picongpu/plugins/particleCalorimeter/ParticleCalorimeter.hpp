@@ -35,6 +35,7 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/algorithms/math.hpp>
+#include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
@@ -101,6 +102,20 @@ private:
     /* host calorimeter buffer for summation of all mpi ranks */
     HBufCalorimeter* hBufTotalCalorimeter;
 
+    template<typename T_Type>
+    struct DivideInPlace
+    {
+        using Type = T_Type;
+        const Type divisor;
+
+        DivideInPlace( const Type& divisor ) : divisor( divisor ) {}
+
+        HDINLINE void operator()( T_Type& val ) const
+        {
+            val = val / this->divisor;
+        }
+    };
+
 public:
     typedef CalorimeterFunctor<typename DBufCalorimeter::Cursor> MyCalorimeterFunctor;
 private:
@@ -145,10 +160,9 @@ private:
 
             /* rank 0 divides and distributes the calorimeter to all ranks in equal parts */
             uint32_t numRanks = gridCon.getGlobalSize();
-            using namespace lambda;
             pmacc::algorithm::host::Foreach()(hBufLeftParsCalorimeter.zone(),
                                               hBufLeftParsCalorimeter.origin(),
-                                              _1 = _1 / float_X(numRanks));
+                                              DivideInPlace<float_X>(float_X(numRanks)));
         }
 
         MPI_Bcast(&(*hBufLeftParsCalorimeter.origin()),
@@ -172,8 +186,7 @@ private:
         hBufLeftParsCalorimeter = *this->dBufLeftParsCalorimeter;
 
         /* mpi reduce */
-        using namespace lambda;
-        (*this->allGPU_reduce)(hBufTotal, hBufLeftParsCalorimeter, _1 + _2);
+        (*this->allGPU_reduce)(hBufTotal, hBufLeftParsCalorimeter, pmacc::algorithm::functor::Add{});
         if(!this->allGPU_reduce->root())
             return;
 
@@ -457,8 +470,7 @@ public:
         *this->hBufCalorimeter = *this->dBufCalorimeter;
 
         /* mpi reduce */
-        using namespace lambda;
-        (*this->allGPU_reduce)(*this->hBufTotalCalorimeter, *this->hBufCalorimeter, _1 + _2);
+        (*this->allGPU_reduce)(*this->hBufTotalCalorimeter, *this->hBufCalorimeter, pmacc::algorithm::functor::Add{});
         if(!this->allGPU_reduce->root())
             return;
 
