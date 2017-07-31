@@ -34,7 +34,6 @@
 
 #include <boost/mpl/void.hpp>
 #include <boost/mpl/int.hpp>
-#include <boost/move/move.hpp>
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/vector.hpp>
@@ -85,8 +84,6 @@ public:
     HDINLINE void exit();
     HDINLINE CartBuffer() : refCount(nullptr) {}
 
-    /* makes this class able to emulate a r-value reference */
-    BOOST_COPYABLE_AND_MOVABLE(CartBuffer)
 public:
     HDINLINE CartBuffer(const math::Size_t<T_dim>& size);
     HDINLINE CartBuffer(size_t x);
@@ -94,16 +91,15 @@ public:
     HDINLINE CartBuffer(size_t x, size_t y, size_t z);
     /* the copy constructor just increments the reference counter but does not copy memory */
     HDINLINE CartBuffer(const CartBuffer& other);
-    /* the move constructor */
-    HDINLINE CartBuffer(BOOST_RV_REF(CartBuffer) other);
+    HDINLINE CartBuffer(CartBuffer&& other);
     HDINLINE ~CartBuffer();
 
     /* copy another container into this one (hard data copy) */
     HDINLINE CartBuffer&
-    operator=(BOOST_COPY_ASSIGN_REF(CartBuffer) rhs);
+    operator=(const CartBuffer& rhs);
     /* use the memory from another container and increment the reference counter */
     HDINLINE CartBuffer&
-    operator=(BOOST_RV_REF(CartBuffer) rhs);
+    operator=(CartBuffer&& rhs);
 
     /* get a view. Views represent a clipped area of the container.
      * \param a Top left corner of the view, inside the view.

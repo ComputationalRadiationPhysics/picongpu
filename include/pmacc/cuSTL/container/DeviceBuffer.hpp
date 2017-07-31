@@ -30,12 +30,12 @@
 #include "pmacc/cuSTL/container/copier/Memcopy.hpp"
 
 #include <boost/assert.hpp>
-#include <boost/move/move.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 #include <exception>
 #include <sstream>
+#include <utility>
 
 
 namespace pmacc
@@ -62,7 +62,6 @@ private:
 protected:
     HDINLINE DeviceBuffer() {}
 
-    BOOST_COPYABLE_AND_MOVABLE(DeviceBuffer)
 public:
     typedef typename Base::PitchType PitchType;
 
@@ -100,12 +99,12 @@ public:
 #endif
     }
     HDINLINE DeviceBuffer(const Base& base) : Base(base) {}
-    HDINLINE DeviceBuffer(BOOST_RV_REF(DeviceBuffer) obj): Base(boost::move(static_cast<Base&>(obj))) {}
+    HDINLINE DeviceBuffer(DeviceBuffer&& obj): Base(std::move(static_cast<Base&>(obj))) {}
 
     HDINLINE DeviceBuffer&
-    operator=(BOOST_RV_REF(DeviceBuffer) rhs)
+    operator=(DeviceBuffer&& rhs)
     {
-        Base::operator=(boost::move(static_cast<Base&>(rhs)));
+        Base::operator=(std::move(static_cast<Base&>(rhs)));
         return *this;
     }
 
@@ -136,7 +135,7 @@ public:
         return *this;
     }
 
-    HINLINE DeviceBuffer& operator=(BOOST_COPY_ASSIGN_REF(DeviceBuffer) rhs)
+    HINLINE DeviceBuffer& operator=(const DeviceBuffer& rhs)
     {
         Base::operator=(rhs);
         return *this;
