@@ -19,93 +19,202 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
+
 #include <pmacc/nvidia/atomic.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/algorithms/ForEach.hpp>
+
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/integral_c.hpp>
+
 
 namespace picongpu
 {
-
-using namespace pmacc;
-
-template<int pos, class BoxedMemory, class Mapping>
-DINLINE void absorb(BoxedMemory field, uint32_t thickness, float_X absorber_strength, Mapping mapper, const DataSpace<simDim> &direction)
+namespace detail
 {
-    typedef typename MappingDesc::SuperCellSize SuperCellSize;
-    const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
 
-
-    const DataSpace<simDim > threadIndex(threadIdx);
-    const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-
-    DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + threadIndex);
-    //cells in simulation
-    const DataSpace<simDim> gCells = mapper.getGridSuperCells() * SuperCellSize::toRT();
-
-    PMACC_SMEM( finish, int );
-
-
-    float_X factor = float_X(0.0);
-
-    do
+    /** damp each field component at exchange the border
+     *
+     * @tparam T_NumWorkers, boost::mpl::integral_c number of workers
+     * @tparam T_Axis, boost::mpl::integral_c axis of the coordinate system
+     *                 (0 = x, 1 = y, 2 = z)
+     */
+    template<
+        typename T_NumWorkers,
+        typename T_Axis
+    >
+    struct AbsorbInOneDirection
     {
-        cell[pos] = cell[pos] + (MappingDesc::SuperCellSize::toRT()[pos]*(direction[pos]*-1));
-        if (linearThreadIdx == 0)
-            finish = 0;
-        __syncthreads();
-
-        if (direction[pos] != 0)
+        /** absorb one direction
+         *
+         * The functor is only performed if `relExchangeDir[ T_Axis::value ] != 0`.
+         *
+         * @tparam T_BoxedMemory pmacc::DataBox, type of the field
+         * @tparam T_Mapping mapper functor type
+         *
+         * @param field field to manipulate
+         * @param thickness the thickness of the absorber area (in cells)
+         * @param absorberStrength strength of the absorber
+         * @param mapper functor to map a block to a supercell
+         * @param relExchangeDir relative direction for each dimension
+         *        (-1 = negative; +1 = positive direction; 0 = direction not selected)
+         */
+        template<
+            typename T_BoxedMemory,
+            typename T_Mapping
+        >
+        DINLINE void operator()(
+            T_BoxedMemory & field,
+            uint32_t const thickness,
+            float_X const absorberStrength,
+            T_Mapping & mapper,
+            DataSpace< simDim > const & relExchangeDir
+        ) const
         {
-            if (direction[pos] < 0)
-            {
-                factor = (float_32) (MappingDesc::SuperCellSize::toRT()[pos] + thickness - cell[pos] - 1);
-            }
-            else
-            {
-                factor = (float_32) ((MappingDesc::SuperCellSize::toRT()[pos] + cell[pos]) - gCells[pos] + thickness);
-            }
+            using namespace mappings::threads;
+
+            constexpr int axis = T_Axis::value;
+
+            // return if axis is not selected
+            if( relExchangeDir[ axis ] == 0 )
+                return;
+
+            using SuperCellSize = typename T_Mapping::SuperCellSize;
+            DataSpace< simDim > const superCellIdx(
+                mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+            );
+
+            constexpr uint32_t numWorkers = T_NumWorkers::value;
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
+
+            uint32_t const workerIdx = threadIdx.x;
+
+            // cell index of the supercell within the local domain (incl. the guards)
+            DataSpace< simDim > const localDomainCells = mapper.getGridSuperCells() * SuperCellSize::toRT();
+
+            using SuperCellDomCfg = IdxConfig<
+                cellsPerSuperCell,
+                numWorkers
+            >;
+
+            ForEachIdx<
+                SuperCellDomCfg
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    /* cell index within the superCell */
+                    DataSpace< simDim > const cellIdx = DataSpaceOperations< simDim >::
+                        template map< SuperCellSize >( linearIdx );
+
+                    DataSpace< simDim > cell( superCellIdx * SuperCellSize::toRT( ) + cellIdx);
+
+                    do
+                    {
+                        cell[ axis ] += SuperCellSize::toRT()[ axis ] * -1 * relExchangeDir[ axis ];
+                        int factor(0);
+
+                        if( relExchangeDir[ axis ] < 0 )
+                        {
+                            factor = SuperCellSize::toRT()[ axis ] - cell[ axis ] +
+                                thickness - 1;
+                        }
+                        else
+                        {
+                            factor = SuperCellSize::toRT()[ axis ] + cell[ axis ] -
+                                localDomainCells[ axis ] + thickness;
+                        }
+
+                        if( factor <= 0 )
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            float_X const a = math::exp( -absorberStrength * float_X( factor ) );
+                            field( cell ) = field( cell ) * a;
+                        }
+                    } while( true );
+                }
+            );
 
         }
+    };
 
-        if (factor <= float_X(0.0))
-        {
-            factor = float_X(0.0);
-            nvidia::atomicAllExch(&finish,1);
-        }
-        else
-        {
-            float_X a = math::exp(float_X(-absorber_strength) * (factor));
+} // namespace detail
 
-            float3_X tmp = field(cell);
-            tmp.x() *= a;
-            tmp.y() *= a;
-            tmp.z() *= a;
-            field(cell) = tmp;
-        }
-        //  cell =cell+ MappingDesc::SuperCellSize::toRT()*(pos*-1);
-        __syncthreads();
-    }
-    while (finish == 0);
-}
-
-struct KernelAbsorbBorder
-{
-    template<class BoxedMemory, class Mapping>
-    DINLINE void operator()(BoxedMemory field, uint32_t thickness, float_X absorber_strength, Mapping mapper) const
+    /** damp each field's components at the outer cells of the global domain
+     *
+     * Done for one direction per call.
+     *
+     * @tparam T_numWorkers number of workers
+     */
+    template< uint32_t T_numWorkers >
+    struct KernelAbsorbBorder
     {
+        /** damp a field at the border
+         *
+         * @tparam T_BoxedMemory pmacc::DataBox, type of the field
+         * @tparam T_Mapping pmacc::ExchangeMapping, mapper functor type
+         *
+         * @param field filed to manipulate
+         * @param thickness the thickness of the absorber area (in cells)
+         * @param absorberStrength strength of the absorber (positive, exponential damping constant)
+         * @param mapper functor to map a block to a supercell,
+         *               selects the direction of damping by the exchange type
+         */
+        template<
+            typename T_BoxedMemory,
+            typename T_Mapping
+        >
+        DINLINE void operator()(
+            T_BoxedMemory field,
+            uint32_t const thickness,
+            float_X const absorberStrength,
+            T_Mapping mapper
+        ) const
+        {
 
-        const DataSpace<simDim> direction = Mask::getRelativeDirections<simDim > (mapper.getExchangeType());
+            DataSpace< simDim > const relExchangeDir =
+                Mask::getRelativeDirections< simDim >( mapper.getExchangeType( ) );
 
-        //this is a workaround that we get a kernelwithout lmem
-        if (direction.x() != 0)
-            absorb < 0 > (field, thickness, absorber_strength, mapper, direction);
-        else if (direction.y() != 0)
-            absorb < 1 > (field, thickness, absorber_strength, mapper, direction);
-#if( SIMDIM==DIM3 )
-        else if (direction.z() != 0)
-            absorb < 2 > (field, thickness, absorber_strength, mapper, direction);
-#endif
-    }
-};
-} // picongpu
+            /* create a sequence with int values [0;simDim)
+             * MakeSeq_t allows to use the result of mpl::range_c
+             * within the PMacc ForEach
+             */
+            using SimulationDimensions = MakeSeq_t<
+                boost::mpl::range_c<
+                    int,
+                    0,
+                    int( simDim )
+                >
+            >;
+
+            pmacc::algorithms::forEach::ForEach<
+                SimulationDimensions,
+                picongpu::detail::AbsorbInOneDirection<
+                    boost::mpl::integral_c<
+                        uint32_t,
+                        T_numWorkers
+                    >,
+                    boost::mpl::_1
+                >
+            > absorbeInOneDirection;
+
+            // call absorber for each axis dimension
+            absorbeInOneDirection(
+                forward(field),
+                thickness,
+                absorberStrength,
+                forward(mapper),
+                relExchangeDir
+            );
+        }
+    };
+
+} // namespace picongpu

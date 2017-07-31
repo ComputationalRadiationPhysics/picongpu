@@ -20,10 +20,12 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/mappings/simulation/GridController.hpp>
-#include <pmacc/memory/dataTypes/Mask.hpp>
 #include "FieldManipulator.kernel"
 #include "picongpu/simulationControl/MovingWindow.hpp"
+
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/mappings/simulation/GridController.hpp>
+#include <pmacc/memory/dataTypes/Mask.hpp>
 
 #include <string>
 #include <sstream>
@@ -83,10 +85,19 @@ public:
                 if (MovingWindow::getInstance().isSlidingWindowActive() && i == BOTTOM) continue;
 
                 ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);
-                PMACC_KERNEL(KernelAbsorbBorder{})
-                    (mapper.getGridDim(), mapper.getSuperCellSize())
-                    (deviceBox, thickness, absorber_strength,
-                     mapper);
+                constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+                    pmacc::math::CT::volume< SuperCellSize >::type::value
+                >::value;
+
+                PMACC_KERNEL( KernelAbsorbBorder< numWorkers> {} )(
+                    mapper.getGridDim(),
+                    numWorkers
+                )(
+                    deviceBox,
+                    thickness,
+                    absorber_strength,
+                    mapper
+                );
             }
         }
     }
