@@ -180,27 +180,27 @@ struct Abs2< ::pmacc::math::Complex<T_Type> >
     }
 };
 
-/*  Specialize log() for complex numbers. */
-template< typename T_Type >
-struct Log< ::pmacc::math::Complex< T_Type > >
-{
-    typedef typename ::pmacc::math::Complex< T_Type >::type result;
-    typedef T_Type type;
-
-    HDINLINE result operator( )( ::pmacc::math::Complex<T_Type> const & other )
+    /*  Specialize log() for complex numbers. */
+    template< typename T_Type >
+    struct Log< ::pmacc::math::Complex< T_Type > >
     {
-        return pmMath::log( pmMath::abs( other ) ) +
-        ::pmacc::math::Complex< T_Type >(
-            type( 0. ),
-            type( 1. )
-        ) * pmMath::arg( other );
-    }
-};
+        using type = T_Type;
+        using result = typename ::pmacc::math::Complex< type >::type;
+
+        HDINLINE result operator( )( ::pmacc::math::Complex< T_Type > const & other )
+        {
+            return pmMath::log( pmMath::abs( other ) ) +
+                ::pmacc::math::Complex< T_Type >(
+                    type( 0. ),
+                    type( 1. )
+                ) * pmMath::arg( other );
+        }
+    };
 
 
 } //namespace math
 } //namespace algorithms
-} // namespace pmacc
+} //namespace pmacc
 
 namespace pmacc
 {
