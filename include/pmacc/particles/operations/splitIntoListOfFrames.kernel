@@ -63,8 +63,8 @@ namespace kernel
          * @tparam T_Identifier Identifier, type of the identifier for the total domain offset
          * @tparam T_CellDescription pmacc::MappingDescription, type of the domain description
          *
-         * @param counter box with three integer [sharedSrcParticleOffset, numLoadedParticles, numUsedFrames]
-         * @param destBox particle box were all particles are copied to (destination)
+         * @param counter box with three integers [sharedSrcParticleOffset, numLoadedParticles, numUsedFrames]
+         * @param destBox particle box where all particles are copied to (destination)
          * @param srcFrame frame with particles (is used as source)
          * @param maxParticles number of particles in srcFrame
          * @param localDomainCellOffset offset in cells to user-defined domain (@see wiki PIConGPU domain definitions)
@@ -141,8 +141,8 @@ namespace kernel
                     uint32_t const
                 )
                 {
-                    /* apply for work for the full block
-                     * counter [0] -> offset to load particles
+                    /* apply for work for the full block, counter[0] contains the
+                     * offset in srcFrame to load N particles
                      */
                     sharedSrcParticleOffset = atomicAdd(
                         &( counter[ 0 ] ),
@@ -249,7 +249,7 @@ namespace kernel
                     uint32_t const
                 )
                 {
-                    return linearIdx -1;
+                    return linearIdx - 1;
                 }
             );
 
