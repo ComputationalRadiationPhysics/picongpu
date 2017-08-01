@@ -90,7 +90,7 @@ inline cudaStream_t StreamTask::getCudaStream( )
 inline void StreamTask::activate( )
 {
     cudaEvent = Environment<>::get().EventPool( ).pop( );
-    cudaEvent.recordEvent(this->stream->getCudaStream());
+    cudaEvent.recordEvent( getCudaStream( ) );
     hasCudaEventHandle = true;
 }
 
