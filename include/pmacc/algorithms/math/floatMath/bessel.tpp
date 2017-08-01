@@ -31,163 +31,166 @@ namespace algorithms
 {
 namespace math
 {
+namespace bessel
+{
 
     template< >
-    struct Cyl_bessel_i0< float >
+    struct I0< float >
     {
-    typedef float result;
+        using result = float;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::cyl_bessel_i0f( x );
+            return ::cyl_bessel_i0f( x );
 #else
-        return boost::math::cyl_bessel_i(
-            0,
-            x
-        );
+            return boost::math::cyl_bessel_i(
+                0,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
-    struct Cyl_bessel_i1< float >
+    struct I1< float >
     {
-    typedef float result;
+        using result = float;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::cyl_bessel_i1f( x );
+            return ::cyl_bessel_i1f( x );
 #else
-        return boost::math::cyl_bessel_i(
-            1,
-            x
-        );
+            return boost::math::cyl_bessel_i(
+                1,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct J0<float>
     {
-    typedef float result;
+        using result = float;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::j0f( x );
+            return ::j0f( x );
 #else
-        return boost::math::cyl_bessel_j(
-            0,
-            x
-        );
+            return boost::math::cyl_bessel_j(
+                0,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct J1<float>
     {
-    typedef float result;
+        using result = float;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::j1f( x );
+            return ::j1f( x );
 #else
-        return boost::math::cyl_bessel_j(
-            1,
-            x
-        );
+            return boost::math::cyl_bessel_j(
+                1,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct Jn<int, float>
     {
-    typedef float result;
+        using result = float;
 
-    HDINLINE result operator( )(
-        int const & n,
-        result const & x
-    )
-    {
+        HDINLINE result operator( )(
+            int const & n,
+            result const & x
+        )
+        {
 #if __CUDA_ARCH__
-        return ::jnf(
-            n,
-            x
-        );
+            return ::jnf(
+                n,
+                x
+            );
 #else
-        return boost::math::cyl_bessel_j(
-            n,
-            x
-        );
+            return boost::math::cyl_bessel_j(
+                n,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct Y0<float>
     {
-    typedef float result;
+        using result = float;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::y0f( x );
+            return ::y0f( x );
 #else
-        return boost::math::cyl_neumann(
-            0,
-            x
-        );
+            return boost::math::cyl_neumann(
+                0,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct Y1< float >
     {
-    typedef float result;
+        using result = float;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::y1f( x );
+            return ::y1f( x );
 #else
-        return boost::math::cyl_neumann(
-            1,
-            x
-        );
+            return boost::math::cyl_neumann(
+                1,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct Yn< int, float >
     {
-    typedef float result;
+        using result = float;
 
-    HDINLINE result operator( )(
-        int const & n,
-        result const & x
-    )
-    {
+        HDINLINE result operator( )(
+            int const & n,
+            result const & x
+        )
+        {
 #if __CUDA_ARCH__
-        return ::ynf(
-            n,
-            x
-        );
+            return ::ynf(
+                n,
+                x
+            );
 #else
-        return boost::math::cyl_neumann(
-            n,
-            x
-        );
+            return boost::math::cyl_neumann(
+                n,
+                x
+            );
 #endif
-    }
+        }
     };
 
+} //namespace bessel
 } //namespace math
 } //namespace algorithms
 } //namespace pmacc

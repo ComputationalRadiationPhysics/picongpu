@@ -27,82 +27,86 @@ namespace algorithms
 {
 namespace math
 {
+namespace bessel
+{
 
-    /* Modified cylindrical Bessel function of order 1 */
-
+    /** Modified cylindrical Bessel function of first kind of order 1
+     */
     template< typename T_Type >
-    struct Cyl_bessel_i1;
+    struct I1;
 
-    /**
-     * Calculate the value of the regular modified cylindrical Bessel function
-     * of order 1 for the input argument.
+    /** Modified cylindrical Bessel function of order 1
+     *
+     * @param x input value
      * @return float value
      */
     template<typename T_Type >
-    HDINLINE typename Cyl_bessel_i1<T_Type>::result cyl_bessel_i1( T_Type x )
+    HDINLINE typename I1<T_Type>::result i1( T_Type const & x )
     {
-        return Cyl_bessel_i1< T_Type >( )( x );
+        return I1< T_Type >( )( x );
     }
 
-    /* Modified cylindrical Bessel function of order 0 */
-
+    /** Modified cylindrical Bessel function of first kind of order 0.
+     */
     template< typename T_Type >
-    struct Cyl_bessel_i0;
+    struct I0;
 
-    /**
-     * Calculate the value of the regular modified cylindrical Bessel function
-     * of order 0 for the input argument.
+    /** Modified cylindrical Bessel function of first kind of order 0.
+     *
+     * @param x input argument
      * @return float value
      */
     template< typename T_Type >
-    HDINLINE typename Cyl_bessel_i0< T_Type >::result cyl_bessel_i0( T_Type x )
+    HDINLINE typename I0< T_Type >::result i0( T_Type const & x )
     {
-        return Cyl_bessel_i0< T_Type >( )( x );
+        return I0< T_Type >( )( x );
     }
 
-    /* Bessel function of first kind of order 0 */
-
+    /** Bessel function of first kind of order 0
+     */
     template< typename T_Type >
     struct J0;
 
-    /**
-     * Calculate the value of the Bessel function
-     * of first kind of order 0 for the input argument.
+    /** Bessel function of first kind of order 0
+     *
+     * @param x input argument
      * @return float value
      */
     template< typename T_Type >
-    HDINLINE typename J0< T_Type >::result j0( T_Type x )
+    HDINLINE typename J0< T_Type >::result j0( T_Type const & x )
     {
         return J0< T_Type >( )( x );
     }
 
-    /* Bessel function of first kind of order 1 */
-
+    /** Bessel function of first kind of order 1
+     */
     template< typename T_Type >
     struct J1;
 
-    /**
-     * Calculate the value of the Bessel function
-     * of first kind of order 1 for the input argument.
+    /** Bessel function of first kind of order 1
+     *
+     * @param x input value
      * @return float value
      */
     template< typename T_Type >
-    HDINLINE typename J1< T_Type >::result j1( T_Type x )
+    HDINLINE typename J1< T_Type >::result j1( T_Type const & x )
     {
         return J1< T_Type >( )( x );
     }
 
-    /* Bessel function of first kind of order n */
-
+    /** Bessel function of first kind of order n
+     */
     template<
         typename T_IntType,
         typename T_FloatType
     >
     struct Jn;
 
-    /**
+    /** Bessel function of first kind of order n
+     *
      * Calculate the value of the Bessel function
      * of first kind of order n for the input argument.
+     *
      * @param n nth order
      * @param x input argument
      * @return float value
@@ -130,40 +134,41 @@ namespace math
         );
     }
 
-    /* Bessel function of second kind of order 0 */
-
+    /** Bessel function of second kind of order 0
+     *
+     */
     template< typename T_Type >
     struct Y0;
 
-    /**
-     * Calculate the value of the Bessel function
-     * of first kind of order 0 for the input argument.
+    /**Bessel function of second kind of order 0
+     *
+     * @param x input argument
      * @return float value
      */
     template< typename T_Type >
-    HDINLINE typename Y0< T_Type >::result y0( T_Type x )
+    HDINLINE typename Y0< T_Type >::result y0( T_Type const & x )
     {
         return Y0< T_Type >( )( x );
     }
 
-    /* Bessel function of second kind of order 1 */
-
+    /* Bessel function of second kind of order 1.
+     */
     template< typename T_Type >
     struct Y1;
 
-    /**
-     * Calculate the value of the Bessel function
-     * of second kind of order 1 for the input argument.
+    /** Bessel function of second kind of order 1
+     *
+     * @param x input argument
      * @return float value
      */
     template< typename T_Type >
-    HDINLINE typename Y1< T_Type >::result y1( T_Type x )
+    HDINLINE typename Y1< T_Type >::result y1( T_Type const & x )
     {
         return Y1< T_Type >( )( x );
     }
 
-    /** Bessel function of second kind of order n */
-
+    /** Bessel function of second kind of order n.
+     */
     template<
         typename T_IntType,
         typename T_FloatType
@@ -202,7 +207,7 @@ namespace math
         );
     }
 
-
+} //namespace bessel
 } //namespace math
 } //namespace algorithms
 } //namespace pmacc

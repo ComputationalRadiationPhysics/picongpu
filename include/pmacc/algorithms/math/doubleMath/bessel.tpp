@@ -31,163 +31,166 @@ namespace algorithms
 {
 namespace math
 {
+namespace bessel
+{
 
     template< >
-    struct Cyl_bessel_i0< double >
+    struct I0< double >
     {
-    typedef double result;
+        using result = double;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::cyl_bessel_i0( x );
+            return ::cyl_bessel_i0( x );
 #else
-        return boost::math::cyl_bessel_i(
-            0,
-            x
-        );
+            return boost::math::cyl_bessel_i(
+                0,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
-    struct Cyl_bessel_i1< double >
+    struct I1< double >
     {
-    typedef double result;
+        using result = double;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::cyl_bessel_i1( x );
+            return ::cyl_bessel_i1( x );
 #else
-        return boost::math::cyl_bessel_i(
-            1,
-            x
-        );
+            return boost::math::cyl_bessel_i(
+                1,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct J0<double>
     {
-    typedef double result;
+        using result = double;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::j0( x );
+            return ::j0( x );
 #else
-        return boost::math::cyl_bessel_j(
-            0,
-            x
-        );
+            return boost::math::cyl_bessel_j(
+                0,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct J1<double>
     {
-    typedef double result;
+        using result = double;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::j1( x );
+            return ::j1( x );
 #else
-        return boost::math::cyl_bessel_j(
-            1,
-            x
-        );
+            return boost::math::cyl_bessel_j(
+                1,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct Jn<int, double>
     {
-    typedef double result;
+        using result = double;
 
-    HDINLINE result operator( )(
-        int const & n,
-        result const & x
-    )
-    {
+        HDINLINE result operator( )(
+            int const & n,
+            result const & x
+        )
+        {
 #if __CUDA_ARCH__
-        return ::jn(
-            n,
-            x
-        );
+            return ::jn(
+                n,
+                x
+            );
 #else
-        return boost::math::cyl_bessel_j(
-            n,
-            x
-        );
+            return boost::math::cyl_bessel_j(
+                n,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct Y0<double>
     {
-    typedef double result;
+        using result = double;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::y0( x );
+            return ::y0( x );
 #else
-        return boost::math::cyl_neumann(
-            0,
-            x
-        );
+            return boost::math::cyl_neumann(
+                0,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct Y1< double >
     {
-    typedef double result;
+        using result = double;
 
-    HDINLINE result operator( )( result x )
-    {
+        HDINLINE result operator( )( result const & x )
+        {
 #if __CUDA_ARCH__
-        return ::y1( x );
+            return ::y1( x );
 #else
-        return boost::math::cyl_neumann(
-            1,
-            x
-        );
+            return boost::math::cyl_neumann(
+                1,
+                x
+            );
 #endif
-    }
+        }
     };
 
     template< >
     struct Yn< int, double >
     {
-    typedef double result;
+        using result = double;
 
-    HDINLINE result operator( )(
-        int const & n,
-        result const & x
-    )
-    {
+        HDINLINE result operator( )(
+            int const & n,
+            result const & x
+        )
+        {
 #if __CUDA_ARCH__
-        return ::yn(
-            n,
-            x
-        );
+            return ::yn(
+                n,
+                x
+            );
 #else
-        return boost::math::cyl_neumann(
-            n,
-            x
-        );
+            return boost::math::cyl_neumann(
+                n,
+                x
+            );
 #endif
-    }
+        }
     };
 
+} //namespace bessel
 } //namespace math
 } //namespace algorithms
 } //namespace pmacc
