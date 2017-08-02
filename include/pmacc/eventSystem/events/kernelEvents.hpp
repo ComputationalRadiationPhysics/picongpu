@@ -72,6 +72,7 @@ namespace exec
     template< typename T_KernelFunctor >
     struct Kernel
     {
+        using KernelType = T_KernelFunctor;
         /** functor */
         T_KernelFunctor const m_kernelFunctor;
         /** file name from where the kernel is called */
@@ -205,13 +206,12 @@ namespace exec
                 >::value
             > blockExtent( m_blockExtent );
 
-            nvidia::gpuEntryFunction<<<
+            CUPLA_KERNEL( typename T_Kernel::KernelType )(
                 gridExtent,
                 blockExtent,
                 m_sharedMemByte,
                 taskKernel->getCudaStream()
-            >>>(
-                m_kernel.m_kernelFunctor,
+            )(
                 args ...
             );
             CUDA_CHECK_KERNEL_MSG(
