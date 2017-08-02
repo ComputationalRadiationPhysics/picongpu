@@ -57,9 +57,9 @@ private:
     static constexpr uint32_t numWorkers = T_numWorkers;
     static constexpr uint32_t dim = T_DataDomain::Dim;
 
-    const PMACC_ALIGN(
+    PMACC_ALIGN(
         m_workerIdx,
-        uint32_t
+        const uint32_t
     );
 
 public:
