@@ -59,7 +59,7 @@ namespace pmacc
             template<class T_Box, class T_IdFactory, typename T_Acc>
             DINLINE void operator()(const T_Acc& acc, T_Box boxOut, T_IdFactory idFactory) const
             {
-                boxOut(0) = getNewId();
+                boxOut(0) = idFactory();
             }
         };
 
