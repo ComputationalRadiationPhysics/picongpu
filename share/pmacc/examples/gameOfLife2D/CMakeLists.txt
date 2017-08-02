@@ -39,7 +39,6 @@ endif()
 # set helper pathes to find libraries and packages
 # Add specific hints
 list(APPEND CMAKE_PREFIX_PATH "$ENV{MPI_ROOT}")
-list(APPEND CMAKE_PREFIX_PATH "$ENV{CUDA_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
@@ -65,9 +64,10 @@ add_definitions(${PMacc_DEFINITIONS})
 
 
 ################################################################################
-# Find CUDA
+# Find cupla
 ################################################################################
-find_package(CUDA 7.5 REQUIRED)
+
+#FIND_PACKAGE("cupla" REQUIRED)
 
 
 ################################################################################
@@ -145,11 +145,9 @@ endif()
 
 include_directories(include)
 
-file(GLOB CUDASRCFILES "*.cu")
 file(GLOB SRCFILES "*.cpp")
 
-cuda_add_executable(gameOfLife
-    ${CUDASRCFILES}
+cupla_add_executable(gameOfLife
     ${SRCFILES}
 )
 
