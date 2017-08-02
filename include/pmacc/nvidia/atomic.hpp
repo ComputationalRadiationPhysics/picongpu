@@ -23,9 +23,10 @@
 
 
 #include "pmacc/types.hpp"
-#include "pmacc/nvidia/warp.hpp"
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "pmacc/nvidia/warp.hpp"
+#endif
 #include <boost/type_traits.hpp>
-#include <math_functions.h>
 #include <climits>
 
 
@@ -152,7 +153,12 @@ template<typename T>
 HDINLINE
 T atomicAllInc(T *ptr)
 {
-    return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300) >()(ptr);
+#ifdef __CUDA_ARCH__
+    return atomicAllInc(alpaka::atomic::AtomicCudaBuiltIn(), ptr, ::alpaka::hierarchy::Grids());
+#else
+   // assume that we can use stl atomics if we are not on gpu
+    return atomicAllInc(alpaka::atomic::AtomicStlLock(), ptr, ::alpaka::hierarchy::Grids());
+#endif
 }
 
 /** optimized atomic value exchange
