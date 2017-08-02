@@ -456,14 +456,14 @@ namespace detail
 
 
         int maxTries = num_gpus;
-
+#if (PMACC_CUDA_ENABLED == 1)
         cudaDeviceProp devProp;
-        cudaError rc;
-        CUDA_CHECK(cudaGetDeviceProperties(&devProp, deviceNumber));
-
+        CUDA_CHECK((cuplaError_t)cudaGetDeviceProperties(&devProp, deviceNumber));
         /* if the gpu compute mode is set to default we use the given `deviceNumber` */
         if (devProp.computeMode == cudaComputeModeDefault)
             maxTries = 1;
+#endif
+        cudaError rc;
 
         for (int deviceOffset = 0; deviceOffset < maxTries; ++deviceOffset)
         {
@@ -487,8 +487,9 @@ namespace detail
 
             if (rc == cudaSuccess)
             {
+#if (PMACC_CUDA_ENABLED == 1)
                 cudaDeviceProp dprop;
-                CUDA_CHECK(cudaGetDeviceProperties(&dprop, tryDeviceId));
+                CUDA_CHECK((cuplaError_t)cudaGetDeviceProperties(&dprop, tryDeviceId));
                 log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % tryDeviceId % dprop.name;
                 if(cudaErrorSetOnActiveProcess == cudaSetDeviceFlags(cudaDeviceScheduleSpin))
                 {
@@ -497,12 +498,17 @@ namespace detail
                      * - to set the flags reset the device and set flags again
                      */
                     CUDA_CHECK(cudaDeviceReset());
-                    CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleSpin));
+                    CUDA_CHECK((cuplaError_t)cudaSetDeviceFlags(cudaDeviceScheduleSpin));
                 }
+#endif
                 CUDA_CHECK(cudaGetLastError());
                 break;
             }
-            else if (rc == cudaErrorDeviceAlreadyInUse || rc==cudaErrorDevicesUnavailable)
+            else if (rc == cudaErrorDeviceAlreadyInUse
+#if (PMACC_CUDA_ENABLED == 1)
+                || rc==(cudaError)cudaErrorDevicesUnavailable
+#endif
+            )
             {
                 cudaGetLastError(); //reset all errors
                 log<ggLog::CUDA_RT > ("Device %1% already in use, try next.") % tryDeviceId;
