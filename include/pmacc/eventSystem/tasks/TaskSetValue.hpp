@@ -252,16 +252,17 @@ public:
            );
 
             auto destBox = this->destination->getDataBox( );
-            nvidia::gpuEntryFunction<<<
+            CUPLA_KERNEL(
+                KernelSetValue<
+                    numWorkers,
+                    xChunkSize
+                >
+            )(
                 gridSize,
                 numWorkers,
                 0,
                 this->getCudaStream( )
-            >>>(
-                KernelSetValue<
-                    numWorkers,
-                    xChunkSize
-                >{ },
+            )(
                 destBox,
                 this->value,
                 area_size
@@ -336,16 +337,17 @@ public:
             ));
 
             auto destBox = this->destination->getDataBox( );
-            nvidia::gpuEntryFunction<<<
+            CUPLA_KERNEL(
+                KernelSetValue<
+                    numWorkers,
+                    xChunkSize
+                >
+            )(
                 gridSize,
                 numWorkers,
                 0,
                 this->getCudaStream()
-            >>>(
-                KernelSetValue<
-                    numWorkers,
-                    xChunkSize
-                >{ },
+            )(
                 destBox,
                 devicePtr,
                 area_size

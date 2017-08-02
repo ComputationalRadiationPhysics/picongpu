@@ -87,14 +87,13 @@ private:
 
     void setSize()
     {
-         auto sizePtr = destination->getCurrentSizeOnDevicePointer();
-         nvidia::gpuEntryFunction<<<
+        auto sizePtr = destination->getCurrentSizeOnDevicePointer();
+        CUPLA_KERNEL( KernelSetValueOnDeviceMemory )(
             1,
             1,
             0,
             this->getCudaStream()
-        >>>(
-            KernelSetValueOnDeviceMemory{},
+        )(
             sizePtr,
             size
         );
