@@ -40,10 +40,8 @@
 #endif
 #include "picongpu/simulation_defines/param/grid.param"
 #include "picongpu/simulation_defines/param/pusher.param"
-#if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/simulation_defines/param/ionizer.param"
-#   include "picongpu/simulation_defines/param/ionizationEnergies.param"
-#endif
+#include "picongpu/simulation_defines/param/ionizer.param"
+#include "picongpu/simulation_defines/param/ionizationEnergies.param"
 #include "picongpu/simulation_defines/param/density.param"
 #include "picongpu/simulation_defines/param/particle.param"
 #if( PMACC_CUDA_ENABLED == 1 )

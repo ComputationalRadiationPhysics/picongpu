@@ -47,10 +47,11 @@ namespace picongpu
     {
         typedef void result_type;
 
+        template< typename T_Acc >
         DINLINE void
-        operator()( Type& dest, const Type src ) const
+        operator()( const T_Acc& acc, Type& dest, const Type src ) const
         {
-            atomicAdd(  &dest, src );
+            atomicAdd( &dest, src, ::alpaka::hierarchy::Blocks{} );
         }
     };
 
@@ -78,9 +79,10 @@ namespace picongpu
          * \param el_p coordinate of the momentum \see PhaseSpace::axis_element \see AxisDescription
          * \param axis_p_range range of the momentum coordinate \see PhaseSpace::axis_p_range
          */
-        template<typename FramePtr, typename float_PS, typename Pitch >
+        template<typename FramePtr, typename float_PS, typename Pitch, typename T_Acc >
         DINLINE void
-        operator()( FramePtr frame,
+        operator()( const T_Acc & acc,
+                    FramePtr frame,
                     uint16_t particleID,
                     cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
                     const uint32_t el_p,
@@ -112,8 +114,11 @@ namespace picongpu
                 p_bin = num_pbins - 1;
 
             /** \todo take particle shape into account */
-            atomicAdd(  &(*curDBufferOriginInBlock( p_bin, r_bin )),
-                              particleChargeDensity );
+            atomicAdd(
+                &(*curDBufferOriginInBlock( p_bin, r_bin )),
+                particleChargeDensity,
+                ::alpaka::hierarchy::Threads{}
+            );
         }
     };
 
@@ -164,8 +169,9 @@ namespace picongpu
          *                         the current block starts
          *                         \see cuSTL/algorithm/kernel/ForeachBlock.hpp
          */
+        template< typename T_Acc >
         DINLINE void
-        operator()( const pmacc::math::Int<simDim>& indexBlockOffset )
+        operator()( const T_Acc& acc,  const pmacc::math::Int<simDim>& indexBlockOffset )
         {
             /** \todo write math::Vector constructor that supports dim3 */
             const pmacc::math::Int<simDim> indexGlobal = indexBlockOffset;
@@ -173,12 +179,13 @@ namespace picongpu
             /* create shared mem */
             const int blockCellsInDir = SuperCellSize::template at<r_dir>::type::value;
             typedef typename pmacc::math::CT::Int<num_pbins, blockCellsInDir> dBufferSizeInBlock;
-            container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock;
+            container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock( acc );
 
             /* init shared mem */
             pmacc::algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
             {
-                forEachThreadInBlock( dBufferInBlock.zone(),
+                forEachThreadInBlock( acc,
+                                      dBufferInBlock.zone(),
                                       dBufferInBlock.origin(),
                                       pmacc::algorithm::functor::AssignValue<float_PS>(0.0) );
             }
@@ -186,7 +193,8 @@ namespace picongpu
 
             FunctorParticle<r_dir, num_pbins, SuperCellSize> functorParticle;
             particleAccess::Cell2Particle<SuperCellSize> forEachParticleInCell;
-            forEachParticleInCell( /* mandatory params */
+            forEachParticleInCell( acc,
+                                   /* mandatory params */
                                    particlesBox, indexGlobal, functorParticle,
                                    /* optional params */
                                    dBufferInBlock.origin(),
@@ -196,7 +204,8 @@ namespace picongpu
 
             __syncthreads();
             /* add to global dBuffer */
-            forEachThreadInBlock( /* area to work on */
+            forEachThreadInBlock( acc,
+                                  /* area to work on */
                                   dBufferInBlock.zone(),
                                   /* data below - cursors will be shifted and
                                    * dereferenced */

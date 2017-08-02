@@ -124,7 +124,8 @@ struct KernelBinEnergyParticles
          * 0 is for <minEnergy
          * (numBins+2)-1 is for >maxEnergy
          */
-        extern __shared__ float_X shBin[]; /* size must be numBins+2 because we have <min and >max */
+        sharedMemExtern(shBin,float_X); /* size must be numBins+2 because we have <min and >max */
+
 
         int const realNumBins = numBins + 2;
 

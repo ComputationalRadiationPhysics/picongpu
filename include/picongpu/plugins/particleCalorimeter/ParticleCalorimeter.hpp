@@ -110,7 +110,8 @@ private:
 
         DivideInPlace( const Type& divisor ) : divisor( divisor ) {}
 
-        HDINLINE void operator()( T_Type& val ) const
+        template< typename T_Acc >
+        HDINLINE void operator()( T_Acc const &, T_Type& val ) const
         {
             val = val / this->divisor;
         }
@@ -160,7 +161,10 @@ private:
 
             /* rank 0 divides and distributes the calorimeter to all ranks in equal parts */
             uint32_t numRanks = gridCon.getGlobalSize();
-            pmacc::algorithm::host::Foreach()(hBufLeftParsCalorimeter.zone(),
+            // get a host accelerator
+            auto hostDev = cupla::manager::Device< cupla::AccHost >::get().device( );
+            pmacc::algorithm::host::Foreach()(hostDev,
+                                              hBufLeftParsCalorimeter.zone(),
                                               hBufLeftParsCalorimeter.origin(),
                                               DivideInPlace<float_X>(float_X(numRanks)));
         }

@@ -70,7 +70,7 @@ struct KernelParticleCalorimeter
 
             if(isParticle)
             {
-                calorimeterFunctor(particlesFrame, linearThreadIdx);
+                calorimeterFunctor(acc, particlesFrame, linearThreadIdx);
             }
 
             __syncthreads();

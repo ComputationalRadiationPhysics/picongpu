@@ -310,7 +310,7 @@ struct KernelPaintParticles3D
 
         // counter is always DIM2
         typedef DataBox < PitchedBox< float_X, DIM2 > > SharedMem;
-        extern __shared__ float_X shBlock[];
+        sharedMemExtern( shBlock, float_X );
 
         const DataSpace<simDim> blockSize(blockDim);
         SharedMem counter(PitchedBox<float_X, DIM2 > ((float_X*) shBlock,

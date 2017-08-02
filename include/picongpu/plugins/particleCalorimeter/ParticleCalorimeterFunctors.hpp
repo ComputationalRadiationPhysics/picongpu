@@ -80,8 +80,8 @@ struct CalorimeterFunctor
         this->calorimeterCur = calorimeterCur;
     }
 
-    template<typename ParticlesFrame>
-    DINLINE void operator()(ParticlesFrame& particlesFrame, const uint32_t linearThreadIdx)
+    template<typename ParticlesFrame, typename T_Acc>
+    DINLINE void operator()(const T_Acc& acc, ParticlesFrame& particlesFrame, const uint32_t linearThreadIdx)
     {
         const float3_X mom = particlesFrame[linearThreadIdx][momentum_];
         const float_X mom2 = math::dot(mom, mom);
@@ -203,7 +203,7 @@ struct ParticleCalorimeterKernel
 
             if(isParticle)
             {
-                calorimeterFunctor(particlesFrame, linearThreadIdx);
+                calorimeterFunctor(acc, particlesFrame, linearThreadIdx);
             }
 
             __syncthreads();

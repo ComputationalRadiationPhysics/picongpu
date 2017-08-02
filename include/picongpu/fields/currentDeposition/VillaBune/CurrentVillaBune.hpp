@@ -251,8 +251,8 @@ private:
         {
             const float3_X interPos = intersectYPlane(oldPos, newPos,
                                                       math::max(math::float2int_rd(oldPos.y()), math::float2int_rd(newPos.y())));
-            addCurrentSplitZ(oldPos, interPos, charge, mem, deltaTime);
-            addCurrentSplitZ(interPos, newPos, charge, mem, deltaTime);
+            addCurrentSplitZ(acc, oldPos, interPos, charge, mem, deltaTime);
+            addCurrentSplitZ(acc, interPos, newPos, charge, mem, deltaTime);
             return;
         }
         addCurrentSplitZ(acc, oldPos, newPos, charge, mem, deltaTime);

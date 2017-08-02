@@ -21,6 +21,7 @@
 
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
+#include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
 #include <pmacc/cuSTL/cursor/navigator/PlusNavigator.hpp>
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>

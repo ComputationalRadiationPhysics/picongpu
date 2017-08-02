@@ -167,12 +167,12 @@ namespace emz
              */
             for( int i = T_begin ; i < T_end ; ++i )
             {
-                const float_X s0i = S0( line, i, 0 );
-                const float_X dsi = S1( line, i, 0 ) - s0i;
+                const float_X s0i = this->S0( line, i, 0 );
+                const float_X dsi = this->S1( line, i, 0 ) - s0i;
                 for( int j = T_begin ; j < T_end ; ++j )
                 {
-                    const float_X s0j = S0( line, j, 1 );
-                    const float_X dsj = S1( line, j, 1 ) - s0j;
+                    const float_X s0j = this->S0( line, j, 1 );
+                    const float_X dsj = this->S1( line, j, 1 ) - s0j;
 
                     float_X tmp =
                         -currentSurfaceDensity * (
@@ -188,7 +188,7 @@ namespace emz
                          * Esirkepov paper. All coordinates are rotated before thus we can
                          * always use C style W(i,j,k,2).
                          */
-                        const float_X W = DS( line, k, 2 ) * tmp;
+                        const float_X W = this->DS( line, k, 2 ) * tmp;
                         accumulated_J += W;
                         atomicAdd(
                             &( (*cursorJ( i, j, k ) ).z( ) ),
@@ -271,8 +271,8 @@ namespace emz
 
             for( int j = T_begin; j < T_end; ++j )
             {
-                const float_X s0j = S0( line, j, 1 );
-                const float_X dsj = S1( line, j, 1 ) - s0j;
+                const float_X s0j = this->S0( line, j, 1 );
+                const float_X dsj = this->S1( line, j, 1 ) - s0j;
 
                 float_X tmp = -currentSurfaceDensity *
                     (
@@ -287,7 +287,7 @@ namespace emz
                      * Esirkepov paper. All coordinates are rotated before thus we can
                      * always use C style W(i,j,k,0).
                      */
-                    const float_X W = DS( line, i, 0 ) * tmp;
+                    const float_X W = this->DS( line, i, 0 ) * tmp;
                     accumulated_J += W;
                     atomicAdd(
                         &( ( *cursorJ( i, j ) ).x( ) ),
@@ -322,13 +322,13 @@ namespace emz
 
             for( int j = T_begin; j < T_end; ++j )
             {
-                const float_X s0j = S0( line, j, 1 );
-                const float_X dsj = S1( line, j, 1 ) - s0j;
+                const float_X s0j = this->S0( line, j, 1 );
+                const float_X dsj = this->S1( line, j, 1 ) - s0j;
                 for( int i = T_begin; i < T_end; ++i )
                 {
-                    const float_X s0i = S0( line, i, 0 );
-                    const float_X dsi = S1( line, i, 0 ) - s0i;
-                    float_X W = s0i * S0( line, j, 1 ) +
+                    const float_X s0i = this->S0( line, i, 0 );
+                    const float_X dsi = this->S1( line, i, 0 ) - s0i;
+                    float_X W = s0i * this->S0( line, j, 1 ) +
                         float_X( 0.5 ) * ( dsi * s0j + s0i * dsj ) +
                         ( float_X( 1.0 ) / float_X( 3.0 ) ) * dsi * dsj;
 

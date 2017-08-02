@@ -187,8 +187,9 @@ struct ComputeChargeDensity
 
 struct CalculateAndAssignChargeDeviation
 {
-    template<typename T_Rho, typename T_FieldE>
+    template<typename T_Rho, typename T_FieldE, typename T_Acc>
     HDINLINE void operator()(
+        const T_Acc& acc,
         T_Rho& rho,
         const T_FieldE& fieldECursor
     ) const

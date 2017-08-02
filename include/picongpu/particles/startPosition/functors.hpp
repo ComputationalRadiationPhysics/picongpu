@@ -24,4 +24,6 @@
 #include "picongpu/particles/startPosition/generic/Free.hpp"
 #include "picongpu/particles/startPosition/OnePositionImpl.hpp"
 #include "picongpu/particles/startPosition/QuietImpl.hpp"
+#if 0
 #include "picongpu/particles/startPosition/RandomImpl.hpp"
+#endif

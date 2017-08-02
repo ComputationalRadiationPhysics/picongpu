@@ -64,6 +64,7 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
         if (linearThreadIdx < particlesInSuperCell) \
         { \
             functor( \
+                acc, \
                 frame, linearThreadIdx \
                 BOOST_PP_ENUM_TRAILING(N, ARGS, _) \
                 ); \

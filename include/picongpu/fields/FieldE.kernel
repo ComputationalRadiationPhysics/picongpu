@@ -23,7 +23,6 @@
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/nvidia/functors/Assign.hpp>
-#include <pmacc/mappings/threads/ThreadCollective.hpp>
 
 namespace picongpu
 {
