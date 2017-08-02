@@ -22,37 +22,59 @@
 
 #pragma once
 
-#include <curand_kernel.h>
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
-    namespace nvidia
+namespace nvidia
+{
+namespace rng
+{
+namespace distributions
+{
+namespace detail
+{
+    /*Return normally distributed floats with mean 0.0f and standard deviation 1.0f
+     */
+    template< typename T_Acc>
+    class Normal_float
     {
-        namespace rng
+    public:
+        typedef float Type;
+    private:
+        using Dist =
+            decltype(
+                ::alpaka::rand::distribution::createNormalReal<Type>(
+                    std::declval<T_Acc const &>()));
+        PMACC_ALIGN(dist, Dist);
+    public:
+        HDINLINE Normal_float()
         {
-            namespace distributions
-            {
-
-                /*Return normally distributed floats with mean 0.0f and standard deviation 1.0f
-                 */
-                class Normal_float
-                {
-                public:
-                    typedef float Type;
-
-                    HDINLINE Normal_float()
-                    {
-                    }
-
-                    template<class RNGState>
-                    DINLINE Type operator()(RNGState* state) const
-                    {
-                        return curand_normal(state);
-                    }
-
-                };
-            }
         }
-    }
-}
+
+        HDINLINE Normal_float(const T_Acc& acc) : dist(::alpaka::rand::distribution::createNormalReal<Type>(acc))
+        {
+        }
+
+        template<class RNGState>
+        DINLINE Type operator()(RNGState& state)
+        {
+            return dist(state);
+        }
+
+    };
+} // namespace detail
+
+    struct Normal_float
+    {
+        template< typename T_Acc>
+        static HDINLINE detail::Normal_float< T_Acc >
+        get( T_Acc const & acc)
+        {
+            return detail::Normal_float< T_Acc >( acc );
+        }
+    };
+} // namespace distributions
+} // namespace rng
+} // namespace nvidia
+} // namespace pmacc
