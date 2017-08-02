@@ -323,7 +323,7 @@ public:
             ValueType* devicePtr = this->destination->getPointer();
 
             CUDA_CHECK( cudaMallocHost(
-                &valuePointer_host,
+                (void**)&valuePointer_host,
                 sizeof( ValueType )
             ));
             *valuePointer_host = this->value; //copy value to new place

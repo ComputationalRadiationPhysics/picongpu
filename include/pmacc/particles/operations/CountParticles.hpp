@@ -185,7 +185,8 @@ struct KernelCountParticles
 
                 atomicAdd(
                     gCounter,
-                    static_cast< uint64_cu >( counter )
+                    static_cast< uint64_cu >( counter ),
+                    ::alpaka::hierarchy::Blocks{}
                 );
             }
         );

@@ -47,7 +47,7 @@ struct RandomFiller
         for(uint32_t i=0; i<numSamples; i++)
         {
             Space2D idx = rand(boxSize);
-            atomicAdd(&box(idx), 1);
+            atomicAdd(&box(idx), 1, ::alpaka::hierarchy::Grids{});
         }
     }
 };

@@ -103,22 +103,15 @@ public:
         __startOperation(ITask::TASK_CUDA);
         if (!preserveData)
         {
-            if (DIM == DIM1)
+            TYPE value;
+            /* using `uint8_t` for byte-wise looping through tmp var value of `TYPE` */
+            uint8_t* valuePtr = reinterpret_cast<uint8_t*>(&value);
+            for( size_t b = 0; b < sizeof(TYPE); ++b)
             {
-                CUDA_CHECK(cudaMemset(data.ptr, 0, this->getDataSpace()[0] * sizeof (TYPE)));
+                valuePtr[b] = static_cast<uint8_t>(0);
             }
-            if (DIM == DIM2)
-            {
-                CUDA_CHECK(cudaMemset2D(data.ptr, data.pitch, 0, this->getDataSpace()[0] * sizeof(TYPE), this->getDataSpace()[1]));
-            }
-            if (DIM == DIM3)
-            {
-                cudaExtent extent;
-                extent.width = this->getDataSpace()[0] * sizeof (TYPE);
-                extent.height = this->getDataSpace()[1];
-                extent.depth = this->getDataSpace()[2];
-                CUDA_CHECK(cudaMemset3D(data, 0, extent));
-            }
+            /* set value with zero-ed `TYPE` */
+            setValue(value);
         }
     }
 
@@ -308,7 +301,7 @@ private:
 
         if (sizeOnDevice)
         {
-            CUDA_CHECK(cudaMalloc(&sizeOnDevicePtr, sizeof (size_t)));
+            CUDA_CHECK(cudaMalloc((void**)&sizeOnDevicePtr, sizeof (size_t)));
         }
         setCurrentSize(this->getDataSpace().productOfComponents());
     }

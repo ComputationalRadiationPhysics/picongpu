@@ -22,7 +22,9 @@
 
 #pragma once
 
-#include <mallocMC/mallocMC.hpp>
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include <mallocMC/mallocMC.hpp>
+#endif
 #include "pmacc/particles/frame_types.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/particles/memory/dataTypes/SuperCell.hpp"
@@ -94,14 +96,20 @@ public:
         const int maxTries = 13; //magic number is not performance critical
         for ( int numTries = 0; numTries < maxTries; ++numTries )
         {
+#if( PMACC_CUDA_ENABLED == 1 )
             tmp = (FrameType*) m_deviceHeapHandle.malloc( sizeof (FrameType) );
+#else
+            tmp = new FrameType;
+#endif
             if ( tmp != nullptr )
             {
                 /* disable all particles since we can not assume that newly allocated memory contains zeros */
                 for ( int i = 0; i < (int) math::CT::volume<typename FrameType::SuperCellSize>::type::value; ++i )
                     ( *tmp )[i][multiMask_] = 0;
+#if( PMACC_CUDA_ENABLED == 1 )
                 /* takes care that changed values are visible to all threads inside this block*/
                 __threadfence_block( );
+#endif
                 break;
             }
             else
@@ -124,7 +132,11 @@ public:
     template<typename T_InitMethod>
     DINLINE void removeFrame( FramePointer<FrameType, T_InitMethod>& frame )
     {
+#if( PMACC_CUDA_ENABLED == 1 )
         m_deviceHeapHandle.free( (void*) frame.ptr );
+#else
+        delete(frame.ptr);
+#endif
         frame.ptr = nullptr;
     }
 
@@ -209,17 +221,18 @@ public:
 
         frame->previousFrame = FramePtr( );
         frame->nextFrame = FramePtr( *firstFrameNativPtr );
-
+#if( PMACC_CUDA_ENABLED == 1 )
         /* - takes care that `next[index]` is visible to all threads on the gpu
          * - this is needed because later on in this method we change `previous`
          *   of an other frame, this must be done in order!
          */
         __threadfence( );
-
+#endif
         FramePtr oldFirstFramePtr(
             (FrameType*) atomicExch(
                 (unsigned long long int*) firstFrameNativPtr,
-                (unsigned long long int) frame.ptr
+                (unsigned long long int) frame.ptr,
+                ::alpaka::hierarchy::Grids{}
             )
         );
 
@@ -241,23 +254,35 @@ public:
      * @param frame frame to set as last frame
      * @param idx position of supercell
      */
-    template<typename T_InitMethod>
-    DINLINE void setAsLastFrame( FramePointer<FrameType, T_InitMethod>& frame, const DataSpace<DIM> &idx )
+    template<
+        typename T_InitMethod,
+        typename T_Acc
+    >
+    DINLINE void setAsLastFrame(
+        T_Acc const & acc,
+        FramePointer<
+            FrameType,
+            T_InitMethod
+        >& frame,
+        DataSpace< DIM > const &idx
+    )
     {
         FrameType** lastFrameNativPtr = &(getSuperCell( idx ).lastFramePtr);
 
         frame->nextFrame = FramePtr( );
         frame->previousFrame = FramePtr( *lastFrameNativPtr );
+#if( PMACC_CUDA_ENABLED == 1 )
         /* - takes care that `next[index]` is visible to all threads on the gpu
          * - this is needed because later on in this method we change `next`
          *   of an other frame, this must be done in order!
          */
         __threadfence( );
-
+#endif
         FramePtr oldLastFramePtr(
             (FrameType*) atomicExch(
                 (unsigned long long int*) lastFrameNativPtr,
-                (unsigned long long int) frame.ptr
+                (unsigned long long int) frame.ptr,
+                ::alpaka::hierarchy::Threads{}
             )
         );
 

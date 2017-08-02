@@ -670,7 +670,7 @@ struct KernelShiftParticles
                     directionCtx[ idx ] = frame[ linearIdx ][ multiMask_ ] - 2;
                     if ( directionCtx[ idx ] >= 0 )
                     {
-                        destParticleIdxCtx[ idx ] = atomicAdd( &(destFramesCounter[ directionCtx[ idx ] ]), 1 );
+                        destParticleIdxCtx[ idx ] = atomicAdd( &(destFramesCounter[ directionCtx[ idx ] ]), 1, ::alpaka::hierarchy::Threads{} );
                     }
                 }
             );

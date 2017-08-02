@@ -22,6 +22,7 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+#include <type_traits>
 
 
 namespace pmacc
@@ -38,12 +39,25 @@ namespace traits
      */
     template<
         uint32_t T_maxWorkers,
-        typename T_Acc = void
+        typename T_Acc = cupla::AccThreadSeq
     >
     struct GetNumWorkers
     {
         static constexpr uint32_t value = T_maxWorkers;
     };
 
+#if( ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED == 1 )
+    template<
+        uint32_t T_maxWorkers,
+        typename ... T_Args
+    >
+    struct GetNumWorkers<
+        T_maxWorkers,
+        alpaka::acc::AccCpuOmp2Blocks< T_Args... >
+    >
+    {
+        static constexpr uint32_t value = 1;
+    };
+#endif
 } // namespace traits
 } // namespace pmacc

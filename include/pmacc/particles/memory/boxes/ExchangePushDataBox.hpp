@@ -61,7 +61,7 @@ public:
         const DataSpace<DIM> &superCell
     )
     {
-        TYPE oldSize = atomicAdd(currentSizePointer, count); //get count VALUEs
+        TYPE oldSize = atomicAdd(currentSizePointer, count, ::alpaka::hierarchy::Grids{}); //get count VALUEs
 
         if (oldSize + count > maxSize)
         {
