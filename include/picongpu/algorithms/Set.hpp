@@ -47,7 +47,7 @@ struct Set
     }
 
 private:
-    const PMACC_ALIGN(value, Type_);
+    PMACC_ALIGN(value, const Type_);
 };
 }
 

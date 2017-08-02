@@ -334,7 +334,7 @@ struct ComputeCurrentPerFrame
     }
 
 private:
-    const PMACC_ALIGN(m_deltaTime, float_32);
+    PMACC_ALIGN(m_deltaTime, const float_32);
 };
 
 /** add current to electric and magnetic field
