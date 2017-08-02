@@ -33,13 +33,17 @@
 #include "picongpu/simulation_defines/unitless/particle.unitless"
 #include "picongpu/simulation_defines/unitless/fieldSolver.unitless"
 #include "picongpu/simulation_defines/unitless/pusher.unitless"
-#include "picongpu/simulation_defines/unitless/ionizer.unitless"
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/simulation_defines/unitless/ionizer.unitless"
+#endif
 #include "picongpu/simulation_defines/unitless/speciesAttributes.unitless"
 #include "picongpu/simulation_defines/unitless/speciesDefinition.unitless"
 #include "picongpu/simulation_defines/unitless/speciesInitialization.unitless"
 #include "picongpu/simulation_defines/unitless/fieldBackground.unitless"
-#include "picongpu/simulation_defines/unitless/synchrotronPhotons.unitless"
-#include "picongpu/simulation_defines/unitless/bremsstrahlung.unitless"
+#if( PMACC_CUDA_ENABLED == 1 )
+#    include "picongpu/simulation_defines/unitless/synchrotronPhotons.unitless"
+#    include "picongpu/simulation_defines/unitless/bremsstrahlung.unitless"
+#endif
 
 #include "picongpu/simulation_defines/unitless/fileOutput.unitless"
 #include "picongpu/simulation_defines/unitless/checkpoints.unitless"

@@ -59,8 +59,9 @@
 #if(SIMDIM==DIM3)
 #include "picongpu/plugins/IntensityPlugin.hpp"
 #endif
-#include "picongpu/plugins/SliceFieldPrinterMulti.hpp"
-
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/plugins/SliceFieldPrinterMulti.hpp"
+#endif
 #include "picongpu/plugins/output/images/Visualisation.hpp"
 
 #include <list>
@@ -145,7 +146,9 @@ private:
 
     /* define field plugins */
     typedef bmpl::vector<
+#if( PMACC_CUDA_ENABLED == 1 )
      SliceFieldPrinterMulti<bmpl::_1>
+#endif
     > UnspecializedFieldPlugins;
 
     typedef bmpl::vector< FieldB, FieldE, FieldJ> AllFields;

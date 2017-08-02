@@ -41,9 +41,10 @@
 #include "picongpu/particles/Particles.hpp"
 #include <boost/mpl/string.hpp>
 
-#include "picongpu/particles/ionization/byField/ionizers.def"
-#include "picongpu/particles/ionization/byCollision/ionizers.def"
-
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/particles/ionization/byField/ionizers.def"
+#   include "picongpu/particles/ionization/byCollision/ionizers.def"
+#endif
 
 namespace picongpu
 {
@@ -122,8 +123,10 @@ using ParticleFlagsIons = bmpl::vector<
     current< UsedParticleCurrentSolver >,
     massRatio< MassRatioIons >,
     chargeRatio< ChargeRatioIons >,
-    densityRatio< DensityRatioIons >,
-    atomicNumbers< ionization::atomicNumbers::Hydrogen_t >
+    densityRatio< DensityRatioIons >
+#if( PMACC_CUDA_ENABLED == 1 )
+    ,atomicNumbers< ionization::atomicNumbers::Hydrogen_t >
+#endif
 >;
 
 /* define species ions */
