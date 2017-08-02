@@ -68,7 +68,7 @@ namespace detail
         uint32_t T_numArguments,
         typename T_ReturnType
     >
-    struct Interface : private T_UserFunctor
+    struct Interface : public T_UserFunctor
     {
         //! type of the user functor
         using UserFunctor = T_UserFunctor;
