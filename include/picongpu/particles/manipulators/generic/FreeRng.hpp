@@ -20,10 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/nvidia/rng/RNG.hpp>
-#include <pmacc/nvidia/rng/methods/Xor.hpp>
-#include <pmacc/mpi/SeedPerRank.hpp>
-#include <pmacc/traits/GetUniqueTypeId.hpp>
+#include "picongpu/particles/manipulators/generic/FreeRng.def"
+#include "picongpu/particles/manipulators/generic/detail/Rng.hpp"
 
 #include <utility>
 #include <type_traits>
@@ -96,17 +94,24 @@ namespace acc
         typename T_Seed,
         typename T_SpeciesType
     >
-    struct FreeRng : private T_Functor
+    struct FreeRng :
+        protected T_Functor,
+        private detail::Rng<
+            T_Distribution,
+            T_Seed,
+            T_SpeciesType
+        >
     {
-
+        using RngGenerator = detail::Rng<
+            T_Distribution,
+            T_Seed,
+            T_SpeciesType
+        >;
         using Functor = T_Functor;
         using Distribution = T_Distribution;
         using SpeciesType = T_SpeciesType;
 
-        using RngType = pmacc::nvidia::rng::RNG<
-            nvidia::rng::methods::Xor,
-            Distribution
-        >;
+        using RngType = typename RngGenerator::RngType;
 
         /** constructor
          *
@@ -127,9 +132,10 @@ namespace acc
                     uint32_t
                 >::value
             >::type* = 0
-        ) : Functor( currentStep )
+        ) :
+            Functor( currentStep ),
+            RngGenerator( currentStep )
         {
-            hostInit( currentStep );
         }
 
         /** constructor
@@ -147,9 +153,10 @@ namespace acc
             typename std::enable_if<
                 std::is_constructible< DeferFunctor >::value
             >::type* = 0
-        ) : Functor( )
+        ) :
+            Functor( ),
+            RngGenerator( currentStep )
         {
-            hostInit( currentStep );
         }
 
         /** create functor for the accelerator
@@ -169,25 +176,11 @@ namespace acc
             T_WorkerCfg const & workerCfg
         )
         {
-            namespace nvrng = nvidia::rng;
-
-            using FrameType = typename SpeciesType::FrameType;
-            using SuperCellSize = typename FrameType::SuperCellSize;
-
-
-
-            uint32_t const cellIdx = DataSpaceOperations< simDim >::map(
-                localCells,
-                localSupercellOffset * SuperCellSize::toRT( ) +
-                    DataSpaceOperations< simDim >::template map< SuperCellSize >( workerCfg.getWorkerIdx( ) )
+            RngType const rng = ( *reinterpret_cast< RngGenerator * >( this ) )(
+                localSupercellOffset,
+                workerCfg
             );
-            RngType const rng = nvrng::create(
-                nvidia::rng::methods::Xor(
-                    seed,
-                    cellIdx
-                ),
-                Distribution{}
-            );
+
             return acc::FreeRng<
                 Functor,
                 RngType
@@ -202,45 +195,6 @@ namespace acc
         {
             return std::string("FreeRNG");
         }
-
-    private:
-
-        /** initialize member variables
-         *
-         * set RNG seed and calculate simulation local size
-         *
-         * @param currentStep time step of the simulation
-         */
-        HINLINE
-        void
-        hostInit( uint32_t currentStep )
-        {
-            using FrameType = typename SpeciesType::FrameType;
-
-            GlobalSeed globalSeed;
-            mpi::SeedPerRank<simDim> seedPerRank;
-            /* generate a global unique id by xor the
-             *   - gpu id `globalSeed()`
-             *   - a species id
-             *   - a fix id for this functor `FREERNG_SEED` (defined in `seed.param`)
-             */
-            seed = globalSeed() ^
-                pmacc::traits::GetUniqueTypeId<
-                    FrameType,
-                    uint32_t
-                >::uid() ^
-                T_Seed::value;
-            /* mixing the final seed with the current time step to avoid
-             * correlations between time steps
-             */
-            seed = seedPerRank( seed ) ^ currentStep;
-
-            SubGrid< simDim > const & subGrid = Environment< simDim >::get().SubGrid();
-            localCells = subGrid.getLocalDomain().size;
-        }
-
-        DataSpace< simDim > localCells;
-        uint32_t seed;
     };
 
 } // namepsace generic

@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/manipulators/generic/Free.def"
 
 #include <utility>
 #include <type_traits>
@@ -39,7 +40,7 @@ namespace acc
      * @tparam T_Functor user defined functor
      */
     template< typename T_Functor >
-    struct Free : public T_Functor
+    struct Free : private T_Functor
     {
         //! type of the user functor
         using Functor = T_Functor;
@@ -66,7 +67,7 @@ namespace acc
 } // namespace acc
 
     template< typename T_Functor >
-    struct Free : private T_Functor
+    struct Free : protected T_Functor
     {
 
         using Functor = T_Functor;

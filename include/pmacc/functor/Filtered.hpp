@@ -50,7 +50,7 @@ namespace acc
     >
     struct Filtered :
         private T_Filter,
-        private T_Functor
+        public T_Functor
     {
         using Filter = T_Filter;
         using Functor = T_Functor;
