@@ -24,8 +24,10 @@
 #include <boost/config.hpp>
 #include <boost/preprocessor/stringize.hpp>
 
+#if( PMACC_CUDA_ENABLED == 1 )
 #include <cuda.h>
 #include <mallocMC/mallocMC.hpp>
+#endif
 #include <mpi.h>
 #if( ENABLE_HDF5 == 1 )
 #   include <splash/splash.h>
@@ -70,6 +72,7 @@ namespace picongpu
         std::stringstream cmake;
         cmake << BOOST_PP_STRINGIZE(CMAKE_VERSION);
 
+#if( PMACC_CUDA_ENABLED == 1 )
         std::stringstream cuda;
         cuda << CUDA_VERSION;
 
@@ -77,7 +80,8 @@ namespace picongpu
         mallocMC << MALLOCMC_VERSION_MAJOR << "."
                  << MALLOCMC_VERSION_MINOR << "."
                  << MALLOCMC_VERSION_PATCH;
-
+#endif
+        
         std::stringstream boost;
         boost << BOOST_PP_STRINGIZE(BOOST_VERSION);
 
@@ -140,8 +144,10 @@ namespace picongpu
         cliText << "  CXX:        " << cxx.str()
                 << " (" << cxxVersion.str() << ")" << std::endl;
         cliText << "  CMake:      " << cmake.str() << std::endl;
+#if( PMACC_CUDA_ENABLED == 1 )
         cliText << "  CUDA:       " << cuda.str() << std::endl;
         cliText << "  mallocMC:   " << mallocMC.str() << std::endl;
+#endif
         cliText << "  Boost:      " << boost.str() << std::endl;
         cliText << "  MPI:        " << std::endl
                 << "    standard: " << mpiStandard.str() << std::endl
@@ -157,10 +163,14 @@ namespace picongpu
         software.push_back( std::string( "PIConGPU/" ) + picongpu.str() );
         software.push_back( cxx.str() + std::string( "/" ) + cxxVersion.str() );
         software.push_back( std::string( "CMake/" ) + cmake.str() );
+#if( PMACC_CUDA_ENABLED == 1 )
         software.push_back( std::string( "CUDA/" ) + cuda.str() );
+#endif
         software.push_back( std::string( "Boost/" ) + boost.str() );
         software.push_back( mpiFlavor.str() + std::string( "/" ) + mpiFlavorVersion.str() );
+#if( PMACC_CUDA_ENABLED == 1 )
         software.push_back( std::string( "mallocMC/" ) + mallocMC.str() );
+#endif
         if( pngwriter.str().compare( versionNotFound ) != 0 )
             software.push_back( std::string( "PNGwriter/" ) + pngwriter.str() );
         if( splash.str().compare( versionNotFound ) != 0 )
