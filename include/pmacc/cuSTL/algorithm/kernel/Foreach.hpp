@@ -61,10 +61,10 @@ namespace kernel
         /* ... */                                                                                           \
         BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                                                            \
                                                                                                             \
-        auto blockDim = BlockDim::toRT();                                                                   \
+        auto blockSize = BlockDim::toRT();                                                                   \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                  \
         using namespace pmacc;                                                                              \
-        PMACC_KERNEL(detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size), blockDim)                    \
+        PMACC_KERNEL(detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size), blockSize)                    \
                   /* c0_shifted, c1_shifted, ... */                                                         \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                   \
     }

@@ -91,13 +91,13 @@ PMACC_CASSERT_MSG(_cuda_blockDim_exceeds_maximum_number_of_threads_per_block,
     math::CT::volume<typename MaxCudaBlockDim<DIM3>::type >::type::value <= cudaSpecs::maxNumThreadsPerBlock);
 /** @endcond */
 
-/** Return a suitable cuda blockDim for a given gridDim.
+/** Return a suitable cuda blockDim for a given gridDimension.
  *
- * @param gridDim 1D, 2D or 3D grid size
+ * @param gridDimension 1D, 2D or 3D grid size
  * @return cuda blockDim
  */
 template<int dim>
-math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDim)
+math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDimension)
 {
     math::Size_t<DIM3> result = math::Size_t<DIM3>::create(1);
 
@@ -107,7 +107,7 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDim)
         MaxCudaBlockDim<dim>::type::toRT(); /* max threads per axis */
     for(int i = 0; i < dim; i++)
     {
-        result[i] = boost::math::gcd(gridDim[i], maxThreads[i]);
+        result[i] = boost::math::gcd(gridDimension[i], maxThreads[i]);
     }
 
     return result;
@@ -137,14 +137,14 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDim)
         PMACC_VERIFY(this->_blockDim.y() <= cudaSpecs::MaxNumThreadsPerBlockDim::y::value);                         \
         PMACC_VERIFY(this->_blockDim.z() <= cudaSpecs::MaxNumThreadsPerBlockDim::z::value);                         \
                                                                                                                     \
-        typename math::Size_t<3>::BaseType blockDim(                                                                \
+        typename math::Size_t<3>::BaseType blockSize(                                                                \
             this->_blockDim.x(),                                                                                    \
             this->_blockDim.y(),                                                                                    \
             this->_blockDim.z()                                                                                     \
         );                                                                                                          \
         kernel::detail::SphericMapper<Zone::dim> mapper;                                                            \
         using namespace pmacc;                                                                                      \
-        PMACC_KERNEL(kernel::detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockDim)   \
+        PMACC_KERNEL(kernel::detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockSize)   \
                 /*   c0_shifted, ..., cN_shifted    */                                                              \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                           \
     }
