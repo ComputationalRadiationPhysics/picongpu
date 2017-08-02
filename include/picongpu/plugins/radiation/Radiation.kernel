@@ -248,7 +248,7 @@ struct KernelRadiationParticles
                     if( particle_momentumNow != particle_momentumOld )
                     {
                         if ( getRadiationMask(par) )
-                            saveParticleAt = nvidia::atomicAllInc(&counter_s);
+                            saveParticleAt = nvidia::atomicAllInc(acc, &counter_s, ::alpaka::hierarchy::Threads{});
                         /* for information:
                         *   atomicAdd returns an int with the previous
                         *   value of "counter_s" != -1

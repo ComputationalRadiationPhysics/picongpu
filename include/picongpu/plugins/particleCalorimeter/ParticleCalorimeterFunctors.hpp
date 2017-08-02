@@ -137,8 +137,8 @@ struct CalorimeterFunctor
                 energyBin = energyBin > 0 ? energyBin : 0;
             }
 
-            nvidia::atomicAdd(&(*this->calorimeterCur(yawBin, pitchBin, energyBin)),
-                             energy * normedWeighting);
+            atomicAdd( &(*this->calorimeterCur(yawBin, pitchBin, energyBin)),
+                             energy * normedWeighting, ::alpaka::hierarchy::Threads{});
         }
     }
 };

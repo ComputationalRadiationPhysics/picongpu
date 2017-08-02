@@ -243,9 +243,10 @@ struct KernelBinEnergyParticles
                              */
                             float_X const normedWeighting = weighting /
                                 float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
-                            nvidia::atomicAdd(
+                            atomicAdd(
                                 &( shBin[ binNumber ] ),
-                                normedWeighting
+                                normedWeighting,
+                                ::alpaka::hierarchy::Threads{}
                             );
                         }
                     }
@@ -279,9 +280,10 @@ struct KernelBinEnergyParticles
             )
             {
                 for( int i = linearIdx; i < realNumBins; i += numWorkers )
-                    nvidia::atomicAdd(
+                    atomicAdd(
                         &( gBins[ i ] ),
-                        float_64( shBin[ i ] )
+                        float_64( shBin[ i ] ),
+                        ::alpaka::hierarchy::Blocks{}
                     );
             }
         );

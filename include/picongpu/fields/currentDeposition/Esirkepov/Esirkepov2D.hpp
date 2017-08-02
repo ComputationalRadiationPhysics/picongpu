@@ -240,7 +240,7 @@ struct Esirkepov<T_ParticleShape, DIM2>
                             ( float_X( 1.0 ) / float_X( 3.0 ) ) * dsi * dsj;
 
                         const float_X j_z = W * currentSurfaceDensityZ;
-                        nvidia::atomicAdd( &( ( *cursorJ( i, j ) ).z() ), j_z );
+                        atomicAdd( &( ( *cursorJ( i, j ) ).z() ), j_z, ::alpaka::hierarchy::Threads{} );
                     }
             }
     }

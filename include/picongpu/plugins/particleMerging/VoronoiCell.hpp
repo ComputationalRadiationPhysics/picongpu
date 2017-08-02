@@ -134,8 +134,8 @@ namespace particleMerging
             const float_X weighting
         )
         {
-            nvidia::atomicAllInc( &this->numMacroParticles );
-            nvidia::atomicAdd( &this->numRealParticles, weighting );
+            nvidia::atomicAllInc( acc, &this->numMacroParticles, ::alpaka::hierarchy::Threads{} );
+            atomicAdd( &this->numRealParticles, weighting, ::alpaka::hierarchy::Threads{} );
 
             if( this->splittingStage == VoronoiSplittingStage::position )
             {
@@ -143,8 +143,8 @@ namespace particleMerging
 
                 for( int i = 0; i < simDim; i++ )
                 {
-                    nvidia::atomicAdd( &this->meanValue[i], weighting * position[i] );
-                    nvidia::atomicAdd( &this->meanSquaredValue[i], weighting * position2[i] );
+                    atomicAdd( &this->meanValue[i], weighting * position[i], ::alpaka::hierarchy::Threads{} );
+                    atomicAdd( &this->meanSquaredValue[i], weighting * position2[i], ::alpaka::hierarchy::Threads{} );
                 }
             }
             else
@@ -153,8 +153,8 @@ namespace particleMerging
 
                 for( int i = 0; i < DIM3; i++ )
                 {
-                    nvidia::atomicAdd( &this->meanValue[i], weighting * momentum[i] );
-                    nvidia::atomicAdd( &this->meanSquaredValue[i], weighting * momentum2[i] );
+                    atomicAdd( &this->meanValue[i], weighting * momentum[i], ::alpaka::hierarchy::Threads{} );
+                    atomicAdd( &this->meanSquaredValue[i], weighting * momentum2[i], ::alpaka::hierarchy::Threads{} );
                 }
             }
         }

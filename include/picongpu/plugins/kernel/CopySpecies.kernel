@@ -168,7 +168,11 @@ namespace picongpu
                                 localIdx
                             )
                         )
-                            storageOffsetCtx[ idx ] = nvidia::atomicAllInc( &localCounter );
+                            storageOffsetCtx[ idx ] = nvidia::atomicAllInc(
+                                acc,
+                                &localCounter,
+                                ::alpaka::hierarchy::Threads{}
+                            );
                     }
                 );
                 __syncthreads();
@@ -182,7 +186,8 @@ namespace picongpu
                         // reserve host memory for particle
                         globalOffset = atomicAdd(
                             counter,
-                            localCounter
+                            localCounter,
+                            :alpaka::hierarchy::Blocks{}
                         );
                     }
                 );

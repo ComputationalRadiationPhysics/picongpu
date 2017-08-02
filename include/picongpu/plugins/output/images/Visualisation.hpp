@@ -343,7 +343,7 @@ struct KernelPaintParticles3D
 #endif
                 {
                     const DataSpace<DIM2> reducedCell(particleCellId[transpose.x()], particleCellId[transpose.y()]);
-                    nvidia::atomicAdd(&(counter(reducedCell)), particle[weighting_] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+                    atomicAdd(&(counter(reducedCell)), particle[weighting_] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE, ::alpaka::hierarchy::Threads{});
                 }
             }
             __syncthreads();

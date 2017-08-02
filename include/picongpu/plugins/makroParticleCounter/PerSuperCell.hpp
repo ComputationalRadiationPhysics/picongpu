@@ -91,7 +91,7 @@ struct CountMakroParticle
         {
             if (isParticle)
             {
-                atomicAdd(&counterValue, static_cast<uint64_cu> (1LU));
+                atomicAdd(&counterValue, static_cast<uint64_cu> (1LU), ::alpaka::hierarchy::Blocks{});
             }
             __syncthreads();
             if (linearThreadIdx == 0)

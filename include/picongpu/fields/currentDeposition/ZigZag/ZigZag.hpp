@@ -131,7 +131,7 @@ struct AssignChargeToCell
         /* shift memory cursor to cell (grid point)*/
         auto cursorToValue = cursor(GridPointVec::toRT());
         /* add current to component of the cell*/
-        nvidia::atomicAdd(&((*cursorToValue)[currentComponent]), j);
+        atomicAdd(&((*cursorToValue)[currentComponent]), j, ::alpaka::hierarchy::Threads{});
     }
 };
 

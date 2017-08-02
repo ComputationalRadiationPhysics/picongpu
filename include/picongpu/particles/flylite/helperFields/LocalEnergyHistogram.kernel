@@ -232,9 +232,10 @@ namespace helperFields
                                 float_X const normedWeighting = weighting /
                                     float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
 
-                                nvidia::atomicAdd(
+                                atomicAdd(
                                     &( shLocalEnergyHistogram[ binNumber ] ),
-                                    normedWeighting
+                                    normedWeighting,
+                                    ::alpaka::hierarchy::Threads{}
                                 );
                             }
                         }
@@ -270,9 +271,10 @@ namespace helperFields
                 )
                 {
                     for( int i = linearIdx; i < numBins; i += numWorkers )
-                        nvidia::atomicAdd(
+                        atomicAdd(
                             &( localEnergyHistogram[ i ] ),
-                            shLocalEnergyHistogram[ i ]
+                            shLocalEnergyHistogram[ i ],
+                            ::alpaka::hierarchy::Threads{}
                         );
                 }
             );
