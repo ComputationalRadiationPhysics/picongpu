@@ -90,11 +90,11 @@ namespace kernel
             typename T_DestFunctor
         >
         DINLINE void operator()(
-            T_SrcBuffer const & srcBuffer,
+            T_SrcBuffer const srcBuffer,
             uint32_t const bufferSize,
             T_DestBuffer destBuffer,
-            T_Functor & func,
-            T_DestFunctor & destFunc
+            T_Functor func,
+            T_DestFunctor destFunc
         ) const
         {
             using namespace mappings::threads;
@@ -175,7 +175,6 @@ namespace kernel
         >
         DINLINE void
         operator()(
-            T_WorkerCfg const workerCfg,
             size_t const numReduceThreads,
             T_SrcBuffer const & srcBuffer,
             size_t const bufferSize,
