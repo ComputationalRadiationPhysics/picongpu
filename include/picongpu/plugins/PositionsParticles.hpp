@@ -97,14 +97,22 @@ struct SglParticle
  */
 struct KernelPositionsParticles
 {
-    template<class ParBox, class FloatPos, class Mapping>
-    DINLINE void operator()(ParBox pb,
-                                             SglParticle<FloatPos>* gParticle,
-                                             Mapping mapper) const
+    template<
+        typename ParBox,
+        typename FloatPos,
+        typename Mapping,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        ParBox pb,
+        SglParticle<FloatPos>* gParticle,
+        Mapping mapper
+    ) const
     {
 
         typedef typename ParBox::FramePtr FramePtr;
-        PMACC_SMEM( frame, FramePtr );
+        PMACC_SMEM( acc, frame, FramePtr );
 
 
         typedef typename Mapping::SuperCellSize SuperCellSize;

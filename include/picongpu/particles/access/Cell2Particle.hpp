@@ -32,8 +32,8 @@ namespace particleAccess
 #define NORMAL_ARGS(Z, N, _) Arg ## N arg ## N
 
 #define CELL2PARTICLE_OPERATOR(Z, N, _) \
-    template<typename TParticlesBox, typename CellIndex, typename Functor BOOST_PP_ENUM_TRAILING(N, TEMPLATE_ARGS, _)> \
-    DINLINE void operator()(TParticlesBox pb, const CellIndex& cellIndex, Functor functor BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)); \
+    template<typename T_Acc, typename TParticlesBox, typename CellIndex, typename Functor BOOST_PP_ENUM_TRAILING(N, TEMPLATE_ARGS, _)> \
+    DINLINE void operator()(T_Acc const & acc, TParticlesBox pb, const CellIndex& cellIndex, Functor functor BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)); \
 
 
 //template<typename ParticleAttributes>

@@ -81,8 +81,8 @@ namespace detail
 } // namespace detail
 
 #define FOREACH_OPERATOR(Z, N, _)                                              \
-    template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
-    void operator()(const Zone& p_zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
+    template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor, typename T_Acc> \
+    void operator()(const T_Acc& acc, const Zone& p_zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
     {                                                                          \
         BOOST_PP_REPEAT(N, SHIFT_CURSOR_ZONE, _)                               \
                                                                                \
@@ -95,7 +95,7 @@ namespace detail
                 {                                                              \
                     math::Int<Zone::dim> cellIndex =                           \
                         math::Int<3u>(x, y, z).shrink<Zone::dim>();            \
-                    functor(BOOST_PP_ENUM(N, SHIFTACCESS_SHIFTEDCURSOR, _));       \
+                    functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_SHIFTEDCURSOR, _));       \
                 }                                                              \
             }                                                                  \
         }                                                                      \

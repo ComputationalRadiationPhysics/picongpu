@@ -30,10 +30,18 @@ using namespace pmacc;
  */
 struct KernelParticleCalorimeter
 {
-    template<typename ParticlesBox, typename CalorimeterFunctor, typename Mapper>
-    DINLINE void operator()(ParticlesBox particlesBox,
-                                           CalorimeterFunctor calorimeterFunctor,
-                                           Mapper mapper) const
+    template<
+        typename ParticlesBox,
+        typename CalorimeterFunctor,
+        typename Mapper,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        ParticlesBox particlesBox,
+        CalorimeterFunctor calorimeterFunctor,
+        Mapper mapper
+    ) const
     {
         /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
         const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
@@ -44,7 +52,7 @@ struct KernelParticleCalorimeter
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
         typedef typename ParticlesBox::FramePtr ParticlesFramePtr;
-        PMACC_SMEM( particlesFrame, ParticlesFramePtr );
+        PMACC_SMEM( acc, particlesFrame, ParticlesFramePtr );
 
         /* find last frame in super cell
          */

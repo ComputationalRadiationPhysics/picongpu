@@ -42,6 +42,19 @@ namespace functor
             m_component( component )
         { }
 
+        template<
+            typename Array,
+            typename T_Acc
+        >
+        HDINLINE Type &
+        operator()(
+            T_Acc const &,
+            Array & array
+        ) const
+        {
+            return array[ m_component ];
+        }
+
         template< typename Array >
         HDINLINE Type &
         operator()( Array & array ) const

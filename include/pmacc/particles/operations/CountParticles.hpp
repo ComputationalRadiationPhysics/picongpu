@@ -61,13 +61,15 @@ struct KernelCountParticles
     template<
         typename T_PBox,
         typename T_Filter,
-        typename T_Mapping
+        typename T_Mapping,
+        typename T_Acc
     >
     DINLINE void operator( )(
-        T_PBox & pb,
+        T_Acc const & acc,
+        T_PBox pb,
         uint64_cu* gCounter,
-        T_Filter & filter,
-        T_Mapping const & mapper
+        T_Filter filter,
+        T_Mapping const mapper
     ) const
     {
         using namespace mappings::threads;
@@ -79,14 +81,17 @@ struct KernelCountParticles
         constexpr uint32_t numWorkers = T_numWorkers;
 
         PMACC_SMEM(
+            acc,
             frame,
             FramePtr
         );
         PMACC_SMEM(
+            acc,
             counter,
             int
         );
         PMACC_SMEM(
+            acc,
             particlesInSuperCell,
             lcellId_t
         );
@@ -150,7 +155,7 @@ struct KernelCountParticles
                             linearIdx
                         );
                         if( useParticle )
-                            nvidia::atomicAllInc( &counter );
+                            nvidia::atomicAllInc( acc, &counter, ::alpaka::hierarchy::Threads{} );
                     }
                 }
             );

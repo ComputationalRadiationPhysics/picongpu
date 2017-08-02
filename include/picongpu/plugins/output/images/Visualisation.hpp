@@ -159,17 +159,25 @@ struct typicalFields < 5 >
 
 struct KernelPaintFields
 {
-    template<class EBox, class BBox, class JBox, class Mapping>
-    DINLINE void operator() (
-                                      EBox fieldE,
-                                      BBox fieldB,
-                                      JBox fieldJ,
-                                      DataBox<PitchedBox<float3_X, DIM2> > image,
-                                      DataSpace<DIM2> transpose,
-                                      const int slice,
-                                      const uint32_t globalOffset,
-                                      const uint32_t sliceDim,
-                                      Mapping mapper) const
+    template<
+        typename EBox,
+        typename BBox,
+        typename JBox,
+        typename Mapping,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        EBox fieldE,
+        BBox fieldB,
+        JBox fieldJ,
+        DataBox<PitchedBox<float3_X, DIM2> > image,
+        DataSpace<DIM2> transpose,
+        const int slice,
+        const uint32_t globalOffset,
+        const uint32_t sliceDim,
+        Mapping mapper
+    ) const
     {
         typedef typename MappingDesc::SuperCellSize Block;
         const DataSpace<simDim> threadId(threadIdx);
@@ -240,20 +248,27 @@ struct KernelPaintFields
 
 struct KernelPaintParticles3D
 {
-    template<class ParBox, class Mapping>
+    template<
+        typename ParBox,
+        typename Mapping,
+        typename T_Acc
+    >
     DINLINE void
-    operator()(ParBox pb,
-                           DataBox<PitchedBox<float3_X, DIM2> > image,
-                           DataSpace<DIM2> transpose,
-                           int slice,
-                           uint32_t globalOffset,
-                           uint32_t sliceDim,
-                           Mapping mapper) const
+    operator()(
+        T_Acc const & acc,
+        ParBox pb,
+        DataBox<PitchedBox<float3_X, DIM2> > image,
+        DataSpace<DIM2> transpose,
+        int slice,
+        uint32_t globalOffset,
+        uint32_t sliceDim,
+        Mapping mapper
+    ) const
     {
         typedef typename ParBox::FramePtr FramePtr;
         typedef typename MappingDesc::SuperCellSize Block;
-        PMACC_SMEM( frame, FramePtr );
-        PMACC_SMEM( isValid, int );
+        PMACC_SMEM( acc, frame, FramePtr );
+        PMACC_SMEM( acc, isValid, int );
 
         bool isImageThread = false;
 
@@ -279,7 +294,7 @@ struct KernelPaintParticles3D
         if (globalCell == slice)
 #endif
         {
-            nvidia::atomicAllExch(&isValid,1); /*WAW Error in cuda-memcheck racecheck*/
+            nvidia::atomicAllExch(acc, &isValid, 1, ::alpaka::hierarchy::Threads{}); /*WAW Error in cuda-memcheck racecheck*/
             isImageThread = true;
         }
         __syncthreads();
@@ -374,8 +389,17 @@ namespace vis_kernels
 
 struct DivideAnyCell
 {
-    template<class Mem, typename Type>
-    DINLINE void operator()(Mem mem, uint32_t n, Type divisor) const
+    template<
+        typename Mem,
+        typename Type,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        Mem mem,
+        uint32_t n,
+        Type divisor
+    ) const
     {
         uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
         if (tid >= n) return;
@@ -388,8 +412,15 @@ struct DivideAnyCell
 
 struct ChannelsToRGB
 {
-    template<class Mem>
-    DINLINE void operator()(Mem mem, uint32_t n) const
+    template<
+        typename Mem,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        Mem mem,
+        uint32_t n
+    ) const
     {
         uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
         if (tid >= n) return;

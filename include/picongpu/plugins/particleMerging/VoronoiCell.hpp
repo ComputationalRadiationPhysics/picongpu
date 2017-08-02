@@ -116,16 +116,19 @@ namespace particleMerging
         }
 
         /** check if the current thread is associated to the first particle */
+        template< typename T_Acc >
         DINLINE
-        bool isFirstParticle()
+        bool isFirstParticle(T_Acc const & acc)
         {
             return atomicExch( &this->firstParticleFlag, 1 ) == 0;
         }
 
 
         /** add a particle to this Voronoi cell */
+        template< typename T_Acc >
         DINLINE
         void addParticle(
+            T_Acc const & acc,
             const floatD_X position,
             const float3_X momentum,
             const float_X weighting

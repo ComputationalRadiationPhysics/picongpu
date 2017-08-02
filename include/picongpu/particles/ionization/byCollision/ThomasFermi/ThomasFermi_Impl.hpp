@@ -210,12 +210,30 @@ namespace ionization
              *                        domain, i.e. from the @see BORDER
              *                        *without guarding supercells*
              */
-            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
+            template< typename T_Acc >
+            DINLINE void init(
+                T_Acc const & acc,
+                const DataSpace<simDim>& blockCell,
+                const int& linearThreadIdx,
+                const DataSpace<simDim>& localCellOffset
+            )
             {
 
                 /* caching of density and "temperature" fields */
-                cachedRho = CachedBox::create < 0, ValueType_Rho > (BlockArea());
-                cachedEne = CachedBox::create < 1, ValueType_Ene > (BlockArea());
+                cachedRho = CachedBox::create<
+                    0,
+                    ValueType_Rho
+                >(
+                    acc,
+                    BlockArea()
+                );
+                cachedEne = CachedBox::create<
+                    1,
+                    ValueType_Ene
+                >(
+                    acc,
+                    BlockArea()
+                );
 
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
@@ -226,6 +244,7 @@ namespace ionization
                     pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
                 > collective( linearThreadIdx );
                 collective(
+                          acc,
                           assign,
                           cachedRho,
                           fieldRhoBlock

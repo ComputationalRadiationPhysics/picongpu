@@ -45,7 +45,8 @@ struct SharedMemAllocator<Type, Size, 1, uid>
     static constexpr int dim = 1;
     typedef cursor::CT::BufferCursor<type, math::CT::UInt32<> > Cursor;
 
-    DEVICEONLY static Cursor allocate()
+    template< typename T_Acc >
+    DEVICEONLY static Cursor allocate( T_Acc const & acc )
     {
         auto& shMem = pmacc::memory::shared::allocate<
             uid,
@@ -53,7 +54,7 @@ struct SharedMemAllocator<Type, Size, 1, uid>
                 Type,
                 math::CT::volume< Size >::type::value
             >
-        >( );
+        >( acc );
         return Cursor(shMem.data());
     }
 };
@@ -66,7 +67,8 @@ struct SharedMemAllocator<Type, Size, 2, uid>
     static constexpr int dim = 2;
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
-    DEVICEONLY static Cursor allocate()
+    template< typename T_Acc >
+    __device__ static Cursor allocate( T_Acc const & acc )
     {
         auto& shMem = pmacc::memory::shared::allocate<
             uid,
@@ -74,7 +76,7 @@ struct SharedMemAllocator<Type, Size, 2, uid>
                 Type,
                 math::CT::volume< Size >::type::value
             >
-        >( );
+        >( acc );
         return Cursor(shMem.data());
     }
 };
@@ -88,7 +90,8 @@ struct SharedMemAllocator<Type, Size, 3, uid>
     static constexpr int dim = 3;
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
-    DEVICEONLY static Cursor allocate()
+    template< typename T_Acc >
+    DEVICEONLY static Cursor allocate( T_Acc const & acc )
     {
         auto& shMem = pmacc::memory::shared::allocate<
             uid,
@@ -96,7 +99,7 @@ struct SharedMemAllocator<Type, Size, 3, uid>
                 Type,
                 math::CT::volume< Size >::type::value
             >
-        >( );
+        >( acc );
         return Cursor(shMem.data());
     }
 };

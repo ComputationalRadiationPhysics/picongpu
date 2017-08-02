@@ -34,9 +34,6 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/versionFormat.hpp"
 
-#include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
-#include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
-
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/nvidia/memory/MemoryInfo.hpp>

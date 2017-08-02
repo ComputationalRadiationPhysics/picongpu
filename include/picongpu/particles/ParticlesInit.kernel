@@ -86,7 +86,9 @@ namespace picongpu
          * @tparam T_PositionFunctor startPosition::IFunctor, position functor type
          * @tparam T_ParBox pmacc::ParticlesBox, particle box type
          * @tparam T_Mapping supercell mapper functor type
+         * @tparam T_ACC alpaka accelerator type
          *
+         * @param alpaka accelerator
          * @param densityFunctor functor for the density profile
          * @param positionFunctor functor to calculate the in cell position and the number of
          *                        macro particles per cell
@@ -100,15 +102,17 @@ namespace picongpu
             typename T_DensityProfile,
             typename T_PositionFunctor,
             typename T_ParBox,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void
         operator()(
+            T_Acc const & acc,
             T_DensityProfile densityFunctor,
             T_PositionFunctor positionFunctor,
-            DataSpace< simDim > const & totalGpuCellOffset,
-            T_ParBox & pb,
-            T_Mapping & mapper
+            DataSpace< simDim > const totalGpuCellOffset,
+            T_ParBox pb,
+            T_Mapping mapper
         ) const
         {
             using namespace mappings::threads;
@@ -122,10 +126,12 @@ namespace picongpu
             DataSpace< simDim > const superCells( mapper.getGridSuperCells( ) );
 
             PMACC_SMEM(
+                acc,
                 frame,
                 FramePtr
             );
             PMACC_SMEM(
+                acc,
                 finished,
                 int
             );
@@ -224,8 +230,10 @@ namespace picongpu
 
                     if( numParsPerCellCtx[ idx ] > 0 )
                         nvidia::atomicAllExch(
+                            acc,
                             &finished,
-                            0
+                            0,
+                            ::alpaka::hierarchy::Threads{}
                         ); //one or more cells have particles to create
 
                     return numParsPerCellCtx[ idx ];
@@ -245,6 +253,7 @@ namespace picongpu
                 {
                     frame = pb.getEmptyFrame();
                     pb.setAsLastFrame(
+                        acc,
                         frame,
                         superCellIdx
                     );
@@ -331,6 +340,7 @@ namespace picongpu
                         {
                             frame = pb.getEmptyFrame();
                             pb.setAsLastFrame(
+                                acc,
                                 frame,
                                 superCellIdx
                             );

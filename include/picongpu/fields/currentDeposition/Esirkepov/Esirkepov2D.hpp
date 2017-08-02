@@ -60,11 +60,20 @@ struct Esirkepov<T_ParticleShape, DIM2>
 
     float_X charge;
 
-    template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
-    DINLINE void operator()(DataBoxJ dataBoxJ,
-                            const PosType pos,
-                            const VelType velocity,
-                            const ChargeType charge, const float_X deltaTime)
+    template<
+        typename DataBoxJ,
+        typename PosType,
+        typename VelType,
+        typename ChargeType,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        DataBoxJ dataBoxJ,
+        const PosType pos,
+        const VelType velocity,
+        const ChargeType charge, const float_X deltaTime
+    )
     {
         this->charge = charge;
         const float2_X deltaPos = float2_X(velocity.x() * deltaTime / cellSize.x(),
@@ -113,18 +122,21 @@ struct Esirkepov<T_ParticleShape, DIM2>
 
         using namespace cursor::tools;
         cptCurrent1D(
+            acc,
             leaveCell,
             cursorJ,
             line,
             cellSize.x()
         );
         cptCurrent1D(DataSpace<DIM2>(
+            acc,
             leaveCell[1],leaveCell[0]),
             twistVectorFieldAxes<pmacc::math::CT::Int < 1, 0 > >(cursorJ),
             rotateOrigin < 1, 0 > (line),
             cellSize.y()
         );
         cptCurrentZ(
+            acc,
             leaveCell,
             cursorJ,
             line,
@@ -142,11 +154,17 @@ struct Esirkepov<T_ParticleShape, DIM2>
      *
      * @{
      */
-    template<typename CursorJ >
-    DINLINE void cptCurrent1D(const DataSpace<simDim>& leaveCell,
-                              CursorJ cursorJ,
-                              const Line<float2_X>& line,
-                              const float_X cellEdgeLength)
+    template<
+        typename CursorJ,
+        typename T_Acc
+    >
+    DINLINE void cptCurrent1D(
+        T_Acc const & acc,
+        const DataSpace<simDim>& leaveCell,
+        CursorJ cursorJ,
+        const Line<float2_X>& line,
+        const float_X cellEdgeLength
+    )
     {
         /* skip calculation if the particle is not moving in x direction */
         if(line.m_pos0[0] == line.m_pos1[0])
@@ -183,17 +201,23 @@ struct Esirkepov<T_ParticleShape, DIM2>
                          */
                         const float_X W = DS( line, i, 0 ) * tmp;
                         accumulated_J += W;
-                        nvidia::atomicAdd( &( ( *cursorJ( i, j ) ).x() ), accumulated_J );
+                        atomicAdd( &( ( *cursorJ( i, j ) ).x() ), accumulated_J, ::alpaka::hierarchy::Threads{} );
                     }
             }
 
     }
 
-    template<typename CursorJ >
-    DINLINE void cptCurrentZ(const DataSpace<simDim>& leaveCell,
-                             CursorJ cursorJ,
-                             const Line<float2_X>& line,
-                             const float_X v_z)
+    template<
+        typename CursorJ,
+        typename T_Acc
+    >
+    DINLINE void cptCurrentZ(
+        T_Acc const & acc,
+        const DataSpace<simDim>& leaveCell,
+        CursorJ cursorJ,
+        const Line<float2_X>& line,
+        const float_X v_z
+    )
     {
         if( v_z == float_X( 0.0 ) )
             return;

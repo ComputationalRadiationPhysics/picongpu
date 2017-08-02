@@ -34,10 +34,10 @@ namespace particleAccess
 
 #define CELL2PARTICLE_OPERATOR(Z, N, _) \
 template<typename SuperCellSize> \
-template<typename TParticlesBox, typename CellIndex, typename Functor \
+template<typename T_Acc, typename TParticlesBox, typename CellIndex, typename Functor \
          BOOST_PP_ENUM_TRAILING(N, TEMPLATE_ARGS, _)> \
 DINLINE void Cell2Particle<SuperCellSize>::operator() \
-(TParticlesBox pb, const CellIndex& cellIndex, Functor functor \
+(T_Acc const & acc, TParticlesBox pb, const CellIndex& cellIndex, Functor functor \
 BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
 { \
     CellIndex superCellIdx = cellIndex / (CellIndex)SuperCellSize::toRT(); \
@@ -47,8 +47,8 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
     \
     typedef typename TParticlesBox::FramePtr FramePtr; \
     typedef typename TParticlesBox::FrameType Frame; \
-    PMACC_SMEM( frame, FramePtr ); \
-    PMACC_SMEM( particlesInSuperCell, uint16_t ); \
+    PMACC_SMEM( acc, frame, FramePtr ); \
+    PMACC_SMEM( acc, particlesInSuperCell, uint16_t ); \
     \
     if(linearThreadIdx == 0) \
     { \

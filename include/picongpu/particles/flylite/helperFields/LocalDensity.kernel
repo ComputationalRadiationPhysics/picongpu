@@ -59,16 +59,20 @@ namespace helperFields
          * @tparam T_TmpBox pmacc::DataBox with full-resolution density
          * @tparam T_LocalDensityBox pmacc::DataBox local density with less
          *                           resolution
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param alpaka accelerator
          * @param fieldTmp pmacc::DataBox with FieldTmp density scalar field
          * @param localDensity pmacc::DataBox with global memory, e.g. for each
          *                     supercell's density
          */
         template<
             typename T_TmpBox,
-            typename T_LocalDensityBox
+            typename T_LocalDensityBox,
+            typename T_Acc
         >
         DINLINE void operator()(
+            T_Acc const & acc,
             T_TmpBox fieldTmp,
             T_LocalDensityBox localDensity
         ) const
@@ -89,6 +93,7 @@ namespace helperFields
 
             // shared memory for reduce
             PMACC_SMEM(
+                acc, 
                 shReduceBuffer,
                 memory::Array<
                     ValueType,

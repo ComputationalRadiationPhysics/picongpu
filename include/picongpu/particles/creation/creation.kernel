@@ -77,7 +77,11 @@ struct CreateParticlesKernel
      *
      * @param cellIndex n-dim. cell index from the origin of the local domain
      */
-    DINLINE void operator()(const pmacc::math::Int<simDim>& cellIndex)
+    template< typename T_Acc >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        const pmacc::math::Int<simDim>& cellIndex
+    )
     {
         /* definitions for domain variables, like indices of blocks and threads */
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
@@ -107,8 +111,8 @@ struct CreateParticlesKernel
         /* for not mixing operations::assign up with the nvidia functor assign */
         namespace partOp = pmacc::particles::operations;
 
-        PMACC_SMEM( sourceFrame, SourceFramePtr );
-        PMACC_SMEM( targetFrame, TargetFramePtr );
+        PMACC_SMEM( acc, sourceFrame, SourceFramePtr );
+        PMACC_SMEM( acc, targetFrame, TargetFramePtr );
         const lcellId_t maxParticlesInFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
 
         /* find last frame in super cell
@@ -130,7 +134,7 @@ struct CreateParticlesKernel
         /* Declare counter in shared memory that will later tell the current fill level or
          * occupation of the newly created target frames.
          */
-        PMACC_SMEM( newFrameFillLvl, int );
+        PMACC_SMEM( acc, newFrameFillLvl, int );
 
         /* Declare local variable oldFrameFillLvl for each thread */
         int oldFrameFillLvl;
@@ -195,7 +199,7 @@ struct CreateParticlesKernel
                  * - then sync
                  */
                 if (numNewParticles > 0)
-                    targetParId = nvidia::atomicAllInc(&newFrameFillLvl);
+                    targetParId = nvidia::atomicAllInc(acc, &newFrameFillLvl, ::alpaka::hierarchy::Threads{});
 
                 __syncthreads();
                 /* < EXIT? >
@@ -214,7 +218,7 @@ struct CreateParticlesKernel
                     if (!targetFrame.isValid())
                     {
                         targetFrame = targetBox.getEmptyFrame();
-                        targetBox.setAsLastFrame(targetFrame, block);
+                        targetBox.setAsLastFrame(acc, targetFrame, block);
                     }
                 }
                 __syncthreads();
@@ -247,7 +251,7 @@ struct CreateParticlesKernel
                     if (newFrameFillLvl >= maxParticlesInFrame)
                     {
                         targetFrame = targetBox.getEmptyFrame();
-                        targetBox.setAsLastFrame(targetFrame, block);
+                        targetBox.setAsLastFrame(acc, targetFrame, block);
                         newFrameFillLvl -= maxParticlesInFrame;
                     }
                 }

@@ -50,8 +50,11 @@ struct HostMemAssigner
         // "Curiously recurring template pattern"
         CartBuffer* buffer = static_cast<CartBuffer*>(this);
 
+        // get a host accelerator
+        auto hostDev = cupla::manager::Device< cupla::AccHost >::get().device( );
+
         algorithm::host::Foreach foreach;
-        foreach(buffer->zone(), buffer->origin(), pmacc::algorithm::functor::AssignValue<Type>(value));
+        foreach(hostDev, buffer->zone(), buffer->origin(), pmacc::algorithm::functor::AssignValue<Type>(value));
     }
 };
 

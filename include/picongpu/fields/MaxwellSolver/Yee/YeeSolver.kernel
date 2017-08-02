@@ -47,7 +47,9 @@ namespace yeeSolver
          * @tparam T_EBox pmacc::DataBox, electric field box type
          * @tparam T_BBox pmacc::DataBox, magnetic field box type
          * @tparam T_Mapping mapper functor type
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param acc alpaka accelerator
          * @param curl functor to calculate the electric field, interface must be
          *             `operator()(T_BBox)`
          * @param fieldE electric field iterator
@@ -58,10 +60,12 @@ namespace yeeSolver
             typename T_Curl,
             typename T_EBox,
             typename T_BBox,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator()(
-            T_Curl const & curl,
+            T_Acc const & acc,
+            T_Curl const curl,
             T_EBox fieldE,
             T_BBox const fieldB,
             T_Mapping mapper
@@ -77,7 +81,10 @@ namespace yeeSolver
             auto cachedB = CachedBox::create<
                 0u,
                 typename T_BBox::ValueType
-            >( T_BlockDescription( ) );
+            >(
+                acc,
+                T_BlockDescription( )
+            );
 
             nvidia::functors::Assign assign;
             DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) ) );
@@ -91,6 +98,7 @@ namespace yeeSolver
             > collective( workerIdx );
 
             collective(
+                acc,
                 assign,
                 cachedB,
                 fieldBBlock
@@ -138,7 +146,9 @@ namespace yeeSolver
          * @tparam T_EBox pmacc::DataBox, electric field box type
          * @tparam T_BBox pmacc::DataBox, magnetic field box type
          * @tparam T_Mapping mapper functor type
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param acc alpaka accelerator
          * @param curl functor to calculate the electric field, interface must be
          *             `operator()(T_EBox)`
          * @param fieldB magnetic field iterator
@@ -149,10 +159,12 @@ namespace yeeSolver
             typename T_Curl,
             typename T_EBox,
             typename T_BBox,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator()(
-            T_Curl const & curl,
+            T_Acc const & acc,
+            T_Curl const curl,
             T_BBox fieldB,
             T_EBox const fieldE,
             T_Mapping mapper
@@ -168,7 +180,10 @@ namespace yeeSolver
             auto cachedE = CachedBox::create<
                 0u,
                 typename T_EBox::ValueType
-            >( T_BlockDescription( ) );
+            >(
+                acc,
+                T_BlockDescription( )
+            );
 
             nvidia::functors::Assign assign;
             DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) ) );
@@ -182,6 +197,7 @@ namespace yeeSolver
             > collective( workerIdx );
 
             collective(
+                acc,
                 assign,
                 cachedE,
                 fieldEBlock

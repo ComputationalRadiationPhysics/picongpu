@@ -29,15 +29,17 @@
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/debug/PMaccVerbose.hpp"
 
-namespace pmacc{
+namespace pmacc
+{
 
-    namespace idDetail {
+     namespace idDetail {
 
         DEVICEONLY uint64_cu nextId;
 
         struct SetNextId
         {
-            DINLINE void operator()(uint64_cu id) const
+            template<typename T_Acc>
+            DINLINE void operator()(const T_Acc&, uint64_cu id) const
             {
                 nextId = id;
             }
@@ -45,8 +47,8 @@ namespace pmacc{
 
         struct GetNextId
         {
-            template<class T_Box>
-            DINLINE void operator()(T_Box boxOut) const
+            template<class T_Box, typename T_Acc>
+            DINLINE void operator()(const T_Acc&, T_Box boxOut) const
             {
                 boxOut(0) = nextId;
             }
@@ -54,8 +56,8 @@ namespace pmacc{
 
         struct GetNewId
         {
-            template<class T_Box, class T_GetNewId>
-            DINLINE void operator()(T_Box boxOut, T_GetNewId getNewId) const
+            template<class T_Box, class T_IdFactory, typename T_Acc>
+            DINLINE void operator()(const T_Acc& acc, T_Box boxOut, T_IdFactory idFactory) const
             {
                 boxOut(0) = getNewId();
             }

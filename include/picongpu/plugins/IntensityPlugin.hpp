@@ -50,13 +50,24 @@ using namespace pmacc;
  */
 struct KernelIntensity
 {
-    template<class FieldBox, class BoxMax, class BoxIntegral>
-    DINLINE void operator()(FieldBox field, DataSpace<simDim> cellsCount, BoxMax boxMax, BoxIntegral integralBox) const
+    template<
+        typename FieldBox,
+        typename BoxMax,
+        typename BoxIntegral,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        FieldBox field,
+        DataSpace<simDim> cellsCount,
+        BoxMax boxMax,
+        BoxIntegral integralBox
+    ) const
     {
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
-        PMACC_SMEM( s_integrated, memory::Array< float_X,SuperCellSize::y::value > );
-        PMACC_SMEM( s_max, memory::Array< float_X, SuperCellSize::y::value > );
+        PMACC_SMEM( acc, s_integrated, memory::Array< float_X,SuperCellSize::y::value > );
+        PMACC_SMEM( acc, s_max, memory::Array< float_X, SuperCellSize::y::value > );
 
 
         /*descripe size of a worker block for cached memory*/
@@ -64,7 +75,13 @@ struct KernelIntensity
             pmacc::math::CT::Int<SuperCellSize::x::value,SuperCellSize::y::value>
             > SuperCell2D;
 
-        auto s_field = CachedBox::create < 0, float_32 > (SuperCell2D());
+        auto s_field = CachedBox::create<
+            0,
+            float_32
+        >(
+            acc,
+            SuperCell2D()
+        );
 
         int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
         int yGlobal = y + SuperCellSize::y::value;

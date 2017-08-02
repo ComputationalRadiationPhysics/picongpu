@@ -30,22 +30,30 @@ namespace pmacc
 {
 namespace nvidia
 {
+
     /**
      *
      * @tparam T_KernelFunctor type of the functor for device execution
-     * @param kernel functor for device execution
-     * @param args arguments for the functor
-     */
-    template<
-        typename T_KernelFunctor,
-        typename ... T_Args
-    >
-    PMACC_GLOBAL_KEYWORD void gpuEntryFunction(
-        T_KernelFunctor const kernel,
-        T_Args ... args
-    )
+    */
+    template< typename T_KernelFunctor >
+    struct PMaccKernel
     {
-        kernel( args ... );
-    }
+        /**
+         *
+         * @param acc functor for device execution
+         * @param args arguments for the functor
+         */
+        template<
+            typename T_Acc,
+            typename ... T_Args
+        >
+        DINLINE void operator()(
+            T_Acc const acc,
+            T_Args ... args
+        ) const
+        {
+            T_KernelFunctor{}( acc, args ... );
+        }
+    };
 } //namespace nvidia
 } //namespace pmacc

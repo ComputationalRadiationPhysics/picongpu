@@ -65,7 +65,8 @@ namespace pmacc
          * @param count number of elements to increase stack with
          * @return a TileDataBox of size count pointing to the new stack elements
          */
-        HDINLINE TileDataBox<VALUE> pushN(TYPE count)
+        template< typename T_Acc >
+        HDINLINE TileDataBox<VALUE> pushN(T_Acc const & acc, TYPE count)
         {
 #if !defined(__CUDA_ARCH__) // Host code path
             //TYPE old_addr = (*currentSize) = (*currentSize) + count;

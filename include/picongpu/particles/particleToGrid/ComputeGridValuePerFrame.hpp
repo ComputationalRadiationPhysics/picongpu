@@ -58,13 +58,16 @@ ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::getName() const
 }
 
 template<class T_ParticleShape, class T_DerivedAttribute>
-template<class FrameType, class TVecSuperCell, class BoxTmp >
+template<class FrameType, class TVecSuperCell, class BoxTmp, typename T_Acc>
 DINLINE void
 ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()
-(FrameType& frame,
- const int localIdx,
- const TVecSuperCell superCell,
- BoxTmp& tmpBox)
+(
+    T_Acc const & acc,
+    FrameType& frame,
+    const int localIdx,
+    const TVecSuperCell superCell,
+    BoxTmp& tmpBox
+)
 {
     /* \todo in the future and if useful, the functor can be a parameter */
     T_DerivedAttribute particleAttribute;

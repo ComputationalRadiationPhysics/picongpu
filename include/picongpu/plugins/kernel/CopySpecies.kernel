@@ -51,7 +51,9 @@ namespace picongpu
          * @tparam T_Space type of coordinate description
          * @tparam T_Identifier type of identifier for the particle cellIdx
          * @tparam T_Mapping type of the mapper to map cuda idx to supercells
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param acc alpaka accelerator type
          * @param counter pointer to a device counter to reserve memory in destFrame
          * @param destFrame frame were we store particles in host memory (no Databox<...>)
          * @param srcBox ParticlesBox with frames
@@ -70,10 +72,12 @@ namespace picongpu
             typename T_Filter,
             typename T_Space,
             typename T_Identifier,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void
         operator()(
+            T_Acc const & acc,
             int * counter,
             T_DestFrame destFrame,
             T_SrcBox srcBox,
@@ -95,9 +99,9 @@ namespace picongpu
 
             uint32_t const workerIdx = threadIdx.x;
 
-            PMACC_SMEM( srcFramePtr, SrcFramePtr );
-            PMACC_SMEM( localCounter, int );
-            PMACC_SMEM( globalOffset, int );
+            PMACC_SMEM( acc, srcFramePtr, SrcFramePtr );
+            PMACC_SMEM( acc, localCounter, int );
+            PMACC_SMEM( acc, globalOffset, int );
 
             using ParticlesDomCfg = IdxConfig<
                 numParticlesPerFrame,

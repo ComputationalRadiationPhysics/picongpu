@@ -141,12 +141,30 @@ namespace ionization
              * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
              * initializing the E-/B-field shared boxes in shared memory.
              */
-            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
+            template< typename T_Acc >
+            DINLINE void init(
+                T_Acc const & acc,
+                const DataSpace<simDim>& blockCell,
+                const int& linearThreadIdx,
+                const DataSpace<simDim>& localCellOffset
+            )
             {
 
                 /* caching of E and B fields */
-                cachedB = CachedBox::create < 0, ValueType_B > (BlockArea());
-                cachedE = CachedBox::create < 1, ValueType_E > (BlockArea());
+                cachedB = CachedBox::create<
+                    0,
+                    ValueType_B
+                >(
+                    acc,
+                    BlockArea()
+                );
+                cachedE = CachedBox::create<
+                    1,
+                    ValueType_E
+                >(
+                    acc,
+                    BlockArea()
+                );
 
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
@@ -157,6 +175,7 @@ namespace ionization
                     pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
                 > collective( linearThreadIdx );
                 collective(
+                          acc,
                           assign,
                           cachedB,
                           fieldBBlock

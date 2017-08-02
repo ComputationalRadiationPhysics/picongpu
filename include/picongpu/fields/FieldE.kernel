@@ -41,8 +41,12 @@ template<
 >
 struct KernelLaserE
 {
-    template< typename EBox >
+    template<
+        typename EBox,
+        typename T_Acc
+    >
     DINLINE void operator()(
+        T_Acc const & acc,
         EBox fieldE,
         LaserManipulator lMan
     ) const

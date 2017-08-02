@@ -159,7 +159,11 @@ struct ParticleCalorimeterKernel
         calorimeterFunctor(calorimeterFunctor)
     {}
 
-    DINLINE void operator()(const pmacc::math::Int<simDim>& cellIndex)
+    template< typename T_Acc >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        const pmacc::math::Int<simDim>& cellIndex
+    )
     {
         /* definitions for domain variables, like indices of blocks and threads */
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
@@ -181,7 +185,7 @@ struct ParticleCalorimeterKernel
             threadIndex);
 
         typedef typename ParticlesBox::FramePtr ParticlesFramePtr;
-        PMACC_SMEM( particlesFrame, ParticlesFramePtr );
+        PMACC_SMEM( acc, particlesFrame, ParticlesFramePtr );
 
         /* find last frame in super cell
          */

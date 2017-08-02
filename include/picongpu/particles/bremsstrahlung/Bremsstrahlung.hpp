@@ -122,7 +122,13 @@ public:
      * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
      * initializing the ion density field in shared memory.
      */
-    DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset);
+    template< typename T_Acc>
+    DINLINE void init(
+        T_Acc const & acc,
+        const DataSpace<simDim>& blockCell,
+        const int& linearThreadIdx,
+        const DataSpace<simDim>& localCellOffset
+    );
 
     /** Rotates a vector to a given polar angle and a random azimuthal angle.
      *

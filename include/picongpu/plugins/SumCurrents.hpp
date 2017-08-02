@@ -43,12 +43,20 @@ typedef FieldJ::DataBoxType J_DataBox;
 
 struct KernelSumCurrents
 {
-    template<class Mapping>
-    DINLINE void operator()(J_DataBox fieldJ, float3_X* gCurrent, Mapping mapper) const
+    template<
+        typename Mapping,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        J_DataBox fieldJ,
+        float3_X* gCurrent,
+        Mapping mapper
+    ) const
     {
         typedef typename Mapping::SuperCellSize SuperCellSize;
 
-        PMACC_SMEM( sh_sumJ, float3_X );
+        PMACC_SMEM( acc, sh_sumJ, float3_X );
 
         const DataSpace<simDim > threadIndex(threadIdx);
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);

@@ -98,24 +98,32 @@ struct KernelRadiationParticles
      * @param freqFkt
      * @param simBoxSize
      */
-    template<class ParBox, class DBox, class Mapping>
+    template<
+        typename ParBox,
+        typename DBox,
+        typename Mapping,
+        typename T_Acc
+    >
     DINLINE
     /*__launch_bounds__(256, 4)*/
-    void operator()(ParBox pb,
-                                  DBox radiation,
-                                  DataSpace<simDim> globalOffset,
-                                  uint32_t currentStep,
-                                  Mapping mapper,
-                                  radiation_frequencies::FreqFunctor freqFkt,
-                                  DataSpace<simDim> simBoxSize) const
+    void operator()(
+        T_Acc const & acc,
+        ParBox pb,
+        DBox radiation,
+        DataSpace<simDim> globalOffset,
+        uint32_t currentStep,
+        Mapping mapper,
+        radiation_frequencies::FreqFunctor freqFkt,
+        DataSpace<simDim> simBoxSize
+    ) const
     {
 
         typedef typename MappingDesc::SuperCellSize Block;
         typedef typename ParBox::FrameType FRAME;
         typedef typename ParBox::FramePtr FramePtr;
 
-        PMACC_SMEM( frame, FramePtr ); // pointer to  frame storing particles
-        PMACC_SMEM( particlesInFrame, lcellId_t ); // number  of particles in current frame
+        PMACC_SMEM( acc, frame, FramePtr ); // pointer to  frame storing particles
+        PMACC_SMEM( acc, particlesInFrame, lcellId_t ); // number  of particles in current frame
 
         using namespace parameters; // parameters of radiation
 
@@ -131,21 +139,21 @@ struct KernelRadiationParticles
 
         const int blockSize=pmacc::math::CT::volume<Block>::type::value;
         // vectorial part of the integrand in the Jackson formula
-        PMACC_SMEM( real_amplitude_s, memory::Array< vector_64, blockSize > );
+        PMACC_SMEM( acc, real_amplitude_s, memory::Array< vector_64, blockSize > );
 
         // retarded time
-        PMACC_SMEM( t_ret_s, memory::Array< picongpu::float_64, blockSize > );
+        PMACC_SMEM( acc, t_ret_s, memory::Array< picongpu::float_64, blockSize > );
 
         // storage for macro particle weighting needed if
         // the coherent and incoherent radiation of a single
         // macro-particle needs to be considered
-        PMACC_SMEM( radWeighting_s, memory::Array< float_X, blockSize > );
+        PMACC_SMEM( acc, radWeighting_s, memory::Array< float_X, blockSize > );
 
         // particle counter used if not all particles are considered for
         // radiation calculation
-        PMACC_SMEM( counter_s, int );
+        PMACC_SMEM( acc, counter_s, int );
 
-        PMACC_SMEM( lowpass_s, memory::Array< NyquistLowPass, blockSize > );
+        PMACC_SMEM( acc, lowpass_s, memory::Array< NyquistLowPass, blockSize > );
 
 
         const int theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
@@ -453,9 +461,15 @@ struct KernelRadiationParticles
 template< >
 struct KernelRadiationParticles< false >
 {
-    template<class ParBox, class DBox, class Mapping>
+    template<
+        typename ParBox,
+        typename DBox,
+        typename Mapping,
+        typename T_Acc
+    >
     DINLINE
     void operator()(
+        T_Acc const & acc,
         ParBox,
         DBox,
         DataSpace<simDim>,

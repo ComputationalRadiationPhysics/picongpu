@@ -42,9 +42,9 @@ namespace cudaBlock
 
 #define FOREACH_OPERATOR(Z, N, _)                                                  \
     /*      <             , typename C0, ..., typename C(N-1)  ,              > */ \
-    template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor> \
+    template<typename Zone, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor, typename T_Acc> \
     /*                     (      C0 c0, ..., C(N-1) c(N-1)           ,       ) */ \
-    DINLINE void operator()(Zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
+    DINLINE void operator()(T_Acc const & acc, Zone, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), const Functor& functor) \
     {                                                                              \
         const int dataVolume = math::CT::volume<typename Zone::Size>::type::value; \
         const int blockVolume = math::CT::volume<BlockDim>::type::value;           \
@@ -57,7 +57,7 @@ namespace cudaBlock
             PosType pos = Zone::Offset::toRT() +                                   \
                           precisionCast<typename PosType::type>(                   \
                             math::MapToPos<Zone::dim>()( typename Zone::Size(), i ) ); \
-            functor(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                     \
+            functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                     \
         }                                                                          \
     }
 

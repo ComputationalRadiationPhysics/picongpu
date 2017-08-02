@@ -49,8 +49,14 @@ namespace acc
         {
         }
 
-        template< typename T_Particle >
-        DINLINE bool operator()( T_Particle const & particle )
+        template<
+            typename T_Acc,
+            typename T_Particle
+        >
+        DINLINE bool operator()(
+            T_Acc const &,
+            T_Particle const & particle
+        )
         {
             if( particle.isHandleValid( ) )
             {
@@ -126,9 +132,13 @@ namespace acc
          *                        to the origin of the local domain
          * @param configuration of the worker
          */
-        template< typename T_WorkerCfg >
+        template<
+            typename T_WorkerCfg,
+            typename T_Acc
+        >
         DINLINE acc::RelativeGlobalDomainPosition< Params >
         operator( )(
+            T_Acc const & acc,
             DataSpace< simDim > const & localSuperCellOffset,
             T_WorkerCfg const &
         )

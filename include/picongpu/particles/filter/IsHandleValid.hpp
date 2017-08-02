@@ -39,11 +39,20 @@ namespace acc
         /** check particle handle
          *
          * @tparam T_Particle pmacc::Particles, type of the particle
+         * @tparam alpaka accelerator type
+         *
+         * @param alpaka accelerator
          * @param particle  particle which is checked
          * @return true if particle handle is valid, else false
          */
-        template< typename T_Particle >
-        DINLINE bool operator()( T_Particle const & particle )
+        template<
+            typename T_Particle,
+            typename T_Acc
+        >
+        DINLINE bool operator()(
+            T_Acc const &,
+            T_Particle const & particle
+        )
         {
             return  particle.isHandleValid( );
         }
@@ -66,9 +75,13 @@ namespace acc
          *                        to the origin of the local domain
          * @param configuration of the worker
          */
-        template< typename T_WorkerCfg >
+        template<
+            typename T_WorkerCfg,
+            typename T_Acc
+        >
         DINLINE acc::IsHandleValid
         operator( )(
+            T_Acc const & acc,
             DataSpace< simDim > const &,
             T_WorkerCfg const &
         )

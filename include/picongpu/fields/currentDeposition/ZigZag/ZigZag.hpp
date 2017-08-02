@@ -97,9 +97,17 @@ template<typename T_GridPointVec, typename T_Shape, typename T_CurrentComponent>
 struct AssignChargeToCell
 {
 
-    template<typename T_Cursor>
+    template<
+        typename T_Cursor,
+        typename T_Acc
+    >
     HDINLINE void
-    operator()(T_Cursor& cursor, const floatD_X& pos, const float_X flux)
+    operator()(
+        T_Acc const & acc,
+        T_Cursor& cursor,
+        const floatD_X& pos,
+        const float_X flux
+    )
     {
         typedef T_GridPointVec GridPointVec;
         typedef T_Shape Shape;
@@ -171,9 +179,17 @@ struct ZigZag
     struct AssignOneDirection
     {
 
-        template<typename T_Cursor>
+        template<
+            typename T_Cursor,
+            typename T_Acc
+        >
         HDINLINE void
-        operator()(T_Cursor cursor, floatD_X pos, const float3_X& flux)
+        operator()(
+            T_Acc const & acc,
+            T_Cursor cursor,
+            floatD_X pos,
+            const float3_X& flux
+        )
         {
             typedef T_CurrentComponent CurrentComponent;
             const uint32_t dir = CurrentComponent::value;
@@ -213,7 +229,7 @@ struct ZigZag
             /* calculate the current for every cell (grid point)*/
             typedef typename AllCombinations<Size>::type CombiTypes;
             ForEach<CombiTypes, AssignChargeToCell<bmpl::_1, ParticleShape, CurrentComponent > > callAssignChargeToCell;
-            callAssignChargeToCell(forward(cursor), pos, flux[dir]);
+            callAssignChargeToCell(acc, forward(cursor), pos, flux[dir]);
         }
 
     };

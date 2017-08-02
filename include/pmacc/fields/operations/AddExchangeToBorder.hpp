@@ -66,9 +66,11 @@ namespace operations
             typename T_DestBox,
             typename T_ExchangeBox,
             typename T_Extent,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator()(
+            T_Acc const & acc,
             T_DestBox & destBox,
             T_ExchangeBox const & exchangeBox,
             T_Extent const & exchangeSize,

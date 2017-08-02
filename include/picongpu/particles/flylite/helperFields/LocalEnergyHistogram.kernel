@@ -65,7 +65,9 @@ namespace helperFields
          * @tparam T_ParBox pmacc::ParticlesBox, particle box type
          * @tparam T_LocalEnergyHistogramBox pmacc::DataBox, local energy histograms,
          *                                   e.g. for each supercell
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param acc alpaka accelerator
          * @param pb particles of a species
          * @param energyHistogramBox box with global memory for each supercell's histogram
          * @param minEnergy minimum energy to account for (eV)
@@ -74,9 +76,11 @@ namespace helperFields
         template<
             typename T_ParBox,
             typename T_LocalEnergyHistogramBox,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator()(
+            T_Acc const & acc,
             T_ParBox & pb,
             T_LocalEnergyHistogramBox & energyHistogramBox,
             float_X const minEnergy,
@@ -94,10 +98,12 @@ namespace helperFields
             constexpr uint32_t maxParticlesPerFrame = pmacc::math::CT::volume< SuperCellSize >::type::value;
 
             PMACC_SMEM(
+                acc,
                 frame,
                 FramePtr
             );
             PMACC_SMEM(
+                acc,
                 particlesInSuperCell,
                 lcellId_t
             );
@@ -125,6 +131,7 @@ namespace helperFields
 
             // shared memory for local energy histogram
             PMACC_SMEM(
+                acc,
                 shLocalEnergyHistogram,
                 memory::Array<
                     float_X,

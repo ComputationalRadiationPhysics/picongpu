@@ -192,8 +192,18 @@ public:
      * @param frame frame to set as first frame
      * @param idx position of supercell
      */
-    template<typename T_InitMethod>
-    DINLINE void setAsFirstFrame( FramePointer<FrameType, T_InitMethod>& frame, const DataSpace<DIM> &idx )
+    template<
+        typename T_InitMethod,
+        typename T_Acc
+    >
+    DINLINE void setAsFirstFrame(
+        T_Acc const & acc,
+        FramePointer<
+            FrameType,
+            T_InitMethod
+        >& frame,
+        DataSpace< DIM > const &idx
+    )
     {
         FrameType** firstFrameNativPtr = &(getSuperCell( idx ).firstFramePtr);
 

@@ -54,12 +54,21 @@ struct Esirkepov<T_ParticleShape, DIM3>
      *
      * \todo: please fix me that we can use CenteredCell
      */
-    template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
-    DINLINE void operator()(DataBoxJ dataBoxJ,
-                            const PosType pos,
-                            const VelType velocity,
-                            const ChargeType charge,
-                            const float_X deltaTime)
+    template<
+        typename DataBoxJ,
+        typename PosType,
+        typename VelType,
+        typename ChargeType,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        DataBoxJ dataBoxJ,
+        const PosType pos,
+        const VelType velocity,
+        const ChargeType charge,
+        const float_X deltaTime
+    )
     {
         this->charge = charge;
         const float3_X deltaPos = float3_X(velocity.x() * deltaTime / cellSize.x(),
@@ -108,18 +117,21 @@ struct Esirkepov<T_ParticleShape, DIM3>
          */
         using namespace cursor::tools;
         cptCurrent1D(
+            acc,
             DataSpace<simDim>(leaveCell.y(),leaveCell.z(),leaveCell.x()),
             twistVectorFieldAxes<pmacc::math::CT::Int < 1, 2, 0 > >(cursorJ),
             rotateOrigin < 1, 2, 0 > (line),
             cellSize.x()
         );
         cptCurrent1D(
+            acc,
             DataSpace<simDim>(leaveCell.z(),leaveCell.x(),leaveCell.y()),
             twistVectorFieldAxes<pmacc::math::CT::Int < 2, 0, 1 > >(cursorJ),
             rotateOrigin < 2, 0, 1 > (line),
             cellSize.y()
         );
         cptCurrent1D(
+            acc,
             leaveCell,
             cursorJ,
             line,
@@ -136,11 +148,17 @@ struct Esirkepov<T_ParticleShape, DIM3>
      * \param line trajectory of the particle from to last to the current time step
      * \param cellEdgeLength length of edge of the cell in z-direction
      */
-    template<typename CursorJ >
-    DINLINE void cptCurrent1D(const DataSpace<simDim>& leaveCell,
-                              CursorJ cursorJ,
-                              const Line<float3_X>& line,
-                              const float_X cellEdgeLength)
+    template<
+        typename CursorJ,
+        typename T_Acc
+    >
+    DINLINE void cptCurrent1D(
+        T_Acc const & acc,
+        const DataSpace<simDim>& leaveCell,
+        CursorJ cursorJ,
+        const Line<float3_X>& line,
+        const float_X cellEdgeLength
+    )
     {
         /* skip calculation if the particle is not moving in z direction */
         if(line.m_pos0[2] == line.m_pos1[2])

@@ -70,9 +70,11 @@ namespace picongpu
             typename T_TmpBox,
             typename T_ParBox,
             typename T_FrameSolver,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator()(
+            T_Acc const & acc,
             T_TmpBox fieldTmp,
             T_ParBox boxPar,
             T_FrameSolver frameSolver,
@@ -103,14 +105,21 @@ namespace picongpu
             auto cachedVal = CachedBox::create <
                 0,
                 typename T_TmpBox::ValueType
-            > ( T_BlockDescription( ) );
+            > (
+                acc,
+                T_BlockDescription{ }
+            );
             Set< typename T_TmpBox::ValueType > set( float_X( 0.0 ) );
 
             ThreadCollective<
                 T_BlockDescription,
                 numWorkers
             > collective( workerIdx );
-            collective( set, cachedVal );
+            collective( 
+                acc,
+                set,
+                cachedVal
+            );
 
             __syncthreads( );
 
@@ -130,6 +139,7 @@ namespace picongpu
                         if( linearIdx < particlesInSuperCell )
                         {
                             frameSolver(
+                                acc,
                                 *frame,
                                 linearIdx,
                                 SuperCellSize::toRT(),
@@ -151,6 +161,7 @@ namespace picongpu
             DataSpace< simDim > const blockCell = block * SuperCellSize::toRT( );
             auto fieldTmpBlock = fieldTmp.shift( blockCell );
             collective(
+                acc,
                 add,
                 fieldTmpBlock,
                 cachedVal

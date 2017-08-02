@@ -90,9 +90,11 @@ public:
      */
     template<
         typename T_Functor,
-        typename ... T_Args
+        typename ... T_Args,
+        typename T_Acc
     >
     DINLINE void operator()(
+        T_Acc const & acc,
         T_Functor & functor,
         T_Args && ... args
     )
@@ -116,7 +118,7 @@ public:
                     DataSpaceOperations< dim >::template map< DomainSize >( linearIdx ) -
                     OffsetOrigin::toRT( )
                 );
-                functor( args( offset ) ... );
+                functor( acc, args( offset ) ... );
             }
         );
     }

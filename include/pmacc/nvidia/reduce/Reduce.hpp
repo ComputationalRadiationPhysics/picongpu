@@ -69,7 +69,9 @@ namespace kernel
          * @tparam T_DestBuffer type of result buffer
          * @tparam T_Functor type of the binary functor to reduce two elements to the intermediate buffer
          * @tparam T_DestFunctor type of the binary functor to reduce two elements to @destBuffer
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param acc alpaka accelerator
          * @param srcBuffer a class or a pointer with the `operator[](size_t)` (one dimensional access)
          * @param bufferSize number of elements in @p srcBuffer
          * @param destBuffer a class or a pointer with the `operator[](size_t)` (one dimensional access),
@@ -87,10 +89,12 @@ namespace kernel
             typename T_SrcBuffer,
             typename T_DestBuffer,
             typename T_Functor,
-            typename T_DestFunctor
+            typename T_DestFunctor,
+            typename T_Acc
         >
         DINLINE void operator()(
-            T_SrcBuffer const srcBuffer,
+            T_Acc const & acc,
+            T_SrcBuffer const & srcBuffer,
             uint32_t const bufferSize,
             T_DestBuffer destBuffer,
             T_Functor func,
@@ -105,14 +109,10 @@ namespace kernel
             uint32_t const numGlobalVirtualThreadCount = gridDim.x * T_blockSize;
             WorkerCfg< numWorkers > workerCfg( workerIdx );
 
-            /* CUDA can not handle extern shared memory were the type is
-             * defined by a template
-             * - therefore we use type `int` for the definition (dirty but OK) */
-            extern __shared__ int s_mem_extern[ ];
-            /* create a pointer with the right type*/
-            Type* s_mem=( Type* )s_mem_extern;
+            sharedMemExtern(s_mem,Type);
 
             this->operator()(
+                acc,
                 workerCfg,
                 numGlobalVirtualThreadCount,
                 srcBuffer,
@@ -134,6 +134,7 @@ namespace kernel
                 )
                 {
                     destFunc(
+                        acc,
                         destBuffer[ blockIdx.x ],
                         s_mem[ 0 ]
                     );
@@ -151,7 +152,9 @@ namespace kernel
          * @tparam T_Functor type of the binary functor to reduce two elements
          * @tparam T_SharedBuffer type of the shared memory buffer
          * @tparam T_WorkerCfg worker configuration type
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param acc alpaka accelerator
          * @param workerCfg lockstep worker configuration
          * @param numReduceThreads Number of threads which working together to reduce the array.
          *                         For a reduction within a block the value must be equal to T_blockSize
@@ -171,10 +174,13 @@ namespace kernel
             typename T_SrcBuffer,
             typename T_Functor,
             typename T_SharedBuffer,
-            typename T_WorkerCfg
+            typename T_WorkerCfg,
+            typename T_Acc
         >
         DINLINE void
         operator()(
+            T_Acc const & acc,
+            T_WorkerCfg const workerCfg,
             size_t const numReduceThreads,
             T_SrcBuffer const & srcBuffer,
             size_t const bufferSize,
@@ -237,6 +243,7 @@ namespace kernel
                         while( i < bufferSize )
                         {
                             func(
+                                acc,
                                 r_value,
                                 srcBuffer[ i ]
                             );
@@ -275,6 +282,7 @@ namespace kernel
                             );
                         if( isActiveCtx[ idx ] )
                             func(
+                                acc,
                                 sharedMem[ linearIdx ],
                                 sharedMem[ linearIdx + chunk_count ]
                             );

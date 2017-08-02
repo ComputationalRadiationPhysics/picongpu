@@ -44,8 +44,18 @@ using namespace splash;
 
 struct CountMakroParticle
 {
-    template<class ParBox, class CounterBox, class Mapping>
-    DINLINE void operator()(ParBox parBox, CounterBox counterBox, Mapping mapper) const
+    template<
+        typename ParBox,
+        typename CounterBox,
+        typename Mapping,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        ParBox parBox,
+        CounterBox counterBox,
+        Mapping mapper
+    ) const
     {
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
@@ -59,8 +69,8 @@ struct CountMakroParticle
         const DataSpace<simDim > threadIndex(threadIdx);
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
-        PMACC_SMEM( counterValue, uint64_cu );
-        PMACC_SMEM( frame, FramePtr );
+        PMACC_SMEM( acc, counterValue, uint64_cu );
+        PMACC_SMEM( acc, frame, FramePtr );
 
         if (linearThreadIdx == 0)
         {

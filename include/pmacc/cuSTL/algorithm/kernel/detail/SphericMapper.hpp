@@ -64,18 +64,30 @@ struct SphericMapper<1, BlockSize>
         );
     }
 
+    template< typename T_Acc >
     HDINLINE
-    math::Int<1> operator()(const math::Int<1>& _blockIdx,
-                              const math::Int<1>& _threadIdx) const
+    math::Int<1> operator()(
+        T_Acc const & acc,
+        const math::Int<1>& _blockIdx,
+        const math::Int<1>& _threadIdx
+    ) const
     {
         return _blockIdx.x() * BlockSize::x::value + _threadIdx.x();
     }
 
+    template< typename T_Acc >
     HDINLINE
-    math::Int<1> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
+    math::Int<1> operator()(
+        T_Acc const & acc,
+        const dim3& _blockIdx,
+        const dim3& _threadIdx = dim3(0,0,0)
+    ) const
     {
-        return operator()(math::Int<1>((int)_blockIdx.x),
-                          math::Int<1>((int)_threadIdx.x));
+        return operator()(
+            acc,
+            math::Int<1>((int)_blockIdx.x),
+            math::Int<1>((int)_threadIdx.x)
+            );
     }
 };
 
@@ -94,19 +106,31 @@ struct SphericMapper<2, BlockSize>
          );
     }
 
+    template< typename T_Acc >
     HDINLINE
-    math::Int<2> operator()(const math::Int<2>& _blockIdx,
-                              const math::Int<2>& _threadIdx) const
+    math::Int<2> operator()(
+        T_Acc const & acc,
+        const math::Int<2>& _blockIdx,
+        const math::Int<2>& _threadIdx
+    ) const
     {
         return math::Int<2>( _blockIdx.x() * BlockSize::x::value + _threadIdx.x(),
                              _blockIdx.y() * BlockSize::y::value + _threadIdx.y() );
     }
 
+    template< typename T_Acc >
     HDINLINE
-    math::Int<2> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
+    math::Int<2> operator()(
+        T_Acc const & acc,
+        const dim3& _blockIdx,
+        const dim3& _threadIdx = dim3(0,0,0)
+    ) const
     {
-        return operator()(math::Int<2>(_blockIdx.x, _blockIdx.y),
-                          math::Int<2>(_threadIdx.x, _threadIdx.y));
+        return operator()(
+            acc,
+            math::Int<2>(_blockIdx.x, _blockIdx.y),
+            math::Int<2>(_threadIdx.x, _threadIdx.y)
+        );
     }
 };
 
@@ -125,18 +149,30 @@ struct SphericMapper<3, BlockSize>
         );
     }
 
+    template< typename T_Acc >
     HDINLINE
-    math::Int<3> operator()(const math::Int<3>& _blockIdx,
-                             const math::Int<3>& _threadIdx) const
+    math::Int<3> operator()(
+        T_Acc const & acc,
+        const math::Int<3>& _blockIdx,
+        const math::Int<3>& _threadIdx
+    ) const
     {
         return math::Int<3>( _blockIdx * (math::Int<3>)BlockSize().toRT() + _threadIdx );
     }
 
+    template< typename T_Acc >
     HDINLINE
-    math::Int<3> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
+    math::Int<3> operator()(
+        T_Acc const & acc,
+        const dim3& _blockIdx,
+        const dim3& _threadIdx = dim3(0,0,0)
+    ) const
     {
-        return operator()(math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
-                          math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z));
+        return operator()(
+            acc,
+            math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
+            math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z)
+        );
     }
 };
 
@@ -148,27 +184,39 @@ struct SphericMapper<1, mpl::void_>
     static constexpr int dim = 1;
 
     typename math::Size_t<3>::BaseType
-    cudaGridDim(const math::Size_t<1>& size, const math::Size_t<3>& blockDim) const
+    cudaGridDim(const math::Size_t<1>& size, const math::Size_t<3>& blockSize) const
     {
         return math::Size_t<3>(
-            size.x() / blockDim.x(),
+            size.x() / blockSize.x(),
             1u,
             1u
         );
     }
 
+    template< typename T_Acc >
     DINLINE
-    math::Int<1> operator()(const math::Int<1>& _blockIdx,
-                              const math::Int<1>& _threadIdx) const
+    math::Int<1> operator()(
+        T_Acc const & acc,
+        const math::Int<1>& _blockIdx,
+        const math::Int<1>& _threadIdx
+    ) const
     {
         return _blockIdx.x() * blockDim.x + _threadIdx.x();
     }
 
+    template< typename T_Acc >
     DINLINE
-    math::Int<1> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
+    math::Int<1> operator()(
+        T_Acc const & acc,
+        const dim3& _blockIdx,
+        const dim3& _threadIdx = dim3(0,0,0)
+    ) const
     {
-        return operator()(math::Int<1>((int)_blockIdx.x),
-                          math::Int<1>((int)_threadIdx.x));
+        return operator()(
+            acc,
+            math::Int<1>((int)_blockIdx.x),
+            math::Int<1>((int)_threadIdx.x)
+        );
     }
 };
 
@@ -178,28 +226,40 @@ struct SphericMapper<2, mpl::void_>
     static constexpr int dim = 2;
 
     typename math::Size_t<3>::BaseType
-    cudaGridDim(const math::Size_t<2>& size, const math::Size_t<3>& blockDim) const
+    cudaGridDim(const math::Size_t<2>& size, const math::Size_t<3>& blockSize) const
     {
         return math::Size_t<3>(
-            size.x() / blockDim.x(),
-            size.y() / blockDim.y(),
+            size.x() / blockSize.x(),
+            size.y() / blockSize.y(),
             1
         );
     }
 
+    template< typename T_Acc >
     DINLINE
-    math::Int<2> operator()(const math::Int<2>& _blockIdx,
-                              const math::Int<2>& _threadIdx) const
+    math::Int<2> operator()(
+        T_Acc const & acc,
+        const math::Int<2>& _blockIdx,
+        const math::Int<2>& _threadIdx
+    ) const
     {
         return math::Int<2>( _blockIdx.x() * blockDim.x + _threadIdx.x(),
                              _blockIdx.y() * blockDim.y + _threadIdx.y() );
     }
 
+    template< typename T_Acc >
     DINLINE
-    math::Int<2> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
+    math::Int<2> operator()(
+        T_Acc const & acc,
+        const dim3& _blockIdx,
+        const dim3& _threadIdx = dim3(0,0,0)
+    ) const
     {
-        return operator()(math::Int<2>(_blockIdx.x, _blockIdx.y),
-                          math::Int<2>(_threadIdx.x, _threadIdx.y));
+        return operator()(
+            acc,
+            math::Int<2>(_blockIdx.x, _blockIdx.y),
+            math::Int<2>(_threadIdx.x, _threadIdx.y)
+        );
     }
 };
 
@@ -209,29 +269,41 @@ struct SphericMapper<3, mpl::void_>
     static constexpr int dim = 3;
 
     typename math::Size_t<3>::BaseType
-    cudaGridDim(const math::Size_t<3>& size, const math::Size_t<3>& blockDim) const
+    cudaGridDim(const math::Size_t<3>& size, const math::Size_t<3>& blockSize) const
     {
         return math::Size_t<3>(
-            size.x() / blockDim.x(),
-            size.y() / blockDim.y(),
-            size.z() / blockDim.z()
+            size.x() / blockSize.x(),
+            size.y() / blockSize.y(),
+            size.z() / blockSize.z()
         );
     }
 
+    template< typename T_Acc >
     DINLINE
-    math::Int<3> operator()(const math::Int<3>& _blockIdx,
-                             const math::Int<3>& _threadIdx) const
+    math::Int<3> operator()(
+        T_Acc const & acc,
+        const math::Int<3>& _blockIdx,
+        const math::Int<3>& _threadIdx
+    ) const
     {
         return math::Int<3>( _blockIdx.x() * blockDim.x + _threadIdx.x(),
                              _blockIdx.y() * blockDim.y + _threadIdx.y(),
                              _blockIdx.z() * blockDim.z + _threadIdx.z() );
     }
 
+    template< typename T_Acc >
     DINLINE
-    math::Int<3> operator()(const dim3& _blockIdx, const dim3& _threadIdx = dim3(0,0,0)) const
+    math::Int<3> operator()(
+        T_Acc const & acc,
+        const dim3& _blockIdx,
+        const dim3& _threadIdx = dim3(0,0,0)
+    ) const
     {
-        return operator()(math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
-                          math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z));
+        return operator()(
+            acc,
+            math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
+            math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z)
+        );
     }
 };
 

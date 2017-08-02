@@ -60,15 +60,17 @@ struct EmZ
      * @param deltaTime time of one time step
      */
     template<
-        typename DataBoxJ
+        typename DataBoxJ,
+        typename T_Acc
     >
     DINLINE void
     operator()(
+        T_Acc const & acc,
         DataBoxJ dataBoxJ,
-        const floatD_X posEnd,
-        const float3_X velocity,
-        const float_X charge,
-        const float_X /* deltaTime */
+        floatD_X const posEnd,
+        float3_X const velocity,
+        float_X const charge,
+        float_X const/* deltaTime */
     )
     {
         floatD_X deltaPos;
@@ -119,6 +121,7 @@ struct EmZ
         const bool twoParticlesNeeded = I[0] != I[1];
 
         deposit(
+            acc,
             dataBoxJ.shift( I[0] ).toCursor(),
             line,
             chargeDensity,
@@ -142,6 +145,7 @@ struct EmZ
                 );
             }
             deposit(
+                acc,
                 dataBoxJ.shift( I[1] ).toCursor(),
                 line,
                 chargeDensity,

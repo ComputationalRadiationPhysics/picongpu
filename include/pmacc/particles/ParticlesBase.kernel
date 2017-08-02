@@ -73,10 +73,12 @@ struct KernelFillGapsLastFrame
      */
     template<
         typename T_ParBox,
-        typename T_Mapping
+        typename T_Mapping,
+        typename T_Acc
     >
     DINLINE void operator()(
-        T_ParBox & pb,
+        T_Acc const & acc,
+        T_ParBox pb,
         T_Mapping mapper
     ) const
     {
@@ -92,10 +94,12 @@ struct KernelFillGapsLastFrame
         DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim > ( blockIdx ) );
 
         PMACC_SMEM(
+            acc,
             lastFrame,
             FramePtr
         );
         PMACC_SMEM(
+            acc,
             gapIndices_sh,
             memory::Array<
                 int,
@@ -103,14 +107,17 @@ struct KernelFillGapsLastFrame
             >
         );
         PMACC_SMEM(
+            acc,
             counterGaps,
             int
         );
         PMACC_SMEM(
+            acc,
             counterParticles,
             int
         );
         PMACC_SMEM(
+            acc,
             srcGap,
             int
         );
@@ -171,7 +178,7 @@ struct KernelFillGapsLastFrame
                 )
                 {
                     if( isParticleCtx[ idx ] )
-                        nvidia::atomicAllInc( &counterParticles );
+                        nvidia::atomicAllInc( acc, &counterParticles, ::alpaka::hierarchy::Threads{} );
                 }
             );
 
@@ -185,7 +192,7 @@ struct KernelFillGapsLastFrame
                 {
                     if ( linearIdx < counterParticles && isParticleCtx[ idx ] == false )
                     {
-                        int const localGapIdx = nvidia::atomicAllInc( &counterGaps );
+                        int const localGapIdx = nvidia::atomicAllInc( acc, &counterGaps, ::alpaka::hierarchy::Threads{} );
                         gapIndices_sh[ localGapIdx ] = linearIdx;
                     }
                 }
@@ -200,7 +207,7 @@ struct KernelFillGapsLastFrame
                     if ( linearIdx >= counterParticles && isParticleCtx[ idx ] )
                     {
                         // any particle search a gap
-                        int const srcGapIdx = nvidia::atomicAllInc( &srcGap );
+                        int const srcGapIdx = nvidia::atomicAllInc( acc, &srcGap, ::alpaka::hierarchy::Threads{} );
                         int const gapIdx = gapIndices_sh[ srcGapIdx ];
                         auto parDestFull = lastFrame[ gapIdx ];
                         /* enable particle */
@@ -248,12 +255,14 @@ struct KernelFillGaps
      * @param mapper functor to map a block to a supercell
      */
     template<
-        class T_ParBox,
-        class T_Mapping
+        typename T_ParBox,
+        typename T_Mapping,
+        typename T_Acc
     >
     DINLINE void operator()(
-        T_ParBox & pb,
-        T_Mapping const & mapper
+        T_Acc const & acc,
+        T_ParBox pb,
+        T_Mapping const mapper
     ) const
     {
         using namespace particles::operations;
@@ -271,15 +280,18 @@ struct KernelFillGaps
 
         // data copied from right (last) to left (first)
         PMACC_SMEM(
+            acc,
             firstFrame,
             FramePtr
         );
         PMACC_SMEM(
+            acc,
             lastFrame,
             FramePtr
         );
 
         PMACC_SMEM(
+            acc,
             particleIndices_sh,
             memory::Array<
                 int,
@@ -288,11 +300,13 @@ struct KernelFillGaps
         );
         // number of gaps in firstFrame frame
         PMACC_SMEM(
+            acc,
             counterGaps,
             int
         );
         // number of particles in the lastFrame
         PMACC_SMEM(
+            acc,
             counterParticles,
             int
         );
@@ -353,7 +367,7 @@ struct KernelFillGaps
                 {
                     if( firstFrame[ linearIdx ][ multiMask_ ] == 0 )
                     {
-                        localGapIdxCtx[ idx ] = nvidia::atomicAllInc( &counterGaps );
+                        localGapIdxCtx[ idx ] = nvidia::atomicAllInc( acc, &counterGaps, ::alpaka::hierarchy::Threads{} );
                     }
                 }
             );
@@ -372,7 +386,7 @@ struct KernelFillGaps
                         // search particles for gaps
                         if( lastFrame[ linearIdx ][ multiMask_ ] == 1 )
                         {
-                            int const localParticleIdx = nvidia::atomicAllInc( &counterParticles );
+                            int const localParticleIdx = nvidia::atomicAllInc( acc, &counterParticles, ::alpaka::hierarchy::Threads{} );
                             particleIndices_sh[ localParticleIdx ] = linearIdx;
                         }
                     }
@@ -462,6 +476,7 @@ struct KernelFillGaps
 
         // fill all gaps in the last frame of the supercell
         KernelFillGapsLastFrame< numWorkers >{ }(
+            acc,
             pb,
             mapper
         );
@@ -483,10 +498,12 @@ struct KernelShiftParticles
      * @warning this kernel can only run with a double checker board
      */
     template<
-        class T_ParBox,
-        class Mapping
+        typename T_ParBox,
+        typename Mapping,
+        typename T_Acc
     >
     DINLINE void operator()(
+        T_Acc const & acc,
         T_ParBox pb,
         Mapping mapper
     ) const
@@ -506,6 +523,7 @@ struct KernelShiftParticles
          * index range [numExchanges,2*numExchanges-1] are being referred to as `high frames`
          */
         PMACC_SMEM(
+            acc,
             destFrames,
             memory::Array<
                 FramePtr,
@@ -514,6 +532,7 @@ struct KernelShiftParticles
         );
         //count particles per frame
         PMACC_SMEM(
+            acc,
             destFramesCounter,
             memory::Array<
                 int,
@@ -522,10 +541,12 @@ struct KernelShiftParticles
         );
 
         PMACC_SMEM(
+            acc,
             frame,
             FramePtr
         );
         PMACC_SMEM(
+            acc,
             mustShift,
             bool
         );
@@ -678,6 +699,7 @@ struct KernelShiftParticles
                             FramePtr tmpFrame( pb.getEmptyFrame( ) );
                             destFrames[ linearIdx ] = tmpFrame;
                             pb.setAsLastFrame(
+                                acc,
                                 tmpFrame,
                                 relativeCtx[ idx ]
                             );
@@ -689,6 +711,7 @@ struct KernelShiftParticles
                             FramePtr tmpFrame( pb.getEmptyFrame( ) );
                             destFrames[ linearIdx + numExchanges ] = tmpFrame;
                             pb.setAsLastFrame(
+                                acc,
                                 tmpFrame,
                                 relativeCtx[ idx ]
                             );
@@ -774,6 +797,7 @@ struct KernelShiftParticles
 
         // fill all gaps in the frame list of the supercell
         KernelFillGaps< numWorkers >{ }(
+            acc,
             pb,
             mapper
         );
@@ -798,12 +822,14 @@ struct KernelDeleteParticles
      * @param mapper functor to map a block to a supercell
      */
     template<
-        class T_ParticleBox,
-        class T_Mapping
+        typename T_ParticleBox,
+        typename T_Mapping,
+        typename T_Acc
     >
     DINLINE void operator()(
+        T_Acc const & acc,
         T_ParticleBox pb,
-        T_Mapping const & mapper
+        T_Mapping const mapper
     ) const
     {
         using namespace particles::operations;
@@ -821,6 +847,7 @@ struct KernelDeleteParticles
         uint32_t const workerIdx = threadIdx.x;
 
         PMACC_SMEM(
+            acc,
             frame,
             FramePtr
         );
@@ -918,16 +945,18 @@ struct KernelCopyGuardToExchange
     template<
         typename T_ParBox,
         typename T_ExchangeValueType,
-        typename T_Mapping
+        typename T_Mapping,
+        typename T_Acc
     >
     DINLINE void operator()(
-        T_ParBox & pb,
+        T_Acc const & acc,
+        T_ParBox pb,
         ExchangePushDataBox<
             vint_t,
             T_ExchangeValueType,
             T_Mapping::Dim - 1
-        > & exchangeBox,
-        T_Mapping const & mapper
+        > exchangeBox,
+        T_Mapping const mapper
     ) const
     {
         using namespace particles::operations;
@@ -944,10 +973,12 @@ struct KernelCopyGuardToExchange
 
         // number of particles in the current handled frame
         PMACC_SMEM(
+            acc,
             numParticles,
             int
         );
         PMACC_SMEM(
+            acc,
             frame,
             FramePtr
         );
@@ -957,6 +988,7 @@ struct KernelCopyGuardToExchange
          * and is updated for each frame.
          */
         PMACC_SMEM(
+            acc,
             exchangeChunk,
             TileDataBox< T_ExchangeValueType >
         );
@@ -967,6 +999,7 @@ struct KernelCopyGuardToExchange
          * `true` if all particles are copied, else `false`
          */
         PMACC_SMEM(
+            acc,
             allParticlesCopied,
             bool
         );
@@ -1030,7 +1063,7 @@ struct KernelCopyGuardToExchange
                 {
                     if ( frame[ linearIdx ][ multiMask_ ] == 1 )
                     {
-                        exchangeGapIdxCtx[ idx ] = nvidia::atomicAllInc( &numParticles );
+                        exchangeGapIdxCtx[ idx ] = nvidia::atomicAllInc( acc, &numParticles, ::alpaka::hierarchy::Threads{} );
                     }
                 }
             );
@@ -1047,6 +1080,7 @@ struct KernelCopyGuardToExchange
                     {
                         // try to get as many memory as particles in the current frame
                         exchangeChunk = exchangeBox.pushN(
+                            acc,
                             numParticles,
                             // Compute the target supercell depending on the exchangeType
                             DataSpaceOperations< dim >::reduce(
@@ -1128,16 +1162,18 @@ struct KernelInsertParticles
     template<
         typename T_ParBox,
         typename T_ExchangeValueType,
-        typename T_Mapping
+        typename T_Mapping,
+        typename T_Acc
     >
     DINLINE void operator()(
-        T_ParBox & pb,
+        T_Acc const & acc,
+        T_ParBox pb,
         ExchangePopDataBox<
             vint_t,
             T_ExchangeValueType,
             T_Mapping::Dim - 1
-        > & exchangeBox,
-        T_Mapping const & mapper
+        > exchangeBox,
+        T_Mapping const mapper
     ) const
     {
         using namespace particles::operations;
@@ -1152,14 +1188,17 @@ struct KernelInsertParticles
         using FramePtr = typename T_ParBox::FramePtr;
 
         PMACC_SMEM(
+            acc,
             frame,
             FramePtr
         );
         PMACC_SMEM(
+            acc,
             elementCount,
             int
         );
         PMACC_SMEM(
+            acc,
             exchangeChunk,
             TileDataBox< T_ExchangeValueType >
         );
@@ -1250,6 +1289,7 @@ struct KernelInsertParticles
                     );
 
                     pb.setAsLastFrame(
+                        acc,
                         frame,
                         dstSuperCell
                     );
