@@ -36,7 +36,7 @@ namespace pmacc
 
         DEVICEONLY uint64_cu nextId;
 
-        struct SetNextId
+        struct KernelSetNextId
         {
             template<typename T_Acc>
             DINLINE void operator()(const T_Acc&, uint64_cu id) const
@@ -45,7 +45,7 @@ namespace pmacc
             }
         };
 
-        struct GetNextId
+        struct KernelGetNextId
         {
             template<class T_Box, typename T_Acc>
             DINLINE void operator()(const T_Acc&, T_Box boxOut) const
@@ -54,7 +54,7 @@ namespace pmacc
             }
         };
 
-        struct GetNewId
+        struct KernelGetNewId
         {
             template<class T_Box, class T_IdFactory, typename T_Acc>
             DINLINE void operator()(const T_Acc& acc, T_Box boxOut, T_IdFactory idFactory) const
@@ -103,7 +103,7 @@ namespace pmacc
     typename IdProvider<T_dim>::State IdProvider<T_dim>::getState()
     {
         HostDeviceBuffer<uint64_cu, 1> nextIdBuf(DataSpace<1>(1));
-        PMACC_KERNEL(idDetail::GetNextId{})(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
+        PMACC_KERNEL(idDetail::KernelGetNextId{})(1, 1)(nextIdBuf.getDeviceBuffer().getDataBox());
         nextIdBuf.deviceToHost();
         State state;
         state.nextId = static_cast<uint64_t>(nextIdBuf.getHostBuffer().getDataBox()(0));
@@ -115,12 +115,7 @@ namespace pmacc
     template<unsigned T_dim>
     HDINLINE uint64_t IdProvider<T_dim>::getNewId()
     {
-#ifdef __CUDA_ARCH__
         return static_cast<uint64_t>(nvidia::atomicAllInc(&idDetail::nextId));
-#else
-        // IMPORTANT: This calls a kernel. So make sure this kernel is instantiated somewhere before!
-        return getNewIdHost();
-#endif
     }
 
     template<unsigned T_dim>
@@ -175,14 +170,14 @@ namespace pmacc
     template<unsigned T_dim>
     void IdProvider<T_dim>::setNextId(uint64_t nextId)
     {
-        PMACC_KERNEL(idDetail::SetNextId{})(1, 1)(nextId);
+        PMACC_KERNEL(idDetail::KernelSetNextId{})(1, 1)(nextId);
     }
 
     template<unsigned T_dim>
     uint64_t IdProvider<T_dim>::getNewIdHost()
     {
         HostDeviceBuffer<uint64_cu, 1> newIdBuf(DataSpace<1>(1));
-        PMACC_KERNEL(idDetail::GetNewId{})(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
+        PMACC_KERNEL(idDetail::KernelGetNewId{})(1, 1)(newIdBuf.getDeviceBuffer().getDataBox(), GetNewId());
         newIdBuf.deviceToHost();
         return static_cast<uint64_t>(newIdBuf.getHostBuffer().getDataBox()(0));
     }
