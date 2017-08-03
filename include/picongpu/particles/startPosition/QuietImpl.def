@@ -52,7 +52,7 @@ namespace acc
      */
     template< typename T_ParamClass >
     using QuietImpl = generic::Free< acc::QuietImpl< T_ParamClass > >;
-    
+
 } // namespace startPosition
 } // namespace particles
 } // namespace picongpu
