@@ -27,6 +27,11 @@
 #include "pmacc/traits/GetValueType.hpp"
 #include "pmacc/types.hpp"
 #include "pmacc/memory/buffers/GridBuffer.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
+#include "pmacc/memory/CtxArray.hpp"
+#include "pmacc/mappings/threads/ForEachIdx.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/mappings/threads/WorkerCfg.hpp"
 
 #include <boost/type_traits.hpp>
 
@@ -42,8 +47,15 @@ namespace kernel
     /** reduce elements within a buffer
      *
      * @tparam type element type within the buffer
+     * @tparam T_blockSize minimum number of elements which will be reduced
+     *                     within a CUDA block
+     * @tparam T_numWorkers number of workers
      */
-    template< typename Type >
+    template<
+        typename Type,
+        uint32_t T_blockSize,
+        uint32_t T_numWorkers
+    >
     struct Reduce
     {
 
@@ -85,10 +97,13 @@ namespace kernel
             T_DestFunctor & destFunc
         ) const
         {
-            uint32_t const localId = threadIdx.x;
-            uint32_t const blockSize = blockDim.x;
-            uint32_t const tid = blockIdx.x * blockSize + localId;
-            uint32_t const globalThreadCount = gridDim.x * blockSize;
+            using namespace mappings::threads;
+
+            constexpr uint32_t numWorkers = T_numWorkers;
+            uint32_t const workerIdx = threadIdx.x;
+
+            uint32_t const numGlobalVirtualThreadCount = gridDim.x * T_blockSize;
+            WorkerCfg< numWorkers > workerCfg( workerIdx );
 
             /* CUDA can not handle extern shared memory were the type is
              * defined by a template
@@ -98,21 +113,32 @@ namespace kernel
             Type* s_mem=( Type* )s_mem_extern;
 
             this->operator()(
-                localId,
-                blockSize,
-                tid,
-                globalThreadCount,
+                workerCfg,
+                numGlobalVirtualThreadCount,
                 srcBuffer,
                 bufferSize,
                 func,
-                s_mem
+                s_mem,
+                blockIdx.x
             );
 
-            if( localId == 0u )
-                destFunc(
-                    destBuffer[ blockIdx.x ],
-                    s_mem[ 0 ]
-                );
+            using MasterOnly = IdxConfig<
+                1,
+                numWorkers
+            >;
+
+            ForEachIdx< MasterOnly >{ workerIdx }(
+                [&](
+                    uint32_t const,
+                    uint32_t const
+                )
+                {
+                    destFunc(
+                        destBuffer[ blockIdx.x ],
+                        s_mem[ 0 ]
+                    );
+                }
+            );
         }
 
         /** reduce a buffer
@@ -124,59 +150,107 @@ namespace kernel
          * @tparam T_SrcBuffer type of the buffer
          * @tparam T_Functor type of the binary functor to reduce two elements
          * @tparam T_SharedBuffer type of the shared memory buffer
+         * @tparam T_WorkerCfg worker configuration type
          *
-         * @param linearThreadIdxInBlock index of the thread within a CUDA block range [0,linearThreadIdxInBlock)
-         * @param numThreadsInBlock number of threads within a CUDA block
-         * @param linearReduceThreadIdx index of the thread, range [0,@p numReduceThreads]
-         * @param numReduceThreads number of threads which working together to reduce the array
+         * @param workerCfg lockstep worker configuration
+         * @param numReduceThreads Number of threads which working together to reduce the array.
+         *                         For a reduction within a block the value must be equal to T_blockSize
          * @param srcBuffer a class or a pointer with the `operator[](size_t)` (one dimensional access)
          * @param bufferSize number of elements in @p srcBuffer
          * @param func binary functor for reduce which takes two arguments,
          *        first argument is the source and get the new reduced value.
          * @param sharedMem shared memory buffer with storage for `linearThreadIdxInBlock` elements,
          *        buffer must implement `operator[](size_t)` (one dimensional access)
+         * @param blockIndex index of the cuda block,
+         *                   for a global reduce: `blockIdx.x`,
+         *                   for a reduce within a block: `0`
          *
          * @result void the result is stored in the first slot of @p sharedMem
          */
         template<
             typename T_SrcBuffer,
             typename T_Functor,
-            typename T_SharedBuffer
+            typename T_SharedBuffer,
+            typename T_WorkerCfg
         >
         DINLINE void
         operator()(
-            uint32_t const linearThreadIdxInBlock,
-            uint32_t const numThreadsInBlock,
-            size_t const linearReduceThreadIdx,
+            T_WorkerCfg const workerCfg,
             size_t const numReduceThreads,
             T_SrcBuffer const & srcBuffer,
             size_t const bufferSize,
             T_Functor const & func,
-            T_SharedBuffer & sharedMem
+            T_SharedBuffer & sharedMem,
+            size_t const blockIndex = 0u
         ) const
         {
-            bool isActive = linearReduceThreadIdx < bufferSize;
+            using namespace mappings::threads;
 
-            if( isActive )
-            {
-                /*fill shared mem*/
-                Type r_value = srcBuffer[ linearReduceThreadIdx ];
-                /*reduce not read global memory to shared*/
-                uint32_t i = linearReduceThreadIdx + numReduceThreads;
-                while( i < bufferSize )
+            using VirtualWorkerCfg = IdxConfig<
+                T_blockSize,
+                T_WorkerCfg::numWorkers
+            >;
+
+            pmacc::memory::CtxArray<
+                uint32_t,
+                VirtualWorkerCfg
+            >
+            linearReduceThreadIdxCtx(
+                workerCfg.getWorkerIdx( ),
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
                 {
-                    func(
-                        r_value,
-                        srcBuffer[ i ]
-                    );
-                    i += numReduceThreads;
+                    return blockIndex * T_blockSize  + linearIdx;
                 }
-                sharedMem[ linearThreadIdxInBlock ] = r_value;
-            }
+            );
+
+            pmacc::memory::CtxArray<
+                bool,
+                VirtualWorkerCfg
+            >
+            isActiveCtx(
+                workerCfg.getWorkerIdx(),
+                [&](
+                    uint32_t const,
+                    uint32_t const idx
+                )
+                {
+                    return linearReduceThreadIdxCtx[ idx ] < bufferSize;
+                }
+            );
+
+            ForEachIdx< VirtualWorkerCfg > forEachVirtualThread( workerCfg.getWorkerIdx() );
+
+            forEachVirtualThread(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const idx
+                )
+                {
+                    if( isActiveCtx[ idx ] )
+                    {
+                        /*fill shared mem*/
+                        Type r_value = srcBuffer[ linearReduceThreadIdxCtx[ idx ] ];
+                        /*reduce not read global memory to shared*/
+                        uint32_t i = linearReduceThreadIdxCtx[ idx ] + numReduceThreads;
+                        while( i < bufferSize )
+                        {
+                            func(
+                                r_value,
+                                srcBuffer[ i ]
+                            );
+                            i += numReduceThreads;
+                        }
+                        sharedMem[ linearIdx ] = r_value;
+                    }
+                }
+            );
 
             __syncthreads( );
             /*now reduce shared memory*/
-            uint32_t chunk_count = numThreadsInBlock;
+            uint32_t chunk_count = T_blockSize;
 
             while( chunk_count != 1u )
             {
@@ -189,22 +263,30 @@ namespace kernel
                  */
                 chunk_count = ( chunk_count + 1u ) / 2u;
 
-                isActive = ( linearReduceThreadIdx < bufferSize ) &&
-                    !(
-                        linearThreadIdxInBlock != 0u &&
-                        linearThreadIdxInBlock >= active_threads
-                    );
-                if( isActive )
-                    func(
-                        sharedMem[ linearThreadIdxInBlock ],
-                        sharedMem[ linearThreadIdxInBlock + chunk_count ]
-                    );
+                forEachVirtualThread(
+                    [&](
+                        uint32_t const linearIdx,
+                        uint32_t const idx
+                    )
+                    {
+                        isActiveCtx[ idx ] = ( linearReduceThreadIdxCtx[ idx ] < bufferSize ) &&
+                            !(
+                                linearIdx != 0u &&
+                                linearIdx >= active_threads
+                            );
+                        if( isActiveCtx[ idx ] )
+                            func(
+                                sharedMem[ linearIdx ],
+                                sharedMem[ linearIdx + chunk_count ]
+                            );
 
-                __syncthreads();
+                        __syncthreads();
+                    }
+                );
             }
         }
     };
-}
+} // namespace kernel
 
     class Reduce
     {
@@ -256,8 +338,8 @@ namespace kernel
 
             uint32_t blocks = threads / 2 / blockcount;
             if (blocks == 0) blocks = 1;
-            PMACC_KERNEL(kernel::Reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(src, n, dest, func,
-                                                                                                    pmacc::nvidia::functors::Assign());
+            callReduceKernel< Type >(blocks, blockcount, blockcount * sizeof (Type),
+                src, n, dest, func, pmacc::nvidia::functors::Assign());
             n = blocks;
             blockcount = optimalThreadsPerBlock(n, sizeof (Type));
             blocks = n / 2 / blockcount;
@@ -273,14 +355,15 @@ namespace kernel
                     uint32_t problemSize = n - (blockOffset * blockcount);
                     Type* srcPtr = dest + (blockOffset * blockcount);
 
-                    PMACC_KERNEL(kernel::Reduce < Type >{})(useBlocks, blockcount, blockcount * sizeof (Type))(srcPtr, problemSize, dest, func, func);
+                    callReduceKernel< Type >(useBlocks, blockcount, blockcount * sizeof (Type),
+                        srcPtr, problemSize, dest, func, func);
                     blocks = blockOffset*blockcount;
                 }
                 else
                 {
 
-                    PMACC_KERNEL(kernel::Reduce < Type >{})(blocks, blockcount, blockcount * sizeof (Type))(dest, n, dest, func,
-                                                                                                            pmacc::nvidia::functors::Assign());
+                    callReduceKernel< Type >(blocks, blockcount, blockcount * sizeof (Type),
+                        dest, n, dest, func, pmacc::nvidia::functors::Assign());
                 }
 
                 n = blocks;
@@ -325,6 +408,153 @@ namespace kernel
 
             return 1;
         }
+
+
+        /* start the reduce kernel
+         *
+         * The minimal number of elements reduced within a CUDA block is chosen at
+         * compile time.
+         */
+        template< typename Type, typename ... T_Args >
+        HINLINE void callReduceKernel(
+            uint32_t blocks,
+            uint32_t threads,
+            uint32_t sharedMemSize,
+            T_Args && ... args
+        )
+        {
+            if(threads >= 512u)
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    512u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 512u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+            else if(threads >= 256u)
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    256u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 256u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+            else if(threads >= 128u)
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    128u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 128u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+            else if(threads >= 64u)
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    64u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 64u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+            else if(threads >= 32u)
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    32u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 32u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+            else if(threads >= 16u)
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    16u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 16u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+            else if(threads >= 8u)
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    8u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 8u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+            else if(threads >= 4u)
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    4u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 4u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+            else if(threads >= 2u)
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    2u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 2u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+            else
+            {
+                constexpr uint32_t numWorkers = traits::GetNumWorkers<
+                    1u
+                >::value;
+                PMACC_KERNEL( kernel::Reduce< Type, 1u, numWorkers >{ } )(
+                    blocks,
+                    numWorkers,
+                    sharedMemSize
+                )(
+                    args ...
+                );
+            }
+        }
+
 
         /*calculate optimal number of threads per block with respect to shared memory limitations
          * @param n number of elements to reduce

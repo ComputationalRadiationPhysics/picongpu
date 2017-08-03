@@ -29,6 +29,7 @@
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/memory/Array.hpp>
+#include "pmacc/mappings/threads/WorkerCfg.hpp"
 
 
 namespace picongpu
@@ -104,15 +105,18 @@ namespace helperFields
 
             __syncthreads();
 
-            nvidia::reduce::kernel::Reduce< ValueType > reduce{};
-
             uint32_t const numAvgCells = pmacc::math::CT::volume< spatialAverageBox >::type::value;
+
+            nvidia::reduce::kernel::Reduce<
+                ValueType,
+                numAvgCells,
+                numWorkers
+            > reduce{};
+
+
             reduce(
-                linearThreadIdx,
-                numWorkers,
-                /* block-wise reduce, every worker participates */
-                linearThreadIdx,
-                numWorkers,
+                mappings::threads::WorkerCfg< numWorkers >( linearThreadIdx ),
+                numAvgCells,
                 /* access inside local average view */
                 d1access,
                 numAvgCells,
