@@ -17,13 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/startPosition/MacroParticleCfg.hpp"
-#include "picongpu/particles/startPosition/IFunctor.def"
+#include "picongpu/particles/startPosition/generic/Free.def"
+
+#include <boost/mpl/integral_c.hpp>
+
 
 namespace picongpu
 {
@@ -31,99 +31,110 @@ namespace particles
 {
 namespace startPosition
 {
-
-template<typename T_ParamClass>
-struct QuietImpl
+namespace acc
 {
 
-    typedef T_ParamClass ParamClass;
-
-    template<typename T_SpeciesType>
-    struct apply
+    template< typename T_ParamClass >
+    struct QuietImpl
     {
-        typedef QuietImpl<ParamClass> type;
-    };
-
-    HINLINE QuietImpl(uint32_t): numParInCell(ParamClass::numParticlesPerDimension::toRT())
-    {
-    }
-
-    DINLINE void init(const DataSpace<simDim>& totalCellOffset)
-    {
-
-    }
-
-    /** Distributes the initial particles lattice-like within the cell.
-     *
-     * @param rng a reference to an initialized, UNIFORM random number generator
-     * @param curParticle the number of this particle: [0, totalNumParsPerCell-1]
-     * @return float3_X with components between [0.0, 1.0)
-     */
-    DINLINE floatD_X operator()(const uint32_t curParticle)
-    {
-        // spacing between particles in each direction in the cell
-        DataSpace<simDim> numParDirection(numParInCell);
-        floatD_X spacing;
-        for (uint32_t i = 0; i < simDim; ++i)
-            spacing[i] = (float_X(1.0) / float_X(numParDirection[i]));
-
-        // coordinate in the local in-cell lattice
-        //   x = [0, numParsPerCell_X-1]
-        //   y = [0, numParsPerCell_Y-1]
-        //   z = [0, numParsPerCell_Z-1]
-        DataSpace<simDim> inCellCoordinate = DataSpaceOperations<simDim>::map(numParDirection, curParticle);
-
-
-        return floatD_X(precisionCast<float_X>(inCellCoordinate) * spacing + spacing * float_X(0.5));
-    }
-
-    /** If the particles to initialize (numParsPerCell) end up with a
-     *  related particle weighting (macroWeighting) below MIN_WEIGHTING,
-     *  reduce the number of particles if possible to satisfy this condition.
-     *
-     * @param numParsPerCell the intendet number of particles for this cell
-     * @param realElPerCell  the number of real electrons in this cell
-     * @return macroWeighting the intended weighting per macro particle
-     */
-    DINLINE MacroParticleCfg mapRealToMacroParticle(const float_X realElPerCell)
-    {
-        float_X macroWeighting = float_X(0.0);
-        uint32_t numParsPerCell=numParInCell.productOfComponents();
-
-        if (numParsPerCell > 0)
-            macroWeighting = realElPerCell / float_X(numParsPerCell);
-
-        while (macroWeighting < MIN_WEIGHTING &&
-               numParsPerCell > 0)
+        /** set in-cell position and weighting
+         *
+         * @warning It is not allowed to call this functor as many times as
+         *          the resulting value of numberOfMacroParticles.
+         *
+         * @tparam T_Particle pmacc::Particle, particle type
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+         *
+         * @param particle particle to be manipulated
+         * @param ... unused particles
+         */
+        template<
+            typename T_Particle,
+            typename ... T_Args
+        >
+        DINLINE void operator()(
+            T_Particle & particle,
+            T_Args && ...
+        )
         {
-            /* decrement component with greatest value*/
-            uint32_t max_component = 0;
-            for (uint32_t i = 1; i < simDim; ++i)
-            {
-                if (numParInCell[i] > numParInCell[max_component])
-                    max_component = i;
-            }
-            numParInCell[max_component] -= 1;
+            uint32_t maxNumMacroParticles = pmacc::math::CT::volume<
+                typename T_ParamClass::numParticlesPerDimension
+            >::type::value;
 
-            numParsPerCell = numParInCell.productOfComponents();
+            /* reset the particle position if the operator is called more times
+             * than allowed (m_currentMacroParticles underflow protection for)
+             */
+            if( maxNumMacroParticles <=  m_currentMacroParticles )
+                m_currentMacroParticles = maxNumMacroParticles - 1u;
 
-            if (numParsPerCell > 0)
-                macroWeighting = realElPerCell / float_X(numParsPerCell);
-            else
-                macroWeighting = float_X(0.0);
+            // spacing between particles in each direction in the cell
+            DataSpace< simDim > const numParDirection( T_ParamClass::numParticlesPerDimension::toRT() );
+            floatD_X spacing;
+            for( uint32_t i = 0; i < simDim; ++i )
+                spacing[i] = float_X( 1.0 ) / float_X( numParDirection[ i ] );
+
+            /* coordinate in the local in-cell lattice
+             *   x = [0, numParsPerCell_X-1]
+             *   y = [0, numParsPerCell_Y-1]
+             *   z = [0, numParsPerCell_Z-1]
+             */
+            DataSpace< simDim > inCellCoordinate = DataSpaceOperations< simDim >::map(
+                numParDirection,
+                m_currentMacroParticles
+            );
+
+            particle[ position_ ] = precisionCast< float_X >( inCellCoordinate ) * spacing +
+                spacing * float_X( 0.5 );
+            particle[ weighting_ ] = m_weighting;
+
+            --m_currentMacroParticles;
+
         }
 
-        MacroParticleCfg macroParCfg;
-        macroParCfg.weighting = macroWeighting;
-        macroParCfg.numParticlesPerCell = numParsPerCell;
+        DINLINE uint32_t
+        numberOfMacroParticles( float_X const realParticlesPerCell )
+        {
+            auto numParInCell = T_ParamClass::numParticlesPerDimension::toRT();
 
-        return macroParCfg;
-    }
+            m_weighting = float_X( 0.0 );
+            uint32_t numMacroParticles = pmacc::math::CT::volume<
+                typename T_ParamClass::numParticlesPerDimension
+            >::type::value;
 
-protected:
+            if( numMacroParticles > 0u )
+                m_weighting = realParticlesPerCell / float_X( numMacroParticles );
 
-    DataSpace<simDim> numParInCell;
-};
-} //namespace particlesStartPosition
-} //namespace particles
-} //namespace picongpu
+            while(
+                m_weighting < MIN_WEIGHTING &&
+                numMacroParticles > 0u
+            )
+            {
+                /* decrement component with greatest value*/
+                uint32_t max_component = 0u;
+                for( uint32_t i = 1; i < simDim; ++i )
+                {
+                    if( numParInCell[ i ] > numParInCell[ max_component ] )
+                        max_component = i;
+                }
+                numParInCell[ max_component ] -= 1u;
+
+                numMacroParticles = numParInCell.productOfComponents( );
+
+                if( numMacroParticles > 0u )
+                    m_weighting = realParticlesPerCell / float_X( numMacroParticles );
+                else
+                    m_weighting = float_X( 0.0 );
+            }
+            m_currentMacroParticles = numMacroParticles - 1u;
+            return numMacroParticles;
+        }
+    private:
+
+        float_X m_weighting;
+        uint32_t m_currentMacroParticles;
+    };
+
+} // namespace acc
+} // namespace startPosition
+} // namespace particles
+} // namespace picongpu

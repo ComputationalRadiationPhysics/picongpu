@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Rene Widera
+/* Copyright 2015-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -22,15 +22,23 @@
 
 namespace picongpu
 {
-
 namespace particles
 {
 namespace startPosition
 {
+namespace generic
+{
 
-template<typename T_Base>
-struct IFunctor;
+    /** call simple free user defined functor
+     *
+     * @tparam T_Functor user defined functor
+     *                   **optional**: can implement **one** host side constructor
+     *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
+     */
+    template< typename T_Functor >
+    struct Free;
 
-} //namespace startPosition
-} //namespace particles
-} //namespace picongpu
+} // namespace generic
+} // namespace startPosition
+} // namespace particles
+} // namespace picongpu

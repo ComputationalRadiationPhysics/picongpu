@@ -27,13 +27,13 @@
 
 #include <pmacc/particles/operations/SetAttributeToDefault.hpp>
 #include <pmacc/compileTime/conversion/ResolveAndRemoveFromSeq.hpp>
-#include "picongpu/particles/startPosition/MacroParticleCfg.hpp"
 #include "picongpu/particles/traits/GetDensityRatio.hpp"
 #include <pmacc/nvidia/atomic.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/memory/CtxArray.hpp>
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 namespace picongpu
 {
@@ -105,7 +105,7 @@ namespace picongpu
         DINLINE void
         operator()(
             T_DensityProfile densityFunctor,
-            T_PositionFunctor const & positionFunctor,
+            T_PositionFunctor positionFunctor,
             DataSpace< simDim > const & totalGpuCellOffset,
             T_ParBox & pb,
             T_Mapping & mapper
@@ -134,10 +134,9 @@ namespace picongpu
                 mapper.getSuperCellIndex( DataSpace<simDim >( blockIdx ) )
             );
 
-            /* offset of the superCell relative to the local domain [cells] (without guarding cells) */
-            DataSpace< simDim > const superCellOffset(
-                ( superCellIdx - mapper.getGuardingSuperCells() )
-                * SuperCellSize::toRT()
+            /* offset of the superCell relative to the local domain [in supercells] (without guarding supercells) */
+            DataSpace< simDim > const localSuperCellOffset(
+                superCellIdx - mapper.getGuardingSuperCells()
             );
 
             using ParticleDomCfg = IdxConfig<
@@ -146,13 +145,6 @@ namespace picongpu
             >;
 
             ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
-
-            /* weighting for all particles in a cell */
-            memory::CtxArray<
-                float_X,
-                ParticleDomCfg
-            >
-            macroWeightingCtx( 0.0 );
 
             /* number of particles to create for each cell (virtual worker) */
             memory::CtxArray<
@@ -163,10 +155,15 @@ namespace picongpu
 
             /* create for each virtual thread a position functor instance */
             memory::CtxArray<
-                T_PositionFunctor,
+                decltype(
+                    positionFunctor(
+                        std::declval< DataSpace< simDim > const >( ),
+                        std::declval< WorkerCfg< numWorkers > const >( )
+                    )
+                ),
                 ParticleDomCfg
             >
-            positionFunctorCtx( positionFunctor );
+            positionFunctorCtx{ };
 
 
             ForEachIdx<
@@ -189,12 +186,13 @@ namespace picongpu
 
             __syncthreads();
 
-            memory::CtxArray<
-                uint32_t,
-                ParticleDomCfg
-            > const
-            totalNumParsPerCellCtx(
-                workerIdx,
+            // initialize the position functor for each cell in the supercell
+            ForEachIdx<
+                IdxConfig<
+                    pmacc::math::CT::volume< SuperCellSize >::type::value,
+                    numWorkers
+                >
+            >{ workerIdx }(
                 [&](
                     uint32_t const linearIdx,
                     uint32_t const idx
@@ -204,7 +202,10 @@ namespace picongpu
                     DataSpace< simDim > const cellIdx = DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
 
                     /* cell offset to the begin of the simulation */
-                    DataSpace< simDim > const totalCellOffset = totalGpuCellOffset + superCellOffset + cellIdx;
+                    DataSpace< simDim > const totalCellOffset =
+                        totalGpuCellOffset +
+                        localSuperCellOffset * SuperCellSize::toRT() +
+                        cellIdx;
                     float_X const realDensity = calcRealDensity< T_Species >(
                         densityFunctor,
                         totalCellOffset
@@ -212,12 +213,14 @@ namespace picongpu
 
                     float_X const realParticlesPerCell = realDensity * CELL_VOLUME;
 
-                    positionFunctorCtx[ idx ].init( totalCellOffset );
-                    // decrease number of macro particles, if weighting would be too small
-                    particles::startPosition::MacroParticleCfg makroCfg =
-                        positionFunctorCtx[ idx ].mapRealToMacroParticle( realParticlesPerCell );
-                    macroWeightingCtx[ idx ] = makroCfg.weighting;
-                    numParsPerCellCtx[ idx ] = makroCfg.numParticlesPerCell;
+                    // create an independent position functor for each ccell iin the supercell
+                    positionFunctorCtx[ idx ] = positionFunctor(
+                        localSuperCellOffset,
+                        WorkerCfg< numWorkers >{ workerIdx }
+                    );
+
+                    numParsPerCellCtx[ idx ] =
+                        positionFunctorCtx[ idx ].numberOfMacroParticles( realParticlesPerCell );
 
                     if( numParsPerCellCtx[ idx ] > 0 )
                         nvidia::atomicAllExch(
@@ -274,7 +277,6 @@ namespace picongpu
                     {
                         if( numParsPerCellCtx[ idx ] > 0u )
                         {
-                            floatD_X const pos = positionFunctorCtx[ idx ]( totalNumParsPerCellCtx[ idx ] - numParsPerCellCtx[ idx ] );
                             auto particle = frame[ linearIdx ];
 
                             /** we now initialize all attributes of the new particle to their default values
@@ -302,10 +304,10 @@ namespace picongpu
                                 > setToDefault;
                                 setToDefault( forward( particle ) );
                             }
-                            particle[ position_ ] = pos;
                             particle[ multiMask_ ] = 1;
                             particle[ localCellIdx_ ] = linearIdx;
-                            particle[ weighting_ ] = macroWeightingCtx[ idx ];
+                            // initialize position and weighting
+                            positionFunctorCtx[ idx ]( particle );
 
                             numParsPerCellCtx[ idx ]--;
                             if( numParsPerCellCtx[ idx ] > 0 )

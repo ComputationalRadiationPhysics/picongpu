@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Rene Widera
+/* Copyright 2015-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,11 +20,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/startPosition/generic/FreeRng.def"
-
-#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
 
 #include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/placeholders.hpp>
 
 
 namespace picongpu
@@ -33,34 +31,29 @@ namespace particles
 {
 namespace startPosition
 {
-namespace acc
+namespace generic
 {
 
-    /** set the particle attribute position to in-cell random
+    /** call simple free user defined functor and provide a random number generator
      *
-     * The particle attribute position is assigned with a random
-     * in-cell position.
-     * This functor also sets the macro particle weighting.
-     */
-    template< typename T_ParamClass >
-    struct RandomImpl;
-
-} // namespace acc
-
-
-    /** Set the in cell position to in-cell random
      *
-     * The new in-cell position is uniformly distributed position between [0.0;1.0).
+     * @tparam T_Functor user defined unary functor
+     * @tparam T_Distribution random number distribution
+     * @tparam T_Seed seed to initialize the random number generator
+     * @tparam T_SpeciesType type of the species that shall be manipulated
      */
-    template< typename T_ParamClass >
-    using RandomImpl = generic::FreeRng<
-        acc::RandomImpl< T_ParamClass >,
-        nvidia::rng::distributions::Uniform_float,
-        boost::mpl::integral_c<
+    template<
+        typename T_Functor,
+        typename T_Distribution,
+        typename T_Seed = boost::mpl::integral_c<
             size_t,
-            POSITION_SEED
-        >
-    >;
+            FREERNG_SEED
+        >,
+        typename T_SpeciesType = boost::mpl::_1
+    >
+    struct FreeRng;
+
+} // namepsace generic
 } // namespace startPosition
 } // namespace particles
 } // namespace picongpu

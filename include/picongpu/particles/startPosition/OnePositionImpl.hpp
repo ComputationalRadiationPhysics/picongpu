@@ -17,13 +17,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/startPosition/MacroParticleCfg.hpp"
-#include "picongpu/particles/startPosition/IFunctor.def"
+#include "picongpu/particles/startPosition/OnePositionImpl.def"
+#include "picongpu/particles/startPosition/detail/WeightMacroParticles.hpp"
+
+#include <boost/mpl/integral_c.hpp>
+
 
 namespace picongpu
 {
@@ -31,79 +32,47 @@ namespace particles
 {
 namespace startPosition
 {
+namespace acc
+{
 
     template< typename T_ParamClass >
     struct OnePositionImpl
     {
-
-        typedef T_ParamClass ParamClass;
-
-        template< typename T_SpeciesType >
-        struct apply
-        {
-            typedef OnePositionImpl< ParamClass > type;
-        };
-
-        HINLINE
-        OnePositionImpl( uint32_t )
-        {
-        }
-
-        DINLINE void
-        init( const DataSpace<simDim>& /*totalCellOffset*/ )
-        {
-        }
-
-        /** Distributes the initial particles all on one position in the cell.
+        /** set in-cell position and weighting
          *
-         * @param curParticle the number of this particle: [0, totalNumParsPerCell-1]
-         * @return float3_X with components between [0.0, 1.0)
-         */
-        DINLINE floatD_X
-        operator()( const uint32_t curParticle )
-        {
-            return ParamClass().
-                   inCellOffset.
-                   template shrink< simDim >();
-        }
-
-        /** If the particles to initialize (numParsPerCell) end up with a
-         *  related particle weighting (macroWeighting) below MIN_WEIGHTING,
-         *  reduce the number of particles if possible to satisfy this condition.
+         * @tparam T_Particle pmacc::Particle, particle type
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
          *
-         * @param realParticlesPerCell  the number of real particles in this cell
-         * @return macroWeighting the intended weighting per macro particle
+         * @param particle particle to be manipulated
+         * @param ... unused particles
          */
-        DINLINE MacroParticleCfg
-        mapRealToMacroParticle( const float_X realParticlesPerCell )
+        template<
+            typename T_Particle,
+            typename ... T_Args
+        >
+        DINLINE void operator()(
+            T_Particle & particle,
+            T_Args && ...
+        )
         {
-            uint32_t numParsPerCell = ParamClass::numParticlesPerCell;
-            float_X macroWeighting = float_X(0.0);
-            if( numParsPerCell > 0 )
-                macroWeighting =
-                    realParticlesPerCell /
-                    float_X( numParsPerCell );
-
-            while(
-                macroWeighting < MIN_WEIGHTING &&
-                numParsPerCell > 0
-            )
-            {
-                --numParsPerCell;
-                if( numParsPerCell > 0 )
-                    macroWeighting =
-                        realParticlesPerCell /
-                        float_X( numParsPerCell );
-                else
-                    macroWeighting = float_X( 0.0 );
-            }
-            MacroParticleCfg macroParCfg;
-            macroParCfg.weighting = macroWeighting;
-            macroParCfg.numParticlesPerCell = numParsPerCell;
-
-            return macroParCfg;
+            particle[ position_ ] = T_ParamClass{}.inCellOffset.template shrink< simDim >( );
+            particle[ weighting_ ] = m_weighting;
         }
+
+        DINLINE uint32_t
+        numberOfMacroParticles( float_X const realParticlesPerCell )
+        {
+            return detail::WeightMacroParticles{}(
+                realParticlesPerCell,
+                T_ParamClass::numParticlesPerCell,
+                m_weighting
+            );
+        }
+
+        float_X m_weighting;
     };
+
+} // namespace acc
 } // namespace startPosition
 } // namespace particles
 } // namespace picongpu
