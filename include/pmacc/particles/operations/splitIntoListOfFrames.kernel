@@ -62,7 +62,9 @@ namespace kernel
          * @tparam T_Space pmacc::DataSpace, type for indicies and offsets within the domain
          * @tparam T_Identifier Identifier, type of the identifier for the total domain offset
          * @tparam T_CellDescription pmacc::MappingDescription, type of the domain description
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param acc alpaka accelerator
          * @param counter box with three integers [sharedSrcParticleOffset, numLoadedParticles, numUsedFrames]
          * @param destBox particle box where all particles are copied to (destination)
          * @param srcFrame frame with particles (is used as source)
@@ -79,9 +81,11 @@ namespace kernel
             typename T_SrcFrame,
             typename T_Space,
             typename T_Identifier,
-            typename T_CellDescription
+            typename T_CellDescription,
+            typename T_Acc
         >
         DINLINE void operator()(
+            T_Acc const & acc,
             T_CounterBox counter,
             T_DestBox destBox,
             T_SrcFrame srcFrame,
@@ -104,6 +108,7 @@ namespace kernel
             constexpr uint32_t particlesPerFrame = math::CT::volume< SuperCellSize >::type::value;
 
             PMACC_SMEM(
+                acc,
                 destFramePtr,
                 memory::Array<
                     DestFramePtr,
@@ -111,6 +116,7 @@ namespace kernel
                 >
             );
             PMACC_SMEM(
+                acc,
                 sharedLinearSuperCellIds,
                 memory::Array<
                     int,
@@ -118,6 +124,7 @@ namespace kernel
                 >
             );
             PMACC_SMEM(
+                acc,
                 sharedSrcParticleOffset,
                 int
             );
@@ -146,7 +153,8 @@ namespace kernel
                      */
                     sharedSrcParticleOffset = atomicAdd(
                         &( counter[ 0 ] ),
-                        particlesPerFrame
+                        particlesPerFrame,
+                        ::alpaka::hierarchy::Blocks{}
                     );
                 }
             );
@@ -279,10 +287,15 @@ namespace kernel
                         if( vThreadMasterIdx == linearIdx )
                         {
                             /* counter[2] -> number of used frames */
-                            nvidia::atomicAllInc( &( counter[ 2 ] ) );
+                            nvidia::atomicAllInc(
+                            acc,
+                                &( counter[ 2 ] ),
+                                ::alpaka::hierarchy::Blocks{}
+                            );
                             DestFramePtr tmpFrame = destBox.getEmptyFrame( );
                             destFramePtr[ linearIdx ] = tmpFrame;
                             destBox.setAsFirstFrame(
+                                acc,
                                 tmpFrame,
                                 particlesSuperCellCtx[ idx ] + cellDesc.getGuardingSuperCells( )
                             );
@@ -319,7 +332,11 @@ namespace kernel
                         /* counter[1] -> number of loaded particles
                          * this counter is evaluated on host side
                          * (check that loaded particles by this kernel == loaded particles from HDF5 file)*/
-                        nvidia::atomicAllInc( &( counter[ 1 ] ) );
+                        nvidia::atomicAllInc(
+                            acc,
+                            &( counter[ 1 ] ),
+                            ::alpaka::hierarchy::Blocks{}
+                        );
                     }
                 }
             );

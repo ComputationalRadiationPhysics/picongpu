@@ -69,9 +69,11 @@ namespace picongpu
         template<
             typename T_ParBox,
             typename T_DBox,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator( )(
+            T_Acc const & acc,
             T_ParBox pb,
             T_DBox gEnergy,
             T_Mapping mapper
@@ -90,11 +92,13 @@ namespace picongpu
 
             // shared kinetic energy
             PMACC_SMEM(
+                acc,
                 shEnergyKin,
                 float_X
             );
             // shared total energy
             PMACC_SMEM(
+                acc,
                 shEnergy,
                 float_X
             );
@@ -217,13 +221,15 @@ namespace picongpu
             }
 
             // each virtual thread adds the energies to the shared memory
-            nvidia::atomicAdd(
+            atomicAdd(
                 &shEnergyKin,
-                localEnergyKin
+                localEnergyKin,
+                ::alpaka::hierarchy::Threads{}
             );
-            nvidia::atomicAdd(
+            atomicAdd(
                 &shEnergy,
-                localEnergy
+                localEnergy,
+                ::alpaka::hierarchy::Threads{}
             );
 
             // wait that all virtual threads updated the shared memory energies
@@ -237,14 +243,16 @@ namespace picongpu
                 )
                 {
                     // add kinetic energy
-                    nvidia::atomicAdd(
+                    atomicAdd(
                         &( gEnergy[ 0 ] ),
-                        static_cast< float_64 >( shEnergyKin )
+                        static_cast< float_64 >( shEnergyKin ),
+                        ::alpaka::hierarchy::Blocks{}
                     );
                     // add total energy
-                    nvidia::atomicAdd(
+                    atomicAdd(
                         &( gEnergy[ 1 ] ),
-                        static_cast< float_64 >( shEnergy )
+                        static_cast< float_64 >( shEnergy ),
+                        ::alpaka::hierarchy::Blocks{}
                     );
                 }
             );

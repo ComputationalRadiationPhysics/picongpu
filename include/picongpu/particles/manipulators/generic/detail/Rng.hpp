@@ -58,9 +58,10 @@ namespace detail
         using Distribution = T_Distribution;
         using SpeciesType = T_SpeciesType;
 
+        template< typename T_Acc >
         using RngType = pmacc::nvidia::rng::RNG<
-            nvidia::rng::methods::Xor,
-            Distribution
+            nvidia::rng::methods::Xor< T_Acc >,
+            decltype( Distribution::get( std::declval< T_Acc >( ) ) )
         >;
 
         /** constructor
@@ -75,13 +76,20 @@ namespace detail
         /** create functor a random number generator
          *
          * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+         * @tparam T_Acc alpaka accelerator type
+         *
+         * @param alpaka accelerator
          * @param localSupercellOffset offset (in superCells, without any guards) relative
          *                        to the origin of the local domain
          * @param workerCfg configuration of the worker
          */
-        template< typename T_WorkerCfg >
+        template<
+            typename T_WorkerCfg,
+            typename T_Acc
+        >
         DINLINE
-        RngType operator()(
+        RngType< T_Acc > operator()(
+            T_Acc const & acc,
             DataSpace< simDim > const & localSupercellOffset,
             T_WorkerCfg const & workerCfg
         )
@@ -96,12 +104,13 @@ namespace detail
                 localSupercellOffset * SuperCellSize::toRT( ) +
                     DataSpaceOperations< simDim >::template map< SuperCellSize >( workerCfg.getWorkerIdx( ) )
             );
-            RngType const rng = nvrng::create(
-                nvidia::rng::methods::Xor(
+            RngType< T_Acc > const rng = nvrng::create(
+                nvidia::rng::methods::Xor< T_Acc >(
+                    acc,
                     seed,
                     cellIdx
                 ),
-                Distribution{}
+                Distribution::get( acc )
             );
             return rng;
         }

@@ -163,6 +163,7 @@ namespace picongpu
             memory::CtxArray<
                 decltype(
                     positionFunctor(
+                        acc,
                         std::declval< DataSpace< simDim > const >( ),
                         std::declval< WorkerCfg< numWorkers > const >( )
                     )
@@ -221,6 +222,7 @@ namespace picongpu
 
                     // create an independent position functor for each ccell iin the supercell
                     positionFunctorCtx[ idx ] = positionFunctor(
+                        acc,
                         localSuperCellOffset,
                         WorkerCfg< numWorkers >{ workerIdx }
                     );
@@ -316,7 +318,7 @@ namespace picongpu
                             particle[ multiMask_ ] = 1;
                             particle[ localCellIdx_ ] = linearIdx;
                             // initialize position and weighting
-                            positionFunctorCtx[ idx ]( particle );
+                            positionFunctorCtx[ idx ]( acc, particle );
 
                             numParsPerCellCtx[ idx ]--;
                             if( numParsPerCellCtx[ idx ] > 0 )

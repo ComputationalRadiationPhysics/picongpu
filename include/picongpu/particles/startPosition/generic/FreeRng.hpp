@@ -60,15 +60,22 @@ namespace acc
          *
          * The random number generator is initialized with the first call.
          *
+         * @tparam T_Particle type of the particle to manipulate
+         * @tparam T_Args type of the arguments passed to the user functor
+         * @tparam T_Acc alpaka accelerator type
+         *
+         * @param alpaka accelerator
          * @param particle particle which is given to the user functor
          * @return void is used to enable the operator if the user functor except two arguments
          */
         template<
             typename T_Particle,
-            typename ... T_Args
+            typename ... T_Args,
+            typename T_Acc
         >
         DINLINE
         void operator()(
+            T_Acc const &,
             T_Particle& particle,
             T_Args && ... args
         )
@@ -113,11 +120,13 @@ namespace acc
             T_Seed,
             T_SpeciesType
         >;
+
+        template< typename T_Acc >
+        using RngType = typename RngGenerator::template RngType< T_Acc >;
+
         using Functor = T_Functor;
         using Distribution = T_Distribution;
         using SpeciesType = T_SpeciesType;
-
-        using RngType = typename RngGenerator::RngType;
 
         /** constructor
          *
@@ -168,28 +177,36 @@ namespace acc
         /** create functor for the accelerator
          *
          * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+         * @tparam T_Acc alpaka accelerator type
+         *
+         * @param alpaka accelerator
          * @param localSupercellOffset offset (in superCells, without any guards) relative
          *                        to the origin of the local domain
          * @param workerCfg configuration of the worker
          */
-        template< typename T_WorkerCfg >
-        DINLINE
-        acc::FreeRng<
-            Functor,
-            RngType
-        > operator()(
+        template<
+            typename T_WorkerCfg,
+            typename T_Acc
+        >
+        DINLINE auto
+        operator()(
+            T_Acc const & acc,
             DataSpace< simDim > const & localSupercellOffset,
             T_WorkerCfg const & workerCfg
         )
+        -> acc::FreeRng<
+            Functor,
+            RngType< T_Acc >
+        >
         {
-            RngType const rng = ( *reinterpret_cast< RngGenerator * >( this ) )(
+            RngType< T_Acc > const rng = ( *reinterpret_cast< RngGenerator * >( this ) )(
                 localSupercellOffset,
                 workerCfg
             );
 
             return acc::FreeRng<
                 Functor,
-                RngType
+                RngType< T_Acc >
             >(
                 *reinterpret_cast< Functor * >( this ),
                 rng
