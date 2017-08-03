@@ -305,15 +305,25 @@ void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
     auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
     auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
 
-    AreaMapping<AREA, MappingDesc> mapper(cellDescription);
-    PMACC_KERNEL( KernelAddCurrentToEMF{} )
-        ( mapper.getGridDim(), MappingDesc::SuperCellSize::toRT( ) )
-        ( fieldE->getDeviceDataBox( ),
-          fieldB->getDeviceDataBox( ),
-          this->fieldJ.getDeviceBuffer( ).getDataBox( ),
-          myCurrentInterpolation,
-          mapper
-        );
+    AreaMapping<
+        AREA,
+        MappingDesc
+    > mapper(cellDescription);
+
+    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+        pmacc::math::CT::volume< SuperCellSize >::type::value
+    >::value;
+
+    PMACC_KERNEL( KernelAddCurrentToEMF< numWorkers >{} )(
+        mapper.getGridDim(),
+        numWorkers
+    )(
+        fieldE->getDeviceDataBox( ),
+        fieldB->getDeviceDataBox( ),
+        this->fieldJ.getDeviceBuffer( ).getDataBox( ),
+        myCurrentInterpolation,
+        mapper
+    );
     dc.releaseData( FieldE::getName() );
     dc.releaseData( FieldB::getName() );
 }
