@@ -28,64 +28,57 @@
 #include "picongpu/plugins/EnergyParticles.hpp"
 #include "picongpu/plugins/EnergyFields.hpp"
 #include "picongpu/plugins/SumCurrents.hpp"
-#include "picongpu/plugins/PositionsParticles.hpp"
 #include "picongpu/plugins/BinEnergyParticles.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/plugins/PositionsParticles.hpp"
 #   include "picongpu/plugins/ChargeConservation.hpp"
 #   include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
-#endif
-#if(ENABLE_HDF5 == 1)
-#include "picongpu/plugins/radiation/parameters.hpp"
-#include "picongpu/plugins/radiation/Radiation.hpp"
-#if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
-#   include "picongpu/plugins/PhaseSpace/PhaseSpaceMulti.hpp"
-#endif
-#endif
+#   if(ENABLE_HDF5 == 1)
+#       include "picongpu/plugins/radiation/parameters.hpp"
+#       include "picongpu/plugins/radiation/Radiation.hpp"
+#       include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
+#       include "picongpu/plugins/PhaseSpace/PhaseSpaceMulti.hpp"
+#       include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
+#   endif
 
-#if (ENABLE_INSITU_VOLVIS == 1)
-#include "picongpu/plugins/InSituVolumeRenderer.hpp"
-#endif
+#   if (ENABLE_INSITU_VOLVIS == 1)
+#       include "picongpu/plugins/InSituVolumeRenderer.hpp"
+#   endif
 
-#include <pmacc/mappings/kernel/MappingDescription.hpp>
-
-#include "picongpu/plugins/LiveViewPlugin.hpp"
-#include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
-
-#include "picongpu/plugins/output/images/PngCreator.hpp"
-
-
-// That's an abstract plugin for Png and Binary Density output
-// \todo rename PngPlugin to ImagePlugin or similar
-#include "picongpu/plugins/PngPlugin.hpp"
-
-#if(SIMDIM==DIM3)
-#include "picongpu/plugins/IntensityPlugin.hpp"
-#endif
-#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/plugins/LiveViewPlugin.hpp"
+#   include "picongpu/plugins/output/images/PngCreator.hpp"
 #   include "picongpu/plugins/SliceFieldPrinterMulti.hpp"
+#   include "picongpu/plugins/output/images/Visualisation.hpp"
+    // That's an abstract plugin for Png and Binary Density output
+    // \todo rename PngPlugin to ImagePlugin or similar
+#   include "picongpu/plugins/PngPlugin.hpp"
+
+#   if(SIMDIM==DIM3)
+#       include "picongpu/plugins/IntensityPlugin.hpp"
+#   endif
+
+#   if (ENABLE_ADIOS == 1)
+#       include "picongpu/plugins/adios/ADIOSWriter.hpp"
+#   endif
+
+#   if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+#       include "picongpu/plugins/IsaacPlugin.hpp"
+#   endif
 #endif
-#include "picongpu/plugins/output/images/Visualisation.hpp"
-
-#include <list>
-
-#include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #if (ENABLE_HDF5 == 1)
 #include "picongpu/plugins/hdf5/HDF5Writer.hpp"
-#include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
-#endif
-
-#if (ENABLE_ADIOS == 1)
-#include "picongpu/plugins/adios/ADIOSWriter.hpp"
-#endif
-
-#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
-#include "picongpu/plugins/IsaacPlugin.hpp"
 #endif
 
 #include "picongpu/plugins/ResourceLog.hpp"
+
+#include <pmacc/mappings/kernel/MappingDescription.hpp>
+
+#include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/ISimulationPlugin.hpp"
+
+#include <list>
+
 
 namespace picongpu
 {
@@ -126,27 +119,27 @@ private:
 
     /* define stand alone plugins*/
     typedef bmpl::vector<
-        EnergyFields,
-        SumCurrents
+        EnergyFields
 #if( PMACC_CUDA_ENABLED == 1 )
-        ,ChargeConservation
-#endif
-#if(SIMDIM==DIM3)
-      , IntensityPlugin
-#endif
-#if (ENABLE_INSITU_VOLVIS == 1)
-      , InSituVolumeRenderer
-#endif
-#if (ENABLE_ADIOS == 1)
-      , adios::ADIOSWriter
+        , SumCurrents
+        , ChargeConservation
+#   if(SIMDIM==DIM3)
+        , IntensityPlugin
+#   endif
+#   if (ENABLE_INSITU_VOLVIS == 1)
+        , InSituVolumeRenderer
+#   endif
+#   if (ENABLE_ADIOS == 1)
+        , adios::ADIOSWriter
+#   endif
+#   if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+        , isaacP::IsaacPlugin
+#   endif
 #endif
 #if (ENABLE_HDF5 == 1)
-      , hdf5::HDF5Writer
+        , hdf5::HDF5Writer
 #endif
-#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
-      , isaacP::IsaacPlugin
-#endif
-    , ResourceLog
+        , ResourceLog
     > StandAlonePlugins;
 
 
@@ -171,21 +164,19 @@ private:
 
     /* define species plugins */
     typedef bmpl::vector <
-        CountParticles<bmpl::_1>,
         EnergyParticles<bmpl::_1>,
-        BinEnergyParticles<bmpl::_1>,
-        LiveViewPlugin<bmpl::_1>,
-        PositionsParticles<bmpl::_1>,
-        PngPlugin< Visualisation<bmpl::_1, PngCreator> >
+        BinEnergyParticles<bmpl::_1>
 #if( PMACC_CUDA_ENABLED == 1 )
+        , CountParticles<bmpl::_1>
+        , LiveViewPlugin<bmpl::_1>
+        , PositionsParticles<bmpl::_1>
+        , PngPlugin< Visualisation<bmpl::_1, PngCreator> >
         ,plugins::particleMerging::ParticleMerger<bmpl::_1>
-#endif
-#if(ENABLE_HDF5 == 1)
-      , Radiation<bmpl::_1>
-      , PerSuperCell<bmpl::_1>
-#   if( PMACC_CUDA_ENABLED == 1 )
-      , ParticleCalorimeter<bmpl::_1>
-      , PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, bmpl::_1>
+#   if(ENABLE_HDF5 == 1)
+        , Radiation<bmpl::_1>
+        , PerSuperCell<bmpl::_1>
+        , ParticleCalorimeter<bmpl::_1>
+        , PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, bmpl::_1>
 #   endif
 #endif
     > UnspecializedSpeciesPlugins;
