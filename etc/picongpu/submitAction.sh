@@ -49,3 +49,7 @@ cp -a $TBG_cfgPath/openib.conf tbg
 cp -a $TBG_cfgPath/cuda.filter tbg
 cp -a $TBG_cfgPath/scorep.filter tbg
 cp -a $0 tbg
+if [ -f $TBG_cfgPath/cpuNumaStarter.sh ]
+then
+  cp -a $TBG_cfgPath/cpuNumaStarter.sh tbg
+fi
