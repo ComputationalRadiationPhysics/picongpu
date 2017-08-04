@@ -24,7 +24,6 @@
 #include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/densityProfiles/IProfile.def"
-#include "picongpu/particles/startPosition/IFunctor.def"
 #include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/manipulators/manipulators.def"
@@ -90,7 +89,7 @@ struct CreateDensity
 
     typedef typename bmpl::apply1<T_PositionFunctor, SpeciesType>::type UserPositionFunctor;
     /* add interface for compile time interface validation*/
-    typedef startPosition::IFunctor<UserPositionFunctor> PositionFunctor;
+    typedef manipulators::IUnary<UserPositionFunctor> PositionFunctor;
 
     HINLINE void operator()( const uint32_t currentStep )
     {

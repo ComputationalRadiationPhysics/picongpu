@@ -18,16 +18,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/startPosition/MacroParticleCfg.hpp"
-#include <pmacc/nvidia/rng/RNG.hpp>
-#include <pmacc/nvidia/rng/methods/Xor.hpp>
+#include "picongpu/particles/startPosition/generic/FreeRng.def"
+#include "picongpu/particles/startPosition/detail/WeightMacroParticles.hpp"
+
 #include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
-#include <pmacc/mpi/SeedPerRank.hpp>
-#include <pmacc/traits/GetUniqueTypeId.hpp>
+
+#include <boost/mpl/integral_c.hpp>
+
 
 namespace picongpu
 {
@@ -35,100 +35,56 @@ namespace particles
 {
 namespace startPosition
 {
-
-namespace nvrng = nvidia::rng;
-namespace rngMethods = nvidia::rng::methods;
-namespace rngDistributions = nvidia::rng::distributions;
-
-template<typename T_ParamClass, typename T_SpeciesType>
-struct RandomImpl
+namespace acc
 {
-    typedef T_ParamClass ParamClass;
-    typedef T_SpeciesType SpeciesType;
-    typedef typename MakeIdentifier<SpeciesType>::type SpeciesName;
 
-    HINLINE RandomImpl(uint32_t currentStep)
+    template< typename T_ParamClass >
+    struct RandomImpl
     {
-        typedef typename SpeciesType::FrameType FrameType;
-
-        mpi::SeedPerRank<simDim> seedPerRank;
-        GlobalSeed globalSeed;
-        seed = globalSeed() ^
-               pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() ^
-               POSITION_SEED;
-        seed = seedPerRank(seed) ^ currentStep;
-
-        const uint32_t numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
-        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-        localCells = subGrid.getLocalDomain().size;
-        totalGpuOffset = subGrid.getLocalDomain( ).offset;
-        totalGpuOffset.y( ) += numSlides * localCells.y( );
-    }
-
-    DINLINE void init(const DataSpace<simDim>& totalCellOffset)
-    {
-        const DataSpace<simDim> localCellIdx(totalCellOffset - totalGpuOffset);
-        const uint32_t cellIdx = DataSpaceOperations<simDim>::map(
-                                                                  localCells,
-                                                                  localCellIdx);
-        rng = nvrng::create(rngMethods::Xor(seed, cellIdx), rngDistributions::Uniform_float());
-    }
-
-    /** Distributes the initial particles uniformly random within the cell.
-     *
-     * @param rng a reference to an initialized, UNIFORM random number generator
-     * @param totalNumParsPerCell the total number of particles to init for this cell
-     * @param curParticle the number of this particle: [0, totalNumParsPerCell-1]
-     * @return float3_X with components between [0.0, 1.0)
-     */
-    DINLINE floatD_X operator()(const uint32_t)
-    {
-        floatD_X result;
-        for (uint32_t i = 0; i < simDim; ++i)
-            result[i] = rng();
-
-        return result;
-    }
-
-    /** If the particles to initialize (numParsPerCell) end up with a
-     *  related particle weighting (macroWeighting) below MIN_WEIGHTING,
-     *  reduce the number of particles if possible to satisfy this condition.
-     *
-     * @param realParticlesPerCell  the number of real particles in this cell
-     * @return macroWeighting the intended weighting per macro particle
-     */
-    DINLINE MacroParticleCfg mapRealToMacroParticle(const float_X realParticlesPerCell)
-    {
-        uint32_t numParsPerCell = ParamClass::numParticlesPerCell;
-        float_X macroWeighting = float_X(0.0);
-        if (numParsPerCell > 0)
-            macroWeighting = realParticlesPerCell / float_X(numParsPerCell);
-
-        while (macroWeighting < MIN_WEIGHTING &&
-               numParsPerCell > 0)
+        /** set in-cell position and weighting
+         *
+         * @tparam T_Rng pmacc::nvidia::rng::RNG, type of the random number generator
+         * @tparam T_Particle pmacc::Particle, particle type
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+         *
+         * @param rng random number generator
+         * @param particle particle to be manipulated
+         * @param ... unused particles
+         */
+        template<
+            typename T_Rng,
+            typename T_Particle,
+            typename ... T_Args
+        >
+        DINLINE void operator()(
+            T_Rng & rng,
+            T_Particle & particle,
+            T_Args && ...
+        )
         {
-            --numParsPerCell;
-            if (numParsPerCell > 0)
-                macroWeighting = realParticlesPerCell / float_X(numParsPerCell);
-            else
-                macroWeighting = float_X(0.0);
+            floatD_X tmpPos;
+
+            for( uint32_t d = 0; d < simDim; ++d )
+                tmpPos[ d ] = rng( );
+
+            particle[ position_ ] = tmpPos;
+            particle[ weighting_ ] = m_weighting;
         }
-        MacroParticleCfg macroParCfg;
-        macroParCfg.weighting = macroWeighting;
-        macroParCfg.numParticlesPerCell = numParsPerCell;
 
-        return macroParCfg;
-    }
+        DINLINE uint32_t
+        numberOfMacroParticles( float_X const realParticlesPerCell )
+        {
+            return detail::WeightMacroParticles{}(
+                realParticlesPerCell,
+                T_ParamClass::numParticlesPerCell,
+                m_weighting
+            );
+        }
 
-protected:
-    typedef pmacc::nvidia::rng::RNG<rngMethods::Xor, rngDistributions::Uniform_float> RngType;
+        float_X m_weighting;
+    };
 
-    PMACC_ALIGN(rng, RngType);
-    PMACC_ALIGN(seed,uint32_t);
-    PMACC_ALIGN(localCells, DataSpace<simDim>);
-    PMACC_ALIGN(totalGpuOffset, DataSpace<simDim>);
-};
-
-} //namespace particlesStartPosition
-} //namespace particles
-} //namespace picongpu
+} // namespace acc
+} // namespace startPosition
+} // namespace particles
+} // namespace picongpu
