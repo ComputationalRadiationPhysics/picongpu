@@ -443,6 +443,7 @@ namespace detail
     {
         int num_gpus = 0; //number of gpus
         cudaGetDeviceCount(&num_gpus);
+#if (PMACC_CUDA_ENABLED == 1)
         //##ERROR handling
         if (num_gpus < 1) //check if cuda device is found
         {
@@ -453,7 +454,7 @@ namespace detail
             std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
             throw std::runtime_error("CUDA capable devices can't be selected");
         }
-
+#endif
 
         int maxTries = num_gpus;
 #if (PMACC_CUDA_ENABLED == 1)
