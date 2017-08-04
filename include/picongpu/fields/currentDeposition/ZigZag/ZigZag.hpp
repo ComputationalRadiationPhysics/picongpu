@@ -242,8 +242,9 @@ struct ZigZag
      * @param charge charge of the macro particle
      * @param deltaTime dime difference of one simulation time step
      */
-    template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
-    DINLINE void operator()(DataBoxJ dataBoxJ,
+    template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType, typename T_Acc >
+    DINLINE void operator()(const T_Acc& acc,
+                            DataBoxJ dataBoxJ,
                             const PosType pos1,
                             const VelType velocity,
                             const ChargeType charge, const float_X deltaTime)
@@ -318,7 +319,7 @@ struct ZigZag
 
             /* calculate x,y,z component of the current*/
             ForEach<Components, AssignOneDirection<bmpl::_1> > callAssignOneDirection;
-            callAssignOneDirection(forward(cursorJ), inCellPos, flux);
+            callAssignOneDirection(acc, forward(cursorJ), inCellPos, flux);
         }
     }
 

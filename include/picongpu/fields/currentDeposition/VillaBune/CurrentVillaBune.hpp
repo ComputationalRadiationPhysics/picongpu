@@ -38,8 +38,9 @@ using namespace pmacc;
 template<typename T_ParticleShape>
 struct VillaBune
 {
-    template<class BoxJ, typename PosType, typename VelType, typename ChargeType >
-    DINLINE void operator()(BoxJ& boxJ_par, /*box which is shifted to particles cell*/
+    template<class BoxJ, typename PosType, typename VelType, typename ChargeType, typename T_Acc >
+    DINLINE void operator()(const T_Acc& acc,
+                            BoxJ& boxJ_par, /*box which is shifted to particles cell*/
                             const PosType pos,
                             const VelType velocity,
                             const ChargeType charge, const float_X deltaTime)
@@ -59,7 +60,7 @@ struct VillaBune
 
         const PosType oldPos = (PosType) (precisionCast<float_X > (pos) - deltaPos);
 
-        addCurrentSplitX(oldPos, pos, charge, boxJ_par, deltaTime);
+        addCurrentSplitX(acc, oldPos, pos, charge, boxJ_par, deltaTime);
     }
 
     static pmacc::traits::StringProperty getStringProperties()

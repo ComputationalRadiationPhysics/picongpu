@@ -81,7 +81,7 @@ namespace picongpu
                  << MALLOCMC_VERSION_MINOR << "."
                  << MALLOCMC_VERSION_PATCH;
 #endif
-        
+
         std::stringstream boost;
         boost << BOOST_PP_STRINGIZE(BOOST_VERSION);
 

@@ -200,6 +200,7 @@ namespace acc
         >
         {
             RngType< T_Acc > const rng = ( *reinterpret_cast< RngGenerator * >( this ) )(
+                acc,
                 localSupercellOffset,
                 workerCfg
             );

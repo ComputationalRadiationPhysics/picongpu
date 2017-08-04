@@ -187,7 +187,7 @@ namespace picongpu
                         globalOffset = atomicAdd(
                             counter,
                             localCounter,
-                            :alpaka::hierarchy::Blocks{}
+                            ::alpaka::hierarchy::Blocks{}
                         );
                     }
                 );

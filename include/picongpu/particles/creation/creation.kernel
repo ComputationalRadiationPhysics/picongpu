@@ -129,7 +129,7 @@ struct CreateParticlesKernel
         const pmacc::math::Int<simDim> localCellIndex = cellIndex - this->guardSuperCells * SuperCellSize::toRT();
 
         /* init particle creator functor     */
-        particleCreator.init(blockCell, linearThreadIdx, localCellIndex);
+        particleCreator.init(acc, blockCell, linearThreadIdx, localCellIndex);
 
         /* Declare counter in shared memory that will later tell the current fill level or
          * occupation of the newly created target frames.

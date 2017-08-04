@@ -93,7 +93,7 @@ namespace helperFields
 
             // shared memory for reduce
             PMACC_SMEM(
-                acc, 
+                acc,
                 shReduceBuffer,
                 memory::Array<
                     ValueType,
@@ -120,6 +120,7 @@ namespace helperFields
 
 
             reduce(
+                acc,
                 mappings::threads::WorkerCfg< numWorkers >( linearThreadIdx ),
                 numAvgCells,
                 /* access inside local average view */

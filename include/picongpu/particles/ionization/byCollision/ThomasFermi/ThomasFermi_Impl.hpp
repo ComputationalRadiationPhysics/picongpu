@@ -252,6 +252,7 @@ namespace ionization
                 /* copy fields from global to shared */
                 auto fieldEneBlock = eneBox.shift(blockCell);
                 collective(
+                          acc,
                           assign,
                           cachedEne,
                           fieldEneBlock

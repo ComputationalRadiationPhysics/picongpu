@@ -183,6 +183,7 @@ namespace ionization
                 /* copy fields from global to shared */
                 auto fieldEBlock = eBox.shift(blockCell);
                 collective(
+                          acc,
                           assign,
                           cachedE,
                           fieldEBlock

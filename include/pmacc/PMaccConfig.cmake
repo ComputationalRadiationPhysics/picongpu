@@ -111,19 +111,19 @@ if(NOT cupla_ALPAKA_PROVIDER)
 endif()
 
 if(${PMACC_CUPLA_PROVIDER} STREQUAL "intern")
-    find_package(cupla 
+    find_package(cupla
         REQUIRED
         CONFIG
-        PATHS "${PMacc_DIR}/../../thirdParty/cupla"     
-        NO_DEFAULT_PATH 
-        NO_CMAKE_ENVIRONMENT_PATH 
+        PATHS "${PMacc_DIR}/../../thirdParty/cupla"
+        NO_DEFAULT_PATH
+        NO_CMAKE_ENVIRONMENT_PATH
         NO_CMAKE_PATH
         NO_SYSTEM_ENVIRONMENT_PATH
         NO_CMAKE_PACKAGE_REGISTRY
         NO_CMAKE_BUILDS_PATH
         NO_CMAKE_SYSTEM_PATH
         NO_CMAKE_SYSTEM_PACKAGE_REGISTRY
-        NO_CMAKE_FIND_ROOT_PATH  
+        NO_CMAKE_FIND_ROOT_PATH
     )
 else()
     find_package("cupla" PATHS $ENV{CUPLA_ROOT} REQUIRED)

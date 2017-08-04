@@ -41,7 +41,7 @@ namespace nvidia
         struct AtomicAllInc
         {
             template< typename T_Acc, typename T_Hierarchy >
-            DINLINE T_Type
+            HDINLINE T_Type
             operator()(const T_Acc& acc, T_Type* ptr, const T_Hierarchy& hierarchy)
             {
                 return ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc, ptr, T_Type(1), hierarchy);
@@ -85,7 +85,7 @@ namespace nvidia
         struct AtomicAllIncKepler<T_Type, true>
         {
             template< typename T_Acc, typename T_Hierarchy >
-            DINLINE T_Type
+            HDINLINE T_Type
             operator()(const T_Acc& acc,T_Type* ptr, const T_Hierarchy& hierarchy)
             {
                 /* Get a bitmask with 1 for each thread in the warp, that executes this */
@@ -112,7 +112,7 @@ namespace nvidia
         struct AtomicAllIncKepler<long long int, true>
         {
             template< typename T_Acc, typename T_Hierarchy >
-            DINLINE long long int
+            HDINLINE long long int
             operator()(const T_Acc& acc, long long int* ptr, const T_Hierarchy&, const T_Hierarchy& hierarchy )
             {
                 return static_cast<long long int>(
@@ -143,7 +143,7 @@ namespace nvidia
  *
  */
 template<typename T, typename T_Acc, typename T_Hierarchy>
-DINLINE
+HDINLINE
 T atomicAllInc(const T_Acc& acc, T *ptr, const T_Hierarchy& hierarchy)
 {
     return detail::AtomicAllInc<T, (PMACC_CUDA_ARCH >= 300) >()(acc, ptr, hierarchy);

@@ -115,7 +115,7 @@ namespace picongpu
                 T_BlockDescription,
                 numWorkers
             > collective( workerIdx );
-            collective( 
+            collective(
                 acc,
                 set,
                 cachedVal

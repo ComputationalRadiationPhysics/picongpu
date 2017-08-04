@@ -146,7 +146,7 @@ struct KernelIonizeParticles
             return; //end kernel if we have no frames
 
         /* caching of E- and B- fields and initialization of random generator if needed */
-        frameIonizer.init(blockCell, linearThreadIdx, localCellIndex);
+        frameIonizer.init(acc, blockCell, linearThreadIdx, localCellIndex);
 
         /* Declare counter in shared memory that will later tell the current fill level or
          * occupation of the newly created target electron frames.

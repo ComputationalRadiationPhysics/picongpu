@@ -176,6 +176,7 @@ namespace ionization
                     pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
                 > collective( linearThreadIdx );
                 collective(
+                          acc,
                           assign,
                           cachedB,
                           fieldBBlock

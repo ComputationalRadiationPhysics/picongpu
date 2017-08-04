@@ -128,9 +128,12 @@ struct Esirkepov<T_ParticleShape, DIM2>
             line,
             cellSize.x()
         );
-        cptCurrent1D(DataSpace<DIM2>(
+        cptCurrent1D(
             acc,
-            leaveCell[1],leaveCell[0]),
+            DataSpace<DIM2>(
+                leaveCell[1],
+                leaveCell[0]
+            ),
             twistVectorFieldAxes<pmacc::math::CT::Int < 1, 0 > >(cursorJ),
             rotateOrigin < 1, 0 > (line),
             cellSize.y()
