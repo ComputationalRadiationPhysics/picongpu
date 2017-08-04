@@ -55,7 +55,7 @@ Usage
    usage/basics
    usage/param
    usage/particles
-   usage/plugin
+   usage/plugins
    usage/tbg
    usage/examples
    usage/workflows
