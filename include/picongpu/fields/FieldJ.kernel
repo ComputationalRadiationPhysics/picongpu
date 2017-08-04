@@ -317,54 +317,95 @@ private:
     const PMACC_ALIGN(m_deltaTime, float_32);
 };
 
+/** add current to electric and magnetic field
+ *
+ * @tparam T_numWorkers number of workers
+ */
+template<
+    uint32_t T_numWorkers
+>
 struct KernelAddCurrentToEMF
 {
-    template<class T_CurrentInterpolation, class T_Mapping>
-    DINLINE void operator()(typename FieldE::DataBoxType fieldE,
-                                          typename FieldB::DataBoxType fieldB,
-                                          J_DataBox fieldJ,
-                                          T_CurrentInterpolation currentInterpolation,
-                                          T_Mapping mapper) const
+    template<
+        typename T_CurrentInterpolation,
+        typename T_Mapping
+    >
+    DINLINE void operator()(
+        typename FieldE::DataBoxType fieldE,
+        typename FieldB::DataBoxType fieldB,
+        J_DataBox fieldJ,
+        T_CurrentInterpolation currentInterpolation,
+        T_Mapping mapper
+    ) const
     {
+        using namespace mappings::threads;
+
         /* Caching of fieldJ */
         typedef SuperCellDescription<
-                    SuperCellSize,
-                    typename T_CurrentInterpolation::LowerMargin,
-                    typename T_CurrentInterpolation::UpperMargin
-                    > BlockArea;
+            SuperCellSize,
+            typename T_CurrentInterpolation::LowerMargin,
+            typename T_CurrentInterpolation::UpperMargin
+        > BlockArea;
 
-        auto cachedJ = CachedBox::create < 0, typename J_DataBox::ValueType > (BlockArea());
+        constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
+        constexpr uint32_t numWorkers = T_numWorkers;
+
+        uint32_t const workerIdx = threadIdx.x;
+
+        auto cachedJ = CachedBox::create<
+            0,
+            typename J_DataBox::ValueType
+        >( BlockArea( ) );
 
         nvidia::functors::Assign assign;
-        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
-        const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
+        DataSpace< simDim > const block(
+            mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+        );
+        DataSpace< simDim > const blockCell = block * MappingDesc::SuperCellSize::toRT();
 
-        const DataSpace<simDim > threadIndex(threadIdx);
+
         auto fieldJBlock = fieldJ.shift(blockCell);
 
         ThreadCollective<
             BlockArea,
-            pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
-        > collective(
-            DataSpaceOperations< BlockArea::Dim >::template map<
-                typename BlockArea::SuperCellSize
-            >( threadIndex )
-        );
+            numWorkers
+        > collective( workerIdx );
+
         collective(
-                  assign,
-                  cachedJ,
-                  fieldJBlock
-                  );
+            assign,
+            cachedJ,
+            fieldJBlock
+        );
 
-        __syncthreads();
+        __syncthreads( );
 
-        const DataSpace<T_Mapping::Dim> cell(blockCell + threadIndex);
+        ForEachIdx<
+            IdxConfig<
+                cellsPerSuperCell,
+                numWorkers
+            >
+        >{ workerIdx }(
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
+            {
+                /* cell index within the superCell */
+                DataSpace< simDim > const cellIdx =
+                    DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
+                DataSpace< simDim > const cell( blockCell + cellIdx );
 
-        // Amperes Law:
-        //   Change of the dE = - j / EPS0 * dt
-        //                        j = current density (= current per area)
-        //                          = fieldJ
-        currentInterpolation( fieldE.shift(cell), fieldB.shift(cell), cachedJ.shift(threadIndex) );
+                // Amperes Law:
+                //   Change of the dE = - j / EPS0 * dt
+                //                        j = current density (= current per area)
+                //                          = fieldJ
+                currentInterpolation(
+                    fieldE.shift( cell ),
+                    fieldB.shift( cell ),
+                    cachedJ.shift( cellIdx )
+                );
+            }
+        );
     }
 };
 
