@@ -39,6 +39,4 @@ PIConGPU command line option description
 Additional Tools
 ^^^^^^^^^^^^^^^^
 
-.. note::
-
-   Add openPMD references.
+See our :ref:`openPMD <pp-openPMD>` chapter.
