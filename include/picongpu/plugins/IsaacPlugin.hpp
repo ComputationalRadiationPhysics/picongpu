@@ -285,7 +285,7 @@ public:
                 json_t* js;
                 if ( meta && ( js = json_object_get(meta, "interval") ) )
                 {
-                    render_interval = max( int(1), int( json_integer_value ( js ) ) );
+                    render_interval = math::max( int(1), int( json_integer_value ( js ) ) );
                     //Feedback for other clients than the changing one
                     if (rank == 0)
                         json_object_set_new( visualization->getJsonMetaRoot(), "interval", json_integer( render_interval ) );
@@ -366,7 +366,7 @@ private:
             MPI_Comm_size(MPI_COMM_WORLD, &numProc);
             if ( MovingWindow::getInstance().isSlidingWindowActive() )
                 movingWindow = true;
-            float_X minCellSize = min( cellSize[0], min( cellSize[1], cellSize[2] ) );
+            float_X minCellSize = math::min( cellSize[0], math::min( cellSize[1], cellSize[2] ) );
             float3_X cellSizeFactor = cellSize / minCellSize;
 
             const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();

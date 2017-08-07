@@ -80,7 +80,7 @@ private:
         if (math::float2int_rd(oldPos.x()) != math::float2int_rd(newPos.x()))
         {
             const float3_X interPos = intersectXPlane(oldPos, newPos,
-                                                      max(math::float2int_rd(oldPos.x()), math::float2int_rd(newPos.x())));
+                                                      math::max(math::float2int_rd(oldPos.x()), math::float2int_rd(newPos.x())));
             addCurrentSplitY(oldPos, interPos, charge, mem, deltaTime);
             addCurrentSplitY(interPos, newPos, charge, mem, deltaTime);
             return;
@@ -188,7 +188,7 @@ private:
         if (math::float2int_rd(oldPos.z()) != math::float2int_rd(newPos.z()))
         {
             const float3_X interPos = intersectZPlane(oldPos, newPos,
-                                                      max(math::float2int_rd(oldPos.z()), math::float2int_rd(newPos.z())));
+                                                      math::max(math::float2int_rd(oldPos.z()), math::float2int_rd(newPos.z())));
             float3_X deltaPos = interPos - oldPos;
             float3_X meanPos = oldPos + float_X(0.5) * deltaPos;
             addCurrentToSingleCell(meanPos, deltaPos, charge, mem, deltaTime);
@@ -214,7 +214,7 @@ private:
         if (math::float2int_rd(oldPos.y()) != math::float2int_rd(newPos.y()))
         {
             const float3_X interPos = intersectYPlane(oldPos, newPos,
-                                                      max(math::float2int_rd(oldPos.y()), math::float2int_rd(newPos.y())));
+                                                      math::max(math::float2int_rd(oldPos.y()), math::float2int_rd(newPos.y())));
             addCurrentSplitZ(oldPos, interPos, charge, mem, deltaTime);
             addCurrentSplitZ(interPos, newPos, charge, mem, deltaTime);
             return;

@@ -68,7 +68,7 @@ struct FoilFunctor
         {
             return float_X(1.0);
         }
-        const float_64 d = min(abs(pos.y() - plateauPos + plateauLength / 2.0),
+        const float_64 d = math::min(abs(pos.y() - plateauPos + plateauLength / 2.0),
                                abs(pos.y() - plateauPos - plateauLength / 2.0));
         return exp(-d*d / (2.0 * rampLength*rampLength));
     }
