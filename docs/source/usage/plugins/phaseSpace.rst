@@ -37,8 +37,8 @@ Option                                 Usage                                    
 Output
 ^^^^^^
 
-Values per phase space bin are given over *charge density*.
-In order to scale to a simpler *charge of particles* per :math:`\mathrm{d}r_i` and :math:`\mathrm{d}p_i` -bin multiply by:
+Values are given as *charge density* per phase space bin.
+In order to scale to a simpler *charge of particles* per :math:`\mathrm{d}r_i` and :math:`\mathrm{d}p_i` -bin multiply by the cell volume:
 
 .. code:: python
 

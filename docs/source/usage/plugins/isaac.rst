@@ -19,10 +19,10 @@ Command line option          Description
 ``--isaac.period N``        Sets up, that every *N* th timestep an image will be rendered.
                             This parameter can be changed later with the controlling client.
 ``--isaac.name NAME``       Sets the *NAME* of the simulation, which is shown at the client.
-``--isaac.url URL``         *URL* of the needed and running isaac server.
+``--isaac.url URL``         *URL* of the required and running isaac server.
                             Host names and IPs are supported.
 ``--isaac.port PORT``       *PORT* of the isaac server.
-                            The default value is ``2458`` (for the in-situ plugins), but may be needed to changed for tunneling reasons or if more than one server shall run on the very same hardware.
+                            The default value is ``2458`` (for the in-situ plugins), but may be needed to be changed for tunneling reasons or if more than one server shall run on the very same hardware.
 ``--isaac.width WIDTH``     Setups the *WIDTH* and *HEIGHT* of the created image(s).
 ``--isaac.height HEIGHT``   Default is ``1024x768``.
 ``--isaac.direct_pause``    If activated ISAAC will pause directly after the simulation started.
