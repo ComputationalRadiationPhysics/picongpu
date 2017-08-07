@@ -71,7 +71,7 @@ namespace bessel
     };
 
     template< >
-    struct J0<float>
+    struct J0< float >
     {
         using result = float;
 
@@ -89,7 +89,7 @@ namespace bessel
     };
 
     template< >
-    struct J1<float>
+    struct J1< float >
     {
         using result = float;
 
@@ -107,7 +107,10 @@ namespace bessel
     };
 
     template< >
-    struct Jn<int, float>
+    struct Jn<
+        int,
+        float
+    >
     {
         using result = float;
 
@@ -131,7 +134,7 @@ namespace bessel
     };
 
     template< >
-    struct Y0<float>
+    struct Y0< float >
     {
         using result = float;
 
@@ -167,7 +170,10 @@ namespace bessel
     };
 
     template< >
-    struct Yn< int, float >
+    struct Yn<
+        int,
+        float
+    >
     {
         using result = float;
 
