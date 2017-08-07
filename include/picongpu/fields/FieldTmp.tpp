@@ -18,33 +18,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/fields/FieldTmp.kernel"
+#include "MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/traits/GetMargin.hpp"
+#include "picongpu/particles/traits/GetInterpolation.hpp"
+
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
-
 #include <pmacc/dataManagement/DataConnector.hpp>
-
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/fields/tasks/FieldFactory.hpp>
-
 #include <pmacc/dimensions/SuperCellDescription.hpp>
-
-#include "picongpu/fields/FieldTmp.kernel"
-
-#include "MaxwellSolver/Solvers.hpp"
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
-
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/fields/operations/CopyGuardToExchange.hpp>
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>
-#include "picongpu/particles/traits/GetInterpolation.hpp"
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-#include "picongpu/traits/GetMargin.hpp"
 #include <pmacc/traits/GetUniqueTypeId.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <boost/mpl/accumulate.hpp>
 #include <string>
@@ -206,13 +201,24 @@ namespace picongpu
         typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
         FieldTmp::DataBoxType tmpBox = this->fieldTmp->getDeviceBuffer( ).getDataBox( );
         FrameSolver solver;
+        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+            pmacc::math::CT::volume< SuperCellSize >::type::value
+        >::value;
 
         do
         {
-            PMACC_KERNEL( KernelComputeSupercells<BlockArea, AREA>{} )
-                ( mapper.getGridDim( ), mapper.getSuperCellSize( ) )
-                ( tmpBox,
-                  pBox, solver, mapper );
+            PMACC_KERNEL( KernelComputeSupercells<
+                numWorkers,
+                BlockArea
+            >{ } )(
+                mapper.getGridDim( ),
+                numWorkers
+            )(
+                tmpBox,
+                pBox,
+                solver,
+                mapper
+            );
         } while( mapper.next( ) );
     }
 

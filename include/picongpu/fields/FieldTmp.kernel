@@ -31,71 +31,130 @@
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
 
 
 namespace picongpu
 {
     using namespace pmacc;
 
-    template< class BlockDescription_, uint32_t AREA >
+    /** discretized field-representation of a derived species property
+     *
+     * The derived property of all particles from a species is evaluated with
+     * the species' shape to the field grid and reduced of all contributing
+     * particles.
+     *
+     * @tparam T_numWorkers number of workers
+     * @tparam T_BlockDescription stance area description of the user functor
+     */
+    template<
+        uint32_t T_numWorkers,
+        typename T_BlockDescription
+    >
     struct KernelComputeSupercells
     {
-        template<class TmpBox, class ParBox, class FrameSolver, class Mapping>
-        DINLINE void operator()( TmpBox fieldTmp, ParBox boxPar, FrameSolver frameSolver, Mapping mapper ) const
+        /** derive species property
+         *
+         * @tparam T_TmpBox pmacc::DataBox, type of the scalar field box
+         * @tparam T_ParBox pmacc::ParticlesBox, particle box type
+         * @tparam T_FrameSolver functor type to operate on a particle frame
+         * @tparam T_Mapping mapper functor type
+         *
+         * @param fieldJ field with particle current
+         * @param boxPar particle memory
+         * @param frameSolver functor to calculate the current for a frame
+         * @param mapper functor to map a block to a supercell
+         */
+        template<
+            typename T_TmpBox,
+            typename T_ParBox,
+            typename T_FrameSolver,
+            typename T_Mapping
+        >
+        DINLINE void operator()(
+            T_TmpBox fieldTmp,
+            T_ParBox boxPar,
+            T_FrameSolver frameSolver,
+            T_Mapping mapper
+        ) const
         {
-            typedef typename ParBox::FramePtr FramePtr;
-            typedef typename BlockDescription_::SuperCellSize SuperCellSize;
-            const DataSpace<simDim> block( mapper.getSuperCellIndex( DataSpace<simDim > ( blockIdx ) ) );
+            using namespace mappings::threads;
 
+            using FramePtr = typename T_ParBox::FramePtr;
+            using SuperCellSize = typename T_BlockDescription::SuperCellSize;
 
-            const DataSpace<simDim > threadIndex( threadIdx );
-            const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > ( threadIndex );
+            constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
 
-            PMACC_SMEM( frame, FramePtr );
+            uint32_t const workerIdx = threadIdx.x;
 
-            PMACC_SMEM( particlesInSuperCell, lcellId_t );
+            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim > ( blockIdx ) ) );
 
+            FramePtr frame;
+            lcellId_t particlesInSuperCell;
 
-            if( linearThreadIdx == 0 )
-            {
-                frame = boxPar.getLastFrame( block );
-                particlesInSuperCell = boxPar.getSuperCell( block ).getSizeLastFrame( );
-            }
-            __syncthreads( );
+            frame = boxPar.getLastFrame( block );
+            particlesInSuperCell = boxPar.getSuperCell( block ).getSizeLastFrame( );
 
             if( !frame.isValid() )
                 return; //end kernel if we have no frames
 
-            auto cachedVal = CachedBox::create < 0, typename TmpBox::ValueType > ( BlockDescription_( ) );
-            Set<typename TmpBox::ValueType > set( float_X( 0.0 ) );
+            auto cachedVal = CachedBox::create <
+                0,
+                typename T_TmpBox::ValueType
+            > ( T_BlockDescription( ) );
+            Set< typename T_TmpBox::ValueType > set( float_X( 0.0 ) );
 
             ThreadCollective<
-                BlockDescription_,
-                pmacc::math::CT::volume< typename BlockDescription_::SuperCellSize >::type::value
-            > collective( linearThreadIdx );
+                T_BlockDescription,
+                numWorkers
+            > collective( workerIdx );
             collective( set, cachedVal );
 
             __syncthreads( );
+
             while( frame.isValid() )
             {
-                if( linearThreadIdx < particlesInSuperCell )
-                {
-                    frameSolver( *frame, linearThreadIdx, SuperCellSize::toRT(), cachedVal );
-                }
-                __syncthreads( );
-                if( linearThreadIdx == 0 )
-                {
-                    frame = boxPar.getPreviousFrame( frame );
-                    particlesInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value;
-                }
-                __syncthreads( );
+                ForEachIdx<
+                    IdxConfig<
+                        cellsPerSuperCell,
+                        numWorkers
+                    >
+                >{ workerIdx }(
+                    [&](
+                        uint32_t const linearIdx,
+                        uint32_t const
+                    )
+                    {
+                        if( linearIdx < particlesInSuperCell )
+                        {
+                            frameSolver(
+                                *frame,
+                                linearIdx,
+                                SuperCellSize::toRT(),
+                                cachedVal
+                            );
+                        }
+                    }
+                );
+
+                frame = boxPar.getPreviousFrame( frame );
+                particlesInSuperCell = cellsPerSuperCell;
+
+
             }
 
-            nvidia::functors::Add add;
-            const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT( );
-            auto fieldTmpBlock = fieldTmp.shift( blockCell );
-            collective( add, fieldTmpBlock, cachedVal );
             __syncthreads( );
+
+            nvidia::functors::Add add;
+            DataSpace< simDim > const blockCell = block * SuperCellSize::toRT( );
+            auto fieldTmpBlock = fieldTmp.shift( blockCell );
+            collective(
+                add,
+                fieldTmpBlock,
+                cachedVal
+            );
         }
     };
 
