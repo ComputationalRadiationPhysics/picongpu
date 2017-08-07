@@ -35,6 +35,27 @@ struct Max;
 template<typename T1,typename T2>
 struct Min;
 
+template<typename T>
+struct Max<T,T>
+{
+    typedef T result;
+
+    HDINLINE T operator()(T value1, T value2)
+    {
+        return value1 > value2 ? value1 : value2;
+    }
+};
+
+template<typename T>
+struct Min<T,T>
+{
+    typedef T result;
+
+    HDINLINE T operator()(T value1, T value2)
+    {
+        return value1 < value2 ? value1 : value2;
+    }
+};
 
 template<typename T1,typename T2>
 HDINLINE typename Min< T1,T2>::result min(const T1& value1,const T2& value2)

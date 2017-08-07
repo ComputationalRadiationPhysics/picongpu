@@ -60,7 +60,7 @@ namespace currentSolver
             i_1 = math::floor( x_1 );
             i_2 = math::floor( x_2 );
 
-            return i_1 == i_2 ? x_2 : ::max( i_1, i_2 );
+            return i_1 == i_2 ? x_2 : math::max( i_1, i_2 );
         }
     };
 

@@ -331,9 +331,9 @@ private:
     calc_relayPoint(const float_X i_1, const float_X i_2, const float_X x_1, const float_X x_2) const
     {
         /* paper version:
-         *   i_1 == i_2 ? (x_1 + x_2) / float_X(2.0) : ::max(i_1, i_2);
+         *   i_1 == i_2 ? (x_1 + x_2) / float_X(2.0) : math::max(i_1, i_2);
          */
-        return i_1 == i_2 ? x_2 : ::max(i_1, i_2);
+        return i_1 == i_2 ? x_2 : math::max(i_1, i_2);
     }
 
     /** get normalized average in cell particle position
