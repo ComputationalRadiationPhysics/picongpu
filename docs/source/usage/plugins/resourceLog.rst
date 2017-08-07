@@ -25,7 +25,16 @@ Command line option          Description
 Output / Example
 ^^^^^^^^^^^^^^^^
 
-Using the options ``--resourceLog.period 1 --resourceLog.stream stdout --resourceLog.properties rank position currentStep particleCount cellCount --resourceLog.format jsonpp`` will write resource objects to stdout such as:
+Using the options
+
+.. code:: bash
+
+   --resourceLog.period 1 \
+   --resourceLog.stream stdout \
+   --resourceLog.properties rank position currentStep particleCount cellCount \
+   --resourceLog.format jsonpp
+
+will write resource objects to stdout such as:
 
 .. code::
 

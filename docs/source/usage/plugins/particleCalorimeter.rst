@@ -9,6 +9,11 @@ The solid angle bin is solely determined by the particle's momentum vector and n
 
 The calorimeter takes into account all existing particles as well as optionally all particles which have already left the global simulation volume.
 
+External Dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
+
 .param file
 ^^^^^^^^^^^
 

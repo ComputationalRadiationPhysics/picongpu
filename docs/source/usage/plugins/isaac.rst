@@ -4,43 +4,49 @@ ISAAC
 -----
 
 This is a plugin for the in-situ library ISAAC for a live rendering and steering of PIConGPU simulations.
-For Installation notes see :ref`our install notes <install-dependencies>`. 
+
+External Dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+The plugin is available as soon as the :ref:`ISAAC library <install-dependencies>` is compiled in.
 
 .cfg file
 ^^^^^^^^^
 
-========================= =========================================================================
-Command line option       Description
-========================= =========================================================================
-``--isaac.period N``      Sets up, that every _N_ th timestep an image will be rendered.
-                          This parameter can be changed later with the controlling client.
-``--isaac.name NAME``     Sets the _NAME_ of the simulation, which is shown at the client.
-``--isaac.url URL``       _URL_ of the needed and running isaac server.
-                          Host names and IPs are supported.
-``--isaac.port PORT``     _PORT_ of the isaac server.
-                          The default value is ``2458`` (for the in-situ plugins), but may be needed to changed for tunneling reasons or if more than one server shall run on the very same hardware.
-``--isaac.width WIDTH``   Setups the _WIDTH_ and _HEIGHT_ of the created image(s).
-``--isaac.height HEIGHT`` Default is ``1024x768``.
-``--isaac.direct_pause``  If activated ISAAC will pause directly after the simulation started.
-                          Useful for presentations or if you don't want to miss the beginning of the simulation.
-``isaac.quality QUALITY`` Sets the _QUALITY_ of the images, which are compressed right after creation.
-                          Values between ``1`` and ``100`` are possible.
-                          The default is ``90``, but ``70`` does also still produce decent results.
-========================= =========================================================================
+=========================== =========================================================================
+Command line option          Description
+=========================== =========================================================================
+``--isaac.period N``        Sets up, that every *N* th timestep an image will be rendered.
+                            This parameter can be changed later with the controlling client.
+``--isaac.name NAME``       Sets the *NAME* of the simulation, which is shown at the client.
+``--isaac.url URL``         *URL* of the needed and running isaac server.
+                            Host names and IPs are supported.
+``--isaac.port PORT``       *PORT* of the isaac server.
+                            The default value is ``2458`` (for the in-situ plugins), but may be needed to changed for tunneling reasons or if more than one server shall run on the very same hardware.
+``--isaac.width WIDTH``     Setups the *WIDTH* and *HEIGHT* of the created image(s).
+``--isaac.height HEIGHT``   Default is ``1024x768``.
+``--isaac.direct_pause``    If activated ISAAC will pause directly after the simulation started.
+                            Useful for presentations or if you don't want to miss the beginning of the simulation.
+``--isaac.quality QUALITY`` Sets the *QUALITY* of the images, which are compressed right after creation.
+                            Values between ``1`` and ``100`` are possible.
+                            The default is ``90``, but ``70`` does also still produce decent results.
+=========================== =========================================================================
+
+The most important settings for ISAAC are ``--isaac.period``, ``--isaac.name`` and ``--isaac.url``.
+A possible addition for your submission ``tbg`` file could be ``--isaac.period 1 --isaac.name !TBG_jobName --isaac.url YOUR_SERVER``, where the tbg variables ``!TBG_jobName`` is used as name and ``YOUR_SERVER`` needs to be set up by yourself.
+
+.param file
+^^^^^^^^^^^
+
+The ISAAC Plugin has an :ref:`isaac.param <usage-params-plugins>`, which specifies which fields and particles are rendered.
+This can be edited (in your local paramSet), but at runtime also an arbitrary amount of fields (in ISAAC called *sources*) can be deactivated.
+At default every field and every known species are rendered.
 
 Running and steering a simulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First of all you need to build and run the isaac server somewhere.
-Probably the best idea is to use the login or head node of your cluster, otherwise PIConGPU but also the clients will not be able to find it.
-More informations about building and starting ISAAC can be found here: https://github.com/ComputationalRadiationPhysics/isaac/blob/master/INSTALL.md.
-
-The ISAAC Plugin has an `isaac.param`, which specifies which fields and particles are rendered.
-This can be edited (in your local paramSet), but at runtime also an arbitrary amount of fields (in ISAAC called _sources_) can be deactivated.
-At default every field and every known species are rendered.
-
-The most important settings for ISAAC are ``--isaac.period``, ``--isaac.name`` and ``--isaac.url``. A possibly addition for your submission tbg file could be ``--isaac.period 1 --isaac.name !TBG_jobName --isaac.url YOUR_SERVER``, where the tbg variables ``!TBG_jobName`` is used as name and ``YOUR_SERVER`` needs to be set up by yourself.
-See more options here: https://github.com/ComputationalRadiationPhysics/picongpu/blob/dev/docs/TBG_macros.cfg .
+First of all you need to build and run the `isaac server <http://computationalradiationphysics.github.io/isaac/doc/server/index.html>`_ somewhere.
+On HPC systems, simply start the server on the login or head node since it can be reached by all compute nodes (on which the PIConGPU clients will be running).
 
 Functor Chains
 ^^^^^^^^^^^^^^

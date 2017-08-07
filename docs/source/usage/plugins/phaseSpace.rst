@@ -5,6 +5,11 @@ Phase Space
 
 This plugin creates a 2D phase space image for a user-given spatial and momentum coordinate.
 
+External Dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
+
 .cfg file
 ^^^^^^^^^
 
@@ -32,8 +37,8 @@ Option                                 Usage                                    
 Output
 ^^^^^^
 
-The output per bin is given in *charge density*.
-To get a *charge of particles per dr_i and dp_i bin* multiply by:
+Values per phase space bin are given over *charge density*.
+In order to scale to a simpler *charge of particles* per :math:`\mathrm{d}r_i` and :math:`\mathrm{d}p_i` -bin multiply by:
 
 .. code:: python
 
@@ -52,11 +57,13 @@ Take care about that when setting your range and during analysis of the results.
 Spatial Offset
 ^^^^^^^^^^^^^^
 
-To retrieve the offset of the spatial dimension due to a moving window additional attributes are provided.
+The spatial extent of the output might change due to a moving window.
+Additional attributes are provided to retrieve that spatial information:
 
 See this python example:
 
 .. code:: python
+
    ps = ... # get data set from h5py
 
    mv_start = ps.attrs['movingWindowOffset']
@@ -79,8 +86,16 @@ Known Limitations
 - charge deposition uses the counter shape for now (would need one more write to neighbours to get it correct to the shape)
 - the user has to define the momentum range in advance
 - the resolution is fixed to ``1024 bins`` in momentum and the number of cells in the selected spatial dimension
+- this plugin does not yet use :ref:`openPMD markup <pp-openPMD>`.
 
 References
 ^^^^^^^^^^
 
-The internal algorithm is explained in `pull request #347 <https://github.com/ComputationalRadiationPhysics/picongpu/pull/347>`_ .
+The internal algorithm is explained in `pull request #347 <https://github.com/ComputationalRadiationPhysics/picongpu/pull/347>`_ and in [Huebl2014]_.
+
+.. [Huebl2014]
+        A. Huebl.
+        *Injection Control for Electrons in Laser-Driven Plasma Wakes on the Femtosecond Time Scale*,
+        chapter 3.2,
+        Diploma Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2014),
+        https://doi.org/10.5281/zenodo.15924

@@ -29,6 +29,10 @@ Variable                       Meaning
 Currently this allows to predict the emitted radiation from plasmas if it can be described by classical means.
 Not considered are emissions from ionization, Compton scattering or any bremsstrahlung that originate from scattering on scales smaller than the PIC cell size. 
 
+External Dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
 
 .param files
 ^^^^^^^^^^^^

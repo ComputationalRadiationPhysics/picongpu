@@ -5,6 +5,11 @@ ADIOS
 
 Stores simulation data such as fields and particles as `ADIOS <https://www.olcf.ornl.gov/center-projects/adios>`_ files or ADIOS staging methods.
 
+External Dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+The plugin is available as soon as the :ref:`ADIOS library <install-dependencies>` is compiled in.
+
 .param file
 ^^^^^^^^^^^
 
