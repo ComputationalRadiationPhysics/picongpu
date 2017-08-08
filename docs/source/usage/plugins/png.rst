@@ -12,6 +12,11 @@ It is a very rudimentary and useful tool to get a first impression on what happe
 
    In the near future, this plugin might be replaced by the ISAAC interactive 3D visualization.
 
+External Dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+The plugin is available as soon as the :ref:`PNGwriter library <install-dependencies>` is compiled in.
+
 .cfg file
 ^^^^^^^^^
 

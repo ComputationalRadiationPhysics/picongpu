@@ -9,7 +9,7 @@ Only in case of constant particle density, where each macro particle describes t
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-The plugin is complied for all species activated if hdf5 is enabled.
+The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
 
 .cfg files
 ^^^^^^^^^^

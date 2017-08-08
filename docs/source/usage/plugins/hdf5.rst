@@ -20,6 +20,11 @@ You can investigate your files via a large collection of [tools and frameworks](
 - [written standard](https://github.com/openPMD/openPMD-standard) of the openPMD standard
 - [list of projects](https://github.com/openPMD/openPMD-projects) supporting openPMD files
 
+External Dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <install-dependencies>` are compiled in.
+
 .param file
 ^^^^^^^^^^^
 
