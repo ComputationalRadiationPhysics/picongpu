@@ -26,14 +26,13 @@ help()
 {
     echo "configure create a cmake call for picongpu \nand get fast access to selected picongpu cmake options"
     echo ""
-    echo "usage: configure [OPTION] <parameter_DIRECTORY>"
-    echo "If no path_to_CMakeLists.txt is set the directory of this binary is used as source directory."
+    echo "usage: configure [OPTIONS] <parameterDirectory>"
     echo ""
-    echo "-i | --install       - path were picongpu should be installed (default is <parameter_DIRECTORY>)"
+    echo "-i | --install       - path were picongpu shall be installed (default is <parameterDirectory>)"
     echo "-a | --arch          - set compute backend and optionally the architecture"
     echo "                       syntax: backend:[architecture]"
-    echo "                       supported backends: cuda, ompb2"
-    echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"ompb2\")"
+    echo "                       supported backends: cuda, omp2b"
+    echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
     echo "-c | --cmake         - overwrite options for cmake (e.g.: -c \"-DPIC_VERBOSE=1\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
     echo "-h | --help          - show this help message"
@@ -55,7 +54,7 @@ get_backend_flags()
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
         result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
         if [ $num_options -eq 2 ] ; then
-            result+=" -DCMAKE_CXX_FLAGS=\"-march=${backend_cfg[1]} -mtune=${backend_cfg[1]}\""
+            result+=" -DCMAKE_CXX_FLAGS=\"$CXXFLAGS -march=${backend_cfg[1]} -mtune=${backend_cfg[1]}\""
         fi
     else
         echo "unsupported architecture given '$1'" >&2
@@ -116,7 +115,7 @@ if [ ! -d "$extension_param" ] ; then
 fi
 #check for cmakeFlags file (interprete with sh)
 if [ -f "$extension_param/cmakeFlags" ] ; then
-    cmake_flags=`$extension_param/cmakeFlags $cmakeFlagsNr`
+    cmake_flags=$($extension_param/cmakeFlags $cmakeFlagsNr)
 fi
 
 #set default install path if no path is set by paramater
