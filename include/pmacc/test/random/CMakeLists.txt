@@ -19,7 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.7.0)
 project("TestRandomGenerators")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../..")
