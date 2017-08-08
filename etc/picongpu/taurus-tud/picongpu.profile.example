@@ -3,7 +3,9 @@ module purge
 # General modules #############################################################
 #
 module load oscar-modules
-module load cmake/3.3.1 git
+echo "WARNING: CMake version is too old! (Need: 3.7.0+)" >&2
+# module load cmake/3.6.2
+module load git
 module load cuda/8.0.44 # gcc <= 5, intel 15-16
 module load bullxmpi
 module load gnuplot/4.6.1
