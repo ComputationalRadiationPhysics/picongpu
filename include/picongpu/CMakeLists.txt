@@ -149,7 +149,7 @@ set(LIBS ${LIBS} ${ZLIB_LIBRARIES})
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options regex filesystem
+find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex filesystem
                                               system thread math_tr1
                                               serialization)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
