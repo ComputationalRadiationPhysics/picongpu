@@ -72,7 +72,8 @@ struct Esirkepov<T_ParticleShape, DIM2>
         DataBoxJ dataBoxJ,
         const PosType pos,
         const VelType velocity,
-        const ChargeType charge, const float_X deltaTime
+        const ChargeType charge,
+        const float_X deltaTime
     )
     {
         this->charge = charge;

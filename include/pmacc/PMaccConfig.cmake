@@ -101,7 +101,9 @@ if(
     (NOT ${ALPAKA_ACC_CPU_BT_OMP4_ENABLE})
 )
     option(ALPAKA_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU accelerator" ON)
-    option(ALPAKA_ACC_GPU_CUDA_ONLY_MODE "Only back-ends using CUDA can be enabled in this mode (This allows to mix alpaka code with native CUDA code)." ON)
+    option(ALPAKA_ACC_GPU_CUDA_ONLY_MODE
+        "Only back-ends using CUDA can be enabled in this mode (This allows to mix alpaka code with native CUDA code)."
+        ON)
 endif()
 
 if(NOT cupla_ALPAKA_PROVIDER)
@@ -131,7 +133,9 @@ endif()
 
 # disable CUDA only mode if cuda backend is disabled
 if(NOT ${ALPAKA_ACC_GPU_CUDA_ENABLE} AND ${ALPAKA_ACC_GPU_CUDA_ONLY_MODE})
-    set(ALPAKA_ACC_GPU_CUDA_ONLY_MODE OFF CACHE BOOL "Only back-ends using CUDA can be enabled in this mode (This allows to mix alpaka code with native CUDA code)." FORCE)
+    set(ALPAKA_ACC_GPU_CUDA_ONLY_MODE OFF CACHE BOOL
+        "Only back-ends using CUDA can be enabled in this mode (This allows to mix alpaka code with native CUDA code)."
+        FORCE)
     message(WARNING "ALPAKA_ACC_GPU_CUDA_ONLY_MODE is set to OFF because cuda backend is not activated")
 endif()
 

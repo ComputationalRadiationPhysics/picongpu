@@ -68,7 +68,7 @@ struct SharedMemAllocator<Type, Size, 2, uid>
     typedef cursor::CT::BufferCursor<type, Pitch> Cursor;
 
     template< typename T_Acc >
-    __device__ static Cursor allocate( T_Acc const & acc )
+    DEVICEONLY static Cursor allocate( T_Acc const & acc )
     {
         auto& shMem = pmacc::memory::shared::allocate<
             uid,

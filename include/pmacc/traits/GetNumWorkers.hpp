@@ -56,7 +56,7 @@ namespace traits
         alpaka::acc::AccCpuOmp2Blocks< T_Args... >
     >
     {
-        static constexpr uint32_t value = 1;
+        static constexpr uint32_t value = 1u;
     };
 #endif
 } // namespace traits
