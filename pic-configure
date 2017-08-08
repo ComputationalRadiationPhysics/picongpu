@@ -30,10 +30,40 @@ help()
     echo "If no path_to_CMakeLists.txt is set the directory of this binary is used as source directory."
     echo ""
     echo "-i | --install       - path were picongpu should be installed (default is <parameter_DIRECTORY>)"
-    echo "-a | --arch          - set cuda architecture (semicolon separated list, e.g.: \"20;35;37;52;60\")"
+    echo "-a | --arch          - set alpaka backend and optionally the architecture"
+    echo "                       syntax: BACKEND:[ARCHITECTURE_FLAGS]"
+    echo "                       supported backends: cuda, omp2"
+    echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2\")"
     echo "-c | --cmake         - overwrite options for cmake (e.g.: -c \"-DPIC_VERBOSE=1\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
     echo "-h | --help          - show this help message"
+}
+
+get_backend_flags()
+{
+    backend_cfg=(${1//:/ })
+    num_options="${#backend_cfg[@]}"
+    if [ $num_options -gt 2 ] ; then
+        echo "-a|--arch must be contain 'BACKEND:arch' or 'BACKEND'" >&2
+        exit 1
+    fi
+    if [ "${backend_cfg[0]}" == "cuda" ] ; then
+        result+=" -DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DALPAKA_CUDA_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
+        result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DCMAKE_CXX_FLAGS=\"-march=${backend_cfg[1]} -mtune=${backend_cfg[1]}\""
+        fi
+    else
+        echo "unsupported architecture given '$1'" >&2
+        exit 1
+    fi
+    
+    echo "$result"
+    exit 0
 }
 
 # options may be followed by one colon to indicate they have a required argument
@@ -51,7 +81,10 @@ eval set -- "$OPTS"
 while true ; do
     case "$1" in
         -a|--arch)
-            cuda_arch="-DCUDA_ARCH=$2"
+            alpaka_backend=$(get_backend_flags $2)
+            if [ $? -ne 0 ] ; then
+                exit 1
+            fi
             shift
             ;;
         -i|--install)
@@ -94,6 +127,6 @@ extension_param="-DPIC_EXTENSION_PATH=$extension_param"
 
 
 
-own_command="cmake $cmake_flags $install_path $extension_param $cmake_options $cuda_arch $this_dir/include/picongpu"
+own_command="cmake $cmake_flags $install_path $extension_param $cmake_options $alpaka_backend $this_dir/include/picongpu"
 echo -e "\033[32mcmake command:\033[0m $own_command"
-$own_command
+eval $own_command
