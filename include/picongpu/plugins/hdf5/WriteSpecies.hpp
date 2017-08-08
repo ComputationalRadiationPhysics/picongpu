@@ -23,22 +23,20 @@
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/traits/SIBaseUnits.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
-#include <pmacc/traits/HasIdentifier.hpp>
-#include <pmacc/assert.hpp>
-
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-
+#include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/plugins/hdf5/writer/ParticleAttribute.hpp"
 
 #include <pmacc/compileTime/conversion/MakeSeq.hpp>
 #include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
-#include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/traits/HasIdentifier.hpp>
+#include <pmacc/assert.hpp>
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
@@ -151,22 +149,26 @@ public:
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
-            auto block = pmacc::math::CT::volume<SuperCellSize>::type::value;
-
             /* int: assume < 2e9 particles per GPU */
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
+            constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+                pmacc::math::CT::volume< SuperCellSize >::type::value
+            >::value;
+
             /* this sanity check costs a little bit of time but hdf5 writing is slower */
-            PMACC_KERNEL(CopySpecies{})
-                (mapper.getGridDim(), block)
-                (counterBuffer.getDeviceBuffer().getPointer(),
-                 deviceFrame, speciesTmp->getDeviceParticlesBox(),
-                 filter,
-                 domainOffset,
-                 totalCellIdx_,
-                 mapper
-                 );
+            PMACC_KERNEL( CopySpecies< numWorkers >{} )(
+                mapper.getGridDim(),
+                numWorkers
+            )(
+                counterBuffer.getDeviceBuffer().getPointer(),
+                deviceFrame, speciesTmp->getDeviceParticlesBox(),
+                filter,
+                domainOffset,
+                totalCellIdx_,
+                mapper
+            );
             counterBuffer.deviceToHost();
             log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) copy particle to host: %1%") % Hdf5FrameType::getName();
             __getTransactionEvent().waitForFinished();
