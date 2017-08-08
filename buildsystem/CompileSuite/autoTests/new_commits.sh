@@ -91,7 +91,7 @@ touch "$thisDir"runGuard
             cd $cnf_builddir
 
             # modify compile environment (forwarded to CMake)
-            #export PIC_COMPILE_SUITE_CMAKE="-DPIC_ENABLE_PNG=OFF -DCUDA_ARCH=35"
+            #export PIC_COMPILE_SUITE_CMAKE="-DPIC_ENABLE_PNG=OFF -DALPAKA_CUDA_ARCH=35"
             . /etc/profile
             module load gcc/4.9.4 boost/1.62.0 cmake/3.7.0 cuda/7.5.18 openmpi/1.10.4
             module load libSplash/1.6.0 adios/1.10.0
