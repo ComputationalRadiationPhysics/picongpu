@@ -1,0 +1,190 @@
+#
+# Copyright 2015 Benjamin Worpitz, Erik Zenker
+#
+# This file is part of alpaka.
+#
+# alpaka is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# alpaka is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with alpaka.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+################################################################################
+# General configuration.
+################################################################################
+
+version: "{build}"
+
+branches:
+    except:
+        - gh-pages
+
+# Build tags (GitHub only)
+skip_tags: false
+
+################################################################################
+# Environment configuration.
+################################################################################
+
+environment:
+    global:
+        ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE: ON
+        ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE: ON
+        ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE: ON
+        ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE: ON
+        ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE: ON
+        ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE: ON
+        ALPAKA_ACC_CPU_BT_OMP4_ENABLE: OFF
+        ALPAKA_ACC_GPU_CUDA_ENABLE: OFF
+        ALPAKA_ACC_GPU_CUDA_ONLY_MODE: OFF
+        ALPAKA_DEBUG: 0
+
+    matrix:
+        - ALPAKA_DEBUG: 2
+          OMP_NUM_THREADS: 4
+          ALPAKA_BOOST_BRANCH: boost-1.64.0
+          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+        - OMP_NUM_THREADS: 4
+          ALPAKA_BOOST_BRANCH: boost-1.64.0
+          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+        - OMP_NUM_THREADS: 3
+          ALPAKA_BOOST_BRANCH: boost-1.63.0
+          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+        - OMP_NUM_THREADS: 1
+          ALPAKA_BOOST_BRANCH: boost-1.62.0
+          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+
+matrix:
+    fast_finish: true
+
+init:
+    - cmd: cmake --version
+    - cmd: git --version
+    - cmd: msbuild /version
+    # Fixes the line endings on Windows.
+    - cmd: git config --global core.autocrlf true
+
+# Clone directory.
+clone_folder: c:\projects\alpaka
+# Fetch repository as zip archive.
+shallow_clone: false
+# Set the clone depth.
+clone_depth: 1
+
+################################################################################
+# Build configuration.
+################################################################################
+
+platform:
+#    - Win32
+    - x64
+
+configuration:
+#    - Debug
+    - Release
+
+# scripts to run before build
+before_build:
+    # Print the travis environment variables: http://docs.travis-ci.com/user/ci-environment/
+    - cmd: echo "%APPVEYOR%"
+    - cmd: echo "%CI%"
+    - cmd: echo "%APPVEYOR_API_URL%"
+    - cmd: echo "%APPVEYOR_ACCOUNT_NAME%"
+    - cmd: echo "%APPVEYOR_BUILD_WORKER_IMAGE%"
+    - cmd: echo "%APPVEYOR_PROJECT_ID%"
+    - cmd: echo "%APPVEYOR_PROJECT_NAME%"
+    - cmd: echo "%APPVEYOR_PROJECT_SLUG%"
+    - cmd: echo "%APPVEYOR_BUILD_FOLDER%"
+    - cmd: echo "%APPVEYOR_BUILD_ID%"
+    - cmd: echo "%APPVEYOR_BUILD_NUMBER%"
+    - cmd: echo "%APPVEYOR_BUILD_VERSION%"
+    - cmd: echo "%APPVEYOR_PULL_REQUEST_NUMBER%"
+    - cmd: echo "%APPVEYOR_PULL_REQUEST_TITLE%"
+    - cmd: echo "%APPVEYOR_JOB_ID%"
+    - cmd: echo "%APPVEYOR_REPO_PROVIDER%"
+    - cmd: echo "%APPVEYOR_REPO_SCM%"
+    - cmd: echo "%APPVEYOR_REPO_NAME%"
+    - cmd: echo "%APPVEYOR_REPO_BRANCH%"
+    - cmd: echo "%APPVEYOR_REPO_TAG%"
+    - cmd: echo "%APPVEYOR_REPO_TAG_NAME%"
+    - cmd: echo "%APPVEYOR_REPO_COMMIT%"
+    #- cmd: echo "%APPVEYOR_REPO_COMMIT_AUTHOR%"
+    #- cmd: echo "%APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL%"
+    - cmd: echo "%APPVEYOR_REPO_COMMIT_TIMESTAMP%"
+    - cmd: echo "%APPVEYOR_REPO_COMMIT_MESSAGE%"
+    - cmd: echo "%APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED%"
+    - cmd: echo "%APPVEYOR_SCHEDULED_BUILD%"
+    - cmd: echo "%APPVEYOR_FORCED_BUILD%"
+    - cmd: echo "%APPVEYOR_RE_BUILD%"
+    - cmd: echo "%PLATFORM%"
+    - cmd: echo "%CONFIGURATION%"
+
+    #-------------------------------------------------------------------------------
+    # Clone boost.
+    - cmd: set BOOST_ROOT=C:\projects\boost
+    - cmd: set ALPAKA_B2_STAGE_DIR=C:\projects\boost_libs
+    - cmd: set BOOST_LIBRARYDIR=%ALPAKA_B2_STAGE_DIR%\lib
+    - cmd: git clone -b %ALPAKA_BOOST_BRANCH% --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git %BOOST_ROOT%
+    - cmd: cd %BOOST_ROOT%
+
+    # Prepare building of boost.
+    - cmd: call bootstrap.bat
+    # Create file links.
+    - cmd: b2 headers
+
+    - cmd: if "%PLATFORM%"=="Win32" set ALPAKA_BOOST_ADDRESS_MODEL=32
+    - cmd: if "%PLATFORM%"=="x64" set ALPAKA_BOOST_ADDRESS_MODEL=64
+    - cmd: if "%CONFIGURATION%"=="Debug" set ALPAKA_BOOST_VARIANT=debug
+    - cmd: if "%CONFIGURATION%"=="Release" set ALPAKA_BOOST_VARIANT=release
+    # Select the libraries required.
+    - cmd: set ALPAKA_BOOST_B2=--with-test
+    - cmd: if "%ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE%"=="ON" set ALPAKA_BOOST_B2=%ALPAKA_BOOST_B2% --with-fiber --with-context --with-thread --with-system --with-atomic --with-chrono --with-date_time
+
+    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" set ALPAKA_BOOST_TOOLSET=msvc-14.0
+    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" set ALPAKA_BOOST_TOOLSET=msvc-14.1
+    - cmd: b2 -j2 --toolset=%ALPAKA_BOOST_TOOLSET% --layout=versioned %ALPAKA_BOOST_B2% architecture=x86 address-model=%ALPAKA_BOOST_ADDRESS_MODEL% variant=%ALPAKA_BOOST_VARIANT% link=static threading=multi runtime-link=shared define=_CRT_NONSTDC_NO_DEPRECATE define=_CRT_SECURE_NO_DEPRECATE define=_SCL_SECURE_NO_DEPRECAT define=BOOST_USE_WINFIBERS --stagedir="%ALPAKA_B2_STAGE_DIR%"
+
+    #-------------------------------------------------------------------------------
+    # Install TBB
+    - cmd: set TBB_ARCHIVE_VER=tbb44_20160526oss
+    - cmd: set TBB_DOWNLOAD_URL=https://www.threadingbuildingblocks.org/sites/default/files/software_releases/windows/%TBB_ARCHIVE_VER%_win_0.zip
+    - cmd: set TBB_ROOT_DIR=C:\projects\tbb
+    - cmd: set TBB_DST_PATH=%TBB_ROOT_DIR%\tbb.zip
+    - cmd: mkdir %TBB_ROOT_DIR%
+    - ps: Invoke-WebRequest $env:TBB_DOWNLOAD_URL -OutFile $env:TBB_DST_PATH
+    - cmd: 7z x %TBB_DST_PATH% -o%TBB_ROOT_DIR% -y
+    - cmd: set TBB_ROOT_DIR=%TBB_ROOT_DIR%\%TBB_ARCHIVE_VER%
+    - cmd: if "%PLATFORM%"=="Win32" set ALPAKA_TBB_BIN_DIR=%TBB_ROOT_DIR%\bin\ia32\vc14
+    - cmd: if "%PLATFORM%"=="x64" set ALPAKA_TBB_BIN_DIR=%TBB_ROOT_DIR%\bin\intel64\vc14
+    - cmd: set PATH=%PATH%;%ALPAKA_TBB_BIN_DIR%
+
+    #-------------------------------------------------------------------------------
+    # Build the visual studio soultion from the cmake files.
+    - cmd: cd C:\projects\alpaka
+
+    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" set ALPAKA_CMAKE_GENERATOR=Visual Studio 14 2015
+    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" set ALPAKA_CMAKE_GENERATOR=Visual Studio 15 2017
+    - cmd: if "%PLATFORM%"=="x64" set ALPAKA_CMAKE_GENERATOR=%ALPAKA_CMAKE_GENERATOR% Win64
+    - cmd: mkdir build
+    - cmd: cd build
+    - cmd: cmake -G "%ALPAKA_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DTBB_ROOT_DIR="%TBB_ROOT_DIR%" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF -DALPAKA_DEBUG="%ALPAKA_DEBUG%" -DALPAKA_CI=ON ".."
+
+build:
+    project: C:\projects\alpaka\build\alpakaAll.sln
+    # Setting parallel to true sporadically leads to "fatal error C1060: compiler is out of heap space"
+    parallel: false
+    # quiet|minimal|normal|detailed
+    verbosity: minimal
+
+# scripts to run after build
+# TODO: run unit tests
+after_build:
