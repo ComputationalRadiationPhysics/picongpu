@@ -12,7 +12,7 @@ else
     module load PrgEnv-gnu/6.0.3
 fi
 
-module load CMake/3.6.2
+module load CMake/3.8.1
 module load cudatoolkit/8.0.54_2.2.8_ga620558-2.1
 
 # Libraries ###################################################################

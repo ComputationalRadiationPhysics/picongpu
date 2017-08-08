@@ -17,7 +17,6 @@ RUN        apt-get update && \
               build-essential \
               ca-certificates \
               coreutils \
-              cmake \
               curl \
               emacs \
               gfortran \
@@ -52,7 +51,7 @@ RUN        mkdir build src paramSets && \
 # todo: fix to a specific spack SHA or tag
 RUN        git clone --depth 50 https://github.com/llnl/spack.git \
            $HOME/src/spack/ && \
-           spack install cmake && \
+           spack install cmake@3.7.2 && \
            spack install cuda && \
            spack install openmpi@2.1.1 && \
            spack install zlib@1.2.11 && \

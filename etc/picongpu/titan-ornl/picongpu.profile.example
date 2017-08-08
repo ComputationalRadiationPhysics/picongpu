@@ -26,7 +26,8 @@ export FC=`which ftn`
 
 # required tools and libs
 module load git
-module load cmake/3.5.2
+echo "WARNING: CMake version is too old! (Need: 3.7.0+)" >&2
+# module load cmake/3.6.1
 module load cudatoolkit
 module load boost/1.57.0
 export BOOST_ROOT=$BOOST_DIR
