@@ -29,7 +29,7 @@ module load git
 echo "WARNING: CMake version is too old! (Need: 3.7.0+)" >&2
 # module load cmake/3.6.1
 module load cudatoolkit
-module load boost/1.57.0
+module load boost/1.62.0
 export BOOST_ROOT=$BOOST_DIR
 export MPI_ROOT=$MPICH_DIR
 
