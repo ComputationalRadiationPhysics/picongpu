@@ -25,6 +25,9 @@
 #include <pmacc/particles/IdProvider.hpp>
 #include <pmacc/memory/buffers/HostDeviceBuffer.hpp>
 #include <pmacc/eventSystem/EventSystem.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
@@ -40,18 +43,43 @@ namespace bmpl = boost::mpl;
 
 namespace
 {
-    template< typename T_IdProvider >
+    template<
+        uint32_t T_numWorkers,
+        uint32_t T_numIdsPerBlock,
+        typename T_IdProvider
+    >
     struct GenerateIds
     {
         template<class T_Box, typename T_Acc>
         DINLINE void operator()(const T_Acc & acc, T_Box outputbox, uint32_t numThreads, uint32_t numIdsPerThread) const
         {
-            const uint32_t localId = blockIdx.x * blockDim.x + threadIdx.x;
-            if(localId < numThreads)
-            {
-                for(uint32_t i=0; i<numIdsPerThread; i++)
-                    outputbox(i * numThreads + localId) = T_IdProvider::getNewId();
-            }
+            using namespace pmacc::mappings::threads;
+            constexpr uint32_t numWorkers = T_numWorkers;
+
+            uint32_t const workerIdx = threadIdx.x;
+
+            uint32_t const blockId = blockIdx.x * T_numIdsPerBlock;
+            ForEachIdx<
+                IdxConfig<
+                    T_numIdsPerBlock,
+                    numWorkers
+                >
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearId,
+                    uint32_t const
+                )
+                {
+                    uint32_t const localId = blockId + linearId;
+                    if( localId < numThreads )
+                    {
+                        for( uint32_t i=0; i < numIdsPerThread; i++ )
+                            outputbox( i * numThreads + localId ) = T_IdProvider::getNewId( );
+                    }
+                }
+            );
+
+
         }
     };
 }
@@ -93,8 +121,8 @@ struct IdProviderTest
     void operator()()
     {
         constexpr uint32_t numBlocks = 4;
-        constexpr uint32_t numThreadsPerBlock = 64;
-        constexpr uint32_t numThreads = numBlocks * numThreadsPerBlock;
+        constexpr uint32_t numIdsPerBlock = 64;
+        constexpr uint32_t numThreads = numBlocks * numIdsPerBlock;
         constexpr uint32_t numIdsPerThread = 2;
         constexpr uint32_t numIds = numThreads * numIdsPerThread;
 
@@ -106,21 +134,34 @@ struct IdProviderTest
         BOOST_REQUIRE_EQUAL(state.maxNumProc, 1u);
         BOOST_REQUIRE(!IdProvider::isOverflown());
         std::set<uint64_t> ids;
-        BOOST_REQUIRE_EQUAL(IdProvider::getNewId(), state.nextId);
+        BOOST_REQUIRE_EQUAL(IdProvider::getNewIdHost(), state.nextId);
         // Generate some IDs using the function
         for(int i=0; i<numIds; i++)
         {
-            const uint64_t newId = IdProvider::getNewId();
+            const uint64_t newId = IdProvider::getNewIdHost();
             BOOST_REQUIRE(checkDuplicate(ids, newId, false));
             ids.insert(newId);
         }
         // Reset the state
         IdProvider::setState(state);
-        BOOST_REQUIRE_EQUAL(IdProvider::getNewId(), state.nextId);
+        BOOST_REQUIRE_EQUAL(IdProvider::getNewIdHost(), state.nextId);
         // Generate the same IDs on the device
         pmacc::HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
-        PMACC_KERNEL(GenerateIds<IdProvider>{})(numBlocks, numThreadsPerBlock)
-                (idBuf.getDeviceBuffer().getDataBox(), numThreads, numIdsPerThread);
+        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+            numIdsPerBlock
+        >::value;
+        PMACC_KERNEL( GenerateIds<
+            numWorkers,
+            numIdsPerBlock,
+            IdProvider
+        >{  })(
+            numBlocks,
+            numWorkers
+        )(
+            idBuf.getDeviceBuffer().getDataBox(),
+            numThreads,
+            numIdsPerThread
+        );
         idBuf.deviceToHost();
         BOOST_REQUIRE_EQUAL(numIds, ids.size());
         auto hostBox = idBuf.getHostBuffer().getDataBox();
