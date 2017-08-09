@@ -43,8 +43,8 @@ namespace
     template< typename T_IdProvider >
     struct GenerateIds
     {
-        template<class T_Box>
-        DINLINE void operator()(T_Box outputbox, uint32_t numThreads, uint32_t numIdsPerThread) const
+        template<class T_Box, typename T_Acc>
+        DINLINE void operator()(const T_Acc & acc, T_Box outputbox, uint32_t numThreads, uint32_t numIdsPerThread) const
         {
             const uint32_t localId = blockIdx.x * blockDim.x + threadIdx.x;
             if(localId < numThreads)
