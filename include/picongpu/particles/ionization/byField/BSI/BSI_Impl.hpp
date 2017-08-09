@@ -155,7 +155,7 @@ namespace ionization
                           );
             }
 
-            /** Functor implementation
+            /** Determine number of new macroelectrons due to ionization
              *
              * \param ionFrame reference to frame of the to-be-ionized particles
              * \param localIdx local (linear) index in super cell / frame
@@ -185,17 +185,25 @@ namespace ionization
                                                 particle
                                               );
 
-                /* relocate this to writeElectronIntoFrame in ionizationMethods.hpp */
-                particle[boundElectrons_] -= float_X(newMacroElectrons);
-
                 return newMacroElectrons;
 
             }
 
+            /* Functor implementation
+             *
+             * Ionization model specific particle creation
+             *
+             * \tparam T_parentIon type of ion species that is being ionized
+             * \tparam T_childElectron type of electron species that is created
+             * \param parentIon ion instance that is ionized
+             * \param childElectron electron instance that is created
+             */
             template<typename T_parentIon, typename T_childElectron>
             DINLINE void operator()(T_parentIon& parentIon,T_childElectron& childElectron)
             {
 
+                /* for not mixing operations::assign up with the nvidia functor assign */
+                namespace partOp = pmacc::particles::operations;
                 /* each thread sets the multiMask hard on "particle" (=1) */
                 childElectron[multiMask_] = 1;
                 const float_X weighting = parentIon[weighting_];
@@ -221,6 +229,9 @@ namespace ionization
                 /* conservation of momentum
                  * \todo add conservation of mass */
                 parentIon[momentum_] -= electronMomentum;
+
+                /* reduce the number of bound electrons as the new free electron is created */
+                parentIon[boundElectrons_] -= float_X(1.);
             }
 
     };

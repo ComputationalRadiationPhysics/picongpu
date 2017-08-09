@@ -33,7 +33,6 @@
 #   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #   include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
 #   include "picongpu/particles/creation/creation.hpp"
-#   include "picongpu/particles/ionization/ionization.hpp"
 #endif
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
@@ -337,7 +336,7 @@ struct CallIonizationScheme
         auto srcSpeciesPtr = dc.get< SpeciesType >( FrameType::getName(), true );
         // alias for pointer on destination species
         auto electronsPtr = dc.get< DestSpecies >( DestFrameType::getName(), true );
-        
+
         SelectIonizer selectIonizer(currentStep);
 
         creation::createParticlesFromSpecies(*srcSpeciesPtr, *electronsPtr, selectIonizer, cellDesc);

@@ -65,7 +65,7 @@ namespace ionization
          * \param randNr random number, equally distributed in range [0.:1.0]
          */
         template<typename EType, typename BType, typename ParticleType >
-        HDINLINE void
+        HDINLINE uint32_t
         operator()( const BType bField, const EType eField, ParticleType& parentIon, float_X randNr )
         {
 
@@ -128,11 +128,12 @@ namespace ionization
                 /* ionization condition */
                 if( randNr < probADK )
                 {
-                    /* set new particle charge state */
-                    parentIon[ boundElectrons_ ] -= float_X( 1.0 );
+                    /* return number of electrons to produce */
+                    return 1;
                 }
             }
-
+            /* no ionization */
+            return 0;
         }
     };
 
