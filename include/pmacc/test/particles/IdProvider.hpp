@@ -73,7 +73,7 @@ namespace
                     uint32_t const localId = blockId + linearId;
                     if( localId < numThreads )
                     {
-                        for( uint32_t i=0; i < numIdsPerThread; i++ )
+                        for( uint32_t i = 0u; i < numIdsPerThread; i++ )
                             outputbox( i * numThreads + localId ) = T_IdProvider::getNewId( );
                     }
                 }

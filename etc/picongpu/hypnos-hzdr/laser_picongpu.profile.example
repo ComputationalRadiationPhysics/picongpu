@@ -27,9 +27,9 @@ then
 #       unset MODULES_NO_OUTPUT
 fi
 
-# Compiler flags ##############################################################
+# Architecture flags ##########################################################
 #
-export CXXFLAGS=$CXXFLAGS:-march=bdver1:mtune=bdver1
+export CXXFLAGS="$CXXFLAGS -march=bdver1 -mtune=bdver1"
 
 # Environment #################################################################
 #
