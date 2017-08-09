@@ -55,7 +55,7 @@ RUN        git clone --depth 50 https://github.com/llnl/spack.git \
            spack install cuda && \
            spack install openmpi@2.1.1 && \
            spack install zlib@1.2.11 && \
-           spack install boost@1.61.0 && \
+           spack install boost@1.62.0 && \
            spack install pngwriter@0.6.0 && \
            spack install libsplash@1.6.0 ^hdf5~fortran && \
            spack install adios@1.10.0 && \

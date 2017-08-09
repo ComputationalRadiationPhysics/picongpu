@@ -67,7 +67,7 @@ find_package(CUDA 7.5 REQUIRED)
 # Boost.Test
 ###############################################################################
 
-find_package(Boost 1.57.0 COMPONENTS unit_test_framework REQUIRED)
+find_package(Boost 1.62.0 COMPONENTS unit_test_framework REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 

@@ -265,7 +265,7 @@ endif(MPI_CXX_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.57.0 REQUIRED COMPONENTS filesystem system math_tr1)
+find_package(Boost 1.62.0 REQUIRED COMPONENTS filesystem system math_tr1)
 set(PMacc_INCLUDE_DIRS ${PMacc_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${Boost_LIBRARIES})
 

@@ -12,7 +12,9 @@ module load gnuplot/4.6.1
 
 # Compilers ###################################################################
 ### GCC
-module load gcc/5.3.0 boost/1.60.0-gnu5.3
+module load gcc/5.3.0
+echo "WARNING: Boost version is too old! (Need: 1.62.0+)" >&2
+# module load boost/1.60.0-gnu5.3
 ### ICC
 #module load intel/2015.3.187 boost/1.59.0-intel2015.3.187
 ### PGI
