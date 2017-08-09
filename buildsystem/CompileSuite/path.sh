@@ -19,7 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-function absulte_path()
+function absolute_path()
 {
     cd $1
     pwd
