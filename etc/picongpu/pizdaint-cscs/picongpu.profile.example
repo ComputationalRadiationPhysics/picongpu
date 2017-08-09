@@ -1,5 +1,5 @@
-# this file is loaded from all PIConGPU template files `*.tpl` therefore please
-# copy this file to `$SCRATCH/picongpu.profile`
+# this file is loaded from all PIConGPU template *.tpl files, therefore please
+# copy this file to $SCRATCH/picongpu.profile
 #
 
 # General modules #############################################################
@@ -37,14 +37,14 @@ export MPI_ROOT=$MPICH_DIR
 export HDF5_ROOT=$HDF5_DIR
 
 # define cray compiler target architecture
-# if not defined the linker crashed because wrong from `*/lib` instead
-# of `*/lib64` are used
+# if not defined the linker crashed because wrong from */lib instead
+# of */lib64 are used
 export CRAY_CPU_TARGET=x86-64
 
 # Compile for cluster nodes
 #   (CMake likes to unwrap the Cray wrappers)
-export CC=`which cc`
-export CXX=`which CC`
+export CC=$(which cc)
+export CXX=$(which CC)
 
 export PICSRC=$HOME/src/picongpu
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
@@ -69,13 +69,13 @@ export TBG_TPLFILE="etc/picongpu/pizdaint-cscs/normal_profile.tpl"
 # helper tools ################################################################
 
 # allocate an interactive shell for one hour
-# `getInteractive 2` # allocates to interactive nodes (default: 1)
+#   getInteractive 2  # allocates to interactive nodes (default: 1)
 getInteractive() {
     if [ -z "$1" ] ; then
         numNodes=1
     else
         numNodes=$1
     fi
-    # `--ntasks-per-core=2` activates intel hyper threading
+    # --ntasks-per-core=2  # activates intel hyper threading
     salloc --time=1:00:00 --nodes="$numNodes" --ntasks-per-node=12 --ntasks-per-core=2 --partition normal --gres=gpu:1 --constraint=gpu
 }

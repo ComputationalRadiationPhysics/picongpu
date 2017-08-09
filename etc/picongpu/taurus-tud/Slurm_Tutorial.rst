@@ -21,7 +21,7 @@ Job Control
 * details for my jobs:
 
   * ``scontrol -d show job 12345`` all details for job with <job id> ``12345``
-  * ``squeue -u `whoami` -l`` all jobs under my user name
+  * ``squeue -u $(whoami) -l`` all jobs under my user name
 
 * details for queues:
 

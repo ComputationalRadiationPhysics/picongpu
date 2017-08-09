@@ -21,7 +21,7 @@ echo "WARNING: Boost version is too old! (Need: 1.62.0+)" >&2
 #export BOOST_ROOT=$HOME/lib/boost_1_57_pgi_14_9
 #export BOOST_INC=$BOOST_ROOT/include
 #export BOOST_LIB=$BOOST_ROOT/lib
-# must be set in `which <pgiDir>/bin/localrc`:
+# must be set in $(which <pgiDir>/bin/localrc):
 #   set NOSWITCHERROR=YES;
 #module load pgi/14.9 boost/<noneBuildYet>
 

@@ -33,7 +33,7 @@ fi
 alias getk20='qsub -I -q k20 -lwalltime=00:30:00 -lnodes=1:ppn=8'
 alias getlaser='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=16'
 
-export PICSRC=/home/`whoami`/src/picongpu
+export PICSRC=/home/$(whoami)/src/picongpu
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
@@ -51,7 +51,7 @@ export PYTHONPATH=$PICSRC/src/tools/lib/python:$PYTHONPATH
 #
 #function make
 #{
-#  real_make=`which make`
+#  real_make=$(which make)
 #  $real_make $* 2>&1 | $HOME/grcat/usr/bin/grcat conf.gcc
 #}
 

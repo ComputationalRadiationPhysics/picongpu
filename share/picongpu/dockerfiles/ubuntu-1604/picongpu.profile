@@ -25,7 +25,7 @@ module load isaac-server
 
 # Environment #################################################################
 #
-export PICSRC=/home/`whoami`/src/picongpu
+export PICSRC=/home/$(whoami)/src/picongpu
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
