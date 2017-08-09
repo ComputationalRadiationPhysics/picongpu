@@ -56,13 +56,6 @@ set(LIBS ${LIBS} ${PMacc_LIBRARIES})
 add_definitions(${PMacc_DEFINITIONS})
 
 
-################################################################################
-# Find CUDA
-################################################################################
-
-find_package(CUDA 7.5 REQUIRED)
-
-
 ###############################################################################
 # Boost.Test
 ###############################################################################
@@ -92,15 +85,15 @@ add_definitions(-DBOOST_TEST_DYN_LINK)
 enable_testing()
 
 # Test cases
-# Each *UT.cu file is an independent executable with one or more test cases
-file(GLOB_RECURSE TESTS test/*UT.cu)
+# Each *UT.cpp file is an independent executable with one or more test cases
+file(GLOB_RECURSE TESTS test/*UT.cpp)
 foreach(dim 2 3)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTEST_DIM=${dim}")
     foreach(testCaseFilepath ${TESTS})
         get_filename_component(testCaseFilename ${testCaseFilepath} NAME)
-        string(REPLACE "UT.cu" "" testCase ${testCaseFilename})
+        string(REPLACE "UT.cpp" "" testCase ${testCaseFilename})
         set(testExe "${PROJECT_NAME}-${testCase}-${dim}D")
-        cuda_add_executable(${testExe} ${testCaseFilepath} ${CMAKE_CURRENT_SOURCE_DIR}/test/main.cpp)
+        cupla_add_executable(${testExe} ${testCaseFilepath} ${CMAKE_CURRENT_SOURCE_DIR}/test/main.cpp)
+        target_compile_definitions(${testExe} PRIVATE TEST_DIM=${dim})
         target_link_libraries(${testExe} ${LIBS})
         add_test(NAME "${testCase}-${dim}D" COMMAND mpiexec -n 1 ./${testExe})
     endforeach()
