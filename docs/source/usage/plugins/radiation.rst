@@ -251,7 +251,7 @@ Command line option                       Description
                                           Using `1` calculates the radiation constantly. Any value ``>=2`` is currently producing nonsense.
 ``--radiation_<species>.dump``            Period, after which the calculated radiation data should be dumped to the file system.
                                           Default is ``0``, therefor never.
-                                          In order to store the radiation data, a value `≥1` should be used.
+                                          In order to store the radiation data, a value `>=1` should be used.
 ``--radiation_<species>.lastRadiation``   If set, the radiation spectra summed between the last and the current dump-time-step are stored.
                                           Used for a better evaluation of the temporal evolution of the emitted radiation.
 ``--radiation_<species>.folderLastRad``   Name of the folder, in which the summed spectra for the simulation time between the last dump and the current dump are stored.
