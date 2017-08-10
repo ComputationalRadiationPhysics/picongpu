@@ -30,10 +30,11 @@ help()
     echo ""
     echo "-i | --install       - path were picongpu shall be installed (default is <parameterDirectory>)"
     echo "-a | --arch          - set compute backend and optionally the architecture"
-    echo "                       syntax: backend:[architecture]"
+    echo "                       syntax: backend[:architecture]"
     echo "                       supported backends: cuda, omp2b"
     echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
-    echo "-c | --cmake         - overwrite options for cmake (e.g.: -c \"-DPIC_VERBOSE=1\")"
+    echo "-c | --cmake         - overwrite options for cmake"
+    echo "                       (e.g.: \"-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
     echo "-h | --help          - show this help message"
 }
@@ -60,7 +61,7 @@ get_backend_flags()
         echo "unsupported architecture given '$1'" >&2
         exit 1
     fi
-    
+
     echo "$result"
     exit 0
 }
