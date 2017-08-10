@@ -30,7 +30,7 @@ this_dir=$(cd `dirname $0` && pwd)
 . $this_dir/buildsystem/CompileSuite/options.sh
 . $this_dir/buildsystem/CompileSuite/exec_helper.sh
 
-this_dir=`absulte_path $this_dir`
+this_dir=`absolute_path $this_dir`
 
 # return code of this script (globals) #########################################
 #
@@ -42,7 +42,7 @@ list_param=0
 quiet_run=0
 num_parallel=1
 # accept environment variable for other scripts
-globalCMakeOptions=${PIC_COMPILE_SUITE_CMAKE:-""} 
+globalCMakeOptions=${PIC_COMPILE_SUITE_CMAKE:-""}
 
 # paths
 examples_path=""
@@ -64,13 +64,13 @@ fi
 # directory checks #############################################################
 #
 dir_exists "$examples_path" "source"
-examples_path=`absulte_path $examples_path`
+examples_path=`absolute_path $examples_path`
 
 cmake_path="$*"
 
 mkdir -p "$tmpRun_path"
 dir_exists "$tmpRun_path" "destination"
-tmpRun_path=`absulte_path $tmpRun_path`
+tmpRun_path=`absolute_path $tmpRun_path`
 
 cd "$tmpRun_path"
 mkdir -p "$tmpRun_path/build"
