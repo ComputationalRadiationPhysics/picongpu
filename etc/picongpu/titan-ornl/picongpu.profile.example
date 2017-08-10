@@ -13,9 +13,9 @@ module swap PrgEnv-pgi PrgEnv-gnu
 
 # Compile for CLE nodes
 #   (CMake likes to unwrap the Cray wrappers)
-export CC=`which cc`
-export CXX=`which CC`
-export FC=`which ftn`
+export CC=$(which cc)
+export CXX=$(which CC)
+export FC=$(which ftn)
 #export LD="/sw/xk6/altd/bin/ld"
 
 # symbol bug work around (should not be required)
@@ -41,12 +41,12 @@ export MPI_ROOT=$MPICH_DIR
 #export VT_ROOT=$VAMPIRTRACE_DIR
 
 # scorep (optional) #################################################
-#   pic-configure with -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
-#                          -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`"
+#   pic-configure with -c "-DCMAKE_CXX_COMPILER=$(which scorep-CC) \
+#                          -DCUDA_NVCC_EXECUTABLE=$(which scorep-nvcc)"
 #   e.g.:
 #     SCOREP_WRAPPER=OFF pic-configure -a "cuda:35" \
-#         -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
-#         -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`" \
+#         -c "-DCMAKE_CXX_COMPILER=$(which scorep-CC) \
+#         -DCUDA_NVCC_EXECUTABLE=$(which scorep-nvcc)" \
 #         ~/picInputs/case001
 #     export SCOREP_WRAPPER_INSTRUMENTER_FLAGS="--cuda --mpp=mpi"
 #     make -j
