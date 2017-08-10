@@ -263,7 +263,7 @@ namespace ionization
                 this->randomGen.init(localCellOffset);
             }
 
-            /** Determine number of new macroelectrons due to ionization
+            /** Determine number of new macro electrons due to ionization
              *
              * @param ionFrame reference to frame of the to-be-ionized particles
              * @param localIdx local (linear) index in super cell / frame
@@ -293,26 +293,15 @@ namespace ionization
 
                 /* Returns the new number of bound electrons for an integer number of macro electrons */
                 IonizationAlgorithm ionizeAlgo;
-                unsigned int numNewFreeMacroElectrons = ionizeAlgo(
+                uint32_t newMacroElectrons = ionizeAlgo(
                     kinEnergyDensity,
                     density,
                     particle,
                     this->randomGen()
                 );
 
-                /** ionization of the ion by reducing the number of bound electrons
-                 *
-                 * optimization: only accesses global memory if the charge
-                 *               state did really change
-                 *
-                 * @warning substracting a float from a float can potentially
-                 *          create a negative boundElectrons number for the ion,
-                 *          see #1850 for details
-                 */
-                if( numNewFreeMacroElectrons > 0u )
-                    particle[ boundElectrons_ ] -= float_X( numNewFreeMacroElectrons );
 
-                return numNewFreeMacroElectrons;
+                return newMacroElectrons;
 
             }
 
@@ -331,7 +320,7 @@ namespace ionization
                 /* for not mixing operations::assign up with the nvidia functor assign */
                 namespace partOp = pmacc::particles::operations;
                 /* each thread sets the multiMask hard on "particle" (=1) */
-                childElectron[multiMask_] = 1;
+                childElectron[multiMask_] = 1u;
                 const float_X weighting = parentIon[weighting_];
 
                 /* each thread initializes a clone of the parent ion but leaving out
@@ -356,7 +345,12 @@ namespace ionization
                  * \todo add conservation of mass */
                 parentIon[momentum_] -= electronMomentum;
 
-                /* reduce the number of bound electrons as the new free electron is created */
+                /** ionization of the ion by reducing the number of bound electrons
+                 *
+                 * @warning substracting a float from a float can potentially
+                 *          create a negative boundElectrons number for the ion,
+                 *          see #1850 for details
+                 */
                 parentIon[boundElectrons_] -= float_X(1.);
             }
 

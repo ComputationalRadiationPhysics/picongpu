@@ -155,7 +155,7 @@ namespace ionization
                           );
             }
 
-            /** Determine number of new macroelectrons due to ionization
+            /** Determine number of new macro electrons due to ionization
              *
              * \param ionFrame reference to frame of the to-be-ionized particles
              * \param localIdx local (linear) index in super cell / frame
@@ -180,7 +180,7 @@ namespace ionization
                 /* this is the point where actual ionization takes place */
                 IonizationAlgorithm ionizeAlgo;
                 /* determine number of new macro electrons to be created */
-                unsigned int newMacroElectrons = ionizeAlgo(
+                uint32_t newMacroElectrons = ionizeAlgo(
                                                 eField,
                                                 particle
                                               );
@@ -205,7 +205,7 @@ namespace ionization
                 /* for not mixing operations::assign up with the nvidia functor assign */
                 namespace partOp = pmacc::particles::operations;
                 /* each thread sets the multiMask hard on "particle" (=1) */
-                childElectron[multiMask_] = 1;
+                childElectron[multiMask_] = 1u;
                 const float_X weighting = parentIon[weighting_];
 
                 /* each thread initializes a clone of the parent ion but leaving out
@@ -230,7 +230,12 @@ namespace ionization
                  * \todo add conservation of mass */
                 parentIon[momentum_] -= electronMomentum;
 
-                /* reduce the number of bound electrons as the new free electron is created */
+                /** ionization of the ion by reducing the number of bound electrons
+                 *
+                 * @warning substracting a float from a float can potentially
+                 *          create a negative boundElectrons number for the ion,
+                 *          see #1850 for details
+                 */
                 parentIon[boundElectrons_] -= float_X(1.);
             }
 

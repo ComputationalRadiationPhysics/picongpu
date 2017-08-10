@@ -27,7 +27,7 @@
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
 #include "picongpu/particles/ionization/utilities.hpp"
 
-/** \file AlgorithmKeldysh.hpp
+/** @file AlgorithmKeldysh.hpp
  *
  * - implements the calculation of ionization probability and returns the number of free electrons
  * - is called with the IONIZATION MODEL, specifically by setting the flag in @see speciesDefinition.param */
@@ -55,6 +55,8 @@ namespace ionization
          * \param eField electric field value at t=0
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
          * \param randNr random number, equally distributed in range [0.:1.0]
+         *
+         * \return number of new macro electrons to be created
          */
         template<typename EType, typename BType, typename ParticleType >
         HDINLINE uint32_t
@@ -67,7 +69,7 @@ namespace ionization
             /* verify that ion is not completely ionized */
             if ( chargeState < protonNumber )
             {
-                uint32_t cs = math::float2int_rd(chargeState);
+                uint32_t const cs = math::float2int_rd(chargeState);
                 const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
 
                 const float_X pi = precisionCast<float_X>(M_PI);
@@ -96,17 +98,17 @@ namespace ionization
                  * P = 1 - exp(-rate * time step) if the laser wavelength is
                  * sampled well enough
                  */
-                float_X probKeldysh = rateKeldysh * timeStepAU;
+                float_X const probKeldysh = rateKeldysh * timeStepAU;
 
                 /* ionization condition */
                 if( randNr < probKeldysh )
                 {
-                    /* return number of electrons to produce */
-                    return 1;
+                    /* return number of macro electrons to produce */
+                    return 1u;
                 }
             }
             /* no ionization */
-            return 0;
+            return 0u;
         }
     };
 

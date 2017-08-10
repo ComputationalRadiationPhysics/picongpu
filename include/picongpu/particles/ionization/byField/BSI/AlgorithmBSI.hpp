@@ -81,12 +81,12 @@ namespace ionization
                 /* ionization condition */
                 if (math::abs(eField) / ATOMIC_UNIT_EFIELD >= critField)
                 {
-                    /* return number of electrons to produce */
-                    return 1;
+                    /* return number of macro electrons to produce */
+                    return 1u;
                 }
             }
             /* no ionization */
-            return 0;
+            return 0u;
         }
     };
 
