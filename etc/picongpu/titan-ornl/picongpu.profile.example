@@ -44,7 +44,7 @@ export MPI_ROOT=$MPICH_DIR
 #   pic-configure with -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
 #                          -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`"
 #   e.g.:
-#     SCOREP_WRAPPER=OFF pic-configure -a 35 \
+#     SCOREP_WRAPPER=OFF pic-configure -a "cuda:35" \
 #         -c "-DCMAKE_CXX_COMPILER=`which scorep-CC` \
 #         -DCUDA_NVCC_EXECUTABLE=`which scorep-nvcc`" \
 #         ~/picInputs/case001
