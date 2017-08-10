@@ -73,17 +73,23 @@ namespace acc
          * @param args arguments passed to the functor if the filter results of
          *             each argument evaluate to true when combined
          */
-        template< typename ... T_Args >
-        DINLINE auto operator( )(  T_Args && ... args )
+        template<
+            typename T_Acc,
+            typename ... T_Args
+        >
+        DINLINE auto operator( )(
+            T_Acc const & acc,
+            T_Args && ... args
+        )
         -> void
         {
             // call the filter on each argument and combine the results
             bool const combinedResult = T_FilterOperator{ }(
-                ( *reinterpret_cast< Filter * >( this ) )( args ) ...
+                ( *reinterpret_cast< Filter * >( this ) )( acc, args ) ...
             );
 
             if( combinedResult )
-                ( *reinterpret_cast< Functor * >( this ) )( args ... );
+                ( *reinterpret_cast< Functor * >( this ) )( acc, args ... );
         }
     };
 
@@ -182,7 +188,9 @@ namespace acc
          *
          * @tparam T_OffsetType type to describe the size of a domain
          * @tparam T_numWorkers number of workers
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param alpaka accelerator
          * @param domainOffset offset to the origin of the local domain
          *                     This can be e.g a supercell or cell offset and depends
          *                     of the context where the interface is specialized.
@@ -191,10 +199,12 @@ namespace acc
          */
         template<
             typename T_OffsetType,
-            uint32_t T_numWorkers
+            uint32_t T_numWorkers,
+            typename T_Acc
         >
         DINLINE auto
         operator( )(
+            T_Acc const & acc,
             T_OffsetType const & domainOffset,
             mappings::threads::WorkerCfg< T_numWorkers > const & workerCfg
         )
@@ -202,12 +212,14 @@ namespace acc
             T_FilterOperator,
             decltype(
                 std::declval< Filter >( )(
+                    acc,
                     domainOffset,
                     workerCfg
                 )
             ),
             decltype(
                 std::declval< Functor >( )(
+                    acc,
                     domainOffset,
                     workerCfg
                 )
@@ -218,22 +230,26 @@ namespace acc
                 T_FilterOperator,
                 decltype(
                     std::declval< Filter >( )(
+                        acc,
                         domainOffset,
                         workerCfg
                     )
                 ),
                 decltype(
                     std::declval< Functor >( )(
+                        acc,
                         domainOffset,
                         workerCfg
                     )
                 )
             >(
                 ( *reinterpret_cast< Filter * >( this ) )(
+                    acc,
                     domainOffset,
                     workerCfg
                 ),
                 ( *reinterpret_cast< Functor * >( this ) )(
+                    acc,
                     domainOffset,
                     workerCfg
                 )

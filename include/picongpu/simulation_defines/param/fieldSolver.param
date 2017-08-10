@@ -61,12 +61,12 @@ namespace picongpu
     {
         using CurrentInterpolation = currentInterpolation::None< simDim >;
     }
-
+#if( PMACC_CUDA_ENABLED == 1 )
     namespace fieldSolverDirSplitting
     {
         using CurrentInterpolation = currentInterpolation::NoneDS< simDim >;
     }
-
+#endif
     /** Lehe Solver
      * The solver proposed by R. Lehe et al
      * in Phys. Rev. ST Accel. Beams 16, 021301 (2013)

@@ -100,9 +100,13 @@ namespace emz
         DIM3
     > : public BaseMethods< ParticleAssign >
     {
-        template< typename T_Cursor >
+        template<
+            typename T_Cursor,
+            typename T_Acc
+        >
         DINLINE void
         operator()(
+            T_Acc const & acc,
             const T_Cursor& cursorJ,
             const Line< float3_X >& line,
             const float_X chargeDensity,
@@ -117,16 +121,19 @@ namespace emz
              */
             using namespace cursor::tools;
             cptCurrent1D(
+                acc,
                 twistVectorFieldAxes< pmacc::math::CT::Int < 1, 2, 0 > >( cursorJ ),
                 rotateOrigin< 1, 2, 0 >( line ),
                 cellSize.x( ) * chargeDensity / DELTA_T
             );
             cptCurrent1D(
+                acc,
                 twistVectorFieldAxes< pmacc::math::CT::Int < 2, 0, 1 > >( cursorJ ),
                 rotateOrigin< 2, 0, 1 >( line ),
                 cellSize.y( ) * chargeDensity / DELTA_T
             );
             cptCurrent1D(
+                acc,
                 cursorJ,
                 line,
                 cellSize.z( ) * chargeDensity / DELTA_T
@@ -141,10 +148,12 @@ namespace emz
          */
         template<
             typename CursorJ,
-            typename T_Line
+            typename T_Line,
+            typename T_Acc
         >
         DINLINE void
         cptCurrent1D(
+            T_Acc const & acc,
             CursorJ cursorJ,
             const T_Line& line,
             const float_X currentSurfaceDensity
@@ -158,12 +167,12 @@ namespace emz
              */
             for( int i = T_begin ; i < T_end ; ++i )
             {
-                const float_X s0i = S0( line, i, 0 );
-                const float_X dsi = S1( line, i, 0 ) - s0i;
+                const float_X s0i = this->S0( line, i, 0 );
+                const float_X dsi = this->S1( line, i, 0 ) - s0i;
                 for( int j = T_begin ; j < T_end ; ++j )
                 {
-                    const float_X s0j = S0( line, j, 1 );
-                    const float_X dsj = S1( line, j, 1 ) - s0j;
+                    const float_X s0j = this->S0( line, j, 1 );
+                    const float_X dsj = this->S1( line, j, 1 ) - s0j;
 
                     float_X tmp =
                         -currentSurfaceDensity * (
@@ -179,11 +188,12 @@ namespace emz
                          * Esirkepov paper. All coordinates are rotated before thus we can
                          * always use C style W(i,j,k,2).
                          */
-                        const float_X W = DS( line, k, 2 ) * tmp;
+                        const float_X W = this->DS( line, k, 2 ) * tmp;
                         accumulated_J += W;
-                        nvidia::atomicAdd(
+                        atomicAdd(
                             &( (*cursorJ( i, j, k ) ).z( ) ),
-                            accumulated_J
+                            accumulated_J,
+                            ::alpaka::hierarchy::Threads{}
                         );
                     }
                 }
@@ -203,9 +213,13 @@ namespace emz
         DIM2
     > : public BaseMethods< ParticleAssign >
     {
-        template< typename T_Cursor >
+        template<
+            typename T_Cursor,
+            typename T_Acc
+        >
         DINLINE void
         operator()(
+            T_Acc const & acc,
             const T_Cursor& cursorJ,
             const Line< float2_X >& line,
             const float_X chargeDensity,
@@ -214,16 +228,19 @@ namespace emz
         {
             using namespace cursor::tools;
             cptCurrent1D(
+                acc,
                 cursorJ,
                 line,
                 cellSize.x( ) * chargeDensity / DELTA_T
             );
             cptCurrent1D(
+                acc,
                 twistVectorFieldAxes< pmacc::math::CT::Int < 1, 0 > >( cursorJ ),
                 rotateOrigin < 1, 0 > ( line ),
                 cellSize.y( ) * chargeDensity / DELTA_T
             );
             cptCurrentZ(
+                acc,
                 cursorJ,
                 line,
                 velocityZ * chargeDensity
@@ -238,10 +255,12 @@ namespace emz
          */
         template<
             typename CursorJ,
-            typename T_Line
+            typename T_Line,
+            typename T_Acc
         >
         DINLINE void
         cptCurrent1D(
+            T_Acc const & acc,
             CursorJ cursorJ,
             const T_Line& line,
             const float_X currentSurfaceDensity
@@ -252,8 +271,8 @@ namespace emz
 
             for( int j = T_begin; j < T_end; ++j )
             {
-                const float_X s0j = S0( line, j, 1 );
-                const float_X dsj = S1( line, j, 1 ) - s0j;
+                const float_X s0j = this->S0( line, j, 1 );
+                const float_X dsj = this->S1( line, j, 1 ) - s0j;
 
                 float_X tmp = -currentSurfaceDensity *
                     (
@@ -268,11 +287,12 @@ namespace emz
                      * Esirkepov paper. All coordinates are rotated before thus we can
                      * always use C style W(i,j,k,0).
                      */
-                    const float_X W = DS( line, i, 0 ) * tmp;
+                    const float_X W = this->DS( line, i, 0 ) * tmp;
                     accumulated_J += W;
-                    nvidia::atomicAdd(
+                    atomicAdd(
                         &( ( *cursorJ( i, j ) ).x( ) ),
-                        accumulated_J
+                        accumulated_J,
+                        ::alpaka::hierarchy::Threads{}
                     );
                 }
             }
@@ -286,10 +306,12 @@ namespace emz
          */
         template<
             typename CursorJ,
-            typename T_Line
+            typename T_Line,
+            typename T_Acc
         >
         DINLINE void
         cptCurrentZ(
+            T_Acc const & acc,
             CursorJ cursorJ,
             const T_Line& line,
             const float_X currentSurfaceDensityZ
@@ -300,20 +322,21 @@ namespace emz
 
             for( int j = T_begin; j < T_end; ++j )
             {
-                const float_X s0j = S0( line, j, 1 );
-                const float_X dsj = S1( line, j, 1 ) - s0j;
+                const float_X s0j = this->S0( line, j, 1 );
+                const float_X dsj = this->S1( line, j, 1 ) - s0j;
                 for( int i = T_begin; i < T_end; ++i )
                 {
-                    const float_X s0i = S0( line, i, 0 );
-                    const float_X dsi = S1( line, i, 0 ) - s0i;
-                    float_X W = s0i * S0( line, j, 1 ) +
+                    const float_X s0i = this->S0( line, i, 0 );
+                    const float_X dsi = this->S1( line, i, 0 ) - s0i;
+                    float_X W = s0i * this->S0( line, j, 1 ) +
                         float_X( 0.5 ) * ( dsi * s0j + s0i * dsj ) +
                         ( float_X( 1.0 ) / float_X( 3.0 ) ) * dsi * dsj;
 
                     const float_X j_z = W * currentSurfaceDensityZ;
-                    nvidia::atomicAdd(
+                    atomicAdd(
                         &( ( *cursorJ( i, j ) ).z( ) ),
-                        j_z
+                        j_z,
+                        ::alpaka::hierarchy::Threads{}
                     );
                 }
             }

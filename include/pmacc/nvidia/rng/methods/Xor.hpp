@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <curand_kernel.h>
 #include "pmacc/types.hpp"
 
 namespace pmacc
@@ -34,42 +33,43 @@ namespace rng
 namespace methods
 {
 
-class Xor
-{
-public:
-    typedef curandStateXORWOW_t StateType;
-    typedef StateType* StatePtr;
-
-    HDINLINE Xor()
+    template< typename T_Acc >
+    class Xor
     {
-    }
+    private:
+         using Gen =
+            decltype(
+                ::alpaka::rand::generator::createDefault(
+                    std::declval<T_Acc const &>(),
+                    std::declval<uint32_t &>(),
+                    std::declval<uint32_t &>()));
+        PMACC_ALIGN(gen, Gen);
+    public:
+        typedef Gen StateType;
+        typedef T_Acc Acc;
 
-    DINLINE Xor(uint32_t seed, uint32_t subsequence = 0, uint32_t offset = 0)
-    {
-        curand_init(seed, subsequence, offset, &state);
-    }
+        HDINLINE Xor() : gen (0)
+        {
+        }
 
-    HDINLINE Xor(const Xor& other): state(other.state)
-    {
+        DINLINE Xor(const T_Acc& acc, uint32_t seed, uint32_t subsequence = 0)
+        {
+            gen = ::alpaka::rand::generator::createDefault(acc, seed, subsequence);
+        }
 
-    }
+        HDINLINE Xor(const Xor& other): gen(other.gen)
+        {
 
-protected:
+        }
 
-    DINLINE curandStateXORWOW_t* getStatePtr()
-    {
-        return &state;
-    }
+    protected:
 
-    DINLINE curandStateXORWOW_t& getState()
-    {
-        return state;
-    }
-
-private:
-    PMACC_ALIGN(state, StateType);
-};
-}
-}
-}
-}
+        DINLINE StateType& getState()
+        {
+            return gen;
+        }
+    };
+} // namespace methods
+} // namespace rng
+} // namespace nvidia
+} // namespace pmacc

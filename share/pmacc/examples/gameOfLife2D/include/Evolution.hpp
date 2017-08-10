@@ -63,9 +63,11 @@ namespace kernel
         template<
             typename T_BoxReadOnly,
             typename T_BoxWriteOnly,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator()(
+            T_Acc const & acc,
             T_BoxReadOnly const & buffRead,
             T_BoxWriteOnly & buffWrite,
             uint32_t const rule,
@@ -81,10 +83,10 @@ namespace kernel
                 math::CT::Int< 1, 1 >,
                 math::CT::Int< 1, 1 >
             >;
-            auto cache = CachedBox::create <
+            auto cache = CachedBox::create<
                 0,
                 Type
-            > ( BlockArea( ) );
+            >( acc, BlockArea( ) );
 
             Space const block( mapper.getSuperCellIndex( Space( blockIdx ) ) );
             Space const blockCell = block * T_Mapping::SuperCellSize::toRT( );
@@ -102,6 +104,7 @@ namespace kernel
 
             nvidia::functors::Assign assign;
             collective(
+                acc,
                 assign,
                 cache,
                 buffRead_shifted
@@ -163,9 +166,11 @@ namespace kernel
          */
         template<
             typename T_BoxWriteOnly,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator()(
+            T_Acc const & acc,
             T_BoxWriteOnly & buffWrite,
             uint32_t const seed,
             float const threshold,
@@ -193,8 +198,8 @@ namespace kernel
 
             // get uniform random number from seed
             auto rng = nvidia::rng::create(
-                nvidia::rng::methods::Xor( seed, globalUniqueId ),
-                nvidia::rng::distributions::Uniform_float( )
+                nvidia::rng::methods::Xor< T_Acc >( acc, seed, globalUniqueId ),
+                nvidia::rng::distributions::Uniform_float::get( acc )
             );
 
             ForEachIdx<

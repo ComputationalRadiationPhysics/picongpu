@@ -47,6 +47,16 @@ namespace functor
         {
             arg = m_value;
         }
+
+        template< typename T_Acc >
+        HDINLINE void
+        operator()(
+            T_Acc const &,
+            Type & arg
+        ) const
+        {
+            arg = m_value;
+        }
     };
 
 } // functor

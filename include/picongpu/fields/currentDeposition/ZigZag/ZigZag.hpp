@@ -97,9 +97,17 @@ template<typename T_GridPointVec, typename T_Shape, typename T_CurrentComponent>
 struct AssignChargeToCell
 {
 
-    template<typename T_Cursor>
+    template<
+        typename T_Cursor,
+        typename T_Acc
+    >
     HDINLINE void
-    operator()(T_Cursor& cursor, const floatD_X& pos, const float_X flux)
+    operator()(
+        T_Acc const & acc,
+        T_Cursor& cursor,
+        const floatD_X& pos,
+        const float_X flux
+    )
     {
         typedef T_GridPointVec GridPointVec;
         typedef T_Shape Shape;
@@ -123,7 +131,7 @@ struct AssignChargeToCell
         /* shift memory cursor to cell (grid point)*/
         auto cursorToValue = cursor(GridPointVec::toRT());
         /* add current to component of the cell*/
-        nvidia::atomicAdd(&((*cursorToValue)[currentComponent]), j);
+        atomicAdd(&((*cursorToValue)[currentComponent]), j, ::alpaka::hierarchy::Threads{});
     }
 };
 
@@ -171,9 +179,17 @@ struct ZigZag
     struct AssignOneDirection
     {
 
-        template<typename T_Cursor>
+        template<
+            typename T_Cursor,
+            typename T_Acc
+        >
         HDINLINE void
-        operator()(T_Cursor cursor, floatD_X pos, const float3_X& flux)
+        operator()(
+            T_Acc const & acc,
+            T_Cursor cursor,
+            floatD_X pos,
+            const float3_X& flux
+        )
         {
             typedef T_CurrentComponent CurrentComponent;
             const uint32_t dir = CurrentComponent::value;
@@ -213,7 +229,7 @@ struct ZigZag
             /* calculate the current for every cell (grid point)*/
             typedef typename AllCombinations<Size>::type CombiTypes;
             ForEach<CombiTypes, AssignChargeToCell<bmpl::_1, ParticleShape, CurrentComponent > > callAssignChargeToCell;
-            callAssignChargeToCell(forward(cursor), pos, flux[dir]);
+            callAssignChargeToCell(acc, forward(cursor), pos, flux[dir]);
         }
 
     };
@@ -226,8 +242,9 @@ struct ZigZag
      * @param charge charge of the macro particle
      * @param deltaTime dime difference of one simulation time step
      */
-    template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType >
-    DINLINE void operator()(DataBoxJ dataBoxJ,
+    template<typename DataBoxJ, typename PosType, typename VelType, typename ChargeType, typename T_Acc >
+    DINLINE void operator()(const T_Acc& acc,
+                            DataBoxJ dataBoxJ,
                             const PosType pos1,
                             const VelType velocity,
                             const ChargeType charge, const float_X deltaTime)
@@ -302,7 +319,7 @@ struct ZigZag
 
             /* calculate x,y,z component of the current*/
             ForEach<Components, AssignOneDirection<bmpl::_1> > callAssignOneDirection;
-            callAssignOneDirection(forward(cursorJ), inCellPos, flux);
+            callAssignOneDirection(acc, forward(cursorJ), inCellPos, flux);
         }
     }
 

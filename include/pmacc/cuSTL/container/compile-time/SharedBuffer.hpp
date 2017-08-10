@@ -36,10 +36,8 @@ namespace CT
  * uid has to be different. This is due to a nvcc bug.
  */
 template<typename Type, typename Size, int uid = 0>
-struct SharedBuffer
- : public CT::CartBuffer<Type, Size,
-                         allocator::CT::SharedMemAllocator<Type, Size, Size::dim, uid>, void, void>
-{};
+using SharedBuffer = CT::CartBuffer<Type, Size,
+                         allocator::CT::SharedMemAllocator<Type, Size, Size::dim, uid>, void, void>;
 
 } // CT
 } // container

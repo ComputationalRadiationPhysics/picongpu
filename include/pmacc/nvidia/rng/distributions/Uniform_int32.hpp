@@ -22,39 +22,62 @@
 
 #pragma once
 
-#include <curand_kernel.h>
 #include "pmacc/types.hpp"
 
 namespace pmacc
 {
-    namespace nvidia
+namespace nvidia
+{
+namespace rng
+{
+namespace distributions
+{
+namespace detail
+{
+    /*create a 32Bit random int number
+     * Range: [INT_MIN,INT_MAX]
+     */
+    template< typename T_Acc>
+    class Uniform_int32
     {
-        namespace rng
+    public:
+        typedef int32_t Type;
+
+    private:
+        typedef uint32_t RngType;
+        using Dist =
+            decltype(
+                ::alpaka::rand::distribution::createUniformUint<RngType>(
+                    std::declval<T_Acc const &>()));
+        PMACC_ALIGN(dist, Dist);
+    public:
+        HDINLINE Uniform_int()
         {
-            namespace distributions
-            {
-
-                /*create a 32Bit random int number
-                 * Range: [INT_MIN,INT_MAX]
-                 */
-                class Uniform_int32
-                {
-                public:
-                    typedef int32_t Type;
-
-                    HDINLINE Uniform_int()
-                    {
-                    }
-
-                    template<class RNGState>
-                    DINLINE Type operator()(RNGState* state) const
-                    {
-                        /*curand create a random 32Bit int value*/
-                        return curand(state);
-                    }
-                };
-            }
         }
-    }
 
-}
+        HDINLINE Uniform_int(const T_Acc& acc) : dist(::alpaka::rand::distribution::createUniformUint<RngType>(acc))
+        {
+        }
+
+        template<class RNGState>
+        DINLINE Type operator()(RNGState& state)
+        {
+            /*curand create a random 32Bit int value*/
+            return static_cast<Type>(dist(state));
+        }
+    };
+} // namespace detail
+
+    struct Normal_float
+    {
+        template< typename T_Acc>
+        static HDINLINE detail::Uniform_int32< T_Acc >
+        get( T_Acc const & acc)
+        {
+            return detail::Uniform_int32< T_Acc >( acc );
+        }
+    };
+} // namespace distributions
+} // namespace rng
+} // namespace nvidia
+} // namespace pmacc

@@ -117,10 +117,15 @@ namespace particleMerging
          *
          * @param cellIdx cell index
          */
-        DINLINE void initVoronoiCellIdAttribute( const pmacc::math::Int<simDim>& cellIdx )
+        template< typename T_Acc >
+        DINLINE void initVoronoiCellIdAttribute(
+            T_Acc const & acc,
+            const pmacc::math::Int<simDim>& cellIdx
+        )
         {
             particleAccess::Cell2Particle< SuperCellSize > forEachFrame;
             forEachFrame(
+                acc,
                 this->particlesBox,
                 cellIdx,
                 [this]( FramePtr frame, const int linearThreadIdx )
@@ -167,13 +172,16 @@ namespace particleMerging
          * @param cellIdx n-dim. cell index from the origin of the local domain
          * @param listVoronoiCells fixed-sized array of Voronoi cells
          */
+        template< typename T_Acc >
         DINLINE void processParticles(
+            T_Acc const & acc,
             const pmacc::math::Int<simDim>& cellIdx,
             ArrayVoronoiCells& listVoronoiCells
         )
         {
             particleAccess::Cell2Particle< SuperCellSize > forEachFrame;
             forEachFrame(
+                acc,
                 this->particlesBox,
                 cellIdx,
                 [&]( FramePtr frame, const int linearThreadIdx )
@@ -197,6 +205,7 @@ namespace particleMerging
                     {
                     case VoronoiStatus::collecting:
                         voronoiCell.addParticle(
+                            acc,
                             position,
                             momentum,
                             weighting
@@ -216,6 +225,7 @@ namespace particleMerging
 
                             /* place particle into one of the two sub-Voronoi cells */
                             listVoronoiCells[subVoronoiCellId].addParticle(
+                                acc,
                                 position,
                                 momentum,
                                 weighting
@@ -232,7 +242,7 @@ namespace particleMerging
 
                     case VoronoiStatus::readyForMerging:
                         /* merge all particles of this Voronoi cell */
-                        if( voronoiCell.isFirstParticle() )
+                        if( voronoiCell.isFirstParticle( acc ) )
                         {
                             /* I am the first particle in the Voronoi cell
                              * => get dressed with Voronoi cell's attributes */
@@ -365,7 +375,11 @@ namespace particleMerging
          *
          * @param cellIndex n-dim. cell index from the origin of the local domain
          */
-        DINLINE void operator()( const pmacc::math::Int<simDim>& cellIndex )
+        template< typename T_Acc>
+        DINLINE void operator()(
+            T_Acc const & acc,
+            const pmacc::math::Int<simDim>& cellIndex
+        )
         {
             /* multi-dim vector from origin of the super cell to a cell in units of cells */
             const pmacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
@@ -378,9 +392,9 @@ namespace particleMerging
             );
 
             /* fixed-sized array of Voronoi cells */
-            PMACC_SMEM( listVoronoiCells, ArrayVoronoiCells );
+            PMACC_SMEM( acc, listVoronoiCells, ArrayVoronoiCells );
             /* holds indices of active Voronoi cells within `listVoronoiCells` */
-            PMACC_SMEM( voronoiIndexPool, VoronoiIndexPool );
+            PMACC_SMEM( acc, voronoiIndexPool, VoronoiIndexPool );
 
             /* number of initial Voronoi cells
              *

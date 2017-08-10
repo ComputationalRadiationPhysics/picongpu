@@ -26,7 +26,7 @@
 #include "pmacc/eventSystem/streams/EventStream.hpp"
 #include "pmacc/eventSystem/tasks/StreamTask.hpp"
 
-#include <cuda_runtime_api.h>
+
 
 #include <iomanip>
 

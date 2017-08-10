@@ -57,8 +57,16 @@ struct DirSplittingKernel
         __syncthreads();
     }
 
-    template<typename CursorE, typename CursorB >
-    DINLINE void operator()(CursorE globalE, CursorB globalB) const
+    template<
+        typename CursorE,
+        typename CursorB,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        CursorE globalE,
+        CursorB globalB
+    ) const
     {
         //\todo: optimize cache size
         typedef typename pmacc::math::CT::add<
@@ -67,8 +75,8 @@ struct DirSplittingKernel
 
         typedef container::CT::SharedBuffer<float3_X, CacheSize, 0 > CacheE;
         typedef container::CT::SharedBuffer<float3_X, CacheSize, 1 > CacheB;
-        CacheE cacheE;
-        CacheB cacheB;
+        CacheE cacheE( acc );
+        CacheB cacheB( acc );
 
         float3_X fieldE_old;
         float3_X fieldB_old;
@@ -77,8 +85,8 @@ struct DirSplittingKernel
         algorithm::cudaBlock::Foreach<BlockDim> foreach;
         for (int x_offset = 0; x_offset < this->m_totalLength; x_offset += BlockDim::x::value)
         {
-            foreach(typename CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
-            foreach(typename CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
+            foreach(acc, typename CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
+            foreach(acc, typename CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
             __syncthreads();
 
             auto cursorE = cacheE.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z);
@@ -98,8 +106,8 @@ struct DirSplittingKernel
             propagate(cursorE, cursorB);
 
             typedef zone::CT::SphericZone<BlockDim> BlockZone;
-            foreach(BlockZone(), globalE(x_offset, 0, 0), cacheE.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
-            foreach(BlockZone(), globalB(x_offset, 0, 0), cacheB.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
+            foreach(acc, BlockZone(), globalE(x_offset, 0, 0), cacheE.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
+            foreach(acc, BlockZone(), globalB(x_offset, 0, 0), cacheB.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
 
             __syncthreads();
 

@@ -23,7 +23,7 @@
 
 
 #pragma once
-#include <cuda.h>
+
 
 #include "pmacc/particles/memory/boxes/TileDataBox.hpp"
 
@@ -65,16 +65,10 @@ namespace pmacc
          * @param count number of elements to increase stack with
          * @return a TileDataBox of size count pointing to the new stack elements
          */
-        HDINLINE TileDataBox<VALUE> pushN(TYPE count)
+        template< typename T_Acc >
+        HDINLINE TileDataBox<VALUE> pushN(T_Acc const & acc, TYPE count)
         {
-#if !defined(__CUDA_ARCH__) // Host code path
-            //TYPE old_addr = (*currentSize) = (*currentSize) + count;
-            //old_addr -= count;
-            TYPE old_addr = (*currentSize);
-            *currentSize += count;
-#else
-            TYPE old_addr = atomicAdd(currentSize, count);
-#endif
+            TYPE old_addr = atomicAdd(currentSize, count, ::alpaka::hierarchy::Grids{});
             return TileDataBox<VALUE > (this->fixedPointer, DataSpace<DIM1>(old_addr));
         }
 
@@ -83,13 +77,10 @@ namespace pmacc
          *
          * @param val data of type VALUE to add to the stack
          */
-        HDINLINE void push(VALUE val)
+        template< typename T_Acc >
+        HDINLINE void push(T_Acc const & acc, VALUE val)
         {
-#if !defined(__CUDA_ARCH__) // Host code path
-            TYPE old_addr = (*currentSize)++;
-#else
-            TYPE old_addr = atomicAdd(currentSize, 1);
-#endif
+            TYPE old_addr = atomicAdd(currentSize, 1, ::alpaka::hierarchy::Threads{});
             (*this)[old_addr] = val;
         }
 

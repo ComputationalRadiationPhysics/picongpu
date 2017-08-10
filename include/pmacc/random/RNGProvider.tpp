@@ -38,9 +38,18 @@ namespace random
         template< typename T_RNGMethod>
         struct InitRNGProvider
         {
-            template<class T_RNGBox, class T_Space>
+            template<
+                typename T_RNGBox,
+                typename T_Space,
+                typename T_Acc
+            >
             DINLINE void
-            operator()(T_RNGBox rngBox, uint32_t seed, const T_Space size) const
+            operator()(
+                T_Acc const & acc,
+                T_RNGBox rngBox,
+                uint32_t seed,
+                const T_Space size
+            ) const
             {
                 const uint32_t linearTid = blockIdx.x * blockDim.x + threadIdx.x;
                 if(linearTid >= size.productOfComponents())

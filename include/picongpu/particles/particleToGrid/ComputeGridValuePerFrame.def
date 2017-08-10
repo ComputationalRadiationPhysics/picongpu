@@ -79,10 +79,18 @@ public:
      */
     HINLINE std::string getName() const;
 
-    template<class FrameType, class TVecSuperCell, class BoxTmp >
-    DINLINE void operator()(FrameType& frame, const int localIdx,
-                            const TVecSuperCell superCell,
-                            BoxTmp& tmpBox);
+    template<
+        typename FrameType,
+        typename TVecSuperCell,
+        typename BoxTmp,
+        typename T_Acc >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        FrameType& frame,
+        const int localIdx,
+        const TVecSuperCell superCell,
+        BoxTmp& tmpBox
+    );
 };
 
 /** Density Operation for Particle to Grid Projections

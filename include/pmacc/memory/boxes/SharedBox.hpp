@@ -96,8 +96,14 @@ public:
         return fixedPointer;
     }
 
-    /* This call synchronizes a block and must be called from all threads and not inside a if clauses*/
-    static DINLINE This init()
+    /** create a shared memory box
+     *
+     * This call synchronizes a block and must be called from all threads and
+     * not inside a if clauses
+     */
+    template< typename T_Acc >
+    static DINLINE SharedBox
+    init( T_Acc const & acc )
     {
         auto& mem_sh = pmacc::memory::shared::allocate<
             T_id,
@@ -105,7 +111,7 @@ public:
                 ValueType,
                 math::CT::volume< Size >::type::value
             >
-        >( );
+        >( acc );
         return SharedBox( mem_sh.data() );
     }
 
@@ -161,8 +167,14 @@ public:
         return fixedPointer;
     }
 
-    /* This call synchronizes a block and must be called from all threads and not inside a if clauses*/
-    static DINLINE This init()
+    /** create a shared memory box
+     *
+     * This call synchronizes a block and must be called from all threads and
+     * not inside a if clauses
+     */
+    template< typename T_Acc >
+    static DINLINE SharedBox
+    init( T_Acc const & acc )
     {
         auto& mem_sh = pmacc::memory::shared::allocate<
             T_id,
@@ -170,7 +182,7 @@ public:
                 ValueType,
                 math::CT::volume< Size >::type::value
             >
-        >( );
+        >( acc );
         return SharedBox( mem_sh.data() );
     }
 
@@ -242,8 +254,14 @@ public:
             ((ValueType*)fixedPointer);
     }
 
-    /*this call synchronize a block and must called from any thread and not inside a if clauses*/
-    static DINLINE This init()
+    /** create a shared memory box
+     *
+     * This call synchronizes a block and must be called from all threads and
+     * not inside a if clauses
+     */
+    template< typename T_Acc >
+    static DINLINE SharedBox
+    init( T_Acc const & acc )
     {
         auto& mem_sh = pmacc::memory::shared::allocate<
             T_id,
@@ -251,7 +269,7 @@ public:
                 ValueType,
                 math::CT::volume< Size >::type::value
             >
-        >( );
+        >( acc );
         return SharedBox( mem_sh.data() );
     }
 

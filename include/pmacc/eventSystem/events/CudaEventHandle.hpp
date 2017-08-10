@@ -24,7 +24,7 @@
 
 #include "pmacc/types.hpp"
 #include "pmacc/assert.hpp"
-#include <cuda_runtime.h>
+
 #include "pmacc/eventSystem/events/CudaEvent.def"
 
 namespace pmacc

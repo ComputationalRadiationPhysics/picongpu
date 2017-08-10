@@ -27,8 +27,10 @@
 #include "picongpu/traits/attribute/GetMass.hpp"
 #include "picongpu/fields/currentDeposition/Solver.hpp"
 #include "picongpu/particles/Particles.tpp"
-#include "picongpu/particles/ionization/byField/ionizers.hpp"
-#include "picongpu/particles/ionization/byCollision/ionizers.hpp"
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/particles/ionization/byField/ionizers.hpp"
+#   include "picongpu/particles/ionization/byCollision/ionizers.hpp"
+#endif
 
 
 namespace picongpu

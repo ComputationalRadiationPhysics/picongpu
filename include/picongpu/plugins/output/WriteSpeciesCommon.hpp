@@ -58,7 +58,11 @@ struct MallocMemory
         type* ptr = nullptr;
         if (size != 0)
         {
-            CUDA_CHECK(cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped));
+#if( PMACC_CUDA_ENABLED == 1 )
+            CUDA_CHECK((cuplaError_t)cudaHostAlloc(&ptr, size * sizeof (type), cudaHostAllocMapped));
+#else
+            ptr = new type[size];
+#endif
         }
         v1.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
 
@@ -119,7 +123,11 @@ struct GetDevicePtr
         type* srcPtr = src.getIdentifier(T_Type()).getPointer();
         if (srcPtr != nullptr)
         {
-            CUDA_CHECK(cudaHostGetDevicePointer(&ptr, srcPtr, 0));
+#if( PMACC_CUDA_ENABLED == 1 )
+            CUDA_CHECK((cuplaError_t)cudaHostGetDevicePointer(&ptr, srcPtr, 0));
+#else
+            ptr = srcPtr;
+#endif
         }
         dest.getIdentifier(T_Type()) = VectorDataBox<type>(ptr);
     }
@@ -136,7 +144,16 @@ struct FreeMemory
         type* ptr = value.getIdentifier(T_Type()).getPointer();
         if (ptr != nullptr)
         {
-            CUDA_CHECK(cudaFreeHost(ptr));
+#if( PMACC_CUDA_ENABLED == 1 )
+            auto rc = cudaFreeHost(ptr);
+            /* cupla can't handle foreign memory allocated with `cudaHostAlloc`
+             * therefore the cupla error `cuplaErrorMemoryAllocation` is ignored
+             */
+            if(rc != cuplaErrorMemoryAllocation)
+                CUDA_CHECK(rc)
+#else
+            __deleteArray(ptr);
+#endif
             ptr=nullptr;
         }
     }

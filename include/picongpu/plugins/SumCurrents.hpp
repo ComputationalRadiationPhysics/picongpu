@@ -43,12 +43,20 @@ typedef FieldJ::DataBoxType J_DataBox;
 
 struct KernelSumCurrents
 {
-    template<class Mapping>
-    DINLINE void operator()(J_DataBox fieldJ, float3_X* gCurrent, Mapping mapper) const
+    template<
+        typename Mapping,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        J_DataBox fieldJ,
+        float3_X* gCurrent,
+        Mapping mapper
+    ) const
     {
         typedef typename Mapping::SuperCellSize SuperCellSize;
 
-        PMACC_SMEM( sh_sumJ, float3_X );
+        PMACC_SMEM( acc, sh_sumJ, float3_X );
 
         const DataSpace<simDim > threadIndex(threadIdx);
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
@@ -66,17 +74,17 @@ struct KernelSumCurrents
 
         const float3_X myJ = fieldJ(cell);
 
-        nvidia::atomicAdd(&(sh_sumJ.x()), myJ.x());
-        nvidia::atomicAdd(&(sh_sumJ.y()), myJ.y());
-        nvidia::atomicAdd(&(sh_sumJ.z()), myJ.z());
+        atomicAdd( &(sh_sumJ.x()), myJ.x(), ::alpaka::hierarchy::Threads{});
+        atomicAdd( &(sh_sumJ.y()), myJ.y(), ::alpaka::hierarchy::Threads{});
+        atomicAdd( &(sh_sumJ.z()), myJ.z(), ::alpaka::hierarchy::Threads{});
 
         __syncthreads();
 
         if (linearThreadIdx == 0)
         {
-            nvidia::atomicAdd(&(gCurrent->x()), sh_sumJ.x());
-            nvidia::atomicAdd(&(gCurrent->y()), sh_sumJ.y());
-            nvidia::atomicAdd(&(gCurrent->z()), sh_sumJ.z());
+            atomicAdd( &(gCurrent->x()), sh_sumJ.x(), ::alpaka::hierarchy::Blocks{});
+            atomicAdd( &(gCurrent->y()), sh_sumJ.y(), ::alpaka::hierarchy::Blocks{});
+            atomicAdd( &(gCurrent->z()), sh_sumJ.z(), ::alpaka::hierarchy::Blocks{});
         }
     }
 };

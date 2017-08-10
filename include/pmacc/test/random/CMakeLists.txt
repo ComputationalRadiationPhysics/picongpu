@@ -36,7 +36,7 @@ add_definitions(${PMacc_DEFINITIONS})
 # Targets
 ###############################################################################
 
-cuda_add_executable(TestRng 2DDistribution.cu)
+cupla_add_executable(TestRng 2DDistribution.cpp)
 target_link_libraries(TestRng ${LIBS})
 
 add_custom_target(run

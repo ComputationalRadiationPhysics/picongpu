@@ -56,8 +56,8 @@ public:
     }
 
 private:
-    const PMACC_ALIGN(offset, size_t);
-    const PMACC_ALIGN(ptr, char*);
+    PMACC_ALIGN(offset, const size_t);
+    PMACC_ALIGN(ptr, const char*);
 };
 
 }//namespace MutiBoxAccass

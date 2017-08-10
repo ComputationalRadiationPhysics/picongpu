@@ -92,10 +92,15 @@ namespace detail
          * @param args arguments passed to the user functor
          * @return T_ReturnType
          */
-        template< typename ... T_Args >
-        DINLINE auto operator( )(  T_Args && ... args )
+        template<
+            typename T_Acc,
+            typename ... T_Args
+        >
+        DINLINE auto operator( )(
+            T_Acc const & acc,
+            T_Args && ... args )
         -> decltype(
-            std::declval< UserFunctor >( )( args ... )
+            std::declval< UserFunctor >( )( acc, args ... )
         )
         {
             /* check if the current used number of arguments to execute the
@@ -109,7 +114,7 @@ namespace detail
 
             // get the return type of the user functor
             using UserFunctorReturnType = decltype(
-                std::declval< UserFunctor >( )( args ... )
+                std::declval< UserFunctor >( )( acc, args ... )
             );
 
             // compare user functor return type with the interface requirements
@@ -120,7 +125,7 @@ namespace detail
                     detail::VoidWrapper< T_ReturnType >
                 >::value
             );
-            return ( *reinterpret_cast< UserFunctor * >( this ) )( args ... );
+            return ( *reinterpret_cast< UserFunctor * >( this ) )( acc, args ... );
         }
     };
 
@@ -190,7 +195,9 @@ namespace detail
          *
          * @tparam T_OffsetType type to describe the size of a domain
          * @tparam T_numWorkers number of workers
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param alpaka accelerator
          * @param domainOffset offset to the origin of the local domain
          *                     This can be e.g a supercell or cell offset and depends
          *                     of the context where the interface is specialized.
@@ -200,16 +207,19 @@ namespace detail
          */
         template<
             typename T_OffsetType,
-            uint32_t T_numWorkers
+            uint32_t T_numWorkers,
+            typename T_Acc
         >
         DINLINE auto
         operator( )(
+            T_Acc const & acc,
             T_OffsetType const & domainOffset,
             mappings::threads::WorkerCfg< T_numWorkers > const & workerCfg
         )
         -> acc::Interface<
             decltype(
                 std::declval< UserFunctor >( )(
+                    acc,
                     domainOffset,
                     workerCfg
                 )
@@ -219,6 +229,7 @@ namespace detail
         >
         {
             return ( *reinterpret_cast< UserFunctor * >( this ) )(
+                acc,
                 domainOffset,
                 workerCfg
             );

@@ -27,15 +27,17 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
-#include "picongpu/particles/traits/GetIonizerList.hpp"
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/particles/traits/GetIonizerList.hpp"
+#   include "picongpu/particles/traits/GetPhotonCreator.hpp"
+#   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+#   include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
+#   include "picongpu/particles/creation/creation.hpp"
+#   include "picongpu/particles/ionization/ionization.hpp"
+#endif
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-#include "picongpu/particles/traits/GetPhotonCreator.hpp"
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
 #include "picongpu/particles/flylite/IFlyLite.hpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-#include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
-#include "picongpu/particles/creation/creation.hpp"
-#include "picongpu/particles/ionization/ionization.hpp"
 
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/accumulate.hpp>
@@ -103,10 +105,12 @@ struct LogMemoryStatisticsForSpecies
         const std::shared_ptr<T_DeviceHeap>& deviceHeap
     ) const
     {
+#if( PMACC_CUDA_ENABLED == 1 )
         log<picLog::MEMORY >("mallocMC: free slots for species %3%: %1% a %2%") %
             deviceHeap->getAvailableSlots(sizeof (FrameType)) %
             sizeof (FrameType) %
             FrameType::getName();
+#endif
     }
 };
 
@@ -295,6 +299,7 @@ struct PushAllSpecies
     }
 };
 
+#if( PMACC_CUDA_ENABLED == 1 )
 /** Call an ionization method upon an ion species
  *
  * \tparam T_SpeciesType type of particle species that is going to be ionized with
@@ -518,6 +523,6 @@ struct CallSynchrotronPhotons
     }
 
 };
-
+#endif
 } // namespace particles
 } // namespace picongpu

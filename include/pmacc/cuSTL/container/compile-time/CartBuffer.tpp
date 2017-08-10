@@ -29,9 +29,10 @@ namespace CT
 {
 
 template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>
-DINLINE CartBuffer<Type, _Size, Allocator, Copier, Assigner>::CartBuffer()
+template< typename T_Acc >
+DINLINE CartBuffer<Type, _Size, Allocator, Copier, Assigner>::CartBuffer( T_Acc const & acc )
 {
-    this->dataPointer = Allocator::allocate().getMarker();
+    this->dataPointer = Allocator::allocate( acc ).getMarker();
 }
 
 template<typename Type, typename _Size, typename Allocator, typename Copier, typename Assigner>

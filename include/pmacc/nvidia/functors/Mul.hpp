@@ -38,6 +38,13 @@ namespace functors
         {
             dst *= src;
         }
+
+        template<typename Dst, typename Src, typename T_Acc>
+        HDINLINE void
+        operator()( const T_Acc &, Dst& dst, const Src& src ) const
+        {
+            dst *= src;
+        }
     };
 } // namespace functors
 } // namespace nvidia

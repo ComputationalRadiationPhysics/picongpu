@@ -43,9 +43,9 @@ using DefaultParticleAttributes = MakeSeq_t<
 
 /* attribute sequence for species: ions */
 using AttributeSeqIons = MakeSeq_t<
-    DefaultParticleAttributes,
+    DefaultParticleAttributes
 #if( PARAM_IONIZATION == 1 )
-    boundElectrons
+    , boundElectrons
 #endif
 >;
 

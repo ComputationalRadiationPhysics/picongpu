@@ -36,8 +36,8 @@
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits.hpp>
 
-#include <cuda_runtime_api.h>
-#include <cuda.h>
+
+
 
 namespace pmacc
 {
@@ -101,6 +101,7 @@ struct KernelSetValue
      * @tparam T_DataBox pmacc::DataBox, type of the memory box
      * @tparam T_ValueType type of the value
      * @tparam T_SizeVecType pmacc::math::Vector, index type
+     * @tparam T_Acc alpaka accelerator type
      *
      * @param memBox box of which all elements shall be set to value
      * @param value value to set to all elements of memBox
@@ -109,10 +110,12 @@ struct KernelSetValue
     template<
         typename T_DataBox,
         typename T_ValueType,
-        typename T_SizeVecType
+        typename T_SizeVecType,
+        typename T_Acc
     >
     DINLINE void
     operator()(
+        T_Acc const & acc,
         T_DataBox & memBox,
         T_ValueType const & value,
         T_SizeVecType const & size
@@ -249,16 +252,17 @@ public:
            );
 
             auto destBox = this->destination->getDataBox( );
-            nvidia::gpuEntryFunction<<<
+            CUPLA_KERNEL(
+                KernelSetValue<
+                    numWorkers,
+                    xChunkSize
+                >
+            )(
                 gridSize,
                 numWorkers,
                 0,
                 this->getCudaStream( )
-            >>>(
-                KernelSetValue<
-                    numWorkers,
-                    xChunkSize
-                >{ },
+            )(
                 destBox,
                 this->value,
                 area_size
@@ -319,7 +323,7 @@ public:
             ValueType* devicePtr = this->destination->getPointer();
 
             CUDA_CHECK( cudaMallocHost(
-                &valuePointer_host,
+                (void**)&valuePointer_host,
                 sizeof( ValueType )
             ));
             *valuePointer_host = this->value; //copy value to new place
@@ -333,16 +337,17 @@ public:
             ));
 
             auto destBox = this->destination->getDataBox( );
-            nvidia::gpuEntryFunction<<<
+            CUPLA_KERNEL(
+                KernelSetValue<
+                    numWorkers,
+                    xChunkSize
+                >
+            )(
                 gridSize,
                 numWorkers,
                 0,
                 this->getCudaStream()
-            >>>(
-                KernelSetValue<
-                    numWorkers,
-                    xChunkSize
-                >{ },
+            )(
                 destBox,
                 devicePtr,
                 area_size

@@ -120,11 +120,23 @@ namespace ionization
              *                        domain, i.e. from the @see BORDER
              *                        <b>without guarding supercells</b>
              */
-            DINLINE void init(const DataSpace<simDim>& blockCell, const int& linearThreadIdx, const DataSpace<simDim>& localCellOffset)
+            template< typename T_Acc >
+            DINLINE void init(
+                T_Acc const & acc,
+                const DataSpace<simDim>& blockCell,
+                const int& linearThreadIdx,
+                const DataSpace<simDim>& localCellOffset
+            )
             {
 
                 /* caching of E field */
-                cachedE = CachedBox::create < 1, ValueType_E > (BlockArea());
+                cachedE = CachedBox::create<
+                    1,
+                    ValueType_E
+                >(
+                    acc,
+                    BlockArea()
+                );
 
                 /* instance of nvidia assignment operator */
                 nvidia::functors::Assign assign;
@@ -136,6 +148,7 @@ namespace ionization
                 /* copy fields from global to shared */
                 auto fieldEBlock = eBox.shift(blockCell);
                 collective(
+                          acc,
                           assign,
                           cachedE,
                           fieldEBlock

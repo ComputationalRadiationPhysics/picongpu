@@ -70,7 +70,9 @@ struct KernelBinEnergyParticles
      * @tparam T_ParBox pmacc::ParticlesBox, particle box type
      * @tparam T_BinBox pmacc::DataBox, box type for the histogram in global memory
      * @tparam T_Mapping type of the mapper to map a cuda block to a supercell index
+     * @tparam T_Acc alpaka accelerator type
      *
+     * @param acc alpaka accelerator
      * @param pb box with access to the particles of the current used species
      * @param gBins box with memory for resulting histogram
      * @param numBins number of bins in the histogram (must be fit into the shared memory)
@@ -83,11 +85,13 @@ struct KernelBinEnergyParticles
     template<
         typename T_ParBox,
         typename T_BinBox,
-        typename T_Mapping
+        typename T_Mapping,
+        typename T_Acc
     >
     DINLINE void operator()(
-        T_ParBox & pb,
-        T_BinBox & gBins,
+        T_Acc const & acc,
+        T_ParBox pb,
+        T_BinBox gBins,
         int const numBins,
         float_X const minEnergy,
         float_X const maxEnergy,
@@ -103,11 +107,13 @@ struct KernelBinEnergyParticles
         constexpr uint32_t numWorkers = T_numWorkers;
 
         PMACC_SMEM(
+            acc,
             frame,
             FramePtr
         );
 
         PMACC_SMEM(
+            acc,
             particlesInSuperCell,
             lcellId_t
         );
@@ -118,7 +124,8 @@ struct KernelBinEnergyParticles
          * 0 is for <minEnergy
          * (numBins+2)-1 is for >maxEnergy
          */
-        extern __shared__ float_X shBin[]; /* size must be numBins+2 because we have <min and >max */
+        sharedMemExtern(shBin,float_X); /* size must be numBins+2 because we have <min and >max */
+
 
         int const realNumBins = numBins + 2;
 
@@ -237,9 +244,10 @@ struct KernelBinEnergyParticles
                              */
                             float_X const normedWeighting = weighting /
                                 float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
-                            nvidia::atomicAdd(
+                            atomicAdd(
                                 &( shBin[ binNumber ] ),
-                                normedWeighting
+                                normedWeighting,
+                                ::alpaka::hierarchy::Threads{}
                             );
                         }
                     }
@@ -273,9 +281,10 @@ struct KernelBinEnergyParticles
             )
             {
                 for( int i = linearIdx; i < realNumBins; i += numWorkers )
-                    nvidia::atomicAdd(
+                    atomicAdd(
                         &( gBins[ i ] ),
-                        float_64( shBin[ i ] )
+                        float_64( shBin[ i ] ),
+                        ::alpaka::hierarchy::Blocks{}
                     );
             }
         );

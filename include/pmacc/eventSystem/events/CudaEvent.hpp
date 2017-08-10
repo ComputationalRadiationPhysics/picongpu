@@ -25,7 +25,7 @@
 #include "pmacc/eventSystem/events/CudaEventHandle.hpp"
 #include "pmacc/types.hpp"
 
-#include <cuda_runtime.h>
+
 
 
 namespace pmacc

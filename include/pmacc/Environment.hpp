@@ -39,7 +39,6 @@
 #include "pmacc/communication/manager_common.hpp"
 #include "pmacc/assert.hpp"
 
-#include <cuda_runtime.h>
 #include <mpi.h>
 
 namespace pmacc
@@ -444,6 +443,7 @@ namespace detail
     {
         int num_gpus = 0; //number of gpus
         cudaGetDeviceCount(&num_gpus);
+#if (PMACC_CUDA_ENABLED == 1)
         //##ERROR handling
         if (num_gpus < 1) //check if cuda device is found
         {
@@ -454,17 +454,17 @@ namespace detail
             std::cerr << "no CUDA device " << deviceNumber << ", only " << num_gpus << " devices found" << std::endl;
             throw std::runtime_error("CUDA capable devices can't be selected");
         }
-
+#endif
 
         int maxTries = num_gpus;
-
+#if (PMACC_CUDA_ENABLED == 1)
         cudaDeviceProp devProp;
-        cudaError rc;
-        CUDA_CHECK(cudaGetDeviceProperties(&devProp, deviceNumber));
-
+        CUDA_CHECK((cuplaError_t)cudaGetDeviceProperties(&devProp, deviceNumber));
         /* if the gpu compute mode is set to default we use the given `deviceNumber` */
         if (devProp.computeMode == cudaComputeModeDefault)
             maxTries = 1;
+#endif
+        cudaError rc;
 
         for (int deviceOffset = 0; deviceOffset < maxTries; ++deviceOffset)
         {
@@ -488,8 +488,9 @@ namespace detail
 
             if (rc == cudaSuccess)
             {
+#if (PMACC_CUDA_ENABLED == 1)
                 cudaDeviceProp dprop;
-                CUDA_CHECK(cudaGetDeviceProperties(&dprop, tryDeviceId));
+                CUDA_CHECK((cuplaError_t)cudaGetDeviceProperties(&dprop, tryDeviceId));
                 log<ggLog::CUDA_RT > ("Set device to %1%: %2%") % tryDeviceId % dprop.name;
                 if(cudaErrorSetOnActiveProcess == cudaSetDeviceFlags(cudaDeviceScheduleSpin))
                 {
@@ -498,12 +499,17 @@ namespace detail
                      * - to set the flags reset the device and set flags again
                      */
                     CUDA_CHECK(cudaDeviceReset());
-                    CUDA_CHECK(cudaSetDeviceFlags(cudaDeviceScheduleSpin));
+                    CUDA_CHECK((cuplaError_t)cudaSetDeviceFlags(cudaDeviceScheduleSpin));
                 }
+#endif
                 CUDA_CHECK(cudaGetLastError());
                 break;
             }
-            else if (rc == cudaErrorDeviceAlreadyInUse || rc==cudaErrorDevicesUnavailable)
+            else if (rc == cudaErrorDeviceAlreadyInUse
+#if (PMACC_CUDA_ENABLED == 1)
+                || rc==(cudaError)cudaErrorDevicesUnavailable
+#endif
+            )
             {
                 cudaGetLastError(); //reset all errors
                 log<ggLog::CUDA_RT > ("Device %1% already in use, try next.") % tryDeviceId;

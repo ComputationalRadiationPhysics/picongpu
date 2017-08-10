@@ -40,6 +40,12 @@ namespace functors
         {
             dst = algorithms::math::max(dst, src);
         }
+
+        template<typename Dst, typename Src, typename T_Acc >
+        DINLINE void operator()(const T_Acc &, Dst & dst, const Src & src) const
+        {
+            dst = algorithms::math::max(dst, src);
+        }
     };
 } // namespace functors
 } // namespace nvidia

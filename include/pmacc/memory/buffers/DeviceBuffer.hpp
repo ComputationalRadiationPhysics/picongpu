@@ -22,15 +22,17 @@
 
 #pragma once
 
-#include "pmacc/cuSTL/container/view/View.hpp"
-#include "pmacc/cuSTL/container/DeviceBuffer.hpp"
+#if (PMACC_CUDA_ENABLED == 1)
+#   include "pmacc/cuSTL/container/view/View.hpp"
+#   include "pmacc/cuSTL/container/DeviceBuffer.hpp"
+#endif
 #include "pmacc/math/vector/Int.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
 #include "pmacc/types.hpp"
 
-#include <cuda_runtime.h>
-#include <cuda_runtime_api.h>
+
+
 
 #include <stdexcept>
 
@@ -76,7 +78,7 @@ namespace pmacc
         {
         };
 
-
+#if (PMACC_CUDA_ENABLED == 1)
         HINLINE
         container::CartBuffer<TYPE, DIM, allocator::DeviceMemAllocator<TYPE, DIM>,
                                 copier::D2DCopier<DIM>,
@@ -92,7 +94,7 @@ namespace pmacc
             container::DeviceBuffer<TYPE, DIM> result((TYPE*)cudaData.ptr, this->getDataSpace(), false, pitch);
             return result;
         }
-
+#endif
 
         /**
          * Returns offset of elements in every dimension.

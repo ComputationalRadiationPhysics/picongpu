@@ -55,13 +55,13 @@ namespace detail
 
 #define KERNEL_FOREACH(Z, N, _)                                                                             \
                         /* typename C0, typename C1, ... */                                                 \
-template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor>                            \
+template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor, typename T_Acc>                            \
                                                 /* C0 c0, C1 c1, ... */                                     \
-DINLINE void operator()(Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) const         \
+DINLINE void operator()(T_Acc const & acc, Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) const         \
 {                                                                                                           \
-    math::Int<Mapper::dim> cellIndex(mapper(dim3(blockIdx)));                                               \
+    math::Int<Mapper::dim> cellIndex(mapper(acc, dim3(blockIdx)));                                               \
          /* c0[cellIndex], c1[cellIndex], ... */                                                            \
-    functor(BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                       \
+    functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                       \
 }
 
 struct KernelForeachBlock

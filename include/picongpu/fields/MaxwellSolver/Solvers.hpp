@@ -25,5 +25,7 @@
 #include "Yee/YeeSolver.hpp"
 #if (SIMDIM==3)
 #include "Lehe/LeheSolver.hpp"
-#include "DirSplitting/DirSplitting.hpp"
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "DirSplitting/DirSplitting.hpp"
+#endif
 #endif

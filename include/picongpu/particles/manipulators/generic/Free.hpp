@@ -57,9 +57,14 @@ namespace acc
          *
          * @param args arguments passed to the user functor
          */
-        template< typename ... T_Args >
+        template<
+            typename T_Acc,
+            typename ... T_Args >
         DINLINE
-        void operator( )( T_Args && ... args )
+        void operator( )(
+            T_Acc const &,
+            T_Args && ... args
+        )
         {
             Functor::operator( )( args ... );
         }
@@ -123,14 +128,20 @@ namespace acc
         /** create device functor
          *
          * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+         * @tparam T_Acc alpaka accelerator type
          *
+         * @param alpaka accelerator
          * @param offset (in supercells, without any guards) to the
          *         origin of the local domain
          * @param configuration of the worker
          */
-        template< typename T_WorkerCfg >
+        template<
+            typename T_WorkerCfg,
+            typename T_Acc
+        >
         DINLINE acc::Free< Functor >
         operator()(
+            T_Acc const &,
             DataSpace< simDim > const &,
             T_WorkerCfg const &
         )

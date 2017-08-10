@@ -80,8 +80,8 @@ struct CalorimeterFunctor
         this->calorimeterCur = calorimeterCur;
     }
 
-    template<typename ParticlesFrame>
-    DINLINE void operator()(ParticlesFrame& particlesFrame, const uint32_t linearThreadIdx)
+    template<typename ParticlesFrame, typename T_Acc>
+    DINLINE void operator()(const T_Acc& acc, ParticlesFrame& particlesFrame, const uint32_t linearThreadIdx)
     {
         const float3_X mom = particlesFrame[linearThreadIdx][momentum_];
         const float_X mom2 = math::dot(mom, mom);
@@ -137,8 +137,8 @@ struct CalorimeterFunctor
                 energyBin = energyBin > 0 ? energyBin : 0;
             }
 
-            nvidia::atomicAdd(&(*this->calorimeterCur(yawBin, pitchBin, energyBin)),
-                             energy * normedWeighting);
+            atomicAdd( &(*this->calorimeterCur(yawBin, pitchBin, energyBin)),
+                             energy * normedWeighting, ::alpaka::hierarchy::Threads{});
         }
     }
 };
@@ -159,7 +159,11 @@ struct ParticleCalorimeterKernel
         calorimeterFunctor(calorimeterFunctor)
     {}
 
-    DINLINE void operator()(const pmacc::math::Int<simDim>& cellIndex)
+    template< typename T_Acc >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        const pmacc::math::Int<simDim>& cellIndex
+    )
     {
         /* definitions for domain variables, like indices of blocks and threads */
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
@@ -181,7 +185,7 @@ struct ParticleCalorimeterKernel
             threadIndex);
 
         typedef typename ParticlesBox::FramePtr ParticlesFramePtr;
-        PMACC_SMEM( particlesFrame, ParticlesFramePtr );
+        PMACC_SMEM( acc, particlesFrame, ParticlesFramePtr );
 
         /* find last frame in super cell
          */
@@ -199,7 +203,7 @@ struct ParticleCalorimeterKernel
 
             if(isParticle)
             {
-                calorimeterFunctor(particlesFrame, linearThreadIdx);
+                calorimeterFunctor(acc, particlesFrame, linearThreadIdx);
             }
 
             __syncthreads();

@@ -46,23 +46,36 @@ namespace cellwiseOperation
          * \tparam Mapping mapper which defines the working region
          */
         template<
-            class T_OpFunctor,
-            class T_ValFunctor,
-            class FieldBox,
-            class Mapping>
+            typename T_OpFunctor,
+            typename T_ValFunctor,
+            typename FieldBox,
+            typename Mapping,
+            typename T_Acc
+        >
         DINLINE void
-        operator()( FieldBox field, T_OpFunctor opFunctor, T_ValFunctor valFunctor, const DataSpace<simDim> totalCellOffset,
-            const uint32_t currentStep, Mapping mapper ) const
+        operator()(
+            T_Acc const & acc,
+            FieldBox field,
+            T_OpFunctor opFunctor,
+            T_ValFunctor valFunctor,
+            DataSpace<simDim> const totalCellOffset,
+            uint32_t const currentStep,
+            Mapping mapper
+        ) const
         {
             const DataSpace<simDim> block( mapper.getSuperCellIndex( DataSpace<simDim>( blockIdx ) ) );
             const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
 
             const DataSpace<simDim> threadIndex( threadIdx );
 
-            opFunctor( field( blockCell + threadIndex ),
-                       valFunctor( blockCell + threadIndex + totalCellOffset,
-                                   currentStep )
-                     );
+            opFunctor(
+                acc,
+                field( blockCell + threadIndex ),
+                valFunctor(
+                    blockCell + threadIndex + totalCellOffset,
+                    currentStep
+                )
+            );
         }
     };
 

@@ -52,7 +52,8 @@ private:
     Type* dataPointer;
     //HDINLINE void init();
 public:
-    DINLINE CartBuffer();
+    template< typename T_Acc >
+    DINLINE CartBuffer( T_Acc const & acc );
     DINLINE CartBuffer(const CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>& other);
 
     DINLINE CT::CartBuffer<Type, Size, Allocator, Copier, Assigner>&

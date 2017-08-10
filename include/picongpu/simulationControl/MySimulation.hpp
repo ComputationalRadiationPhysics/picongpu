@@ -34,9 +34,6 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/versionFormat.hpp"
 
-#include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
-#include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
-
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/nvidia/memory/MemoryInfo.hpp>
@@ -54,13 +51,18 @@
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/particles/Manipulate.hpp"
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
-#include <pmacc/random/methods/XorMin.hpp>
-#include <pmacc/random/RNGProvider.hpp>
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include <pmacc/random/methods/XorMin.hpp>
+#   include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
+#   include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
+#   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
+
+#   include <pmacc/random/RNGProvider.hpp>
+#endif
 
 #include <pmacc/nvidia/reduce/Reduce.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
@@ -73,7 +75,9 @@
 #include <pmacc/algorithms/ForEach.hpp>
 #include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/InitFunctors.hpp"
-#include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
+#endif
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
 #include "picongpu/particles/traits/HasIonizersWithRNG.hpp"
@@ -314,7 +318,7 @@ public:
         // ... or if ionization methods need an RNG
         using HasIonizerRNGs = typename traits::HasIonizersWithRNG< VectorAllSpecies >::type;
         constexpr bool hasIonizerRNGs = HasIonizerRNGs::value;
-
+#if( PMACC_CUDA_ENABLED == 1 )
         if( !bmpl::empty<AllSynchrotronPhotonsSpecies>::value ||
             !bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value ||
             hasIonizerRNGs
@@ -351,6 +355,7 @@ public:
         /* Create an empty allocator. This one is resized after all exchanges
          * for particles are created */
         deviceHeap.reset(new DeviceHeap(0));
+#endif
 
         /* Allocate helper fields for FLYlite population kinetics for atomic physics
          * (histograms, rate matrix, etc.)
@@ -396,11 +401,12 @@ public:
         else
             log<picLog::MEMORY > ("RAM is NOT shared between GPU and host.");
 
+#if( PMACC_CUDA_ENABLED == 1 )
         // initializing the heap for particles
         deviceHeap->destructiveResize(heapSize);
         MallocMCBuffer<DeviceHeap>* mallocMCBuffer = new MallocMCBuffer<DeviceHeap>(deviceHeap);
         dc.share( std::shared_ptr< ISimulationData >( mallocMCBuffer ) );
-
+#endif
         ForEach< VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<bmpl::_1> > logMemoryStatisticsForSpecies;
         logMemoryStatisticsForSpecies( deviceHeap );
 
@@ -414,9 +420,10 @@ public:
 
         // create current interpolation
         this->myCurrentInterpolation = new fieldSolver::CurrentInterpolation;
-
+#if( PMACC_CUDA_ENABLED == 1 )
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
+#endif
     }
 
     virtual uint32_t fillSimulation()
@@ -527,7 +534,7 @@ public:
         copyMomentumPrev1( currentStep );
 
         DataConnector &dc = Environment<>::get().DataConnector();
-
+#if( PMACC_CUDA_ENABLED == 1 )
         /* Initialize ionization routine for each species with the flag `ionizers<>` */
         using VectorSpeciesWithIonizers = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
@@ -535,7 +542,7 @@ public:
         >::type;
         ForEach< VectorSpeciesWithIonizers, particles::CallIonization< bmpl::_1 > > particleIonization;
         particleIonization( cellDescription, currentStep );
-
+#endif
         /* FLYlite population kinetics for atomic physics */
         using AllFlyLiteIons = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
@@ -549,6 +556,7 @@ public:
         > populationKinetics;
         populationKinetics( currentStep );
 
+#if( PMACC_CUDA_ENABLED == 1 )
         /* call the synchrotron radiation module for each radiating species (normally electrons) */
         typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
@@ -574,7 +582,7 @@ public:
             currentStep,
             this->scaledBremsstrahlungSpectrumMap,
             this->bremsstrahlungPhotonAngle);
-
+#endif
         EventTask initEvent = __getTransactionEvent();
         EventTask updateEvent;
         EventTask commEvent;
@@ -771,6 +779,7 @@ protected:
 
     LaserPhysics *laser;
 
+#if( PMACC_CUDA_ENABLED == 1 )
     // creates lookup tables for the bremsstrahlung effect
     // map<atomic number, scaled bremsstrahlung spectrum>
     std::map<float_X, particles::bremsstrahlung::ScaledSpectrum> scaledBremsstrahlungSpectrumMap;
@@ -778,7 +787,7 @@ protected:
 
     // Synchrotron functions (used in synchrotronPhotons module)
     particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
-
+#endif
     // output classes
 
     IInitPlugin* initialiserController;
@@ -802,6 +811,8 @@ protected:
 } /* namespace picongpu */
 
 #include "picongpu/fields/Fields.tpp"
-#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"
-#include "picongpu/particles/bremsstrahlung/Bremsstrahlung.tpp"
-#include "picongpu/particles/bremsstrahlung/ScaledSpectrum.tpp"
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"
+#   include "picongpu/particles/bremsstrahlung/Bremsstrahlung.tpp"
+#   include "picongpu/particles/bremsstrahlung/ScaledSpectrum.tpp"
+#endif

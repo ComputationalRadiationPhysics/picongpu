@@ -64,9 +64,11 @@ namespace detail
          */
         template<
             typename T_BoxedMemory,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator()(
+            T_Acc const & acc,
             T_BoxedMemory & field,
             uint32_t const thickness,
             float_X const absorberStrength,
@@ -170,9 +172,11 @@ namespace detail
          */
         template<
             typename T_BoxedMemory,
-            typename T_Mapping
+            typename T_Mapping,
+            typename T_Acc
         >
         DINLINE void operator()(
+            T_Acc const & acc,
             T_BoxedMemory field,
             uint32_t const thickness,
             float_X const absorberStrength,
@@ -208,6 +212,7 @@ namespace detail
 
             // call absorber for each axis dimension
             absorbeInOneDirection(
+                acc,
                 forward(field),
                 thickness,
                 absorberStrength,

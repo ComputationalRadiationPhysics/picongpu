@@ -46,10 +46,11 @@ namespace pmacc
         public:
             typedef DataBox<SharedBox<ValueType, FullSuperCellSize,T_Id> > Type;
 
-            HDINLINE static Type create()
+            template< typename T_Acc >
+            HDINLINE static Type create( T_Acc const & acc )
             {
                 DataSpace<OffsetOrigin::dim> offset(OffsetOrigin::toRT());
-                Type c_box(Type::init());
+                Type c_box(Type::init( acc ));
                 return c_box.shift(offset);
             }
 
@@ -59,18 +60,18 @@ namespace pmacc
     struct CachedBox
     {
 
-        template<uint32_t Id_, typename ValueType_, class BlockDescription_ >
+        template<uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Acc >
         DINLINE static typename intern::CachedBox<ValueType_, BlockDescription_, Id_ >::Type
-        create(const ValueType_& value, const BlockDescription_ block)
+        create( T_Acc const & acc, const ValueType_& value, const BlockDescription_ block )
         {
-            return intern::CachedBox<ValueType_, BlockDescription_, Id_>::create();
+            return intern::CachedBox<ValueType_, BlockDescription_, Id_>::create( acc );
         }
 
-        template< uint32_t Id_, typename ValueType_, class BlockDescription_ >
+        template< uint32_t Id_, typename ValueType_, class BlockDescription_, typename T_Acc >
         DINLINE static typename intern::CachedBox<ValueType_, BlockDescription_, Id_ >::Type
-        create(const BlockDescription_ block)
+        create( T_Acc const & acc, const BlockDescription_ block )
         {
-            return intern::CachedBox<ValueType_, BlockDescription_, Id_>::create();
+            return intern::CachedBox<ValueType_, BlockDescription_, Id_>::create( acc );
         }
 
     };

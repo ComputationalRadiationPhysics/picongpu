@@ -85,13 +85,6 @@ include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${PMacc_LIBRARIES})
 add_definitions(${PMacc_DEFINITIONS})
 
-
-################################################################################
-# Find CUDA
-################################################################################
-find_package(CUDA 7.5 REQUIRED)
-
-
 ################################################################################
 # Find MPI
 ################################################################################
@@ -122,19 +115,19 @@ endif()
 ################################################################################
 # Find mallocMC
 ################################################################################
+if(ALPAKA_ACC_GPU_CUDA_ENABLE)
+    find_package(mallocMC 2.2.0 QUIET)
 
-find_package(mallocMC 2.2.0 QUIET)
+    if(NOT mallocMC_FOUND)
+        message(STATUS "Using mallocMC from thirdParty/ directory")
+        set(MALLOCMC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/mallocMC")
+        find_package(mallocMC 2.2.0 REQUIRED)
+    endif(NOT mallocMC_FOUND)
 
-if(NOT mallocMC_FOUND)
-    message(STATUS "Using mallocMC from thirdParty/ directory")
-    set(MALLOCMC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/mallocMC")
-    find_package(mallocMC 2.2.0 REQUIRED)
-endif(NOT mallocMC_FOUND)
-
-include_directories(SYSTEM ${mallocMC_INCLUDE_DIRS})
-add_definitions(${mallocMC_DEFINITIONS})
-set(LIBS ${LIBS} ${mallocMC_LIBRARIES})
-
+    include_directories(SYSTEM ${mallocMC_INCLUDE_DIRS})
+    add_definitions(${mallocMC_DEFINITIONS})
+    set(LIBS ${LIBS} ${mallocMC_LIBRARIES})
+endif()
 
 ################################################################################
 # Find zlib
@@ -174,11 +167,11 @@ endif(PARAM_OVERWRITES)
 option(CUDAMEMTEST_ENABLE "Build cuda_memtest and the helper mpiInfo \
                           (allow GPU health test before running PIConGPU)" ON)
 
-if("${PMACC_CUDA_COMPILER}" STREQUAL "clang")
-    # cuda_memtest is not compiling with `clang`
+if((NOT ALPAKA_ACC_GPU_CUDA_ENABLE) OR ALPAKA_CUDA_COMPILER MATCHES "clang")
+    # cuda_memtest is not compiling with host accelerator of alpaka or clang
     set(CUDAMEMTEST_ENABLE OFF CACHE BOOL "Build cuda_memtest and the helper mpiInfo \
                            (allow GPU health test before running PIConGPU)" FORCE)
-    message(STATUS "Disable 'cuda_memtest' build: not supported by clang")
+    message(STATUS "Disable 'cuda_memtest' build: not supported by clang or non CUDA alpaka backends")
 endif()
 
 if(CUDAMEMTEST_ENABLE)
@@ -302,42 +295,43 @@ endif(PNGwriter_FOUND)
 # ISAAC
 ################################################################################
 
-find_package(ISAAC 1.3.0 CONFIG QUIET)
-if(ISAAC_FOUND)
-    message(STATUS "Found ISAAC: ${ISAAC_DIR}")
-    SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
-    SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
+if(ALPAKA_ACC_GPU_CUDA_ENABLE)
+    find_package(ISAAC 1.3.0 CONFIG QUIET)
+    if(ISAAC_FOUND)
+        message(STATUS "Found ISAAC: ${ISAAC_DIR}")
+        SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
+        SET_PROPERTY(CACHE ISAAC_STEREO PROPERTY STRINGS No SideBySide Anaglyph)
 
-    if(${ISAAC_STEREO} STREQUAL "No")
-        add_definitions(-DISAAC_STEREO=0)
-    endif()
-    if(${ISAAC_STEREO} STREQUAL "SideBySide")
-        add_definitions(-DISAAC_STEREO=1)
-    endif()
-    if(${ISAAC_STEREO} STREQUAL "Anaglyph")
-        add_definitions(-DISAAC_STEREO=2)
-    endif()
+        if(${ISAAC_STEREO} STREQUAL "No")
+            add_definitions(-DISAAC_STEREO=0)
+        endif()
+        if(${ISAAC_STEREO} STREQUAL "SideBySide")
+            add_definitions(-DISAAC_STEREO=1)
+        endif()
+        if(${ISAAC_STEREO} STREQUAL "Anaglyph")
+            add_definitions(-DISAAC_STEREO=2)
+        endif()
 
-    include_directories(SYSTEM ${ISAAC_INCLUDE_DIRS})
-    set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
+        include_directories(SYSTEM ${ISAAC_INCLUDE_DIRS})
+        set(LIBS ${LIBS} ${ISAAC_LIBRARIES})
 
-    set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
-    set(ISAAC_DEFAULT_WEIGHT "7" CACHE STRING "Default weight of an isaac source" )
-    add_definitions(${ISAAC_DEFINITIONS})
-    add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
-    add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
-    add_definitions(-DISAAC_DEFAULT_WEIGHT=${ISAAC_DEFAULT_WEIGHT})
+        set(ISAAC_MAX_FUNCTORS "3" CACHE STRING "Max length of the isaac functor chain" )
+        set(ISAAC_DEFAULT_WEIGHT "7" CACHE STRING "Default weight of an isaac source" )
+        add_definitions(${ISAAC_DEFINITIONS})
+        add_definitions(-DISAAC_MAX_FUNCTORS=${ISAAC_MAX_FUNCTORS})
+        add_definitions(-DISAAC_FUNCTOR_POW_ENABLED=0)
+        add_definitions(-DISAAC_DEFAULT_WEIGHT=${ISAAC_DEFAULT_WEIGHT})
 
-    add_definitions(-DENABLE_ISAAC=1)
-else(ISAAC_FOUND)
-    if(DEFINED ISAAC_DEPENDENCY_HINTS)
-        message(STATUS "ISAAC was found, but detected the following "
-                       "problems:" ${ISAAC_DEPENDENCY_HINTS})
-    else()
-        message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH")
-    endif()
-endif(ISAAC_FOUND)
-
+        add_definitions(-DENABLE_ISAAC=1)
+    else(ISAAC_FOUND)
+        if(DEFINED ISAAC_DEPENDENCY_HINTS)
+            message(STATUS "ISAAC was found, but detected the following "
+                           "problems:" ${ISAAC_DEPENDENCY_HINTS})
+        else()
+            message(STATUS "Could NOT find ISAAC - set ISAAC_DIR or check your CMAKE_PREFIX_PATH")
+        endif()
+    endif(ISAAC_FOUND)
+endif(ALPAKA_ACC_GPU_CUDA_ENABLE)
 
 ################################################################################
 # Check if PIC_EXTENSION_PATH is relative or absolute
@@ -365,7 +359,6 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 # Compile & Link PIConGPU
 ################################################################################
 
-file(GLOB_RECURSE CUDASRCFILES "*.cu")
 file(GLOB_RECURSE SRCFILES "*.cpp")
 
 add_library(picongpu-hostonly
@@ -374,24 +367,13 @@ add_library(picongpu-hostonly
 )
 target_link_libraries(picongpu-hostonly ${LIBS} m)
 
-if("${PMACC_CUDA_COMPILER}" STREQUAL "clang")
-    add_executable(picongpu
-        ${CUDASRCFILES}
-    )
 
-    set_target_properties(picongpu PROPERTIES COMPILE_FLAGS ${CLANG_BUILD_FLAGS})
-    set_target_properties(picongpu PROPERTIES LINKER_LANGUAGE CXX)
-    set_source_files_properties(${CUDASRCFILES} PROPERTIES LANGUAGE CXX)
+cupla_add_executable(picongpu
+    ${SRCFILES}
+)
 
-    target_link_libraries(picongpu ${LIBS} picongpu-hostonly m )
-else()
-    cuda_add_executable(picongpu
-        ${CUDASRCFILES}
-        ${SRCFILES}
-    )
+target_link_libraries(picongpu ${LIBS} picongpu-hostonly m)
 
-    target_link_libraries(picongpu ${LIBS} picongpu-hostonly m)
-endif()
 
 ################################################################################
 # Install PIConGPU
