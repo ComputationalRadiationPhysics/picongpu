@@ -45,6 +45,16 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 list(APPEND "/usr/lib/x86_64-linux-gnu/")
 
 
+###############################################################################
+# Language Flags
+###############################################################################
+
+# enforce C++11
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
+
+
 ################################################################################
 # Warnings
 ################################################################################
