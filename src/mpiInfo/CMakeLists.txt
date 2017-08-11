@@ -71,8 +71,12 @@ endif(MPI_CXX_FOUND)
 ################################################################################
 
 find_package(Boost REQUIRED COMPONENTS program_options)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${Boost_LIBRARIES})
+if(TARGET Boost::boost)
+    set(LIBS ${LIBS} Boost::boost Boost::program_options)
+else()
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${Boost_LIBRARIES})
+endif()
 
 
 ################################################################################
