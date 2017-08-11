@@ -163,15 +163,15 @@ private:
 
 
     /* define species plugins */
-    typedef bmpl::vector <
+    using UnspecializedSpeciesPlugins = bmpl::vector <
         EnergyParticles<bmpl::_1>,
-        BinEnergyParticles<bmpl::_1>
+        BinEnergyParticles<bmpl::_1>,
+        CountParticles<bmpl::_1>
 #if( PMACC_CUDA_ENABLED == 1 )
-        , CountParticles<bmpl::_1>
         , LiveViewPlugin<bmpl::_1>
         , PositionsParticles<bmpl::_1>
         , PngPlugin< Visualisation<bmpl::_1, PngCreator> >
-        ,plugins::particleMerging::ParticleMerger<bmpl::_1>
+        , plugins::particleMerging::ParticleMerger<bmpl::_1>
 #   if(ENABLE_HDF5 == 1)
         , Radiation<bmpl::_1>
         , PerSuperCell<bmpl::_1>
@@ -179,7 +179,7 @@ private:
         , PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, bmpl::_1>
 #   endif
 #endif
-    > UnspecializedSpeciesPlugins;
+    >;
 
     typedef AllCombinations<
         bmpl::vector<VectorAllSpecies, UnspecializedSpeciesPlugins>
