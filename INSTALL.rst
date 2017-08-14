@@ -92,14 +92,14 @@ zlib
 
 boost
 """""
-- 1.62.0-1.64.0 (``program options``, ``regex`` , ``filesystem``, ``system``, ``thread``, ``math``, ``serialization`` and header-only libs, optional: ``fiber``, ``context``)
+- 1.62.0-1.64.0 (``program options``, ``regex`` , ``filesystem``, ``system``, ``thread``, ``chrono``, ``atomic``, ``date_time``, ``math``, ``serialization`` and header-only libs, optional: ``fiber``, ``context``)
 - download from `http://www.boost.org <http://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz/download>`_
-- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-math-dev libboost-serialization-dev # libboost-fiber-dev libboost-context-dev``
+- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
 - *from source:*
 
-  - ``./bootstrap.sh --with-libraries=context,fiber,filesystem,program_options,regex,system,thread,math,serialization --prefix=$HOME/lib/boost``
+  - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,regex,serialization,system,thread --prefix=$HOME/lib/boost``
   - ``./b2 cxxflags="-std=c++11" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
