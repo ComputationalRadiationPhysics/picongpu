@@ -63,9 +63,11 @@ namespace ionization
          * \param eField electric field value at t=0
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
          * \param randNr random number, equally distributed in range [0.:1.0]
+         *
+         * \return number of new macro electrons to be created
          */
         template<typename EType, typename BType, typename ParticleType >
-        HDINLINE void
+        HDINLINE uint32_t
         operator()( const BType bField, const EType eField, ParticleType& parentIon, float_X randNr )
         {
 
@@ -128,11 +130,12 @@ namespace ionization
                 /* ionization condition */
                 if( randNr < probADK )
                 {
-                    /* set new particle charge state */
-                    parentIon[ boundElectrons_ ] -= float_X( 1.0 );
+                    /* return number of macro electrons to produce */
+                    return 1u;
                 }
             }
-
+            /* no ionization */
+            return 0u;
         }
     };
 

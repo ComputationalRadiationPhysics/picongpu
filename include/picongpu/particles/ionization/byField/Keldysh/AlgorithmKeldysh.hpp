@@ -27,11 +27,11 @@
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
 #include "picongpu/particles/ionization/utilities.hpp"
 
-/* IONIZATION ALGORITHM for the Keldysh model
+/** @file AlgorithmKeldysh.hpp
  *
- * - implements the calculation of ionization probability and changes charge states
- *   by decreasing the number of bound electrons
+ * - implements the calculation of ionization probability and returns the number of free electrons
  * - is called with the IONIZATION MODEL, specifically by setting the flag in @see speciesDefinition.param */
+
 
 namespace picongpu
 {
@@ -46,7 +46,6 @@ namespace ionization
      */
     struct AlgorithmKeldysh
     {
-
         /** Functor implementation
          * \tparam EType type of electric field
          * \tparam BType type of magnetic field
@@ -56,19 +55,21 @@ namespace ionization
          * \param eField electric field value at t=0
          * \param parentIon particle instance to be ionized with position at t=0 and momentum at t=-1/2
          * \param randNr random number, equally distributed in range [0.:1.0]
+         *
+         * \return number of new macro electrons to be created
          */
         template<typename EType, typename BType, typename ParticleType >
-        HDINLINE void
-        operator()( const BType& bField, const EType& eField, ParticleType& parentIon, float_X randNr )
+        HDINLINE uint32_t
+        operator()( const BType bField, const EType eField, ParticleType& parentIon, float_X randNr )
         {
 
             const float_X protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
             float_X chargeState = attribute::getChargeState(parentIon);
 
             /* verify that ion is not completely ionized */
-            if (chargeState < protonNumber)
+            if ( chargeState < protonNumber )
             {
-                uint32_t cs = math::float2int_rd(chargeState);
+                uint32_t const cs = math::float2int_rd(chargeState);
                 const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
 
                 const float_X pi = precisionCast<float_X>(M_PI);
@@ -97,16 +98,17 @@ namespace ionization
                  * P = 1 - exp(-rate * time step) if the laser wavelength is
                  * sampled well enough
                  */
-                float_X probKeldysh = rateKeldysh * timeStepAU;
+                float_X const probKeldysh = rateKeldysh * timeStepAU;
 
                 /* ionization condition */
-                if (randNr < probKeldysh)
+                if( randNr < probKeldysh )
                 {
-                    /* set new particle charge state */
-                    parentIon[boundElectrons_] -= float_X(1.0);
+                    /* return number of macro electrons to produce */
+                    return 1u;
                 }
             }
-
+            /* no ionization */
+            return 0u;
         }
     };
 

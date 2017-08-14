@@ -28,7 +28,7 @@
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSI.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIEffectiveZ.hpp"
 #include "picongpu/particles/ionization/byField/BSI/AlgorithmBSIStarkShifted.hpp"
-#include "picongpu/particles/ionization/ionization.hpp"
+
 #include "picongpu/particles/ParticlesFunctors.hpp"
 
 #include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
@@ -155,14 +155,12 @@ namespace ionization
                           );
             }
 
-            /** Functor implementation
+            /** Determine number of new macro electrons due to ionization
              *
              * \param ionFrame reference to frame of the to-be-ionized particles
              * \param localIdx local (linear) index in super cell / frame
-             * \param newMacroElectrons reference to variable for each thread that stores the number
-             *        of macro electrons to be created during the current time step
              */
-            DINLINE void operator()(FrameType& ionFrame, int localIdx, unsigned int& newMacroElectrons)
+            DINLINE uint32_t numNewParticles(FrameType& ionFrame, int localIdx)
             {
                 /* alias for the single macro-particle */
                 auto particle = ionFrame[localIdx];
@@ -182,14 +180,63 @@ namespace ionization
                 /* this is the point where actual ionization takes place */
                 IonizationAlgorithm ionizeAlgo;
                 /* determine number of new macro electrons to be created */
-                newMacroElectrons = ionizeAlgo(
+                uint32_t newMacroElectrons = ionizeAlgo(
                                                 eField,
                                                 particle
                                               );
 
-                /* relocate this to writeElectronIntoFrame in ionizationMethods.hpp */
-                particle[boundElectrons_] -= float_X(newMacroElectrons);
+                return newMacroElectrons;
 
+            }
+
+            /* Functor implementation
+             *
+             * Ionization model specific particle creation
+             *
+             * \tparam T_parentIon type of ion species that is being ionized
+             * \tparam T_childElectron type of electron species that is created
+             * \param parentIon ion instance that is ionized
+             * \param childElectron electron instance that is created
+             */
+            template<typename T_parentIon, typename T_childElectron>
+            DINLINE void operator()(T_parentIon& parentIon,T_childElectron& childElectron)
+            {
+
+                /* for not mixing operations::assign up with the nvidia functor assign */
+                namespace partOp = pmacc::particles::operations;
+                /* each thread sets the multiMask hard on "particle" (=1) */
+                childElectron[multiMask_] = 1u;
+                const float_X weighting = parentIon[weighting_];
+
+                /* each thread initializes a clone of the parent ion but leaving out
+                 * some attributes:
+                 * - multiMask: reading from global memory takes longer than just setting it again explicitly
+                 * - momentum: because the electron would get a higher energy because of the ion mass
+                 * - boundElectrons: because species other than ions or atoms do not have them
+                 * (gets AUTOMATICALLY deselected because electrons do not have this attribute)
+                 */
+                auto targetElectronClone = partOp::deselect<bmpl::vector2<multiMask, momentum> >(childElectron);
+
+                partOp::assign(targetElectronClone, partOp::deselect<particleId>(parentIon));
+
+                const float_X massIon = attribute::getMass(weighting,parentIon);
+                const float_X massElectron = attribute::getMass(weighting,childElectron);
+
+                const float3_X electronMomentum (parentIon[momentum_]*(massElectron/massIon));
+
+                childElectron[momentum_] = electronMomentum;
+
+                /* conservation of momentum
+                 * \todo add conservation of mass */
+                parentIon[momentum_] -= electronMomentum;
+
+                /** ionization of the ion by reducing the number of bound electrons
+                 *
+                 * @warning substracting a float from a float can potentially
+                 *          create a negative boundElectrons number for the ion,
+                 *          see #1850 for details
+                 */
+                parentIon[boundElectrons_] -= float_X(1.);
             }
 
     };

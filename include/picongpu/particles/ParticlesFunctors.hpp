@@ -33,7 +33,6 @@
 #   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #   include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
 #   include "picongpu/particles/creation/creation.hpp"
-#   include "picongpu/particles/ionization/ionization.hpp"
 #endif
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
@@ -338,26 +337,10 @@ struct CallIonizationScheme
         // alias for pointer on destination species
         auto electronsPtr = dc.get< DestSpecies >( DestFrameType::getName(), true );
 
-        // 3-dim vector : number of threads to be started in every dimension
-        auto block = MappingDesc::SuperCellSize::toRT();
+        SelectIonizer selectIonizer(currentStep);
 
-        AreaMapping< CORE + BORDER, MappingDesc > mapper( *cellDesc );
-        /** kernelIonizeParticles
-         *
-         * calls the ionization model and handles that electrons are created correctly
-         * while cycling through the particle frames
-         *
-         * kernel call : instead of name<<<blocks, threads>>> (args, ...)
-         * "blocks" will be calculated from "this->cellDescription" and "CORE + BORDER"
-         * "threads" is calculated from the previously defined vector "block"
-         */
-        PMACC_KERNEL( particles::ionization::KernelIonizeParticles{} )
-            (mapper.getGridDim(), block)
-            ( srcSpeciesPtr->getDeviceParticlesBox( ),
-              electronsPtr->getDeviceParticlesBox( ),
-              SelectIonizer(currentStep),
-              mapper
-            );
+        creation::createParticlesFromSpecies(*srcSpeciesPtr, *electronsPtr, selectIonizer, cellDesc);
+
         /* fill the gaps in the created species' particle frames to ensure that only
          * the last frame is not completely filled but every other before is full
          */
@@ -365,6 +348,7 @@ struct CallIonizationScheme
 
         dc.releaseData( FrameType::getName() );
         dc.releaseData( DestFrameType::getName() );
+
     }
 
 };
