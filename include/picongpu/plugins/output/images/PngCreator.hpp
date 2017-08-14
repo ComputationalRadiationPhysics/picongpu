@@ -22,15 +22,14 @@
 #include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 
+#include <pmacc/memory/boxes/DataBox.hpp>
+#include "picongpu/plugins/output/header/MessageHeader.hpp"
+
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-
-#include <pmacc/memory/boxes/DataBox.hpp>
-#include "picongpu/plugins/output/header/MessageHeader.hpp"
-
-#include <boost/thread.hpp>
+#include <thread>
 
 
 namespace picongpu
@@ -104,7 +103,7 @@ namespace picongpu
                 workerThread.join();
             }
             m_isThreadActive = true;
-            workerThread = boost::thread(&PngCreator::createImage<Box>, this, data, size, header);
+            workerThread = std::thread(&PngCreator::createImage<Box>, this, data, size, header);
         }
 
     private:
@@ -117,10 +116,7 @@ namespace picongpu
         std::string m_name;
         std::string m_folder;
         bool m_createFolder;
-        /* boost::thread is not copy able,
-         * therefore we must define an own copy constructor
-         */
-        boost::thread workerThread;
+        std::thread workerThread;
         /* status whether a thread is currently active */
         bool m_isThreadActive;
 
