@@ -141,6 +141,12 @@ if((NOT ALPAKA_ACC_GPU_CUDA_ENABLE) AND ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
     message(WARNING "ALPAKA_ACC_GPU_CUDA_ONLY_MODE is set to OFF because cuda backend is not activated")
 endif()
 
+# add possible indirect/transient library dependencies from alpaka backends
+# note: includes and definitions are already added in the cupla_add_executable
+#       wrapper
+set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${cupla_LIBRARIES})
+
+
 ################################################################################
 # VampirTrace
 ################################################################################
