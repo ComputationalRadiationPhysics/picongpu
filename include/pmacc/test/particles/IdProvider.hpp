@@ -51,7 +51,7 @@ namespace
     struct GenerateIds
     {
         template<class T_Box, typename T_Acc>
-        DINLINE void operator()(const T_Acc & acc, T_Box outputbox, uint32_t numThreads, uint32_t numIdsPerThread) const
+        HDINLINE void operator()(const T_Acc & acc, T_Box outputbox, uint32_t numThreads, uint32_t numIdsPerThread) const
         {
             using namespace pmacc::mappings::threads;
             constexpr uint32_t numWorkers = T_numWorkers;
