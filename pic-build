@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+#
+# Copyright 2017 Axel Huebl
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+this_dir=`dirname $0`
+build_dir=".build"
+
+help()
+{
+    echo "Build new binaries for a PIConGPU input set"
+    echo ""
+    echo "Creates or updates the binaries in an input set. This step needs to"
+    echo "be performed every time a .param file is changed."
+    echo ""
+    echo "This tools creates a temporary build directory, configures and"
+    echo "compiles current input set in it and installs the resulting"
+    echo "binaries."
+    echo "This is just a short-hand tool for switching to a temporary build"
+    echo "directory and running 'pic-configure ..' and 'make install'"
+    echo "manually."
+    echo ""
+    echo "You must run this command inside an input directory."
+    echo ""
+    echo "usage: pic-build [OPTIONS]"
+    echo ""
+    # lend the rest of the options from pic-configure
+    echo "$($this_dir/pic-configure --help | tail -n +12)"
+}
+
+# save cmd line args
+cmd_line_args="$@"
+
+# show help
+while [[ $# -gt 0 ]] ; do
+    case "$1" in
+        -h|--help)
+            echo -e "$(help)"
+            exit 0
+            ;;
+        *)
+            # just ignore other options
+            ;;
+    esac
+    shift # next token
+done
+
+# check if we are in an input directory
+if [ ! -d "include/picongpu/" ]
+then
+    echo "ERROR: Could not find directory 'include/picongpu'!" >&2
+    echo "       Are you in a PIConGPU input directory?" >&2
+    exit 1
+fi
+
+# diagnostics
+echo -e "\033[32mbuild directory:\033[0m $build_dir"
+
+# create or re-use an existing build directory
+mkdir -p $build_dir
+if [ $? -ne 0 ]
+then
+    echo "ERROR: Could not create temporary build directory in:" >&2
+    echo "       $build_dir" >&2
+    exit 2
+fi
+
+# switch to build directory
+cd $build_dir
+if [ $? -ne 0 ]
+then
+    echo "ERROR: Could not switch to build directory in:" >&2
+    echo "       $build_dir" >&2
+    exit 3
+fi
+
+# cmake call
+$this_dir/pic-configure $cmd_line_args ..
+if [ $? -ne 0 ]
+then
+    # let pic-configure errors speak for themselves
+    exit 4
+fi
+
+# make and install
+make -j install
+if [ $? -ne 0 ]
+then
+    echo ""
+    echo "ERROR: Could not successfully run make install in build directory:" >&2
+    echo "       $build_dir" >&2
+    exit 5
+fi
+
+# switch back
+cd -
