@@ -14,11 +14,14 @@
    height="280"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
+   inkscape:version="0.92.1 r15371"
    sodipodi:docname="pic_logo.svg"
    inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
    inkscape:export-xdpi="153.12"
-   inkscape:export-ydpi="153.12">
+   inkscape:export-ydpi="153.12"
+   viewBox="0 0 640 280.00313">
+  <title
+     id="title49">PIConGPU Logo</title>
   <defs
      id="defs4">
     <linearGradient
@@ -37,7 +40,7 @@
        clipPathUnits="userSpaceOnUse"
        id="clipPath4307">
       <path
-         style="fill:none;stroke:#bf2121;stroke-width:1.89906299;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         style="fill:none;stroke:#bf2121;stroke-width:1.89906299;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="m 243.95605,511.61131 c -122.77345,-61.44783 96.92308,-148.13527 96.92308,-17.90698 0,129.80826 -222.59586,47.67415 -96.92308,-17.90698"
          id="path4309"
          inkscape:connector-curvature="0"
@@ -47,7 +50,7 @@
        clipPathUnits="userSpaceOnUse"
        id="clipPath4362">
       <path
-         style="fill:none;stroke:#bf2121;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         style="fill:none;stroke:#bf2121;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="m 243.56531,541.70871 c -199.506843,-94.3663 157.49999,-227.49344 157.49999,-27.5 0,199.3484 -361.718253,73.21388 -157.49999,-27.5"
          id="path4364"
          inkscape:connector-curvature="0"
@@ -60,7 +63,7 @@
        clipPathUnits="userSpaceOnUse"
        id="clipPath4362-2">
       <path
-         style="fill:none;stroke:#bf2121;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         style="fill:none;stroke:#bf2121;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="m 243.56531,541.70871 c -199.506843,-94.3663 157.49999,-227.49344 157.49999,-27.5 0,199.3484 -361.718253,73.21388 -157.49999,-27.5"
          id="path4364-7"
          inkscape:connector-curvature="0"
@@ -89,16 +92,19 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="135.21359"
-     inkscape:cy="136.1598"
+     inkscape:cx="292.48661"
+     inkscape:cy="140.6867"
      inkscape:document-units="px"
-     inkscape:current-layer="svg2"
+     inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1044"
+     inkscape:window-height="1163"
      inkscape:window-x="1600"
      inkscape:window-y="0"
-     inkscape:window-maximized="1" />
+     inkscape:window-maximized="1"
+     showguides="false"
+     scale-x="0.99067"
+     viewbox-height="280" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -107,26 +113,51 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title>PIConGPU Logo</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by/4.0/" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>The PIConGPU Community</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:contributor>
+          <cc:Agent>
+            <dc:title>Felix Schmitt, Axel Huebl, Rene Widera</dc:title>
+          </cc:Agent>
+        </dc:contributor>
       </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by/4.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
     </rdf:RDF>
   </metadata>
   <g
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="pulse"
-     transform="translate(0,-720)"
+     transform="translate(0,-786.66687)"
      style="display:inline">
     <g
-       transform="matrix(2.3980873,0,0,2.3980873,-190.09569,-1147.0385)"
+       transform="matrix(2.2482068,0,0,2.2482068,-190.70998,-1079.7051)"
        style="display:inline"
        id="g3973"
        inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90">
       <path
-         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         d="m 316.771,782.35414 c 4.68087,36.60154 4.93809,72.90932 0,109.15783 -2.10113,-36.38594 -3.39493,-72.77187 0,-109.15783 z"
+         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.13333344;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 337.88907,834.51108 c 4.99292,39.04165 5.26729,77.76994 0,116.43502 -2.24121,-38.81167 -3.62126,-77.62333 0,-116.43502 z"
          id="path3805"
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccc"
@@ -134,8 +165,8 @@
          inkscape:export-xdpi="90"
          inkscape:export-ydpi="90" />
       <path
-         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         d="m 327.58114,797.24835 c 3.4035,26.61318 3.59051,53.01288 0,79.3694 -1.52774,-26.45646 -2.46847,-52.91294 0,-79.3694 z"
+         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.13333344;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 349.41988,850.39824 c 3.6304,28.38739 3.82988,56.54707 0,84.66069 -1.62959,-28.22022 -2.63303,-56.44047 0,-84.66069 z"
          id="path3805-3"
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccc"
@@ -143,8 +174,8 @@
          inkscape:export-xdpi="90"
          inkscape:export-ydpi="90" />
       <path
-         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         d="m 338.32227,807.17784 c 2.55189,19.95435 2.69214,39.74855 0,59.51043 -1.1455,-19.8368 -1.85085,-39.67363 0,-59.51043 z"
+         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.13333344;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 360.87709,860.9897 c 2.72201,21.28464 2.87161,42.39845 0,63.47779 -1.22187,-21.15926 -1.97424,-42.31854 0,-63.47779 z"
          id="path3805-3-5"
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccc"
@@ -152,8 +183,8 @@
          inkscape:export-xdpi="90"
          inkscape:export-ydpi="90" />
       <path
-         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         d="m 306.40991,799.73072 c 3.19059,24.94848 3.36593,49.69678 0,74.40466 -1.43218,-24.80157 -2.31408,-49.60311 0,-74.40466 z"
+         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.13333344;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 326.83724,853.0461 c 3.40329,26.61171 3.59032,53.0099 0,79.36497 -1.52766,-26.45501 -2.46835,-52.90998 0,-79.36497 z"
          id="path3805-3-2"
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="ccc"
@@ -167,53 +198,82 @@
      id="layer8"
      inkscape:label="gpu_background"
      style="display:inline"
-     transform="translate(0,-40)">
+     transform="translate(0,-61.333532)">
     <g
-       transform="matrix(2.3980873,0,0,2.3980873,-182.66437,-1828.4084)"
+       transform="matrix(2.2482068,0,0,2.2482068,-183.27865,-1806.4083)"
        style="display:inline"
        id="g3979-7"
        inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90">
-      <path
-         sodipodi:type="arc"
-         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+      <ellipse
+         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.33329988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path3859-1"
-         sodipodi:cx="265.35715"
-         sodipodi:cy="501.78571"
-         sodipodi:rx="18.928572"
-         sodipodi:ry="17.5"
-         d="m 284.28572,501.78571 a 18.928572,17.5 0 1 1 -37.85714,0 18.928572,17.5 0 1 1 37.85714,0 z"
-         transform="matrix(1.0516517,0,0,1.1375009,-5.1348998,266.72264)"
          inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
          inkscape:export-xdpi="90"
-         inkscape:export-ydpi="90" />
-      <path
-         sodipodi:type="arc"
-         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline"
+         inkscape:export-ydpi="90"
+         cx="292.19028"
+         cy="893.33795"
+         rx="21.233349"
+         ry="21.233351" />
+      <ellipse
+         style="display:inline;fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.33329988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path3859-1-8"
-         sodipodi:cx="265.35715"
-         sodipodi:cy="501.78571"
-         sodipodi:rx="18.928572"
-         sodipodi:ry="17.5"
-         d="m 284.28572,501.78571 a 18.928572,17.5 0 1 1 -37.85714,0 18.928572,17.5 0 1 1 37.85714,0 z"
-         transform="matrix(1.0516517,0,0,1.1375009,-32.046882,266.72264)"
          inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
          inkscape:export-xdpi="90"
-         inkscape:export-ydpi="90" />
-      <path
-         sodipodi:type="arc"
-         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline"
+         inkscape:export-ydpi="90"
+         cx="263.48416"
+         cy="893.33795"
+         rx="21.233349"
+         ry="21.233351" />
+      <ellipse
+         style="display:inline;fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.33329988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path3859-1-2"
-         sodipodi:cx="265.35715"
-         sodipodi:cy="501.78571"
-         sodipodi:rx="18.928572"
-         sodipodi:ry="17.5"
-         d="m 284.28572,501.78571 a 18.928572,17.5 0 1 1 -37.85714,0 18.928572,17.5 0 1 1 37.85714,0 z"
-         transform="matrix(1.0516517,0,0,1.1375009,-58.9589,266.72264)"
          inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
          inkscape:export-xdpi="90"
-         inkscape:export-ydpi="90" />
+         inkscape:export-ydpi="90"
+         cx="234.77802"
+         cy="893.33795"
+         rx="21.233349"
+         ry="21.233351" />
+    </g>
+    <g
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
+       id="g3770"
+       style="display:inline"
+       transform="matrix(2.2482068,0,0,2.2482068,-183.27865,-1806.4083)">
+      <ellipse
+         ry="21.233351"
+         rx="21.233349"
+         cy="893.33795"
+         cx="292.19028"
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
+         id="ellipse3764"
+         style="fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.33329988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <ellipse
+         ry="21.233351"
+         rx="21.233349"
+         cy="893.33795"
+         cx="263.48416"
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
+         id="ellipse3766"
+         style="display:inline;fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.33329988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <ellipse
+         ry="21.233351"
+         rx="21.233349"
+         cy="893.33795"
+         cx="234.77802"
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
+         id="ellipse3768"
+         style="display:inline;fill:#cf6800;fill-opacity:1;stroke:#cf6800;stroke-width:2.33329988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     </g>
   </g>
   <g
@@ -221,36 +281,125 @@
      id="layer5"
      inkscape:label="text"
      style="display:inline"
-     transform="translate(0,-40)">
+     transform="translate(0,-61.333532)">
     <text
        xml:space="preserve"
-       style="font-size:95.92349243px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="6.2542071"
-       y="214.33203"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1"
+       x="5.6399117"
+       y="236.33211"
        id="text3915"
-       sodipodi:linespacing="125%"
        inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90"><tspan
          sodipodi:role="line"
          id="tspan3917"
-         x="6.2542071"
-         y="214.33203"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#00589c;fill-opacity:1;font-family:Arial;-inkscape-font-specification:Arial Bold">PICon</tspan></text>
+         x="5.6399117"
+         y="236.33211"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:95.9234848px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#00589c;fill-opacity:1;stroke-width:1">PICon</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="GPU"
+     style="display:inline"
+     transform="translate(0,-18.666865)">
     <text
        xml:space="preserve"
-       style="font-size:95.92349243px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;display:inline;font-family:Sans"
-       x="303.67188"
-       y="214.33203"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:inline;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
+       x="303.05756"
+       y="193.66544"
        id="text3827"
-       sodipodi:linespacing="125%"
        inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90"><tspan
          sodipodi:role="line"
          id="tspan3829"
-         x="303.67188"
-         y="214.33203"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#ffffff;fill-opacity:1;font-family:Arial;-inkscape-font-specification:Arial Bold">GPU</tspan></text>
+         x="303.05756"
+         y="193.66544"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:95.9234848px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#ffffff;fill-opacity:1;stroke-width:1">GPU</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="CPU"
+     style="display:none"
+     transform="translate(0,-18.666865)">
+    <text
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
+       id="text3747"
+       y="193.66544"
+       x="308.68256"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:inline;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:95.9234848px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#ffffff;fill-opacity:1;stroke-width:1"
+         y="193.66544"
+         x="308.68256"
+         id="tspan3745"
+         sodipodi:role="line">CPU</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer7"
+     inkscape:label="ARM"
+     style="display:none"
+     transform="translate(0,-18.666865)">
+    <text
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
+       id="text3784"
+       y="193.66544"
+       x="310.55756"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:inline;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:95.9234848px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial Bold';letter-spacing:-7.078125px;fill:#ffffff;fill-opacity:1;stroke-width:1"
+         y="193.66544"
+         x="310.55756"
+         id="tspan3782"
+         sodipodi:role="line">ARM</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="Power"
+     style="display:none"
+     transform="translate(0,-18.666865)">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;display:inline;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
+       x="314.30756"
+       y="193.66544"
+       id="text3778"
+       inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan3776"
+         x="314.30756"
+         y="193.66544"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:95.9234848px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#ffffff;fill-opacity:1;stroke-width:1">PPC</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer6"
+     inkscape:label="Phi"
+     style="display:none"
+     transform="translate(0,-18.666865)">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:12px;line-height:0%;font-family:sans-serif;letter-spacing:6.27187204px;word-spacing:0px;display:inline;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
+       x="306.80756"
+       y="193.66544"
+       id="text3753"
+       inkscape:export-filename="/home/fschmitt/Dokumente/pic/pic_logo.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan3751"
+         x="306.80756"
+         y="193.66544"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:95.9234848px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial Bold';letter-spacing:6.27187204px;fill:#ffffff;fill-opacity:1;stroke-width:1">PHI</tspan></text>
   </g>
 </svg>
