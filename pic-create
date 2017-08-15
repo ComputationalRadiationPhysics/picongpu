@@ -21,9 +21,9 @@
 
 this_dir=`dirname $0`
 
-#only copy submit and params if we clone from default pic folder
+# only copy submit and params if we clone from default pic folder
 default_folder_to_copy="etc/picongpu include/picongpu/simulation_defines/param include/picongpu/simulation_defines/unitless"
-#if we clone a project we copy full include 
+# if we clone a project we copy full include
 folder_to_clone="etc/picongpu bin include/picongpu lib"
 files_to_copy="cmakeFlags executeOnClone"
 
@@ -55,7 +55,7 @@ eval set -- "$OPTS"
 while true ; do
     case "$1" in
         -f|--force)
-            force_param=1                       
+            force_param=1
             ;;
         -h|--help)
             echo -e "$(help)"

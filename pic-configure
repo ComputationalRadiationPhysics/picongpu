@@ -24,11 +24,17 @@ this_dir=`dirname $0`
 
 help()
 {
-    echo "configure create a cmake call for picongpu \nand get fast access to selected picongpu cmake options"
+    echo "Configure PIConGPU with CMake"
     echo ""
-    echo "usage: configure [OPTIONS] <parameterDirectory>"
+    echo "Generates a call to CMake and provides short-hand access to selected"
+    echo "PIConGPU CMake options."
+    echo "Advanced users can always run 'ccmake .' after this call for further"
+    echo "compilation options."
     echo ""
-    echo "-i | --install       - path were picongpu shall be installed (default is <parameterDirectory>)"
+    echo "usage: pic-configure [OPTIONS] <inputDirectory>"
+    echo ""
+    echo "-i | --install       - path were picongpu shall be installed"
+    echo "                       (default is <inputDirectory>)"
     echo "-a | --arch          - set compute backend and optionally the architecture"
     echo "                       syntax: backend[:architecture]"
     echo "                       supported backends: cuda, omp2b"
