@@ -46,24 +46,6 @@ gcc
   - ``spack install gcc@4.9.4``
   - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@4.9.4``
 
-CUDA
-""""
-- `7.5+ <https://developer.nvidia.com/cuda-downloads>`_
-- *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
-- *Arch Linux:* ``sudo pacman --sync cuda``
-- *Spack:*
-
-  - ``curl -o cuda_7.5.18_linux.run http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run``
-  - ``spack install cuda@7.5.18``
-
-- at least one **CUDA** capable **GPU**
-- *Compute capability* **sm\_20** or higher
-- `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
-- `More <http://www.olcf.ornl.gov/titan/>`_ is always `better <http://www.cscs.ch/computers/piz_daint/index.html>`_. Especially, if we are talking GPUs :-)
-- *environment:*
-
-  - ``export CUDA_ROOT=<CUDA_INSTALL>``
-
 CMake
 """""
 - 3.7.0 or higher
@@ -73,12 +55,14 @@ CMake
 
 MPI 2.3+
 """"""""
-- **OpenMPI** 1.5.1+ / **MVAPICH2** 1.8+ or similar (`GPU aware <https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/>`_ install recommended)
+- **OpenMPI** 1.7+ / **MVAPICH2** 1.8+ or similar
+- for running on Nvidia GPUs, perform a `GPU aware MPI install <https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/>`_ *after* installing CUDA
 - *Debian/Ubuntu:* ``sudo apt-get install libopenmpi-dev``
 - *Arch Linux:* ``sudo pacman --sync openmpi``
 - *Spack:*
 
-  - ``spack install openmpi``
+  - *GPU support:* ``spack install openmpi+cuda``
+  - *CPU only:* ``spack install openmpi``
 - *environment:*
 
   - ``export MPI_ROOT=<MPI_INSTALL>``
@@ -138,8 +122,23 @@ PIConGPU Source Code
 Optional Libraries
 ^^^^^^^^^^^^^^^^^^
 
-If you do not install the optional libraries, you will not have the full amount of PIConGPU plugins.
-We recommend to install at least **pngwriter** and either **libSplash** (HDF5) or **ADIOS**.
+CUDA
+""""
+- `7.5+ <https://developer.nvidia.com/cuda-downloads>`_
+- required if you want to run on Nvidia GPUs
+- *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
+- *Arch Linux:* ``sudo pacman --sync cuda``
+- *Spack:* ``spack install cuda``
+- at least one **CUDA** capable **GPU**
+- *compute capability*: ``sm_20`` or higher (for CUDA 9+: ``sm_30`` or higher)
+- `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
+- `More <http://www.olcf.ornl.gov/titan/>`_ is always `better <http://www.cscs.ch/computers/piz_daint/index.html>`_. Especially, if we are talking GPUs :-)
+- *environment:*
+
+  - ``export CUDA_ROOT=<CUDA_INSTALL>``
+
+If you do not install the following libraries, you will not have the full amount of PIConGPU plugins.
+We recommend to install at least **pngwriter** and either **libSplash** (+ **HDF5**) or **ADIOS**.
 
 pngwriter
 """""""""
