@@ -60,4 +60,4 @@ pyDive (experimental)
 pyDive provides numpy-style array and file processing on distributed memory systems ("numpy on MPI" for data sets that are much larger than your local RAM).
 pyDive is currently not ready to interpret openPMD directly, but can work on generated raw ADIOS and HDF5 files.
 
-https://github.com/ComputationalRadiationPhysics/pyDive#documentation
+https://github.com/ComputationalRadiationPhysics/pyDive

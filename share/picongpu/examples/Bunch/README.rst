@@ -20,7 +20,7 @@ References
         Richard Pausch.
         *Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics*,
         Diploma Thesis TU Dresden (2012),
-        http://www.hzdr.de/db/Cms?pOid=38997
+        https://www.hzdr.de/db/Cms?pOid=38997
 
 .. [Pausch13]
         R. Pausch, A. Debus, R. Widera, K. Steiniger, A. Huebl, H. Burau, M. Bussmann, U. Schramm.
