@@ -84,4 +84,4 @@ References
 .. [CMake]
         Kitware Inc.
         *CMake: Cross-platform build management tool*,
-        http://cmake.org/
+        https://cmake.org/

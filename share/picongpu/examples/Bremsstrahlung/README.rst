@@ -28,13 +28,13 @@ References
     H. Burau.
     *Entwicklung und Überprüfung eines Photonenmodells für die Abstrahlung durch hochenergetische Elektronen*,
     Diploma Thesis TU Dresden (2016),
-    https://doi.org/10.5281/zenodo.192116
+    https://dx.doi.org/10.5281/zenodo.192116
 
 .. [Jackson]
     J.D. Jackson.
     *Electrodynamics*,
     Wiley-VCH Verlag GmbH & Co. KGaA (1975),
-    http://onlinelibrary.wiley.com/doi/10.1002/9783527600441.oe014
+    https://dx.doi.org/10.1002/9783527600441.oe014
 
 .. [Salvat]
     F. Salvat, J. Fernández-Varea, J. Sempau, X. Llovet.

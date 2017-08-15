@@ -2,7 +2,7 @@
 
 .. seealso::
 
-   You will need to understand how to use `the terminal <http://www.ks.uiuc.edu/Training/Tutorials/Reference/unixprimer.html>`_, what are `environment variables <http://unix.stackexchange.com/questions/44990/what-is-the-difference-between-path-and-ld-library-path/45106#45106>`_ and please read our :ref:`compiling introduction <install-source>`.
+   You will need to understand how to use `the terminal <http://www.ks.uiuc.edu/Training/Tutorials/Reference/unixprimer.html>`_, what are `environment variables <https://unix.stackexchange.com/questions/44990/what-is-the-difference-between-path-and-ld-library-path/45106#45106>`_ and please read our :ref:`compiling introduction <install-source>`.
 
 .. note::
 
@@ -233,7 +233,7 @@ png2gas
 
 ADIOS
 """""
-- 1.10.0+ (requires *MPI*, *zlib* and `mxml <http://www.msweet.org/projects.php?Z3>`_)
+- 1.10.0+ (requires *MPI* and *zlib*)
 - *Debian/Ubuntu:* ``sudo apt-get install libadios-dev libadios-bin``
 - *Arch Linux* using an `AUR helper <https://wiki.archlinux.org/index.php/AUR_helpers>`_: ``pacaur --sync libadios``
 - *Arch Linux* using the `AUR <https://wiki.archlinux.org/index.php/Arch_User_Repository>`_ manually:

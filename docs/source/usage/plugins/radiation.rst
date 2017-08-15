@@ -5,7 +5,7 @@ Radiation
 
 The spectrally resolved far field radiation of charged macro particles.
 
-Our simulation computes the `Lienard Wiechert potentials <http://en.wikipedia.org/wiki/Li%C3%A9nard%E2%80%93Wiechert_potential>`_ to calculate the emitted electromagnetic spectra for different observation directions using the far field approximation.
+Our simulation computes the `Lienard Wiechert potentials <https://en.wikipedia.org/wiki/Li%C3%A9nard%E2%80%93Wiechert_potential>`_ to calculate the emitted electromagnetic spectra for different observation directions using the far field approximation.
 
 .. math::
 
@@ -90,7 +90,7 @@ Nyquist limit
 """""""""""""
 
 A major limitation of discrete Fourier transform is the limited frequency resolution due to the discrete time steps of the temporal signal.
-(see `Nyquist-Shannon sampling theorem <http://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem>`_)
+(see `Nyquist-Shannon sampling theorem <https://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem>`_)
 Due to the consideration of relativistic delays, the sampling of the emitted radiation is not equidistantly sampled. 
 The plugin has the option to ignore any frequency contributions that lies above the frequency resolution given by the Nyquist-Shannon sampling theorem. 
 Because performing this check costs computation time, it can be switched off. 
@@ -201,7 +201,7 @@ sets the flag to true is a particle fulfills the gamma condition.
 Window function filter
 """"""""""""""""""""""
 
-A window function can be added to the simulation area to reduce `ringing artifacts <http://en.wikipedia.org/wiki/Ringing_artifacts>`_ due to sharp transition from radiating regions to non-radiating regions at the boundaries of the simulation box.
+A window function can be added to the simulation area to reduce `ringing artifacts <https://en.wikipedia.org/wiki/Ringing_artifacts>`_ due to sharp transition from radiating regions to non-radiating regions at the boundaries of the simulation box.
 This should be applied to simulation setups where the entire volume simulated is radiating (e.g. Kelvin-Helmholtz Instability).
 
 In ``radiationConfig.param`` the precompiler variable ``PIC_RADWINDOWFUNCTION`` defines if the window function filter should be used or not.
@@ -322,7 +322,7 @@ The plugin supports multiple radiation species but spectra (frequencies and obse
 References
 ^^^^^^^^^^
 
-- [Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics](http://www.hzdr.de/db/Cms?pOid=38997) <br>
+- `Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics <https://www.hzdr.de/db/Cms?pOid=38997>`_,
   Diploma thesis on the radiation plugin
-- [How to test and verify radiation diagnostics simulations within particle-in-cell frameworks](http://dx.doi.org/10.1016/j.nima.2013.10.073 ) <br>
+- `How to test and verify radiation diagnostics simulations within particle-in-cell frameworks <http://dx.doi.org/10.1016/j.nima.2013.10.073>`_,
   Some tests that have been performed to validate the code
