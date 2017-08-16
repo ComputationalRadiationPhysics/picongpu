@@ -49,7 +49,6 @@
 #include <boost/core/ignore_unused.hpp>             // boost::ignore_unused
 #include <boost/predef.h>                           // workarounds
 
-#include <cassert>                                  // assert
 #include <memory>                                   // std::unique_ptr
 #include <thread>                                   // std::thread
 #include <typeinfo>                                 // typeid

@@ -37,8 +37,8 @@
 #include <alpaka/dim/DimIntegralConst.hpp>  // dim::DimInt<N>
 #include <alpaka/mem/buf/Traits.hpp>        // mem::view::Copy, ...
 
-#include <cassert>                          // assert
 #include <memory>                           // std::shared_ptr
+#include <cassert>                          // assert
 
 namespace alpaka
 {

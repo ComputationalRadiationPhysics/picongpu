@@ -33,6 +33,7 @@
 #include <alpaka/core/Common.hpp>                   // ALPAKA_FN_*
 
 #include <type_traits>                              // std::conditional, ...
+#include <cassert>                                  // assert
 
 namespace alpaka
 {

@@ -57,6 +57,7 @@
 #include <alpaka/meta/Metafunctions.hpp>        // meta::Conjunction
 
 #include <boost/predef.h>                       // workarounds
+#include <boost/assert.hpp>                     // BOOST_VERIFY
 
 #include <stdexcept>                            // std::runtime_error
 #include <tuple>                                // std::tuple
@@ -335,9 +336,9 @@ namespace alpaka
                     // Assert that all extent of the higher dimensions are 1!
                     for(auto i(std::min(static_cast<typename TDim::value_type>(3), TDim::value)); i<TDim::value; ++i)
                     {
-                        assert(gridBlockExtent[TDim::value-1u-i] == 1);
-                        assert(blockThreadExtent[TDim::value-1u-i] == 1);
-                        assert(threadElemExtent[TDim::value-1u-i] == 1);
+                        BOOST_VERIFY(gridBlockExtent[TDim::value-1u-i] == 1);
+                        BOOST_VERIFY(blockThreadExtent[TDim::value-1u-i] == 1);
+                        BOOST_VERIFY(threadElemExtent[TDim::value-1u-i] == 1);
                     }
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -472,9 +473,9 @@ namespace alpaka
                     // Assert that all extent of the higher dimensions are 1!
                     for(auto i(std::min(static_cast<typename TDim::value_type>(3), TDim::value)); i<TDim::value; ++i)
                     {
-                        assert(gridBlockExtent[TDim::value-1u-i] == 1);
-                        assert(blockThreadExtent[TDim::value-1u-i] == 1);
-                        assert(threadElemExtent[TDim::value-1u-i] == 1);
+                        BOOST_VERIFY(gridBlockExtent[TDim::value-1u-i] == 1);
+                        BOOST_VERIFY(blockThreadExtent[TDim::value-1u-i] == 1);
+                        BOOST_VERIFY(threadElemExtent[TDim::value-1u-i] == 1);
                     }
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL

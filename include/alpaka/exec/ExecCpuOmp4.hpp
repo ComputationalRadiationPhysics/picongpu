@@ -45,7 +45,6 @@
 #include <alpaka/core/OpenMp.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>           // meta::apply
 
-#include <cassert>                              // assert
 #include <stdexcept>                            // std::runtime_error
 #include <tuple>                                // std::tuple
 #include <type_traits>                          // std::decay

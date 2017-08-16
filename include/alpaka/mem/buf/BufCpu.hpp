@@ -42,7 +42,6 @@
     #include <boost/core/ignore_unused.hpp>     // boost::ignore_unused
 #endif
 
-#include <cassert>                              // assert
 #include <memory>                               // std::shared_ptr
 
 namespace alpaka

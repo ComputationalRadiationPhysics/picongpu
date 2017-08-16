@@ -74,7 +74,7 @@ By itself this is no problem, but how can be assured that a two-dimensional kern
 How can it be assured that a kernel which only uses `threadIdx.x` or equivalently calls `get_global_id(0)` will not get called with two dimensional grid and block extents?
 Because the result in such a case is undefined, and most of the time not wanted by the kernel author, this should be easy to check and reject at compile-time.
 In *alpaka* all accelerators are templatized on the dimensionality.
-This allows a two-dimensional image filter to assert that it is only  called with a two dimensional accelerator.
+This allows a two-dimensional image filter to assert that it is only called with a two dimensional accelerator.
 Thereby the algorithms can check for supported dimensionality of the accelerator at compile time instead of runtime.
 Furthermore with the dimension being a template parameter, the CPU back-end implementations are able to use only the number of nested loops really necessary instead of the 6 loops (2 x 3 loops for grid blocks and block threads), which are mandatory to emulate the *CUDA* threaded blocking scheme.
 
