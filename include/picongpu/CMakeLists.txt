@@ -129,13 +129,23 @@ if(ALPAKA_ACC_GPU_CUDA_ENABLE)
     set(LIBS ${LIBS} ${mallocMC_LIBRARIES})
 endif()
 
+
 ################################################################################
 # Find zlib
 ################################################################################
 
 find_package(ZLIB REQUIRED)
-include_directories(SYSTEM ${ZLIB_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${ZLIB_LIBRARIES})
+set(LIBS ${LIBS} ZLIB::ZLIB)
+
+
+################################################################################
+# Find math from stdlib
+################################################################################
+
+if(NOT WIN32)
+    # automatically added on windows
+    set(LIBS ${LIBS} m)
+endif()
 
 
 ################################################################################
@@ -145,8 +155,15 @@ set(LIBS ${LIBS} ${ZLIB_LIBRARIES})
 find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex filesystem
                                               system thread math_tr1 date_time
                                               serialization chrono atomic)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${Boost_LIBRARIES})
+if(TARGET Boost::boost)
+    set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex
+                     Boost::filesystem Boost::system Boost::thread
+                     Boost::math_tr1 Boost::date_time Boost::serialization
+                     Boost::chrono Boost::atomic)
+else()
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${Boost_LIBRARIES})
+endif()
 
 
 ################################################################################
@@ -365,14 +382,14 @@ add_library(picongpu-hostonly
     STATIC
     ${SRCFILES}
 )
-target_link_libraries(picongpu-hostonly ${LIBS} m)
+target_link_libraries(picongpu-hostonly ${LIBS})
 
 
 cupla_add_executable(picongpu
     ${SRCFILES}
 )
 
-target_link_libraries(picongpu ${LIBS} picongpu-hostonly m)
+target_link_libraries(picongpu ${LIBS} picongpu-hostonly)
 
 
 ################################################################################
