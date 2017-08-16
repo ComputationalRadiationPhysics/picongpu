@@ -15,17 +15,19 @@ Preparation
 First, decide where to store input files, a good place might be ``$HOME`` (``~``) because it is usually backed up.
 Second, decide where to store your output of simulations which needs to be placed on a high-bandwidth, large-storage file system which we will refer to as ``$SCRATCH``.
 
-For a first test you can also use your home directory ``$HOME`` as simulation directory ``$SCRATCH``.
-
-As in our :ref:`compiling from source <install-source>` section, we need a few directories to structure our workflow:
+For a first test you can also use your home directory:
 
 .. code-block:: bash
 
-    # temporary build directory
-    mkdir $HOME/build
+   export SCRATCH=$HOME
+
+We need a few directories to structure our workflow:
+
+.. code-block:: bash
 
     # PIConGPU input files
     mkdir $HOME/picInputs
+
     # PIConGPU simulation output
     mkdir $SCRATCH/runs
 
@@ -41,51 +43,46 @@ Step-by-Step
    # clone the LWFA example to $HOME/picInputs/myLWFA
    pic-create $PICSRC/examples/LaserWakefield/ $HOME/picInputs/myLWFA
 
-Now edit ``$HOME/picInputs/myLWFA/include/picongpu/simulation_defines/param/*`` to change the :ref:`physical configuration of this input set <usage-params>`.
+   # switch to your input directory
+   cd $HOME/picInputs/myLWFA
 
-Now edit ``$HOME/picInputs/myLWFA/etc/picongpu/*.cfg`` to adjust :ref:`runtime parameters (simulation size, number of GPUs, plugins, ...) <usage-cfg>`.
+PIConGPU is controlled via two kinds of input sets: compile-time options and runtime options.
+
+Edit the :ref:`.param files<usage-params>` inside ``include/picongpu/simulation_defines/param/``.
+Initially and when options are changed, PIConGPU *requires a re-compile*.
+
+Now edit the :ref:`runtime (command line) arguments <usage-cfg>` in ``etc/picongpu/*.cfg``.
+These options do *not* require a re-compile when changed (e.g. simulation size, number of GPUs, plugins, ...).
 
 2. Compile Simulation
 """""""""""""""""""""
 
-In our input, ``.param`` files are build directly into the PIConGPU binary.
-Therefore, changing or initially adding those requires a compile.
+In our input, ``.param`` files are build directly into the PIConGPU binary for performance reasons.
+Changing or initially adding those requires a compile.
 
 In this step you can optimize the simulation for the specific hardware you want to run on.
 By default, we compile for Nvidia GPUs with CUDA targeting the oldest compatible `architecture <https://developer.nvidia.com/cuda-gpus>`_.
 
 .. code-block:: bash
-   :emphasize-lines: 7,12
+   :emphasize-lines: 1
 
-   # go to an empty build directory
-   cd $HOME/build
-   # clean it if necessary
-   rm -rf ../build/*
+   pic-build
 
-   # configure case001
-   pic-configure $HOME/picInputs/myLWFA
-
-   # compile PIConGPU with the current input set (myLWFA)
-   # - "make -j install" runs implicitly "make -j" and then "make install"
-   # - make install copies resulting binaries to input set
-   make -j install
-
-We always configure *one* input set for *one* compilation.
-If you adjust ``.param`` input files just now, you can just go back to ``$HOME/build`` and run ``make -j install`` again without further need to clean the directory or configuration.
+This step will take a few minutes.
+Time for a coffee or a `sword fight <https://xkcd.com/303/>`_!
 
 3. Run Simulation
 """""""""""""""""
 
+While you are still in ``$HOME/picInputs/myLWFA``, start your simulation on one CUDA capable GPU:
+
 .. code-block:: bash
-   :emphasize-lines: 5
-
-   # go to param set with up-to-date PIConGPU binaries
-   cd $HOME/picInputs/myLWFA
+   :emphasize-lines: 2
    
-   # example run for the HPC System "hypnos" using a PBS batch system
-   tbg -s qsub -c etc/picongpu/0016gpus.cfg -t etc/picongpu/hypnos-hzdr/k20_profile.tpl $SCRATCH/runs/lwfa_001
+   # example run for an interactive simulation on the same machine
+   tbg -s bash -c etc/picongpu/0001gpus.cfg -t etc/picongpu/bash/mpiexec.tpl $SCRATCH/runs/lwfa_001
 
-This will create the directory ``$SCRATCH/runs/lwfa_001`` were all simulation output will be written to.
+This will create the directory ``$SCRATCH/runs/lwfa_001`` where all simulation output will be written to.
 ``tbg`` will further create a subfolder ``input/`` in the directory of the run with the same structure as ``myLWFA`` to archive your input files.
 
 Further Reading
@@ -94,6 +91,14 @@ Further Reading
 Individual input files, their syntax and usage are explained in the following sections.
 
 See ``tbg --help`` :ref:`for more information <usage-tbg>` about the ``tbg`` tool.
+
+For example, if you want to run on the HPC System `"Hypnos" at HZDR <https://www.hzdr.de/db/Cms?pOid=12231>`_, your tbg submit command would just change to:
+
+.. code-block:: bash
+   :emphasize-lines: 2
+
+   # request 16 GPUs from the PBS batch system and run on the queue k20
+   tbg -s qsub -c etc/picongpu/0016gpus.cfg -t etc/picongpu/hypnos-hzdr/k20_profile.tpl $SCRATCH/runs/lwfa_002
 
 pic-create
 """"""""""
@@ -111,10 +116,47 @@ A run simulation can also be reused to create derived input sets via ``pic-creat
 
    pic-create $SCRATCH/runs/lwfa_001/input $HOME/picInputs/mySecondLWFA
 
+pic-build
+"""""""""
+
+This tool is actually a short-hand for an :ref:`out-of-source build with CMake <install-source>`.
+
+In detail, it does:
+
+.. code-block:: bash
+   :emphasize-lines: 6,11
+
+   # go to an empty build directory
+   mkdir -p .build
+   cd .build
+
+   # configure with CMake
+   pic-configure $OPTIONS ..
+
+   # compile PIConGPU with the current input set (e.g. myLWFA)
+   # - "make -j install" runs implicitly "make -j" and then "make install"
+   # - make install copies resulting binaries to input set
+   make -j install
+
+``pic-build`` accepts the same command line flags as ``pic-configure``.
+For example, if you want to build for running on CPUs instead of a GPUs, call:
+
+.. code-block:: bash
+   :emphasize-lines: 2
+
+   # example for running efficiently on the CPU you are currently compiling on
+   pic-build -a "omp2b"
+
+Its full documentation from ``pic-build --help`` reads:
+
+.. program-output:: ../../pic-build --help
+
 pic-configure
 """""""""""""
 
 The tools is just a convenient wrapper for a call to `CMake <https://cmake.org>`_.
+It is executed from an empty build directory.
+You will likely not use this tool directly when using ``pic-build`` from above.
 
 We *strongly recommend* to set the appropriate target compute architecture via ``-a`` for optimal performance.
 For Nvidia CUDA GPUs, set the `compute capability <https://developer.nvidia.com/cuda-gpus>`_ of your GPU:
