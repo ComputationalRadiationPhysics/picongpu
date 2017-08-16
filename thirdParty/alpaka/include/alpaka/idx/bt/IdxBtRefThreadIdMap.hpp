@@ -29,6 +29,7 @@
 
 #include <thread>                           // std::thread
 #include <map>                              // std::map
+#include <cassert>                          // assert
 
 namespace alpaka
 {

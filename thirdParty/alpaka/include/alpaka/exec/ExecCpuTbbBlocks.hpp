@@ -41,7 +41,8 @@
 #include <alpaka/meta/NdLoop.hpp>               // meta::ndLoopIncIdx
 #include <alpaka/meta/ApplyTuple.hpp>           // meta::apply
 
-#include <cassert>                              // assert
+#include <boost/assert.hpp>                     // BOOST_VERIFY
+
 #include <stdexcept>                            // std::runtime_error
 #include <tuple>                                // std::tuple
 #include <type_traits>                          // std::decay
@@ -159,7 +160,7 @@ namespace alpaka
                 TSize const numBlocksInGrid(gridBlockExtent.prod());
 
                 // There is only ever one thread in a block in the TBB accelerator.
-                assert(blockThreadExtent.prod() == static_cast<TSize>(1u));
+                BOOST_VERIFY(blockThreadExtent.prod() == static_cast<TSize>(1u));
 
                 tbb::parallel_for(
                     static_cast<TSize>(0),

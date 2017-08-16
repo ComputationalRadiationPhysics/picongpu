@@ -575,18 +575,17 @@ namespace alpaka
                         auto const & srcNativePtr(task.m_srcMemNative);
 
                         // Fill CUDA parameter structure.
-                        cudaMemcpy3DParms cudaMemCpy3DParms = {};
-                        //cudaMemCpy3DParms.srcArray;     // Either srcArray or srcPtr.
-                        //cudaMemCpy3DParms.srcPos;       // Optional. Offset in bytes.
-
+                        cudaMemcpy3DParms cudaMemCpy3DParms;
+                        cudaMemCpy3DParms.srcArray = nullptr;  // Either srcArray or srcPtr.
+                        cudaMemCpy3DParms.srcPos = make_cudaPos(0, 0, 0);  // Optional. Offset in bytes.
                         cudaMemCpy3DParms.srcPtr =
                             make_cudaPitchedPtr(
                                 const_cast<void *>(srcNativePtr),
                                 static_cast<std::size_t>(srcPitchBytesX),
                                 static_cast<std::size_t>(srcWidth),
                                 static_cast<std::size_t>(srcPitchBytesY/srcPitchBytesX));
-                        //cudaMemCpy3DParms.dstArray;     // Either dstArray or dstPtr.
-                        //cudaMemCpy3DParms.dstPos;       // Optional. Offset in bytes.
+                        cudaMemCpy3DParms.dstArray = nullptr;  // Either dstArray or dstPtr.
+                        cudaMemCpy3DParms.dstPos = make_cudaPos(0, 0, 0);  // Optional. Offset in bytes.
                         cudaMemCpy3DParms.dstPtr =
                             make_cudaPitchedPtr(
                                 dstNativePtr,
@@ -637,10 +636,10 @@ namespace alpaka
                         auto const & srcNativePtr(task.m_srcMemNative);
 
                         // Fill CUDA parameter structure.
-                        cudaMemcpy3DPeerParms cudaMemCpy3DPeerParms = {};
-                        //cudaMemCpy3DPeerParms.dstArray;     // Either dstArray or dstPtr.
+                        cudaMemcpy3DPeerParms cudaMemCpy3DPeerParms;
+                        cudaMemCpy3DPeerParms.dstArray = nullptr;  // Either dstArray or dstPtr.
                         cudaMemCpy3DPeerParms.dstDevice = iDstDev;
-                        //cudaMemCpy3DPeerParms.dstPos;       // Optional. Offset in bytes.
+                        cudaMemCpy3DPeerParms.dstPos = make_cudaPos(0, 0, 0);  // Optional. Offset in bytes.
                         cudaMemCpy3DPeerParms.dstPtr =
                             make_cudaPitchedPtr(
                                 dstNativePtr,
@@ -652,9 +651,9 @@ namespace alpaka
                                 static_cast<std::size_t>(extentWidthBytes),
                                 static_cast<std::size_t>(extentHeight),
                                 static_cast<std::size_t>(extentDepth));
-                        //cudaMemCpy3DPeerParms.srcArray;     // Either srcArray or srcPtr.
+                        cudaMemCpy3DPeerParms.srcArray = nullptr;  // Either srcArray or srcPtr.
                         cudaMemCpy3DPeerParms.srcDevice = iSrcDev;
-                        //cudaMemCpy3DPeerParms.srcPos;       // Optional. Offset in bytes.
+                        cudaMemCpy3DPeerParms.srcPos = make_cudaPos(0, 0, 0);  // Optional. Offset in bytes.
                         cudaMemCpy3DPeerParms.srcPtr =
                             make_cudaPitchedPtr(
                                 const_cast<void *>(srcNativePtr),
@@ -699,10 +698,10 @@ namespace alpaka
                         auto const & srcNativePtr(task.m_srcMemNative);
 
                         // Fill CUDA parameter structure.
-                        cudaMemcpy3DPeerParms cudaMemCpy3DPeerParms = {};
-                        //cudaMemCpy3DPeerParms.dstArray;     // Either dstArray or dstPtr.
+                        cudaMemcpy3DPeerParms cudaMemCpy3DPeerParms;
+                        cudaMemCpy3DPeerParms.dstArray = nullptr;  // Either dstArray or dstPtr.
                         cudaMemCpy3DPeerParms.dstDevice = iDstDev;
-                        //cudaMemCpy3DPeerParms.dstPos;       // Optional. Offset in bytes.
+                        cudaMemCpy3DPeerParms.dstPos = make_cudaPos(0, 0, 0);  // Optional. Offset in bytes.
                         cudaMemCpy3DPeerParms.dstPtr =
                             make_cudaPitchedPtr(
                                 dstNativePtr,
@@ -714,9 +713,9 @@ namespace alpaka
                                 static_cast<std::size_t>(extentWidthBytes),
                                 static_cast<std::size_t>(extentHeight),
                                 static_cast<std::size_t>(extentDepth));
-                        //cudaMemCpy3DPeerParms.srcArray;     // Either srcArray or srcPtr.
+                        cudaMemCpy3DPeerParms.srcArray = nullptr;  // Either srcArray or srcPtr.
                         cudaMemCpy3DPeerParms.srcDevice = iSrcDev;
-                        //cudaMemCpy3DPeerParms.srcPos;       // Optional. Offset in bytes.
+                        cudaMemCpy3DPeerParms.srcPos = make_cudaPos(0, 0, 0);  // Optional. Offset in bytes.
                         cudaMemCpy3DPeerParms.srcPtr =
                             make_cudaPitchedPtr(
                                 const_cast<void *>(srcNativePtr),

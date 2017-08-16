@@ -24,7 +24,7 @@
 
 #include <iostream>
 #include <cstdint>
-#include <cassert>
+#include <cassert>              // assert
 
 /**
  * Prints all elements of the buffer.

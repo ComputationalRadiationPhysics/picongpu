@@ -31,6 +31,8 @@
 
 #include <boost/core/ignore_unused.hpp>     // boost::ignore_unused
 
+#include <cassert>                          // assert
+
 namespace alpaka
 {
     namespace idx

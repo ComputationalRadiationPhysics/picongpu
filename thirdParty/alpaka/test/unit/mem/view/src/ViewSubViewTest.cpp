@@ -32,7 +32,6 @@
 #include <alpaka/test/stream/Stream.hpp>        // DefaultStream
 #include <alpaka/test/mem/view/ViewTest.hpp>    // viewTest
 
-#include <boost/assert.hpp>                     // BOOST_VERIFY
 #include <boost/predef.h>                       // BOOST_COMP_MSVC, BOOST_COMP_CLANG
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
