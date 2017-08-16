@@ -28,6 +28,7 @@
 #endif
 #include <boost/predef.h>                   // workarounds
 
+#include <cassert>                          // assert
 #include <type_traits>                      // std::enable_if
 
 namespace alpaka

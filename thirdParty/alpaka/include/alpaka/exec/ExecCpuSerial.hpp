@@ -41,8 +41,8 @@
 #include <alpaka/meta/ApplyTuple.hpp>           // meta::apply
 
 #include <boost/core/ignore_unused.hpp>         // boost::ignore_unused
+#include <boost/assert.hpp>                     // BOOST_VERIFY
 
-#include <cassert>                              // assert
 #include <tuple>                                // std::tuple
 #include <type_traits>                          // std::decay
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
@@ -156,7 +156,7 @@ namespace alpaka
                     blockSharedMemDynSizeBytes);
 
                 // There is only ever one thread in a block in the serial accelerator.
-                assert(blockThreadExtent.prod() == static_cast<TSize>(1u));
+                BOOST_VERIFY(blockThreadExtent.prod() == static_cast<TSize>(1u));
 
                 // Execute the blocks serially.
                 meta::ndLoopIncIdx(

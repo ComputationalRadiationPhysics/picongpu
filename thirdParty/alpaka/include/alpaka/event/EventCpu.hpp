@@ -34,6 +34,7 @@
 #include <boost/uuid/uuid_generators.hpp>   // boost::uuids::random_generator
 #include <boost/core/ignore_unused.hpp>     // boost::ignore_unused
 
+#include <cassert>                          // assert
 #include <mutex>                            // std::mutex
 #include <condition_variable>               // std::condition_variable
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
@@ -88,7 +89,7 @@ namespace alpaka
                     ALPAKA_FN_HOST ~EventCpuImpl() noexcept
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                     {
-                        // If a event is enqueued to a stream and gets waited on but destructed before it is completed it is kept alive until completed.
+                        // If an event is enqueued to a stream and gets waited on but destructed before it is completed it is kept alive until completed.
                         // This can never happen.
                         assert(!m_bIsWaitedFor);
                     }

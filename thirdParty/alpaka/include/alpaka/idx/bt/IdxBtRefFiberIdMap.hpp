@@ -30,6 +30,7 @@
 #include <boost/core/ignore_unused.hpp>     // boost::ignore_unused
 
 #include <map>                              // std::map
+#include <cassert>                          // assert
 
 namespace alpaka
 {
