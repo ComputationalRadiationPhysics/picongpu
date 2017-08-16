@@ -153,13 +153,11 @@ endif()
 ################################################################################
 
 find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex filesystem
-                                              system thread math_tr1 date_time
-                                              serialization chrono atomic)
+                                              system math_tr1 serialization)
 if(TARGET Boost::boost)
     set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex
-                     Boost::filesystem Boost::system Boost::thread
-                     Boost::math_tr1 Boost::date_time Boost::serialization
-                     Boost::chrono Boost::atomic)
+                     Boost::filesystem Boost::system Boost::math_tr1
+                     Boost::serialization)
 else()
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     set(LIBS ${LIBS} ${Boost_LIBRARIES})

@@ -76,7 +76,7 @@ zlib
 
 boost
 """""
-- 1.62.0-1.64.0 (``program options``, ``regex`` , ``filesystem``, ``system``, ``thread``, ``chrono``, ``atomic``, ``date_time``, ``math``, ``serialization`` and header-only libs, optional: ``fiber``, ``context``)
+- 1.62.0-1.64.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
 - download from `http://www.boost.org <http://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz/download>`_
 - *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
