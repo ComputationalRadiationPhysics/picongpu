@@ -58,25 +58,17 @@ Each row describes another simulation time step.
 Analysis Tools
 ^^^^^^^^^^^^^^
 
-The easiest way is to load the data in Python:
+You can quickly plot the data in Python with:
 
 .. code:: python
 
-   import numpy as np
+   from picongpu.plugins.energy_histogram import EnergyHistogram
    import matplotlib.pyplot as plt
 
-   # matrix with data in keV
-   #   note: skips columns for iteration step, underflow bin (first 2) and
-   #         overflow bin, summation of all bins (last two)
-   e_ene = np.loadtxt("simOutput/e_energyHistogram.dat")[:, 2:-2]
-   # upper range of each bin in keV
-   #    note: only reads first row and selects the 1024 bins (default, see binCount) in columns 2:1026
-   e_bins = np.loadtxt("simOutput/e_energyHistogram.dat", comments='', usecols=range(2,1026) )[0,:]
-   # time steps on which histogram was written
-   e_steps = np.loadtxt("simOutput/e_energyHistogram.dat", usecols=range(0,1))
+   energy_histogram = EnergyHistogram('/home/axel/runs/lwfa_001')
+   energies, bins = energy_histogram.get('e', iteration=2000)
 
-   # example: plot the 10th dump (10 * .period)
-   plt.plot( e_bins, e_ene[10] )
+   plt.plot( bins, energies )
    plt.show()
 
 
