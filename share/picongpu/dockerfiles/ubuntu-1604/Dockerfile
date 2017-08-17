@@ -61,7 +61,7 @@ RUN        git clone --depth 50 https://github.com/llnl/spack.git \
            spack install adios@1.10.0 && \
            spack install isaac@1.3.1 ^boost@1.61.0 && \
            spack install isaac-server@1.3.1 ^boost@1.61.0 && \
-           spack purge --all
+           spack clean -a
 
 # get PIConGPU sources
 RUN        git clone --depth 50 --branch $PICONGPU_BRANCH \

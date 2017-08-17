@@ -5,23 +5,23 @@
 export MODULEPATH=$HOME/src/spack/share/spack/lmod/linux-ubuntu16-x86_64/Core
 
 # Core Dependencies (based on gcc 5.4.0)
-module load cmake
-module load boost
-module load cuda
-module load openmpi
+spack load cmake
+spack load boost
+spack load cuda
+spack load openmpi
 
 # Plugins (optional)
-module load zlib libpng freetype pngwriter
-module load hdf5 libsplash
-module load libjpeg-turbo jansson icet isaac
-module load isaac-server
+spack load zlib libpng freetype pngwriter
+spack load hdf5 libsplash
+spack load libjpeg-turbo jansson icet isaac
+spack load isaac-server
 
 # either use libSplash or ADIOS for file I/O
-#module load adios
+#spack load adios
 
 # Debug Tools
-#module load gdb
-#module load valgrind
+#spack load gdb
+#spack load valgrind
 
 # Environment #################################################################
 #
