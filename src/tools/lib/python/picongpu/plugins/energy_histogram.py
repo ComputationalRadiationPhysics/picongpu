@@ -81,7 +81,7 @@ class EnergyHistogram(object):
 
         # the first column contains the iterations
         return np.loadtxt(data_file_path,
-                          usecols=range(0, 1),
+                          usecols=(0,),
                           dtype=np.uint64)
 
     def get(self, species, iteration, include_overflow=False):
@@ -125,8 +125,8 @@ class EnergyHistogram(object):
             extra_bins = 1
         bins = np.loadtxt(
             data_file_path,
-            comments='',
-            usecols=range(2 - extra_bins, num_bins + 2 + 2 * extra_bins)
+            comments=None,
+            usecols=list(range(2 - extra_bins, num_bins + 2 + 2 * extra_bins))
         )[0, :]
 
         available_iterations = self.get_iterations(species)
