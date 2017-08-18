@@ -39,15 +39,15 @@ class FindTime(object):
         -------
         A string with a path.
         """
-        sim_ouput_dir = os.path.join(self.run_directory, "simOutput")
-        if not os.path.isdir(sim_ouput_dir):
+        sim_output_dir = os.path.join(self.run_directory, "simOutput")
+        if not os.path.isdir(sim_output_dir):
             raise IOError('The simOutput/ directory does not exist inside '
                           'path:\n  {}\n'
                           'Did you set the proper path to the run directory?\n'
                           'Did the simulation already run?'
                           .format(self.run_directory))
 
-        data_file_path = os.path.join(sim_ouput_dir, self.data_file)
+        data_file_path = os.path.join(sim_output_dir, self.data_file)
         if not os.path.isfile(data_file_path):
             raise IOError('The file {} does not exist.\n'
                           'Did the simulation already run?'
