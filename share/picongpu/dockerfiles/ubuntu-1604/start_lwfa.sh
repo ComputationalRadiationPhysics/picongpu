@@ -2,6 +2,7 @@
 #
 
 isaac &
+server_id=$!
 
 echo ""
 echo "Let's watch a laser-plasma movie!"
@@ -12,9 +13,12 @@ echo ""
 sleep 5
 
 # start PIConGPU
-cd paramSets/lwfa
+cd /opt/picInputs/lwfa
 tbg \
   -s bash \
   -c etc/picongpu/0001gpus_isaac.cfg \
   -t etc/bash/bash_mpirun.tpl \
   /tmp/lwfa_001
+
+# kill the isaac server after tbg returns
+kill $server_id

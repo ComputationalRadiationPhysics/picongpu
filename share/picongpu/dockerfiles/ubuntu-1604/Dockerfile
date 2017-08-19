@@ -3,9 +3,11 @@ MAINTAINER Axel Huebl <a.huebl@hzdr.de>
 
 # docker and image environment
 ENV        DEBIAN_FRONTEND=noninteractive \
-           PICONGPU_BRANCH="0.3.0" \
-           HOME=/home/picongpu \
-           PATH=/home/picongpu/src/spack/bin:$PATH
+           FORCE_UNSAFE_CONFIGURE=1 \
+           PICONGPU_BRANCH="dev" \
+           SPACK_ROOT=/usr/local \
+           PATH=/usr/local/bin:$PATH \
+           PICSRC=/usr/local/src/picongpu
 
 # install minimal spack dependencies
 #   - adds gfortran for spack's openmpi package
@@ -19,9 +21,9 @@ RUN        apt-get update && \
               coreutils \
               curl \
               emacs \
+              environment-modules \
               gfortran \
               git \
-              lmod \
               nano \
               openssh-server \
               pkg-config \
@@ -32,49 +34,37 @@ RUN        apt-get update && \
               vim && \
            rm -rf /var/lib/apt/lists/*
 
-# Add non-privileged, but system docker user with sudo rights
-RUN        groupadd -r picongpu -g 901 && \
-           useradd -u 901 -r -m -g picongpu picongpu && \
-           echo "picongpu ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/picongpu && \
-           chmod 0440 /etc/sudoers.d/picongpu
-# this is also the user that executes all commands below
-USER       picongpu
-WORKDIR    $HOME
-
-# PIConGPU & spack environment
+# spack environment
 COPY       picongpu.profile /etc/profile.d/picongpu.sh
-COPY       packages.yaml modules.yaml .spack/
-RUN        mkdir build src paramSets && \
-           sudo chown picongpu:picongpu -R .spack
+COPY       packages.yaml modules.yaml /usr/local/etc/spack/
 
 # install spack && PIConGPU dependencies
 # todo: fix to a specific spack SHA or tag
-RUN        git clone --depth 50 https://github.com/spack/spack.git \
-           $HOME/src/spack/ && \
+RUN        curl -s -L https://api.github.com/repos/spack/spack/tarball \
+                | tar xzC $SPACK_ROOT --strip 1 && \
            spack install cmake@3.7.2 && \
-           spack install cuda && \
+           spack install cuda@8.0.61 && \
            spack install openmpi@2.1.1 && \
            spack install zlib@1.2.11 && \
            spack install boost@1.62.0 && \
-           spack install pngwriter@0.6.0 && \
-           spack install libsplash@1.6.0 ^hdf5~fortran && \
+           spack install pngwriter@0.6.0 ^cmake@3.7.2 && \
+           spack install libsplash@1.6.0 ^hdf5~fortran ^cmake@3.7.2 && \
            spack install adios@1.10.0 && \
-           spack install isaac@1.3.1 ^boost@1.61.0 && \
-           spack install isaac-server@1.3.1 ^boost@1.61.0 && \
+           spack install isaac@1.3.1 ^boost@1.62.0 ^cmake@3.7.2 && \
+           spack install isaac-server@1.3.1 ^boost@1.61.0 ^cmake@3.7.2 && \
            spack clean -a
 
 # get PIConGPU sources
 RUN        git clone --depth 50 --branch $PICONGPU_BRANCH \
                https://github.com/ComputationalRadiationPhysics/picongpu.git \
-               $HOME/src/picongpu/
+               $PICSRC
 
 # build example for out-of-the-box usage: LWFA
 RUN        /bin/bash -l -c ' \
-               pic-create $PICSRC/examples/LaserWakefield $HOME/paramSets/lwfa && \
-               cd build && \
-               pic-configure -b "cuda:20;35;37;50;60" $HOME/paramSets/lwfa && \
-               make -j install && \
-               rm -rf ../build/*'
+               pic-create $PICSRC/share/picongpu/examples/LaserWakefield /opt/picInputs/lwfa && \
+               cd /opt/picInputs/lwfa && \
+               pic-build -b "cuda:20;35;37;50;60" && \
+               rm -rf .build'
 
 COPY       start_lwfa.sh /usr/bin/start_lwfa
 CMD        /bin/bash -l

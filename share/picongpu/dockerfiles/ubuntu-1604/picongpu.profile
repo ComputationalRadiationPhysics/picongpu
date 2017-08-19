@@ -4,9 +4,8 @@
 
 # Modules #####################################################################
 #
-. /usr/share/lmod/5.8/init/bash
-. $HOME/src/spack/share/spack/setup-env.sh
-export MODULEPATH=$HOME/src/spack/share/spack/lmod/linux-ubuntu16-x86_64/Core
+export SPACK_ROOT=/usr/local
+. $SPACK_ROOT/share/spack/setup-env.sh
 
 # Core Dependencies (based on gcc 5.4.0)
 spack load cmake
@@ -29,7 +28,7 @@ spack load isaac-server
 
 # Environment #################################################################
 #
-export PICSRC=/home/$(whoami)/src/picongpu
+export PICSRC=/usr/local/src/picongpu
 export PIC_BACKEND="cuda"
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
@@ -47,4 +46,4 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 # "tbg" default options #######################################################
 #   - interactive (bash + mpiexec)
 export TBG_SUBMIT="bash"
-export TBG_TPLFILE="submit/bash/bash_mpiexec.tpl"
+export TBG_TPLFILE="etc/picongpu/bash/bash_mpiexec.tpl"
