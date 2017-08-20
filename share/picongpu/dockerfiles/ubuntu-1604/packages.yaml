@@ -1,7 +1,7 @@
 packages:
   cuda:
     paths:
-      cuda@8.0.61%gcc@5.4.0 arch=linux-ubuntu16-x86_64: /usr/local/cuda
+      cuda@9.0.176%gcc@5.4.0 arch=linux-ubuntu16-x86_64: /usr/local/cuda
     buildable: False
   pkg-config:
     paths:
