@@ -382,14 +382,14 @@ add_library(picongpu-hostonly
     STATIC
     ${SRCFILES}
 )
-target_link_libraries(picongpu-hostonly ${LIBS})
+target_link_libraries(picongpu-hostonly PUBLIC ${LIBS})
 
 
 cupla_add_executable(picongpu
     ${SRCFILES}
 )
 
-target_link_libraries(picongpu ${LIBS} picongpu-hostonly)
+target_link_libraries(picongpu PUBLIC ${LIBS} picongpu-hostonly)
 
 
 ################################################################################
