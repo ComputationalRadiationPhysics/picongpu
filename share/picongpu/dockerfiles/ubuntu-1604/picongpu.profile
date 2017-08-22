@@ -37,7 +37,7 @@ export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
 
-export PYTHONPATH=$PICSRC/src/tools/lib/python:$PYTHONPATH
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
 # "tbg" default options #######################################################
 #   - interactive (bash + mpiexec)

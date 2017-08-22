@@ -87,7 +87,7 @@ export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURC
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
 
-export PYTHONPATH=$PICSRC/src/tools/lib/python:$PYTHONPATH
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
 alias getInteractive="qsub -I -A $proj -q debug -l nodes=1,walltime=30:00"
 
