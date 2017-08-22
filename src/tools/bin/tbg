@@ -323,7 +323,7 @@ while true ; do
         -h|--help)
             echo -e "$(help)"
             shift
-            exit 1
+            exit 0
             ;;
         --) shift; break;;
     esac
