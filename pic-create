@@ -21,9 +21,9 @@
 
 this_dir=$(cd $(dirname $0) && pwd)
 
-# only copy submit and params if we clone from default pic folder
-default_folder_to_copy="etc/picongpu include/picongpu/simulation_defines/param include/picongpu/simulation_defines/unitless lib"
-# if we clone a project we copy full include
+# files always cloned from defaults, can be overwritten by input set
+default_folder_to_copy="etc/picongpu lib"
+# if we clone an input set we copy from it
 folder_to_clone="etc/picongpu bin include/picongpu lib"
 files_to_copy="cmakeFlags executeOnClone"
 
