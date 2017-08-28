@@ -199,7 +199,7 @@ namespace acc
             RngType< T_Acc >
         >
         {
-            RngType< T_Acc > const rng = ( *reinterpret_cast< RngGenerator * >( this ) )(
+            RngType< T_Acc > const rng = ( *static_cast< RngGenerator * >( this ) )(
                 acc,
                 localSupercellOffset,
                 workerCfg
@@ -209,7 +209,7 @@ namespace acc
                 Functor,
                 RngType< T_Acc >
             >(
-                *reinterpret_cast< Functor * >( this ),
+                *static_cast< Functor * >( this ),
                 rng
             );
         }

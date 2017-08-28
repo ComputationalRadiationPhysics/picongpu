@@ -125,7 +125,7 @@ namespace detail
                     detail::VoidWrapper< T_ReturnType >
                 >::value
             );
-            return ( *reinterpret_cast< UserFunctor * >( this ) )( acc, args ... );
+            return ( *static_cast< UserFunctor * >( this ) )( acc, args ... );
         }
     };
 
@@ -228,7 +228,7 @@ namespace detail
             T_ReturnType
         >
         {
-            return ( *reinterpret_cast< UserFunctor * >( this ) )(
+            return ( *static_cast< UserFunctor * >( this ) )(
                 acc,
                 domainOffset,
                 workerCfg
@@ -242,7 +242,7 @@ namespace detail
         HINLINE std::string
         getName( ) const
         {
-            return ( *reinterpret_cast< UserFunctor * >( this ) ).getName( );
+            return ( *static_cast< UserFunctor * >( this ) ).getName( );
         }
     };
 
