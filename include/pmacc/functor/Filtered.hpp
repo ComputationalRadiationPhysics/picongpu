@@ -85,11 +85,11 @@ namespace acc
         {
             // call the filter on each argument and combine the results
             bool const combinedResult = T_FilterOperator{ }(
-                ( *reinterpret_cast< Filter * >( this ) )( acc, args ) ...
+                ( *static_cast< Filter * >( this ) )( acc, args ) ...
             );
 
             if( combinedResult )
-                ( *reinterpret_cast< Functor * >( this ) )( acc, args ... );
+                ( *static_cast< Functor * >( this ) )( acc, args ... );
         }
     };
 
@@ -243,12 +243,12 @@ namespace acc
                     )
                 )
             >(
-                ( *reinterpret_cast< Filter * >( this ) )(
+                ( *static_cast< Filter * >( this ) )(
                     acc,
                     domainOffset,
                     workerCfg
                 ),
-                ( *reinterpret_cast< Functor * >( this ) )(
+                ( *static_cast< Functor * >( this ) )(
                     acc,
                     domainOffset,
                     workerCfg
