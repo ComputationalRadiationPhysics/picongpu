@@ -118,6 +118,7 @@ namespace picongpu
             using namespace mappings::threads;
 
             constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
 
             uint32_t const workerIdx = threadIdx.x;
@@ -150,12 +151,17 @@ namespace picongpu
                 numWorkers
             >;
 
+            using SuperCellDomCfg = IdxConfig<
+                cellsPerSupercell,
+                numWorkers
+            >;
+
             ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
 
             /* number of particles to create for each cell (virtual worker) */
             memory::CtxArray<
                 uint32_t,
-                ParticleDomCfg
+                SuperCellDomCfg
             >
             numParsPerCellCtx( 0 );
 
@@ -165,10 +171,13 @@ namespace picongpu
                     positionFunctor(
                         acc,
                         std::declval< DataSpace< simDim > const >( ),
-                        std::declval< WorkerCfg< numWorkers > const >( )
+                        /* cellsPerSupercell is used because each virtual worker
+                         * is creating **exactly one** functor
+                         */
+                        std::declval< WorkerCfg< cellsPerSupercell > const >( )
                     )
                 ),
-                ParticleDomCfg
+                SuperCellDomCfg
             >
             positionFunctorCtx{ };
 
@@ -196,7 +205,7 @@ namespace picongpu
             // initialize the position functor for each cell in the supercell
             ForEachIdx<
                 IdxConfig<
-                    pmacc::math::CT::volume< SuperCellSize >::type::value,
+                    cellsPerSupercell,
                     numWorkers
                 >
             >{ workerIdx }(
@@ -220,11 +229,11 @@ namespace picongpu
 
                     float_X const realParticlesPerCell = realDensity * CELL_VOLUME;
 
-                    // create an independent position functor for each ccell iin the supercell
+                    // create an independent position functor for each cell in the supercell
                     positionFunctorCtx[ idx ] = positionFunctor(
                         acc,
                         localSuperCellOffset,
-                        WorkerCfg< numWorkers >{ workerIdx }
+                        WorkerCfg< cellsPerSupercell >{ linearIdx }
                     );
 
                     numParsPerCellCtx[ idx ] =
