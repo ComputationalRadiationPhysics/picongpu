@@ -34,7 +34,7 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 
-#include <pmacc/random/methods/XorMin.hpp>
+#include <pmacc/random/methods/AlpakaRand.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
@@ -113,7 +113,7 @@ private:
     PMACC_ALIGN(photon_mom, float3_X);
 
     /* random number generator */
-    typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin> RNGFactory;
+    typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::AlpakaRand< cupla::Acc>> RNGFactory;
     typedef pmacc::random::distributions::Uniform<float> Distribution;
     typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
     RandomGen randomGen;
@@ -264,7 +264,8 @@ public:
      * @param localIdx Index of the source particle within frame
      * @return number of particle to be created from each source particle
      */
-    DINLINE unsigned int numNewParticles(FrameType& sourceFrame, int localIdx)
+    template< typename T_Acc >
+    DINLINE unsigned int numNewParticles(const T_Acc& acc, FrameType& sourceFrame, int localIdx)
     {
         using namespace pmacc::algorithms;
 
@@ -309,7 +310,7 @@ public:
         // quantum-nonlinearity parameter
         const float_X chi = gamma * H_eff / E_S;
 
-        const float_X deltaScaled = this->randomGen();
+        const float_X deltaScaled = this->randomGen(acc);
 
         const float_X x = emission_prob_scaled(deltaScaled, chi, gamma);
 
@@ -324,7 +325,7 @@ public:
             }
         }
 
-        if(this->randomGen() < x)
+        if(this->randomGen(acc) < x)
         {
             const float_X delta = deltaScaled*deltaScaled*deltaScaled;
             const float_X photonMom_abs = delta * mass*c * gamma;
@@ -345,8 +346,8 @@ public:
      * \tparam Electron type of electron which creates the photon
      * \tparam Photon type of photon that is created
      */
-    template<typename Electron, typename Photon>
-    DINLINE void operator()(Electron& electron, Photon& photon) const
+    template<typename Electron, typename Photon, typename T_Acc>
+    DINLINE void operator()(const T_Acc& acc, Electron& electron, Photon& photon) const
     {
         namespace parOp = pmacc::particles::operations;
         auto destPhoton =

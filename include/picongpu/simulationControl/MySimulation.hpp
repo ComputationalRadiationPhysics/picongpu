@@ -55,13 +55,13 @@
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
+#include <pmacc/random/methods/AlpakaRand.hpp>
+#include <pmacc/random/RNGProvider.hpp>
+
 #if( PMACC_CUDA_ENABLED == 1 )
-#   include <pmacc/random/methods/XorMin.hpp>
 #   include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
 #   include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
 #   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
-
-#   include <pmacc/random/RNGProvider.hpp>
 #endif
 
 #include <pmacc/nvidia/reduce/Reduce.hpp>
@@ -318,14 +318,14 @@ public:
         // ... or if ionization methods need an RNG
         using HasIonizerRNGs = typename traits::HasIonizersWithRNG< VectorAllSpecies >::type;
         constexpr bool hasIonizerRNGs = HasIonizerRNGs::value;
-#if( PMACC_CUDA_ENABLED == 1 )
+
         if( !bmpl::empty<AllSynchrotronPhotonsSpecies>::value ||
             !bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value ||
             hasIonizerRNGs
         )
         {
             // create factory for the random number generator
-            using RNGFactory = pmacc::random::RNGProvider< simDim, pmacc::random::methods::XorMin >;
+            using RNGFactory = pmacc::random::RNGProvider< simDim, pmacc::random::methods::AlpakaRand< cupla::Acc> >;
             auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
 
             // init and share random number generator
@@ -333,7 +333,7 @@ public:
             rngFactory->init( gridCon.getScalarPosition() );
             dc.share( std::shared_ptr< ISimulationData >( rngFactory ) );
         }
-
+#if( PMACC_CUDA_ENABLED == 1 )
         // Initialize synchrotron functions, if there are synchrotron photon species
         if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
         {
