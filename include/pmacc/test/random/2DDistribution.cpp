@@ -23,12 +23,15 @@
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
 #include "pmacc/random/RNGProvider.hpp"
 #include "pmacc/random/distributions/Uniform.hpp"
-#include "pmacc/random/methods/Xor.hpp"
-#include "pmacc/random/methods/XorMin.hpp"
-#include "pmacc/random/methods/MRG32k3a.hpp"
-#include "pmacc/random/methods/MRG32k3aMin.hpp"
+#include "pmacc/random/methods/AlpakaRand.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/assert.hpp"
+#include "pmacc/mappings/threads/ForEachIdx.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
+#include "pmacc/dataManagement/ISimulationData.hpp"
+#include "pmacc/Environment.hpp"
+#include "pmacc/eventSystem/tasks/ITask.hpp"
 #include <stdint.h>
 #include <iostream>
 #include <fstream>
@@ -37,18 +40,66 @@
 typedef pmacc::DataSpace<DIM2> Space2D;
 typedef pmacc::DataSpace<DIM3> Space3D;
 
+template<
+    uint32_t T_numWorkers,
+    uint32_t T_blockSize
+>
 struct RandomFiller
 {
-    template<class T_DataBox, class T_Random>
-    DINLINE void operator()(T_DataBox box, Space2D boxSize, T_Random rand, uint32_t numSamples) const
+    template<
+        typename T_DataBox,
+        typename T_Random,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        T_DataBox box,
+        Space2D const boxSize,
+        T_Random const rand,
+        uint32_t const numSamples
+    ) const
     {
-        const Space3D ownIdx = Space3D(threadIdx) + Space3D(blockIdx) * Space3D(blockDim);
-        rand.init(ownIdx.shrink<2>());
-        for(uint32_t i=0; i<numSamples; i++)
-        {
-            Space2D idx = rand(boxSize);
-            atomicAdd(&box(idx), 1, ::alpaka::hierarchy::Grids{});
-        }
+        using namespace pmacc::mappings::threads;
+
+        constexpr uint32_t numWorkers = T_numWorkers;
+        uint32_t const workerIdx = threadIdx.x;
+
+        using SupercellDomCfg = IdxConfig<
+            T_blockSize,
+            numWorkers
+        >;
+
+        // each virtual worker initialize one rng state
+        ForEachIdx< SupercellDomCfg > forEachCell( workerIdx );
+
+        forEachCell(
+            [&](
+                uint32_t const linearIdx,
+                uint32_t const
+            )
+            {
+                uint32_t const linearTid = blockIdx.x * T_blockSize + linearIdx;
+
+                if( linearTid >= boxSize.productOfComponents() )
+                    return;
+
+                Space2D const ownIdx = pmacc::DataSpaceOperations< Space2D::dim >::map(
+                    boxSize,
+                    linearTid
+                );
+                // each virtual worker needs an own instance of rand
+                T_Random vWorkerRand = rand;
+                vWorkerRand.init( ownIdx );
+                for( uint32_t i = 0u; i < numSamples; i++ )
+                {
+                    Space2D idx = vWorkerRand(
+                        acc,
+                        boxSize
+                    );
+                    atomicAdd(&box(idx), 1u, ::alpaka::hierarchy::Blocks{});
+                }
+            }
+        );
     }
 };
 
@@ -56,22 +107,33 @@ template<class T_RNGProvider>
 struct GetRandomIdx
 {
     typedef pmacc::random::distributions::Uniform<float> Distribution;
-    typedef typename T_RNGProvider::GetRandomType<Distribution>::type Random;
+    typedef typename T_RNGProvider::template GetRandomType<Distribution>::type Random;
 
     HINLINE GetRandomIdx(): rand(T_RNGProvider::template createRandom<Distribution>())
     {}
 
+    /** initialize the random generator
+     *
+     * @warning: it is not allowed to call this method twice on an instance
+     */
     DINLINE void
     init(Space2D globalCellIdx)
     {
         rand.init(globalCellIdx);
     }
 
+    template< typename T_Acc >
     DINLINE Space2D
-    operator()(Space2D size)
+    operator()(
+        T_Acc const & acc,
+        Space2D size
+    )
     {
         using pmacc::algorithms::math::float2int_rd;
-        return Space2D(float2int_rd(rand() * size.x()), float2int_rd(rand() * size.y()));
+        return Space2D(
+            float2int_rd( rand( acc ) * size.x() ),
+            float2int_rd( rand( acc ) * size.y() )
+        );
     }
 private:
     PMACC_ALIGN8(rand, Random);
@@ -128,12 +190,45 @@ void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_Device
     CUDA_CHECK(cudaEventCreate(&start));
     CUDA_CHECK(cudaEventCreate(&stop));
 
-    Space2D blockSize(std::min(32, rngSize.x()), std::min(16, rngSize.y()));
-    Space2D gridSize(rngSize / blockSize);
+    constexpr uint32_t blockSize = 256;
 
-    CUDA_CHECK(cudaEventRecord(start));
-    PMACC_KERNEL(RandomFiller{})(gridSize, blockSize)(buffer.getDataBox(), buffer.getDataSpace(), rand, numSamples);
-    CUDA_CHECK(cudaEventRecord(stop));
+    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+            blockSize
+        >::value;
+
+    uint32_t gridSize = ( rngSize.productOfComponents() + blockSize - 1u ) / blockSize;
+
+    CUDA_CHECK(cudaEventRecord(
+        start,
+        /* we need to pass a stream to avoid that we record the event in
+         * an empty or wrong stream
+         */
+        pmacc::Environment<>::get( ).TransactionManager( ).
+            getEventStream( pmacc::ITask::TASK_CUDA )->getCudaStream()
+    ));
+    PMACC_KERNEL(
+        RandomFiller<
+            numWorkers,
+            blockSize
+        >{}
+    )(
+        gridSize,
+        numWorkers
+    )(
+        buffer.getDataBox(),
+        buffer.getDataSpace(),
+        rand,
+        numSamples
+    );
+
+    CUDA_CHECK(cudaEventRecord(
+        stop,
+        /* we need to pass a stream to avoid that we record the event in
+         * an empty or wrong stream
+         */
+        pmacc::Environment<>::get( ).TransactionManager( ).
+            getEventStream( pmacc::ITask::TASK_CUDA )->getCudaStream()
+    ));
     CUDA_CHECK(cudaEventSynchronize(stop));
     float milliseconds = 0;
     CUDA_CHECK(cudaEventElapsedTime(&milliseconds, start, stop));
@@ -157,8 +252,10 @@ void runTest(uint32_t numSamples)
     const Space2D rngSize(256, 256);
 
     pmacc::HostDeviceBuffer<uint32_t, 2> detector(size);
-    RNGProvider rngProvider(rngSize);
-    rngProvider.init(0x42133742);
+    auto rngProvider = new RNGProvider(rngSize);
+
+    pmacc::Environment<>::get().DataConnector().share( std::shared_ptr< pmacc::ISimulationData >( rngProvider ) );
+    rngProvider->init(0x42133742);
 
     generateRandomNumbers(rngSize, numSamples, detector.getDeviceBuffer(), GetRandomIdx<RNGProvider>());
 
@@ -224,15 +321,12 @@ void runTest(uint32_t numSamples)
 
 int main(int argc, char** argv)
 {
-    MPI_Init( &argc, &argv );
     pmacc::Environment<2>::get().initDevices(Space2D::create(1), Space2D::create(0));
 
-    const uint32_t numSamples = (argc > 1) ? atoi(argv[1]) : 1000;
+    const uint32_t numSamples = (argc > 1) ? atoi(argv[1]) : 100;
 
-    runTest<pmacc::random::methods::Xor>(numSamples);
-    runTest<pmacc::random::methods::XorMin>(numSamples);
-    runTest<pmacc::random::methods::MRG32k3a>(numSamples);
-    runTest<pmacc::random::methods::MRG32k3aMin>(numSamples);
+    runTest< pmacc::random::methods::AlpakaRand< cupla::Acc> >(numSamples);
 
-    MPI_Finalize();
+    /* finalize the pmacc context */
+    pmacc::Environment<>::get().finalize();
 }
