@@ -29,6 +29,13 @@
 #include "picongpu/plugins/EnergyFields.hpp"
 #include "picongpu/plugins/SumCurrents.hpp"
 #include "picongpu/plugins/BinEnergyParticles.hpp"
+#include "picongpu/plugins/output/images/PngCreator.hpp"
+#include "picongpu/plugins/output/images/Visualisation.hpp"
+/* That's an abstract plugin for Png and Binary Density output
+ * \todo rename PngPlugin to ImagePlugin or similar
+ */
+#include "picongpu/plugins/PngPlugin.hpp"
+
 #if( PMACC_CUDA_ENABLED == 1 )
 #   include "picongpu/plugins/PositionsParticles.hpp"
 #   include "picongpu/plugins/ChargeConservation.hpp"
@@ -46,13 +53,7 @@
 #   endif
 
 #   include "picongpu/plugins/LiveViewPlugin.hpp"
-#   include "picongpu/plugins/output/images/PngCreator.hpp"
 #   include "picongpu/plugins/SliceFieldPrinterMulti.hpp"
-#   include "picongpu/plugins/output/images/Visualisation.hpp"
-    // That's an abstract plugin for Png and Binary Density output
-    // \todo rename PngPlugin to ImagePlugin or similar
-#   include "picongpu/plugins/PngPlugin.hpp"
-
 #   if(SIMDIM==DIM3)
 #       include "picongpu/plugins/IntensityPlugin.hpp"
 #   endif
@@ -166,11 +167,11 @@ private:
     using UnspecializedSpeciesPlugins = bmpl::vector <
         EnergyParticles<bmpl::_1>,
         BinEnergyParticles<bmpl::_1>,
-        CountParticles<bmpl::_1>
+        CountParticles<bmpl::_1>,
+        PngPlugin< Visualisation<bmpl::_1, PngCreator> >
 #if( PMACC_CUDA_ENABLED == 1 )
         , LiveViewPlugin<bmpl::_1>
         , PositionsParticles<bmpl::_1>
-        , PngPlugin< Visualisation<bmpl::_1, PngCreator> >
         , plugins::particleMerging::ParticleMerger<bmpl::_1>
 #   if(ENABLE_HDF5 == 1)
         , Radiation<bmpl::_1>
