@@ -24,6 +24,9 @@
 #include "pmacc/random/RNGProvider.hpp"
 #include "pmacc/dimensions/DataSpaceOperations.hpp"
 #include "pmacc/Environment.hpp"
+#include "pmacc/mappings/threads/ForEachIdx.hpp"
+#include "pmacc/mappings/threads/IdxConfig.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 
 #include <memory>
 
@@ -35,7 +38,11 @@ namespace random
 
     namespace kernel {
 
-        template< typename T_RNGMethod>
+        template<
+            uint32_t T_numWorkers,
+            uint32_t T_blockSize,
+            typename T_RNGMethod
+        >
         struct InitRNGProvider
         {
             template<
@@ -51,12 +58,38 @@ namespace random
                 const T_Space size
             ) const
             {
-                const uint32_t linearTid = blockIdx.x * blockDim.x + threadIdx.x;
-                if(linearTid >= size.productOfComponents())
-                    return;
+                using namespace mappings::threads;
 
-                const T_Space cellIdx = DataSpaceOperations<T_Space::dim>::map(size, linearTid);
-                T_RNGMethod().init(rngBox(cellIdx), seed, linearTid);
+                constexpr uint32_t numWorkers = T_numWorkers;
+                uint32_t const workerIdx = threadIdx.x;
+
+                using SupercellDomCfg = IdxConfig<
+                    T_blockSize,
+                    numWorkers
+                >;
+
+                // each virtual worker initialize one rng state
+                ForEachIdx< SupercellDomCfg > forEachCell( workerIdx );
+
+                forEachCell(
+                    [&](
+                        uint32_t const linearIdx,
+                        uint32_t const
+                    )
+                    {
+                        uint32_t const linearTid = blockIdx.x * T_blockSize + linearIdx;
+                        if( linearTid >= size.productOfComponents() )
+                            return;
+
+                        T_Space const cellIdx = DataSpaceOperations< T_Space::dim >::map(size, linearTid);
+                        T_RNGMethod().init(
+                            acc,
+                            rngBox( cellIdx ),
+                            seed,
+                            linearTid
+                        );
+                    }
+                );
             }
         };
 
@@ -76,13 +109,28 @@ namespace random
     {
 
         const uint32_t blockSize = 256;
+
+        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+            blockSize
+        >::value;
+
         const uint32_t gridSize = (m_size.productOfComponents() + blockSize - 1u) / blockSize; // Round up
 
         auto bufferBox = buffer->getDeviceBuffer().getDataBox();
 
-        PMACC_KERNEL(kernel::InitRNGProvider<RNGMethod>{})
-        (gridSize, blockSize)
-        (bufferBox, seed, m_size);
+        PMACC_KERNEL(
+            kernel::InitRNGProvider<
+                numWorkers,
+                blockSize,
+                RNGMethod>{}
+        )(
+            gridSize,
+            numWorkers
+        )(
+            bufferBox,
+            seed,
+            m_size
+        );
     }
 
     template<uint32_t T_dim, class T_RNGMethod>

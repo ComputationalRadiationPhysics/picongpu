@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Alexander Grund
+/* Copyright 2015-2017 Alexander Grund, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -36,18 +36,24 @@ namespace detail
     /**
      * Returns a random float value in [0,1) with normal distribution
      */
-    template<class T_RNGMethod>
+    template< typename T_RNGMethod>
     class Normal<float, T_RNGMethod, void>
     {
         typedef T_RNGMethod RNGMethod;
         typedef typename RNGMethod::StateType StateType;
     public:
-        typedef float result_type;
+        using result_type = float;
 
+        template< typename T_Acc >
         DINLINE result_type
-        operator()(StateType& state)
+        operator()(
+            T_Acc const & acc,
+            StateType& state
+        )
         {
-            return curand_normal(&state);
+            return ::alpaka::rand::distribution::createNormalReal< result_type >(
+                acc
+            )( state );
         }
     };
 
