@@ -28,7 +28,7 @@
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
 
-#include <pmacc/random/methods/XorMin.hpp>
+#include <pmacc/random/methods/AlpakaRand.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -103,7 +103,7 @@ namespace ionization
             using IonizationAlgorithm =  T_IonizationAlgorithm;
 
             /* random number generator */
-            using RNGFactory = pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin>;
+            using RNGFactory = pmacc::random::RNGProvider<simDim, pmacc::random::methods::AlpakaRand< cupla::Acc>>;
             using Distribution = pmacc::random::distributions::Uniform<float>;
             using RandomGen = typename RNGFactory::GetRandomType<Distribution>::type;
             RandomGen randomGen;
@@ -268,7 +268,8 @@ namespace ionization
              * @param ionFrame reference to frame of the to-be-ionized particles
              * @param localIdx local (linear) index in super cell / frame
              */
-            DINLINE uint32_t numNewParticles(FrameType& ionFrame, int localIdx)
+            template< typename T_Acc >
+            DINLINE uint32_t numNewParticles(T_Acc const & acc,  FrameType& ionFrame, int localIdx)
             {
                 /* alias for the single macro-particle */
                 auto particle = ionFrame[localIdx];
@@ -297,7 +298,7 @@ namespace ionization
                     kinEnergyDensity,
                     density,
                     particle,
-                    this->randomGen()
+                    this->randomGen(acc)
                 );
 
 
@@ -314,8 +315,8 @@ namespace ionization
              * \param parentIon ion instance that is ionized
              * \param childElectron electron instance that is created
              */
-            template<typename T_parentIon, typename T_childElectron>
-            DINLINE void operator()(T_parentIon& parentIon,T_childElectron& childElectron)
+            template<typename T_parentIon, typename T_childElectron, typename T_Acc>
+            DINLINE void operator()(T_Acc const & acc, T_parentIon& parentIon,T_childElectron& childElectron)
             {
                 /* for not mixing operations::assign up with the nvidia functor assign */
                 namespace partOp = pmacc::particles::operations;

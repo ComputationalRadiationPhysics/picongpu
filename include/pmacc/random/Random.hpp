@@ -66,10 +66,14 @@ namespace random
         }
 
         /** Returns a new random number advancing the state */
+        template< typename T_Acc >
         DINLINE result_type
-        operator()()
+        operator()( T_Acc const & acc )
         {
-            return Distribution::operator()(RNGHandle::getState());
+            return Distribution::operator()(
+                acc,
+                RNGHandle::getState()
+            );
         }
     };
 
@@ -95,10 +99,14 @@ namespace random
         {}
 
         /** Returns a new random number advancing the state */
+        template< typename T_Acc >
         DINLINE result_type
-        operator()()
+        operator()( T_Acc const & acc )
         {
-            return Distribution::operator()(*m_rngState);
+            return Distribution::operator()(
+                acc,
+                *m_rngState
+            );
         }
 
     protected:

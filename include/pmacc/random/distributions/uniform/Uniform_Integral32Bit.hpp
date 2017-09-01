@@ -53,10 +53,14 @@ namespace detail
     public:
         typedef T_Type result_type;
 
+        template< typename T_Acc >
         DINLINE result_type
-        operator()(StateType& state)
+        operator()(
+            T_Acc const & acc,
+            StateType& state
+        )
         {
-            return static_cast<result_type>(RNGMethod().get32Bits(state));
+            return static_cast<result_type>(RNGMethod().get32Bits(acc, state));
         }
     };
 

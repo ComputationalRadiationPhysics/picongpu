@@ -119,16 +119,17 @@ void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::init(
 
 
 template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpecies>
+template<typename T_Acc>
 DINLINE
 float3_X Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::scatterByTheta
-    (const float3_X vec, const float_X theta)
+    (const T_Acc & acc, const float3_X vec, const float_X theta)
 {
     using namespace pmacc::algorithms;
 
     float_X sinTheta, cosTheta;
     math::sincos(theta, sinTheta, cosTheta);
 
-    const float_X phi = -float_X(M_PI) + float_X(2.0) * float_X(M_PI) * this->randomGen();
+    const float_X phi = -float_X(M_PI) + float_X(2.0) * float_X(M_PI) * this->randomGen(acc);
     float_X sinPhi, cosPhi;
     math::sincos(phi, sinPhi, cosPhi);
 
@@ -150,8 +151,13 @@ float3_X Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::scatt
 }
 
 template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpecies>
+template<typename T_Acc>
 DINLINE
-unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::numNewParticles(FrameType& sourceFrame, int localIdx)
+unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::numNewParticles(
+    const T_Acc& acc,
+    FrameType& sourceFrame,
+    int localIdx
+)
 {
     using namespace pmacc::algorithms;
 
@@ -187,16 +193,16 @@ unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::n
        energy based on radiation emission */
     const float_X zMin = float_X(1.0) / (float_X(M_PI)*float_X(M_PI));
     const float_X zMax = float_X(1.0) / (electron::MIN_THETA*electron::MIN_THETA);
-    const float_X z = zMin + this->randomGen() * (zMax - zMin);
+    const float_X z = zMin + this->randomGen(acc) * (zMax - zMin);
     const float_X theta = math::rsqrt(z);
     const float_X targetZ = GetAtomicNumbers<T_IonSpecies>::type::numberOfProtons;
     const float_X rutherfordCoeff = float_X(2.0) * ELECTRON_CHARGE*ELECTRON_CHARGE / (float_X(4.0) * float_X(M_PI) * EPS0) * targetZ / Ekin;
     const float_X scaledDeflectionDCS = float_X(M_PI) * (zMax - zMin) * rutherfordCoeff*rutherfordCoeff;
     const float_X deflectionProb = ionDensity * c * DELTA_T * scaledDeflectionDCS;
 
-    if(this->randomGen() < deflectionProb)
+    if(this->randomGen(acc) < deflectionProb)
     {
-        mom = this->scatterByTheta(mom, theta);
+        mom = this->scatterByTheta(acc, mom, theta);
         mom_norm = mom / momAbs;
     }
 
@@ -211,7 +217,7 @@ unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::n
     particle[momentum_] = (mom + deltaMom * mom_norm) * weighting;
 
     /* photon emission */
-    const float_X delta = this->randomGen();
+    const float_X delta = this->randomGen(acc);
     const float_X kappa = math::pow(kappaCutoff, delta);
     const float_X scalingFactor = -math::log(kappaCutoff);
     const float_X emissionProb = photon::WEIGHTING_RATIO * scalingFactor * ionDensity * c * DELTA_T * this->scaledSpectrumFunctor(Ekin, kappa);
@@ -231,7 +237,7 @@ unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::n
         }
     }
 
-    if(this->randomGen() < emissionProb)
+    if(this->randomGen(acc) < emissionProb)
     {
         const float_X photonEnergy = kappa * Ekin;
         this->photonMom = mom_norm * weighting / photon::WEIGHTING_RATIO * photonEnergy / c;
@@ -243,10 +249,13 @@ unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::n
 
 
 template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpecies>
-template<typename Electron, typename Photon>
+template<typename Electron, typename Photon, typename T_Acc>
 DINLINE
-void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::operator()
-    (Electron& electron, Photon& photon)
+void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::operator()(
+    const T_Acc& acc,
+    Electron& electron,
+    Photon& photon
+)
 {
     auto destPhoton =
         pmacc::particles::operations::deselect<
@@ -268,9 +277,9 @@ void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::operator(
     const float_X mass = frame::getMass<FrameType>();
     const float_X gamma = Gamma<>()(elMom / weighting, mass);
 
-    const float_X theta = this->getPhotonAngleFunctor(this->randomGen(), gamma);
+    const float_X theta = this->getPhotonAngleFunctor(this->randomGen(acc), gamma);
 
-    const float3_X scatteredPhotonMom = this->scatterByTheta(this->photonMom, theta);
+    const float3_X scatteredPhotonMom = this->scatterByTheta(acc, this->photonMom, theta);
 
     photon[multiMask_] = 1;
     photon[momentum_] = scatteredPhotonMom;

@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Alexander Grund
+/* Copyright 2015-2017 Alexander Grund, Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -30,28 +30,49 @@ namespace random
 namespace methods
 {
 
-    /** Uses the CUDA XORWOW RNG */
-    class Xor
+    template< typename T_Acc >
+    class AlpakaRand
     {
     public:
-        typedef curandStateXORWOW_t StateType;
+        using StateType =
+            decltype(
+                ::alpaka::rand::generator::createDefault(
+                    std::declval<T_Acc const &>(),
+                    std::declval<uint32_t &>(),
+                    std::declval<uint32_t &>()
+                )
+            );
 
         DINLINE void
-        init(StateType& state, uint32_t seed, uint32_t subsequence = 0, uint32_t offset = 0) const
+        init(
+            T_Acc const & acc,
+            StateType& state,
+            uint32_t seed,
+            uint32_t subsequence = 0
+        ) const
         {
-            curand_init(seed, subsequence, offset, &state);
+            state = ::alpaka::rand::generator::createDefault(
+                acc,
+                seed,
+                subsequence
+            );
         }
 
         DINLINE uint32_t
-        get32Bits(StateType& state) const
+        get32Bits(
+            T_Acc const & acc,
+            StateType& state
+        ) const
         {
-            return curand(&state);
+            return ::alpaka::rand::distribution::createUniformUint< uint32_t >(
+                acc
+            )( state );
         }
 
         static std::string
         getName()
         {
-            return "Xor";
+            return "AlpakaRand";
         }
     };
 

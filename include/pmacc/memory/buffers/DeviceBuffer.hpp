@@ -43,6 +43,9 @@ namespace pmacc
     template <class TYPE, unsigned DIM>
     class HostBuffer;
 
+    template <class TYPE, unsigned DIM>
+    class Buffer;
+
     /**
      * Interface for a DIM-dimensional Buffer of type TYPE on the device.
      *

@@ -22,7 +22,6 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/random/methods/Xor.hpp"
 #include "pmacc/random/Random.hpp"
 #include "pmacc/random/RNGHandle.hpp"
 #include "pmacc/memory/buffers/HostDeviceBuffer.hpp"
@@ -39,7 +38,7 @@ namespace random
      * \tparam T_dim Number of dimensions of the grid
      * \tparam T_RNGMethod Method to use for random number generation
      */
-    template<uint32_t T_dim, class T_RNGMethod = methods::Xor>
+    template<uint32_t T_dim, class T_RNGMethod>
     class RNGProvider : public ISimulationData
     {
     public:

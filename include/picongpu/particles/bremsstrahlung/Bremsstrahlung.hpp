@@ -24,7 +24,7 @@
 #include "PhotonEmissionAngle.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 
-#include <pmacc/random/methods/XorMin.hpp>
+#include <pmacc/random/methods/AlpakaRand.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
@@ -100,7 +100,7 @@ private:
     PMACC_ALIGN(photonMom, float3_X);
 
     /* random number generator */
-    typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin> RNGFactory;
+    typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::AlpakaRand< cupla::Acc>> RNGFactory;
     typedef pmacc::random::distributions::Uniform<float> Distribution;
     typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
     RandomGen randomGen;
@@ -122,7 +122,7 @@ public:
      * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
      * initializing the ion density field in shared memory.
      */
-    template< typename T_Acc>
+    template< typename T_Acc >
     DINLINE void init(
         T_Acc const & acc,
         const DataSpace<simDim>& blockCell,
@@ -136,7 +136,8 @@ public:
      * @param theta polar angle
      * @return rotated vector
      */
-    DINLINE float3_X scatterByTheta(const float3_X vec, const float_X theta);
+    template< typename T_Acc >
+    DINLINE float3_X scatterByTheta(const T_Acc& acc, const float3_X vec, const float_X theta);
 
     /** Return the number of target particles to be created from each source particle.
      *
@@ -146,7 +147,8 @@ public:
      * @param localIdx Index of the source particle within frame
      * @return number of particle to be created from each source particle
      */
-    DINLINE unsigned int numNewParticles(FrameType& sourceFrame, int localIdx);
+    template< typename T_Acc >
+    DINLINE unsigned int numNewParticles(const T_Acc& acc, FrameType& sourceFrame, int localIdx);
 
     /** Functor implementation.
      *
@@ -155,8 +157,8 @@ public:
      * \tparam Electron type of electron which creates the photon
      * \tparam Photon type of photon that is created
      */
-    template<typename Electron, typename Photon>
-    DINLINE void operator()(Electron& electron, Photon& photon);
+    template<typename Electron, typename Photon, typename T_Acc>
+    DINLINE void operator()(const T_Acc& acc, Electron& electron, Photon& photon);
 };
 
 } // namespace bremsstrahlung

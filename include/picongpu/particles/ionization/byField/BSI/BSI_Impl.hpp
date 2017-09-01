@@ -160,7 +160,8 @@ namespace ionization
              * \param ionFrame reference to frame of the to-be-ionized particles
              * \param localIdx local (linear) index in super cell / frame
              */
-            DINLINE uint32_t numNewParticles(FrameType& ionFrame, int localIdx)
+            template< typename T_Acc >
+            DINLINE uint32_t numNewParticles(T_Acc const & acc, FrameType& ionFrame, int localIdx)
             {
                 /* alias for the single macro-particle */
                 auto particle = ionFrame[localIdx];
@@ -198,8 +199,8 @@ namespace ionization
              * \param parentIon ion instance that is ionized
              * \param childElectron electron instance that is created
              */
-            template<typename T_parentIon, typename T_childElectron>
-            DINLINE void operator()(T_parentIon& parentIon,T_childElectron& childElectron)
+            template<typename T_parentIon, typename T_childElectron, typename T_Acc>
+            DINLINE void operator()(T_Acc const & acc, T_parentIon& parentIon,T_childElectron& childElectron)
             {
 
                 /* for not mixing operations::assign up with the nvidia functor assign */

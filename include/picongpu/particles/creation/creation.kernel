@@ -170,7 +170,7 @@ struct CreateParticlesKernel
 
             if (isParticle)
                 /* ask the particle creator functor how many new particles to create. */
-                numNewParticles = particleCreator.numNewParticles(*sourceFrame, linearThreadIdx);
+                numNewParticles = particleCreator.numNewParticles(acc, *sourceFrame, linearThreadIdx);
 
             __syncthreads();
             /* always true while-loop over all particles inside source frame until each thread breaks out individually
@@ -235,7 +235,7 @@ struct CreateParticlesKernel
                     auto targetParticle = (targetFrame[targetParId]);
 
                     /* create an target particle in the new target particle frame: */
-                    particleCreator(sourceParticle, targetParticle);
+                    particleCreator(acc, sourceParticle, targetParticle);
 
                     numNewParticles -= 1;
                 }
@@ -270,7 +270,7 @@ struct CreateParticlesKernel
                     auto targetParticle = (targetFrame[targetParId]);
 
                     /* create an target particle in the new target particle frame: */
-                    particleCreator(sourceParticle, targetParticle);
+                    particleCreator(acc, sourceParticle, targetParticle);
 
                     numNewParticles -= 1;
                 }
