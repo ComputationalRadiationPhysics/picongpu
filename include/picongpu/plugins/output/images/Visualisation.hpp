@@ -162,9 +162,9 @@ struct typicalFields < 5 >
 
 /** Check if an offset is part of the slicing domain
  *
- * Check if a N dimensional local domain offset is equal to an scalar offset of
+ * Check if a N dimensional local domain offset is equal to a scalar offset of
  * a given dimension.
- * The results
+ * The results can be taken to decide if a cell is within a slice of a volume.
  */
 template< uint32_t T_dim = simDim >
 struct IsPartOfSlice;
@@ -192,6 +192,7 @@ struct IsPartOfSlice< DIM3 >
         uint32_t const sliceOffset
     )
     {
+        // offset of the cell relative to the global origin
         uint32_t const localCellOffset = cellOffset[ sliceDim ] + localDomainOffset;
         return localCellOffset == sliceOffset;
     }
@@ -241,7 +242,7 @@ struct KernelPaintFields
      *              the origin of the global domain
      * @param localDomainOffset offset (in cells) of the local domain relative to the
      *                          origin of the global domain
-     * @param sliceDim dimension to slice range [0,simDim]
+     * @param sliceDim dimension to slice range [0,simDim)
      * @param mapper functor to map a block to a supercell
      */
     template<
@@ -318,7 +319,7 @@ struct KernelPaintFields
                 );
 
                 /* if the virtual worker is not calculating a cell out of the
-                 * selected slice than exit
+                 * selected slice then exit
                  */
                 if( !isCellOnSlice )
                     return;
@@ -335,21 +336,24 @@ struct KernelPaintFields
                  *   color range for each RGB channel: [0.0, 1.0]
                  */
                 float3_X pic(
-                    // typical values of the fields to normalize them to [0,1]
+                    /* typical values of the fields to normalize them to [0,1]
+                     * typicalFields<>::get()[...] means: [0] = BField normalization,
+                     * [1] = EField normalization, [2] = Current normalization
+                     */
                     visPreview::preChannel1(
-                        field_b / typicalFields< EM_FIELD_SCALE_CHANNEL1 >::get( ).x( ),
-                        field_e / typicalFields< EM_FIELD_SCALE_CHANNEL1 >::get( ).y( ),
-                        field_j / typicalFields< EM_FIELD_SCALE_CHANNEL1 >::get( ).z( )
+                        field_b / typicalFields< EM_FIELD_SCALE_CHANNEL1 >::get( )[ 0 ],
+                        field_e / typicalFields< EM_FIELD_SCALE_CHANNEL1 >::get( )[ 1 ],
+                        field_j / typicalFields< EM_FIELD_SCALE_CHANNEL1 >::get( )[ 2 ]
                     ),
                     visPreview::preChannel2(
-                        field_b / typicalFields< EM_FIELD_SCALE_CHANNEL2 >::get( ).x( ),
-                        field_e / typicalFields< EM_FIELD_SCALE_CHANNEL2 >::get( ).y( ),
-                        field_j / typicalFields< EM_FIELD_SCALE_CHANNEL2 >::get( ).z( )
+                        field_b / typicalFields< EM_FIELD_SCALE_CHANNEL2 >::get( )[ 0 ],
+                        field_e / typicalFields< EM_FIELD_SCALE_CHANNEL2 >::get( )[ 1 ],
+                        field_j / typicalFields< EM_FIELD_SCALE_CHANNEL2 >::get( )[ 2 ]
                     ),
                     visPreview::preChannel3(
-                        field_b / typicalFields< EM_FIELD_SCALE_CHANNEL3 >::get( ).x( ),
-                        field_e / typicalFields< EM_FIELD_SCALE_CHANNEL3 >::get( ).y( ),
-                        field_j / typicalFields< EM_FIELD_SCALE_CHANNEL3 >::get( ).z( )
+                        field_b / typicalFields< EM_FIELD_SCALE_CHANNEL3 >::get( )[ 0 ],
+                        field_e / typicalFields< EM_FIELD_SCALE_CHANNEL3 >::get( )[ 1 ],
+                        field_j / typicalFields< EM_FIELD_SCALE_CHANNEL3 >::get( )[ 2 ]
                     )
                 );
 
@@ -383,7 +387,7 @@ struct KernelPaintParticles3D
      *              the origin of the global domain
      * @param localDomainOffset offset (in cells) of the local domain relative to the
      *                          origin of the global domain
-     * @param sliceDim dimension to slice range [0,simDim]
+     * @param sliceDim dimension to slice range [0,simDim)
      * @param mapper functor to map a block to a supercell
      */
     template<
@@ -447,7 +451,9 @@ struct KernelPaintParticles3D
             int
         );
 
-        // if virtual worker index is part of the resulting two dimensional slice
+        /* true if the virtual worker is processing a pixel within the resulting image,
+         * else false
+         */
         memory::CtxArray<
             bool,
             SupercellDomCfg
@@ -595,6 +601,7 @@ struct KernelPaintParticles3D
                             );
                             atomicAdd(
                                 &( counter( reducedCell ) ),
+                                // normalize the value to avoid bad precision for large macro particle weightings
                                 particle[ weighting_ ] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
                                 ::alpaka::hierarchy::Threads{ }
                             );
@@ -733,7 +740,7 @@ struct DivideAnyCell
 };
 
 
-/** convert channel value to RGB color
+/** convert channel value to an RGB color
  *
  * @tparam T_numWorkers number of workers
  * @tparam T_blockSize number of elements which will be handled
@@ -745,7 +752,7 @@ template<
 >
 struct ChannelsToRGB
 {
-    /** convert each element to a RGB color
+    /** convert each element to an RGB color
      *
      * @tparam T_Mem pmacc::DataBox, type of the on dimensional memory
      * @tparam T_Acc alpaka accelerator type
@@ -960,7 +967,7 @@ public:
 #endif
 
         /* We don't know the size of the supercell plane at compile time
-         *(because of the runtime dimension selection in any plugin),
+         * (because of the runtime dimension selection in any plugin),
          * thus we must use a one dimension kernel and no mapper
          */
         PMACC_KERNEL(
