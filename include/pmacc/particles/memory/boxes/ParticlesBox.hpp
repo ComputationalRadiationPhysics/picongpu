@@ -282,7 +282,7 @@ public:
             (FrameType*) atomicExch(
                 (unsigned long long int*) lastFrameNativPtr,
                 (unsigned long long int) frame.ptr,
-                ::alpaka::hierarchy::Threads{}
+                ::alpaka::hierarchy::Grids{}
             )
         );
 
