@@ -331,10 +331,12 @@ namespace picongpu
 
                             numParsPerCellCtx[ idx ]--;
                             if( numParsPerCellCtx[ idx ] > 0 )
-                                atomicExch(
+                                nvidia::atomicAllExch(
+                                    acc,
                                     &finished,
-                                    0
-                                ); //one or more cell has particles to create
+                                    0,
+                                    ::alpaka::hierarchy::Threads{}
+                                ); // one or more cells have particles to create
                         }
                     }
                 );
