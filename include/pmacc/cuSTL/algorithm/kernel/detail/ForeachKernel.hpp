@@ -55,6 +55,47 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
 #undef KERNEL_FOREACH
 #undef SHIFTACCESS_CURSOR
 
+struct KernelForeachLockstep
+{
+    /** call functor
+     *
+     * Each argument is shifted to the origin of the block before it is passed
+     * to the functor.
+     */
+    template<
+        typename T_Acc,
+        typename T_Mapper,
+        typename T_Functor,
+        typename... T_Args>
+    ALPAKA_FN_ACC void operator()(
+        T_Acc const & acc,
+        T_Mapper const mapper,
+        T_Functor functor,
+        T_Args ... args
+    ) const
+    {
+        // map to the origin of the block
+        math::Int<
+            T_Mapper::dim
+        > cellIndex(
+            mapper(
+                acc,
+                dim3( blockIdx ),
+                dim3(
+                    0,
+                    0,
+                    0
+                )
+            )
+        );
+
+        functor(
+            acc,
+            args[ cellIndex ]...
+        );
+    }
+};
+
 } // namespace detail
 } // namespace kernel
 } // namespace algorithm
