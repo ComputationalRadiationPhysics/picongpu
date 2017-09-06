@@ -56,7 +56,7 @@ public:
 
     /** give access to push N elements into the memory
      *
-     * The method is threadsave within the e given alpaka hierarchy.
+     * The method is threadsave within the given alpaka hierarchy.
      *
      * @tparam T_Acc type of the alpaka accelerator
      * @tparam T_Hierarchy alpaka::hierarchy type of the hierarchy

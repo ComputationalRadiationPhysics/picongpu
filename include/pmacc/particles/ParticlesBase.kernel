@@ -1086,7 +1086,8 @@ struct KernelCopyGuardToExchange
                             DataSpaceOperations< dim >::reduce(
                                 superCellIdx,
                                 mapper.getExchangeType( )
-                            )
+                            ),
+                            ::alpaka::hierarchy::Blocks{}
                         );
                         if( exchangeChunk.getSize( ) < numParticles )
                             allParticlesCopied = false;
