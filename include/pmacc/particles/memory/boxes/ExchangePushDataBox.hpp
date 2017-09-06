@@ -54,18 +54,34 @@ public:
     {
     }
 
-    template< typename T_Acc >
+    /** give access to push N elements into the memory
+     *
+     * The method is threadsave within the e given alpaka hierarchy.
+     *
+     * @tparam T_Acc type of the alpaka accelerator
+     * @tparam T_Hierarchy alpaka::hierarchy type of the hierarchy
+     *
+     * @param acc alpaka accelerator
+     * @param count number of elements to increase stack with
+     * @param superCell offset of the supercell relative to the local domain
+     * @param hierarchy alpaka parallelism hierarchy levels guarantee valid
+     *                  concurrency access to the memory
+     *
+     * @return a TileDataBox of size count pointing to the new stack elements
+     */
+    template< typename T_Acc, typename T_Hierarchy >
     HDINLINE TileDataBox<VALUE> pushN(
         T_Acc const & acc,
         TYPE count,
-        const DataSpace<DIM> &superCell
+        DataSpace<DIM> const &superCell,
+        T_Hierarchy const & hierarchy
     )
     {
-        TYPE oldSize = atomicAdd(currentSizePointer, count, ::alpaka::hierarchy::Grids{}); //get count VALUEs
+        TYPE oldSize = atomicAdd(currentSizePointer, count, hierarchy); //get count VALUEs
 
         if (oldSize + count > maxSize)
         {
-            atomicExch(currentSizePointer, maxSize); //reset size to maxsize
+            atomicExch(currentSizePointer, maxSize, hierarchy); //reset size to maxsize
             if (oldSize >= maxSize)
             {
                 return TileDataBox<VALUE > (nullptr,
@@ -76,7 +92,7 @@ public:
                 count = maxSize - oldSize;
         }
 
-        TileDataBox<PushType> tmp = virtualMemory.pushN(acc, 1);
+        TileDataBox<PushType> tmp = virtualMemory.pushN(acc, 1, hierarchy);
         tmp[0].setSuperCell(superCell);
         tmp[0].setCount(count);
         tmp[0].setStartIndex(oldSize);
