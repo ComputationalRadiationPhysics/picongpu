@@ -534,7 +534,7 @@ public:
         copyMomentumPrev1( currentStep );
 
         DataConnector &dc = Environment<>::get().DataConnector();
-#if( PMACC_CUDA_ENABLED == 1 )
+
         /* Initialize ionization routine for each species with the flag `ionizers<>` */
         using VectorSpeciesWithIonizers = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
@@ -542,7 +542,7 @@ public:
         >::type;
         ForEach< VectorSpeciesWithIonizers, particles::CallIonization< bmpl::_1 > > particleIonization;
         particleIonization( cellDescription, currentStep );
-#endif
+
         /* FLYlite population kinetics for atomic physics */
         using AllFlyLiteIons = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
