@@ -72,8 +72,8 @@ namespace ionization
             {
                 uint32_t cs = math::float2int_rd(chargeState);
                 /* ionization potential in atomic units */
-                const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
-                const float_X ZEff = GetEffectiveNuclearCharge<ParticleType>::type()[cs];
+                const float_X iEnergy = typename GetIonizationEnergies<ParticleType>::type{ }[cs];
+                const float_X ZEff = typename GetEffectiveNuclearCharge<ParticleType>::type{ }[cs];
                 /* critical field strength in atomic units */
                 float_X critField = iEnergy*iEnergy / (float_X(4.0) * ZEff);
 

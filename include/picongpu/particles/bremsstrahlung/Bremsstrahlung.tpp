@@ -31,6 +31,7 @@
 #include <pmacc/algorithms/math/defines/sqrt.hpp>
 #include <pmacc/algorithms/math/defines/dot.hpp>
 #include <pmacc/algorithms/math/defines/cross.hpp>
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 
 namespace picongpu
@@ -76,13 +77,14 @@ template<
     typename T_ElectronSpecies,
     typename T_PhotonSpecies
 >
-template< typename T_Acc >
-DINLINE
-void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::init(
-    T_Acc const & acc,
+template<
+    typename T_Acc ,
+    typename T_WorkerCfg
+>
+DINLINE void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::collectiveInit(
+    const T_Acc & acc,
     const DataSpace<simDim>& blockCell,
-    const int& linearThreadIdx,
-    const DataSpace<simDim>& localCellOffset
+    const T_WorkerCfg & workerCfg
 )
 {
     /* caching of ion density field */
@@ -101,8 +103,8 @@ void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::init(
 
     ThreadCollective<
         BlockArea,
-        pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
-    > collective( linearThreadIdx );
+        T_WorkerCfg::numWorkers
+    > collective( workerCfg.getWorkerIdx( ) );
     collective(
               acc,
               assign,
@@ -112,7 +114,22 @@ void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::init(
 
     /* wait for shared memory to be initialized */
     __syncthreads();
+}
 
+template<
+    typename T_IonSpecies,
+    typename T_ElectronSpecies,
+    typename T_PhotonSpecies
+>
+template< typename T_Acc >
+DINLINE
+void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::init(
+    T_Acc const & acc,
+    const DataSpace<simDim>& blockCell,
+    const int& linearThreadIdx,
+    const DataSpace<simDim>& localCellOffset
+)
+{
     /* initialize random number generator with the local cell index in the simulation */
     this->randomGen.init(localCellOffset);
 }

@@ -137,21 +137,25 @@ public:
         bBox = fieldB->getDeviceDataBox();
     }
 
-    /** Initialization function on device
+    /** cache fields used by this functor
      *
-     * \brief Cache EM-fields on device
-     *         and initialize possible prerequisites for ionization, like e.g. random number generator.
+     * @warning this is a collective method and calls synchronize
      *
-     * This function will be called inline on the device which must happen BEFORE threads diverge
-     * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
-     * initializing the E-/B-field shared boxes in shared memory.
+     * @tparam T_Acc alpaka accelerator type
+     * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+     *
+     * @param acc alpaka accelerator
+     * @param blockCell relative offset (in cells) to the local domain plus the guarding cells
+     * @param workerCfg configuration of the worker
      */
-    template< typename T_Acc >
-    DINLINE void init(
-        T_Acc const & acc,
+    template<
+        typename T_Acc ,
+        typename T_WorkerCfg
+    >
+    DINLINE void collectiveInit(
+        const T_Acc & acc,
         const DataSpace<simDim>& blockCell,
-        const int& linearThreadIdx,
-        const DataSpace<simDim>& localCellOffset
+        const T_WorkerCfg & workerCfg
     )
     {
         /* caching of E and B fields */
@@ -176,8 +180,8 @@ public:
         auto fieldBBlock = bBox.shift(blockCell);
         ThreadCollective<
             BlockArea,
-            pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
-        > collective( linearThreadIdx );
+            T_WorkerCfg::numWorkers
+        > collective( workerCfg.getWorkerIdx( ) );
         collective(
                   acc,
                   assign,
@@ -195,7 +199,25 @@ public:
 
         /* wait for shared memory to be initialized */
         __syncthreads();
+    }
 
+    /** Initialization function on device
+     *
+     * \brief Cache EM-fields on device
+     *         and initialize possible prerequisites for ionization, like e.g. random number generator.
+     *
+     * This function will be called inline on the device which must happen BEFORE threads diverge
+     * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
+     * initializing the E-/B-field shared boxes in shared memory.
+     */
+    template< typename T_Acc >
+    DINLINE void init(
+        T_Acc const & acc,
+        const DataSpace<simDim>& blockCell,
+        const int& linearThreadIdx,
+        const DataSpace<simDim>& localCellOffset
+    )
+    {
         /* initialize random number generator with the local cell index in the simulation */
         this->randomGen.init(localCellOffset);
     }

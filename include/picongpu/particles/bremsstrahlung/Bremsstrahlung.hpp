@@ -130,6 +130,27 @@ public:
         const DataSpace<simDim>& localCellOffset
     );
 
+    /** cache fields used by this functor
+     *
+     * @warning this is a collective method and calls synchronize
+     *
+     * @tparam T_Acc alpaka accelerator type
+     * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+     *
+     * @param acc alpaka accelerator
+     * @param blockCell relative offset (in cells) to the local domain plus the guarding cells
+     * @param workerCfg configuration of the worker
+     */
+    template<
+        typename T_Acc ,
+        typename T_WorkerCfg
+    >
+    DINLINE void collectiveInit(
+        const T_Acc & acc,
+        const DataSpace<simDim>& blockCell,
+        const T_WorkerCfg & workerCfg
+    );
+
     /** Rotates a vector to a given polar angle and a random azimuthal angle.
      *
      * @param vec vector to be rotated
