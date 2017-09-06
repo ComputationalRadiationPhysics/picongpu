@@ -274,7 +274,7 @@ namespace helperFields
                         atomicAdd(
                             &( localEnergyHistogram[ i ] ),
                             shLocalEnergyHistogram[ i ],
-                            ::alpaka::hierarchy::Threads{}
+                            ::alpaka::hierarchy::Blocks{}
                         );
                 }
             );
