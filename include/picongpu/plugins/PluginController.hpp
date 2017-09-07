@@ -38,6 +38,10 @@
  */
 #include "picongpu/plugins/PngPlugin.hpp"
 
+#if (ENABLE_ADIOS == 1)
+#   include "picongpu/plugins/adios/ADIOSWriter.hpp"
+#endif
+
 #if( PMACC_CUDA_ENABLED == 1 )
 #   include "picongpu/plugins/PositionsParticles.hpp"
 #   include "picongpu/plugins/ChargeConservation.hpp"
@@ -58,10 +62,6 @@
 #   include "picongpu/plugins/SliceFieldPrinterMulti.hpp"
 #   if(SIMDIM==DIM3)
 #       include "picongpu/plugins/IntensityPlugin.hpp"
-#   endif
-
-#   if (ENABLE_ADIOS == 1)
-#       include "picongpu/plugins/adios/ADIOSWriter.hpp"
 #   endif
 
 #   if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
@@ -122,7 +122,11 @@ private:
 
     /* define stand alone plugins*/
     typedef bmpl::vector<
-        EnergyFields
+        EnergyFields,
+#if (ENABLE_ADIOS == 1)
+        adios::ADIOSWriter
+#endif
+
 #if( PMACC_CUDA_ENABLED == 1 )
         , SumCurrents
         , ChargeConservation
@@ -131,9 +135,6 @@ private:
 #   endif
 #   if (ENABLE_INSITU_VOLVIS == 1)
         , InSituVolumeRenderer
-#   endif
-#   if (ENABLE_ADIOS == 1)
-        , adios::ADIOSWriter
 #   endif
 #   if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
         , isaacP::IsaacPlugin
