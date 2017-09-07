@@ -221,7 +221,7 @@ namespace alpaka
                     TSize const generationWhenEnteredTheWait = m_generation;
                     std::unique_lock<std::mutex> lock(m_mtxBarrier);
 
-                    auto const generationMod2(m_generation % 2u);
+                    auto const generationMod2(m_generation % static_cast<TSize>(2u));
                     if(m_curThreadCount == m_threadCount)
                     {
                         m_result[generationMod2] = TOp::InitialValue;

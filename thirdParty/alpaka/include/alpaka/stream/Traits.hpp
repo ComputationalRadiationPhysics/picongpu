@@ -61,8 +61,9 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! Queues the given task in the given stream.
         //!
-        //! If it has previously been queued, then this call will overwrite any existing state of the event.
-        //! Any subsequent calls which examine the status of event will only examine the completion of this most recent call to enqueue.
+        //! Special Handling for events:
+        //!   If the event has previously been queued, then this call will overwrite any existing state of the event.
+        //!   Any subsequent calls which examine the status of event will only examine the completion of this most recent call to enqueue.
         //-----------------------------------------------------------------------------
         template<
             typename TStream,

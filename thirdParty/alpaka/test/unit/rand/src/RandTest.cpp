@@ -42,14 +42,21 @@
     #pragma clang diagnostic pop
 #endif
 
+BOOST_AUTO_TEST_SUITE(rand_)
+
+// This is not supported by older clang native CUDA compilers.
+#if !BOOST_COMP_CLANG_CUDA || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(3,9,0))
+
 //#############################################################################
 //!
 //#############################################################################
-class BlockSyncTestKernel
+class RandTestKernel
 {
 public:
-    static const std::uint8_t gridThreadExtentPerDim = 4u;
-
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
     //-----------------------------------------------------------------------------
     //!
     //-----------------------------------------------------------------------------
@@ -60,76 +67,60 @@ public:
         TAcc const & acc) const
     -> void
     {
-        using Size = alpaka::size::Size<TAcc>;
+        auto gen(alpaka::rand::generator::createDefault(acc, 12345u, 6789u));
 
-        // Get the index of the current thread within the block and the block extent and map them to 1D.
-        auto const blockThreadIdx = alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc);
-        auto const blockThreadExtent = alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
-        auto const blockThreadIdx1D = alpaka::idx::mapIdx<1u>(blockThreadIdx, blockThreadExtent)[0u];
-        auto const blockThreadExtent1D = blockThreadExtent.prod();
-
-        // Allocate shared memory.
-        Size * const pBlockSharedArray = alpaka::block::shared::dyn::getMem<Size>(acc);
-   
-        // Write the thread index into the shared memory.
-        pBlockSharedArray[blockThreadIdx1D] = blockThreadIdx1D;
-
-        // Synchronize the threads in the block.
-        alpaka::block::sync::syncBlockThreads(acc);
-
-        // All other threads within the block should now have written their index into the shared memory.
-        for(auto i(static_cast<Size>(0u)); i < blockThreadExtent1D; ++i)
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wunused-variable"
+#endif
         {
-            BOOST_VERIFY(pBlockSharedArray[i] == i);
+            auto dist(alpaka::rand::distribution::createNormalReal<float>(acc));
+            auto const r = dist(gen);
+#if !BOOST_ARCH_CUDA_DEVICE
+            BOOST_VERIFY(std::isfinite(r));
+#endif
         }
+
+        {
+            auto dist(alpaka::rand::distribution::createNormalReal<double>(acc));
+            auto const r = dist(gen);
+#if !BOOST_ARCH_CUDA_DEVICE
+            BOOST_VERIFY(std::isfinite(r));
+#endif
+        }
+
+        {
+            auto dist(alpaka::rand::distribution::createUniformReal<float>(acc));
+            auto const r = dist(gen);
+            BOOST_VERIFY(0.0f <= r);
+            BOOST_VERIFY(1.0f > r);
+        }
+
+        {
+            auto dist(alpaka::rand::distribution::createUniformReal<double>(acc));
+            auto const r = dist(gen);
+            BOOST_VERIFY(0.0 <= r);
+            BOOST_VERIFY(1.0 > r);
+        }
+
+        {
+            auto dist(alpaka::rand::distribution::createUniformUint<std::uint32_t>(acc));
+            auto const r = dist(gen);
+        }
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic pop
+#endif
     }
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic pop
+#endif
 };
-
-namespace alpaka
-{
-    namespace kernel
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The trait for getting the size of the block shared dynamic memory for a kernel.
-            //#############################################################################
-            template<
-                typename TAcc>
-            struct BlockSharedMemDynSizeBytes<
-                BlockSyncTestKernel,
-                TAcc>
-            {
-                //-----------------------------------------------------------------------------
-                //! \return The size of the shared memory allocated for a block.
-                //-----------------------------------------------------------------------------
-                template<
-                    typename TVec>
-                ALPAKA_FN_HOST static auto getBlockSharedMemDynSizeBytes(
-                    BlockSyncTestKernel const & blockSharedMemDyn,
-                    TVec const & blockThreadExtent,
-                    TVec const & threadElemExtent)
-                -> size::Size<TAcc>
-                {
-                    using Size = alpaka::size::Size<TAcc>;
-
-                    boost::ignore_unused(blockSharedMemDyn);
-                    boost::ignore_unused(threadElemExtent);
-                    return
-                        static_cast<size::Size<TAcc>>(sizeof(Size)) * blockThreadExtent.prod();
-                }
-            };
-        }
-    }
-}
-
-BOOST_AUTO_TEST_SUITE(blockSync)
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
-    synchronize,
+    defaultRandomGeneratorIsWorking,
     TAcc,
     alpaka::test::acc::TestAccs)
 {
@@ -137,14 +128,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     using Size = alpaka::size::Size<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::all(static_cast<Size>(BlockSyncTestKernel::gridThreadExtentPerDim)));
+        alpaka::vec::Vec<Dim, Size>::ones());
 
-    BlockSyncTestKernel kernel;
+    RandTestKernel kernel;
 
     BOOST_REQUIRE_EQUAL(
         true,
         fixture(
             kernel));
 }
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()
