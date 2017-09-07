@@ -37,7 +37,9 @@
 #include <pmacc/particles/operations/ConcatListOfFrames.hpp>
 #include <pmacc/particles/particleFilter/FilterFactory.hpp>
 #include <pmacc/particles/particleFilter/PositionFilter.hpp>
+#if( PMACC_CUDA_ENABLED == 1 )
 #include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>
+#endif
 
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
@@ -126,23 +128,43 @@ public:
                                      params->window.localDimensions.size);
 
             DataConnector &dc = Environment<>::get().DataConnector();
+#if( PMACC_CUDA_ENABLED == 1 )
             auto mallocMCBuffer = dc.get< MallocMCBuffer< DeviceHeap > >( MallocMCBuffer< DeviceHeap >::getName(), true );
-
+#endif
             int globalParticleOffset = 0;
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
             pmacc::particles::operations::ConcatListOfFrames<simDim> concatListOfFrames(mapper.getGridDim());
 
+#if( PMACC_CUDA_ENABLED == 1 )
+            auto particlesBox = speciesTmp->getHostParticlesBox( mallocMCBuffer->getOffset() );
+#else
+            /* This separate code path is only a workaround until MallocMCBuffer
+             * is alpaka compatible.
+             *
+             * @todo remove this workaround: we know that we are allowed to access the
+             * device memory directly.
+             */
+            auto particlesBox = speciesTmp->getDeviceParticlesBox( );
+            /* Notify to the event system that the particles box is used on the host.
+             *
+             * @todo remove this workaround
+             */
+             __startOperation(ITask::TASK_HOST);
+
+#endif
             concatListOfFrames(
                                 globalParticleOffset,
                                 hostFrame,
-                                speciesTmp->getHostParticlesBox( mallocMCBuffer->getOffset() ),
+                                particlesBox,
                                 filter,
                                 particleOffset, /*relative to data domain (not to physical domain)*/
                                 totalCellIdx_,
                                 mapper
                                 );
+#if( PMACC_CUDA_ENABLED == 1 )
             dc.releaseData( MallocMCBuffer< DeviceHeap >::getName() );
+#endif
             /* this costs a little bit of time but adios writing is slower */
             PMACC_ASSERT((uint64_cu) globalParticleOffset == totalNumParticles);
         }
