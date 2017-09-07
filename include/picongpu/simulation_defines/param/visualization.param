@@ -62,7 +62,7 @@ namespace picongpu
         namespace preChannel2Col = colorScales::green;
         namespace preChannel3Col = colorScales::none;
 
-        /* png preview and liveview settings for each channel */
+        /* png preview settings for each channel */
         DINLINE float_X preChannel1(const float3_X& field_B, const float3_X& field_E, const float3_X& field_J)
         {
             return math::abs2(field_J);
