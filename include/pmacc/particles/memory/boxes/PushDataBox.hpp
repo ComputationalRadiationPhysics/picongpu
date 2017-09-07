@@ -59,28 +59,45 @@ namespace pmacc
 
         }
 
-        /**
-         * Increases the size of the stack with count elements in an atomic operation.
+        /** Increases the size of the stack with count elements in an atomic operation
          *
+         * @warning access is only atomic within the given alpaka hierarchy
+         *
+         * @tparam T_Acc type of the alpaka accelerator
+         * @tparam T_Hierarchy alpaka::hierarchy type of the hierarchy
+         *
+         * @param acc alpaka accelerator
          * @param count number of elements to increase stack with
+         * @param hierarchy alpaka parallelism hierarchy levels guarantee valid
+         *                  concurrency access to the memory
+         *
          * @return a TileDataBox of size count pointing to the new stack elements
          */
-        template< typename T_Acc >
-        HDINLINE TileDataBox<VALUE> pushN(T_Acc const & acc, TYPE count)
+        template< typename T_Acc, typename T_Hierarchy >
+        HDINLINE TileDataBox<VALUE> pushN(T_Acc const & acc, TYPE count, T_Hierarchy const & hierarchy)
         {
-            TYPE old_addr = atomicAdd(currentSize, count, ::alpaka::hierarchy::Grids{});
+            TYPE old_addr = atomicAdd(currentSize, count, hierarchy);
             return TileDataBox<VALUE > (this->fixedPointer, DataSpace<DIM1>(old_addr));
         }
 
-        /**
-         * Adds val to the stack in an atomic operation.
+        /** Adds a value to the stack in an atomic operation.
          *
+         * @warning access is only atomic within the given alpaka hierarchy
+         *
+         * @tparam T_Acc type of the alpaka accelerator
+         * @tparam T_Hierarchy alpaka::hierarchy type of the hierarchy
+         *
+         * @param acc alpaka accelerator
          * @param val data of type VALUE to add to the stack
+         * @param hierarchy alpaka parallelism hierarchy levels guarantee valid
+         *                  concurrency access to the memory
+         *
+         * @return a TileDataBox of size count pointing to the new stack elements
          */
-        template< typename T_Acc >
-        HDINLINE void push(T_Acc const & acc, VALUE val)
+        template< typename T_Acc, typename T_Hierarchy >
+        HDINLINE void push(T_Acc const & acc, VALUE val, T_Hierarchy const & hierarchy)
         {
-            TYPE old_addr = atomicAdd(currentSize, 1, ::alpaka::hierarchy::Threads{});
+            TYPE old_addr = atomicAdd(currentSize, 1, hierarchy);
             (*this)[old_addr] = val;
         }
 
