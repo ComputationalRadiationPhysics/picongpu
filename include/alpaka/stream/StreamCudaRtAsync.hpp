@@ -59,7 +59,7 @@ namespace alpaka
             namespace detail
             {
                 //#############################################################################
-                //! The CUDA RT stream implementation.
+                //! The CUDA RT async stream implementation.
                 //#############################################################################
                 class StreamCudaRtAsyncImpl final
                 {
@@ -132,7 +132,7 @@ namespace alpaka
         }
 
         //#############################################################################
-        //! The CUDA RT stream.
+        //! The CUDA RT async stream.
         //#############################################################################
         class StreamCudaRtAsync final
         {
@@ -191,7 +191,7 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT stream device type trait specialization.
+            //! The CUDA RT async stream device type trait specialization.
             //#############################################################################
             template<>
             struct DevType<
@@ -200,7 +200,7 @@ namespace alpaka
                 using type = dev::DevCudaRt;
             };
             //#############################################################################
-            //! The CUDA RT stream device get trait specialization.
+            //! The CUDA RT async stream device get trait specialization.
             //#############################################################################
             template<>
             struct GetDev<
@@ -223,7 +223,7 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT stream event type trait specialization.
+            //! The CUDA RT async stream event type trait specialization.
             //#############################################################################
             template<>
             struct EventType<
@@ -238,7 +238,79 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT stream test trait specialization.
+            //! The CUDA RT sync stream enqueue trait specialization.
+            //#############################################################################
+            template<
+                typename TTask>
+            struct Enqueue<
+                stream::StreamCudaRtAsync,
+                TTask>
+            {
+                //#############################################################################
+                //!
+                //#############################################################################
+                struct CallbackSynchronizationData
+                {
+                    std::mutex m_mutex;
+                    std::condition_variable m_event;
+                    bool notified = false;
+                };
+
+                //-----------------------------------------------------------------------------
+                //
+                //-----------------------------------------------------------------------------
+                static void CUDART_CB cudaRtCallback(cudaStream_t /*stream*/, cudaError_t /*status*/, void *arg)
+                {
+                    auto& callbackSynchronizationData = *reinterpret_cast<CallbackSynchronizationData*>(arg);
+
+                    {
+                        std::unique_lock<std::mutex> lock(callbackSynchronizationData.m_mutex);
+                        callbackSynchronizationData.notified = true;
+                    }
+
+                    callbackSynchronizationData.m_event.notify_one();
+                }
+
+                //-----------------------------------------------------------------------------
+                //
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto enqueue(
+                    stream::StreamCudaRtAsync & stream,
+                    TTask const & task)
+                -> void
+                {
+                    auto pCallbackSynchronizationData = std::make_shared<CallbackSynchronizationData>();
+
+                    ALPAKA_CUDA_RT_CHECK(cudaStreamAddCallback(
+                        stream.m_spStreamCudaRtAsyncImpl->m_CudaStream,
+                        cudaRtCallback,
+                        pCallbackSynchronizationData.get(),
+                        0u));
+
+                    std::thread t(
+                        [pCallbackSynchronizationData, task](){
+
+                            // If the callback has not yet been called, we wait for it.
+                            std::unique_lock<std::mutex> lock(pCallbackSynchronizationData->m_mutex);
+                            if(!pCallbackSynchronizationData->notified)
+                            {
+                                pCallbackSynchronizationData->m_event.wait(
+                                    lock,
+                                    [pCallbackSynchronizationData](){
+                                        return pCallbackSynchronizationData->notified;
+                                    }
+                                );
+                            }
+
+                            task();
+                        }
+                    );
+
+                    t.detach();
+                }
+            };
+            //#############################################################################
+            //! The CUDA RT async stream test trait specialization.
             //#############################################################################
             template<>
             struct Empty<
@@ -269,7 +341,7 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT stream thread wait trait specialization.
+            //! The CUDA RT async stream thread wait trait specialization.
             //!
             //! Blocks execution of the calling thread until the stream has finished processing all previously requested tasks (kernels, data copies, ...)
             //#############################################################################

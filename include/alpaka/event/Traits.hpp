@@ -46,15 +46,6 @@ namespace alpaka
             struct EventType;
 
             //#############################################################################
-            //! The event creator trait.
-            //#############################################################################
-            template<
-                typename TEvent,
-                typename TDev,
-                typename TSfinae = void>
-            struct Create;
-
-            //#############################################################################
             //! The event tester trait.
             //#############################################################################
             template<
@@ -69,24 +60,6 @@ namespace alpaka
         template<
             typename T>
         using Event = typename traits::EventType<T>::type;
-
-        //-----------------------------------------------------------------------------
-        //! Creates an event on a device.
-        //-----------------------------------------------------------------------------
-        template<
-            typename TEvent,
-            typename TDev>
-        ALPAKA_FN_HOST auto create(
-            TDev const & dev)
-        -> TEvent
-        {
-            return
-                traits::Create<
-                    TEvent,
-                    TDev>
-                ::create(
-                    dev);
-        }
 
         //-----------------------------------------------------------------------------
         //! Tests if the given event has already been completed.

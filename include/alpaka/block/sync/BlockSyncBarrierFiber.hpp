@@ -54,7 +54,9 @@ namespace alpaka
                 ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierFiber(
                     TSize const & blockThreadCount) :
                         m_barrier(static_cast<std::size_t>(blockThreadCount)),
-                        m_threadCount(blockThreadCount)
+                        m_threadCount(blockThreadCount),
+                        m_curThreadCount(static_cast<TSize>(0u)),
+                        m_generation(static_cast<TSize>(0u))
                 {}
                 //-----------------------------------------------------------------------------
                 //! Copy constructor.
@@ -127,14 +129,14 @@ namespace alpaka
                     {
                         if(blockSync.m_curThreadCount == blockSync.m_threadCount)
                         {
-                            blockSync.m_curThreadCount = 0;
+                            blockSync.m_curThreadCount = static_cast<TSize>(0u);
                             ++blockSync.m_generation;
                         }
 
-                        auto const generationMod2(blockSync.m_generation % 2u);
+                        auto const generationMod2(blockSync.m_generation % static_cast<TSize>(2u));
 
                         // The first fiber will reset the value to the initial value.
-                        if(blockSync.m_curThreadCount == 0u)
+                        if(blockSync.m_curThreadCount == static_cast<TSize>(0u))
                         {
                             blockSync.m_result[generationMod2] = TOp::InitialValue;
                         }

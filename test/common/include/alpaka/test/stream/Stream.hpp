@@ -85,6 +85,92 @@ namespace alpaka
             template<
                 typename TAcc>
             using DefaultStream = typename traits::DefaultStreamType<TAcc>::type;
+
+            namespace traits
+            {
+                //#############################################################################
+                //! The sync stream trait.
+                //#############################################################################
+                template<
+                    typename TStream,
+                    typename TSfinae = void>
+                struct IsSyncStream;
+
+                //#############################################################################
+                //! The sync stream trait specialization for a sync CPU stream.
+                //#############################################################################
+                template<>
+                struct IsSyncStream<
+                    alpaka::stream::StreamCpuSync>
+                {
+                    static constexpr bool value = true;
+                };
+
+                //#############################################################################
+                //! The sync stream trait specialization for a async CPU stream.
+                //#############################################################################
+                template<>
+                struct IsSyncStream<
+                    alpaka::stream::StreamCpuAsync>
+                {
+                    static constexpr bool value = false;
+                };
+
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+
+#if !BOOST_LANG_CUDA
+    #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#endif
+                //#############################################################################
+                //! The sync stream trait specialization for a sync CUDA RT stream.
+                //#############################################################################
+                template<>
+                struct IsSyncStream<
+                    alpaka::stream::StreamCudaRtSync>
+                {
+                    static constexpr bool value = true;
+                };
+
+                //#############################################################################
+                //! The sync stream trait specialization for a async CUDA RT stream.
+                //#############################################################################
+                template<>
+                struct IsSyncStream<
+                    alpaka::stream::StreamCudaRtAsync>
+                {
+                    static constexpr bool value = false;
+                };
+#endif
+            }
+            //#############################################################################
+            //! The stream type that should be used for the given accelerator.
+            //#############################################################################
+            template<
+                typename TStream>
+            using IsSyncStream = traits::IsSyncStream<TStream>;
+
+            //#############################################################################
+            //! A std::tuple holding tuples of devices and corresponding stream types.
+            //#############################################################################
+            using TestStreams =
+                std::tuple<
+                    std::tuple<alpaka::dev::DevCpu, alpaka::stream::StreamCpuSync>,
+                    std::tuple<alpaka::dev::DevCpu, alpaka::stream::StreamCpuAsync>
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+                    ,
+                    std::tuple<alpaka::dev::DevCudaRt, alpaka::stream::StreamCudaRtSync>,
+                    std::tuple<alpaka::dev::DevCudaRt, alpaka::stream::StreamCudaRtAsync>
+#endif
+                >;
+
+            //#############################################################################
+            //! A std::tuple holding tuples of devices and corresponding stream types.
+            //#############################################################################
+            using TestStreamsCpu =
+                std::tuple<
+                    std::tuple<alpaka::dev::DevCpu, alpaka::stream::StreamCpuSync>,
+                    std::tuple<alpaka::dev::DevCpu, alpaka::stream::StreamCpuAsync>
+                >;
         }
     }
 }

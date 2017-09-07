@@ -237,25 +237,6 @@ namespace alpaka
                 ALPAKA_FN_HOST static auto enqueue(
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
                     stream::StreamCpuAsync & stream,
-                    TTask & task)
-#else
-                    stream::StreamCpuAsync &,
-                    TTask &)
-#endif
-                -> void
-                {
-// Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
-#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
-                    stream.m_spAsyncStreamCpu->m_workerThread.enqueueTask(
-                        task);
-#endif
-                }
-                //-----------------------------------------------------------------------------
-                //
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto enqueue(
-#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
-                    stream::StreamCpuAsync & stream,
                     TTask const & task)
 #else
                     stream::StreamCpuAsync &,

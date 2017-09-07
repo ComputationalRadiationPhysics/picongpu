@@ -91,8 +91,8 @@ namespace alpaka
             public block::shared::dyn::BlockSharedMemDynCudaBuiltIn,
             public block::shared::st::BlockSharedMemStCudaBuiltIn,
             public block::sync::BlockSyncCudaBuiltIn,
-// This is not currently supported by the clang native CUDA compiler.
-#if !BOOST_COMP_CLANG_CUDA
+// This is not supported by older clang native CUDA compilers.
+#if !BOOST_COMP_CLANG_CUDA || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(3,9,0))
             public rand::RandCuRand,
 #endif
             public time::TimeCudaBuiltIn
@@ -115,8 +115,8 @@ namespace alpaka
                     block::shared::dyn::BlockSharedMemDynCudaBuiltIn(),
                     block::shared::st::BlockSharedMemStCudaBuiltIn(),
                     block::sync::BlockSyncCudaBuiltIn(),
-// This is not currently supported by the clang native CUDA compiler.
-#if !BOOST_COMP_CLANG_CUDA
+// This is not supported by older clang native CUDA compilers.
+#if !BOOST_COMP_CLANG_CUDA || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(3,9,0))
                     rand::RandCuRand(),
 #endif
                     time::TimeCudaBuiltIn()
