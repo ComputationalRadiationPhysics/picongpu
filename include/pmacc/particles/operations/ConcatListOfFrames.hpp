@@ -43,10 +43,10 @@ namespace operations
 template<unsigned T_dim>
 struct ConcatListOfFrames
 {
-    DataSpace<T_dim> m_gridDim;
+    DataSpace<T_dim> m_gridSize;
 
-    ConcatListOfFrames(const DataSpace<T_dim>& gridDim) :
-    m_gridDim(gridDim)
+    ConcatListOfFrames(const DataSpace<T_dim>& gridSize) :
+    m_gridSize(gridSize)
     {
 
     }
@@ -78,13 +78,13 @@ struct ConcatListOfFrames
     {
         #pragma omp parallel for
         for (int linearBlockIdx = 0;
-             linearBlockIdx < m_gridDim.productOfComponents();
+             linearBlockIdx < m_gridSize.productOfComponents();
              ++linearBlockIdx
              )
         {
             // local copy for each omp thread
             T_Filter filter = particleFilter;
-            DataSpace<T_dim> blockIdx(DataSpaceOperations<T_dim>::map(m_gridDim, linearBlockIdx));
+            DataSpace<T_dim> blockIndex(DataSpaceOperations<T_dim>::map(m_gridSize, linearBlockIdx));
 
             using namespace pmacc::particles::operations;
 
@@ -99,7 +99,7 @@ struct ConcatListOfFrames
             const int particlesPerFrame = pmacc::math::CT::volume<SuperCellSize>::type::value;
             int localIdxs[particlesPerFrame];
 
-            const DataSpace<Mapping::Dim> superCellIdx = mapper.getSuperCellIndex(blockIdx);
+            const DataSpace<Mapping::Dim> superCellIdx = mapper.getSuperCellIndex(blockIndex);
             const DataSpace<Mapping::Dim> superCellPosition((superCellIdx - mapper.getGuardingSuperCells()) * mapper.getSuperCellSize());
             filter.setSuperCellPosition(superCellPosition);
 
@@ -110,14 +110,14 @@ struct ConcatListOfFrames
             {
                 /* Count number of particles in current frame and init its indices */
                 int curNumParticles = 0;
-                for (int threadIdx = 0; threadIdx < particlesPerFrame; ++threadIdx)
+                for (int particleIdx = 0; particleIdx < particlesPerFrame; ++particleIdx)
                 {
-                    auto parSrc = (srcFramePtr[threadIdx]);
+                    auto parSrc = (srcFramePtr[particleIdx]);
                     /* Check if particle exists and is not filtered */
-                    if (parSrc[multiMask_] == 1 && filter(*srcFramePtr, threadIdx))
-                        localIdxs[threadIdx] = curNumParticles++;
+                    if (parSrc[multiMask_] == 1 && filter(*srcFramePtr, particleIdx))
+                        localIdxs[particleIdx] = curNumParticles++;
                     else
-                        localIdxs[threadIdx] = -1;
+                        localIdxs[particleIdx] = -1;
                 }
 
                 int globalOffset;
@@ -128,12 +128,12 @@ struct ConcatListOfFrames
                     counter += curNumParticles;
                 }
 
-                for (int threadIdx = 0; threadIdx < particlesPerFrame; ++threadIdx)
+                for (int particleIdx = 0; particleIdx < particlesPerFrame; ++particleIdx)
                 {
-                    if (localIdxs[threadIdx] != -1)
+                    if (localIdxs[particleIdx] != -1)
                     {
-                        auto parSrc = (srcFramePtr[threadIdx]);
-                        auto parDest = destFrame[globalOffset + localIdxs[threadIdx]];
+                        auto parSrc = (srcFramePtr[particleIdx]);
+                        auto parDest = destFrame[globalOffset + localIdxs[particleIdx]];
                         auto parDestNoDomainIdx = deselect<T_Identifier>(parDest);
                         assign(parDestNoDomainIdx, parSrc);
                         /* calculate cell index for user-defined domain */
