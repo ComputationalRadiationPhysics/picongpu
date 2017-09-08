@@ -106,7 +106,7 @@ The following tables list the functions available in the [CUDA Runtime API](http
 
 |CUDA|alpaka|
 |---|---|
-|cudaStreamAddCallback|-|
+|cudaStreamAddCallback|alpaka::stream::enqueue(stream, \[\](){do_something();})|
 |cudaStreamAttachMemAsync|-|
 |cudaStreamCreate|<ul><li>stream = alpaka::stream::StreamCudaRtAsync(device);</li><li>stream = alpaka::stream::StreamCudaRtSync(device);</li></ul>|
 |cudaStreamCreateWithFlags|see cudaStreamCreate (cudaStreamNonBlocking hard coded)|
@@ -122,7 +122,7 @@ The following tables list the functions available in the [CUDA Runtime API](http
 
 |CUDA|alpaka|
 |---|---|
-|cudaEventCreate|alpaka::event::Event< TAcc > event(device);|
+|cudaEventCreate|alpaka::event::Event< TStream > event(dev);|
 |cudaEventCreateWithFlags|-|
 |cudaEventDestroy|n/a (Destructor)|
 |cudaEventElapsedTime|-|

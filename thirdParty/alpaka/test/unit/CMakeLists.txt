@@ -1,5 +1,5 @@
 #
-# Copyright 2015 Benjamin Worpitz
+# Copyright 2015-2017 Benjamin Worpitz
 #
 # This file is part of alpaka.
 #
@@ -34,10 +34,13 @@ ADD_SUBDIRECTORY("acc/")
 ADD_SUBDIRECTORY("atomic/")
 ADD_SUBDIRECTORY("block/shared/")
 ADD_SUBDIRECTORY("block/sync/")
+ADD_SUBDIRECTORY("event/")
 ADD_SUBDIRECTORY("idx/")
 ADD_SUBDIRECTORY("kernel/")
 ADD_SUBDIRECTORY("mem/buf/")
 ADD_SUBDIRECTORY("mem/view/")
 ADD_SUBDIRECTORY("meta/")
+ADD_SUBDIRECTORY("rand/")
+ADD_SUBDIRECTORY("stream/")
 ADD_SUBDIRECTORY("time/")
 ADD_SUBDIRECTORY("vec/")

@@ -134,7 +134,7 @@ namespace alpaka
             ALPAKA_FN_HOST EventCudaRt(
                 dev::DevCudaRt const & dev,
                 bool bBusyWait = true) :
-                    m_spEventCudaImpl(std::make_shared<cuda::detail::EventCudaImpl>(dev, bBusyWait))
+                    m_spEventImpl(std::make_shared<cuda::detail::EventCudaImpl>(dev, bBusyWait))
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
             }
@@ -160,7 +160,7 @@ namespace alpaka
             ALPAKA_FN_HOST auto operator==(EventCudaRt const & rhs) const
             -> bool
             {
-                return (m_spEventCudaImpl->m_CudaEvent == rhs.m_spEventCudaImpl->m_CudaEvent);
+                return (m_spEventImpl->m_CudaEvent == rhs.m_spEventImpl->m_CudaEvent);
             }
             //-----------------------------------------------------------------------------
             //! Equality comparison operator.
@@ -176,7 +176,7 @@ namespace alpaka
             ALPAKA_FN_HOST ~EventCudaRt() = default;
 
         public:
-            std::shared_ptr<cuda::detail::EventCudaImpl> m_spEventCudaImpl;
+            std::shared_ptr<cuda::detail::EventCudaImpl> m_spEventImpl;
         };
     }
 
@@ -198,7 +198,7 @@ namespace alpaka
                     event::EventCudaRt const & event)
                 -> dev::DevCudaRt
                 {
-                    return event.m_spEventCudaImpl->m_dev;
+                    return event.m_spEventImpl->m_dev;
                 }
             };
         }
@@ -207,33 +207,6 @@ namespace alpaka
     {
         namespace traits
         {
-            //#############################################################################
-            //! The CUDA RT device event event type trait specialization.
-            //#############################################################################
-            template<>
-            struct EventType<
-                event::EventCudaRt>
-            {
-                using type = event::EventCudaRt;
-            };
-            //#############################################################################
-            //! The CPU device event create trait specialization.
-            //#############################################################################
-            template<>
-            struct Create<
-                event::EventCudaRt,
-                dev::DevCudaRt>
-            {
-                //-----------------------------------------------------------------------------
-                //!
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto create(
-                    dev::DevCudaRt const & dev)
-                -> event::EventCudaRt
-                {
-                    return event::EventCudaRt(dev);
-                }
-            };
             //#############################################################################
             //! The CUDA RT device event test trait specialization.
             //#############################################################################
@@ -254,7 +227,7 @@ namespace alpaka
                     cudaError_t ret = cudaSuccess;
                     ALPAKA_CUDA_RT_CHECK_IGNORE(
                         ret = cudaEventQuery(
-                            event.m_spEventCudaImpl->m_CudaEvent),
+                            event.m_spEventImpl->m_CudaEvent),
                         cudaErrorNotReady);
                     return (ret == cudaSuccess);
                 }
@@ -284,7 +257,7 @@ namespace alpaka
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                     ALPAKA_CUDA_RT_CHECK(cudaEventRecord(
-                        event.m_spEventCudaImpl->m_CudaEvent,
+                        event.m_spEventImpl->m_CudaEvent,
                         stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
                 }
             };
@@ -307,7 +280,7 @@ namespace alpaka
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                     ALPAKA_CUDA_RT_CHECK(cudaEventRecord(
-                        event.m_spEventCudaImpl->m_CudaEvent,
+                        event.m_spEventImpl->m_CudaEvent,
                         stream.m_spStreamCudaRtSyncImpl->m_CudaStream));
                 }
             };
@@ -338,7 +311,7 @@ namespace alpaka
 
                     // Sync is allowed even for events on non current device.
                     ALPAKA_CUDA_RT_CHECK(cudaEventSynchronize(
-                        event.m_spEventCudaImpl->m_CudaEvent));
+                        event.m_spEventImpl->m_CudaEvent));
                 }
             };
             //#############################################################################
@@ -361,7 +334,7 @@ namespace alpaka
 
                     ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
                         stream.m_spStreamCudaRtAsyncImpl->m_CudaStream,
-                        event.m_spEventCudaImpl->m_CudaEvent,
+                        event.m_spEventImpl->m_CudaEvent,
                         0));
                 }
             };
@@ -385,7 +358,7 @@ namespace alpaka
 
                     ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
                         stream.m_spStreamCudaRtSyncImpl->m_CudaStream,
-                        event.m_spEventCudaImpl->m_CudaEvent,
+                        event.m_spEventImpl->m_CudaEvent,
                         0));
                 }
             };
@@ -416,7 +389,7 @@ namespace alpaka
 
                     ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
                         0,
-                        event.m_spEventCudaImpl->m_CudaEvent,
+                        event.m_spEventImpl->m_CudaEvent,
                         0));
                 }
             };

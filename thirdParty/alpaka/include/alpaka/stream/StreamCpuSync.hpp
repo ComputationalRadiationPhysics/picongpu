@@ -211,17 +211,6 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCpuSync & stream,
-                    TTask & task)
-                -> void
-                {
-                    boost::ignore_unused(stream);
-                    task();
-                }
-                //-----------------------------------------------------------------------------
-                //
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto enqueue(
-                    stream::StreamCpuSync & stream,
                     TTask const & task)
                 -> void
                 {

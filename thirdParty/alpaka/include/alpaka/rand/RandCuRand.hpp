@@ -29,8 +29,8 @@
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-// This is not currently supported by the clang native CUDA compiler.
-#if !BOOST_COMP_CLANG_CUDA
+// This is not supported by older clang native CUDA compilers.
+#if !BOOST_COMP_CLANG_CUDA || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(3,9,0))
 
 #include <alpaka/rand/Traits.hpp>       // CreateNormalReal, ...
 
@@ -218,7 +218,7 @@ namespace alpaka
                         double const fUniformRand(curand_uniform_double(&generator.m_State));
                         // NOTE: (1.0f - curand_uniform_double) does not work, because curand_uniform_double seems to return denormalized floats around 0.f.
                         // [0.f, 1.0f)
-                        return fUniformRand * static_cast<double>( fUniformRand != 1.0f );
+                        return fUniformRand * static_cast<double>( fUniformRand != 1.0 );
                     }
                 };
 
