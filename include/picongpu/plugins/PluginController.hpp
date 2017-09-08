@@ -54,10 +54,6 @@
 #       include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #   endif
 
-#   if (ENABLE_INSITU_VOLVIS == 1)
-#       include "picongpu/plugins/InSituVolumeRenderer.hpp"
-#   endif
-
 #   include "picongpu/plugins/LiveViewPlugin.hpp"
 #   include "picongpu/plugins/SliceFieldPrinterMulti.hpp"
 #   if(SIMDIM==DIM3)
@@ -133,9 +129,7 @@ private:
 #   if(SIMDIM==DIM3)
         , IntensityPlugin
 #   endif
-#   if (ENABLE_INSITU_VOLVIS == 1)
-        , InSituVolumeRenderer
-#   endif
+
 #   if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
         , isaacP::IsaacPlugin
 #   endif
