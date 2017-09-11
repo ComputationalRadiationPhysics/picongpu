@@ -28,15 +28,12 @@ then
 #       unset MODULES_NO_OUTPUT
 fi
 
-# Architecture flags ##########################################################
-#
-export CXXFLAGS="$CXXFLAGS -march=bdver1 -mtune=bdver1"
-
 # Environment #################################################################
 #
 alias getlaser='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=64'
 
 export PICSRC=/home/`whoami`/src/picongpu
+export PIC_BACKEND="omp2b:bdver1"
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail

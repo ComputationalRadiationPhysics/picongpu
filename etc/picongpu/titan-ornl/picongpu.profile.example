@@ -82,6 +82,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib
 
 # helper variables and tools ########################################
 export PICSRC=$HOME/src/picongpu
+export PIC_BACKEND="cuda:35"
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 export PATH=$PATH:$PICSRC
