@@ -61,7 +61,7 @@ In our input, ``.param`` files are build directly into the PIConGPU binary for p
 Changing or initially adding those requires a compile.
 
 In this step you can optimize the simulation for the specific hardware you want to run on.
-By default, we compile for Nvidia GPUs with CUDA targeting the oldest compatible `architecture <https://developer.nvidia.com/cuda-gpus>`_.
+By default, we compile for Nvidia GPUs with the CUDA backend, targeting the oldest compatible `architecture <https://developer.nvidia.com/cuda-gpus>`_.
 
 .. code-block:: bash
    :emphasize-lines: 1
@@ -145,7 +145,7 @@ For example, if you want to build for running on CPUs instead of a GPUs, call:
    :emphasize-lines: 2
 
    # example for running efficiently on the CPU you are currently compiling on
-   pic-build -a "omp2b"
+   pic-build -b "omp2b"
 
 Its full documentation from ``pic-build --help`` reads:
 
@@ -158,28 +158,28 @@ The tools is just a convenient wrapper for a call to `CMake <https://cmake.org>`
 It is executed from an empty build directory.
 You will likely not use this tool directly when using ``pic-build`` from above.
 
-We *strongly recommend* to set the appropriate target compute architecture via ``-a`` for optimal performance.
+We *strongly recommend* to set the appropriate target compute backend via ``-b`` for optimal performance.
 For Nvidia CUDA GPUs, set the `compute capability <https://developer.nvidia.com/cuda-gpus>`_ of your GPU:
 
 .. code-block:: bash
 
    # example for running efficiently on a K80 GPU with compute capability 3.7
-   pic-configure -a "cuda:37" $HOME/picInputs/myLWFA
+   pic-configure -b "cuda:37" $HOME/picInputs/myLWFA
 
 For running on a CPU instead of a GPU, set this:
 
 .. code-block:: bash
 
    # example for running efficiently on the CPU you are currently compiling on
-   pic-configure -a "omp2b:native" $HOME/picInputs/myLWFA
+   pic-configure -b "omp2b:native" $HOME/picInputs/myLWFA
 
 .. note::
 
    If you are compiling on a cluster, the CPU architecture of the head/login nodes versus the actual compute architecture does likely vary!
-   Compiling for the wrong architecture does in the best case dramatically reduce your performance and in the worst case will not run at all!
+   Compiling a backend for the wrong architecture does in the best case dramatically reduce your performance and in the worst case will not run at all!
 
-   During configure, the architecture is forwarded to the compiler's ``-mtune`` and ``-march`` flags.
-   For example, if you are compiling for running on AMD Opteron 6276 CPUs set ``-a omp2b:bdver1``.
+   During configure, the backend's architecture is forwarded to the compiler's ``-mtune`` and ``-march`` flags.
+   For example, if you are compiling for running on AMD Opteron 6276 CPUs set ``-b omp2b:bdver1``.
 
 See ``pic-configure --help`` for more options during input set configuration:
 

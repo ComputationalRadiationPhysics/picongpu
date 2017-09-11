@@ -35,7 +35,7 @@ help()
     echo ""
     echo "-i | --install       - path were picongpu shall be installed"
     echo "                       (default is <inputDirectory>)"
-    echo "-a | --arch          - set compute backend and optionally the architecture"
+    echo "-b | --backend       - set compute backend and optionally the architecture"
     echo "                       syntax: backend[:architecture]"
     echo "                       supported backends: cuda, omp2b"
     echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
@@ -50,7 +50,7 @@ get_backend_flags()
     backend_cfg=(${1//:/ })
     num_options="${#backend_cfg[@]}"
     if [ $num_options -gt 2 ] ; then
-        echo "-a|--arch must be contain 'backend:arch' or 'backend'" >&2
+        echo "-b|--backend must be contain 'backend:arch' or 'backend'" >&2
         exit 1
     fi
     if [ "${backend_cfg[0]}" == "cuda" ] ; then
@@ -64,7 +64,7 @@ get_backend_flags()
             result+=" -DCMAKE_CXX_FLAGS=\"$CXXFLAGS -march=${backend_cfg[1]} -mtune=${backend_cfg[1]}\""
         fi
     else
-        echo "unsupported architecture given '$1'" >&2
+        echo "unsupported backend given '$1'" >&2
         exit 1
     fi
 
@@ -73,7 +73,7 @@ get_backend_flags()
 }
 
 # options may be followed by one colon to indicate they have a required argument
-OPTS=`getopt -o i:a:c:p:t:h -l install:,arch:,cmake:,params:,help -- "$@"`
+OPTS=`getopt -o i:b:c:p:t:h -l install:,backend:,cmake:,params:,help -- "$@"`
 if [ $? != 0 ] ; then
     # something went wrong, getopt will put out an error message for us
     exit 1
@@ -86,7 +86,7 @@ eval set -- "$OPTS"
 
 while true ; do
     case "$1" in
-        -a|--arch)
+        -b|--backend)
             alpaka_backend=$(get_backend_flags $2)
             if [ $? -ne 0 ] ; then
                 exit 1
