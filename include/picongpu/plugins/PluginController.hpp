@@ -118,9 +118,9 @@ private:
 
     /* define stand alone plugins*/
     typedef bmpl::vector<
-        EnergyFields,
+        EnergyFields
 #if (ENABLE_ADIOS == 1)
-        adios::ADIOSWriter
+        , adios::ADIOSWriter
 #endif
 
 #if( PMACC_CUDA_ENABLED == 1 )
