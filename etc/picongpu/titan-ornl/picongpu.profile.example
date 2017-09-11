@@ -93,4 +93,4 @@ alias getInteractive="qsub -I -A $proj -q debug -l nodes=1,walltime=30:00"
 
 # "tbg" default options #######################################################
 export TBG_SUBMIT="qsub"
-export TBG_TPLFILE="etc/picongpu/titan-ornl/batch_profile.tpl"
+export TBG_TPLFILE="etc/picongpu/titan-ornl/batch.tpl"
