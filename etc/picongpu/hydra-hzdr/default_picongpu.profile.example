@@ -51,4 +51,4 @@ export PYTHONPATH=$PICSRC/src/tools/lib/python:$PYTHONPATH
 #   - PBS/Torque (qsub)
 #   - "default" queue
 export TBG_SUBMIT="qsub"
-export TBG_TPLFILE="etc/picongpu/hydra-hzdr/default_profile.tpl"
+export TBG_TPLFILE="etc/picongpu/hydra-hzdr/default.tpl"
