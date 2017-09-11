@@ -19,7 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-this_dir=`dirname $0`
+this_dir=$(cd $(dirname $0) && pwd)
 build_dir=".build"
 
 help()
