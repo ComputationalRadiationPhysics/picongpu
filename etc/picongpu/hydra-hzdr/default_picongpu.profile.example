@@ -36,7 +36,7 @@ export CXXFLAGS="$CXXFLAGS -march=ivybridge -mtune=ivybridge"
 #
 alias getNode='qsub -I -q default -lwalltime=00:30:00 -lnodes=1:ppn=32'
 
-export PICSRC=/home/`whoami`/src/picongpu
+export PICSRC=/home/$(whoami)/src/picongpu
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
@@ -49,14 +49,6 @@ export PATH=$PATH:$PICSRC/src/splash2txt/build
 export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/src/tools/lib/python:$PYTHONPATH
-
-# Development #################################################################
-#
-#function make
-#{
-#  real_make=`which make`
-#  $real_make $* 2>&1 | $HOME/grcat/usr/bin/grcat conf.gcc
-#}
 
 # "tbg" default options #######################################################
 #   - PBS/Torque (qsub)
