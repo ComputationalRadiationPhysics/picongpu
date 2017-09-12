@@ -54,7 +54,6 @@
 #       include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #   endif
 
-#   include "picongpu/plugins/LiveViewPlugin.hpp"
 #   include "picongpu/plugins/SliceFieldPrinterMulti.hpp"
 #   if(SIMDIM==DIM3)
 #       include "picongpu/plugins/IntensityPlugin.hpp"
@@ -167,7 +166,6 @@ private:
         CountParticles<bmpl::_1>,
         PngPlugin< Visualisation<bmpl::_1, PngCreator> >
 #if( PMACC_CUDA_ENABLED == 1 )
-        , LiveViewPlugin<bmpl::_1>
         , PositionsParticles<bmpl::_1>
         , plugins::particleMerging::ParticleMerger<bmpl::_1>
 #   if(ENABLE_HDF5 == 1)

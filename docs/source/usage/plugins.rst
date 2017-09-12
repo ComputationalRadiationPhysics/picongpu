@@ -16,7 +16,6 @@ Plugin name                                                                   sh
 :ref:`HDF5 <usage-plugins-HDF5>` [#f2]_                                       stores simulation data as libSplash-flavoured HDF5 files
 :ref:`ISAAC <usage-plugins-ISAAC>`                                            interactive 3D live visualization
 :ref:`intensity <usage-plugins-intensity>` [#f1]_ [#f5]_                      maximum and integrated electric field along the y-direction
-:ref:`live view module <usage-plugins-liveView2D>` [#f5]_                     png based 2D live output
 :ref:`particle calorimeter <usage-plugins-particleCalorimeter>` [#f3]_ [#f4]_ spatially resolved, particle energy detector in infinite distance
 :ref:`particle merger <usage-plugins-particleMerger>`                         macro particle merging
 :ref:`phase space <usage-plugins-phaseSpace>` [#f3]_                          calculate 2D phase space

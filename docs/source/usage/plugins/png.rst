@@ -147,7 +147,7 @@ The data structures used are those available in PIConGPU.
 
 .. code:: cpp
 
-   /* png preview and liveview settings for each channel */
+   /* png preview settings for each channel */
    DINLINE float_X preChannel1( float3_X const & field_B, float3_X const & field_E, float3_X const & field_J )
    {
        /* Channel1 
