@@ -19,7 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-this_dir=`dirname $0`
+this_dir=$(cd $(dirname $0) && pwd)
 
 # only copy submit and params if we clone from default pic folder
 default_folder_to_copy="etc/picongpu include/picongpu/simulation_defines/param include/picongpu/simulation_defines/unitless lib"
