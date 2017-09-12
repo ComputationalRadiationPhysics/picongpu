@@ -127,21 +127,25 @@ done
 extension_param="$*"
 
 if [ ! -d "$extension_param" ] ; then
-   echo "Path \"$extension_param\" does not exist." >&2
-   exit 1
+    echo "Path \"$extension_param\" does not exist." >&2
+    exit 1
 fi
-#check for cmakeFlags file (interprete with sh)
+# check for cmakeFlags file (interprete with sh)
 if [ -f "$extension_param/cmakeFlags" ] ; then
     cmake_flags=$($extension_param/cmakeFlags $cmakeFlagsNr)
 fi
 
-#set default install path if no path is set by paramater
+# set default install path if no path is set by paramater
 if [ -z "$install_path" ] ; then
-   install_path="-DCMAKE_INSTALL_PREFIX=$extension_param"
+    install_path="-DCMAKE_INSTALL_PREFIX=$extension_param"
 fi
 extension_param="-DPIC_EXTENSION_PATH=$extension_param"
 
-
+# warn on missing backend selection
+if [ -z "$alpaka_backend" ] ; then
+    echo "Warning: no compute backend set! " >&2
+    echo "(Use -b|--backend or export PIC_BACKEND)" >&2
+fi
 
 own_command="cmake $cmake_flags $install_path $extension_param $cmake_options $alpaka_backend $this_dir/include/picongpu"
 echo -e "\033[32mcmake command:\033[0m $own_command"
