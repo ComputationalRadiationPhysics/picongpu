@@ -179,7 +179,7 @@ For running on a CPU instead of a GPU, set this:
    Compiling a backend for the wrong architecture does in the best case dramatically reduce your performance and in the worst case will not run at all!
 
    During configure, the backend's architecture is forwarded to the compiler's ``-mtune`` and ``-march`` flags.
-   For example, if you are compiling for running on AMD Opteron 6276 CPUs set ``-b omp2b:bdver1``.
+   For example, if you are compiling with GCC for running on `AMD Opteron 6276 CPUs <https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html>`_ set ``-b omp2b:bdver1``.
 
 See ``pic-configure --help`` for more options during input set configuration:
 
