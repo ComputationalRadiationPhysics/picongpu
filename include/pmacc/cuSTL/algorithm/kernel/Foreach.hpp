@@ -26,6 +26,7 @@
 #include "pmacc/math/vector/Int.hpp"
 #include "detail/SphericMapper.hpp"
 #include "detail/ForeachKernel.hpp"
+#include "pmacc/cuSTL/zone/SphericZone.hpp"
 #include "pmacc/forward.hpp"
 
 #include <boost/preprocessor/repetition/enum.hpp>
@@ -92,11 +93,57 @@ struct Foreach
     BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), FOREACH_OPERATOR, _)
 };
 
+
 #undef FOREACH_OPERATOR
 #undef SHIFT_CURSOR_ZONE
 #undef SHIFTED_CURSOR
 
+template<
+    uint32_t T_numWorkers,
+    typename BlockDim
+>
+struct ForeachLockstep
+{
+
+    /* operator()(zone, functor, cursor0, cursor1, ..., cursorN-1)
+     *
+     * @param zone Accepts currently only a zone::SphericZone object (e.g. containerObj.zone())
+     * @param functor either a functor with N arguments
+     * @param args cursor for the N-th data source (e.g. containerObj.origin())
+     *
+     * The functor is called for each worker within the zone.
+     * It is called like
+     * @code[.cpp}
+     * functor(*cursor0(cellBlockOffset), ..., *cursorN(cellBlockOffset))
+     * @endcode
+     */
+    template<
+        int T_dim,
+        typename T_Functor,
+        typename... T_Args
+    >
+    void operator()(
+        zone::SphericZone< T_dim > const & p_zone,
+        T_Functor & functor,
+        T_Args ... args
+    )
+    {
+        detail::SphericMapper<
+            T_dim,
+            BlockDim
+        > mapper;
+
+         PMACC_KERNEL( detail::KernelForeachLockstep{ } )(
+            mapper.cudaGridDim( p_zone.size ),
+            T_numWorkers
+        )(
+            mapper,
+            functor,
+            args( p_zone.offset )...
+        );
+    }
+};
+
 } // kernel
 } // algorithm
 } // pmacc
-
