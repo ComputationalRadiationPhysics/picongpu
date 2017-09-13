@@ -26,7 +26,7 @@
 # Sets batch job's name
 #PBS -N !TBG_jobName
 #PBS -l nodes=!TBG_nodes:ppn=!TBG_coresPerNode
-#PBS -l mem=256GB
+#PBS -l mem=!TBG_globalMainMemStr
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
 #PBS -m !TBG_mailSettings -M !TBG_mailAddress
 #PBS -d !TBG_dstPath
@@ -53,6 +53,9 @@
 
 # use ceil to caculate nodes
 .TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+# main memory used for the job
+.TBG_globalMainMem=$(( TBG_nodes * 256 ))
+.TBG_globalMainMemStr="!TBG_globalMainMem"GB
 ## end calculations ##
 
 echo 'Running program...'
