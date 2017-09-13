@@ -72,7 +72,7 @@ RUN        git clone --depth 50 --branch $PICONGPU_BRANCH \
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/examples/LaserWakefield $HOME/paramSets/lwfa && \
                cd build && \
-               pic-configure -a "cuda:20;35;37;50;60" $HOME/paramSets/lwfa && \
+               pic-configure -b "cuda:20;35;37;50;60" $HOME/paramSets/lwfa && \
                make -j install && \
                rm -rf ../build/*'
 
