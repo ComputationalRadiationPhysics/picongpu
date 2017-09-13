@@ -42,6 +42,7 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/traits/HasIdentifier.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
@@ -1195,8 +1196,6 @@ private:
        * Particles in a Frame can be accessed in parallel.
        */
 
-      const auto blockDim_rad = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
-
       // Some funny things that make it possible for the kernel to calculate
       // the absolute position of the particles
       DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
@@ -1205,11 +1204,19 @@ private:
       DataSpace<simDim> globalOffset(subGrid.getLocalDomain().offset);
       globalOffset.y() += (localSize.y() * numSlides);
 
+      constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+          pmacc::math::CT::volume< SuperCellSize >::type::value
+      >::value;
+
 
       // PIC-like kernel call of the radiation kernel
-      PMACC_KERNEL(KernelRadiationParticles<dependenciesFulfilled>{})
-        (gridDim_rad, blockDim_rad)
-        (
+      PMACC_KERNEL( KernelRadiationParticles<
+          numWorkers,
+          dependenciesFulfilled
+      >{} )(
+          gridDim_rad,
+          numWorkers
+      )(
          /*Pointer to particles memory on the device*/
          particles->getDeviceParticlesBox(),
 
@@ -1219,7 +1226,7 @@ private:
          currentStep, *cellDescription,
          freqFkt,
          subGrid.getGlobalDomain().size
-         );
+      );
 
       dc.releaseData( ParticlesType::FrameType::getName() );
 

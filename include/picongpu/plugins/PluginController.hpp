@@ -47,8 +47,6 @@
 #   include "picongpu/plugins/ChargeConservation.hpp"
 #   include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
 #   if(ENABLE_HDF5 == 1)
-#       include "picongpu/plugins/radiation/parameters.hpp"
-#       include "picongpu/plugins/radiation/Radiation.hpp"
 #       include "picongpu/plugins/particleCalorimeter/ParticleCalorimeter.hpp"
 #       include "picongpu/plugins/PhaseSpace/PhaseSpaceMulti.hpp"
 #       include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
@@ -65,7 +63,9 @@
 #endif
 
 #if (ENABLE_HDF5 == 1)
-#include "picongpu/plugins/hdf5/HDF5Writer.hpp"
+#   include "picongpu/plugins/radiation/parameters.hpp"
+#   include "picongpu/plugins/radiation/Radiation.hpp"
+#   include "picongpu/plugins/hdf5/HDF5Writer.hpp"
 #endif
 
 #include "picongpu/plugins/ResourceLog.hpp"
@@ -165,11 +165,13 @@ private:
         BinEnergyParticles<bmpl::_1>,
         CountParticles<bmpl::_1>,
         PngPlugin< Visualisation<bmpl::_1, PngCreator> >
+#if(ENABLE_HDF5 == 1)
+        , Radiation<bmpl::_1>
+#endif
 #if( PMACC_CUDA_ENABLED == 1 )
         , PositionsParticles<bmpl::_1>
         , plugins::particleMerging::ParticleMerger<bmpl::_1>
 #   if(ENABLE_HDF5 == 1)
-        , Radiation<bmpl::_1>
         , PerSuperCell<bmpl::_1>
         , ParticleCalorimeter<bmpl::_1>
         , PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, bmpl::_1>
