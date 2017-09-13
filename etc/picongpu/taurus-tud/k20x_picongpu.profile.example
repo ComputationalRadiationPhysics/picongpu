@@ -55,6 +55,6 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
-#   - "gpu" queue
+#   - "gpu1" queue
 export TBG_SUBMIT="sbatch"
-export TBG_TPLFILE="etc/picongpu/taurus-tud/k80.tpl"
+export TBG_TPLFILE="etc/picongpu/taurus-tud/k20x.tpl"

@@ -11,8 +11,8 @@ then
         module load gcc/4.9.2
         module load cmake/3.7.2
         module load boost/1.62.0
-        module load openmpi/1.8.6
-        module load numactl
+        module load cuda/8.0
+        module load openmpi/1.8.6.kepler.cuda80
 
         # Plugins (optional)
         module load pngwriter/0.6.0
@@ -30,10 +30,11 @@ fi
 
 # Environment #################################################################
 #
-alias getNode='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=64'
+alias getNode='qsub -I -q k20 -lwalltime=00:30:00 -lnodes=1:ppn=8'
+alias getlaser='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=16'
 
-export PICSRC=/home/`whoami`/src/picongpu
-export PIC_BACKEND="omp2b:bdver1"
+export PICSRC=/home/$(whoami)/src/picongpu
+export PIC_BACKEND="cuda:35"
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
@@ -49,6 +50,6 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
 # "tbg" default options #######################################################
 #   - PBS/Torque (qsub)
-#   - "laser" queue
+#   - "k20" queue
 export TBG_SUBMIT="qsub"
-export TBG_TPLFILE="etc/picongpu/hypnos-hzdr/laser.tpl"
+export TBG_TPLFILE="etc/picongpu/hypnos-hzdr/k20.tpl"
