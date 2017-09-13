@@ -26,6 +26,14 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 .. literalinclude:: profiles/hypnos-hzdr/picongpu.profile.example
    :language: bash
 
+Hydra (HZDR)
+-------------
+
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
+
+.. literalinclude:: profiles/hydra-hzdr/default_picongpu.profile.example
+   :language: bash
+
 Titan (ORNL)
 ------------
 
