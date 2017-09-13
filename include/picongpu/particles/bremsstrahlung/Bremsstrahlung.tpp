@@ -78,7 +78,7 @@ template<
     typename T_PhotonSpecies
 >
 template<
-    typename T_Acc ,
+    typename T_Acc,
     typename T_WorkerCfg
 >
 DINLINE void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::collectiveInit(

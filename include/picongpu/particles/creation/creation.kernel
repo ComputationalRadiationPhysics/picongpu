@@ -85,6 +85,8 @@ namespace creation
 
         /** Goes over all frames and calls `ParticleCreator`
          *
+         * @tparam T_Acc alpaka accelerator type
+         *
          * @param blockCell n-dim. block offset (in cells) relative to the origin
          *                  of the local domain plus guarding cells
          */
@@ -356,12 +358,12 @@ namespace creation
                         {
                             if( 0 <= targetParIdCtx[ idx ] &&  targetParIdCtx[ idx ] < maxParticlesInFrame )
                             {
-                                // each thread makes the attributes of its source particle accessible
+                                // each virtual worker makes the attributes of its source particle accessible
                                 auto sourceParticle = sourceFrame[ linearIdx ];
-                                // each thread initializes an target particle if one should be created
+                                // each virtual worker initializes a target particle if one should be created
                                 auto targetParticle = targetFrame[ targetParIdCtx[ idx ] ];
 
-                                // create an target particle in the new target particle frame:
+                                // create a target particle in the new target particle frame:
                                 particleCreatorCtx[ idx ](
                                     acc,
                                     sourceParticle,
@@ -402,7 +404,7 @@ namespace creation
                     __syncthreads( );
 
                     /* < CREATE 2 >
-                     * - the thread writes an target particle to the new frame
+                     * - the thread writes a target particle to the new frame
                      * - the internal counter is decremented by 1
                      */
                     forEachParticle(
@@ -417,10 +419,10 @@ namespace creation
 
                                 // each thread makes the attributes of its source particle accessible
                                 auto sourceParticle = sourceFrame[ linearIdx ];
-                                // each thread initializes an target particle if one should be created
+                                // each thread initializes a target particle if one should be created
                                 auto targetParticle = targetFrame[ targetParIdCtx[ idx ] ];
 
-                                // create an target particle in the new target particle frame:
+                                // create a target particle in the new target particle frame:
                                 particleCreatorCtx[ idx ](
                                     acc,
                                     sourceParticle,
