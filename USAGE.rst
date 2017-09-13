@@ -98,7 +98,7 @@ For example, if you want to run on the HPC System `"Hypnos" at HZDR <https://www
    :emphasize-lines: 2
 
    # request 16 GPUs from the PBS batch system and run on the queue k20
-   tbg -s qsub -c etc/picongpu/0016gpus.cfg -t etc/picongpu/hypnos-hzdr/k20_profile.tpl $SCRATCH/runs/lwfa_002
+   tbg -s qsub -c etc/picongpu/0016gpus.cfg -t etc/picongpu/hypnos-hzdr/k20.tpl $SCRATCH/runs/lwfa_002
 
 pic-create
 """"""""""

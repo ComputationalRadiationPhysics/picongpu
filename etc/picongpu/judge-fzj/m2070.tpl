@@ -68,16 +68,11 @@ pwd
 
 
 export MODULES_NO_OUTPUT=1
-
-export CUDA_ROOT=$CUDAROOT
-export CUDA_LIB=$CUDAROOT/lib64
-export SPLASH_ROOT=~/src/splash/src
-export PNGWRITER_ROOT=~/lib/pngwriter
-export HDF5_ROOT=~/lib/hdf5
-export HDF5_INC=$HDF5_ROOT/include
-export HDF5_LIB=$HDF5_ROOT/lib
-export LD_LIBRARY_PATH=$BOOST_LIB_EXT:$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib:$CUDA_ROOT/lib64/:$CUDA_ROOT/lib:$HDF5_ROOT/lib:$MPI_ROOT/lib:$BOOST_LIB
-
+source !TBG_profile
+if [ $? -ne 0 ] ; then
+  echo "Error: PIConGPU environment profile under \"!TBG_profile\" not found!"
+  exit 1
+fi
 
 mkdir simOutput 2> /dev/null
 cd simOutput
@@ -90,5 +85,5 @@ else
 fi
 
 if [ $? -eq 0 ] ; then
-   mpiexec  -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+   mpiexec -np !TBG_tasks --mca mpi_leave_pinned 0 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
 fi

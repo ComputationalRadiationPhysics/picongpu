@@ -57,6 +57,6 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
-#   - fermi queue (also available: 2 K20 via k20_profile.tpl)
+#   - fermi queue (also available: 2 K20 via k20.tpl)
 export TBG_SUBMIT="sbatch"
-export TBG_TPLFILE="etc/picongpu/lawrencium-lbnl/fermi_profile.tpl"
+export TBG_TPLFILE="etc/picongpu/lawrencium-lbnl/fermi.tpl"

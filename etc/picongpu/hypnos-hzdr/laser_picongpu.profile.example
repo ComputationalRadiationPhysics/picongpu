@@ -59,4 +59,4 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 #   - PBS/Torque (qsub)
 #   - "laser" queue
 export TBG_SUBMIT="qsub"
-export TBG_TPLFILE="etc/picongpu/hypnos-hzdr/laser_profile.tpl"
+export TBG_TPLFILE="etc/picongpu/hypnos-hzdr/laser.tpl"

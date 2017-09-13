@@ -65,7 +65,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #   - SLURM (sbatch)
 #   - "normal" queue
 export TBG_SUBMIT="sbatch"
-export TBG_TPLFILE="etc/picongpu/pizdaint-cscs/normal_profile.tpl"
+export TBG_TPLFILE="etc/picongpu/pizdaint-cscs/normal.tpl"
 
 # helper tools ################################################################
 
