@@ -21,9 +21,24 @@ We listed some example ``picongpu.profile`` files below which can be used to set
 Hypnos (HZDR)
 -------------
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
 
-.. literalinclude:: profiles/hypnos-hzdr/picongpu.profile.example
+Queue: laser (AMD Opteron 6276 CPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/hypnos-hzdr/laser_picongpu.profile.example
+   :language: bash
+
+Queue: k20 (Nvidia K20 GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/hypnos-hzdr/k20_picongpu.profile.example
+   :language: bash
+
+Queue: k80 (Nvidia K80 GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/hypnos-hzdr/k80_picongpu.profile.example
    :language: bash
 
 Hydra (HZDR)
@@ -53,10 +68,24 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 Taurus (TU Dresden)
 -------------------
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and libSplash <install-dependencies>` manually.
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and libSplash <install-dependencies>` manually.
 
-.. literalinclude:: profiles/taurus-tud/picongpu.profile.example
+Queue: gpu1 (Nvidia K20x GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/taurus-tud/k20x_picongpu.profile.example
    :language: bash
+
+Queue: gpu2 (Nvidia K80 GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/taurus-tud/k80_picongpu.profile.example
+   :language: bash
+
+Queue: knl (Intel  Intel Xeon Phi - Knights Landing)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+(example missing)
 
 Lawrencium (LBNL)
 -----------------

@@ -30,11 +30,11 @@ fi
 
 # Environment #################################################################
 #
-alias getk20='qsub -I -q k20 -lwalltime=00:30:00 -lnodes=1:ppn=8'
+alias getNode='qsub -I -q k80 -lwalltime=00:30:00 -lnodes=1:ppn=16'
 alias getlaser='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=16'
 
 export PICSRC=/home/$(whoami)/src/picongpu
-export PIC_BACKEND="cuda:35"
+export PIC_BACKEND="cuda:37"
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
@@ -48,16 +48,8 @@ export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
-# Development #################################################################
-#
-#function make
-#{
-#  real_make=$(which make)
-#  $real_make $* 2>&1 | $HOME/grcat/usr/bin/grcat conf.gcc
-#}
-
 # "tbg" default options #######################################################
 #   - PBS/Torque (qsub)
-#   - "k20" queue
+#   - "k80" queue
 export TBG_SUBMIT="qsub"
-export TBG_TPLFILE="etc/picongpu/hypnos-hzdr/k20.tpl"
+export TBG_TPLFILE="etc/picongpu/hypnos-hzdr/k80.tpl"
