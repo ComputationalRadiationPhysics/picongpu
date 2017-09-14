@@ -39,7 +39,7 @@ help()
     echo "                       syntax: backend[:architecture]"
     echo "                       supported backends: cuda, omp2b"
     echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
-    echo "                       default: via environment variable PIC_BACKEND"
+    echo "                       default: \"cuda\" if not set via environment variable PIC_BACKEND"
     echo "-c | --cmake         - overwrite options for cmake"
     echo "                       (e.g.: \"-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
@@ -86,7 +86,7 @@ cmakeFlagsNr=0
 
 # set a default backend (and architecture) if supplied via environment var
 # note: can be overwritten with a command line flag
-pic_backend=${PIC_BACKEND:-""}
+pic_backend=${PIC_BACKEND:-"cuda"}
 if [ -n "$pic_backend" ]
 then
     alpaka_backend=$(get_backend_flags $pic_backend)
