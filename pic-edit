@@ -67,7 +67,7 @@ help()
 {
     echo "Edit compile-time options for a PIConGPU input set"
     echo ""
-    echo 'Opens .param files in an input set with the default "$EDITOR".'
+    echo 'Opens .param files in an input set with the default "EDITOR".'
     echo "If a .param file is not yet part of the input set but exists in the"
     echo "defaults, it will be transparently added to the input set."
     echo ""
@@ -79,7 +79,7 @@ help()
         test_editor="NOT FOUND"
     fi
     echo "The currently selected editor is: $test_editor"
-    echo 'You can change it via the "$EDITOR" environment variable.'
+    echo 'You can change it via the "EDITOR" environment variable.'
     echo ""
     echo "usage: pic-edit <input>"
     echo ""
@@ -148,9 +148,15 @@ use_editor="$(find_editor)"
 if [ $? -ne 0 ]
 then
     echo 'ERROR: Could not find a working text editor!' >&2
-    echo '       You might want to set the "$EDITOR" environment variable.' >&2
+    echo '       You might want to set the "EDITOR" environment variable.' >&2
     exit 3
 fi
 
 # open the files for editing
 $use_editor $file_paths
+editor_exit=$?
+
+# remove new files that are unchanged
+# TODO: grep -Fxvf file1 file2
+
+exit $editor_exit
