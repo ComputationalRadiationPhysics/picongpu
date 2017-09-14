@@ -36,6 +36,7 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/traits/Resolve.hpp>
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 
 namespace picongpu
@@ -104,6 +105,57 @@ namespace ionization
 
             }
 
+            /** cache fields used by this functor
+             *
+             * @warning this is a collective method and calls synchronize
+             *
+             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+             *
+             * @param acc alpaka accelerator
+             * @param blockCell relative offset (in cells) to the local domain plus the guarding cells
+             * @param workerCfg configuration of the worker
+             */
+            template<
+                typename T_Acc ,
+                typename T_WorkerCfg
+            >
+            DINLINE void collectiveInit(
+                const T_Acc & acc,
+                const DataSpace<simDim>& blockCell,
+                const T_WorkerCfg & workerCfg
+            )
+            {
+
+                /* caching of E field */
+                cachedE = CachedBox::create<
+                    1,
+                    ValueType_E
+                >(
+                    acc,
+                    BlockArea()
+                );
+
+                /* instance of nvidia assignment operator */
+                nvidia::functors::Assign assign;
+
+                ThreadCollective<
+                    BlockArea,
+                    T_WorkerCfg::numWorkers
+                > collective( workerCfg.getWorkerIdx( ) );
+                /* copy fields from global to shared */
+                auto fieldEBlock = eBox.shift(blockCell);
+                collective(
+                          acc,
+                          assign,
+                          cachedE,
+                          fieldEBlock
+                          );
+
+                /* wait for shared memory to be initialized */
+                __syncthreads();
+            }
+
             /** Initialization function on device
              *
              * \brief Cache EM-fields on device
@@ -128,31 +180,6 @@ namespace ionization
                 const DataSpace<simDim>& localCellOffset
             )
             {
-
-                /* caching of E field */
-                cachedE = CachedBox::create<
-                    1,
-                    ValueType_E
-                >(
-                    acc,
-                    BlockArea()
-                );
-
-                /* instance of nvidia assignment operator */
-                nvidia::functors::Assign assign;
-
-                ThreadCollective<
-                    BlockArea,
-                    pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
-                > collective( linearThreadIdx );
-                /* copy fields from global to shared */
-                auto fieldEBlock = eBox.shift(blockCell);
-                collective(
-                          acc,
-                          assign,
-                          cachedE,
-                          fieldEBlock
-                          );
             }
 
             /** Determine number of new macro electrons due to ionization

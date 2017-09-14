@@ -35,6 +35,7 @@
 #include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 #include <boost/type_traits/integral_constant.hpp>
 
@@ -191,6 +192,70 @@ namespace ionization
 
             }
 
+            /** cache fields used by this functor
+             *
+             * @warning this is a collective method and calls synchronize
+             *
+             * @tparam T_Acc alpaka accelerator type
+             * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
+             *
+             * @param acc alpaka accelerator
+             * @param blockCell relative offset (in cells) to the local domain plus the guarding cells
+             * @param workerCfg configuration of the worker
+             */
+            template<
+                typename T_Acc ,
+                typename T_WorkerCfg
+            >
+            DINLINE void collectiveInit(
+                const T_Acc & acc,
+                const DataSpace<simDim>& blockCell,
+                const T_WorkerCfg & workerCfg
+            )
+            {
+                /* caching of density and "temperature" fields */
+                cachedRho = CachedBox::create<
+                    0,
+                    ValueType_Rho
+                >(
+                    acc,
+                    BlockArea()
+                );
+                cachedEne = CachedBox::create<
+                    1,
+                    ValueType_Ene
+                >(
+                    acc,
+                    BlockArea()
+                );
+
+                /* instance of nvidia assignment operator */
+                nvidia::functors::Assign assign;
+                /* copy fields from global to shared */
+                auto fieldRhoBlock = rhoBox.shift(blockCell);
+                ThreadCollective<
+                    BlockArea,
+                    T_WorkerCfg::numWorkers
+                > collective( workerCfg.getWorkerIdx( ) );
+                collective(
+                          acc,
+                          assign,
+                          cachedRho,
+                          fieldRhoBlock
+                          );
+                /* copy fields from global to shared */
+                auto fieldEneBlock = eneBox.shift(blockCell);
+                collective(
+                          acc,
+                          assign,
+                          cachedEne,
+                          fieldEneBlock
+                          );
+
+                /* wait for shared memory to be initialized */
+                __syncthreads();
+            }
+
             /** Initialization function on device
              *
              * Cache density and energy density fields on device and initialize
@@ -216,49 +281,6 @@ namespace ionization
                 const DataSpace<simDim>& localCellOffset
             )
             {
-
-                /* caching of density and "temperature" fields */
-                cachedRho = CachedBox::create<
-                    0,
-                    ValueType_Rho
-                >(
-                    acc,
-                    BlockArea()
-                );
-                cachedEne = CachedBox::create<
-                    1,
-                    ValueType_Ene
-                >(
-                    acc,
-                    BlockArea()
-                );
-
-                /* instance of nvidia assignment operator */
-                nvidia::functors::Assign assign;
-                /* copy fields from global to shared */
-                auto fieldRhoBlock = rhoBox.shift(blockCell);
-                ThreadCollective<
-                    BlockArea,
-                    pmacc::math::CT::volume< typename BlockArea::SuperCellSize >::type::value
-                > collective( linearThreadIdx );
-                collective(
-                          acc,
-                          assign,
-                          cachedRho,
-                          fieldRhoBlock
-                          );
-                /* copy fields from global to shared */
-                auto fieldEneBlock = eneBox.shift(blockCell);
-                collective(
-                          acc,
-                          assign,
-                          cachedEne,
-                          fieldEneBlock
-                          );
-
-                /* wait for shared memory to be initialized */
-                __syncthreads();
-
                 /* initialize random number generator with the local cell index in the simulation */
                 this->randomGen.init(localCellOffset);
             }

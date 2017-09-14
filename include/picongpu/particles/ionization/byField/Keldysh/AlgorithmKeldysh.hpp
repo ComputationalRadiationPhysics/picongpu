@@ -70,7 +70,7 @@ namespace ionization
             if ( chargeState < protonNumber )
             {
                 uint32_t const cs = math::float2int_rd(chargeState);
-                const float_X iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
+                const float_X iEnergy = typename GetIonizationEnergies<ParticleType>::type{ }[cs];
 
                 const float_X pi = precisionCast<float_X>(M_PI);
                 /* electric field in atomic units - only absolute value */

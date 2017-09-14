@@ -41,11 +41,6 @@
 #include "picongpu/particles/Particles.hpp"
 #include <boost/mpl/string.hpp>
 
-#if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/particles/ionization/byField/ionizers.def"
-#   include "picongpu/particles/ionization/byCollision/ionizers.def"
-#endif
-
 namespace picongpu
 {
 

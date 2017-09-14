@@ -71,7 +71,7 @@ namespace ionization
             {
                 uint32_t const cs = math::float2int_rd(chargeState);
                 /* ionization potential in atomic units */
-                float_X const iEnergy = GetIonizationEnergies<ParticleType>::type()[cs];
+                float_X const iEnergy = typename GetIonizationEnergies<ParticleType>::type{ }[cs];
                 /* the charge that attracts the electron that is to be ionized:
                  * equals `protonNumber - no. allInnerElectrons`
                  */

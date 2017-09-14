@@ -27,13 +27,13 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
+#include "picongpu/particles/traits/GetIonizerList.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/particles/traits/GetIonizerList.hpp"
 #   include "picongpu/particles/traits/GetPhotonCreator.hpp"
 #   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #   include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
-#   include "picongpu/particles/creation/creation.hpp"
 #endif
+#include "picongpu/particles/creation/creation.hpp"
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
 #include "picongpu/particles/flylite/IFlyLite.hpp"
@@ -298,7 +298,6 @@ struct PushAllSpecies
     }
 };
 
-#if( PMACC_CUDA_ENABLED == 1 )
 /** Call an ionization method upon an ion species
  *
  * \tparam T_SpeciesType type of particle species that is going to be ionized with
@@ -393,6 +392,8 @@ struct CallIonization
     }
 
 };
+
+#if( PMACC_CUDA_ENABLED == 1 )
 
 /** Handles the bremsstrahlung effect for electrons on ions.
  *
