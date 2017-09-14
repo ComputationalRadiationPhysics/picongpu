@@ -19,11 +19,10 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
-
 #include <vector>
 #include <list>
 #include <iostream>
+#include <cstdint>
 
 namespace picongpu
 {
