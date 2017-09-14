@@ -1,6 +1,9 @@
+# Text Editor for Tools #######################################################
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
 # Modules #####################################################################
 #
-
 if [ -f /etc/profile.modules ]
 then
         . /etc/profile.modules
@@ -32,7 +35,7 @@ fi
 #
 alias getNode='qsub -I -q laser -lwalltime=00:30:00 -lnodes=1:ppn=64'
 
-export PICSRC=/home/`whoami`/src/picongpu
+export PICSRC=/home/$(whoami)/src/picongpu
 export PIC_BACKEND="omp2b:bdver1"
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 

@@ -1,5 +1,11 @@
 export proj=<yourProject>
 
+# Text Editor for Tools #######################################################
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
+# Modules######################################################################
+#
 module unload intel
 module swap PE-intel PE-gnu
 

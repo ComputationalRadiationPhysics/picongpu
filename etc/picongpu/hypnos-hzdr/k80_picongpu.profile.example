@@ -1,6 +1,9 @@
+# Text Editor for Tools #######################################################
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
 # Modules #####################################################################
 #
-
 if [ -f /etc/profile.modules ]
 then
         . /etc/profile.modules
