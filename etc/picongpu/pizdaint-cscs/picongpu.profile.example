@@ -1,8 +1,8 @@
-# this file is loaded from all PIConGPU template *.tpl files, therefore please
-# copy this file to $SCRATCH/picongpu.profile
-#
+# Text Editor for Tools #######################################################
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
 
-# General modules #############################################################
+# General Modules #############################################################
 #
 # if the wrong environment is loaded we switch to the gnu environment
 module li 2>&1 | grep "PrgEnv-cray" > /dev/null

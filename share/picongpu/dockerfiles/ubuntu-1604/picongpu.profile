@@ -1,3 +1,7 @@
+# Text Editor for Tools #######################################################
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
 # Modules #####################################################################
 #
 . /usr/share/lmod/5.8/init/bash
