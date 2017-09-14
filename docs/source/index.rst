@@ -40,7 +40,7 @@ Installation
    :maxdepth: 1
 
    install/path
-   install/compile
+   install/instructions
    install/dependencies
    install/profile
 
