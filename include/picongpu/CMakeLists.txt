@@ -374,7 +374,16 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 # Compile & Link PIConGPU
 ################################################################################
 
+# files with accelerator code (kernel and API calls)
+list(APPEND ACCSRCFILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/versionFormat.cpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/plugins/common/particlePatches.cpp"
+)
+
+# host-only sources
 file(GLOB_RECURSE SRCFILES "*.cpp")
+list(REMOVE_ITEM SRCFILES ${ACCSRCFILES})
 
 add_library(picongpu-hostonly
     STATIC
@@ -382,9 +391,8 @@ add_library(picongpu-hostonly
 )
 target_link_libraries(picongpu-hostonly PUBLIC ${LIBS})
 
-
 cupla_add_executable(picongpu
-    ${SRCFILES}
+     ${ACCSRCFILES}
 )
 
 target_link_libraries(picongpu PUBLIC ${LIBS} picongpu-hostonly)
