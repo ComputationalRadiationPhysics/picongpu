@@ -378,7 +378,6 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 list(APPEND ACCSRCFILES
     "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/versionFormat.cpp"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/plugins/common/particlePatches.cpp"
 )
 
 # host-only sources

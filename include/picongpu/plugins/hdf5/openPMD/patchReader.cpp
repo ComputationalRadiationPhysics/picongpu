@@ -55,7 +55,8 @@ namespace openPMD
         assert( typeid(*colType) == typeid(splash::ColTypeUInt64) );
 
         // free collections
-        __delete( colType );
+        delete( colType );
+        colType = nullptr;
     }
 
     void PatchReader::readPatchAttribute(
