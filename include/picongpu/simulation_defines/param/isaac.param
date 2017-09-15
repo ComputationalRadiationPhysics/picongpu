@@ -17,6 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Definition of native fields and density fields of particles which shall be
+ * visualized with ISAAC.
+ *
+ */
+
 #pragma once
 
 namespace picongpu
@@ -24,20 +31,23 @@ namespace picongpu
 namespace isaacP
 {
 
-    // Native fields to visualize
+    /** Compile time sequence of native fields of PIConGPU which shall be
+     *  visualized. */
     using Native_Seq = MakeSeq_t<
         FieldE,
         FieldB,
         FieldJ
     >;
 
-    // Creating a density field for every species to visualize
+    /** Compile time sequence of particle species, from which density fields
+     *  shall be created at runtime to visualize them. */
     using Density_Seq = bmpl::transform<
         VectorAllSpecies,
         CreateDensityOperation< bmpl::_1 >
     >::type;
 
-    // list of all fields to visualize
+    /** Compile time sequence of all fields which shall be visualized. Basically
+     *  the join of Native_Seq and Density_Seq. */
     using Fields_Seq = MakeSeq_t<
         Native_Seq,
         Density_Seq
