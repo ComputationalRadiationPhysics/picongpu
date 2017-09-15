@@ -271,6 +271,11 @@ struct GetMargin<picongpu::currentSolver::VillaBune<T_ParticleShape> >
 {
     typedef ::pmacc::math::CT::Int < 1, 1, 1 > LowerMargin;
     typedef ::pmacc::math::CT::Int < 2, 2, 2 > UpperMargin;
+
+    PMACC_CASSERT_MSG(
+        __VillaBune_supercell_is_to_small_for_stencil,
+        pmacc::math::CT::min< SuperCellSize >::type::value >= 2
+    );
 };
 
 } //namespace traits

@@ -48,6 +48,12 @@ struct Esirkepov<T_ParticleShape, DIM3>
     typedef pmacc::math::CT::Int<currentLowerMargin, currentLowerMargin, currentLowerMargin> LowerMargin;
     typedef pmacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
+    PMACC_CASSERT_MSG(
+        __Esirkepov_supercell_is_to_small_for_stencil,
+        pmacc::math::CT::min< SuperCellSize >::type::value >= currentLowerMargin &&
+        pmacc::math::CT::min< SuperCellSize >::type::value >= currentUpperMargin
+    );
+
     float_X charge;
 
     /* At the moment Esirkepov only support YeeCell were W is defined at origin (0,0,0)

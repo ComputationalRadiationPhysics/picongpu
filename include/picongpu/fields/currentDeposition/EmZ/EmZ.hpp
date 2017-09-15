@@ -44,6 +44,12 @@ struct EmZ
     typedef typename pmacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
     typedef typename pmacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
+    PMACC_CASSERT_MSG(
+        __EmZ_supercell_is_to_small_for_stencil,
+        pmacc::math::CT::min< SuperCellSize >::type::value >= currentLowerMargin &&
+        pmacc::math::CT::min< SuperCellSize >::type::value >= currentUpperMargin
+    );
+
 
     static constexpr int begin = -currentLowerMargin + 1;
     static constexpr int end = begin + supp;

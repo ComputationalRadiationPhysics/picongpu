@@ -51,6 +51,12 @@ struct FieldToParticleInterpolation
     typedef typename pmacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
     typedef typename pmacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
 
+    PMACC_CASSERT_MSG(
+        __FieldToParticleInterpolation_supercell_is_to_small_for_stencil,
+        pmacc::math::CT::min< SuperCellSize >::type::value >= lowerMargin &&
+        pmacc::math::CT::min< SuperCellSize >::type::value >= upperMargin
+    );
+
     /*(supp + 1) % 2 is 1 for even supports else 0*/
     static constexpr int begin = -supp / 2 + (supp + 1) % 2;
     static constexpr int end = begin+supp-1;
