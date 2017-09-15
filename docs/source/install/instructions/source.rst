@@ -8,8 +8,8 @@
 
    This section is a short introduction in case you are missing a few software packages, want to try out a cutting edge development version of a software or have no system administrator or software package manager to build and install software for you.
 
-Compiling from Source
-=====================
+From Source
+-----------
 
 .. sectionauthor:: Axel Huebl
 
@@ -24,7 +24,7 @@ Compiling a project from source essentially requires three steps:
 All of the above steps can be performed without administrative rights ("root" or "superuser") as long as the install is not targeted at a system directory (such as ``/usr``) but inside a user-writable directory (such as ``$HOME`` or a project directory).
 
 Preparation
------------
+^^^^^^^^^^^
 
 In order to compile projects from source, we assume you have individual directories created to store *source code*, *build temporary files* and *install* the projects to:
 
@@ -41,7 +41,7 @@ Note that on some supercomputing systems, you might need to install the final so
 Use a different path for the last directory then.
 
 Step-by-Step
-------------
+^^^^^^^^^^^^
 
 Compling can differ in two principle ways: building *inside* the source directory ("in-source") and in a *temporary directory* ("out-of-source").
 Modern projects prefer the latter and use a build system such as [CMake]_.
@@ -76,10 +76,10 @@ The syntax is still very similar:
    make install
 
 That's all!
-Continue with the following chapter to build our dependencies.
+Continue with the following section to build our dependencies.
 
 References
-----------
+^^^^^^^^^^
 
 .. [CMake]
         Kitware Inc.
