@@ -19,8 +19,15 @@
 
 /** @file
  *
- * Definition of native fields and density fields of particles which shall be
- * visualized with ISAAC.
+ * Definition which native fields and density fields of particles will be
+ * visualizable with ISAAC. ISAAC is an in-situ visualization library with which
+ * the PIC simulation can be observed while it is running avoiding the time
+ * consuming writing and reading of simulation data for the classical post
+ * processing of data.
+ * 
+ * ISAAC can directly visualize natives fields like the E or B field, but
+ * density fields of particles need to be calculated from PIConGPU beforehand
+ * which slightly increases the runtime.
  *
  */
 
@@ -31,7 +38,7 @@ namespace picongpu
 namespace isaacP
 {
 
-    /** Compile time sequence of native fields of PIConGPU which shall be
+    /** Intermediate list of native fields of PIConGPU which shall be
      *  visualized. */
     using Native_Seq = MakeSeq_t<
         FieldE,
@@ -39,7 +46,7 @@ namespace isaacP
         FieldJ
     >;
 
-    /** Compile time sequence of particle species, from which density fields
+    /** Intermediate list of particle species, from which density fields
      *  shall be created at runtime to visualize them. */
     using Density_Seq = bmpl::transform<
         VectorAllSpecies,
