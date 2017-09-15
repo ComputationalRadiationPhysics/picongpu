@@ -158,7 +158,7 @@ function run_cfg_and_get_solved_variables
     tooltpl_tbg_vars_overwritten=`apply_extra_vars tooltpl_tbg_vars tooltpl_extra_op`
 
     # get all variable definitions from the current environment
-    tooltpl_env=`set | grep "^[[:alpha:]][[:alnum:]_]*=.*" | grep -v tooltpl`
+    tooltpl_env=`set | grep "^[[:alpha:]][[:alnum:]_]*=.*" | grep -v tooltpl | grep -v TERMCAP`
 
     # append tpl variable assignments to the environment variables
     tooltpl_full_env=`echo -e "$tooltpl_env\n$tooltpl_tbg_vars_overwritten"`
