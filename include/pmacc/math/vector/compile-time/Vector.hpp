@@ -244,13 +244,29 @@ struct max
 
 //________________________M I N____________________________
 
-template<typename Lhs, typename Rhs>
+template<typename Lhs, typename Rhs = void>
 struct min
 {
     typedef typename applyOperator<
     typename Lhs::vector_type,
     typename Rhs::vector_type,
     mpl::min<mpl::_1, mpl::_2> >::type type;
+};
+
+template<typename T_Vec>
+struct min<
+    T_Vec,
+    void
+>
+{
+    typedef typename mpl::accumulate<
+        typename T_Vec::mplVector,
+        typename T_Vec::x,
+        mpl::min<
+            mpl::_1,
+            mpl::_2
+        >
+    >::type type;
 };
 
 //________________________D O T____________________________
