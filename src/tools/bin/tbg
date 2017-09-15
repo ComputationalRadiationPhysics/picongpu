@@ -43,7 +43,7 @@ function tooltpl_replace
         # echo " $data_set" > /dev/stderr
         tooltpl_src=`echo "$data_set" | cut -d"=" -f2- `
         #s/\$'//g delete $' ' before a multi line argument
-        tooltpl_src_esc=`echo "$tooltpl_src" | sed 's/\//\\\\\//g' | sed '/^[[:blank:]]*$/d'| sed "s/^\$'//g; s/^'//g; s/'$//; s/&/\\\\\&/g "`
+        tooltpl_src_esc=`echo "$tooltpl_src" | sed -e 's/[\/&]/\\\\&/g' | sed '/^[[:blank:]]*$/d'| sed "s/^\$'//g; s/^'//g; s/'$//; s/&/\\\\\&/g "`
         #echo $tooltpl_src_esc
         if [ -n  "$tooltpl_dst" ] ; then
            #echo "$tooltpl_dst $tooltpl_src_esc $tooltpl_src " > /dev/stderr
@@ -158,7 +158,7 @@ function run_cfg_and_get_solved_variables
     tooltpl_tbg_vars_overwritten=`apply_extra_vars tooltpl_tbg_vars tooltpl_extra_op`
 
     # get all variable definitions from the current environment
-    tooltpl_env=`set | grep "^[[:alpha:]][[:alnum:]_]*=.*" | grep -v tooltpl | grep -v TERMCAP`
+    tooltpl_env=`set | grep "^[[:alpha:]][[:alnum:]_]*=.*" | grep -v tooltpl`
 
     # append tpl variable assignments to the environment variables
     tooltpl_full_env=`echo -e "$tooltpl_env\n$tooltpl_tbg_vars_overwritten"`
