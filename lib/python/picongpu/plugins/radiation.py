@@ -41,8 +41,8 @@ class radiationHDF5:
         self.timestep = self.get_timestep()
 
         # Amplitude
-        detectorAmplitude = self.h5_file["/data/{}/DetectorMesh/" +
-                                         "Amplitude".format(self.timestep)]
+        detectorAmplitude = self.h5_file[("/data/{}/DetectorMesh/" +
+                                          "Amplitude").format(self.timestep)]
         # A_x
         self.h5_Ax_Re = detectorAmplitude["x_Re"]
         self.h5_Ax_Im = detectorAmplitude["x_Im"]

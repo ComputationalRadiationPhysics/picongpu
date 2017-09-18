@@ -74,8 +74,8 @@ def makeOddNumber(number, larger=True):
         else:
             return number - 1
     else:
-        error_msg = "ERROR: number (= {}) neather odd " + \
-                    "nor even".format(number)
+        error_msg = ("ERROR: number (= {}) neither odd " +
+                     "nor even").format(number)
         raise Exception(error_msg)
 
 
