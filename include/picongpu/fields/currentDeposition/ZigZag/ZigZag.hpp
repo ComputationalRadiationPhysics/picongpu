@@ -155,6 +155,12 @@ struct ZigZag
     typedef typename pmacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
     typedef typename pmacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
+    PMACC_CASSERT_MSG(
+        __ZigZag_supercell_is_to_small_for_stencil,
+        pmacc::math::CT::min< SuperCellSize >::type::value >= currentLowerMargin &&
+        pmacc::math::CT::min< SuperCellSize >::type::value >= currentUpperMargin
+    );
+
     /* calculate grid point where we calculate the assigned values
      * grid points are independent of particle position if we use
      * @see ShiftCoordinateSystem
