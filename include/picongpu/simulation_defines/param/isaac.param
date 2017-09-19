@@ -26,8 +26,14 @@
  * processing of data.
  * 
  * ISAAC can directly visualize natives fields like the E or B field, but
- * density fields of particles need to be calculated from PIConGPU beforehand
- * which slightly increases the runtime.
+ * density fields of particles need to be calculated from PIConGPU on the fly
+ * which slightly increases the runtime and the memory consumption. Every
+ * particle density field will reduce the amount of memory left for PIConGPUs
+ * particles and fields.
+ *
+ * To get best performance, ISAAC defines an exponential amount of different
+ * visualization kernels for every combination of (at runtime) activated
+ * fields. So furthermore a lot of fields will increase the compilation time.
  *
  */
 
