@@ -236,7 +236,7 @@ help()
     echo "create a new folder for a batch job and copy in all important files"
     echo ""
     echo "usage: tbg -c [cfgFile] [-s [submitsystem]] [-t [templateFile]]"
-    echo "          [-o \"VARNAME1=10 VARNAME2=5\"] [-h]"
+    echo "          [-o \"VARNAME1=10 VARNAME2=5\"] [-f] [-h]"
     echo "          [projectPath] destinationPath"
     echo ""
     echo "-c | --cfg      [file]         - Configuration file to set up batch file."
@@ -250,7 +250,7 @@ help()
     echo "                                 spaces within the right side of assign are not allowed"
     echo "                                 e.g. -o \"VARNAME1=10 VARNAME2=5\""
     echo "                                 Overwriting is done after cfg file was executed"
-    echo "-f | --force                   - Start new job even if TBG_dstPath exists."
+    echo "-f | --force                   - Override if TBG_dstPath exists."
     echo "-h | --help                    - Shows help (this output)."
     echo ""
     echo "[projectPath]                  - Project directory containing source code and"
@@ -427,12 +427,12 @@ fi
 start_dir=`dirname $0`
 
 if [ -d "$job_outDir" ] ; then
-	if [ "$force" = "true" ] ; then
-		echo "Warning: using existing folder for job on user-request ( -f )"
-	else
-		echo "job name already in use, can't create new folder"
-		exit 1
-	fi
+    if [ "$force" == "true" ] ; then
+        echo "Warning: using existing folder on user-request [-f]"
+    else
+        echo "destination path already in use, can't create new folder"
+        exit 1
+    fi
 fi
 
 #set TBG variables which can used in cfg and tpl file
