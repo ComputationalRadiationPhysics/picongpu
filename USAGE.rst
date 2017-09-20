@@ -41,7 +41,7 @@ Step-by-Step
    :emphasize-lines: 2
 
    # clone the LWFA example to $HOME/picInputs/myLWFA
-   pic-create $PICSRC/examples/LaserWakefield/ $HOME/picInputs/myLWFA
+   pic-create $PICSRC/share/picongpu/examples/LaserWakefield $HOME/picInputs/myLWFA
 
    # switch to your input directory
    cd $HOME/picInputs/myLWFA
