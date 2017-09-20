@@ -39,17 +39,17 @@ https://jupyter.readthedocs.io
 openPMD-viewer
 --------------
 
-A library that reads and visualizes data in our HDF5 files.
+A library that reads and visualizes data in our HDF5 files thanks to their :ref:`openPMD markup <pp-openPMD>`.
 Provides an API to correctly convert units to SI, interpret iteration steps correctly, annotate axis and much more.
 Also provides an interactive GUI for fast exploration via Jupyter notebooks.
 
 https://github.com/openPMD/openPMD-viewer/tree/master/tutorials
 
 
-yt-project (dev)
-----------------
+yt-project
+----------
 
-Starting with yt 3.4, our HDF5 output, which uses the openPMD markup, can be read, processed and visualized with yt.
+With yt 3.4 or newer, our HDF5 output, which uses the :ref:`openPMD markup <pp-openPMD>`, can be read, processed and visualized with yt.
 
 http://yt-project.org/docs/dev/
 
@@ -58,6 +58,6 @@ pyDive (experimental)
 ---------------------
 
 pyDive provides numpy-style array and file processing on distributed memory systems ("numpy on MPI" for data sets that are much larger than your local RAM).
-pyDive is currently not ready to interpret openPMD directly, but can work on generated raw ADIOS and HDF5 files.
+pyDive is currently not ready to interpret :ref:`openPMD <pp-openPMD>` directly, but can work on generated raw ADIOS and HDF5 files.
 
 https://github.com/ComputationalRadiationPhysics/pyDive
