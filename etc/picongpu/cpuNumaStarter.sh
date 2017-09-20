@@ -28,11 +28,12 @@
 # threads per numa node or socket.
 #
 # NUMA_HW_THREADS_PER_PHYSICAL_CORE is the number of used hardware threads
-# (read hyperthreads for Intel) per physical core. If hyperthreading shall not
+# (read "hyperthreads" for Intel) per physical core. If hyperthreading shall not
 # be used, use "export NUMA_HW_THREADS_PER_PHYSICAL_CORE=1" before using
 # cpuNumaStarter.sh
 #
-# dependencies: numactl, openmpi
+# dependencies: numactl, openmpi, hwloc or /proc/cpuinfo, whereby hwloc is more
+# accurate
 
 numactl --show &>/dev/null
 
@@ -40,16 +41,24 @@ if [ $? -eq 0 ] ; then
     numNumaNodes=`numactl --show | grep nodebind | awk '{print $NF}'`
     let numNumaNodes=numNumaNodes+1
 
-    numCoresPerSocket=`cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | awk '{print $NF}'`
+    numHardwareThreadsTotal=`hwloc-info | grep "PU (type #6)" | awk '{print $3}'`
+    if [ ! -n "$numHardwareThreadsTotal" ] ; then
+        numHardwareThreadsTotal=`cat /proc/cpuinfo | grep "processor" | sort -r -V | head -n 1 | awk '{print $NF}'`
+        let numHardwareThreadsTotal=numHardwareThreadsTotal+1
+    fi
 
-    numSockets=`cat /proc/cpuinfo | grep "physical id" | sort -r -V | head -n 1 | awk '{print $NF}'`
-    let numSockets=numSockets+1
+    numCoresTotal=`hwloc-info | grep "Core (type #5)" | awk '{print $3}'`
+    if [ ! -n "$numCoresTotal" ] ; then
+        # For some special cases like AMD Bulldozer on multiple sockets, this
+        # work around with /proc/cpuinfo will result in a too small number of
+        # cores as the packages are not ecognized correctly.
+        numCoresPerSocket=`cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | awk '{print $NF}'`
+        numSockets=`cat /proc/cpuinfo | grep "physical id" | sort -r -V | head -n 1 | awk '{print $NF}'`
+        let numSockets=numSockets+1
+        numCoresTotal="$(( numCoresPerSocket * numSockets ))"
+    fi
 
-    numCoresTotal="$(( numCoresPerSocket * numSockets ))"
     numCoresPerNumaNode="$(( numCoresTotal / numNumaNodes ))"
-
-    numHardwareThreadsTotal=`cat /proc/cpuinfo | grep "processor" | sort -r -V | head -n 1 | awk '{print $NF}'`
-    let numHardwareThreadsTotal=numHardwareThreadsTotal+1
 
     numHardwareThreadsPerCore="$(( numHardwareThreadsTotal / numCoresTotal ))"
     if [ ! -n "$NUMA_HW_THREADS_PER_PHYSICAL_CORE" ] ; then
