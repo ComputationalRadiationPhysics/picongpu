@@ -22,6 +22,7 @@
 # PIConGPU batch script for taurus' SLURM batch system
 
 #SBATCH -p !TBG_queue
+#SBATCH --constraint="Quadrant&Cache"
 #SBATCH --time=!TBG_wallTime
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
@@ -48,7 +49,7 @@
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # number of hardware threads used per core (hyperthreading)
-.TBG_hardwareThreadsPerCore=3
+.TBG_hardwareThreadsPerCore=1
 
 # 1 accelerator per node
 .TBG_accPerNode=1
@@ -57,10 +58,10 @@
 .TBG_coresPerAcc=64
 
 # We only start 1 MPI task per Node
-.TBG_mpiTasksPerNode="$(( TBG_accPerNode ))"
+.TBG_mpiTasksPerNode=!TBG_accPerNode
 
 # use ceil to caculate nodes
-.TBG_nodes="$(( TBG_tasks ))"
+.TBG_nodes=!TBG_tasks
 
 ## end calculations ##
 
@@ -82,7 +83,5 @@ umask 0027
 mkdir simOutput 2> /dev/null
 cd simOutput
 
-if [ $? -eq 0 ] ; then
-  # Run PIConGPU
-  useHardwareThreadsPerCore=!TBG_hardwareThreadsPerCore mpirun !TBG_dstPath/input/etc/picongpu/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
-fi
+# Run PIConGPU
+useHardwareThreadsPerCore=!TBG_hardwareThreadsPerCore mpirun !TBG_dstPath/input/etc/picongpu/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output

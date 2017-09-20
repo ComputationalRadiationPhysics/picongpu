@@ -38,3 +38,5 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #   - "gpu1" queue
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/taurus-tud/knl.tpl"
+
+alias getNode='srun -p knl -N 1 -c 64 --mem=90000 --constraint="Quadrant&Cache" --pty bash'
