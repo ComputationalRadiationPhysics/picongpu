@@ -27,6 +27,7 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/static_assert.hpp>
 
+#define ISAAC_IDX_TYPE cupla::IdxType
 #include <isaac.hpp>
 
 #include <boost/fusion/container/list.hpp>
@@ -36,7 +37,6 @@
 #include <boost/fusion/include/as_list.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/transform.hpp>
-
 
 namespace picongpu
 {
@@ -207,8 +207,12 @@ public:
     typedef boost::mpl::int_< simDim > SimDim;
     static const size_t textureDim = 1024;
     using SourceList = bmpl::transform<boost::fusion::result_of::as_list< Fields_Seq >::type,Transformoperator<bmpl::_1>>::type;
-    IsaacVisualization
+    using VisualizationType = IsaacVisualization
     <
+        cupla::AccHost,
+        cupla::Acc,
+        cupla::AccStream,
+        cupla::KernelDim,
         SimDim,
         SourceList,
         DataSpace< simDim >,
@@ -225,7 +229,8 @@ public:
                 isaac::StereoCompositorAnaglyph<isaac::StereoController,0x000000FF,0x00FFFF00>
 #   endif
 #endif
-    > * visualization;
+    >;
+    VisualizationType * visualization;
 
     IsaacPlugin() :
         visualization(nullptr),
@@ -373,30 +378,16 @@ private:
 
             isaac_size2 framebuffer_size =
             {
-                size_t(width),
-                size_t(height)
+                cupla::IdxType(width),
+                cupla::IdxType(height)
             };
 
             isaac_for_each_params( sources, SourceInitIterator(), cellDescription, movingWindow );
 
-            visualization = new IsaacVisualization
-            <
-                SimDim,
-                SourceList,
-                DataSpace< simDim >,
-                textureDim, float3_X,
-#if( ISAAC_STEREO == 0 )
-                    isaac::DefaultController,
-                    isaac::DefaultCompositor
-#else
-                    isaac::StereoController,
-#   if( ISAAC_STEREO == 1 )
-                        isaac::StereoCompositorSideBySide<isaac::StereoController>
-#   else
-                        isaac::StereoCompositorAnaglyph<isaac::StereoController,0x000000FF,0x00FFFF00>
-#   endif
-#endif
-            > (
+                visualization = new VisualizationType (
+                cupla::manager::Device< cupla::AccHost >::get().device( ),
+                cupla::manager::Device< cupla::AccDev >::get().device( ),
+                cupla::manager::Stream< cupla::AccDev, cupla::AccStream >::get().stream( ),
                 name,
                 0,
                 url,
