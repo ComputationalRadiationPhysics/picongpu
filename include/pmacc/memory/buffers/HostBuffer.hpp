@@ -21,9 +21,8 @@
 
 #pragma once
 
-#if (PMACC_CUDA_ENABLED == 1)
-#   include "pmacc/cuSTL/container/HostBuffer.hpp"
-#endif
+
+#include "pmacc/cuSTL/container/HostBuffer.hpp"
 #include "pmacc/memory/buffers/Buffer.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 
@@ -72,7 +71,7 @@ namespace pmacc
         virtual ~HostBuffer()
         {
         };
-#if (PMACC_CUDA_ENABLED == 1)
+
         HINLINE
         container::HostBuffer<TYPE, DIM>
         cartBuffer()
@@ -85,7 +84,7 @@ namespace pmacc
             container::HostBuffer<TYPE, DIM> result(this->getBasePointer(), this->getDataSpace(), false, pitch);
             return result;
         }
-#endif
+
     protected:
 
         /** Constructor.
