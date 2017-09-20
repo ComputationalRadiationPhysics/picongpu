@@ -22,10 +22,15 @@
 # This tool binds a process and main memory to a numa node.
 # OMP_NUM_THREADS is set to the number of threads within the numa node at
 # default. If not every hardware thread of a core shall be used, the environment
-# variable useHardwareThreadsPerCore can be steered to change OMP_NUM_THREADS
-# accoraccordingly. `numactl` and `/proc/cpuinfo` are used to calculate the
-# number of numa nodes, sockets, and number of cores and hardware threads per
-# numa node or socket.
+# variable NUMA_HW_THREADS_PER_PHYSICAL_CORE can be steered to change
+# OMP_NUM_THREADS accordingly. `numactl` and `/proc/cpuinfo` are used to
+# calculate the number of numa nodes, sockets, and number of cores and hardware
+# threads per numa node or socket.
+#
+# NUMA_HW_THREADS_PER_PHYSICAL_CORE is the number of used hardware threads
+# (read hyperthreads for Intel) per physical core. If hyperthreading shall not
+# be used, use "export NUMA_HW_THREADS_PER_PHYSICAL_CORE=1" before using
+# cpuNumaStarter.sh
 #
 # dependencies: numactl, openmpi
 
@@ -47,11 +52,11 @@ if [ $? -eq 0 ] ; then
     let numHardwareThreadsTotal=numHardwareThreadsTotal+1
 
     numHardwareThreadsPerCore="$(( numHardwareThreadsTotal / numCoresTotal ))"
-    if [ ! -n "$useHardwareThreadsPerCore" ] ; then
-        useHardwareThreadsPerCore="$(( numHardwareThreadsPerCore ))"
+    if [ ! -n "$NUMA_HW_THREADS_PER_PHYSICAL_CORE" ] ; then
+        NUMA_HW_THREADS_PER_PHYSICAL_CORE="$(( numHardwareThreadsPerCore ))"
     fi
 
-    useOpenMPNumThreads="$(( useHardwareThreadsPerCore * numCoresPerNumaNode ))"
+    useOpenMPNumThreads="$(( NUMA_HW_THREADS_PER_PHYSICAL_CORE * numCoresPerNumaNode ))"
 
     if [ -n "$OMPI_COMM_WORLD_LOCAL_RANK" ] ; then
 
