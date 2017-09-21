@@ -80,11 +80,19 @@ struct TSC : public shared_TSC::TSC
              */
             float_X abs_x = algorithms::math::abs(x);
 
-            const bool below_05 = (abs_x < float_X(0.5));
-            const float_X fbelow_05 = float_X(below_05);
+            const bool below_05 = abs_x < float_X(0.5);
+            const bool below_1_5 = abs_x < float_X(1.5);
 
-            return fbelow_05 * ff_1st_radius(abs_x) +
-                float_X(abs_x < float_X(1.5) && !below_05) * ff_2nd_radius(abs_x);
+            const float_X rad1 = ff_1st_radius(abs_x);
+            const float_X rad2 = ff_2nd_radius(abs_x);
+
+            float_X result(0.0);
+            if(below_05)
+                result = rad1;
+            else if(below_1_5)
+                result = rad2;
+
+            return result;
 
         }
     };
@@ -105,11 +113,16 @@ struct TSC : public shared_TSC::TSC
              */
             float_X abs_x = algorithms::math::abs(x);
 
-            const bool below_05 = (abs_x < float_X(0.5));
-            const float_X fbelow_05 = float_X(below_05);
+            const bool below_05 = abs_x < float_X(0.5);
 
-            return fbelow_05 * ff_1st_radius(abs_x) +
-                float_X(!below_05) * ff_2nd_radius(abs_x);
+            const float_X rad1 = ff_1st_radius(abs_x);
+            const float_X rad2 = ff_2nd_radius(abs_x);
+
+            float_X result = rad2;
+            if(below_05)
+                result = rad1;
+
+            return result;
         }
 
     };

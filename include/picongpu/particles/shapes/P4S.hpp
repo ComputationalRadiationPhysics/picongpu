@@ -103,17 +103,20 @@ struct P4S : public shared_P4S::P4S
              */
             float_X abs_x = algorithms::math::abs(x);
 
-            const bool below_3rd_radius = (abs_x < float_X(1.5));
-            if (below_3rd_radius)
-            {
-                const bool below_2rd_radius = (abs_x < float_X(0.5));
-                if (below_2rd_radius)
-                    return ff_1st_radius(abs_x);
-                else
-                    return ff_2nd_radius(abs_x);
-            }
-            else
-                return ff_3rd_radius(abs_x);
+            const bool below_2nd_radius = abs_x < float_X(1.5);
+            const bool below_1st_radius = abs_x < float_X(0.5);
+
+            const float_X rad1 = ff_1st_radius(abs_x);
+            const float_X rad2 = ff_2nd_radius(abs_x);
+            const float_X rad3 = ff_3rd_radius(abs_x);
+
+            float_X result = rad3;
+            if(below_1st_radius)
+                result = rad1;
+            else if(below_2nd_radius)
+                result = rad2;
+
+            return result;
         }
 
     };
@@ -136,12 +139,15 @@ struct P4S : public shared_P4S::P4S
              */
             float_X abs_x = algorithms::math::abs(x);
 
-            const bool below_max = (abs_x < float_X(2.5));
+            const bool below_max = abs_x < float_X(2.5);
 
-            if (below_max)
-                return ChargeAssignmentOnSupport()(abs_x);
-            else
-                return float_X(0.);
+            const float_X onSupport = ChargeAssignmentOnSupport()(abs_x);
+
+            float_X result(0.0);
+            if(below_max)
+                result = onSupport;
+
+            return result;
         }
     };
 };

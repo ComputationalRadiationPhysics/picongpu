@@ -75,11 +75,19 @@ struct PCS : public shared_PCS::PCS
              */
             float_X abs_x = algorithms::math::abs(x);
 
-            const bool below_1 = (abs_x < float_X(1.0));
-            const bool below_2 = (abs_x < float_X(2.0));
+            const bool below_1 = abs_x < float_X(1.0);
+            const bool below_2 = abs_x < float_X(2.0);
 
-            return float_X(below_1) * ff_1st_radius(abs_x) +
-                float_X(below_2 && !below_1) * ff_2nd_radius(abs_x);
+            const float_X rad1 = ff_1st_radius(abs_x);
+            const float_X rad2 = ff_2nd_radius(abs_x);
+
+            float_X result(0.0);
+            if(below_1)
+                result = rad1;
+            else if(below_2)
+                result = rad2;
+
+            return result;
         }
     };
 
@@ -96,10 +104,15 @@ struct PCS : public shared_PCS::PCS
              */
             float_X abs_x = algorithms::math::abs(x);
 
-            const bool below_1 = (abs_x < float_X(1.0));
+            const bool below_1 = abs_x < float_X(1.0);
+            const float_X rad1 = ff_1st_radius(abs_x);
+            const float_X rad2 = ff_2nd_radius(abs_x);
 
-            return float_X(below_1) * ff_1st_radius(abs_x) +
-                float_X(!below_1) * ff_2nd_radius(abs_x);
+            float_X result = rad2;
+            if(below_1)
+                result = rad1;
+
+            return result;
 
             /* Semantix:
             if (abs_x < float_X(1.0))
