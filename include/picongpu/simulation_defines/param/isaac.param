@@ -24,7 +24,7 @@
  * the PIC simulation can be observed while it is running avoiding the time
  * consuming writing and reading of simulation data for the classical post
  * processing of data.
- * 
+ *
  * ISAAC can directly visualize natives fields like the E or B field, but
  * density fields of particles need to be calculated from PIConGPU on the fly
  * which slightly increases the runtime and the memory consumption. Every
