@@ -84,4 +84,4 @@ mkdir simOutput 2> /dev/null
 cd simOutput
 
 # Run PIConGPU
-useHardwareThreadsPerCore=!TBG_hardwareThreadsPerCore mpirun !TBG_dstPath/input/etc/picongpu/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+NUMA_HW_THREADS_PER_PHYSICAL_CORE=!TBG_hardwareThreadsPerCore mpirun !TBG_dstPath/input/etc/picongpu/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
