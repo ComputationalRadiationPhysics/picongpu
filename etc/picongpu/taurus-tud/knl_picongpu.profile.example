@@ -7,7 +7,7 @@
 module purge
 module load cmake/3.9.0
 module load git
-module load openmpi/2.1.0-intel
+module load intelmpi/2017.2.174
 
 # Compilers ###################################################################
 ### ICC
@@ -35,7 +35,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
-#   - "gpu1" queue
+#   - "knl" queue
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/taurus-tud/knl.tpl"
 
