@@ -68,8 +68,12 @@ if [ $? -eq 0 ] ; then
     useOpenMPNumThreads="$(( NUMA_HW_THREADS_PER_PHYSICAL_CORE * numCoresPerNumaNode ))"
 
     if [ -n "$OMPI_COMM_WORLD_LOCAL_RANK" ] ; then
-
         let localRank=$OMPI_COMM_WORLD_LOCAL_RANK
+    elif [ -n "$PMI_RANK" ] ; then
+        let localRank=$PMI_RANK
+    fi
+
+    if [ -n "$localRank" ] ; then
         let useNumaNode=localRank%numNumaNodes
 
         export MPI_LOCAL_RANK=$localRank
