@@ -40,10 +40,36 @@ help()
     echo "                       supported backends: cuda, omp2b"
     echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
     echo "                       default: \"cuda\" if not set via environment variable PIC_BACKEND"
+    echo "                       Depending on the C++ compiler different architecture options"
+    echo "                       may be used for CPU compiler, e.g. -march=<architecture> for"
+    echo "                       gcc or -x<architecture> for icc."
     echo "-c | --cmake         - overwrite options for cmake"
     echo "                       (e.g.: \"-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
     echo "-h | --help          - show this help message"
+}
+
+set_cpu_architecure()
+{
+    architecture="$1"
+    host_machine=`uname -m`
+    case "$CXX" in
+        g++)
+            case "$host_machine" in
+                ppc64le) echo  "-mcpu=$architecture -mtune=$architecture" ;;
+                      *) echo "-march=$architecture -mtune=$architecture" ;;
+            esac
+            ;;
+        icpc)
+            case "$architecture" in
+                native) echo "-march=native -mtune=native" ;;
+                     *) echo "-x$architecture" ;;
+            esac
+            ;;
+        xlc++) echo "-qarch=$architecture" ;;
+        clang++) echo "-march=$architecture -mtune=$architecture" ;;
+        *) echo "-march=$architecture -mtune=$architecture" ;;
+    esac
 }
 
 get_backend_flags()
@@ -62,7 +88,8 @@ get_backend_flags()
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
         result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
         if [ $num_options -eq 2 ] ; then
-            result+=" -DCMAKE_CXX_FLAGS=\"$CXXFLAGS -march=${backend_cfg[1]} -mtune=${backend_cfg[1]}\""
+            architecture=$(set_cpu_architecure ${backend_cfg[1]})
+            result+=" -DCMAKE_CXX_FLAGS=\"$CXXFLAGS $architecture\""
         fi
     else
         echo "unsupported backend given '$1'" >&2
