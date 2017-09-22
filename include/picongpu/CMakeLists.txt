@@ -142,8 +142,9 @@ set(LIBS ${LIBS} ZLIB::ZLIB)
 # Find math from stdlib
 ################################################################################
 
-if(NOT WIN32)
+if(NOT WIN32 AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     # automatically added on windows
+    # should not be added for Intel compiler as it has an optimized lib included
     set(LIBS ${LIBS} m)
 endif()
 
