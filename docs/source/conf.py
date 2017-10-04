@@ -86,7 +86,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PIConGPU'
-copyright = u'2017, The PIConGPU Community'
+copyright = u'Documentation under CC-BY 4.0, The PIConGPU Community'
 author = u'The PIConGPU Community'
 
 # The version info for the project you're documenting, acts as replacement for
