@@ -35,9 +35,7 @@
 #include "picongpu/simulation_defines/param/flylite.param"
 #include "picongpu/simulation_defines/param/speciesConstants.param"
 #include "picongpu/simulation_defines/param/speciesAttributes.param"
-#if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/simulation_defines/param/synchrotronPhotons.param"
-#endif
+#include "picongpu/simulation_defines/param/synchrotronPhotons.param"
 #include "picongpu/simulation_defines/param/grid.param"
 #include "picongpu/simulation_defines/param/pusher.param"
 #include "picongpu/simulation_defines/param/ionizer.param"

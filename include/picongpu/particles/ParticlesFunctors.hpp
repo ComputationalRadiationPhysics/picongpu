@@ -29,10 +29,10 @@
 #include <pmacc/communication/AsyncCommunication.hpp>
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/particles/traits/GetPhotonCreator.hpp"
-#   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #   include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
 #endif
+#include "picongpu/particles/traits/GetPhotonCreator.hpp"
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #include "picongpu/particles/creation/creation.hpp"
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
@@ -458,6 +458,7 @@ struct CallBremsstrahlung
     }
 
 };
+#endif
 
 /** Handles the synchrotron radiation emission of photons from electrons
  *
@@ -508,6 +509,6 @@ struct CallSynchrotronPhotons
     }
 
 };
-#endif
+
 } // namespace particles
 } // namespace picongpu
