@@ -61,8 +61,9 @@
 #if( PMACC_CUDA_ENABLED == 1 )
 #   include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
 #   include "picongpu/particles/bremsstrahlung/PhotonEmissionAngle.hpp"
-#   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 #endif
+
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.hpp"
 
 #include <pmacc/nvidia/reduce/Reduce.hpp>
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
@@ -333,13 +334,13 @@ public:
             rngFactory->init( gridCon.getScalarPosition() );
             dc.share( std::shared_ptr< ISimulationData >( rngFactory ) );
         }
-#if( PMACC_CUDA_ENABLED == 1 )
+
         // Initialize synchrotron functions, if there are synchrotron photon species
         if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
         {
             this->synchrotronFunctions.init();
         }
-
+#if( PMACC_CUDA_ENABLED == 1 )
         // Initialize bremsstrahlung lookup tables, if there are species containing bremsstrahlung photons
         if(!bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value)
         {
@@ -556,7 +557,6 @@ public:
         > populationKinetics;
         populationKinetics( currentStep );
 
-#if( PMACC_CUDA_ENABLED == 1 )
         /* call the synchrotron radiation module for each radiating species (normally electrons) */
         typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
@@ -567,6 +567,7 @@ public:
         > synchrotronRadiation;
         synchrotronRadiation( cellDescription, currentStep, this->synchrotronFunctions );
 
+#if( PMACC_CUDA_ENABLED == 1 )
         /* Bremsstrahlung */
         typedef typename pmacc::particles::traits::FilterByFlag
         <
@@ -784,10 +785,11 @@ protected:
     // map<atomic number, scaled bremsstrahlung spectrum>
     std::map<float_X, particles::bremsstrahlung::ScaledSpectrum> scaledBremsstrahlungSpectrumMap;
     particles::bremsstrahlung::GetPhotonAngle bremsstrahlungPhotonAngle;
+#endif
 
     // Synchrotron functions (used in synchrotronPhotons module)
     particles::synchrotronPhotons::SynchrotronFunctions synchrotronFunctions;
-#endif
+
     // output classes
 
     IInitPlugin* initialiserController;
@@ -811,8 +813,9 @@ protected:
 } /* namespace picongpu */
 
 #include "picongpu/fields/Fields.tpp"
+#include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"
+
 #if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/particles/synchrotronPhotons/SynchrotronFunctions.tpp"
 #   include "picongpu/particles/bremsstrahlung/Bremsstrahlung.tpp"
 #   include "picongpu/particles/bremsstrahlung/ScaledSpectrum.tpp"
 #endif
