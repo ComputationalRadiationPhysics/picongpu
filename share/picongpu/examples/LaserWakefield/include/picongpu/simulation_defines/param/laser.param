@@ -121,7 +121,7 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            constexpr float_64 WAVE_LENGTH_SI = UI_MACRO_LASER_WAVELENGTH;
+            constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
@@ -135,7 +135,7 @@ namespace picongpu
              *  Info:             FWHM_of_Intensity = FWHM_Illumination
              *                      = what a experimentalist calls "pulse duration"
              *  unit: seconds (1 sigma) */
-            constexpr float_64 PULSE_LENGTH_SI = UI_MACRO_LASER_PULSE_LENGTH / 2.354820045;
+            constexpr float_64 PULSE_LENGTH_SI = 6.25e-15 / 2.354820045;
 
             /** beam waist: distance from the axis where the pulse intensity (E^2)
              *              decreases to its 1/e^2-th part,
@@ -176,7 +176,7 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            constexpr float_64 WAVE_LENGTH_SI = UI_MACRO_LASER_WAVELENGTH;
+            constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
@@ -185,7 +185,7 @@ namespace picongpu
             // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
             /** unit: none */
-            constexpr float_64 _A0 = UI_MACRO_LASER_A0;
+            constexpr float_64 _A0 = 1.5;
 
             /** unit: Volt /meter */
             constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
@@ -204,7 +204,7 @@ namespace picongpu
              *  Info:             FWHM_of_Intensity = FWHM_Illumination
              *                      = what a experimentalist calls "pulse duration"
              *  unit: seconds (1 sigma) */
-            constexpr float_64 PULSE_LENGTH_SI = UI_MACRO_LASER_PULSE_LENGTH / 2.354820045;
+            constexpr float_64 PULSE_LENGTH_SI = 6.25e-15 / 2.354820045;
 
         }
 
@@ -230,7 +230,7 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            constexpr float_64 WAVE_LENGTH_SI = UI_MACRO_LASER_WAVELENGTH;
+            constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
@@ -258,7 +258,7 @@ namespace picongpu
              *  Info:             FWHM_of_Intensity = FWHM_Illumination
              *                      = what a experimentalist calls "pulse duration"
              *  unit: seconds (1 sigma) */
-            constexpr float_64 PULSE_LENGTH_SI = UI_MACRO_LASER_PULSE_LENGTH / 2.354820045;
+            constexpr float_64 PULSE_LENGTH_SI = 6.25e-15 / 2.354820045;
 
             /** beam waist: distance from the axis where the pulse intensity (E^2)
              *              decreases to its 1/e^2-th part,
@@ -296,7 +296,7 @@ namespace picongpu
         namespace SI
         {
             /** unit: meter */
-            constexpr float_64 WAVE_LENGTH_SI = UI_MACRO_LASER_WAVELENGTH;
+            constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
 
             /** UNITCONV */
             constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
@@ -320,7 +320,7 @@ namespace picongpu
              *  Fall time = 0.5 * PULSE_LENGTH_SI
              *  in order to compare to a gaussian pulse: rise  time = sqrt{2} * T_{FWHM}
              *  unit: seconds  */
-            constexpr float_64 PULSE_LENGTH_SI = UI_MACRO_LASER_PULSE_LENGTH;
+            constexpr float_64 PULSE_LENGTH_SI = 4.0e-15;
 
             /** beam waist: distance from the axis where the pulse intensity (E^2)
              *              decreases to its 1/e^2-th part,
