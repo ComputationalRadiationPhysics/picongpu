@@ -25,6 +25,8 @@
 #include <pmacc/algorithms/math.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
 
 namespace picongpu
 {
@@ -139,80 +141,6 @@ struct CalorimeterFunctor
 
             atomicAdd( &(*this->calorimeterCur(yawBin, pitchBin, energyBin)),
                              energy * normedWeighting, ::alpaka::hierarchy::Threads{});
-        }
-    }
-};
-
-
-template<typename T_ParticlesBox, typename T_CalorimeterFunctor>
-struct ParticleCalorimeterKernel
-{
-    typedef T_ParticlesBox ParticlesBox;
-    typedef T_CalorimeterFunctor CalorimeterFunctor;
-
-    ParticlesBox particlesBox;
-    CalorimeterFunctor calorimeterFunctor;
-
-    ParticleCalorimeterKernel(ParticlesBox particlesBox,
-                           CalorimeterFunctor calorimeterFunctor) :
-        particlesBox(particlesBox),
-        calorimeterFunctor(calorimeterFunctor)
-    {}
-
-    template< typename T_Acc >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        const pmacc::math::Int<simDim>& cellIndex
-    )
-    {
-        /* definitions for domain variables, like indices of blocks and threads */
-        typedef typename MappingDesc::SuperCellSize SuperCellSize;
-
-        /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
-        const pmacc::math::Int<simDim> block = cellIndex / SuperCellSize::toRT();
-
-        /* multi-dim offset from the origin of the local domain on GPU
-         * to the origin of the block of the in unit of cells
-         */
-        const pmacc::math::Int<simDim> blockCell = block * SuperCellSize::toRT();
-
-        /* multi-dim vector from origin of the block to a cell in units of cells */
-        const pmacc::math::Int<simDim> threadIndex = cellIndex % SuperCellSize::toRT();
-
-        /* conversion from a multi-dim cell coordinate to a linear coordinate of the cell in its super cell */
-        const int linearThreadIdx = pmacc::math::linearize(
-            pmacc::math::CT::shrinkTo<SuperCellSize, simDim-1>::type::toRT(),
-            threadIndex);
-
-        typedef typename ParticlesBox::FramePtr ParticlesFramePtr;
-        PMACC_SMEM( acc, particlesFrame, ParticlesFramePtr );
-
-        /* find last frame in super cell
-         */
-        if (linearThreadIdx == 0)
-        {
-            particlesFrame = this->particlesBox.getLastFrame(block);
-        }
-
-        __syncthreads();
-
-        while(particlesFrame.isValid())
-        {
-            /* casting uint8_t multiMask to boolean */
-            const bool isParticle = particlesFrame[linearThreadIdx][multiMask_];
-
-            if(isParticle)
-            {
-                calorimeterFunctor(acc, particlesFrame, linearThreadIdx);
-            }
-
-            __syncthreads();
-
-            if (linearThreadIdx == 0)
-            {
-                particlesFrame = this->particlesBox.getPreviousFrame(particlesFrame);
-            }
-            __syncthreads();
         }
     }
 };
