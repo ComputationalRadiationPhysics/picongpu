@@ -14,9 +14,8 @@ Contents
  - [Keep Track of Updates](#keep-track-of-updates)
  - [Pull Requests or *Being Social*](#pull-requests-or-being-social)
  - [Maintainer Notes](#maintainer-notes)
-3. [Coding Guide Lines](#coding-guide-lines)
-4. [Commit Rules](#commit-rules)
-5. [Test Suite Examples](#test-suite-examples)
+3. [Commit Rules](#commit-rules)
+4. [Test Suite Examples](#test-suite-examples)
 
 *******************************************************************************
 
@@ -30,21 +29,20 @@ If you are familiar with git, feel free to jump to our [github workflow](#github
 **Debian/Ubuntu**:
 - `sudo apt-get install git`
 - make sure `git --version` is at least at version
-  [1.7.9.5](https://help.github.com/articles/https-cloning-errors)
+  [1.7.10](https://help.github.com/articles/https-cloning-errors)
 
 Optional *one* of these. There are nice GUI tools available to get an overview
 on your repository.
 - `gitk git-gui qgit gitg`
 
 **Mac**:
-- see [here](https://help.github.com/articles/set-up-git#platform-mac)
-- you may like to visit http://mac.github.com/
+- see [here](https://help.github.com/articles/set-up-git)
 
 **Windows**:
 - see [here](http://lmgtfy.com/?q=debian+-+or+how+to+download+a+real+operating+system)
-- just kidding, it's [this link](https://help.github.com/articles/set-up-git#platform-windows)
-- please use UTF8 for your files and take care of
-  [line endings](https://help.github.com/articles/dealing-with-line-endings#platform-windows)
+- just kidding, it's [this link](https://help.github.com/articles/set-up-git)
+- please use ASCII for your files and take care of
+  [line endings](https://help.github.com/articles/dealing-with-line-endings)
 
 **Configure** your global git settings:
 - `git config --global user.name NAME`
@@ -60,7 +58,7 @@ You may even improve your level of awesomeness by:
 - `git config --global alias.l "log --oneline --graph --decorate --first-parent"` (single branch history)
 - `git config --global alias.la "log --oneline --graph --decorate --all"` (full branch history)
 - `git config --global rerere.enable 1`
-  (see [git rerere](http://git-scm.com/blog/2010/03/08/rerere.html))
+  (see [git rerere](https://git-scm.com/blog/2010/03/08/rerere.html))
 - More `alias` tricks:
   - `git config --get-regexp alias` (show all aliases)
   - `git config --global --unset alias.<Name>` (unset alias `<Name>`)
@@ -77,28 +75,28 @@ the *same project*. Examples:
 - Everything is wrong now, why did this happen and when?
 - What parts of the code changed since I went on vacation
   (to a conference, phd seminar,
-   [mate](http://en.wikipedia.org/wiki/Club-Mate) fridge, ...)?
+   [mate](https://en.wikipedia.org/wiki/Club-Mate) fridge, ...)?
 
 If *version control* is totally **new** to you (that's good, because you are not
-[spoiled](http://www.youtube.com/watch?v=4XpnKHJAok8)) - please refer to a
+[spoiled](https://www.youtube.com/watch?v=4XpnKHJAok8)) - please refer to a
 beginners guide first.
 - [git - the simple guide](http://rogerdudler.github.io/git-guide/)
-- 15 minutes guide at [try.github.io](http://try.github.io)
+- 15 minutes guide at [try.github.io](https://try.github.io)
 
 Since git is *distributed*, no one really needs a server or services like
 github.com to *use git*. Actually, there are even very good reasons why one should
 use git even for **local** data, e.g. a master thesis (or your collection of ascii art
 dwarf hamster pictures).
 
-Btw, **fun fact warning**: [Linus Torvalds](http://en.wikipedia.org/wiki/Linus_Torvalds),
+Btw, **fun fact warning**: [Linus Torvalds](https://en.wikipedia.org/wiki/Linus_Torvalds),
 yes the nice guy with the pinguin stuff and all that, developed git to maintain
 the **Linux kernel**. So that's cool, by definition.
 
 A nice overview about the *humongous* number of tutorials can be found at
-[stackoverflow.com](http://stackoverflow.com/questions/315911/git-for-beginners-the-definitive-practical-guide)
+[stackoverflow.com](https://stackoverflow.com/questions/315911/git-for-beginners-the-definitive-practical-guide)
 ... but we may like to start with a git **cheat sheet** (is there anyone out there who knows more
 than 1% of all git commands available?)
-- [git-tower.com](http://www.git-tower.com/files/cheatsheet/Git_Cheat_Sheet_grey.pdf) (print the 1st page)
+- [git-tower.com](https://www.git-tower.com/blog/git-cheat-sheet/) (print the 1st page)
 - [github.com - "cheat git" gem](https://help.github.com/articles/git-cheatsheet) (a cheat sheet for the console)
 - [kernel.org](https://www.kernel.org/pub/software/scm/git/docs/everyday.html) *Everyday GIT with 20 commands or so*
 - [an other interactive, huge cheat sheet](http://ndpsoftware.com/git-cheatsheet.html)
@@ -178,9 +176,9 @@ your work from our **dev** (development)
 branch in your private repository. Simply click the *Fork* button above to do so.
 
 Afterwards, `git clone` **your** repository to your
-[local machine](https://help.github.com/articles/fork-a-repo#step-2-clone-your-fork).
+[local machine](https://help.github.com/articles/fork-a-repo/#step-2-create-a-local-clone-of-your-fork).
 But that is not it! To keep track of the original **dev** repository, add
-it as another [remote](https://help.github.com/articles/fork-a-repo#step-3-configure-remotes).
+it as another [remote](https://help.github.com/articles/fork-a-repo/#step-3-configure-git-to-sync-your-fork-with-the-original-spoon-knife-repository).
 - `git remote add mainline https://github.com/ComputationalRadiationPhysics/picongpu.git`
 - `git checkout dev` (go to branch **dev**)
 
@@ -224,13 +222,10 @@ Now solve your conflicts, if there are any, and you got it! Well done!
 How to propose that **your awesome feature** (we know it will be awesome!) should be
 included in the **mainline PIConGPU** version?
 
-Due to the so called
-[pull requests](https://help.github.com/articles/using-pull-requests)
-in *GitHub*, this quite easy (yeah, sure). We start again with a
-*forked repository* of our own. You already created a **new feature branch**
-starting from our **dev** branch and commited your changes. Finally, you
-[pushed](http://www.mariopareja.com/blog/archive/2010/01/11/how-to-push-a-new-local-branch-to-a-remote.aspx)
-your local branch to *your* GitHub repository: `git push -u origin <yourLocalBranchName>`
+Due to the so called [pull requests](https://help.github.com/articles/using-pull-requests) in *GitHub*, this quite easy (yeah, sure).
+We start again with a *forked repository* of our own.
+You already created a **new feature branch** starting from our **dev** branch and commited your changes.
+Finally, you publish you local branch via a *push* to *your* GitHub repository: `git push -u origin <yourLocalBranchName>`
 
 Now let's start a *review*. Open the *GitHub* homepage, go to your repository and
 switch to your *pushed feature branch*. Select the green **compare & review**
@@ -280,32 +275,6 @@ Last but not least, [help.github.com](https://help.github.com/) has a very nice
 FAQ section.
 
 More [best practices](http://codeinthehole.com/writing/pull-requests-and-other-good-practices-for-teams-using-github/).
-
-*******************************************************************************
-
-Coding Guide Lines
-------------------
-
-Well - there are some! ;)
-- Please follow our recommendations in our
-  [wiki page](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Coding-Guide-Lines).
-- The `uncrustify` script [picongpu_uncrustify.cfg](docs/picongpu_uncrustify.cfg)
-  can be used for auto-formatting your code.
-
-Please **add the according license header** snippet to your *new files*:
-- for PIConGPU (GPLv3+): `src/tools/bin/addLicense <FileName>`
-- for libraries (LGPLv3+ & GPLv3+):
-  `export PROJECT_NAME=libPMacc && src/tools/bin/addLicense <FileName>`
-- delete other headers: `src/tools/bin/deleteHeadComment <FileName>`
-- add license to all .hpp files within a directory (recursive):
-  `export PROJECT_NAME=PIConGPU && src/tools/bin/findAndDo <PATH> "*.hpp" src/tools/bin/addLicense`
-- the default project name ist `PIConGPU` (case sensitive!) and adds the GPLv3+
-  only.
-
-Files in the directory `thirdParty/` are only imported from remote repositories
-as written in our [LICENSE](LICENSE.md). If you want to improve them, submit
-your pull requests there and open an issue for our **maintainers** to update
-to a new version of the according software.
 
 *******************************************************************************
 

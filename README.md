@@ -3,8 +3,7 @@ PIConGPU - A Many GPGPU PIC Code
 
 [![Code Status master](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/master.svg?label=master)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
 [![Code Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
-[![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=master)](http://picongpu.readthedocs.io/en/master/?badge=master)
-[![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=dev)](http://picongpu.readthedocs.io/en/dev/?badge=dev)
+[![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=latest)](http://picongpu.readthedocs.io)
 [![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)](https://isocpp.org/)
 [![License PIConGPU](https://img.shields.io/badge/license-GPLv3-blue.svg?label=PIConGPU)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![License PMacc](https://img.shields.io/badge/license-LGPLv3-blue.svg?label=PMacc)](https://www.gnu.org/licenses/lgpl-3.0.html)
@@ -105,8 +104,8 @@ Software License
 ----------------
 
 *PIConGPU* is licensed under the **GPLv3+**. Furthermore, you can develop your
-own particle-mesh algorithms based on our general library *libPMacc* that is
-shipped alongside PIConGPU. *libPMacc* is *dual licensed* under both the
+own particle-mesh algorithms based on our general library *PMacc* that is
+shipped alongside PIConGPU. *PMacc* is *dual licensed* under both the
 **GPLv3+ and LGPLv3+**.
 For a detailed description, please refer to [LICENSE.md](LICENSE.md)
 

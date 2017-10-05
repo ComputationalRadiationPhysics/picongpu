@@ -1,9 +1,9 @@
 .. _model-pic:
 
-.. sectionauthor:: Axel Huebl
-
 The Particle-in-Cell Algorithm
 ==============================
+
+.. sectionauthor:: Axel Huebl
 
 For now, please refer to the textbooks [BirdsallLangdon]_, [HockneyEastwood]_, our :ref:`latest paper on PIConGPU <usage-reference>` and [Huebl2014]_ (chapters 2.3, 3.1 and 3.4).
 

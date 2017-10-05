@@ -19,12 +19,12 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-this_dir=`dirname $0`
+this_dir=$(cd $(dirname $0) && pwd)
 
-#only copy submit and params if we clone from default pic folder
-default_folder_to_copy="submit include/simulation_defines/param include/simulation_defines/unitless"
-#if we clone a project we copy full include 
-folder_to_clone="submit include"
+# files always cloned from defaults, can be overwritten by input set
+default_folder_to_copy="etc/picongpu lib"
+# if we clone an input set we copy from it
+folder_to_clone="etc/picongpu bin include/picongpu lib"
 files_to_copy="cmakeFlags executeOnClone"
 
 help()
@@ -55,7 +55,7 @@ eval set -- "$OPTS"
 while true ; do
     case "$1" in
         -f|--force)
-            force_param=1                       
+            force_param=1
             ;;
         -h|--help)
             echo -e "$(help)"
@@ -68,7 +68,7 @@ done
 
 cmake_path="$*"
 
-default_param_dir="$this_dir/src/picongpu"
+default_param_dir="$this_dir"
 
 if [ $# -eq 0 ] || [ $# -gt 2 ] ; then
     echo "Missing destination directory or to many directories were given." >&2
@@ -89,8 +89,8 @@ if [ ! -d "$src_path" ] ; then
     echo "$src_path not exists" >&2
 fi
 
-if [ -d "$src_path/src/picongpu" ] ; then
-    src_path="$src_path/src/picongpu"
+if [ -d "$src_path/include/picongpu" ] ; then
+    src_path="$src_path"
 fi
 
 if [ -d "$dst_path" ] && [ "$force_param" -eq 0 ] ; then
@@ -118,19 +118,19 @@ do
     if [ ! -d "$dir_dst" ] ; then
         mkdir -p "$dir_dst"
     fi
-    rsync --inplace -q -avc --exclude=".*" $dir_src/* $dir_dst
+    rsync --inplace -r -q -avc --exclude=".*" $dir_src/ $dir_dst
 done
 
 #copy all data from src_path if path is not picongpu default param path
-if [ "$src_path" != "$this_dir/src/picongpu" ] ; then
+if [ "$src_path" != "$this_dir" ] ; then
     for d in $selected_default_folder_to_copy
     do
         dir_dst="$dst_path/$d"
         dir_src="$src_path/$d"
-        if [ ! -d "$dir_dst" ] ; then
+        if [ -d "$dir_src" ] ; then
             mkdir -p "$dir_dst"
+            rsync --inplace -r -q -avc --exclude=".*" $dir_src/ $dir_dst
         fi
-        rsync --inplace -q -avc --exclude=".*" $dir_src/* $dir_dst
     done
 fi
 

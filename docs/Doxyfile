@@ -1,6 +1,6 @@
 PROJECT_NAME      = "PIConGPU"
 XML_OUTPUT        = xml
-INPUT             = ../src
+INPUT             = ../include
 GENERATE_LATEX    = NO
 GENERATE_MAN      = NO
 GENERATE_RTF      = NO

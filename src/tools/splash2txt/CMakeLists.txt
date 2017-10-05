@@ -48,6 +48,16 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 include_directories(include)
 
 
+###############################################################################
+# Language Flags
+###############################################################################
+
+# enforce C++11
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
+
+
 ################################################################################
 # Build type (debug, release, relwithdebinfo)
 ################################################################################
@@ -124,10 +134,12 @@ endif(ADIOS_FOUND)
 ################################################################################
 
 find_package(Boost REQUIRED COMPONENTS program_options regex)
-
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIR})
-set(LIBS ${LIBS} ${Boost_LIBRARIES})
+if(TARGET Boost::boost)
+    set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex)
+else()
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${Boost_LIBRARIES})
+endif()
 
 
 ################################################################################

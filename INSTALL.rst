@@ -1,10 +1,8 @@
 .. _install-dependencies:
 
-.. sectionauthor:: Axel Huebl
-
 .. seealso::
 
-   You will need to understand how to use `the terminal <http://www.ks.uiuc.edu/Training/Tutorials/Reference/unixprimer.html>`_, what are `environment variables <http://unix.stackexchange.com/questions/44990/what-is-the-difference-between-path-and-ld-library-path/45106#45106>`_ and please read our :ref:`compiling introduction <install-source>`.
+   You will need to understand how to use `the terminal <http://www.ks.uiuc.edu/Training/Tutorials/Reference/unixprimer.html>`_, what are `environment variables <https://unix.stackexchange.com/questions/44990/what-is-the-difference-between-path-and-ld-library-path/45106#45106>`_ and please read our :ref:`compiling introduction <install-source>`.
 
 .. note::
 
@@ -13,6 +11,8 @@
 
 Dependencies
 ============
+
+.. sectionauthor:: Axel Huebl
 
 Overview
 --------
@@ -46,39 +46,23 @@ gcc
   - ``spack install gcc@4.9.4``
   - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@4.9.4``
 
-CUDA
-""""
-- `7.5+ <https://developer.nvidia.com/cuda-downloads>`_
-- *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
-- *Arch Linux:* ``sudo pacman --sync cuda``
-- *Spack:*
-
-  - ``curl -o cuda_7.5.18_linux.run http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run``
-  - ``spack install cuda@7.5.18``
-
-- at least one **CUDA** capable **GPU**
-- *Compute capability* **sm\_20** or higher
-- `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
-- `More <http://www.olcf.ornl.gov/titan/>`_ is always `better <http://www.cscs.ch/computers/piz_daint/index.html>`_. Especially, if we are talking GPUs :-)
-- *environment:*
-
-  - ``export CUDA_ROOT=<CUDA_INSTALL>``
-
 CMake
 """""
-- 3.3.0 or higher
+- 3.7.0 or higher
 - *Debian/Ubuntu:* ``sudo apt-get install cmake file cmake-curses-gui``
 - *Arch Linux:* ``sudo pacman --sync cmake``
 - *Spack:* ``spack install cmake``
 
 MPI 2.3+
 """"""""
-- **OpenMPI** 1.5.1+ / **MVAPICH2** 1.8+ or similar (`GPU aware <https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/>`_ install recommended)
+- **OpenMPI** 1.7+ / **MVAPICH2** 1.8+ or similar
+- for running on Nvidia GPUs, perform a `GPU aware MPI install <https://devblogs.nvidia.com/parallelforall/introduction-cuda-aware-mpi/>`_ *after* installing CUDA
 - *Debian/Ubuntu:* ``sudo apt-get install libopenmpi-dev``
 - *Arch Linux:* ``sudo pacman --sync openmpi``
 - *Spack:*
 
-  - ``spack install openmpi``
+  - *GPU support:* ``spack install openmpi+cuda``
+  - *CPU only:* ``spack install openmpi``
 - *environment:*
 
   - ``export MPI_ROOT=<MPI_INSTALL>``
@@ -92,15 +76,15 @@ zlib
 
 boost
 """""
-- 1.57.0-1.64.0 (``program options``, ``regex`` , ``filesystem``, ``system``, ``thread``, ``math``, ``serialization`` and nearly all header-only libs)
-- download from `http://www.boost.org <http://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz/download>`_
-- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-math-dev libboost-serialization-dev``
+- 1.62.0-1.64.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
+- download from `http://www.boost.org <http://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz/download>`_
+- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
 - *from source:*
 
-  - ``./bootstrap.sh --with-libraries=filesystem,program_options,regex,system,thread,math,serialization --prefix=$HOME/lib/boost``
-  - ``./b2 -j4 && ./b2 install``
+  - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,regex,serialization,system,thread --prefix=$HOME/lib/boost``
+  - ``./b2 cxxflags="-std=c++11" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
   - ``export BOOST_ROOT=$HOME/lib/boost``
@@ -113,8 +97,17 @@ git
 - *Arch Linux:* ``sudo pacman --sync git``
 - *Spack:* ``spack install git``
 
-PIConGPU source code
-""""""""""""""""""""
+rsync
+"""""
+- *Debian/Ubuntu:* ``sudo apt-get install rsync``
+- *Arch Linux:* ``sudo pacman --sync rsync``
+- *Spack:* ``spack install rsync``
+
+.. _install-dependencies-picongpu:
+
+PIConGPU Source Code
+^^^^^^^^^^^^^^^^^^^^
+
 - ``git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $HOME/src/picongpu``
 
   - *optional:* update the source code with ``cd $HOME/src/picongpu && git fetch && git pull``
@@ -124,12 +117,28 @@ PIConGPU source code
   - ``export PICSRC=$PICHOME/src/picongpu``
   - ``export PATH=$PICSRC:$PATH``
   - ``export PATH=$PICSRC/src/tools/bin:$PATH``
+  - ``export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH``
 
 Optional Libraries
 ^^^^^^^^^^^^^^^^^^
 
-If you do not install the optional libraries, you will not have the full amount of PIConGPU plugins.
-We recommend to install at least **pngwriter** and either **libSplash** (HDF5) or **ADIOS**.
+CUDA
+""""
+- `7.5+ <https://developer.nvidia.com/cuda-downloads>`_
+- required if you want to run on Nvidia GPUs
+- *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
+- *Arch Linux:* ``sudo pacman --sync cuda``
+- *Spack:* ``spack install cuda``
+- at least one **CUDA** capable **GPU**
+- *compute capability*: ``sm_20`` or higher (for CUDA 9+: ``sm_30`` or higher)
+- `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
+- `More <http://www.olcf.ornl.gov/titan/>`_ is always `better <http://www.cscs.ch/computers/piz_daint/index.html>`_. Especially, if we are talking GPUs :-)
+- *environment:*
+
+  - ``export CUDA_ROOT=<CUDA_INSTALL>``
+
+If you do not install the following libraries, you will not have the full amount of PIConGPU plugins.
+We recommend to install at least **pngwriter** and either **libSplash** (+ **HDF5**) or **ADIOS**.
 
 pngwriter
 """""""""
@@ -224,7 +233,7 @@ png2gas
 
 ADIOS
 """""
-- 1.10.0+ (requires *MPI*, *zlib* and `mxml <http://www.msweet.org/projects.php?Z3>`_)
+- 1.10.0+ (requires *MPI* and *zlib*)
 - *Debian/Ubuntu:* ``sudo apt-get install libadios-dev libadios-bin``
 - *Arch Linux* using an `AUR helper <https://wiki.archlinux.org/index.php/AUR_helpers>`_: ``pacaur --sync libadios``
 - *Arch Linux* using the `AUR <https://wiki.archlinux.org/index.php/Arch_User_Repository>`_ manually:

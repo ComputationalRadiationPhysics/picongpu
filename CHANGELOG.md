@@ -65,7 +65,7 @@ for detailed instructions.
      - `FreeRngImpl` #1866
    - Clang compatible static assert usage #1911
    - Use `PMACC_ASSERT` and `PMACC_VERIFY` #1662
- - libPMacc:
+ - PMacc:
    - Improve PMacc testsystem #1589
    - Add test for IdProvider #1590
    - Specialize HasFlag and GetFlagType for Particle #1604
@@ -114,7 +114,7 @@ for detailed instructions.
      - charge of ionized ions #1844
      - ADK: fix effective principal quantum number `nEff` #2011
    - Particle manipulators: position offset #1852
- - libPMacc:
+ - PMacc:
    - Avoid CUDA local memory usage of `Particle<>` #1579
    - Event system deadlock on `MPI_Barrier` #1659
    - ICC: `AllCombinations` #1646
@@ -174,7 +174,7 @@ for detailed instructions.
      - Include order in defaut loader #1864
      - Remove `ENABLE_ELECTRONS/IONS` #1935
      - Add `Line<>` default constructor #1588
-   - libPMacc:
+   - PMacc:
      - Particles exchange: avoid message spamming #1581
      - Change minimum CMake version #1591
      - CMake: handle PMacc as separate library #1692
@@ -602,7 +602,7 @@ support, please update your `.cfg` files with the new namings. Please visit
    - add Keldysh #1543
    - make use of faster RNG for Monte-Carlo with ionization #1542 #1543
  - support radiation + ionization in LWFA example #868
- - libPMacc:
+ - PMacc:
    - running with synchronized (blocking) kernels now adds more useful output #725
    - add RNGProvider for persistent PRNG states #1236, #1493
    - add `MRG32k3a` RNG generator #1487
@@ -692,7 +692,7 @@ support, please update your `.cfg` files with the new namings. Please visit
  - C++11 compatibility: use `BOOST_STATIC_CONSTEXPR` where possible #1165
  - avoid CUDA 6.5 int(bool) cast bug #680
  - PMacc detection in CMake #808
- - libPMacc:
+ - PMacc:
    - EventPool could run out of free events, potential deadlock #1631
    - Particle<>: avoid using CUDA lmem #1579
    - possible deadlock in event system could freeze simulation #1326
@@ -900,7 +900,7 @@ parts of the code.
    - `getCharge`, `getMass` #596
    - attributes are now automatically initialized to their generic
      defaults #607 #615
- - libPMacc:
+ - PMacc:
    - machine-dependent `UInt` vector class is now split in explicit
      `UInt32` and `UInt64` classes #665
    - nvidia random number generators (RNG) refactored #711
@@ -939,7 +939,7 @@ parts of the code.
      - parallel setups with particle-empty GPUs did hang #661
    - `HDF5`/`ADIOS` output of grid-mapped particle energy for non-relativistic
      particles was zero #669
- - libPMacc:
+ - PMacc:
    - CMake: path detection could fail #796 #808
    - `DeviceBuffer<*,DIM3>::getPointer()` was broken (does not affect
      PIConGPU) #647
@@ -982,7 +982,7 @@ but is yet still limited to two species.
 The checkpoint system was refactored and unified, also incooperating
 extreme high file I/O bandwidth with ADIOS 1.7+ support.
 The JetsonTK1 development kit (32bit ARM host side) is now experimentally
-supported by libPMacc/PIConGPU.
+supported by PMacc/PIConGPU.
 The *ZigZag* current deposition scheme was implemented providing
 40% to 50% speedup over our optimized Esirkepov implementation.
 
@@ -1036,7 +1036,7 @@ The *ZigZag* current deposition scheme was implemented providing
  - plane wave & wave packet lasers support user-defined polarization #534 #535
  - wave packet lasers can be ellipses #434 #446
  - central restart file to store available checkpoints #455
- - libPMacc
+ - PMacc
    - added `math::erf` #525
    - experimental 32bit host-side support (JetsonTK1 dev kits) #571
    - `CT::Vector` refactored and new methods added #473
@@ -1047,7 +1047,7 @@ The *ZigZag* current deposition scheme was implemented providing
  - initialization for `kernelSetDrift` was broken (traversal of frame lists, CUDA 5.5+) #538 #539
  - the particleToField deposition (e.g. in FieldTmp solvers for analysis)
    forgot a small fraction of the particle #559
- - libPMacc
+ - PMacc
    - no `static` keyword for non-storage class functions/members (CUDA 6.5+) #483 #484
    - fix a game-of-life compile error #550
    - ParticleBox `setAsLastFrame`/`setAsFirstFrame` race condition (PIConGPU was not affected) #514
@@ -1084,7 +1084,7 @@ The *ZigZag* current deposition scheme was implemented providing
  - upgraded to ADIOS 1.7+ support #450 #494
  - boost 1.55.0 / nvcc <6.5 work around only applied for affected versions #560
  - `boost::mkdir` is now used where necessary to increase portability #460
- - libPMacc
+ - PMacc
    - `ForEach` refactored #427
    - plugins: `notify()` is now called *before* `checkpoint()` and a getter
               method was added to retrieve the last call's time step #541
@@ -1167,7 +1167,7 @@ any more. These information are just necessary for checkpoints
    - restart capabilites added (partially) #315 #326 #425
    - new 2D phase space analysis added (for 3D sims and one species at a time) #347 #364 #391 #407
    - libSplash 1.2+ upgrade (incompatible output to previous versions) #388 #402
- - libPMacc
+ - PMacc
    - new Environment class provides all singletons #254 #276 #404 #405
    - new particle traits, methods and flags #279 #306 #311 #314 #312
    - cuSTL ForEach on 1-3D data sets #335
@@ -1190,7 +1190,7 @@ any more. These information are just necessary for checkpoints
    - CMake build was broken #260 #268
  - libSplash
    - output performance drastically improved #297
- - libPMacc
+ - PMacc
    - GameOfLife example was broken #295
    - log compile broken for high log level #372
    - global reduce did not work for references/const #448
@@ -1220,7 +1220,7 @@ any more. These information are just necessary for checkpoints
  - ParticleToGrid kernels refactored #329
  - slide log is now part of the SIMULATION_STATE level #354
  - additional NGP current implementation removed #429
- - libPMacc
+ - PMacc
    - GameOfLife example documented #305
    - compile time vector refactored #349
    - shortened compile time template error messages #277
@@ -1312,7 +1312,7 @@ This is the third release candidate, a *pre-beta* version.
  - cuda_memtest can check mapped memory now #173
  - EnergyDensity works for 2-3D now #175
  - new type floatD_X shall be used for position types (2-3D) #184
- - libPMacc
+ - PMacc
    - new functors for multiplications and substractions #135
    - opened more interfaces to old functors #197
    - MappedMemoryBuffer added #169 #182
@@ -1320,7 +1320,7 @@ This is the third release candidate, a *pre-beta* version.
      allowing for non-commutative operations in reduces #204
 
 **Bug fixes:**
- - libPMacc
+ - PMacc
    - GridBuffer could deadlock if called uninitialized #149
    - TaskSetValue was broken for all arrays with x-size != n*256 #174
    - CUDA 6.0 runs crashed during cudaSetDeviceFlags #200
@@ -1344,7 +1344,7 @@ This is the third release candidate, a *pre-beta* version.
  - Fields.def with field forward declarations added,
    refactored to provide common ValueType #178
  - icc warnings in cuda_memcheck fixed #210
- - libPMacc
+ - PMacc
    - refactored math::vector to play with DataSpace #138 #147
    - addLicense script updated #167
    - MPI_CHECK writes to stderr now #168
@@ -1381,7 +1381,7 @@ This is the second release candidate, a *pre-beta* version.
    - implicit plugin selection: enabled if found #52
    - throw more warnings #37
    - experimental support for icc 12.1 and PGI 13.6 #37
- - libPMacc
+ - PMacc
    - full rewrite of the way we build particle frames # 86
    - cuSTL: ForEach works on host 1D and 2D data now #44
    - math::pow added #54
@@ -1395,7 +1395,7 @@ This is the second release candidate, a *pre-beta* version.
  - new config for SLURM batch system (taurus) #39
 
 **Bug fixes:**
- - libPMacc
+ - PMacc
    - cuSTL
      - assign was broken for deviceBuffers #103
      - lambda expressions were broken #42 #46 #100

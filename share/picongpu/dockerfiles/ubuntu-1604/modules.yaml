@@ -1,0 +1,23 @@
+modules:
+  enable::
+    - lmod
+  lmod:
+    core_compilers:
+      - 'gcc@5.4.0'
+    hash_length: 0
+    gcc:
+      environment:
+        set:
+          CC: gcc
+          CXX: g++
+          FC: gfortran
+          F90: gfortran
+          F77: gfortran
+    openmpi:
+      environment:
+        set:
+          OMPI_MCA_mpi_leave_pinned: '0'
+    icet:
+      environment:
+        prepend_path:
+          CMAKE_PREFIX_PATH: '${PREFIX}/lib'

@@ -1,9 +1,9 @@
 .. _usage-reference:
 
-.. sectionauthor:: Axel Huebl
-
 Reference
 =========
+
+.. sectionauthor:: Axel Huebl
 
 PIConGPU is a year-long, scientific project with many people contributing to it.
 In order to credit the work of others, we expect you to cite our latest paper describing PIConGPU when publishing and/or presenting scientific results.

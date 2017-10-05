@@ -1,0 +1,120 @@
+/* Copyright 2013-2017 Heiko Burau, Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <pmacc/types.hpp>
+#include <pmacc/math/vector/Float.hpp>
+#include <pmacc/math/Vector.hpp>
+#include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
+#include <pmacc/cuSTL/algorithm/cudaBlock/Foreach.hpp>
+#include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
+#include <pmacc/nvidia/functors/Assign.hpp>
+
+
+namespace picongpu
+{
+
+template<typename BlockDim>
+struct DirSplittingKernel
+{
+    typedef void result_type;
+
+    PMACC_ALIGN(m_totalLength,int);
+    DirSplittingKernel(int totalLength) : m_totalLength(totalLength) {}
+
+    template<typename CursorE, typename CursorB >
+    DINLINE void propagate(CursorE cursorE, CursorB cursorB) const
+    {
+        float_X a_plus = (*cursorB(-1, 0, 0)).z() + (*cursorE(-1, 0, 0)).y();
+        float_X a_minus = (*cursorB(1, 0, 0)).z() - (*cursorE(1, 0, 0)).y();
+        float_X a_prime_plus = (*cursorB(-1, 0, 0)).y() - (*cursorE(-1, 0, 0)).z();
+        float_X a_prime_minus = (*cursorB(1, 0, 0)).y() + (*cursorE(1, 0, 0)).z();
+
+        __syncthreads();
+
+        (*cursorB).z() = float_X(0.5) * (a_plus + a_minus);
+        (*cursorE).y() = float_X(0.5) * (a_plus - a_minus);
+        (*cursorB).y() = float_X(0.5) * (a_prime_plus + a_prime_minus);
+        (*cursorE).z() = float_X(0.5) * (a_prime_minus - a_prime_plus);
+
+        __syncthreads();
+    }
+
+    template<
+        typename CursorE,
+        typename CursorB,
+        typename T_Acc
+    >
+    DINLINE void operator()(
+        T_Acc const & acc,
+        CursorE globalE,
+        CursorB globalB
+    ) const
+    {
+        //\todo: optimize cache size
+        typedef typename pmacc::math::CT::add<
+            typename BlockDim::vector_type,
+            typename pmacc::math::CT::Int < 2, 0, 0 > ::vector_type>::type CacheSize;
+
+        typedef container::CT::SharedBuffer<float3_X, CacheSize, 0 > CacheE;
+        typedef container::CT::SharedBuffer<float3_X, CacheSize, 1 > CacheB;
+        CacheE cacheE( acc );
+        CacheB cacheB( acc );
+
+        float3_X fieldE_old;
+        float3_X fieldB_old;
+        int threadPos_x = threadIdx.x;
+
+        algorithm::cudaBlock::Foreach<BlockDim> foreach;
+        for (int x_offset = 0; x_offset < this->m_totalLength; x_offset += BlockDim::x::value)
+        {
+            foreach(acc, typename CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
+            foreach(acc, typename CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
+            __syncthreads();
+
+            auto cursorE = cacheE.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z);
+            auto cursorB = cacheB.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z);
+
+            if(threadPos_x == BlockDim::x::value - 1)
+            {
+                fieldE_old = *cursorE;
+                fieldB_old = *cursorB;
+            }
+            if(threadPos_x == 0 && x_offset > 0)
+            {
+                *cursorE(-1,0,0) = fieldE_old;
+                *cursorB(-1,0,0) = fieldB_old;
+            }
+
+            propagate(cursorE, cursorB);
+
+            typedef zone::CT::SphericZone<BlockDim> BlockZone;
+            foreach(acc, BlockZone(), globalE(x_offset, 0, 0), cacheE.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
+            foreach(acc, BlockZone(), globalB(x_offset, 0, 0), cacheB.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
+
+            __syncthreads();
+
+            threadPos_x = BlockDim::x::value - 1 - threadPos_x;
+        }
+    }
+
+};
+
+} // picongpu

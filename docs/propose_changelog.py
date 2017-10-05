@@ -27,38 +27,40 @@ m_sel = menu.selected_option
 print(m_list[m_sel], milestones[m_sel].number)
 
 # get pulls (all pulls are also issues but not vice versa)
-issues = repo.get_issues(state="closed", sort="updated", direction="asc", milestone=milestones[m_sel])
+issues = repo.get_issues(state="closed", sort="updated", direction="asc",
+                         milestone=milestones[m_sel])
 # Use this in the future, but pagination seems broken in it:
-#search_string = 'repo:ComputationalRadiationPhysics/picongpu type:pr is:merged milestone:"'+milestones[m_sel].title+'"'
-#print(search_string)
-#issues = g.search_issues(search_string)
+# search_string = 'repo:ComputationalRadiationPhysics/picongpu ' +
+#                 'type:pr is:merged milestone:"'+milestones[m_sel].title+'"'
+# print(search_string)
+# issues = g.search_issues(search_string)
 
 
 # categories
 bugs = {
-  "core": [],
-  "pmacc": [],
-  "plugin": [],
-  "tools": [],
-  "other": []
+    "core": [],
+    "pmacc": [],
+    "plugin": [],
+    "tools": [],
+    "other": []
 }
 features = {
-  "core": [],
-  "pmacc": [],
-  "plugin": [],
-  "tools": [],
-  "other": []
+    "core": [],
+    "pmacc": [],
+    "plugin": [],
+    "tools": [],
+    "other": []
 }
 refactoring = {
-  "core": [],
-  "pmacc": [],
-  "plugin": [],
-  "tools": [],
-  "other": []
+    "core": [],
+    "pmacc": [],
+    "plugin": [],
+    "tools": [],
+    "other": []
 }
 misc = {
-  "docs": [],
-  "other": []
+    "docs": [],
+    "other": []
 }
 
 for i in issues:
@@ -70,11 +72,12 @@ for i in issues:
     pr_nr = i.number
     pr_labels = i.labels
     pr_labels_names = map(lambda l: l.name, pr_labels)
+    pr_url = "https://github.com/ComputationalRadiationPhysics/picongpu/pull/"
     if "bug" in pr_labels_names:
-        if not "affects latest release" in pr_labels_names:
+        if "affects latest release" not in pr_labels_names:
             print("Filtering out development-only bug:")
             print("  #" + str(pr_nr) + " " + i.title)
-            print("  https://github.com/ComputationalRadiationPhysics/picongpu/pull/" + str(pr_nr))
+            print("  " + pr_url + str(pr_nr))
             continue
 
     # filter out closed (unmerged) PRs
@@ -82,7 +85,7 @@ for i in issues:
     if not pr.merged:
         print("Filtering out unmerged PR:")
         print("  #" + str(pr_nr) + " " + i.title)
-        print("  https://github.com/ComputationalRadiationPhysics/picongpu/pull/" + str(pr_nr))
+        print("  " + pr_url + str(pr_nr))
         continue
 
     # sort by categories
@@ -90,7 +93,7 @@ for i in issues:
     if "affects latest release" in pr_labels_names:
         if "core" in pr_labels_names:
             bugs["core"].append(i.title + " #" + str(pr_nr))
-        elif "libPMacc" in pr_labels_names:
+        elif "PMacc" in pr_labels_names:
             bugs["pmacc"].append(i.title + " #" + str(pr_nr))
         elif "plugin" in pr_labels_names:
             bugs["plugin"].append(i.title + " #" + str(pr_nr))
@@ -102,7 +105,7 @@ for i in issues:
     if "feature" in pr_labels_names:
         if "core" in pr_labels_names:
             features["core"].append(i.title + " #" + str(pr_nr))
-        elif "libPMacc" in pr_labels_names:
+        elif "PMacc" in pr_labels_names:
             features["pmacc"].append(i.title + " #" + str(pr_nr))
         elif "plugin" in pr_labels_names:
             features["plugin"].append(i.title + " #" + str(pr_nr))
@@ -114,7 +117,7 @@ for i in issues:
     if "refactoring" in pr_labels_names:
         if "core" in pr_labels_names:
             refactoring["core"].append(i.title + " #" + str(pr_nr))
-        elif "libPMacc" in pr_labels_names:
+        elif "PMacc" in pr_labels_names:
             refactoring["pmacc"].append(i.title + " #" + str(pr_nr))
         elif "plugin" in pr_labels_names:
             refactoring["plugin"].append(i.title + " #" + str(pr_nr))
@@ -133,7 +136,7 @@ print("**New Features:**")
 print(" - PIC:")
 for p in features["core"]:
     print("   - " + p)
-print(" - libPMacc:")
+print(" - PMacc:")
 for p in features["pmacc"]:
     print("   - " + p)
 print(" - plugins:")
@@ -150,7 +153,7 @@ print("**Bug Fixes:**")
 print(" - PIC:")
 for p in bugs["core"]:
     print("   - " + p)
-print(" - libPMacc:")
+print(" - PMacc:")
 for p in bugs["pmacc"]:
     print("   - " + p)
 print(" - plugins:")
@@ -168,7 +171,7 @@ print(" - refactoring:")
 print("   - PIC:")
 for p in refactoring["core"]:
     print("     - " + p)
-print("   - libPMacc:")
+print("   - PMacc:")
 for p in refactoring["pmacc"]:
     print("     - " + p)
 print("   - plugins:")

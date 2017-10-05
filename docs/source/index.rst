@@ -40,7 +40,7 @@ Installation
    :maxdepth: 1
 
    install/path
-   install/compile
+   install/instructions
    install/dependencies
    install/profile
 
@@ -55,7 +55,7 @@ Usage
    usage/basics
    usage/param
    usage/particles
-   usage/plugin
+   usage/plugins
    usage/tbg
    usage/examples
    usage/workflows
@@ -69,7 +69,8 @@ Models
 
    models/pic
    models/LL_RR
-   models/ionization
+   models/field_ionization
+   models/collisional_ionization
    models/photons
 
 ***************
@@ -91,7 +92,19 @@ Development
    :maxdepth: 1
 
    dev/CONTRIBUTING.md
+   dev/repostructure
+   dev/styleguide
    dev/sphinx
+   dev/doxygen
    dev/picongpu
    dev/pmacc
    dev/doxyindex
+
+********************
+Programming Patterns
+********************
+.. toctree::
+   :caption: PROGRAMMING PATTERNS
+   :maxdepth: 1
+
+   prgpatterns/lockstep
