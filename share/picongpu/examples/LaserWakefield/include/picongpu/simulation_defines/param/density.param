@@ -24,11 +24,6 @@
 /* preprocessor struct generator */
 #include <pmacc/preprocessor/struct.hpp>
 
-// given in 1/m^3
-#ifndef UI_MACRO_DENSITY
-#define UI_MACRO_DENSITY 1.e25
-#endif
-
 namespace picongpu
 {
 namespace SI
@@ -41,7 +36,12 @@ namespace SI
      *
      * unit: ELEMENTS/m^3
      */
-    constexpr float_64 BASE_DENSITY_SI = UI_MACRO_DENSITY;
+
+// given in 1/m^3
+#ifndef PARAM_BASE_DENSITY_SI
+#   define PARAM_BASE_DENSITY_SI 1.e25
+#endif
+     constexpr float_64 BASE_DENSITY_SI = PARAM_BASE_DENSITY_SI;
 }
 
 namespace densityProfiles
