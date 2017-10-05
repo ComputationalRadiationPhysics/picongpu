@@ -61,7 +61,7 @@ add_definitions(${PMacc_DEFINITIONS})
 ###############################################################################
 
 find_package(Boost 1.62.0 COMPONENTS unit_test_framework REQUIRED)
-if(TARGET Boost::boost)
+if(TARGET Boost::unit_test_framework)
     set(LIBS ${LIBS} Boost::boost Boost::unit_test_framework)
 else()
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
