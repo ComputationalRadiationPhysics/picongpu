@@ -283,7 +283,7 @@ fi
 
 egetoptTool=`which $pathToegetopt/egetopt`
 if [ $? -ne 0 ] ; then
-    echo "Can't find program egetopt" >&2
+    echo "Cannot find program egetopt" >&2
     exit 1
 fi
 
@@ -430,7 +430,7 @@ if [ -d "$job_outDir" ] ; then
     if [ "$force" == "true" ] ; then
         echo "Warning: using existing folder on user-request [-f]"
     else
-        echo "Destination path already in use, can't create new folder" >&2
+        echo "Destination path already in use, cannot create new folder" >&2
         exit 1
     fi
 fi
