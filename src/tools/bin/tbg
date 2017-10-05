@@ -430,7 +430,7 @@ if [ -d "$job_outDir" ] ; then
     if [ "$force" == "true" ] ; then
         echo "Warning: using existing folder on user-request [-f]"
     else
-        echo "destination path already in use, can't create new folder"
+        echo "Destination path already in use, can't create new folder" >&2
         exit 1
     fi
 fi
