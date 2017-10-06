@@ -6,7 +6,7 @@ Authors: Sebastian Starke, Jeffrey Kelling
 License: GPLv3+
 """
 
-from eupraxia_picongpu.parameters import *
+from picongpu.input.parameters import *
 
 # If more params are added, make sure to adapt the corresponding
 # *.param files that define those values within picongpu.
