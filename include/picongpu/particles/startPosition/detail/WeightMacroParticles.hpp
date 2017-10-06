@@ -59,21 +59,20 @@ namespace detail
             float_X & weighting
         ) const
         {
+            PMACC_CASSERT_MSG(
+                __MIN_WEIGHTING_must_be_greater_than_zero,
+                MIN_WEIGHTING > float_X( 0.0 )
+            );
             weighting = float_X( 0.0 );
+            float_X const maxParPerCell = realParticlesPerCell / MIN_WEIGHTING;
+            numMacroParticles = math::float2int_rd(
+                math::min(
+                    float_X( numMacroParticles ),
+                    maxParPerCell
+                )
+            );
             if( numMacroParticles > 0u )
                 weighting = realParticlesPerCell / float_X( numMacroParticles );
-
-            while(
-                weighting < MIN_WEIGHTING &&
-                numMacroParticles > 0u
-            )
-            {
-                --numMacroParticles;
-                if( numMacroParticles > 0u )
-                    weighting = realParticlesPerCell / float_X( numMacroParticles );
-                else
-                    weighting = float_X( 0.0 );
-            }
 
             return numMacroParticles;
         }
