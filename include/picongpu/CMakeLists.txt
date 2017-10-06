@@ -155,7 +155,7 @@ endif()
 
 find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex filesystem
                                               system math_tr1 serialization)
-if(TARGET Boost::boost)
+if(TARGET Boost::program_options)
     set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex
                      Boost::filesystem Boost::system Boost::math_tr1
                      Boost::serialization)

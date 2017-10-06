@@ -224,7 +224,7 @@ endif(MPI_CXX_FOUND)
 ################################################################################
 
 find_package(Boost 1.62.0 REQUIRED COMPONENTS filesystem system math_tr1)
-if(TARGET Boost::boost)
+if(TARGET Boost::filesystem)
     set(PMacc_LIBRARIES ${PMacc_LIBRARIES} Boost::boost Boost::filesystem
                                            Boost::system Boost::math_tr1)
 else()
