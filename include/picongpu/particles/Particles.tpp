@@ -24,6 +24,7 @@
 #include "picongpu/particles/Particles.hpp"
 
 #include "picongpu/particles/Particles.kernel"
+#include "picongpu/particles/traits/GetExchangeMemCfg.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -79,7 +80,13 @@ Particles<
     ),
     m_datasetID( datasetID )
 {
-    size_t sizeOfExchanges = 2 * 2 * ( BYTES_EXCHANGE_X + BYTES_EXCHANGE_Y + BYTES_EXCHANGE_Z ) + BYTES_EXCHANGE_X * 2 * 8;
+    using ExchangeMemCfg = GetExchangeMemCfg_t< Particles >;
+
+    size_t sizeOfExchanges = 2 * 2 * (
+        ExchangeMemCfg::BYTES_EXCHANGE_X +
+        ExchangeMemCfg::BYTES_EXCHANGE_Y +
+        ExchangeMemCfg::BYTES_EXCHANGE_Z
+    ) + ExchangeMemCfg::BYTES_EXCHANGE_X * 2 * 8;
 
     log<picLog::MEMORY > ( "size for all exchange = %1% MiB" ) % ( (float_64) sizeOfExchanges / 1024. / 1024. );
 
@@ -87,36 +94,36 @@ Particles<
     log<picLog::MEMORY > ( "communication tag for species %1%: %2%" ) % FrameType::getName( ) % commTag;
 
     this->particlesBuffer->addExchange( Mask( LEFT ) + Mask( RIGHT ),
-                                        BYTES_EXCHANGE_X,
+                                        ExchangeMemCfg::BYTES_EXCHANGE_X,
                                         commTag);
     this->particlesBuffer->addExchange( Mask( TOP ) + Mask( BOTTOM ),
-                                        BYTES_EXCHANGE_Y,
+                                        ExchangeMemCfg::BYTES_EXCHANGE_Y,
                                         commTag);
     //edges of the simulation area
     this->particlesBuffer->addExchange( Mask( RIGHT + TOP ) + Mask( LEFT + TOP ) +
-                                        Mask( LEFT + BOTTOM ) + Mask( RIGHT + BOTTOM ), BYTES_EDGES,
+                                        Mask( LEFT + BOTTOM ) + Mask( RIGHT + BOTTOM ), ExchangeMemCfg::BYTES_EDGES,
                                         commTag);
 
 #if(SIMDIM==DIM3)
-    this->particlesBuffer->addExchange( Mask( FRONT ) + Mask( BACK ), BYTES_EXCHANGE_Z,
+    this->particlesBuffer->addExchange( Mask( FRONT ) + Mask( BACK ), ExchangeMemCfg::BYTES_EXCHANGE_Z,
                                         commTag);
     //edges of the simulation area
     this->particlesBuffer->addExchange( Mask( FRONT + TOP ) + Mask( BACK + TOP ) +
                                         Mask( FRONT + BOTTOM ) + Mask( BACK + BOTTOM ),
-                                        BYTES_EDGES,
+                                        ExchangeMemCfg::BYTES_EDGES,
                                         commTag);
     this->particlesBuffer->addExchange( Mask( FRONT + RIGHT ) + Mask( BACK + RIGHT ) +
                                         Mask( FRONT + LEFT ) + Mask( BACK + LEFT ),
-                                        BYTES_EDGES,
+                                        ExchangeMemCfg::BYTES_EDGES,
                                         commTag);
     //corner of the simulation area
     this->particlesBuffer->addExchange( Mask( TOP + FRONT + RIGHT ) + Mask( TOP + BACK + RIGHT ) +
                                         Mask( BOTTOM + FRONT + RIGHT ) + Mask( BOTTOM + BACK + RIGHT ),
-                                        BYTES_CORNER,
+                                        ExchangeMemCfg::BYTES_CORNER,
                                         commTag);
     this->particlesBuffer->addExchange( Mask( TOP + FRONT + LEFT ) + Mask( TOP + BACK + LEFT ) +
                                         Mask( BOTTOM + FRONT + LEFT ) + Mask( BOTTOM + BACK + LEFT ),
-                                        BYTES_CORNER,
+                                        ExchangeMemCfg::BYTES_CORNER,
                                         commTag);
 #endif
 }
