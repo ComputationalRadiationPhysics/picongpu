@@ -133,7 +133,7 @@ endif(ADIOS_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost REQUIRED COMPONENTS program_options regex)
+find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex)
 if(TARGET Boost::program_options)
     set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex)
 else()
