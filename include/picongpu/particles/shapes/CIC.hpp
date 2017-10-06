@@ -58,9 +58,14 @@ struct CIC : public shared_CIC::CIC
              */
             float_X abs_x = algorithms::math::abs(x);
 
-            const bool below_1 = (abs_x < float_X(1.0));
+            const bool below_1 = abs_x < float_X(1.0);
+            const float_X onSupport = float_X(1.0) - abs_x;
 
-            return float_X(below_1) * (float_X(1.0) - abs_x);
+            float_X result(0.0);
+            if(below_1)
+                result = onSupport;
+
+            return result;
         }
     };
 
