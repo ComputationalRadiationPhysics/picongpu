@@ -221,4 +221,24 @@ namespace picongpu
      */
     alias( densityRatio );
 
+    /** alias to reserved bytes for each communication direction
+     *
+     * This is an optional flag and overwrites the default species configuration
+     * in `memory.param`.
+     *
+     * A memory config must be of the following form:
+     *
+     * @code{.cpp}
+     * struct ExampleExchangeMemCfg
+     * {
+     *     static constexpr uint32_t BYTES_EXCHANGE_X = 5 * 1024 * 1024;
+     *     static constexpr uint32_t BYTES_EXCHANGE_Y = 5 * 1024 * 1024;
+     *     static constexpr uint32_t BYTES_EXCHANGE_Z = 5 * 1024 * 1024;
+     *     static constexpr uint32_t BYTES_CORNER = 16 * 1024;
+     *     static constexpr uint32_t BYTES_EDGES = 16 * 1024;
+     * };
+     * @endcode
+     */
+    alias( exchangeMemCfg );
+
 } // namespace picongpu
