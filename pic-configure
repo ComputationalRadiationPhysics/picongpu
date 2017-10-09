@@ -40,6 +40,7 @@ help()
     echo "                       supported backends: cuda, omp2b"
     echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
     echo "                       default: \"cuda\" if not set via environment variable PIC_BACKEND"
+    echo "                       note: architecture names are compiler dependent"
     echo "-c | --cmake         - overwrite options for cmake"
     echo "                       (e.g.: \"-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
@@ -62,7 +63,7 @@ get_backend_flags()
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
         result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
         if [ $num_options -eq 2 ] ; then
-            result+=" -DCMAKE_CXX_FLAGS=\"$CXXFLAGS -march=${backend_cfg[1]} -mtune=${backend_cfg[1]}\""
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
         fi
     else
         echo "unsupported backend given '$1'" >&2
