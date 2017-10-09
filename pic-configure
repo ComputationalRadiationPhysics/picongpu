@@ -20,7 +20,7 @@
 #
 
 this_dir=$(cd $(dirname $0) && pwd)
-
+known_cxx=( 'icpc' 'xlc++' 'pgc++' 'clang++' 'g++' )
 
 help()
 {
@@ -40,10 +40,95 @@ help()
     echo "                       supported backends: cuda, omp2b"
     echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
     echo "                       default: \"cuda\" if not set via environment variable PIC_BACKEND"
+    echo "                       Depending on the C++ compiler different architecture options"
+    echo "                       may be used for CPU compiler, e.g. -march=<architecture> for"
+    echo "                       gcc or -x<architecture> for icc."
     echo "-c | --cmake         - overwrite options for cmake"
     echo "                       (e.g.: \"-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
     echo "-h | --help          - show this help message"
+}
+
+find_cxx()
+{
+    if [ ! -z "$CXX" ]
+    then
+        echo "$CXX"
+        return 0
+    fi
+    # fallback to system default
+    if which c++ >/dev/null
+    then
+        echo "$(readlink -f $(which c++))"
+        return 0
+    fi
+    # fallback to known cxx compilers if they exist
+    for kc in "${known_cxx[@]}"
+    do
+        if ! which $kc >/dev/null
+        then
+            echo "$(which $kc)"
+            return 0
+        fi
+    done
+    # none found
+    return 3
+}
+
+set_cpu_architecure()
+{
+    architecture="$1"
+    host_machine=`uname -m`
+    cxx_compiler=$(find_cxx)
+    version=`$cxx_compiler --version | head -n 3`
+
+    test_string=`echo "$version" | grep "Free Software Foundation"`
+    if [ ! -z "$test_string" ] #g++
+    then
+        case "$host_machine" in
+            ppc64le) echo  "-mcpu=$architecture -mtune=$architecture" ;;
+                  *) echo "-march=$architecture -mtune=$architecture" ;;
+        esac
+        return 0
+    fi
+
+    test_string=`echo "$version" | grep "Intel Corporation"`
+    if [ ! -z "$test_string" ] #icpc
+    then
+        case "$architecture" in
+            native) echo "-march=native -mtune=native" ;;
+                 *) echo "-x$architecture" ;;
+        esac
+        return 0
+    fi
+
+    test_string=`echo "$version" | grep "IBM XL"`
+    if [ ! -z "$test_string" ] #xl
+    then
+        echo "-qarch=$architecture"
+        return 0
+    fi
+
+    test_string=`echo "$version" | grep "PGI"`
+    if [ ! -z "$test_string" ] #pgc
+    then
+        case "$architecture" in
+            native) echo "" ;; #no -tp flag => compiling for this machine
+                 *) echo "-tp=$architecture" ;;
+        esac
+        return 0
+    fi
+
+    test_string=`echo "$version" | grep "clang"`
+    if [ ! -z "$test_string" ] #clang
+    then
+        echo "-march=$architecture -mtune=$architecture"
+        return 0
+    fi
+
+    #fall back: assume gcc
+    echo "-march=$architecture -mtune=$architecture"
+    return 0
 }
 
 get_backend_flags()
@@ -62,7 +147,8 @@ get_backend_flags()
     elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
         result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
         if [ $num_options -eq 2 ] ; then
-            result+=" -DCMAKE_CXX_FLAGS=\"$CXXFLAGS -march=${backend_cfg[1]} -mtune=${backend_cfg[1]}\""
+            architecture=$(set_cpu_architecure ${backend_cfg[1]})
+            result+=" -DCMAKE_CXX_FLAGS=\"$CXXFLAGS $architecture\""
         fi
     else
         echo "unsupported backend given '$1'" >&2
