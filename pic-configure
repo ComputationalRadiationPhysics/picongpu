@@ -20,7 +20,7 @@
 #
 
 this_dir=$(cd $(dirname $0) && pwd)
-known_cxx=( 'icpc' 'xlc++' 'clang++' 'g++' )
+known_cxx=( 'icpc' 'xlc++' 'pgc++' 'clang++' 'g++' )
 
 help()
 {
@@ -80,7 +80,7 @@ set_cpu_architecure()
     architecture="$1"
     host_machine=`uname -m`
     cxx_compiler=$(find_cxx)
-    version=`$cxx_compiler --version | head -n 2`
+    version=`$cxx_compiler --version | head -n 3`
 
     test_string=`echo "$version" | grep "Free Software Foundation"`
     if [ ! -z "$test_string" ] #g++
@@ -106,6 +106,16 @@ set_cpu_architecure()
     if [ ! -z "$test_string" ] #xl
     then
         echo "-qarch=$architecture"
+        return 0
+    fi
+
+    test_string=`echo "$version" | grep "PGI"`
+    if [ ! -z "$test_string" ] #pgc
+    then
+        case "$architecture" in
+            native) echo "" ;; #no -tp flag => compiling for this machine
+                 *) echo "-tp=$architecture" ;;
+        esac
         return 0
     fi
 
