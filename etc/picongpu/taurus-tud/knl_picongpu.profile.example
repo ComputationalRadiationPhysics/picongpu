@@ -13,10 +13,10 @@ module load intelmpi/2017.2.174
 ### ICC
 module load intel/2017.2.174
 # Boost needs to be build yourself for now!
-# These paths need to be adjusted.
-export LD_LIBRARY_PATH=<BOOST_INSTALLATION_DIR>:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=<BOOST_INSTALLATION_DIR>/lib:$LD_LIBRARY_PATH
+# The boost root path needs to be adjusted.
 export BOOST_ROOT=<BOOST_INSTALLATION_DIR>
+export LD_LIBRARY_PATH=$BOOST_ROOT:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
 
 export PICSRC=$HOME/src/picongpu
 export PIC_BACKEND="omp2b:native"
