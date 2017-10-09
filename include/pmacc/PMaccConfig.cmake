@@ -147,6 +147,56 @@ endif()
 set(PMacc_LIBRARIES ${PMacc_LIBRARIES} ${cupla_LIBRARIES})
 
 
+###############################################################################
+# CPU Architecture: available instruction sets for e.g. SIMD extensions
+#
+# Conveniently set the architecture for the CPU compiler via this option.
+# For unsupported compilers, ignore this option and set CXXFLAGS.
+###############################################################################
+
+set(PMACC_CPU_ARCH $ENV{PMACC_CPU_ARCH} CACHE STRING
+    "compiler dependent CPU architecture string"
+)
+
+# list of known compiler flags to set the CPU architecture
+# GNU
+if(CMAKE_COMPILER_IS_GNUCXX)
+    if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ppc64le")
+        set(PMACC_CPU_ARCH_TEMPLATE "-mcpu={} -mtune={}")
+    else()
+        set(PMACC_CPU_ARCH_TEMPLATE "-march={} -mtune={}")
+    endif()
+# ICC
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    if("${PMACC_CPU_ARCH}" STREQUAL "native")
+        set(PMACC_CPU_ARCH_TEMPLATE "-march={} -mtune={}")
+    else()
+        set(PMACC_CPU_ARCH_TEMPLATE "-x{}")
+    endif()
+# Clang
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(PMACC_CPU_ARCH_TEMPLATE "-march={} -mtune={}")
+# XL
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "XL")
+    set(PMACC_CPU_ARCH_TEMPLATE "-qarch={}")
+# PGI
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
+    if(NOT "${PMACC_CPU_ARCH}" STREQUAL "native")
+        set(PMACC_CPU_ARCH_TEMPLATE "-tp={}")
+    endif()
+endif()
+
+# architecture is set and compiler is known
+if(PMACC_CPU_ARCH AND PMACC_CPU_ARCH_TEMPLATE)
+    string(REPLACE
+       "{}"
+       "${PMACC_CPU_ARCH}"
+       PMACC_CPU_ARCH_STRING
+       "${PMACC_CPU_ARCH_TEMPLATE}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PMACC_CPU_ARCH_STRING}")
+endif()
+
+
 ################################################################################
 # VampirTrace
 ################################################################################
