@@ -36,6 +36,8 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/algorithms/math.hpp>
 #include <pmacc/cuSTL/algorithm/functor/Add.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
@@ -449,26 +451,26 @@ public:
         DataConnector &dc = Environment<>::get().DataConnector();
         auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
 
-        ParticleCalorimeterKernel<typename ParticlesType::ParticlesBoxType,
-                                  MyCalorimeterFunctor>
-                                  particleCalorimeterKernel(particles->getDeviceParticlesBox(),
-                                                            *this->calorimeterFunctor);
+        AreaMapping<
+            CORE + BORDER,
+            MappingDesc
+        > const mapper( *this->cellDescription );
+        auto const grid = mapper.getGridDim();
 
-        /* create zone */
-        typedef typename MappingDesc::SuperCellSize SuperCellSize;
+        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+            pmacc::math::CT::volume< SuperCellSize >::type::value
+        >::value;
 
-        const pmacc::math::Int<simDim> coreBorderGuardSuperCells = this->cellDescription->getGridSuperCells();
-        const uint32_t guardSuperCells = this->cellDescription->getGuardingSuperCells();
-        const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2*guardSuperCells;
+        PMACC_KERNEL( KernelParticleCalorimeter< numWorkers >{ } )(
+            grid,
+            numWorkers
+        )(
+            particles->getDeviceParticlesBox( ),
+            *this->calorimeterFunctor,
+            mapper
+        );
 
-        /* this zone represents the core+border area with guard offset in unit of cells */
-        const zone::SphericZone<simDim> zone(
-            static_cast<pmacc::math::Size_t<simDim> >(coreBorderSuperCells * SuperCellSize::toRT()),
-            guardSuperCells * SuperCellSize::toRT());
-
-        /* kernel call */
-        algorithm::kernel::Foreach<SuperCellSize> foreach;
-        foreach(zone, cursor::make_MultiIndexCursor<simDim>(), particleCalorimeterKernel);
+        dc.releaseData( ParticlesType::FrameType::getName() );
 
         /* copy to host */
         *this->hBufCalorimeter = *this->dBufCalorimeter;
@@ -538,9 +540,18 @@ public:
         DataConnector &dc = Environment<>::get().DataConnector();
         auto particles = dc.get< ParticlesType >( speciesName, true );
 
-        PMACC_KERNEL(KernelParticleCalorimeter{})
-                (grid, mapper.getSuperCellSize())
-                (particles->getDeviceParticlesBox(), (MyCalorimeterFunctor)*this->calorimeterFunctor, mapper);
+        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+            pmacc::math::CT::volume< SuperCellSize >::type::value
+        >::value;
+
+        PMACC_KERNEL( KernelParticleCalorimeter< numWorkers >{ } )(
+            grid,
+            numWorkers
+        )(
+            particles->getDeviceParticlesBox( ),
+            (MyCalorimeterFunctor)*this->calorimeterFunctor,
+            mapper
+        );
         dc.releaseData( speciesName );
     }
 };
