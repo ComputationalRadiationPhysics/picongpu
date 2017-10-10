@@ -19,6 +19,11 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
+
+
 # ___________P A R A M E T E R S___________
 
 omega_plasma = 6.718e13     # SI unit: 1/s
@@ -28,10 +33,6 @@ delta_t = 2.5e-15           # SI unit: s
 delta_z = c * delta_t       # SI unit: m
 
 # _________________________________________
-
-import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
 
 data_trans = np.loadtxt("eField_zt_trans.dat")
 data_long = np.loadtxt("eField_zt_long.dat")
