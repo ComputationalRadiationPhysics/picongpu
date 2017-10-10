@@ -187,7 +187,8 @@ namespace picongpu
                               / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * PULSE_LENGTH ) / ( float_X(2.0) * PULSE_LENGTH ) );
                 }
                 elong.z() *= etrans / etrans_norm;
-                phase -= float_X( PI / 2.0 );
+                // reminder: if you want to use phase below, substract pi/2
+                // phase -= float_X( PI / 2.0 );
             }
 
             return elong;
