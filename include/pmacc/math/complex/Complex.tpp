@@ -197,6 +197,35 @@ struct Abs2< ::pmacc::math::Complex<T_Type> >
         }
     };
 
+    /*  Specialize sin( ) for complex numbers. */
+    template< typename T_Type >
+    struct Sin< ::pmacc::math::Complex< T_Type > >
+    {
+        using result = typename ::pmacc::math::Complex< T_Type >;
+        using type = T_Type;
+
+        HDINLINE result operator( )( const ::pmacc::math::Complex< T_Type > & other )
+        {
+            return ( pmMath::exp( ::pmacc::math::Complex< T_Type >( type( 0. ), type( 1. ) ) * other ) -
+                   pmMath::exp( ::pmacc::math::Complex< T_Type >( type( 0. ), type( -1. ) ) * other ) ) /
+                   ::pmacc::math::Complex< T_Type >( type( 0. ), type( 2. ) );
+        }
+    };
+
+    /*  Specialize cos( ) for complex numbers. */
+    template< typename T_Type >
+    struct Cos< ::pmacc::math::Complex< T_Type > >
+    {
+        using result = typename ::pmacc::math::Complex< T_Type >;
+        using type = T_Type;
+
+        HDINLINE result operator( )( const ::pmacc::math::Complex< T_Type >& other )
+        {
+            return ( pmMath::exp( ::pmacc::math::Complex< T_Type >( type( 0. ), type( 1. ) ) * other ) +
+                   pmMath::exp( ::pmacc::math::Complex< T_Type >( type( 0. ), type( -1. ) ) * other ) ) /
+                   type( 2.0 );
+        }
+    };
 
 } //namespace math
 } //namespace algorithms
