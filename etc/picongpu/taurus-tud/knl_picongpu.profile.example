@@ -23,7 +23,7 @@ export LD_LIBRARY_PATH=$BOOST_ROOT:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
 
 export PICSRC=$HOME/src/picongpu
-export PIC_BACKEND="omp2b:native"
+export PIC_BACKEND="omp2b:MIC-AVX512"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
