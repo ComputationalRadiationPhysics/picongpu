@@ -21,17 +21,14 @@
 
 #pragma once
 
-// unitless
 #ifndef PARAM_A0
 #   define PARAM_A0 1.5
 #endif
 
-// given in meters
 #ifndef PARAM_WAVE_LENGTH_SI
 #   define PARAM_WAVE_LENGTH_SI 0.8e-6
 #endif
 
-// given in seconds
 #ifndef PARAM_PULSE_LENGTH_SI
 #   define PARAM_PULSE_LENGTH_SI 5.e-15
 #endif
