@@ -4,13 +4,19 @@ This file is part of PIConGPU.
 Copyright 2017 PIConGPU contributors
 Authors: Sebastian Starke, Jeffrey Kelling
 License: GPLv3+
+
+
+If more parameters are added here, make sure to adapt the corresponding
+*.param files (located in the 'simulation_defines' directory of this example)
+that define those values within picongpu by adding the usual
+C language macro statements. The names of the macros should be the uppercase
+versions of the names provided here with an additional PARAM_ prefix.
+
+In order to visualize parameters via jupyter notebooks and ipython widgets,
+they need to be at least of class UiParameter (or inherited).
 """
 
 from picongpu.input.parameters import LogScaledParameter, LinearScaledParameter
-# If more params are added, make sure to adapt the corresponding
-# *.param files that define those values within picongpu.
-# In order to visualize parameters they need to be at least of
-# class UiParameter or inherited
 
 PARAMETER_LIST = [
     LogScaledParameter(
