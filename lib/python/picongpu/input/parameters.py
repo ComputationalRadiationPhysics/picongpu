@@ -155,7 +155,7 @@ class LinearScaledParameter(UiParameter):
     """
 
     def __init__(self, name, ptype, unit, default, slider_min, slider_max,
-                 slider_step, scale_factor, value=None):
+                 slider_step, scale_factor=1.0, value=None):
         """
         Parameters
         ----------

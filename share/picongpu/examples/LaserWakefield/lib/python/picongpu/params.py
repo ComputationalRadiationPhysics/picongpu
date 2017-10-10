@@ -6,8 +6,7 @@ Authors: Sebastian Starke, Jeffrey Kelling
 License: GPLv3+
 """
 
-from picongpu.input.parameters import *
-
+from picongpu.input.parameters import LogScaledParameter, LinearScaledParameter
 # If more params are added, make sure to adapt the corresponding
 # *.param files that define those values within picongpu.
 # In order to visualize parameters they need to be at least of
@@ -19,7 +18,7 @@ PARAMETER_LIST = [
         default=25, slider_min=20, slider_max=26,
         slider_step=1, base=10),
 
-    UiParameter(
+    LinearScaledParameter(
         name="_A0", ptype="compile", unit="",
         default=1.5, slider_min=0.1, slider_max=50.01,
         slider_step=0.1),
