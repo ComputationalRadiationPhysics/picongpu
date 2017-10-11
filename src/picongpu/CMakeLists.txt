@@ -141,7 +141,6 @@ set(LIBS ${LIBS} ${mallocMC_LIBRARIES})
 ################################################################################
 
 find_package(ZLIB REQUIRED)
-include_directories(SYSTEM ${ZLIB_INCLUDE_DIRS})
 set(LIBS ${LIBS} ZLIB::ZLIB)
 
 
