@@ -1,23 +1,39 @@
+# User Information ############################################################
+#   - edit those lines!
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="ALL"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Name and Path of this Script ################################################
+#   - do NOT change this line!
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
 # Text Editor for Tools #######################################################
+#   - edit those lines!
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+# module load nano
 #export EDITOR="nano"
 
 # General Modules #############################################################
 #
 # if the wrong environment is loaded we switch to the gnu environment
+# note: this loads gcc/5.3.0 (6.0.4 is the version of the programming env!)
 module li 2>&1 | grep "PrgEnv-cray" > /dev/null
 if [ $? -eq 0 ] ; then
-    module swap PrgEnv-cray PrgEnv-gnu/6.0.3
+    module swap PrgEnv-cray PrgEnv-gnu/6.0.4
 else
-    module load PrgEnv-gnu/6.0.3
+    module load PrgEnv-gnu/6.0.4
 fi
 
 module load CMake/3.8.1
-module load cudatoolkit/8.0.54_2.2.8_ga620558-2.1
+module load cudatoolkit/8.0.61_2.4.3-6.0.4.0_3.1__gb475d12
 
 # Libraries ###################################################################
-module load cray-mpich/7.5.0
-module load cray-hdf5-parallel/1.10.0
+module load cray-mpich/7.6.0
+module load cray-hdf5-parallel/1.10.0.3
 
 # Other Software ##############################################################
 #
@@ -26,12 +42,14 @@ module load cray-hdf5-parallel/1.10.0
 #
 # needs to be compiled by the user
 export BOOST_ROOT=$SCRATCH/lib/boost-1.62.0
-export PNGWRITER_ROOT=$SCRATCH/lib/pngwriter
+export PNGWRITER_ROOT=$SCRATCH/lib/pngwriter-0.6.0
 export ADIOS_ROOT=$SCRATCH/lib/adios-1.11.1
+export SPLASH_ROOT=$SCRATCH/lib/splash-1.6.0
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib/
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_ROOT/lib/
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ADIOS_ROOT/lib/
+export LD_LIBRARY_PATH=$PNGWRITER_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$SPLASH_ROOT/lib:$LD_LIBRARY_PATH
 
 export MPI_ROOT=$MPICH_DIR
 export HDF5_ROOT=$HDF5_DIR
@@ -48,18 +66,11 @@ export CXX=$(which CC)
 
 export PICSRC=$HOME/src/picongpu
 export PIC_BACKEND="cuda:60"
-export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
-
-# send me a mail on BEGIN, END, FAIL, REQUEUE, ALL,
-# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
-export MY_MAILNOTIFY="FAIL"
-export MY_MAIL="someone@example.com"
-export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
@@ -70,8 +81,8 @@ export TBG_TPLFILE="etc/picongpu/pizdaint-cscs/normal.tpl"
 # helper tools ################################################################
 
 # allocate an interactive shell for one hour
-#   getInteractive 2  # allocates to interactive nodes (default: 1)
-getInteractive() {
+#   getNode 2  # allocates to interactive nodes (default: 1)
+getNode() {
     if [ -z "$1" ] ; then
         numNodes=1
     else
