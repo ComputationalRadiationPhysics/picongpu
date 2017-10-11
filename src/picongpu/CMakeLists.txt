@@ -141,7 +141,6 @@ set(LIBS ${LIBS} ${mallocMC_LIBRARIES})
 ################################################################################
 
 find_package(ZLIB REQUIRED)
-include_directories(SYSTEM ${ZLIB_INCLUDE_DIRS})
 set(LIBS ${LIBS} ZLIB::ZLIB)
 
 
@@ -162,7 +161,7 @@ endif()
 find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options regex filesystem
                                               system thread math_tr1 date_time
                                               serialization chrono atomic)
-if(TARGET Boost::boost)
+if(TARGET Boost::program_options)
     set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex
                      Boost::filesystem Boost::system Boost::thread
                      Boost::math_tr1 Boost::date_time Boost::serialization

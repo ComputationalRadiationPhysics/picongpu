@@ -82,8 +82,8 @@ endif(NOT RELEASE)
 # Find Boost
 ################################################################################
 
-find_package(Boost REQUIRED COMPONENTS program_options)
-if(TARGET Boost::boost)
+find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options)
+if(TARGET Boost::program_options)
     set(LIBS ${LIBS} Boost::boost Boost::program_options)
 else()
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
