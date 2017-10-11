@@ -51,7 +51,7 @@ constexpr uint32_t GUARD_SIZE = 1;
  * This is the default configuration for species exchanges buffer sizes.
  * The default exchange buffer sizes can be changed per species by adding
  * the alias exchangeMemCfg with similar members like in DefaultExchangeMemCfg
- * to it's flag list.
+ * to its flag list.
  */
 struct DefaultExchangeMemCfg
 {

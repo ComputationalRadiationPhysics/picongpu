@@ -224,7 +224,7 @@ namespace picongpu
     /** alias to reserved bytes for each communication direction
      *
      * This is an optional flag and overwrites the default species configuration
-     * in `memory.param`.
+     * in memory.param.
      *
      * A memory config must be of the following form:
      *

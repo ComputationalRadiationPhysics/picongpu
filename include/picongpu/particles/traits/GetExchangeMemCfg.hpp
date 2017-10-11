@@ -66,5 +66,5 @@ namespace traits
     template< typename T_Species >
     using GetExchangeMemCfg_t = typename traits::GetExchangeMemCfg< T_Species >::type;
 
-} //namespace traits
-}// namespace picongpu
+} // namespace traits
+} // namespace picongpu
