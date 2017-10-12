@@ -44,7 +44,7 @@ export HDF5_ROOT=$HDF5_HOME
 # PIConGPU Helper Variables ###################################################
 #
 export PICSRC=$HOME/src/picongpu
-export PIC_BACKEND="omp2b"
+export PIC_BACKEND="omp2b:haswell"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
@@ -60,4 +60,4 @@ export TBG_TPLFILE="etc/picongpu/draco-mpcdf/general.tpl"
 # helper tools ################################################################
 
 # allocate an interactive shell for one hour
-#   TODO
+alias getNode='salloc --time=1:00:00 --nodes=1 --exclusive --ntasks-per-node=2 --cpus-per-task=32 --partition general'
