@@ -37,14 +37,19 @@ export SPLASH_ROOT=$HOME/lib/splash-1.6.0
 export LD_LIBRARY_PATH=$PNG_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNGWRITER_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$SPLASH_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$BOOST_HOME/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$HDF5_HOME/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$I_MPI_ROOT/lib64:$LD_LIBRARY_PATH
 
-# export MPI_ROOT=$MPICH_DIR
 export HDF5_ROOT=$HDF5_HOME
+
+export CXX=$(which g++)
+export CC=$(which gcc)
 
 # PIConGPU Helper Variables ###################################################
 #
 export PICSRC=$HOME/src/picongpu
-export PIC_BACKEND="omp2b:haswell"
+export PIC_BACKEND="omp2b"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
