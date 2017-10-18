@@ -60,7 +60,13 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 Piz Daint (CSCS)
 ----------------
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, PNGwriter and ADIOS <install-dependencies>` manually.
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, PNGwriter, libSplash and ADIOS <install-dependencies>` manually.
+
+For proper HDF5 detection, copy the ``FindHDF5.cmake`` of libSplash to PIConGPU:
+
+.. code:: bash
+
+   cp $HOME/src/splash/cmake/FindHDF5.cmake $PICSRC/thirdParty/cmake-modules/
 
 .. literalinclude:: profiles/pizdaint-cscs/picongpu.profile.example
    :language: bash
