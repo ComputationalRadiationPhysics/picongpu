@@ -143,7 +143,7 @@ class UiParameter(Parameter):
         """
         Returns
         -------
-        A float cointaining the 'value' attribute.
+        A float containing the 'value' attribute.
         """
         return self.value
 
@@ -184,7 +184,7 @@ class LinearScaledParameter(UiParameter):
 
         Returns
         -------
-        A float cointaining the internal 'value' attribute after adjustment.
+        A float containing the internal 'value' attribute after adjustment.
         """
         self.value = x * self.scale_factor
         return self.value
@@ -237,7 +237,7 @@ class LogScaledParameter(Parameter):
 
         Returns
         -------
-        A float cointaining the internal 'value' attribute after adjustment.
+        A float containing the internal 'value' attribute after adjustment.
         """
 
         self.value = self.base ** x
