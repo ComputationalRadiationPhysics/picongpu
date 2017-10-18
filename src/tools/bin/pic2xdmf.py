@@ -35,7 +35,7 @@ VECTOR_IDENTS = ["x", "y", "z", "w"]
 NAME_DELIM = "/"
 
 # PIC-specific names
-NAME_GLOBALCELLIDX = "globalCellIdx"
+NAME_GLOBALCELLIDX = "positionOffset"
 NAME_POSITION = "position"
 
 
@@ -151,8 +151,8 @@ def join_references_from_components(node_list, original_nodes_map, prefix,
             extra_grid = "Grid[@Name='{}']/".format(
                 parent_node.getAttribute("Name"))
 
-        node_text = "/Xdmf/Domain/Grid/{}Attribute[@Name='{}']/" + \
-                    "DataItem[1]".format(extra_grid, orig_name)
+        node_text = ("/Xdmf/Domain/Grid/{}Attribute[@Name='{}']/"
+                     "DataItem[1]").format(extra_grid, orig_name)
         reference_text = doc.createTextNode(node_text)
         reference.appendChild(reference_text)
         join_base.appendChild(reference)
@@ -437,13 +437,14 @@ def merge_poly_attributes(base_node):
             return
 
         if len(gcellidx_vector_list) < 2 or len(gcellidx_vector_list) > 3:
-            print("Error: Attributes for '{}' in group '{}' are not a 2/3 " +
-                  "component vector".format(NAME_GLOBALCELLIDX, groupName))
+            print(("Error: Attributes for '{}' in group '{}' are not a 2/3 "
+                   "component vector").format(NAME_GLOBALCELLIDX, groupName))
             return
 
         if len(gcellidx_vector_list) != len(pos_vector_list):
-            print("Error: Vectors for '{}' and '{}' in group '{}' do not " +
-                  "match".format(NAME_GLOBALCELLIDX, NAME_POSITION, groupName))
+            print(("Error: Vectors for '{}' and '{}' in group '{}' do not "
+                   "match").format(NAME_GLOBALCELLIDX, NAME_POSITION,
+                                   groupName))
             return
 
         combined_pos_nodes = list()
