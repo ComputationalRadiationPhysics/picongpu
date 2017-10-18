@@ -30,12 +30,12 @@ PARAMETER_LIST = [
         slider_step=0.1),
 
     LinearScaledParameter(
-        name="Wave_Length_SI", ptype="compile", unit="nm",
+        name="Wave_Length_SI", ptype="compile", unit="m",
         default=800, slider_min=400, slider_max=1400,
         slider_step=1, scale_factor=1.e-9),
 
     LinearScaledParameter(
-        name="Pulse_Length_SI", ptype="compile", unit="fs",
+        name="Pulse_Length_SI", ptype="compile", unit="s",
         default=5, slider_min=1, slider_max=150,
         slider_step=1, scale_factor=1.e-15),
 ]
