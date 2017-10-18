@@ -392,6 +392,7 @@ public:
             throw std::runtime_error(msg.str());
         }
 
+#if( PMACC_CUDA_ENABLED == 1 )
         size_t heapSize = freeGpuMem - reservedGpuMemorySize;
 
         if( Environment<>::get().MemoryInfo().isSharedMemoryPool() )
@@ -402,7 +403,6 @@ public:
         else
             log<picLog::MEMORY > ("RAM is NOT shared between GPU and host.");
 
-#if( PMACC_CUDA_ENABLED == 1 )
         // initializing the heap for particles
         deviceHeap->destructiveResize(heapSize);
         MallocMCBuffer<DeviceHeap>* mallocMCBuffer = new MallocMCBuffer<DeviceHeap>(deviceHeap);

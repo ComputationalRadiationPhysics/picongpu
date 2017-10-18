@@ -174,8 +174,6 @@ GridLayout< simDim> FieldE::getGridLayout( )
 
 void FieldE::laserManipulation( uint32_t currentStep )
 {
-    const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-
     /* initialize the laser not in the first cell is equal to a negative shift
      * in time
      */
@@ -185,11 +183,16 @@ void FieldE::laserManipulation( uint32_t currentStep )
      * - we have periodic boundaries in Y direction or
      * - we already performed a slide
      */
-    if (
+    if(
         laserProfile::INIT_TIME == float_X(0.0) || /* laser is disabled e.g. laserNone */
         ( currentStep * DELTA_T  - laserTimeShift ) >= laserProfile::INIT_TIME ||
-        Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) || numSlides != 0
+        Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP )
     )
+    {
+        return;
+    }
+    const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
+    if( numSlides != 0 )
     {
         return;
     }
