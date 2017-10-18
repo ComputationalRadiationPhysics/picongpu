@@ -35,7 +35,7 @@ PARAMETER_LIST = [
         slider_step=1, scale_factor=1.e-9),
 
     LinearScaledParameter(
-        name="Pulse_Length_SI", ptype="compile", unit="s",
+        name="Pulse_Length_SI", ptype="compile", unit="fs",
         default=5, slider_min=1, slider_max=150,
         slider_step=1, scale_factor=1.e-15),
 ]
