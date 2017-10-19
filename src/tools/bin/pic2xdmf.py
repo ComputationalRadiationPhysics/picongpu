@@ -36,8 +36,8 @@ VECTOR_IDENTS = ["x", "y", "z", "w"]
 NAME_DELIM = "/"
 
 # PIC-specific names
-NAME_GLOBALCELLIDX = "globalCellIdx"
-NAME_POSITION= "position"
+NAME_GLOBALCELLIDX = "positionOffset"
+NAME_POSITION = "position"
 
 def get_vector_basename(vector_name):
     """
