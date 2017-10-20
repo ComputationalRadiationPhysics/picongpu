@@ -17,8 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "picongpu/initialization/InitialiserController.hpp"
@@ -26,21 +24,21 @@
 #include "picongpu/simulationControl/MySimulation.hpp"
 #include "picongpu/simulationControl/SimulationStarter.hpp"
 
-/* Define a starter for the simulation with the name "SimStarter"
- *
- * etc.: typedef MyOwnStarterClass SimStarter;
- */
+
 namespace picongpu
 {
 
     namespace defaultPIConGPU
     {
-        typedef ::picongpu::SimulationStarter
-        <
-        ::picongpu::InitialiserController,
-        ::picongpu::PluginController,
-        ::picongpu::MySimulation
-        > SimStarter;
+        /* Define a starter for the simulation with the name "SimStarter"
+         *
+         * etc.: using SimStarter = MyOwnStarterClass;
+         */
+        using SimStarter = ::picongpu::SimulationStarter<
+            ::picongpu::InitialiserController,
+            ::picongpu::PluginController,
+            ::picongpu::MySimulation
+        >;
     }
 }
 

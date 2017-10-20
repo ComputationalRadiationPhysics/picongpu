@@ -17,8 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "picongpu/fields/MaxwellSolver/None/NoSolver.def"
@@ -38,34 +36,34 @@ namespace picongpu
 
 namespace fieldSolverNone
 {
-    typedef picongpu::noSolver::NoSolver FieldSolver;
+    using FieldSolver = picongpu::noSolver::NoSolver;
     namespace numericalCellType = yeeCell;
 }
 
 namespace fieldSolverYeeNative
 {
-    typedef picongpu::yeeSolver::YeeSolver<> FieldSolver;
+    using FieldSolver = picongpu::yeeSolver::YeeSolver<>;
     namespace numericalCellType = yeeCell;
 }
 
 namespace fieldSolverYee
 {
-    typedef picongpu::yeeSolver::YeeSolver<> FieldSolver;
+    using FieldSolver = picongpu::yeeSolver::YeeSolver<>;
     namespace numericalCellType = yeeCell;
 }
 
-#if(SIMDIM==DIM3)
-#if( PMACC_CUDA_ENABLED == 1 )
+#if( SIMDIM == DIM3 )
+#   if( PMACC_CUDA_ENABLED == 1 )
 namespace fieldSolverDirSplitting
 {
-    typedef picongpu::dirSplitting::DirSplitting FieldSolver;
+    using FieldSolver = picongpu::dirSplitting::DirSplitting;
     namespace numericalCellType = emfCenteredCell;
 }
-#endif
+#   endif
 
 namespace fieldSolverLehe
 {
-    typedef picongpu::leheSolver::LeheSolver FieldSolver;
+    using FieldSolver = picongpu::leheSolver::LeheSolver;
     namespace numericalCellType = yeeCell;
 }
 #endif

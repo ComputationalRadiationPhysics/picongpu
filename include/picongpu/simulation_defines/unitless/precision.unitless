@@ -21,53 +21,54 @@
 
 #include <pmacc/math/Vector.hpp>
 
+
 namespace picongpu
 {
 
-    typedef precisionPIConGPU::precisionType float_X;
+    using float_X = precisionPIConGPU::precisionType;
 
     namespace precision32Bit
     {
-        typedef precisionType float_X;
-        /*32 Bit defines*/
-        typedef ::pmacc::math::Vector<float_X, 1> float1_X;
-        typedef ::pmacc::math::Vector<float_X, 2> float2_X;
-        typedef ::pmacc::math::Vector<float_X, 3> float3_X;
-        typedef ::pmacc::math::Vector<float_X, simDim> floatD_X;
+        using float_X = precisionType;
+        /* 32 Bit defines */
+        using float1_X = ::pmacc::math::Vector< float_X, 1 >;
+        using float2_X = ::pmacc::math::Vector< float_X, 2 >;
+        using float3_X = ::pmacc::math::Vector< float_X, 3 >;
+        using floatD_X = ::pmacc::math::Vector< float_X, simDim >;
     }
 
     namespace precision64Bit
     {
-        typedef precisionType float_X;
-        /*32 Bit defines*/
-        typedef ::pmacc::math::Vector<float_X, 1> float1_X;
-        typedef ::pmacc::math::Vector<float_X, 2> float2_X;
-        typedef ::pmacc::math::Vector<float_X, 3> float3_X;
-        typedef ::pmacc::math::Vector<float_X, simDim> floatD_X;
+        using float_X = precisionType;
+        /* 64 Bit defines */
+        using float1_X = ::pmacc::math::Vector< float_X, 1 >;
+        using float2_X = ::pmacc::math::Vector< float_X, 2 >;
+        using float3_X = ::pmacc::math::Vector< float_X, 3 >;
+        using floatD_X = ::pmacc::math::Vector< float_X, simDim >;
     }
 
-    typedef precision32Bit::float_X float_32;
-    typedef precision64Bit::float_X float_64;
+    using float_32 = precision32Bit::float_X;
+    using float_64 = precision64Bit::float_X;
 
-    /*variable precision defines*/
-    typedef ::pmacc::math::Vector<float_X, 1> float1_X;
-    typedef ::pmacc::math::Vector<float_X, 2> float2_X;
-    typedef ::pmacc::math::Vector<float_X, 3> float3_X;
-    typedef ::pmacc::math::Vector<float_X, simDim> floatD_X;
-    /*32 Bit defines*/
-    typedef precision32Bit::float1_X float1_32;
-    typedef precision32Bit::float2_X float2_32;
-    typedef precision32Bit::float3_X float3_32;
-    typedef precision32Bit::floatD_X floatD_32;
-    /*64 Bit defines*/
-    typedef precision64Bit::float1_X float1_64;
-    typedef precision64Bit::float2_X float2_64;
-    typedef precision64Bit::float3_X float3_64;
-    typedef precision64Bit::floatD_X floatD_64;
+    /* variable precision defines */
+    using float1_X = ::pmacc::math::Vector< float_X, 1 >;
+    using float2_X = ::pmacc::math::Vector< float_X, 2 >;
+    using float3_X = ::pmacc::math::Vector< float_X, 3 >;
+    using floatD_X = ::pmacc::math::Vector< float_X, simDim >;
+    /* 32 Bit defines */
+    using float1_32 = precision32Bit::float1_X;
+    using float2_32 = precision32Bit::float2_X;
+    using float3_32 = precision32Bit::float3_X;
+    using floatD_32 = precision32Bit::floatD_X;
+    /* 64 Bit defines */
+    using float1_64 = precision64Bit::float1_X;
+    using float2_64 = precision64Bit::float2_X;
+    using float3_64 = precision64Bit::float3_X;
+    using floatD_64 = precision64Bit::floatD_X;
 
-    typedef precisionSqrt::precisionType sqrt_X;
-    typedef precisionExp::precisionType exp_X;
-    //trigonometric functions
-    typedef precisionTrigonemetric::precisionType trigo_X;
+    using sqrt_X = precisionSqrt::precisionType;
+    using exp_X = precisionExp::precisionType;
+    // trigonometric functions
+    using trigo_X = precisionTrigonemetric::precisionType;
 
-} //namespace picongpu
+} // namespace picongpu
