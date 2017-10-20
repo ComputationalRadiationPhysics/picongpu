@@ -99,7 +99,8 @@ do
         example_name=`basename $examples_path`
     fi
 
-    testFlag_cnt=0
+    # the default is 1 to allow examples without the file `cmakeFlags`
+    testFlag_cnt=1
     if [ -f "$examples_path/$i/cmakeFlags" ]; then
         testFlag_cnt=`$examples_path/$i/cmakeFlags -l`
     fi
