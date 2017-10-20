@@ -17,11 +17,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
+
 
 namespace picongpu
 {
@@ -34,15 +34,18 @@ namespace picongpu
 constexpr size_t reservedGpuMemorySize = 350 *1024*1024;
 
 /* short namespace*/
-namespace mCT=pmacc::math::CT;
+namespace mCT = pmacc::math::CT;
 /** size of a superCell
  *
  * volume of a superCell must be <= 1024
  */
-typedef mCT::shrinkTo<mCT::Int<8, 8, 4>, simDim>::type SuperCellSize;
+using SuperCellSize = typename mCT::shrinkTo<
+    mCT::Int< 8, 8, 4 >,
+    simDim
+>::type;
 
 /** define the object for mapping superCells to cells*/
-typedef MappingDescription<simDim, SuperCellSize> MappingDesc;
+using MappingDesc = MappingDescription<simDim, SuperCellSize>;
 
 constexpr uint32_t GUARD_SIZE = 1;
 
@@ -76,4 +79,4 @@ constexpr uint32_t fieldTmpNumSlots = 1;
  */
 constexpr bool fieldTmpSupportGatherCommunication = true;
 
-}//namespace picongpu
+} // namespace picongpu

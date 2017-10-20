@@ -81,7 +81,7 @@ namespace particles
  *
  * the functors are called in order (from first to last functor)
  */
-typedef mpl::vector<
+using InitPipeline = mpl::vector<
     CreateDensity<
         densityProfiles::Foil,
         startPosition::Quiet,
@@ -92,7 +92,7 @@ typedef mpl::vector<
         startPosition::Random,
         PIC_Electrons
     >
-> InitPipeline;
+>;
 
 } /* namespace particles */
 } /* namespace picongpu  */

@@ -81,7 +81,7 @@ namespace particles
  *
  * the functors are called in order (from first to last functor)
  */
-typedef mpl::vector<
+using InitPipeline = mpl::vector<
 #ifdef PARAM_SINGLE_PARTICLE
     CreateDensity<
         densityProfiles::FreeFormula,
@@ -99,7 +99,7 @@ typedef mpl::vector<
         manipulators::AssignYDriftNegative,
         PIC_Electrons
     >
-> InitPipeline;
+>;
 
 } /* namespace particles */
 } /* namespace picongpu  */

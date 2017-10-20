@@ -17,8 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "picongpu/algorithms/FieldToParticleInterpolationNative.hpp"
@@ -39,15 +37,15 @@ namespace picongpu
  *  - particles::shapes::PCS : 3rd order
  *  - particles::shapes::P4S : 4th order
  *
- *  example:             typedef particles::shapes::CIC CICShape;
+ *  example:             using CICShape = particles::shapes::CIC;
  */
 #ifndef PARAM_PARTICLESHAPE
 #define PARAM_PARTICLESHAPE TSC
 #endif
-typedef particles::shapes::PARAM_PARTICLESHAPE UsedParticleShape;
+using UsedParticleShape = particles::shapes::PARAM_PARTICLESHAPE;
 
 /* define which interpolation method is used to interpolate fields to particle*/
-typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation> UsedField2Particle;
+using UsedField2Particle = FieldToParticleInterpolation< UsedParticleShape, AssignedTrilinearInterpolation >;
 
 /*! select current solver method -----------------------------------------------
  * - currentSolver::Esirkepov<SHAPE>  : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
@@ -62,7 +60,7 @@ typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpo
 #ifndef PARAM_CURRENTSOLVER
 #define PARAM_CURRENTSOLVER Esirkepov<UsedParticleShape>
 #endif
-typedef currentSolver::PARAM_CURRENTSOLVER UsedParticleCurrentSolver;
+using UsedParticleCurrentSolver = currentSolver::PARAM_CURRENTSOLVER;
 
 /*! particle pusher configuration ----------------------------------------------
  *
@@ -79,6 +77,6 @@ typedef currentSolver::PARAM_CURRENTSOLVER UsedParticleCurrentSolver;
  * (= free stream model)
  * - particles::pusher::Photon : propagate with c in direction of normalized mom.
  */
-typedef particles::pusher::Boris UsedParticlePusher;
+using UsedParticlePusher = particles::pusher::Boris;
 
-}//namespace picongpu
+} // namespace picongpu

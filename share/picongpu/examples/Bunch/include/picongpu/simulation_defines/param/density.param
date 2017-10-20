@@ -79,7 +79,7 @@ namespace densityProfiles
     ); /* struct GaussianCloudParam */
 
     /* definition of cloud profile */
-    typedef GaussianCloudImpl< GaussianCloudParam > GaussianCloud;
+    using GaussianCloud = GaussianCloudImpl< GaussianCloudParam >;
 
 
     struct FreeFormulaFunctor

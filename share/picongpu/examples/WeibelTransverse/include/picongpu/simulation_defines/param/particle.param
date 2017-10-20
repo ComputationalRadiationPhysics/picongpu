@@ -54,7 +54,7 @@ namespace manipulators
         const DriftParamElectrons_direction_t direction;
     };
     /* definition of SetDrift start*/
-    using AssignZDriftElectrons = unary::Drift<DriftParamElectrons,nvidia::functors::Assign>;
+    using AssignZDriftElectrons = unary::Drift< DriftParamElectrons,nvidia::functors::Assign >;
 
     CONST_VECTOR(float_X,3,DriftParamIons_direction,0.0,0.0,-1.0);
     struct DriftParamIons
@@ -67,7 +67,7 @@ namespace manipulators
         const DriftParamIons_direction_t direction;
     };
     /* definition of SetDrift start*/
-    using AssignZDriftIons = unary::Drift<DriftParamIons,nvidia::functors::Assign>;
+    using AssignZDriftIons = unary::Drift< DriftParamIons,nvidia::functors::Assign >;
 
     struct TemperatureParam
     {
@@ -89,11 +89,14 @@ namespace startPosition
     {
         /** Count of particles per cell per direction at initial state
          *  unit: none */
-       using numParticlesPerDimension = mCT::shrinkTo<mCT::Int<TYPICAL_PARTICLES_PER_CELL/2, TYPICAL_PARTICLES_PER_CELL/2, 1>, simDim>::type;
+        using numParticlesPerDimension = mCT::shrinkTo<
+            mCT::Int< TYPICAL_PARTICLES_PER_CELL / 2, TYPICAL_PARTICLES_PER_CELL / 2, 1 >,
+            simDim
+        >::type;
     };
 
     /* definition of quiet particle start */
-    using Quiet = QuietImpl<QuietParam>;
+    using Quiet = QuietImpl< QuietParam >;
 
 } //namespace startPosition
 } //namespace particles
