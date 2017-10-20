@@ -52,6 +52,16 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../thirdParty/cmake-modules/)
 
 
+###############################################################################
+# Language Flags
+###############################################################################
+
+# enforce C++11
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
+
+
 ################################################################################
 # Build type (debug, release)
 ################################################################################
@@ -72,9 +82,13 @@ endif(NOT RELEASE)
 # Find Boost
 ################################################################################
 
-find_package(Boost REQUIRED COMPONENTS program_options)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${Boost_LIBRARIES})
+find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options)
+if(TARGET Boost::program_options)
+    set(LIBS ${LIBS} Boost::boost Boost::program_options)
+else()
+    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${Boost_LIBRARIES})
+endif()
 
 
 ################################################################################

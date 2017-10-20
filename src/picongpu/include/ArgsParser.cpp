@@ -108,7 +108,7 @@ namespace picongpu
             // print help message and quit simulation
             if ( vm.count( "help" ) )
             {
-                std::cerr << desc << "\n";
+                std::cout << desc << "\n";
                 return SUCCESS_EXIT;
             }
             // no parameters set: required parameters (e.g., -g) will be missing

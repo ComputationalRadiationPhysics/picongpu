@@ -1,6 +1,62 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.3.1
+-----
+**Date:** 2017-10-20
+
+Field Energy Plugin, Gaussian Density Profile and Restarts
+
+This release fixes the energy field plugin diagnostics and the "downramp"
+parameter of the pre-defined Gaussian density profile. Restarts with enabled
+background fields were fixed. Numerous improvements to our build system were
+added to deal more gracefully with co-existing system-wide default libraries.
+A stability issue due to an illegal memory access in the PMacc event system
+was fixed.
+
+### Changes to "0.3.0"
+
+**.param file changes:**
+ - `density.param`: in `Gaussian` profile, the parameter `gasSigmaRight`
+   was not properly honored but `gasCenterRight` was taken instead  #2214
+ - `fieldBackground.param`: remove micro meters usage in default file #2138
+
+**Bug Fixes:**
+ - PIConGPU:
+   - `gasSigmaRight` of `Gaussian` density profile was broken since
+     0.2.0 release #2214
+   - restart with enabled background fields #2113 #2139
+   - KHI example: missing constexpr in input #2309
+ - libPMacc:
+   - event system: illegal memory access #2151
+ - plugins:
+   - energy field reduce #2112
+ - tools:
+   - CMake:
+     - Boost dependency:
+       - same minimal version for tools #2293
+       - transient dependenciens: `date_time`, `chrono`, `atomic` #2195
+     - use targets of boost & zlib #2193 #2292
+     - possible linker error #2107
+   - XDMF script: positionOffset for openPMD #2309
+   - cmakeFlags: escape lists #2183
+   - tbg:
+     - `--help` exit with 0 return code #2213
+     - env variables: proper handling of \ and & #2262
+
+**Misc:**
+ - PIConGPU: `--help` to stdout #2148
+ - tools: all to C++11 #2194
+ - documentation:
+   - Hypnos .tpl files: remove passing `LD_LIBRARY_PATH` to avoid warning #2149
+   - fix plasma frequency and remove German comment #2110
+   - remove micro meters usage in default background field #2138
+   - README: update links of docs badge #2144
+
+Thanks to Axel Huebl, Richard Pausch and René Widera for contributions to this
+release!
+
+
 0.3.0
 -----
 **Date:** 2017-06-16

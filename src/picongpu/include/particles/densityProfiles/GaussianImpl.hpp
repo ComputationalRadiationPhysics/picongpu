@@ -53,7 +53,7 @@ struct GaussianImpl : public T_ParamClass
         const float_X gas_center_left = ParamClass::gasCenterLeft_SI / UNIT_LENGTH;
         const float_X gas_center_right = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
         const float_X gas_sigma_left = ParamClass::gasSigmaLeft_SI / UNIT_LENGTH;
-        const float_X gas_sigma_right = ParamClass::gasCenterRight_SI / UNIT_LENGTH;
+        const float_X gas_sigma_right = ParamClass::gasSigmaRight_SI / UNIT_LENGTH;
 
         const floatD_X globalCellPos(
                                      precisionCast<float_X>(totalCellOffset) *
