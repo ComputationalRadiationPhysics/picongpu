@@ -96,7 +96,7 @@ public:
 
     void createParticleBuffer();
 
-    void update(uint32_t currentStep);
+    void update( uint32_t const currentStep );
 
     template<typename T_DensityFunctor, typename T_PositionFunctor>
     void initDensityProfile(T_DensityFunctor& densityFunctor, T_PositionFunctor& positionFunctor, const uint32_t currentStep);

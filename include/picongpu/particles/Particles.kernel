@@ -408,6 +408,7 @@ struct KernelMoveAndMarkParticles
         T_ParBox pb,
         T_EBox fieldE,
         T_BBox fieldB,
+        uint32_t const currentStep,
         T_ParticleFunctor particleFunctor,
         T_Mapping mapper
     ) const
@@ -527,6 +528,7 @@ struct KernelMoveAndMarkParticles
                             linearIdx,
                             cachedB,
                             cachedE,
+                            currentStep,
                             mustShift
                         );
                     }
@@ -564,7 +566,15 @@ struct PushParticlePerFrame
 {
 
     template<class FrameType, class BoxB, class BoxE, typename T_Acc >
-    DINLINE void operator()(T_Acc const & acc, FrameType& frame, int localIdx, BoxB& bBox, BoxE& eBox, int& mustShift)
+    DINLINE void operator()(
+        T_Acc const & acc,
+        FrameType& frame,
+        int localIdx,
+        BoxB& bBox,
+        BoxE& eBox,
+        uint32_t const currentStep,
+        int& mustShift
+    )
     {
 
         typedef TVec Block;
@@ -598,8 +608,9 @@ struct PushParticlePerFrame
              mom,
              mass,
              attribute::getCharge(weighting,particle),
-             weighting
-             );
+             weighting,
+             currentStep
+        );
         particle[momentum_] = mom;
 
 
