@@ -59,7 +59,8 @@ struct Push
     T_Mom& mom, /* at t=-1/2 */
     const T_Mass mass,
     const T_Charge charge,
-    const T_Weighting weighting
+    const T_Weighting weighting,
+    const uint32_t
   )
   {
     typedef T_FunctorFieldB TypeBFieldFunctor;

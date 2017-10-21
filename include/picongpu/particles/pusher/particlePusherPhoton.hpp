@@ -45,7 +45,8 @@ namespace picongpu
                 T_Mom& mom,
                 const T_Mass,
                 const T_Charge,
-                const T_Weighting
+                const T_Weighting,
+                const uint32_t
             )
             {
                 typedef T_Mom MomType;

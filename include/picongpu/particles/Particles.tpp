@@ -217,7 +217,7 @@ Particles<
     T_Name,
     T_Flags,
     T_Attributes
->::update(uint32_t )
+>::update( uint32_t const currentStep )
 {
     using PusherAlias = typename GetFlagType<FrameType,particlePusher<> >::type;
     using ParticlePush = typename pmacc::traits::Resolve<PusherAlias>::type;
@@ -271,6 +271,7 @@ Particles<
         this->getDeviceParticlesBox( ),
         fieldE->getDeviceDataBox( ),
         fieldB->getDeviceDataBox( ),
+        currentStep,
         FrameSolver( ),
         mapper
     );
