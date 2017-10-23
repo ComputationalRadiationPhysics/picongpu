@@ -423,6 +423,20 @@ namespace thomasFermi
     constexpr float_X TFC1    = -0.366667;
     constexpr float_X TFC2    =  0.983333;
 
+    /** cutoff energy for electron "temperature" calculation
+     *
+     * In laser produced plasmas we can have different, well-separable groups
+     * of electrons. For the Thomas-Fermi ionization model we only want the
+     * thermalized "bulk" electrons. Including the high-energy "prompt"
+     * is physically questionable since they do not have a large cross section
+     * for collisional ionization.
+     *
+     * unit: keV
+     */
+    constexpr float_X CUTOFF_ENERGY_KEV = 50;
+    /** cutoff energy for electron "temperature" calculation in SI units*/
+    constexpr float_X TF_CUTOFF_ENERGY = CUTOFF_ENERGY_KEV * UNITCONV_keV_to_Joule;
+
 } // namespace thomasFermi
 } // namespace ionization
 } // namespace particles

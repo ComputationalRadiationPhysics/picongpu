@@ -25,6 +25,7 @@
 #include "picongpu/particles/particleToGrid/derivedAttributes/ChargeDensity.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MidCurrentDensityComponent.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensity.def"
+#include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensityCutoff.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/Energy.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/MomentumComponent.def"
 #include "picongpu/particles/particleToGrid/derivedAttributes/LarmorPower.def"

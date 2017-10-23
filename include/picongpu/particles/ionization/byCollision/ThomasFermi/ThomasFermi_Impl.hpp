@@ -129,12 +129,12 @@ namespace ionization
              */
             using DensitySolver = typename particleToGrid::CreateDensityOperation<T_SrcSpecies>::type::Solver;
 
-            /** Solver for energy density of the electron species
+            /** Solver for energy density of the electron species with energy cutoff
              *
              *  @todo Include all electron species with a ForEach<VectorallSpecies,...>
              * instead of just the destination species
              */
-            using EnergyDensitySolver = typename particleToGrid::CreateEnergyDensityOperation<T_DestSpecies>::type::Solver;
+            using EnergyDensitySolver = typename particleToGrid::CreateEnergyDensityCutoffOperation<T_DestSpecies>::type::Solver;
 
 
 
