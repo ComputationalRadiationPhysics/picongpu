@@ -30,11 +30,9 @@ module load hdf5-mpi/gcc/1.8.18
 # Other Software ##############################################################
 #
 # needs to be compiled by the user
-export PNG_ROOT=$HOME/lib/libpng-1.6.32
 export PNGWRITER_ROOT=$HOME/lib/pngwriter-0.6.0
 export SPLASH_ROOT=$HOME/lib/splash-1.6.0
 
-export LD_LIBRARY_PATH=$PNG_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNGWRITER_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$SPLASH_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BOOST_HOME/lib:$LD_LIBRARY_PATH
@@ -49,7 +47,7 @@ export CC=$(which gcc)
 # PIConGPU Helper Variables ###################################################
 #
 export PICSRC=$HOME/src/picongpu
-export PIC_BACKEND="omp2b"
+export PIC_BACKEND="omp2b:haswell"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
