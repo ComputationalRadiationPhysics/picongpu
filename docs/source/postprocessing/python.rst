@@ -43,7 +43,8 @@ A library that reads and visualizes data in our HDF5 files thanks to their :ref:
 Provides an API to correctly convert units to SI, interpret iteration steps correctly, annotate axis and much more.
 Also provides an interactive GUI for fast exploration via Jupyter notebooks.
 
-https://github.com/openPMD/openPMD-viewer/tree/master/tutorials
+* `Project Homepage <https://github.com/openPMD/openPMD-viewer>`_
+* `Tutorial <https://github.com/openPMD/openPMD-viewer/tree/master/tutorials>`_
 
 
 yt-project
@@ -51,8 +52,9 @@ yt-project
 
 With yt 3.4 or newer, our HDF5 output, which uses the :ref:`openPMD markup <pp-openPMD>`, can be read, processed and visualized with yt.
 
-http://yt-project.org/docs/dev/
-
+* `Project Homepage <http://yt-project.org>`_
+* `Data Loading <http://yt-project.org/doc/examining/loading_data.html#openpmd-data>`_
+* `Data Tutorial <https://gist.github.com/C0nsultant/5808d5f61b271b8f969d5c09f5ca91dc>`_
 
 pyDive (experimental)
 ---------------------
