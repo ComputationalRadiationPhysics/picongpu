@@ -106,3 +106,11 @@ Judge (FZJ)
 -----------
 
 (example missing)
+
+Draco (MPCDF)
+-------------
+
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libpng, PNGwriter and libSplash <install-dependencies>` manually.
+
+.. literalinclude:: profiles/draco-mpcdf/picongpu.profile.example
+   :language: bash
