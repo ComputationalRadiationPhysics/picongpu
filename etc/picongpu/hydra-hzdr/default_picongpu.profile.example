@@ -1,4 +1,14 @@
-# Text Editor for Tools #######################################################
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ######################################### (edit those lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me mails on batch system job (b)egin, (e)nd, (a)bortion or (n)o mail
+export MY_MAILNOTIFY="n"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
 
@@ -36,13 +46,8 @@ fi
 alias getNode='qsub -I -q default -lwalltime=00:30:00 -lnodes=1:ppn=32'
 
 export PICSRC=/home/$(whoami)/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="omp2b:ivybridge"
-export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
-
-# send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
-export MY_MAILNOTIFY="n"
-export MY_MAIL="someone@example.com"
-export MY_NAME="$(whoami) <$MY_MAIL>"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/splash2txt/build

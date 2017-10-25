@@ -115,6 +115,7 @@ PIConGPU Source Code
 - *environment*:
 
   - ``export PICSRC=$PICHOME/src/picongpu``
+  - ``export PIC_EXAMPLES=$PICSRC/share/picongpu/examples``
   - ``export PATH=$PICSRC:$PATH``
   - ``export PATH=$PICSRC/src/tools/bin:$PATH``
   - ``export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH``

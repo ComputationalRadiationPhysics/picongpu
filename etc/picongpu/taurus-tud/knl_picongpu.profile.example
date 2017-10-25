@@ -1,10 +1,17 @@
-# Text Editor for Tools #######################################################
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ######################################### (edit those lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="ALL"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
-
-# "module" commands undefine $BASH_SOURCE on a KNL node for some unknown reason
-# so $PIC_PROFILE needs to be defined before using "module ...".
-export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
 # General modules #############################################################
 #
@@ -16,25 +23,20 @@ module load intelmpi/2017.2.174
 # Compilers ###################################################################
 ### ICC
 module load intel/2017.2.174
-# Boost needs to be build yourself for now!
+# Boost needs to be build by yourself for now!
 # The boost root path needs to be adjusted.
-export BOOST_ROOT=<BOOST_INSTALLATION_DIR>
+export BOOST_ROOT=$HOME/lib/boost-1.62.0
 export LD_LIBRARY_PATH=$BOOST_ROOT:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
 
 export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="omp2b:MIC-AVX512"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
-
-# send me a mail on BEGIN, END, FAIL, REQUEUE, ALL,
-# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
-export MY_MAILNOTIFY="ALL"
-export MY_MAIL="someone@example.com"
-export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
