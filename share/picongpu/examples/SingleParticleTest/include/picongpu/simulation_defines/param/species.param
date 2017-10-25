@@ -40,12 +40,12 @@ namespace picongpu
  *  - particles::shapes::PCS : 3rd order
  *  - particles::shapes::P4S : 4th order
  *
- *  example:             typedef particles::shapes::CIC CICShape;
+ *  example:             using CICShape = particles::shapes::CIC;
  */
-typedef particles::shapes::CIC UsedParticleShape;
+using UsedParticleShape = particles::shapes::CIC;
 
 /* define which interpolation method is used to interpolate fields to particle*/
-typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation> UsedField2Particle;
+using UsedField2Particle = FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpolation>;
 
 /*! select current solver method -----------------------------------------------
  * - currentSolver::Esirkepov<SHAPE>  : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
@@ -57,7 +57,7 @@ typedef FieldToParticleInterpolation<UsedParticleShape, AssignedTrilinearInterpo
  *   without optimization (~4x slower and needs more shared memory)
  * - currentSolver::ZigZag<SHAPE>     : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
  */
-typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
+using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
 
 /*! particle pusher configuration ----------------------------------------------
  *
@@ -77,6 +77,6 @@ typedef currentSolver::Esirkepov<UsedParticleShape> UsedParticleCurrentSolver;
 #ifndef PARAM_PARTICLEPUSHER
 #define PARAM_PARTICLEPUSHER Boris
 #endif
-typedef particles::pusher::PARAM_PARTICLEPUSHER UsedParticlePusher;
+using UsedParticlePusher = particles::pusher::PARAM_PARTICLEPUSHER;
 
-}//namespace picongpu
+} // namespace picongpu

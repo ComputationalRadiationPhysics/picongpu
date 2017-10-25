@@ -79,6 +79,6 @@ namespace densityProfiles
     ); /* struct GaussianParam */
 
     /* definition of density with Gaussian profile */
-    typedef GaussianImpl< GaussianParameter > Gaussian;
+    using Gaussian = GaussianImpl< GaussianParameter >;
 }
 }

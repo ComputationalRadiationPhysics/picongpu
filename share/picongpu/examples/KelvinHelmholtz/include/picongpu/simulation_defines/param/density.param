@@ -41,6 +41,6 @@ namespace SI
 namespace densityProfiles
 {
     /* definition of homogenous profile */
-    typedef HomogenousImpl Homogenous;
+    using Homogenous = HomogenousImpl;
 }
 }

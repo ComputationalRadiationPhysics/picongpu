@@ -17,8 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "picongpu/plugins/PluginController.hpp"
@@ -31,14 +29,12 @@ namespace picongpu
 {
     using namespace pmacc;
 
-
     namespace thermalTestStarter
     {
-        typedef ::picongpu::SimulationStarter
-        <
-        ::picongpu::InitialiserController,
-        ::picongpu::PluginController,
-        ::picongpu::ThermalTestSimulation
-        > SimStarter;
+        using SimStarter = ::picongpu::SimulationStarter<
+            ::picongpu::InitialiserController,
+            ::picongpu::PluginController,
+            ::picongpu::ThermalTestSimulation
+        >;
     }
 }

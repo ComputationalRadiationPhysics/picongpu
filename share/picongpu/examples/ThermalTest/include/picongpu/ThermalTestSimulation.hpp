@@ -208,8 +208,8 @@ private:
 
     container::HostBuffer<float, 2 >* eField_zt[2];
 
-    typedef pmacc::math::CT::Size_t < 16, 16, 1 > BlockDim;
-    typedef SuperCellSize GuardDim;
+    using BlockDim = pmacc::math::CT::Size_t < 16, 16, 1 >;
+    using GuardDim = SuperCellSize;
 };
 
 } // namespace picongpu
