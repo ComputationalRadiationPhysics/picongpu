@@ -157,7 +157,7 @@ T atomicAllInc(T *ptr)
     return atomicAllInc(alpaka::atomic::AtomicCudaBuiltIn(), ptr, ::alpaka::hierarchy::Grids());
 #else
    // assume that we can use stl atomics if we are not on gpu
-    return atomicAllInc(alpaka::atomic::AtomicStlLock(), ptr, ::alpaka::hierarchy::Grids());
+    return atomicAllInc(alpaka::atomic::AtomicStlLock<16>(), ptr, ::alpaka::hierarchy::Grids());
 #endif
 }
 
