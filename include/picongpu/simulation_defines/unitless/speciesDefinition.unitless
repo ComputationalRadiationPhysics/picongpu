@@ -17,7 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/traits/frame/GetCharge.hpp"
@@ -46,9 +45,12 @@ namespace frame
 template<typename T_Frame>
 HDINLINE float_X getMass()
 {
-    typedef typename pmacc::traits::Resolve<
-        typename GetFlagType<T_Frame, massRatio<> >::type
-        >::type MassRatioValue;
+    using MassRatioValue = typename pmacc::traits::Resolve<
+        typename GetFlagType<
+            T_Frame,
+            massRatio<>
+        >::type
+    >::type;
 
     return BASE_MASS * MassRatioValue::getValue();
 };
@@ -62,13 +64,16 @@ HDINLINE float_X getMass()
 template<typename T_Frame>
 HDINLINE float_X getCharge()
 {
-    typedef typename pmacc::traits::Resolve<
-        typename GetFlagType<T_Frame, chargeRatio<> >::type
-        >::type ChargeRatioValue;
+    using ChargeRatioValue = typename pmacc::traits::Resolve<
+        typename GetFlagType<
+            T_Frame,
+            chargeRatio<>
+        >::type
+    >::type;
 
     return BASE_CHARGE * ChargeRatioValue::getValue();
 };
 
-} //namespace frame
-} //namespace traits
-} //namespace picongpu
+} // namespace frame
+} // namespace traits
+} // namespace picongpu
