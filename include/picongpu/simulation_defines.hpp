@@ -37,17 +37,17 @@ namespace picongpu
  */
 
 //##### load param
-#include <picongpu/simulation_defines/_defaultParam.loader>
-#include <picongpu/simulation_defines/extensionParam.loader>
+#include <picongpu/_defaultParam.loader>
+#include <picongpu/extensionParam.loader>
 
 //load starter after all user extension
-#include <picongpu/simulation_defines/param/starter.param>
+#include <picongpu/param/starter.param>
 
-#include <picongpu/simulation_defines/param/components.param>
+#include <picongpu/param/components.param>
 #include <picongpu/simulation_classTypes.hpp>
 
 // ##### load unitless
-#include <picongpu/simulation_defines/_defaultUnitless.loader>
-#include <picongpu/simulation_defines/extensionUnitless.loader>
+#include <picongpu/_defaultUnitless.loader>
+#include <picongpu/extensionUnitless.loader>
 //load starter after user extensions and all params are loaded
-#include <picongpu/simulation_defines/unitless/starter.unitless>
+#include <picongpu/unitless/starter.unitless>

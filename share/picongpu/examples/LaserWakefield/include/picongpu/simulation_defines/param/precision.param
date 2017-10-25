@@ -17,8 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 
@@ -31,9 +29,8 @@ namespace picongpu
  *  - precision64Bit : use 64Bit floating point numbers
  *                     [significant digits 15 to 16]
  */
-/* PARAM_PRECISION is required for tests */
 #ifndef PARAM_PRECISION
-#define PARAM_PRECISION precision32Bit
+#   define PARAM_PRECISION precision32Bit
 #endif
 namespace precisionPIConGPU      = PARAM_PRECISION;
 
@@ -47,6 +44,6 @@ namespace precisionExp           = precisionPIConGPU;
 namespace precisionTrigonemetric = precisionPIConGPU;
 
 
-}//namespace picongpu
+} // namespace picongpu
 
-#include "picongpu/simulation_defines/unitless/precision.unitless"
+#include "picongpu/unitless/precision.unitless"

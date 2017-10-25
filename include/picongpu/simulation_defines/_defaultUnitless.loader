@@ -18,32 +18,33 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** only PIConGPU programmers should change this file
+/** @file
+ *
+ * only PIConGPU programmers should change this file
  *
  * for examples use extensionUnitless.loader
- *
  */
 #pragma once
 
-#include "picongpu/simulation_defines/unitless/physicalConstants.unitless"
-#include "picongpu/simulation_defines/unitless/speciesConstants.unitless"
-#include "picongpu/simulation_defines/unitless/grid.unitless"
-#include "picongpu/simulation_defines/unitless/laser.unitless"
-#include "picongpu/simulation_defines/unitless/density.unitless"
-#include "picongpu/simulation_defines/unitless/particle.unitless"
-#include "picongpu/simulation_defines/unitless/fieldSolver.unitless"
-#include "picongpu/simulation_defines/unitless/pusher.unitless"
-#include "picongpu/simulation_defines/unitless/ionizer.unitless"
-#include "picongpu/simulation_defines/unitless/speciesAttributes.unitless"
-#include "picongpu/simulation_defines/unitless/speciesDefinition.unitless"
-#include "picongpu/simulation_defines/unitless/speciesInitialization.unitless"
-#include "picongpu/simulation_defines/unitless/fieldBackground.unitless"
-#include "picongpu/simulation_defines/unitless/synchrotronPhotons.unitless"
+#include "picongpu/unitless/physicalConstants.unitless"
+#include "picongpu/unitless/speciesConstants.unitless"
+#include "picongpu/unitless/grid.unitless"
+#include "picongpu/unitless/laser.unitless"
+#include "picongpu/unitless/density.unitless"
+#include "picongpu/unitless/particle.unitless"
+#include "picongpu/unitless/fieldSolver.unitless"
+#include "picongpu/unitless/pusher.unitless"
+#include "picongpu/unitless/ionizer.unitless"
+#include "picongpu/unitless/speciesAttributes.unitless"
+#include "picongpu/unitless/speciesDefinition.unitless"
+#include "picongpu/unitless/speciesInitialization.unitless"
+#include "picongpu/unitless/fieldBackground.unitless"
+#include "picongpu/unitless/synchrotronPhotons.unitless"
 #if( PMACC_CUDA_ENABLED == 1 )
-#    include "picongpu/simulation_defines/unitless/bremsstrahlung.unitless"
+#    include "picongpu/unitless/bremsstrahlung.unitless"
 #endif
 
-#include "picongpu/simulation_defines/unitless/fileOutput.unitless"
-#include "picongpu/simulation_defines/unitless/checkpoints.unitless"
-#include "picongpu/simulation_defines/unitless/visualization.unitless"
-#include "picongpu/simulation_defines/unitless/radiation.unitless"
+#include "picongpu/unitless/fileOutput.unitless"
+#include "picongpu/unitless/checkpoints.unitless"
+#include "picongpu/unitless/visualization.unitless"
+#include "picongpu/unitless/radiation.unitless"
