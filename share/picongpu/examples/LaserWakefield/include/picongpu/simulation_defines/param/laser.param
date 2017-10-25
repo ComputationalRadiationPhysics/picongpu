@@ -22,7 +22,7 @@
 #pragma once
 
 #ifndef PARAM_A0
-#   define PARAM_A0 1.5
+#   define PARAM_A0 8.0
 #endif
 
 #ifndef PARAM_WAVE_LENGTH_SI
