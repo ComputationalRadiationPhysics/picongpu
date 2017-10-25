@@ -384,9 +384,9 @@ private:
 
             isaac_for_each_params( sources, SourceInitIterator(), cellDescription, movingWindow );
 
-                visualization = new VisualizationType (
-                cupla::manager::Device< cupla::AccHost >::get().device( ),
-                cupla::manager::Device< cupla::AccDev >::get().device( ),
+            visualization = new VisualizationType (
+                cupla::manager::Device< cupla::AccHost >::get().current( ),
+                cupla::manager::Device< cupla::AccDev >::get().current( ),
                 cupla::manager::Stream< cupla::AccDev, cupla::AccStream >::get().stream( ),
                 name,
                 0,
