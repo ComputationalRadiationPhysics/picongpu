@@ -24,32 +24,32 @@
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED
 
 // Specialized traits.
-#include <alpaka/acc/Traits.hpp>                // acc::traits::AccType
-#include <alpaka/dev/Traits.hpp>                // dev::traits::DevType
-#include <alpaka/dim/Traits.hpp>                // dim::traits::DimType
-#include <alpaka/exec/Traits.hpp>               // exec::traits::ExecType
-#include <alpaka/pltf/Traits.hpp>               // pltf::traits::PltfType
-#include <alpaka/size/Traits.hpp>               // size::traits::SizeType
+#include <alpaka/acc/Traits.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/exec/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
 // Implementation details.
-#include <alpaka/acc/AccCpuFibers.hpp>          // acc:AccCpuFibers
-#include <alpaka/dev/DevCpu.hpp>                // dev::DevCpu
-#include <alpaka/kernel/Traits.hpp>             // kernel::getBlockSharedMemDynSizeBytes
-#include <alpaka/workdiv/WorkDivMembers.hpp>    // workdiv::WorkDivMembers
+#include <alpaka/acc/AccCpuFibers.hpp>
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/kernel/Traits.hpp>
+#include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #include <alpaka/core/Fibers.hpp>
-#include <alpaka/core/ConcurrentExecPool.hpp>   // core::ConcurrentExecPool
-#include <alpaka/meta/NdLoop.hpp>               // meta::ndLoopIncIdx
-#include <alpaka/meta/ApplyTuple.hpp>           // meta::apply
+#include <alpaka/core/ConcurrentExecPool.hpp>
+#include <alpaka/meta/NdLoop.hpp>
+#include <alpaka/meta/ApplyTuple.hpp>
 
-#include <boost/predef.h>                       // workarounds
+#include <boost/predef.h>
 
-#include <algorithm>                            // std::for_each
-#include <vector>                               // std::vector
-#include <tuple>                                // std::tuple
-#include <type_traits>                          // std::decay
+#include <algorithm>
+#include <vector>
+#include <tuple>
+#include <type_traits>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-    #include <iostream>                         // std::cout
+    #include <iostream>
 #endif
 
 namespace alpaka
@@ -116,23 +116,23 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuFibers(ExecCpuFibers const &) = default;
+            ExecCpuFibers(ExecCpuFibers const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuFibers(ExecCpuFibers &&) = default;
+            ExecCpuFibers(ExecCpuFibers &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuFibers const &) -> ExecCpuFibers & = default;
+            auto operator=(ExecCpuFibers const &) -> ExecCpuFibers & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuFibers &&) -> ExecCpuFibers & = default;
+            auto operator=(ExecCpuFibers &&) -> ExecCpuFibers & = default;
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~ExecCpuFibers() = default;
+            ~ExecCpuFibers() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.

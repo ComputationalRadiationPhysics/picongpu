@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <alpaka/acc/AccDevProps.hpp>   // AccDevProps
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/acc/AccDevProps.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <string>                       // std::string
-#include <typeinfo>                     // typeid
+#include <string>
+#include <typeinfo>
 
 namespace alpaka
 {

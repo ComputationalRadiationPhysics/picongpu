@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <boost/config.hpp>             // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/config.hpp>
 
 namespace alpaka
 {

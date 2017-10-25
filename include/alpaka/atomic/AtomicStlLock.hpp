@@ -21,9 +21,10 @@
 
 #pragma once
 
-#include <alpaka/atomic/Traits.hpp>                 // AtomicOp
+#include <alpaka/atomic/Traits.hpp>
 
-#include <mutex>                                    // std::mutex, std::lock_guard
+#include <mutex>
+#include <array>
 
 namespace alpaka
 {
@@ -34,7 +35,11 @@ namespace alpaka
         //
         //  Atomics can be used in the grids, blocks and threads hierarchy levels.
         //  Atomics are not guaranteed to be save between devices.
+        //
+        // \tparam THashTableSize size of the hash table to allow concurrency between
+        //                        atomics to different addresses
         //#############################################################################
+        template<size_t THashTableSize>
         class AtomicStlLock
         {
         public:
@@ -46,10 +51,32 @@ namespace alpaka
                 typename TSfinae>
             friend struct atomic::traits::AtomicOp;
 
+            static constexpr size_t nextPowerOf2(size_t const value, size_t const bit = 0u)
+            {
+                return value <= (static_cast<size_t>(1u) << bit) ?
+                    (static_cast<size_t>(1u) << bit) : nextPowerOf2(value, bit + 1u);
+            }
+
+            //-----------------------------------------------------------------------------
+            //! get a hash value of the pointer
+            //
+            // This is no perfect hash, there will be collisions if the size of pointer type
+            // is not a power of two.
+            //-----------------------------------------------------------------------------
+            template<typename TPtr>
+            static size_t hash(TPtr const * const ptr)
+            {
+                size_t const ptrAddr = reinterpret_cast< size_t >( ptr );
+                // using power of two for the next division will increase the performance
+                constexpr size_t typeSizePowerOf2 = nextPowerOf2(sizeof(TPtr));
+                // division removes the stride between indices
+                return (ptrAddr / typeSizePowerOf2);
+            }
+
             //-----------------------------------------------------------------------------
             //! Default constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA AtomicStlLock() = default;
+            AtomicStlLock() = default;
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
@@ -69,12 +96,23 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~AtomicStlLock() = default;
+            /*virtual*/ ~AtomicStlLock() = default;
 
-            std::mutex & getMutex() const
+            template<typename TPtr>
+            std::mutex & getMutex(TPtr const * const ptr) const
             {
-                static std::mutex m_mtxAtomic; //!< The mutex protecting access for a atomic operation.
-                return m_mtxAtomic;
+                //-----------------------------------------------------------------------------
+                //! get the size of the hash table
+                //
+                // The size is at least 1 or THashTableSize rounded up to the next power of 2
+                //-----------------------------------------------------------------------------
+                constexpr size_t hashTableSize = THashTableSize == 0u ? 1u : nextPowerOf2(THashTableSize);
+
+                size_t const hashedAddr = hash(ptr) & (hashTableSize - 1u);
+                static std::array<
+                    std::mutex,
+                    hashTableSize> m_mtxAtomic; //!< The mutex protecting access for an atomic operation.
+                return m_mtxAtomic[hashedAddr];
             }
         };
 
@@ -86,10 +124,11 @@ namespace alpaka
             template<
                 typename TOp,
                 typename T,
-                typename THierarchy>
+                typename THierarchy,
+                size_t THashTableSize>
             struct AtomicOp<
                 TOp,
-                atomic::AtomicStlLock,
+                atomic::AtomicStlLock<THashTableSize>,
                 T,
                 THierarchy>
             {
@@ -97,29 +136,25 @@ namespace alpaka
                 //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA static auto atomicOp(
-                    atomic::AtomicStlLock const & atomic,
+                    atomic::AtomicStlLock<THashTableSize> const & atomic,
                     T * const addr,
                     T const & value)
                 -> T
                 {
-                    // \TODO: Currently not only the access to the same memory location is protected by a mutex but all atomic ops on all threads.
-                    // We could use a list of mutexes and lock the mutex depending on the target memory location to allow multiple atomic ops on different targets concurrently.
-                    std::lock_guard<std::mutex> lock(atomic.getMutex());
+                    std::lock_guard<std::mutex> lock(atomic.getMutex(addr));
                     return TOp()(addr, value);
                 }
                 //-----------------------------------------------------------------------------
                 //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA static auto atomicOp(
-                    atomic::AtomicStlLock const & atomic,
+                    atomic::AtomicStlLock<THashTableSize> const & atomic,
                     T * const addr,
                     T const & compare,
                     T const & value)
                 -> T
                 {
-                    // \TODO: Currently not only the access to the same memory location is protected by a mutex but all atomic ops on all threads.
-                    // We could use a list of mutexes and lock the mutex depending on the target memory location to allow multiple atomic ops on different targets concurrently.
-                    std::lock_guard<std::mutex> lock(atomic.getMutex());
+                    std::lock_guard<std::mutex> lock(atomic.getMutex(addr));
                     return TOp()(addr, compare, value);
                 }
             };

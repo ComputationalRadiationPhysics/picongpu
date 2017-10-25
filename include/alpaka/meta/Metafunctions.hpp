@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <type_traits>  // std::conditional
+#include <type_traits>
 
 namespace alpaka
 {

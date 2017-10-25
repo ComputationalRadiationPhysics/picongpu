@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include <alpaka/dim/DimIntegralConst.hpp>      // dim::DimInt<N>
-#include <alpaka/extent/Traits.hpp>             // extent::getXXX
-#include <alpaka/mem/view/Traits.hpp>           // mem::view::Set, ...
-#include <alpaka/meta/NdLoop.hpp>               // meta::ndLoopIncIdx
-#include <alpaka/meta/IsIntegralSuperset.hpp>   // meta::IsIntegralSuperset
+#include <alpaka/dim/DimIntegralConst.hpp>
+#include <alpaka/extent/Traits.hpp>
+#include <alpaka/mem/view/Traits.hpp>
+#include <alpaka/meta/NdLoop.hpp>
+#include <alpaka/meta/IsIntegralSuperset.hpp>
 
-#include <cassert>                              // assert
-#include <cstring>                              // std::memset
+#include <cassert>
+#include <cstring>
 
 namespace alpaka
 {

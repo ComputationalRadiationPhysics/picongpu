@@ -28,11 +28,11 @@
 #define BOOST_MPL_CFG_GPU_ENABLED
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>                  // alpaka::test::acc::TestAccs
-#include <alpaka/test/KernelExecutionFixture.hpp>   // alpaka::test::KernelExecutionFixture
+#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <boost/assert.hpp>                         // BOOST_VERIFY
-#include <boost/predef.h>                           // BOOST_COMP_CLANG
+#include <boost/assert.hpp>
+#include <boost/predef.h>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -43,9 +43,6 @@
 #endif
 
 BOOST_AUTO_TEST_SUITE(rand_)
-
-// This is not supported by older clang native CUDA compilers.
-#if !BOOST_COMP_CLANG_CUDA || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(3,9,0))
 
 //#############################################################################
 //!
@@ -137,6 +134,5 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         fixture(
             kernel));
 }
-#endif
 
 BOOST_AUTO_TEST_SUITE_END()

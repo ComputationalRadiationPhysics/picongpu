@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include <alpaka/core/Vectorize.hpp>            // defaultAlignment
-#include <alpaka/dev/DevCpu.hpp>                // dev::DevCpu
+#include <alpaka/core/Vectorize.hpp>
+#include <alpaka/dev/DevCpu.hpp>
 
-#include <alpaka/dev/Traits.hpp>                // dev::traits::DevType
-#include <alpaka/mem/buf/Traits.hpp>            // mem::buf::Alloc, ...
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/mem/buf/Traits.hpp>
 
-#include <alpaka/vec/Vec.hpp>                   // Vec
+#include <alpaka/vec/Vec.hpp>
 
 // \TODO: Remove CUDA inclusion for BufCpu by replacing pinning with non CUDA code!
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
@@ -36,13 +36,13 @@
 
 #include <alpaka/mem/alloc/AllocCpuBoostAligned.hpp>
 
-#include <alpaka/meta/DependentFalseType.hpp>   // meta::DependentFalseType
+#include <alpaka/meta/DependentFalseType.hpp>
 
 #if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp>     // boost::ignore_unused
+    #include <boost/core/ignore_unused.hpp>
 #endif
 
-#include <memory>                               // std::shared_ptr
+#include <memory>
 
 namespace alpaka
 {
@@ -61,7 +61,7 @@ namespace alpaka
                         typename TElem,
                         typename TDim,
                         typename TSize>
-                    class BufCpuImpl :
+                    class BufCpuImpl final :
                         public mem::alloc::AllocCpuBoostAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>
                     {
                     public:
@@ -102,19 +102,19 @@ namespace alpaka
                         //-----------------------------------------------------------------------------
                         //! Copy constructor.
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_HOST BufCpuImpl(BufCpuImpl const &) = delete;
+                        BufCpuImpl(BufCpuImpl const &) = delete;
                         //-----------------------------------------------------------------------------
                         //! Move constructor.
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_HOST BufCpuImpl(BufCpuImpl &&) = default;
+                        BufCpuImpl(BufCpuImpl &&) = default;
                         //-----------------------------------------------------------------------------
                         //! Copy assignment operator.
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_HOST auto operator=(BufCpuImpl const &) -> BufCpuImpl & = delete;
+                        auto operator=(BufCpuImpl const &) -> BufCpuImpl & = delete;
                         //-----------------------------------------------------------------------------
                         //! Move assignment operator.
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_HOST auto operator=(BufCpuImpl &&) -> BufCpuImpl & = default;
+                        auto operator=(BufCpuImpl &&) -> BufCpuImpl & = default;
                         //-----------------------------------------------------------------------------
                         //! Destructor.
                         //-----------------------------------------------------------------------------
@@ -179,19 +179,23 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Copy constructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST BufCpu(BufCpu const &) = default;
+                BufCpu(BufCpu const &) = default;
                 //-----------------------------------------------------------------------------
                 //! Move constructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST BufCpu(BufCpu &&) = default;
+                BufCpu(BufCpu &&) = default;
                 //-----------------------------------------------------------------------------
                 //! Copy assignment operator.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST auto operator=(BufCpu const &) -> BufCpu & = default;
+                auto operator=(BufCpu const &) -> BufCpu & = default;
                 //-----------------------------------------------------------------------------
                 //! Move assignment operator.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST auto operator=(BufCpu &&) -> BufCpu & = default;
+                auto operator=(BufCpu &&) -> BufCpu & = default;
+                //-----------------------------------------------------------------------------
+                //! Destructor.
+                //-----------------------------------------------------------------------------
+                ~BufCpu() = default;
 
             public:
                 std::shared_ptr<cpu::detail::BufCpuImpl<TElem, TDim, TSize>> m_spBufCpuImpl;

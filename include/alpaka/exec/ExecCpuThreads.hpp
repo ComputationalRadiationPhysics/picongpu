@@ -24,32 +24,33 @@
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
 
 // Specialized traits.
-#include <alpaka/acc/Traits.hpp>                // acc::traits::AccType
-#include <alpaka/dev/Traits.hpp>                // dev::traits::DevType
-#include <alpaka/dim/Traits.hpp>                // dim::traits::DimType
-#include <alpaka/exec/Traits.hpp>               // exec::traits::ExecType
-#include <alpaka/pltf/Traits.hpp>               // pltf::traits::PltfType
-#include <alpaka/size/Traits.hpp>               // size::traits::SizeType
+#include <alpaka/acc/Traits.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/exec/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
 // Implementation details.
-#include <alpaka/acc/AccCpuThreads.hpp>         // acc:AccCpuThreads
-#include <alpaka/dev/DevCpu.hpp>                // dev::DevCpu
-#include <alpaka/kernel/Traits.hpp>             // kernel::getBlockSharedMemDynSizeBytes
-#include <alpaka/workdiv/WorkDivMembers.hpp>    // workdiv::WorkDivMembers
+#include <alpaka/acc/AccCpuThreads.hpp>
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/kernel/Traits.hpp>
+#include <alpaka/workdiv/WorkDivMembers.hpp>
 
-#include <alpaka/core/ConcurrentExecPool.hpp>   // core::ConcurrentExecPool
-#include <alpaka/meta/NdLoop.hpp>               // meta::ndLoopIncIdx
-#include <alpaka/meta/ApplyTuple.hpp>           // meta::apply
+#include <alpaka/core/ConcurrentExecPool.hpp>
+#include <alpaka/meta/NdLoop.hpp>
+#include <alpaka/meta/ApplyTuple.hpp>
 
-#include <boost/predef.h>                       // workarounds
+#include <boost/predef.h>
 
-#include <algorithm>                            // std::for_each
-#include <thread>                               // std::thread
-#include <vector>                               // std::vector
-#include <tuple>                                // std::tuple
-#include <type_traits>                          // std::decay
+#include <algorithm>
+#include <thread>
+#include <vector>
+#include <tuple>
+#include <type_traits>
+#include <future>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-    #include <iostream>                         // std::cout
+    #include <iostream>
 #endif
 
 namespace alpaka
@@ -114,23 +115,23 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuThreads(ExecCpuThreads const &) = default;
+            ExecCpuThreads(ExecCpuThreads const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuThreads(ExecCpuThreads &&) = default;
+            ExecCpuThreads(ExecCpuThreads &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuThreads const &) -> ExecCpuThreads & = default;
+            auto operator=(ExecCpuThreads const &) -> ExecCpuThreads & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuThreads &&) -> ExecCpuThreads & = default;
+            auto operator=(ExecCpuThreads &&) -> ExecCpuThreads & = default;
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~ExecCpuThreads() = default;
+            ~ExecCpuThreads() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.

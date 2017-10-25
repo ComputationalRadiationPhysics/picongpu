@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include <alpaka/math/acos/Traits.hpp>   // Acos
+#include <alpaka/math/acos/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
-#include <type_traits>                  // std::enable_if, std::is_arithmetic
-#include <cmath>                        // std::acos
+#include <type_traits>
+#include <cmath>
 
 namespace alpaka
 {

@@ -24,36 +24,36 @@
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED
 
 // Base classes.
-#include <alpaka/workdiv/WorkDivMembers.hpp>    // workdiv::WorkDivMembers
-#include <alpaka/idx/gb/IdxGbRef.hpp>           // IdxGbRef
-#include <alpaka/idx/bt/IdxBtRefFiberIdMap.hpp> // IdxBtRefFiberIdMap
-#include <alpaka/atomic/AtomicNoOp.hpp>         // AtomicNoOp
-#include <alpaka/atomic/AtomicStlLock.hpp>      // AtomicStlLock
-#include <alpaka/atomic/AtomicHierarchy.hpp>    // AtomicHierarchy
-#include <alpaka/math/MathStl.hpp>              // MathStl
-#include <alpaka/block/shared/dyn/BlockSharedMemDynBoostAlignedAlloc.hpp>   // BlockSharedMemDynBoostAlignedAlloc
-#include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>            // BlockSharedMemStMasterSync
-#include <alpaka/block/sync/BlockSyncBarrierFiber.hpp>                      // BlockSyncBarrierFiber
-#include <alpaka/rand/RandStl.hpp>              // RandStl
-#include <alpaka/time/TimeStl.hpp>              // TimeStl
+#include <alpaka/workdiv/WorkDivMembers.hpp>
+#include <alpaka/idx/gb/IdxGbRef.hpp>
+#include <alpaka/idx/bt/IdxBtRefFiberIdMap.hpp>
+#include <alpaka/atomic/AtomicNoOp.hpp>
+#include <alpaka/atomic/AtomicStlLock.hpp>
+#include <alpaka/atomic/AtomicHierarchy.hpp>
+#include <alpaka/math/MathStl.hpp>
+#include <alpaka/block/shared/dyn/BlockSharedMemDynBoostAlignedAlloc.hpp>
+#include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>
+#include <alpaka/block/sync/BlockSyncBarrierFiber.hpp>
+#include <alpaka/rand/RandStl.hpp>
+#include <alpaka/time/TimeStl.hpp>
 
 // Specialized traits.
-#include <alpaka/acc/Traits.hpp>                // acc::traits::AccType
-#include <alpaka/dev/Traits.hpp>                // dev::traits::DevType
-#include <alpaka/exec/Traits.hpp>               // exec::traits::ExecType
-#include <alpaka/pltf/Traits.hpp>               // pltf::traits::PltfType
-#include <alpaka/size/Traits.hpp>               // size::traits::SizeType
+#include <alpaka/acc/Traits.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/exec/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
 // Implementation details.
-#include <alpaka/dev/DevCpu.hpp>                // dev::DevCpu
+#include <alpaka/dev/DevCpu.hpp>
 
 #include <alpaka/core/Fibers.hpp>
 
-#include <boost/core/ignore_unused.hpp>         // boost::ignore_unused
-#include <boost/predef.h>                       // workarounds
+#include <boost/core/ignore_unused.hpp>
+#include <boost/predef.h>
 
-#include <memory>                               // std::unique_ptr
-#include <typeinfo>                             // typeid
+#include <memory>
+#include <typeinfo>
 
 namespace alpaka
 {
@@ -84,9 +84,9 @@ namespace alpaka
             public idx::gb::IdxGbRef<TDim, TSize>,
             public idx::bt::IdxBtRefFiberIdMap<TDim, TSize>,
             public atomic::AtomicHierarchy<
-                atomic::AtomicStlLock, // grid atomics
-                atomic::AtomicStlLock, // block atomics
-                atomic::AtomicNoOp     // thread atomics
+                atomic::AtomicStlLock<16>, // grid atomics
+                atomic::AtomicStlLock<16>, // block atomics
+                atomic::AtomicNoOp         // thread atomics
             >,
             public math::MathStl,
             public block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc,
@@ -117,9 +117,9 @@ namespace alpaka
                     idx::gb::IdxGbRef<TDim, TSize>(m_gridBlockIdx),
                     idx::bt::IdxBtRefFiberIdMap<TDim, TSize>(m_fibersToIndices),
                     atomic::AtomicHierarchy<
-                        atomic::AtomicStlLock, // atomics between grids
-                        atomic::AtomicStlLock, // atomics between blocks
-                        atomic::AtomicNoOp     // atomics between threads
+                        atomic::AtomicStlLock<16>, // atomics between grids
+                        atomic::AtomicStlLock<16>, // atomics between blocks
+                        atomic::AtomicNoOp         // atomics between threads
                     >(),
                     math::MathStl(),
                     block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc(static_cast<std::size_t>(blockSharedMemDynSizeBytes)),
@@ -153,7 +153,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~AccCpuFibers() = default;
+            /*virtual*/ ~AccCpuFibers() = default;
 
         private:
             // getIdx

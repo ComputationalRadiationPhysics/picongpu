@@ -21,16 +21,14 @@
 
 #pragma once
 
-#include <alpaka/dev/DevCpu.hpp>                // dev::DevCpu
+#include <alpaka/dev/DevCpu.hpp>
 
-#include <alpaka/dev/Traits.hpp>                // dev::GetDev, dev::DevType
-#include <alpaka/event/Traits.hpp>              // event::EventType
-#include <alpaka/stream/Traits.hpp>             // stream::traits::Enqueue, ...
-#include <alpaka/wait/Traits.hpp>               // CurrentThreadWaitFor, WaiterWaitFor
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/event/Traits.hpp>
+#include <alpaka/stream/Traits.hpp>
+#include <alpaka/wait/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp>         // boost::ignore_unused
-#include <boost/uuid/uuid.hpp>                  // boost::uuids::uuid
-#include <boost/uuid/uuid_generators.hpp>       // boost::uuids::random_generator
+#include <boost/core/ignore_unused.hpp>
 
 namespace alpaka
 {
@@ -59,32 +57,30 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST StreamCpuSyncImpl(
                         dev::DevCpu const & dev) :
-                            m_uuid(boost::uuids::random_generator()()),
                             m_dev(dev)
                     {}
                     //-----------------------------------------------------------------------------
                     //! Copy constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST StreamCpuSyncImpl(StreamCpuSyncImpl const &) = delete;
+                    StreamCpuSyncImpl(StreamCpuSyncImpl const &) = delete;
                     //-----------------------------------------------------------------------------
                     //! Move constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST StreamCpuSyncImpl(StreamCpuSyncImpl &&) = default;
+                    StreamCpuSyncImpl(StreamCpuSyncImpl &&) = default;
                     //-----------------------------------------------------------------------------
                     //! Copy assignment operator.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto operator=(StreamCpuSyncImpl const &) -> StreamCpuSyncImpl & = delete;
+                    auto operator=(StreamCpuSyncImpl const &) -> StreamCpuSyncImpl & = delete;
                     //-----------------------------------------------------------------------------
                     //! Move assignment operator.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto operator=(StreamCpuSyncImpl &&) -> StreamCpuSyncImpl & = default;
+                    auto operator=(StreamCpuSyncImpl &&) -> StreamCpuSyncImpl & = default;
                     //-----------------------------------------------------------------------------
                     //! Destructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST ~StreamCpuSyncImpl() = default;
+                    ~StreamCpuSyncImpl() = default;
 
                 public:
-                    boost::uuids::uuid const m_uuid;    //!< The unique ID.
                     dev::DevCpu const m_dev;            //!< The device this stream is bound to.
                 };
             }
@@ -101,31 +97,31 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST StreamCpuSync(
                 dev::DevCpu const & dev) :
-                    m_spSyncStreamCpu(std::make_shared<cpu::detail::StreamCpuSyncImpl>(dev))
+                    m_spStreamImpl(std::make_shared<cpu::detail::StreamCpuSyncImpl>(dev))
             {}
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST StreamCpuSync(StreamCpuSync const &) = default;
+            StreamCpuSync(StreamCpuSync const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST StreamCpuSync(StreamCpuSync &&) = default;
+            StreamCpuSync(StreamCpuSync &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(StreamCpuSync const &) -> StreamCpuSync & = default;
+            auto operator=(StreamCpuSync const &) -> StreamCpuSync & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(StreamCpuSync &&) -> StreamCpuSync & = default;
+            auto operator=(StreamCpuSync &&) -> StreamCpuSync & = default;
             //-----------------------------------------------------------------------------
             //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(StreamCpuSync const & rhs) const
             -> bool
             {
-                return (m_spSyncStreamCpu->m_uuid == rhs.m_spSyncStreamCpu->m_uuid);
+                return (m_spStreamImpl == rhs.m_spStreamImpl);
             }
             //-----------------------------------------------------------------------------
             //! Inequality comparison operator.
@@ -138,10 +134,10 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~StreamCpuSync() = default;
+            ~StreamCpuSync() = default;
 
         public:
-            std::shared_ptr<cpu::detail::StreamCpuSyncImpl> m_spSyncStreamCpu;
+            std::shared_ptr<cpu::detail::StreamCpuSyncImpl> m_spStreamImpl;
         };
     }
 
@@ -172,7 +168,7 @@ namespace alpaka
                     stream::StreamCpuSync const & stream)
                 -> dev::DevCpu
                 {
-                    return stream.m_spSyncStreamCpu->m_dev;
+                    return stream.m_spStreamImpl->m_dev;
                 }
             };
         }

@@ -28,11 +28,11 @@
 #define BOOST_MPL_CFG_GPU_ENABLED
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/test/event/EventHostManualTrigger.hpp> // alpaka::test::stream::createEventHostManualTrigger
-#include <alpaka/test/stream/Stream.hpp>                // alpaka::test::stream::TestStreams
-#include <alpaka/test/stream/StreamTestFixture.hpp>     // alpaka::test::stream::StreamTestFixture
+#include <alpaka/test/event/EventHostManualTrigger.hpp>
+#include <alpaka/test/stream/Stream.hpp>
+#include <alpaka/test/stream/StreamTestFixture.hpp>
 
-#include <boost/predef.h>                               // BOOST_COMP_CLANG
+#include <boost/predef.h>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -63,13 +63,20 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         alpaka::event::test(event));
 }
 
+// All of the following tests use the EventHostManualTrigger which is only available on CUDA 8.0+
+#if !BOOST_LANG_CUDA || BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(8, 0, 0)
+using TestStreams = alpaka::test::stream::TestStreams;
+#else
+using TestStreams = alpaka::test::stream::TestStreamsCpu;
+#endif
+
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     eventTestShouldBeFalseWhileInQueueAndTrueAfterBeingProcessed,
     TDevStream,
-    alpaka::test::stream::TestStreamsCpu)
+    TestStreams)
 {
     using Fixture = alpaka::test::stream::StreamTestFixture<TDevStream>;
     using Stream = typename Fixture::Stream;
@@ -109,7 +116,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     eventReEnqueueShouldBePossibleIfNobodyWaitsFor,
     TDevStream,
-    alpaka::test::stream::TestStreamsCpu)
+    TestStreams)
 {
     using Fixture = alpaka::test::stream::StreamTestFixture<TDevStream>;
     using Stream = typename Fixture::Stream;
@@ -138,6 +145,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         BOOST_REQUIRE_EQUAL(false, alpaka::event::test(e1));
         BOOST_REQUIRE_EQUAL(false, alpaka::event::test(k2));
 
+        // re-enqueue should be possible
         // s1 = [k1, k2, e1]
         alpaka::stream::enqueue(s1, e1);
         BOOST_REQUIRE_EQUAL(false, alpaka::event::test(k1));
@@ -162,9 +170,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 //
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
-    eventReEnqueueShouldNotBePossibleIfSomeoneWaitsFor,
+    eventReEnqueueShouldBePossibleIfSomeoneWaitsFor,
     TDevStream,
-    alpaka::test::stream::TestStreamsCpu)
+    TestStreams)
 {
     using Fixture = alpaka::test::stream::StreamTestFixture<TDevStream>;
     using Stream = typename Fixture::Stream;
@@ -177,6 +185,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         auto s1 = f1.m_stream;
         auto s2 = f2.m_stream;
         alpaka::event::Event<Stream> e1(f1.m_dev);
+        alpaka::event::Event<Stream> e2(f2.m_dev);
         alpaka::test::event::EventHostManualTrigger<Dev> k1(f1.m_dev);
         alpaka::test::event::EventHostManualTrigger<Dev> k2(f1.m_dev);
 
@@ -199,23 +208,32 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         // s2 = [->e1]
         alpaka::wait::wait(s2, e1);
 
-        // re-enqueue should not be possible
-        // s1 = [k1, e1, k2]
+        // s2 = [->e1, e2]
+        alpaka::stream::enqueue(s2, e2);
+        BOOST_REQUIRE_EQUAL(false, alpaka::event::test(e2));
+
+        // re-enqueue should be possible
+        // s1 = [k1, k2, e1]
         alpaka::stream::enqueue(s1, e1);
         BOOST_REQUIRE_EQUAL(false, alpaka::event::test(k1));
         BOOST_REQUIRE_EQUAL(false, alpaka::event::test(k2));
         BOOST_REQUIRE_EQUAL(false, alpaka::event::test(e1));
+        BOOST_REQUIRE_EQUAL(false, alpaka::event::test(e2));
 
-        // s1 = [e1, k2]
+        // s1 = [k2, e1]
         k1.trigger();
         BOOST_REQUIRE_EQUAL(true, alpaka::event::test(k1));
         BOOST_REQUIRE_EQUAL(false, alpaka::event::test(k2));
-        alpaka::wait::wait(e1);
-        BOOST_REQUIRE_EQUAL(true, alpaka::event::test(e1));
+        BOOST_REQUIRE_EQUAL(false, alpaka::event::test(e1));
+        BOOST_REQUIRE_EQUAL(false, alpaka::event::test(e2));
 
-        // s1 = [k2]
+        // s1 = [e1]
         k2.trigger();
         BOOST_REQUIRE_EQUAL(true, alpaka::event::test(k2));
+        alpaka::wait::wait(e1);
+        BOOST_REQUIRE_EQUAL(true, alpaka::event::test(e1));
+        alpaka::wait::wait(e2);
+        BOOST_REQUIRE_EQUAL(true, alpaka::event::test(e2));
     }
 }
 
@@ -225,7 +243,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     waitForEventThatAlreadyFinishedShouldBeSkipped,
     TDevStream,
-    alpaka::test::stream::TestStreamsCpu)
+    TestStreams)
 {
     using Fixture = alpaka::test::stream::StreamTestFixture<TDevStream>;
     using Stream = typename Fixture::Stream;

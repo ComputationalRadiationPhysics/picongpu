@@ -20,12 +20,12 @@
 */
 
 #pragma once
-#include <alpaka/core/Common.hpp>   // ALPAKA_FN_*
-#include <alpaka/dev/Traits.hpp>    // dev::Dev
+#include <alpaka/core/Common.hpp>
+#include <alpaka/dev/Traits.hpp>
 
-#include <boost/config.hpp>         // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/config.hpp>
 
-#include <vector>                   // std::vector
+#include <vector>
 
 namespace alpaka
 {

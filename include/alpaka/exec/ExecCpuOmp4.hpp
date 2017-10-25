@@ -28,28 +28,28 @@
 #endif
 
 // Specialized traits.
-#include <alpaka/acc/Traits.hpp>                // acc::traits::AccType
-#include <alpaka/dev/Traits.hpp>                // dev::traits::DevType
-#include <alpaka/dim/Traits.hpp>                // dim::traits::DimType
-#include <alpaka/exec/Traits.hpp>               // exec::traits::ExecType
-#include <alpaka/pltf/Traits.hpp>               // pltf::traits::PltfType
-#include <alpaka/size/Traits.hpp>               // size::traits::SizeType
+#include <alpaka/acc/Traits.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/exec/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
 // Implementation details.
-#include <alpaka/acc/AccCpuOmp4.hpp>            // acc:AccCpuOmp4
-#include <alpaka/dev/DevCpu.hpp>                // dev::DevCpu
-#include <alpaka/idx/MapIdx.hpp>                // idx::mapIdx
-#include <alpaka/kernel/Traits.hpp>             // kernel::getBlockSharedMemDynSizeBytes
-#include <alpaka/workdiv/WorkDivMembers.hpp>    // workdiv::WorkDivMembers
+#include <alpaka/acc/AccCpuOmp4.hpp>
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/idx/MapIdx.hpp>
+#include <alpaka/kernel/Traits.hpp>
+#include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #include <alpaka/core/OpenMp.hpp>
-#include <alpaka/meta/ApplyTuple.hpp>           // meta::apply
+#include <alpaka/meta/ApplyTuple.hpp>
 
-#include <stdexcept>                            // std::runtime_error
-#include <tuple>                                // std::tuple
-#include <type_traits>                          // std::decay
+#include <stdexcept>
+#include <tuple>
+#include <type_traits>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-    #include <iostream>                         // std::cout
+    #include <iostream>
 #endif
 
 namespace alpaka
@@ -88,23 +88,23 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuOmp4(ExecCpuOmp4 const & other) = default;
+            ExecCpuOmp4(ExecCpuOmp4 const & other) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuOmp4(ExecCpuOmp4 && other) = default;
+            ExecCpuOmp4(ExecCpuOmp4 && other) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuOmp4 const &) -> ExecCpuOmp4 & = default;
+            auto operator=(ExecCpuOmp4 const &) -> ExecCpuOmp4 & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuOmp4 &&) -> ExecCpuOmp4 & = default;
+            auto operator=(ExecCpuOmp4 &&) -> ExecCpuOmp4 & = default;
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~ExecCpuOmp4() = default;
+            ~ExecCpuOmp4() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.
@@ -166,7 +166,7 @@ namespace alpaka
                 // `When an if(scalar-expression) evaluates to false, the structured block is executed on the host.`
                 #pragma omp target if(0)
                 {
-                    #pragma omp teams/* num_teams(gridBlockCount) thread_limit(blockThreadCount)*/
+                    #pragma omp teams num_teams(gridBlockCount) thread_limit(blockThreadCount)
                     {
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                         // The first team does some checks ...

@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <alpaka/atomic/Traits.hpp>                 // AtomicOp
+#include <alpaka/atomic/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp>             // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
 namespace alpaka
 {
@@ -39,7 +39,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Default constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA AtomicNoOp() = default;
+            AtomicNoOp() = default;
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
@@ -59,7 +59,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~AtomicNoOp() = default;
+            /*virtual*/ ~AtomicNoOp() = default;
         };
 
         namespace traits

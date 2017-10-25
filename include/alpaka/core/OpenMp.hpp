@@ -23,7 +23,7 @@
 
 #ifdef _OPENMP
 
-#include <alpaka/core/Common.hpp>   // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
 #include <omp.h>
 

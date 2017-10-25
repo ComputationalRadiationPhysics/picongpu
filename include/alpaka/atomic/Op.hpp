@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <alpaka/vec/Vec.hpp>   // Vec
+#include <alpaka/vec/Vec.hpp>
 
-#include <algorithm>            // std::min, std::max
+#include <algorithm>
 
 namespace alpaka
 {

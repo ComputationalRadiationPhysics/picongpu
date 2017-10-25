@@ -29,8 +29,6 @@
 // version number
 //-----------------------------------------------------------------------------
 #include <alpaka/version.hpp>
-
-//-----------------------------------------------------------------------------
 // acc
 //-----------------------------------------------------------------------------
 #include <alpaka/acc/AccCpuSerial.hpp>
@@ -43,8 +41,6 @@
 #include <alpaka/acc/AccGpuCudaRt.hpp>
 #include <alpaka/acc/AccDevProps.hpp>
 #include <alpaka/acc/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // atomic
 //-----------------------------------------------------------------------------
 #include <alpaka/atomic/AtomicCudaBuiltIn.hpp>
@@ -53,8 +49,6 @@
 #include <alpaka/atomic/AtomicStlLock.hpp>
 #include <alpaka/atomic/Op.hpp>
 #include <alpaka/atomic/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // block
 //-----------------------------------------------------------------------------
     //-----------------------------------------------------------------------------
@@ -66,15 +60,12 @@
         #include <alpaka/block/shared/dyn/BlockSharedMemDynBoostAlignedAlloc.hpp>
         #include <alpaka/block/shared/dyn/BlockSharedMemDynCudaBuiltIn.hpp>
         #include <alpaka/block/shared/dyn/Traits.hpp>
-        //-----------------------------------------------------------------------------
         // static
         //-----------------------------------------------------------------------------
         #include <alpaka/block/shared/st/BlockSharedMemStCudaBuiltIn.hpp>
         #include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>
         #include <alpaka/block/shared/st/BlockSharedMemStNoSync.hpp>
         #include <alpaka/block/shared/st/Traits.hpp>
-
-    //-----------------------------------------------------------------------------
     // sync
     //-----------------------------------------------------------------------------
     #include <alpaka/block/sync/BlockSyncBarrierFiber.hpp>
@@ -83,8 +74,6 @@
     #include <alpaka/block/sync/BlockSyncCudaBuiltIn.hpp>
     #include <alpaka/block/sync/BlockSyncNoOp.hpp>
     #include <alpaka/block/sync/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // core
 //-----------------------------------------------------------------------------
 #include <alpaka/core/Assert.hpp>
@@ -98,31 +87,24 @@
 #include <alpaka/core/OpenMp.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unroll.hpp>
+#include <alpaka/core/Utility.hpp>
 #include <alpaka/core/Vectorize.hpp>
-
-//-----------------------------------------------------------------------------
 // dev
 //-----------------------------------------------------------------------------
 #include <alpaka/dev/DevCudaRt.hpp>
 #include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/dev/cpu/Wait.hpp>
 #include <alpaka/dev/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // dim
 //-----------------------------------------------------------------------------
 #include <alpaka/dim/DimArithmetic.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/dim/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // event
 //-----------------------------------------------------------------------------
 #include <alpaka/event/EventCudaRt.hpp>
 #include <alpaka/event/EventCpu.hpp>
 #include <alpaka/event/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // exec
 //-----------------------------------------------------------------------------
 #include <alpaka/exec/ExecCpuSerial.hpp>
@@ -134,13 +116,9 @@
 #include <alpaka/exec/ExecCpuOmp4.hpp>
 #include <alpaka/exec/ExecGpuCudaRt.hpp>
 #include <alpaka/exec/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // extent
 //-----------------------------------------------------------------------------
 #include <alpaka/extent/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // idx
 //-----------------------------------------------------------------------------
 #include <alpaka/idx/bt/IdxBtCudaBuiltIn.hpp>
@@ -152,19 +130,13 @@
 #include <alpaka/idx/gb/IdxGbRef.hpp>
 #include <alpaka/idx/Traits.hpp>
 #include <alpaka/idx/MapIdx.hpp>
-
-//-----------------------------------------------------------------------------
 // kernel
 //-----------------------------------------------------------------------------
 #include <alpaka/kernel/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // math
 //-----------------------------------------------------------------------------
 #include <alpaka/math/MathCudaBuiltIn.hpp>
 #include <alpaka/math/MathStl.hpp>
-
-//-----------------------------------------------------------------------------
 // mem
 //-----------------------------------------------------------------------------
 #include <alpaka/mem/alloc/AllocCpuBoostAligned.hpp>
@@ -179,8 +151,6 @@
 #include <alpaka/mem/view/ViewStdContainers.hpp>
 #include <alpaka/mem/view/ViewSubView.hpp>
 #include <alpaka/mem/view/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // meta
 //-----------------------------------------------------------------------------
 #include <alpaka/meta/Apply.hpp>
@@ -199,32 +169,22 @@
 #include <alpaka/meta/Set.hpp>
 #include <alpaka/meta/StdTupleAsMplSequence.hpp>
 #include <alpaka/meta/Transform.hpp>
-
-//-----------------------------------------------------------------------------
 // offset
 //-----------------------------------------------------------------------------
 #include <alpaka/offset/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // platform
 //-----------------------------------------------------------------------------
 #include <alpaka/pltf/PltfCpu.hpp>
 #include <alpaka/pltf/PltfCudaRt.hpp>
 #include <alpaka/pltf/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // rand
 //-----------------------------------------------------------------------------
 #include <alpaka/rand/RandCuRand.hpp>
 #include <alpaka/rand/RandStl.hpp>
 #include <alpaka/rand/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // size
 //-----------------------------------------------------------------------------
 #include <alpaka/size/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // stream
 //-----------------------------------------------------------------------------
 #include <alpaka/stream/StreamCudaRtAsync.hpp>
@@ -232,25 +192,17 @@
 #include <alpaka/stream/StreamCpuAsync.hpp>
 #include <alpaka/stream/StreamCpuSync.hpp>
 #include <alpaka/stream/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // time
 //-----------------------------------------------------------------------------
 #include <alpaka/time/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // wait
 //-----------------------------------------------------------------------------
 #include <alpaka/wait/Traits.hpp>
-
-//-----------------------------------------------------------------------------
 // workdiv
 //-----------------------------------------------------------------------------
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 #include <alpaka/workdiv/Traits.hpp>
 #include <alpaka/workdiv/WorkDivHelpers.hpp>
-
-//-----------------------------------------------------------------------------
 // vec
 //-----------------------------------------------------------------------------
 #include <alpaka/vec/Vec.hpp>

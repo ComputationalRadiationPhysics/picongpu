@@ -21,35 +21,35 @@
 
 #pragma once
 
-#include <alpaka/vec/Traits.hpp>            // vec::SubVecFromIndices
-#include <alpaka/dim/Traits.hpp>            // dim::getDim
-#include <alpaka/dim/DimIntegralConst.hpp>  // dim::DimInt<N>
-#include <alpaka/extent/Traits.hpp>         // extent::getWidth, ...
-#include <alpaka/offset/Traits.hpp>         // offset::getOffsetX, ...
-#include <alpaka/size/Traits.hpp>           // size::traits::SizeType
+#include <alpaka/vec/Traits.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/dim/DimIntegralConst.hpp>
+#include <alpaka/extent/Traits.hpp>
+#include <alpaka/offset/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
-#include <alpaka/meta/IntegerSequence.hpp>  // meta::MakeIntegerSequence
-#include <alpaka/meta/Fold.hpp>             // meta::foldr
-#include <alpaka/core/Align.hpp>            // ALPAKA_OPTIMAL_ALIGNMENT_SIZE
-#include <alpaka/core/Assert.hpp>           // assertValueUnsigned
-#include <alpaka/core/Common.hpp>           // ALPAKA_FN_*
+#include <alpaka/meta/IntegerSequence.hpp>
+#include <alpaka/meta/Fold.hpp>
+#include <alpaka/core/Align.hpp>
+#include <alpaka/core/Assert.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <boost/predef.h>                   // workarounds
-#include <boost/config.hpp>                 // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/predef.h>
+#include <boost/config.hpp>
 #if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+    #include <boost/core/ignore_unused.hpp>
 #endif
 
-#include <cstdint>                          // std::uint32_t
-#include <ostream>                          // std::ostream
-#include <cassert>                          // assert
-#include <type_traits>                      // std::enable_if, std::decay, std::is_same
-#include <algorithm>                        // std::min, std::max, std::min_element, std::max_element
+#include <cstdint>
+#include <ostream>
+#include <cassert>
+#include <type_traits>
+#include <algorithm>
 
 // Some compilers do not support the out of class versions:
 // - the nvcc CUDA compiler (at least 7.0, 7.5 and 8.0)
 // - the intel compiler
-#if BOOST_COMP_NVCC || BOOST_COMP_INTEL
+#if BOOST_COMP_NVCC || BOOST_COMP_INTEL || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0))
     #define ALPAKA_CREATE_VEC_IN_CLASS
 #endif
 
@@ -270,28 +270,23 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC Vec(Vec const &) = default;
+            Vec(Vec const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC Vec(Vec &&) = default;
+            Vec(Vec &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC auto operator=(Vec const &) -> Vec & = default;
+            auto operator=(Vec const &) -> Vec & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC auto operator=(Vec &&) -> Vec & = default;
+            auto operator=(Vec &&) -> Vec & = default;
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_NO_HOST_ACC_WARNING
-            ALPAKA_FN_HOST_ACC ~Vec() = default;
+            ~Vec() = default;
 
         private:
             //#############################################################################
@@ -366,7 +361,7 @@ namespace alpaka
             {
                 core::assertValueUnsigned(iIdx);
                 auto const idx(static_cast<typename TDim::value_type>(iIdx));
-                assert(idx<TDim::value);
+                assert(TDim::value > 0u && idx<TDim::value);
                 return m_data[idx];
             }
 
@@ -385,7 +380,7 @@ namespace alpaka
             {
                 core::assertValueUnsigned(iIdx);
                 auto const idx(static_cast<typename TDim::value_type>(iIdx));
-                assert(idx<TDim::value);
+                assert(TDim::value > 0u && idx<TDim::value);
                 return m_data[idx];
             }
 

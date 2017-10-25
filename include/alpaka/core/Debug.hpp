@@ -22,10 +22,10 @@
 #pragma once
 
 #include <boost/current_function.hpp>
-#include <alpaka/core/BoostPredefWorkaround.hpp> // workarounds
+#include <alpaka/core/BoostPredefWorkaround.hpp>
 
-#include <string>                           // std::string
-#include <iostream>                         // std::cout
+#include <string>
+#include <iostream>
 
 //-----------------------------------------------------------------------------
 //! The no debug level.

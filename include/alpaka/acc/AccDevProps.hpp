@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <alpaka/vec/Vec.hpp>       // Vec
-#include <alpaka/core/Common.hpp>   // ALPAKA_FN_*
+#include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <vector>                   // std::vector
-#include <string>                   // std::string
+#include <vector>
+#include <string>
 
 namespace alpaka
 {

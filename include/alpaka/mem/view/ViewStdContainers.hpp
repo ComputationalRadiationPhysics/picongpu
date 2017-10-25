@@ -21,17 +21,17 @@
 
 #pragma once
 
-#include <alpaka/dev/DevCpu.hpp>        // dev::DevCpu
-#include <alpaka/mem/buf/Traits.hpp>    // dev::traits::DevType, DimType, GetExtent,Copy, GetOffset, ...
-#include <alpaka/pltf/PltfCpu.hpp>      // pltf::getDevByIndex
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/mem/buf/Traits.hpp>
+#include <alpaka/pltf/PltfCpu.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
-#include <boost/predef.h>               // workarounds
+#include <boost/core/ignore_unused.hpp>
+#include <boost/predef.h>
 
-#include <type_traits>                  // std::enable_if, std::is_array, std::extent
-#include <vector>                       // std::vector
-#include <array>                        // std::array
+#include <type_traits>
+#include <vector>
+#include <array>
 
 namespace alpaka
 {

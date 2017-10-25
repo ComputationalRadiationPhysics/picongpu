@@ -23,14 +23,14 @@
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED
 
-#include <alpaka/idx/Traits.hpp>            // idx::getIdx
+#include <alpaka/idx/Traits.hpp>
 
 #include <alpaka/core/Fibers.hpp>
 
-#include <boost/core/ignore_unused.hpp>     // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
-#include <map>                              // std::map
-#include <cassert>                          // assert
+#include <map>
+#include <cassert>
 
 namespace alpaka
 {
@@ -77,7 +77,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Destructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~IdxBtRefFiberIdMap() = default;
+                /*virtual*/ ~IdxBtRefFiberIdMap() = default;
 
             public:
                 FiberIdToIdxMap const & m_fibersToIndices; //!< The mapping of fiber id's to fiber indices.

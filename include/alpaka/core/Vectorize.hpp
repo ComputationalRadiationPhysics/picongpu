@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>   // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <cstddef>                  // std::size_t
-#include <cstdint>                  // std::int32_t, ...
+#include <cstddef>
+#include <cstdint>
 
 //-----------------------------------------------------------------------------
 //! Suggests vectorization of the directly following loop to the compiler.

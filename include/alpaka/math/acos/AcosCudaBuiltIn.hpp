@@ -23,18 +23,18 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*, BOOST_LANG_CUDA
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-#include <alpaka/math/acos/Traits.hpp>  // Acos
+#include <alpaka/math/acos/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
-#include <type_traits>                  // std::enable_if, std::is_floating_point
-#include <math_functions.hpp>           // ::acos
+#include <type_traits>
+#include <math_functions.hpp>
 
 namespace alpaka
 {

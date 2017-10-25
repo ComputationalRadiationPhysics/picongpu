@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <type_traits>  // std::is_base_of, std::is_same, std::decay
+#include <type_traits>
 
 namespace alpaka
 {

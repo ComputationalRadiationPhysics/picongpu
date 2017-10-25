@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <boost/predef.h>           // workarounds
+#include <boost/predef.h>
 
-#include <cstddef>                  // std::size_t
-#include <type_traits>              // std::remove_cv, std::integral_constant
+#include <cstddef>
+#include <type_traits>
 
 namespace alpaka
 {

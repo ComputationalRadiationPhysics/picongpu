@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <boost/predef.h>   // BOOST_XXX
+#include <boost/predef.h>
 
 #if BOOST_OS_WINDOWS || BOOST_OS_CYGWIN
     #ifndef NOMINMAX
@@ -33,7 +33,7 @@
     // We could use some more macros to reduce the number of sub-headers included, but this would restrict user code.
     #include <windows.h>
 #elif BOOST_OS_UNIX
-    #include <cstdint>          // std::uint64_t, std::uin32_t
+    #include <cstdint>
     #include <unistd.h>
     #include <sys/types.h>
     #include <sys/param.h>
@@ -46,9 +46,9 @@
     #include <fstream>
 #endif
 
-#include <stdexcept>        // std::runtime_error
-#include <cstring>          // std::memcpy
-#include <string>           // std::string
+#include <stdexcept>
+#include <cstring>
+#include <string>
 
 namespace alpaka
 {
@@ -61,7 +61,6 @@ namespace alpaka
 #if BOOST_ARCH_X86
     #if BOOST_COMP_GNUC || BOOST_COMP_CLANG || (!BOOST_COMP_MSVC_EMULATED && __INTEL_COMPILER)
         #include <cpuid.h>
-                //-----------------------------------------------------------------------------
                 //!
                 //-----------------------------------------------------------------------------
                 inline auto cpuid(std::uint32_t const level, std::uint32_t const subfunction, std::uint32_t ex[4])
@@ -72,7 +71,6 @@ namespace alpaka
 
     #elif BOOST_COMP_MSVC || __INTEL_COMPILER
         #include <intrin.h>
-                //-----------------------------------------------------------------------------
                 //!
                 //-----------------------------------------------------------------------------
                 inline auto cpuid(std::uint32_t const level, std::uint32_t const subfunction, std::uint32_t ex[4])

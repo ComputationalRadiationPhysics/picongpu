@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include <alpaka/vec/Vec.hpp>               // Vec
-#include <alpaka/dim/Traits.hpp>            // Dim
-#include <alpaka/meta/IntegerSequence.hpp>  // meta::IndexSequence
-#include <alpaka/core/Common.hpp>           // ALPAKA_FN_*
+#include <alpaka/vec/Vec.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/meta/IntegerSequence.hpp>
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+    #include <boost/core/ignore_unused.hpp>
 #endif
 
 namespace alpaka
