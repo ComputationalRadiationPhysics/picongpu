@@ -161,57 +161,70 @@ namespace ionization
         HDINLINE uint32_t
         operator()( float_X const kinEnergyDensity, float_X const density, ParticleType & parentIon, float_X randNr )
         {
-            float_64 const chargeState = attribute::getChargeState(parentIon);
-            /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU units */
-            constexpr float_64 protonNumber = GetAtomicNumbers< ParticleType >::type::numberOfProtons;
 
-            /* determine number of new free macro electrons
-             * to be created in the ionization routine
-             */
+            /* initialize functor return value: number of new macro electrons to create */
             uint32_t numNewFreeMacroElectrons = 0u;
 
-            /* only ionize not-fully ionized ions */
-            if( chargeState < protonNumber )
+            float_64 const densityUnit = static_cast< float_64 >( particleToGrid::derivedAttributes::Density( ).getUnit( )[ 0 ] );
+            /** lower ion density cutoff
+             *
+             * The Thomas-Fermi model yields unphysical artifacts for low densities.
+             * If `density` is lower than a user-definable ion number density value the model will not be applied.
+             */
+            constexpr float_X lowerDensityCutoff = particles::ionization::thomasFermi::CUTOFF_LOW_DENSITY;
+            if( density * densityUnit >= lowerDensityCutoff )
             {
-                /* Thomas-Fermi calculation step:
-                 * Determines the new average charge state for each ion under
-                 * LTE conditions.
-                 */
-                float_X const ZStar = detailedBalanceThomasFermi(
-                    kinEnergyDensity,
-                    density,
-                    parentIon
-                );
 
-                /* integral part of the average charge state */
-                float_X intZStar;
-                /* fractional part of the average charge state */
-                float_X const fracZStar = math::modf( ZStar, &intZStar );
+                float_64 const chargeState = attribute::getChargeState( parentIon );
+                /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU units */
+                constexpr float_64 protonNumber = GetAtomicNumbers< ParticleType >::type::numberOfProtons;
 
-                /* Determine new charge state.
-                 * We do a Monte-Carlo step to distribute charge states between
-                 * the two "surrounding" integer numbers if ZStar has a non-zero
-                 * fractional part.
-                 */
-                float_X const newChargeState =
-                    intZStar +
-                    float_X( 1.0 ) * ( randNr < fracZStar );
+                /* only ionize not-fully ionized ions */
+                if( chargeState < protonNumber )
+                {
+                    /* Thomas-Fermi calculation step:
+                     * Determines the new average charge state for each ion under
+                     * LTE conditions.
+                     */
+                    float_X const ZStar = detailedBalanceThomasFermi(
+                        kinEnergyDensity,
+                        density,
+                        parentIon
+                    );
 
-                /* define number of bound macro electrons before ionization */
-                float_X const prevBoundElectrons = parentIon[ boundElectrons_ ];
+                    /* integral part of the average charge state */
+                    float_X intZStar;
+                    /* fractional part of the average charge state */
+                    float_X const fracZStar = math::modf( ZStar, &intZStar );
 
-                /** determine the new number of bound electrons from the TF ionization state
-                 * @TODO introduce partial macroparticle ionization / ionization distribution at some point
-                 */
-                float_X const newBoundElectrons = protonNumber - newChargeState;
+                    /* Determine new charge state.
+                     * We do a Monte-Carlo step to distribute charge states between
+                     * the two "surrounding" integer numbers if ZStar has a non-zero
+                     * fractional part.
+                     */
+                    float_X const newChargeState =
+                        intZStar +
+                        float_X( 1.0 ) * ( randNr < fracZStar );
 
-                /* Only account for ionization: we only increase the charge
-                 * state of an ion if necessary, but ignore recombination of
-                 * electrons as prediced by the implemented detailed balance
-                 * algorithm.
-                 */
-                if( prevBoundElectrons > newBoundElectrons )
-                    numNewFreeMacroElectrons = static_cast< uint32_t >( prevBoundElectrons - newBoundElectrons );
+                    /* define number of bound macro electrons before ionization */
+                    float_X const prevBoundElectrons = parentIon[ boundElectrons_ ];
+
+                    /** determine the new number of bound electrons from the TF ionization state
+                     * @TODO introduce partial macroparticle ionization / ionization distribution at some point
+                     */
+                    float_X const newBoundElectrons = protonNumber - newChargeState;
+
+                    /* Only account for ionization: we only increase the charge
+                     * state of an ion if necessary, but ignore recombination of
+                     * electrons as prediced by the implemented detailed balance
+                     * algorithm.
+                     */
+                    if( prevBoundElectrons > newBoundElectrons )
+                       /* determine number of new free macro electrons
+                        * to be created in the ionization routine
+                        */
+                        numNewFreeMacroElectrons = static_cast< uint32_t >( prevBoundElectrons - newBoundElectrons );
+                }
             }
 
             return numNewFreeMacroElectrons;
