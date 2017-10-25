@@ -60,6 +60,7 @@ namespace cellwiseOperation
          * @param opFunctor binary operator used with the old and functor value
          *                  (collective functors are not supported)
          * @param valFunctor functor to execute (collective functors are not supported)
+         * @param totalDomainOffset offset to the local domain relative to the origin of the global domain
          * @param currentStep simulation time step
          * @param mapper functor to map a block to a supercell
          */
@@ -76,7 +77,7 @@ namespace cellwiseOperation
             T_FieldBox field,
             T_OpFunctor opFunctor,
             T_ValFunctor valFunctor,
-            DataSpace< simDim > const totalCellOffset,
+            DataSpace< simDim > const totalDomainOffset,
             uint32_t const currentStep,
             T_Mapping mapper
         ) const
@@ -89,6 +90,7 @@ namespace cellwiseOperation
 
             DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace<simDim>( blockIdx ) ) );
             DataSpace< simDim > const blockCell = block * SuperCellSize::toRT( );
+            DataSpace< simDim > const guardCells = mapper.getGuardingSuperCells( ) * SuperCellSize::toRT( );
 
             ForEachIdx<
                 IdxConfig<
@@ -109,7 +111,7 @@ namespace cellwiseOperation
                         acc,
                         field( blockCell + cellIdx ),
                         valFunctor(
-                            blockCell + cellIdx + totalCellOffset,
+                            blockCell + cellIdx + totalDomainOffset - guardCells,
                             currentStep
                         )
                     );
@@ -159,20 +161,14 @@ namespace cellwiseOperation
                 return;
 
             SubGrid< simDim > const & subGrid = Environment< simDim >::get( ).SubGrid();
-            // offset due to being the n-th GPU
-            DataSpace< simDim > totalCellOffset( subGrid.getLocalDomain( ).offset );
+            // offset to the local domain relative to the origin of the global domain
+            DataSpace< simDim > totalDomainOffset( subGrid.getLocalDomain( ).offset );
             uint32_t const numSlides = MovingWindow::getInstance( ).getSlideCounter( currentStep );
 
             /** Assumption: all GPUs have the same number of cells in
              *              y direction for sliding window
              */
-            totalCellOffset.y( ) += numSlides * subGrid.getLocalDomain().size.y( );
-            // the first block will start with less offset if started in the GUARD
-            if( T_Area & GUARD )
-                totalCellOffset -= m_cellDescription.getSuperCellSize( ) * m_cellDescription.getGuardingSuperCells( );
-            // if we run _only_ in the CORE we have to add the BORDER's offset
-            else if( T_Area == CORE )
-                totalCellOffset += m_cellDescription.getSuperCellSize( ) * m_cellDescription.getBorderSuperCells( );
+            totalDomainOffset.y( ) += numSlides * subGrid.getLocalDomain().size.y( );
 
             constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
                 pmacc::math::CT::volume< SuperCellSize >::type::value
@@ -190,7 +186,7 @@ namespace cellwiseOperation
                 field->getDeviceDataBox( ),
                 opFunctor,
                 valFunctor,
-                totalCellOffset,
+                totalDomainOffset,
                 currentStep,
                 mapper
             );
