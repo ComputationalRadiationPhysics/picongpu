@@ -19,17 +19,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <alpaka/alpaka.hpp>                        // alpaka::exec::create
-#include <alpaka/test/MeasureKernelRunTime.hpp>     // measureKernelRunTimeMs
-#include <alpaka/test/acc/Acc.hpp>                  // EnabledAccs
-#include <alpaka/test/stream/Stream.hpp>            // DefaultStream
+#include <alpaka/alpaka.hpp>
+#include <alpaka/test/MeasureKernelRunTime.hpp>
+#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/stream/Stream.hpp>
 
-#include <boost/core/ignore_unused.hpp>             // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
-#include <iostream>                                 // std::cout
-#include <typeinfo>                                 // typeid
-#include <vector>                                   // std::vector
-#include <functional>                               // std::placeholders
+#include <iostream>
+#include <typeinfo>
+#include <vector>
+#include <functional>
 
 //#############################################################################
 //! A matrix multiplication kernel.

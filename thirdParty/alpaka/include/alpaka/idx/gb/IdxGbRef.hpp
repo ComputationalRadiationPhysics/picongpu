@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <alpaka/idx/Traits.hpp>            // idx::getIdx
+#include <alpaka/idx/Traits.hpp>
 
-#include <alpaka/dim/Traits.hpp>            // dim::Dim
+#include <alpaka/dim/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp>     // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
 namespace alpaka
 {
@@ -70,7 +70,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Destructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~IdxGbRef() = default;
+                /*virtual*/ ~IdxGbRef() = default;
 
             public:
                 vec::Vec<TDim, TSize> const & m_gridBlockIdx;

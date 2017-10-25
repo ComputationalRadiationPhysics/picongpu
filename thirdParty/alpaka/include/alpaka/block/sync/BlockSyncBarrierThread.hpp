@@ -23,15 +23,15 @@
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
 
-#include <alpaka/block/sync/Traits.hpp> // SyncBlockThreads
+#include <alpaka/block/sync/Traits.hpp>
 
-#include <alpaka/core/BarrierThread.hpp>// BarrierThread
+#include <alpaka/core/BarrierThread.hpp>
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <thread>                       // std::thread
-#include <mutex>                        // std::mutex
-#include <map>                          // std::map
+#include <thread>
+#include <mutex>
+#include <map>
 
 namespace alpaka
 {
@@ -79,7 +79,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Destructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~BlockSyncBarrierThread() = default;
+                /*virtual*/ ~BlockSyncBarrierThread() = default;
 
                 Barrier mutable m_barrier;
                 BarrierWithPredicate mutable m_barrierWithPredicate;

@@ -21,7 +21,7 @@
 
 #define BOOST_TEST_MODULE blockShared
 
-#include <boost/predef.h>   // BOOST_COMP_CLANG
+#include <boost/predef.h>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"

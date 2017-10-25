@@ -21,16 +21,16 @@
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>           // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <boost/config.hpp>                 // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/config.hpp>
 
 #if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+    #include <boost/core/ignore_unused.hpp>
 #endif
 
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-    #include <type_traits>                  // std::result_of
+    #include <type_traits>
 #endif
 
 namespace alpaka

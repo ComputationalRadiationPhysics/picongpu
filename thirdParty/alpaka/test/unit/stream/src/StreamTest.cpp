@@ -28,10 +28,10 @@
 #define BOOST_MPL_CFG_GPU_ENABLED
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/test/stream/Stream.hpp>            // alpaka::test::stream::TestStreams
-#include <alpaka/test/stream/StreamTestFixture.hpp> // alpaka::test::stream::StreamTestFixture
+#include <alpaka/test/stream/Stream.hpp>
+#include <alpaka/test/stream/StreamTestFixture.hpp>
 
-#include <boost/predef.h>                           // BOOST_COMP_CLANG
+#include <boost/predef.h>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"

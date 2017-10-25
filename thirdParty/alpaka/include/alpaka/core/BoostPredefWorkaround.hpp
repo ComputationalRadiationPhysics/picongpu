@@ -22,7 +22,6 @@
 #pragma once
 
 #include <boost/predef.h>
-//Workaround as old boost versions do not set BOOST_COMP_INTEL correctly
 #if BOOST_COMP_INTEL == 0 // Work around for broken intel detection
     #if defined(__INTEL_COMPILER)
         #ifdef BOOST_COMP_INTEL_DETECTION

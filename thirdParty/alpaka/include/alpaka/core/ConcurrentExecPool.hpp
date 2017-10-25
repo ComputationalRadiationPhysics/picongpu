@@ -27,19 +27,20 @@
 // std::current_exception, std::make_exception_ptr, etc. which are not declared in device code.
 // Therefore, we can not even parse those parts when compiling device code.
 //-----------------------------------------------------------------------------
-#include <alpaka/core/Common.hpp>   // BOOST_LANG_CUDA, BOOST_ARCH_CUDA_DEVICE
+#include <alpaka/core/Common.hpp>
 
-#include <boost/predef.h>           // workarounds
-#include <boost/config.hpp>         // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/predef.h>
+#include <boost/config.hpp>
 
-#include <queue>                    // std::queue
-#include <mutex>                    // std::mutex
-#include <stdexcept>                // std::current_exception
-#include <vector>                   // std::vector
-#include <exception>                // std::runtime_error
-#include <utility>                  // std::forward
-#include <atomic>                   // std::atomic
-#include <future>                   // std::future
+#include <queue>
+#include <mutex>
+#include <stdexcept>
+#include <vector>
+#include <exception>
+#include <utility>
+#include <atomic>
+#include <functional>
+#include <memory>
 
 namespace alpaka
 {

@@ -23,24 +23,24 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>               // ALPAKA_FN_*, BOOST_LANG_CUDA
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-#include <alpaka/dev/DevCudaRt.hpp>             // dev::DevCudaRt
-#include <alpaka/dev/Traits.hpp>                // GetDev
-#include <alpaka/event/Traits.hpp>              // event::traits::Test, ...
-#include <alpaka/wait/Traits.hpp>               // CurrentThreadWaitFor
+#include <alpaka/dev/DevCudaRt.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/event/Traits.hpp>
+#include <alpaka/wait/Traits.hpp>
 
-#include <alpaka/stream/StreamCudaRtAsync.hpp>  // stream::StreamCudaRtAsync
-#include <alpaka/stream/StreamCudaRtSync.hpp>   // stream::StreamCudaRtSync
-#include <alpaka/core/Cuda.hpp>                 // ALPAKA_CUDA_RT_CHECK
+#include <alpaka/stream/StreamCudaRtAsync.hpp>
+#include <alpaka/stream/StreamCudaRtSync.hpp>
+#include <alpaka/core/Cuda.hpp>
 
-#include <stdexcept>                            // std::runtime_error
-#include <memory>                               // std::shared_ptr
-#include <functional>                           // std::bind
+#include <stdexcept>
+#include <memory>
+#include <functional>
 
 namespace alpaka
 {
@@ -85,19 +85,19 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     //! Copy constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST EventCudaImpl(EventCudaImpl const &) = delete;
+                    EventCudaImpl(EventCudaImpl const &) = delete;
                     //-----------------------------------------------------------------------------
                     //! Move constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST EventCudaImpl(EventCudaImpl &&) = default;
+                    EventCudaImpl(EventCudaImpl &&) = default;
                     //-----------------------------------------------------------------------------
                     //! Copy assignment operator.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto operator=(EventCudaImpl const &) -> EventCudaImpl & = delete;
+                    auto operator=(EventCudaImpl const &) -> EventCudaImpl & = delete;
                     //-----------------------------------------------------------------------------
                     //! Move assignment operator.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto operator=(EventCudaImpl &&) -> EventCudaImpl & = default;
+                    auto operator=(EventCudaImpl &&) -> EventCudaImpl & = default;
                     //-----------------------------------------------------------------------------
                     //! Destructor.
                     //-----------------------------------------------------------------------------
@@ -141,26 +141,26 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST EventCudaRt(EventCudaRt const &) = default;
+            EventCudaRt(EventCudaRt const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST EventCudaRt(EventCudaRt &&) = default;
+            EventCudaRt(EventCudaRt &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(EventCudaRt const &) -> EventCudaRt & = default;
+            auto operator=(EventCudaRt const &) -> EventCudaRt & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(EventCudaRt &&) -> EventCudaRt & = default;
+            auto operator=(EventCudaRt &&) -> EventCudaRt & = default;
             //-----------------------------------------------------------------------------
             //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(EventCudaRt const & rhs) const
             -> bool
             {
-                return (m_spEventImpl->m_CudaEvent == rhs.m_spEventImpl->m_CudaEvent);
+                return (m_spEventImpl == rhs.m_spEventImpl);
             }
             //-----------------------------------------------------------------------------
             //! Equality comparison operator.
@@ -173,7 +173,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~EventCudaRt() = default;
+            ~EventCudaRt() = default;
 
         public:
             std::shared_ptr<cuda::detail::EventCudaImpl> m_spEventImpl;
@@ -258,7 +258,7 @@ namespace alpaka
 
                     ALPAKA_CUDA_RT_CHECK(cudaEventRecord(
                         event.m_spEventImpl->m_CudaEvent,
-                        stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                        stream.m_spStreamImpl->m_CudaStream));
                 }
             };
             //#############################################################################
@@ -281,7 +281,7 @@ namespace alpaka
 
                     ALPAKA_CUDA_RT_CHECK(cudaEventRecord(
                         event.m_spEventImpl->m_CudaEvent,
-                        stream.m_spStreamCudaRtSyncImpl->m_CudaStream));
+                        stream.m_spStreamImpl->m_CudaStream));
                 }
             };
         }
@@ -333,7 +333,7 @@ namespace alpaka
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                     ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
-                        stream.m_spStreamCudaRtAsyncImpl->m_CudaStream,
+                        stream.m_spStreamImpl->m_CudaStream,
                         event.m_spEventImpl->m_CudaEvent,
                         0));
                 }
@@ -357,7 +357,7 @@ namespace alpaka
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                     ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
-                        stream.m_spStreamCudaRtSyncImpl->m_CudaStream,
+                        stream.m_spStreamImpl->m_CudaStream,
                         event.m_spEventImpl->m_CudaEvent,
                         0));
                 }
@@ -388,7 +388,7 @@ namespace alpaka
                             dev.m_iDevice));
 
                     ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
-                        0,
+                        nullptr,
                         event.m_spEventImpl->m_CudaEvent,
                         0));
                 }

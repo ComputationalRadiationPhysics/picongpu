@@ -23,9 +23,9 @@
 
 #include <alpaka/alpaka.hpp>
 
-#include <tuple>                            // std::tuple
-#include <type_traits>                      // std::is_class
-#include <iosfwd>                           // std::ostream
+#include <tuple>
+#include <type_traits>
+#include <iosfwd>
 
 // When compiling the tests with CUDA enabled (nvcc or native clang) on the CI infrastructure
 // we have to dramatically reduce the number of tested combinations.
@@ -177,10 +177,9 @@ namespace alpaka
                 //#############################################################################
                 struct StreamOutAccName
                 {
-                    ALPAKA_NO_HOST_ACC_WARNING
                     template<
                         typename TAcc>
-                    ALPAKA_FN_HOST_ACC auto operator()(
+                    ALPAKA_FN_HOST auto operator()(
                         std::ostream & os)
                     -> void
                     {
@@ -193,11 +192,10 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Writes the enabled accelerators to the given stream.
             //-----------------------------------------------------------------------------
-            ALPAKA_NO_HOST_ACC_WARNING
             template<
                 typename TDim,
                 typename TSize>
-            ALPAKA_FN_HOST_ACC auto writeEnabledAccs(
+            ALPAKA_FN_HOST auto writeEnabledAccs(
                 std::ostream & os)
             -> void
             {

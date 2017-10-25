@@ -51,13 +51,13 @@ environment:
     matrix:
         - ALPAKA_DEBUG: 2
           OMP_NUM_THREADS: 4
-          ALPAKA_BOOST_BRANCH: boost-1.64.0
+          ALPAKA_BOOST_BRANCH: boost-1.65.1
           APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-        - OMP_NUM_THREADS: 4
-          ALPAKA_BOOST_BRANCH: boost-1.64.0
-          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+        #- OMP_NUM_THREADS: 4
+        #  ALPAKA_BOOST_BRANCH: boost-1.64.0
+        #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
         - OMP_NUM_THREADS: 3
-          ALPAKA_BOOST_BRANCH: boost-1.63.0
+          ALPAKA_BOOST_BRANCH: boost-1.65.1
           APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
         - OMP_NUM_THREADS: 1
           ALPAKA_BOOST_BRANCH: boost-1.62.0
@@ -172,7 +172,9 @@ before_build:
     - cmd: cd C:\projects\alpaka
 
     - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" set ALPAKA_CMAKE_GENERATOR=Visual Studio 14 2015
+    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
     - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" set ALPAKA_CMAKE_GENERATOR=Visual Studio 15 2017
+    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
     - cmd: if "%PLATFORM%"=="x64" set ALPAKA_CMAKE_GENERATOR=%ALPAKA_CMAKE_GENERATOR% Win64
     - cmd: mkdir build
     - cmd: cd build

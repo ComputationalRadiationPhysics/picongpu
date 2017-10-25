@@ -23,11 +23,11 @@
 
 #ifdef _OPENMP
 
-#include <alpaka/block/sync/Traits.hpp> // SyncBlockThreads
+#include <alpaka/block/sync/Traits.hpp>
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
 namespace alpaka
 {
@@ -68,7 +68,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Destructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~BlockSyncBarrierOmp() = default;
+                /*virtual*/ ~BlockSyncBarrierOmp() = default;
 
                 std::uint8_t mutable m_generation;
                 int mutable m_result[2];

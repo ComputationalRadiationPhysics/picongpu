@@ -23,7 +23,7 @@
 
 #include <alpaka/core/Debug.hpp>
 
-#include <boost/predef/version_number.h>    // BOOST_VERSION_NUMBER
+#include <boost/predef/version_number.h>
 
 // Boost.Uuid errors with VS2017 when intrin.h is not included
 #if defined(_MSC_VER) && _MSC_VER >= 1910
@@ -68,7 +68,7 @@
 // nvcc CUDA compiler detection
 //-----------------------------------------------------------------------------
 #if defined(__CUDACC__) && defined(__NVCC__)
-    // The __CUDACC_VER__, __CUDACC_VER_MAJOR__, __CUDACC_VER_MINOR__ and __CUDACC_VER_BUILD__
+    // The __CUDACC_VER_MAJOR__, __CUDACC_VER_MINOR__ and __CUDACC_VER_BUILD__
     // have been added with nvcc 7.5 and have not been available before.
     #if !defined(__CUDACC_VER_MAJOR__) || !defined(__CUDACC_VER_MINOR__) || !defined(__CUDACC_VER_BUILD__)
         #define BOOST_COMP_NVCC BOOST_VERSION_NUMBER_AVAILABLE

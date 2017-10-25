@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp> // meta::IsStrictBase
+#include <alpaka/meta/IsStrictBase.hpp>
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <boost/config.hpp>             // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/config.hpp>
 
-#include <type_traits>                  // std::enable_if
+#include <type_traits>
 
 namespace alpaka
 {

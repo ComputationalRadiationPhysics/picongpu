@@ -23,9 +23,9 @@
 
 #ifdef _OPENMP
 
-#include <alpaka/atomic/Traits.hpp>                 // AtomicOp
+#include <alpaka/atomic/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp>             // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
 namespace alpaka
 {
@@ -45,7 +45,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Default constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA AtomicOmpCritSec() = default;
+            AtomicOmpCritSec() = default;
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
@@ -65,7 +65,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~AtomicOmpCritSec() = default;
+            /*virtual*/ ~AtomicOmpCritSec() = default;
         };
 
         namespace traits

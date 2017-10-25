@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <type_traits>  // std::false_type
+#include <type_traits>
 
 namespace alpaka
 {

@@ -19,13 +19,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <alpaka/alpaka.hpp>                        // alpaka::exec::create
-#include <alpaka/test/MeasureKernelRunTime.hpp>     // measureKernelRunTimeMs
-#include <alpaka/test/acc/Acc.hpp>                  // EnabledAccs
-#include <alpaka/test/stream/Stream.hpp>            // DefaultStream
+#include <alpaka/alpaka.hpp>
+#include <alpaka/test/MeasureKernelRunTime.hpp>
+#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/stream/Stream.hpp>
 
-#include <iostream>                                 // std::cout
-#include <typeinfo>                                 // typeid
+#include <iostream>
+#include <typeinfo>
 
 //#############################################################################
 //! A vector addition kernel.

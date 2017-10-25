@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>   // ALPAKA_FN_*
-#include <alpaka/meta/Set.hpp>      // core::IsSet
+#include <alpaka/core/Common.hpp>
+#include <alpaka/meta/Set.hpp>
 
-#include <boost/predef.h>           // workarounds
+#include <boost/predef.h>
 
-#include <type_traits>              // std::is_integral
-#include <cstddef>                  // std::size_t
+#include <type_traits>
+#include <cstddef>
 
 namespace alpaka
 {
@@ -43,10 +43,9 @@ namespace alpaka
         {
             static_assert(std::is_integral<T>::value, "IntegerSequence<T, I...> requires T to be an integral type.");
 
-            typedef IntegerSequence<T, Tvals...> type;
-            typedef T value_type;
+            using type = IntegerSequence<T, Tvals...>;
+            using value_type = T;
 
-            ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto size() noexcept
             -> std::size_t
             {

@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <alpaka/idx/Traits.hpp>            // idx::getIdx
+#include <alpaka/idx/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp>     // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
 namespace alpaka
 {
@@ -45,7 +45,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Default constructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA IdxBtZero() = default;
+                IdxBtZero() = default;
                 //-----------------------------------------------------------------------------
                 //! Copy constructor.
                 //-----------------------------------------------------------------------------
@@ -65,7 +65,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Destructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~IdxBtZero() = default;
+                /*virtual*/ ~IdxBtZero() = default;
             };
         }
     }

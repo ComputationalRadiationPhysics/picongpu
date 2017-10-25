@@ -38,8 +38,6 @@
 #include <boost/mpl/next_prior.hpp>
 #include <boost/mpl/deref.hpp>
 #include <boost/mpl/begin_end_fwd.hpp>
-
-//#############################################################################
 // The following definitions specialize the boost::mpl templates that are necessary
 // to use a std::tuple with boost::mpl algorithms requiring a type sequence.
 // This code is based on:

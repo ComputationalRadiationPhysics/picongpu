@@ -21,15 +21,15 @@
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>           // BOOST_ARCH_CUDA_DEVICE
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+    #include <boost/core/ignore_unused.hpp>
 #endif
-#include <boost/predef.h>                   // workarounds
+#include <boost/predef.h>
 
-#include <cassert>                          // assert
-#include <type_traits>                      // std::enable_if
+#include <cassert>
+#include <type_traits>
 
 namespace alpaka
 {

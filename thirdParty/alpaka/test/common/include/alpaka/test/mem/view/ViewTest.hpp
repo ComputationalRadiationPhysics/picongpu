@@ -23,7 +23,7 @@
 
 #include <alpaka/alpaka.hpp>
 
-#include <alpaka/test/mem/view/Iterator.hpp>    // Iterator
+#include <alpaka/test/mem/view/Iterator.hpp>
 
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push

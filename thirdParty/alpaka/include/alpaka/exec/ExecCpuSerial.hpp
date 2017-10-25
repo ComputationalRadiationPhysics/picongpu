@@ -24,29 +24,29 @@
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
 
 // Specialized traits.
-#include <alpaka/acc/Traits.hpp>                // acc::traits::AccType
-#include <alpaka/dev/Traits.hpp>                // dev::traits::DevType
-#include <alpaka/dim/Traits.hpp>                // dim::traits::DimType
-#include <alpaka/exec/Traits.hpp>               // exec::traits::ExecType
-#include <alpaka/pltf/Traits.hpp>               // pltf::traits::PltfType
-#include <alpaka/size/Traits.hpp>               // size::traits::SizeType
+#include <alpaka/acc/Traits.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/exec/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
 // Implementation details.
-#include <alpaka/acc/AccCpuSerial.hpp>          // acc:AccCpuSerial
-#include <alpaka/dev/DevCpu.hpp>                // dev::DevCpu
-#include <alpaka/kernel/Traits.hpp>             // kernel::getBlockSharedMemDynSizeBytes
-#include <alpaka/workdiv/WorkDivMembers.hpp>    // workdiv::WorkDivMembers
+#include <alpaka/acc/AccCpuSerial.hpp>
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/kernel/Traits.hpp>
+#include <alpaka/workdiv/WorkDivMembers.hpp>
 
-#include <alpaka/meta/NdLoop.hpp>               // meta::ndLoopIncIdx
-#include <alpaka/meta/ApplyTuple.hpp>           // meta::apply
+#include <alpaka/meta/NdLoop.hpp>
+#include <alpaka/meta/ApplyTuple.hpp>
 
-#include <boost/core/ignore_unused.hpp>         // boost::ignore_unused
-#include <boost/assert.hpp>                     // BOOST_VERIFY
+#include <boost/core/ignore_unused.hpp>
+#include <boost/assert.hpp>
 
-#include <tuple>                                // std::tuple
-#include <type_traits>                          // std::decay
+#include <tuple>
+#include <type_traits>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-    #include <iostream>                         // std::cout
+    #include <iostream>
 #endif
 
 namespace alpaka
@@ -85,23 +85,23 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuSerial(ExecCpuSerial const &) = default;
+            ExecCpuSerial(ExecCpuSerial const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuSerial(ExecCpuSerial &&) = default;
+            ExecCpuSerial(ExecCpuSerial &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuSerial const &) -> ExecCpuSerial & = default;
+            auto operator=(ExecCpuSerial const &) -> ExecCpuSerial & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuSerial &&) -> ExecCpuSerial & = default;
+            auto operator=(ExecCpuSerial &&) -> ExecCpuSerial & = default;
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~ExecCpuSerial() = default;
+            ~ExecCpuSerial() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.

@@ -21,7 +21,7 @@
 
 #include <alpaka/alpaka.hpp>
 
-#include <boost/predef.h>               // BOOST_COMP_CLANG
+#include <boost/predef.h>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -31,9 +31,9 @@
     #pragma clang diagnostic pop
 #endif
 
-#include <string>                       // std::string
-#include <tuple>                        // std::tuple
-#include <type_traits>                  // std::is_same
+#include <string>
+#include <tuple>
+#include <type_traits>
 
 BOOST_AUTO_TEST_SUITE(meta)
 

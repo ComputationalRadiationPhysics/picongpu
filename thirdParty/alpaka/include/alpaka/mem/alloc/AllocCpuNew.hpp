@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <alpaka/mem/alloc/Traits.hpp>  // mem::alloc::Alloc, mem::alloc::Free
+#include <alpaka/mem/alloc/Traits.hpp>
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
 namespace alpaka
 {

@@ -21,19 +21,19 @@
 
 #pragma once
 
-#include <alpaka/dev/Traits.hpp>        // dev::traits::DevType
-#include <alpaka/mem/buf/Traits.hpp>    // mem::buf::traits::BufType
-#include <alpaka/pltf/Traits.hpp>       // pltf::traits::PltfType
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/mem/buf/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
 
-#include <alpaka/dev/cpu/SysInfo.hpp>   // getCpuName, getTotalGlobalMemSizeBytes, getFreeGlobalMemSizeBytes
+#include <alpaka/dev/cpu/SysInfo.hpp>
 
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
-#include <map>                          // std::map
-#include <mutex>                        // std::mutex
-#include <memory>                       // std::shared_ptr
-#include <vector>                       // std::vector
-#include <algorithm>                    // std::find_if
+#include <map>
+#include <mutex>
+#include <memory>
+#include <vector>
+#include <algorithm>
 
 namespace alpaka
 {
@@ -80,27 +80,27 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     //! Constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST DevCpuImpl() = default;
+                    DevCpuImpl() = default;
                     //-----------------------------------------------------------------------------
                     //! Copy constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST DevCpuImpl(DevCpuImpl const &) = default;
+                    DevCpuImpl(DevCpuImpl const &) = default;
                     //-----------------------------------------------------------------------------
                     //! Move constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST DevCpuImpl(DevCpuImpl &&) = default;
+                    DevCpuImpl(DevCpuImpl &&) = default;
                     //-----------------------------------------------------------------------------
                     //! Copy assignment operator.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto operator=(DevCpuImpl const &) -> DevCpuImpl & = default;
+                    auto operator=(DevCpuImpl const &) -> DevCpuImpl & = default;
                     //-----------------------------------------------------------------------------
                     //! Move assignment operator.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto operator=(DevCpuImpl &&) -> DevCpuImpl & = default;
+                    auto operator=(DevCpuImpl &&) -> DevCpuImpl & = default;
                     //-----------------------------------------------------------------------------
                     //! Destructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST ~DevCpuImpl() = default;
+                    ~DevCpuImpl() = default;
 
                     //-----------------------------------------------------------------------------
                     //! \return The list of all streams on this device.
@@ -192,23 +192,19 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST DevCpu(DevCpu const &) = default;
+            DevCpu(DevCpu const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST DevCpu(DevCpu &&) = default;
+            DevCpu(DevCpu &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(DevCpu const &) -> DevCpu & = default;
+            auto operator=(DevCpu const &) -> DevCpu & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(DevCpu &&) -> DevCpu & = default;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~DevCpu() = default;
+            auto operator=(DevCpu &&) -> DevCpu & = default;
             //-----------------------------------------------------------------------------
             //! Equality comparison operator.
             //-----------------------------------------------------------------------------
@@ -225,6 +221,10 @@ namespace alpaka
             {
                 return !((*this) == rhs);
             }
+            //-----------------------------------------------------------------------------
+            //! Destructor.
+            //-----------------------------------------------------------------------------
+            ~DevCpu() = default;
 
         public:
             std::shared_ptr<cpu::detail::DevCpuImpl> m_spDevCpuImpl;

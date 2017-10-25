@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <alpaka/vec/Vec.hpp>               // Vec
-#include <alpaka/core/Common.hpp>           // ALPAKA_FN_*
+#include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+    #include <boost/core/ignore_unused.hpp>
 #endif
 
 namespace alpaka

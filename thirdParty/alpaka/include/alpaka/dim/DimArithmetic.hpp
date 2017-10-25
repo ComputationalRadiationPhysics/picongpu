@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <alpaka/dim/DimIntegralConst.hpp>  // dim::DimInt
+#include <alpaka/dim/DimIntegralConst.hpp>
 
-#include <type_traits>                      // std::is_arithmetic, std::integral_constant
+#include <type_traits>
 
 namespace alpaka
 {

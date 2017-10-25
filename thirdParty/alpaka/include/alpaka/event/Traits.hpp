@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>   // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <alpaka/dev/Traits.hpp>    // dev::getDev
+#include <alpaka/dev/Traits.hpp>
 
 namespace alpaka
 {

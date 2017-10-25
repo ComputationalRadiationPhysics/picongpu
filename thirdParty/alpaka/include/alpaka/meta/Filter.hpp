@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include <alpaka/meta/Concatenate.hpp>  // alpaka::meta::Concatenate
+#include <alpaka/meta/Concatenate.hpp>
 
-#include <type_traits>                  // std::conditional
+#include <type_traits>
 
 namespace alpaka
 {

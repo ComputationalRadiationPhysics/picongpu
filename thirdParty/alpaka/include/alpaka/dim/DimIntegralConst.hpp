@@ -23,7 +23,7 @@
 
 #include <alpaka/dim/Traits.hpp>
 
-#include <type_traits>              // std::integral_constant
+#include <type_traits>
 
 namespace alpaka
 {

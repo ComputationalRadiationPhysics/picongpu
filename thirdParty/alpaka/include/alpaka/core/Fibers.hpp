@@ -23,7 +23,7 @@
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED
 
-#include <alpaka/core/Common.hpp>   // BOOST_COMP_MSVC
+#include <alpaka/core/Common.hpp>
 
 #if BOOST_COMP_MSVC
     #pragma warning(push)
@@ -40,12 +40,12 @@
 // Boost fiber:
 // http://www.boost.org/doc/libs/develop/libs/fiber/doc/html/index.html
 // https://github.com/boostorg/fiber
-#include <boost/fiber/fiber.hpp>                // boost::fibers::fiber
-#include <boost/fiber/operations.hpp>           // boost::this_fiber
-#include <boost/fiber/condition_variable.hpp>   // boost::fibers::condition_variable
-#include <boost/fiber/mutex.hpp>                // boost::fibers::mutex
-#include <boost/fiber/future.hpp>               // boost::fibers::future
-#include <boost/fiber/barrier.hpp>              // boost::fibers::barrier
+#include <boost/fiber/fiber.hpp>
+#include <boost/fiber/operations.hpp>
+#include <boost/fiber/condition_variable.hpp>
+#include <boost/fiber/mutex.hpp>
+#include <boost/fiber/future.hpp>
+#include <boost/fiber/barrier.hpp>
 
 #if BOOST_COMP_MSVC
     #undef NOMINMAX

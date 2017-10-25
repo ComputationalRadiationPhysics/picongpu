@@ -21,19 +21,19 @@
 
 #pragma once
 
-#include <alpaka/dim/Traits.hpp>                    // Dim
-#include <alpaka/dev/Traits.hpp>                    // Dev
-#include <alpaka/extent/Traits.hpp>                 // mem::view::getXXX
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/offset/Traits.hpp>                 // traits::getOffsetX
-#include <alpaka/size/Traits.hpp>                   // size::traits::SizeType
+#include <alpaka/offset/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
-#include <alpaka/mem/view/ViewPlainPtr.hpp>         // ViewPlainPtr
-#include <alpaka/vec/Vec.hpp>                       // Vec
-#include <alpaka/core/Common.hpp>                   // ALPAKA_FN_*
+#include <alpaka/mem/view/ViewPlainPtr.hpp>
+#include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <type_traits>                              // std::conditional, ...
-#include <cassert>                                  // assert
+#include <type_traits>
+#include <cassert>
 
 namespace alpaka
 {

@@ -21,24 +21,24 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>     // meta::IsStrictBase
+#include <alpaka/meta/IsStrictBase.hpp>
 
-#include <alpaka/core/Positioning.hpp>      // origin::Grid/Blocks, unit::Blocks, unit::Threads
-#include <alpaka/core/Common.hpp>           // ALPAKA_FN_*
+#include <alpaka/core/Positioning.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <alpaka/vec/Vec.hpp>               // Vec<N>
+#include <alpaka/vec/Vec.hpp>
 
-#include <alpaka/dim/Traits.hpp>            // dim::DimType
-#include <alpaka/dim/DimIntegralConst.hpp>  // dim::DimInt<N>
-#include <alpaka/size/Traits.hpp>           // size::traits::SizeType
-#include <alpaka/workdiv/Traits.hpp>        // workdiv::getWorkDiv
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/dim/DimIntegralConst.hpp>
+#include <alpaka/size/Traits.hpp>
+#include <alpaka/workdiv/Traits.hpp>
 
-#include <boost/config.hpp>                 // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/config.hpp>
 #if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+    #include <boost/core/ignore_unused.hpp>
 #endif
 
-#include <utility>                          // std::forward
+#include <utility>
 
 namespace alpaka
 {

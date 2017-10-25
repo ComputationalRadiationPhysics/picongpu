@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <utility>  // std::is_base_of
+#include <utility>
 
 namespace alpaka
 {

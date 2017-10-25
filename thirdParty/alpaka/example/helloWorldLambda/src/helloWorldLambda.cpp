@@ -109,6 +109,17 @@ auto main()
         threadsPerBlock,
         elementsPerThread);
 
+    const size_t nExclamationMarks = 10;
+
+// nvcc < 7.5 does not support lambdas as kernels.
+#if !BOOST_COMP_NVCC || BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(7, 5, 0)
+// nvcc 7.5 does not support heterogeneous lambdas (__host__ __device__) as kernels but only __device__ lambdas.
+// So with nvcc 7.5 this only works in CUDA only mode or by using ALPAKA_FN_ACC_CUDA_ONLY instead of ALPAKA_FN_ACC
+#if !BOOST_COMP_NVCC || BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(8, 0, 0) || defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
+
+// clang prior to 4.0.0 did not support the __host__ __device__ attributes at the nonstandard position between [] and () but only after ().
+// See: https://llvm.org/bugs/show_bug.cgi?id=26341
+#if !BOOST_COMP_CLANG_CUDA || BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)
 
     /**
      * Run "Hello World" kernel with lambda function
@@ -122,44 +133,41 @@ auto main()
      *
      * This example passes the number exclamation marks, that should
      * be written after we greet the world, to the 
-     * lambda function. Furthermore, the exclamation marks
-     * multiplier is captured directly by the lambda.
+     * lambda function.
      * 
      * This kind of kernel function
      * declaration might be useful when small kernels
      * are written for testing or lambda functions
-     * allready exist.
+     * already exist.
      */
-    const size_t nExclamationMarks = 10;
-    const size_t exclamationMarksMultiplier = 3;
-
     auto const helloWorld(alpaka::exec::create<Acc>(
         workdiv,
-	[exclamationMarksMultiplier] ALPAKA_FN_ACC (Acc & acc, size_t const nExclamationMarksAsArg) -> void {
-	    auto globalThreadIdx    = alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-	    auto globalThreadExtent = alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-	    auto linearizedGlobalThreadIdx = alpaka::idx::mapIdx<1u>(globalThreadIdx,
-								      globalThreadExtent);
+        [] ALPAKA_FN_ACC (Acc & acc, size_t const nExclamationMarksAsArg) -> void {
+            auto globalThreadIdx    = alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            auto globalThreadExtent = alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+            auto linearizedGlobalThreadIdx = alpaka::idx::mapIdx<1u>(globalThreadIdx, globalThreadExtent);
 
-	    printf("[z:%u, y:%u, x:%u][linear:%u] Hello world from a lambda",
-		   static_cast<unsigned>(globalThreadIdx[0]),
-		   static_cast<unsigned>(globalThreadIdx[1]),
-		   static_cast<unsigned>(globalThreadIdx[2]),
-		   static_cast<unsigned>(linearizedGlobalThreadIdx[0]));
+            printf("[z:%u, y:%u, x:%u][linear:%u] Hello world from a lambda",
+               static_cast<unsigned>(globalThreadIdx[0]),
+               static_cast<unsigned>(globalThreadIdx[1]),
+               static_cast<unsigned>(globalThreadIdx[2]),
+               static_cast<unsigned>(linearizedGlobalThreadIdx[0]));
 
-	    for(size_t i = 0; i < nExclamationMarksAsArg * exclamationMarksMultiplier; ++i){
-		printf("!");
+            for(size_t i = 0; i < nExclamationMarksAsArg; ++i){
+                printf("!");
+            }
 
-	    }
+            printf("\n");
 
-	    printf("\n");
-
-	},
-	nExclamationMarks
-        ));
+        },
+        nExclamationMarks
+    ));
 
     alpaka::stream::enqueue(stream, helloWorld);
 
+#endif
+#endif
+#endif
     
     /**
      * Run "Hello World" kernel with std::function

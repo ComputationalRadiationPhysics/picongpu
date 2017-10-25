@@ -23,15 +23,15 @@
 
 #ifdef _OPENMP
 
-#include <alpaka/idx/Traits.hpp>            // idx::GetIdx
+#include <alpaka/idx/Traits.hpp>
 
-#include <alpaka/idx/MapIdx.hpp>            // idx::mapIdx
+#include <alpaka/idx/MapIdx.hpp>
 
 #include <alpaka/core/OpenMp.hpp>
 
-#include <boost/core/ignore_unused.hpp>     // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
-#include <cassert>                          // assert
+#include <cassert>
 
 namespace alpaka
 {
@@ -53,7 +53,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Constructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA IdxBtOmp() = default;
+                IdxBtOmp() = default;
                 //-----------------------------------------------------------------------------
                 //! Copy constructor.
                 //-----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Destructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~IdxBtOmp() = default;
+                /*virtual*/ ~IdxBtOmp() = default;
             };
         }
     }

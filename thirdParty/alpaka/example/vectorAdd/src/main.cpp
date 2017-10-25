@@ -19,10 +19,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <alpaka/alpaka.hpp>                        // alpaka::exec::create
+#include <alpaka/alpaka.hpp>
 
-#include <iostream>                                 // std::cout
-#include <typeinfo>                                 // typeid
+#include <iostream>
+#include <typeinfo>
 
 //#############################################################################
 //! A vector addition kernel.
