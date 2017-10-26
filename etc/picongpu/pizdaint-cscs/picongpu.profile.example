@@ -1,5 +1,7 @@
-# User Information ############################################################
-#   - edit those lines!
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ######################################### (edit those lines)
 #   - automatically add your name and contact to output file meta data
 #   - send me a mail on batch system jobs: BEGIN, END, FAIL, REQUEUE, ALL,
 #     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
@@ -7,12 +9,7 @@ export MY_MAILNOTIFY="ALL"
 export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
-# Name and Path of this Script ################################################
-#   - do NOT change this line!
-export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
-
-# Text Editor for Tools #######################################################
-#   - edit those lines!
+# Text Editor for Tools #################################### (edit those lines)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 # module load nano
 #export EDITOR="nano"
@@ -65,6 +62,7 @@ export CC=$(which cc)
 export CXX=$(which CC)
 
 export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
 export PIC_BACKEND="cuda:60"
 
 export PATH=$PATH:$PICSRC
