@@ -23,8 +23,8 @@
 
 #include <alpaka/alpaka.hpp>
 
-#include <type_traits>      // std::decay
-#include <utility>          // std::forward
+#include <type_traits>
+#include <utility>
 
 namespace alpaka
 {

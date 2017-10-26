@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <alpaka/meta/Concatenate.hpp>  // alpaka::core::Concatenate
+#include <alpaka/meta/Concatenate.hpp>
 
 namespace alpaka
 {

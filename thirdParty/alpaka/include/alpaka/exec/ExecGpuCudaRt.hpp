@@ -23,47 +23,47 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>               // ALPAKA_FN_*, BOOST_LANG_CUDA
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
 // Specialized traits.
-#include <alpaka/acc/Traits.hpp>                // acc::traits::AccType
-#include <alpaka/dev/Traits.hpp>                // dev::traits::DevType
-#include <alpaka/dim/Traits.hpp>                // dim::traits::DimType
-#include <alpaka/exec/Traits.hpp>               // exec::traits::ExecType
-#include <alpaka/pltf/Traits.hpp>               // pltf::traits::PltfType
-#include <alpaka/size/Traits.hpp>               // size::traits::SizeType
-#include <alpaka/stream/Traits.hpp>             // stream::traits::Enqueue
+#include <alpaka/acc/Traits.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/exec/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
+#include <alpaka/stream/Traits.hpp>
 
 // Implementation details.
-#include <alpaka/acc/AccGpuCudaRt.hpp>          // acc:AccGpuCudaRt
-#include <alpaka/dev/DevCudaRt.hpp>             // dev::DevCudaRt
-#include <alpaka/kernel/Traits.hpp>             // kernel::getBlockSharedMemDynSizeBytes
-#include <alpaka/stream/StreamCudaRtAsync.hpp>  // stream::StreamCudaRtAsync
-#include <alpaka/stream/StreamCudaRtSync.hpp>   // stream::StreamCudaRtSync
-#include <alpaka/workdiv/WorkDivMembers.hpp>    // workdiv::WorkDivMembers
+#include <alpaka/acc/AccGpuCudaRt.hpp>
+#include <alpaka/dev/DevCudaRt.hpp>
+#include <alpaka/kernel/Traits.hpp>
+#include <alpaka/stream/StreamCudaRtAsync.hpp>
+#include <alpaka/stream/StreamCudaRtSync.hpp>
+#include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-    #include <alpaka/acc/Traits.hpp>            // acc::getAccName
-    #include <alpaka/dev/Traits.hpp>            // dev::getDev
-    #include <alpaka/workdiv/WorkDivHelpers.hpp>// workdiv::isValidWorkDiv
+    #include <alpaka/acc/Traits.hpp>
+    #include <alpaka/dev/Traits.hpp>
+    #include <alpaka/workdiv/WorkDivHelpers.hpp>
 #endif
 
-#include <alpaka/core/Cuda.hpp>                 // ALPAKA_CUDA_RT_CHECK
-#include <alpaka/meta/ApplyTuple.hpp>           // meta::apply
-#include <alpaka/meta/Metafunctions.hpp>        // meta::Conjunction
+#include <alpaka/core/Cuda.hpp>
+#include <alpaka/meta/ApplyTuple.hpp>
+#include <alpaka/meta/Metafunctions.hpp>
 
-#include <boost/predef.h>                       // workarounds
-#include <boost/assert.hpp>                     // BOOST_VERIFY
+#include <boost/predef.h>
+#include <boost/assert.hpp>
 
-#include <stdexcept>                            // std::runtime_error
-#include <tuple>                                // std::tuple
-#include <type_traits>                          // std::decay
+#include <stdexcept>
+#include <tuple>
+#include <type_traits>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-    #include <iostream>                         // std::cout
+    #include <iostream>
 #endif
 
 namespace alpaka
@@ -143,23 +143,23 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecGpuCudaRt(ExecGpuCudaRt const &) = default;
+            ExecGpuCudaRt(ExecGpuCudaRt const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecGpuCudaRt(ExecGpuCudaRt &&) = default;
+            ExecGpuCudaRt(ExecGpuCudaRt &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecGpuCudaRt const &) -> ExecGpuCudaRt & = default;
+            auto operator=(ExecGpuCudaRt const &) -> ExecGpuCudaRt & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecGpuCudaRt &&) -> ExecGpuCudaRt & = default;
+            auto operator=(ExecGpuCudaRt &&) -> ExecGpuCudaRt & = default;
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~ExecGpuCudaRt() = default;
+            ~ExecGpuCudaRt() = default;
 
             TKernelFnObj m_kernelFnObj;
             std::tuple<TArgs...> m_args;
@@ -395,7 +395,7 @@ namespace alpaka
                     // Set the current device.
                     ALPAKA_CUDA_RT_CHECK(
                         cudaSetDevice(
-                            stream.m_spStreamCudaRtAsyncImpl->m_dev.m_iDevice));
+                            stream.m_spStreamImpl->m_dev.m_iDevice));
                     // Enqueue the kernel execution.
                     // \NOTE: No const reference (const &) is allowed as the parameter type because the kernel launch language extension expects the arguments by value.
                     // This forces the type of a float argument given with std::forward to this function to be of type float instead of e.g. "float const & __ptr64" (MSVC).
@@ -407,7 +407,7 @@ namespace alpaka
                                 gridDim,
                                 blockDim,
                                 static_cast<std::size_t>(blockSharedMemDynSizeBytes),
-                                stream.m_spStreamCudaRtAsyncImpl->m_CudaStream>>>(
+                                stream.m_spStreamImpl->m_CudaStream>>>(
                                     threadElemExtent,
                                     task.m_kernelFnObj,
                                     args...);
@@ -418,7 +418,7 @@ namespace alpaka
                     // Wait for the kernel execution to finish but do not check error return of this call.
                     // Do not use the alpaka::wait method because it checks the error itself but we want to give a custom error message.
                     cudaStreamSynchronize(
-                        stream.m_spStreamCudaRtAsyncImpl->m_CudaStream);
+                        stream.m_spStreamImpl->m_CudaStream);
                     std::string const kernelName("'execution of kernel: '" + std::string(typeid(TKernelFnObj).name()) + "' failed with");
                     ::alpaka::cuda::detail::cudaRtCheckLastError(kernelName.c_str(), __FILE__, __LINE__);
 #endif
@@ -530,7 +530,7 @@ namespace alpaka
                     // Set the current device.
                     ALPAKA_CUDA_RT_CHECK(
                         cudaSetDevice(
-                            stream.m_spStreamCudaRtSyncImpl->m_dev.m_iDevice));
+                            stream.m_spStreamImpl->m_dev.m_iDevice));
                     // Enqueue the kernel execution.
                     // \NOTE: No const reference (const &) is allowed as the parameter type because the kernel launch language extension expects the arguments by value.
                     // This forces the type of a float argument given with std::forward to this function to be of type float instead of e.g. "float const & __ptr64" (MSVC).
@@ -542,7 +542,7 @@ namespace alpaka
                                 gridDim,
                                 blockDim,
                                 blockSharedMemDynSizeBytes,
-                                stream.m_spStreamCudaRtSyncImpl->m_CudaStream>>>(
+                                stream.m_spStreamImpl->m_CudaStream>>>(
                                     threadElemExtent,
                                     task.m_kernelFnObj,
                                     args...);
@@ -552,7 +552,7 @@ namespace alpaka
                     // Wait for the kernel execution to finish but do not check error return of this call.
                     // Do not use the alpaka::wait method because it checks the error itself but we want to give a custom error message.
                     cudaStreamSynchronize(
-                        stream.m_spStreamCudaRtSyncImpl->m_CudaStream);
+                        stream.m_spStreamImpl->m_CudaStream);
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                     std::string const kernelName("'execution of kernel: '" + std::string(typeid(TKernelFnObj).name()) + "' failed with");
                     ::alpaka::cuda::detail::cudaRtCheckLastError(kernelName.c_str(), __FILE__, __LINE__);

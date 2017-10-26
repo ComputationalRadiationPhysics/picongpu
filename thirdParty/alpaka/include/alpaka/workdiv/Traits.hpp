@@ -21,18 +21,18 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp> // meta::IsStrictBase
+#include <alpaka/meta/IsStrictBase.hpp>
 
-#include <alpaka/size/Traits.hpp>       // Size
+#include <alpaka/size/Traits.hpp>
 
-#include <alpaka/vec/Vec.hpp>           // Vec<N>
-#include <alpaka/core/Positioning.hpp>  // origin::Grid/Blocks, unit::Blocks, unit::Threads
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Positioning.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <boost/config.hpp>             // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/config.hpp>
 
-#include <type_traits>                  // std::enable_if
-#include <utility>                      // std::forward
+#include <type_traits>
+#include <utility>
 
 namespace alpaka
 {

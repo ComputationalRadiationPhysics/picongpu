@@ -21,22 +21,22 @@
 
 #pragma once
 
-#include <alpaka/workdiv/WorkDivMembers.hpp>    // workdiv::WorkDivMembers
+#include <alpaka/workdiv/WorkDivMembers.hpp>
 
-#include <alpaka/dev/Traits.hpp>                // dev::DevMan
-#include <alpaka/acc/Traits.hpp>                // getAccDevProps
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/acc/Traits.hpp>
 
-#include <alpaka/vec/Vec.hpp>                   // Vec
+#include <alpaka/vec/Vec.hpp>
 
-#include <alpaka/core/Assert.hpp>               // assertValueUnsigned
-#include <alpaka/core/Common.hpp>               // ALPAKA_FN_*
+#include <alpaka/core/Assert.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <cassert>                              // assert
-#include <cmath>                                // std::ceil
-#include <algorithm>                            // std::min
-#include <functional>                           // std::bind
-#include <set>                                  // std::set
-#include <array>                                // std::array
+#include <cassert>
+#include <cmath>
+#include <algorithm>
+#include <functional>
+#include <set>
+#include <array>
 
 //-----------------------------------------------------------------------------
 //! The alpaka library.

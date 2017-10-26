@@ -28,30 +28,30 @@
 #endif
 
 // Specialized traits.
-#include <alpaka/acc/Traits.hpp>                // acc::traits::AccType
-#include <alpaka/dev/Traits.hpp>                // dev::traits::DevType
-#include <alpaka/dim/Traits.hpp>                // dim::traits::DimType
-#include <alpaka/exec/Traits.hpp>               // exec::traits::ExecType
-#include <alpaka/pltf/Traits.hpp>               // pltf::traits::PltfType
-#include <alpaka/size/Traits.hpp>               // size::traits::SizeType
+#include <alpaka/acc/Traits.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/exec/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
 // Implementation details.
-#include <alpaka/acc/AccCpuOmp2Blocks.hpp>      // acc::AccCpuOmp2Blocks
-#include <alpaka/dev/DevCpu.hpp>                // dev::DevCpu
-#include <alpaka/idx/MapIdx.hpp>                // idx::mapIdx
-#include <alpaka/kernel/Traits.hpp>             // kernel::getBlockSharedMemDynSizeBytes
-#include <alpaka/workdiv/WorkDivMembers.hpp>    // workdiv::WorkDivMembers
+#include <alpaka/acc/AccCpuOmp2Blocks.hpp>
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/idx/MapIdx.hpp>
+#include <alpaka/kernel/Traits.hpp>
+#include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #include <alpaka/core/OpenMp.hpp>
-#include <alpaka/meta/ApplyTuple.hpp>           // meta::apply
+#include <alpaka/meta/ApplyTuple.hpp>
 
-#include <boost/assert.hpp>                     // BOOST_VERIFY
+#include <boost/assert.hpp>
 
-#include <stdexcept>                            // std::runtime_error
-#include <tuple>                                // std::tuple
-#include <type_traits>                          // std::decay
+#include <stdexcept>
+#include <tuple>
+#include <type_traits>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-    #include <iostream>                         // std::cout
+    #include <iostream>
 #endif
 
 namespace alpaka
@@ -91,23 +91,23 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuOmp2Blocks(ExecCpuOmp2Blocks const &) = default;
+            ExecCpuOmp2Blocks(ExecCpuOmp2Blocks const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ExecCpuOmp2Blocks(ExecCpuOmp2Blocks &&) = default;
+            ExecCpuOmp2Blocks(ExecCpuOmp2Blocks &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuOmp2Blocks const &) -> ExecCpuOmp2Blocks & = default;
+            auto operator=(ExecCpuOmp2Blocks const &) -> ExecCpuOmp2Blocks & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(ExecCpuOmp2Blocks &&) -> ExecCpuOmp2Blocks & = default;
+            auto operator=(ExecCpuOmp2Blocks &&) -> ExecCpuOmp2Blocks & = default;
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~ExecCpuOmp2Blocks() = default;
+            ~ExecCpuOmp2Blocks() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.

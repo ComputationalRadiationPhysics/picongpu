@@ -20,7 +20,7 @@
  */
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/test/stream/Stream.hpp>// alpaka::test::stream::DefaultStream
+#include <alpaka/test/stream/Stream.hpp>
 
 namespace alpaka
 {

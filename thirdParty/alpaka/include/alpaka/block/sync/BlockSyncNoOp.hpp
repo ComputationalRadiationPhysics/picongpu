@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <alpaka/block/sync/Traits.hpp> // SyncBlockThreads
+#include <alpaka/block/sync/Traits.hpp>
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
 namespace alpaka
 {
@@ -44,7 +44,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Default constructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC BlockSyncNoOp() = default;
+                BlockSyncNoOp() = default;
                 //-----------------------------------------------------------------------------
                 //! Copy constructor.
                 //-----------------------------------------------------------------------------
@@ -64,7 +64,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Destructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC /*virtual*/ ~BlockSyncNoOp() = default;
+                /*virtual*/ ~BlockSyncNoOp() = default;
             };
 
             namespace traits

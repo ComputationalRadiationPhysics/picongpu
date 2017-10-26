@@ -23,24 +23,24 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>               // ALPAKA_FN_*, BOOST_LANG_CUDA
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-#include <alpaka/stream/StreamCudaRtSync.hpp>   // stream::StreamCudaRtSync
-#include <alpaka/stream/StreamCudaRtAsync.hpp>  // stream::StreamCudaRtAsync
+#include <alpaka/stream/StreamCudaRtSync.hpp>
+#include <alpaka/stream/StreamCudaRtAsync.hpp>
 
-#include <alpaka/dev/Traits.hpp>                // dev::getDev
-#include <alpaka/dim/DimIntegralConst.hpp>      // dim::DimInt<N>
-#include <alpaka/extent/Traits.hpp>             // mem::view::getXXX
-#include <alpaka/mem/view/Traits.hpp>           // mem::view::Set
-#include <alpaka/stream/Traits.hpp>             // stream::Enqueue
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/dim/DimIntegralConst.hpp>
+#include <alpaka/extent/Traits.hpp>
+#include <alpaka/mem/view/Traits.hpp>
+#include <alpaka/stream/Traits.hpp>
 
-#include <alpaka/core/Cuda.hpp>                 // cudaMemset, ...
+#include <alpaka/core/Cuda.hpp>
 
-#include <cassert>                              // assert
+#include <cassert>
 
 namespace alpaka
 {
@@ -191,7 +191,7 @@ namespace alpaka
                             dstNativePtr,
                             static_cast<int>(byte),
                             static_cast<size_t>(extentWidthBytes),
-                            stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                            stream.m_spStreamImpl->m_CudaStream));
                 }
             };
             //#############################################################################
@@ -306,7 +306,7 @@ namespace alpaka
                             static_cast<int>(byte),
                             static_cast<size_t>(extentWidthBytes),
                             static_cast<size_t>(extentHeight),
-                            stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                            stream.m_spStreamImpl->m_CudaStream));
                 }
             };
             //#############################################################################
@@ -443,7 +443,7 @@ namespace alpaka
                             cudaPitchedPtrVal,
                             static_cast<int>(byte),
                             cudaExtentVal,
-                            stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                            stream.m_spStreamImpl->m_CudaStream));
                 }
             };
             //#############################################################################

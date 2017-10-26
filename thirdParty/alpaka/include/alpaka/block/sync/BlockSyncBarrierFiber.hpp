@@ -23,14 +23,14 @@
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED
 
-#include <alpaka/block/sync/Traits.hpp> // SyncBlockThreads
+#include <alpaka/block/sync/Traits.hpp>
 
-#include <alpaka/core/Fibers.hpp>       // boost::fibers::barrier
+#include <alpaka/core/Fibers.hpp>
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <mutex>                        // std::mutex
-#include <map>                          // std::map
+#include <mutex>
+#include <map>
 
 namespace alpaka
 {
@@ -77,7 +77,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! Destructor.
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~BlockSyncBarrierFiber() = default;
+                /*virtual*/ ~BlockSyncBarrierFiber() = default;
 
                 boost::fibers::barrier mutable m_barrier;
 

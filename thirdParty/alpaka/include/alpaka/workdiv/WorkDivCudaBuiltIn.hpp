@@ -23,19 +23,19 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>           // ALPAKA_FN_*, BOOST_LANG_CUDA
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-#include <alpaka/workdiv/Traits.hpp>        // workdiv::GetWorkDiv
-#include <alpaka/size/Traits.hpp>           // size::Size
+#include <alpaka/workdiv/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
-#include <alpaka/vec/Vec.hpp>               // Vec, getExtentVecEnd
-#include <alpaka/core/Cuda.hpp>             // getExtent(dim3)
+#include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Cuda.hpp>
 
-//#include <boost/core/ignore_unused.hpp>   // boost::ignore_unused
+//#include <boost/core/ignore_unused.hpp>
 
 namespace alpaka
 {
@@ -78,7 +78,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY /*virtual*/ ~WorkDivCudaBuiltIn() = default;
+            /*virtual*/ ~WorkDivCudaBuiltIn() = default;
 
         public:
             // \TODO: Optimize! Add WorkDivCudaBuiltInNoElems that has no member m_threadElemExtent as well as AccGpuCudaRtNoElems.

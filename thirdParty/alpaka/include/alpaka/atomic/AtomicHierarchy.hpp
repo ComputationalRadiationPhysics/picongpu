@@ -22,9 +22,9 @@
 #pragma once
 
 #include <alpaka/core/Positioning.hpp>
-#include <alpaka/atomic/Traits.hpp>                 // AtomicOp
+#include <alpaka/atomic/Traits.hpp>
 
-#include <type_traits>                              // std::conditional, std::is_same
+#include <type_traits>
 
 namespace alpaka
 {

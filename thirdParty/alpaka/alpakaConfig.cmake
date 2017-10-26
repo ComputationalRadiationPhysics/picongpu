@@ -249,10 +249,18 @@ IF(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR A
         SET(ALPAKA_ACC_CPU_BT_OMP4_ENABLE OFF CACHE BOOL "Enable the OpenMP 4.0 CPU block and thread back-end" FORCE)
 
     ELSE()
+        # clang versions beginning with 3.9 support OpenMP 4.0 but only when given the corresponding flag
+        IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            IF(ALPAKA_ACC_CPU_BT_OMP4_ENABLE)
+                LIST(APPEND OpenMP_CXX_FLAGS "-fopenmp-version=40")
+            ENDIF()
+        ENDIF()
+
         LIST(APPEND _ALPAKA_COMPILE_OPTIONS_PUBLIC ${OpenMP_CXX_FLAGS})
         IF(NOT MSVC)
             LIST(APPEND _ALPAKA_LINK_FLAGS_PUBLIC ${OpenMP_CXX_FLAGS})
         ENDIF()
+
         # CUDA requires some special handling
         IF(ALPAKA_ACC_GPU_CUDA_ENABLE)
             SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -281,7 +289,11 @@ IF(ALPAKA_ACC_GPU_CUDA_ENABLE)
 
         ELSE()
             SET(ALPAKA_CUDA_VERSION "${CUDA_VERSION}")
-            SET(ALPAKA_CUDA_ARCH "20" CACHE STRING "GPU architecture")
+            IF(CUDA_VERSION VERSION_LESS 9.0)
+                SET(ALPAKA_CUDA_ARCH "20" CACHE STRING "GPU architecture")
+            ELSE()
+                SET(ALPAKA_CUDA_ARCH "30" CACHE STRING "GPU architecture")
+            ENDIF()
             SET(ALPAKA_CUDA_COMPILER "nvcc" CACHE STRING "CUDA compiler")
             SET_PROPERTY(CACHE ALPAKA_CUDA_COMPILER PROPERTY STRINGS "nvcc;clang")
 
@@ -338,6 +350,10 @@ IF(ALPAKA_ACC_GPU_CUDA_ENABLE)
 
                 IF(NOT CUDA_VERSION VERSION_LESS 7.5)
                     LIST(APPEND CUDA_NVCC_FLAGS "--expt-extended-lambda")
+                    LIST(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr")
+                ELSE()
+                    # CUDA 7.0
+                    LIST(APPEND CUDA_NVCC_FLAGS "--relaxed-constexpr")
                 ENDIF()
 
                 FOREACH(_CUDA_ARCH_ELEM ${ALPAKA_CUDA_ARCH})
@@ -348,11 +364,23 @@ IF(ALPAKA_ACC_GPU_CUDA_ENABLE)
 
                 IF(NOT MSVC)
                     LIST(APPEND CUDA_NVCC_FLAGS "-std=c++11")
-                    SET(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
+                ELSE()
+                    LIST(APPEND _ALPAKA_COMPILE_DEFINITIONS_PUBLIC "_HAS_ITERATOR_DEBUGGING=0")
                 ENDIF()
 
-                if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-                    LIST(APPEND CUDA_NVCC_FLAGS "-g" "-G")
+                SET(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
+
+                IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+                    LIST(APPEND CUDA_NVCC_FLAGS "-g")
+                    # https://github.com/ComputationalRadiationPhysics/alpaka/issues/428
+                    IF(((CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0) OR
+                        (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.8)) AND
+                        CUDA_VERSION VERSION_LESS 9.0)
+                        MESSAGE(WARNING "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} not support -G with CUDA <= 8! "
+                                        "Device debug symbols NOT added.")
+                    ELSE()
+                        LIST(APPEND CUDA_NVCC_FLAGS "-G")
+                    ENDIF()
                 ENDIF()
 
                 IF(ALPAKA_CUDA_FAST_MATH)
@@ -473,8 +501,8 @@ LIST(APPEND _ALPAKA_LINK_LIBRARIES_PUBLIC "${_ALPAKA_LINK_LIBRARY}")
 append_recursive_files_add_to_src_group("${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "hpp" _ALPAKA_FILES_HEADER)
 append_recursive_files_add_to_src_group("${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "cpp" _ALPAKA_FILES_SOURCE)
 
-append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/travis" "${_ALPAKA_ROOT_DIR}" "sh" _ALPAKA_FILES_TRAVIS)
-SET_SOURCE_FILES_PROPERTIES(${_ALPAKA_FILES_TRAVIS} PROPERTIES HEADER_FILE_ONLY TRUE)
+append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/script" "${_ALPAKA_ROOT_DIR}" "sh" _ALPAKA_FILES_SCRIPT)
+SET_SOURCE_FILES_PROPERTIES(${_ALPAKA_FILES_SCRIPT} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/cmake" "${_ALPAKA_ROOT_DIR}" "cmake" _ALPAKA_FILES_CMAKE)
 LIST(APPEND _ALPAKA_FILES_CMAKE "${_ALPAKA_ROOT_DIR}/alpakaConfig.cmake" "${_ALPAKA_ROOT_DIR}/Findalpaka.cmake" "${_ALPAKA_ROOT_DIR}/CMakeLists.txt" "${_ALPAKA_ROOT_DIR}/cmake/dev.cmake" "${_ALPAKA_ROOT_DIR}/cmake/common.cmake" "${_ALPAKA_ROOT_DIR}/cmake/addExecutable.cmake" "${_ALPAKA_ADD_LIBRRAY_FILE}")
@@ -492,7 +520,7 @@ SET_SOURCE_FILES_PROPERTIES(${_ALPAKA_FILES_OTHER} PROPERTIES HEADER_FILE_ONLY T
 IF(NOT TARGET "alpaka")
     ADD_LIBRARY(
         "alpaka"
-        ${_ALPAKA_FILES_HEADER} ${_ALPAKA_FILES_SOURCE} ${_ALPAKA_FILES_TRAVIS} ${_ALPAKA_FILES_CMAKE} ${_ALPAKA_FILES_DOC} ${_ALPAKA_FILES_OTHER})
+        ${_ALPAKA_FILES_HEADER} ${_ALPAKA_FILES_SOURCE} ${_ALPAKA_FILES_SCRIPT} ${_ALPAKA_FILES_CMAKE} ${_ALPAKA_FILES_DOC} ${_ALPAKA_FILES_OTHER})
 
     # Compile options.
     IF(${ALPAKA_DEBUG} GREATER 1)

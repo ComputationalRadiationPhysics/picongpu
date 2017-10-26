@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <alpaka/dev/DevCpu.hpp>        // dev::DevCpu
-#include <alpaka/event/EventCpu.hpp>    // event::EventCpu
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/event/EventCpu.hpp>
 
-#include <alpaka/wait/Traits.hpp>       // CurrentThreadWaitFor
+#include <alpaka/wait/Traits.hpp>
 
 namespace alpaka
 {

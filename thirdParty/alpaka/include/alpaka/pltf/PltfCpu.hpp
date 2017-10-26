@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <alpaka/pltf/Traits.hpp>       // pltf::traits::GetDevByIdx
-#include <alpaka/dev/DevCpu.hpp>        // dev::DevCpu
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/dev/DevCpu.hpp>
 
-#include <sstream>                      // std::stringstream
-#include <vector>                       // std::vector
+#include <sstream>
+#include <vector>
 
 namespace alpaka
 {

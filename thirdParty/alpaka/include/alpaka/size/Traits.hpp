@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <type_traits>  // std::enable_if, std::is_arithmetic
+#include <type_traits>
 
 namespace alpaka
 {

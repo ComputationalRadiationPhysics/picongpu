@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <boost/predef/version_number.h>    // BOOST_VERSION_NUMBER
+#include <boost/predef/version_number.h>
 
 //#############################################################################
 // Define the version number.

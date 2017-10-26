@@ -21,21 +21,21 @@
 
 #pragma once
 
-#include <alpaka/dev/Traits.hpp>        // dev::Dev, ...
-#include <alpaka/dim/Traits.hpp>        // dim::Dim
-#include <alpaka/elem/Traits.hpp>       // elem::Elem
-#include <alpaka/extent/Traits.hpp>     // extent::GetExtent
-#include <alpaka/offset/Traits.hpp>     // offset::GetOffset
-#include <alpaka/stream/Traits.hpp>     // stream::enqueue
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/elem/Traits.hpp>
+#include <alpaka/extent/Traits.hpp>
+#include <alpaka/offset/Traits.hpp>
+#include <alpaka/stream/Traits.hpp>
 
-#include <alpaka/vec/Vec.hpp>           // Vec
-#include <alpaka/meta/Fold.hpp>         // meta::foldr
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/vec/Vec.hpp>
+#include <alpaka/meta/Fold.hpp>
+#include <alpaka/core/Common.hpp>
 
-#include <boost/config.hpp>             // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+#include <boost/config.hpp>
+#include <boost/core/ignore_unused.hpp>
 
-#include <iosfwd>                       // std::ostream
+#include <iosfwd>
 
 namespace alpaka
 {

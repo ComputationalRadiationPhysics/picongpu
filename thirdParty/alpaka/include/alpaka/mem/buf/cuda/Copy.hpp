@@ -23,26 +23,26 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>               // ALPAKA_FN_*, BOOST_LANG_CUDA
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-#include <alpaka/stream/StreamCudaRtSync.hpp>   // stream::StreamCudaRtSync
-#include <alpaka/stream/StreamCudaRtAsync.hpp>  // stream::StreamCudaRtAsync
+#include <alpaka/stream/StreamCudaRtSync.hpp>
+#include <alpaka/stream/StreamCudaRtAsync.hpp>
 
-#include <alpaka/dev/DevCpu.hpp>                // dev::DevCpu
-#include <alpaka/dev/DevCudaRt.hpp>             // dev::DevCudaRt
-#include <alpaka/dim/DimIntegralConst.hpp>      // dim::DimInt<N>
-#include <alpaka/extent/Traits.hpp>             // mem::view::getXXX
-#include <alpaka/mem/view/Traits.hpp>           // mem::view::Copy
-#include <alpaka/stream/StreamCudaRtAsync.hpp>  // stream::StreamCudaRtAsync
-#include <alpaka/stream/StreamCudaRtSync.hpp>   // stream::StreamCudaRtSync
+#include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/dev/DevCudaRt.hpp>
+#include <alpaka/dim/DimIntegralConst.hpp>
+#include <alpaka/extent/Traits.hpp>
+#include <alpaka/mem/view/Traits.hpp>
+#include <alpaka/stream/StreamCudaRtAsync.hpp>
+#include <alpaka/stream/StreamCudaRtSync.hpp>
 
-#include <alpaka/core/Cuda.hpp>                 // cudaMemcpy, ...
+#include <alpaka/core/Cuda.hpp>
 
-#include <cassert>                              // assert
+#include <cassert>
 
 namespace alpaka
 {
@@ -550,7 +550,7 @@ namespace alpaka
                         typename TExtent,
                         typename TViewSrc,
                         typename TViewDst>
-                    ALPAKA_FN_HOST static auto buildCudaMemcpy3DParms(
+                    ALPAKA_FN_HOST auto buildCudaMemcpy3DParms(
                         mem::view::cuda::detail::TaskCopy<dim::DimInt<3>, TViewDst, TViewSrc, TExtent> const & task)
                     -> cudaMemcpy3DParms
                     {
@@ -608,7 +608,7 @@ namespace alpaka
                         typename TViewDst,
                         typename TViewSrc,
                         typename TExtent>
-                    ALPAKA_FN_HOST static auto buildCudaMemcpy3DPeerParms(
+                    ALPAKA_FN_HOST auto buildCudaMemcpy3DPeerParms(
                         mem::view::cuda::detail::TaskCopy<dim::DimInt<2>, TViewDst, TViewSrc, TExtent> const & task)
                     -> cudaMemcpy3DPeerParms
                     {
@@ -670,7 +670,7 @@ namespace alpaka
                         typename TViewDst,
                         typename TViewSrc,
                         typename TExtent>
-                    ALPAKA_FN_HOST static auto buildCudaMemcpy3DPeerParms(
+                    ALPAKA_FN_HOST auto buildCudaMemcpy3DPeerParms(
                         mem::view::cuda::detail::TaskCopy<dim::DimInt<3>, TViewDst, TViewSrc, TExtent> const & task)
                     -> cudaMemcpy3DPeerParms
                     {
@@ -780,7 +780,7 @@ namespace alpaka
                                 srcNativePtr,
                                 static_cast<std::size_t>(extentWidthBytes),
                                 cudaMemCpyKind,
-                                stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                                stream.m_spStreamImpl->m_CudaStream));
                     }
                     else
                     {
@@ -792,7 +792,7 @@ namespace alpaka
                                 srcNativePtr,
                                 iSrcDev,
                                 static_cast<std::size_t>(extentWidthBytes),
-                                stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                                stream.m_spStreamImpl->m_CudaStream));
                     }
                 }
             };
@@ -911,7 +911,7 @@ namespace alpaka
                                 static_cast<std::size_t>(extentWidthBytes),
                                 static_cast<std::size_t>(extentHeight),
                                 cudaMemCpyKind,
-                                stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                                stream.m_spStreamImpl->m_CudaStream));
                     }
                     else
                     {
@@ -924,7 +924,7 @@ namespace alpaka
                         ALPAKA_CUDA_RT_CHECK(
                             cudaMemcpy3DPeerAsync(
                                 &cudaMemCpy3DPeerParms,
-                                stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                                stream.m_spStreamImpl->m_CudaStream));
                     }
                 }
             };
@@ -1038,7 +1038,7 @@ namespace alpaka
                         ALPAKA_CUDA_RT_CHECK(
                             cudaMemcpy3DAsync(
                                 &cudaMemCpy3DParms,
-                                stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                                stream.m_spStreamImpl->m_CudaStream));
                     }
                     else
                     {
@@ -1050,7 +1050,7 @@ namespace alpaka
                         ALPAKA_CUDA_RT_CHECK(
                             cudaMemcpy3DPeerAsync(
                                 &cudaMemCpy3DPeerParms,
-                                stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                                stream.m_spStreamImpl->m_CudaStream));
                     }
                 }
             };

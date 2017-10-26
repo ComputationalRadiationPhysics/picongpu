@@ -23,8 +23,8 @@
 
 #include <alpaka/alpaka.hpp>
 
-#include <mutex>                        // std::mutex
-#include <condition_variable>           // std::condition_variable
+#include <mutex>
+#include <condition_variable>
 
 namespace alpaka
 {
@@ -74,7 +74,7 @@ namespace alpaka
                                 m_mutex(),
                                 m_enqueueCount(0u),
                                 m_bIsReady(true)
-                    {}
+                        {}
                         //-----------------------------------------------------------------------------
                         //! Copy constructor.
                         //-----------------------------------------------------------------------------
@@ -283,7 +283,7 @@ namespace alpaka
                     auto const enqueueCount = spEventImpl->m_enqueueCount;
 
                     // Enqueue a task that only resets the events flag if it is completed.
-                    stream.m_spAsyncStreamCpu->m_workerThread.enqueueTask(
+                    stream.m_spStreamImpl->m_workerThread.enqueueTask(
                         [spEventImpl, enqueueCount]()
                         {
                             std::unique_lock<std::mutex> lk2(spEventImpl->m_mutex);
@@ -343,3 +343,346 @@ namespace alpaka
         }
     }
 }
+
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+
+#include <cuda.h>
+
+#include <alpaka/core/Common.hpp>
+
+#if !BOOST_LANG_CUDA
+    #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
+#endif
+
+#if BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(8, 0, 0)
+
+#include <alpaka/core/Cuda.hpp>
+
+namespace alpaka
+{
+    namespace test
+    {
+        namespace event
+        {
+            namespace cuda
+            {
+                namespace detail
+                {
+                    //#############################################################################
+                    //!
+                    //#############################################################################
+                    class EventHostManualTriggerCudaImpl final
+                    {
+                    public:
+                        //-----------------------------------------------------------------------------
+                        //! Constructor.
+                        //-----------------------------------------------------------------------------
+                        ALPAKA_FN_HOST EventHostManualTriggerCudaImpl(
+                            dev::DevCudaRt const & dev) :
+                                m_dev(dev),
+                                m_mutex(),
+                                m_bIsReady(true)
+                        {
+                            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+                            // Set the current device.
+                            ALPAKA_CUDA_RT_CHECK(
+                                cudaSetDevice(
+                                    m_dev.m_iDevice));
+                            // Allocate the buffer on this device.
+                            ALPAKA_CUDA_RT_CHECK(
+                                cudaMalloc(
+                                    &m_devMem,
+                                    static_cast<size_t>(sizeof(int32_t))));
+                            // Initiate the memory set.
+                            ALPAKA_CUDA_RT_CHECK(
+                                cudaMemset(
+                                    m_devMem,
+                                    static_cast<int>(0u),
+                                    static_cast<size_t>(sizeof(int32_t))));
+                        }
+                        //-----------------------------------------------------------------------------
+                        //! Copy constructor.
+                        //-----------------------------------------------------------------------------
+                        ALPAKA_FN_HOST EventHostManualTriggerCudaImpl(EventHostManualTriggerCudaImpl const &) = delete;
+                        //-----------------------------------------------------------------------------
+                        //! Move constructor.
+                        //-----------------------------------------------------------------------------
+                        ALPAKA_FN_HOST EventHostManualTriggerCudaImpl(EventHostManualTriggerCudaImpl &&) = default;
+                        //-----------------------------------------------------------------------------
+                        //! Copy assignment operator.
+                        //-----------------------------------------------------------------------------
+                        ALPAKA_FN_HOST auto operator=(EventHostManualTriggerCudaImpl const &) -> EventHostManualTriggerCudaImpl & = delete;
+                        //-----------------------------------------------------------------------------
+                        //! Move assignment operator.
+                        //-----------------------------------------------------------------------------
+                        ALPAKA_FN_HOST auto operator=(EventHostManualTriggerCudaImpl &&) -> EventHostManualTriggerCudaImpl & = default;
+                        //-----------------------------------------------------------------------------
+                        //! Destructor.
+                        //-----------------------------------------------------------------------------
+                        ALPAKA_FN_HOST ~EventHostManualTriggerCudaImpl()
+                        {
+                            ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+                            // Set the current device. \TODO: Is setting the current device before cudaFree required?
+                            ALPAKA_CUDA_RT_CHECK(
+                                cudaSetDevice(
+                                    m_dev.m_iDevice));
+                            // Free the buffer.
+                            cudaFree(m_devMem);
+                        }
+
+                        //-----------------------------------------------------------------------------
+                        //!
+                        //-----------------------------------------------------------------------------
+                        void trigger()
+                        {
+                            std::unique_lock<std::mutex> lock(m_mutex);
+                            m_bIsReady = true;
+
+                            // Set the current device.
+                            ALPAKA_CUDA_RT_CHECK(
+                                cudaSetDevice(
+                                    m_dev.m_iDevice));
+                            // Initiate the memory set.
+                            ALPAKA_CUDA_RT_CHECK(
+                                cudaMemset(
+                                    m_devMem,
+                                    static_cast<int>(1u),
+                                    static_cast<size_t>(sizeof(int32_t))));
+                        }
+
+                    public:
+                        dev::DevCudaRt const m_dev;     //!< The device this event is bound to.
+
+                        mutable std::mutex m_mutex;     //!< The mutex used to synchronize access to the event.
+                        void * m_devMem;
+
+                        bool m_bIsReady;                //!< If the event is not waiting within a stream (not enqueued or already completed).
+                    };
+                }
+            }
+
+            //#############################################################################
+            //!
+            //#############################################################################
+            class EventHostManualTriggerCuda final
+            {
+            public:
+                //-----------------------------------------------------------------------------
+                //! Constructor.
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST EventHostManualTriggerCuda(
+                    dev::DevCudaRt const & dev) :
+                        m_spEventImpl(std::make_shared<cuda::detail::EventHostManualTriggerCudaImpl>(dev))
+                {
+                    ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+                }
+                //-----------------------------------------------------------------------------
+                //! Copy constructor.
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST EventHostManualTriggerCuda(EventHostManualTriggerCuda const &) = default;
+                //-----------------------------------------------------------------------------
+                //! Move constructor.
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST EventHostManualTriggerCuda(EventHostManualTriggerCuda &&) = default;
+                //-----------------------------------------------------------------------------
+                //! Copy assignment operator.
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST auto operator=(EventHostManualTriggerCuda const &) -> EventHostManualTriggerCuda & = default;
+                //-----------------------------------------------------------------------------
+                //! Move assignment operator.
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST auto operator=(EventHostManualTriggerCuda &&) -> EventHostManualTriggerCuda & = default;
+                //-----------------------------------------------------------------------------
+                //! Equality comparison operator.
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST auto operator==(EventHostManualTriggerCuda const & rhs) const
+                -> bool
+                {
+                    return (m_spEventImpl == rhs.m_spEventImpl);
+                }
+                //-----------------------------------------------------------------------------
+                //! Equality comparison operator.
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST auto operator!=(EventHostManualTriggerCuda const & rhs) const
+                -> bool
+                {
+                    return !((*this) == rhs);
+                }
+                //-----------------------------------------------------------------------------
+                //! Destructor.
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST ~EventHostManualTriggerCuda() = default;
+
+                //-----------------------------------------------------------------------------
+                //!
+                //-----------------------------------------------------------------------------
+                void trigger()
+                {
+                    m_spEventImpl->trigger();
+                }
+
+            public:
+                std::shared_ptr<cuda::detail::EventHostManualTriggerCudaImpl> m_spEventImpl;
+            };
+
+            namespace traits
+            {
+                //#############################################################################
+                //!
+                //#############################################################################
+                template<>
+                struct EventHostManualTriggerType<
+                    alpaka::dev::DevCudaRt>
+                {
+                    using type = alpaka::test::event::EventHostManualTriggerCuda;
+                };
+            }
+        }
+    }
+    namespace dev
+    {
+        namespace traits
+        {
+            //#############################################################################
+            //! The CPU device event device get trait specialization.
+            //#############################################################################
+            template<>
+            struct GetDev<
+                test::event::EventHostManualTriggerCuda>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto getDev(
+                    test::event::EventHostManualTriggerCuda const & event)
+                -> dev::DevCudaRt
+                {
+                    return event.m_spEventImpl->m_dev;
+                }
+            };
+        }
+    }
+    namespace event
+    {
+        namespace traits
+        {
+            //#############################################################################
+            //! The CPU device event test trait specialization.
+            //#############################################################################
+            template<>
+            struct Test<
+                test::event::EventHostManualTriggerCuda>
+            {
+                //-----------------------------------------------------------------------------
+                //! \return If the event is not waiting within a stream (not enqueued or already handled).
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto test(
+                    test::event::EventHostManualTriggerCuda const & event)
+                -> bool
+                {
+                    std::lock_guard<std::mutex> lk(event.m_spEventImpl->m_mutex);
+
+                    return event.m_spEventImpl->m_bIsReady;
+                }
+            };
+        }
+    }
+    namespace stream
+    {
+        namespace traits
+        {
+            //#############################################################################
+            //!
+            //#############################################################################
+            template<>
+            struct Enqueue<
+                stream::StreamCudaRtAsync,
+                test::event::EventHostManualTriggerCuda>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto enqueue(
+                    stream::StreamCudaRtAsync & stream,
+                    test::event::EventHostManualTriggerCuda & event)
+                -> void
+                {
+                    ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+                    // Copy the shared pointer to ensure that the event implementation is alive as long as it is enqueued.
+                    auto spEventImpl(event.m_spEventImpl);
+
+                    // Setting the event state and enqueuing it has to be atomic.
+                    std::lock_guard<std::mutex> lk(spEventImpl->m_mutex);
+
+                    // The event should not yet be enqueued.
+                    assert(spEventImpl->m_bIsReady);
+
+                    // Set its state to enqueued.
+                    spEventImpl->m_bIsReady = false;
+
+                    // PGI Profiler`s User Guide:
+                    // The following are known issues related to Events and Metrics:
+                    // * In event or metric profiling, kernel launches are blocking. Thus kernels waiting
+                    //   on host updates may hang. This includes synchronization between the host and
+                    //   the device build upon value-based CUDA stream synchronization APIs such as
+                    //   cuStreamWaitValue32() and cuStreamWriteValue32().
+                    ALPAKA_CUDA_DRV_CHECK(
+                        cuStreamWaitValue32(
+                            (CUstream)stream.m_spStreamImpl->m_CudaStream,
+                            (CUdeviceptr)event.m_spEventImpl->m_devMem,
+                            0x01010101u,
+                            CU_STREAM_WAIT_VALUE_GEQ));
+                }
+            };
+            //#############################################################################
+            //!
+            //#############################################################################
+            template<>
+            struct Enqueue<
+                stream::StreamCudaRtSync,
+                test::event::EventHostManualTriggerCuda>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto enqueue(
+                    stream::StreamCudaRtSync & stream,
+                    test::event::EventHostManualTriggerCuda & event)
+                -> void
+                {
+                    ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+                    // Copy the shared pointer to ensure that the event implementation is alive as long as it is enqueued.
+                    auto spEventImpl(event.m_spEventImpl);
+
+                    // Setting the event state and enqueuing it has to be atomic.
+                    std::lock_guard<std::mutex> lk(spEventImpl->m_mutex);
+
+                    // The event should not yet be enqueued.
+                    assert(spEventImpl->m_bIsReady);
+
+                    // Set its state to enqueued.
+                    spEventImpl->m_bIsReady = false;
+
+                    // PGI Profiler`s User Guide:
+                    // The following are known issues related to Events and Metrics:
+                    // * In event or metric profiling, kernel launches are blocking. Thus kernels waiting
+                    //   on host updates may hang. This includes synchronization between the host and
+                    //   the device build upon value-based CUDA stream synchronization APIs such as
+                    //   cuStreamWaitValue32() and cuStreamWriteValue32().
+                    ALPAKA_CUDA_DRV_CHECK(
+                        cuStreamWaitValue32(
+                            (CUstream)stream.m_spStreamImpl->m_CudaStream,
+                            (CUdeviceptr)event.m_spEventImpl->m_devMem,
+                            0x01010101u,
+                            CU_STREAM_WAIT_VALUE_GEQ));
+                }
+            };
+        }
+    }
+}
+#endif
+#endif

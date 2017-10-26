@@ -23,24 +23,24 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*, BOOST_LANG_CUDA
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-#include <alpaka/dev/DevCudaRt.hpp>     // dev::DevCudaRt
+#include <alpaka/dev/DevCudaRt.hpp>
 
-#include <alpaka/dev/Traits.hpp>        // dev::GetDev, dev::DevType
-#include <alpaka/event/Traits.hpp>      // event::EventType
-#include <alpaka/stream/Traits.hpp>     // stream::traits::Enqueue, ...
-#include <alpaka/wait/Traits.hpp>       // CurrentThreadWaitFor, WaiterWaitFor
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/event/Traits.hpp>
+#include <alpaka/stream/Traits.hpp>
+#include <alpaka/wait/Traits.hpp>
 
-#include <alpaka/core/Cuda.hpp>         // ALPAKA_CUDA_RT_CHECK
+#include <alpaka/core/Cuda.hpp>
 
-#include <stdexcept>                    // std::runtime_error
-#include <memory>                       // std::shared_ptr
-#include <functional>                   // std::bind
+#include <stdexcept>
+#include <memory>
+#include <functional>
 
 namespace alpaka
 {
@@ -67,7 +67,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     //! Constructor.
                     //-----------------------------------------------------------------------------
-                    StreamCudaRtAsyncImpl(
+                    ALPAKA_FN_HOST StreamCudaRtAsyncImpl(
                         dev::DevCudaRt const & dev) :
                             m_dev(dev),
                             m_CudaStream()
@@ -92,23 +92,23 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     //! Copy constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST StreamCudaRtAsyncImpl(StreamCudaRtAsyncImpl const &) = delete;
+                    StreamCudaRtAsyncImpl(StreamCudaRtAsyncImpl const &) = delete;
                     //-----------------------------------------------------------------------------
                     //! Move constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST StreamCudaRtAsyncImpl(StreamCudaRtAsyncImpl &&) = default;
+                    StreamCudaRtAsyncImpl(StreamCudaRtAsyncImpl &&) = default;
                     //-----------------------------------------------------------------------------
                     //! Copy assignment operator.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto operator=(StreamCudaRtAsyncImpl const &) -> StreamCudaRtAsyncImpl & = delete;
+                    auto operator=(StreamCudaRtAsyncImpl const &) -> StreamCudaRtAsyncImpl & = delete;
                     //-----------------------------------------------------------------------------
                     //! Move assignment operator.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto operator=(StreamCudaRtAsyncImpl &&) -> StreamCudaRtAsyncImpl & = default;
+                    auto operator=(StreamCudaRtAsyncImpl &&) -> StreamCudaRtAsyncImpl & = default;
                     //-----------------------------------------------------------------------------
                     //! Destructor.
                     //-----------------------------------------------------------------------------
-                    ~StreamCudaRtAsyncImpl()
+                    ALPAKA_FN_HOST ~StreamCudaRtAsyncImpl()
                     {
                         ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -142,31 +142,31 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST StreamCudaRtAsync(
                 dev::DevCudaRt const & dev) :
-                m_spStreamCudaRtAsyncImpl(std::make_shared<cuda::detail::StreamCudaRtAsyncImpl>(dev))
+                m_spStreamImpl(std::make_shared<cuda::detail::StreamCudaRtAsyncImpl>(dev))
             {}
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST StreamCudaRtAsync(StreamCudaRtAsync const &) = default;
+            StreamCudaRtAsync(StreamCudaRtAsync const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST StreamCudaRtAsync(StreamCudaRtAsync &&) = default;
+            StreamCudaRtAsync(StreamCudaRtAsync &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(StreamCudaRtAsync const &) -> StreamCudaRtAsync & = default;
+            auto operator=(StreamCudaRtAsync const &) -> StreamCudaRtAsync & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(StreamCudaRtAsync &&) -> StreamCudaRtAsync & = default;
+            auto operator=(StreamCudaRtAsync &&) -> StreamCudaRtAsync & = default;
             //-----------------------------------------------------------------------------
             //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(StreamCudaRtAsync const & rhs) const
             -> bool
             {
-                return (m_spStreamCudaRtAsyncImpl->m_CudaStream == rhs.m_spStreamCudaRtAsyncImpl->m_CudaStream);
+                return (m_spStreamImpl == rhs.m_spStreamImpl);
             }
             //-----------------------------------------------------------------------------
             //! Equality comparison operator.
@@ -179,10 +179,10 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST ~StreamCudaRtAsync() = default;
+            ~StreamCudaRtAsync() = default;
 
         public:
-            std::shared_ptr<cuda::detail::StreamCudaRtAsyncImpl> m_spStreamCudaRtAsyncImpl;
+            std::shared_ptr<cuda::detail::StreamCudaRtAsyncImpl> m_spStreamImpl;
         };
     }
 
@@ -213,7 +213,7 @@ namespace alpaka
                     stream::StreamCudaRtAsync const & stream)
                 -> dev::DevCudaRt
                 {
-                    return stream.m_spStreamCudaRtAsyncImpl->m_dev;
+                    return stream.m_spStreamImpl->m_dev;
                 }
             };
         }
@@ -282,7 +282,7 @@ namespace alpaka
                     auto pCallbackSynchronizationData = std::make_shared<CallbackSynchronizationData>();
 
                     ALPAKA_CUDA_RT_CHECK(cudaStreamAddCallback(
-                        stream.m_spStreamCudaRtAsyncImpl->m_CudaStream,
+                        stream.m_spStreamImpl->m_CudaStream,
                         cudaRtCallback,
                         pCallbackSynchronizationData.get(),
                         0u));
@@ -329,7 +329,7 @@ namespace alpaka
                     cudaError_t ret = cudaSuccess;
                     ALPAKA_CUDA_RT_CHECK_IGNORE(
                         ret = cudaStreamQuery(
-                            stream.m_spStreamCudaRtAsyncImpl->m_CudaStream),
+                            stream.m_spStreamImpl->m_CudaStream),
                         cudaErrorNotReady);
                     return (ret == cudaSuccess);
                 }
@@ -361,7 +361,7 @@ namespace alpaka
                     // Sync is allowed even for streams on non current device.
                     ALPAKA_CUDA_RT_CHECK(
                         cudaStreamSynchronize(
-                            stream.m_spStreamCudaRtAsyncImpl->m_CudaStream));
+                            stream.m_spStreamImpl->m_CudaStream));
                 }
             };
         }

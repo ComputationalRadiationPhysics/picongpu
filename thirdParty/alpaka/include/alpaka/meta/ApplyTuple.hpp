@@ -21,17 +21,17 @@
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>           // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
 #include <alpaka/meta/IntegerSequence.hpp>
 
 #if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+    #include <boost/core/ignore_unused.hpp>
 #endif
-#include <boost/config.hpp>                 // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/config.hpp>
 
-#include <utility>                          // std::forward
-#include <type_traits>                      // std::decay
+#include <utility>
+#include <type_traits>
 
 namespace alpaka
 {

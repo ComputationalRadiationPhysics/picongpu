@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include <alpaka/dim/Traits.hpp>    // dim::DimType
-#include <alpaka/extent/Traits.hpp> // extent::GetExtent
-#include <alpaka/offset/Traits.hpp> // offset::GetOffset
-#include <alpaka/size/Traits.hpp>   // size::traits::SizeType
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/extent/Traits.hpp>
+#include <alpaka/offset/Traits.hpp>
+#include <alpaka/size/Traits.hpp>
 
-#include <boost/config.hpp>         // BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+#include <boost/config.hpp>
 
 namespace alpaka
 {

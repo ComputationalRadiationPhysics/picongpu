@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include <alpaka/time/Traits.hpp>       // time::Clock
+#include <alpaka/time/Traits.hpp>
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
-//#include <ctime>                        // std::clock
-#include <chrono>                       // std::chrono::high_resolution_clock
+//#include <ctime>
+#include <chrono>
 
 namespace alpaka
 {
@@ -45,7 +45,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Default constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA TimeStl() = default;
+            TimeStl() = default;
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
@@ -65,7 +65,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Destructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA /*virtual*/ ~TimeStl() = default;
+            /*virtual*/ ~TimeStl() = default;
         };
 
         namespace traits

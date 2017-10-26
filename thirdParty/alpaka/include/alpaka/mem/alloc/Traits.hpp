@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include <alpaka/dev/Traits.hpp>        // dev::traits::DevType, ...
-#include <alpaka/dim/Traits.hpp>        // dim::DimType
-#include <alpaka/extent/Traits.hpp>     // extent::GetExtent
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/extent/Traits.hpp>
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
 namespace alpaka
 {

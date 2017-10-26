@@ -21,13 +21,13 @@
 
 #pragma once
 
-#include <alpaka/math/max/Traits.hpp>   // Max
+#include <alpaka/math/max/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp> // boost::ignore_unused
+#include <boost/core/ignore_unused.hpp>
 
-#include <type_traits>                  // std::enable_if, std::is_arithmetic
-#include <cmath>                        // std::fmax
-#include <algorithm>                    // std::max
+#include <type_traits>
+#include <cmath>
+#include <algorithm>
 
 namespace alpaka
 {

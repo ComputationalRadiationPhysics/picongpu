@@ -21,12 +21,12 @@
 
 #pragma once
 
-#include <alpaka/wait/Traits.hpp>   // CurrentThreadWaitFor, WaiterWaitFor
+#include <alpaka/wait/Traits.hpp>
 
-#include <alpaka/core/Common.hpp>   // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
-#include <type_traits>              // std::decay
-#include <utility>                  // std::forward
+#include <type_traits>
+#include <utility>
 
 namespace alpaka
 {

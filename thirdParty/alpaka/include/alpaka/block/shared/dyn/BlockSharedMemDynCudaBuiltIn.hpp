@@ -23,15 +23,15 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>               // ALPAKA_FN_*, BOOST_LANG_CUDA
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-#include <alpaka/block/shared/dyn/Traits.hpp>   // AllocVar
+#include <alpaka/block/shared/dyn/Traits.hpp>
 
-#include <type_traits>                          // std::is_trivially_default_constructible, std::is_trivially_destructible
+#include <type_traits>
 
 namespace alpaka
 {
@@ -52,7 +52,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     //! Default constructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY BlockSharedMemDynCudaBuiltIn() = default;
+                    BlockSharedMemDynCudaBuiltIn() = default;
                     //-----------------------------------------------------------------------------
                     //! Copy constructor.
                     //-----------------------------------------------------------------------------
@@ -72,7 +72,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     //! Destructor.
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY /*virtual*/ ~BlockSharedMemDynCudaBuiltIn() = default;
+                    /*virtual*/ ~BlockSharedMemDynCudaBuiltIn() = default;
                 };
 
                 namespace traits

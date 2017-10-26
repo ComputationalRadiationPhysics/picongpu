@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <alpaka/core/Common.hpp>           // ALPAKA_FN_*
+#include <alpaka/core/Common.hpp>
 
 //-----------------------------------------------------------------------------
 //! Suggests unrolling of the directly following loop to the compiler.

@@ -23,18 +23,18 @@
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*, BOOST_LANG_CUDA
+#include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
-#include <alpaka/dev/Traits.hpp>        // dev::traits::DevType
-#include <alpaka/mem/buf/Traits.hpp>    // mem::buf::traits::BufType
-#include <alpaka/pltf/Traits.hpp>       // pltf::traits::PltfType
-#include <alpaka/wait/Traits.hpp>       // CurrentThreadWaitFor
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/mem/buf/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/wait/Traits.hpp>
 
-#include <alpaka/core/Cuda.hpp>         // cudaGetDeviceCount, ...
+#include <alpaka/core/Cuda.hpp>
 
 namespace alpaka
 {
@@ -63,24 +63,24 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST DevCudaRt() = default;
+            DevCudaRt() = default;
         public:
             //-----------------------------------------------------------------------------
             //! Copy constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST DevCudaRt(DevCudaRt const &) = default;
+            DevCudaRt(DevCudaRt const &) = default;
             //-----------------------------------------------------------------------------
             //! Move constructor.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST DevCudaRt(DevCudaRt &&) = default;
+            DevCudaRt(DevCudaRt &&) = default;
             //-----------------------------------------------------------------------------
             //! Copy assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(DevCudaRt const &) -> DevCudaRt & = default;
+            auto operator=(DevCudaRt const &) -> DevCudaRt & = default;
             //-----------------------------------------------------------------------------
             //! Move assignment operator.
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator=(DevCudaRt &&) -> DevCudaRt & = default;
+            auto operator=(DevCudaRt &&) -> DevCudaRt & = default;
             //-----------------------------------------------------------------------------
             //! Equality comparison operator.
             //-----------------------------------------------------------------------------
@@ -97,6 +97,10 @@ namespace alpaka
             {
                 return !((*this) == rhs);
             }
+            //-----------------------------------------------------------------------------
+            //! Destructor.
+            //-----------------------------------------------------------------------------
+            ~DevCudaRt() = default;
 
         public:
             int m_iDevice;
