@@ -24,7 +24,7 @@
 #include <boost/config.hpp>
 #include <boost/preprocessor/stringize.hpp>
 
-#if( PMACC_CUDA_ENABLED == 1 )
+#ifdef __CUDACC_VER_MAJOR__
 #include <cuda.h>
 #include <mallocMC/mallocMC.hpp>
 #endif
@@ -72,9 +72,11 @@ namespace picongpu
         std::stringstream cmake;
         cmake << BOOST_PP_STRINGIZE(CMAKE_VERSION);
 
-#if( PMACC_CUDA_ENABLED == 1 )
+#ifdef __CUDACC_VER_MAJOR__
         std::stringstream cuda;
-        cuda << CUDA_VERSION;
+        cuda << __CUDACC_VER_MAJOR__ << "."
+             << __CUDACC_VER_MINOR__ << "."
+             << __CUDACC_VER_BUILD__;
 
         std::stringstream mallocMC;
         mallocMC << MALLOCMC_VERSION_MAJOR << "."
@@ -144,7 +146,7 @@ namespace picongpu
         cliText << "  CXX:        " << cxx.str()
                 << " (" << cxxVersion.str() << ")" << std::endl;
         cliText << "  CMake:      " << cmake.str() << std::endl;
-#if( PMACC_CUDA_ENABLED == 1 )
+#ifdef __CUDACC_VER_MAJOR__
         cliText << "  CUDA:       " << cuda.str() << std::endl;
         cliText << "  mallocMC:   " << mallocMC.str() << std::endl;
 #endif
@@ -163,12 +165,12 @@ namespace picongpu
         software.push_back( std::string( "PIConGPU/" ) + picongpu.str() );
         software.push_back( cxx.str() + std::string( "/" ) + cxxVersion.str() );
         software.push_back( std::string( "CMake/" ) + cmake.str() );
-#if( PMACC_CUDA_ENABLED == 1 )
+#ifdef __CUDACC_VER_MAJOR__
         software.push_back( std::string( "CUDA/" ) + cuda.str() );
 #endif
         software.push_back( std::string( "Boost/" ) + boost.str() );
         software.push_back( mpiFlavor.str() + std::string( "/" ) + mpiFlavorVersion.str() );
-#if( PMACC_CUDA_ENABLED == 1 )
+#ifdef __CUDACC_VER_MAJOR__
         software.push_back( std::string( "mallocMC/" ) + mallocMC.str() );
 #endif
         if( pngwriter.str().compare( versionNotFound ) != 0 )
