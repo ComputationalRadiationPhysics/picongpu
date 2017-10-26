@@ -97,7 +97,7 @@ namespace nvidia
                 /* Get the start value for this warp */
                 if (laneId == leader)
                     result = ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc,ptr, static_cast<T_Type>(__popc(mask)), hierarchy);
-                result = warpBroadcast(result, leader);
+                result = warpBroadcast(result, leader, static_cast< uint32_t >(mask));
                 /* Add offset per thread */
                 return result + static_cast<T_Type>(__popc(mask & ((1 << laneId) - 1)));
             }
