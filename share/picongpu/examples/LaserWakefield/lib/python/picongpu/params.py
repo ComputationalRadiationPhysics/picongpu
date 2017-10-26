@@ -18,12 +18,13 @@ they need to be at least of class UiParameter (or inherited).
 
 from picongpu.input.parameters import LogScaledParameter, LinearScaledParameter
 
-dt=1.39e-4
+pico = 1.e-12
+dt_r = 1. / 1.39e-16 * pico
 
 PARAMETER_LIST = [
     LogScaledParameter(
         name="Base_Density_SI", ptype="compile", unit="1/m^3",
-        default=25, slider_min=20, slider_max=26,
+        default=25.0, slider_min=20.0, slider_max=26.0,
         slider_step=1, base=10),
 
     LinearScaledParameter(
@@ -32,17 +33,18 @@ PARAMETER_LIST = [
         slider_step=0.1),
 
     LinearScaledParameter(
-        name="Wave_Length_SI", ptype="compile", unit="m",
-        default=800, slider_min=400, slider_max=1400,
+        name="Wave_Length_SI", ptype="compile", unit="nm",
+        default=800.0, slider_min=400.0, slider_max=1400.0,
         slider_step=1, scale_factor=1.e-9),
 
     LinearScaledParameter(
-        name="Pulse_Length_SI", ptype="compile", unit="s",
-        default=5, slider_min=1, slider_max=150,
+        name="Pulse_Length_SI", ptype="compile", unit="fs",
+        default=5.0, slider_min=1.0, slider_max=150.0,
         slider_step=1, scale_factor=1.e-15),
 
     LinearScaledParameter(
-        name="TBG_steps", ptype="run", unit="",
-        default=10000, slider_min=1000, slider_max=50000,
-        slider_step=1000, scale_factor=1.0),
+        name="TBG_steps", ptype="run", unit="ps",
+        default=1.0, slider_min=0.1, slider_max=10.0,
+        slider_step=0.1, scale_factor=dt_r, dtype=int,
+        label="simulation time")
 ]
