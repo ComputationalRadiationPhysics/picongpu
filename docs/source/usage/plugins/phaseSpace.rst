@@ -37,47 +37,60 @@ Option                                 Usage                                    
 Output
 ^^^^^^
 
+The 2D histograms are stored in ``.hdf5`` files in the ``simOutput/phaseSpace/`` directory.
+A file is created per species, phasespace selection and time step.
+
 Values are given as *charge density* per phase space bin.
-In order to scale to a simpler *charge of particles* per :math:`\mathrm{d}r_i` and :math:`\mathrm{d}p_i` -bin multiply by the cell volume:
+In order to scale to a simpler *charge of particles* per :math:`\mathrm{d}r_i` and :math:`\mathrm{d}p_i` -bin multiply by the cell volume ``dV``.
+
+Analysis
+^^^^^^^^
+
+The easiest way is to load the data in Python:
 
 .. code:: python
 
-   ps = ... # get data set from h5py
+   from picongpu.plugins.phase_space import PhaseSpace
+   import matplotlib.pyplot as plt
+   from matplotlib.colors import LogNorm
+   import numpy as np
 
-   # 3D3V example
-   dV = ps.attrs['dV'] * ps.attrs['dr_unit']**3
-   charge_per_bin = ps[:,:] * ps.attrs['sim_unit'] * dV
+
+   # load data
+   phase_space = PhaseSpace('/home/axel/runs/foil_001')
+   e_ps, e_ps_meta = phase_space.get('e', ps='ypy', iteration=1000)
+
+   # unit conversion from SI
+   mu = 1.e6  # meters to microns
+   e_mc_r = 1. / (9.1e-31 * 2.9979e8)  # electrons: kg * m / s to beta * gamma
+
+   # plotting
+   plt.imshow(
+       np.abs(e_ps) * e_ps_meta.dV,
+       extent = e_ps_meta.extent * [mu, mu, e_mc_r, e_mc_r],
+       interpolation = 'nearest',
+       aspect = 'auto',
+       origin='lower',
+       norm = LogNorm()
+   )
+
+   # annotations
+   cbar = plt.colorbar()
+   cbar.set_label(r'$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}$]')
+
+   ax = plt.gca()
+   ax.set_xlabel(r'${0}$ [$\mathrm{\mu m}$]'.format(e_ps_meta.r))
+   ax.set_ylabel(r'$p_{0}$ [$\beta\gamma$]'.format(e_ps_meta.p))
+
+   plt.show()
+
+Note that the spatial extent of the output over time might change when running a moving window simulation.
 
 Out-of-Range Behavior
 ^^^^^^^^^^^^^^^^^^^^^
 
 Particles that are *not* in the range of ``<ValL>``/``<ValR>`` get automatically mapped to the lowest/highest bin respectively.
 Take care about that when setting your range and during analysis of the results.
-
-Spatial Offset
-^^^^^^^^^^^^^^
-
-The spatial extent of the output might change due to a moving window.
-Additional attributes are provided to retrieve that spatial information:
-
-See this python example:
-
-.. code:: python
-
-   ps = ... # get data set from h5py
-
-   mv_start = ps.attrs['movingWindowOffset']
-   mv_end = mv_start + ps.attrs['movingWindowSize']
-   spatial_offset = ps.attrs['_global_start'][1] # 2D data set: 0 (r_i); 1 (p_i)
-
-   dr = ps.attrs['dr'] * ps.attrs['dr_unit']
-
-   spatial_extend_cells = np.array([mv_start, mv_end]) + spatial_offset
-   spatial_extend = spatial_extend_cells * dr
-
-   # Cut out the current window
-   ps_cut = ps[mv_start:mv_end, :]
-
 
 Known Limitations
 ^^^^^^^^^^^^^^^^^
