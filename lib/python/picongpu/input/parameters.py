@@ -6,7 +6,7 @@ Authors: Sebastian Starke, Jeffrey Kelling
 License: GPLv3+
 """
 
-from numpy import log10
+import numpy as np
 
 
 class Parameter(object):
@@ -14,7 +14,7 @@ class Parameter(object):
     Base class for exposable parameters.
     """
 
-    def __init__(self, name, ptype, unit, default, value=None):
+    def __init__(self, name, ptype, unit, default, value=None, dtype=None):
         """
         Parameters
         ----------
@@ -31,6 +31,9 @@ class Parameter(object):
         value: float (optional)
             The value of the parameter object. If it is not provided, the value
             of the 'default' argument is used.
+        dtype: type (optional)
+            The data type of the parameter value. If it is not provided, the
+            type of the 'default' argument is used.
         """
         self.name = name
         self.type = ptype  # decides if compile time or runtime parameter
@@ -38,6 +41,7 @@ class Parameter(object):
         self.default = default
 
         self.value = value if value is not None else default
+        self.dtype = dtype if dtype is not None else type(default)
 
     def __str__(self):
         """
@@ -101,7 +105,8 @@ class UiParameter(Parameter):
     """
 
     def __init__(self, name, ptype, unit, default, slider_min, slider_max,
-                 slider_step, value=None):
+                 slider_step, label=None, formatter=None,
+                 value=None, dtype=None):
         """
         Parameters
         ----------
@@ -113,14 +118,27 @@ class UiParameter(Parameter):
             The maximal value of the slider widget
         slider_step: float
             The stepsize when adjusting the slider
+        label: string [optional]
+            Overwrite the name for UI
+        formatter: function or lambda of form f(x) -> string [optional]
+            representation of the current value for UI
 
         """
-        Parameter.__init__(self, name, ptype, unit, default, value)
+        Parameter.__init__(self, name, ptype, unit, default, value, dtype)
 
         # for slider widget creation
         self.min = slider_min
         self.max = slider_max
         self.step = slider_step
+
+        if label is None:
+            self.label = name
+        else:
+            self.label = label
+        if formatter is None:
+            self.formatter = lambda x: str(x)
+        else:
+            self.formatter = formatter
 
     def set_value(self, x):
         """
@@ -136,8 +154,8 @@ class UiParameter(Parameter):
         A float containing the updated 'value' attribute. Is printed
         below the slider-widget for user-feedback.
         """
-        self.value = x
-        return self.value
+        self.value = self.dtype(x)
+        return self.formatter(self.value)
 
     def get_value(self):
         """
@@ -147,6 +165,20 @@ class UiParameter(Parameter):
         """
         return self.value
 
+    def as_dict(self):
+        """
+        Convert Parameter object into a plain dictionary
+
+        Returns
+        --------
+        A dictionary with the member variables as (key, value) pairs.
+        """
+
+        members = super(UiParameter, self).as_dict()
+        del members["formatter"]
+        del members["dtype"]
+        return members
+
 
 class LinearScaledParameter(UiParameter):
     """
@@ -155,7 +187,8 @@ class LinearScaledParameter(UiParameter):
     """
 
     def __init__(self, name, ptype, unit, default, slider_min, slider_max,
-                 slider_step, scale_factor=1.0, value=None):
+                 slider_step, scale_factor=1.0, label=None, formatter=None,
+                 value=None, dtype=None):
         """
         Parameters
         ----------
@@ -166,7 +199,8 @@ class LinearScaledParameter(UiParameter):
             internal value.
         """
         UiParameter.__init__(self, name, ptype, unit, default,
-                             slider_min, slider_max, slider_step, value)
+                             slider_min, slider_max, slider_step,
+                             label, formatter, value, dtype)
 
         self.scale_factor = scale_factor
 
@@ -186,8 +220,8 @@ class LinearScaledParameter(UiParameter):
         -------
         A float containing the internal 'value' attribute after adjustment.
         """
-        self.value = x * self.scale_factor
-        return self.value
+        self.value = self.dtype(x * self.scale_factor)
+        return self.formatter(self.value)
 
     def get_value(self):
         """
@@ -198,17 +232,18 @@ class LinearScaledParameter(UiParameter):
         This is the inverse computation of the linear scaling procedure.
         Overrides the base class method.
         """
-        return self.value / self.scale_factor
+        return float(self.value) / self.scale_factor
 
 
-class LogScaledParameter(Parameter):
+class LogScaledParameter(UiParameter):
     """
     Parameter that can be displayed in jupyter notebooks but whose internal
     'value' is computed from a power transformation of the slider values.
     """
 
     def __init__(self, name, ptype, unit, default, slider_min, slider_max,
-                 slider_step, base, value=None):
+                 slider_step, base, label=None, formatter=None,
+                 value=None, dtype=None):
         """
         Parameters
         ----------
@@ -219,7 +254,8 @@ class LogScaledParameter(Parameter):
             the internal 'value'.
         """
         UiParameter.__init__(self, name, ptype, unit, default,
-                             slider_min, slider_max, slider_step, value)
+                             slider_min, slider_max, slider_step,
+                             label, formatter, value, dtype)
 
         self.base = float(base)
 
@@ -240,8 +276,8 @@ class LogScaledParameter(Parameter):
         A float containing the internal 'value' attribute after adjustment.
         """
 
-        self.value = self.base ** x
-        return self.value
+        self.value = self.dtype(self.base ** x)
+        return self.formatter(self.value)
 
     def get_value(self):
         """
@@ -255,4 +291,4 @@ class LogScaledParameter(Parameter):
         # want to return log_b(v)
         # which is identical to log_10(v) / log_10(b)
         # by logarithmic law.
-        return log10(self.value) / log10(self.base)
+        return np.log10(float(self.value)) / np.log10(self.base)
