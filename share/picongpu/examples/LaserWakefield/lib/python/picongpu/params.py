@@ -18,6 +18,8 @@ they need to be at least of class UiParameter (or inherited).
 
 from picongpu.input.parameters import LogScaledParameter, LinearScaledParameter
 
+dt=1.39e-4
+
 PARAMETER_LIST = [
     LogScaledParameter(
         name="Base_Density_SI", ptype="compile", unit="1/m^3",
@@ -38,4 +40,9 @@ PARAMETER_LIST = [
         name="Pulse_Length_SI", ptype="compile", unit="s",
         default=5, slider_min=1, slider_max=150,
         slider_step=1, scale_factor=1.e-15),
+
+    LinearScaledParameter(
+        name="TBG_steps", ptype="run", unit="",
+        default=10000, slider_min=1000, slider_max=50000,
+        slider_step=1000, scale_factor=1.0),
 ]
