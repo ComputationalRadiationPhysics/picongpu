@@ -18,6 +18,7 @@
 #
 
 import numpy as _numpy
+from io import IOBase
 
 
 def readFieldSlices(File):
@@ -36,10 +37,10 @@ def readFieldSlices(File):
     numpy-array with field data
     """
     # case: file or filename
-    if type(File) is file:
+    if isinstance(File, IOBase):
         theFile = File
     elif type(File) is str:
-        theFile = file(File, 'r')
+        theFile = open(File, 'r')
     else:
         # if neither trow arrow
         raise IOError("the argument - {} - is not a file".format(File))
@@ -92,7 +93,7 @@ if __name__ == '__main__':
         epilog="For further questions, ask Richard Pausch.")
 
     parser.add_argument('file',
-                        type=file,
+                        type=argparse.FileType('r'),
                         help="File with data of the SliceFieldPrinter plugin.")
 
     args = parser.parse_args()
