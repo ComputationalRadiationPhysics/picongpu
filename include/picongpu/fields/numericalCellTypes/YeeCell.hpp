@@ -17,12 +17,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.def"
 #include <pmacc/math/Vector.hpp>
+
 
 namespace picongpu
 {
@@ -52,6 +52,10 @@ namespace traits
             typedef VectorVector2D3V type;
         };
 
+        HDINLINE FieldPosition()
+        {
+        }
+
         HDINLINE VectorVector2D3V operator()() const
         {
             const float2_X posE_x( 0.5, 0.0 );
@@ -74,6 +78,10 @@ namespace traits
         struct result<F()> {
             typedef VectorVector3D3V type;
         };
+
+        HDINLINE FieldPosition()
+        {
+        }
 
         HDINLINE VectorVector3D3V operator()() const
         {
@@ -98,6 +106,10 @@ namespace traits
             typedef VectorVector2D3V type;
         };
 
+        HDINLINE FieldPosition()
+        {
+        }
+
         HDINLINE VectorVector2D3V operator()() const
         {
             const float2_X posB_x( 0.0, 0.5 );
@@ -120,6 +132,10 @@ namespace traits
         struct result<F()> {
             typedef VectorVector3D3V type;
         };
+
+        HDINLINE FieldPosition()
+        {
+        }
 
         HDINLINE VectorVector3D3V operator()() const
         {
@@ -160,6 +176,10 @@ namespace traits
         struct result<F()> {
             typedef ReturnType type;
         };
+
+        HDINLINE FieldPosition()
+        {
+        }
 
         HDINLINE ReturnType operator()() const
         {
