@@ -203,7 +203,7 @@ def create_vector_attribute_common(new_name, node_list):
                 tmp_data_node = child.cloneNode(True)
 
         if tmp_data_node is None:
-            print "Error: no DataItem found"
+            print("Error: no DataItem found")
 
         for tmp_info_node in tmp_info_nodes:
             tmp_data_node.appendChild(tmp_info_node)

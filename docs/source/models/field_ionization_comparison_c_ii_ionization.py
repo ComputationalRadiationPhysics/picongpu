@@ -37,6 +37,7 @@ def ADK_rate_simple(Z, E_i, F):
         np.exp(-(2.*Z**3.) / (3.*n_eff**3.*F))
     return I_rate
 
+
 if __name__ == "__main__":
     """
     On execution this file produces the image

@@ -104,6 +104,7 @@ def plot_sim(ax, sim):
             extent=[0., dx * 1.e6 * ne.shape[0], 0., dx * 1.e6 * ne.shape[1]]
         )
 
+
 i = 0
 for sim in sims:
     print(sim)

@@ -33,6 +33,7 @@ def V_eff(x, Z_eff, F):
     E_pot = -Z_eff / np.abs(x) + F * x
     return E_pot
 
+
 if __name__ == "__main__":
     """
     On execution this script produces the image
