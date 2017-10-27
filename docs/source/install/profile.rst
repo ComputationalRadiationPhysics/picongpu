@@ -62,11 +62,22 @@ Piz Daint (CSCS)
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, PNGwriter, libSplash and ADIOS <install-dependencies>` manually.
 
-For proper HDF5 detection, copy the ``FindHDF5.cmake`` of libSplash to PIConGPU:
+.. note::
 
-.. code:: bash
+   The MPI libraries are lacking Fortran bindings (which we do not need anyway).
+   During the install of ADIOS, make sure to add to ``configure`` the ``--disable-fortran`` flag.
 
-   cp $HOME/src/splash/cmake/FindHDF5.cmake $PICSRC/thirdParty/cmake-modules/
+.. note::
+
+   For proper HDF5 detection, copy the ``FindHDF5.cmake`` of libSplash to PIConGPU:
+
+   .. code:: bash
+
+      cp $HOME/src/splash/cmake/FindHDF5.cmake $PICSRC/thirdParty/cmake-modules/
+
+.. note::
+
+   Please find a `Piz Daint quick start from October 2017 here <https://gist.github.com/ax3l/68cb4caa597df3def9b01640959ea56b>`_.
 
 .. literalinclude:: profiles/pizdaint-cscs/picongpu.profile.example
    :language: bash
