@@ -19,7 +19,7 @@ module purge
 module load oscar-modules
 module load cmake/3.9.0
 module load git
-module load cuda/8.0.44 # gcc <= 5, intel 15-16
+module load cuda/8.0.61 # gcc <= 5, intel 15-16
 module load bullxmpi
 module load gnuplot/4.6.1
 
