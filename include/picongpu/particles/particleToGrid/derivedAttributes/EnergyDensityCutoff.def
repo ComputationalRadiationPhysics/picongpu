@@ -23,6 +23,8 @@
 #include "picongpu/traits/SIBaseUnits.hpp"
 #include <vector>
 
+#include "picongpu/particles/particleToGrid/derivedAttributes/EnergyDensity.def"
+
 
 namespace picongpu
 {
@@ -30,28 +32,13 @@ namespace particleToGrid
 {
 namespace derivedAttributes
 {
-    struct EnergyDensityCutoff
+    /* Inherits from the `EnergyDensity` derived attribute
+     *
+     * \tparam T_ParamClass parameter class containing the maximum energy cutoff
+     */
+    template< typename T_ParamClass >
+    struct EnergyDensityCutoff : public EnergyDensity
     {
-
-        HDINLINE float1_64
-        getUnit() const;
-
-        HINLINE std::vector<float_64>
-        getUnitDimension() const
-        {
-           /* L, M, T, I, theta, N, J
-            *
-            * EnergyDensityCutoff is in Joule / cubic meter: J / m^3 = kg * m^2 / s^2 / m^3
-            *                                                  = kg / (s^2 * m)
-            *   -> L^-1 * M * T^-2
-            */
-           std::vector<float_64> unitDimension( 7, 0.0 );
-           unitDimension.at(SIBaseUnits::length) = -1.0;
-           unitDimension.at(SIBaseUnits::mass)   =  1.0;
-           unitDimension.at(SIBaseUnits::time)   = -2.0;
-
-           return unitDimension;
-        }
 
         HINLINE std::string
         getName() const

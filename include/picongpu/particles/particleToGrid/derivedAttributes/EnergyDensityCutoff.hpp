@@ -31,17 +31,13 @@ namespace particleToGrid
 namespace derivedAttributes
 {
 
-    HDINLINE float1_64
-    EnergyDensityCutoff::getUnit() const
-    {
-        constexpr float_64 UNIT_VOLUME = (UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH);
-        return UNIT_ENERGY / UNIT_VOLUME;
-    }
-
+    template< class T_ParamClass >
     template< class T_Particle >
     DINLINE float_X
-    EnergyDensityCutoff::operator()( T_Particle& particle ) const
+    EnergyDensityCutoff< T_ParamClass >::operator()( T_Particle& particle ) const
     {
+        using ParamClass =  T_ParamClass;
+
         /* read existing attributes */
         const float_X weighting = particle[weighting_];
         const float3_X mom = particle[momentum_];
@@ -50,8 +46,8 @@ namespace derivedAttributes
         constexpr float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
 
         /* value for energy cut-off */
-        constexpr float_X cutoff_energy = particles::ionization::thomasFermi::TF_CUTOFF_ENERGY;
-        float_X const cutoff = cutoff_energy / UNIT_ENERGY * weighting;
+        float_X const cutoff_max_energy = ParamClass::cutoff_max_energy;
+        float_X const cutoff = cutoff_max_energy / UNIT_ENERGY * weighting;
 
         float_X const kinEnergy = KinEnergy<>()( mom, mass );
 

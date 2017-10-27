@@ -262,7 +262,7 @@ struct CreateEnergyDensityOperation
     typedef FieldTmpOperation< ParticleEnergyDensity, T_Species > type;
 };
 
-/** Energy Density Operation with Energy Cut-Off for Particle to Grid Projections
+/** Energy Density Operation with Maxmimum Energy Cut-Off for Particle to Grid Projections
  *
  * Derives a scalar field for average kinetic particle energy per cell times the
  * particle density from a particle species at runtime.
@@ -274,17 +274,17 @@ struct CreateEnergyDensityOperation
  * @tparam T_Species a @see picongpu::Particles class with a species definition,
  *                   see @see speciesDefinition.param
  *
- * @typedef CreateEnergyDensityOperation< T_Species >::type
+ * @typedef CreateEnergyDensityCutoffOperation< T_Species >::type
  *          a field that can be used in @see fileOutput.param
  *          @see picongpu::FileOutputFields
  */
-template<typename T_Species>
+template<typename T_Species, typename T_ParamClass>
 struct CreateEnergyDensityCutoffOperation
 {
     typedef typename GetShape<T_Species>::type shapeType;
     typedef ComputeGridValuePerFrame<
         shapeType,
-        particleToGrid::derivedAttributes::EnergyDensityCutoff
+        particleToGrid::derivedAttributes::EnergyDensityCutoff< T_ParamClass >
     > ParticleEnergyDensityCutoff;
 
     typedef FieldTmpOperation< ParticleEnergyDensityCutoff, T_Species > type;
