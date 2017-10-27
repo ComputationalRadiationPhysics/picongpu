@@ -96,6 +96,7 @@ Development
    dev/styleguide
    dev/sphinx
    dev/doxygen
+   dev/clangtools
    dev/picongpu
    dev/pmacc
    dev/doxyindex
