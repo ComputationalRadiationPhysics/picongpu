@@ -91,7 +91,10 @@ Queue: gpu2 (Nvidia K80 GPUs)
 Queue: knl (Intel  Intel Xeon Phi - Knights Landing)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-(example missing)
+For this profile, you additionally need to install your own :ref:`boost <install-dependencies>`.
+
+.. literalinclude:: profiles/taurus-tud/knl_picongpu.profile.example
+   :language: bash
 
 Lawrencium (LBNL)
 -----------------
