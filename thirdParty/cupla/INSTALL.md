@@ -4,7 +4,7 @@ cupla Install Guide
 Requirements
 ------------
 
-- **cmake**  3.3.0 or higher
+- **cmake**  3.7.0 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
 
@@ -33,9 +33,10 @@ compile an example
     - list of supported ACC_TYPES
         - `ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE`
         - `ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE`
+        - `ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE`
         - `ALPAKA_ACC_GPU_CUDA_ENABLE`
         - `ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE` (only allowed in combination with
-          `CUPLA_KERNEL_OPTI` and `CUPLA_KERNEL_ELEM`, because the `blockSize` must be dim3(1,1,1))
+          `CUPLA_KERNEL_OPTI` and `CUPLA_KERNEL_ELEM`, because the `blockSize` must be `dim3(1,1,1)`)
           see [TuningGuide.md](doc/TuningGuide.md)
 - `make -j`
 - `./matrixMul -wA=320 -wB=320 -hA=320 -hB=320` (parameters must be a multiple of 32!)

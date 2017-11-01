@@ -40,6 +40,5 @@ struct cuplaMemcpy3DParms
     cuplaPos srcPos;
     cuplaPitchedPtr srcPtr;
 
-    ALPAKA_FN_HOST_ACC
     cuplaMemcpy3DParms() = default;
 };

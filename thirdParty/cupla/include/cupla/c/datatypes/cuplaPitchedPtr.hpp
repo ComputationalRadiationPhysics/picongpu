@@ -31,7 +31,6 @@ struct cuplaPitchedPtr
     cupla::MemSizeType pitch, xsize, ysize;
     void * ptr;
 
-    ALPAKA_FN_HOST_ACC
     cuplaPitchedPtr() = default;
 
     ALPAKA_FN_HOST_ACC

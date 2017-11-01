@@ -27,7 +27,6 @@
 struct cuplaExtent{
     cupla::MemSizeType width, height, depth;
 
-    ALPAKA_FN_HOST_ACC
     cuplaExtent() = default;
 
     ALPAKA_FN_HOST_ACC
