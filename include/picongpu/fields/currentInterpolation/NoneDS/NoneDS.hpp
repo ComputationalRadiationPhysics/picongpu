@@ -82,6 +82,10 @@ namespace detail
         static constexpr uint32_t dim = T_simDim;
         static constexpr uint32_t dir = T_direction;
 
+        HDINLINE ShiftMeIfYouCan()
+        {
+        }
+
         template<class T_DataBox >
         HDINLINE T_DataBox operator()(const T_DataBox& dataBox) const
         {
@@ -94,6 +98,10 @@ namespace detail
     template<uint32_t T_simDim, uint32_t T_direction>
     struct ShiftMeIfYouCan<T_simDim, T_direction, false>
     {
+        HDINLINE ShiftMeIfYouCan()
+        {
+        }
+
         template<class T_DataBox >
         HDINLINE T_DataBox operator()(const T_DataBox& dataBox) const
         {

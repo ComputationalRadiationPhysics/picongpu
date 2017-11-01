@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -17,12 +17,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include <pmacc/types.hpp>
 #include <pmacc/math/Vector.hpp>
+
 
 namespace picongpu
 {
@@ -52,6 +51,10 @@ struct DifferenceToUpper
     {
         static constexpr uint32_t direction = T_direction;
 
+        HDINLINE GetDifference()
+        {
+        }
+
         /** get difference to lower value
          * @return difference divided by cell size of the given direction
          */
@@ -73,6 +76,9 @@ struct DifferenceToUpper
     template<uint32_t T_direction>
     struct GetDifference<T_direction, false>
     {
+        HDINLINE GetDifference()
+        {
+        }
 
         /** @return always a zeroed value
          */
