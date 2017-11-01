@@ -24,7 +24,7 @@ source ./script/travis/travis_retry.sh
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 # Install TBB
 travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recommends install libtbb-dev

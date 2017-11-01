@@ -22,7 +22,7 @@
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 #-------------------------------------------------------------------------------
 # self containing header check

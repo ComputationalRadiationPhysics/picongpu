@@ -24,7 +24,7 @@ source ./script/travis/travis_retry.sh
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 : ${ALPAKA_CI_CUDA_DIR?"ALPAKA_CI_CUDA_DIR must be specified"}
 : ${ALPAKA_CUDA_VER?"ALPAKA_CUDA_VER must be specified"}

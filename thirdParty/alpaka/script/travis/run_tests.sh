@@ -22,11 +22,9 @@
 
 #-------------------------------------------------------------------------------
 # v: all lines are printed before executing them.
-set -v
+set -vuo pipefail
 
 : ${ALPAKA_ACC_GPU_CUDA_ONLY_MODE?"ALPAKA_ACC_GPU_CUDA_ONLY_MODE must be specified"}
-: ${ALPAKA_CUDA_VER_MAJOR?"ALPAKA_CUDA_VER_MAJOR must be specified"}
-: ${ALPAKA_CUDA_VER_MINOR?"ALPAKA_CUDA_VER_MINOR must be specified"}
 
 # https://stackoverflow.com/questions/42218009/how-to-tell-if-any-command-in-bash-script-failed-non-zero-exit-status
 err=0
