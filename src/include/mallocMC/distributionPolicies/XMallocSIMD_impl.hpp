@@ -100,8 +100,11 @@ namespace DistributionPolicies{
         //second half: make sure that all coalesced allocations can fit within one page
         //necessary for offset calculation
         bool coalescible = bytes > 0 && bytes < (pagesize / 32);
+#if(__CUDACC_VER_MAJOR__ >= 9)
+        threadcount = __popc(__ballot_sync(0xFFFFFFFF, coalescible));
+#else
         threadcount = __popc(__ballot(coalescible));
-
+#endif
         if (coalescible && threadcount > 1)
         {
           myoffset = atomicAdd(&warp_sizecounter[warpid], bytes);

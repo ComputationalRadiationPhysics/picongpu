@@ -28,6 +28,9 @@
 
 #pragma once
 
+#include <boost/config.hpp>
+
+
 namespace mallocMC{
 
     template <class T_Allocator>
