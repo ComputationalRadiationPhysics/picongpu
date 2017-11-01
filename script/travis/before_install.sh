@@ -22,22 +22,22 @@
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -eo pipefail
 
 #-------------------------------------------------------------------------------
 # CMake
-ALPAKA_CI_CMAKE_VER_MAJOR=${ALPAKA_CI_CMAKE_VER:0:1}
+export ALPAKA_CI_CMAKE_VER_MAJOR=${ALPAKA_CI_CMAKE_VER:0:1}
 echo ALPAKA_CI_CMAKE_VER_MAJOR: "${ALPAKA_CI_CMAKE_VER_MAJOR}"
-ALPAKA_CI_CMAKE_VER_MINOR=${ALPAKA_CI_CMAKE_VER:2:1}
+export ALPAKA_CI_CMAKE_VER_MINOR=${ALPAKA_CI_CMAKE_VER:2:1}
 echo ALPAKA_CI_CMAKE_VER_MINOR: "${ALPAKA_CI_CMAKE_VER_MINOR}"
 
 #-------------------------------------------------------------------------------
 # gcc
 if [ "${CXX}" == "g++" ]
 then
-    ALPAKA_CI_GCC_VER_MAJOR=${ALPAKA_CI_GCC_VER:0:1}
+    export ALPAKA_CI_GCC_VER_MAJOR=${ALPAKA_CI_GCC_VER:0:1}
     echo ALPAKA_CI_GCC_VER_MAJOR: "${ALPAKA_CI_GCC_VER_MAJOR}"
-    ALPAKA_CI_GCC_VER_MINOR=${ALPAKA_CI_GCC_VER:2:1}
+    export ALPAKA_CI_GCC_VER_MINOR=${ALPAKA_CI_GCC_VER:2:1}
     echo ALPAKA_CI_GCC_VER_MINOR: "${ALPAKA_CI_GCC_VER_MINOR}"
 fi
 
@@ -45,9 +45,9 @@ fi
 # clang
 if [ "${CXX}" == "clang++" ]
 then
-    ALPAKA_CI_CLANG_VER_MAJOR=${ALPAKA_CI_CLANG_VER:0:1}
+    export ALPAKA_CI_CLANG_VER_MAJOR=${ALPAKA_CI_CLANG_VER:0:1}
     echo ALPAKA_CI_CLANG_VER_MAJOR: "${ALPAKA_CI_CLANG_VER_MAJOR}"
-    ALPAKA_CI_CLANG_VER_MINOR=${ALPAKA_CI_CLANG_VER:2:1}
+    export ALPAKA_CI_CLANG_VER_MINOR=${ALPAKA_CI_CLANG_VER:2:1}
     echo ALPAKA_CI_CLANG_VER_MINOR: "${ALPAKA_CI_CLANG_VER_MINOR}"
 
     # clang versions lower than 3.7 do not support OpenMP 2.0.
@@ -74,24 +74,22 @@ then
             echo ALPAKA_ACC_CPU_BT_OMP4_ENABLE=${ALPAKA_ACC_CPU_BT_OMP4_ENABLE} because the clang version does not support it!
         fi
     fi
-
-    export ALPAKA_BOOST_COMPILER=-clang${ALPAKA_CI_CLANG_VER_MAJOR}${ALPAKA_CI_CLANG_VER_MINOR}
 fi
 
 #-------------------------------------------------------------------------------
 # Boost.
-ALPAKA_CI_BOOST_BRANCH_MAJOR=${ALPAKA_CI_BOOST_BRANCH:6:1}
+export ALPAKA_CI_BOOST_BRANCH_MAJOR=${ALPAKA_CI_BOOST_BRANCH:6:1}
 echo ALPAKA_CI_BOOST_BRANCH_MAJOR: "${ALPAKA_CI_BOOST_BRANCH_MAJOR}"
-ALPAKA_CI_BOOST_BRANCH_MINOR=${ALPAKA_CI_BOOST_BRANCH:8:2}
+export ALPAKA_CI_BOOST_BRANCH_MINOR=${ALPAKA_CI_BOOST_BRANCH:8:2}
 echo ALPAKA_CI_BOOST_BRANCH_MINOR: "${ALPAKA_CI_BOOST_BRANCH_MINOR}"
 
 #-------------------------------------------------------------------------------
 # CUDA
 if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ]
 then
-    ALPAKA_CUDA_VER_MAJOR=${ALPAKA_CUDA_VER:0:1}
+    export ALPAKA_CUDA_VER_MAJOR=${ALPAKA_CUDA_VER:0:1}
     echo ALPAKA_CUDA_VER_MAJOR: "${ALPAKA_CUDA_VER_MAJOR}"
-    ALPAKA_CUDA_VER_MINOR=${ALPAKA_CUDA_VER:2:1}
+    export ALPAKA_CUDA_VER_MINOR=${ALPAKA_CUDA_VER:2:1}
     echo ALPAKA_CUDA_VER_MINOR: "${ALPAKA_CUDA_VER_MINOR}"
 
     if [ "${ALPAKA_CUDA_COMPILER}" == "nvcc" ]

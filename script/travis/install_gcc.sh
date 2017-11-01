@@ -24,7 +24,7 @@ source ./script/travis/travis_retry.sh
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 : ${ALPAKA_CI_GCC_VER?"ALPAKA_CI_GCC_VER must be specified"}
 : ${ALPAKA_CI_SANITIZERS?"ALPAKA_CI_SANITIZERS must be specified"}

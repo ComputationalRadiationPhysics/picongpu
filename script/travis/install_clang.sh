@@ -24,7 +24,7 @@ source ./script/travis/travis_retry.sh
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 : ${ALPAKA_CI_CLANG_DIR?"ALPAKA_CI_CLANG_DIR must be specified"}
 : ${ALPAKA_CI_CLANG_VER?"ALPAKA_CI_CLANG_VER must be specified"}
@@ -60,8 +60,20 @@ sudo update-alternatives --install /usr/bin/cc cc "${ALPAKA_CI_CLANG_DIR}"/bin/c
 sudo update-alternatives --install /usr/bin/c++ c++ "${ALPAKA_CI_CLANG_DIR}"/bin/clang++ 50
 # We have to prepend /usr/bin to the path because else the preinstalled clang from usr/bin/local/ is used.
 export PATH=${ALPAKA_CI_CLANG_DIR}/bin:${PATH}
+if [[ ! -v LD_LIBRARY_PATH ]]
+then
+    LD_LIBRARY_PATH=
+fi
 export LD_LIBRARY_PATH=${ALPAKA_CI_CLANG_DIR}/lib:${LD_LIBRARY_PATH}
+if [[ ! -v CPPFLAGS ]]
+then
+    CPPFLAGS=
+fi
 export CPPFLAGS="-I ${ALPAKA_CI_CLANG_DIR}/include/c++/v1 ${CPPFLAGS}"
+if [[ ! -v CXXFLAGS ]]
+then
+    CXXFLAGS=
+fi
 export CXXFLAGS="-lc++ ${CXXFLAGS}"
 
 which "${CXX}"

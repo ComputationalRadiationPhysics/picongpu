@@ -22,7 +22,7 @@
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 #-------------------------------------------------------------------------------
 # Print the travis environment variables: http://docs.travis-ci.com/user/ci-environment/

@@ -22,12 +22,12 @@
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 #-------------------------------------------------------------------------------
 # Exports the CMAKE_CXX_FLAGS and CMAKE_EXE_LINKER_FLAGS to enable the sanitizers listed in ALPAKA_CI_SANITIZERS.
-export CMAKE_CXX_FLAGS
-export CMAKE_EXE_LINKER_FLAGS
+export CMAKE_CXX_FLAGS=
+export CMAKE_EXE_LINKER_FLAGS=
 export ASAN_OPTIONS
 export LSAN_OPTIONS
 

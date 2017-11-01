@@ -90,7 +90,9 @@ namespace alpaka
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                     int iNumDevices(0);
-                    ALPAKA_CUDA_RT_CHECK(cudaGetDeviceCount(&iNumDevices));
+                    cudaError_t error = cudaGetDeviceCount(&iNumDevices);
+                    if(error != cudaSuccess)
+                        iNumDevices = 0;
 
                     return static_cast<std::size_t>(iNumDevices);
                 }

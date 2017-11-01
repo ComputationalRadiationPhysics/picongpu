@@ -24,14 +24,12 @@ source ./script/travis/travis_retry.sh
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 : ${ALPAKA_CI_CMAKE_DIR?"ALPAKA_CI_CMAKE_DIR must be specified"}
 : ${ALPAKA_CI_CMAKE_VER?"ALPAKA_CI_CMAKE_VER must be specified"}
-
-#-------------------------------------------------------------------------------
-# Remove the old CMake version.
-if [ "${TRAVIS}" == "true" ] ;then sudo apt-get -y --quiet remove cmake ;fi
+: ${ALPAKA_CI_CMAKE_VER_MAJOR?"ALPAKA_CI_CMAKE_VER_MAJOR must be specified"}
+: ${ALPAKA_CI_CMAKE_VER_MINOR?"ALPAKA_CI_CMAKE_VER_MINOR must be specified"}
 
 # Download the selected version.
 if [ -z "$(ls -A "${ALPAKA_CI_CMAKE_DIR}")" ]
