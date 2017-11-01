@@ -30,7 +30,6 @@ namespace cupla
     struct uint3{
         IdxType x, y, z;
 
-        ALPAKA_FN_HOST_ACC
         uint3() = default;
 
         template<

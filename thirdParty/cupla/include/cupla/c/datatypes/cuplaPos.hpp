@@ -27,7 +27,6 @@
 struct cuplaPos{
     size_t x, y, z;
 
-    ALPAKA_FN_HOST_ACC
     cuplaPos() = default;
 
     ALPAKA_FN_HOST_ACC
