@@ -55,10 +55,10 @@
 #   if(SIMDIM==DIM3)
 #       include "picongpu/plugins/IntensityPlugin.hpp"
 #   endif
+#endif
 
-#   if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
-#       include "picongpu/plugins/IsaacPlugin.hpp"
-#   endif
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+#    include "picongpu/plugins/IsaacPlugin.hpp"
 #endif
 
 #if (ENABLE_HDF5 == 1)
@@ -128,11 +128,12 @@ private:
 #   if(SIMDIM==DIM3)
         , IntensityPlugin
 #   endif
-
-#   if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
-        , isaacP::IsaacPlugin
-#   endif
 #endif
+
+#if (ENABLE_ISAAC == 1) && (SIMDIM==DIM3)
+        , isaacP::IsaacPlugin
+#endif
+
 #if (ENABLE_HDF5 == 1)
         , hdf5::HDF5Writer
 #endif
