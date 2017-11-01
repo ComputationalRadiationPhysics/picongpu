@@ -89,7 +89,11 @@ namespace nvidia
             operator()(const T_Acc& acc,T_Type* ptr, const T_Hierarchy& hierarchy)
             {
                 /* Get a bitmask with 1 for each thread in the warp, that executes this */
+#if(__CUDACC_VER_MAJOR__ >= 9)
+                const int mask = __ballot_sync(0xFFFFFFFF, 1);
+#else
                 const int mask = __ballot(1);
+#endif
                 /* select the leader */
                 const int leader = __ffs(mask) - 1;
                 T_Type result;
@@ -180,7 +184,11 @@ DINLINE void
 atomicAllExch(const T_Acc& acc, T_Type* ptr, const T_Type value, const T_Hierarchy& hierarchy)
 {
 #if (__CUDA_ARCH__ >= 200)
+#   if(__CUDACC_VER_MAJOR__ >= 9)
+    const int mask = __ballot_sync(0xFFFFFFFF, 1);
+#   else
     const int mask = __ballot(1);
+#   endif
     // select the leader
     const int leader = __ffs(mask) - 1;
     // leader does the update
