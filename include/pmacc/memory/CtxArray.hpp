@@ -65,7 +65,7 @@ namespace memory
          *
          * data member are uninitialized
          */
-        HDINLINE CtxArray() = default;
+        CtxArray() = default;
 
         /** constructor
          *
