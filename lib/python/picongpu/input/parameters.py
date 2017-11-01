@@ -7,6 +7,7 @@ License: GPLv3+
 """
 
 import numpy as np
+import inspect
 
 
 class Parameter(object):
@@ -68,8 +69,16 @@ class Parameter(object):
         --------
         A dictionary with the member variables as (key, value) pairs.
         """
+        d = dict(
+            cls=type(self).__name__,
+            name=self.name,
+            type=self.type,
+            unit=self.unit,
+            default=self.default,
+            value=self.value,
+            dtype=self.dtype.__name__)
 
-        return self.__dict__
+        return d
 
     def macro_name(self):
         """
@@ -175,8 +184,10 @@ class UiParameter(Parameter):
         """
 
         members = super(UiParameter, self).as_dict()
-        del members["formatter"]
-        del members["dtype"]
+        members["label"] = self.label
+        members["formatter"] = str(inspect.getsourcelines(self.formatter)[
+                                   0]).strip("['\\n']").split(" = ")[1]
+
         return members
 
 
