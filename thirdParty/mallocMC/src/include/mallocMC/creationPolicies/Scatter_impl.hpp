@@ -617,8 +617,21 @@ namespace ScatterKernelDetail{
 
         //only one thread per warp can acquire the mutex
         void* res = 0;
-        warp_serial
-          res = allocPageBasedSingle(bytes);
+        for(
+#if(__CUDACC_VER_MAJOR__ >= 9)
+          unsigned int __mask = __ballot_sync(0xFFFFFFFF, 1),
+#else
+          unsigned int __mask = __ballot(1),
+#endif
+          __num = __popc(__mask),
+          __lanemask = mallocMC::lanemask_lt(),
+          __local_id = __popc(__lanemask & __mask),
+          __active = 0;
+          __active < __num;
+          ++__active
+        )
+          if (__active == __local_id)
+            res = allocPageBasedSingle(bytes);
         return res;
       }
 
@@ -921,8 +934,12 @@ namespace ScatterKernelDetail{
       __device__ unsigned getAvailableSlotsAccelerator(size_t slotSize){
         int linearId;
         int wId = threadIdx.x >> 5; //do not use warpid-function, since this value is not guaranteed to be stable across warp lifetime
-        uint32 activeThreads  = __popc(__ballot(true));
 
+#if(__CUDACC_VER_MAJOR__ >= 9)
+        uint32 activeThreads  = __popc(__ballot_sync(0xFFFFFFFF, true));
+#else
+        uint32 activeThreads  = __popc(__ballot(true));
+#endif
         __shared__ uint32 activePerWarp[32]; //32 is the maximum number of warps in a block
         __shared__ unsigned warpResults[32];
         warpResults[wId]   = 0;
