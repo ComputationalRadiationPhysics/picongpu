@@ -159,6 +159,8 @@ namespace kernel
                 }
             );
 
+            __syncthreads();
+
             using ParticleDomCfg = IdxConfig<
                 particlesPerFrame,
                 numWorkers
