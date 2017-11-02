@@ -80,7 +80,7 @@ namespace memory
          *
          * all members are uninitialized
          */
-        HDINLINE Array() = default;
+        Array() = default;
 
         /** constructor
          *
