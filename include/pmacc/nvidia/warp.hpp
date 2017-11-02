@@ -95,7 +95,11 @@ DINLINE uint64_cu warpBroadcast(const uint64_cu data, const int32_t srcLaneId, c
 //! Broadcast a 32bit float
 DINLINE float warpBroadcast(const float data, const int32_t srcLaneId, const uint32_t laneMask = 0xFFFFFFFF)
 {
+#if(__CUDACC_VER_MAJOR__ >= 9)
+    return  __shfl_sync(laneMask, data, srcLaneId);
+#else
     return  __shfl(data, srcLaneId);
+#endif
 }
 
 //! Broadcast a 64bit float by using 2 32bit broadcasts
