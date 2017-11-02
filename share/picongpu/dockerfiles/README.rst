@@ -16,8 +16,8 @@ or in singularity:
 
 .. code:: bash
 
-    # singularity pull ax3l/picongpu
-    singularity run --nv picongpu.img
+    singularity pull shub://ax3l/picongpu
+    singularity shell --nv shub://ax3l/picongpu
 
 Alternatively, run an already configured and fully build example.
 This exposes the ISAAC port to connect via the webclient to.
@@ -27,6 +27,13 @@ This exposes the ISAAC port to connect via the webclient to.
     nivida-docker pull ax3l/picongpu
     nvidia-docker run -p 2459:2459 -t ax3l/picongpu:0.3.0 /bin/bash -lc start_lwfa
     # open firefox and isaac client
+
+or
+
+.. code:: bash
+
+    singularity pull shub://ax3l/picongpu
+    singularity exec --nv shub://ax3l/picongpu /bin/bash -lc start_lwfa
 
 Maintainer / Developer
 ----------------------
@@ -53,6 +60,7 @@ You can also push the result to dockerhub and singularity-hub (you need an accou
     singularity create -s 4096 picongpu.img
     sudo singularity bootstrap picongpu.img Singularity
     # optional: push to singularity-hub
+    singularity push picongpu.img --name ax3l/picongpu --tag 0.3.0
 
 Recipes
 -------
