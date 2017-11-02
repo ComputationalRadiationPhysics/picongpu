@@ -48,7 +48,7 @@ Step-by-Step
 
 PIConGPU is controlled via two kinds of input sets: compile-time options and runtime options.
 
-Edit the :ref:`.param files<usage-params>` inside ``include/picongpu/simulation_defines/param/``.
+Edit the :ref:`.param files <usage-params>` inside ``include/picongpu/param/``.
 Initially and when options are changed, PIConGPU *requires a re-compile*.
 
 Now edit the :ref:`runtime (command line) arguments <usage-cfg>` in ``etc/picongpu/*.cfg``.
