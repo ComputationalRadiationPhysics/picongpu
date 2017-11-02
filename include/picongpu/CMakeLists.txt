@@ -205,7 +205,7 @@ if(CUDAMEMTEST_ENABLE)
     # mpiInfo utility
     find_path(MPI_INFO_DIR
             NAMES CMakeLists.txt
-            PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../src/mpiInfo"
+            PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../mpiInfo"
             DOC "path to mpiInfo"
             )
 
