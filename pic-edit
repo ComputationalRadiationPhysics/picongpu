@@ -21,7 +21,7 @@
 
 this_dir=$(cd $(dirname $0) && pwd)
 known_editors=( 'nano' 'vim' 'vi' 'emacs' )
-file_prefix="include/picongpu/simulation_defines/param"
+file_prefix="include/picongpu/param"
 
 find_inputs()
 {
@@ -112,12 +112,19 @@ while [[ $# -gt 0 ]] ; do
 done
 
 # check if we are in an input directory
-if [ ! -d "include/picongpu/simulation_defines/param" ]
+if [ ! -d "include/picongpu/param" ]
 then
     echo "ERROR: Could not find directory" >&2
-    echo "       'include/picongpu/simulation_defines/param'!" >&2
+    echo "       'include/picongpu/param'!" >&2
     echo "       Are you in a PIConGPU input directory?" >&2
     exit 1
+fi
+
+# legacy check: we removed simulation_defines/ after PIConGPU 0.3.X
+if [ -d "include/picongpu/simulation_defines" ]; then
+    echo "ERROR: simulation_defines/ directory found!" >&2
+    echo "       Please update your input directory to the new structure!" >&2
+    exit 5
 fi
 
 for input in "${cmd_line_args[@]}"
