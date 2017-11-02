@@ -24,7 +24,7 @@ source ./script/travis/travis_retry.sh
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 travis_retry apt-get -y --quiet update
 travis_retry apt-get -y install sudo

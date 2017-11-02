@@ -22,28 +22,34 @@
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-set -e
+set -euo pipefail
 
 : ${ALPAKA_CI_CMAKE_DIR?"ALPAKA_CI_CMAKE_DIR must be specified"}
-: ${ALPAKA_CUDA_VER?"ALPAKA_CUDA_VER must be specified"}
-: ${ALPAKA_CUDA_COMPILER?"ALPAKA_CUDA_COMPILER must be specified"}
 : ${ALPAKA_CI_ANALYSIS?"ALPAKA_CI_ANALYSIS must be specified"}
 : ${CXX?"CXX must be specified"}
+
+if [[ ! -v LD_LIBRARY_PATH ]]
+then
+    LD_LIBRARY_PATH=
+fi
 
 # CMake
 export PATH=${ALPAKA_CI_CMAKE_DIR}/bin:${PATH}
 cmake --version
 
-# CUDA
-export PATH=/usr/local/cuda-${ALPAKA_CUDA_VER}/bin:$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda-${ALPAKA_CUDA_VER}/lib64:$LD_LIBRARY_PATH
-# We have to explicitly add the stub libcuda.so to CUDA_LIB_PATH because the real one would be installed by the driver (which we can not install).
-export CUDA_LIB_PATH=/usr/local/cuda/lib64/stubs/
-
-if [ "${ALPAKA_CUDA_COMPILER}" == "nvcc" ]
+if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ]
 then
-    which nvcc
-    nvcc -V
+    # CUDA
+    export PATH=/usr/local/cuda-${ALPAKA_CUDA_VER}/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/cuda-${ALPAKA_CUDA_VER}/lib64:${LD_LIBRARY_PATH}
+    # We have to explicitly add the stub libcuda.so to CUDA_LIB_PATH because the real one would be installed by the driver (which we can not install).
+    export CUDA_LIB_PATH=/usr/local/cuda/lib64/stubs/
+
+    if [ "${ALPAKA_CUDA_COMPILER}" == "nvcc" ]
+    then
+        which nvcc
+        nvcc -V
+    fi
 fi
 
 if [ "${CXX}" == "clang++" ]
@@ -51,7 +57,15 @@ then
     # We have to prepend /usr/bin to the path because else the preinstalled clang from usr/bin/local/ is used.
     export PATH=${ALPAKA_CI_CLANG_DIR}/bin:${PATH}
     export LD_LIBRARY_PATH=${ALPAKA_CI_CLANG_DIR}/lib:${LD_LIBRARY_PATH}
+    if [[ ! -v CPPFLAGS ]]
+    then
+        CPPFLAGS=
+    fi
     export CPPFLAGS="-I ${ALPAKA_CI_CLANG_DIR}/include/c++/v1 ${CPPFLAGS}"
+    if [[ ! -v CXXFLAGS ]]
+    then
+        CXXFLAGS=
+    fi
     export CXXFLAGS="-lc++ ${CXXFLAGS}"
 fi
 

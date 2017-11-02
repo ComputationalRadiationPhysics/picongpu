@@ -22,7 +22,7 @@
 
 #-------------------------------------------------------------------------------
 # e: exit as soon as one command returns a non-zero exit code.
-#set -e
+#set -euo pipefail
 
 : ${ALPAKA_CI_BOOST_ROOT_DIR?"ALPAKA_CI_BOOST_ROOT_DIR must be specified"}
 : ${ALPAKA_CI_BOOST_LIB_DIR?"ALPAKA_CI_BOOST_LIB_DIR must be specified"}
