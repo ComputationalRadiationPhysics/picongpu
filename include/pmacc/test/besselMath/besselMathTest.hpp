@@ -91,6 +91,50 @@ PMACC_CONST_VECTOR( float, 14, b1Float,
      1.855045211579828e20
 );
 
+namespace
+{
+    template<
+        uint32_t T_numWorkers,
+        uint32_t T_numCalcsPerBlock
+    >
+    struct CalculateBessel
+    {
+        template< class T_Box, typename T_Acc >
+        HDINLINE void operator()( const T_Acc & acc, T_Box outputbox, uint32_t numThreads ) const
+        {
+            namespace math = ::pmacc::algorithms::math;
+            using complex_64 = ::pmacc::math::Complex< double >;
+
+            using namespace pmacc::mappings::threads;
+            constexpr uint32_t numWorkers = T_numWorkers;
+
+            uint32_t const workerIdx = threadIdx.x;
+
+            uint32_t const blockId = blockIdx.x * T_numCalcsPerBlock;
+            ForEachIdx<
+                IdxConfig<
+                    T_numCalcsPerBlock,
+                    numWorkers
+                >
+            >{ workerIdx }(
+                [&](
+                    uint32_t const linearId,
+                    uint32_t const
+                )
+                {
+                    uint32_t const localId = blockId + linearId;
+                    if( localId < numThreads )
+                    {
+                        outputbox( localId ) = ( math::bessel::j0( complex_64( double( 1.2 ), double( 3.4 ) ) ) );
+                    }
+                }
+            );
+
+
+        }
+    };
+}
+
 struct BesselMathTest
 {
     void operator()()
@@ -150,10 +194,45 @@ struct BesselMathTest
         BOOST_REQUIRE_CLOSE( ( math::bessel::j1( complex_64( double( 102. ), double( 304. ) ) ) ).get_real( ) , double( 2.2787965009502116e+130 ), eps );
         BOOST_REQUIRE_CLOSE( ( math::bessel::j1( complex_64( double( 102. ), double( 304. ) ) ) ).get_imag( ) , double( 6.141450635196441e+129 ), eps );
 
+        constexpr uint32_t numBlocks = 1;
+        constexpr uint32_t numCalcsPerBlock = 32;
+        constexpr uint32_t numThreads = numBlocks * numCalcsPerBlock;
+
+        pmacc::HostDeviceBuffer<complex_64, 1> buffer(numThreads);
+        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+            numCalcsPerBlock
+        >::value;
+
+        PMACC_KERNEL( CalculateBessel<
+            numWorkers,
+            numCalcsPerBlock
+        >{  })(
+            numBlocks,
+            numWorkers
+        )(
+            buffer.getDeviceBuffer().getDataBox(),
+            numThreads
+        );
+        buffer.deviceToHost();
+        auto hostBox = buffer.getHostBuffer().getDataBox();
+        // Make sure they are the same
+        for(uint32_t i=0; i<numThreads; i++)
+        {
+            BOOST_REQUIRE_CLOSE(
+                  ( math::bessel::j0( complex_64( double( 1.2 ), double( 3.4 ) ) ) ).get_real( ),
+                  hostBox(i).get_real( ),
+                  eps 
+                );
+            BOOST_REQUIRE_CLOSE(
+                  ( math::bessel::j0( complex_64( double( 1.2 ), double( 3.4 ) ) ) ).get_imag( ),
+                  hostBox(i).get_imag( ),
+                  eps 
+                );
+        }
      }
 };
 
-BOOST_AUTO_TEST_CASE(IdProvider)
+BOOST_AUTO_TEST_CASE( testBesselMath )
 {
     BesselMathTest()();
 }
