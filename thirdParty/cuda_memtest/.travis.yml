@@ -27,6 +27,7 @@ addons:
 
 env:
   global:
+    - CXXFLAGS="-Wall -Wextra -Werror"
     - INSTALL_DIR=~/mylibs
     - NVML_FILE=cuda_346.46_gdk_linux.run
     - NVML_LINK=http://developer.download.nvidia.com/compute/cuda/7_0/Prod/local_installers/

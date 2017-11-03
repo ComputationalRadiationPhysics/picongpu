@@ -38,7 +38,7 @@
  * DEALINGS WITH THE SOFTWARE.
  */
 
-#include <stdio.h>
+#include <cstdio>
 #include "misc.h"
 #include <cuda.h>
 #include <sys/time.h>
@@ -175,7 +175,10 @@ error_checking(const char* msg, unsigned int blockidx)
 		error_msg[ERR_MSG_LENGTH -1] = 0;
 		snprintf(cmd, CMD_LENGTH, "echo \"%s cuda_memtest errors found in %s[%d]\n%s\" |%s -s \" cuda_memtest errors found in %s[%d]\" %s",
 			 time_string(), hostname,gpu_idx, error_msg, MAILFILE, hostname,gpu_idx, emails );
-		system(cmd);
+		int sendMailResult = system(cmd);
+		if(sendMailResult != 0){
+			FPRINTF("ERROR: can not send the error report via mail to %s, '%s' returned an error\n", emails, MAILFILE);
+		}
 
 		firsttime = 0;
 		unreported_errors = 0;
