@@ -17,7 +17,7 @@ First `install spack <http://spack.readthedocs.io/en/latest/getting_started.html
 .. code-block:: bash
 
    # get spack
-   git clone https://github.com/llnl/spack.git $HOME/src/spack
+   git clone https://github.com/spack/spack.git $HOME/src/spack
    $HOME/src/spack/bin/spack bootstrap
 
    # activate the spack environment

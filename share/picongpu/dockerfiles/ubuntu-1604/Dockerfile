@@ -49,7 +49,7 @@ RUN        mkdir build src paramSets && \
 
 # install spack && PIConGPU dependencies
 # todo: fix to a specific spack SHA or tag
-RUN        git clone --depth 50 https://github.com/llnl/spack.git \
+RUN        git clone --depth 50 https://github.com/spack/spack.git \
            $HOME/src/spack/ && \
            spack install cmake@3.7.2 && \
            spack install cuda && \
