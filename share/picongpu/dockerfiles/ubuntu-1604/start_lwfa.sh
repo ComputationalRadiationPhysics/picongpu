@@ -17,7 +17,7 @@ cd /opt/picInputs/lwfa
 tbg \
   -s bash \
   -c etc/picongpu/0001gpus_isaac.cfg \
-  -t etc/bash/bash_mpirun.tpl \
+  -t etc/picongpu/bash/mpirun.tpl \
   /tmp/lwfa_001
 
 # kill the isaac server after tbg returns
