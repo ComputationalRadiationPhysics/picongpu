@@ -35,7 +35,7 @@ install:
   - SPACK_FOUND=$(which spack >/dev/null && { echo 0; } || { echo 1; })
   - if [ $SPACK_FOUND -ne 0 ]; then
       mkdir -p $SPACK_ROOT &&
-      git clone --depth 50 https://github.com/llnl/spack.git $SPACK_ROOT &&
+      git clone --depth 50 https://github.com/spack/spack.git $SPACK_ROOT &&
       echo -e "config:""\n  build_jobs:"" 2" > $SPACK_ROOT/etc/spack/config.yaml;
     fi
   - spack compiler add

@@ -20,7 +20,7 @@ Overview
 .. figure:: libraryDependencies.png
    :alt: overview of PIConGPU library dependencies
 
-   Overview of inter-library dependencies for parallel execution of PIConGPU on a typical HPC system. Due to common binary incompatibilities between compilers, MPI and boost versions, we recommend to organize software with a version-aware package manager such as `spack <https://github.com/LLNL/spack>`_ and to deploy a hierarchical module system such as `lmod <https://github.com/TACC/Lmod>`_.
+   Overview of inter-library dependencies for parallel execution of PIConGPU on a typical HPC system. Due to common binary incompatibilities between compilers, MPI and boost versions, we recommend to organize software with a version-aware package manager such as `spack <https://github.com/spack/spack>`_ and to deploy a hierarchical module system such as `lmod <https://github.com/TACC/Lmod>`_.
    A Lmod example setup can be found `here <https://github.com/ComputationalRadiationPhysics/compileNode>`_.
 
 Requirements

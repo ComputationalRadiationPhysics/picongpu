@@ -60,7 +60,7 @@ References
         *A flexible package manager that supports multiple versions, configurations, platforms, and compilers*,
         SC '15 Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (2015),
         `DOI:10.1145/2807591.2807623 <https://dx.doi.org/10.1145/2807591.2807623>`_,
-        https://github.com/LLNL/spack
+        https://github.com/spack/spack
 
 .. [modules]
         J.L. Furlani, P.W. Osel.
