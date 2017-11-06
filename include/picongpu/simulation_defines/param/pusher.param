@@ -37,7 +37,6 @@ namespace picongpu
         namespace sqrt_Vay = precision64Bit;
     }
 
-
     namespace particlePusherAxel
     {
 
@@ -58,11 +57,28 @@ namespace picongpu
         struct Boris;
         struct Photon;
         struct Free;
+        struct Probe;
         struct ReducedLandauLifshitz;
 #if(SIMDIM==DIM3)
         struct Axel;
 #endif
     } // namespace pusher
     } // namespace particles
+
+    namespace particlePusherProbe
+    {
+        /** Also push the probe particles?
+         *
+         * In many cases, probe particles are static throughout the simulation.
+         * This option allows to set an "actual" pusher that shall be used to
+         * also change the probe particle positions.
+         *
+         * Examples:
+         * - particles::pusher::Boris
+         * - particles::pusher::[all others from above]
+         * - void (no push)
+         */
+        using ActualPusher = void;
+    }
 
 } // namespace picongpu
