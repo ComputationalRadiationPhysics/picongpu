@@ -18,10 +18,11 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <pmacc/types.hpp>
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
+
 
 namespace picongpu
 {
@@ -36,20 +37,20 @@ namespace picongpu
             typedef typename pmacc::math::CT::make_Int<simDim,0>::type LowerMargin;
             typedef typename pmacc::math::CT::make_Int<simDim,0>::type UpperMargin;
 
-            template<typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Pos, typename T_Mom, typename T_Mass,
-            typename T_Charge, typename T_Weighting>
+            template< typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Particle, typename T_Pos >
             HDINLINE void operator()(
-                const T_FunctorFieldB,
-                const T_FunctorFieldE,
-                T_Pos& pos,
-                T_Mom& mom,
-                const T_Mass mass,
-                const T_Charge,
-                const T_Weighting,
+                const T_FunctorFieldB functorBField,
+                const T_FunctorFieldE functorEField,
+                T_Particle & particle,
+                T_Pos & pos,
                 const uint32_t
             )
             {
-                typedef T_Mom MomType;
+                float_X const weighting = particle[ weighting_ ];
+                float_X const mass = attribute::getMass( weighting, particle );
+
+                using MomType = momentum::type;
+                MomType const mom = particle[ momentum_ ];
 
                 Velocity velocity;
                 const MomType vel = velocity(mom, mass);

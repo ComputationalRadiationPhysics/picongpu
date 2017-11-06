@@ -17,11 +17,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
+#include "picongpu/traits/attribute/GetCharge.hpp"
+
 
 namespace picongpu
 {
@@ -37,20 +38,21 @@ struct Push
     typedef typename pmacc::math::CT::make_Int<simDim,0>::type LowerMargin;
     typedef typename pmacc::math::CT::make_Int<simDim,0>::type UpperMargin;
 
-    template<typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Pos, typename T_Mom, typename T_Mass,
-    typename T_Charge, typename T_Weighting>
+    template< typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Particle, typename T_Pos >
     HDINLINE void operator()(
         const T_FunctorFieldB functorBField,
         const T_FunctorFieldE functorEField,
-        T_Pos& pos,
-        T_Mom& mom,
-        const T_Mass mass,
-        const T_Charge charge,
-        const T_Weighting,
+        T_Particle & particle,
+        T_Pos & pos,
         const uint32_t
     )
     {
-        typedef T_Mom MomType;
+        float_X const weighting = particle[ weighting_ ];
+        float_X const mass = attribute::getMass( weighting, particle );
+        float_X const charge = attribute::getCharge( weighting, particle );
+
+        using MomType = momentum::type;
+        MomType const mom = particle[ momentum_ ];
 
         auto bField  = functorBField(pos);
         auto eField  = functorEField(pos);
@@ -70,7 +72,8 @@ struct Push
         const MomType mom_plus = mom_minus + math::cross(mom_prime, s);
 
         const MomType new_mom = mom_plus + float_X(0.5) * charge * eField * deltaT;
-        mom = new_mom;
+
+        particle[ momentum_ ] = new_mom;
 
         Velocity velocity;
         const float3_X vel = velocity(new_mom, mass);
@@ -88,5 +91,5 @@ struct Push
         return propList;
     }
 };
-} //namespace particlePusherBoris
-} //namepsace  picongpu
+} // namespace particlePusherBoris
+} // namespace picongpu
