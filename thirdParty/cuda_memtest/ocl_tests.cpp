@@ -3,10 +3,10 @@
 #include <CL/cl_gl_ext.h>
 #include <CL/cl_ext.h>
 #include <sys/time.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <unistd.h>
 #include <pthread.h>
 

@@ -31,6 +31,9 @@ void get_serial_number(unsigned int devIdx, char* serial)
 
     unsigned int serialLength = NVML_DEVICE_SERIAL_BUFFER_SIZE;
     NVML_CHECK(nvmlDeviceGetSerial( devHandle, serial, serialLength ));
+#else
+    (void)(devIdx);
+    (void)(serial);
 #endif
 }
 

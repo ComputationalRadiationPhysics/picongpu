@@ -40,12 +40,12 @@
 
 #include "misc.h"
 #include <pthread.h>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <signal.h>
+#include <csignal>
 
 #define MAX_NUM_GPUS 8
 bool useMappedMemory;
