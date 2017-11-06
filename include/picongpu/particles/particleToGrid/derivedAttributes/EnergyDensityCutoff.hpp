@@ -39,22 +39,28 @@ namespace derivedAttributes
         using ParamClass =  T_ParamClass;
 
         /* read existing attributes */
-        const float_X weighting = particle[weighting_];
-        const float3_X mom = particle[momentum_];
-        const float_X mass = attribute::getMass( weighting, particle );
+        float_X const weighting = particle[ weighting_ ];
+        float3_X const mom = particle[ momentum_ ];
+        float_X const mass = attribute::getMass(
+            weighting,
+            particle
+        );
 
-        constexpr float_X INV_CELL_VOLUME = float_X(1.0) / CELL_VOLUME;
+        constexpr float_X INV_CELL_VOLUME = float_X( 1.0 ) / CELL_VOLUME;
 
         /* value for energy cut-off */
-        float_X const cutoff_max_energy = ParamClass::cutoff_max_energy;
-        float_X const cutoff = cutoff_max_energy / UNIT_ENERGY * weighting;
+        float_X const cutoffMaxEnergy = ParamClass::cutoffMaxEnergy;
+        float_X const cutoff = cutoffMaxEnergy / UNIT_ENERGY * weighting;
 
-        float_X const kinEnergy = KinEnergy<>()( mom, mass );
+        float_X const kinEnergy = KinEnergy< >( )(
+            mom,
+            mass
+        );
 
-        if (kinEnergy < cutoff)
+        if( kinEnergy < cutoff )
             return kinEnergy * INV_CELL_VOLUME;
 
-        return float_X(0.);
+        return float_X( 0. );
     }
 } /* namespace derivedAttributes */
 } /* namespace particleToGrid */

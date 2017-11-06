@@ -101,7 +101,7 @@ namespace ionization
         /* parameter class containing the energy cutoff parameter for electron temperature calculation */
         struct CutoffMaxEnergy
         {
-            static constexpr float_X cutoff_max_energy =
+            static constexpr float_X cutoffMaxEnergy =
                 particles::ionization::thomasFermi::CUTOFF_MAX_ENERGY;
         };
 

@@ -32,9 +32,11 @@ namespace particleToGrid
 {
 namespace derivedAttributes
 {
-    /* Inherits from the `EnergyDensity` derived attribute
+    /** Inherits from the `EnergyDensity` derived attribute
      *
-     * \tparam T_ParamClass parameter class containing the maximum energy cutoff
+     * @tparam T_ParamClass parameter class containing the maximum energy cutoff
+     *
+     * Note: `T_ParamClass` requires the member `float_X constexpr cutoffMaxEnergy`.
      */
     template< typename T_ParamClass >
     struct EnergyDensityCutoff : public EnergyDensity
@@ -53,15 +55,15 @@ namespace derivedAttributes
          * This method is called on a per-thread basis (each thread of a block
          * handles a particle of a frame).
          *
-         * \tparam T_Particle particle in the frame
-         * \param particle particle in the frame
+         * @tparam T_Particle particle in the frame
+         * @param particle particle in the frame
          *
-         * \return new attribute for the particle (type \see T_AttributeType)
+         * @return new attribute for the particle (type @see T_AttributeType)
          */
         template< class T_Particle >
         DINLINE float_X
         operator()( T_Particle& particle ) const;
     };
-} /* namespace derivedAttributes */
-} /* namespace particleToGrid */
-} /* namespace picongpu */
+} // namespace derivedAttributes
+} // namespace particleToGrid
+} // namespace picongpu
