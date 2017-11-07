@@ -55,12 +55,6 @@ PIConGPU command line option Description
 ``--hdf5.file``              Relative or absolute fileset prefix for simulation data.
                              If relative, files are stored under ``simOutput/``.
                              Default is ``h5``.
-``--hdf5.checkpoint-file``   Relative or absolute fileset prefix for writing checkpoints.
-                             If relative, checkpoint files are stored under ``simOutput/<checkpoint-directory>``.
-                             Default is ``h5_checkpoint``.
-``--hdf5.restart-file``      Relative or absolute fileset prefix for reading checkpoints.
-                             If relative, checkpoint files are searched under ``simOutput/<checkpoint-directory>``.
-                             Default is ``<checkpoint-file>``.
 ============================ ======================================================================================
 
 Additional Tools

@@ -9,6 +9,7 @@ Plugin name                                                                   sh
 :ref:`ADIOS <usage-plugins-ADIOS>` [#f2]_                                     stores simulation data as ADIOS files
 :ref:`energy histogram <usage-plugins-energyHistogram>`                       energy histograms for electrons and ions
 :ref:`charge conservation <usage-plugins-chargeConservation>`                 maximum difference between electron charge density and div E
+:ref:`checkpoint <usage-plugins-checkpoint>` [#f2]_                           stores the primary data of the simulation for restarts.
 :ref:`count particles <usage-plugins-countParticles>`                         count total number of macro particles
 :ref:`count per supercell <usage-plugins-countPerSupercell>` [#f3]_           count macro particles *per supercell*
 :ref:`energy fields <usage-plugins-energyFields>`                             electromagnetic field energy per time step
