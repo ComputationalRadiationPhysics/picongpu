@@ -73,9 +73,11 @@
 #include "picongpu/plugins/ResourceLog.hpp"
 
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
+#include <pmacc/compileTime/conversion/MakeSeqFromNestedSeq.hpp>
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 
 #include <list>
 
@@ -118,7 +120,7 @@ private:
     };
 
     /* define stand alone plugins*/
-    typedef bmpl::vector<
+    using StandAlonePlugins = bmpl::vector<
         Checkpoint,
         EnergyFields
 #if (ENABLE_ADIOS == 1)
@@ -141,26 +143,29 @@ private:
         , hdf5::HDF5Writer
 #endif
         , ResourceLog
-    > StandAlonePlugins;
+    >;
 
 
     /* define field plugins */
-    typedef bmpl::vector<
+    using UnspecializedFieldPlugins = bmpl::vector<
 #if( PMACC_CUDA_ENABLED == 1 )
-     SliceFieldPrinterMulti<bmpl::_1>
+        SliceFieldPrinterMulti< bmpl::_1 >
 #endif
-    > UnspecializedFieldPlugins;
+    >;
 
-    typedef bmpl::vector< FieldB, FieldE, FieldJ> AllFields;
+    using AllFields = bmpl::vector< FieldB, FieldE, FieldJ >;
 
-    typedef AllCombinations<
-      bmpl::vector<AllFields, UnspecializedFieldPlugins>
-    >::type CombinedUnspecializedFieldPlugins;
+    using CombinedUnspecializedFieldPlugins = typename AllCombinations<
+        bmpl::vector<
+            AllFields,
+            UnspecializedFieldPlugins
+        >
+    >::type;
 
-    typedef bmpl::transform<
-    CombinedUnspecializedFieldPlugins,
-      ApplyDataToPlugin<bmpl::_1>
-    >::type FieldPlugins;
+    using FieldPlugins = typename bmpl::transform<
+        CombinedUnspecializedFieldPlugins,
+        ApplyDataToPlugin<bmpl::_1>
+    >::type;
 
 
     /* define species plugins */
@@ -183,25 +188,25 @@ private:
 #endif
     >;
 
-    typedef AllCombinations<
-        bmpl::vector<VectorAllSpecies, UnspecializedSpeciesPlugins>
-    >::type CombinedUnspecializedSpeciesPlugins;
+    using SpeciesPlugins = typename MakeSeqFromNestedSeq<
+        typename bmpl::transform<
+            UnspecializedSpeciesPlugins,
+            particles::traits::GenerateSolversIfSpeciesEligible<
+                bmpl::_1,
+                VectorAllSpecies
+            >
+        >::type
+    >::type;
 
-    typedef bmpl::transform<
-        CombinedUnspecializedSpeciesPlugins,
-        ApplyDataToPlugin<bmpl::_1>
-    >::type SpeciesPlugins;
-
-
-    /* create sequence with all plugins*/
-    typedef MakeSeq<
+    /* create sequence with all fully specialized plugins */
+    using AllPlugins = MakeSeq_t<
         StandAlonePlugins,
         FieldPlugins,
         SpeciesPlugins
-    >::type AllPlugins;
+    >;
 
     /**
-     * Initialises the controller by adding all user plugins to its internal list.
+     * Initializes the controller by adding all user plugins to its internal list.
      */
     virtual void init()
     {
