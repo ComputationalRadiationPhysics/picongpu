@@ -66,7 +66,7 @@ The easiest way is to load the data in Python:
 
    # plotting
    plt.imshow(
-       np.abs(e_ps) * e_ps_meta.dV,
+       np.abs(e_ps).T * e_ps_meta.dV,
        extent = e_ps_meta.extent * [mu, mu, e_mc_r, e_mc_r],
        interpolation = 'nearest',
        aspect = 'auto',
@@ -79,7 +79,7 @@ The easiest way is to load the data in Python:
    cbar.set_label(r'$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}$]')
 
    ax = plt.gca()
-   ax.set_xlabel(r'${0}$ [$\mathrm{\mu m}$]'.format(e_ps_meta.r))
+   ax.set_xlabel(r'${0}$'.format(e_ps_meta.r) + r' [$\mathrm{\mu m}$]')
    ax.set_ylabel(r'$p_{0}$ [$\beta\gamma$]'.format(e_ps_meta.p))
 
    plt.show()
