@@ -104,9 +104,9 @@ done
 finalStep=`echo !TBG_programParams | sed 's/.*-s[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
 echo "final step      = " $finalStep | tee -a output
 #this sed call extracts the -s and --checkpoint flags
-programParams=`echo !TBG_programParams | sed 's/-s[[:blank:]]\+[0-9]\+[^\s]//g' | sed 's/--checkpoints[[:blank:]]\+[0-9]\+[^\s]//g'`
+programParams=`echo !TBG_programParams | sed 's/-s[[:blank:]]\+[0-9]\+[^\s]//g' | sed 's/--checkpoint\.period[[:blank:]]\+[0-9]\+[^\s]//g'`
 #extract restart period
-restartPeriod=`echo !TBG_programParams | sed 's/.*--checkpoints[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
+restartPeriod=`echo !TBG_programParams | sed 's/.*--checkpoint\.period[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
 echo  "restart period = " $restartPeriod | tee -a output
 
 if [ "" != "$file" ]
@@ -117,11 +117,11 @@ then
     endTime="$(($cptimestep + $restartPeriod ))"
     echo "end time        = " $endTime | tee -a output
 
-    stepSetup=$(echo -s $endTime "--restart --restart-step" $cptimestep "--checkpoints" $restartPeriod )
+    stepSetup=$(echo -s $endTime "--checkpoint.restart --checkpoint.restart.step" $cptimestep "--checkpoint.period" $restartPeriod )
 else
     echo "no checkpoint found" | tee -a output
     endTime=$restartPeriod
-    stepSetup=$(echo " -s " $endTime "--checkpoints" $restartPeriod )
+    stepSetup=$(echo " -s " $endTime "--checkpoint.period" $restartPeriod )
 fi
 
 echo "--- end automated restart routine ---" | tee -a output
