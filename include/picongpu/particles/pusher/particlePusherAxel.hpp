@@ -21,6 +21,9 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
+#include "picongpu/traits/attribute/GetCharge.hpp"
+
 
 // That is a sum over two out of 3 coordinates, as described in the script
 // above. (See Ref.!)
@@ -60,20 +63,26 @@ namespace picongpu
                 return float_X(-1.0);
             }
 
-            template<typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Pos, typename T_Mom, typename T_Mass,
-            typename T_Charge , typename T_Weighting>
-            HDINLINE void operator( )(
+            template<
+                typename T_FunctorFieldE,
+                typename T_FunctorFieldB,
+                typename T_Particle,
+                typename T_Pos
+            >
+            HDINLINE void operator()(
                 const T_FunctorFieldB functorBField, /* at t=0 */
                 const T_FunctorFieldE functorEField, /* at t=0 */
-                T_Pos& pos, /* at t=0 */
-                T_Mom& mom, /* at t=-1/2 */
-                const T_Mass mass,
-                const T_Charge charge,
-                const T_Weighting,
+                T_Particle & particle,
+                T_Pos & pos, /* at t=0 */
                 const uint32_t
             )
             {
-                typedef T_Mom MomType;
+                float_X const weighting = particle[ weighting_ ];
+                float_X const mass = attribute::getMass( weighting, particle );
+                float_X const charge = attribute::getCharge( weighting, particle );
+
+                using MomType = momentum::type;
+                MomType mom = particle[ momentum_ ];
 
                 auto bField  = functorBField(pos);
                 auto eField  = functorEField(pos);
@@ -124,6 +133,8 @@ namespace picongpu
                 {
                     mom += eField * charge * deltaT;
                 }
+
+                particle[ momentum_ ] = mom;
 
                 float3_X dr(float3_X::create(0.0));
 

@@ -17,14 +17,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/traits/attribute/GetMass.hpp"
+#include "picongpu/traits/attribute/GetCharge.hpp"
+#include "picongpu/particles/interpolationMemoryPolicy/ShiftToValidRange.hpp"
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/RungeKutta.hpp>
-#include "picongpu/particles/interpolationMemoryPolicy/ShiftToValidRange.hpp"
 
 
 namespace picongpu
@@ -50,26 +50,33 @@ struct Push
   typedef typename pmacc::math::CT::make_Int<simDim,1>::type LowerMargin;
   typedef typename pmacc::math::CT::make_Int<simDim,1>::type UpperMargin;
 
-  template<typename T_FunctorFieldB, typename T_FunctorFieldE, typename T_Pos, typename T_Mom,
-  typename T_Mass, typename T_Charge, typename T_Weighting >
+  template<
+    typename T_FunctorFieldE,
+    typename T_FunctorFieldB,
+    typename T_Particle,
+    typename T_Pos
+  >
   HDINLINE void operator()(
     const T_FunctorFieldB functorBField, /* at t=0 */
     const T_FunctorFieldE functorEField, /* at t=0 */
-    T_Pos& pos, /* at t=0 */
-    T_Mom& mom, /* at t=-1/2 */
-    const T_Mass mass,
-    const T_Charge charge,
-    const T_Weighting weighting,
+    T_Particle & particle,
+    T_Pos & pos, /* at t=0 */
     const uint32_t
   )
   {
-    typedef T_FunctorFieldB TypeBFieldFunctor;
-    typedef T_FunctorFieldE TypeEFieldFunctor;
-    typedef T_Pos TypePosition;
-    typedef T_Mom TypeMomentum;
-    typedef T_Mass TypeMass;
-    typedef T_Charge TypeCharge;
-    typedef T_Weighting TypeWeighting;
+    float_X const weighting = particle[ weighting_ ];
+    float_X const mass = attribute::getMass( weighting, particle );
+    float_X const charge = attribute::getCharge( weighting, particle );
+
+    using TypeBFieldFunctor = T_FunctorFieldB;
+    using TypeEFieldFunctor = T_FunctorFieldE;
+    using TypePosition = position_pic::type;
+    using TypeMomentum = momentum::type;
+    using TypeMass = float_X;
+    using TypeCharge = float_X;
+    using TypeWeighting = weighting::type;
+
+    TypeMomentum mom = particle[ momentum_ ];
 
     const float_X deltaT = DELTA_T;
     const uint32_t dimMomentum = GetNComponents<TypeMomentum>::value;
@@ -98,6 +105,7 @@ struct Push
     for(uint32_t i=0; i<dimMomentum; ++i)
       mom[i] = varNew[simDim+i];
 
+    particle[ momentum_ ] = mom;
   }
 
   template<typename T_Var, typename T_Time,
