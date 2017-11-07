@@ -1,4 +1,5 @@
-/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -259,6 +260,34 @@ struct CreateEnergyDensityOperation
     > ParticleEnergyDensity;
 
     typedef FieldTmpOperation< ParticleEnergyDensity, T_Species > type;
+};
+
+/** Energy Density Operation with Maxmimum Energy Cut-Off for Particle to Grid Projections
+ *
+ * Derives a scalar field for average kinetic particle energy per cell times the
+ * particle density from a particle species at runtime.
+ * Each value is mapped per cell according to the species' spatial shape.
+ *
+ * @note Only energies below a user-definable cut-off energy are taken for
+ *       calculation!
+ *
+ * @tparam T_Species a @see picongpu::Particles class with a species definition,
+ *                   see @see speciesDefinition.param
+ *
+ * @typedef CreateEnergyDensityCutoffOperation< T_Species >::type
+ *          a field that can be used in @see fileOutput.param
+ *          @see picongpu::FileOutputFields
+ */
+template<typename T_Species, typename T_ParamClass>
+struct CreateEnergyDensityCutoffOperation
+{
+    typedef typename GetShape<T_Species>::type shapeType;
+    typedef ComputeGridValuePerFrame<
+        shapeType,
+        particleToGrid::derivedAttributes::EnergyDensityCutoff< T_ParamClass >
+    > ParticleEnergyDensityCutoff;
+
+    typedef FieldTmpOperation< ParticleEnergyDensityCutoff, T_Species > type;
 };
 
 /** Kinetic Energy Operation for Particle to Grid Projections
