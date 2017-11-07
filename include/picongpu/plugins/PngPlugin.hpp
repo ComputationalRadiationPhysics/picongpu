@@ -18,15 +18,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/dimensions/DataSpace.hpp>
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/dimensions/DataSpace.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+
+#include <boost/mpl/and.hpp>
 
 #include <vector>
 #include <list>
@@ -214,5 +218,31 @@ namespace picongpu
 
     };
 
-}//namespace
+namespace particles
+{
+namespace traits
+{
+    template<
+        typename T_Species,
+        typename T_VisClass
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        PngPlugin< T_VisClass >
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting
+        >;
+
+        using type = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu
 

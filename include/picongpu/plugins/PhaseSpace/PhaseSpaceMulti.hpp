@@ -79,6 +79,31 @@ namespace picongpu
         std::string pluginGetName() const { return this->name; }
     };
 
-}
+namespace particles
+{
+namespace traits
+{
+    template<
+        typename T_Species,
+        typename T_AssignmentFunction
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        PhaseSpaceMulti<
+            T_AssignmentFunction,
+            T_Species
+        >
+    > : public SpeciesEligibleForSolver<
+        T_Species,
+        PhaseSpace<
+            T_AssignmentFunction,
+            T_Species
+        >
+    >
+    {
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu
 
 #include "PhaseSpaceMulti.tpp"

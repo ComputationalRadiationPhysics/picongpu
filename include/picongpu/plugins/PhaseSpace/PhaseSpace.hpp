@@ -22,21 +22,25 @@
 #include <mpi.h>
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
 #include <pmacc/communication/manager_common.hpp>
 #include <pmacc/pluginSystem/INotify.hpp>
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
 #include <pmacc/math/Vector.hpp>
-
-#include "picongpu/plugins/PhaseSpace/AxisDescription.hpp"
-
-#include <string>
-#include <utility>
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
 
 #include <boost/mpl/min_max.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/accumulate.hpp>
+#include <boost/mpl/and.hpp>
+
+#include <string>
+#include <utility>
 
 
 namespace picongpu
@@ -102,6 +106,52 @@ namespace picongpu
         void pluginUnload();
     };
 
-}
+namespace particles
+{
+namespace traits
+{
+    template<
+        typename T_Species,
+        typename T_AssignmentFunction
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        PhaseSpace<
+            T_AssignmentFunction,
+            T_Species
+        >
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting,
+            position<>,
+            momentum
+        >;
+
+        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+
+        using SpeciesHasMass = typename pmacc::traits::HasFlag<
+            FrameType,
+            massRatio<>
+        >::type;
+        using SpeciesHasCharge = typename pmacc::traits::HasFlag<
+            FrameType,
+            chargeRatio<>
+        >::type;
+
+        using type = typename bmpl::and_<
+            SpeciesHasIdentifiers,
+            SpeciesHasMass,
+            SpeciesHasCharge
+        >;
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu
 
 #include "PhaseSpace.tpp"
