@@ -36,7 +36,7 @@ namespace derivedAttributes
      *
      * @tparam T_ParamClass parameter class containing the maximum energy cutoff
      *
-     * Note: `T_ParamClass` requires the member `float_X constexpr cutoffMaxEnergy`.
+     * Note: `T_ParamClass` requires the member `constexpr float_X cutoffMaxEnergy`.
      */
     template< typename T_ParamClass >
     struct EnergyDensityCutoff : public EnergyDensity

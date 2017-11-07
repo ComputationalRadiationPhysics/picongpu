@@ -57,10 +57,11 @@ namespace derivedAttributes
             mass
         );
 
+        float_X result( 0. );
         if( kinEnergy < cutoff )
-            return kinEnergy * INV_CELL_VOLUME;
+            result =  kinEnergy * INV_CELL_VOLUME;
 
-        return float_X( 0. );
+        return result;
     }
 } /* namespace derivedAttributes */
 } /* namespace particleToGrid */

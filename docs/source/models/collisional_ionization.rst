@@ -14,7 +14,7 @@ Get started here https://github.com/ComputationalRadiationPhysics/picongpu/wiki/
 
 The implementation of the Thomas-Fermi model takes the following input quantities.
 
-- Ion proton number :math:`Z`
+- ion proton number :math:`Z`
 - ion species mass density :math:`\rho`
 - electron "temperature" :math:`T`
 
