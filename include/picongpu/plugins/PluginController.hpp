@@ -68,6 +68,7 @@
 #   include "picongpu/plugins/hdf5/HDF5Writer.hpp"
 #endif
 
+#include "picongpu/plugins/Checkpoint.hpp"
 #include "picongpu/plugins/ResourceLog.hpp"
 
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
@@ -137,6 +138,7 @@ private:
 #if (ENABLE_HDF5 == 1)
         , hdf5::HDF5Writer
 #endif
+        , Checkpoint
         , ResourceLog
     > StandAlonePlugins;
 
