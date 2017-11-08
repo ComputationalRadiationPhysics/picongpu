@@ -52,7 +52,7 @@
 #include "picongpu/simulationControl/MovingWindow.hpp"
 #include <pmacc/math/Vector.hpp>
 
-#include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/output/IIOBackend.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/type_traits/is_same.hpp>
@@ -81,25 +81,26 @@ using namespace pmacc;
 
 using namespace splash;
 
-
-namespace po = boost::program_options;
-
-/**
- * Writes simulation data to hdf5 files using libSplash.
- * Implements the ISimulationPlugin interface.
+/** Writes simulation data to hdf5 files using libSplash.
+ *
+ * Implements the IIOBackend interface.
  */
-class HDF5Writer : public ISimulationPlugin
+class HDF5Writer : public IIOBackend
 {
 public:
 
-    HDF5Writer() :
+    /** constructor
+     *
+     * @param isIndependent if `true`: class register itself to PluginConnector
+     */
+    HDF5Writer(bool isIndependent = true) :
     filename("simData"),
     outputDirectory("h5"),
-    checkpointFilename("checkpoint"),
-    restartFilename(""), /* set to checkpointFilename by default */
     notifyPeriod(0)
     {
-        Environment<>::get().PluginConnector().registerPlugin(this);
+        // only register if plugin is not maintained by an wrapper
+        if(isIndependent)
+            Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~HDF5Writer()
@@ -107,24 +108,21 @@ public:
 
     }
 
-    void pluginRegisterHelp(po::options_description& desc)
+    void pluginRegisterHelp(boost::program_options::options_description& desc)
     {
+        namespace po = boost::program_options;
         desc.add_options()
             ("hdf5.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable HDF5 IO [for each n-th step]")
             ("hdf5.file", po::value<std::string > (&filename)->default_value(filename),
-             "HDF5 output filename (prefix)")
-            ("hdf5.checkpoint-file", po::value<std::string > (&checkpointFilename),
-             "Optional HDF5 checkpoint filename (prefix)")
-            ("hdf5.restart-file", po::value<std::string > (&restartFilename),
-             "HDF5 restart filename (prefix)")
-            /* 1,000,000 particles are around 3900 frames at 256 particles per frame
-             * and match ~30MiB with typical picongpu particles.
-             * The only reason why we use 1M particles per chunk is that we can get a
-             * frame overflow in our memory manager if we process all particles in one kernel.
-             **/
-            ("hdf5.restart-chunkSize", po::value<uint32_t > (&restartChunkSize)->default_value(1000000),
-             "Number of particles processed in one kernel call during restart to prevent frame count blowup");
+             "HDF5 output filename (prefix)");
+    }
+
+    virtual void expandHelp(
+        std::string const & prefix,
+        boost::program_options::options_description & desc
+    )
+    {
     }
 
     std::string pluginGetName() const
@@ -134,32 +132,35 @@ public:
 
     void setMappingDescription(MappingDesc *cellDescription)
     {
-
         this->cellDescription = cellDescription;
         mThreadParams.cellDescription = this->cellDescription;
     }
 
     void notify(uint32_t currentStep)
     {
-        notificationReceived(currentStep, false);
+        __getTransactionEvent().waitForFinished();
+        /* if file name is relative, prepend with common directory */
+        if( boost::filesystem::path(filename).has_root_path() )
+            mThreadParams.h5Filename = filename;
+        else
+            mThreadParams.h5Filename = outputDirectory + "/" + filename;
+
+        /* window selection */
+        mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
+        mThreadParams.isCheckpoint = false;
+        dumpData(currentStep);
     }
 
-    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+    void doRestart(
+        const uint32_t restartStep,
+        const std::string& restartDirectory,
+        const std::string& constRestartFilename,
+        const uint32_t restartChunkSize
+    )
     {
-#if(ENABLE_ADIOS == 1)
-        log<picLog::INPUT_OUTPUT > ("HDF5: Checkpoint skipped since ADIOS is enabled.");
-#else
-        this->checkpointDirectory = checkpointDirectory;
+        // allow to modify the restart file name
+        std::string restartFilename{ constRestartFilename };
 
-        notificationReceived(currentStep, true);
-#endif
-    }
-
-    void restart(uint32_t restartStep, const std::string restartDirectory)
-    {
-#if(ENABLE_ADIOS == 1)
-        log<picLog::INPUT_OUTPUT > ("HDF5: Restart skipped since ADIOS is enabled.");
-#else
         const uint32_t maxOpenFilesPerNode = 4;
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
         mThreadParams.dataCollector = new ParallelDomainCollector(
@@ -244,7 +245,25 @@ public:
             mThreadParams.dataCollector->finalize();
 
         __delete(mThreadParams.dataCollector);
-#endif
+    }
+
+    void dumpCheckpoint(
+        const uint32_t currentStep,
+        const std::string& checkpointDirectory,
+        const std::string& checkpointFilename
+    )
+    {
+        __getTransactionEvent().waitForFinished();
+        /* if file name is relative, prepend with common directory */
+        if( boost::filesystem::path(checkpointFilename).has_root_path() )
+            mThreadParams.h5Filename = checkpointFilename;
+        else
+            mThreadParams.h5Filename = checkpointDirectory + "/" + checkpointFilename;
+
+        mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
+        mThreadParams.isCheckpoint = true;
+
+        dumpData(currentStep);
     }
 
 private:
@@ -290,40 +309,16 @@ private:
         }
     }
 
-    /**
-     * Notification for dump or checkpoint received
+    /** dump data
      *
      * @param currentStep current simulation step
      * @param isCheckpoint checkpoint notification
      */
-    void notificationReceived(uint32_t currentStep, bool isCheckpoint)
+    void dumpData(uint32_t currentStep)
     {
         const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-        mThreadParams.isCheckpoint = isCheckpoint;
-        mThreadParams.currentStep = currentStep;
         mThreadParams.cellDescription = this->cellDescription;
-
-        __getTransactionEvent().waitForFinished();
-
-        std::string h5Filename( filename );
-        std::string h5Filedir( outputDirectory );
-        if( isCheckpoint )
-        {
-            h5Filename = checkpointFilename;
-            h5Filedir = checkpointDirectory;
-        }
-
-        /* if file name is relative, prepend with common directory */
-        if( boost::filesystem::path(h5Filename).has_root_path() )
-            mThreadParams.h5Filename = h5Filename;
-        else
-            mThreadParams.h5Filename = h5Filedir + "/" + h5Filename;
-
-        /* window selection */
-        if( isCheckpoint )
-            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
-        else
-            mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
+        mThreadParams.currentStep = currentStep;
 
         for (uint32_t i = 0; i < simDim; ++i)
         {
@@ -371,11 +366,6 @@ private:
 
             /** create notify directory */
             Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
-        }
-
-        if (restartFilename == "")
-        {
-            restartFilename = checkpointFilename;
         }
 
         loaded = true;
@@ -448,14 +438,8 @@ private:
     MappingDesc *cellDescription;
 
     uint32_t notifyPeriod;
-    int64_t lastCheckpoint;
     std::string filename;
-    std::string checkpointFilename;
-    std::string restartFilename;
     std::string outputDirectory;
-    std::string checkpointDirectory;
-
-    uint32_t restartChunkSize;
 
     DataSpace<simDim> mpi_pos;
     DataSpace<simDim> mpi_size;

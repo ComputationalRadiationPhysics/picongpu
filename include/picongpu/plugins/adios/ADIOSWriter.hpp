@@ -46,7 +46,7 @@
 #endif
 #include <pmacc/traits/Limits.hpp>
 
-#include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/output/IIOBackend.hpp"
 
 #include "picongpu/plugins/adios/WriteMeta.hpp"
 #include "picongpu/plugins/adios/WriteSpecies.hpp"
@@ -137,11 +137,11 @@ int64_t defineAdiosVar(int64_t group_id,
     return var_id;
 }
 
-/**
- * Writes simulation data to adios files.
- * Implements the ILightweightPlugin interface.
+/** Writes simulation data to adios files.
+ *
+ * Implements the IIOBackend interface.
  */
-class ADIOSWriter : public ILightweightPlugin
+class ADIOSWriter : public IIOBackend
 {
 private:
 
@@ -524,17 +524,21 @@ private:
 
 public:
 
-    ADIOSWriter() :
+    /** constructor
+     *
+     * @param isIndependent if `true`: class register itself to PluginConnector
+     */
+    ADIOSWriter(bool isIndependent = true) :
     filename("simData"),
     outputDirectory("bp"),
-    checkpointFilename("checkpoint"),
-    restartFilename(""), /* set to checkpointFilename by default */
     /* select MPI method, #OSTs and #aggregators */
     mpiTransportParams(""),
     notifyPeriod(0),
     lastSpeciesSyncStep(pmacc::traits::limits::Max<uint32_t>::value)
     {
-        Environment<>::get().PluginConnector().registerPlugin(this);
+        // only register if plugin is not maintained by an wrapper
+        if(isIndependent)
+            Environment<>::get().PluginConnector().registerPlugin(this);
     }
 
     virtual ~ADIOSWriter()
@@ -547,28 +551,28 @@ public:
         desc.add_options()
             ("adios.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
              "enable ADIOS IO [for each n-th step]")
-            ("adios.aggregators", po::value<uint32_t >
-             (&mThreadParams.adiosAggregators)->default_value(0), "Number of aggregators [0 == number of MPI processes]")
-            ("adios.ost", po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
-             "Number of OST")
-            ("adios.disable-meta", po::bool_switch (&mThreadParams.adiosDisableMeta)->default_value(false),
-             "Disable online gather and write of a global meta file, can be time consuming (use `bpmeta` post-mortem)")
-            ("adios.transport-params", po::value<std::string > (&mThreadParams.adiosTransportParams),
-             "additional transport parameters, see ADIOS manual chapter 6.1.5, e.g., 'random_offset=1;stripe_count=4'")
-            ("adios.compression", po::value<std::string >
-             (&mThreadParams.adiosCompression)->default_value("none"),
-             "ADIOS compression method, e.g., zlib (see `adios_config -m` for help)")
             ("adios.file", po::value<std::string > (&filename)->default_value(filename),
-             "ADIOS output file")
-            ("adios.checkpoint-file", po::value<std::string > (&checkpointFilename),
-             "Optional ADIOS checkpoint filename (prefix)")
-            ("adios.restart-file", po::value<std::string > (&restartFilename),
-             "adios restart filename (prefix)")
-            /* 50,000 particles are around 200 frames at 256 particles per frame (each 8k memory)
-             * and match ~400MiB with typical picongpu particles.
-             **/
-            ("adios.restart-chunkSize", po::value<uint32_t > (&restartChunkSize)->default_value(50000),
-             "Number of particles processed in one kernel call during restart to prevent frame count blowup");
+             "ADIOS output file");
+        expandHelp("", desc);
+    }
+
+    virtual void expandHelp(
+        std::string const & prefix,
+        boost::program_options::options_description & desc
+    )
+    {
+        desc.add_options()
+            ((prefix + "adios.aggregators").c_str(), po::value<uint32_t >
+            (&mThreadParams.adiosAggregators)->default_value(0), "Number of aggregators [0 == number of MPI processes]")
+            ((prefix + "adios.ost").c_str(), po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
+             "Number of OST")
+            ((prefix + "adios.disable-meta").c_str(), po::bool_switch (&mThreadParams.adiosDisableMeta)->default_value(false),
+             "Disable online gather and write of a global meta file, can be time consuming (use `bpmeta` post-mortem)")
+            ((prefix + "adios.transport-params").c_str(), po::value<std::string > (&mThreadParams.adiosTransportParams),
+             "additional transport parameters, see ADIOS manual chapter 6.1.5, e.g., 'random_offset=1;stripe_count=4'")
+            ((prefix + "adios.compression").c_str(), po::value<std::string >
+             (&mThreadParams.adiosCompression)->default_value("none"),
+             "ADIOS compression method, e.g., zlib (see `adios_config -m` for help)");
     }
 
     std::string pluginGetName() const
@@ -583,18 +587,49 @@ public:
 
     void notify(uint32_t currentStep)
     {
-        notificationReceived(currentStep, false);
+        __getTransactionEvent().waitForFinished();
+
+        /* if file name is relative, prepend with common directory */
+        if( boost::filesystem::path(filename).has_root_path() )
+            mThreadParams.adiosFilename = filename;
+        else
+            mThreadParams.adiosFilename = outputDirectory + "/" + filename;
+
+        /* window selection */
+        mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
+        mThreadParams.isCheckpoint = false;
+        dumpData(currentStep);
     }
 
-    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+    void dumpCheckpoint(
+        const uint32_t currentStep,
+        const std::string& checkpointDirectory,
+        const std::string& checkpointFilename
+    )
     {
-        this->checkpointDirectory = checkpointDirectory;
+        __getTransactionEvent().waitForFinished();
+        /* if file name is relative, prepend with common directory */
+        if( boost::filesystem::path(checkpointFilename).has_root_path() )
+            mThreadParams.adiosFilename = checkpointFilename;
+        else
+            mThreadParams.adiosFilename = checkpointDirectory + "/" + checkpointFilename;
 
-        notificationReceived(currentStep, true);
+        mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
+        mThreadParams.isCheckpoint = true;
+
+        dumpData(currentStep);
     }
 
-    void restart(uint32_t restartStep, const std::string restartDirectory)
+    void doRestart(
+        const uint32_t restartStep,
+        const std::string& restartDirectory,
+        const std::string& constRestartFilename,
+        const uint32_t restartChunkSize
+    )
     {
+        // allow to modify the restart file name
+        std::string restartFilename{ constRestartFilename };
+
         std::stringstream adiosPathBase;
         adiosPathBase << ADIOS_PATH_ROOT << restartStep << "/";
         mThreadParams.adiosBasePath = adiosPathBase.str();
@@ -769,36 +804,12 @@ private:
      * Notification for dump or checkpoint received
      *
      * @param currentStep current simulation step
-     * @param isCheckpoint checkpoint notification
      */
-    void notificationReceived(uint32_t currentStep, bool isCheckpoint)
+    void dumpData(uint32_t currentStep)
     {
         const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-        mThreadParams.isCheckpoint = isCheckpoint;
-        mThreadParams.currentStep = currentStep;
         mThreadParams.cellDescription = this->cellDescription;
-
-        __getTransactionEvent().waitForFinished();
-
-        std::string bpFilename( filename );
-        std::string bpFiledir( outputDirectory );
-        if( isCheckpoint )
-        {
-            bpFilename = checkpointFilename;
-            bpFiledir = checkpointDirectory;
-        }
-
-        /* if file name is relative, prepend with common directory */
-        if( boost::filesystem::path(bpFilename).has_root_path() )
-            mThreadParams.adiosFilename = bpFilename;
-        else
-            mThreadParams.adiosFilename = bpFiledir + "/" + bpFilename;
-
-        /* window selection */
-        if( isCheckpoint )
-            mThreadParams.window = MovingWindow::getInstance().getDomainAsWindow(currentStep);
-        else
-            mThreadParams.window = MovingWindow::getInstance().getWindow(currentStep);
+        mThreadParams.currentStep = currentStep;
 
         for (uint32_t i = 0; i < simDim; ++i)
         {
@@ -810,7 +821,6 @@ private:
                     localDomain.offset[i];
             }
         }
-
 
         /* copy species only one time per timestep to the host */
         if( lastSpeciesSyncStep != currentStep )
@@ -881,11 +891,6 @@ private:
             strMPITransportParams << ";" << mThreadParams.adiosTransportParams;
 
         mpiTransportParams = strMPITransportParams.str();
-
-        if( restartFilename.empty() )
-        {
-            restartFilename = checkpointFilename;
-        }
 
         loaded = true;
     }
@@ -1132,15 +1137,11 @@ private:
 
     uint32_t notifyPeriod;
     std::string filename;
-    std::string checkpointFilename;
-    std::string restartFilename;
     std::string outputDirectory;
-    std::string checkpointDirectory;
 
     /* select MPI method, #OSTs and #aggregators */
     std::string mpiTransportParams;
 
-    uint32_t restartChunkSize;
     uint32_t lastSpeciesSyncStep;
 
     DataSpace<simDim> mpi_pos;

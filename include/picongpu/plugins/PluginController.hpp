@@ -68,6 +68,7 @@
 #   include "picongpu/plugins/hdf5/HDF5Writer.hpp"
 #endif
 
+#include "picongpu/plugins/Checkpoint.hpp"
 #include "picongpu/plugins/ResourceLog.hpp"
 
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
@@ -117,6 +118,7 @@ private:
 
     /* define stand alone plugins*/
     typedef bmpl::vector<
+        Checkpoint,
         EnergyFields
 #if (ENABLE_ADIOS == 1)
         , adios::ADIOSWriter

@@ -290,17 +290,17 @@ public:
     {
         desc.add_options()
             ("steps,s", po::value<uint32_t > (&runSteps), "Simulation steps")
-            ("softRestarts", po::value<uint32_t > (&softRestarts)->default_value(0),
+            ("checkpoint.restart.loop", po::value<uint32_t > (&softRestarts)->default_value(0),
              "Number of times to restart the simulation after simulation has finished (for presentations). "
              "Note: does not yet work with all plugins, see issue #1305")
             ("percent,p", po::value<uint16_t > (&progress)->default_value(5),
              "Print time statistics after p percent to stdout")
-            ("restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
-            ("restart-directory", po::value<std::string>(&restartDirectory)->default_value(restartDirectory),
+            ("checkpoint.restart", po::value<bool>(&restartRequested)->zero_tokens(), "Restart simulation")
+            ("checkpoint.restart.directory", po::value<std::string>(&restartDirectory)->default_value(restartDirectory),
              "Directory containing checkpoints for a restart")
-            ("restart-step", po::value<int32_t>(&restartStep), "Checkpoint step to restart from")
-            ("checkpoints", po::value<uint32_t>(&checkpointPeriod), "Period for checkpoint creation")
-            ("checkpoint-directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
+            ("checkpoint.restart.step", po::value<int32_t>(&restartStep), "Checkpoint step to restart from")
+            ("checkpoint.period", po::value<uint32_t>(&checkpointPeriod), "Period for checkpoint creation")
+            ("checkpoint.directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
              "Directory for checkpoints")
             ("author", po::value<std::string>(&author)->default_value(std::string("")),
              "The author that runs the simulation and is responsible for created output files");
