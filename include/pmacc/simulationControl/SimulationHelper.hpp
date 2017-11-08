@@ -290,7 +290,7 @@ public:
     {
         desc.add_options()
             ("steps,s", po::value<uint32_t > (&runSteps), "Simulation steps")
-            ("checkpoint.restart.soft", po::value<uint32_t > (&softRestarts)->default_value(0),
+            ("checkpoint.restart.loop", po::value<uint32_t > (&softRestarts)->default_value(0),
              "Number of times to restart the simulation after simulation has finished (for presentations). "
              "Note: does not yet work with all plugins, see issue #1305")
             ("percent,p", po::value<uint16_t > (&progress)->default_value(5),

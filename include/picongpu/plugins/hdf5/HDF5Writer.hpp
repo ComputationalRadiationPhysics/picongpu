@@ -89,6 +89,10 @@ class HDF5Writer : public IIOBackend
 {
 public:
 
+    /** constructor
+     *
+     * @param isIndependent if `true`: class register itself to PluginConnector
+     */
     HDF5Writer(bool isIndependent = true) :
     filename("simData"),
     outputDirectory("h5"),

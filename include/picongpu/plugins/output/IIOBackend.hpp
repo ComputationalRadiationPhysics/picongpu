@@ -1,5 +1,4 @@
-/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Alexander Grund
+/* Copyright 2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -25,51 +24,58 @@
 #include <string>
 #include <memory>
 
+
 namespace picongpu
 {
 
-//! Interface for IO-backends with restart capability
-class IIOBackend : public ILightweightPlugin
-{
-public:
-
-
-    IIOBackend()
+    //! Interface for IO-backends with restart capability
+    class IIOBackend : public ILightweightPlugin
     {
+    public:
 
-    }
 
-    template< typename T_IOBackend >
-    static std::shared_ptr<IIOBackend> create( bool const isIndependent = true )
-    {
-        return std::shared_ptr<IIOBackend>( new T_IOBackend( isIndependent ) );
-    }
+        IIOBackend()
+        {
 
-    virtual ~IIOBackend()
-    {
+        }
 
-    }
+        /** create a instance of an interface
+         *
+         * @tparam T_IOBackend type of the interface implementation (must inherit from IIOBackend)
+         * @param isIndependent if `true`: class must be register itself to PluginConnector else
+         *                      class is not allowed to register itself
+         */
+        template< typename T_IOBackend >
+        static std::shared_ptr< IIOBackend > create( bool const isIndependent = true )
+        {
+            return std::shared_ptr< IIOBackend >( new T_IOBackend( isIndependent ) );
+        }
 
-    //! create a checkpoint
-    virtual void dumpCheckpoint(
-        uint32_t currentStep,
-        std::string const & checkpointDirectory,
-        std::string const & checkpointFilename
-    ) = 0;
+        virtual ~IIOBackend()
+        {
 
-    //! restart from a checkpoint
-    virtual void doRestart(
-        uint32_t restartStep,
-        std::string const & restartDirectory,
-        std::string const & restartFilename,
-        uint32_t restartChunkSize
-    ) = 0;
+        }
 
-    virtual void expandHelp(
-        std::string const & prefix,
-        boost::program_options::options_description & desc
-    ) = 0;
+        //! create a checkpoint
+        virtual void dumpCheckpoint(
+            uint32_t currentStep,
+            std::string const & checkpointDirectory,
+            std::string const & checkpointFilename
+        ) = 0;
 
-};
+        //! restart from a checkpoint
+        virtual void doRestart(
+            uint32_t restartStep,
+            std::string const & restartDirectory,
+            std::string const & restartFilename,
+            uint32_t restartChunkSize
+        ) = 0;
 
-} //namespace picongpu
+        virtual void expandHelp(
+            std::string const & prefix,
+            boost::program_options::options_description & desc
+        ) = 0;
+
+    };
+
+} // namespace picongpu

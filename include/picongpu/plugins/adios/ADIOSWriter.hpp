@@ -524,6 +524,10 @@ private:
 
 public:
 
+    /** constructor
+     *
+     * @param isIndependent if `true`: class register itself to PluginConnector
+     */
     ADIOSWriter(bool isIndependent = true) :
     filename("simData"),
     outputDirectory("bp"),

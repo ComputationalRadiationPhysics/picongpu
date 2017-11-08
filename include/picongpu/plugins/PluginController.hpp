@@ -118,6 +118,7 @@ private:
 
     /* define stand alone plugins*/
     typedef bmpl::vector<
+        Checkpoint,
         EnergyFields
 #if (ENABLE_ADIOS == 1)
         , adios::ADIOSWriter
@@ -138,7 +139,6 @@ private:
 #if (ENABLE_HDF5 == 1)
         , hdf5::HDF5Writer
 #endif
-        , Checkpoint
         , ResourceLog
     > StandAlonePlugins;
 

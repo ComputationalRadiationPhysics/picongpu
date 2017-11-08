@@ -1,5 +1,4 @@
-/* Copyright 2013-2017 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Alexander Grund
+/* Copyright 2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -32,11 +31,11 @@
 #endif
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 
-
 #include <string>
 #include <map>
 #include <memory>
 #include <stdexcept>
+
 
 namespace picongpu
 {
@@ -180,7 +179,7 @@ namespace picongpu
             if( !ioBackends.empty( ) && cBackend == ioBackends.end( ) )
                 throw std::runtime_error( std::string( "IO-backend " ) +
                     checkpointBackendName +
-                    " not found, possible backends " +
+                    " for checkpoints not found, possible backends: " +
                     activeBackends
                 );
 
@@ -188,11 +187,11 @@ namespace picongpu
             if( !ioBackends.empty( ) && rBackend == ioBackends.end( ) )
                 throw std::runtime_error( std::string( "IO-backend " ) +
                     restartBackendName +
-                    " not found, possible backends " +
+                    " for restarts not found, possible backends: " +
                     activeBackends
                 );
 
-            if (restartFilename == "")
+            if( restartFilename.empty( ) )
             {
                 restartFilename = checkpointFilename;
             }
