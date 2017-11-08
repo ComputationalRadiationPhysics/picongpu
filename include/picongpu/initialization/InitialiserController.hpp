@@ -128,7 +128,15 @@ public:
                                  (1./math::sqrt(INV_CELL2_SUM)) %
                                  (SPEED_OF_LIGHT * DELTA_T);
 
-            ForEach<VectorAllSpecies, LogOmegaP<> > logOmegaP;
+            using SpeciesWithMass = typename pmacc::particles::traits::FilterByFlag<
+                VectorAllSpecies,
+                massRatio<>
+            >::type;
+            using SpeciesWithMassCharge = typename pmacc::particles::traits::FilterByFlag<
+                SpeciesWithMass,
+                chargeRatio<>
+            >::type;
+            ForEach< SpeciesWithMassCharge, LogOmegaP<> > logOmegaP;
             logOmegaP();
 
             if (laserProfile::INIT_TIME > float_X(0.0))
