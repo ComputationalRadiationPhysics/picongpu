@@ -450,6 +450,13 @@ namespace thomasFermi
      */
     constexpr float_X CUTOFF_LOW_DENSITY = 1.7422e27; // m^-3 - critical density 800nm laser
 
+    /** low temperature cutoff
+     *
+     * The Thomas-Fermi model predicts initial ionization for many materials of
+     * solid density even when the electron temperature is 0.
+     */
+    constexpr float_X CUTOFF_LOW_TEMPERATURE_EV = 1.0;
+
 } // namespace thomasFermi
 } // namespace ionization
 } // namespace particles
