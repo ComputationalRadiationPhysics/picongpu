@@ -21,15 +21,26 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasIdentifiers.hpp>
+
 #include <vector>
 
 
 namespace picongpu
 {
+namespace particles
+{
 namespace particleToGrid
 {
 namespace derivedAttributes
 {
+    /** Density Operation for Particle to Grid Projections
+     *
+     * Derives a scalar density field from a particle species at runtime.
+     * Each value is mapped per cell according to the species' spatial shape.
+     */
     struct Density
     {
 
@@ -72,6 +83,29 @@ namespace derivedAttributes
         DINLINE float_X
         operator()( T_Particle& particle ) const;
     };
-} /* namespace derivedAttributes */
-} /* namespace particleToGrid */
-} /* namespace picongpu */
+} // namespace derivedAttributes
+} // namespace particleToGrid
+
+namespace traits
+{
+    template< typename T_Species >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        particleToGrid::derivedAttributes::Density
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting,
+            position<>
+        >;
+
+        using type = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu

@@ -20,22 +20,34 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/static_assert.hpp>
 #include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/static_assert.hpp>
+
 #include <vector>
 
 
 namespace picongpu
 {
+namespace particles
+{
 namespace particleToGrid
 {
 namespace derivedAttributes
 {
-    /** Calculate the ratio of momentum in a selected direction to total momentum.
+    /** Momentum Ratio Operation for Particle to Grid Projections
      *
-     * \tparam size_t with perpendicular direction x=0, y=1, z=2
+     * Calculate the ratio of momentum in a selected direction to total momentum.
+     * Derives a scalar field with ratio between a selected momentum component and
+     * total momentum from a particle species at runtime. Results are in the range
+     * [ -1. : 1. ], resting particles are set to 0.
+     * Each value is mapped per cell according to the species' spatial shape.
+     *
+     * @param T_direction perpendicular direction x=0, y=1, z=2
      */
-    template <size_t T_direction>
+    template< size_t T_direction >
     struct MomentumComponent
     {
         PMACC_CASSERT_MSG( Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param, ((T_direction)>=0) );
@@ -81,4 +93,30 @@ namespace derivedAttributes
     };
 } // namespace derivedAttributes
 } // namespace particleToGrid
+
+namespace traits
+{
+    template<
+        typename T_Species,
+        size_t T_direction
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        particleToGrid::derivedAttributes::MomentumComponent< T_direction >
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        using RequiredIdentifiers = MakeSeq_t<
+            position<>,
+            momentum
+        >;
+
+        using type = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+    };
+} // namespace traits
+} // namespace particles
 } // namespace picongpu

@@ -32,344 +32,203 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/traits/GetShape.hpp"
-#include "picongpu/particles/particleToGrid/derivedAttributes/DerivedAttributes.def"
+#include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
+
+#include <pmacc/compileTime/conversion/ToSeq.hpp>
 
 #include <boost/mpl/int.hpp>
+#include <boost/mpl/placeholders.hpp>
+
 #include <vector>
 
 
 namespace picongpu
 {
+namespace particles
+{
 namespace particleToGrid
 {
-template<class T_ParticleShape, class T_DerivedAttribute>
-class ComputeGridValuePerFrame
-{
-public:
-
-    typedef typename T_ParticleShape::ChargeAssignment AssignmentFunction;
-    static constexpr int supp = AssignmentFunction::support;
-
-    static constexpr int lowerMargin = supp / 2;
-    static constexpr int upperMargin = (supp + 1) / 2;
-    typedef typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int<simDim, upperMargin>::type UpperMargin;
-
-    HDINLINE ComputeGridValuePerFrame()
+    template<class T_ParticleShape, class T_DerivedAttribute>
+    class ComputeGridValuePerFrame
     {
-    }
+    public:
 
-    /** return unit for this solver
+        typedef typename T_ParticleShape::ChargeAssignment AssignmentFunction;
+        static constexpr int supp = AssignmentFunction::support;
+
+        static constexpr int lowerMargin = supp / 2;
+        static constexpr int upperMargin = (supp + 1) / 2;
+        typedef typename pmacc::math::CT::make_Int<simDim, lowerMargin>::type LowerMargin;
+        typedef typename pmacc::math::CT::make_Int<simDim, upperMargin>::type UpperMargin;
+
+        HDINLINE ComputeGridValuePerFrame()
+        {
+        }
+
+        /** return unit for this solver
+         *
+         * @return solver unit
+         */
+        HDINLINE float1_64 getUnit() const;
+
+        /** return powers of the 7 base measures for this solver
+         *
+         * characterizing the unit of the result of the solver in SI
+         * (length L, mass M, time T, electric current I,
+         *  thermodynamic temperature theta, amount of substance N,
+         *  luminous intensity J) */
+        HINLINE std::vector<float_64> getUnitDimension() const;
+
+        /** return name of the this solver
+         * @return name of solver
+         */
+        HINLINE std::string getName() const;
+
+        template<
+            typename FrameType,
+            typename TVecSuperCell,
+            typename BoxTmp,
+            typename T_Acc >
+        DINLINE void operator()(
+            T_Acc const & acc,
+            FrameType& frame,
+            const int localIdx,
+            const TVecSuperCell superCell,
+            BoxTmp& tmpBox
+        );
+    };
+
+namespace detail
+{
+    /** Most derived fields just operate on the particle shape
      *
-     * @return solver unit
+     * But some "debug" diagnostics just need the nearest cell, e.g. for
+     * counting, so we specialize such options here.
      */
-    HDINLINE float1_64 getUnit() const;
+    template<
+        typename T_Species,
+        typename T_DerivedAttribute
+    >
+    struct GetAttributeShape
+    {
+        using type = typename GetShape< T_Species >::type;
+    };
 
-    /** return powers of the 7 base measures for this solver
-     *
-     * characterizing the unit of the result of the solver in SI
-     * (length L, mass M, time T, electric current I,
-     *  thermodynamic temperature theta, amount of substance N,
-     *  luminous intensity J) */
-    HINLINE std::vector<float_64> getUnitDimension() const;
-
-    /** return name of the this solver
-     * @return name of solver
-     */
-    HINLINE std::string getName() const;
+    template< typename T_Species >
+    struct GetAttributeShape<
+        T_Species,
+        derivedAttributes::Counter
+    >
+    {
+        using type = shapes::Counter;
+    };
+    template< typename T_Species >
+    struct GetAttributeShape<
+        T_Species,
+        derivedAttributes::MacroCounter
+    >
+    {
+        using type = shapes::Counter;
+    };
 
     template<
-        typename FrameType,
-        typename TVecSuperCell,
-        typename BoxTmp,
-        typename T_Acc >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        FrameType& frame,
-        const int localIdx,
-        const TVecSuperCell superCell,
-        BoxTmp& tmpBox
-    );
-};
+        typename T_Species,
+        typename T_DerivedAttribute
+    >
+    using GetAttributeShape_t = typename GetAttributeShape<
+        T_Species,
+        T_DerivedAttribute
+    >::type;
 
-/** Density Operation for Particle to Grid Projections
- *
- * Derives a scalar density field from a particle species at runtime.
- * Each value is mapped per cell according to the species' spatial shape.
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- *
- * @typedef CreateDensityOperation< T_Species >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species>
-struct CreateDensityOperation
-{
-    typedef typename GetShape<T_Species>::type shapeType;
-    typedef ComputeGridValuePerFrame<
-        shapeType,
-        particleToGrid::derivedAttributes::Density
-    > ParticleDensity;
+} // namespace detail
 
-    typedef FieldTmpOperation< ParticleDensity, T_Species > type;
-};
+    /** Solver Operation for Particle to Grid Projections
+     *
+     * Derives a scalar field from a particle species at runtime.
+     * Values are mapped to cells according either according to the
+     * species' spatial shape or a specifically overwritten (counter) shape
+     * depending on the implementation of the derived attribute
+     *
+     * @tparam T_Species a see picongpu::Particles class with a species definition,
+     *                   see see speciesDefinition.param
+     *
+     * @tparam T_DerivedAttribute a derived particle attribute from
+     *         picongpu::particles::particleToGrid::derivedAttributes
+     *
+     * @typedef defines a FieldTmpOperation class
+     */
+    template<
+        typename T_Species,
+        typename T_DerivedAttribute
+    >
+    struct CreateFieldTmpOperation
+    {
+        using shapeType = detail::GetAttributeShape_t<
+            T_Species,
+            T_DerivedAttribute
+        >;
 
-/** Charge Density Operation for Particle to Grid Projections
- *
- * Derives a scalar charge density field from a particle species at runtime.
- * Each value is mapped per cell according to the species' spatial shape.
- *
- * @note for species that do not change their charge state, this is identical
- *       to the density times the (constant) particles' charge,
- *       @see CreateDensityOperation
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- *
- * @typedef CreateChargeDensityOperation< T_Species >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species>
-struct CreateChargeDensityOperation
-{
-    typedef typename GetShape<T_Species>::type shapeType;
-    typedef ComputeGridValuePerFrame<
-        shapeType,
-        particleToGrid::derivedAttributes::ChargeDensity
-    > ParticleChargeDensity;
+        using OperationPerFrame = ComputeGridValuePerFrame<
+            shapeType,
+            T_DerivedAttribute
+        >;
+        using type = FieldTmpOperation<
+            OperationPerFrame,
+            T_Species
+        >;
+    };
+    template<
+        typename T_Species,
+        typename T_DerivedAttribute
+    >
+    using CreateFieldTmpOperation_t = typename CreateFieldTmpOperation<
+        T_Species,
+        T_DerivedAttribute
+    >::type;
 
-    typedef FieldTmpOperation< ParticleChargeDensity, T_Species > type;
-};
+    /** Create a list solvers for derived fields for eligible species
+     *
+     * Returns a list of FieldTmpOperation classes.
+     *
+     * @tparam T_SeqSpecies a sequence of particle species to check if they are
+     *                      eligible to derive the attribute T_DerivedAttribute
+     *                      from, also allows a single type instead of a sequence
+     * @tparam T_DerivedAttribute a derived attribute to map to the field grid,
+     *                            see defines in
+     *                            picongpu::particles::particleToGrid::derivedAttributes
+     */
+    template<
+        typename T_SeqSpecies,
+        typename T_DerivedAttribute
+    >
+    struct CreateEligible
+    {
+        // wrap single arguments to sequence
+        using SeqSpecies = typename pmacc::ToSeq< T_SeqSpecies >::type;
+        using DerivedAttribute = T_DerivedAttribute;
 
-/** Current Density Operation for Particle to Grid Projections
- *
- * Derives a scalar field with density * charge * velocity_component from a
- * particle species at runtime.
- * Each value is mapped per cell according to the species' spatial shape.
- *
- * @note Mainly useful for debug purposes, e.g. when implementing a new current
- *       solver.
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- *
- * @typedef CreateMidCurrentDensityComponentOperation< T_Species >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species, typename T_Direction = bmpl::int_<0> >
-struct CreateMidCurrentDensityComponentOperation
-{
-    typedef typename GetShape<T_Species>::type shapeType;
-    typedef ComputeGridValuePerFrame<
-        shapeType,
-        particleToGrid::derivedAttributes::MidCurrentDensityComponent<T_Direction::value>
-    > ParticleMidCurrentDensityComponent;
+        using type = typename traits::GenerateSolversIfSpeciesEligible<
+            CreateFieldTmpOperation<
+                bmpl::_1,
+                DerivedAttribute
+            >,
+            SeqSpecies,
+            DerivedAttribute
+        >::type;
+    };
 
-    typedef FieldTmpOperation< ParticleMidCurrentDensityComponent, T_Species > type;
-};
+    template<
+        typename T_SeqSpecies,
+        typename T_DerivedAttribute
+    >
+    using CreateEligible_t = typename CreateEligible<
+        T_SeqSpecies,
+        T_DerivedAttribute
+    >::type;
 
-/** Real-Particle Counter Operation for Particle to Grid Projections
- *
- * Derives a scalar field with real particle numbers per cell from a particle
- * species at runtime.
- * Each macro particle's weighting is assigned straight to the cell it belongs
- * to, which is in most cases a floor operation in space (and not necessarily
- * the "nearest" cell-origin).
- *
- * @note Use this only for debug purposes, since the deposition "shape" is
- *       non-physical (inconsistent with charge & momentum-conserving shapes).
- *       Be aware that this is NOT the same as NGP (0. order shape) assignment
- *       in a staggered grid.
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- *
- * @typedef CreateCounterOperation< T_Species >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species>
-struct CreateCounterOperation
-{
-    typedef ComputeGridValuePerFrame<
-        particles::shapes::Counter,
-        particleToGrid::derivedAttributes::Counter
-    > ParticleCounter;
-
-    typedef FieldTmpOperation< ParticleCounter, T_Species > type;
-};
-
-/** Macro-Particle Counter Operation for Particle to Grid Projections
- *
- * Derives a scalar field with number of macro particles per cell from a particle
- * species at runtime.
- * Each macro particle is counted straight to the cell it belongs to, which is
- * in most cases as floor operation in space (and not necessarily the "nearest"
- * cell-origin).
- *
- * @note Use this only for debug purposes, e.g. to validate particle memory.
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- *
- * @typedef CreateMacroCounterOperation< T_Species >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species>
-struct CreateMacroCounterOperation
-{
-    typedef ComputeGridValuePerFrame<
-        particles::shapes::Counter,
-        particleToGrid::derivedAttributes::MacroCounter
-    > MacroParticleCounter;
-
-    typedef FieldTmpOperation< MacroParticleCounter, T_Species > type;
-};
-
-/** Energy Density Operation for Particle to Grid Projections
- *
- * Derives a scalar field for average kinetic particle energy per cell times the
- * particle density from a particle species at runtime.
- * Each value is mapped per cell according to the species' spatial shape.
- *
- * @note this is the same as the sum of kinetic particle energy
- *       divided by a constant for the cell volume
- *       @see CreateEnergyOperation
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- *
- * @typedef CreateEnergyDensityOperation< T_Species >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species>
-struct CreateEnergyDensityOperation
-{
-    typedef typename GetShape<T_Species>::type shapeType;
-    typedef ComputeGridValuePerFrame<
-        shapeType,
-        particleToGrid::derivedAttributes::EnergyDensity
-    > ParticleEnergyDensity;
-
-    typedef FieldTmpOperation< ParticleEnergyDensity, T_Species > type;
-};
-
-/** Energy Density Operation with Maxmimum Energy Cut-Off for Particle to Grid Projections
- *
- * Derives a scalar field for average kinetic particle energy per cell times the
- * particle density from a particle species at runtime.
- * Each value is mapped per cell according to the species' spatial shape.
- *
- * @note Only energies below a user-definable cut-off energy are taken for
- *       calculation!
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- *
- * @typedef CreateEnergyDensityCutoffOperation< T_Species >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species, typename T_ParamClass>
-struct CreateEnergyDensityCutoffOperation
-{
-    typedef typename GetShape<T_Species>::type shapeType;
-    typedef ComputeGridValuePerFrame<
-        shapeType,
-        particleToGrid::derivedAttributes::EnergyDensityCutoff< T_ParamClass >
-    > ParticleEnergyDensityCutoff;
-
-    typedef FieldTmpOperation< ParticleEnergyDensityCutoff, T_Species > type;
-};
-
-/** Kinetic Energy Operation for Particle to Grid Projections
- *
- * Derives a scalar field for summed kinetic particle energy from a particle
- * species at runtime.
- * Each value is mapped per cell according to the species' spatial shape.
- *
- * @note this is the same as @see CreateEnergyDensityOperation times the cell
- *       volume
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- *
- * @typedef CreateEnergyOperation< T_Species >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species>
-struct CreateEnergyOperation
-{
-    typedef typename GetShape<T_Species>::type shapeType;
-    typedef ComputeGridValuePerFrame<
-        shapeType,
-        particleToGrid::derivedAttributes::Energy
-    > ParticleEnergy;
-
-    typedef FieldTmpOperation< ParticleEnergy, T_Species > type;
-};
-
-/** Momentum Ratio Operation for Particle to Grid Projections
- *
- * Derives a scalar field with ratio between a selected momentum component and
- * total momentum from a particle species at runtime. Results are in the range
- * [ -1. : 1. ], resting particles are set to 0.
- * Each value is mapped per cell according to the species' spatial shape.
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- * @tparam T_Direction a @see boost::mpl::int_< int > variable with int as:
- *                     0=X (default), 1=Y or 2=Z, example: bmpl::int_<1>
- *
- * @typedef CreateMomentumComponentOperation< T_Species, T_Direction >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species, typename T_Direction = bmpl::int_<0> >
-struct CreateMomentumComponentOperation
-{
-    typedef typename GetShape<T_Species>::type shapeType;
-    typedef ComputeGridValuePerFrame<
-        shapeType,
-        particleToGrid::derivedAttributes::MomentumComponent<T_Direction::value>
-    > ParticleMomentumComponent;
-
-    typedef FieldTmpOperation< ParticleMomentumComponent, T_Species > type;
-};
-
-/** Radiated Larmor Power Operation for Particle to Grid Projections
- *
- * Derives a scalar field with the radiated power according to the Larmor
- * formula from a particle species at runtime.
- * Each value is mapped per cell according to the species' spatial shape.
- *
- * @tparam T_Species a @see picongpu::Particles class with a species definition,
- *                   see @see speciesDefinition.param
- *
- * @typedef CreateLarmorPowerOperation< T_Species >::type
- *          a field that can be used in @see fileOutput.param
- *          @see picongpu::FileOutputFields
- */
-template<typename T_Species>
-struct CreateLarmorPowerOperation
-{
-    typedef typename GetShape<T_Species>::type shapeType;
-    typedef ComputeGridValuePerFrame<
-        shapeType,
-        particleToGrid::derivedAttributes::LarmorPower
-    > ParticleLarmorPower;
-
-    typedef FieldTmpOperation< ParticleLarmorPower, T_Species > type;
-};
-
-} /* namespace particleToGrid */
-} /* namespace picongpu */
+} // namespace particleToGrid
+} // namespace particles
+} // namespace picongpu
