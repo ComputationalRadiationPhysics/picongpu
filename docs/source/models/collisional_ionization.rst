@@ -41,6 +41,16 @@ We therefore implemented additional conditions to mediate unphysical behavior bu
     It is strongly suggested to do approximations for **every** setup or material first.
     To that end, a parameter scan with [FLYCHK]_ can help in choosing a reasonable value.
 
+3. Low electron-temperature cutoff
+
+    Depending on the material the Thomas-Fermi prediction for the average charge
+    state can be unphysically high. For some materials it predicts non-zero
+    charge states at 0 temperature. That can be a reasonable approximation
+    for metals and their electrons in the conduction band.
+    Yet this cannot be generalized for all materials and therefore a cutoff should be explicitly defined.
+
+    - define via ``CUTOFF_LOW_TEMPERATURE_EV`` in ``ionizer.param``
+
 NLTE Models
 -----------
 
