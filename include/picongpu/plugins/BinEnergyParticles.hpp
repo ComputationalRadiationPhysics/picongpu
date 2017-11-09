@@ -25,6 +25,7 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/algorithms/KinEnergy.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
@@ -38,8 +39,12 @@
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
 
 #include "common/txtFileHandling.hpp"
+
+#include <boost/mpl/and.hpp>
 
 #include <string>
 #include <iostream>
@@ -559,7 +564,42 @@ private:
 
 };
 
-}
+namespace particles
+{
+namespace traits
+{
+    template<
+        typename T_Species
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        BinEnergyParticles< T_Species >
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
 
+        // this plugin needs at least the weighting and momentum attributes
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting,
+            momentum
+        >;
 
+        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
 
+        // and also a mass ratio for energy calculation from momentum
+        using SpeciesHasFlags = typename pmacc::traits::HasFlag<
+            FrameType,
+            massRatio<>
+        >::type;
+
+        using type = typename bmpl::and_<
+            SpeciesHasIdentifiers,
+            SpeciesHasFlags
+        >;
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu

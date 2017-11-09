@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Heiko Burau, Rene Widera
+/* Copyright 2013-2017 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -19,9 +19,17 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-#include <boost/shared_ptr.hpp>
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
 #include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+
+#include <boost/mpl/and.hpp>
+#include <boost/shared_ptr.hpp>
+
 
 namespace picongpu
 {
@@ -63,6 +71,44 @@ public:
     std::string pluginGetName() const;
 };
 
-}
+namespace particles
+{
+namespace traits
+{
+    template<
+        typename T_Species
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        ChargeConservation
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        // this plugin needs at least the weighting particle attribute
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting
+        >;
+
+        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+
+        // and also a charge ratio for a charge density
+        using SpeciesHasFlags = typename pmacc::traits::HasFlag<
+            FrameType,
+            chargeRatio<>
+        >::type;
+
+        using type = typename bmpl::and_<
+            SpeciesHasIdentifiers,
+            SpeciesHasFlags
+        >;
+    };
+
+} // namespace traits
+} // namespace particles
+} // namespace picongpu
 
 #include "ChargeConservation.tpp"

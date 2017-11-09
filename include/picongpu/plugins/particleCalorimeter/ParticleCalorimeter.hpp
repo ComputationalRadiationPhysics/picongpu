@@ -24,6 +24,7 @@
 
 #include "picongpu/traits/PICToSplash.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
@@ -38,9 +39,12 @@
 #include <pmacc/cuSTL/algorithm/functor/Add.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
 
 #include <splash/splash.h>
 #include <boost/filesystem.hpp>
+#include <boost/mpl/and.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <string>
@@ -556,4 +560,42 @@ public:
     }
 };
 
+namespace particles
+{
+namespace traits
+{
+    template<
+        typename T_Species
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        ParticleCalorimeter< T_Species >
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        // this plugin needs at least the weighting and momentum attributes
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting,
+            momentum
+        >;
+
+        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+
+        // and also a mass ratio for energy calculation from momentum
+        using SpeciesHasFlags = typename pmacc::traits::HasFlag<
+            FrameType,
+            massRatio<>
+        >::type;
+
+        using type = typename bmpl::and_<
+            SpeciesHasIdentifiers,
+            SpeciesHasFlags
+        >;
+    };
+} // namespace traits
+} // namespace particles
 } // namespace picongpu

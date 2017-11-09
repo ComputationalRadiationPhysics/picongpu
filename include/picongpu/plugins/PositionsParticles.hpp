@@ -21,13 +21,17 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+
+#include <boost/mpl/and.hpp>
 
 #include <string>
 #include <iostream>
@@ -284,4 +288,46 @@ private:
 
 };
 
-}
+namespace particles
+{
+namespace traits
+{
+    template<
+        typename T_Species
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        PositionsParticles< T_Species >
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting,
+            momentum,
+            position<>
+        >;
+
+        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+
+        using SpeciesHasMass = typename pmacc::traits::HasFlag<
+            FrameType,
+            massRatio<>
+        >::type;
+        using SpeciesHasCharge = typename pmacc::traits::HasFlag<
+            FrameType,
+            chargeRatio<>
+        >::type;
+
+        using type = typename bmpl::and_<
+            SpeciesHasIdentifiers,
+            SpeciesHasMass,
+            SpeciesHasCharge
+        >;
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu

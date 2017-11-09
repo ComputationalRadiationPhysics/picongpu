@@ -218,8 +218,25 @@ void ChargeConservation::notify(uint32_t currentStep)
     /* reset density values to zero */
     fieldTmp->getGridBuffer().getDeviceBuffer().setValue(FieldTmp::ValueType(0.0));
 
+    using EligibleSpecies = typename bmpl::copy_if<
+        VectorAllSpecies,
+        particles::traits::SpeciesEligibleForSolver<
+            bmpl::_1,
+            ChargeConservation
+        >
+    >::type;
+
+    // todo: log species that are used / ignored in this plugin with INFO
+
     /* calculate and add the charge density values from all species in FieldTmp */
-    ForEach<VectorAllSpecies, picongpu::detail::ComputeChargeDensity<bmpl::_1,bmpl::int_<CORE + BORDER> >, MakeIdentifier<bmpl::_1> > computeChargeDensity;
+    ForEach<
+        EligibleSpecies,
+        picongpu::detail::ComputeChargeDensity<
+            bmpl::_1,
+            bmpl::int_< CORE + BORDER >
+        >,
+        MakeIdentifier< bmpl::_1 >
+    > computeChargeDensity;
     computeChargeDensity(forward(fieldTmp.get()), currentStep);
 
     /* add results of all species that are still in GUARD to next GPUs BORDER */
