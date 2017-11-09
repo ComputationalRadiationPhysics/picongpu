@@ -35,6 +35,8 @@
 
 namespace picongpu
 {
+namespace particles
+{
 namespace traits
 {
     /** Check Ionizers for RNG Need
@@ -79,4 +81,5 @@ namespace traits
     };
 
 } // namespace traits
+} // namespace particles
 } // namespace picongpu

@@ -21,6 +21,7 @@
 
 #include "picongpu/particles/flylite/helperFields/LocalDensity.hpp"
 #include "picongpu/particles/flylite/helperFields/LocalDensity.kernel"
+#include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 
 // pmacc
 #include <pmacc/types.hpp>
@@ -57,7 +58,7 @@ namespace detail
         using SpeciesType = T_SpeciesType;
         using FrameType = typename SpeciesType::FrameType;
         using ShapeType = typename GetShape< SpeciesType >::type;
-        using Density = ComputeGridValuePerFrame<
+        using Density = particleToGrid::ComputeGridValuePerFrame<
             ShapeType,
             particleToGrid::derivedAttributes::Density
         >;

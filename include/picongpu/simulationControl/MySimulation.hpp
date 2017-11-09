@@ -317,7 +317,7 @@ public:
                                                                 bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
 
         // ... or if ionization methods need an RNG
-        using HasIonizerRNGs = typename traits::HasIonizersWithRNG< VectorAllSpecies >::type;
+        using HasIonizerRNGs = typename particles::traits::HasIonizersWithRNG< VectorAllSpecies >::type;
         constexpr bool hasIonizerRNGs = HasIonizerRNGs::value;
 
         if( !bmpl::empty<AllSynchrotronPhotonsSpecies>::value ||
