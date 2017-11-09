@@ -22,9 +22,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/algorithms/KinEnergy.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/common/txtFileHandling.hpp"
+#include "picongpu/plugins/multi/ISlave.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/multi/IHelp.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
@@ -45,7 +46,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-
+#include <memory>
+#include <stdexcept>
 
 namespace picongpu
 {
@@ -265,58 +267,135 @@ namespace picongpu
     };
 
     template< typename ParticlesType >
-    class EnergyParticles : public ISimulationPlugin
+    class EnergyParticles : public plugins::multi::ISlave
     {
-    private:
-        //! energy values (global on GPU)
-        GridBuffer<
-            float_64,
-            DIM1
-        > * gEnergy;
-        MappingDesc * cellDescription;
-
-        //! periodicity of computing the particle energy
-        uint32_t notifyPeriod;
-
-        //! name (used for output file too)
-        std::string pluginName;
-
-        //! prefix used for command line arguments
-        std::string pluginPrefix;
-
-        //! output file name
-        std::string filename;
-
-        //! file output stream
-        std::ofstream outFile;
-
-        /** only one MPI rank creates a file
-         *
-         * true if this MPI rank creates the file, else false
-         */
-        bool writeToFile;
-
-        //! MPI reduce to add all energies over several GPUs
-        mpi::MPIReduce reduce;
-
     public:
 
-        EnergyParticles( ) :
-            pluginName( "EnergyParticles: calculate the energy of a species" ),
-            pluginPrefix( ParticlesType::FrameType::getName( ) + std::string( "_energy" ) ),
-            filename( pluginPrefix + ".dat" ),
-            gEnergy( nullptr ),
-            cellDescription( nullptr ),
-            notifyPeriod( 0 ),
-            writeToFile( false )
+        struct Help : public plugins::multi::IHelp
         {
-            // register this plugin
-            Environment< >::get( ).PluginConnector( ).registerPlugin( this );
+            //! periodicity of computing the particle energy
+            std::vector< uint32_t > notifyPeriod;
+
+            ///! method used by plugin controller to get --help description
+            void registerHelp(
+                boost::program_options::options_description & desc,
+                std::string const & masterPrefix = std::string{ }
+            )
+            {
+                desc.add_options( )(
+                    ( masterPrefix + prefix + ".period").c_str( ),
+                    boost::program_options::value< std::vector< uint32_t > >( &notifyPeriod )->multitoken( ),
+                    "compute kinetic and total energy [for each n-th step] enable plugin by setting a non-zero value"
+                );
+            }
+
+            void validateOptions()
+            {
+                /* do not allow usage as multi plugin until particle filters are icluded
+                 * @todo remove the error message if particle filters are included
+                 */
+                if( notifyPeriod.size() != 1u )
+                    throw std::runtime_error( name + " is not a multi plugin, each parameter can be only used once." );
+            }
+
+            size_t getNumPlugins() const
+            {
+                return notifyPeriod.size();
+            }
+
+            std::string getDescription() const
+            {
+                return description;
+            }
+
+            std::string getOptionPrefix() const
+            {
+                return prefix;
+            }
+
+            std::string getName() const
+            {
+                return name;
+            }
+
+            std::string const name = "EnergyParticles";
+            //! short description of the plugin
+            std::string const description = "calculate the energy of a species";
+            //! prefix used for command line arguments
+            std::string const prefix = ParticlesType::FrameType::getName( ) + std::string( "_energy" );
+        };
+
+        //! must be implemented by the user
+        static std::shared_ptr< plugins::multi::IHelp > getHelp()
+        {
+            return std::shared_ptr< plugins::multi::IHelp >( new Help{ } );
+        }
+
+        EnergyParticles(
+            std::shared_ptr< plugins::multi::IHelp > & help,
+            size_t const id,
+            MappingDesc* cellDescription
+        ) :
+            m_help( std::static_pointer_cast< Help >(help) ),
+            m_id( id ),
+            m_cellDescription( cellDescription )
+        {
+            filename = m_help->getOptionPrefix() + ".dat";
+
+            // decide which MPI-rank writes output
+            writeToFile = reduce.hasResult( mpi::reduceMethods::Reduce( ) );
+
+            // create two ints on gpu and host
+            gEnergy = new GridBuffer<
+                float_64,
+                DIM1
+            >( DataSpace< DIM1 >( 2 ) );
+
+            // only MPI rank that writes to file
+            if( writeToFile )
+            {
+                // open output file
+                outFile.open(
+                    filename.c_str( ),
+                    std::ofstream::out | std::ostream::trunc
+                );
+
+                // error handling
+                if( !outFile )
+                {
+                    std::cerr <<
+                        "Can't open file [" <<
+                        filename <<
+                        "] for output, diasble plugin output. " <<
+                        std::endl;
+                    writeToFile = false;
+                }
+
+                // create header of the file
+                outFile << "#step Ekin_Joule E_Joule" << " \n";
+            }
+
+            // set how often the plugin should be executed while PIConGPU is running
+            Environment<>::get( ).PluginConnector( ).setNotificationPeriod(
+                this,
+                m_help->notifyPeriod[ id ]
+            );
         }
 
         virtual ~EnergyParticles( )
         {
+            if( writeToFile )
+            {
+                outFile.flush( );
+                // flush cached data to file
+                outFile << std::endl;
 
+                if( outFile.fail( ) )
+                    std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
+                outFile.close( );
+            }
+            // free global memory on GPU
+            __delete( gEnergy );
         }
 
         /** this code is executed if the current time step is supposed to compute
@@ -328,101 +407,10 @@ namespace picongpu
             calculateEnergyParticles < CORE + BORDER > ( currentStep );
         }
 
-        ///! method used by plugin controller to get --help description
-        void pluginRegisterHelp( boost::program_options::options_description& desc )
-        {
-            desc.add_options( )(
-                ( pluginPrefix + ".period").c_str( ),
-                boost::program_options::value< uint32_t >( &notifyPeriod ),
-                "compute kinetic and total energy [for each n-th step] enable plugin by setting a non-zero value"
-            );
-        }
-
-        //! method giving the plugin name (used by plugin control)
-        std::string pluginGetName( ) const
-        {
-            return pluginName;
-        }
-
-        //! set cell description in this plugin
-        void setMappingDescription( MappingDesc *cellDescription )
-        {
-            this->cellDescription = cellDescription;
-        }
-
-    private:
-
-        //! method to initialize plugin output and variables
-        void pluginLoad( )
-        {
-            // only if plugin is called at least once
-            if( notifyPeriod > 0 )
-            {
-                // decide which MPI-rank writes output
-                writeToFile = reduce.hasResult( mpi::reduceMethods::Reduce( ) );
-
-                // create two ints on gpu and host
-                gEnergy = new GridBuffer<
-                    float_64,
-                    DIM1
-                >( DataSpace< DIM1 >( 2 ) );
-
-                // only MPI rank that writes to file
-                if( writeToFile )
-                {
-                    // open output file
-                    outFile.open(
-                        filename.c_str( ),
-                        std::ofstream::out | std::ostream::trunc
-                    );
-
-                    // error handling
-                    if( !outFile )
-                    {
-                        std::cerr <<
-                            "Can't open file [" <<
-                            filename <<
-                            "] for output, diasble plugin output. " <<
-                            std::endl;
-                        writeToFile = false;
-                    }
-
-                    // create header of the file
-                    outFile << "#step Ekin_Joule E_Joule" << " \n";
-                }
-
-                // set how often the plugin should be executed while PIConGPU is running
-                Environment<>::get( ).PluginConnector( ).setNotificationPeriod(
-                    this,
-                    notifyPeriod
-                );
-            }
-        }
-
-        //! method to quit plugin
-        void pluginUnload( )
-        {
-            // only if plugin is called at least once
-            if( notifyPeriod > 0 )
-            {
-                if( writeToFile )
-                {
-                    outFile.flush( );
-                    // flush cached data to file
-                    outFile << std::endl;
-
-                    if( outFile.fail( ) )
-                        std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
-                    outFile.close( );
-                }
-                // free global memory on GPU
-                __delete( gEnergy );
-            }
-        }
 
         void restart(
             uint32_t restartStep,
-            std::string const restartDirectory
+            std::string const & restartDirectory
         )
         {
             if( !writeToFile )
@@ -438,7 +426,7 @@ namespace picongpu
 
         void checkpoint(
             uint32_t currentStep,
-            std::string const checkpointDirectory
+            std::string const & checkpointDirectory
         )
         {
             if( !writeToFile )
@@ -451,7 +439,7 @@ namespace picongpu
                 checkpointDirectory
             );
         }
-
+    private:
         //! method to call analysis and plugin-kernel calls
         template< uint32_t AREA >
         void calculateEnergyParticles( uint32_t currentStep )
@@ -474,7 +462,7 @@ namespace picongpu
             AreaMapping<
                 AREA,
                 MappingDesc
-            > mapper( *cellDescription );
+            > mapper( *m_cellDescription );
 
             PMACC_KERNEL( KernelEnergyParticles< numWorkers >{ } )(
                 mapper.getGridDim( ),
@@ -515,6 +503,31 @@ namespace picongpu
             }
         }
 
+        //! energy values (global on GPU)
+        GridBuffer<
+            float_64,
+            DIM1
+        > * gEnergy = nullptr;
+
+        MappingDesc* m_cellDescription;
+
+        //! output file name
+        std::string filename;
+
+        //! file output stream
+        std::ofstream outFile;
+
+        /** only one MPI rank creates a file
+         *
+         * true if this MPI rank creates the file, else false
+         */
+        bool writeToFile = false;
+
+        //! MPI reduce to add all energies over several GPUs
+        mpi::MPIReduce reduce;
+
+        std::shared_ptr< Help > m_help;
+        size_t m_id;
     };
 
 namespace particles
