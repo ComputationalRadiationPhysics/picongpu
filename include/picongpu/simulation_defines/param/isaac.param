@@ -54,10 +54,10 @@ namespace isaacP
 
     /** Intermediate list of particle species, from which density fields
      *  shall be created at runtime to visualize them. */
-    using Density_Seq = bmpl::transform<
+    using Density_Seq = deriveField::CreateEligible_t<
         VectorAllSpecies,
-        CreateDensityOperation< bmpl::_1 >
-    >::type;
+        deriveField::derivedAttributes::Density
+    >;
 
     /** Compile time sequence of all fields which shall be visualized. Basically
      *  the join of Native_Seq and Density_Seq. */
