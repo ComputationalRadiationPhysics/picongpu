@@ -48,6 +48,7 @@
 #include <boost/type_traits.hpp>
 
 #include <string>
+#include <type_traits>
 
 
 namespace picongpu
@@ -62,6 +63,66 @@ TYPE_ARRAY(UInt64_5, H5T_INTEL_U64, uint64_t, 5);
 
 using namespace splash;
 
+namespace detail
+{
+    template< typename T_FrameType >
+    struct GetChargeOrZero
+    {
+        static constexpr bool hasChargeRatio = pmacc::traits::HasFlag<
+            T_FrameType,
+            chargeRatio<>
+        >::type::value;
+
+        template< typename T_Defer = float_X >
+        typename std::enable_if<
+            hasChargeRatio,
+            T_Defer
+        >::type
+        operator()() const
+        {
+            return frame::getCharge< T_FrameType >();
+        }
+
+        template< typename T_Defer = float_X >
+        typename std::enable_if<
+            !hasChargeRatio,
+            T_Defer
+        >::type
+        operator()() const
+        {
+            return float_X( 0. );
+        }
+    };
+
+    template< typename T_FrameType >
+    struct GetMassOrZero
+    {
+        static constexpr bool hasMassRatio = pmacc::traits::HasFlag<
+            T_FrameType,
+            massRatio<>
+        >::type::value;
+
+        template< typename T_Defer = float_X >
+        typename std::enable_if<
+            hasMassRatio,
+            T_Defer
+        >::type
+        operator()() const
+        {
+            return frame::getMass< T_FrameType >();
+        }
+
+        template< typename T_Defer = float_X >
+        typename std::enable_if<
+            !hasMassRatio,
+            T_Defer
+        >::type
+        operator()() const
+        {
+            return float_X( 0. );
+        }
+    };
+}
 
 /** Write copy particle to host memory and dump to HDF5 file
  *
@@ -248,9 +309,10 @@ public:
             FrameType,
             boundElectrons
         >::type;
-        if( ! hasBoundElectrons::value )
+        detail::GetChargeOrZero< FrameType > const getChargeOrZero;
+        if( ! hasBoundElectrons::value && getChargeOrZero.hasChargeRatio )
         {
-            const float_64 charge( frame::getCharge<FrameType>() );
+            const float_64 charge( getChargeOrZero() );
             std::vector<float_64> chargeUnitDimension( NUnitDimension, 0.0 );
             chargeUnitDimension.at(SIBaseUnits::time) = 1.0;
             chargeUnitDimension.at(SIBaseUnits::electricCurrent) = 1.0;
@@ -265,18 +327,22 @@ public:
             );
         }
 
-        const float_64 mass( frame::getMass<FrameType>() );
-        std::vector<float_64> massUnitDimension( NUnitDimension, 0.0 );
-        massUnitDimension.at(SIBaseUnits::mass) = 1.0;
+        detail::GetMassOrZero< FrameType > const getMassOrZero;
+        if( getMassOrZero.hasMassRatio )
+        {
+            const float_64 mass( getMassOrZero() );
+            std::vector<float_64> massUnitDimension( NUnitDimension, 0.0 );
+            massUnitDimension.at(SIBaseUnits::mass) = 1.0;
 
-        writeConstantRecord(
-            params,
-            speciesPath + std::string("/mass"),
-            numParticlesGlobal,
-            mass,
-            UNIT_MASS,
-            massUnitDimension
-        );
+            writeConstantRecord(
+                params,
+                speciesPath + std::string("/mass"),
+                numParticlesGlobal,
+                mass,
+                UNIT_MASS,
+                massUnitDimension
+            );
+        }
 
         /* openPMD ED-PIC: write additional attributes */
         const float_64 particleShape( GetShape<T_Species>::type::support - 1 );
