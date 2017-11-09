@@ -17,22 +17,24 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/algorithms/Velocity.hpp"
 
-
 #include "picongpu/particles/pusher/particlePusherBoris.hpp"
 #include "picongpu/particles/pusher/particlePusherVay.hpp"
 #include "picongpu/particles/pusher/particlePusherFree.hpp"
 #include "picongpu/particles/pusher/particlePusherPhoton.hpp"
+#include "picongpu/particles/pusher/particlePusherProbe.hpp"
 #include "picongpu/particles/pusher/particlePusherReducedLandauLifshitz.hpp"
 #if(SIMDIM==DIM3)
 #include "picongpu/particles/pusher/particlePusherAxel.hpp"
 #endif
+
+#include <pmacc/nvidia/functors/Assign.hpp>
+#include <pmacc/nvidia/functors/Add.hpp>
+
 
 namespace picongpu
 {
@@ -72,6 +74,14 @@ public particlePusherPhoton::Push<Velocity, Gamma<> >
 
 struct ReducedLandauLifshitz :
 public particlePusherReducedLandauLifshitz::Push<Velocity, Gamma<> >
+{
+};
+
+struct Probe :
+public particlePusherProbe::Push<
+    pmacc::nvidia::functors::Assign,
+    particlePusherProbe::ActualPusher
+>
 {
 };
 

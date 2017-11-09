@@ -335,6 +335,102 @@ struct WeightingPower<voronoiCellId>
     }
 };
 
+template<>
+struct Unit<probeE>
+{
+    static std::vector<double> get()
+    {
+        uint32_t const components = 3u;
+
+        std::vector< double > const unit( components, UNIT_EFIELD);
+
+        return unit;
+    }
+};
+template<>
+struct UnitDimension<probeE>
+{
+    static std::vector<float_64> get()
+    {
+       /* L, M, T, I, theta, N, J
+        *
+        * E is in volts per meters: V / m = kg * m / (A * s^3)
+        *   -> L * M * T^-3 * I^-1
+        */
+       std::vector<float_64> unitDimension( 7, 0.0 );
+       unitDimension.at(SIBaseUnits::length) =  1.0;
+       unitDimension.at(SIBaseUnits::mass)   =  1.0;
+       unitDimension.at(SIBaseUnits::time)   = -3.0;
+       unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
+
+       return unitDimension;
+    }
+};
+template<>
+struct MacroWeighted<probeE>
+{
+    static bool get()
+    {
+        return false;
+    }
+};
+template<>
+struct WeightingPower<probeE>
+{
+    // local electric fields do not scale with weighting
+    static float_64 get()
+    {
+        return 0.0;
+    }
+};
+
+template<>
+struct Unit<probeB>
+{
+    static std::vector<double> get()
+    {
+        uint32_t const components = 3u;
+
+        std::vector< double > const unit( components, UNIT_BFIELD);
+
+        return unit;
+    }
+};
+template<>
+struct UnitDimension<probeB>
+{
+    static std::vector<float_64> get()
+    {
+       /* L, M, T, I, theta, N, J
+        *
+        * B is in Tesla : kg / (A * s^2)
+        *   -> M * T^-2 * I^-1
+        */
+       std::vector<float_64> unitDimension( 7, 0.0 );
+       unitDimension.at(SIBaseUnits::mass) =  1.0;
+       unitDimension.at(SIBaseUnits::time) = -2.0;
+       unitDimension.at(SIBaseUnits::electricCurrent) = -1.0;
+
+       return unitDimension;
+    }
+};
+template<>
+struct MacroWeighted<probeB>
+{
+    static bool get()
+    {
+        return false;
+    }
+};
+template<>
+struct WeightingPower<probeB>
+{
+    // local magnetic fields do not scale with weighting
+    static float_64 get()
+    {
+        return 0.0;
+    }
+};
 
 template<>
 struct Unit<particleId>
