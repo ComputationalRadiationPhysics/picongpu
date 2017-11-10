@@ -447,8 +447,18 @@ namespace thomasFermi
      * @note This cutoff value should be set in accordance to FLYCHK calculations,
      *       for instance! It is not a universal value and requires some preliminary
      *       approximations!
+     *
+     * unit: 1 / m^3
+     *
+     * default: ion number density = critical electron number density for lambda_laser = 800nm
+     *
+     * The choice of the default is motivated by by the following:
+     * In laser-driven plasmas all dynamics in density regions below the
+     * critical electron density will be laser-dominated. Once ions of that density
+     * are ionized once the laser will not penetrate fully anymore and the as electrons are heated
+     * the dynamics will be collision-dominated.
      */
-    constexpr float_X CUTOFF_LOW_DENSITY = 1.7422e27; // m^-3 - critical density 800nm laser
+    constexpr float_X CUTOFF_LOW_DENSITY = 1.7422e27;
 
     /** low temperature cutoff
      *
