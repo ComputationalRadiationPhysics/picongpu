@@ -72,10 +72,11 @@ namespace acc
             Functor::operator( )( args ... );
         }
 
+        template< typename T_Particle >
         DINLINE uint32_t
         numberOfMacroParticles( float_X const realParticlesPerCell )
         {
-            return Functor::numberOfMacroParticles( realParticlesPerCell );
+            return Functor::template numberOfMacroParticles< T_Particle >( realParticlesPerCell );
         }
     };
 } // namespace acc

@@ -71,10 +71,11 @@ namespace acc
             particle[ weighting_ ] = m_weighting;
         }
 
+        template< typename T_Particle >
         DINLINE uint32_t
         numberOfMacroParticles( float_X const realParticlesPerCell )
         {
-            return detail::WeightMacroParticles{}(
+            return startPosition::detail::WeightMacroParticles{}(
                 realParticlesPerCell,
                 T_ParamClass::numParticlesPerCell,
                 m_weighting

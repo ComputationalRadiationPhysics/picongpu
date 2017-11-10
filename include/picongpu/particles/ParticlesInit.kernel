@@ -124,6 +124,8 @@ namespace picongpu
             uint32_t const workerIdx = threadIdx.x;
 
             using FramePtr = typename T_ParBox::FramePtr;
+            using FrameType = typename T_ParBox::FrameType;
+            using ParticleType = typename FrameType::ParticleType;
             DataSpace< simDim > const superCells( mapper.getGridSuperCells( ) );
 
             PMACC_SMEM(
@@ -237,7 +239,7 @@ namespace picongpu
                     );
 
                     numParsPerCellCtx[ idx ] =
-                        positionFunctorCtx[ idx ].numberOfMacroParticles( realParticlesPerCell );
+                        positionFunctorCtx[ idx ].template numberOfMacroParticles< ParticleType >( realParticlesPerCell );
 
                     if( numParsPerCellCtx[ idx ] > 0 )
                         nvidia::atomicAllExch(
@@ -305,7 +307,6 @@ namespace picongpu
                              *   in the following lines since they are already known at this point.
                              */
                             {
-                                using FrameType = typename T_ParBox::FrameType;
                                 using ParticleAttrList = typename FrameType::ValueTypeSeq;
                                 using AttrToIgnore = bmpl::vector4<
                                     position<>,
