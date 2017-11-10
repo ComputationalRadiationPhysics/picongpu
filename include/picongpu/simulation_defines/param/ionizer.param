@@ -437,6 +437,19 @@ namespace thomasFermi
     /** cutoff energy for electron "temperature" calculation in SI units*/
     constexpr float_X CUTOFF_MAX_ENERGY = CUTOFF_MAX_ENERGY_KEV * UNITCONV_keV_to_Joule;
 
+    /** lower density cutoff
+     *
+     * The Thomas-Fermi model yields unphysical artifacts for low ion densities.
+     * Low ion densities imply lower collision frequency and thus less collisional ionization.
+     * The Thomas-Fermi model yields an increasing charge state for decreasing densities and electron temperatures of 10eV and above.
+     * This cutoff will be used to set the lower application threshold for charge state calculation.
+     *
+     * @note This cutoff value should be set in accordance to FLYCHK calculations,
+     *       for instance! It is not a universal value and requires some preliminary
+     *       approximations!
+     */
+    constexpr float_X CUTOFF_LOW_DENSITY = 1.7422e27; // m^-3 - critical density 800nm laser
+
 } // namespace thomasFermi
 } // namespace ionization
 } // namespace particles
