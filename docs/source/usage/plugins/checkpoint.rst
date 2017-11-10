@@ -46,7 +46,7 @@ PIConGPU command line option       Description
                                    If relative, checkpoint files are searched under ``simOutput/<checkpoint-directory>``.
                                    Default depends on the selected IO-backend``.
 ``--checkpoint.restart.chunkSize`` Number of particles processed in one kernel call during restart to prevent frame count blowup.
-``--checkpoint.<IO-backend>.*      Additional options to control the IO-bakend
+``--checkpoint.<IO-backend>.*      Additional options to control the IO-backend
 ================================== ======================================================================================
 
 Interacting Manually with Checkpoint Data
