@@ -26,6 +26,7 @@
 
 #include "picongpu/plugins/CountParticles.hpp"
 #include "picongpu/plugins/EnergyParticles.hpp"
+#include "picongpu/plugins/multi/Master.hpp"
 #include "picongpu/plugins/EnergyFields.hpp"
 #include "picongpu/plugins/SumCurrents.hpp"
 #include "picongpu/plugins/BinEnergyParticles.hpp"
@@ -164,7 +165,7 @@ private:
 
     /* define species plugins */
     using UnspecializedSpeciesPlugins = bmpl::vector <
-        EnergyParticles<bmpl::_1>,
+        plugins::multi::Master< EnergyParticles<bmpl::_1> >,
         BinEnergyParticles<bmpl::_1>,
         CountParticles<bmpl::_1>,
         PngPlugin< Visualisation<bmpl::_1, PngCreator> >
