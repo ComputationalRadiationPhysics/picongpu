@@ -18,12 +18,12 @@ First `install spack <http://spack.readthedocs.io/en/latest/getting_started.html
 
    # get spack
    git clone https://github.com/spack/spack.git $HOME/src/spack
-   $HOME/src/spack/bin/spack bootstrap
 
    # activate the spack environment
-   # note: add this to your $HOME/.profile - otherwise you have to
-   #       do this every time you open a new terminal
-   . $HOME/src/spack/share/spack/setup-env.sh
+   source $HOME/src/spack/share/spack/setup-env.sh
+
+   # build spack's dependencies via spack :)
+   spack bootstrap
 
    # install a supported compiler
    spack install gcc@5.4.0
@@ -33,6 +33,14 @@ First `install spack <http://spack.readthedocs.io/en/latest/getting_started.html
    # add the PIConGPU repository
    git clone https://github.com/ComputationalRadiationPhysics/spack-repo.git $HOME/src/spack-repo
    spack repo add $HOME/src/spack-repo
+
+.. note::
+
+   When you next time open a terminal or log back into the machine, make sure to activate the spack environment again via:
+
+   .. code-block:: bash
+
+      source $HOME/src/spack/share/spack/setup-env.sh
 
 Install
 ^^^^^^^
