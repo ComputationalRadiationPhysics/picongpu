@@ -134,20 +134,20 @@ namespace ionization
              *  @todo Include all ion species because the model requires the
              *        density of ionic potential wells
              */
-            using DensitySolver = typename particleToGrid::CreateFieldTmpOperation<
+            using DensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
                 T_SrcSpecies,
                 particleToGrid::derivedAttributes::Density
-            >::type::Solver;
+            >::Solver;
 
             /** Solver for energy density of the electron species with maximum energy cutoff
              *
              *  @todo Include all electron species with a ForEach<VectorallSpecies,...>
              * instead of just the destination species
              */
-            using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation<
+            using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
                 T_DestSpecies,
                 particleToGrid::derivedAttributes::EnergyDensityCutoff< CutoffMaxEnergy >
-            >::type::Solver;
+            >::Solver;
 
 
 

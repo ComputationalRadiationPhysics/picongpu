@@ -181,10 +181,10 @@ struct ComputeChargeDensity
         /* run algorithm */
 //        typedef typename particles::particleToGrid::CreateDensityOperation<SpeciesName>::type::Solver ChargeDensitySolver;
 
-        using ChargeDensitySolver = typename particles::particleToGrid::CreateFieldTmpOperation<
+        using ChargeDensitySolver = typename particles::particleToGrid::CreateFieldTmpOperation_t<
             SpeciesName,
             particles::particleToGrid::derivedAttributes::ChargeDensity
-        >::type::Solver;
+        >::Solver;
 
         fieldTmp->computeValue < area, ChargeDensitySolver > (*speciesTmp, currentStep);
         dc.releaseData( SpeciesName::FrameType::getName() );
