@@ -10,19 +10,20 @@ This plugin computes the **kinetic and total energy summed over all particles** 
 
 Only the time steps at which the total kinetic energy of all particles should be specified needs to be set via command line argument.
 
-================================ ========================================================================================================
-PIConGPU command line option     Description
-================================ ========================================================================================================
-``--e_energy.period 100``        Sets the time step period at which the energy of all **electrons** in the simulation should be simulated.
-                                 If set to e.g. ``100``, the energy is computed for time steps *0, 100, 200, ...*.
-                                 The default value is ``0``, meaning that the plugin does not compute the particle energy.
-``--<species>_energy.period 42`` Same as above, for any other species available.
-================================ ========================================================================================================
+================================== ========================================================================================================
+PIConGPU command line option       Description
+================================== ========================================================================================================
+``--e_energy.period 100``          Sets the time step period at which the energy of all **electrons** in the simulation should be simulated.
+                                   If set to e.g. ``100``, the energy is computed for time steps *0, 100, 200, ...*.
+                                   The default value is ``0``, meaning that the plugin does not compute the particle energy.
+``--<species>_energy.period 42``   Same as above, for any other species available.
+``--<species>_energy.filter name`` Use filtered particles. All available filters will be shown with ``picongpu --help``
+================================== ========================================================================================================
 
 Output
 ^^^^^^
 
-The plugin creates files prefixed with the species' name, e.g. `e_energy.dat` for the electron energies and `p_energy.dat` for proton energies.
+The plugin creates files prefixed with the species' name and the filter name as postfix, e.g. `e_energy_<filter name>.dat` for the electron energies and `p_energy_<filter name>.dat` for proton energies.
 The file contains a header describing the columns.
 
 .. code::
@@ -46,10 +47,10 @@ Python snippet:
    simDir = "path/to/simOutput/"
 
    # Ekin in Joules (see EnergyParticles)
-   e_sum_ene = np.loadtxt(simDir + "e_energy.dat")[:, 0:2]
-   p_sum_ene = np.loadtxt(simDir + "p_energy.dat")[:, 0:2]
-   C_sum_ene = np.loadtxt(simDir + "C_energy.dat")[:, 0:2]
-   N_sum_ene = np.loadtxt(simDir + "N_energy.dat")[:, 0:2]
+   e_sum_ene = np.loadtxt(simDir + "e_energy_All.dat")[:, 0:2]
+   p_sum_ene = np.loadtxt(simDir + "p_energy_All.dat")[:, 0:2]
+   C_sum_ene = np.loadtxt(simDir + "C_energy_All.dat")[:, 0:2]
+   N_sum_ene = np.loadtxt(simDir + "N_energy_All.dat")[:, 0:2]
    # Etotal in Joules
    fields_sum_ene = np.loadtxt(simDir + "fields_energy.dat")[:, 0:2]
 
