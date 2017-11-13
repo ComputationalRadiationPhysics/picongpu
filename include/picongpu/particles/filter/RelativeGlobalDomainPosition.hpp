@@ -151,10 +151,36 @@ namespace acc
 
         }
 
+        static
+        HINLINE std::string
+        getName( )
+        {
+            // we provide the name from the param class
+            return T_Params::name;
+        }
+
         DataSpace< simDim > localDomainOffset;
         DataSpace< simDim > globalDomainSize;
     };
 
 } //namespace filter
-} //namespace particles
-} //namespace picongpu
+
+namespace traits
+{
+    template<
+        typename T_Species,
+        typename T_Params
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        filter::RelativeGlobalDomainPosition< T_Params >
+    >
+    {
+        using type = typename pmacc::traits::HasIdentifiers<
+            typename T_Species::FrameType,
+            MakeSeq_t< localCellIdx >
+        >::type;
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu
