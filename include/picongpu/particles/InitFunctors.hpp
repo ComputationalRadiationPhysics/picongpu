@@ -121,7 +121,7 @@ template<
     typename T_Functor,
     typename T_SrcSpeciesType,
     typename T_DestSpeciesType = bmpl::_1,
-    typename T_Filter = filter::IsHandleValid
+    typename T_Filter = filter::All
 >
 struct ManipulateDeriveSpecies
 {
@@ -169,7 +169,7 @@ struct ManipulateDeriveSpecies
 template<
     typename T_SrcSpeciesType,
     typename T_DestSpeciesType = bmpl::_1,
-    typename T_Filter = filter::IsHandleValid
+    typename T_Filter = filter::All
 >
 struct DeriveSpecies : ManipulateDeriveSpecies<
     manipulators::generic::None,

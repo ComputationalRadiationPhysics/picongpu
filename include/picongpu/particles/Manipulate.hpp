@@ -45,7 +45,7 @@ namespace particles
     template<
         typename T_Functor,
         typename T_SpeciesType = bmpl::_1,
-        typename T_Filter = filter::IsHandleValid
+        typename T_Filter = filter::All
     >
     struct Manipulate
     {
