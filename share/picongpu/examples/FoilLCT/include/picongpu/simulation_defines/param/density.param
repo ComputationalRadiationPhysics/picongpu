@@ -99,8 +99,16 @@ namespace densityProfiles
         }
     };
 
-    /* definition of free formula profile */
+    // definition of free formula profile
     using FlatFoilWithRamp = FreeFormulaImpl< FlatFoilWithRampFunctor >;
 
+    // put probe particles every 4th cell in X, Y(, Z)
+    using ProbeEveryFourthCell = EveryNthCellImpl<
+        mCT::UInt32<
+            4,
+            4,
+            4
+        >
+    >;
 } // namespace densityProfiles
 } // namespace picongpu
