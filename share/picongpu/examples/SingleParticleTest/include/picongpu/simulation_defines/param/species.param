@@ -68,11 +68,13 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
  * - particles::pusher::ReducedLandauLifshitz : 4th order RungeKutta pusher
  *                                              with classical radiation reaction
  *
- * For development purposes: ---------------------------------------------------
- * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
+ * For diagnostics & modeling: ------------------------------------------------
  * - particles::pusher::Free : free propagation, ignore fields
- * (= free stream model)
+ *                             (= free stream model)
  * - particles::pusher::Photon : propagate with c in direction of normalized mom.
+ * - particles::pusher::Probe : Probe particles that interpolate E & B
+ * For development purposes: --------------------------------------------------
+ * - particles::pusher::Axel : a pusher developed at HZDR during 2011 (testing)
  */
 #ifndef PARAM_PARTICLEPUSHER
 #define PARAM_PARTICLEPUSHER Boris
