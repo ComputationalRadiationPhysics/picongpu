@@ -73,7 +73,7 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
     typedef typename FrameType::MethodsList MethodsList;
 
     /** index of particle inside the Frame*/
-    PMACC_ALIGN(idx, const uint32_t);
+    PMACC_ALIGN(idx, uint32_t);
 
     /** pointer to parent frame where this particle is from
      *
@@ -163,14 +163,16 @@ struct Particle : public InheritLinearly<typename T_FrameType::MethodsList>
 
         return frame->getIdentifier(key)[idx];
     }
+
+    HDINLINE
+    ThisType& operator=(const ThisType& other) = default;
+
 private:
     /* we disallow to assign this class*/
     template<typename T_OtherParticle >
     HDINLINE
     ThisType& operator=(const T_OtherParticle& other);
 
-    HDINLINE
-    ThisType& operator=(const ThisType& other);
 };
 
 namespace traits
