@@ -91,6 +91,7 @@ namespace acc
 
         }
 
+        template< typename T_Particle >
         DINLINE uint32_t
         numberOfMacroParticles( float_X const realParticlesPerCell )
         {
