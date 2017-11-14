@@ -59,7 +59,10 @@ RUN        spack install $PIC_PACKAGE && \
 
 # load spack & picongpu environment on login
 RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
-                        "spack load $PIC_PACKAGE" \
+                        "spack load $PIC_PACKAGE\n" \
+                        'if [ $(id -u) -eq 0 ]; then\n' \
+                        '   function mpirun { $(which mpirun) --allow-run-as-root $@; }\n' \
+                        'fi' \
                > /etc/profile.d/picongpu.sh
 
 # build example for out-of-the-box usage: LWFA
