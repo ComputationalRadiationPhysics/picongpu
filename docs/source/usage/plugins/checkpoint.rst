@@ -34,20 +34,29 @@ The plugin is available as soon as the :ref:`libSplash (HDF5) or ADIOS libraries
 You can use ``--checkpoint.period`` to specify the output period of the created checkpoints.
 Note that this plugin will only be available if libSplash (HDF5) or ADIOS is found during compile configuration.
 
-================================== ======================================================================================
-PIConGPU command line option       Description
-================================== ======================================================================================
-``--checkpoint.backend``           IO-backend used to create the checkpoint.
-``--checkpoint.file``              Relative or absolute fileset prefix for writing checkpoints.
-                                   If relative, checkpoint files are stored under ``simOutput/<checkpoint-directory>``.
-                                   Default depends on the selected IO-backend.
-``--checkpoint.restart.backend``   IO-backend used to load a existent checkpoint.
-``--checkpoint.restart.file``      Relative or absolute fileset prefix for reading checkpoints.
-                                   If relative, checkpoint files are searched under ``simOutput/<checkpoint-directory>``.
-                                   Default depends on the selected IO-backend``.
-``--checkpoint.restart.chunkSize`` Number of particles processed in one kernel call during restart to prevent frame count blowup.
-``--checkpoint.<IO-backend>.*      Additional options to control the IO-backend
-================================== ======================================================================================
+============================================= ======================================================================================
+PIConGPU command line option                  Description
+============================================= ======================================================================================
+``--checkpoint.period <N>``                   Create checkpoints every N steps.
+``--checkpoint.backend <IO-backend>``         IO-backend used to create the checkpoint.
+``--checkpoint.file <string>``                Relative or absolute fileset prefix for writing checkpoints.
+                                              If relative, checkpoint files are stored under ``simOutput/<checkpoint-directory>``.
+                                              Default depends on the selected IO-backend.
+``--checkpoint.restart``                      Restart a simulation from the latest checkpoint.
+``--checkpoint.restart.step <N>``             Select a specific restart checkpoint.
+``--checkpoint.restart.backend <IO-backend>`` IO-backend used to load a existent checkpoint.
+``--checkpoint.restart.file <string>``        Relative or absolute fileset prefix for reading checkpoints.
+                                              If relative, checkpoint files are searched under ``simOutput/<checkpoint-directory>``.
+                                              Default depends on the selected IO-backend``.
+``--checkpoint.restart.chunkSize <N>``        Number of particles processed in one kernel call during restart to prevent frame count
+                                              blowup.
+``--checkpoint.<IO-backend>.*``               Additional options to control the IO-backend
+============================================= ======================================================================================
+
+Depending on the available external dependencies (see above), the options for the ``<IO-backend>`` are:
+
+* ``hdf5``
+* ``adios``
 
 Interacting Manually with Checkpoint Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
