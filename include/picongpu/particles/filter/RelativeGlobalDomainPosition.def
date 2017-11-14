@@ -38,6 +38,9 @@ namespace param
          * x = 0; y= 1; z = 2
          */
         static constexpr uint32_t dimension = 0;
+
+        // name of the filter
+        static constexpr char const * name = "RelativeGlobalDomainPosition";
     };
 } // namespace param
 

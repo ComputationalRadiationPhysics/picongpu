@@ -102,58 +102,6 @@ namespace manipulators
     /* definition of AddTemperature start */
     using AddTemperature = unary::Temperature< TemperatureParam >;
 
-} //namespace manipulators
-
-namespace filter
-{
-    struct IfRelativeGlobalPositionParamLowQuarter
-    {
-        /* lowerBound is included in the range */
-        static constexpr float_X lowerBound = 0.0;
-        /* upperBound is excluded in the range */
-        static constexpr float_X upperBound = 0.25;
-        /* dimension for the filter
-         * x = 0; y= 1; z = 2
-         */
-        static constexpr uint32_t dimension = 1u;
-    };
-    /* definition of SetDrift start */
-    using LowerQuarterYPosition = filter::RelativeGlobalDomainPosition<
-        IfRelativeGlobalPositionParamLowQuarter
-    >;
-
-    struct IfRelativeGlobalPositionParamMiddleHalf
-    {
-        /* lowerBound is included in the range */
-        static constexpr float_X lowerBound = 0.25;
-        /* upperBound is excluded in the range */
-        static constexpr float_X upperBound = 0.75;
-        /* dimension for the filter
-         * x = 0; y= 1; z = 2
-         */
-        static constexpr uint32_t dimension = 1u;
-    };
-    /* definition of SetDrift start */
-    using MiddleHalfYPosition = filter::RelativeGlobalDomainPosition<
-        IfRelativeGlobalPositionParamMiddleHalf
-    >;
-
-    struct IfRelativeGlobalPositionParamUpperQuarter
-    {
-        /* lowerBound is included in the range */
-        static constexpr float_X lowerBound = 0.75;
-        /* upperBound is excluded in the range */
-        static constexpr float_X upperBound = 1.0;
-        /* dimension for the filter
-         * x = 0; y= 1; z = 2
-         */
-        static constexpr uint32_t dimension = 1u;
-    };
-    /* definition of SetDrift start */
-    using UpperQuarterYPosition = filter::RelativeGlobalDomainPosition<
-        IfRelativeGlobalPositionParamUpperQuarter
-    >;
-
-} //namespace filter
-} //namespace particles
-} //namespac picongpu
+} // namespace manipulators
+} // namespace particles
+} // namespac picongpu
