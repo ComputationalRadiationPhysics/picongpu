@@ -33,7 +33,7 @@ namespace acc
 {
 
     //! check the particle handle
-    struct IsHandleValid
+    struct All
     {
 
         /** check particle handle
@@ -60,12 +60,12 @@ namespace acc
 
 } // namespace acc
 
-    struct IsHandleValid
+    struct All
     {
         template< typename T_SpeciesType >
         struct apply
         {
-            using type = IsHandleValid;
+            using type = All;
         };
 
         /** create filter for the accelerator
@@ -79,15 +79,22 @@ namespace acc
             typename T_WorkerCfg,
             typename T_Acc
         >
-        DINLINE acc::IsHandleValid
+        DINLINE acc::All
         operator( )(
             T_Acc const & acc,
             DataSpace< simDim > const &,
             T_WorkerCfg const &
         )
         {
-            return acc::IsHandleValid{ };
+            return acc::All{ };
 
+        }
+
+        static
+        HINLINE std::string
+        getName( )
+        {
+            return std::string("All");
         }
     };
 

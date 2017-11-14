@@ -20,4 +20,4 @@
 #pragma once
 
 #include "picongpu/particles/filter/RelativeGlobalDomainPosition.def"
-#include "picongpu/particles/filter/IsHandleValid.def"
+#include "picongpu/particles/filter/All.def"

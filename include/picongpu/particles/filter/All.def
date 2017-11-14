@@ -31,7 +31,7 @@ namespace filter
      *
      * the particle method `::isValidHandle()` is called.
      */
-    struct IsHandleValid;
+    struct All;
 
 } //namespace filter
 } //namespace particles

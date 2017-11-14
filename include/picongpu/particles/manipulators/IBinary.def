@@ -48,7 +48,7 @@ namespace manipulators
      */
     template<
         typename T_BinaryFunctor,
-        typename T_UnaryFilter = filter::IsHandleValid
+        typename T_UnaryFilter = filter::All
     >
     using IBinary = pmacc::functor::Filtered<
         pmacc::filter::operators::And,

@@ -101,13 +101,13 @@ ProtonTimesWeighting
 Manipulation Filters
 --------------------
 
-Most of the particle functors shall operate on all valid particles, where IsHandleValid is the default assumption.
+Most of the particle functors shall operate on all valid particles, where filter::All is the default assumption.
 One can limit the domain or subset of particles with filters such as the ones below (or define new ones).
 
-IsHandleValid
-^^^^^^^^^^^^^
+All
+^^^
 
-.. doxygenstruct:: picongpu::particles::filter::IsHandleValid
+.. doxygenstruct:: picongpu::particles::filter::All
    :project: PIConGPU
 
 RelativeGlobalDomainPosition
