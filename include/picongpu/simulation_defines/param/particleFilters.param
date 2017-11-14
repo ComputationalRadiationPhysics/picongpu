@@ -43,7 +43,7 @@ namespace filter
         static constexpr uint32_t dimension = 0u;
 
         // filter name
-        static constexpr char const * name = "LowerHalfXPosition";
+        static constexpr char const * name = "lowerHalfXPosition";
     };
     /** definition of a relative position selection that assigns a drift in X */
     using LowerHalfXPosition = RelativeGlobalDomainPosition<
