@@ -75,15 +75,15 @@ namespace ionization
         {
 
             /* @TODO replace the float_64 with float_X and make sure the values are scaled to PIConGPU units */
-            constexpr float_64 protonNumber = GetAtomicNumbers<ParticleType>::type::numberOfProtons;
-            constexpr float_64 neutronNumber = GetAtomicNumbers<ParticleType>::type::numberOfNeutrons;
+            constexpr float_64 protonNumber = GetAtomicNumbers< ParticleType >::type::numberOfProtons;
+            constexpr float_64 neutronNumber = GetAtomicNumbers< ParticleType >::type::numberOfNeutrons;
 
             /* atomic mass number (usually A) A = N + Z */
             constexpr float_64 massNumber = neutronNumber + protonNumber;
 
-            float_64 const T_0 = temperature/math::pow(protonNumber,float_64(4./3.));
+            float_64 const T_0 = temperature/math::pow( protonNumber,float_64( 4./3. ) );
 
-            float_64 const T_F = T_0 / (float_64(1.) + T_0);
+            float_64 const T_F = T_0 / ( float_64( 1. ) + T_0 );
 
             /* for all the fitting parameters @see ionizer.param */
 
@@ -94,26 +94,26 @@ namespace ionization
             constexpr float_64 TFA4_temp = thomasFermi::TFA4;
             constexpr float_64 TFBeta_temp = thomasFermi::TFBeta;
 
-            float_64 const A = thomasFermi::TFA1 * math::pow(T_0,TFA2_temp) + thomasFermi::TFA3 * math::pow(T_0,TFA4_temp);
+            float_64 const A = thomasFermi::TFA1 * math::pow( T_0, TFA2_temp ) + thomasFermi::TFA3 * math::pow( T_0, TFA4_temp );
 
-            float_64 const B = -math::exp(thomasFermi::TFB0 + thomasFermi::TFB1*T_F + thomasFermi::TFB2*math::pow(T_F,float_64(7.)));
+            float_64 const B = -math::exp( thomasFermi::TFB0 + thomasFermi::TFB1 * T_F + thomasFermi::TFB2 * math::pow( T_F, float_64( 7. ) ) );
 
             float_64 const C = thomasFermi::TFC1 * T_F + thomasFermi::TFC2;
 
-            constexpr float_64 invAtomicTimesMassNumber = float_64(1.) / (protonNumber * massNumber);
+            constexpr float_64 invAtomicTimesMassNumber = float_64( 1. ) / ( protonNumber * massNumber );
             float_64 const R = massDensity * invAtomicTimesMassNumber;
 
-            float_64 const Q_1 = A * math::pow(R,B);
+            float_64 const Q_1 = A * math::pow( R, B );
 
-            float_64 const Q = math::pow(math::pow(R,C) + math::pow(Q_1, C), float_64(1.) / C);
+            float_64 const Q = math::pow( math::pow( R, C ) + math::pow( Q_1, C ), float_64( 1. ) / C );
 
-            float_64 const x = thomasFermi::TFAlpha * math::pow(Q, TFBeta_temp);
+            float_64 const x = thomasFermi::TFAlpha * math::pow( Q, TFBeta_temp );
 
             /* Thomas-Fermi average ionization state */
             float_X const ZStar = static_cast< float_X >(
                 protonNumber * x / (
-                    float_64(1.) + x +
-                    math::sqrt( float_64(1.) + float_64(2.) * x )
+                    float_64( 1. ) + x +
+                    math::sqrt( float_64( 1. ) + float_64( 2. ) * x )
                 )
             );
 
@@ -139,14 +139,14 @@ namespace ionization
          */
         template< typename ParticleType >
         HDINLINE uint32_t
-        operator()( float_X const kinEnergyDensity, float_X const density, ParticleType & parentIon, float_X randNr )
+        operator( )( float_X const kinEnergyDensity, float_X const density, ParticleType & parentIon, float_X randNr )
         {
 
             /* initialize functor return value: number of new macro electrons to create */
             uint32_t numNewFreeMacroElectrons = 0u;
 
             float_64 const densityUnit = static_cast< float_64 >( particleToGrid::derivedAttributes::Density( ).getUnit( )[ 0 ] );
-            float_64 const kinEnergyDensityUnit = static_cast<float_64>(particleToGrid::derivedAttributes::EnergyDensity().getUnit()[0]);
+            float_64 const kinEnergyDensityUnit = static_cast< float_64 >( particleToGrid::derivedAttributes::EnergyDensity( ).getUnit( )[ 0 ] );
             /* convert from kinetic energy density to average kinetic energy per particle */
             float_64 const kinEnergyUnit = kinEnergyDensityUnit / densityUnit;
             float_64 const avgKinEnergy = kinEnergyDensity / density * kinEnergyUnit;
