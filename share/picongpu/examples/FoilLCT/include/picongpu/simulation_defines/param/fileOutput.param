@@ -1,5 +1,5 @@
 /* Copyright 2013-2017 Axel Huebl, Rene Widera, Felix Schmitt,
- * Benjamin Worpitz, Richard Pausch
+ *                     Benjamin Worpitz, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -20,15 +20,13 @@
 
 #pragma once
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/int.hpp>
-
 #include <pmacc/compileTime/conversion/MakeSeq.hpp>
 
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
+
+#include <boost/mpl/vector.hpp>
 
 
 namespace picongpu
@@ -40,47 +38,45 @@ namespace picongpu
      * up to a constant, so avoid writing those twice to save storage.
      *
      * you can choose any of these particle to grid projections:
-     *   - CreateDensityOperation: particle position + shape on the grid
-     *   - CreateChargeDensityOperation: density * charge
+     *   - Density: particle position + shape on the grid
+     *   - ChargeDensity: density * charge
      *       note: for species that do not change their charge state, this is
      *             the same as the density times a constant for the charge
-     *   - CreateEnergyOperation: sum of kinetic particle energy per cell with
-     *                            respect to shape
-     *   - CreateEnergyDensityOperation: average kinetic particle energy per
-     *                                   cell times the particle density
+     *   - Energy: sum of kinetic particle energy per cell with respect to shape
+     *   - EnergyDensity: average kinetic particle energy per cell times the
+     *                    particle density
      *       note: this is the same as the sum of kinetic particle energy
      *             divided by a constant for the cell volume
-     *   - CreateMomentumComponentOperation: ratio between a selected momentum
-     *                                       component and the absolute
-     *                                       momentum with respect to shape
-     *   - CreateLarmorPowerOperation: radiated Larmor power
-     *                                 (species must contain the attribute `momentumPrev1`)
+     *   - MomentumComponent: ratio between a selected momentum component and
+     *                        the absolute momentum with respect to shape
+     *   - LarmorPower: radiated Larmor power
+     *                  (species must contain the attribute `momentumPrev1`)
      *
      * for debugging:
-     *   - CreateMidCurrentDensityComponentOperation:
+     *   - MidCurrentDensityComponent:
      *       density * charge * velocity_component
-     *   - CreateCounterOperation: counts point like particles per cell
-     *   - CreateMacroCounterOperation: counts point like macro particles per cell
+     *   - Counter: counts point like particles per cell
+     *   - MacroCounter: counts point like macro particles per cell
      */
-    using namespace particleToGrid;
+    namespace deriveField = particles::particleToGrid;
 
-    /* Density section for Hydrogen */
-    using Density_Seq = bmpl::transform<
-        MakeSeq_t< Hydrogen >,
-        CreateDensityOperation< bmpl::_1 >
-    >::type;
+    /* Density section */
+    using Density_Seq = deriveField::CreateEligible_t<
+        VectorAllSpecies,
+        deriveField::derivedAttributes::Density
+    >;
 
     /* ChargeDensity section */
-    using ChargeDensity_Seq = bmpl::transform<
+    using ChargeDensity_Seq = deriveField::CreateEligible_t<
         VectorAllSpecies,
-        CreateChargeDensityOperation< bmpl::_1 >
-    >::type;
+        deriveField::derivedAttributes::ChargeDensity
+    >;
 
     /* EnergyDensity section */
-    using EnergyDensity_Seq = bmpl::transform<
+    using EnergyDensity_Seq = deriveField::CreateEligible_t<
         VectorAllSpecies,
-        CreateEnergyDensityOperation< bmpl::_1 >
-    >::type;
+        deriveField::derivedAttributes::EnergyDensity
+    >;
 
     /** FieldTmpSolvers groups all solvers that create data for FieldTmp ******
      *

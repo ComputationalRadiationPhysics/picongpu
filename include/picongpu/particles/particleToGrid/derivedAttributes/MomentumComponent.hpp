@@ -26,6 +26,8 @@
 
 namespace picongpu
 {
+namespace particles
+{
 namespace particleToGrid
 {
 namespace derivedAttributes
@@ -61,4 +63,5 @@ namespace derivedAttributes
     }
 } // namespace derivedAttributes
 } // namespace particleToGrid
+} // namespace particles
 } // namespace picongpu

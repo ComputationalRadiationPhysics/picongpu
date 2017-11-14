@@ -179,7 +179,13 @@ struct ComputeChargeDensity
         auto speciesTmp = dc.get< SpeciesName >( SpeciesName::FrameType::getName(), true );
 
         /* run algorithm */
-        typedef typename CreateDensityOperation<SpeciesName>::type::Solver ChargeDensitySolver;
+//        typedef typename particles::particleToGrid::CreateDensityOperation<SpeciesName>::type::Solver ChargeDensitySolver;
+
+        using ChargeDensitySolver = typename particles::particleToGrid::CreateFieldTmpOperation_t<
+            SpeciesName,
+            particles::particleToGrid::derivedAttributes::ChargeDensity
+        >::Solver;
+
         fieldTmp->computeValue < area, ChargeDensitySolver > (*speciesTmp, currentStep);
         dc.releaseData( SpeciesName::FrameType::getName() );
     }

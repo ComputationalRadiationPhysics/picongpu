@@ -64,7 +64,10 @@ Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::Bremsstrahlung
     auto ionSpecies = dc.get< T_IonSpecies >( T_IonSpecies::FrameType::getName(), true );
 
     /* compute ion density */
-    typedef typename CreateEnergyDensityOperation<T_IonSpecies>::type::Solver DensitySolver;
+    using DensitySolver = typename particleToGrid::CreateFieldTmpOperation<
+        T_IonSpecies,
+        particleToGrid::derivedAttributes::Density
+    >::type::Solver;
     fieldIonDensity->template computeValue< CORE + BORDER, DensitySolver >(*ionSpecies, currentStep);
     dc.releaseData(T_IonSpecies::FrameType::getName());
 

@@ -26,6 +26,8 @@
 
 namespace picongpu
 {
+namespace particles
+{
 namespace particleToGrid
 {
 namespace derivedAttributes
@@ -63,6 +65,7 @@ namespace derivedAttributes
         /* return attribute */
         return particleCurrentDensity;
     }
-} /* namespace derivedAttributes */
-} /* namespace particleToGrid */
-} /* namespace picongpu */
+} // namespace derivedAttributes
+} // namespace particleToGrid
+} // namespace particles
+} // namespace picongpu

@@ -30,6 +30,8 @@
 
 namespace picongpu
 {
+namespace particles
+{
 namespace traits
 {
     /** Returns a sequence with ionizers for a species
@@ -66,4 +68,5 @@ namespace traits
     };
 
 } // namespace traits
+} // namespace particles
 } // namespace picongpu

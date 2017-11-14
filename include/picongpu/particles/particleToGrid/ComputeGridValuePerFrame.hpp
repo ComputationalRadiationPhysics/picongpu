@@ -33,6 +33,8 @@
 
 namespace picongpu
 {
+namespace particles
+{
 namespace particleToGrid
 {
 
@@ -129,4 +131,5 @@ ComputeGridValuePerFrame<T_ParticleShape, T_DerivedAttribute>::operator()
 }
 
 } // namespace particleToGrid
+} // namespace particles
 } // namespace picongpu

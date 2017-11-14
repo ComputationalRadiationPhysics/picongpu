@@ -29,6 +29,8 @@
 
 namespace picongpu
 {
+namespace particles
+{
 namespace traits
 {
 
@@ -39,15 +41,16 @@ struct GetPhotonCreator
     typedef typename SpeciesType::FrameType FrameType;
 
     /* The following line only fetches the alias */
-    typedef typename GetFlagType<FrameType, synchrotronPhotons<> >::type FoundSynchrotronPhotonsAlias;
+    typedef typename GetFlagType<FrameType, picongpu::synchrotronPhotons<> >::type FoundSynchrotronPhotonsAlias;
 
     /* This now resolves the alias into the actual object type */
     typedef typename pmacc::traits::Resolve<FoundSynchrotronPhotonsAlias>::type FoundPhotonSpecies;
 
     /* This specifies the target species as the second template parameter of the photon creator */
-    typedef particles::synchrotronPhotons::PhotonCreator<SpeciesType, FoundPhotonSpecies> type;
+    typedef synchrotronPhotons::PhotonCreator<SpeciesType, FoundPhotonSpecies> type;
 
-}; // struct GetPhotonCreator
+};
 
 } // namespace traits
+} // namespace particles
 } // namespace picongpu

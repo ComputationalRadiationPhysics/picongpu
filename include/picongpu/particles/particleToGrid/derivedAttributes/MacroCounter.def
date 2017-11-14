@@ -20,15 +20,31 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasIdentifiers.hpp>
+
 #include <vector>
 
 
 namespace picongpu
 {
+namespace particles
+{
 namespace particleToGrid
 {
 namespace derivedAttributes
 {
+    /** Macro-Particle Counter Operation for Particle to Grid Projections
+     *
+     * Derives a scalar field with number of macro particles per cell from a particle
+     * species at runtime.
+     * Each macro particle is counted straight to the cell it belongs to, which is
+     * in most cases as floor operation in space (and not necessarily the "nearest"
+     * cell-origin).
+     *
+     * @note Use this only for debug purposes, e.g. to validate particle memory.
+     */
     struct MacroCounter
     {
 
@@ -69,6 +85,7 @@ namespace derivedAttributes
         DINLINE float_X
         operator()( T_Particle& particle ) const;
     };
-} /* namespace derivedAttributes */
-} /* namespace particleToGrid */
-} /* namespace picongpu */
+} // namespace derivedAttributes
+} // namespace particleToGrid
+} // namespace particles
+} // namespace picongpu

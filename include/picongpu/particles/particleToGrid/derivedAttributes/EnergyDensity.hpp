@@ -24,7 +24,10 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/algorithms/KinEnergy.hpp"
 
+
 namespace picongpu
+{
+namespace particles
 {
 namespace particleToGrid
 {
@@ -51,6 +54,7 @@ namespace derivedAttributes
 
         return KinEnergy<>()( mom, mass ) * INV_CELL_VOLUME;
     }
-} /* namespace derivedAttributes */
-} /* namespace particleToGrid */
-} /* namespace picongpu */
+} // namespace derivedAttributes
+} // namespace particleToGrid
+} // namespace particles
+} // namespace picongpu

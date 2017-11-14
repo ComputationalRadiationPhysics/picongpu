@@ -20,15 +20,34 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasIdentifiers.hpp>
+
 #include <vector>
 
 
 namespace picongpu
 {
+namespace particles
+{
 namespace particleToGrid
 {
 namespace derivedAttributes
 {
+    /** Real-Particle Counter Operation for Particle to Grid Projections
+     *
+     * Derives a scalar field with real particle numbers per cell from a particle
+     * species at runtime.
+     * Each macro particle's weighting is assigned straight to the cell it belongs
+     * to, which is in most cases a floor operation in space (and not necessarily
+     * the "nearest" cell-origin).
+     *
+     * @note Use this only for debug purposes, since the deposition "shape" is
+     *       non-physical (inconsistent with charge & momentum-conserving shapes).
+     *       Be aware that this is NOT the same as NGP (0. order shape) assignment
+     *       in a staggered grid.
+     */
     struct Counter
     {
 
@@ -69,6 +88,28 @@ namespace derivedAttributes
         DINLINE float_X
         operator()( T_Particle& particle ) const;
     };
-} /* namespace derivedAttributes */
-} /* namespace particleToGrid */
-} /* namespace picongpu */
+} // namespace derivedAttributes
+} // namespace particleToGrid
+
+namespace traits
+{
+    template< typename T_Species >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        particleToGrid::derivedAttributes::Counter
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting
+        >;
+
+        using type = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu
