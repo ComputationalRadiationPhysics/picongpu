@@ -104,4 +104,4 @@ namespace manipulators
 
 } // namespace manipulators
 } // namespace particles
-} // namespac picongpu
+} // namespace picongpu

@@ -40,7 +40,7 @@ namespace param
         static constexpr uint32_t dimension = 0;
 
         // name of the filter
-        static constexpr char const * name = "RelativeGlobalDomainPosition";
+        static constexpr char const * name = "relativeGlobalDomainPosition";
     };
 } // namespace param
 

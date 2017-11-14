@@ -94,7 +94,7 @@ namespace acc
         HINLINE std::string
         getName( )
         {
-            return std::string("All");
+            return std::string("all");
         }
     };
 
