@@ -41,10 +41,10 @@ Python example snippet:
    simDir = "path/to/simOutput/"
 
    # Ekin in Joules (see EnergyParticles)
-   e_sum_ene = np.loadtxt(simDir + "e_energy.dat")[:, 0:2]
-   p_sum_ene = np.loadtxt(simDir + "p_energy.dat")[:, 0:2]
-   C_sum_ene = np.loadtxt(simDir + "C_energy.dat")[:, 0:2]
-   N_sum_ene = np.loadtxt(simDir + "N_energy.dat")[:, 0:2]
+   e_sum_ene = np.loadtxt(simDir + "e_energy_all.dat")[:, 0:2]
+   p_sum_ene = np.loadtxt(simDir + "p_energy_all.dat")[:, 0:2]
+   C_sum_ene = np.loadtxt(simDir + "C_energy_all.dat")[:, 0:2]
+   N_sum_ene = np.loadtxt(simDir + "N_energy_all.dat")[:, 0:2]
    # Etotal in Joules
    fields_sum_ene = np.loadtxt(simDir + "fields_energy.dat")[:, 0:2]
 

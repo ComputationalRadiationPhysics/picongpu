@@ -26,6 +26,8 @@
 #include "picongpu/plugins/multi/ISlave.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/multi/IHelp.hpp"
+#include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
+#include "picongpu/plugins/misc/misc.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
@@ -40,6 +42,7 @@
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/algorithms/ForEach.hpp>
 
 #include <boost/mpl/and.hpp>
 
@@ -48,6 +51,8 @@
 #include <fstream>
 #include <memory>
 #include <stdexcept>
+#include <functional>
+
 
 namespace picongpu
 {
@@ -77,13 +82,15 @@ namespace picongpu
             typename T_ParBox,
             typename T_DBox,
             typename T_Mapping,
-            typename T_Acc
+            typename T_Acc,
+            typename T_Filter
         >
         DINLINE void operator( )(
             T_Acc const & acc,
             T_ParBox pb,
             T_DBox gEnergy,
-            T_Mapping mapper
+            T_Mapping mapper,
+            T_Filter filter
         ) const
         {
             using namespace mappings::threads;
@@ -151,18 +158,30 @@ namespace picongpu
             if( !frame.isValid( ) )
                 return;
 
+            auto accFilter = filter(
+                acc,
+                superCellIdx - mapper.getGuardingSuperCells( ),
+                WorkerCfg< numWorkers >{ workerIdx }
+            );
+
             memory::CtxArray<
-                bool,
+                typename FramePtr::type::ParticleType,
                 ParticleDomCfg
             >
-            isParticleCtx(
+            currentParticleCtx(
                 workerIdx,
                 [&](
                     uint32_t const linearIdx,
                     uint32_t const
                 )
                 {
-                    return frame[ linearIdx ][ multiMask_ ];
+                    auto particle = frame[ linearIdx ];
+                    /* - only particles from the last frame must be checked
+                     * - all other particles are always valid
+                     */
+                    if( particle[ multiMask_ ] != 1 )
+                        particle.setHandleInvalid( );
+                    return particle;
                 }
             );
 
@@ -177,10 +196,15 @@ namespace picongpu
                         uint32_t const idx
                     )
                     {
-                        if( isParticleCtx[ idx ] )
+                        /* get one particle */
+                        auto & particle = currentParticleCtx[ idx ];
+                        if(
+                            accFilter(
+                                acc,
+                                particle
+                            )
+                        )
                         {
-                            /* get one particle */
-                            auto particle = frame[ linearIdx ];
                             float3_X const mom = particle[ momentum_ ];
                             // compute square of absolute momentum of the particle
                             float_X const mom2 = math::abs2( mom );
@@ -214,15 +238,16 @@ namespace picongpu
                 frame = pb.getPreviousFrame(frame);
                 forEachParticle(
                     [&](
-                        uint32_t const,
+                        uint32_t const linearIdx,
                         uint32_t const idx
                     )
                     {
-                        /* The frame list is traverse from the last to the first frame.
+                        /* Update particle for the next round.
+                         * The frame list is traverse from the last to the first frame.
                          * Only the last frame can contain gaps therefore all following
-                         * frames are filled with fully particles
+                         * frames are filled with fully particles.
                          */
-                        isParticleCtx[ idx ] = true;
+                        currentParticleCtx[ idx ] = frame[ linearIdx ];
                     }
                 );
             }
@@ -273,8 +298,24 @@ namespace picongpu
 
         struct Help : public plugins::multi::IHelp
         {
+            // find all valid filter for the current used species
+            using EligibleFilters = typename MakeSeqFromNestedSeq<
+                typename bmpl::transform<
+                    particles::filter::AllParticleFilters,
+                    particles::traits::GenerateSolversIfSpeciesEligible<
+                        bmpl::_1,
+                        ParticlesType
+                    >
+                >::type
+            >::type;
+
             //! periodicity of computing the particle energy
             std::vector< uint32_t > notifyPeriod;
+            std::vector< std::string > filter;
+
+            //! string list with all possible particle filters
+            std::string concatenatedFilterNames;
+            std::vector< std::string > allowedFilters;
 
             ///! method used by plugin controller to get --help description
             void registerHelp(
@@ -282,20 +323,49 @@ namespace picongpu
                 std::string const & masterPrefix = std::string{ }
             )
             {
+
+                ForEach<
+                    EligibleFilters,
+                    plugins::misc::AppendName< bmpl::_1 >
+                > getEligibleFilterNames;
+                getEligibleFilterNames( forward( allowedFilters ) );
+
+                concatenatedFilterNames = plugins::misc::concatenateToString(
+                    allowedFilters,
+                    ", "
+                );
+
                 desc.add_options( )(
                     ( masterPrefix + prefix + ".period").c_str( ),
                     boost::program_options::value< std::vector< uint32_t > >( &notifyPeriod )->multitoken( ),
                     "compute kinetic and total energy [for each n-th step] enable plugin by setting a non-zero value"
                 );
+                desc.add_options( )(
+                    ( masterPrefix + prefix + ".filter").c_str( ),
+                    boost::program_options::value< std::vector< std::string > >( &filter )->multitoken( ),
+                    ( std::string( "particle filter: " ) + concatenatedFilterNames ).c_str()
+                );
             }
 
             void validateOptions()
             {
-                /* do not allow usage as multi plugin until particle filters are icluded
-                 * @todo remove the error message if particle filters are included
-                 */
-                if( notifyPeriod.size() != 1u )
-                    throw std::runtime_error( name + " is not a multi plugin, each parameter can be only used once." );
+                if( notifyPeriod.size() != filter.size() )
+                    throw std::runtime_error( name + ": parameter filter and period are not used the same number of times" );
+
+                // check if user passed filter name are valid
+                for( auto const & filterName : filter)
+                {
+                    if(
+                        std::find(
+                            allowedFilters.begin(),
+                            allowedFilters.end(),
+                            filterName
+                        ) == allowedFilters.end()
+                    )
+                    {
+                        throw std::runtime_error( name + ": unknown filter '" + filterName + "'" );
+                    }
+                }
             }
 
             size_t getNumPlugins() const
@@ -340,7 +410,7 @@ namespace picongpu
             m_id( id ),
             m_cellDescription( cellDescription )
         {
-            filename = m_help->getOptionPrefix() + ".dat";
+            filename = m_help->getOptionPrefix() + "_" + m_help->filter[ m_id ] + ".dat";
 
             // decide which MPI-rank writes output
             writeToFile = reduce.hasResult( mpi::reduceMethods::Reduce( ) );
@@ -464,13 +534,24 @@ namespace picongpu
                 MappingDesc
             > mapper( *m_cellDescription );
 
-            PMACC_KERNEL( KernelEnergyParticles< numWorkers >{ } )(
+            auto kernel = PMACC_KERNEL( KernelEnergyParticles< numWorkers >{ } )(
                 mapper.getGridDim( ),
                 numWorkers
-            )(
+            );
+            auto binaryKernel = std::bind(
+                kernel,
                 particles->getDeviceParticlesBox( ),
                 gEnergy->getDeviceBuffer( ).getDataBox( ),
-                mapper
+                mapper,
+                std::placeholders::_1
+            );
+
+            ForEach<
+                typename Help::EligibleFilters,
+                plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
+            >{ }(
+                m_help->filter[ m_id ],
+                binaryKernel
             );
 
             dc.releaseData( ParticlesType::FrameType::getName( ) );
