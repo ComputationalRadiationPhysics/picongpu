@@ -33,11 +33,16 @@ namespace pmacc
 {
 namespace memory
 {
-    /** static sized array
+    /** Static sized array for a local variable
      *
-     * The array is designed to hold context variables for the lock step programming
-     * model. The number of elements depend on the index domain size and
-     * the number of worker to process the indices.
+     * The array is designed to hold context variables in lock step
+     * programming. A context variable is just a local variable of a virtual
+     * worker. Allocating and using a context array allows to propagate
+     * virtual worker states over subsequent lock steps. A context array
+     * for a set of virtual workers is owned by their (physical) worker.
+     *
+     * The number of elements depends on the index domain size and the number
+     * of workers to process the indices.
      */
     template<
         typename T_Type,
