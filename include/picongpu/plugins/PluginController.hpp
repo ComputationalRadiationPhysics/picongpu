@@ -73,11 +73,10 @@
 #include "picongpu/plugins/ResourceLog.hpp"
 
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
-#include <pmacc/compileTime/conversion/MakeSeqFromNestedSeq.hpp>
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
-#include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <list>
 
@@ -107,19 +106,59 @@ private:
         }
     };
 
-    /** apply the 1st vector component to the 2nd
-     *
-     * @tparam T_TupleVector vector of type pmacc::math::CT::vector<dataType,plugin>
-     *                       with two components
-     */
-    template<typename T_TupleVector>
-    struct ApplyDataToPlugin :
-    bmpl::apply1<typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<1> >::type,
-    typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<0> >::type >
+    struct TupleSpeciesPlugin
     {
+        enum Names
+        {
+            species = 0,
+            plugin = 1
+        };
+
+        /** apply the 1st vector component to the 2nd
+         *
+         * @tparam T_TupleVector vector of type
+         *                       pmacc::math::CT::vector< Species, Plugin >
+         *                       with two components
+         */
+        template< typename T_TupleVector >
+        struct Apply :
+            bmpl::apply1<
+                typename pmacc::math::CT::At<
+                    T_TupleVector,
+                    bmpl::int_< plugin >
+                >::type,
+                typename pmacc::math::CT::At<
+                    T_TupleVector,
+                    bmpl::int_< species >
+                >::type
+            >
+        {
+        };
+
+        /** Check the combination Species+Plugin in the Tuple
+         *
+         * @tparam T_TupleVector with Species, Plugin
+         */
+        template< typename T_TupleVector >
+        struct IsEligible
+        {
+            using Species = typename pmacc::math::CT::At<
+                T_TupleVector,
+                bmpl::int_< species >
+            >::type;
+            using Solver = typename pmacc::math::CT::At<
+                T_TupleVector,
+                bmpl::int_< plugin >
+            >::type;
+
+            using type = typename particles::traits::SpeciesEligibleForSolver<
+                Species,
+                Solver
+            >::type;
+        };
     };
 
-    /* define stand alone plugins*/
+    /* define stand alone plugins */
     using StandAlonePlugins = bmpl::vector<
         Checkpoint,
         EnergyFields
@@ -164,7 +203,7 @@ private:
 
     using FieldPlugins = typename bmpl::transform<
         CombinedUnspecializedFieldPlugins,
-        ApplyDataToPlugin<bmpl::_1>
+        typename TupleSpeciesPlugin::Apply< bmpl::_1 >
     >::type;
 
 
@@ -188,14 +227,21 @@ private:
 #endif
     >;
 
-    using SpeciesPlugins = typename MakeSeqFromNestedSeq<
-        typename bmpl::transform<
-            UnspecializedSpeciesPlugins,
-            particles::traits::GenerateSolversIfSpeciesEligible<
-                bmpl::_1,
-                VectorAllSpecies
-            >
-        >::type
+    using CombinedUnspecializedSpeciesPlugins = typename AllCombinations<
+        bmpl::vector<
+            VectorAllSpecies,
+            UnspecializedSpeciesPlugins
+        >
+    >::type;
+
+    using CombinedUnspecializedSpeciesPluginsEligible = typename bmpl::copy_if<
+        CombinedUnspecializedSpeciesPlugins,
+        typename TupleSpeciesPlugin::IsEligible< bmpl::_1 >
+    >::type;
+
+    using SpeciesPlugins = typename bmpl::transform<
+        CombinedUnspecializedSpeciesPluginsEligible,
+        typename TupleSpeciesPlugin::Apply< bmpl::_1 >
     >::type;
 
     /* create sequence with all fully specialized plugins */
