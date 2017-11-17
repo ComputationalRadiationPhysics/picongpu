@@ -85,19 +85,20 @@ namespace traits
 {
     template<
         typename T_Species,
-        typename T_AssignmentFunction
+        typename T_AssignmentFunction,
+        typename T_UnspecifiedSpecies
     >
     struct SpeciesEligibleForSolver<
         T_Species,
         PhaseSpaceMulti<
             T_AssignmentFunction,
-            T_Species
+            T_UnspecifiedSpecies
         >
     > : public SpeciesEligibleForSolver<
         T_Species,
         PhaseSpace<
             T_AssignmentFunction,
-            T_Species
+            T_UnspecifiedSpecies
         >
     >
     {

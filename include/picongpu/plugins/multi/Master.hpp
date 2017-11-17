@@ -23,6 +23,7 @@
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/plugins/multi/ISlave.hpp"
 #include "picongpu/plugins/multi/IHelp.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <vector>
 #include <list>
@@ -146,4 +147,25 @@ namespace multi
 
 } // namespace multi
 } // namespace plugins
+
+namespace particles
+{
+namespace traits
+{
+    template<
+        typename T_Species,
+        typename T_Slave
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        plugins::multi::Master< T_Slave >
+    >
+    {
+        using type = typename SpeciesEligibleForSolver<
+            T_Species,
+            T_Slave
+        >::type;
+    };
+} // namespace traits
+} // namespace particles
 } // namespace picongpu
