@@ -25,7 +25,7 @@ This exposes the ISAAC port to connect via the webclient to.
 .. code:: bash
 
     nivida-docker pull ax3l/picongpu
-    nvidia-docker run -p 2459:2459 -t ax3l/picongpu:0.3.0 /bin/bash -lc start_lwfa
+    nvidia-docker run -p 2459:2459 -t ax3l/picongpu:0.3.0 lwfa
     # open firefox and isaac client
 
 or
@@ -33,7 +33,7 @@ or
 .. code:: bash
 
     singularity pull shub://ax3l/picongpu
-    singularity exec --nv shub://ax3l/picongpu /bin/bash -lc start_lwfa
+    singularity exec --nv shub://ax3l/picongpu lwfa
 
 Maintainer / Developer
 ----------------------
@@ -67,4 +67,4 @@ Recipes
 
 Currently, the following build recipes exist:
 
-* ``ubuntu-1604/``: Ubuntu 16.04, CUDA 8.0.61 (nvcc), GCC 5.4.0
+* ``ubuntu-1604/``: Ubuntu 16.04, CUDA 9.0.176 (nvcc), GCC 5.4.0
