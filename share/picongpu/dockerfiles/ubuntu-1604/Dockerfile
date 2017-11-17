@@ -14,7 +14,7 @@ ENV        DEBIAN_FRONTEND=noninteractive \
 #     (excluded: emacs-nox pulls up to 90MB in)
 #   - adds build tools which are NOT linked in the final app
 #   - selected cuda toolkit components
-# need more cuda toolkit components?
+# note: do you need more cuda toolkit components?
 # check:   apt-get update && apt-cache search cuda && apt-cache search nvcc
 RUN        apt-get update && \
            apt-get install -y --no-install-recommends \
@@ -72,5 +72,5 @@ RUN        /bin/bash -l -c ' \
                pic-build -b "cuda:30;35;37;50;60" && \
                rm -rf .build'
 
-COPY       start_lwfa.sh /usr/bin/start_lwfa
+COPY       start_lwfa.sh /usr/bin/lwfa
 CMD        /bin/bash -l

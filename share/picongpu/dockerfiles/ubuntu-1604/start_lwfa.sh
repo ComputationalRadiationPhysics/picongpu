@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 #
 
 isaac &
@@ -15,7 +15,7 @@ sleep 5
 # start PIConGPU
 cd /opt/picInputs/lwfa
 tbg \
-  -s bash \
+  -s "bash -l" \
   -c etc/picongpu/0001gpus_isaac.cfg \
   -t etc/picongpu/bash/mpirun.tpl \
   /tmp/lwfa_001
