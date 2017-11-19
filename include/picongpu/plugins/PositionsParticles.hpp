@@ -293,11 +293,12 @@ namespace particles
 namespace traits
 {
     template<
-        typename T_Species
+        typename T_Species,
+        typename T_UnspecifiedSpecies
     >
     struct SpeciesEligibleForSolver<
         T_Species,
-        PositionsParticles< T_Species >
+        PositionsParticles< T_UnspecifiedSpecies >
     >
     {
         using FrameType = typename T_Species::FrameType;
