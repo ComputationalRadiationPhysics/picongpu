@@ -63,12 +63,12 @@ using namespace pmacc;
  * @tparam T_Species type of species
  *
  */
-template< typename T_Species >
+template< typename T_SpeciesFilter >
 struct WriteSpecies
 {
 public:
 
-    typedef T_Species ThisSpecies;
+    typedef typename T_SpeciesFilter::Species ThisSpecies;
     typedef typename ThisSpecies::FrameType FrameType;
     typedef typename FrameType::ParticleDescription ParticleDescription;
     typedef typename FrameType::ValueTypeSeq ParticleAttributeList;
@@ -93,32 +93,34 @@ public:
     HINLINE void operator()(ThreadParams* params,
                             const Space particleOffset)
     {
-        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) write species: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) write species: %1%") % T_SpeciesFilter::getName();
         DataConnector &dc = Environment<>::get().DataConnector();
         /* load particle without copy particle data to host */
         auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
 
         /* count total number of particles on the device */
-        log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) count particles: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) count particles: %1%") % T_SpeciesFilter::getName();
+        typename T_SpeciesFilter::Filter particleFilter{};
         uint64_cu totalNumParticles = 0;
         totalNumParticles = pmacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params->cellDescription),
                                                                                     params->localWindowToDomainOffset,
-                                                                                    params->window.localDimensions.size);
-        log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) count particles: %1% = %2%") % AdiosFrameType::getName() % totalNumParticles;
+                                                                                    params->window.localDimensions.size,
+                                                                                    particleFilter);
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) count particles: %1% = %2%") % T_SpeciesFilter::getName() % totalNumParticles;
 
         AdiosFrameType hostFrame;
 
         /* malloc host memory */
-        log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) malloc host memory: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) malloc host memory: %1%") % T_SpeciesFilter::getName();
         ForEach<typename AdiosFrameType::ValueTypeSeq, MallocHostMemory<bmpl::_1> > mallocMem;
         mallocMem(forward(hostFrame), totalNumParticles);
-        log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) malloc host memory: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) malloc host memory: %1%") % T_SpeciesFilter::getName();
 
         if (totalNumParticles > 0)
         {
-            log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) copy particle host (with hierarchy) to host (without hierarchy): %1%") % AdiosFrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) copy particle host (with hierarchy) to host (without hierarchy): %1%") % T_SpeciesFilter::getName();
             typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
@@ -160,7 +162,8 @@ public:
                                 filter,
                                 particleOffset, /*relative to data domain (not to physical domain)*/
                                 totalCellIdx_,
-                                mapper
+                                mapper,
+                                particleFilter
                                 );
 #if( PMACC_CUDA_ENABLED == 1 )
             dc.releaseData( MallocMCBuffer< DeviceHeap >::getName() );
@@ -175,10 +178,10 @@ public:
         /* free host memory */
         ForEach<typename AdiosFrameType::ValueTypeSeq, FreeHostMemory<bmpl::_1> > freeMem;
         freeMem(forward(hostFrame));
-        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
 
         /* write species counter table to adios file */
-        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle index table for %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle index table for %1%") % T_SpeciesFilter::getName();
         {
             GridController<simDim>& gc = Environment<simDim>::get().GridController();
 
@@ -200,7 +203,7 @@ public:
             params->adiosSpeciesIndexVarIds.pop_front();
             ADIOS_CMD(adios_write_byid(params->adiosFileHandle, adiosIndexVarId, particlesMetaInfo));
         }
-        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle index table for %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle index table for %1%") % T_SpeciesFilter::getName();
     }
 };
 

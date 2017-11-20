@@ -69,7 +69,10 @@
 #include "picongpu/plugins/hdf5/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/hdf5/restart/RestartFieldLoader.hpp"
 #include "picongpu/plugins/hdf5/NDScalars.hpp"
+#include "picongpu/plugins/misc/SpeciesFilter.hpp"
+
 #include <pmacc/memory/boxes/DataBoxDim1Access.hpp>
+
 
 namespace picongpu
 {
@@ -407,12 +410,26 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
+            ForEach<
+                FileCheckpointParticles,
+                WriteSpecies<
+                    plugins::misc::SpeciesFilter<
+                        bmpl::_1
+                    >
+                >
+            > writeSpecies;
             writeSpecies(threadParams, domainOffset);
         }
         else
         {
-            ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
+            ForEach<
+                FileOutputParticles,
+                WriteSpecies<
+                    plugins::misc::SpeciesFilter<
+                        bmpl::_1
+                    >
+                >
+            > writeSpecies;
             writeSpecies(threadParams, domainOffset);
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");

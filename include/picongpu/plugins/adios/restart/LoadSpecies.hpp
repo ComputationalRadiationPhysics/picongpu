@@ -91,17 +91,17 @@ public:
      */
     HINLINE void operator()(ThreadParams* params, const uint32_t restartChunkSize)
     {
-
-        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) load species: %1%") % AdiosFrameType::getName();
+        std::string const speciesName = FrameType::getName() + "_all";
+        log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) load species: %1%") % speciesName;
         DataConnector &dc = Environment<>::get().DataConnector();
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
 
         std::string particlePath = params->adiosBasePath + std::string(ADIOS_PATH_PARTICLES) +
-                                   FrameType::getName() + std::string("/");
+                                   speciesName + std::string("/");
         const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
         /* load particle without copying particle data to host */
-        auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
+        auto speciesTmp = dc.get< ThisSpecies >( FrameType::getName(), true );
 
         /* count total number of particles on the device */
         uint64_t totalNumParticles = 0;
@@ -152,12 +152,12 @@ public:
             (long long unsigned) totalNumParticles % (long long unsigned) particleOffset;
 
         AdiosFrameType hostFrame;
-        log<picLog::INPUT_OUTPUT > ("ADIOS: malloc mapped memory: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS: malloc mapped memory: %1%") % speciesName;
         /*malloc mapped memory*/
         ForEach<typename AdiosFrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
         mallocMem(forward(hostFrame), totalNumParticles);
 
-        log<picLog::INPUT_OUTPUT > ("ADIOS: get mapped memory device pointer: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS: get mapped memory device pointer: %1%") % speciesName;
         /*load device pointer of mapped memory*/
         AdiosFrameType deviceFrame;
         ForEach<typename AdiosFrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
@@ -183,7 +183,7 @@ public:
             ForEach<typename AdiosFrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
             freeMem(forward(hostFrame));
         }
-        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) load species: %1%") % AdiosFrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) load species: %1%") % speciesName;
     }
 };
 

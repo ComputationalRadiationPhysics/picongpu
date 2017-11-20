@@ -126,15 +126,15 @@ namespace detail
 
 /** Write copy particle to host memory and dump to HDF5 file
  *
- * @tparam T_Species type of species
+ * @tparam T_SpeciesFilter type and filter of species
  *
  */
-template< typename T_Species >
+template< typename T_SpeciesFilter >
 struct WriteSpecies
 {
 public:
 
-    typedef T_Species ThisSpecies;
+    typedef typename T_SpeciesFilter::Species ThisSpecies;
     typedef typename ThisSpecies::FrameType FrameType;
     typedef typename FrameType::ParticleDescription ParticleDescription;
     typedef typename FrameType::ValueTypeSeq ParticleAttributeList;
@@ -163,7 +163,7 @@ public:
     HINLINE void operator()(ThreadParams* params,
                             const Space domainOffset)
     {
-        log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5: (begin) write species: %1%") % T_SpeciesFilter::getName();
         DataConnector &dc = Environment<>::get().DataConnector();
         /* load particle without copy particle data to host */
         auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
@@ -171,7 +171,9 @@ public:
         /* count number of particles for this species on the device */
         uint64_t numParticles = 0;
 
-        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) count particles: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) count particles: %1%") % T_SpeciesFilter::getName();
+
+        typename T_SpeciesFilter::Filter particleFilter{};
         /* at this point we cast to uint64_t, before we assume that per GPU
          * less then 1e9 (int range) particles will be counted
          */
@@ -179,29 +181,30 @@ public:
             *speciesTmp,
             *(params->cellDescription),
             params->localWindowToDomainOffset,
-            params->window.localDimensions.size
+            params->window.localDimensions.size,
+            particleFilter
         ));
 
 
-        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) count particles: %1% = %2%") % Hdf5FrameType::getName() % numParticles;
+        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) count particles: %1% = %2%") % T_SpeciesFilter::getName() % numParticles;
         Hdf5FrameType hostFrame;
-        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) malloc mapped memory: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) malloc mapped memory: %1%") % T_SpeciesFilter::getName();
         /*malloc mapped memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
         mallocMem(forward(hostFrame), numParticles);
-        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) malloc mapped memory: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) malloc mapped memory: %1%") % T_SpeciesFilter::getName();
 
         if (numParticles != 0)
         {
 
-            log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) get mapped memory device pointer: %1%") % T_SpeciesFilter::getName();
             /*load device pointer of mapped memory*/
             Hdf5FrameType deviceFrame;
             ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
             getDevicePtr(forward(deviceFrame), forward(hostFrame));
-            log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) get mapped memory device pointer: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) get mapped memory device pointer: %1%") % T_SpeciesFilter::getName();
 
-            log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) copy particle to host: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) copy particle to host: %1%") % T_SpeciesFilter::getName();
             typedef bmpl::vector< typename GetPositionFilter<simDim>::type > usedFilters;
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
@@ -228,12 +231,13 @@ public:
                 filter,
                 domainOffset,
                 totalCellIdx_,
-                mapper
+                mapper,
+                particleFilter
             );
             counterBuffer.deviceToHost();
-            log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) copy particle to host: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) copy particle to host: %1%") % T_SpeciesFilter::getName();
             __getTransactionEvent().waitForFinished();
-            log<picLog::INPUT_OUTPUT > ("HDF5:  all events are finished: %1%") % Hdf5FrameType::getName();
+            log<picLog::INPUT_OUTPUT > ("HDF5:  all events are finished: %1%") % T_SpeciesFilter::getName();
 
             PMACC_ASSERT((uint64_t) counterBuffer.getHostBuffer().getDataBox()[0] == numParticles);
         }
@@ -242,7 +246,7 @@ public:
          * do an allgather during write to find out the global number of
          * particles.
          */
-        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) collect particle sizes for %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) collect particle sizes for %1%") % T_SpeciesFilter::getName();
 
         ColTypeUInt64 ctUInt64;
         ColTypeDouble ctDouble;
@@ -285,12 +289,12 @@ public:
             if( particleCounts.at(2 * r + 1) < myParticlePatch[ 1 ] )
                 numParticlesOffset += particleCounts.at(2 * r);
         }
-        log<picLog::INPUT_OUTPUT > ("HDF5:  (end) collect particle sizes for %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (end) collect particle sizes for %1%") % T_SpeciesFilter::getName();
 
         /* dump non-constant particle records to hdf5 file */
-        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write particle records for %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) write particle records for %1%") % T_SpeciesFilter::getName();
 
-        const std::string speciesPath( std::string("particles/") + FrameType::getName() );
+        const std::string speciesPath( std::string("particles/") + T_SpeciesFilter::getName() );
 
         ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<bmpl::_1> > writeToHdf5;
         writeToHdf5(
@@ -345,14 +349,14 @@ public:
         }
 
         /* openPMD ED-PIC: write additional attributes */
-        const float_64 particleShape( GetShape<T_Species>::type::support - 1 );
+        const float_64 particleShape( GetShape<ThisSpecies>::type::support - 1 );
         params->dataCollector->writeAttribute( params->currentStep,
                             ctDouble,
                             speciesPath.c_str(),
                             "particleShape",
                             &particleShape );
 
-        traits::GetSpeciesFlagName<T_Species, current<> > currentDepositionName;
+        traits::GetSpeciesFlagName<ThisSpecies, current<> > currentDepositionName;
         const std::string currentDeposition( currentDepositionName() );
         ColTypeString ctCurrentDeposition( currentDeposition.length() );
         params->dataCollector->writeAttribute( params->currentStep,
@@ -361,7 +365,7 @@ public:
                             "currentDeposition",
                             currentDeposition.c_str() );
 
-        traits::GetSpeciesFlagName<T_Species, particlePusher<> > particlePushName;
+        traits::GetSpeciesFlagName<ThisSpecies, particlePusher<> > particlePushName;
         const std::string particlePush( particlePushName() );
         ColTypeString ctParticlePush( particlePush.length() );
         params->dataCollector->writeAttribute( params->currentStep,
@@ -370,7 +374,7 @@ public:
                             "particlePush",
                             particlePush.c_str() );
 
-        traits::GetSpeciesFlagName<T_Species, interpolation<> > particleInterpolationName;
+        traits::GetSpeciesFlagName<ThisSpecies, interpolation<> > particleInterpolationName;
         const std::string particleInterpolation( particleInterpolationName() );
         ColTypeString ctParticleInterpolation( particleInterpolation.length() );
         params->dataCollector->writeAttribute( params->currentStep,
@@ -387,10 +391,10 @@ public:
                             "particleSmoothing",
                             particleSmoothing.c_str() );
 
-        log<picLog::INPUT_OUTPUT > ("HDF5:  (end) write particle records for %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (end) write particle records for %1%") % T_SpeciesFilter::getName();
 
         /* write species particle patch meta information */
-        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particlePatches for %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) writing particlePatches for %1%") % T_SpeciesFilter::getName();
 
         std::string particlePatchesPath( speciesPath + std::string("/particlePatches") );
 
@@ -498,12 +502,12 @@ public:
             &(*unitDimensionCellIdx.begin()));
 
 
-        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) writing particlePatches for %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) writing particlePatches for %1%") % T_SpeciesFilter::getName();
 
         /*free host memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
         freeMem(forward(hostFrame));
-        log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % Hdf5FrameType::getName();
+        log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
     }
 
 private:

@@ -73,7 +73,8 @@ namespace picongpu
             typename T_Space,
             typename T_Identifier,
             typename T_Mapping,
-            typename T_Acc
+            typename T_Acc,
+            typename T_ParticleFilter
         >
         DINLINE void
         operator()(
@@ -84,7 +85,8 @@ namespace picongpu
             T_Filter filter,
             T_Space const domainOffset,
             T_Identifier const domainCellIdxIdentifier,
-            T_Mapping const mapper
+            T_Mapping const mapper,
+            T_ParticleFilter parFilter
         ) const
         {
             using namespace pmacc::particles::operations;
@@ -129,6 +131,11 @@ namespace picongpu
 
             // each virtual worker needs only one filter
             filter.setSuperCellPosition( localSuperCellCellOffset );
+            auto accParFilter = parFilter(
+                acc,
+                supcerCellIdx - mapper.getGuardingSuperCells( ),
+                WorkerCfg< numWorkers >{ workerIdx }
+            );
 
             ForEachIdx<
                 IdxConfig<
@@ -168,11 +175,17 @@ namespace picongpu
                                 localIdx
                             )
                         )
-                            storageOffsetCtx[ idx ] = nvidia::atomicAllInc(
-                                acc,
-                                &localCounter,
-                                ::alpaka::hierarchy::Threads{}
-                            );
+                            if(
+                                accParFilter(
+                                    acc,
+                                    parSrc
+                                )
+                            )
+                                storageOffsetCtx[ idx ] = nvidia::atomicAllInc(
+                                    acc,
+                                    &localCounter,
+                                    ::alpaka::hierarchy::Threads{}
+                                );
                     }
                 );
                 __syncthreads();

@@ -24,6 +24,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
@@ -175,11 +176,13 @@ private:
         DataConnector &dc = Environment<>::get().DataConnector();
         auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
 
+        particles::filter::All parFilter{};
         /*count local particles*/
         size = pmacc::CountParticles::countOnDevice<AREA>(*particles,
                                                           *cellDescription,
                                                           DataSpace<simDim>(),
-                                                          localSize);
+                                                          localSize,
+                                                          parFilter);
         dc.releaseData( ParticlesType::FrameType::getName() );
 
         uint64_cu reducedValueMax;
