@@ -76,6 +76,7 @@
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <list>
 
@@ -105,20 +106,60 @@ private:
         }
     };
 
-    /** apply the 1st vector component to the 2nd
-     *
-     * @tparam T_TupleVector vector of type pmacc::math::CT::vector<dataType,plugin>
-     *                       with two components
-     */
-    template<typename T_TupleVector>
-    struct ApplyDataToPlugin :
-    bmpl::apply1<typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<1> >::type,
-    typename pmacc::math::CT::At<T_TupleVector, bmpl::int_<0> >::type >
+    struct TupleSpeciesPlugin
     {
+        enum Names
+        {
+            species = 0,
+            plugin = 1
+        };
+
+        /** apply the 1st vector component to the 2nd
+         *
+         * @tparam T_TupleVector vector of type
+         *                       pmacc::math::CT::vector< Species, Plugin >
+         *                       with two components
+         */
+        template< typename T_TupleVector >
+        struct Apply :
+            bmpl::apply1<
+                typename pmacc::math::CT::At<
+                    T_TupleVector,
+                    bmpl::int_< plugin >
+                >::type,
+                typename pmacc::math::CT::At<
+                    T_TupleVector,
+                    bmpl::int_< species >
+                >::type
+            >
+        {
+        };
+
+        /** Check the combination Species+Plugin in the Tuple
+         *
+         * @tparam T_TupleVector with Species, Plugin
+         */
+        template< typename T_TupleVector >
+        struct IsEligible
+        {
+            using Species = typename pmacc::math::CT::At<
+                T_TupleVector,
+                bmpl::int_< species >
+            >::type;
+            using Solver = typename pmacc::math::CT::At<
+                T_TupleVector,
+                bmpl::int_< plugin >
+            >::type;
+
+            using type = typename particles::traits::SpeciesEligibleForSolver<
+                Species,
+                Solver
+            >::type;
+        };
     };
 
-    /* define stand alone plugins*/
-    typedef bmpl::vector<
+    /* define stand alone plugins */
+    using StandAlonePlugins = bmpl::vector<
         Checkpoint,
         EnergyFields
 #if (ENABLE_ADIOS == 1)
@@ -141,26 +182,29 @@ private:
         , hdf5::HDF5Writer
 #endif
         , ResourceLog
-    > StandAlonePlugins;
+    >;
 
 
     /* define field plugins */
-    typedef bmpl::vector<
+    using UnspecializedFieldPlugins = bmpl::vector<
 #if( PMACC_CUDA_ENABLED == 1 )
-     SliceFieldPrinterMulti<bmpl::_1>
+        SliceFieldPrinterMulti< bmpl::_1 >
 #endif
-    > UnspecializedFieldPlugins;
+    >;
 
-    typedef bmpl::vector< FieldB, FieldE, FieldJ> AllFields;
+    using AllFields = bmpl::vector< FieldB, FieldE, FieldJ >;
 
-    typedef AllCombinations<
-      bmpl::vector<AllFields, UnspecializedFieldPlugins>
-    >::type CombinedUnspecializedFieldPlugins;
+    using CombinedUnspecializedFieldPlugins = typename AllCombinations<
+        bmpl::vector<
+            AllFields,
+            UnspecializedFieldPlugins
+        >
+    >::type;
 
-    typedef bmpl::transform<
-    CombinedUnspecializedFieldPlugins,
-      ApplyDataToPlugin<bmpl::_1>
-    >::type FieldPlugins;
+    using FieldPlugins = typename bmpl::transform<
+        CombinedUnspecializedFieldPlugins,
+        typename TupleSpeciesPlugin::Apply< bmpl::_1 >
+    >::type;
 
 
     /* define species plugins */
@@ -183,25 +227,32 @@ private:
 #endif
     >;
 
-    typedef AllCombinations<
-        bmpl::vector<VectorAllSpecies, UnspecializedSpeciesPlugins>
-    >::type CombinedUnspecializedSpeciesPlugins;
+    using CombinedUnspecializedSpeciesPlugins = typename AllCombinations<
+        bmpl::vector<
+            VectorAllSpecies,
+            UnspecializedSpeciesPlugins
+        >
+    >::type;
 
-    typedef bmpl::transform<
+    using CombinedUnspecializedSpeciesPluginsEligible = typename bmpl::copy_if<
         CombinedUnspecializedSpeciesPlugins,
-        ApplyDataToPlugin<bmpl::_1>
-    >::type SpeciesPlugins;
+        typename TupleSpeciesPlugin::IsEligible< bmpl::_1 >
+    >::type;
 
+    using SpeciesPlugins = typename bmpl::transform<
+        CombinedUnspecializedSpeciesPluginsEligible,
+        typename TupleSpeciesPlugin::Apply< bmpl::_1 >
+    >::type;
 
-    /* create sequence with all plugins*/
-    typedef MakeSeq<
+    /* create sequence with all fully specialized plugins */
+    using AllPlugins = MakeSeq_t<
         StandAlonePlugins,
         FieldPlugins,
         SpeciesPlugins
-    >::type AllPlugins;
+    >;
 
     /**
-     * Initialises the controller by adding all user plugins to its internal list.
+     * Initializes the controller by adding all user plugins to its internal list.
      */
     virtual void init()
     {
