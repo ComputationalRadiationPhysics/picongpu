@@ -18,11 +18,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/filter/RelativeGlobalDomainPosition.def"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasIdentifiers.hpp>
+
 
 namespace picongpu
 {
