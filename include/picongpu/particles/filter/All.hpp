@@ -49,7 +49,7 @@ namespace acc
             typename T_Particle,
             typename T_Acc
         >
-        DINLINE bool operator()(
+        HDINLINE bool operator()(
             T_Acc const &,
             T_Particle const & particle
         )
@@ -79,7 +79,7 @@ namespace acc
             typename T_WorkerCfg,
             typename T_Acc
         >
-        DINLINE acc::All
+        HDINLINE acc::All
         operator( )(
             T_Acc const & acc,
             DataSpace< simDim > const &,

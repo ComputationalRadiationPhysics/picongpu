@@ -38,7 +38,7 @@ namespace operators
          * @return the input argument
          */
         template< typename T_Arg >
-        DINLINE bool
+        HDINLINE bool
         operator()( T_Arg const a ) const
         {
             return a;
@@ -53,7 +53,7 @@ namespace operators
             typename T_Arg1,
             typename ... T_Args
         >
-        DINLINE bool
+        HDINLINE bool
         operator()( T_Arg1 const a, T_Args const ... args ) const
         {
             return a || Or{}( args ... );

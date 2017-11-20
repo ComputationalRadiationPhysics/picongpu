@@ -77,7 +77,7 @@ namespace detail
          *
          * @param functor user functor instance
          */
-        DINLINE Interface( UserFunctor const & functor ) :
+        HDINLINE Interface( UserFunctor const & functor ) :
             UserFunctor( functor )
         {
         }
@@ -96,7 +96,7 @@ namespace detail
             typename T_Acc,
             typename ... T_Args
         >
-        DINLINE auto operator( )(
+        HDINLINE auto operator( )(
             T_Acc const & acc,
             T_Args && ... args )
         -> decltype(
@@ -210,7 +210,7 @@ namespace detail
             uint32_t T_numWorkers,
             typename T_Acc
         >
-        DINLINE auto
+        HDINLINE auto
         operator( )(
             T_Acc const & acc,
             T_OffsetType const & domainOffset,

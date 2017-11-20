@@ -35,7 +35,7 @@ namespace acc
     struct None
     {
         template< typename ... T_Args >
-        DINLINE void
+        HDINLINE void
         operator( )( T_Args && ... )
         {
         }

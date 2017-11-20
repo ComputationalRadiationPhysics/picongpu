@@ -52,7 +52,7 @@ namespace detail
          * @return number of macro particles per cell with respect to
          *         MIN_WEIGHTING, range: [0;macroParticlesPerCell]
          */
-        DINLINE uint32_t
+        HDINLINE uint32_t
         operator()(
             float_X const realParticlesPerCell,
             uint32_t numMacroParticles,

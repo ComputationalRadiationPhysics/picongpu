@@ -87,7 +87,7 @@ namespace detail
             typename T_WorkerCfg,
             typename T_Acc
         >
-        DINLINE
+        HDINLINE
         RngType< T_Acc > operator()(
             T_Acc const & acc,
             DataSpace< simDim > const & localSupercellOffset,

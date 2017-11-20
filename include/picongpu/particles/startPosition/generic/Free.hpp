@@ -47,7 +47,7 @@ namespace acc
         using Functor = T_Functor;
 
         //! store user functor instance
-        DINLINE Free( Functor const & functor ) :
+        HDINLINE Free( Functor const & functor ) :
             Functor( functor )
         { }
 
@@ -63,7 +63,7 @@ namespace acc
             typename ... T_Args,
             typename T_Acc
         >
-        DINLINE
+        HDINLINE
         void operator( )(
             T_Acc const &,
             T_Args && ... args
@@ -73,7 +73,7 @@ namespace acc
         }
 
         template< typename T_Particle >
-        DINLINE uint32_t
+        HDINLINE uint32_t
         numberOfMacroParticles( float_X const realParticlesPerCell )
         {
             return Functor::template numberOfMacroParticles< T_Particle >( realParticlesPerCell );
@@ -149,7 +149,7 @@ namespace acc
             typename T_WorkerCfg,
             typename T_Acc
         >
-        DINLINE acc::Free< Functor >
+        HDINLINE acc::Free< Functor >
         operator()(
             T_Acc const & acc,
             DataSpace< simDim > const &,

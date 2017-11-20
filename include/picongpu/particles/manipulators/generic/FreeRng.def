@@ -49,7 +49,7 @@ namespace generic
      *   struct RandomXFunctor
      *   {
      *       template< typename T_Rng, typename T_Particle >
-     *       DINLINE void operator()( T_Rng& rng, T_Particle& particle )
+     *       HDINLINE void operator()( T_Rng& rng, T_Particle& particle )
      *       {
      *           particle[ position_ ].x() = rng();
      *       }

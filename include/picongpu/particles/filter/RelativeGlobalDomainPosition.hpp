@@ -41,7 +41,7 @@ namespace acc
     {
         using Params = T_Params;
 
-        DINLINE RelativeGlobalDomainPosition(
+        HDINLINE RelativeGlobalDomainPosition(
             DataSpace< simDim > const & localDomainOffset,
             DataSpace< simDim > const & globalDomainSize,
             DataSpace< simDim > const & localSuperCellOffset
@@ -56,7 +56,7 @@ namespace acc
             typename T_Acc,
             typename T_Particle
         >
-        DINLINE bool operator()(
+        HDINLINE bool operator()(
             T_Acc const &,
             T_Particle const & particle
         )
@@ -84,7 +84,7 @@ namespace acc
          *                              to the origin of the global domain
          */
         template< typename T_Particle >
-        DINLINE bool isParticleInsideRange( T_Particle const & particle, DataSpace< simDim > const & globalSuperCellOffset ) const
+        HDINLINE bool isParticleInsideRange( T_Particle const & particle, DataSpace< simDim > const & globalSuperCellOffset ) const
         {
             using SuperCellSize = typename T_Particle::SuperCellSize;
 
@@ -139,7 +139,7 @@ namespace acc
             typename T_WorkerCfg,
             typename T_Acc
         >
-        DINLINE acc::RelativeGlobalDomainPosition< Params >
+        HDINLINE acc::RelativeGlobalDomainPosition< Params >
         operator( )(
             T_Acc const & acc,
             DataSpace< simDim > const & localSuperCellOffset,
