@@ -48,7 +48,7 @@ namespace acc
         using Functor = T_Functor;
         using RngType = T_RngType;
 
-        DINLINE FreeRng(
+        HDINLINE FreeRng(
             Functor const & functor,
             RngType const & rng
         ) :
@@ -73,7 +73,7 @@ namespace acc
             typename ... T_Args,
             typename T_Acc
         >
-        DINLINE
+        HDINLINE
         void operator()(
             T_Acc const &,
             T_Particle& particle,
@@ -182,7 +182,7 @@ namespace acc
             typename T_WorkerCfg,
             typename T_Acc
         >
-        DINLINE
+        HDINLINE
         acc::FreeRng<
             Functor,
             RngType< T_Acc >

@@ -55,7 +55,7 @@ namespace acc
         using Filter = T_Filter;
         using Functor = T_Functor;
 
-        DINLINE Filtered(
+        HDINLINE Filtered(
             Filter const & filter,
             Functor const & functor
         ) :
@@ -77,7 +77,7 @@ namespace acc
             typename T_Acc,
             typename ... T_Args
         >
-        DINLINE auto operator( )(
+        HDINLINE auto operator( )(
             T_Acc const & acc,
             T_Args && ... args
         )
@@ -202,7 +202,7 @@ namespace acc
             uint32_t T_numWorkers,
             typename T_Acc
         >
-        DINLINE auto
+        HDINLINE auto
         operator( )(
             T_Acc const & acc,
             T_OffsetType const & domainOffset,

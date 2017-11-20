@@ -48,7 +48,7 @@ namespace acc
         using Functor = T_Functor;
         using RngType = T_RngType;
 
-        DINLINE FreeRng(
+        HDINLINE FreeRng(
             Functor const & functor,
             RngType const & rng
         ) :
@@ -73,7 +73,7 @@ namespace acc
             typename ... T_Args,
             typename T_Acc
         >
-        DINLINE
+        HDINLINE
         void operator()(
             T_Acc const &,
             T_Particle& particle,
@@ -90,7 +90,7 @@ namespace acc
         }
 
         template< typename T_Particle >
-        DINLINE uint32_t
+        HDINLINE uint32_t
         numberOfMacroParticles( float_X const realParticlesPerCell )
         {
             return Functor::template numberOfMacroParticles< T_Particle >( realParticlesPerCell );
@@ -189,7 +189,7 @@ namespace acc
             typename T_WorkerCfg,
             typename T_Acc
         >
-        DINLINE auto
+        HDINLINE auto
         operator()(
             T_Acc const & acc,
             DataSpace< simDim > const & localSupercellOffset,

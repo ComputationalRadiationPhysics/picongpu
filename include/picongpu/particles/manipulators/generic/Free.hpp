@@ -46,7 +46,7 @@ namespace acc
         using Functor = T_Functor;
 
         //! store user functor instance
-        DINLINE Free( Functor const & functor ) :
+        HDINLINE Free( Functor const & functor ) :
             Functor( functor )
         {
         }
@@ -60,7 +60,7 @@ namespace acc
         template<
             typename T_Acc,
             typename ... T_Args >
-        DINLINE
+        HDINLINE
         void operator( )(
             T_Acc const &,
             T_Args && ... args
@@ -139,7 +139,7 @@ namespace acc
             typename T_WorkerCfg,
             typename T_Acc
         >
-        DINLINE acc::Free< Functor >
+        HDINLINE acc::Free< Functor >
         operator()(
             T_Acc const &,
             DataSpace< simDim > const &,

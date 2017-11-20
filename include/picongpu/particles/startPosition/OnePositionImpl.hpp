@@ -42,7 +42,7 @@ namespace detail
     struct SetWeighting
     {
         template< typename T_Particle >
-        DINLINE void
+        HDINLINE void
         operator()
         (
             T_Particle & particle,
@@ -57,7 +57,7 @@ namespace detail
     struct SetWeighting< false >
     {
         template< typename T_Particle >
-        DINLINE void
+        HDINLINE void
         operator()
         (
             T_Particle &,
@@ -84,7 +84,7 @@ namespace detail
             typename T_Particle,
             typename ... T_Args
         >
-        DINLINE void operator()(
+        HDINLINE void operator()(
             T_Particle & particle,
             T_Args && ...
         )
@@ -104,7 +104,7 @@ namespace detail
         }
 
         template< typename T_Particle >
-        DINLINE uint32_t
+        HDINLINE uint32_t
         numberOfMacroParticles( float_X const realParticlesPerCell )
         {
             bool const hasWeighting = pmacc::traits::HasIdentifier<

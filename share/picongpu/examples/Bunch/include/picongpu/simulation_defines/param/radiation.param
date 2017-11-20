@@ -122,7 +122,7 @@ namespace radiation
         static constexpr float_X radiationGamma = 3.0;
 
         template< typename T_Particle >
-        DINLINE void operator()( T_Particle& particle )
+        HDINLINE void operator()( T_Particle& particle )
         {
             if(
                 picongpu::gamma<float_X>(

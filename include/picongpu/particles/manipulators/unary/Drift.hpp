@@ -58,7 +58,7 @@ namespace acc
             typename T_Particle,
             typename ... T_Args
         >
-        DINLINE void operator()(
+        HDINLINE void operator()(
             T_Particle & particle,
             T_Args && ...
         )

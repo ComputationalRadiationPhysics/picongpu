@@ -67,7 +67,7 @@ namespace acc
             typename T_SrcParticle,
             typename ... T_Args
         >
-        DINLINE void operator()(
+        HDINLINE void operator()(
             T_DesParticle & particleDes,
             T_SrcParticle const &,
             T_Args && ...

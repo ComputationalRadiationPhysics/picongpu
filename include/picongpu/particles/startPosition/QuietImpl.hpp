@@ -52,7 +52,7 @@ namespace acc
             typename T_Particle,
             typename ... T_Args
         >
-        DINLINE void operator()(
+        HDINLINE void operator()(
             T_Particle & particle,
             T_Args && ...
         )
@@ -92,7 +92,7 @@ namespace acc
         }
 
         template< typename T_Particle >
-        DINLINE uint32_t
+        HDINLINE uint32_t
         numberOfMacroParticles( float_X const realParticlesPerCell )
         {
             auto numParInCell = T_ParamClass::numParticlesPerDimension::toRT();
