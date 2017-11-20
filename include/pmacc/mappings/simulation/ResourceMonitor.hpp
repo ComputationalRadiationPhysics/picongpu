@@ -49,8 +49,8 @@ namespace pmacc
         /**
          * Returns the number of particles per species on the device
          */
-        template <typename T_Species, typename T_MappingDesc>
-        std::vector<std::size_t> getParticleCounts(T_MappingDesc &cellDescription);
+        template <typename T_Species, typename T_MappingDesc, typename T_ParticleFilter>
+        std::vector<std::size_t> getParticleCounts(T_MappingDesc &cellDescription, T_ParticleFilter & parFilter);
 
     };
 
