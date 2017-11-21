@@ -1,18 +1,7 @@
 modules:
   enable::
-    - lmod
-  lmod:
-    core_compilers:
-      - 'gcc@5.4.0'
-    hash_length: 0
-    gcc:
-      environment:
-        set:
-          CC: gcc
-          CXX: g++
-          FC: gfortran
-          F90: gfortran
-          F77: gfortran
+    - tcl
+  tcl:
     openmpi:
       environment:
         set:

@@ -7,11 +7,5 @@ Maintainer Axel Huebl <a.huebl@hzdr.de>
 Version 0.3.0
 
 
-%post
-find /home/picongpu -type d -exec chmod a+rwx {} \;
-find /home/picongpu -type f -exec chmod a+w {} \;
-find /home/picongpu -type f -executable -exec chmod a+x {} \;
-
-
 %runscript
-exec /bin/bash -c 'cd /home/picongpu && /bin/bash -l'
+exec /bin/bash -l
