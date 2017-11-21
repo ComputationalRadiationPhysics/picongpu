@@ -48,7 +48,6 @@
 #include <stdexcept>
 
 #include <cuda.h>
-#include <cublas.h>
 #if (ENABLE_NVML==1)
 #include <nvml.h>
 #endif
