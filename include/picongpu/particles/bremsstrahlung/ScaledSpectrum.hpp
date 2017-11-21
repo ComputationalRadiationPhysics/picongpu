@@ -60,7 +60,7 @@ struct LookupTableFunctor
         ::pmacc::cursor::tools::LinearInterp<float_X>,
         ::pmacc::cursor::BufferCursor<float_X, DIM2> >::type LinInterpCursor;
 
-    typedef float_X type;
+    using type = float_X;
 
     LinInterpCursor linInterpCursor;
     float_X lnEMin;
@@ -96,7 +96,7 @@ struct LookupTableFunctor
 struct ScaledSpectrum
 {
 public:
-    typedef detail::LookupTableFunctor LookupTableFunctor;
+    using LookupTableFunctor = detail::LookupTableFunctor;
 private:
 
     typedef boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2> > MyBuf;
@@ -163,7 +163,7 @@ public:
 template<typename T_ElectronSpecies>
 struct FillScaledSpectrumMap
 {
-    typedef T_ElectronSpecies ElectronSpecies;
+    using ElectronSpecies = T_ElectronSpecies;
 
     typedef typename pmacc::particles::traits::ResolveAliasFromSpecies<
         ElectronSpecies,

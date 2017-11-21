@@ -85,7 +85,7 @@ struct SglParticle
         const float_64 mass = precisionCast<float_64>(v.mass) * UNIT_MASS;
         const float_64 charge = precisionCast<float_64>(v.charge) * UNIT_CHARGE;
 
-        typedef std::numeric_limits< float_64 > dbl;
+        using dbl = std::numeric_limits<float_64>;
         out.precision(dbl::digits10);
 
         out << std::scientific << pos << " " << mom << " " << mass << " "
@@ -115,11 +115,11 @@ struct KernelPositionsParticles
     ) const
     {
 
-        typedef typename ParBox::FramePtr FramePtr;
+        using FramePtr = typename ParBox::FramePtr;
         PMACC_SMEM( acc, frame, FramePtr );
 
 
-        typedef typename Mapping::SuperCellSize SuperCellSize;
+        using SuperCellSize = typename Mapping::SuperCellSize;
 
         const DataSpace<simDim > threadIndex(threadIdx);
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);

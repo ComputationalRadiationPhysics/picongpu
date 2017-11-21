@@ -38,7 +38,7 @@ namespace twts
 class BField
 {
 public:
-    typedef float_X float_T;
+    using float_T = float_X;
 
     enum PolarizationType
     {

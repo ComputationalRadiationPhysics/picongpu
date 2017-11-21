@@ -31,12 +31,12 @@ namespace densityProfiles
 template<typename T_ParamClass>
 struct SphereFlanksImpl : public T_ParamClass
 {
-    typedef T_ParamClass ParamClass;
+    using ParamClass = T_ParamClass;
 
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef SphereFlanksImpl<ParamClass> type;
+        using type = SphereFlanksImpl<ParamClass>;
     };
 
     HINLINE SphereFlanksImpl(uint32_t currentStep)

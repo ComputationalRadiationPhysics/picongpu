@@ -47,7 +47,7 @@ using namespace pmacc;
 template<typename T_ParticleShape>
 struct Esirkepov<T_ParticleShape, DIM2>
 {
-    typedef typename T_ParticleShape::ChargeAssignment ParticleAssign;
+    using ParticleAssign = typename T_ParticleShape::ChargeAssignment;
     static constexpr int supp = ParticleAssign::support;
 
     static constexpr int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;

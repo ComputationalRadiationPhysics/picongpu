@@ -35,7 +35,7 @@ namespace ionization
      *         cannot be known in list of particle species' flags
      *         \see speciesDefinition.param
      */
-    template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1>
+    template< typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies = bmpl::_1 >
     struct BSI_Impl;
 
     /** Barrier Suppression Ionization - Hydrogen-Like
@@ -60,11 +60,11 @@ namespace ionization
      * first specialization of the ionization model in the particle definition
      * \see speciesDefinition.param
      */
-    template<typename T_DestSpecies>
+    template< typename T_DestSpecies >
     struct BSI
     {
-        typedef particles::ionization::AlgorithmBSI IonizationAlgorithm;
-        typedef BSI_Impl<IonizationAlgorithm, T_DestSpecies> type;
+        using IonizationAlgorithm = particles::ionization::AlgorithmBSI;
+        using type = BSI_Impl< IonizationAlgorithm, T_DestSpecies >;
     };
 
     /** Barrier Suppression Ionization - Effective Atomic Numbers
@@ -77,11 +77,11 @@ namespace ionization
      *
      * \tparam T_DestSpecies electron species to be created
      */
-    template<typename T_DestSpecies>
+    template< typename T_DestSpecies >
     struct BSIEffectiveZ
     {
-        typedef particles::ionization::AlgorithmBSIEffectiveZ IonizationAlgorithm;
-        typedef BSI_Impl<IonizationAlgorithm, T_DestSpecies> type;
+        using IonizationAlgorithm = particles::ionization::AlgorithmBSIEffectiveZ;
+        using type = BSI_Impl< IonizationAlgorithm, T_DestSpecies >;
     };
 
     /** Barrier Suppression Ionization - Ion. energies Stark-upshifted
@@ -95,11 +95,11 @@ namespace ionization
      *
      * \tparam T_DestSpecies electron species to be created
      */
-    template<typename T_DestSpecies>
+    template< typename T_DestSpecies >
     struct BSIStarkShifted
     {
-        typedef particles::ionization::AlgorithmBSIStarkShifted IonizationAlgorithm;
-        typedef BSI_Impl<IonizationAlgorithm, T_DestSpecies> type;
+        using IonizationAlgorithm = particles::ionization::AlgorithmBSIStarkShifted;
+        using type = BSI_Impl< IonizationAlgorithm, T_DestSpecies >;
     };
 
 } // namespace ionization

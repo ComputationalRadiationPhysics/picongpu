@@ -420,7 +420,7 @@ struct KernelMoveAndMarkParticles
 
         uint32_t const workerIdx = threadIdx.x;
 
-        typedef typename T_ParBox::FramePtr FramePtr;
+        using FramePtr = typename T_ParBox::FramePtr;
 
         DataSpace< simDim > const block(
             mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
@@ -577,11 +577,11 @@ struct PushParticlePerFrame
     )
     {
 
-        typedef TVec Block;
-        typedef T_Field2ParticleInterpolation Field2ParticleInterpolation;
+        using Block = TVec;
+        using Field2ParticleInterpolation = T_Field2ParticleInterpolation;
 
-        typedef typename BoxB::ValueType BType;
-        typedef typename BoxE::ValueType EType;
+        using BType = typename BoxB::ValueType;
+        using EType = typename BoxE::ValueType;
 
         auto particle = frame[localIdx];
 

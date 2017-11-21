@@ -60,7 +60,7 @@ struct GetPhotonAngleFunctor
         ::pmacc::cursor::tools::LinearInterp<float_X>,
         ::pmacc::cursor::BufferCursor<float_X, DIM2> >::type LinInterpCursor;
 
-    typedef float_X type;
+    using type = float_X;
 
     LinInterpCursor linInterpCursor;
     float_X lnMinGamma;
@@ -111,7 +111,7 @@ struct GetPhotonAngleFunctor
  */
 struct GetPhotonAngle
 {
-    typedef detail::GetPhotonAngleFunctor GetPhotonAngleFunctor;
+    using GetPhotonAngleFunctor = detail::GetPhotonAngleFunctor;
 
 private:
 

@@ -61,8 +61,8 @@ namespace ionization
     template<typename T_DestSpecies>
     struct Keldysh
     {
-        typedef particles::ionization::AlgorithmKeldysh IonizationAlgorithm;
-        typedef Keldysh_Impl<IonizationAlgorithm, T_DestSpecies> type;
+        using IonizationAlgorithm = particles::ionization::AlgorithmKeldysh;
+        using type = Keldysh_Impl< IonizationAlgorithm, T_DestSpecies >;
     };
 
 } // namespace ionization

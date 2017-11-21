@@ -86,7 +86,7 @@ struct P4S
  */
 struct P4S : public shared_P4S::P4S
 {
-    typedef picongpu::particles::shapes::PCS CloudShape;
+    using CloudShape = picongpu::particles::shapes::PCS;
 
     struct ChargeAssignmentOnSupport : public shared_P4S::P4S
     {

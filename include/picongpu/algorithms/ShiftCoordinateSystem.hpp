@@ -49,10 +49,10 @@ struct AssignToDim
     operator()(T_Type& cursor, T_Vector& pos, const T_FieldType& fieldPos)
     {
         const uint32_t dim = T_Vector::dim;
-        typedef typename T_Vector::type ValueType;
+        using ValueType = typename T_Vector::type;
 
-        typedef T_Supports Supports;
-        typedef T_Component Component;
+        using Supports = T_Supports;
+        using Component = T_Component;
 
         const uint32_t component = Component::x::value;
         const uint32_t support = Supports::template at<component>::type::value;

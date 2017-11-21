@@ -50,7 +50,7 @@ using namespace pmacc;
 template<typename T_Shape, typename T_pos>
 struct EvalAssignmentFunction
 {
-    typedef typename T_Shape::ChargeAssignmentOnSupport ParticleAssign;
+    using ParticleAssign = typename T_Shape::ChargeAssignmentOnSupport;
 
     HDINLINE float_X
     operator()(const float_X parPos)

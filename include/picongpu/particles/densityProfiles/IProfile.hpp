@@ -32,7 +32,7 @@ template<typename T_Base>
 struct IProfile : private T_Base
 {
 
-    typedef T_Base Base;
+    using Base = T_Base;
 
     HINLINE IProfile(uint32_t currentStep) : Base(currentStep)
     {

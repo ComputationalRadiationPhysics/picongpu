@@ -54,7 +54,7 @@ private:
     MappingDesc* cellDescription;
     std::ofstream output_file;
 
-    typedef boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim> > AllGPU_reduce;
+    using AllGPU_reduce = boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim> >;
     AllGPU_reduce allGPU_reduce;
 
     void restart(uint32_t restartStep, const std::string restartDirectory);

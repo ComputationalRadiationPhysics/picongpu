@@ -31,12 +31,12 @@ namespace densityProfiles
 template<typename T_ParamClass>
 struct GaussianImpl : public T_ParamClass
 {
-    typedef T_ParamClass ParamClass;
+    using ParamClass = T_ParamClass;
 
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef GaussianImpl<ParamClass> type;
+        using type = GaussianImpl<ParamClass>;
     };
 
     HINLINE GaussianImpl(uint32_t currentStep)

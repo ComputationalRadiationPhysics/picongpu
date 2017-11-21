@@ -73,10 +73,10 @@ namespace ionization
     struct Keldysh_Impl
     {
 
-        typedef T_DestSpecies DestSpecies;
-        typedef T_SrcSpecies  SrcSpecies;
+        using DestSpecies = T_DestSpecies;
+        using SrcSpecies = T_SrcSpecies;
 
-        typedef typename SrcSpecies::FrameType FrameType;
+        using FrameType = typename SrcSpecies::FrameType;
 
         /* specify field to particle interpolation scheme */
         typedef typename pmacc::traits::Resolve<
@@ -99,7 +99,7 @@ namespace ionization
         private:
 
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
-            typedef T_IonizationAlgorithm IonizationAlgorithm;
+            using IonizationAlgorithm = T_IonizationAlgorithm;
 
             /* random number generator */
             typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::AlpakaRand< cupla::Acc>> RNGFactory;
@@ -109,8 +109,8 @@ namespace ionization
 
             typedef MappingDesc::SuperCellSize TVec;
 
-            typedef FieldE::ValueType ValueType_E;
-            typedef FieldB::ValueType ValueType_B;
+            using ValueType_E = FieldE::ValueType;
+            using ValueType_B = FieldB::ValueType;
             /* global memory EM-field device databoxes */
             PMACC_ALIGN(eBox, FieldE::DataBoxType);
             PMACC_ALIGN(bBox, FieldB::DataBoxType);

@@ -66,7 +66,7 @@ struct cast64Bit
 template<typename T_Type>
 struct squareComponentWise
 {
-    typedef T_Type result;
+    using result = T_Type;
 
     HDINLINE result operator()(const T_Type& value) const
     {
@@ -242,7 +242,7 @@ private:
 
         if (writeToFile)
         {
-            typedef std::numeric_limits< float_64 > dbl;
+            using dbl = std::numeric_limits<float_64>;
 
             outFile.precision(dbl::digits10);
             outFile << currentStep << " " << std::scientific << globalEnergy * UNIT_ENERGY << " "
@@ -259,7 +259,7 @@ private:
         /*define stacked DataBox's for reduce algorithm*/
         typedef DataBoxUnaryTransform<typename T_Field::DataBoxType, energyFields::squareComponentWise > TransformedBox;
         typedef DataBoxUnaryTransform<TransformedBox, energyFields::cast64Bit > Box64bit;
-        typedef DataBoxDim1Access<Box64bit > D1Box;
+        using D1Box = DataBoxDim1Access<Box64bit>;
 
         /* reduce field E*/
         DataSpace<simDim> fieldSize = field->getGridLayout().getDataSpaceWithoutGuarding();

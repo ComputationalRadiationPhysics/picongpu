@@ -61,9 +61,9 @@ struct EvalAssignmentFunctionOfDirection
     HDINLINE void
     operator()(float_X& result, const floatD_X& pos)
     {
-        typedef T_GridPointVec GridPointVec;
-        typedef T_ShapeComponent ShapeComponent;
-        typedef T_CurrentDirection CurrentDirection;
+        using GridPointVec = T_GridPointVec;
+        using ShapeComponent = T_ShapeComponent;
+        using CurrentDirection = T_CurrentDirection;
 
         const int component = ShapeComponent::value;
 
@@ -72,13 +72,16 @@ struct EvalAssignmentFunctionOfDirection
          * else
          * particle assignment shape
          */
-        typedef typename bmpl::if_ <
-            bmpl::equal_to<ShapeComponent, CurrentDirection>,
+        using Shape = typename bmpl::if_<
+            bmpl::equal_to<
+                ShapeComponent,
+                CurrentDirection
+            >,
             typename T_Shape::CloudShape,
             T_Shape
-            >::type Shape;
+        >::type;
 
-        typedef typename GridPointVec::template at<component>::type GridPoint;
+        using GridPoint = typename GridPointVec::template at< component >::type;
         currentSolverZigZag::EvalAssignmentFunction< Shape, GridPoint > AssignmentFunction;
 
         /* calculate assignment factor*/
@@ -109,14 +112,14 @@ struct AssignChargeToCell
         const float_X flux
     )
     {
-        typedef T_GridPointVec GridPointVec;
-        typedef T_Shape Shape;
-        typedef T_CurrentComponent CurrentComponent;
+        using GridPointVec = T_GridPointVec;
+        using Shape = T_Shape;
+        using CurrentComponent = T_CurrentComponent;
 
-        /* evaluate shape in direction [0;simDim)*/
-        typedef boost::mpl::range_c<int, 0, simDim > ShapeComponentsRange;
-        /* this transformation is needed to use boost::ml::accumulate on ComponentsRange*/
-        typedef typename MakeSeq< ShapeComponentsRange>::type ShapeComponents;
+        // evaluate shape in direction [0;simDim)
+        using ShapeComponentsRange = boost::mpl::range_c< int, 0, simDim >;
+        // this transformation is needed to use boost::ml::accumulate on ComponentsRange
+        using ShapeComponents = typename MakeSeq< ShapeComponentsRange >::type;
 
         ForEach<ShapeComponents,
             EvalAssignmentFunctionOfDirection<bmpl::_1, CurrentComponent, GridPointVec, Shape>
@@ -146,14 +149,14 @@ struct ZigZag
      * assignment shape: integral over the cloud shape (this shape is defined by the user in
      * species.param for a species)
      */
-    typedef T_ParticleShape ParticleShape;
-    typedef typename ParticleShape::ChargeAssignmentOnSupport ParticleAssign;
+    using ParticleShape = T_ParticleShape;
+    using ParticleAssign = typename ParticleShape::ChargeAssignmentOnSupport;
     static constexpr int supp = ParticleAssign::support;
 
     static constexpr int currentLowerMargin = supp / 2 + 1;
     static constexpr int currentUpperMargin = (supp + 1) / 2 + 1;
-    typedef typename pmacc::math::CT::make_Int<simDim, currentLowerMargin>::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
+    using LowerMargin = typename pmacc::math::CT::make_Int< simDim, currentLowerMargin >::type;
+    using UpperMargin = typename pmacc::math::CT::make_Int< simDim, currentUpperMargin >::type;
 
     PMACC_CASSERT_MSG(
         __ZigZag_supercell_is_to_small_for_stencil,
@@ -197,7 +200,7 @@ struct ZigZag
             const float3_X& flux
         )
         {
-            typedef T_CurrentComponent CurrentComponent;
+            using CurrentComponent = T_CurrentComponent;
             const uint32_t dir = CurrentComponent::value;
 
             /* if the flux is zero there is no need to deposit any current */
@@ -206,12 +209,13 @@ struct ZigZag
             /* create support information to shift our coordinate system
              * use support of the particle assignment function
              */
-            typedef typename pmacc::math::CT::make_Int<simDim, supp>::type Supports_full;
-            /* set evaluation direction to the support of the cloud particle shape function*/
-            typedef typename pmacc::math::CT::AssignIfInRange<
+            using Supports_full = typename pmacc::math::CT::make_Int< simDim, supp >::type;
+            // set evaluation direction to the support of the cloud particle shape function
+            using Supports_direction = typename pmacc::math::CT::AssignIfInRange<
                 typename Supports_full::This,
-                bmpl::integral_c<uint32_t, dir>,
-                bmpl::integral_c<int, supp_dir> >::type Supports_direction;
+                bmpl::integral_c< uint32_t, dir >,
+                bmpl::integral_c< int, supp_dir >
+            >::type;
 
             /* shift coordinate system to
              *   - support different numerical cell types
@@ -222,19 +226,28 @@ struct ZigZag
             ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldPosJ()[dir]);
 
             /* define grid points where we evaluate the shape function*/
-            typedef typename pmacc::math::CT::make_Vector<
+            using Size_full = typename pmacc::math::CT::make_Vector<
                 simDim,
-                boost::mpl::range_c<int, begin, end > >::type Size_full;
+                boost::mpl::range_c< int, begin, end >
+            >::type;
 
             /* set grid points for the evaluation direction*/
-            typedef typename pmacc::math::CT::AssignIfInRange<
+            using Size = typename pmacc::math::CT::AssignIfInRange<
                 typename Size_full::This,
-                bmpl::integral_c<uint32_t, dir>,
-                boost::mpl::range_c<int, dir_begin, dir_end > >::type::mplVector Size;
+                bmpl::integral_c< uint32_t, dir >,
+                boost::mpl::range_c< int, dir_begin, dir_end >
+            >::type::mplVector;
 
             /* calculate the current for every cell (grid point)*/
-            typedef typename AllCombinations<Size>::type CombiTypes;
-            ForEach<CombiTypes, AssignChargeToCell<bmpl::_1, ParticleShape, CurrentComponent > > callAssignChargeToCell;
+            using CombiTypes = typename AllCombinations<Size>::type;
+            ForEach<
+                CombiTypes,
+                AssignChargeToCell<
+                    bmpl::_1,
+                    ParticleShape,
+                    CurrentComponent
+                >
+            > callAssignChargeToCell;
             callAssignChargeToCell(acc, forward(cursor), pos, flux[dir]);
         }
 
@@ -318,13 +331,16 @@ struct ZigZag
 
             auto cursorJ = dataBoxJ.shift(precisionCast<int>(I[parId])).toCursor();
 
-            /*the current has three components*/
-            typedef boost::mpl::range_c<int, 0, 3 > ComponentsRange;
-            /* this transformation is needed to use boost::ml::accumulate on ComponentsRange*/
-            typedef typename MakeSeq<ComponentsRange>::type Components;
+            // the current has three components
+            using ComponentsRange = boost::mpl::range_c< int, 0, 3 >;
+            // this transformation is needed to use boost::ml::accumulate on ComponentsRange
+            using Components = typename MakeSeq< ComponentsRange >::type;
 
-            /* calculate x,y,z component of the current*/
-            ForEach<Components, AssignOneDirection<bmpl::_1> > callAssignOneDirection;
+            // calculate x,y,z component of the current
+            ForEach<
+                Components,
+                AssignOneDirection< bmpl::_1 >
+            > callAssignOneDirection;
             callAssignOneDirection(acc, forward(cursorJ), inCellPos, flux);
         }
     }

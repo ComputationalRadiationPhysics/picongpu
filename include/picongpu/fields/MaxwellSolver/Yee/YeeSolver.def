@@ -29,8 +29,8 @@ namespace picongpu
 {
 namespace yeeSolver
 {
-typedef Curl<DifferenceToLower<simDim> > CurlLeft;
-typedef Curl<DifferenceToUpper<simDim> > CurlRight;
+using CurlLeft = Curl< DifferenceToLower< simDim > >;
+using CurlRight = Curl< DifferenceToUpper< simDim > >;
 
 template<class CurlE = CurlRight, class CurlB = CurlLeft>
 class YeeSolver;
@@ -43,15 +43,15 @@ namespace traits
 template<class CurlE, class CurlB>
 struct GetMargin<picongpu::yeeSolver::YeeSolver<CurlE, CurlB>, FIELD_B>
 {
-    typedef typename CurlB::LowerMargin LowerMargin;
-    typedef typename CurlB::UpperMargin UpperMargin;
+    using LowerMargin = typename CurlB::LowerMargin;
+    using UpperMargin = typename CurlB::UpperMargin;
 };
 
 template<class CurlE, class CurlB>
 struct GetMargin<picongpu::yeeSolver::YeeSolver<CurlE, CurlB>, FIELD_E>
 {
-    typedef typename CurlE::LowerMargin LowerMargin;
-    typedef typename CurlE::UpperMargin UpperMargin;
+    using LowerMargin = typename CurlE::LowerMargin;
+    using UpperMargin = typename CurlE::UpperMargin;
 };
 
 } //namespace traits

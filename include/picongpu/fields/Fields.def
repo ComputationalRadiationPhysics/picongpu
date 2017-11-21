@@ -33,11 +33,11 @@ namespace picongpu
     template<typename T_Solver, typename T_Species>
     struct FieldTmpOperation
     {
-        typedef T_Solver Solver;
-        typedef T_Species Species;
+        using Solver = T_Solver;
+        using Species = T_Species;
 
-        typedef typename Solver::LowerMargin LowerMargin;
-        typedef typename Solver::UpperMargin UpperMargin;
+        using LowerMargin = typename Solver::LowerMargin;
+        using UpperMargin = typename Solver::UpperMargin;
     };
 
     /** Tmp (at the moment: scalar) field for plugins and tmp data like

@@ -31,8 +31,8 @@ using namespace pmacc;
 template<class Difference>
 struct Curl
 {
-    typedef typename Difference::OffsetOrigin LowerMargin;
-    typedef typename Difference::OffsetEnd UpperMargin;
+    using LowerMargin = typename Difference::OffsetOrigin;
+    using UpperMargin = typename Difference::OffsetEnd;
 
     template<class Memory >
     HDINLINE typename Memory::ValueType operator()(const Memory & mem) const

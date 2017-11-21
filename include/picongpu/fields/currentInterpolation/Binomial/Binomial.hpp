@@ -44,7 +44,7 @@ struct Binomial
                              DataBoxJ fieldJ )
     {
         const DataSpace<dim> self;
-        typedef typename DataBoxJ::ValueType TypeJ;
+        using TypeJ = typename DataBoxJ::ValueType;
 
         /* 1 2 1 weighting for "left"(1x) "center"(2x) "right"(1x),
          * see Pascal's triangle level N=2 */

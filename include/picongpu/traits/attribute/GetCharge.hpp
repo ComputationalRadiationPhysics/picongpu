@@ -96,7 +96,7 @@ struct LoadBoundElectrons<false>
 template<typename T_Particle>
 HDINLINE float_X getCharge(const float_X weighting, const T_Particle& particle)
 {
-    typedef T_Particle ParticleType;
+    using ParticleType = T_Particle;
     typedef typename pmacc::traits::HasIdentifier<ParticleType, boundElectrons>::type hasBoundElectrons;
     return detail::LoadBoundElectrons<hasBoundElectrons::value >()(
         weighting,

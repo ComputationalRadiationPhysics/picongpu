@@ -831,8 +831,8 @@ private:
 
 
 public:
-    typedef typename ParticlesType::FrameType FrameType;
-    typedef Output CreatorType;
+    using FrameType = typename ParticlesType::FrameType;
+    using CreatorType = Output;
 
     Visualisation(std::string name, Output output, uint32_t notifyPeriod, DataSpace<DIM2> transpose, float_X slicePoint) :
     m_output(output),

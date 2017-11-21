@@ -49,7 +49,7 @@ struct MapToLookupTable
         ::pmacc::cursor::tools::LinearInterp<float_X>,
         ::pmacc::cursor::BufferCursor<float_X, DIM1> >::type LinInterpCursor;
 
-    typedef float_X type;
+    using type = float_X;
 
     LinInterpCursor linInterpCursor;
 
@@ -83,7 +83,7 @@ typedef ::pmacc::cursor::Cursor<
 class SynchrotronFunctions
 {
 public:
-    typedef detail::SyncFuncCursor SyncFuncCursor;
+    using SyncFuncCursor = detail::SyncFuncCursor;
 private:
 
     typedef boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM1> > MyBuf;

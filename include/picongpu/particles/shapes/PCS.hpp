@@ -60,7 +60,7 @@ struct PCS
 } //namespace shared_PCS
 struct PCS : public shared_PCS::PCS
 {
-    typedef  picongpu::particles::shapes::TSC CloudShape;
+    using CloudShape = picongpu::particles::shapes::TSC;
 
     struct ChargeAssignment : public shared_PCS::PCS
     {

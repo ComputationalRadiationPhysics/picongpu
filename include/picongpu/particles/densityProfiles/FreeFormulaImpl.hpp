@@ -31,12 +31,12 @@ namespace densityProfiles
 template<typename T_ParamClass>
 struct FreeFormulaImpl : public T_ParamClass
 {
-    typedef T_ParamClass ParamClass;
+    using ParamClass = T_ParamClass;
 
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef FreeFormulaImpl<ParamClass> type;
+        using type = FreeFormulaImpl<ParamClass>;
     };
 
     HINLINE FreeFormulaImpl(uint32_t currentStep)

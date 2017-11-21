@@ -33,7 +33,7 @@ namespace leheSolver
 {
     using namespace pmacc;
 
-    typedef CurlELehe< picongpu::fieldSolverLehe::CherenkovFreeDir > CurlELeheDir;
+    using CurlELeheDir = CurlELehe< picongpu::fieldSolverLehe::CherenkovFreeDir >;
 
     typedef ::picongpu::yeeSolver::YeeSolver< CurlELeheDir > LeheSolver;
 

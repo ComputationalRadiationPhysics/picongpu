@@ -53,9 +53,9 @@ namespace detail
             DataSpace<dim> up;
             up[(T_plane + 1) % dim] = 1;
 
-            typedef LinearInterpolateWithUpper<dim> Avg;
+            using Avg = LinearInterpolateWithUpper< dim >;
 
-            const typename Avg::template GetInterpolatedValue<(T_plane + 2) % dim> avg;
+            const typename Avg::template GetInterpolatedValue< (T_plane + 2) % dim > avg;
 
             return float_X(0.5) * ( avg(field)[T_plane] + avg(field.shift(up))[T_plane] );
         }
@@ -113,8 +113,8 @@ namespace detail
     template<class Difference>
     struct ShiftCurl
     {
-        typedef typename Difference::OffsetOrigin LowerMargin;
-        typedef typename Difference::OffsetEnd UpperMargin;
+        using LowerMargin = typename Difference::OffsetOrigin;
+        using UpperMargin = typename Difference::OffsetEnd;
 
         template<class DataBox >
         HDINLINE typename DataBox::ValueType operator()(const DataBox& mem) const
@@ -166,8 +166,8 @@ struct NoneDS
         const TypeJ jAvgE = TypeJ(jXavg, jYavg, jZavg);
         fieldE(self) -= jAvgE * constE;
 
-        typedef yeeSolver::Curl<DifferenceToUpper<dim> > CurlRight;
-        typedef detail::ShiftCurl<DifferenceToUpper<dim> > ShiftCurlRight;
+        using CurlRight = yeeSolver::Curl< DifferenceToUpper< dim > >;
+        using ShiftCurlRight = detail::ShiftCurl< DifferenceToUpper< dim > >;
         CurlRight curl;
         ShiftCurlRight shiftCurl;
 

@@ -49,13 +49,13 @@ struct GetMarginPusher
 template<typename T_Species>
 struct GetLowerMarginPusher
 {
-    typedef typename traits::GetMarginPusher<T_Species>::LowerMargin type;
+    using type = typename traits::GetMarginPusher<T_Species>::LowerMargin;
 };
 
 template<typename T_Species>
 struct GetUpperMarginPusher
 {
-    typedef typename traits::GetMarginPusher<T_Species>::UpperMargin type;
+    using type = typename traits::GetMarginPusher<T_Species>::UpperMargin;
 };
 
 }// namespace traits

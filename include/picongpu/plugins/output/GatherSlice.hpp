@@ -114,7 +114,7 @@ struct GatherSlice
     template<class Box >
     Box operator()(Box & data, const MessageHeader & header)
     {
-        typedef typename Box::ValueType ValueType;
+        using ValueType = typename Box::ValueType;
 
         Box dstBox = Box(PitchedBox<ValueType, DIM2 > (
                                                        (ValueType*) filteredData,

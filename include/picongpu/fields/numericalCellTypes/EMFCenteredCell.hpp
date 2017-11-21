@@ -53,7 +53,7 @@ namespace traits
 
         template<class F>
         struct result<F()> {
-            typedef ReturnType type;
+            using type = ReturnType;
         };
 
         HDINLINE FieldPosition()
@@ -89,7 +89,7 @@ namespace traits
 
         template<class F>
         struct result<F()> {
-            typedef VectorVector2D3V type;
+            using type = VectorVector2D3V;
         };
 
         HDINLINE FieldPosition()
@@ -116,7 +116,7 @@ namespace traits
 
         template<class F>
         struct result<F()> {
-            typedef VectorVector3D3V type;
+            using type = VectorVector3D3V;
         };
 
         HDINLINE FieldPosition()
@@ -148,7 +148,7 @@ namespace traits
 
         template<class F>
         struct result<F()> {
-            typedef ReturnType type;
+            using type = ReturnType;
         };
 
         HDINLINE FieldPosition()

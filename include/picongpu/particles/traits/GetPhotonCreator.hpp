@@ -37,8 +37,8 @@ namespace traits
 template<typename T_SpeciesType>
 struct GetPhotonCreator
 {
-    typedef T_SpeciesType SpeciesType;
-    typedef typename SpeciesType::FrameType FrameType;
+    using SpeciesType = T_SpeciesType;
+    using FrameType = typename SpeciesType::FrameType;
 
     /* The following line only fetches the alias */
     typedef typename GetFlagType<FrameType, picongpu::synchrotronPhotons<> >::type FoundSynchrotronPhotonsAlias;
