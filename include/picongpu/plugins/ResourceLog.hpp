@@ -29,6 +29,7 @@
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "ILightweightPlugin.hpp"
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 
 // Boost
 #include <boost/property_tree/ptree.hpp>
@@ -115,7 +116,8 @@ namespace picongpu
 
             if(contains(propertyMap,"particleCount"))
             {
-                std::vector<size_t> particleCounts = resourceMonitor.getParticleCounts<VectorAllSpecies>(*cellDescription);
+                particles::filter::All parFilter{};
+                std::vector<size_t> particleCounts = resourceMonitor.getParticleCounts<VectorAllSpecies>(*cellDescription, parFilter );
                 pt.put("resourceLog.particleCount", std::accumulate(particleCounts.begin(), particleCounts.end(), 0));
             }
 

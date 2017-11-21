@@ -52,16 +52,20 @@ struct KernelCountParticles
      * @tparam T_PBox pmacc::ParticlesBox, particle box type
      * @tparam T_Filter functor to filter particles
      * @tparam T_Mapping supercell mapper functor type
+     * @tparam T_ParticleFilter pmacc::filter::Interface, type of the particle filter
+     * @tparam T_Acc type of the alpaka accelerator
      *
      * @param pb particle memory
      * @param gCounter pointer for the result
      * @param filter functor to filter particles those should be counted
      * @param mapper functor to map a block to a supercell
+     * @param parFilter particle filter method, the working domain for the filter is supercells
      */
     template<
         typename T_PBox,
         typename T_Filter,
         typename T_Mapping,
+        typename T_ParticleFilter,
         typename T_Acc
     >
     DINLINE void operator( )(
@@ -69,7 +73,8 @@ struct KernelCountParticles
         T_PBox pb,
         uint64_cu* gCounter,
         T_Filter filter,
-        T_Mapping const mapper
+        T_Mapping const mapper,
+        T_ParticleFilter parFilter
     ) const
     {
         using namespace mappings::threads;
@@ -133,6 +138,12 @@ struct KernelCountParticles
             mapper.getSuperCellSize( )
         );
 
+        auto accParFilter = parFilter(
+            acc,
+            superCellIdx - mapper.getGuardingSuperCells( ),
+            WorkerCfg< numWorkers >{ workerIdx }
+        );
+
         ForEachIdx<
             IdxConfig<
                 frameSize,
@@ -155,7 +166,16 @@ struct KernelCountParticles
                             linearIdx
                         );
                         if( useParticle )
-                            nvidia::atomicAllInc( acc, &counter, ::alpaka::hierarchy::Threads{} );
+                        {
+                            auto parSrc = ( frame[ linearIdx ] );
+                            if(
+                                accParFilter(
+                                    acc,
+                                    parSrc
+                                )
+                            )
+                                nvidia::atomicAllInc( acc, &counter, ::alpaka::hierarchy::Threads{} );
+                        }
                     }
                 }
             );
@@ -203,10 +223,12 @@ struct CountParticles
      * @param buffer source particle buffer
      * @param cellDescription instance of MappingDesction
      * @param filter filter instance which must inharid from PositionFilter
+     * @param parFilter particle filter method, must fulfill the interface of pmacc::filter::Interface
+     *                  The working domain for the filter is supercells.
      * @return number of particles in defined area
      */
-    template<uint32_t AREA, class PBuffer, class Filter, class CellDesc>
-    static uint64_cu countOnDevice( PBuffer& buffer, CellDesc cellDescription, Filter filter )
+    template<uint32_t AREA, class PBuffer, class Filter, class CellDesc, typename T_ParticleFilter>
+    static uint64_cu countOnDevice( PBuffer& buffer, CellDesc cellDescription, Filter filter, T_ParticleFilter & parFilter )
     {
         GridBuffer<
             uint64_cu,
@@ -228,7 +250,8 @@ struct CountParticles
             buffer.getDeviceParticlesBox( ),
             counter.getDeviceBuffer( ).getBasePointer( ),
             filter,
-            mapper
+            mapper,
+            parFilter
         );
 
         counter.deviceToHost( );
@@ -240,12 +263,14 @@ struct CountParticles
      * @param buffer source particle buffer
      * @param cellDescription instance of MappingDesction
      * @param filter filter instance which must inharid from PositionFilter
+     * @param parFilter particle filter method, must fulfill the interface of pmacc::filter::Interface
+     *                  The working domain for the filter is supercells.
      * @return number of particles in defined area
      */
-    template< class PBuffer, class Filter, class CellDesc>
-    static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, Filter filter)
+    template< class PBuffer, class Filter, class CellDesc, typename T_ParticleFilter>
+    static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, Filter filter, T_ParticleFilter & parFilter)
     {
-        return pmacc::CountParticles::countOnDevice < CORE + BORDER + GUARD > (buffer, cellDescription, filter);
+        return pmacc::CountParticles::countOnDevice < CORE + BORDER + GUARD > (buffer, cellDescription, filter, parFilter);
     }
 
     /** Get particle count
@@ -256,17 +281,19 @@ struct CountParticles
      * @param cellDescription instance of MappingDesction
      * @param origin local cell position (can be negative)
      * @param size local size in cells for checked volume
+     * @param parFilter particle filter method, must fulfill the interface of pmacc::filter::Interface
+     *                  The working domain for the filter is supercells.
      * @return number of particles in defined area
      */
-    template<uint32_t AREA, class PBuffer, class CellDesc, class Space>
-    static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, const Space& origin, const Space& size)
+    template<uint32_t AREA, class PBuffer, class CellDesc, class Space, typename T_ParticleFilter>
+    static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, const Space& origin, const Space& size, T_ParticleFilter & parFilter)
     {
         typedef bmpl::vector< typename GetPositionFilter<Space::Dim>::type > usedFilters;
         typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
         MyParticleFilter filter;
         filter.setStatus(true); /*activeate filter pipline*/
         filter.setWindowPosition(origin, size);
-        return pmacc::CountParticles::countOnDevice<AREA>(buffer, cellDescription, filter);
+        return pmacc::CountParticles::countOnDevice<AREA>(buffer, cellDescription, filter, parFilter);
     }
 
     /** Get particle count
@@ -275,12 +302,14 @@ struct CountParticles
      * @param cellDescription instance of MappingDesction
      * @param origin local cell position (can be negative)
      * @param size local size in cells for checked volume
+     * @param parFilter particle filter method, must fulfill the interface of pmacc::filter::Interface
+     *                  The working domain for the filter is supercells.
      * @return number of particles in defined area
      */
-    template< class PBuffer, class Filter, class CellDesc, class Space>
-    static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, const Space& origin, const Space& size)
+    template< class PBuffer, class Filter, class CellDesc, class Space, typename T_ParticleFilter>
+    static uint64_cu countOnDevice(PBuffer& buffer, CellDesc cellDescription, const Space& origin, const Space& size, T_ParticleFilter & parFilter)
     {
-        return pmacc::CountParticles::countOnDevice < CORE + BORDER + GUARD > (buffer, cellDescription, origin, size);
+        return pmacc::CountParticles::countOnDevice < CORE + BORDER + GUARD > (buffer, cellDescription, origin, size, parFilter);
     }
 
 };

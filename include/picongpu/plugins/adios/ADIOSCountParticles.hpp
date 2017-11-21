@@ -63,12 +63,12 @@ using namespace pmacc;
  * @tparam T_Species type of species
  *
  */
-template< typename T_Species >
+template< typename T_SpeciesFilter >
 struct ADIOSCountParticles
 {
 public:
 
-    typedef T_Species ThisSpecies;
+    typedef typename T_SpeciesFilter::Species ThisSpecies;
     typedef typename ThisSpecies::FrameType FrameType;
     typedef typename FrameType::ParticleDescription ParticleDescription;
     typedef typename FrameType::ValueTypeSeq ParticleAttributeList;
@@ -96,20 +96,21 @@ public:
         uint64_t mpiSize = gc.getGlobalSize();
         uint64_t mpiRank = gc.getGlobalRank();
 
-        const std::string speciesGroup( FrameType::getName() + "/" );
+        const std::string speciesGroup( T_SpeciesFilter::getName() + "/" );
         const std::string speciesPath( params->adiosBasePath +
             std::string(ADIOS_PATH_PARTICLES) + speciesGroup );
 
         /* load particle without copy particle data to host */
         auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
-
+        typename T_SpeciesFilter::Filter particleFilter{};
         /* count total number of particles on the device */
         uint64_cu totalNumParticles = 0;
         totalNumParticles = pmacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,
                                                                                     *(params->cellDescription),
                                                                                     params->localWindowToDomainOffset,
-                                                                                    params->window.localDimensions.size);
+                                                                                    params->window.localDimensions.size,
+                                                                                    particleFilter);
 
         /* MPI_Allgather to compute global size and my offset */
         uint64_t myNumParticles = totalNumParticles;
@@ -137,7 +138,7 @@ public:
 
         /* openPMD ED-PIC: additional attributes */
         traits::PICToAdios<float_64> adiosDoubleType;
-        const float_64 particleShape( GetShape<T_Species>::type::support - 1 );
+        const float_64 particleShape( GetShape<ThisSpecies>::type::support - 1 );
         ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
             "particleShape", speciesPath.c_str(),
             adiosDoubleType.type, 1, (void*)&particleShape ));

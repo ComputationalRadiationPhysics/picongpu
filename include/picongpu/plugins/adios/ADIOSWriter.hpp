@@ -54,6 +54,7 @@
 #include "picongpu/plugins/adios/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/adios/restart/RestartFieldLoader.hpp"
 #include "picongpu/plugins/adios/NDScalars.hpp"
+#include "picongpu/plugins/misc/SpeciesFilter.hpp"
 
 #include <adios.h>
 #include <adios_read.h>
@@ -1042,12 +1043,26 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) counting particles.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<FileCheckpointParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
+            ForEach<
+                FileCheckpointParticles,
+                ADIOSCountParticles<
+                    plugins::misc::SpeciesFilter<
+                        bmpl::_1
+                    >
+                >
+            > adiosCountParticles;
             adiosCountParticles(threadParams);
         }
         else
         {
-            ForEach<FileOutputParticles, ADIOSCountParticles<bmpl::_1> > adiosCountParticles;
+            ForEach<
+                FileOutputParticles,
+                ADIOSCountParticles<
+                    plugins::misc::SpeciesFilter<
+                        bmpl::_1
+                    >
+                >
+            > adiosCountParticles;
             adiosCountParticles(threadParams);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) counting particles.");
@@ -1104,12 +1119,26 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing particle species.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<FileCheckpointParticles, WriteSpecies<bmpl::_1> > writeSpecies;
+            ForEach<
+                FileCheckpointParticles,
+                WriteSpecies<
+                    plugins::misc::SpeciesFilter<
+                        bmpl::_1
+                    >
+                >
+            > writeSpecies;
             writeSpecies(threadParams, particleOffset);
         }
         else
         {
-            ForEach<FileOutputParticles, WriteSpecies<bmpl::_1> > writeSpecies;
+            ForEach<
+                FileOutputParticles,
+                WriteSpecies<
+                    plugins::misc::SpeciesFilter<
+                        bmpl::_1
+                    >
+                >
+            > writeSpecies;
             writeSpecies(threadParams, particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
