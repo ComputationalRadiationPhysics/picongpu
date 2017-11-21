@@ -61,7 +61,7 @@ namespace picongpu
          *  unit: seconds                       CFL criteria for Yee MW Solver
          *                                             2D: sqrt(2)
          *                                             3D: sqrt(3)   */
-        constexpr float_64 DELTA_T_SI = CELL_WIDTH_SI / ( 1.4143 * SPEED_OF_LIGHT_SI );
+        constexpr float_64 DELTA_T_SI = CELL_WIDTH_SI / ( 1.415 * SPEED_OF_LIGHT_SI );
 
     } // namespace SI
 
