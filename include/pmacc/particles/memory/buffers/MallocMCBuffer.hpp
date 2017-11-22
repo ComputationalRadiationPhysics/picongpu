@@ -24,7 +24,7 @@
 
 #include "pmacc/dataManagement/ISimulationData.hpp"
 
-#include "mallocMC/mallocMC.hpp"
+#include <mallocMC/mallocMC.hpp>
 
 #include <string>
 #include <memory>

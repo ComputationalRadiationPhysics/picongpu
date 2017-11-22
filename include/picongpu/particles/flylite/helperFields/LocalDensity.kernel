@@ -29,7 +29,7 @@
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <pmacc/memory/Array.hpp>
-#include "pmacc/mappings/threads/WorkerCfg.hpp"
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 
 namespace picongpu
