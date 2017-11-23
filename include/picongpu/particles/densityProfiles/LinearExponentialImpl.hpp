@@ -30,12 +30,12 @@ namespace densityProfiles
 template<typename T_ParamClass>
 struct LinearExponentialImpl : public T_ParamClass
 {
-    typedef T_ParamClass ParamClass;
+    using ParamClass = T_ParamClass;
 
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef LinearExponentialImpl<ParamClass> type;
+        using type = LinearExponentialImpl<ParamClass>;
     };
 
     HINLINE LinearExponentialImpl(uint32_t currentStep)

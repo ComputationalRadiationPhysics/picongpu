@@ -40,7 +40,7 @@ namespace particleAccess
 template<typename SuperCellSize>
 struct Cell2Particle
 {
-    typedef void result_type;
+    using result_type = void;
 
     BOOST_PP_REPEAT(5, CELL2PARTICLE_OPERATOR, _)
 };

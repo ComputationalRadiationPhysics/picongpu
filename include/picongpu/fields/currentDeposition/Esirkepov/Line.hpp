@@ -33,7 +33,7 @@ using namespace pmacc;
 template<typename T_Type>
 struct Line
 {
-    typedef T_Type type;
+    using type = T_Type;
 
     type m_pos0;
     type m_pos1;

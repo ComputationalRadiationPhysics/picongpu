@@ -57,10 +57,10 @@ namespace ionization
     struct BSI_Impl
     {
 
-        typedef T_DestSpecies DestSpecies;
-        typedef T_SrcSpecies  SrcSpecies;
+        using DestSpecies = T_DestSpecies;
+        using SrcSpecies = T_SrcSpecies;
 
-        typedef typename SrcSpecies::FrameType FrameType;
+        using FrameType = typename SrcSpecies::FrameType;
 
         /* specify field to particle interpolation scheme */
         typedef typename pmacc::traits::Resolve<
@@ -83,11 +83,11 @@ namespace ionization
         private:
 
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
-            typedef T_IonizationAlgorithm IonizationAlgorithm;
+            using IonizationAlgorithm = T_IonizationAlgorithm;
 
             typedef MappingDesc::SuperCellSize TVec;
 
-            typedef FieldE::ValueType ValueType_E;
+            using ValueType_E = FieldE::ValueType;
             /* global memory EM-field device databoxes */
             FieldE::DataBoxType eBox;
             /* shared memory EM-field device databoxes */

@@ -34,7 +34,7 @@ namespace picongpu
 template<typename BlockDim>
 struct DirSplittingKernel
 {
-    typedef void result_type;
+    using result_type = void;
 
     PMACC_ALIGN(m_totalLength,int);
     DirSplittingKernel(int totalLength) : m_totalLength(totalLength) {}

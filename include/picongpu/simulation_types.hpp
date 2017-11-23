@@ -56,12 +56,12 @@ enum FieldType
 
 namespace precision32Bit
 {
-typedef float precisionType;
+using precisionType = float;
 }
 
 namespace precision64Bit
 {
-typedef double precisionType;
+using precisionType = double;
 }
 
 namespace math = pmacc::algorithms::math;

@@ -39,7 +39,7 @@ using namespace pmacc;
 template< typename T_PrecisionType = float_X >
 struct KinEnergy
 {
-    typedef T_PrecisionType ValueType;
+    using ValueType = T_PrecisionType;
 
     template< typename MomType, typename MassType >
     HDINLINE ValueType operator()( MomType const & mom, MassType const & mass )

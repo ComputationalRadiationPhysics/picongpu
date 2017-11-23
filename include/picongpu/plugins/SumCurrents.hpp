@@ -39,7 +39,7 @@ using namespace pmacc;
 
 namespace po = boost::program_options;
 
-typedef FieldJ::DataBoxType J_DataBox;
+using J_DataBox = FieldJ::DataBoxType;
 
 struct KernelSumCurrents
 {
@@ -54,7 +54,7 @@ struct KernelSumCurrents
         Mapping mapper
     ) const
     {
-        typedef typename Mapping::SuperCellSize SuperCellSize;
+        using SuperCellSize = typename Mapping::SuperCellSize;
 
         PMACC_SMEM( acc, sh_sumJ, float3_X );
 
@@ -136,7 +136,7 @@ public:
                                  float_64(realCurrent.z()) * (UNIT_CHARGE / UNIT_TIME));
 
         /*FORMAT OUTPUT*/
-        typedef std::numeric_limits< float_64 > dbl;
+        using dbl = std::numeric_limits<float_64>;
 
         std::cout.precision(dbl::digits10);
         if (math::abs(gCurrent.x()) + math::abs(gCurrent.y()) + math::abs(gCurrent.z()) != float_X(0.0))

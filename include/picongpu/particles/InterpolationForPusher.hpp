@@ -34,7 +34,7 @@ namespace picongpu
 template< typename T_Field2PartInt, typename T_MemoryType, typename T_FieldPosition >
 struct InterpolationForPusher
 {
-    typedef T_Field2PartInt Field2PartInt;
+    using Field2PartInt = T_Field2PartInt;
 
     HDINLINE
     InterpolationForPusher( const T_MemoryType& mem, const T_FieldPosition& fieldPos )

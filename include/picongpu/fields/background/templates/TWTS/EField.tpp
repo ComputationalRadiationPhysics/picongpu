@@ -201,8 +201,8 @@ namespace twts
     HDINLINE EField::float_T
     EField::calcTWTSEx( const float3_64& pos, const float_64 time) const
     {
-        typedef pmacc::math::Complex<float_T> complex_T;
-        typedef pmacc::math::Complex<float_64> complex_64;
+        using complex_T = pmacc::math::Complex< float_T >;
+        using complex_64 = pmacc::math::Complex< float_64 >;
         /* Unit of speed */
         const float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
         /* Unit of time */

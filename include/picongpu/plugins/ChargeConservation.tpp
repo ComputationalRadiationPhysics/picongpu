@@ -134,7 +134,7 @@ struct Div;
 template<typename ValueType>
 struct Div<DIM3, ValueType>
 {
-    typedef ValueType result_type;
+    using result_type = ValueType;
 
     template<typename Field>
     HDINLINE ValueType operator()(Field field) const
@@ -151,7 +151,7 @@ struct Div<DIM3, ValueType>
 template<typename ValueType>
 struct Div<DIM2, ValueType>
 {
-    typedef ValueType result_type;
+    using result_type = ValueType;
 
     template<typename Field>
     HDINLINE ValueType operator()(Field field) const
@@ -167,7 +167,7 @@ struct Div<DIM2, ValueType>
 template<typename T_SpeciesName, typename T_Area>
 struct ComputeChargeDensity
 {
-    typedef typename T_SpeciesName::type SpeciesName;
+    using SpeciesName = typename T_SpeciesName::type;
     static const uint32_t area = T_Area::value;
 
     HINLINE void operator()( FieldTmp* fieldTmp,

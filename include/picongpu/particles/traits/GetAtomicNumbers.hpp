@@ -32,7 +32,7 @@ namespace traits
 template<typename T_Species>
 struct GetAtomicNumbers
 {
-    typedef typename T_Species::FrameType FrameType;
+    using FrameType = typename T_Species::FrameType;
 
     typedef typename HasFlag<FrameType, atomicNumbers<> >::type hasAtomicNumbers;
     /* throw static assert if species has no protons or neutrons */

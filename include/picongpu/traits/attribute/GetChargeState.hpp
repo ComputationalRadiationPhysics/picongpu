@@ -89,7 +89,7 @@ struct LoadChargeState<false>
 template<typename T_Particle>
 HDINLINE float_X getChargeState(const T_Particle& particle)
 {
-    typedef T_Particle ParticleType;
+    using ParticleType = T_Particle;
     typedef typename pmacc::traits::HasIdentifier<ParticleType, boundElectrons>::type hasBoundElectrons;
     return detail::LoadChargeState<hasBoundElectrons::value >()(particle);
 }

@@ -44,7 +44,7 @@ namespace picongpu
 template<class T_Shape, class InterpolationMethod>
 struct FieldToParticleInterpolationNative
 {
-    typedef typename T_Shape::ChargeAssignment AssignmentFunction;
+    using AssignmentFunction = typename T_Shape::ChargeAssignment;
     static constexpr int supp = AssignmentFunction::support;
 
     static constexpr int lowerMargin = supp / 2;

@@ -47,7 +47,7 @@ namespace detail
 template<typename T_Species>
 struct GetDensityRatio
 {
-    typedef typename T_Species::FrameType FrameType;
+    using FrameType = typename T_Species::FrameType;
     typedef typename HasFlag<FrameType, densityRatio<> >::type hasDensityRatio;
     typedef typename pmacc::traits::Resolve<
         typename GetFlagType<

@@ -32,8 +32,8 @@ namespace traits
 template<typename T_Species>
 struct GetIonizationEnergies
 {
-    typedef T_Species SpeciesType;
-    typedef typename SpeciesType::FrameType FrameType;
+    using SpeciesType = T_Species;
+    using FrameType = typename SpeciesType::FrameType;
 
     typedef typename HasFlag<FrameType, ionizationEnergies<> >::type hasIonizationEnergies;
     /* throw static assert if species has no protons or neutrons */

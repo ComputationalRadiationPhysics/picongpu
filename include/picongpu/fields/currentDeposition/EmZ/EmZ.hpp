@@ -36,7 +36,7 @@ template<
 >
 struct EmZ
 {
-    typedef typename T_ParticleShape::ChargeAssignmentOnSupport ParticleAssign;
+    using ParticleAssign = typename T_ParticleShape::ChargeAssignmentOnSupport;
     static constexpr int supp = ParticleAssign::support;
 
     static constexpr int currentLowerMargin = supp / 2 + 1 - (supp + 1) % 2;

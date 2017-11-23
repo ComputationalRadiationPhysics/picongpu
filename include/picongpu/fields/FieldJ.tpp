@@ -265,7 +265,7 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
      */
     const int workerMultiplier = 2;
 
-    typedef typename ParticlesClass::FrameType FrameType;
+    using FrameType = typename ParticlesClass::FrameType;
     typedef typename pmacc::traits::Resolve<
         typename GetFlagType<FrameType, current<> >::type
     >::type ParticleCurrentSolver;

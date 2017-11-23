@@ -117,17 +117,17 @@ struct Push
   {
 
     // alias for types to  follow coding guide line
-    typedef T_Var VariableType;
-    typedef T_Time TimeType;
-    typedef T_FieldEFunc EFieldFuncType;
-    typedef T_FieldBFunc BFieldFuncType;
-    typedef T_Pos PositionType;
-    typedef T_Mom MomentumType;
-    typedef T_Mass MassType;
-    typedef T_Charge ChargeType;
-    typedef T_Weighting WeightingType;
-    typedef T_Velocity VelocityType;
-    typedef T_Gamma GammaType;
+    using VariableType = T_Var;
+    using TimeType = T_Time;
+    using EFieldFuncType = T_FieldEFunc;
+    using BFieldFuncType = T_FieldBFunc;
+    using PositionType = T_Pos;
+    using MomentumType = T_Mom;
+    using MassType = T_Mass;
+    using ChargeType = T_Charge;
+    using WeightingType = T_Weighting;
+    using VelocityType = T_Velocity;
+    using GammaType = T_Gamma;
 
 
     HDINLINE DiffEquation(EFieldFuncType funcE, BFieldFuncType funcB, MassType m, ChargeType q, WeightingType w)

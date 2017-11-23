@@ -56,7 +56,7 @@ namespace particleToGrid
     {
     public:
 
-        typedef typename T_ParticleShape::ChargeAssignment AssignmentFunction;
+        using AssignmentFunction = typename T_ParticleShape::ChargeAssignment;
         static constexpr int supp = AssignmentFunction::support;
 
         static constexpr int lowerMargin = supp / 2;

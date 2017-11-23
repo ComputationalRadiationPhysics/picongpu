@@ -38,8 +38,8 @@ namespace traits
 template<class Solver,unsigned int SubSetName=0>
 struct GetMargin
 {
-    typedef typename Solver::LowerMargin LowerMargin;
-    typedef typename Solver::UpperMargin UpperMargin;
+    using LowerMargin = typename Solver::LowerMargin;
+    using UpperMargin = typename Solver::UpperMargin;
 };
 
 template<typename T_Type>

@@ -70,10 +70,10 @@ namespace synchrotronPhotons
 template<typename T_ElectronSpecies, typename T_PhotonSpecies>
 struct PhotonCreator
 {
-    typedef T_ElectronSpecies ElectronSpecies;
-    typedef T_PhotonSpecies PhotonSpecies;
+    using ElectronSpecies = T_ElectronSpecies;
+    using PhotonSpecies = T_PhotonSpecies;
 
-    typedef typename ElectronSpecies::FrameType FrameType;
+    using FrameType = typename ElectronSpecies::FrameType;
 
     /* specify field to particle interpolation scheme */
     typedef typename pmacc::particles::traits::ResolveAliasFromSpecies<
@@ -96,8 +96,8 @@ struct PhotonCreator
 
     typedef MappingDesc::SuperCellSize TVec;
 
-    typedef FieldE::ValueType ValueType_E;
-    typedef FieldB::ValueType ValueType_B;
+    using ValueType_E = FieldE::ValueType;
+    using ValueType_B = FieldB::ValueType;
 
 private:
     /* global memory EM-field device databoxes */

@@ -46,7 +46,7 @@ namespace picongpu
 
 using namespace pmacc;
 
-typedef FieldJ::DataBoxType J_DataBox;
+using J_DataBox = FieldJ::DataBoxType;
 
 /** compute current
  *

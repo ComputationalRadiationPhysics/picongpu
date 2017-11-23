@@ -59,11 +59,11 @@ namespace bremsstrahlung
 template<typename T_IonSpecies, typename T_ElectronSpecies, typename T_PhotonSpecies>
 struct Bremsstrahlung
 {
-    typedef T_IonSpecies IonSpecies;
-    typedef T_ElectronSpecies ElectronSpecies;
-    typedef T_PhotonSpecies PhotonSpecies;
+    using IonSpecies = T_IonSpecies;
+    using ElectronSpecies = T_ElectronSpecies;
+    using PhotonSpecies = T_PhotonSpecies;
 
-    typedef typename ElectronSpecies::FrameType FrameType;
+    using FrameType = typename ElectronSpecies::FrameType;
 
     /* specify field to particle interpolation scheme */
     typedef typename pmacc::traits::Resolve<
@@ -85,7 +85,7 @@ struct Bremsstrahlung
 
     typedef MappingDesc::SuperCellSize TVec;
 
-    typedef FieldTmp::ValueType ValueTypeIonDensity;
+    using ValueTypeIonDensity = FieldTmp::ValueType;
 
 private:
     /* global memory ion density field device databoxes */

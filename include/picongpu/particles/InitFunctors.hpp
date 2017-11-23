@@ -85,7 +85,7 @@ struct CreateDensity
 
     typedef typename bmpl::apply1<T_DensityFunctor, SpeciesType>::type UserDensityFunctor;
     /* add interface for compile time interface validation*/
-    typedef densityProfiles::IProfile<UserDensityFunctor> DensityFunctor;
+    using DensityFunctor = densityProfiles::IProfile<UserDensityFunctor>;
 
     typedef typename bmpl::apply1<T_PositionFunctor, SpeciesType>::type UserPositionFunctor;
     /* add interface for compile time interface validation*/

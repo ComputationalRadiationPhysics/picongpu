@@ -108,7 +108,7 @@ public:
     {
         void operator()()
         {
-            typedef typename T_Species::FrameType FrameType;
+            using FrameType = typename T_Species::FrameType;
             const float_32 charge = frame::getCharge<FrameType>();
             const float_32 mass = frame::getMass<FrameType>();
             log<picLog::PHYSICS >("species %2%: omega_p * dt <= 0.1 ? %1%") %

@@ -541,7 +541,7 @@ private:
 
         if (writeToFile)
         {
-            typedef std::numeric_limits< float_64 > dbl;
+            using dbl = std::numeric_limits<float_64>;
 
             outFile.precision(dbl::digits10);
 
