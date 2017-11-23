@@ -21,6 +21,9 @@
 
 #pragma once
 
+#include <boost/preprocessor.hpp>
+
+
 namespace PMacc
 {
 namespace algorithm
