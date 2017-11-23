@@ -13,3 +13,5 @@ This section contains typical user workflows and best practices.
    workflows/laserPeakOnTarget
    workflows/compositeMaterials
    workflows/quasiNeutrality
+   workflows/probeParticles
+   workflows/tracerParticles

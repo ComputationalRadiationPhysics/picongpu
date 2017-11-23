@@ -194,6 +194,25 @@ using Nitrogen = Particles<
     IonParticleAttributes
 >;
 
+/*--------------------------- Probe Particles -------------------------------*/
+
+using ParticleFlagsProbes = bmpl::vector<
+    particlePusher< particles::pusher::Probe >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >
+>;
+
+/* define species Probe */
+using Probes = Particles<
+    bmpl::string< 'p', 'r', 'o', 'b', 'e' >,
+    ParticleFlagsProbes,
+    MakeSeq_t<
+        position< position_pic >,
+        probeB,
+        probeE
+    >
+>;
+
 /*########################### end species ####################################*/
 
 /** All known particle species of the simulation
@@ -205,7 +224,8 @@ using VectorAllSpecies = MakeSeq_t<
     Electrons,
     Hydrogen,
     Carbon,
-    Nitrogen
+    Nitrogen,
+    Probes
 >;
 
 } // namespace picongpu

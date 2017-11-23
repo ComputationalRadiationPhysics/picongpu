@@ -26,4 +26,5 @@
 #include "picongpu/particles/densityProfiles/LinearExponentialImpl.def"
 #include "picongpu/particles/densityProfiles/GaussianCloudImpl.def"
 #include "picongpu/particles/densityProfiles/SphereFlanksImpl.def"
+#include "picongpu/particles/densityProfiles/EveryNthCellImpl.def"
 #include "picongpu/particles/densityProfiles/FromHDF5Impl.def"

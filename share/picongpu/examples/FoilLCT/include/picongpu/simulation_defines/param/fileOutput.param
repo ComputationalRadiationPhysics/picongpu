@@ -110,6 +110,6 @@ namespace picongpu
      * hint: to enable particle output set to
      *   using FileOutputParticles = VectorAllSpecies;
      */
-    using FileOutputParticles = bmpl::vector0<>;
+    using FileOutputParticles = MakeSeq_t< Probes >;
 
 }

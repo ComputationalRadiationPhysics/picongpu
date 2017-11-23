@@ -132,6 +132,13 @@ namespace particles
         DeriveSpecies<
             Nitrogen,
             Electrons
+        >,
+        /* create non-physical "probe" particles that sit in every 4x4x4th cell
+         * and monitor the electro-magnetic fields */
+        CreateDensity<
+            densityProfiles::ProbeEveryFourthCell,
+            startPosition::OnePosition,
+            Probes
         >
     >;
 
