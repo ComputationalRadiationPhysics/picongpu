@@ -21,6 +21,17 @@ The implementation of the Thomas-Fermi model takes the following input quantitie
 Due to the nature of our simulated setups it is also used in non-equilibrium situations.
 We therefore implemented additional conditions to mediate unphysical behavior but introduce arbitrariness.
 
+.. plot:: models/collisional_ionization_thomas-fermi_cutoffs.py
+
+Here is an example of hydrogen (in blue) and carbon (in orange) that we would use in a compound plastic target, for instance.
+The typical plastic density region is marked in green.
+Two of the artifacts can be seen in this plot:
+
+    1. Carbon is predicted to have an initial charge state :math:`\langle Z \rangle > 0` even at :math:`T = 0\,\mathrm{eV}`.
+    2. Carbon is predicted to have a charge state of :math:`\langle Z \rangle \approx 2` at solid plastic density and electron temperature of :math:`T = 10\,\mathrm{eV}` which increases even as the density decreases.
+       The average electron kinetic energy at such a temperature is 6.67 eV which is less than the 24.4 eV of binding energy for that state.
+       The increase in charge state with decreasing density would lead to very high charge states in the pre-plasmas that we model.
+
 1. Super-thermal electron cutoff
 
     We calculate the temperature according to :math:`T_\mathrm{e} = \frac{2}{3} E_\mathrm{kin, e}` in units of electron volts.
