@@ -49,7 +49,6 @@ class ThomasFermiIonization:
 
         self.alpha = 14.3139
         self.beta = 0.6624
-        # print("initialized")
 
     def CalcT_0(self,
                 temperature, protonNumber):

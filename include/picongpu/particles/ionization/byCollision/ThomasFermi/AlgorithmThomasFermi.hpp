@@ -81,7 +81,7 @@ namespace ionization
             /* atomic mass number (usually A) A = N + Z */
             constexpr float_64 massNumber = neutronNumber + protonNumber;
 
-            float_64 const T_0 = temperature/math::pow( protonNumber,float_64( 4./3. ) );
+            float_64 const T_0 = temperature / math::pow( protonNumber, float_64( 4. / 3. ) );
 
             float_64 const T_F = T_0 / ( float_64( 1. ) + T_0 );
 

@@ -39,7 +39,7 @@ Two of the artifacts can be seen in this plot:
     Via the variable ``CUTOFF_MAX_ENERGY_KEV`` in ``ionizer.param`` the user can exclude electrons with kinetic energy above this value from average energy calculation.
     That is motivated by a lower interaction cross section of particles with high relative velocities.
 
-2. Low ion-density cutoff
+2. Lower ion-density cutoff
 
     The Thomas-Fermi model displays unphysical behaviour for low ion densities in that it predicts an increasing charge state for decreasing ion densities.
     This occurs already for electron temperatures of 10 eV and the effect increases as the temperature increases.
@@ -52,15 +52,14 @@ Two of the artifacts can be seen in this plot:
     It is strongly suggested to do approximations for **every** setup or material first.
     To that end, a parameter scan with [FLYCHK]_ can help in choosing a reasonable value.
 
-3. Low electron-temperature cutoff
+3. Lower electron-temperature cutoff
 
-    Depending on the material the Thomas-Fermi prediction for the average charge
-    state can be unphysically high. For some materials it predicts non-zero
-    charge states at 0 temperature. That can be a reasonable approximation
-    for metals and their electrons in the conduction band.
+    Depending on the material the Thomas-Fermi prediction for the average charge state can be unphysically high.
+    For some materials it predicts non-zero charge states at 0 temperature.
+    That can be a reasonable approximation for metals and their electrons in the conduction band.
     Yet this cannot be generalized for all materials and therefore a cutoff should be explicitly defined.
 
-    - define via ``CUTOFF_LOW_TEMPERATURE_EV`` in ``ionizer.param``
+    - define via ``CUTOFF_LOW_TEMPERATURE_EV`` in :ref:`ionizer.param <usage-params-extensions>`
 
 NLTE Models
 -----------
