@@ -23,9 +23,8 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/algorithms/KinEnergy.hpp"
 #include "picongpu/plugins/common/txtFileHandling.hpp"
-#include "picongpu/plugins/multi/ISlave.hpp"
+#include "picongpu/plugins/multi/multi.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
-#include "picongpu/plugins/multi/IHelp.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/plugins/misc/misc.hpp"
 
@@ -51,7 +50,6 @@
 #include <fstream>
 #include <memory>
 #include <stdexcept>
-#include <functional>
 
 
 namespace picongpu
@@ -298,6 +296,28 @@ namespace picongpu
 
         struct Help : public plugins::multi::IHelp
         {
+
+            /** creates a instance of ISlave
+             *
+             * @tparam T_Slave type of the interface implementation (must inherit from ISlave)
+             * @param help plugin defined help
+             * @param id index of the plugin, range: [0;help->getNumPlugins())
+             */
+            std::shared_ptr< ISlave > create(
+                std::shared_ptr< IHelp > & help,
+                size_t const id,
+                MappingDesc* cellDescription
+            )
+            {
+                return std::shared_ptr< ISlave >(
+                    new EnergyParticles< ParticlesType >(
+                        help,
+                        id,
+                        cellDescription
+                    )
+                );
+            }
+
             // find all valid filter for the current used species
             using EligibleFilters = typename MakeSeqFromNestedSeq<
                 typename bmpl::transform<
@@ -310,8 +330,14 @@ namespace picongpu
             >::type;
 
             //! periodicity of computing the particle energy
-            std::vector< uint32_t > notifyPeriod;
-            std::vector< std::string > filter;
+            plugins::multi::Option< uint32_t > notifyPeriod = {
+                "period",
+                "compute kinetic and total energy [for each n-th step] enable plugin by setting a non-zero value"
+            };
+            plugins::multi::Option< std::string > filter = {
+                "filter",
+                "particle filter: "
+            };
 
             //! string list with all possible particle filters
             std::string concatenatedFilterNames;
@@ -335,17 +361,25 @@ namespace picongpu
                     ", "
                 );
 
-                desc.add_options( )(
-                    ( masterPrefix + prefix + ".period").c_str( ),
-                    boost::program_options::value< std::vector< uint32_t > >( &notifyPeriod )->multitoken( ),
-                    "compute kinetic and total energy [for each n-th step] enable plugin by setting a non-zero value"
+                notifyPeriod.registerHelp(
+                    desc,
+                    masterPrefix + prefix,
+                    std::string( "[" ) + concatenatedFilterNames + "]"
                 );
-                desc.add_options( )(
-                    ( masterPrefix + prefix + ".filter").c_str( ),
-                    boost::program_options::value< std::vector< std::string > >( &filter )->multitoken( ),
-                    ( std::string( "particle filter: " ) + concatenatedFilterNames ).c_str()
+                filter.registerHelp(
+                    desc,
+                    masterPrefix + prefix,
+                    concatenatedFilterNames
                 );
             }
+
+            void expandHelp(
+                boost::program_options::options_description & desc,
+                std::string const & masterPrefix = std::string{ }
+            )
+            {
+            }
+
 
             void validateOptions()
             {
@@ -410,7 +444,7 @@ namespace picongpu
             m_id( id ),
             m_cellDescription( cellDescription )
         {
-            filename = m_help->getOptionPrefix() + "_" + m_help->filter[ m_id ] + ".dat";
+            filename = m_help->getOptionPrefix() + "_" + m_help->filter.get( m_id ) + ".dat";
 
             // decide which MPI-rank writes output
             writeToFile = reduce.hasResult( mpi::reduceMethods::Reduce( ) );
@@ -448,7 +482,7 @@ namespace picongpu
             // set how often the plugin should be executed while PIConGPU is running
             Environment<>::get( ).PluginConnector( ).setNotificationPeriod(
                 this,
-                m_help->notifyPeriod[ id ]
+                m_help->notifyPeriod.get( id )
             );
         }
 
@@ -550,7 +584,7 @@ namespace picongpu
                 typename Help::EligibleFilters,
                 plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
             >{ }(
-                m_help->filter[ m_id ],
+                m_help->filter.get( m_id ),
                 currentStep,
                 binaryKernel
             );
