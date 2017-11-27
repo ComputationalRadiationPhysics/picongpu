@@ -55,6 +55,27 @@ namespace misc
         }
     };
 
+    /** species without a filter
+     *
+     * This class fulfills the interface of SpeciesFilter for a species
+     * but keeps the species name without adding the filter postfix.
+     */
+    template< typename T_Species >
+    struct UnFilteredSpecies
+    {
+        using Filter = particles::filter::All;
+        using Species = T_Species;
+
+        /** get name of the filtered species
+         *
+         * @return <speciesName>
+         */
+        static std::string getName()
+        {
+            return Species::FrameType::getName();
+        }
+    };
+
 namespace speciesFilter
 {
     /** evaluate if the filter and species combination is valid
