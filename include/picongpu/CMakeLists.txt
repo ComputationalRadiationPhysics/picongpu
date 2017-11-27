@@ -62,7 +62,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 get_filename_component(SOURCE_DIR_ROOT ${PIConGPU_SOURCE_DIR}/../.. ABSOLUTE)
 string(FIND "${PIConGPU_BINARY_DIR}"
-            "${SOURCE_DIR_ROOT}" IN_SRC_POS)
+            "${SOURCE_DIR_ROOT}/" IN_SRC_POS)
 if(IN_SRC_POS GREATER -1)
   message(FATAL_ERROR
     "PICoNGPU requires an out of source build. "
