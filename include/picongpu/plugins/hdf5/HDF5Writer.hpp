@@ -26,12 +26,18 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <regex>
 
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/traits/SplashToPIC.hpp"
 #include "picongpu/traits/PICToSplash.hpp"
+#include "picongpu/plugins/misc/misc.hpp"
+#include "picongpu/plugins/multi/Option.hpp"
+#include "picongpu/plugins/misc/SpeciesFilter.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 
 #include <pmacc/particles/frame_types.hpp>
 
@@ -88,60 +94,265 @@ using namespace splash;
  *
  * Implements the IIOBackend interface.
  */
-class HDF5Writer : public IIOBackend
+class HDF5Writer :
+    public IIOBackend
 {
 public:
+
+    struct Help : public plugins::multi::IHelp
+    {
+        /** creates a instance of ISlave
+         *
+         * @tparam T_Slave type of the interface implementation (must inherit from ISlave)
+         * @param help plugin defined help
+         * @param id index of the plugin, range: [0;help->getNumPlugins())
+         */
+        std::shared_ptr< ISlave > create(
+            std::shared_ptr< IHelp > & help,
+            size_t const id,
+            MappingDesc* cellDescription
+        )
+        {
+            return std::shared_ptr< ISlave >(
+                new HDF5Writer(
+                    help,
+                    id,
+                    cellDescription
+                )
+            );
+        }
+
+        //! periodicity of computing the particle energy
+        plugins::multi::Option< uint32_t > notifyPeriod = {
+            "period",
+            "enable HDF5 IO [for each n-th step]"
+        };
+        plugins::multi::Option< std::string > source = {
+            "source",
+            "data sources: ",
+            "species_all, fields_all"
+        };
+
+        plugins::multi::Option< std::string > fileName = {
+            "file",
+            "HDF5 output filename (prefix)"
+        };
+
+        bool isIndependent = false;
+
+        std::vector< std::string > allowedDataSources  = {
+            "species_all",
+            "fields_all"
+        };
+
+        template<typename T_TupleVector>
+        struct CreateSpeciesFilter
+        {
+            using type = plugins::misc::SpeciesFilter<
+                typename pmacc::math::CT::At<
+                    T_TupleVector,
+                    bmpl::int_<0>
+                >::type,
+                typename pmacc::math::CT::At<
+                    T_TupleVector,
+                    bmpl::int_<1>
+                >::type
+            >;
+        };
+
+        using AllParticlesTimesAllFilters = typename AllCombinations<
+            bmpl::vector<
+                FileOutputParticles,
+                particles::filter::AllParticleFilters
+            >
+         >::type;
+
+        using AllSpeciesFilter = typename bmpl::transform<
+            AllParticlesTimesAllFilters,
+            CreateSpeciesFilter< bmpl::_1 >
+        >::type;
+
+        using AllEligibleSpeciesSources = typename bmpl::copy_if<
+            AllSpeciesFilter,
+            plugins::misc::speciesFilter::IsEligible< bmpl::_1 >
+        >::type;
+
+        ///! method used by plugin controller to get --help description
+        void registerHelp(
+            boost::program_options::options_description & desc,
+            std::string const & masterPrefix = std::string{ }
+        )
+        {
+            ForEach<
+                AllEligibleSpeciesSources,
+                plugins::misc::AppendName< bmpl::_1 >
+            > getEligibleDataSourceNames;
+            getEligibleDataSourceNames( forward( allowedDataSources ) );
+
+            // string list with all possible data sources
+            std::string concatenatedSourceNames = plugins::misc::concatenateToString(
+                allowedDataSources,
+                ", "
+            );
+
+            notifyPeriod.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            source.registerHelp(
+                desc,
+                masterPrefix + prefix,
+                std::string( "[" ) + concatenatedSourceNames + "]"
+            );
+            fileName.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            isIndependent = true;
+
+        }
+
+        void expandHelp(
+            boost::program_options::options_description & desc,
+            std::string const & masterPrefix = std::string{ }
+        )
+        {
+        }
+
+        void validateOptions()
+        {
+            if( isIndependent )
+            {
+                if( notifyPeriod.empty() || fileName.empty() )
+                    throw std::runtime_error(
+                        name +
+                        ": parameter period and file must be defined"
+                    );
+
+                // check if user passed data source names are valid
+                for( auto const & dateSourceNames : source )
+                {
+                    auto vectorOfDataSourceNames = plugins::misc::splitString(
+                        plugins::misc::removeSpaces( dateSourceNames )
+                    );
+
+                    for( auto const & f : vectorOfDataSourceNames )
+                    {
+                        if(
+                            !plugins::misc::containsObject(
+                                allowedDataSources,
+                                f
+                            )
+                        )
+                        {
+                            throw std::runtime_error( name + ": unknown data source '" + f + "'" );
+                        }
+                    }
+                }
+            }
+        }
+
+        size_t getNumPlugins() const
+        {
+            if( isIndependent )
+                return notifyPeriod.size();
+            else
+                return 1;
+        }
+
+        std::string getDescription() const
+        {
+            return description;
+        }
+
+        std::string getOptionPrefix() const
+        {
+            return prefix;
+        }
+
+        std::string getName() const
+        {
+            return name;
+        }
+
+        std::string const name = "HDF5Writer";
+        //! short description of the plugin
+        std::string const description = "dump simulation data with hdf5";
+        //! prefix used for command line arguments
+        std::string const prefix = "hdf5";
+    };
+
+    //! must be implemented by the user
+    static std::shared_ptr< plugins::multi::IHelp > getHelp()
+    {
+        return std::shared_ptr< plugins::multi::IHelp >( new Help{ } );
+    }
 
     /** constructor
      *
      * @param isIndependent if `true`: class register itself to PluginConnector
      */
-    HDF5Writer(bool isIndependent = true) :
-    filename("simData"),
-    outputDirectory("h5"),
-    notifyPeriod(0)
+    HDF5Writer(
+        std::shared_ptr< plugins::multi::IHelp > & help,
+        size_t const id,
+        MappingDesc* cellDescription
+    ) :
+    m_help( std::static_pointer_cast< Help >(help) ),
+    m_id( id ),
+    m_cellDescription( cellDescription ),
+    outputDirectory("h5")
     {
-        // only register if plugin is not maintained by an wrapper
-        if(isIndependent)
-            Environment<>::get().PluginConnector().registerPlugin(this);
+        mThreadParams.cellDescription = m_cellDescription;
+
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
+
+        /* It is important that we never change the mpi_pos after this point
+         * because we get problems with the restart.
+         * Otherwise we do not know which gpu must load the ghost parts around
+         * the sliding window.
+         */
+        mpi_pos = gc.getPosition();
+        mpi_size = gc.getGpuNodes();
+
+        splashMpiPos.set(0, 0, 0);
+        splashMpiSize.set(1, 1, 1);
+
+        for (uint32_t i = 0; i < simDim; ++i)
+        {
+            splashMpiPos[i] = mpi_pos[i];
+            splashMpiSize[i] = mpi_size[i];
+        }
+
+        if( m_help->isIndependent )
+        {
+            uint32_t notifyPeriod = m_help->notifyPeriod.get( id );
+            /* only register for notify callback when .period is set on command line */
+            if (notifyPeriod > 0)
+            {
+                Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
+
+                /** create notify directory */
+                Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
+            }
+        }
     }
 
     virtual ~HDF5Writer()
     {
+        if (mThreadParams.dataCollector)
+                mThreadParams.dataCollector->finalize();
 
-    }
-
-    void pluginRegisterHelp(boost::program_options::options_description& desc)
-    {
-        namespace po = boost::program_options;
-        desc.add_options()
-            ("hdf5.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
-             "enable HDF5 IO [for each n-th step]")
-            ("hdf5.file", po::value<std::string > (&filename)->default_value(filename),
-             "HDF5 output filename (prefix)");
-    }
-
-    virtual void expandHelp(
-        std::string const & prefix,
-        boost::program_options::options_description & desc
-    )
-    {
-    }
-
-    std::string pluginGetName() const
-    {
-        return "HDF5Writer";
-    }
-
-    void setMappingDescription(MappingDesc *cellDescription)
-    {
-        this->cellDescription = cellDescription;
-        mThreadParams.cellDescription = this->cellDescription;
+         __delete(mThreadParams.dataCollector);
     }
 
     void notify(uint32_t currentStep)
     {
+        // notify is only allowed if the plugin is not controlled by the class Checkpoint
+        assert( m_help->isIndependent );
+
         __getTransactionEvent().waitForFinished();
+
+        std::string filename = m_help->fileName.get( m_id );
         /* if file name is relative, prepend with common directory */
         if( boost::filesystem::path(filename).has_root_path() )
             mThreadParams.h5Filename = filename;
@@ -154,6 +365,26 @@ public:
         dumpData(currentStep);
     }
 
+    virtual void restart(
+        uint32_t restartStep,
+        std::string const & restartDirectory
+    )
+    {
+        /* ISlave restart interface is not needed becase IIOBackend
+         * restart interface is used
+         */
+    }
+
+    virtual void checkpoint(
+        uint32_t currentStep,
+        std::string const & checkpointDirectory
+    )
+    {
+        /* ISlave checkpoint interface is not needed becase IIOBackend
+         * checkpoint interface is used
+         */
+    }
+
     void doRestart(
         const uint32_t restartStep,
         const std::string& restartDirectory,
@@ -161,6 +392,9 @@ public:
         const uint32_t restartChunkSize
     )
     {
+        // restart is only allowed if the plugin is controlled by the class Checkpoint
+        assert(!m_help->isIndependent);
+
         // allow to modify the restart file name
         std::string restartFilename{ constRestartFilename };
 
@@ -256,6 +490,9 @@ public:
         const std::string& checkpointFilename
     )
     {
+        // checkpointing is only allowed if the plugin is controlled by the class Checkpoint
+        assert(!m_help->isIndependent);
+
         __getTransactionEvent().waitForFinished();
         /* if file name is relative, prepend with common directory */
         if( boost::filesystem::path(checkpointFilename).has_root_path() )
@@ -320,7 +557,7 @@ private:
     void dumpData(uint32_t currentStep)
     {
         const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-        mThreadParams.cellDescription = this->cellDescription;
+        mThreadParams.cellDescription = m_cellDescription;
         mThreadParams.currentStep = currentStep;
 
         for (uint32_t i = 0; i < simDim; ++i)
@@ -341,48 +578,34 @@ private:
         closeH5File();
     }
 
-    void pluginLoad()
+    template< typename T_ParticleFilter>
+    struct CallWriteSpecies
     {
-        GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        /* It is important that we never change the mpi_pos after this point
-         * because we get problems with the restart.
-         * Otherwise we do not know which gpu must load the ghost parts around
-         * the sliding window.
-         */
-        mpi_pos = gc.getPosition();
-        mpi_size = gc.getGpuNodes();
 
-        splashMpiPos.set(0, 0, 0);
-        splashMpiSize.set(1, 1, 1);
-
-        for (uint32_t i = 0; i < simDim; ++i)
+        template<typename Space>
+        void operator()(
+            const std::vector< std::string > & vectorOfDataSourceNames,
+            ThreadParams* params,
+            const Space domainOffset
+        )
         {
-            splashMpiPos[i] = mpi_pos[i];
-            splashMpiSize[i] = mpi_size[i];
+            bool const containsDataSource = plugins::misc::containsObject(
+                vectorOfDataSourceNames,
+                T_ParticleFilter::getName()
+            );
+
+            if( containsDataSource )
+            {
+                WriteSpecies<
+                    T_ParticleFilter
+                > writeSpecies;
+                writeSpecies(params, domainOffset);
+            }
+
         }
+    };
 
-
-        /* only register for notify callback when .period is set on command line */
-        if (notifyPeriod > 0)
-        {
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
-
-            /** create notify directory */
-            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
-        }
-
-        loaded = true;
-    }
-
-    void pluginUnload()
-    {
-        if (mThreadParams.dataCollector)
-            mThreadParams.dataCollector->finalize();
-
-        __delete(mThreadParams.dataCollector);
-    }
-
-    static void *writeHDF5(void *p_args)
+    void writeHDF5(void *p_args)
     {
         ThreadParams *threadParams = (ThreadParams*) (p_args);
 
@@ -391,6 +614,16 @@ private:
             subGrid.getGlobalDomain().offset +
             subGrid.getLocalDomain().offset
         );
+
+        std::vector< std::string > vectorOfDataSourceNames;
+        if( m_help->isIndependent )
+        {
+            std::string dateSourceNames = m_help->source.get( m_id );
+
+            vectorOfDataSourceNames = plugins::misc::splitString(
+                plugins::misc::removeSpaces( dateSourceNames )
+            );
+        }
 
         /* write all fields */
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
@@ -401,8 +634,18 @@ private:
         }
         else
         {
-            ForEach<FileOutputFields, WriteFields<bmpl::_1> > forEachWriteFields;
-            forEachWriteFields(threadParams);
+            bool dumpFields = plugins::misc::containsObject(
+                vectorOfDataSourceNames,
+                "fields_all"
+            );
+            if( dumpFields )
+            {
+                ForEach<
+                    FileOutputFields,
+                    WriteFields< bmpl::_1 >
+                > forEachWriteFields;
+                forEachWriteFields(threadParams);
+            }
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing fields.");
 
@@ -413,24 +656,40 @@ private:
             ForEach<
                 FileCheckpointParticles,
                 WriteSpecies<
-                    plugins::misc::SpeciesFilter<
-                        bmpl::_1
-                    >
+                    plugins::misc::UnFilteredSpecies< bmpl::_1 >
                 >
             > writeSpecies;
             writeSpecies(threadParams, domainOffset);
         }
         else
         {
-            ForEach<
-                FileOutputParticles,
-                WriteSpecies<
-                    plugins::misc::SpeciesFilter<
-                        bmpl::_1
+            bool dumpAllParticles = plugins::misc::containsObject(
+                vectorOfDataSourceNames,
+                "species_all"
+            );
+
+            if( dumpAllParticles )
+            {
+                ForEach<
+                    FileOutputParticles,
+                    WriteSpecies<
+                        plugins::misc::UnFilteredSpecies< bmpl::_1 >
                     >
+                > writeSpecies;
+                writeSpecies(threadParams, domainOffset);
+            }
+
+            ForEach<
+                typename Help::AllEligibleSpeciesSources,
+                CallWriteSpecies<
+                    bmpl::_1
                 >
-            > writeSpecies;
-            writeSpecies(threadParams, domainOffset);
+            >{}(
+                vectorOfDataSourceNames,
+                threadParams,
+                domainOffset
+            );
+
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing particle species.");
 
@@ -446,16 +705,15 @@ private:
         // write global meta attributes
         WriteMeta writeMetaAttributes;
         writeMetaAttributes(threadParams);
-
-        return nullptr;
     }
 
     ThreadParams mThreadParams;
 
-    MappingDesc *cellDescription;
+    std::shared_ptr< Help > m_help;
+    size_t m_id;
 
-    uint32_t notifyPeriod;
-    std::string filename;
+    MappingDesc *m_cellDescription;
+
     std::string outputDirectory;
 
     DataSpace<simDim> mpi_pos;

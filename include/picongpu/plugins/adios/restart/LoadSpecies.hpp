@@ -91,7 +91,7 @@ public:
      */
     HINLINE void operator()(ThreadParams* params, const uint32_t restartChunkSize)
     {
-        std::string const speciesName = FrameType::getName() + "_all";
+        std::string const speciesName = FrameType::getName();
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) load species: %1%") % speciesName;
         DataConnector &dc = Environment<>::get().DataConnector();
         GridController<simDim> &gc = Environment<simDim>::get().GridController();

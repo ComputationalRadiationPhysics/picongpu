@@ -23,6 +23,11 @@
 #include <pmacc/static_assert.hpp>
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/misc/misc.hpp"
+#include "picongpu/plugins/multi/Option.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/misc/SpeciesFilter.hpp"
+#include "picongpu/particles/filter/filter.hpp"
 
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/particles/IdProvider.def>
@@ -144,6 +149,248 @@ int64_t defineAdiosVar(int64_t group_id,
  */
 class ADIOSWriter : public IIOBackend
 {
+public:
+    struct Help : public plugins::multi::IHelp
+    {
+        /** creates a instance of ISlave
+         *
+         * @tparam T_Slave type of the interface implementation (must inherit from ISlave)
+         * @param help plugin defined help
+         * @param id index of the plugin, range: [0;help->getNumPlugins())
+         */
+        std::shared_ptr< ISlave > create(
+            std::shared_ptr< IHelp > & help,
+            size_t const id,
+            MappingDesc* cellDescription
+        )
+        {
+            return std::shared_ptr< ISlave >(
+                new ADIOSWriter(
+                    help,
+                    id,
+                    cellDescription
+                )
+            );
+        }
+
+        //! periodicity of computing the particle energy
+        plugins::multi::Option< uint32_t > notifyPeriod = {
+            "period",
+            "enable ADIOS IO [for each n-th step]"
+        };
+
+        plugins::multi::Option< std::string > source = {
+            "source",
+            "data sources: ",
+            "species_all, fields_all"
+        };
+
+        plugins::multi::Option< std::string > fileName = {
+            "file",
+            "ADIOS output filename (prefix)"
+        };
+
+        std::vector< std::string > allowedDataSources = {
+            "species_all",
+            "fields_all"
+        };
+
+        plugins::multi::Option< uint32_t > numAggregators = {
+            "aggregators",
+            "Number of aggregators [0 == number of MPI processes]",
+            0u
+        };
+
+        plugins::multi::Option< uint32_t > numOSTs = {
+            "ost",
+            "Number of OST",
+            1u
+        };
+
+        plugins::multi::Option< uint32_t > disableMeta = {
+            "disable-meta",
+            "Disable online gather and write of a global meta file, can be time consuming (use `bpmeta` post-mortem)",
+            0u
+        };
+
+        /* select MPI method, #OSTs and #aggregators */
+        plugins::multi::Option< std::string > transportParams = {
+            "transport-params",
+            "additional transport parameters, see ADIOS manual chapter 6.1.5, e.g., 'random_offset=1;stripe_count=4'",
+            ""
+        };
+
+        plugins::multi::Option< std::string > compression = {
+            "compression",
+            "ADIOS compression method, e.g., zlib (see `adios_config -m` for help)",
+            "none"
+        };
+
+        bool isIndependent = false;
+
+        template<typename T_TupleVector>
+        struct CreateSpeciesFilter
+        {
+            using type = plugins::misc::SpeciesFilter<
+                typename pmacc::math::CT::At<
+                    T_TupleVector,
+                    bmpl::int_<0>
+                >::type,
+                typename pmacc::math::CT::At<
+                    T_TupleVector,
+                    bmpl::int_<1>
+                >::type
+            >;
+        };
+
+        using AllParticlesTimesAllFilters = typename AllCombinations<
+            bmpl::vector<
+                FileOutputParticles,
+                particles::filter::AllParticleFilters
+            >
+         >::type;
+
+        using AllSpeciesFilter = typename bmpl::transform<
+            AllParticlesTimesAllFilters,
+            CreateSpeciesFilter< bmpl::_1 >
+        >::type;
+
+        using AllEligibleSpeciesSources = typename bmpl::copy_if<
+            AllSpeciesFilter,
+            plugins::misc::speciesFilter::IsEligible< bmpl::_1 >
+        >::type;
+
+        ///! method used by plugin controller to get --help description
+        void registerHelp(
+            boost::program_options::options_description & desc,
+            std::string const & masterPrefix = std::string{ }
+        )
+        {
+            ForEach<
+                AllEligibleSpeciesSources,
+                plugins::misc::AppendName< bmpl::_1 >
+            > getEligibleDataSourceNames;
+            getEligibleDataSourceNames( forward( allowedDataSources ) );
+
+            // string list with all possible particle sources
+            std::string concatenatedSourceNames = plugins::misc::concatenateToString(
+                allowedDataSources,
+                ", "
+            );
+
+            notifyPeriod.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            source.registerHelp(
+                desc,
+                masterPrefix + prefix,
+                std::string( "[" ) + concatenatedSourceNames + "]"
+            );
+            fileName.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+
+            expandHelp(desc, "");
+            isIndependent = true;
+        }
+
+        void expandHelp(
+            boost::program_options::options_description & desc,
+            std::string const & masterPrefix = std::string{ }
+        )
+        {
+            numAggregators.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            numOSTs.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            disableMeta.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            transportParams.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            compression.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+        }
+
+        void validateOptions()
+        {
+            if( isIndependent )
+            {
+                if( notifyPeriod.empty() || fileName.empty() )
+                    throw std::runtime_error(
+                        name +
+                        ": parameter period and file must be defined"
+                    );
+
+                // check if user passed data source names are valid
+                for( auto const & dataSourceNames : source)
+                {
+                    auto vectorOfDataSourceNames = plugins::misc::splitString(
+                        plugins::misc::removeSpaces( dataSourceNames )
+                    );
+
+                    for( auto const & f : vectorOfDataSourceNames )
+                    {
+                        if(
+                            !plugins::misc::containsObject(
+                                allowedDataSources,
+                                f
+                            )
+                        )
+                        {
+                            throw std::runtime_error( name + ": unknown data source '" + f + "'" );
+                        }
+                    }
+                }
+            }
+        }
+
+        size_t getNumPlugins() const
+        {
+            if( isIndependent )
+                return notifyPeriod.size();
+            else
+                return 1;
+        }
+
+        std::string getDescription() const
+        {
+            return description;
+        }
+
+        std::string getOptionPrefix() const
+        {
+            return prefix;
+        }
+
+        std::string getName() const
+        {
+            return name;
+        }
+
+        std::string const name = "ADIOSWriter";
+        //! short description of the plugin
+        std::string const description = "dump simulation data with ADIOS";
+        //! prefix used for command line arguments
+        std::string const prefix = "adios";
+    };
+
+    //! must be implemented by the user
+    static std::shared_ptr< plugins::multi::IHelp > getHelp()
+    {
+        return std::shared_ptr< plugins::multi::IHelp >( new Help{ } );
+    }
 private:
 
     template<typename UnitType>
@@ -527,68 +774,87 @@ public:
 
     /** constructor
      *
-     * @param isIndependent if `true`: class register itself to PluginConnector
      */
-    ADIOSWriter(bool isIndependent = true) :
-    filename("simData"),
+    ADIOSWriter(
+        std::shared_ptr< plugins::multi::IHelp > & help,
+        size_t const id,
+        MappingDesc* cellDescription
+    ) :
+    m_help( std::static_pointer_cast< Help >(help) ),
+    m_id( id ),
+    m_cellDescription( cellDescription ),
     outputDirectory("bp"),
-    /* select MPI method, #OSTs and #aggregators */
-    mpiTransportParams(""),
-    notifyPeriod(0),
     lastSpeciesSyncStep(pmacc::traits::limits::Max<uint32_t>::value)
     {
-        // only register if plugin is not maintained by an wrapper
-        if(isIndependent)
-            Environment<>::get().PluginConnector().registerPlugin(this);
+
+        mThreadParams.adiosAggregators = m_help->numAggregators.get( id );
+        mThreadParams.adiosOST = m_help->numOSTs.get( id );
+        mThreadParams.adiosDisableMeta = m_help->disableMeta.get( id );
+        mThreadParams.adiosTransportParams = m_help->transportParams.get( id );
+        mThreadParams.adiosCompression = m_help->compression.get( id );
+
+        GridController<simDim> &gc = Environment<simDim>::get().GridController();
+        /* It is important that we never change the mpi_pos after this point
+         * because we get problems with the restart.
+         * Otherwise we do not know which gpu must load the ghost parts around
+         * the sliding window.
+         */
+        mpi_pos = gc.getPosition();
+        mpi_size = gc.getGpuNodes();
+
+        /* if number of aggregators is not set we use all mpi process as aggregator*/
+        if( mThreadParams.adiosAggregators == 0 )
+           mThreadParams.adiosAggregators=mpi_size.productOfComponents();
+
+        if( m_help->isIndependent )
+        {
+            uint32_t notifyPeriod = m_help->notifyPeriod.get( id );
+            /* only register for notify callback when .period is set on command line */
+            if (notifyPeriod > 0)
+            {
+                Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
+
+                /** create notify directory */
+                Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
+            }
+        }
+
+        /* Initialize adios library */
+        mThreadParams.adiosComm = MPI_COMM_NULL;
+        MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.adiosComm)));
+        mThreadParams.adiosBufferInitialized = false;
+
+        /* select MPI method, #OSTs and #aggregators */
+        std::stringstream strMPITransportParams;
+        strMPITransportParams << "num_aggregators=" << mThreadParams.adiosAggregators
+                              << ";num_ost=" << mThreadParams.adiosOST;
+        /* create meta file offline/post-mortem with bpmeta */
+        if( mThreadParams.adiosDisableMeta )
+            strMPITransportParams << ";have_metadata_file=0";
+        /* additional, uncovered transport parameters, e.g.,
+         * use system-defaults for striping per aggregated file */
+        if( ! mThreadParams.adiosTransportParams.empty() )
+            strMPITransportParams << ";" << mThreadParams.adiosTransportParams;
+
+        mpiTransportParams = strMPITransportParams.str();
     }
 
     virtual ~ADIOSWriter()
     {
-
-    }
-
-    void pluginRegisterHelp(po::options_description& desc)
-    {
-        desc.add_options()
-            ("adios.period", po::value<uint32_t > (&notifyPeriod)->default_value(0),
-             "enable ADIOS IO [for each n-th step]")
-            ("adios.file", po::value<std::string > (&filename)->default_value(filename),
-             "ADIOS output file");
-        expandHelp("", desc);
-    }
-
-    virtual void expandHelp(
-        std::string const & prefix,
-        boost::program_options::options_description & desc
-    )
-    {
-        desc.add_options()
-            ((prefix + "adios.aggregators").c_str(), po::value<uint32_t >
-            (&mThreadParams.adiosAggregators)->default_value(0), "Number of aggregators [0 == number of MPI processes]")
-            ((prefix + "adios.ost").c_str(), po::value<uint32_t > (&mThreadParams.adiosOST)->default_value(1),
-             "Number of OST")
-            ((prefix + "adios.disable-meta").c_str(), po::bool_switch (&mThreadParams.adiosDisableMeta)->default_value(false),
-             "Disable online gather and write of a global meta file, can be time consuming (use `bpmeta` post-mortem)")
-            ((prefix + "adios.transport-params").c_str(), po::value<std::string > (&mThreadParams.adiosTransportParams),
-             "additional transport parameters, see ADIOS manual chapter 6.1.5, e.g., 'random_offset=1;stripe_count=4'")
-            ((prefix + "adios.compression").c_str(), po::value<std::string >
-             (&mThreadParams.adiosCompression)->default_value("none"),
-             "ADIOS compression method, e.g., zlib (see `adios_config -m` for help)");
-    }
-
-    std::string pluginGetName() const
-    {
-        return "ADIOSWriter";
-    }
-
-    void setMappingDescription(MappingDesc *cellDescription)
-    {
-        this->cellDescription = cellDescription;
+        if (mThreadParams.adiosComm != MPI_COMM_NULL)
+        {
+            MPI_CHECK(MPI_Comm_free(&(mThreadParams.adiosComm)));
+        }
     }
 
     void notify(uint32_t currentStep)
     {
+        // notify is only allowed if the plugin is not controlled by the class Checkpoint
+        assert( m_help->isIndependent );
+
         __getTransactionEvent().waitForFinished();
+
+        std::string filename = m_help->fileName.get( m_id );
 
         /* if file name is relative, prepend with common directory */
         if( boost::filesystem::path(filename).has_root_path() )
@@ -602,12 +868,35 @@ public:
         dumpData(currentStep);
     }
 
+    virtual void restart(
+        uint32_t restartStep,
+        std::string const & restartDirectory
+    )
+    {
+        /* ISlave restart interface is not needed becase IIOBackend
+         * restart interface is used
+         */
+    }
+
+    virtual void checkpoint(
+        uint32_t currentStep,
+        std::string const & checkpointDirectory
+    )
+    {
+        /* ISlave checkpoint interface is not needed becase IIOBackend
+         * checkpoint interface is used
+         */
+    }
+
     void dumpCheckpoint(
         const uint32_t currentStep,
         const std::string& checkpointDirectory,
         const std::string& checkpointFilename
     )
     {
+        // checkpointing is only allowed if the plugin is controlled by the class Checkpoint
+        assert(!m_help->isIndependent);
+
         __getTransactionEvent().waitForFinished();
         /* if file name is relative, prepend with common directory */
         if( boost::filesystem::path(checkpointFilename).has_root_path() )
@@ -628,6 +917,9 @@ public:
         const uint32_t restartChunkSize
     )
     {
+        // restart is only allowed if the plugin is controlled by the class Checkpoint
+        assert(!m_help->isIndependent);
+
         // allow to modify the restart file name
         std::string restartFilename{ constRestartFilename };
 
@@ -636,7 +928,7 @@ public:
         mThreadParams.adiosBasePath = adiosPathBase.str();
         //mThreadParams.isCheckpoint = isCheckpoint;
         mThreadParams.currentStep = restartStep;
-        mThreadParams.cellDescription = this->cellDescription;
+        mThreadParams.cellDescription = m_cellDescription;
 
         /** one could try ADIOS_READ_METHOD_BP_AGGREGATE too which might
          *  be beneficial for re-distribution on a different number of GPUs
@@ -809,7 +1101,7 @@ private:
     void dumpData(uint32_t currentStep)
     {
         const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
-        mThreadParams.cellDescription = this->cellDescription;
+        mThreadParams.cellDescription = m_cellDescription;
         mThreadParams.currentStep = currentStep;
 
         for (uint32_t i = 0; i < simDim; ++i)
@@ -849,62 +1141,6 @@ private:
         writeAdios((void*) &mThreadParams, mpiTransportParams);
 
         endAdios();
-    }
-
-    void pluginLoad()
-    {
-        GridController<simDim> &gc = Environment<simDim>::get().GridController();
-        /* It is important that we never change the mpi_pos after this point
-         * because we get problems with the restart.
-         * Otherwise we do not know which gpu must load the ghost parts around
-         * the sliding window.
-         */
-        mpi_pos = gc.getPosition();
-        mpi_size = gc.getGpuNodes();
-
-        /* if number of aggregators is not set we use all mpi process as aggregator*/
-        if( mThreadParams.adiosAggregators == 0 )
-           mThreadParams.adiosAggregators=mpi_size.productOfComponents();
-
-        if (notifyPeriod > 0)
-        {
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
-
-            /** create notify directory */
-            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(outputDirectory);
-        }
-
-        /* Initialize adios library */
-        mThreadParams.adiosComm = MPI_COMM_NULL;
-        MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.adiosComm)));
-        mThreadParams.adiosBufferInitialized = false;
-
-        /* select MPI method, #OSTs and #aggregators */
-        std::stringstream strMPITransportParams;
-        strMPITransportParams << "num_aggregators=" << mThreadParams.adiosAggregators
-                              << ";num_ost=" << mThreadParams.adiosOST;
-        /* create meta file offline/post-mortem with bpmeta */
-        if( mThreadParams.adiosDisableMeta )
-            strMPITransportParams << ";have_metadata_file=0";
-        /* additional, uncovered transport parameters, e.g.,
-         * use system-defaults for striping per aggregated file */
-        if( ! mThreadParams.adiosTransportParams.empty() )
-            strMPITransportParams << ";" << mThreadParams.adiosTransportParams;
-
-        mpiTransportParams = strMPITransportParams.str();
-
-        loaded = true;
-    }
-
-    void pluginUnload()
-    {
-        if (notifyPeriod > 0)
-        {
-            if (mThreadParams.adiosComm != MPI_COMM_NULL)
-            {
-                MPI_CHECK(MPI_Comm_free(&(mThreadParams.adiosComm)));
-            }
-        }
     }
 
     template<typename ComponentType>
@@ -969,7 +1205,59 @@ private:
         }
     }
 
-    static void *writeAdios(void *p_args, std::string mpiTransportParams)
+    template< typename T_ParticleFilter>
+    struct CallCountParticles
+    {
+
+        void operator()(
+            const std::vector< std::string > & vectorOfDataSourceNames,
+            ThreadParams* params
+        )
+        {
+            bool const containsDataSource = plugins::misc::containsObject(
+                vectorOfDataSourceNames,
+                T_ParticleFilter::getName()
+            );
+
+            if( containsDataSource )
+            {
+                ADIOSCountParticles<
+                    T_ParticleFilter
+                > count;
+                count(params);
+            }
+
+        }
+    };
+
+    template< typename T_ParticleFilter>
+    struct CallWriteSpecies
+    {
+
+        template< typename Space >
+        void operator()(
+            const std::vector< std::string > & vectorOfDataSourceNames,
+            ThreadParams* params,
+            const Space domainOffset
+        )
+        {
+            bool const containsDataSource = plugins::misc::containsObject(
+                vectorOfDataSourceNames,
+                T_ParticleFilter::getName()
+            );
+
+            if( containsDataSource )
+            {
+                WriteSpecies<
+                    T_ParticleFilter
+                > writeSpecies;
+                writeSpecies(params, domainOffset);
+            }
+
+        }
+    };
+
+    void *writeAdios(void *p_args, std::string mpiTransportParams)
     {
 
         // synchronize, because following operations will be blocking anyway
@@ -1018,6 +1306,21 @@ private:
             threadParams->fieldsGlobalSizeDims[d] = threadParams->window.globalDimensions.size[d];
         }
 
+        std::vector< std::string > vectorOfDataSourceNames;
+        if( m_help->isIndependent )
+        {
+            std::string dataSourceNames = m_help->source.get( m_id );
+
+            vectorOfDataSourceNames = plugins::misc::splitString(
+                plugins::misc::removeSpaces( dataSourceNames )
+            );
+        }
+
+        bool dumpFields = plugins::misc::containsObject(
+            vectorOfDataSourceNames,
+            "fields_all"
+        );
+
         /* collect size information for each field to be written and define
          * field variables
          */
@@ -1025,13 +1328,22 @@ private:
         threadParams->adiosFieldVarIds.clear();
         if (threadParams->isCheckpoint)
         {
-            ForEach<FileCheckpointFields, CollectFieldsSizes<bmpl::_1> > forEachCollectFieldsSizes;
+            ForEach<
+                FileCheckpointFields,
+                CollectFieldsSizes< bmpl::_1 >
+            > forEachCollectFieldsSizes;
             forEachCollectFieldsSizes(threadParams);
         }
         else
         {
-            ForEach<FileOutputFields, CollectFieldsSizes<bmpl::_1> > forEachCollectFieldsSizes;
-            forEachCollectFieldsSizes(threadParams);
+            if( dumpFields )
+            {
+                ForEach<
+                    FileOutputFields,
+                    CollectFieldsSizes< bmpl::_1 >
+                > forEachCollectFieldsSizes;
+                forEachCollectFieldsSizes(threadParams);
+            }
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) collecting fields.");
 
@@ -1040,30 +1352,45 @@ private:
          */
         threadParams->adiosParticleAttrVarIds.clear();
         threadParams->adiosSpeciesIndexVarIds.clear();
+
+        bool dumpAllParticles = plugins::misc::containsObject(
+            vectorOfDataSourceNames,
+            "species_all"
+        );
+
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) counting particles.");
         if (threadParams->isCheckpoint)
         {
             ForEach<
                 FileCheckpointParticles,
                 ADIOSCountParticles<
-                    plugins::misc::SpeciesFilter<
-                        bmpl::_1
-                    >
+                    plugins::misc::UnFilteredSpecies< bmpl::_1 >
                 >
             > adiosCountParticles;
-            adiosCountParticles(threadParams);
+            adiosCountParticles( forward(threadParams) );
         }
         else
         {
-            ForEach<
-                FileOutputParticles,
-                ADIOSCountParticles<
-                    plugins::misc::SpeciesFilter<
-                        bmpl::_1
+            // count particles if data source "species_all" is selected
+            if( dumpAllParticles )
+            {
+                // move over all species defined in FileOutputParticles
+                ForEach<
+                    FileOutputParticles,
+                    ADIOSCountParticles<
+                        plugins::misc::UnFilteredSpecies< bmpl::_1 >
                     >
+                > adiosCountParticles;
+                adiosCountParticles( threadParams );
+            }
+
+            // move over all species data sources
+            ForEach<
+                typename Help::AllEligibleSpeciesSources,
+                CallCountParticles<
+                    bmpl::_1
                 >
-            > adiosCountParticles;
-            adiosCountParticles(threadParams);
+            >{}(vectorOfDataSourceNames, forward(threadParams));
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) counting particles.");
 
@@ -1105,13 +1432,22 @@ private:
         log<picLog::INPUT_OUTPUT > ("ADIOS: (begin) writing fields.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<FileCheckpointFields, GetFields<bmpl::_1> > forEachGetFields;
+            ForEach<
+                FileCheckpointFields,
+                GetFields< bmpl::_1 >
+            > forEachGetFields;
             forEachGetFields(threadParams);
         }
         else
         {
-            ForEach<FileOutputFields, GetFields<bmpl::_1> > forEachGetFields;
-            forEachGetFields(threadParams);
+            if( dumpFields )
+            {
+                ForEach<
+                    FileOutputFields,
+                    GetFields< bmpl::_1 >
+                > forEachGetFields;
+                forEachGetFields(threadParams);
+            }
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing fields.");
 
@@ -1122,24 +1458,33 @@ private:
             ForEach<
                 FileCheckpointParticles,
                 WriteSpecies<
-                    plugins::misc::SpeciesFilter<
-                        bmpl::_1
-                    >
+                    plugins::misc::SpeciesFilter< bmpl::_1 >
                 >
             > writeSpecies;
             writeSpecies(threadParams, particleOffset);
         }
         else
         {
-            ForEach<
-                FileOutputParticles,
-                WriteSpecies<
-                    plugins::misc::SpeciesFilter<
-                        bmpl::_1
+            // dump data if data source "species_all" is selected
+            if( dumpAllParticles )
+            {
+                // move over all species defined in FileOutputParticles
+                ForEach<
+                    FileOutputParticles,
+                    WriteSpecies<
+                        plugins::misc::UnFilteredSpecies< bmpl::_1 >
                     >
+                > writeSpecies;
+                writeSpecies( forward(threadParams), particleOffset );
+            }
+
+            // move over all species data sources
+            ForEach<
+                typename Help::AllEligibleSpeciesSources,
+                CallWriteSpecies<
+                    bmpl::_1
                 >
-            > writeSpecies;
-            writeSpecies(threadParams, particleOffset);
+            >{}(vectorOfDataSourceNames, forward(threadParams), particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 
@@ -1162,10 +1507,11 @@ private:
 
     ThreadParams mThreadParams;
 
-    MappingDesc *cellDescription;
+    std::shared_ptr< Help > m_help;
+    size_t m_id;
 
-    uint32_t notifyPeriod;
-    std::string filename;
+    MappingDesc *m_cellDescription;
+
     std::string outputDirectory;
 
     /* select MPI method, #OSTs and #aggregators */

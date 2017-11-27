@@ -163,7 +163,7 @@ private:
         Checkpoint,
         EnergyFields
 #if (ENABLE_ADIOS == 1)
-        , adios::ADIOSWriter
+        , plugins::multi::Master< adios::ADIOSWriter >
 #endif
 
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -179,7 +179,7 @@ private:
 #endif
 
 #if (ENABLE_HDF5 == 1)
-        , hdf5::HDF5Writer
+        , plugins::multi::Master< hdf5::HDF5Writer >
 #endif
         , ResourceLog
     >;
