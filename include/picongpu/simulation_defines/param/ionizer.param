@@ -437,7 +437,7 @@ namespace thomasFermi
     /** cutoff energy for electron "temperature" calculation in SI units*/
     constexpr float_X CUTOFF_MAX_ENERGY = CUTOFF_MAX_ENERGY_KEV * UNITCONV_keV_to_Joule;
 
-    /** lower density cutoff
+    /** lower ion density cutoff
      *
      * The Thomas-Fermi model yields unphysical artifacts for low ion densities.
      * Low ion densities imply lower collision frequency and thus less collisional ionization.
@@ -447,8 +447,25 @@ namespace thomasFermi
      * @note This cutoff value should be set in accordance to FLYCHK calculations,
      *       for instance! It is not a universal value and requires some preliminary
      *       approximations!
+     *
+     * unit: 1 / m^3
+     *
+     * example: 1.7422e27 as a hydrogen ion number density equal to the corresponding critical electron number density for an 800nm laser
+     *
+     * The choice of the default is motivated by by the following:
+     * In laser-driven plasmas all dynamics in density regions below the
+     * critical electron density will be laser-dominated. Once ions of that density
+     * are ionized once the laser will not penetrate fully anymore and the as electrons are heated
+     * the dynamics will be collision-dominated.
      */
-    constexpr float_X CUTOFF_LOW_DENSITY = 1.7422e27; // m^-3 - critical density 800nm laser
+    constexpr float_X CUTOFF_LOW_DENSITY = 1.7422e27;
+
+    /** lower electron temperature cutoff
+     *
+     * The Thomas-Fermi model predicts initial ionization for many materials of
+     * solid density even when the electron temperature is 0.
+     */
+    constexpr float_X CUTOFF_LOW_TEMPERATURE_EV = 1.0;
 
 } // namespace thomasFermi
 } // namespace ionization
