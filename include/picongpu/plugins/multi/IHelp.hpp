@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/plugins/multi/ISlave.hpp"
 
 
 namespace picongpu
@@ -32,8 +33,29 @@ namespace multi
     //! Interface to expose a help of a plugin
     struct IHelp
     {
-        ///! method used by plugin controller to get --help description
+        //! creates a ISlave instance
+        virtual std::shared_ptr< ISlave > create(
+            std::shared_ptr< IHelp > & help,
+            size_t const id,
+            MappingDesc* cellDescription
+        ) = 0;
+
+        /** register help options
+         *
+         * The options are used if the plugin is a ISlave and is handling
+         * there own notification period.
+         */
         virtual void registerHelp(
+            boost::program_options::options_description & desc,
+            std::string const & masterPrefix = std::string{ }
+        ) = 0;
+
+        /** register independent help options
+         *
+         * This options can be used even if the plugin is not handling there
+         * own notification period.
+         */
+        virtual void expandHelp(
             boost::program_options::options_description & desc,
             std::string const & masterPrefix = std::string{ }
         ) = 0;

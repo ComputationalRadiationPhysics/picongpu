@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/plugins/ILightweightPlugin.hpp"
+#include "picongpu/plugins/multi/ISlave.hpp"
 
 #include <string>
 #include <memory>
@@ -29,7 +29,7 @@ namespace picongpu
 {
 
     //! Interface for IO-backends with restart capability
-    class IIOBackend : public ILightweightPlugin
+    class IIOBackend : public plugins::multi::ISlave
     {
     public:
 
@@ -39,19 +39,7 @@ namespace picongpu
 
         }
 
-        /** create a instance of an interface
-         *
-         * @tparam T_IOBackend type of the interface implementation (must inherit from IIOBackend)
-         * @param isIndependent if `true`: class must be register itself to PluginConnector else
-         *                      class is not allowed to register itself
-         */
-        template< typename T_IOBackend >
-        static std::shared_ptr< IIOBackend > create( bool const isIndependent = true )
-        {
-            return std::shared_ptr< IIOBackend >( new T_IOBackend( isIndependent ) );
-        }
-
-        virtual ~IIOBackend()
+         virtual ~IIOBackend()
         {
 
         }
@@ -70,12 +58,6 @@ namespace picongpu
             std::string const & restartFilename,
             uint32_t restartChunkSize
         ) = 0;
-
-        virtual void expandHelp(
-            std::string const & prefix,
-            boost::program_options::options_description & desc
-        ) = 0;
-
     };
 
 } // namespace picongpu

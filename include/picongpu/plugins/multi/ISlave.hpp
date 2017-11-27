@@ -20,8 +20,6 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/multi/IHelp.hpp"
-
 #include <pmacc/pluginSystem/INotify.hpp>
 
 #include <memory>
@@ -33,6 +31,7 @@ namespace plugins
 {
 namespace multi
 {
+    struct IHelp;
 
     /** Interface for a slave plugin
      *
@@ -43,30 +42,6 @@ namespace multi
      */
     struct ISlave : public pmacc::INotify
     {
-        /** creates a instance of ISlave
-         *
-         * @tparam T_Slave type of the interface implementation (must inherit from ISlave)
-         * @param help plugin defined help
-         * @param id index of the plugin, range: [0;help->getNumPlugins())
-         */
-        template<
-            typename T_Slave
-        >
-        static std::shared_ptr< ISlave > create(
-            std::shared_ptr< IHelp > & help,
-            size_t const id,
-            MappingDesc* cellDescription
-        )
-        {
-            return std::shared_ptr< ISlave >(
-                new T_Slave(
-                    help,
-                    id,
-                    cellDescription
-                )
-            );
-        }
-
         //! must be implemented by the user
         static std::shared_ptr< IHelp > getHelp();
 

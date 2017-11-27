@@ -69,7 +69,7 @@ namespace multi
         std::string pluginGetName( ) const
         {
             // the PMacc plugin system needs a short description instead of the plugin name
-            return slaveHelp->getDescription( ) + ": " + slaveHelp->getDescription( );
+            return slaveHelp->getName( ) + ": " + slaveHelp->getDescription( );
         }
 
         void pluginRegisterHelp( boost::program_options::options_description& desc )
@@ -124,7 +124,7 @@ namespace multi
             for( size_t i = 0; i < numSlaves; ++i )
             {
                 slaveList.emplace_back(
-                    ISlave::create< Slave >(
+                    slaveHelp->create(
                         slaveHelp,
                         i,
                         m_cellDescription
