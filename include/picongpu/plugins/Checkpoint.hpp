@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/output/IIOBackend.hpp"
+#include "picongpu/plugins/multi/IHelp.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
 #if(ENABLE_ADIOS == 1)
@@ -52,20 +53,20 @@ namespace picongpu
             restartChunkSize( 0u )
         {
 #if(ENABLE_ADIOS == 1)
-            ioBackends[ "adios" ] = IIOBackend::create< adios::ADIOSWriter >( false );
+            ioBackendsHelp[ "adios" ] = std::shared_ptr< plugins::multi::IHelp >( adios::ADIOSWriter::getHelp() );
 #endif
 #if(ENABLE_HDF5 == 1)
-            ioBackends[ "hdf5" ] = IIOBackend::create< hdf5::HDF5Writer >( false );
+            ioBackendsHelp[ "hdf5" ] = std::shared_ptr< plugins::multi::IHelp >( hdf5::HDF5Writer::getHelp() );
 #endif
             // if adios is enabled the default is adios
-            if( !ioBackends.empty( ) )
+            if( !ioBackendsHelp.empty( ) )
             {
-                checkpointBackendName = ioBackends.begin( )->first;
-                restartBackendName = ioBackends.begin( )->first;
+                checkpointBackendName = ioBackendsHelp.begin( )->first;
+                restartBackendName = ioBackendsHelp.begin( )->first;
             }
 
             uint32_t backendCount = 0u;
-            for( auto & backend : ioBackends )
+            for( auto & backend : ioBackendsHelp )
             {
                 if( backendCount >= 1u )
                     activeBackends += ", ";
@@ -85,7 +86,7 @@ namespace picongpu
         {
 
             namespace po = boost::program_options;
-            if( ioBackends.empty( ) )
+            if( ioBackendsHelp.empty( ) )
                 desc.add_options( )(
                     "checkpoint",
                     "plugin disabled [compiled without dependency HDF5 or Adios]"
@@ -119,11 +120,11 @@ namespace picongpu
                         "Number of particles processed in one kernel call during restart to prevent frame count blowup"
                     );
 
-                for( auto & backend : ioBackends )
-                    backend.second->expandHelp(
-                        "checkpoint.",
-                        desc
-                    );
+            for( auto & backend : ioBackendsHelp )
+                backend.second->expandHelp(
+                    desc,
+                    "checkpoint."
+                );
 
         }
 
@@ -138,8 +139,7 @@ namespace picongpu
 
         void setMappingDescription(MappingDesc *cellDescription)
         {
-            for( auto & backend : ioBackends )
-                backend.second->setMappingDescription( cellDescription );
+            m_cellDescription = cellDescription;
         }
 
         void checkpoint(
@@ -173,37 +173,67 @@ namespace picongpu
         }
 
     private:
+
         void pluginLoad( )
         {
-            auto cBackend = ioBackends.find( checkpointBackendName );
-            if( !ioBackends.empty( ) && cBackend == ioBackends.end( ) )
-                throw std::runtime_error( std::string( "IO-backend " ) +
-                    checkpointBackendName +
-                    " for checkpoints not found, possible backends: " +
-                    activeBackends
-                );
+            for( auto & backendHelp : ioBackendsHelp )
+            {
+                if( backendHelp.second->getNumPlugins() > 0u )
+                    backendHelp.second->validateOptions();
 
-            auto rBackend = ioBackends.find( restartBackendName );
-            if( !ioBackends.empty( ) && rBackend == ioBackends.end( ) )
-                throw std::runtime_error( std::string( "IO-backend " ) +
-                    restartBackendName +
-                    " for restarts not found, possible backends: " +
-                    activeBackends
-                );
+                size_t const numSlaves = backendHelp.second->getNumPlugins( );
+                if( numSlaves > 1u )
+                    throw std::runtime_error( pluginGetName() + ": is no multi plugin, each option can be only selected once." );
+            }
+
+            // create checkpoint creation backend
+            if( !ioBackendsHelp.empty( ) )
+            {
+                auto cBackendHelp = ioBackendsHelp.find( checkpointBackendName );
+                if( cBackendHelp == ioBackendsHelp.end( ) )
+                    throw std::runtime_error( std::string( "IO-backend " ) +
+                        checkpointBackendName +
+                        " for checkpoints not found, possible backends: " +
+                        activeBackends
+                    );
+                else
+                    ioBackends[ checkpointBackendName ] = std::static_pointer_cast< IIOBackend >(
+                        cBackendHelp->second->create(
+                            cBackendHelp->second,
+                            0,
+                            m_cellDescription
+                        )
+                    );
+            }
+            // create restart backend
+            if( !ioBackendsHelp.empty( ) && checkpointBackendName != restartBackendName )
+            {
+                auto rBackend = ioBackendsHelp.find( restartBackendName );
+                if( rBackend == ioBackendsHelp.end( ) )
+                    throw std::runtime_error( std::string( "IO-backend " ) +
+                        restartBackendName +
+                        " for restarts not found, possible backends: " +
+                        activeBackends
+                    );
+                else
+                    ioBackends[ restartBackendName ] = std::static_pointer_cast< IIOBackend >(
+                        rBackend->second->create(
+                            rBackend->second,
+                            0,
+                            m_cellDescription
+                        )
+                    );
+            }
 
             if( restartFilename.empty( ) )
             {
                 restartFilename = checkpointFilename;
             }
-
-            for( auto & backend : ioBackends )
-                backend.second->load( );
         }
 
         virtual void pluginUnload( )
         {
-            for( auto & backend : ioBackends )
-                backend.second->unload( );
+            ioBackends.clear();
         }
 
         //! string list with all possible IO-backends
@@ -230,6 +260,13 @@ namespace picongpu
             std::string,
             std::shared_ptr< IIOBackend >
         > ioBackends;
+
+        std::map<
+            std::string,
+            std::shared_ptr< plugins::multi::IHelp >
+        > ioBackendsHelp;
+
+        MappingDesc* m_cellDescription = nullptr;
     };
 
 } // namespace picongpu
