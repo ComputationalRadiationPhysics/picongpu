@@ -399,6 +399,54 @@ target_link_libraries(picongpu PUBLIC ${LIBS} picongpu-hostonly)
 
 
 ################################################################################
+# Clang-Tidy (3.9+) Target for CI
+################################################################################
+
+find_program(
+    CLANG_TIDY_BIN
+    clang-tidy
+    NAMES clang-tidy clang-tidy-3.9 clang-tidy-4.0
+    DOC "Path to clang-tidy in version 3.9 or newer"
+)
+execute_process(
+    COMMAND ${CLANG_TIDY_BIN} --version
+    RESULT_VARIABLE CLANG_TIDY_RETURN
+    OUTPUT_VARIABLE CLANG_TIDY_OUTPUT
+)
+if(${CLANG_TIDY_RETURN} EQUAL 0)
+    string(REGEX MATCH "[0-9]+(\\.[0-9]+)+"
+           CLANG_TIDY_VERSION ${CLANG_TIDY_OUTPUT})
+
+    if("${CLANG_TIDY_VERSION}" VERSION_GREATER_EQUAL "3.9.0")
+        get_directory_property(ALL_INCLUDES DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} INCLUDE_DIRECTORIES)
+        get_directory_property(ALL_DEFINES DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMPILE_DEFINITIONS)
+        foreach(i ${ALL_INCLUDES})
+            list(APPEND ALL_INCLUDES_STR "-I${i}")
+        endforeach()
+        foreach(d ${ALL_DEFINES})
+            list(APPEND ALL_DEFINES_STR "-D${d}")
+        endforeach()
+
+        add_custom_target(
+            clang-tidy
+            COMMAND ${CLANG_TIDY_BIN}
+            ${SRCFILES} ${ACCSRCFILES}
+            -header-filter='.*'
+            -config=''
+            # -warnings-as-errors='*'
+            # -checks='-*,modernize-use-using'
+            # -fix # -fix-errors
+            --
+            -std=c++11
+            ${OpenMP_CXX_FLAGS}
+            ${ALL_INCLUDES_STR}
+            ${ALL_DEFINES_STR}
+        )
+    endif()
+endif()
+
+
+################################################################################
 # Install PIConGPU
 ################################################################################
 
