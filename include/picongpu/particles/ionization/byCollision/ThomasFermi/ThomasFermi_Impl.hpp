@@ -28,7 +28,7 @@
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/AlgorithmThomasFermi.hpp"
 
-#include <pmacc/random/methods/AlpakaRand.hpp>
+#include <pmacc/random/methods/XorMin.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -111,7 +111,7 @@ namespace ionization
             using IonizationAlgorithm =  T_IonizationAlgorithm;
 
             /* random number generator */
-            using RNGFactory = pmacc::random::RNGProvider<simDim, pmacc::random::methods::AlpakaRand< cupla::Acc>>;
+            using RNGFactory = pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin< cupla::Acc>>;
             using Distribution = pmacc::random::distributions::Uniform<float>;
             using RandomGen = typename RNGFactory::GetRandomType<Distribution>::type;
             RandomGen randomGen;
