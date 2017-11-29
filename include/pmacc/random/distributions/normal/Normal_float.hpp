@@ -51,9 +51,10 @@ namespace detail
             StateType& state
         )
         {
-            return ::alpaka::rand::distribution::createNormalReal< result_type >(
-                acc
-            )( state );
+            return RNGMethod().getNormal(
+                acc,
+                state
+            );
         }
     };
 
