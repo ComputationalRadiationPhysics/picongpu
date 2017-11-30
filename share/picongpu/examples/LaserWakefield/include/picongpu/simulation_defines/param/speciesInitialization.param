@@ -82,20 +82,34 @@ namespace particles
  * the functors are called in order (from first to last functor)
  */
 using InitPipeline = mpl::vector<
+
 #if( PARAM_IONIZATION == 0 )
-
-    CreateDensity<densityProfiles::Gaussian, startPosition::Random, PIC_Electrons>
+    CreateDensity<
+        densityProfiles::Gaussian,
+        startPosition::Random2ppc,
+        PIC_Electrons
+    >
 #   if( PARAM_IONS == 1 )
-    , DeriveSpecies<PIC_Electrons,PIC_Ions>
+    ,
+    DeriveSpecies<
+        PIC_Electrons,
+        PIC_Ions
+    >
 #   endif
-
 #else
 
-    CreateDensity<densityProfiles::Gaussian, startPosition::Random, PIC_Ions>,
-    Manipulate<manipulators::SetBoundElectrons, PIC_Ions>
-
+    CreateDensity<
+        densityProfiles::Gaussian,
+        startPosition::Random2ppc,
+        PIC_Ions
+    >,
+    Manipulate<
+        manipulators::SetBoundElectrons,
+        PIC_Ions
+    >
 #endif
+
 >;
 
-} /* namespace particles */
-} /* namespace picongpu  */
+} // namespace particles
+} // namespace picongpu

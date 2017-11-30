@@ -84,15 +84,15 @@ namespace particles
 using InitPipeline = mpl::vector<
     CreateDensity<
         densityProfiles::Foil,
-        startPosition::Quiet,
+        startPosition::Quiet1ppc,
         PIC_Ions
     >,
     CreateDensity<
         densityProfiles::Foil,
-        startPosition::Random,
+        startPosition::Random100ppc,
         PIC_Electrons
     >
 >;
 
-} /* namespace particles */
-} /* namespace picongpu  */
+} // namespace particles
+} // namespace picongpu

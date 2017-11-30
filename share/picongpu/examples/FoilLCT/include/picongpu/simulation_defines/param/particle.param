@@ -30,10 +30,11 @@
 
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
+
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/nvidia/functors/Assign.hpp>
 #include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
-#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 
 
 namespace picongpu
@@ -50,16 +51,9 @@ namespace particles
      */
     constexpr float_X MIN_WEIGHTING = 0.0000001;
 
-    /** Number of maximum particles per cell during density profile evaluation.
-     *
-     * Determines the weighting of a macro particle and with it, the number of
-     * particles "sampling" dynamics in phase space.
-     */
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 6;
-
 namespace manipulators
 {
-    //! ionize ions once
+    // ionize ions once by removing one bound electron
     struct OnceIonizedImpl
     {
         template< typename T_Particle >
@@ -68,11 +62,9 @@ namespace manipulators
         )
         {
             constexpr float_X protonNumber = GetAtomicNumbers< T_Particle >::type::numberOfProtons;
-            particle[boundElectrons_] = protonNumber - 1;
+            particle[ boundElectrons_ ] = protonNumber - 1;
         }
     };
-
-    //! definition of OnceIonized manipulator
     using OnceIonized = generic::Free< OnceIonizedImpl >;
 
     //! changes the in-cell position of each particle of a species
@@ -83,33 +75,22 @@ namespace manipulators
 
 namespace startPosition
 {
-    struct RandomParameter
+    struct RandomParameter6ppc
     {
         /** Count of particles per cell at initial state
          *
-         *  unit: none */
-        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+         *  unit: none
+         */
+        static constexpr uint32_t numParticlesPerCell = 6u;
     };
-    /** definition of random particle start */
-    using Random = RandomImpl< RandomParameter >;
+    using Random6ppc = RandomImpl< RandomParameter6ppc >;
 
-    struct QuietParam
-    {
-        /** Count of particles per cell per direction at initial state
-         *
-         *  unit: none */
-        using numParticlesPerDimension = mCT::Int< 2, 3 >;
-    };
-
-    /** definition of quiet particle start */
-    using Quiet = QuietImpl< QuietParam >;
-
-    //! sit directly in lower corner of the cell
+    // probe particles sit directly in lower corner of the cell
     CONST_VECTOR(
         float_X,
         3,
         InCellOffset,
-        /* each x, y, z in-cell position component in range [0.0, 1.0) */
+        // each x, y, z in-cell position component in range [0.0, 1.0)
         0.0,
         0.0,
         0.0
@@ -118,15 +99,22 @@ namespace startPosition
     {
         /** Count of particles per cell at initial state
          *
-         *  unit: none */
+         *  unit: none
+         */
         static constexpr uint32_t numParticlesPerCell = 1u;
 
         const InCellOffset_t inCellOffset;
     };
-
-    //! definition of one specific position for particle start
     using OnePosition = OnePositionImpl< OnePositionParameter >;
 
 } // namespace startPosition
+
+    /** During unit normalization, we assume this is a typical
+     *  number of particles per cell for normalization of weighted
+     *  particle attributes.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL =
+        startPosition::RandomParameter6ppc::numParticlesPerCell;
+
 } // namespace particles
 } // namespace picongpu
