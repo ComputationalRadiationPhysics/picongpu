@@ -58,6 +58,23 @@ namespace methods
             );
         }
 
+        /** get a normal distributed random number
+         *
+         * @param acc alpaka accelerator
+         * @param state random number state
+         */
+        template< typename T_Type >
+        DINLINE T_Type
+        getNormal(
+            T_Acc const & acc,
+            StateType & state
+        ) const
+        {
+            return ::alpaka::rand::distribution::createNormalReal< T_Type >(
+                acc
+            )( state );
+        }
+
         DINLINE uint32_t
         get32Bits(
             T_Acc const & acc,

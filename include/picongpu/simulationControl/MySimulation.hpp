@@ -55,7 +55,7 @@
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
-#include <pmacc/random/methods/AlpakaRand.hpp>
+#include <pmacc/random/methods/XorMin.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -326,7 +326,7 @@ public:
         )
         {
             // create factory for the random number generator
-            using RNGFactory = pmacc::random::RNGProvider< simDim, pmacc::random::methods::AlpakaRand< cupla::Acc> >;
+            using RNGFactory = pmacc::random::RNGProvider< simDim, pmacc::random::methods::XorMin< cupla::Acc> >;
             auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
 
             // init and share random number generator

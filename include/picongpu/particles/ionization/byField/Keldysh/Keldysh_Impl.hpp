@@ -28,7 +28,7 @@
 #include "picongpu/particles/ionization/byField/Keldysh/Keldysh.def"
 #include "picongpu/particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"
 
-#include <pmacc/random/methods/AlpakaRand.hpp>
+#include <pmacc/random/methods/XorMin.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
@@ -102,7 +102,7 @@ namespace ionization
             using IonizationAlgorithm = T_IonizationAlgorithm;
 
             /* random number generator */
-            typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::AlpakaRand< cupla::Acc>> RNGFactory;
+            typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin< cupla::Acc>> RNGFactory;
             typedef pmacc::random::distributions::Uniform<float> Distribution;
             typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
             RandomGen randomGen;
