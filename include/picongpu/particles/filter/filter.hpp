@@ -19,6 +19,5 @@
 
 #pragma once
 
-
 #include "picongpu/particles/filter/RelativeGlobalDomainPosition.hpp"
 #include "picongpu/particles/filter/All.hpp"

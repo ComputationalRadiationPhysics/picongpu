@@ -182,7 +182,7 @@ namespace acc
         }
     };
 
-} // namepsace generic
+} // namespace generic
 } // namespace manipulators
 } // namespace particles
 } // namespace picongpu

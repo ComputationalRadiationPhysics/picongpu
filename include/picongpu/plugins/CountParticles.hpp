@@ -178,7 +178,7 @@ private:
 
         // enforce that the filter interface is fulfilled
         particles::filter::IUnary< particles::filter::All > parFilter{ currentStep };
-        
+
         /*count local particles*/
         size = pmacc::CountParticles::countOnDevice<AREA>(*particles,
                                                           *cellDescription,

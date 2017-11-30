@@ -19,6 +19,5 @@
 
 #pragma once
 
-
 #include "picongpu/particles/functor/User.hpp"
 #include "picongpu/particles/misc/generic/Rng.hpp"

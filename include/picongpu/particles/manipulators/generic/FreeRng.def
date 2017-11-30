@@ -19,7 +19,6 @@
 
 #pragma once
 
-
 #include "picongpu/simulation_defines.hpp"
 
 #include <boost/mpl/integral_c.hpp>
@@ -76,7 +75,7 @@ namespace generic
     >
     struct FreeRng;
 
-} // namepsace generic
+} // namespace generic
 } // namespace manipulators
 } // namespace particles
 } // namespace picongpu

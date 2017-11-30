@@ -24,13 +24,14 @@
 #include <utility>
 #include <type_traits>
 
+
 namespace picongpu
 {
 namespace particles
 {
 namespace functor
 {
-template< typename T_Functor >
+    template< typename T_Functor >
     struct User : public T_Functor
     {
 

@@ -223,7 +223,7 @@ namespace acc
         }
     };
 
-} // namepsace generic
+} // namespace generic
 } // namespace startPosition
 } // namespace particles
 } // namespace picongpu

@@ -19,7 +19,6 @@
 
 #pragma once
 
-
 #include "picongpu/particles/filter/IUnary.def"
 
 #include "picongpu/particles/filter/RelativeGlobalDomainPosition.def"
