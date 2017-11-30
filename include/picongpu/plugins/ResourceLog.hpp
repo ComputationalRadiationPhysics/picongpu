@@ -116,7 +116,8 @@ namespace picongpu
 
             if(contains(propertyMap,"particleCount"))
             {
-                particles::filter::All parFilter{};
+                // enforce that the filter interface is fulfilled
+                particles::filter::IUnary< particles::filter::All > parFilter{ currentStep };
                 std::vector<size_t> particleCounts = resourceMonitor.getParticleCounts<VectorAllSpecies>(*cellDescription, parFilter );
                 pt.put("resourceLog.particleCount", std::accumulate(particleCounts.begin(), particleCounts.end(), 0));
             }

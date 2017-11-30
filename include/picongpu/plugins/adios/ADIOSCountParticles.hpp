@@ -102,7 +102,8 @@ public:
 
         /* load particle without copy particle data to host */
         auto speciesTmp = dc.get< ThisSpecies >( ThisSpecies::FrameType::getName(), true );
-        typename T_SpeciesFilter::Filter particleFilter{};
+        // enforce that the filter interface is fulfilled
+        particles::filter::IUnary< typename T_SpeciesFilter::Filter > particleFilter{ params->currentStep };
         /* count total number of particles on the device */
         uint64_cu totalNumParticles = 0;
         totalNumParticles = pmacc::CountParticles::countOnDevice < CORE + BORDER > (
