@@ -34,11 +34,9 @@ namespace picongpu
 {
 namespace particles
 {
-namespace manipulators
+namespace functor
 {
-namespace generic
-{
-namespace detail
+namespace misc
 {
     /** call simple free user defined functor and provide a random number generator
      *
@@ -155,8 +153,7 @@ namespace detail
         uint32_t seed;
     };
 
-} // namespace detail
-} // namepsace generic
-} // namespace manipulators
+} // namepsace misc
+} // namespace functor
 } // namespace particles
 } // namespace picongpu
