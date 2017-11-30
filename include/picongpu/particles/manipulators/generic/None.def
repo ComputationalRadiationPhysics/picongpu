@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include "picongpu/particles/manipulators/generic/Free.def"
-
 
 namespace picongpu
 {
@@ -39,6 +37,8 @@ namespace acc
         operator( )( T_Args && ... )
         {
         }
+
+        static constexpr char const * name = "None";
     };
 } // namespace acc
 

@@ -19,6 +19,7 @@
 
 #pragma once
 
+
 #include "picongpu/simulation_defines.hpp"
 
 #include <boost/mpl/integral_c.hpp>
@@ -53,6 +54,7 @@ namespace generic
      *       {
      *           particle[ position_ ].x() = rng();
      *       }
+     *       static constexpr char const * name = "RandomXPos";
      *   };
      *
      *   using RandomXPos = FreeRng<
@@ -74,7 +76,7 @@ namespace generic
     >
     struct FreeRng;
 
-} // namespace generic
+} // namepsace generic
 } // namespace manipulators
 } // namespace particles
 } // namespace picongpu
