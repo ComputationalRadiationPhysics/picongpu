@@ -19,5 +19,8 @@
 
 #pragma once
 
+#include "picongpu/particles/filter/generic/Free.hpp"
+#include "picongpu/particles/filter/generic/FreeRng.hpp"
+#include "picongpu/particles/filter/generic/FreeTotalCellOffset.hpp"
 #include "picongpu/particles/filter/RelativeGlobalDomainPosition.hpp"
 #include "picongpu/particles/filter/All.hpp"
