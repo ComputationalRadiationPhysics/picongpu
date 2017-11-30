@@ -1,4 +1,4 @@
-/* Copyright 2014-2017 Rene Widera, Axel Huebl
+/* Copyright 2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,6 +19,18 @@
 
 #pragma once
 
-#include "picongpu/particles/functor/User.hpp"
-#include "picongpu/particles/misc/generic/TotalCellOffset.hpp"
-#include "picongpu/particles/misc/generic/Rng.hpp"
+
+namespace picongpu
+{
+namespace particles
+{
+namespace functor
+{
+namespace misc
+{
+    //! Provide the cell offset of a supercell to the total domain origin
+    struct TotalCellOffset;
+} // namespace misc
+} // namespace functor
+} // namespace particles
+} // namespace picongpu
