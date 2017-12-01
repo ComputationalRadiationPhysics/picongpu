@@ -33,7 +33,7 @@ fi
 
 ## copy memcheck programs
 cd $TBG_dstPath
-mkdir input
+mkdir -p input
 cp -ar $TBG_projectPath/bin input
 cp -ar $TBG_projectPath/include input
 cp -ar $TBG_projectPath/etc input
