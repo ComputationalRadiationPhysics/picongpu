@@ -60,7 +60,7 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 Piz Daint (CSCS)
 ----------------
 
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, PNGwriter, libSplash and ADIOS <install-dependencies>` manually.
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`boost, zlib, libpng, c-blosc, PNGwriter, libSplash and ADIOS <install-dependencies>` manually.
 
 .. note::
 
