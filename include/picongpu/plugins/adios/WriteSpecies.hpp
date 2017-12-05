@@ -100,7 +100,8 @@ public:
 
         /* count total number of particles on the device */
         log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) count particles: %1%") % T_SpeciesFilter::getName();
-        typename T_SpeciesFilter::Filter particleFilter{};
+        // enforce that the filter interface is fulfilled
+        particles::filter::IUnary< typename T_SpeciesFilter::Filter > particleFilter{ params->currentStep };
         uint64_cu totalNumParticles = 0;
         totalNumParticles = pmacc::CountParticles::countOnDevice < CORE + BORDER > (
                                                                                     *speciesTmp,

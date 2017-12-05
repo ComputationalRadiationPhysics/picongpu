@@ -1,4 +1,4 @@
-/* Copyright 2017 Rene Widera
+/* Copyright 2014-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,7 +19,31 @@
 
 #pragma once
 
-#include "picongpu/particles/filter/IUnary.def"
+#include <pmacc/functor/Filtered.hpp>
+#include <pmacc/functor/Interface.hpp>
+#include <pmacc/filter/Interface.hpp>
+#include "picongpu/particles/filter/filter.def"
+#include <pmacc/filter/operators/And.hpp>
 
-#include "picongpu/particles/filter/RelativeGlobalDomainPosition.def"
-#include "picongpu/particles/filter/All.def"
+namespace picongpu
+{
+namespace particles
+{
+namespace filter
+{
+
+    /** interface for a unary particle filter
+     *
+     * @tparam T_UnaryFilter unary particle filter must contain `bool operator()(P && particle)`
+     */
+    template<
+        typename T_UnaryFilter
+    >
+    using IUnary = pmacc::filter::Interface<
+        T_UnaryFilter,
+        1u
+    >;
+
+} // namespace filter
+} // namespace particles
+} // namespace picongpu

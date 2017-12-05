@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Rene Widera, Axel Huebl
+/* Copyright 2015-2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,38 +19,39 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+
+#include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/placeholders.hpp>
+
 
 namespace picongpu
 {
 namespace particles
 {
-namespace manipulators
+namespace functor
 {
-namespace generic
+namespace misc
 {
-namespace acc
-{
-    struct None
-    {
-        template< typename ... T_Args >
-        HDINLINE void
-        operator( )( T_Args && ... )
-        {
-        }
 
-        static constexpr char const * name = "None";
-    };
-} // namespace acc
-
-    /** do nothing with the particle
+    /** provide a random number generator
      *
-     * The call of this functor results in an empty operation
+     * @tparam T_Distribution random number distribution
+     * @tparam T_Seed seed to initialize the random number generator
+     * @tparam T_SpeciesType type of the species that shall be manipulated
+     *
      */
-    using None = Free<
-        acc::None
-    >;
+    template<
+        typename T_Distribution,
+        typename T_Seed = boost::mpl::integral_c<
+            size_t,
+            FREERNG_SEED
+        >,
+        typename T_SpeciesType = boost::mpl::_1
+    >
+    struct Rng;
 
-} // namespace generic
-} // namespace manipulators
+} // namespace misc
+} // namespace functor
 } // namespace particles
 } // namespace picongpu

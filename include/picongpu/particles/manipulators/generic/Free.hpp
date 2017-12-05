@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/manipulators/generic/Free.def"
+#include "picongpu/particles/functor/User.hpp"
 
 #include <utility>
 #include <type_traits>
@@ -35,25 +36,25 @@ namespace generic
 {
 namespace acc
 {
-    /** wrapper for the user functor on the accelerator
+    /** wrapper for the user manipulator functor on the accelerator
      *
-     * @tparam T_Functor user defined functor
+     * @tparam T_Functor user defined manipulators
      */
     template< typename T_Functor >
     struct Free : private T_Functor
     {
-        //! type of the user functor
+        //! type of the user manipulators
         using Functor = T_Functor;
 
-        //! store user functor instance
-        HDINLINE Free( Functor const & functor ) :
-            Functor( functor )
+        //! store user manipulators instance
+        HDINLINE Free( Functor const & manipulators ) :
+            Functor( manipulators )
         {
         }
 
-        /** execute the user functor
+        /** execute the user manipulator functor
          *
-         * @tparam T_Args type of the arguments passed to the user functor
+         * @tparam T_Args type of the arguments passed to the user manipulator functor
          *
          * @param args arguments passed to the user functor
          */
@@ -72,10 +73,10 @@ namespace acc
 } // namespace acc
 
     template< typename T_Functor >
-    struct Free : protected T_Functor
+    struct Free : protected functor::User< T_Functor >
     {
 
-        using Functor = T_Functor;
+        using Functor = functor::User< T_Functor >;
 
         template< typename T_SpeciesType >
         struct apply
@@ -85,47 +86,13 @@ namespace acc
 
         /** constructor
          *
-         * This constructor is only compiled if the user functor has
-         * a host side constructor with one (uint32_t) argument.
-         *
-         * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
-         *                      the constructor
          * @param currentStep current simulation time step
-         * @param is used to enable/disable the constructor (do not pass any value to this parameter)
          */
-        template< typename DeferFunctor = Functor >
-        HINLINE Free(
-            uint32_t currentStep,
-            typename std::enable_if<
-                std::is_constructible<
-                    DeferFunctor,
-                    uint32_t
-                >::value
-            >::type* = 0
-        ) : Functor( currentStep )
+        HINLINE Free( uint32_t currentStep ) : Functor( currentStep )
         {
         }
 
-        /** constructor
-         *
-         * This constructor is only compiled if the user functor has a default constructor.
-         *
-         * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
-         *                      the constructor
-         * @param current simulation time step
-         * @param is used to enable/disable the constructor (do not pass any value to this parameter)
-         */
-        template< typename DeferFunctor = Functor >
-        HINLINE Free(
-            uint32_t,
-            typename std::enable_if<
-                std::is_constructible< DeferFunctor >::value
-            >::type* = 0
-        ) : Functor( )
-        {
-        }
-
-        /** create device functor
+        /** create device manipulator functor
          *
          * @tparam T_WorkerCfg pmacc::mappings::threads::WorkerCfg, configuration of the worker
          * @tparam T_Acc alpaka accelerator type
@@ -148,6 +115,16 @@ namespace acc
         {
             return acc::Free< Functor >( *static_cast< Functor * >( this ) );
         }
+
+        //! get the name of the functor
+        static
+        HINLINE std::string
+        getName( )
+        {
+            // we provide the name from the param class
+            return Functor::name;
+        }
+
     };
 
 } // namespace generic

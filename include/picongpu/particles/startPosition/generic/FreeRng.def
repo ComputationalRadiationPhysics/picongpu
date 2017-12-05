@@ -53,7 +53,7 @@ namespace generic
     >
     struct FreeRng;
 
-} // namepsace generic
+} // namespace generic
 } // namespace startPosition
 } // namespace particles
 } // namespace picongpu

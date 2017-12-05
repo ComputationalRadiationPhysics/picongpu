@@ -1,4 +1,4 @@
-/* Copyright 2015-2017 Rene Widera
+/* Copyright 2014-2017 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -19,35 +19,5 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
-
-#include <boost/mpl/integral_c.hpp>
-#include <boost/mpl/placeholders.hpp>
-
-
-namespace picongpu
-{
-namespace particles
-{
-namespace manipulators
-{
-namespace generic
-{
-namespace detail
-{
-
-    template<
-        typename T_Distribution,
-        typename T_Seed = boost::mpl::integral_c<
-            size_t,
-            FREERNG_SEED
-        >,
-        typename T_SpeciesType = boost::mpl::_1
-    >
-    struct Rng;
-
-} // namespace detail
-} // namespace generic
-} // namespace manipulators
-} // namespace particles
-} // namespace picongpu
+#include "picongpu/particles/functor/User.hpp"
+#include "picongpu/particles/misc/generic/Rng.hpp"

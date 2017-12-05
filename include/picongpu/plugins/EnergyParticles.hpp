@@ -551,6 +551,7 @@ namespace picongpu
                 plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
             >{ }(
                 m_help->filter[ m_id ],
+                currentStep,
                 binaryKernel
             );
 

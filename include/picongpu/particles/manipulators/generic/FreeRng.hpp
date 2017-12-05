@@ -21,7 +21,8 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/manipulators/generic/FreeRng.def"
-#include "picongpu/particles/manipulators/generic/detail/Rng.hpp"
+#include "picongpu/particles/functor/misc/Rng.hpp"
+#include "picongpu/particles/functor/User.hpp"
 
 #include <utility>
 #include <type_traits>
@@ -102,14 +103,14 @@ namespace acc
         typename T_SpeciesType
     >
     struct FreeRng :
-        protected T_Functor,
-        private detail::Rng<
+    protected functor::User< T_Functor >,
+        private picongpu::particles::functor::misc::Rng<
             T_Distribution,
             T_Seed,
             T_SpeciesType
         >
     {
-        using RngGenerator = detail::Rng<
+        using RngGenerator = picongpu::particles::functor::misc::Rng<
             T_Distribution,
             T_Seed,
             T_SpeciesType
@@ -118,52 +119,16 @@ namespace acc
         template< typename T_Acc >
         using RngType = typename RngGenerator::template RngType< T_Acc >;
 
-        using Functor = T_Functor;
+        using Functor = functor::User< T_Functor >;
         using Distribution = T_Distribution;
         using SpeciesType = T_SpeciesType;
 
         /** constructor
          *
-         * This constructor is only compiled if the user functor has
-         * a host side constructor with one (uint32_t) argument.
-         *
-         * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
-         *                      the constructor
          * @param currentStep current simulation time step
-         * @param is used to enable/disable the constructor (do not pass any value to this parameter)
          */
-        template< typename DeferFunctor = Functor >
-        HINLINE FreeRng(
-            uint32_t currentStep,
-            typename std::enable_if<
-                std::is_constructible<
-                    DeferFunctor,
-                    uint32_t
-                >::value
-            >::type* = 0
-        ) :
+        HINLINE FreeRng( uint32_t currentStep ) :
             Functor( currentStep ),
-            RngGenerator( currentStep )
-        {
-        }
-
-        /** constructor
-         *
-         * This constructor is only compiled if the user functor has a default constructor.
-         *
-         * @tparam DeferFunctor is used to defer the functor type evaluation to enable/disable
-         *                      the constructor
-         * @param currentStep simulation time step
-         * @param is used to enable/disable the constructor (do not pass any value to this parameter)
-         */
-        template< typename DeferFunctor = Functor >
-        HINLINE FreeRng(
-            uint32_t currentStep,
-            typename std::enable_if<
-                std::is_constructible< DeferFunctor >::value
-            >::type* = 0
-        ) :
-            Functor( ),
             RngGenerator( currentStep )
         {
         }
@@ -182,15 +147,16 @@ namespace acc
             typename T_WorkerCfg,
             typename T_Acc
         >
-        HDINLINE
-        acc::FreeRng<
-            Functor,
-            RngType< T_Acc >
-        > operator()(
+        HDINLINE auto
+        operator()(
             T_Acc const & acc,
             DataSpace< simDim > const & localSupercellOffset,
             T_WorkerCfg const & workerCfg
         )
+        -> acc::FreeRng<
+            Functor,
+            RngType< T_Acc >
+        >
         {
             RngType< T_Acc > const rng = ( *static_cast< RngGenerator * >( this ) )(
                 acc,
@@ -207,14 +173,16 @@ namespace acc
             );
         }
 
+        static
         HINLINE std::string
-        getName( ) const
+        getName( )
         {
-            return std::string("FreeRNG");
+            // we provide the name from the param class
+            return Functor::name;
         }
     };
 
-} // namepsace generic
+} // namespace generic
 } // namespace manipulators
 } // namespace particles
 } // namespace picongpu

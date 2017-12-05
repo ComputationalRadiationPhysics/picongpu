@@ -53,6 +53,7 @@ namespace generic
      *       {
      *           particle[ position_ ].x() = rng();
      *       }
+     *       static constexpr char const * name = "RandomXPos";
      *   };
      *
      *   using RandomXPos = FreeRng<
