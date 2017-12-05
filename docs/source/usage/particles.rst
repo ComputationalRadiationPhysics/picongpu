@@ -116,6 +116,24 @@ RelativeGlobalDomainPosition
 .. doxygenstruct:: picongpu::particles::filter::RelativeGlobalDomainPosition
    :project: PIConGPU
 
+Free
+^^^^
+
+.. doxygenstruct:: picongpu::particles::filter::generic::Free
+   :project: PIConGPU
+
+FreeRng
+^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::filter::generic::FreeRng
+   :project: PIConGPU
+
+FreeTotalCellOffset
+^^^^^^^^^^^^^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::filter::generic::FreeTotalCellOffset
+   :project: PIConGPU
+
 Define a New Particle Filter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
