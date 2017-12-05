@@ -84,25 +84,6 @@ namespace methods
             return curand( reinterpret_cast< curandStateMRG32k3a* >( &state ) );
         }
 
-        /** get a normal distributed random number
-         *
-         * @param acc alpaka accelerator
-         * @param state random number state
-         */
-        template< typename T_Type >
-        DINLINE T_Type
-        getNormal(
-            T_Acc const & acc,
-            StateType& state
-        ) const
-        {
-            PMACC_CASSERT_MSG(
-                __MRG32k3aMin_random_number_with_normal_distribution_is_not_supported,
-                false
-            );
-            return T_Type{};
-        }
-
         static std::string
         getName()
         {

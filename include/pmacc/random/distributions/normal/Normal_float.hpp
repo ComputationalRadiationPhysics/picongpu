@@ -23,6 +23,12 @@
 
 #include "pmacc/types.hpp"
 #include "pmacc/random/distributions/Normal.hpp"
+#include "pmacc/random/distributions/misc/MullerBox.hpp"
+#include "pmacc/random/methods/XorMin.hpp"
+#include "pmacc/random/methods/MRG32k3aMin.hpp"
+#include "pmacc/random/distributions/Uniform.hpp"
+#include "pmacc/algorithms/math.hpp"
+
 
 namespace pmacc
 {
@@ -33,14 +39,12 @@ namespace distributions
 namespace detail
 {
 
-    /**
-     * Returns a random float value in [0,1) with normal distribution
-     */
+    //!Returns a random float value in [0,1) with normal distribution
     template< typename T_RNGMethod>
     class Normal<float, T_RNGMethod, void>
     {
-        typedef T_RNGMethod RNGMethod;
-        typedef typename RNGMethod::StateType StateType;
+        using RNGMethod = T_RNGMethod;
+        using StateType = typename RNGMethod::StateType;
     public:
         using result_type = float;
 
@@ -51,13 +55,45 @@ namespace detail
             StateType& state
         )
         {
-            return RNGMethod().getNormal(
-                acc,
-                state
-            );
+            return ::alpaka::rand::distribution::createNormalReal< float >(
+                acc
+            )( state );
         }
     };
 
+    //! specialization for XorMin
+    template<
+        typename T_Acc
+    >
+    struct Normal<
+        float,
+        methods::XorMin< T_Acc >,
+        void
+    > :
+        public MullerBox<
+            float,
+            methods::XorMin< T_Acc >
+        >
+    {
+
+    };
+
+    //! specialization for MRG32k3aMin
+    template<
+        typename T_Acc
+    >
+    struct Normal<
+        float,
+        methods::MRG32k3aMin< T_Acc >,
+        void
+    > :
+        public MullerBox<
+            float,
+            methods::MRG32k3aMin< T_Acc >
+        >
+    {
+
+    };
 }  // namespace detail
 }  // namespace distributions
 }  // namespace random
