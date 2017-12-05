@@ -166,6 +166,24 @@ class UiParameter(Parameter):
         self.value = self.dtype(x)
         return self.formatter(self.value)
 
+    def on_value_change(self, change):
+        """
+        Callback function used with observe() function of ipython widgets.
+        Just a wrapper of the set_value function.
+
+        Parameters
+        ----------
+        change: dict
+                  As passed by the Ipython widgets framework.
+
+        Returns
+        -------
+        Whatever the set_value function returns.
+        """
+
+        if change["type"] == "change":
+            return self.set_value(x=change["new"])
+
     def get_value(self):
         """
         Returns
