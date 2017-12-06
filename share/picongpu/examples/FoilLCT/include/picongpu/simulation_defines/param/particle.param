@@ -67,6 +67,22 @@ namespace manipulators
     };
     using OnceIonized = generic::Free< OnceIonizedImpl >;
 
+    //! ionize ions twice
+    struct TwiceIonizedImpl
+    {
+        template< typename T_Particle >
+        DINLINE void operator()(
+            T_Particle& particle
+        )
+        {
+            constexpr float_X protonNumber = GetAtomicNumbers< T_Particle >::type::numberOfProtons;
+            particle[ boundElectrons_ ] = protonNumber - float_X( 2. );
+        }
+    };
+
+    //! definition of TwiceIonizedImpl manipulator
+    using TwiceIonized = generic::Free< TwiceIonizedImpl >;
+
     //! changes the in-cell position of each particle of a species
     using RandomPosition = unary::RandomPosition;
 
