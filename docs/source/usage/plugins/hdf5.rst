@@ -44,18 +44,26 @@ One can e.g. disable the output of particles by setting:
 ^^^^^^^^^
 
 You can use ``--hdf5.period`` and ``--hdf5.file`` to specify the output period and path and name of the created fileset.
-For example, ``--hdf5.period 128 --hdf5.file simData`` will write the simulation data to files of the form ``simData_0.h5``, ``simData_128.h5`` in the default simulation output directory every 128 steps.
+For example, ``--hdf5.period 128 --hdf5.file simData --hdf5.source 'species_all'`` will write only the particle species data to files of the form ``simData_0.h5``, ``simData_128.h5`` in the default simulation output directory every 128 steps.
 Note that this plugin will only be available if libSplash and HDF5 is found during compile configuration.
 
-============================ ======================================================================================
+============================ ================================================================================================================
 PIConGPU command line option Description
-============================ ======================================================================================
+============================ ================================================================================================================
 ``--hdf5.period``            Period after which simulation data should be stored on disk.
-                             Default is ``0``, which means that no data is stored.
 ``--hdf5.file``              Relative or absolute fileset prefix for simulation data.
                              If relative, files are stored under ``simOutput/``.
-                             Default is ``h5``.
-============================ ======================================================================================
+``--hdf5.source``            Select data sources to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
+============================ ================================================================================================================
+
+.. note::
+
+   This plugin is a multi plugin. 
+   Command line parameter can be used multiple times to create e.g. dumps with different dumping period.
+   In the case where a optional parameter with a default value is explicitly defined the parameter will be always passed to the instance of the multi plugin where the parameter is not set.
+   e.g. ``--hdf5.period 128 --hdf5.file simData1 --hdf5.period 1000 --hdf5.file simData2 --hdf5.source 'species_all'`` creates two plugins:
+      - 1th. dump **all species data** each 128th time step.
+      - 2nd. dump **all fields and species data** (this is the default) data each 1000th time step.
 
 Additional Tools
 ^^^^^^^^^^^^^^^^
