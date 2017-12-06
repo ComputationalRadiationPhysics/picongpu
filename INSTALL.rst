@@ -134,7 +134,7 @@ Optional Libraries
 
 CUDA
 """"
-- `7.5+ <https://developer.nvidia.com/cuda-downloads>`_
+- `8.0+ <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``
