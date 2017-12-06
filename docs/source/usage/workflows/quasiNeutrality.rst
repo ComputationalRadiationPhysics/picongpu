@@ -16,16 +16,16 @@ For fully ionized ions, just use ``ManipulateDeriveSpecies`` in :ref:`speciesIni
 .. code-block:: cpp
 
    using InitPipeline = mpl::vector<
-       // density profile from density.param and
-       //     start position from particle.param
+       /* density profile from density.param and
+        *     start position from particle.param */
        CreateDensity<
            densityProfiles::YourSelectedProfile,
            startPosition::YourStartPosition,
            Carbon
        >,
-       // create a macro electron for each macro carbon but increase its
-       //     weighting by the ion's proton number so it represents all its
-       //     electrons after an instantanous ionization
+       /* create a macro electron for each macro carbon but increase its
+        *     weighting by the ion's proton number so it represents all its
+        *     electrons after an instantanous ionization */
        ManipulateDeriveSpecies<
            manipulators::ProtonTimesWeighting,
            Carbon,
@@ -33,38 +33,65 @@ For fully ionized ions, just use ``ManipulateDeriveSpecies`` in :ref:`speciesIni
        >
    >;
 
+If the ``Carbon`` species in this example has an attribute ``boundElectrons`` (optional, see :ref:`speciesAttributes.param and speciesDefinition.param <usage-params-core>`) and its value is not manipulated the default value is used (zero bound electrons, fully ionized).
+If the attribute ``boundElectrons`` is not added to the ``Carbon`` species the charge state is considered constant and taken from the ``chargeRatio< ... >`` particle flag.
+
 Partly Ionized Ions
 """""""""""""""""""
 
 For partial pre-ionization, the :ref:`FoilLCT example <usage-examples-foilLCT>` shows a detailed setup.
-First, define a functor that manipulates the number of bound electrons in :ref:`particle.param <usage-params-core>`, e.g. to *once ionized*.
+First, define a functor that manipulates the number of bound electrons in :ref:`particle.param <usage-params-core>`, e.g. to *twice pre-ionized*.
+
+.. code-block:: cpp
+
+   #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
+   // ...
+
+   namespace manipulators
+   {
+       //! ionize ions twice
+       struct TwiceIonizedImpl
+       {
+           template< typename T_Particle >
+           DINLINE void operator()(
+               T_Particle& particle
+           )
+           {
+               constexpr float_X protonNumber =
+                   GetAtomicNumbers< T_Particle >::type::numberOfProtons;
+               particle[ boundElectrons_ ] = protonNumber - float_X( 2. );
+           }
+       };
+
+       //! definition of TwiceIonizedImpl manipulator
+       using TwiceIonized = generic::Free< TwiceIonizedImpl >;
+
+   } // namespace manipulators
+
 Then again in :ref:`speciesInitialization.param <usage-params-core>` set your initialization routines to:
 
 .. code-block:: cpp
 
    using InitPipeline = mpl::vector<
-       // density profile from density.param and
-       //     start position from particle.param
+       /* density profile from density.param and
+        *     start position from particle.param */
        CreateDensity<
            densityProfiles::YourSelectedProfile,
            startPosition::YourStartPosition,
            Carbon
        >,
-       // partially pre-ionize the carbons by manipulating the carbon's
-       //     `boundElectrons` attribute,
-       //     functor defined in particle.param: set to C1+
+       /* partially pre-ionize the carbons by manipulating the carbon's
+        *     `boundElectrons` attribute,
+        *     functor defined in particle.param: set to C2+ */
        Manipulate<
-           manipulators::OnceIonized,
+           manipulators::TwiceIonized,
            Carbon
        >,
-       // does not manipulate the weighting while deriving the electrons
-       //     ("once pre-ionized") since we set carbon as C1+
-       DeriveSpecies<
+       /* does also manipulate the weighting x2 while deriving the electrons
+        *     ("twice pre-ionized") since we set carbon as C2+ */
+       ManipulateDeriveSpecies<
+           manipulators::binary::UnboundElectronsTimesWeighting,
            Carbon,
            Electrons
        >
    >;
-
-If you want to initialize an arbitrary ionization state, just add your own weighting manipulating functor in :ref:`particle.param <usage-params-core>` for the electrons and use it with ``ManipulateDeriveSpecies`` as in the first example.
-
-In the first example, which does not manipulate the ``boundElectrons`` attribute of the carbon species (optional, see :ref:`speciesAttributes.param <usage-params-core>`), the default is used (zero bound electrons, fully ionized).
