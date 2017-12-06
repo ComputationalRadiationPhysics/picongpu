@@ -21,5 +21,8 @@
 
 #include "picongpu/particles/filter/IUnary.def"
 
+#include "picongpu/particles/filter/generic/Free.def"
+#include "picongpu/particles/filter/generic/FreeRng.def"
+#include "picongpu/particles/filter/generic/FreeTotalCellOffset.def"
 #include "picongpu/particles/filter/RelativeGlobalDomainPosition.def"
 #include "picongpu/particles/filter/All.def"

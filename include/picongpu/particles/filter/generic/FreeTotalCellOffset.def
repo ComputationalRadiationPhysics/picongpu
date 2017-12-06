@@ -1,0 +1,73 @@
+/* Copyright 2017 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/placeholders.hpp>
+
+
+namespace picongpu
+{
+namespace particles
+{
+namespace filter
+{
+namespace generic
+{
+
+    /** call simple free user defined functor and provide the cell information
+     *
+     * The functor pass the cell offset of the particle relative to the total
+     * domain origin into the functor.     *
+     *
+     * @tparam T_Functor user defined unary functor
+     *
+     * example: each particle with a cell offset of 5 in X direction
+     *   @code{.cpp}
+     *
+     *   struct FunctorEachParticleInXCell5
+     *   {
+     *       template< typename T_Particle >
+     *       HDINLINE bool operator()(
+     *           DataSpace< simDim > const & particleOffsetToTotalOrigin,
+     *           T_Particle const & particle
+     *       )
+     *       {
+     *           bool result = false;
+     *           if( particleOffsetToTotalOrigin.x() == 5 )
+     *               result = true;
+     *           return result;
+     *       }
+     *   };
+     *
+     *   using EachParticleInXCell5 = FreeTotalCellOffset<
+     *      FunctorEachParticleInXCell5
+     *   >;
+     *   @endcode
+     */
+    template< typename T_Functor >
+    struct FreeTotalCellOffset;
+
+} // namespace generic
+} // namespace filter
+} // namespace particles
+} // namespace picongpu
