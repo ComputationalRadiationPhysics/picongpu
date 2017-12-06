@@ -84,7 +84,7 @@ namespace particles
 using InitPipeline = mpl::vector<
     CreateDensity<
         densityProfiles::Homogenous,
-        startPosition::Quiet,
+        startPosition::Quiet4ppc,
         PIC_Ions
     >,
     ManipulateDeriveSpecies<

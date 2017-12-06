@@ -17,56 +17,59 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
+
 #include <pmacc/nvidia/functors/Add.hpp>
+
 
 namespace picongpu
 {
-/* short namespace*/
-namespace mCT = pmacc::math::CT;
-
-// Macro Particle Configuration -------------------------------------------
 
 namespace particles
 {
 
     /** a particle with a weighting below MIN_WEIGHTING will not
      *      be created / will be deleted
-     *  unit: none */
+     *  unit: none
+     */
     constexpr float_X MIN_WEIGHTING = 10.0;
-
-    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL = 16u;
 
 namespace manipulators
 {
     struct TemperatureParam
     {
-        /*Initial temperature
+        /** Initial temperature
          *  unit: keV
          */
         static constexpr float_64 temperature = 51.16;
     };
-    /* definition of SetDrift start*/
-    using  AddTemperature = unary::Temperature< TemperatureParam> ;
-} //namespace manipulators
+    using AddTemperature = unary::Temperature< TemperatureParam > ;
+} // namespace manipulators
 
 namespace startPosition
 {
 
-    struct RandomParameter
+    struct RandomParameter16ppc
     {
         /** Count of particles per cell at initial state
-         *  unit: none */
-        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+         *  unit: none
+         */
+        static constexpr uint32_t numParticlesPerCell = 16u;
     };
-    /* definition of random particle start*/
-    using Random = RandomImpl<RandomParameter>;
+    // definition of random particle start
+    using Random16ppc = RandomImpl< RandomParameter16ppc >;
 
-}//namespace startPosition
-}//namespace particles
-}//namespace picongpu
+} // namespace startPosition
+
+    /** During unit normalization, we assume this is a typical
+     *  number of particles per cell for normalization of weighted
+     *  particle attributes.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL =
+        startPosition::RandomParameter16ppc::numParticlesPerCell;
+
+} // namespace particles
+} // namespace picongpu

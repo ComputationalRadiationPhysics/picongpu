@@ -21,6 +21,7 @@
 
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
+
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/nvidia/functors/Assign.hpp>
 
@@ -36,35 +37,39 @@ namespace particles
      *  unit: none */
     constexpr float_X MIN_WEIGHTING = 1.0;
 
-    constexpr float_X TYPICAL_PARTICLES_PER_CELL = 100;
-
 namespace startPosition
 {
 
-    struct RandomParameter
+    struct RandomParameter100ppc
     {
         /** Count of particles per cell at initial state
-         *  unit: none */
-        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
+         *  unit: none
+         */
+        static constexpr uint32_t numParticlesPerCell = 100u;
     };
-
-    /* definition of random particle start */
-    using Random = RandomImpl< RandomParameter >;
+    using Random100ppc = RandomImpl< RandomParameter100ppc >;
 
 
-    struct QuietParameter
+    struct QuietParameter1ppc
     {
         /** Count of particles per cell per direction at initial state
-         *  unit: none */
+         *  unit: none
+         */
         using numParticlesPerDimension = typename mCT::shrinkTo<
             mCT::Int< 1, 1, 1 >,
             simDim
         >::type;
     };
-
-    /* definition of quiet particle start*/
-    using Quiet = QuietImpl<QuietParameter>;
+    using Quiet1ppc = QuietImpl< QuietParameter1ppc >;
 
 } // namespace startPosition
+
+    /** During unit normalization, we assume this is a typical
+     *  number of particles per cell for normalization of weighted
+     *  particle attributes.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL =
+        startPosition::RandomParameter100ppc::numParticlesPerCell;
+
 } // namespace particles
 } // namespace picongpu
