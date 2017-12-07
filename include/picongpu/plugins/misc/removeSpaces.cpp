@@ -17,10 +17,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "picongpu/plugins/misc/removeSpaces.hpp"
 
 #include <string>
-#include <regex>
+#include <algorithm>
 
 
 namespace picongpu
@@ -29,20 +29,19 @@ namespace plugins
 {
 namespace misc
 {
-    /** split a string in a vector of strings
-     *
-     * Based on Stack Overflow post:
-     *   source: https://stackoverflow.com/a/28142357
-     *   author: Marcin
-     *   date: Jan 25 '15
-     *
-     * @param input string to split
-     * @param regex separator between two elements
-     */
-    std::vector< std::string > splitString(
-        std::string const & input,
-        std::string const & regex = ","
-    );
+    std::string removeSpaces( std::string value )
+    {
+        value.erase(
+            std::remove(
+                value.begin(),
+                value.end(),
+                ' '
+            ),
+            value.end()
+        );
+
+        return value;
+    }
 } // namespace misc
 } // namespace plugins
 } // namespace picongpu

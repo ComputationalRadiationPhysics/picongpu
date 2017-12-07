@@ -17,7 +17,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "picongpu/plugins/misc/splitString.hpp"
 
 #include <string>
 #include <regex>
@@ -29,20 +29,26 @@ namespace plugins
 {
 namespace misc
 {
-    /** split a string in a vector of strings
-     *
-     * Based on Stack Overflow post:
-     *   source: https://stackoverflow.com/a/28142357
-     *   author: Marcin
-     *   date: Jan 25 '15
-     *
-     * @param input string to split
-     * @param regex separator between two elements
-     */
     std::vector< std::string > splitString(
         std::string const & input,
-        std::string const & regex = ","
-    );
+        std::string const & regex
+    )
+    {
+        std::regex re( regex );
+        // passing -1 as the submatch index parameter performs splitting
+        std::sregex_token_iterator first{
+            input.begin(),
+            input.end(),
+            re,
+            -1
+        };
+        std::sregex_token_iterator last;
+
+        return {
+            first,
+            last
+        };
+    }
 } // namespace misc
 } // namespace plugins
 } // namespace picongpu
