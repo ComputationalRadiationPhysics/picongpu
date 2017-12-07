@@ -137,10 +137,10 @@ public:
             "HDF5 output filename (prefix)"
         };
 
-        /** defines if the plugin must be register it self to the PMacc plugin system
+        /** defines if the plugin must register itself to the PMacc plugin system
          *
          * true = the plugin is registering it self
-         * false = the plugin is not registering it self (plugin is controlled by another class)
+         * false = the plugin is not registering itself (plugin is controlled by another class)
          */
         bool selfRegister = false;
 
@@ -294,7 +294,9 @@ public:
 
     /** constructor
      *
-     * @param selfRegister if `true`: class register itself to PluginConnector
+     * @param help instance of the class Help
+     * @param id index of this plugin instance within help
+     * @param cellDescription PIConGPu cell description information for kernel index mapping
      */
     HDF5Writer(
         std::shared_ptr< plugins::multi::IHelp > & help,
