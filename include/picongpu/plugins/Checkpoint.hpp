@@ -183,7 +183,7 @@ namespace picongpu
 
                 size_t const numSlaves = backendHelp.second->getNumPlugins( );
                 if( numSlaves > 1u )
-                    throw std::runtime_error( pluginGetName() + ": is no multi plugin, each option can be only selected once." );
+                    throw std::runtime_error( pluginGetName() + ": is no a multi plugin, each option can only be selected once." );
             }
 
             // create checkpoint creation backend

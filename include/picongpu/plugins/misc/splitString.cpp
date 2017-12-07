@@ -21,6 +21,7 @@
 
 #include <string>
 #include <regex>
+#include <vector>
 
 
 namespace picongpu

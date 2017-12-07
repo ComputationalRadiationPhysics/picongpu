@@ -28,7 +28,7 @@ namespace plugins
 {
 namespace misc
 {
-    /** search for an element within a container
+    /** search for an element within a STL container
      *
      * @tparam T_Container standard container, type of the container
      *

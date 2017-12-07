@@ -122,7 +122,6 @@ public:
             );
         }
 
-        //! periodicity of computing the particle energy
         plugins::multi::Option< uint32_t > notifyPeriod = {
             "period",
             "enable HDF5 IO [for each n-th step]"
@@ -138,7 +137,12 @@ public:
             "HDF5 output filename (prefix)"
         };
 
-        bool isIndependent = false;
+        /** defines if the plugin must be register it self to the PMacc plugin system
+         *
+         * true = the plugin is registering it self
+         * false = the plugin is not registering it self (plugin is controlled by another class)
+         */
+        bool selfRegister = false;
 
         std::vector< std::string > allowedDataSources  = {
             "species_all",
@@ -208,7 +212,7 @@ public:
                 desc,
                 masterPrefix + prefix
             );
-            isIndependent = true;
+            selfRegister = true;
 
         }
 
@@ -221,7 +225,7 @@ public:
 
         void validateOptions()
         {
-            if( isIndependent )
+            if( selfRegister )
             {
                 if( notifyPeriod.empty() || fileName.empty() )
                     throw std::runtime_error(
@@ -254,7 +258,7 @@ public:
 
         size_t getNumPlugins() const
         {
-            if( isIndependent )
+            if( selfRegister )
                 return notifyPeriod.size();
             else
                 return 1;
@@ -290,7 +294,7 @@ public:
 
     /** constructor
      *
-     * @param isIndependent if `true`: class register itself to PluginConnector
+     * @param selfRegister if `true`: class register itself to PluginConnector
      */
     HDF5Writer(
         std::shared_ptr< plugins::multi::IHelp > & help,
@@ -323,7 +327,7 @@ public:
             splashMpiSize[i] = mpi_size[i];
         }
 
-        if( m_help->isIndependent )
+        if( m_help->selfRegister )
         {
             uint32_t notifyPeriod = m_help->notifyPeriod.get( id );
             /* only register for notify callback when .period is set on command line */
@@ -348,7 +352,7 @@ public:
     void notify(uint32_t currentStep)
     {
         // notify is only allowed if the plugin is not controlled by the class Checkpoint
-        assert( m_help->isIndependent );
+        assert( m_help->selfRegister );
 
         __getTransactionEvent().waitForFinished();
 
@@ -393,7 +397,7 @@ public:
     )
     {
         // restart is only allowed if the plugin is controlled by the class Checkpoint
-        assert(!m_help->isIndependent);
+        assert(!m_help->selfRegister);
 
         // allow to modify the restart file name
         std::string restartFilename{ constRestartFilename };
@@ -491,7 +495,7 @@ public:
     )
     {
         // checkpointing is only allowed if the plugin is controlled by the class Checkpoint
-        assert(!m_help->isIndependent);
+        assert(!m_help->selfRegister);
 
         __getTransactionEvent().waitForFinished();
         /* if file name is relative, prepend with common directory */
@@ -616,7 +620,7 @@ private:
         );
 
         std::vector< std::string > vectorOfDataSourceNames;
-        if( m_help->isIndependent )
+        if( m_help->selfRegister )
         {
             std::string dateSourceNames = m_help->source.get( m_id );
 
@@ -656,7 +660,7 @@ private:
             ForEach<
                 FileCheckpointParticles,
                 WriteSpecies<
-                    plugins::misc::UnFilteredSpecies< bmpl::_1 >
+                    plugins::misc::UnfilteredSpecies< bmpl::_1 >
                 >
             > writeSpecies;
             writeSpecies(threadParams, domainOffset);
@@ -673,7 +677,7 @@ private:
                 ForEach<
                     FileOutputParticles,
                     WriteSpecies<
-                        plugins::misc::UnFilteredSpecies< bmpl::_1 >
+                        plugins::misc::UnfilteredSpecies< bmpl::_1 >
                     >
                 > writeSpecies;
                 writeSpecies(threadParams, domainOffset);

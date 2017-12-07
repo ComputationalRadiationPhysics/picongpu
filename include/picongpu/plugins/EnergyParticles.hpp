@@ -297,7 +297,7 @@ namespace picongpu
         struct Help : public plugins::multi::IHelp
         {
 
-            /** creates a instance of ISlave
+            /** creates an instance of ISlave
              *
              * @tparam T_Slave type of the interface implementation (must inherit from ISlave)
              * @param help plugin defined help
@@ -363,13 +363,12 @@ namespace picongpu
 
                 notifyPeriod.registerHelp(
                     desc,
-                    masterPrefix + prefix,
-                    std::string( "[" ) + concatenatedFilterNames + "]"
+                    masterPrefix + prefix
                 );
                 filter.registerHelp(
                     desc,
                     masterPrefix + prefix,
-                    concatenatedFilterNames
+                    std::string( "[" ) + concatenatedFilterNames + "]"
                 );
             }
 

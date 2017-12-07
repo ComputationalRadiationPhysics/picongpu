@@ -58,10 +58,10 @@ namespace misc
     /** species without a filter
      *
      * This class fulfills the interface of SpeciesFilter for a species
-     * but keeps the species name without adding the filter postfix.
+     * but keeps the species name without adding the filter suffix.
      */
     template< typename T_Species >
-    struct UnFilteredSpecies
+    struct UnfilteredSpecies
     {
         using Filter = particles::filter::All;
         using Species = T_Species;
