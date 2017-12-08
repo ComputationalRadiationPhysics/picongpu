@@ -19,9 +19,21 @@
 
 #pragma once
 
-#include "picongpu/plugins/misc/ExecuteIfNameIsEqual.hpp"
-#include "picongpu/plugins/misc/AppendName.hpp"
-#include "picongpu/plugins/misc/concatenateToString.hpp"
-#include "picongpu/plugins/misc/splitString.hpp"
-#include "picongpu/plugins/misc/containsObject.hpp"
-#include "picongpu/plugins/misc/removeSpaces.hpp"
+#include <string>
+
+
+namespace picongpu
+{
+namespace plugins
+{
+namespace misc
+{
+    /** removes all spaces within a string
+     *
+     * @param value input string
+     * @return string without any spaces
+     */
+    std::string removeSpaces( std::string value );
+} // namespace misc
+} // namespace plugins
+} // namespace picongpu

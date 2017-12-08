@@ -19,9 +19,7 @@
 
 #pragma once
 
-#include "picongpu/plugins/misc/ExecuteIfNameIsEqual.hpp"
-#include "picongpu/plugins/misc/AppendName.hpp"
-#include "picongpu/plugins/misc/concatenateToString.hpp"
-#include "picongpu/plugins/misc/splitString.hpp"
-#include "picongpu/plugins/misc/containsObject.hpp"
-#include "picongpu/plugins/misc/removeSpaces.hpp"
+#include "picongpu/plugins/multi/ISlave.hpp"
+#include "picongpu/plugins/multi/IHelp.hpp"
+#include "picongpu/plugins/multi/Master.hpp"
+#include "picongpu/plugins/multi/Option.hpp"

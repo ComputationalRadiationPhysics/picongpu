@@ -17,11 +17,39 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include "picongpu/plugins/misc/ExecuteIfNameIsEqual.hpp"
-#include "picongpu/plugins/misc/AppendName.hpp"
-#include "picongpu/plugins/misc/concatenateToString.hpp"
 #include "picongpu/plugins/misc/splitString.hpp"
-#include "picongpu/plugins/misc/containsObject.hpp"
-#include "picongpu/plugins/misc/removeSpaces.hpp"
+
+#include <string>
+#include <regex>
+#include <vector>
+
+
+namespace picongpu
+{
+namespace plugins
+{
+namespace misc
+{
+    std::vector< std::string > splitString(
+        std::string const & input,
+        std::string const & regex
+    )
+    {
+        std::regex re( regex );
+        // passing -1 as the submatch index parameter performs splitting
+        std::sregex_token_iterator first{
+            input.begin(),
+            input.end(),
+            re,
+            -1
+        };
+        std::sregex_token_iterator last;
+
+        return {
+            first,
+            last
+        };
+    }
+} // namespace misc
+} // namespace plugins
+} // namespace picongpu

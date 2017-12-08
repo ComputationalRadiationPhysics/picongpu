@@ -17,11 +17,31 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include "picongpu/plugins/misc/ExecuteIfNameIsEqual.hpp"
-#include "picongpu/plugins/misc/AppendName.hpp"
-#include "picongpu/plugins/misc/concatenateToString.hpp"
-#include "picongpu/plugins/misc/splitString.hpp"
-#include "picongpu/plugins/misc/containsObject.hpp"
 #include "picongpu/plugins/misc/removeSpaces.hpp"
+
+#include <string>
+#include <algorithm>
+
+
+namespace picongpu
+{
+namespace plugins
+{
+namespace misc
+{
+    std::string removeSpaces( std::string value )
+    {
+        value.erase(
+            std::remove(
+                value.begin(),
+                value.end(),
+                ' '
+            ),
+            value.end()
+        );
+
+        return value;
+    }
+} // namespace misc
+} // namespace plugins
+} // namespace picongpu
