@@ -37,29 +37,14 @@ class Parameter(object):
             type of the 'default' argument is used.
         """
         self.name = name
-        self.type = ptype  # decides if compile time or runtime parameter
+        self.type = ptype
         self.unit = unit
         self.default = default
 
-        self.value = value if value is not None else default
         self.dtype = dtype if dtype is not None else type(default)
-
-    def __str__(self):
-        """
-        Enable use of print() function with Parameter objects.
-
-        Returns
-        -------
-        A string representation of the Parameter objects member values.
-        """
-
-        s = ""
-        s += "name=" + self.name
-        s += "\ttype=" + self.type
-        s += "\tunit=" + self.unit
-        s += "\tdefault=" + str(self.default)
-        s += "\tvalue=" + str(self.value)
-        return s
+        # use the dtype to cast the value to the correct type
+        self.value = self.dtype(
+            value) if value is not None else self.dtype(default)
 
     def as_dict(self):
         """
@@ -79,6 +64,16 @@ class Parameter(object):
             dtype=self.dtype.__name__)
 
         return d
+
+    def __str__(self):
+        """
+        Enable use of print() function with Parameter objects.
+
+        Returns
+        -------
+        A string representation of the Parameter objects member values.
+        """
+        return self.as_dict().__str__()
 
     def macro_name(self):
         """
@@ -148,6 +143,12 @@ class UiParameter(Parameter):
             self.formatter = lambda x: str(x)
         else:
             self.formatter = formatter
+
+        # explicitely call the set_value function to handle
+        # scaling and transformation in derived classes
+        # already on initialization. if this was missing, then
+        # parameter values would possibly be on the wrong scale
+        self.set_value(self.value)
 
     def set_value(self, x):
         """
@@ -227,11 +228,14 @@ class LinearScaledParameter(UiParameter):
             The factor for the linear transformation of slider value to
             internal value.
         """
+        self.scale_factor = scale_factor
+        # since base class UiParameter now calls the set_value() to carry out
+        # linear scaling of the value, we need to define the scale_factor
+        # before entering the constructor since it is used in set_value()
+
         UiParameter.__init__(self, name, ptype, unit, default,
                              slider_min, slider_max, slider_step,
                              label, formatter, value, dtype)
-
-        self.scale_factor = scale_factor
 
     def set_value(self, x):
         """
@@ -263,6 +267,20 @@ class LinearScaledParameter(UiParameter):
         """
         return float(self.value) / self.scale_factor
 
+    def as_dict(self):
+        """
+        Convert Parameter object into a plain dictionary
+
+        Returns
+        --------
+        A dictionary with the member variables as (key, value) pairs.
+        """
+
+        members = super(LinearScaledParameter, self).as_dict()
+        members["scale_factor"] = self.scale_factor
+
+        return members
+
 
 class LogScaledParameter(UiParameter):
     """
@@ -282,11 +300,11 @@ class LogScaledParameter(UiParameter):
             The base for the power transformation from slider value to
             the internal 'value'.
         """
+        self.base = float(base)
+
         UiParameter.__init__(self, name, ptype, unit, default,
                              slider_min, slider_max, slider_step,
                              label, formatter, value, dtype)
-
-        self.base = float(base)
 
     def set_value(self, x):
         """
@@ -321,3 +339,17 @@ class LogScaledParameter(UiParameter):
         # which is identical to log_10(v) / log_10(b)
         # by logarithmic law.
         return np.log10(float(self.value)) / np.log10(self.base)
+
+    def as_dict(self):
+        """
+        Convert Parameter object into a plain dictionary
+
+        Returns
+        --------
+        A dictionary with the member variables as (key, value) pairs.
+        """
+
+        members = super(LogScaledParameter, self).as_dict()
+        members["base"] = self.base
+
+        return members
