@@ -111,13 +111,14 @@ namespace particles
             manipulators::unary::RandomPosition,
             Nitrogen
         >,
-        // partial pre-ionization: set bound electrons for C & N
+        // partial pre-ionization: set bound electrons for C2+ & N2+
         Manipulate<
-            manipulators::OnceIonized,
+            manipulators::TwiceIonized,
             Carbon
         >,
+        // note: boundElectrons default is 0, so Hydrogen's default is H+
         Manipulate<
-            manipulators::OnceIonized,
+            manipulators::TwiceIonized,
             Nitrogen
         >,
         // partial pre-ionization: create free electrons
@@ -125,11 +126,13 @@ namespace particles
             Hydrogen,
             Electrons
         >,
-        DeriveSpecies<
+        ManipulateDeriveSpecies<
+            manipulators::binary::UnboundElectronsTimesWeighting,
             Carbon,
             Electrons
         >,
-        DeriveSpecies<
+        ManipulateDeriveSpecies<
+            manipulators::binary::UnboundElectronsTimesWeighting,
             Nitrogen,
             Electrons
         >,

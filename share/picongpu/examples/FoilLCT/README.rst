@@ -9,11 +9,11 @@ FoilLCT: Ion Acceleration from a Liquid-Crystal Target
 The following example models a laser-ion accelerator in the [TNSA]_ regime.
 An optically over-dense target (:math:`n_\text{max} = 192 n_\text{c}`) consisting of a liquid-crystal material *8CB* (4-octyl-4'-cyanobiphenyl) :math:`C_{21}H_{25}N` is used.
 
-Irradiated with a high-power laser pulse with :math:`a_0 = 5` the target is assumed to be once pre-ionized due to realistic laser contrast and pre-pulses to :math:`C^+`, :math:`H^+` and :math:`N^+` while being slightly expanded on its surfaces (modeled as exponential density slope).
+Irradiated with a high-power laser pulse with :math:`a_0 = 5` the target is assumed to be partly pre-ionized due to realistic laser contrast and pre-pulses to :math:`C^{2+}`, :math:`H^+` and :math:`N^{2+}` while being slightly expanded on its surfaces (modeled as exponential density slope).
 The overall target is assumed to be initially quasi-neutral and the *8CB* ion components are are not demixed in the surface regions.
 Surface contamination with, e.g. water vapor is neglected.
 
-The laser is assumed to be in-focus and approximated as a plane wave with temporally Gaussian intensity envelope of :math:`\tau^\text{FWHM}_I = 25` fs.
+The laser is assumed to be in focus and approximated as a plane wave with temporally Gaussian intensity envelope of :math:`\tau^\text{FWHM}_I = 25` fs.
 
 This example is used to demonstrate:
 

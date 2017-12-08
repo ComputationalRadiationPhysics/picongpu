@@ -37,3 +37,4 @@
 #include "picongpu/particles/manipulators/binary/DensityWeighting.def"
 #include "picongpu/particles/manipulators/binary/Assign.def"
 #include "picongpu/particles/manipulators/binary/ProtonTimesWeighting.def"
+#include "picongpu/particles/manipulators/binary/UnboundElectronsTimesWeighting.def"
