@@ -210,7 +210,7 @@ private:
     /* define species plugins */
     using UnspecializedSpeciesPlugins = bmpl::vector <
         plugins::multi::Master< EnergyParticles<bmpl::_1> >,
-        BinEnergyParticles<bmpl::_1>,
+        plugins::multi::Master< BinEnergyParticles<bmpl::_1> >,
         CountParticles<bmpl::_1>,
         PngPlugin< Visualisation<bmpl::_1, PngCreator> >
 #if(ENABLE_HDF5 == 1)

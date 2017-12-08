@@ -15,13 +15,14 @@ There are several command line parameters that can be used to set up this plugin
 Replace the prefix ``e`` for electrons with any other species you have defined, we keep using ``e`` in the examples below for simplicity.
 Currently, the plugin can be set *once for each species*.
 
-=========================================== ======================================================================
+=========================================== =====================================================================================
 PIConGPU command line option                description
-=========================================== ======================================================================
+=========================================== =====================================================================================
 ``--e_energyHistogram.period``              The ouput periodicity of the **electron** histogram.
                                             A value of ``100`` would mean aoutput at simulation time step *0, 100, 200, ...*.
                                             If set to a non-zero value, the energy histogram of all **electrons** is computed.
                                             By default, the value is ``0`` and no histogram for the electrons is computed.
+``--e_energy.filter``                       Use filtered particles. All available filters will be shown with ``picongpu --help``
 ``--e_energyHistogram.binCount``            Specifies the number of bins used for the **electron** histogram.
                                             Default is ``1024``.
 ``--e_energyHistogram.minEnergy``           Set the minimum energy for the **electron** histogram in *keV*.
@@ -29,14 +30,33 @@ PIConGPU command line option                description
 ``--e_energyHistogram.maxEnergy``           Set the maximum energy for the **electron** histogram in *keV*.
                                             There is **no default value**.
                                             This has to be set by the user if ``--e_energyHistogram.period 1`` is set.
-``--e_energyHistogram.distanceToDetector``  Distance in *meter* of a **electron** detector located far away in y direction with slit opening in x and z direction.
-                                            If set to *non-zero* value, only particles that would reach the detector are considered in the histogram.
-                                            Default ``0``, meaning all particles are considered in the **electron** histogram and no detector is assumed.
+``--e_energyHistogram.distanceToDetector``  Distance in *meter* of a **electron** detector located far away in y direction with
+                                            slit opening in x and z direction. If set to *non-zero* value, only particles that 
+                                            would reach the detector are considered in the histogram.
+                                            Default ``0``, meaning all particles are considered in the **electron** histogram 
+                                            and no detector is assumed.
 ``--e_energyHistogram.slitDetectorX``       Width of the **electron** detector in *meter*.
                                             If not set, all particles are counted.
 ``--e_energyHistogram.slitDetectorZ``       Hight of the **electron** detector in *meter*.
                                             If not set, all particles are counted.
-=========================================== ======================================================================
+=========================================== =====================================================================================
+
+.. note::
+
+   This plugin is a multi plugin. 
+   Command line parameter can be used multiple times to create e.g. dumps with different dumping period.
+   In the case where a optional parameter with a default value is explicitly defined the parameter will be always passed to the instance of the multi plugin where the parameter is not set.
+   e.g. 
+
+   .. code-block:: bash
+
+      --e_energyHistogram.period 128 --e_energyHistogram.filter all --e_energyHistogram.maxEnergy 10
+      --e_energyHistogram.period 100 --e_energyHistogram.filter all --e_energyHistogram.maxEnergy 20 --e_energyHistogram.binCount 512
+
+   creates two plugins:
+ 
+   #. create an electron histogram **with 512 bins** each 128th time step.
+   #. create an electron histogram **with 1024 bins** (this is the default) each 100th time step.
 
 Output
 ^^^^^^
