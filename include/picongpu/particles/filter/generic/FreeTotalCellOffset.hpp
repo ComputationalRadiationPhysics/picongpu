@@ -73,13 +73,18 @@ namespace acc
             T_Particle const & particle
         )
         {
-            DataSpace< simDim > const cellInSuperCell(
-                DataSpaceOperations< simDim >::template map< SuperCellSize > ( particle[ localCellIdx_ ] )
-            );
-            return Functor::operator( )(
-                m_superCellToLocalOriginCellOffset + cellInSuperCell,
-                particle
-            );
+            bool filterResult = false;
+            if( particle.isHandleValid( ) )
+            {
+                DataSpace< simDim > const cellInSuperCell(
+                    DataSpaceOperations< simDim >::template map< SuperCellSize > ( particle[ localCellIdx_ ] )
+                );
+                filterResult = Functor::operator( )(
+                    m_superCellToLocalOriginCellOffset + cellInSuperCell,
+                    particle
+                );
+            }
+            return filterResult;
         }
 
     private:

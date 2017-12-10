@@ -68,7 +68,9 @@ namespace acc
             T_Particle const & particle
         )
         {
-            return Functor::operator( )( particle );
+            bool const isValid = particle.isHandleValid( );
+
+            return isValid && Functor::operator( )( particle );
         }
 
     };
