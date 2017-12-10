@@ -62,7 +62,7 @@ The easiest way is to load the data in Python:
 
    # unit conversion from SI
    mu = 1.e6  # meters to microns
-   e_mc_r = 1. / (9.1e-31 * 2.9979e8)  # electrons: kg * m / s to beta * gamma
+   e_mc_r = 1. / (9.109e-31 * 2.9979e8)  # electrons: kg * m / s to beta * gamma
 
    # plotting
    plt.imshow(
