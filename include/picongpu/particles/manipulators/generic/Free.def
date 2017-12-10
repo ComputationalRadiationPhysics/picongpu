@@ -35,7 +35,7 @@ namespace generic
      *                   **optional**: can implement **one** host side constructor
      *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
      *
-     * example: set in cell position to zero
+     * example for `particle.param`: set in cell position to zero
      *   @code{.cpp}
      *
      *   struct FunctorInCellPositionZero
@@ -45,10 +45,10 @@ namespace generic
      *       {
      *           particle[ position_ ] = floatD_X::create( 0.0 );
      *       }
-     *       static constexpr char const * name = "InCellPositionZero";
+     *       static constexpr char const * name = "inCellPositionZero";
      *   };
      *
-     *   using InCellPositionZero = Free<
+     *   using InCellPositionZero = generic::Free<
      *      FunctorInCellPositionZero
      *   >;
      *   @endcode
