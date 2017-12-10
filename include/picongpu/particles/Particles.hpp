@@ -105,7 +105,8 @@ public:
         typename T_SrcName,
         typename T_SrcAttributes,
         typename T_SrcFlags,
-        typename T_ManipulateFunctor
+        typename T_ManipulateFunctor,
+        typename T_SrcFilterFunctor
     >
     void deviceDeriveFrom(
         Particles<
@@ -113,7 +114,8 @@ public:
             T_SrcAttributes,
             T_SrcFlags
         >& src,
-        T_ManipulateFunctor& manipulateFunctor
+        T_ManipulateFunctor& manipulateFunctor,
+        T_SrcFilterFunctor& srcFilterFunctor
     );
 
     template<typename T_Functor>

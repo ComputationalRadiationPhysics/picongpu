@@ -115,7 +115,8 @@ struct CreateDensity
                                destination and source, \see include/picongpu/particles/manipulators
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
- * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles
+ * @tparam T_Filter picongpu::particles::filter, particle filter type to select
+ *                  particles in T_SrcSpeciesType to derive into T_DestSpeciesType
  */
 template<
     typename T_Functor,
@@ -135,10 +136,8 @@ struct ManipulateDeriveSpecies
         DestSpeciesType
     >::type;
 
-    using Manipulator = manipulators::IBinary<
-        UserFunctor,
-        T_Filter
-    >;
+    using Manipulator = manipulators::IBinary< UserFunctor >;
+    using Filter = filter::IUnary< T_Filter >;
 
     HINLINE void operator()( const uint32_t currentStep )
     {
@@ -146,9 +145,10 @@ struct ManipulateDeriveSpecies
         auto speciesPtr = dc.get< DestSpeciesType >( DestFrameType::getName(), true );
         auto srcSpeciesPtr = dc.get< SrcSpeciesType >( SrcFrameType::getName(), true );
 
-        Manipulator manipulator(currentStep);
+        Manipulator manipulator( currentStep );
+        Filter filter( currentStep );
 
-        speciesPtr->deviceDeriveFrom(*srcSpeciesPtr, manipulator);
+        speciesPtr->deviceDeriveFrom(*srcSpeciesPtr, manipulator, filter);
 
         dc.releaseData( DestFrameType::getName() );
         dc.releaseData( SrcFrameType::getName() );
@@ -164,7 +164,7 @@ struct ManipulateDeriveSpecies
  *
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
- * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles
+ * @tparam T_Filter picongpu::particles::filter, particle filter type to select source particles to derive
  */
 template<
     typename T_SrcSpeciesType,
