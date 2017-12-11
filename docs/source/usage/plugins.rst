@@ -7,7 +7,7 @@ Plugins
 Plugin name                                                                        short description
 ================================================================================== =======================================================================
 :ref:`ADIOS <usage-plugins-ADIOS>` [#f2]_ [#f7]_                                   stores simulation data as openPMD flavoured ADIOS files
-:ref:`energy histogram <usage-plugins-energyHistogram>`                            energy histograms for electrons and ions
+:ref:`energy histogram <usage-plugins-energyHistogram>` [#f7]_                     energy histograms for electrons and ions
 :ref:`charge conservation <usage-plugins-chargeConservation>` [#f6]_               maximum difference between electron charge density and div E
 :ref:`checkpoint <usage-plugins-checkpoint>` [#f2]_                                stores the primary data of the simulation for restarts.
 :ref:`count particles <usage-plugins-countParticles>` [#f6]_                       count total number of macro particles

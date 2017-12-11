@@ -26,6 +26,10 @@
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/algorithms/KinEnergy.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/multi/multi.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
+#include "picongpu/plugins/misc/misc.hpp"
 
 #include <pmacc/mpi/reduceMethods/Reduce.hpp>
 #include <pmacc/mpi/MPIReduce.hpp>
@@ -91,6 +95,7 @@ struct KernelBinEnergyParticles
         typename T_ParBox,
         typename T_BinBox,
         typename T_Mapping,
+        typename T_Filter,
         typename T_Acc
     >
     DINLINE void operator()(
@@ -102,7 +107,8 @@ struct KernelBinEnergyParticles
         float_X const maxEnergy,
         float_X const maximumSlopeToDetectorX,
         float_X const maximumSlopeToDetectorZ,
-        T_Mapping const mapper
+        T_Mapping const mapper,
+        T_Filter filter
     ) const
     {
         using namespace pmacc::mappings::threads;
@@ -141,15 +147,16 @@ struct KernelBinEnergyParticles
             numWorkers
         >;
 
+        DataSpace< simDim > const superCellIdx(
+            mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+        );
+
         ForEachIdx< MasterOnly >{ workerIdx }(
             [&](
                 uint32_t const,
                 uint32_t const
             )
             {
-                DataSpace< simDim > const superCellIdx(
-                    mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
-                );
                 frame = pb.getLastFrame( superCellIdx );
                 particlesInSuperCell = pb.getSuperCell( superCellIdx ).getSizeLastFrame( );
             }
@@ -177,6 +184,12 @@ struct KernelBinEnergyParticles
         if( !frame.isValid( ) )
           return; /* end kernel if we have no frames */
 
+        auto accFilter = filter(
+            acc,
+            superCellIdx - mapper.getGuardingSuperCells( ),
+            WorkerCfg< numWorkers >{ workerIdx }
+        );
+
         while( frame.isValid() )
         {
             // move over all particles in a frame
@@ -194,66 +207,74 @@ struct KernelBinEnergyParticles
                     if( linearIdx < particlesInSuperCell )
                     {
                         auto const particle = frame[ linearIdx ];
-                        /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
-                         *                                   = c^2 * [p^2 + m^2*c^2]
-                         */
-                        float3_X const mom = particle[ momentum_ ];
-
-                        bool calcParticle = true;
-
-                        if( enableDetector && mom.y() > 0.0 )
-                        {
-                            float_X const slopeMomX = abs( mom.x( ) / mom.y( ) );
-                            float_X const slopeMomZ = abs( mom.z( ) / mom.y( ) );
-                            if( slopeMomX >= maximumSlopeToDetectorX || slopeMomZ >= maximumSlopeToDetectorZ )
-                                calcParticle = false;
-                        }
-
-                        if( calcParticle )
-                        {
-                            float_X const weighting = particle[ weighting_ ];
-                            float_X const mass = attribute::getMass(
-                                weighting,
+                        if(
+                            accFilter(
+                                acc,
                                 particle
-                            );
-
-                            // calculate kinetic energy of the macro particle
-                            float_X localEnergy = KinEnergy< >( )(
-                                mom,
-                                mass
-                            );
-
-                            localEnergy /= weighting;
-
-                            /* +1 move value from 1 to numBins+1 */
-                            int binNumber = math::floor(
-                                ( localEnergy - minEnergy ) /
-                                ( maxEnergy - minEnergy ) * static_cast< float_X >( numBins )
-                            )  + 1;
-
-                            int const maxBin = numBins + 1;
-
-                            /* all entries larger than maxEnergy go into bin maxBin */
-                            binNumber = binNumber < maxBin ? binNumber : maxBin;
-
-                            /* all entries smaller than minEnergy go into bin zero */
-                            binNumber = binNumber > 0 ? binNumber : 0;
-
-                            /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
-                             * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
-                             * I think this is a problem with extern shared mem and atmic (only on TESLA)
-                             * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
-                             *
-                             * uses a normed float weighting to avoid a overflow of the floating point result
-                             * for the reduced weighting if the particle weighting is very large
+                            )
+                        )
+                        {
+                            /* kinetic Energy for Particles: E^2 = p^2*c^2 + m^2*c^4
+                             *                                   = c^2 * [p^2 + m^2*c^2]
                              */
-                            float_X const normedWeighting = weighting /
-                                float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
-                            atomicAdd(
-                                &( shBin[ binNumber ] ),
-                                normedWeighting,
-                                ::alpaka::hierarchy::Threads{}
-                            );
+                            float3_X const mom = particle[ momentum_ ];
+
+                            bool calcParticle = true;
+
+                            if( enableDetector && mom.y() > 0.0 )
+                            {
+                                float_X const slopeMomX = abs( mom.x( ) / mom.y( ) );
+                                float_X const slopeMomZ = abs( mom.z( ) / mom.y( ) );
+                                if( slopeMomX >= maximumSlopeToDetectorX || slopeMomZ >= maximumSlopeToDetectorZ )
+                                    calcParticle = false;
+                            }
+
+                            if( calcParticle )
+                            {
+                                float_X const weighting = particle[ weighting_ ];
+                                float_X const mass = attribute::getMass(
+                                    weighting,
+                                    particle
+                                );
+
+                                // calculate kinetic energy of the macro particle
+                                float_X localEnergy = KinEnergy< >( )(
+                                    mom,
+                                    mass
+                                );
+
+                                localEnergy /= weighting;
+
+                                /* +1 move value from 1 to numBins+1 */
+                                int binNumber = math::floor(
+                                    ( localEnergy - minEnergy ) /
+                                    ( maxEnergy - minEnergy ) * static_cast< float_X >( numBins )
+                                )  + 1;
+
+                                int const maxBin = numBins + 1;
+
+                                /* all entries larger than maxEnergy go into bin maxBin */
+                                binNumber = binNumber < maxBin ? binNumber : maxBin;
+
+                                /* all entries smaller than minEnergy go into bin zero */
+                                binNumber = binNumber > 0 ? binNumber : 0;
+
+                                /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
+                                 * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
+                                 * I think this is a problem with extern shared mem and atmic (only on TESLA)
+                                 * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
+                                 *
+                                 * uses a normed float weighting to avoid a overflow of the floating point result
+                                 * for the reduced weighting if the particle weighting is very large
+                                 */
+                                float_X const normedWeighting = weighting /
+                                    float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
+                                atomicAdd(
+                                    &( shBin[ binNumber ] ),
+                                    normedWeighting,
+                                    ::alpaka::hierarchy::Threads{}
+                                );
+                            }
                         }
                     }
                 }
@@ -297,22 +318,205 @@ struct KernelBinEnergyParticles
 };
 
 template<class ParticlesType>
-class BinEnergyParticles : public ISimulationPlugin
+class BinEnergyParticles : public plugins::multi::ISlave
 {
 private:
 
-    typedef MappingDesc::SuperCellSize SuperCellSize;
+    struct Help : public plugins::multi::IHelp
+    {
 
-    GridBuffer<float_64, DIM1> *gBins;
-    MappingDesc *cellDescription;
+        /** creates a instance of ISlave
+         *
+         * @tparam T_Slave type of the interface implementation (must inherit from ISlave)
+         * @param help plugin defined help
+         * @param id index of the plugin, range: [0;help->getNumPlugins())
+         */
+        std::shared_ptr< ISlave > create(
+            std::shared_ptr< IHelp > & help,
+            size_t const id,
+            MappingDesc* cellDescription
+        )
+        {
+            return std::shared_ptr< ISlave >(
+                new BinEnergyParticles< ParticlesType >(
+                    help,
+                    id,
+                    cellDescription
+                )
+            );
+        }
 
-    std::string pluginName;
-    std::string pluginPrefix;
+        // find all valid filter for the current used species
+        using EligibleFilters = typename MakeSeqFromNestedSeq<
+            typename bmpl::transform<
+                particles::filter::AllParticleFilters,
+                particles::traits::GenerateSolversIfSpeciesEligible<
+                    bmpl::_1,
+                    ParticlesType
+                >
+            >::type
+        >::type;
+
+        //! periodicity of computing the particle energy
+        plugins::multi::Option< uint32_t > notifyPeriod = {
+            "period",
+            "enable plugin [for each n-th step]"
+        };
+        plugins::multi::Option< std::string > filter = {
+            "filter",
+            "particle filter: "
+        };
+        plugins::multi::Option< int > numBins = {
+            "binCount",
+            "number of bins for the energy range",
+            1024
+        };
+        plugins::multi::Option< float_X > minEnergy_keV = {
+            "minEnergy",
+            "minEnergy[in keV]",
+            0.0
+        };
+        plugins::multi::Option< float_X > maxEnergy_keV = {
+            "maxEnergy",
+            "maxEnergy[in keV]"
+        };
+        plugins::multi::Option< float_X > distanceToDetector = {
+            "distanceToDetector",
+            "distance between gas and detector, assumptions: simulated area in y direction << distance to detector AND simulated area in X,Z << slit [in meters]  (if not set, all particles are counted)",
+            0.0
+        };
+        plugins::multi::Option< float_X > slitDetectorX = {
+            "slitDetectorX",
+            "size of the detector slit in X [in meters] (if not set, all particles are counted)",
+            0.0
+        };
+        plugins::multi::Option< float_X > slitDetectorZ = {
+            "slitDetectorZ",
+            "size of the detector slit in Z [in meters] (if not set, all particles are counted)",
+            0.0
+        };
+
+        //! string list with all possible particle filters
+        std::string concatenatedFilterNames;
+        std::vector< std::string > allowedFilters;
+
+        ///! method used by plugin controller to get --help description
+        void registerHelp(
+            boost::program_options::options_description & desc,
+            std::string const & masterPrefix = std::string{ }
+        )
+        {
+            ForEach<
+                EligibleFilters,
+                plugins::misc::AppendName< bmpl::_1 >
+            > getEligibleFilterNames;
+            getEligibleFilterNames( forward( allowedFilters ) );
+
+            concatenatedFilterNames = plugins::misc::concatenateToString(
+                allowedFilters,
+                ", "
+            );
+
+            notifyPeriod.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            filter.registerHelp(
+                desc,
+                masterPrefix + prefix,
+                std::string( "[" ) + concatenatedFilterNames + "]"
+            );
+            numBins.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            minEnergy_keV.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            maxEnergy_keV.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            distanceToDetector.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            slitDetectorX.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            slitDetectorZ.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+        }
+
+        void expandHelp(
+            boost::program_options::options_description & desc,
+            std::string const & masterPrefix = std::string{ }
+        )
+        {
+        }
+
+
+        void validateOptions()
+        {
+            if( notifyPeriod.size() != filter.size() )
+                throw std::runtime_error( name + ": parameter filter and period are not used the same number of times" );
+            if( notifyPeriod.size() != maxEnergy_keV.size() )
+                throw std::runtime_error( name + ": parameter maxEnergy and period are not used the same number of times" );
+
+            // check if user passed filter name are valid
+            for( auto const & filterName : filter)
+            {
+                if(
+                    std::find(
+                        allowedFilters.begin(),
+                        allowedFilters.end(),
+                        filterName
+                    ) == allowedFilters.end()
+                )
+                {
+                    throw std::runtime_error( name + ": unknown filter '" + filterName + "'" );
+                }
+            }
+        }
+
+        size_t getNumPlugins() const
+        {
+            return notifyPeriod.size();
+        }
+
+        std::string getDescription() const
+        {
+            return description;
+        }
+
+        std::string getOptionPrefix() const
+        {
+            return prefix;
+        }
+
+        std::string getName() const
+        {
+            return name;
+        }
+
+        std::string const name = "BinEnergyParticles";
+        //! short description of the plugin
+        std::string const description = "calculate a energy histogram of a species";
+        //! prefix used for command line arguments
+        std::string const prefix = ParticlesType::FrameType::getName( ) + std::string( "_energyHistogram" );
+    };
+
+    GridBuffer<float_64, DIM1> *gBins = nullptr;
+    MappingDesc *m_cellDescription = nullptr;
+
     std::string filename;
 
-    float_64 * binReduced;
+    float_64 * binReduced = nullptr;
 
-    uint32_t notifyPeriod;
     int numBins;
     int realNumBins;
     /* variables for energy limits of the histogram in keV */
@@ -322,33 +526,93 @@ private:
     float_X distanceToDetector;
     float_X slitDetectorX;
     float_X slitDetectorZ;
-    bool enableDetector;
+    bool enableDetector = false;
 
     std::ofstream outFile;
 
     /* only rank 0 create a file */
-    bool writeToFile;
+    bool writeToFile = false;
 
     mpi::MPIReduce reduce;
 
+    std::shared_ptr< Help > m_help;
+    size_t m_id;
+
 public:
 
-    BinEnergyParticles() :
-    pluginName("BinEnergyParticles: calculate a energy histogram of a species"),
-    pluginPrefix(ParticlesType::FrameType::getName() + std::string("_energyHistogram")),
-    filename(pluginPrefix + ".dat"),
-    gBins(nullptr),
-    cellDescription(nullptr),
-    notifyPeriod(0),
-    writeToFile(false),
-    enableDetector(false)
+    //! must be implemented by the user
+    static std::shared_ptr< plugins::multi::IHelp > getHelp()
     {
-        Environment<>::get().PluginConnector().registerPlugin(this);
+        return std::shared_ptr< plugins::multi::IHelp >( new Help{ } );
+    }
+
+    BinEnergyParticles(
+        std::shared_ptr< plugins::multi::IHelp > & help,
+        size_t const id,
+        MappingDesc* cellDescription
+    ) :
+        m_help( std::static_pointer_cast< Help >(help) ),
+        m_id( id ),
+        m_cellDescription( cellDescription )
+    {
+        filename = m_help->getOptionPrefix() + "_" + m_help->filter.get( m_id ) + ".dat";
+
+        numBins = m_help->numBins.get( m_id );
+
+        if( numBins <= 0 )
+        {
+            throw std::runtime_error(
+                std::string("[Plugin] [") + m_help->getOptionPrefix( ) +
+                "] error since " + m_help->getOptionPrefix( ) +
+                ".binCount) must be > 0 (input " +
+                std::to_string( numBins ) + " bins)"
+            );
+        }
+
+        slitDetectorX = m_help->slitDetectorX.get( m_id );
+        slitDetectorZ = m_help->slitDetectorZ.get( m_id );
+        distanceToDetector = m_help->distanceToDetector.get( m_id );
+        minEnergy_keV = m_help->minEnergy_keV.get( m_id );
+        maxEnergy_keV = m_help->maxEnergy_keV.get( m_id );
+
+        if (distanceToDetector != float_X(0.0) && slitDetectorX != float_X(0.0) && slitDetectorZ != float_X(0.0))
+            enableDetector = true;
+
+        realNumBins = numBins + 2;
+
+        /* create an array of float_64 on gpu und host */
+        gBins = new GridBuffer<float_64, DIM1 > (DataSpace<DIM1 > (realNumBins));
+        binReduced = new float_64[realNumBins];
+        for (int i = 0; i < realNumBins; ++i)
+        {
+            binReduced[i] = 0.0;
+        }
+
+        writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
+        if( writeToFile )
+            openNewFile();
+
+        // set how often the plugin should be executed while PIConGPU is running
+        Environment<>::get( ).PluginConnector( ).setNotificationPeriod(
+            this,
+            m_help->notifyPeriod.get( id )
+        );
+
     }
 
     virtual ~BinEnergyParticles()
     {
+        if (writeToFile)
+        {
+            outFile.flush();
+            outFile << std::endl; /* now all data are written to file */
+            if (outFile.fail())
+                std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
+            outFile.close();
+        }
 
+        __delete(gBins);
+        __deleteArray(binReduced);
     }
 
     void notify(uint32_t currentStep)
@@ -356,26 +620,36 @@ public:
         calBinEnergyParticles < CORE + BORDER > (currentStep);
     }
 
-    void pluginRegisterHelp(po::options_description& desc)
+    void restart(
+        uint32_t restartStep,
+        std::string const & restartDirectory
+    )
     {
-        desc.add_options()
-            ((pluginPrefix + ".period").c_str(), po::value<uint32_t > (&notifyPeriod)->default_value(0), "enable plugin [for each n-th step]")
-            ((pluginPrefix + ".binCount").c_str(), po::value<int > (&numBins)->default_value(1024), "number of bins for the energy range")
-            ((pluginPrefix + ".minEnergy").c_str(), po::value<float_X > (&minEnergy_keV)->default_value(0.0), "minEnergy[in keV]")
-            ((pluginPrefix + ".maxEnergy").c_str(), po::value<float_X > (&maxEnergy_keV), "maxEnergy[in keV]")
-            ((pluginPrefix + ".distanceToDetector").c_str(), po::value<float_X > (&distanceToDetector)->default_value(0.0), "distance between gas and detector, assumptions: simulated area in y direction << distance to detector AND simulated area in X,Z << slit [in meters]  (if not set, all particles are counted)")
-            ((pluginPrefix + ".slitDetectorX").c_str(), po::value<float_X > (&slitDetectorX)->default_value(0.0), "size of the detector slit in X [in meters] (if not set, all particles are counted)")
-            ((pluginPrefix + ".slitDetectorZ").c_str(), po::value<float_X > (&slitDetectorZ)->default_value(0.0), "size of the detector slit in Z [in meters] (if not set, all particles are counted)");
+        if( !writeToFile )
+            return;
+
+        writeToFile = restoreTxtFile(
+            outFile,
+            filename,
+            restartStep,
+            restartDirectory
+        );
     }
 
-    std::string pluginGetName() const
+    void checkpoint(
+        uint32_t currentStep,
+        std::string const & checkpointDirectory
+    )
     {
-        return pluginName;
-    }
+        if( !writeToFile )
+            return;
 
-    void setMappingDescription(MappingDesc *cellDescription)
-    {
-        this->cellDescription = cellDescription;
+        checkpointTxtFile(
+            outFile,
+            filename,
+            currentStep,
+            checkpointDirectory
+        );
     }
 
 private:
@@ -389,7 +663,7 @@ private:
         outFile.open(filename.c_str(), std::ofstream::out | std::ostream::trunc);
         if (!outFile)
         {
-            std::cerr << "[Plugin] [" << pluginPrefix
+            std::cerr << "[Plugin] [" << m_help->getOptionPrefix( )
                       << "] Can't open file '" << filename
                       << "', output disabled" << std::endl;
             writeToFile = false;
@@ -406,84 +680,7 @@ private:
         }
     }
 
-    void pluginLoad()
-    {
-        if (notifyPeriod > 0)
-        {
-            if( numBins <= 0 )
-            {
-                std::cerr << "[Plugin] [" << pluginPrefix
-                          << "] disabled since " << pluginPrefix
-                          << ".binCount must be > 0 (input "
-                          << numBins << " bins)"
-                          << std::endl;
-
-                /* do not register the plugin and return */
-                return;
-            }
-
-            if (distanceToDetector != float_X(0.0) && slitDetectorX != float_X(0.0) && slitDetectorZ != float_X(0.0))
-                enableDetector = true;
-
-            realNumBins = numBins + 2;
-
-            /* create an array of float_64 on gpu und host */
-            gBins = new GridBuffer<float_64, DIM1 > (DataSpace<DIM1 > (realNumBins));
-            binReduced = new float_64[realNumBins];
-            for (int i = 0; i < realNumBins; ++i)
-            {
-                binReduced[i] = 0.0;
-            }
-
-            writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
-            if( writeToFile )
-                openNewFile();
-
-            Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
-        }
-    }
-
-    void pluginUnload()
-    {
-        if (notifyPeriod > 0)
-        {
-            if (writeToFile)
-            {
-                outFile.flush();
-                outFile << std::endl; /* now all data are written to file */
-                if (outFile.fail())
-                    std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
-                outFile.close();
-            }
-
-            __delete(gBins);
-            __deleteArray(binReduced);
-        }
-    }
-
-    void restart(uint32_t restartStep, const std::string restartDirectory)
-    {
-        if( !writeToFile )
-            return;
-
-        writeToFile = restoreTxtFile( outFile,
-                                      filename,
-                                      restartStep,
-                                      restartDirectory );
-    }
-
-    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
-    {
-        if( !writeToFile )
-            return;
-
-        checkpointTxtFile( outFile,
-                           filename,
-                           currentStep,
-                           checkpointDirectory );
-    }
-
-    template< uint32_t AREA>
+    template< uint32_t AREA >
     void calBinEnergyParticles(uint32_t currentStep)
     {
         gBins->getDeviceBuffer().setValue(0);
@@ -513,13 +710,16 @@ private:
         AreaMapping<
             AREA,
             MappingDesc
-        > mapper( *cellDescription );
+        > mapper( *m_cellDescription );
 
-        PMACC_KERNEL( KernelBinEnergyParticles< numWorkers >{ } )(
-            mapper.getGridDim(),
+        auto kernel = PMACC_KERNEL( KernelBinEnergyParticles< numWorkers >{ } )(
+            mapper.getGridDim( ),
             numWorkers,
             realNumBins * sizeof( float_X )
-        )(
+        );
+
+        auto bindKernel = std::bind(
+            kernel,
             particles->getDeviceParticlesBox( ),
             gBins->getDeviceBuffer( ).getDataBox( ),
             numBins,
@@ -527,7 +727,17 @@ private:
             maxEnergy,
             maximumSlopeToDetectorX,
             maximumSlopeToDetectorZ,
-            mapper
+            mapper,
+            std::placeholders::_1
+        );
+
+        ForEach<
+            typename Help::EligibleFilters,
+            plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
+        >{ }(
+            m_help->filter.get( m_id ),
+            currentStep,
+            bindKernel
         );
 
         dc.releaseData( ParticlesType::FrameType::getName() );
@@ -555,10 +765,11 @@ private:
                 count_particles += float_64( binReduced[i]);
                 outFile << std::scientific << (binReduced[i]) * float_64(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE) << " ";
             }
+            /* endl: Flush any step to the file.
+             * Thus, we will have data if the program should crash.
+             */
             outFile << std::scientific << count_particles * float_64(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
                 << std::endl;
-            /* endl: Flush any step to the file.
-             * Thus, we will have data if the program should crash. */
         }
     }
 
