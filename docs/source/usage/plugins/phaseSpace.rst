@@ -24,15 +24,17 @@ Example for *y-pz* phase space for the *electron* species (``.cfg`` file macro):
 
 The distinct options are (assuming a species ``e`` for electrons):
 
-====================================== ========================================= ============================
+====================================== ======================================================== ============================
 Option                                 Usage                                     Unit
-====================================== ========================================= ============================
-``--e_phaseSpace.period <N>``          calculate each N steps                    *none*
-``--e_phaseSpace.space <x/y/z>``       spatial coordinate of the 2D phase space  *none*
-``--e_phaseSpace.momentum <px/py/pz>`` momentum coordinate of the 2D phase space *none*
-``--e_phaseSpace.min <ValL>``          minimum of the momentum range             :math:`m_\mathrm{species} c`
-``--e_phaseSpace.max <ValR>``          maximum of the momentum range             :math:`m_\mathrm{species} c`
-====================================== ========================================= ============================
+====================================== ======================================================== ============================
+``--e_phaseSpace.period <N>``          calculate each N steps                                   *none*
+``--e_energy.filter``                  Use filtered particles. Available filters are set up in  *none*
+                                       :ref:`particleFilters.param <usage-params-core>`.
+``--e_phaseSpace.space <x/y/z>``       spatial coordinate of the 2D phase space                 *none*
+``--e_phaseSpace.momentum <px/py/pz>`` momentum coordinate of the 2D phase space                *none*
+``--e_phaseSpace.min <ValL>``          minimum of the momentum range                            :math:`m_\mathrm{species} c`
+``--e_phaseSpace.max <ValR>``          maximum of the momentum range                            :math:`m_\mathrm{species} c`
+====================================== ======================================================== ============================
 
 Output
 ^^^^^^
@@ -58,7 +60,7 @@ The easiest way is to load the data in Python:
 
    # load data
    phase_space = PhaseSpace('/home/axel/runs/foil_001')
-   e_ps, e_ps_meta = phase_space.get('e', ps='ypy', iteration=1000)
+   e_ps, e_ps_meta = phase_space.get('e_all', ps='ypy', iteration=1000)
 
    # unit conversion from SI
    mu = 1.e6  # meters to microns
