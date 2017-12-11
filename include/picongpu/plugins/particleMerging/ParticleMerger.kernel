@@ -21,6 +21,8 @@
 
 #include "picongpu/plugins/particleMerging/VoronoiCell.hpp"
 #include "picongpu/particles/access/Cell2Particle.hpp"
+#include "picongpu/particles/filter/filter.hpp"
+
 #include <pmacc/memory/Array.hpp>
 #include <pmacc/memory/IndexPool.hpp>
 
@@ -123,7 +125,12 @@ namespace particleMerging
             const pmacc::math::Int<simDim>& cellIdx
         )
         {
-            particleAccess::Cell2Particle< SuperCellSize > forEachFrame;
+            //! \todo change this as soon as the kernel support lock step programming
+            constexpr uint32_t numWorkers = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            const uint32_t workerIdx = DataSpaceOperations< simDim >::template map<
+                SuperCellSize
+            >( cellIdx );
+            particleAccess::Cell2Particle< SuperCellSize, numWorkers > forEachFrame;
             forEachFrame(
                 acc,
                 this->particlesBox,
@@ -135,7 +142,8 @@ namespace particleMerging
                     const lcellId_t particleCellIdx = particle[localCellIdx_];
 
                     particle[voronoiCellId_] = this->mapCellIdxToInitialVoronoiCell( particleCellIdx );
-                }
+                },
+                particles::filter::All{}
             );
         }
 
@@ -179,10 +187,16 @@ namespace particleMerging
             ArrayVoronoiCells& listVoronoiCells
         )
         {
-            particleAccess::Cell2Particle< SuperCellSize > forEachFrame;
+            //! \todo change this as soon as the kernel support lock step programming
+            constexpr uint32_t numWorkers = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            const uint32_t workerIdx = DataSpaceOperations< simDim >::template map<
+                SuperCellSize
+            >( cellIdx );
+            particleAccess::Cell2Particle< SuperCellSize, numWorkers > forEachFrame;
             forEachFrame(
                 acc,
                 this->particlesBox,
+                workerIdx,
                 cellIdx,
                 [&]( FramePtr frame, const int linearThreadIdx )
                 {
@@ -259,7 +273,8 @@ namespace particleMerging
                         /* check out of the Voronoi cell */
                         particle[voronoiCellId_] = -1;
                     }
-                }
+                },
+                particles::filter::All{}
             );
         }
 
