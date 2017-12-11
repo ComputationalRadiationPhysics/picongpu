@@ -22,7 +22,8 @@ PIConGPU command line option                description
                                             A value of ``100`` would mean aoutput at simulation time step *0, 100, 200, ...*.
                                             If set to a non-zero value, the energy histogram of all **electrons** is computed.
                                             By default, the value is ``0`` and no histogram for the electrons is computed.
-``--e_energy.filter``                       Use filtered particles. All available filters will be shown with ``picongpu --help``
+``--e_energy.filter``                       Use filtered particles. Available filters are set up in 
+                                            :ref:`particleFilters.param <usage-params-core>`.
 ``--e_energyHistogram.binCount``            Specifies the number of bins used for the **electron** histogram.
                                             Default is ``1024``.
 ``--e_energyHistogram.minEnergy``           Set the minimum energy for the **electron** histogram in *keV*.
@@ -45,7 +46,7 @@ PIConGPU command line option                description
 
    This plugin is a multi plugin. 
    Command line parameter can be used multiple times to create e.g. dumps with different dumping period.
-   In the case where a optional parameter with a default value is explicitly defined the parameter will be always passed to the instance of the multi plugin where the parameter is not set.
+   In the case where an optional parameter with a default value is explicitly defined the parameter will be always passed to the instance of the multi plugin where the parameter is not set.
    e.g. 
 
    .. code-block:: bash
