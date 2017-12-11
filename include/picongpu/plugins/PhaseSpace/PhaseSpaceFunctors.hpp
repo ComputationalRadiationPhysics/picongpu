@@ -103,7 +103,7 @@ namespace picongpu
             const float_PS particleChargeDensity =
               precisionCast<float_PS>( charge / CELL_VOLUME );
 
-            const float_X rel_bin = (mom_i - axis_p_range.first)
+            const float_X rel_bin = (mom_i / weighting - axis_p_range.first)
                                   / (axis_p_range.second - axis_p_range.first);
             int p_bin = int( rel_bin * float_X(num_pbins) );
 
