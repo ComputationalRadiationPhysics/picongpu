@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Axel Huebl, Heiko Burau
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -20,14 +20,11 @@
 #pragma once
 
 #include "PhaseSpace.hpp"
-#include "PhaseSpaceFunctors.hpp"
-
 #include "DumpHBufferSplashP.hpp"
 
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/ForeachBlock.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Reduce.hpp>
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
@@ -44,113 +41,159 @@
 
 namespace picongpu
 {
-    using namespace pmacc;
-
     template<class AssignmentFunction, class Species>
-    PhaseSpace<AssignmentFunction, Species>::PhaseSpace( const std::string _name,
-                                                         const std::string _prefix,
-                                                         const uint32_t _notifyPeriod,
-                                                         const std::pair<float_X, float_X>& _p_range,
-                                                         const AxisDescription& _element ) :
-    cellDescription(nullptr), name(_name), prefix(_prefix),
-    dBuffer(nullptr), axis_p_range(_p_range), axis_element(_element),
-    notifyPeriod(_notifyPeriod), isPlaneReduceRoot(false),
-    commFileWriter(MPI_COMM_NULL), planeReduce(NULL)
+    PhaseSpace<AssignmentFunction, Species>::PhaseSpace(
+        std::shared_ptr< plugins::multi::IHelp > & help,
+        size_t const id,
+        MappingDesc* cellDescription
+    ) :
+        m_help( std::static_pointer_cast< Help >(help) ),
+        m_id( id ),
+        m_cellDescription( cellDescription )
     {
-    }
+        // unit is m_species c (for a single "real" particle)
+        float_X pRangeSingle_unit(
+            frame::getMass< typename Species::FrameType >() *
+            SPEED_OF_LIGHT
+        );
 
-    template<class AssignmentFunction, class Species>
-    void PhaseSpace<AssignmentFunction, Species>::pluginLoad()
-    {
-        Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
+        axis_p_range.first = m_help->momentum_range_min.get( id ) * pRangeSingle_unit;
+        axis_p_range.second = m_help->momentum_range_max.get( id ) * pRangeSingle_unit ;
+        /* String to Enum conversion */
+        uint32_t el_space;
+        if( m_help->element_space.get( id ) == "x" )
+           el_space = AxisDescription::x;
+        else if( m_help->element_space.get( id ) == "y" )
+           el_space = AxisDescription::y;
+        else if( m_help->element_space.get( id ) == "z" )
+           el_space = AxisDescription::z;
+        else
+           throw PluginException("[Plugin] [" + m_help->getOptionPrefix() + "] space must be x, y or z" );
 
-        const uint32_t r_element = this->axis_element.space;
+        uint32_t el_momentum = AxisDescription::px;
+        if( m_help->element_momentum.get( id ) == "px" )
+           el_momentum = AxisDescription::px;
+        else if( m_help->element_momentum.get( id ) == "py" )
+           el_momentum = AxisDescription::py;
+        else if( m_help->element_momentum.get( id ) == "pz" )
+           el_momentum = AxisDescription::pz;
+        else
+           throw PluginException("[Plugin] [" + m_help->getOptionPrefix() + "] momentum must be px, py or pz" );
 
-        /* CORE + BORDER + GUARD elements for spatial bins */
-        this->r_bins = SuperCellSize().toRT()[r_element]
-                     * this->cellDescription->getGridSuperCells()[r_element];
+        axis_element.momentum = el_momentum;
+        axis_element.space = el_space;
 
-        this->dBuffer = new container::DeviceBuffer<float_PS, 2>( this->num_pbins, r_bins );
+        bool activatePlugin = true;
 
-        /* reduce-add phase space from other GPUs in range [p0;p1]x[r;r+dr]
-         * to "lowest" node in range
-         * e.g.: phase space x-py: reduce-add all nodes with same x range in
-         *                         spatial y and z direction to node with
-         *                         lowest y and z position and same x range
-         */
-        pmacc::GridController<simDim>& gc = pmacc::Environment<simDim>::get().GridController();
-        pmacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
-        pmacc::math::Int<simDim> gpuPos = gc.getPosition();
-
-        /* my plane means: the r_element I am calculating should be 1GPU in width */
-        pmacc::math::Size_t<simDim> sizeTransversalPlane(gpuDim);
-        sizeTransversalPlane[this->axis_element.space] = 1;
-
-        for( int planePos = 0; planePos <= (int)gpuDim[this->axis_element.space]; ++planePos )
+        if( simDim == DIM2 && el_space == AxisDescription::z )
         {
-            /* my plane means: the offset for the transversal plane to my r_element
-             * should be zero
+            std::cerr << "[Plugin] [" + m_help->getOptionPrefix() + "] Skip requested output for "
+                << m_help->element_space.get( id )
+                << m_help->element_momentum.get( id )
+                << std::endl;
+            activatePlugin = false;
+        }
+
+        if( activatePlugin )
+        {
+            /** create dir */
+            Environment<simDim>::get().Filesystem().createDirectoryWithPermissions("phaseSpace");
+
+            const uint32_t r_element = axis_element.space;
+
+            /* CORE + BORDER + GUARD elements for spatial bins */
+            this->r_bins = SuperCellSize().toRT()[r_element]
+                         * this->m_cellDescription->getGridSuperCells()[r_element];
+
+            this->dBuffer = new container::DeviceBuffer<float_PS, 2>( this->num_pbins, r_bins );
+
+            /* reduce-add phase space from other GPUs in range [p0;p1]x[r;r+dr]
+             * to "lowest" node in range
+             * e.g.: phase space x-py: reduce-add all nodes with same x range in
+             *                         spatial y and z direction to node with
+             *                         lowest y and z position and same x range
              */
-            pmacc::math::Int<simDim> longOffset(pmacc::math::Int<simDim>::create(0));
-            longOffset[this->axis_element.space] = planePos;
+            pmacc::GridController<simDim>& gc = pmacc::Environment<simDim>::get().GridController();
+            pmacc::math::Size_t<simDim> gpuDim = gc.getGpuNodes();
+            pmacc::math::Int<simDim> gpuPos = gc.getPosition();
 
-            zone::SphericZone<simDim> zoneTransversalPlane( sizeTransversalPlane, longOffset );
+            /* my plane means: the r_element I am calculating should be 1GPU in width */
+            pmacc::math::Size_t<simDim> sizeTransversalPlane(gpuDim);
+            sizeTransversalPlane[this->axis_element.space] = 1;
 
-            /* Am I the lowest GPU in my plane? */
-            bool isGroupRoot = false;
-            bool isInGroup   = ( gpuPos[this->axis_element.space] == planePos );
-            if( isInGroup )
+            for( int planePos = 0; planePos <= (int)gpuDim[this->axis_element.space]; ++planePos )
             {
-                pmacc::math::Int<simDim> inPlaneGPU(gpuPos);
-                inPlaneGPU[this->axis_element.space] = 0;
-                if( inPlaneGPU == pmacc::math::Int<simDim>::create(0) )
-                    isGroupRoot = true;
+                /* my plane means: the offset for the transversal plane to my r_element
+                 * should be zero
+                 */
+                pmacc::math::Int<simDim> longOffset(pmacc::math::Int<simDim>::create(0));
+                longOffset[this->axis_element.space] = planePos;
+
+                zone::SphericZone<simDim> zoneTransversalPlane( sizeTransversalPlane, longOffset );
+
+                /* Am I the lowest GPU in my plane? */
+                bool isGroupRoot = false;
+                bool isInGroup   = ( gpuPos[this->axis_element.space] == planePos );
+                if( isInGroup )
+                {
+                    pmacc::math::Int<simDim> inPlaneGPU(gpuPos);
+                    inPlaneGPU[this->axis_element.space] = 0;
+                    if( inPlaneGPU == pmacc::math::Int<simDim>::create(0) )
+                        isGroupRoot = true;
+                }
+
+                algorithm::mpi::Reduce<simDim>* createReduce =
+                    new algorithm::mpi::Reduce<simDim>( zoneTransversalPlane,
+                                                        isGroupRoot );
+                if( isInGroup )
+                {
+                    this->planeReduce = createReduce;
+                    this->isPlaneReduceRoot = isGroupRoot;
+                }
+                else
+                    __delete( createReduce );
             }
 
-            algorithm::mpi::Reduce<simDim>* createReduce =
-                new algorithm::mpi::Reduce<simDim>( zoneTransversalPlane,
-                                                    isGroupRoot );
-            if( isInGroup )
+            /* Create communicator with ranks of each plane reduce root */
             {
-                this->planeReduce = createReduce;
-                this->isPlaneReduceRoot = isGroupRoot;
+                /* Array with root ranks of the planeReduce operations */
+                std::vector<int> planeReduceRootRanks( gc.getGlobalSize(), -1 );
+                /* Am I one of the planeReduce root ranks? my global rank : -1 */
+                int myRootRank = gc.getGlobalRank() * this->isPlaneReduceRoot
+                               - ( ! this->isPlaneReduceRoot );
+
+                MPI_Group world_group, new_group;
+                MPI_CHECK(MPI_Allgather( &myRootRank, 1, MPI_INT,
+                                         &(planeReduceRootRanks.front()),
+                                         1,
+                                         MPI_INT,
+                                         MPI_COMM_WORLD ));
+
+                /* remove all non-roots (-1 values) */
+                std::sort( planeReduceRootRanks.begin(), planeReduceRootRanks.end() );
+                std::vector<int> ranks( std::lower_bound( planeReduceRootRanks.begin(),
+                                                          planeReduceRootRanks.end(),
+                                                          0 ),
+                                        planeReduceRootRanks.end() );
+
+                MPI_CHECK(MPI_Comm_group( MPI_COMM_WORLD, &world_group ));
+                MPI_CHECK(MPI_Group_incl( world_group, ranks.size(), ranks.data(), &new_group ));
+                MPI_CHECK(MPI_Comm_create( MPI_COMM_WORLD, new_group, &commFileWriter ));
+                MPI_CHECK(MPI_Group_free( &new_group ));
+                MPI_CHECK(MPI_Group_free( &world_group ));
             }
-            else
-                __delete( createReduce );
-        }
 
-        /* Create communicator with ranks of each plane reduce root */
-        {
-            /* Array with root ranks of the planeReduce operations */
-            std::vector<int> planeReduceRootRanks( gc.getGlobalSize(), -1 );
-            /* Am I one of the planeReduce root ranks? my global rank : -1 */
-            int myRootRank = gc.getGlobalRank() * this->isPlaneReduceRoot
-                           - ( ! this->isPlaneReduceRoot );
-
-            MPI_Group world_group, new_group;
-            MPI_CHECK(MPI_Allgather( &myRootRank, 1, MPI_INT,
-                                     &(planeReduceRootRanks.front()),
-                                     1,
-                                     MPI_INT,
-                                     MPI_COMM_WORLD ));
-
-            /* remove all non-roots (-1 values) */
-            std::sort( planeReduceRootRanks.begin(), planeReduceRootRanks.end() );
-            std::vector<int> ranks( std::lower_bound( planeReduceRootRanks.begin(),
-                                                      planeReduceRootRanks.end(),
-                                                      0 ),
-                                    planeReduceRootRanks.end() );
-
-            MPI_CHECK(MPI_Comm_group( MPI_COMM_WORLD, &world_group ));
-            MPI_CHECK(MPI_Group_incl( world_group, ranks.size(), ranks.data(), &new_group ));
-            MPI_CHECK(MPI_Comm_create( MPI_COMM_WORLD, new_group, &commFileWriter ));
-            MPI_CHECK(MPI_Group_free( &new_group ));
-            MPI_CHECK(MPI_Group_free( &world_group ));
+            // set how often the plugin should be executed while PIConGPU is running
+            Environment<>::get( ).PluginConnector( ).setNotificationPeriod(
+                this,
+                m_help->notifyPeriod.get(id)
+            );
         }
     }
 
+
     template<class AssignmentFunction, class Species>
-    void PhaseSpace<AssignmentFunction, Species>::pluginUnload()
+    PhaseSpace<AssignmentFunction, Species>::~PhaseSpace()
     {
         __delete( this->dBuffer );
         __delete( planeReduce );
@@ -161,10 +204,10 @@ namespace picongpu
 
     template<class AssignmentFunction, class Species >
     template<uint32_t r_dir>
-    void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace( )
+    void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace( const uint32_t currentStep )
     {
         const pmacc::math::Int<simDim> guardCells = SuperCellSize().toRT() * int(GUARD_SIZE);
-        const pmacc::math::Size_t<simDim> coreBorderSuperCells( this->cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
+        const pmacc::math::Size_t<simDim> coreBorderSuperCells( this->m_cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
         const pmacc::math::Size_t<simDim> coreBorderCells = coreBorderSuperCells *
             precisionCast<size_t>( SuperCellSize().toRT() );
 
@@ -177,18 +220,31 @@ namespace picongpu
          */
         zone::SphericZone<simDim> zoneCoreBorder( coreBorderCells, guardCells );
 
-        algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
+        StartBlockFunctor< r_dir > startBlockFunctor(
+            particles->getDeviceParticlesBox(),
+            dBuffer->origin(),
+            this->axis_element.momentum,
+            this->axis_p_range
+        );
 
-        FunctorBlock<Species, SuperCellSize, float_PS, num_pbins, r_dir> functorBlock(
-            particles->getDeviceParticlesBox(), dBuffer->origin(),
-            this->axis_element.momentum, this->axis_p_range );
+        auto bindFunctor = std::bind(
+            startBlockFunctor,
+            // particle filter
+            std::placeholders::_1,
+            // area to work on
+            zoneCoreBorder,
+            // data below - passed to functor operator()
+            cursor::make_MultiIndexCursor<simDim>()
+        );
 
-        forEachSuperCell( /* area to work on */
-                          zoneCoreBorder,
-                          /* data below - passed to functor operator() */
-                          cursor::make_MultiIndexCursor<simDim>(),
-                          functorBlock
-                        );
+        ForEach<
+            typename Help::EligibleFilters,
+            plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
+        >{ }(
+            m_help->filter.get( m_id ),
+            currentStep,
+            bindFunctor
+        );
 
         dc.releaseData( Species::FrameType::getName() );
     }
@@ -201,12 +257,12 @@ namespace picongpu
 
         /* calculate local phase space */
         if( this->axis_element.space == AxisDescription::x )
-            calcPhaseSpace<AxisDescription::x>();
+            calcPhaseSpace<AxisDescription::x>( currentStep );
         else if( this->axis_element.space == AxisDescription::y )
-            calcPhaseSpace<AxisDescription::y>();
+            calcPhaseSpace<AxisDescription::y>( currentStep );
 #if(SIMDIM==DIM3)
         else
-            calcPhaseSpace<AxisDescription::z>();
+            calcPhaseSpace<AxisDescription::z>( currentStep );
 #endif
 
         /* transfer to host */
@@ -255,15 +311,8 @@ namespace picongpu
         if( this->commFileWriter != MPI_COMM_NULL )
             dumpHBuffer( hReducedBuffer, this->axis_element,
                          this->axis_p_range, pRange_unit,
-                         unit, Species::FrameType::getName(),
+                         unit, Species::FrameType::getName() + "_" + m_help->filter.get( m_id ),
                          currentStep, this->commFileWriter );
-    }
-
-    template<class AssignmentFunction, class Species>
-    void PhaseSpace<AssignmentFunction, Species>::setMappingDescription(
-        MappingDesc* cellDescription )
-    {
-        this->cellDescription = cellDescription;
     }
 
 } /* namespace picongpu */

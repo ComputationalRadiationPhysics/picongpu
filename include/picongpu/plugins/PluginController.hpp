@@ -48,7 +48,7 @@
 #   include "picongpu/plugins/ChargeConservation.hpp"
 #   include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
 #   if(ENABLE_HDF5 == 1)
-#       include "picongpu/plugins/PhaseSpace/PhaseSpaceMulti.hpp"
+#       include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 #       include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #   endif
 
@@ -222,7 +222,7 @@ private:
         , plugins::particleMerging::ParticleMerger<bmpl::_1>
 #   if(ENABLE_HDF5 == 1)
         , PerSuperCell<bmpl::_1>
-        , PhaseSpaceMulti<particles::shapes::Counter::ChargeAssignment, bmpl::_1>
+        , plugins::multi::Master< PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1> >
 #   endif
 #endif
     >;
