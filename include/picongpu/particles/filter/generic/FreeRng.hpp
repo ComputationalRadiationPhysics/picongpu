@@ -80,7 +80,9 @@ namespace acc
         {
             namespace nvrng = nvidia::rng;
 
-            return Functor::operator()(
+            bool const isValid = particle.isHandleValid( );
+
+            return isValid && Functor::operator()(
                 m_rng,
                 particle
             );

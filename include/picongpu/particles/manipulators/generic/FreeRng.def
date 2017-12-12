@@ -42,27 +42,30 @@ namespace generic
      * @tparam T_Seed seed to initialize the random number generator
      * @tparam T_SpeciesType type of the species that shall be manipulated
      *
-     * example: add
+     * example for `particle.param`: add
      *   @code{.cpp}
      *   #include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
      *
-     *   struct RandomXFunctor
+     *   struct FunctorRandomX
      *   {
      *       template< typename T_Rng, typename T_Particle >
      *       HDINLINE void operator()( T_Rng& rng, T_Particle& particle )
      *       {
      *           particle[ position_ ].x() = rng();
      *       }
-     *       static constexpr char const * name = "RandomXPos";
+     *       static constexpr char const * name = "randomXPos";
      *   };
      *
-     *   using RandomXPos = FreeRng<
-     *      RandomXFunctor,
+     *   using RandomXPos = generic::FreeRng<
+     *      FunctorRandomX,
      *      nvidia::rng::distributions::Uniform_float
      *   >;
-     *   particles::Manipulate< RandomXPos, SPECIES_NAME >
      *   @endcode
-     *   to `InitPipeline` in `speciesInitialization.param`
+     *
+     * and to `InitPipeline` in `speciesInitialization.param`:
+     *   @code{.cpp}
+     *   Manipulate< manipulators::RandomXPos, SPECIES_NAME >
+     *   @endcode
      */
     template<
         typename T_Functor,

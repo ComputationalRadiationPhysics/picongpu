@@ -85,9 +85,11 @@ namespace filter
         IfRelativeGlobalPositionParamUpperQuarter
     >;
 
-    /** collection of all available particle filters
+    /** Plugins: collection of all available particle filters
      *
-     * - filter All is defined in picongpu/particles/filter/filter.def
+     * Create a list of all filters here that you want to use in plugins.
+     *
+     * Note: filter All is defined in picongpu/particles/filter/filter.def
      */
     using AllParticleFilters = MakeSeq_t<
         All,

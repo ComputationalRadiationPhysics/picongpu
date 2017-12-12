@@ -41,7 +41,8 @@ namespace generic
      *
      * @tparam T_Functor user defined unary functor
      *
-     * example: each particle with a cell offset of 5 in X direction
+     * example for `particleFilters.param`: each particle with a cell offset of 5
+     * in X direction
      *   @code{.cpp}
      *
      *   struct FunctorEachParticleInXCell5

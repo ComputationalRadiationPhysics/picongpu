@@ -74,12 +74,15 @@ struct KernelDeriveParticles
      * @param srcBox particles box of the source species
      * @param manipulateFunctor functor to derive a particle out of another one
      *                          must fulfill the interface particles::manipulators::IManipulator
+     * @param srcFilterFunctor unary filter to select in the source species
+     *                         which particles to derive
      * @param mapper functor to map a block to a supercell
      */
    template<
         typename T_DestParBox,
         typename T_SrcParBox,
         typename T_ManipulateFunctor,
+        typename T_SrcFilterFunctor,
         typename T_Mapping,
         typename T_Acc
     >
@@ -88,6 +91,7 @@ struct KernelDeriveParticles
         T_DestParBox destBox,
         T_SrcParBox srcBox,
         T_ManipulateFunctor manipulateFunctor,
+        T_SrcFilterFunctor srcFilterFunctor,
         T_Mapping const mapper
     ) const
     {
@@ -146,6 +150,11 @@ struct KernelDeriveParticles
             localSuperCellOffset,
             WorkerCfg< numWorker >{ workerIdx }
         );
+        auto accSrcFilter = srcFilterFunctor(
+            acc,
+            localSuperCellOffset,
+            WorkerCfg< numWorker >{ workerIdx }
+        );
 
         __syncthreads( );
 
@@ -170,18 +179,19 @@ struct KernelDeriveParticles
                     if( parSrc[ multiMask_ ] != 1 )
                         parSrc.setHandleInvalid( );
 
-                    //! @todo us filtered functor
-                    if( parSrc.isHandleValid( ) )
+                    if( accSrcFilter( acc, parSrc ) )
+                    {
                         assign(
                             parDest,
                             deselect< particleId >( parSrc )
                         );
 
-                    accManipulator(
-                        acc,
-                        parDest,
-                        parSrc
-                    );
+                        accManipulator(
+                            acc,
+                            parDest,
+                            parSrc
+                        );
+                    }
                 }
             );
 

@@ -28,35 +28,14 @@ namespace particles
 {
 namespace filter
 {
-
-    /** Parameters for an assignment in a relative position selection
-     */
-    struct IfRelativeGlobalPositionParam
-    {
-        /* lowerBound is included in the range */
-        static constexpr float_X lowerBound = 0.0;
-        /* upperBound is excluded in the range */
-        static constexpr float_X upperBound = 0.5;
-        /* dimension for the filter
-         * x = 0; y= 1; z = 2
-         */
-        static constexpr uint32_t dimension = 0u;
-
-        // filter name
-        static constexpr char const * name = "lowerHalfXPosition";
-    };
-    /** definition of a relative position selection that assigns a drift in X */
-    using LowerHalfXPosition = RelativeGlobalDomainPosition<
-        IfRelativeGlobalPositionParam
-    >;
-
-    /** collection of all available particle filters
+    /** Plugins: collection of all available particle filters
      *
-     * - filter All is defined in picongpu/particles/filter/filter.def
+     * Create a list of all filters here that you want to use in plugins.
+     *
+     * Note: filter All is defined in picongpu/particles/filter/filter.def
      */
     using AllParticleFilters = MakeSeq_t<
-        All,
-        LowerHalfXPosition
+        All
     >;
 
 } // namespace filter

@@ -348,7 +348,8 @@ template<
     typename T_SrcName,
     typename T_SrcAttributes,
     typename T_SrcFlags,
-    typename T_ManipulateFunctor
+    typename T_ManipulateFunctor,
+    typename T_SrcFilterFunctor
 >
 void
 Particles<
@@ -361,7 +362,8 @@ Particles<
         T_SrcAttributes,
         T_SrcFlags
     >& src,
-    T_ManipulateFunctor& functor
+    T_ManipulateFunctor& manipulatorFunctor,
+    T_SrcFilterFunctor& srcFilterFunctor
 )
 {
     log< picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
@@ -378,7 +380,8 @@ Particles<
     )(
         this->getDeviceParticlesBox( ),
         src.getDeviceParticlesBox( ),
-        functor,
+        manipulatorFunctor,
+        srcFilterFunctor,
         mapper
     );
     this->fillAllGaps( );
