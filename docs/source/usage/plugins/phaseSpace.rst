@@ -28,7 +28,7 @@ The distinct options are (assuming a species ``e`` for electrons):
 Option                                 Usage                                     Unit
 ====================================== ======================================================== ============================
 ``--e_phaseSpace.period <N>``          calculate each N steps                                   *none*
-``--e_energy.filter``                  Use filtered particles. Available filters are set up in  *none*
+``--e_phaseSpace.filter``              Use filtered particles. Available filters are set up in  *none*
                                        :ref:`particleFilters.param <usage-params-core>`.
 ``--e_phaseSpace.space <x/y/z>``       spatial coordinate of the 2D phase space                 *none*
 ``--e_phaseSpace.momentum <px/py/pz>`` momentum coordinate of the 2D phase space                *none*
