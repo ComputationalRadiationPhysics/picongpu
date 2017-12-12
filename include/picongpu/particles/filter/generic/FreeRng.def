@@ -42,7 +42,8 @@ namespace generic
      * @tparam T_Seed seed to initialize the random number generator
      * @tparam T_SpeciesType type of the species that shall be manipulated
      *
-     * example for `particleFilters.param`: get each particle second particle
+     * example for `particleFilters.param`: get every second particle
+     *                                      (random sample of 50%)
      *   @code{.cpp}
      *
      *   struct FunctorEachSecondParticle

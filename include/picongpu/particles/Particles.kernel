@@ -75,7 +75,7 @@ struct KernelDeriveParticles
      * @param manipulateFunctor functor to derive a particle out of another one
      *                          must fulfill the interface particles::manipulators::IManipulator
      * @param srcFilterFunctor unary filter to select in the source species
-     *                         species which particles to derive
+     *                         which particles to derive
      * @param mapper functor to map a block to a supercell
      */
    template<

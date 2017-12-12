@@ -35,7 +35,7 @@ namespace generic
      *                   **optional**: can implement **one** host side constructor
      *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
      *
-     * example for `particleFilters.param`: each particle with in cell position greater than 0.5
+     * example for `particleFilters.param`: each particle with in-cell position greater than 0.5
      *   @code{.cpp}
      *
      *   struct FunctorEachParticleAboveMiddleOfTheCell
