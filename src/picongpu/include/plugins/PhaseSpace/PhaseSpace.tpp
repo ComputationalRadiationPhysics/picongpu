@@ -239,13 +239,16 @@ namespace picongpu
         const float_64 unit = UNIT_CHARGE / UNIT_VOLUME;
 
         /* (momentum) p range: unit is m_species * c
-         *   During the kernels we calculate with a typical MAKRO momentum range
-         *   to avoid over- / underflows. Now for the dump the meta information
+         *   During the kernels we calculate with a typical single/real
+         *   momentum range. Now for the dump the meta information of units
          *   on the p-axis should be scaled to represent single/real particles.
-         *   \see PhaseSpaceMulti::pluginLoad( ) */
-        float_64 pRange_unit = float_64( frame::getMass<typename Species::FrameType>() ) *
-                               float_64( SPEED_OF_LIGHT ) *
-                               UNIT_MASS * UNIT_SPEED;
+         *   \see PhaseSpaceMulti::pluginLoad( )
+         */
+        float_64 const pRange_unit =
+            float_64( frame::getMass<typename Species::FrameType>() ) *
+            float_64( SPEED_OF_LIGHT ) *
+            ( UNIT_MASS * float_64( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE ) ) *
+            UNIT_SPEED;
 
         DumpHBuffer dumpHBuffer;
 
