@@ -150,21 +150,46 @@ class UiParameter(Parameter):
         # parameter values would possibly be on the wrong scale
         self.set_value(self.value)
 
+    def convert_value_to_internal_scale(self, x):
+        """
+        Computes for a given value x its corresponding
+        representation on the 'internal scale' of the parameter
+        after taking into account the possible transformation operation.
+        For UiParameters it just returns the identity, but derived
+        classes might perform e.g. scaling or exponential transformation
+        to convert values to the internal scale of the parameters
+        for usage within picongpu.
+
+        Parameters
+        ----------
+        x: float
+            The value whose corresponding representation
+            needs to be computed.
+
+        Returns
+        -------
+        The value cast to the parameters dtype
+        """
+
+        return self.dtype(x)
+
     def set_value(self, x):
         """
-        Callback function that updates the objects 'value' attribute
-        when the corresponding ipython slider widget is modified.
+        Updates the objects 'value' attribute to (a possibly transformed)
+        internal representation
 
         Parameters
         ----------
         x: float
             The current value of the slider widget
+
         Returns
         -------
         A float containing the updated 'value' attribute. Is printed
         below the slider-widget for user-feedback.
         """
-        self.value = self.dtype(x)
+
+        self.value = self.convert_value_to_internal_scale(x)
         return self.formatter(self.value)
 
     def on_value_change(self, change):
@@ -225,7 +250,7 @@ class LinearScaledParameter(UiParameter):
         In addition to base class parameters:
 
         scale_factor: float
-            The factor for the linear transformation of slider value to
+            The factor for the linear transformation of slider ui value to
             internal value.
         """
         self.scale_factor = scale_factor
@@ -237,24 +262,26 @@ class LinearScaledParameter(UiParameter):
                              slider_min, slider_max, slider_step,
                              label, formatter, value, dtype)
 
-    def set_value(self, x):
+    def convert_value_to_internal_scale(self, x):
         """
-        Callback function that updates the internal 'value' to
-        a linearly scaled version of the slider widgets value by using
-        the 'scale_factor' attribute for multiplication.
-        Overrides the base class method.
+        Computes for a given value its corresponding
+        representation on the 'internal scale' of the parameter
+        after taking into account the possible linear
+        scaling operation.
 
         Parameters
         ----------
         x: float
-            The current value of the slider widget
+            The value whose corresponding representation
+            needs to be computed.
 
         Returns
         -------
-        A float containing the internal 'value' attribute after adjustment.
+        The value multiplied by the parameters scale_factor
+        and cast to the parameters dtype
         """
-        self.value = self.dtype(x * self.scale_factor)
-        return self.formatter(self.value)
+
+        return self.dtype(x * self.scale_factor)
 
     def get_value(self):
         """
@@ -297,7 +324,7 @@ class LogScaledParameter(UiParameter):
         In addition to base class parameters:
 
         base: float
-            The base for the power transformation from slider value to
+            The base for the power transformation from slider ui value to
             the internal 'value'.
         """
         self.base = float(base)
@@ -306,25 +333,25 @@ class LogScaledParameter(UiParameter):
                              slider_min, slider_max, slider_step,
                              label, formatter, value, dtype)
 
-    def set_value(self, x):
+    def convert_value_to_internal_scale(self, x):
         """
-        Callback function that updates the internal 'value' to
-        a power version of the slider widgets value by using
-        the 'base' attribute.
-        Overrides the base class method.
+        Computes for a given value its corresponding
+        representation on the 'internal scale' of the parameter
+        after taking into account the exponential transform operation.
 
         Parameters
         ----------
         x: float
-            The current value of the slider widget
+            The value whose corresponding representation
+            needs to be computed.
 
         Returns
         -------
-        A float containing the internal 'value' attribute after adjustment.
+        The value taken as power of the parameters base
+        and cast to the parameters dtype
         """
 
-        self.value = self.dtype(self.base ** x)
-        return self.formatter(self.value)
+        return self.dtype(self.base ** x)
 
     def get_value(self):
         """
