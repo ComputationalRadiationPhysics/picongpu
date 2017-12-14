@@ -18,13 +18,16 @@ class PhaseSpaceMeta(object):
     Meta information for data of a phase space iteration.
     """
 
-    def __init__(self, species, ps, shape, extent, dV):
+    def __init__(self, species, species_filter, ps, shape, extent, dV):
         """
         Parameters
         ----------
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
+        species_filter: string
+            name of the particle species filter, default is 'all'
+            (defined in ``particleFilters.param``)
         ps : string
             phase space selection in order: spatial, momentum component,
             e.g. 'ypy' or 'ypx'
@@ -37,6 +40,7 @@ class PhaseSpaceMeta(object):
         """
         # strings for labels
         self.species = species
+        self.species_filter = species_filter
         self.r = ps[0]
         self.p = ps[2]
         # lower and upper bound of bins in SI
@@ -66,11 +70,11 @@ class PhaseSpace(object):
             raise ValueError('The run_directory parameter can not be None!')
 
         self.run_directory = run_directory
-        self.data_file_prefix = "PhaseSpace_{0}_{1}_{2}"
+        self.data_file_prefix = "PhaseSpace_{0}_{1}_{2}_{3}"
         self.data_file_suffix = ".h5"
         self.data_hdf5_path = "/data/{0}/{1}"
 
-    def get_data_path(self, species, ps, iteration=None):
+    def get_data_path(self, species, species_filter, ps, iteration=None):
         """
         Return the path to the underlying data file.
 
@@ -79,6 +83,9 @@ class PhaseSpace(object):
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
+        species_filter: string
+            name of the particle species filter, default is 'all'
+            (defined in ``particleFilters.param``)
         ps : string
             phase space selection in order: spatial, momentum component,
             e.g. 'ypy' or 'ypx'
@@ -94,6 +101,8 @@ class PhaseSpace(object):
         """
         if species is None:
             raise ValueError('The species parameter can not be None!')
+        if species_filter is None:
+            raise ValueError('The species_filter parameter can not be None!')
         if ps is None:
             raise ValueError('The ps parameter can not be None!')
 
@@ -117,6 +126,7 @@ class PhaseSpace(object):
 
         data_file_name = self.data_file_prefix.format(
             species,
+            species_filter,
             ps,
             iteration_str
         ) + self.data_file_suffix
@@ -140,7 +150,7 @@ class PhaseSpace(object):
 
             return data_file_path, data_hdf5_name
 
-    def get_iterations(self, species, ps):
+    def get_iterations(self, species, species_filter='all', ps=None):
         """
         Return an array of iterations with available data.
 
@@ -149,6 +159,9 @@ class PhaseSpace(object):
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
+        species_filter: string
+            name of the particle species filter, default is 'all'
+            (defined in ``particleFilters.param``)
         ps : string
             phase space selection in order: spatial, momentum component,
             e.g. 'ypy' or 'ypx'
@@ -157,7 +170,7 @@ class PhaseSpace(object):
         -------
         An array with unsigned integers.
         """
-        data_file_path = self.get_data_path(species, ps)
+        data_file_path = self.get_data_path(species, species_filter, ps)
 
         matching_files = glob.glob(data_file_path)
         re_it = re.compile(data_file_path.replace("*", "([0-9]+)"))
@@ -175,7 +188,7 @@ class PhaseSpace(object):
 
         return iterations
 
-    def get(self, species, ps, iteration):
+    def get(self, species, species_filter='all', ps=None, iteration=None):
         """
         Get a phase space histogram.
 
@@ -184,6 +197,9 @@ class PhaseSpace(object):
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
+        species_filter: string
+            name of the particle species filter, default is 'all'
+            (defined in ``particleFilters.param``)
         ps : string
             phase space selection in order: spatial, momentum component,
             e.g. 'ypy' or 'ypx'
@@ -205,11 +221,12 @@ class PhaseSpace(object):
 
         data_file_path, data_hdf5_name = self.get_data_path(
             species,
+            species_filter,
             ps,
             iteration
         )
 
-        available_iterations = self.get_iterations(species, ps)
+        available_iterations = self.get_iterations(species, species_filter, ps)
         if iteration not in available_iterations:
             raise IndexError('Iteration {} is not available!\n'
                              'List of available iterations: \n'
@@ -241,5 +258,6 @@ class PhaseSpace(object):
 
         f.close()
 
-        ps_meta = PhaseSpaceMeta(species, ps, ps_cut.shape, extent, dV)
+        ps_meta = PhaseSpaceMeta(species, species_filter, ps, ps_cut.shape,
+                                 extent, dV)
         return ps_cut, ps_meta

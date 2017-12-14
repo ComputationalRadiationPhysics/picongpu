@@ -88,7 +88,7 @@ You can quickly plot the data in Python with:
 
    # load data
    energy_histogram = EnergyHistogram('/home/axel/runs/lwfa_001')
-   counts, bins = energy_histogram.get('e', iteration=2000)
+   counts, bins = energy_histogram.get('e', species_filter='all', iteration=2000)
 
    # unit conversion
    MeV = 1.e-3  # keV to MeV
