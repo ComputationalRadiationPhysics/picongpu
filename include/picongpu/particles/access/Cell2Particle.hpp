@@ -25,6 +25,9 @@
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/enum_trailing.hpp>
 
+
+namespace picongpu
+{
 namespace particleAccess
 {
 
@@ -32,15 +35,18 @@ namespace particleAccess
 #define NORMAL_ARGS(Z, N, _) Arg ## N arg ## N
 
 #define CELL2PARTICLE_OPERATOR(Z, N, _) \
-    template<typename T_Acc, typename TParticlesBox, typename CellIndex, typename Functor BOOST_PP_ENUM_TRAILING(N, TEMPLATE_ARGS, _)> \
-    DINLINE void operator()(T_Acc const & acc, TParticlesBox pb, const CellIndex& cellIndex, Functor functor BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)); \
+    template<typename T_Acc, typename TParticlesBox, typename CellIndex, typename Functor, typename T_Filter BOOST_PP_ENUM_TRAILING(N, TEMPLATE_ARGS, _)> \
+    DINLINE void operator()(T_Acc const & acc, TParticlesBox pb, const uint32_t workerIdx, const CellIndex& cellIndex, Functor functor, T_Filter filter BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)); \
 
 
-//template<typename ParticleAttributes>
-template<typename SuperCellSize>
+template<
+    typename SuperCellSize,
+    uint32_t T_numWorkers
+>
 struct Cell2Particle
 {
     using result_type = void;
+    static constexpr uint32_t numWorkers = T_numWorkers;
 
     BOOST_PP_REPEAT(5, CELL2PARTICLE_OPERATOR, _)
 };
@@ -49,7 +55,7 @@ struct Cell2Particle
 #undef TEMPLATE_ARGS
 #undef NORMAL_ARGS
 
-}
+} // namespace particleAccess
+} // namespace picongpu
 
 #include "Cell2Particle.tpp"
-

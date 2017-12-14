@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Richard Pausch
+/* Copyright 2013-2017 Axel Huebl, Heiko Burau, Richard Pausch, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -31,8 +31,7 @@
 #include <pmacc/nvidia/atomic.hpp>
 
 #include "picongpu/particles/access/Cell2Particle.hpp"
-
-#include "PhaseSpace.hpp"
+#include "picongpu/plugins/PhaseSpace/PhaseSpace.hpp"
 
 namespace picongpu
 {
@@ -82,11 +81,11 @@ namespace picongpu
         template<typename FramePtr, typename float_PS, typename Pitch, typename T_Acc >
         DINLINE void
         operator()( const T_Acc & acc,
-                    FramePtr frame,
-                    uint16_t particleID,
-                    cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
-                    const uint32_t el_p,
-                    const std::pair<float_X, float_X>& axis_p_range )
+            FramePtr frame,
+            uint16_t particleID,
+            cursor::CT::BufferCursor<float_PS, Pitch> curDBufferOriginInBlock,
+            const uint32_t el_p,
+            const std::pair<float_X, float_X>& axis_p_range )
         {
             auto particle = frame[particleID];
             /** \todo this can become a functor to be even more flexible */
@@ -130,12 +129,20 @@ namespace picongpu
      * snippet of the phase space in global memory.
      *
      * \tparam Species the particle species to create the phase space for
+     * \tparam T_filter type of the particle filter
      * \tparam SuperCellSize how many cells form a super cell \see memory.param
      * \tparam float_PS type for each bin in the phase space
      * \tparam num_pbins number of bins in momentum space \see PhaseSpace.hpp
      * \tparam r_dir spatial direction of the phase space (0,1,2) \see AxisDescription
      */
-    template<typename Species, typename SuperCellSize, typename float_PS, uint32_t num_pbins, uint32_t r_dir>
+    template<
+        typename Species,
+        typename SuperCellSize,
+        typename float_PS,
+        uint32_t num_pbins,
+        uint32_t r_dir,
+        typename T_Filter
+    >
     struct FunctorBlock
     {
         typedef void result_type;
@@ -146,21 +153,26 @@ namespace picongpu
         cursor::BufferCursor<float_PS, 2> curOriginPhaseSpace;
         uint32_t p_element;
         std::pair<float_X, float_X> axis_p_range;
+        T_Filter particleFilter;
 
         /** Constructor to transfer params to device
          *
          * \param pb ParticleBox for a species
+         * \param parFilter filter functor to select particles
          * \param cur cursor to start of the local phase space in global memory
          * \param p_dir direction of the 2D phase space in momentum \see AxisDescription
          * \param p_range range of the momentum axis \see PhaseSpace::axis_p_range
          */
         HDINLINE
-        FunctorBlock( const TParticlesBox& pb,
-                      cursor::BufferCursor<float_PS, 2> cur,
-                      const uint32_t p_dir,
-                      const std::pair<float_X, float_X>& p_range ) :
-        particlesBox(pb), curOriginPhaseSpace(cur), p_element(p_dir),
-        axis_p_range(p_range)
+        FunctorBlock(
+            const TParticlesBox& pb,
+            cursor::BufferCursor<float_PS, 2> cur,
+            const uint32_t p_dir,
+            const std::pair<float_X, float_X>& p_range,
+            const T_Filter & parFilter
+        ) :
+            particlesBox(pb), curOriginPhaseSpace(cur), p_element(p_dir),
+            axis_p_range(p_range), particleFilter(parFilter)
         {}
 
         /** Called for the first cell of each block #-of-cells-in-block times
@@ -192,15 +204,31 @@ namespace picongpu
             __syncthreads();
 
             FunctorParticle<r_dir, num_pbins, SuperCellSize> functorParticle;
-            particleAccess::Cell2Particle<SuperCellSize> forEachParticleInCell;
-            forEachParticleInCell( acc,
-                                   /* mandatory params */
-                                   particlesBox, indexGlobal, functorParticle,
-                                   /* optional params */
-                                   dBufferInBlock.origin(),
-                                   p_element,
-                                   axis_p_range
-                                 );
+            //! \todo change this as soon as the kernel support lock step programming
+            constexpr uint32_t numWorkers = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            /** \todo change this as soon as the kernel support lock step programming
+             * the current used `threadIdx` is an hack
+             */
+            const uint32_t workerIdx = DataSpaceOperations< simDim >::template map<
+                SuperCellSize
+            >( DataSpace< simDim >( threadIdx) );
+            particleAccess::Cell2Particle<
+                SuperCellSize,
+                numWorkers
+            > forEachParticleInCell;
+            forEachParticleInCell(
+                acc,
+                /* mandatory params */
+                particlesBox,
+                workerIdx,
+                indexGlobal,
+                functorParticle,
+                particleFilter,
+                /* optional params */
+                dBufferInBlock.origin(),
+                p_element,
+                axis_p_range
+            );
 
             __syncthreads();
             /* add to global dBuffer */

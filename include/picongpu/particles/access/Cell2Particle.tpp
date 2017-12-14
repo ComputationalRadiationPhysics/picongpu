@@ -24,7 +24,11 @@
 #include <pmacc/math/MapTuple.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <boost/mpl/void.hpp>
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
 
+
+namespace picongpu
+{
 namespace particleAccess
 {
 
@@ -33,11 +37,11 @@ namespace particleAccess
 #define ARGS(Z, N, _) arg ## N
 
 #define CELL2PARTICLE_OPERATOR(Z, N, _) \
-template<typename SuperCellSize> \
-template<typename T_Acc, typename TParticlesBox, typename CellIndex, typename Functor \
+template<typename SuperCellSize, uint32_t T_numWorkers> \
+template<typename T_Acc, typename TParticlesBox, typename CellIndex, typename Functor, typename T_Filter \
          BOOST_PP_ENUM_TRAILING(N, TEMPLATE_ARGS, _)> \
-DINLINE void Cell2Particle<SuperCellSize>::operator() \
-(T_Acc const & acc, TParticlesBox pb, const CellIndex& cellIndex, Functor functor \
+DINLINE void Cell2Particle<SuperCellSize, T_numWorkers>::operator() \
+(T_Acc const & acc, TParticlesBox pb, const uint32_t workerIdx, const CellIndex& cellIndex, Functor functor, T_Filter filter \
 BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
 { \
     CellIndex superCellIdx = cellIndex / (CellIndex)SuperCellSize::toRT(); \
@@ -59,15 +63,27 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
     \
     if (!frame.isValid()) return; /* leave kernel if we have no frames*/ \
     \
+    auto accFilter = filter( \
+        acc, \
+        superCellIdx - GUARD_SIZE, \
+        mappings::threads::WorkerCfg< numWorkers >{ workerIdx } \
+    ); \
+    \
     while (frame.isValid()) \
     { \
         if (linearThreadIdx < particlesInSuperCell) \
         { \
-            functor( \
-                acc, \
-                frame, linearThreadIdx \
-                BOOST_PP_ENUM_TRAILING(N, ARGS, _) \
-                ); \
+            if( \
+                accFilter( \
+                    acc, \
+                    frame[ linearThreadIdx ] \
+                ) \
+            ) \
+                functor( \
+                    acc, \
+                    frame, linearThreadIdx \
+                    BOOST_PP_ENUM_TRAILING(N, ARGS, _) \
+                    ); \
         } \
         __syncthreads(); \
         if (linearThreadIdx == 0) \
@@ -86,4 +102,5 @@ BOOST_PP_REPEAT(5, CELL2PARTICLE_OPERATOR, _)
 #undef NORMAL_ARGS
 #undef ARGS
 
-}
+} // namespace particleAccess
+} // namespace picongpu
