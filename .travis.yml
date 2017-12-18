@@ -18,8 +18,7 @@ addons:
       - environment-modules
       - openmpi-bin
       - libopenmpi-dev
-      # clang 3.9.0 is pre-installed
-      # - clang-3.9  # 3.9.1-4ubuntu3~14.04.3
+      # clang 5.0.0 is pre-installed
       # - clang-tidy-3.9
 
 env:
@@ -37,11 +36,17 @@ install:
       mkdir -p $SPACK_ROOT &&
       git clone --depth 50 https://github.com/spack/spack.git $SPACK_ROOT &&
       echo -e "config:""\n  build_jobs:"" 2" > $SPACK_ROOT/etc/spack/config.yaml;
+      echo -e "packages:""\n  cmake:"
+              "\n    paths:"
+              "\n      cmake@3.9.2$COMPILERSPEC arch=linux-ubuntu14.04-x86_64:"
+              " $(dirname $(which cmake))"
+              "\n    buildable:"" False" > $SPACK_ROOT/etc/spack/packages.yaml;
     fi
   - spack compiler add
   - travis_wait spack install
-      cmake@3.7.2~openssl~ncurses
+      cmake@3.9.2
       $COMPILERSPEC
+      # ~openssl~ncurses
   - travis_wait spack install
       boost@1.62.0~date_time~graph~iostreams~locale~log~random~thread~timer~wave
       $COMPILERSPEC
@@ -155,8 +160,8 @@ jobs:
         - make -j 2
         # - make test  # reduce memory and RT costs first
     - <<: *test-cpp-unit
-      env: [ COMPILERSPEC='%clang@3.9.0' ]
+      env: [ COMPILERSPEC='%clang@5.0.0' ]
       before_install:
         - export CXX=clang++
-        - export CC=clang-3.9
+        - export CC=clang
         - export FC=gfortran-4.9
