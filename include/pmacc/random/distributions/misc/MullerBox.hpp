@@ -55,7 +55,7 @@ namespace distributions
          */
         T_Type secondRngNumber;
         //! true if secondRngNumber is valid else false
-        bool hasSecondRngNumber;
+        bool hasSecondRngNumber = false;
 
         using RNGMethod = T_RNGMethod;
         using UniformRng = Uniform<
