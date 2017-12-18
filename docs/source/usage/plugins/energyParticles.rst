@@ -20,6 +20,19 @@ PIConGPU command line option     Description
 ``--<species>_energy.filter``    Use filtered particles. All available filters will be shown with ``picongpu --help``
 ================================ ========================================================================================================
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+negligible.
+
+Host
+""""
+
+negligible.
+
 Output
 ^^^^^^
 

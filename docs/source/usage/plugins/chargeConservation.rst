@@ -21,6 +21,19 @@ PIConGPU command line argument (for ``.cfg`` files):
 
    --chargeConservation.period <periodOfSteps>
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+no extra allocations (needs at least one FieldTmp slot).
+
+Host
+""""
+
+negligible.
+
 Output and Analysis Tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 

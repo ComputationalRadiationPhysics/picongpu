@@ -13,6 +13,18 @@ By setting the command line flag ``--<species>_position.period`` to a non-zero n
 In order to get the particle trajectory for each time step the period needs to be set to ``1``, meaning e.g. ``--e_position.period 1`` for electrons.
 If less output is needed, e.g. only every 10th time step, the period can be set to different values, e.g. ``--e_position.period 10``.
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+negligible.
+
+Host
+""""
+
+negligible.
 
 Output
 ^^^^^^

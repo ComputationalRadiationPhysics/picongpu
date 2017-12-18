@@ -22,6 +22,19 @@ Command line option          Description
 ``--resourceLog.prefix``     Selects the prefix for the file stream name
 ============================ ===================================================================================
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+no extra allocation.
+
+Host
+""""
+
+negligible.
+
 Output / Example
 ^^^^^^^^^^^^^^^^
 

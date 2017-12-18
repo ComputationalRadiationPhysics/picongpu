@@ -272,6 +272,18 @@ Command line option                       Description
 ``--radiation_<species>.compression``     If set, the hdf5 output is compressed.
 ========================================= ==============================================================================================================================
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+each energy bin times each coordinate bin allocates one counter (``float_X``) permanently and on each accelerator.
+
+Host
+""""
+
+as on accelerator.
 
 Output
 ^^^^^^

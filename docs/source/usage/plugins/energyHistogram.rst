@@ -59,6 +59,19 @@ PIConGPU command line option                description
    #. create an electron histogram **with 512 bins** each 128th time step.
    #. create an electron histogram **with 1024 bins** (this is the default) each 100th time step.
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+an extra array with the number of bins.
+
+Host
+""""
+
+negligible.
+
 Output
 ^^^^^^
 

@@ -60,6 +60,20 @@ PIConGPU command line option description
    #. dump all species data each 128th time step, **do not create** the adios journal meta file.
    #. dump all field data each 1000th time step but **create** the adios journal meta file.
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+no extra allocations.
+
+Host
+""""
+
+as soon as ADIOS is compiled in, one extra ``mallocMC`` heap for the particle buffer is permanently reserved.
+During I/O, particle attributes are allocated one after another.
+
 Additional Tools
 ^^^^^^^^^^^^^^^^
 

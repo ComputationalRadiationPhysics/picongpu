@@ -13,6 +13,18 @@ By setting the PIConGPU command line flag ``--fields_energy.period`` to a non-ze
 The default value is ``0``, meaning that the total field energy is not stored.
 By setting e.g. ``--fields_energy.period 100`` the total field energy is computed for time steps *0, 100, 200, ...*.
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+negligible.
+
+Host
+""""
+
+negligible.
 
 Output
 ^^^^^^

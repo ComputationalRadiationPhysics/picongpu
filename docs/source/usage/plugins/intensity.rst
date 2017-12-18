@@ -21,6 +21,19 @@ By setting the PIConGPU command line flag ``--intensity.period`` to a non-zero v
 The default value is ``0``, meaning that nothing is computed.
 By setting e.g. ``--intensity.period 100`` the electric field analysis is computed for time steps *0, 100, 200, ...*.
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+negligible.
+
+Host
+""""
+
+negligible.
+
 Output
 ^^^^^^
 
