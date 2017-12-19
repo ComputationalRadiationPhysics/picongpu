@@ -72,27 +72,6 @@ Tuning the spatial resolution
 By default, the spatial bin size is chosen by dividing the opening angle by the number of bins for yaw and pitch respectively.
 The bin size can be tuned by customizing the mapping function in ``particleCalorimeter.param``.
 
-Detection of outgoing particles
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In order to detect particles which are leaving the global simulation volume, the calorimeter plugin has to be triggered whenever this happens.
-This is established by adding the ``GuardHandlerCallPlugins`` template argument to ``ParticleDescription`` (see :ref:`speciesDefinition.param <usage-params-core>`):
-
-.. code:: cpp
-
-   // example for photons
-   using PIC_Photons = Particles<
-       ParticleDescription<
-           bmpl::string<'p', 'h'>,
-           SuperCellSize,
-           DefaultAttributesSeq,
-           ParticleFlagsPhotons,
-           GuardHandlerCallPlugins
-       >
-   > ;
-
-
-Please make sure to have ``picongpu/GuardHandlerCallPlugins.hpp`` included.
 
 Memory Complexity
 ^^^^^^^^^^^^^^^^^
@@ -106,7 +85,6 @@ Host
 """"
 
 as on accelerator.
-
 Output
 ^^^^^^
 
