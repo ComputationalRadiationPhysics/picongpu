@@ -60,7 +60,7 @@ The easiest way is to load the data in Python:
 
    # load data
    phase_space = PhaseSpace('/home/axel/runs/foil_001')
-   e_ps, e_ps_meta = phase_space.get('e_all', ps='ypy', iteration=1000)
+   e_ps, e_ps_meta = phase_space.get('e', species_filter='all', ps='ypy', iteration=1000)
 
    # unit conversion from SI
    mu = 1.e6  # meters to microns
