@@ -246,8 +246,8 @@ class UiParameter(Parameter):
         value to internal value.
         Since for UiParameter there is no conversion, it returns
         the self.value.
-        In derived classes however, there will be a reverse trans-
-        formation of the self.value to the scale of the ui range
+        In derived classes however, there will be a reverse
+        transformation of the self.value to the scale of the ui range
         (which e.g. the slider will use for displaying purposes)
 
         Returns
