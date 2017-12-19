@@ -25,7 +25,6 @@ else
     module load PrgEnv-gnu/6.0.4
 fi
 
-module load CMake/3.8.1
 module load cudatoolkit/8.0.61_2.4.3-6.0.4.0_3.1__gb475d12
 
 # Libraries ###################################################################
@@ -38,6 +37,7 @@ module load cray-hdf5-parallel/1.10.0.3
 # Environment #################################################################
 #
 # needs to be compiled by the user
+export CMAKE_ROOT=$SCRATCH/lib/cmake-3.10.1
 export BOOST_ROOT=$SCRATCH/lib/boost-1.62.0
 export ZLIB_ROOT=$SCRATCH/lib/zlib-1.2.11
 export PNG_ROOT=$SCRATCH/lib/libpng-1.6.34
@@ -46,6 +46,7 @@ export PNGWRITER_ROOT=$SCRATCH/lib/pngwriter-0.6.0
 export ADIOS_ROOT=$SCRATCH/lib/adios-1.13.0
 export SPLASH_ROOT=$SCRATCH/lib/splash-1.6.0
 
+export LD_LIBRARY_PATH=$CMAKE_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$ZLIB_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNG_ROOT/lib:$LD_LIBRARY_PATH
@@ -54,6 +55,7 @@ export LD_LIBRARY_PATH=$PNGWRITER_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$SPLASH_ROOT/lib:$LD_LIBRARY_PATH
 
+export PATH=$CMAKE_ROOT/bin:$PATH
 export PATH=$PNG_ROOT/bin:$PATH
 export PATH=$ADIOS_ROOT/bin:$PATH
 

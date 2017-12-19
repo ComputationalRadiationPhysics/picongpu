@@ -69,15 +69,7 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 
 .. note::
 
-   For proper HDF5 detection, copy the ``FindHDF5.cmake`` of libSplash to PIConGPU:
-
-   .. code:: bash
-
-      cp $HOME/src/splash/cmake/FindHDF5.cmake $PICSRC/thirdParty/cmake-modules/
-
-.. note::
-
-   Please find a `Piz Daint quick start from October 2017 here <https://gist.github.com/ax3l/68cb4caa597df3def9b01640959ea56b>`_.
+   Please find a `Piz Daint quick start from December 2017 here <https://gist.github.com/ax3l/68cb4caa597df3def9b01640959ea56b>`_.
 
 .. literalinclude:: profiles/pizdaint-cscs/picongpu.profile.example
    :language: bash
