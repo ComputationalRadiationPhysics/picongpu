@@ -36,9 +36,6 @@ namespace picongpu
  */
 struct GuardHandlerCallPlugins
 {
-    typedef pmacc::particles::policies::ExchangeParticles HandleExchanged;
-    typedef GuardHandlerCallPlugins HandleNotExchanged;
-
     template< class T_Particles >
     void
     handleOutgoing(T_Particles& particles, const int32_t direction) const

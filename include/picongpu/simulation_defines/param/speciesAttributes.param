@@ -254,4 +254,15 @@ namespace picongpu
      */
     alias( exchangeMemCfg );
 
+    /** alias to specify the boundary condition for particles
+     *
+     * The default behavior if this alias is not given to a species is that the
+     * particles which leave the global simulation box where deleted.
+     * This also notifies all plugins that can handle leaving particles.
+     *
+     * Note: alias `boundaryCondition` will be ignored if the runtime parameter
+     * `--periodic` is set.
+     */
+    alias( boundaryCondition );
+
 } // namespace picongpu

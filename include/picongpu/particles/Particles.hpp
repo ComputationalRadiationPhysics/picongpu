@@ -24,14 +24,21 @@
 
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
-#include <pmacc/particles/ParticlesBase.hpp>
-#include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
+#include "picongpu/simulationControl/GuardHandlerCallPlugins.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
-#include <pmacc/particles/ParticleDescription.hpp>
 
 #include <pmacc/memory/dataTypes/Mask.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
+#include <pmacc/particles/ParticleDescription.hpp>
+#include <pmacc/particles/ParticlesBase.hpp>
+#include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
+#include <pmacc/compileTime/GetKeyFromAlias.hpp>
+#include <pmacc/HandleGuardRegion.hpp>
+#include <pmacc/traits/Resolve.hpp>
+
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/contains.hpp>
 
 #include <string>
 #include <sstream>
@@ -72,7 +79,29 @@ class Particles : public ParticlesBase<
         T_Name,
         SuperCellSize,
         T_Attributes,
-        T_Flags
+        T_Flags,
+        typename bmpl::if_<
+            // check if alias boundaryCondition is defined for the species
+            bmpl::contains<
+                T_Flags,
+                typename GetKeyFromAlias<
+                    T_Flags,
+                    boundaryCondition< >
+                >::type
+            >,
+            // resolve the alias
+            typename pmacc::traits::Resolve<
+                typename GetKeyFromAlias<
+                    T_Flags,
+                    boundaryCondition< >
+                >::type
+            >::type,
+            // fallback if the species has not defined the alias boundaryCondition
+            pmacc::HandleGuardRegion<
+                pmacc::particles::policies::ExchangeParticles,
+                GuardHandlerCallPlugins
+            >
+        >::type
     >,
     MappingDesc,
     DeviceHeap
@@ -84,7 +113,29 @@ public:
         T_Name,
         SuperCellSize,
         T_Attributes,
-        T_Flags
+        T_Flags,
+        typename bmpl::if_<
+            // check if alias boundaryCondition is defined for the species
+            bmpl::contains<
+                T_Flags,
+                typename GetKeyFromAlias<
+                    T_Flags,
+                    boundaryCondition< >
+                >::type
+            >,
+            // resolve the alias
+            typename pmacc::traits::Resolve<
+                typename GetKeyFromAlias<
+                    T_Flags,
+                    boundaryCondition< >
+                >::type
+            >::type,
+            // fallback if the species has not defined the alias boundaryCondition
+            pmacc::HandleGuardRegion<
+                pmacc::particles::policies::ExchangeParticles,
+                GuardHandlerCallPlugins
+            >
+        >::type
     > SpeciesParticleDescription;
     typedef ParticlesBase<SpeciesParticleDescription, MappingDesc, DeviceHeap> ParticlesBaseType;
     typedef typename ParticlesBaseType::FrameType FrameType;
