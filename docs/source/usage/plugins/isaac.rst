@@ -74,6 +74,20 @@ Beside the functor chains the client allows to setup the weights per source (val
 Furthermore interpolation can be activated.
 However this is quite slow and most of the time not needed for non-iso-surface rendering.
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+locally, a framebuffer with full resolution and 4 byte per pixel is allocated.
+For each ``FieldTmp`` derived field and ``FieldJ`` a copy is allocated, depending on the input in the :ref:`isaac.param <usage-params-plugins>` file.
+
+Host
+""""
+
+negligible.
+
 Example renderings
 ^^^^^^^^^^^^^^^^^^
 

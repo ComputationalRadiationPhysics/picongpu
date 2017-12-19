@@ -65,7 +65,7 @@ The two param files :ref:`visualization.param <usage-params-plugins>` and :ref:`
 
 Depending on the used prefix in the command line flags, electron and/or ion density is drawn. 
 Additionally to that, three field values can be visualized together with the particle density.
-In order to set up the visualized field values, the `visualization.param` needs to be changed.
+In order to set up the visualized field values, the ``visualization.param`` needs to be changed.
 In this file, a variety of other parameters used for the PngModule can be specified. 
 
 The ratio of the image can be set.
@@ -86,13 +86,13 @@ In order to scale the image, ``scale_to_cellsize`` needs to be set to ``true`` a
    Make sure to reduce the preview size!
 
 It  is possible to draw the borders between the GPUs used as white lines. 
-This can be done by setting the parameter `white_box_per_GPU` in `visualization.param` to `true`
+This can be done by setting the parameter ``white_box_per_GPU`` in ``visualization.param`` to ``true``
 
 .. code:: cpp
 
    const bool white_box_per_GPU = true;
 
-There are three field values that can be drawn: `CHANNEL1`, `CHANNEL2` and `CHANNEL3`.
+There are three field values that can be drawn: ``CHANNEL1``, ``CHANNEL2`` and ``CHANNEL3``.
 
 Since an adequate color scaling is essential, there several option the user can choose from. 
 
@@ -114,7 +114,7 @@ Since an adequate color scaling is essential, there several option the user can 
 
 In the above example, all channels are set to **auto scale**.
 **Be careful**, when using other normalizations than auto scale, because depending on your set up, the normalization might fail due to parameters not set by PIConGPU.
-*Use the other normalization options only in case of the specified scenarios or if you know, how the scaling is computed. *
+*Use the other normalization options only in case of the specified scenarios or if you know, how the scaling is computed.*
 
 
 You can also add opacity to the particle density and the three field values:
@@ -141,7 +141,7 @@ The colors available are defined in ``visColorScales.param`` and their usage is 
 If ``colorScales::none`` is used, the channel is not drawn.
 
 
-In order to specify what the three channels represent, three functions can be defined in `visualization.param`. 
+In order to specify what the three channels represent, three functions can be defined in ``visualization.param``. 
 The define the values computed for the png visualization.
 The data structures used are those available in PIConGPU. 
 
@@ -171,10 +171,10 @@ The data structures used are those available in PIConGPU.
    }
 
 Only positive values are drawn. Negative values are clipped to zero. 
-In the above example, this feature is used for `preChannel3`. 
+In the above example, this feature is used for ``preChannel3``. 
 
 
-**Defining coloring schemes in** `visColorScales.param` 
+**Defining coloring schemes in** ``visColorScales.param``
 
 There are several predefined color schemes available:
 
@@ -185,7 +185,7 @@ There are several predefined color schemes available:
 - green
 - blue
 
-But the user can also specify his or her own color scheme by defining a namespace with the color name that provides an `addRGB`function:
+But the user can also specify his or her own color scheme by defining a namespace with the color name that provides an ``addRGB`` function:
 
 .. code:: cpp
 
@@ -214,6 +214,21 @@ But the user can also specify his or her own color scheme by defining a namespac
    }
 
 For most cases, using the predefined colors should be enough.
+
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+locally, memory for the local 2D slice is allocated with 3 channels in ``float_X``.
+
+Host
+""""
+
+as on accelerator.
+Additionally, the master rank has to allocate three channels for the full-resolution image.
+This is the original size **before** reduction via ``scale_image``.
 
 Output
 ^^^^^^

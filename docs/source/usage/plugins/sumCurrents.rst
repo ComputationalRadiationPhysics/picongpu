@@ -12,6 +12,19 @@ The plugin can be activated by setting a non-zero value with the command line fl
 The value set with ``--sumcurr.period`` is the periodicity, at which the total current is computed.
 E.g. ``--sumcurr.period 100`` computes and prints the total current for time step *0, 100, 200, ...*.
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+negligible.
+
+Host
+""""
+
+negligible.
+
 Output
 ^^^^^^
 

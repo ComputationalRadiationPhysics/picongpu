@@ -55,8 +55,8 @@ PIConGPU command line option                  Description
 
 Depending on the available external dependencies (see above), the options for the ``<IO-backend>`` are:
 
-* ``hdf5``
-* ``adios``
+* :ref:`hdf5 <usage-plugins-HDF5>`
+* :ref:`adios <usage-plugins-ADIOS>`
 
 Interacting Manually with Checkpoint Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

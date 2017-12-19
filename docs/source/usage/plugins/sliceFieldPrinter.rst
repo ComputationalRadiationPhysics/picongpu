@@ -49,6 +49,19 @@ The second slice is a cut along the y-z axis. It is printed every 50th step. It 
 
 In the case of 2D fields, the plugin outputs a 1D slice. Be aware that ``--E_slice.plane`` still refers to the orthogonal axis, i.e. ``--E_slice.plane 1`` outputs a line along the **x-axis** and ``--E_slice.plane 0`` along the **y-axis**.
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+the local slice is permanently allocated in the type of the field (``float3_X``).
+
+Host
+""""
+
+as on accelerator.
+
 Output
 ^^^^^^
 

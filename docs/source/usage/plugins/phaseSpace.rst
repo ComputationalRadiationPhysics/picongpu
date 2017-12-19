@@ -36,6 +36,19 @@ Option                                 Usage                                    
 ``--e_phaseSpace.max <ValR>``          maximum of the momentum range                            :math:`m_\mathrm{species} c`
 ====================================== ======================================================== ============================
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+locally, a counter matrix of the size local-cells of ``space`` direction times ``1024`` (for momentum bins) is permanently allocated.
+
+Host
+""""
+
+negligible.
+
 Output
 ^^^^^^
 

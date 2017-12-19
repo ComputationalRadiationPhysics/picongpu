@@ -40,6 +40,19 @@ Notes
  - ``absMomSpreadThreshold`` and ``relMomSpreadThreshold`` are mutually exclusive
  - ``absMomSpreadThreshold`` is always given in [electron mass * speed of light]!
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+no extra allocations, but requires an extra particle attribute per species, ``voronoiCellId``.
+
+Host
+""""
+
+no extra allocations.
+
 Reference
 ^^^^^^^^^
 

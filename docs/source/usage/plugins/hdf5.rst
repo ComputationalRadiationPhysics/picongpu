@@ -74,6 +74,19 @@ PIConGPU command line option Description
    #. dump **all species data** each 128th time step.
    #. dump **all fields and species data** (this is the default) data each 1000th time step.
 
+Memory Complexity
+^^^^^^^^^^^^^^^^^
+
+Accelerator
+"""""""""""
+
+no extra allocations.
+
+Host
+""""
+
+During I/O, each complete particle species is allocated one after an other.
+
 Additional Tools
 ^^^^^^^^^^^^^^^^
 
