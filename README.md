@@ -91,6 +91,9 @@ Our according **up-to-date publication** at **the time of your publication**
 should be inquired from:
 - [REFERENCE.md](https://raw.githubusercontent.com/ComputationalRadiationPhysics/picongpu/master/REFERENCE.md)
 
+Please also consider adding yourself to our [community map](https://github.com/ComputationalRadiationPhysics/picongpu-communitymap).
+We would love to hear from you!
+
 Oral Presentations
 ------------------
 
@@ -143,7 +146,8 @@ Before you post a question, browse the PIConGPU
 [mailing list history](https://cg.hzdr.de/Lists/picongpu-users/List.html)
 to see if your question has been answered, already.
 
-PIConGPU is a collaborative project. We thus encourage users to engage in answering questions of other users and post solutions to problems to the list.
+PIConGPU is a collaborative project.
+We thus encourage users to engage in answering questions of other users and post solutions to problems to the list.
 A problem you have encountered might be the future problem of another user.
 
 In addition, please consider using the collaborative features of GitHub if you have questions or comments on code or documentation.

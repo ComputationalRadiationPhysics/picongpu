@@ -36,3 +36,13 @@ Additional to the citation, please consider adding an acknowledgement of the fol
 or:
 
     We acknowledge [list of specific persons that helped you] and all further contributors to the open-source code PIConGPU for enabling our simulations.
+
+Community Map
+-------------
+
+PIConGPU comes without a registration-wall, with open and re-distributable licenses and without any strings attached.
+We therefore *rely on you* to show our community, diversity and usefulness, e.g. to funding agencies.
+
+    Please consider adding yourself to our `community map <https://github.com/ComputationalRadiationPhysics/picongpu-communitymap>`_!
+
+Thank you and enjoy PIConGPU and our community!
