@@ -67,16 +67,30 @@ struct CallFunctor
     }
 };
 
-/** create density based on a normalized profile and a position profile
+/** Create particle distribution from a normalized density profile
  *
- * constructor with current time step of density and position profile is called
- * after the density profile is created `fillAllGaps()` is called
+ * Create particles inside a species. The created particles are macroscopically
+ * distributed according to a given normalized density profile
+ * (T_DensityFunctor). Their microscopic position inside individual cells is
+ * determined by the T_PositionFunctor.
  *
- * @tparam T_DensityFunctor unary lambda functor with profile description
- * @tparam T_PositionFunctor unary lambda functor with position description
- * @tparam T_SpeciesType type of the used species
+ * @note FillAllGaps is automatically called after creation.
+ *
+ * @tparam T_DensityFunctor unary lambda functor with profile description,
+ *                          see density.param,
+ *                          example: picongpu::particles::densityProfiles::Homogenous
+ * @tparam T_PositionFunctor unary lambda functor with position description,
+ *                           see particles.param,
+ *                           examples: picongpu::particles::startPosition::Quiet,
+ *                                     picongpu::particles::startPosition::Random
+ * @tparam T_SpeciesType type of the used species,
+ *                       see speciesDefinition.param
  */
-template<typename T_DensityFunctor, typename T_PositionFunctor, typename T_SpeciesType = bmpl::_1>
+template<
+    typename T_DensityFunctor,
+    typename T_PositionFunctor,
+    typename T_SpeciesType = bmpl::_1
+>
 struct CreateDensity
 {
     using SpeciesType = T_SpeciesType;
@@ -105,39 +119,52 @@ struct CreateDensity
 };
 
 
-/** derive species out of a another species
+/** Generate particles in a species by deriving and manipulating from another species' particles
  *
- * after the species is derived `fillAllGaps()` on T_DestSpeciesType is called
- * copy all attributes from the source species except `particleId` to
- * the destination species
+ * Create particles in T_DestSpeciesType by deriving (copying) all particles
+ * and their matching attributes (except `particleId`) from T_SrcSpeciesType.
+ * During the derivation, the particle attributes in can be manipulated with
+ * T_ManipulateFunctor.
  *
- * @tparam T_ManipulateFunctor a pseudo-binary functor accepting two particle species:
-                               destination and source, \see include/picongpu/particles/manipulators
+ * @note FillAllGaps is called on on T_DestSpeciesType after the derivation is
+ *       finished.
+ *       If the derivation also manipulates the T_SrcSpeciesType, e.g. in order
+ *       to deactivate some particles for a move, FillAllGaps needs to be
+ *       called for the T_SrcSpeciesType manually in the next step!
+ *
+ * @tparam T_Manipulator a pseudo-binary functor accepting two particle species:
+ *                       destination and source,
+ *                       @see picongpu::particles::manipulators
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
- * @tparam T_Filter picongpu::particles::filter, particle filter type to select
- *                  particles in T_SrcSpeciesType to derive into T_DestSpeciesType
+ * @tparam T_SrcFilter picongpu::particles::filter, particle filter type to
+ *                     select particles in T_SrcSpeciesType to derive into
+ *                     T_DestSpeciesType
  */
 template<
-    typename T_Functor,
+    typename T_Manipulator,
     typename T_SrcSpeciesType,
     typename T_DestSpeciesType = bmpl::_1,
-    typename T_Filter = filter::All
+    typename T_SrcFilter = filter::All
 >
-struct ManipulateDeriveSpecies
+struct ManipulateDerive
 {
     using DestSpeciesType = T_DestSpeciesType;
     using DestFrameType = typename DestSpeciesType::FrameType;
     using SrcSpeciesType = T_SrcSpeciesType;
     using SrcFrameType = typename SrcSpeciesType::FrameType;
 
-    using UserFunctor = typename bmpl::apply1<
-        T_Functor,
+    using DestFunctor = typename bmpl::apply1<
+        T_Manipulator,
         DestSpeciesType
     >::type;
 
-    using Manipulator = manipulators::IBinary< UserFunctor >;
-    using Filter = filter::IUnary< T_Filter >;
+    /* note: this is a FilteredManipulator with filter::All for
+     * destination species, users can filter the destination directly via if's
+     * in the T_Manipulator.
+     */
+    using FilteredManipulator = manipulators::IBinary< DestFunctor >;
+    using SrcFilter = filter::IUnary< T_SrcFilter >;
 
     HINLINE void operator()( const uint32_t currentStep )
     {
@@ -145,10 +172,10 @@ struct ManipulateDeriveSpecies
         auto speciesPtr = dc.get< DestSpeciesType >( DestFrameType::getName(), true );
         auto srcSpeciesPtr = dc.get< SrcSpeciesType >( SrcFrameType::getName(), true );
 
-        Manipulator manipulator( currentStep );
-        Filter filter( currentStep );
+        FilteredManipulator filteredManipulator( currentStep );
+        SrcFilter srcFilter( currentStep );
 
-        speciesPtr->deviceDeriveFrom(*srcSpeciesPtr, manipulator, filter);
+        speciesPtr->deviceDeriveFrom( *srcSpeciesPtr, manipulator, srcFilter );
 
         dc.releaseData( DestFrameType::getName() );
         dc.releaseData( SrcFrameType::getName() );
@@ -156,22 +183,25 @@ struct ManipulateDeriveSpecies
 };
 
 
-/** derive species out of a another species
+/** Generate particles in a species by deriving from another species' particles
  *
- * after the species is derived `fillAllGaps()` on T_DestSpeciesType is called
- * copy all attributes from the source species except `particleId` to
- * the destination species
+ * Create particles in T_DestSpeciesType by deriving (copying) all particles
+ * and their matching attributes (except `particleId`) from T_SrcSpeciesType.
+ *
+ * @note FillAllGaps is called on on T_DestSpeciesType after the derivation is
+ *       finished.
  *
  * @tparam T_SrcSpeciesType source species
  * @tparam T_DestSpeciesType destination species
- * @tparam T_Filter picongpu::particles::filter, particle filter type to select source particles to derive
+ * @tparam T_Filter picongpu::particles::filter,
+ *                  particle filter type to select source particles to derive
  */
 template<
     typename T_SrcSpeciesType,
     typename T_DestSpeciesType = bmpl::_1,
     typename T_Filter = filter::All
 >
-struct DeriveSpecies : ManipulateDeriveSpecies<
+struct Derive : ManipulateDerive<
     manipulators::generic::None,
     T_SrcSpeciesType,
     T_DestSpeciesType,
@@ -181,11 +211,21 @@ struct DeriveSpecies : ManipulateDeriveSpecies<
 };
 
 
-/** call method fill all gaps of a species
+/** Generate a valid, contiguous list of particle frames
  *
- * @tparam T_SpeciesType type of the species
+ * Some operations, such as deactivating or adding particles to a particle
+ * species can generate "gaps" in our internal particle storage, a list
+ * of frames.
+ *
+ * This operation copies all particles from the end of the frame list to
+ * "gaps" in the beginning of the frame list.
+ * After execution, the requirement that all particle frames must be filled
+ * contiguously with valid particles and that all frames but the last are full
+ * is fulfilled.
+ * 
+ * @tparam T_SpeciesType the particle species to fill gaps in memory
  */
-template<typename T_SpeciesType = bmpl::_1>
+template< typename T_SpeciesType = bmpl::_1 >
 struct FillAllGaps
 {
     using SpeciesType = T_SpeciesType;
@@ -200,6 +240,5 @@ struct FillAllGaps
     }
 };
 
-} //namespace particles
-
-} //namespace picongpu
+} // namespace particles
+} // namespace picongpu
