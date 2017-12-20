@@ -57,7 +57,7 @@ namespace random
         template<class T_Distribution>
         struct GetRandomType
         {
-            typedef typename bmpl::apply<T_Distribution, RNGMethod>::type Distribution;
+            typedef typename T_Distribution::applyMethod<RNGMethod>::type Distribution;
             typedef Random<Distribution, RNGMethod, Handle> type;
         };
 
