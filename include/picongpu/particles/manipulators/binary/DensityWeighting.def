@@ -60,7 +60,7 @@ namespace acc
          * @param particleSrc source particle (the density ratio of this particle is used)
          * @param ... unused particles
          *
-         * @see picongpu::particles::ManipulateDeriveSpecies , picongpu::kernelCloneParticles
+         * @see picongpu::particles::ManipulateDerive, picongpu::kernelCloneParticles
          */
         template<
             typename T_DesParticle,

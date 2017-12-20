@@ -37,7 +37,7 @@ namespace manipulators
      * The result of the filter is linked by a logic AND operation and the functor
      * is only called if the filter result is `true`.
      * The user functor and filter is passed by the manipulation algorithm
-     * (e.g. picongpu::particles::ManipulateDeriveSpecies, ...) to this interface, there is
+     * (e.g. picongpu::particles::ManipulateDerive, ...) to this interface, there is
      * no need to do this explicitly in the param files.
      *
      * @tparam T_BinaryFunctor binary particle functor, must contain
