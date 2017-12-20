@@ -40,15 +40,16 @@ namespace particles
      *
      * @warning Does NOT call FillAllGaps after manipulation! If the
      *          manipulation deactivates particles or creates "gaps" in any
-     *          other way, FillAllGaps needs to be called for the T_SpeciesType
-     *          manually in the next step!
+     *          other way, FillAllGaps needs to be called for the
+     *          `T_SpeciesType` manually in the next step!
      *
      * @tparam T_Manipulator unary lambda functor accepting one particle
      *                       species,
      *                       @see picongpu::particles::manipulators
      * @tparam T_SpeciesType type of the used species
      * @tparam T_Filter picongpu::particles::filter, particle filter type to
- *                      select particles in T_SpeciesType to manipulate via T_DestSpeciesType
+     *                  select particles in `T_SpeciesType` to manipulate via
+     *                  `T_DestSpeciesType`
      */
     template<
         typename T_Manipulator,

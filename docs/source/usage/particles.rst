@@ -137,9 +137,3 @@ FreeTotalCellOffset
 
 .. doxygenstruct:: picongpu::particles::filter::generic::FreeTotalCellOffset
    :project: PIConGPU
-
-Define a New Particle Filter
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. note::
-   Not yet implemented.
