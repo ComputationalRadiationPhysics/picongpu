@@ -24,7 +24,7 @@
 
 #include "picongpu/fields/Fields.def"
 #include "picongpu/fields/Fields.hpp"
-#include "picongpu/simulationControl/GuardHandlerCallPlugins.hpp"
+#include "picongpu/particles/boundary/CallPluginsAndDeleteParticles.hpp"
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/memory/dataTypes/Mask.hpp>
@@ -99,7 +99,7 @@ class Particles : public ParticlesBase<
             // fallback if the species has not defined the alias boundaryCondition
             pmacc::HandleGuardRegion<
                 pmacc::particles::policies::ExchangeParticles,
-                GuardHandlerCallPlugins
+                particles::boundary::CallPluginsAndDeleteParticles
             >
         >::type
     >,
@@ -133,7 +133,7 @@ public:
             // fallback if the species has not defined the alias boundaryCondition
             pmacc::HandleGuardRegion<
                 pmacc::particles::policies::ExchangeParticles,
-                GuardHandlerCallPlugins
+                particles::boundary::CallPluginsAndDeleteParticles
             >
         >::type
     > SpeciesParticleDescription;
