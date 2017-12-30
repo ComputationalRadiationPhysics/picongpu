@@ -33,17 +33,26 @@ namespace picongpu
 namespace particles
 {
 
-    /** run a user defined functor for every particle
+    /** Run a user defined manipulation for each particle of a species
      *
-     * - constructor with current time step is called for the functor on the host side
-     * - \warning `fillAllGaps()` is not called
+     * Allows to manipulate attributes of existing particles in a species with
+     * arbitrary unary functors ("manipulators").
      *
-     * @tparam T_Functor unary lambda functor
+     * @warning Does NOT call FillAllGaps after manipulation! If the
+     *          manipulation deactivates particles or creates "gaps" in any
+     *          other way, FillAllGaps needs to be called for the
+     *          `T_SpeciesType` manually in the next step!
+     *
+     * @tparam T_Manipulator unary lambda functor accepting one particle
+     *                       species,
+     *                       @see picongpu::particles::manipulators
      * @tparam T_SpeciesType type of the used species
-     * @tparam T_Filter picongpu::particles::filter, particle filter type to select particles
+     * @tparam T_Filter picongpu::particles::filter, particle filter type to
+     *                  select particles in `T_SpeciesType` to manipulate via
+     *                  `T_DestSpeciesType`
      */
     template<
-        typename T_Functor,
+        typename T_Manipulator,
         typename T_SpeciesType = bmpl::_1,
         typename T_Filter = filter::All
     >
@@ -52,13 +61,13 @@ namespace particles
         using SpeciesType = T_SpeciesType;
         using FrameType = typename SpeciesType::FrameType;
 
-        using UserFunctor = typename bmpl::apply1<
-            T_Functor,
+        using SpeciesFunctor = typename bmpl::apply1<
+            T_Manipulator,
             SpeciesType
         >::type;
 
-        using Manipulator = manipulators::IUnary<
-            UserFunctor,
+        using FilteredManipulator = manipulators::IUnary<
+            SpeciesFunctor,
             T_Filter
         >;
 
@@ -71,10 +80,10 @@ namespace particles
                 true
             );
 
-            Manipulator manipulator( currentStep );
+            FilteredManipulator filteredManipulator( currentStep );
             speciesPtr->manipulateAllParticles(
                 currentStep,
-                manipulator
+                filteredManipulator
             );
 
             dc.releaseData( FrameType::getName() );

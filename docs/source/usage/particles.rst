@@ -3,10 +3,14 @@
 Particles
 =========
 
+Particles are defined in modular steps.
+First, species need to be generally defined in :ref:`speciesDefinition.param <usage-params-core>`.
+Second, species are initialized with particles in :ref:`speciesInitialization.param <usage-params-core>`.
+
+The following operations can be applied in the ``picongpu::particles::InitPipeline`` of the latter:
+
 Initialization
 --------------
-
-The following operations can be applied in the picongpu::particles::InitPipeline inside speciesInitialization.param:
 
 CreateDensity
 ^^^^^^^^^^^^^
@@ -14,10 +18,10 @@ CreateDensity
 .. doxygenstruct:: picongpu::particles::CreateDensity
    :project: PIConGPU
 
-DeriveSpecies
-^^^^^^^^^^^^^
+Derive
+^^^^^^
 
-.. doxygenstruct:: picongpu::particles::DeriveSpecies
+.. doxygenstruct:: picongpu::particles::Derive
    :project: PIConGPU
 
 Manipulate
@@ -26,10 +30,10 @@ Manipulate
 .. doxygenstruct:: picongpu::particles::Manipulate
    :project: PIConGPU
 
-ManipulateDeriveSpecies
-^^^^^^^^^^^^^^^^^^^^^^^
+ManipulateDerive
+^^^^^^^^^^^^^^^^
 
-.. doxygenstruct:: picongpu::particles::ManipulateDeriveSpecies
+.. doxygenstruct:: picongpu::particles::ManipulateDerive
    :project: PIConGPU
 
 FillAllGaps
@@ -101,7 +105,7 @@ ProtonTimesWeighting
 Manipulation Filters
 --------------------
 
-Most of the particle functors shall operate on all valid particles, where filter::All is the default assumption.
+Most of the particle functors shall operate on all valid particles, where ``filter::All`` is the default assumption.
 One can limit the domain or subset of particles with filters such as the ones below (or define new ones).
 
 All
@@ -133,9 +137,3 @@ FreeTotalCellOffset
 
 .. doxygenstruct:: picongpu::particles::filter::generic::FreeTotalCellOffset
    :project: PIConGPU
-
-Define a New Particle Filter
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. note::
-   Not yet implemented.

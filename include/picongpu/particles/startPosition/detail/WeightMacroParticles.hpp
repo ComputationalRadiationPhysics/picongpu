@@ -37,7 +37,7 @@ namespace detail
      * Note: In the density regions where the weighting of macro particles would
      * violate the user-specified MIN_WEIGHTING, we reduce the number of
      * macro particles per cell to still initialize particles
-     * (see particles.param).
+     * (see particle.param).
      *
      * This calculates the number of macro particles and the weighting per macro
      * particle with respect to MIN_WEIGHTING.

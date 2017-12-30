@@ -56,7 +56,7 @@ namespace acc
          * @param source particle (the number of protons of this particle is used)
          * @param unused particles
          *
-         * @see picongpu::particles::ManipulateDeriveSpecies , picongpu::particles::Manipulate
+         * @see picongpu::particles::ManipulateDerive, picongpu::particles::Manipulate
          */
         template<
             typename T_DesParticle,
