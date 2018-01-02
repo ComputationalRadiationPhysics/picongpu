@@ -33,7 +33,7 @@
 #include "picongpu/particles/filter/filter.def"
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/nvidia/functors/Assign.hpp>
-#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
 
 
 namespace picongpu
@@ -111,7 +111,10 @@ namespace manipulators
     };
 
     /* definition of RandomEnableRadiation start */
-    using RandomEnabledRadiation = generic::FreeRng< RandomEnabledRadiationFunctor, nvidia::rng::distributions::Uniform_float >;
+    using RandomEnabledRadiation = generic::FreeRng<
+        RandomEnabledRadiationFunctor,
+        pmacc::random::distributions::Uniform< float_X >
+    >;
 
     /** changes the in-cell position of each particle of a species */
     using RandomPosition = unary::RandomPosition;
