@@ -316,24 +316,14 @@ public:
         typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies,
                                                                 bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
 
-        // ... or if ionization methods need an RNG
-        using HasIonizerRNGs = typename particles::traits::HasIonizersWithRNG< VectorAllSpecies >::type;
-        constexpr bool hasIonizerRNGs = HasIonizerRNGs::value;
+        // create factory for the random number generator
+        using RNGFactory = pmacc::random::RNGProvider< simDim, pmacc::random::methods::XorMin< cupla::Acc> >;
+        auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
 
-        if( !bmpl::empty<AllSynchrotronPhotonsSpecies>::value ||
-            !bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value ||
-            hasIonizerRNGs
-        )
-        {
-            // create factory for the random number generator
-            using RNGFactory = pmacc::random::RNGProvider< simDim, pmacc::random::methods::XorMin< cupla::Acc> >;
-            auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
-
-            // init and share random number generator
-            pmacc::GridController<simDim>& gridCon = pmacc::Environment<simDim>::get().GridController();
-            rngFactory->init( gridCon.getScalarPosition() );
-            dc.share( std::shared_ptr< ISimulationData >( rngFactory ) );
-        }
+        // init and share random number generator
+        pmacc::GridController<simDim>& gridCon = pmacc::Environment<simDim>::get().GridController();
+        rngFactory->init( gridCon.getScalarPosition() );
+        dc.share( std::shared_ptr< ISimulationData >( rngFactory ) );
 
         // Initialize synchrotron functions, if there are synchrotron photon species
         if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
