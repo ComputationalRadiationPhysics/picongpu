@@ -20,8 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/manipulators/generic/FreeRng.def"
-#include <pmacc/nvidia/rng/distributions/Normal_float.hpp>
+
+#include <pmacc/random/distributions/Normal.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
 
 #include <boost/mpl/integral_c.hpp>
@@ -73,11 +73,7 @@ namespace param
             T_ParamClass,
             T_ValueFunctor
         >,
-        nvidia::rng::distributions::Normal_float,
-        boost::mpl::integral_c<
-            size_t,
-            TEMPERATURE_SEED
-        >
+        pmacc::random::distributions::Normal< float_X >
     >;
 
 } // namespace unary

@@ -36,17 +36,11 @@ namespace misc
 
     /** provide a random number generator
      *
-     * @tparam T_Distribution random number distribution
-     * @tparam T_Seed seed to initialize the random number generator
+     * @tparam T_Distribution pmacc::random::distributions, random number distribution
      * @tparam T_SpeciesType type of the species that shall be manipulated
-     *
      */
     template<
         typename T_Distribution,
-        typename T_Seed = boost::mpl::integral_c<
-            size_t,
-            FREERNG_SEED
-        >,
         typename T_SpeciesType = boost::mpl::_1
     >
     struct Rng;
