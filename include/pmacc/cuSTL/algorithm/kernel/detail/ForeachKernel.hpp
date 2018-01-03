@@ -21,6 +21,9 @@
 
 #pragma once
 
+#include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/dimensions/DataSpaceOperations.hpp"
+
 #include <boost/preprocessor.hpp>
 
 
@@ -99,6 +102,74 @@ struct KernelForeachLockstep
     }
 };
 
+namespace RT
+{
+    /** Run a cuSTL KernelForeach
+     *
+     * Allow to run the cuSTL foreach with runtime block sizes.
+     * @warning collective functors which containing synchronization are not supported
+     */
+    struct KernelForeachLockstep
+    {
+        /** call functor
+         *
+         * Each argument is shifted to the origin of the block before it is passed
+         * to the functor.
+         */
+        template<
+            typename T_Acc,
+            typename T_Mapper,
+            typename T_BlockSize,
+            typename T_Functor,
+            typename... T_Args>
+        ALPAKA_FN_ACC void operator()(
+            T_Acc const & acc,
+            T_Mapper const mapper,
+            T_BlockSize const blockSize,
+            T_Functor functor,
+            T_Args ... args
+        ) const
+        {
+            /* KernelForeachLockstep is always call as kernel with three dimansions
+             * therefore we need to reduce the dimension if the mapper is only 2D or 1D.
+             */
+            auto const blockSizeShrinked = blockSize.template shrink< T_Mapper::dim >( );
+            uint32_t const domainElementCount = blockSizeShrinked.productOfComponents();
+            DataSpace< T_Mapper::dim > const domainSize( blockSizeShrinked );
+
+            // map to the origin of the block
+            math::Int<
+                T_Mapper::dim
+            > blockCellOffset(
+                mapper(
+                    acc,
+                    domainSize.toDim3(),
+                    dim3( blockIdx ),
+                    dim3(
+                        0,
+                        0,
+                        0
+                    )
+                )
+            );
+
+
+
+            for( uint32_t i = threadIdx.x; i < domainElementCount; i += blockDim.x )
+            {
+                auto const inBlockOffset = DataSpaceOperations< T_Mapper::dim >::map(
+                    domainSize,
+                    i
+                );
+                auto const cellOffset = blockCellOffset + inBlockOffset;
+                functor(
+                    acc,
+                    args[ cellOffset ]...
+                );
+            }
+        }
+    };
+} // namespace RT
 } // namespace detail
 } // namespace kernel
 } // namespace algorithm

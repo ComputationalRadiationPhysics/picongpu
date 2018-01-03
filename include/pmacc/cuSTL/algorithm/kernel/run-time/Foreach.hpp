@@ -41,6 +41,7 @@
 
 #include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
+#include "pmacc/traits/GetNumWorkers.hpp"
 #include "pmacc/Environment.hpp"
 
 namespace pmacc
@@ -142,11 +143,14 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDimension)
             this->_blockDim.y(),                                                                                    \
             this->_blockDim.z()                                                                                     \
         );                                                                                                          \
+        uint32_t numWorkers = traits::GetNumWorkers< cudaSpecs::MaxNumThreadsPerBlockDim::x::value >::value;        \
+        if( numWorkers > blockSize.productOfComponents() )                                                          \
+            numWorkers = blockSize.productOfComponents();                                                           \
         kernel::detail::SphericMapper<Zone::dim> mapper;                                                            \
         using namespace pmacc;                                                                                      \
-        PMACC_KERNEL(kernel::detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size, this->_blockDim), blockSize)   \
+        PMACC_KERNEL(kernel::detail::RT::KernelForeachLockstep{})(mapper.cudaGridDim(p_zone.size, this->_blockDim), numWorkers) \
                 /*   c0_shifted, ..., cN_shifted    */                                                              \
-            (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                           \
+            (mapper, blockSize, functor, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _));                           \
     }
 
 /** Foreach algorithm that calls a cuda kernel
@@ -154,6 +158,7 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDimension)
  * This is the run-time version of kernel::Foreach where the
  * cuda blockDim is specified in the constructor
  *
+ * @warning collective functors (containing synchronization) are not supported *
  */
 struct Foreach
 {
