@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Alexander Grund
+/* Copyright 2013-2018 Alexander Grund
  *
  * This file is part of PMacc.
  *
