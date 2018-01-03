@@ -1,4 +1,4 @@
-/* Copyright 2016-2017 Alexander Debus
+/* Copyright 2016-2018 Alexander Debus
  *
  * This file is part of PMacc.
  *

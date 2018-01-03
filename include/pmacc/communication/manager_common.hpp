@@ -1,4 +1,4 @@
-/* Copyright 2013-2017 Rene Widera, Wolfgang Hoenig, Axel Huebl
+/* Copyright 2013-2018 Rene Widera, Wolfgang Hoenig, Axel Huebl
  *
  * This file is part of PMacc.
  *

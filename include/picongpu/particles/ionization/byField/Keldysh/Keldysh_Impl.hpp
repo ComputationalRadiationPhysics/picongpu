@@ -1,4 +1,4 @@
-/* Copyright 2016-2017 Marco Garten
+/* Copyright 2016-2018 Marco Garten
  *
  * This file is part of PIConGPU.
  *

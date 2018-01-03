@@ -1,4 +1,4 @@
-/* Copyright 2016-2017 Heiko Burau
+/* Copyright 2016-2018 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
