@@ -57,4 +57,6 @@ namespace distributions
 }  // namespace random
 }  // namespace pmacc
 
+#include "pmacc/random/distributions/normal/Normal_generic.hpp"
 #include "pmacc/random/distributions/normal/Normal_float.hpp"
+#include "pmacc/random/distributions/normal/Normal_double.hpp"

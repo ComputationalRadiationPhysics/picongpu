@@ -22,15 +22,10 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/random/distributions/Normal.hpp"
-#include "pmacc/random/distributions/misc/MullerBox.hpp"
-#include "pmacc/random/methods/XorMin.hpp"
-#include "pmacc/random/methods/MRG32k3aMin.hpp"
 #include "pmacc/random/distributions/Uniform.hpp"
-#include "pmacc/algorithms/math.hpp"
-
-#include <type_traits>
-
+#include "pmacc/random/distributions/uniform/Uniform_float.hpp"
+#include "pmacc/random/distributions/uniform/Uniform_double.hpp"
+#include "pmacc/random/distributions/uniform/Range.hpp"
 
 namespace pmacc
 {
@@ -40,38 +35,49 @@ namespace distributions
 {
 namespace detail
 {
-    //! specialization for XorMin
+
+    /** Returns a random floating point value uniformly distributed in [0,1)
+     *
+     * Equivalent to uniform::ExcludeOne< T_Type >::Reduced
+     */
     template<
-        typename T_Acc
+        typename T_Type,
+        class T_RNGMethod
     >
-    struct Normal<
-        float,
-        methods::XorMin< T_Acc >,
-        void
+    class Uniform<
+        T_Type,
+        T_RNGMethod,
+        typename std::enable_if<
+            std::is_floating_point< T_Type >::value
+        >::type
     > :
-        public MullerBox<
-            float,
-            methods::XorMin< T_Acc >
+        public pmacc::random::distributions::Uniform<
+            typename uniform::ExcludeOne< T_Type >::Reduced,
+            T_RNGMethod
         >
     {
-
     };
 
-    //! specialization for MRG32k3aMin
+    /** Returns a random floating point value uniformly distributed in [0,1)
+     *
+     * Equivalent to uniform::ExcludeOne< T_Type >::Reduced
+     */
     template<
-        typename T_Acc
+        typename T_Type,
+        class T_RNGMethod
     >
-    struct Normal<
-        float,
-        methods::MRG32k3aMin< T_Acc >,
-        void
+    class Uniform<
+        uniform::ExcludeOne< T_Type>,
+        T_RNGMethod,
+        typename std::enable_if<
+            std::is_floating_point< T_Type >::value
+        >::type
     > :
-        public MullerBox<
-            float,
-            methods::MRG32k3aMin< T_Acc >
+        public pmacc::random::distributions::Uniform<
+            typename uniform::ExcludeOne< T_Type >::Reduced,
+            T_RNGMethod
         >
     {
-
     };
 }  // namespace detail
 }  // namespace distributions

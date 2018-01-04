@@ -45,12 +45,12 @@ namespace detail
         typename T_Acc
     >
     struct Normal<
-        float,
+        double,
         methods::XorMin< T_Acc >,
         void
     > :
         public MullerBox<
-            float,
+            double,
             methods::XorMin< T_Acc >
         >
     {
@@ -62,12 +62,12 @@ namespace detail
         typename T_Acc
     >
     struct Normal<
-        float,
+        double,
         methods::MRG32k3aMin< T_Acc >,
         void
     > :
         public MullerBox<
-            float,
+            double,
             methods::MRG32k3aMin< T_Acc >
         >
     {
