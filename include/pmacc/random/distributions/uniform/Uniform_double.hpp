@@ -101,7 +101,7 @@ namespace detail
 
     /** Returns a random double value uniformly distributed in [0,1)
      *
-     * Reduce the random range to `2^53`.
+     * Number of unique random numbers is reduced to `2^53`.
      * Uses a uniform distance of `2^-53` (`epsilon/2`) between each possible
      * random number.
      */
@@ -130,7 +130,7 @@ namespace detail
         }
     };
 
-    /** Returns a random double value uniformly distributed in [0,1)
+    /** Returns a random double value uniformly distributed in (0,1)
      *
      * Loops until a random value inside the defined range is created.
      * The runtime of this method is not deterministic.

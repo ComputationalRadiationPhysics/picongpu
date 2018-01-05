@@ -49,19 +49,21 @@ namespace uniform
     struct ExcludeOne
     {
 
-        /** Reduce the random range.
+        /** Reduce the random range
          *
-         * range for `float` is `2^24`
-         * range for double is `2^53`
+         * number of unique random numbers for
+         *   - `float` is `2^24`
+         *   - `double` is `2^53`
          *
          * Creates intervals with the width of epsilon/2.
          */
         struct Reduced
         {};
 
-        /** Loops until a random value inside the defined range is created.
+        /** Loops until a random value inside the defined range is created
          *
          * The runtime of this method is not deterministic.
+         * @warning zero is excluded which results in a range (0,1)
          */
         struct Repeat
         {};
@@ -74,7 +76,6 @@ namespace uniform
         {};
 
     };
-
 
 }  // namespace uniform
 }  // namespace distributions
