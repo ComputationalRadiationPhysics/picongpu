@@ -113,6 +113,19 @@ namespace methods
             return state.v[ 4 ] + state.d;
         }
 
+        DINLINE uint64_t
+        get64Bits(
+            T_Acc const & acc,
+            StateType& state
+        ) const
+        {
+            // two 32bit values are packed into a 64bit value
+            uint64_t result = get32Bits( acc, state);
+            result <<= 32;
+            result ^= get32Bits( acc, state);
+            return result;
+        }
+
         static std::string
         getName( )
         {
