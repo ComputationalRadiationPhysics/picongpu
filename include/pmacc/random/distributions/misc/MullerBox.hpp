@@ -46,7 +46,7 @@ namespace distributions
     >
     class MullerBox :
         Uniform<
-            uniform::ExcludeZero< float >,
+            uniform::ExcludeZero< T_Type >,
             T_RNGMethod
         >
     {
@@ -120,7 +120,7 @@ namespace distributions
             StateType& state
         )
         {
-            float result;
+            T_Type result;
             if( hasSecondRngNumber )
             {
                 result = secondRngNumber;
