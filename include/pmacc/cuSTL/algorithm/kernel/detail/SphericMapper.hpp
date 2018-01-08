@@ -197,23 +197,26 @@ struct SphericMapper<1, mpl::void_>
     DINLINE
     math::Int<1> operator()(
         T_Acc const & acc,
+        const math::Int<1>& _blockDim,
         const math::Int<1>& _blockIdx,
         const math::Int<1>& _threadIdx
     ) const
     {
-        return _blockIdx.x() * blockDim.x + _threadIdx.x();
+        return _blockIdx.x() * _blockDim.x() + _threadIdx.x();
     }
 
     template< typename T_Acc >
     DINLINE
     math::Int<1> operator()(
         T_Acc const & acc,
+        const dim3& _blockDim,
         const dim3& _blockIdx,
-        const dim3& _threadIdx = dim3(0,0,0)
+        const dim3& _threadIdx
     ) const
     {
         return operator()(
             acc,
+            math::Int<1>((int)_blockDim.x),
             math::Int<1>((int)_blockIdx.x),
             math::Int<1>((int)_threadIdx.x)
         );
@@ -239,24 +242,27 @@ struct SphericMapper<2, mpl::void_>
     DINLINE
     math::Int<2> operator()(
         T_Acc const & acc,
+        const math::Int<2>& _blockDim,
         const math::Int<2>& _blockIdx,
         const math::Int<2>& _threadIdx
     ) const
     {
-        return math::Int<2>( _blockIdx.x() * blockDim.x + _threadIdx.x(),
-                             _blockIdx.y() * blockDim.y + _threadIdx.y() );
+        return math::Int<2>( _blockIdx.x() * _blockDim.x() + _threadIdx.x(),
+                             _blockIdx.y() * _blockDim.y() + _threadIdx.y() );
     }
 
     template< typename T_Acc >
     DINLINE
     math::Int<2> operator()(
         T_Acc const & acc,
+        const dim3& _blockDim,
         const dim3& _blockIdx,
-        const dim3& _threadIdx = dim3(0,0,0)
+        const dim3& _threadIdx
     ) const
     {
         return operator()(
             acc,
+            math::Int<2>(_blockDim.x, _blockDim.y),
             math::Int<2>(_blockIdx.x, _blockIdx.y),
             math::Int<2>(_threadIdx.x, _threadIdx.y)
         );
@@ -282,25 +288,28 @@ struct SphericMapper<3, mpl::void_>
     DINLINE
     math::Int<3> operator()(
         T_Acc const & acc,
+        const math::Int<3>& _blockDim,
         const math::Int<3>& _blockIdx,
         const math::Int<3>& _threadIdx
     ) const
     {
-        return math::Int<3>( _blockIdx.x() * blockDim.x + _threadIdx.x(),
-                             _blockIdx.y() * blockDim.y + _threadIdx.y(),
-                             _blockIdx.z() * blockDim.z + _threadIdx.z() );
+        return math::Int<3>( _blockIdx.x() * _blockDim.x() + _threadIdx.x(),
+                             _blockIdx.y() * _blockDim.y() + _threadIdx.y(),
+                             _blockIdx.z() * _blockDim.z() + _threadIdx.z() );
     }
 
     template< typename T_Acc >
     DINLINE
     math::Int<3> operator()(
         T_Acc const & acc,
+        const dim3& _blockDim,
         const dim3& _blockIdx,
-        const dim3& _threadIdx = dim3(0,0,0)
+        const dim3& _threadIdx
     ) const
     {
         return operator()(
             acc,
+            math::Int<3>(_blockDim.x, _blockDim.y, _blockDim.z),
             math::Int<3>(_blockIdx.x, _blockIdx.y, _blockIdx.z),
             math::Int<3>(_threadIdx.x, _threadIdx.y, _threadIdx.z)
         );
