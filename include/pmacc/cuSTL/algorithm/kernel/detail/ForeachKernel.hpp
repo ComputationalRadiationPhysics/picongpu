@@ -107,7 +107,7 @@ namespace RT
     /** Run a cuSTL KernelForeach
      *
      * Allow to run the cuSTL foreach with runtime block sizes.
-     * @warning collective functors which containing synchronization are not supported
+     * @warning collective functors which contain synchronization are not supported
      */
     struct KernelForeachLockstep
     {
@@ -130,8 +130,8 @@ namespace RT
             T_Args ... args
         ) const
         {
-            /* KernelForeachLockstep is always call as kernel with three dimansions
-             * therefore we need to reduce the dimension if the mapper is only 2D or 1D.
+            /* KernelForeachLockstep is always called as kernel with three dimensions
+             * therefore we have to reduce the dimension if the mapper is only 2D or 1D.
              */
             auto const blockSizeShrinked = blockSize.template shrink< T_Mapper::dim >( );
             uint32_t const domainElementCount = blockSizeShrinked.productOfComponents();

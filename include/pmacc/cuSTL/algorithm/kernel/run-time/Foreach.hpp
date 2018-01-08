@@ -158,7 +158,7 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDimension)
  * This is the run-time version of kernel::Foreach where the
  * cuda blockDim is specified in the constructor
  *
- * @warning collective functors (containing synchronization) are not supported *
+ * @warning collective functors (containing synchronization) are not supported
  */
 struct Foreach
 {
