@@ -28,6 +28,33 @@ Plugin name                                                                     
 :ref:`sum currents <usage-plugins-sumCurrents>`                                    compute the total current summed over all cells
 ================================================================================== =======================================================================
 
+Period Syntax
+=============
+
+Most plugins allow to define a period on how often a plugin shall be executed (notified).
+Its simple syntax is: ``<period>`` with a simple number.
+
+Additionally, the following syntax allows to define intervals for periods:
+
+``<start>:<end>[:<period>]``
+
+* `<start>`: begin of the interval; default: 0
+* `<end>`: end of the interval, including the upper bound; default: end of the simulation
+* `<period>`: notify period within the interval; default: 1
+
+Multiple intervals can be combined via a comma separated list.
+
+Examples
+--------
+
+* ``42`` every 42th time step
+* ``::`` equal to just writing ``1``, every time step from start (0) to the end of the simulation
+* ``11:11`` only once at time step 11
+* ``10:100:2`` every second time step between steps 10 and 100 (included)
+* ``42,30:50:10``: at steps 30 40 42 50 84 126 168 ...
+* ``5,10``: at steps 0 5 10 15 20 25 ... (only executed once per step in overlapping intervals)
+
+
 .. rubric:: Footnotes
 
 .. [#f1] On restart, plugins with that footnote overwrite their output of previous runs.
