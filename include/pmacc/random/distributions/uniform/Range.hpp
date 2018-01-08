@@ -41,7 +41,7 @@ namespace uniform
     struct ExcludeZero
     {};
 
-    /**  floating point number in the range (0,1]
+    /**  floating point number in the range [0,1)
      *
      * @tparam T_Type type of the result
      */
@@ -49,16 +49,21 @@ namespace uniform
     struct ExcludeOne
     {
 
-        /** Reduce the random range to 2^24.
+        /** Reduce the random range
+         *
+         * number of unique random numbers for
+         *   - `float` is `2^24`
+         *   - `double` is `2^53`
          *
          * Creates intervals with the width of epsilon/2.
          */
-        struct Use24Bit
+        struct Reduced
         {};
 
-        /** Loops until a random value inside the defined range is created.
+        /** Loops until a random value inside the defined range is created
          *
          * The runtime of this method is not deterministic.
+         * @warning zero is excluded which results in a range (0,1)
          */
         struct Repeat
         {};
@@ -71,7 +76,6 @@ namespace uniform
         {};
 
     };
-
 
 }  // namespace uniform
 }  // namespace distributions

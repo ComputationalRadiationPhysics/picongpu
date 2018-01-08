@@ -22,14 +22,9 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/random/distributions/Normal.hpp"
-#include "pmacc/random/distributions/misc/MullerBox.hpp"
-#include "pmacc/random/methods/XorMin.hpp"
-#include "pmacc/random/methods/MRG32k3aMin.hpp"
 #include "pmacc/random/distributions/Uniform.hpp"
-#include "pmacc/algorithms/math.hpp"
 
-#include <type_traits>
+#include <boost/type_traits.hpp>
 
 
 namespace pmacc
@@ -40,39 +35,43 @@ namespace distributions
 {
 namespace detail
 {
-    //! specialization for XorMin
-    template<
-        typename T_Acc
-    >
-    struct Normal<
-        float,
-        methods::XorMin< T_Acc >,
-        void
-    > :
-        public MullerBox<
-            float,
-            methods::XorMin< T_Acc >
-        >
-    {
 
+    /**
+     * Returns a random, uniformly distributed (up to) 64 bit integral value
+     */
+    template<
+        typename T_Type,
+        class T_RNGMethod
+    >
+    class Uniform<
+        T_Type,
+        T_RNGMethod,
+        typename bmpl::if_c<
+            boost::is_integral< T_Type >::value && sizeof( T_Type ) == 8,
+            void,
+            T_Type
+        >::type
+    >
+    {
+        typedef T_RNGMethod RNGMethod;
+        typedef typename RNGMethod::StateType StateType;
+    public:
+        typedef T_Type result_type;
+
+        template< typename T_Acc >
+        DINLINE result_type
+        operator()(
+            T_Acc const & acc,
+            StateType& state
+        )
+        {
+            return static_cast< result_type >( RNGMethod().get64Bits(
+                acc,
+                state
+            ) );
+        }
     };
 
-    //! specialization for MRG32k3aMin
-    template<
-        typename T_Acc
-    >
-    struct Normal<
-        float,
-        methods::MRG32k3aMin< T_Acc >,
-        void
-    > :
-        public MullerBox<
-            float,
-            methods::MRG32k3aMin< T_Acc >
-        >
-    {
-
-    };
 }  // namespace detail
 }  // namespace distributions
 }  // namespace random
