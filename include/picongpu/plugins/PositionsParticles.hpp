@@ -183,7 +183,7 @@ private:
     GridBuffer<SglParticle<FloatPos>, DIM1> *gParticle;
 
     MappingDesc *cellDescription;
-    uint32_t notifyPeriod;
+    std::string notifyPeriod;
 
     std::string pluginName;
     std::string pluginPrefix;
@@ -194,8 +194,7 @@ public:
     pluginName("PositionsParticles: write position of one particle of a species to std::cout"),
     pluginPrefix(ParticlesType::FrameType::getName() + std::string("_position")),
     gParticle(nullptr),
-    cellDescription(nullptr),
-    notifyPeriod(0)
+    cellDescription(nullptr)
     {
 
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -221,7 +220,7 @@ public:
     {
         desc.add_options()
             ((pluginPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]");
+             po::value<std::string> (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -238,7 +237,7 @@ private:
 
     void pluginLoad()
     {
-        if (notifyPeriod > 0)
+        if(!notifyPeriod.empty())
         {
             //create one float3_X on gpu und host
             gParticle = new GridBuffer<SglParticle<FloatPos>, DIM1 > (DataSpace<DIM1 > (1));

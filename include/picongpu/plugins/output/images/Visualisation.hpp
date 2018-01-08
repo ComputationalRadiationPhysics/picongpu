@@ -834,7 +834,7 @@ public:
     using FrameType = typename ParticlesType::FrameType;
     using CreatorType = Output;
 
-    Visualisation(std::string name, Output output, uint32_t notifyPeriod, DataSpace<DIM2> transpose, float_X slicePoint) :
+    Visualisation(std::string name, Output output, std::string notifyPeriod, DataSpace<DIM2> transpose, float_X slicePoint) :
     m_output(output),
     pluginName(name),
     cellDescription(nullptr),
@@ -861,7 +861,7 @@ public:
     {
         /* wait that shared buffers can destroyed */
         m_output.join();
-        if (m_notifyPeriod > 0)
+        if(!m_notifyPeriod.empty())
         {
             __delete(img);
             MessageHeader::destroy(header);
@@ -1048,7 +1048,7 @@ public:
 
     void init()
     {
-        if (m_notifyPeriod > 0)
+        if(!m_notifyPeriod.empty())
         {
             PMACC_ASSERT(cellDescription != nullptr);
             const DataSpace<simDim> localSize(cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
@@ -1103,7 +1103,7 @@ private:
     GridBuffer<float3_X, DIM2 > *img;
 
     int sliceOffset;
-    uint32_t m_notifyPeriod;
+    std::string m_notifyPeriod;
     float_X m_slicePoint;
 
     std::string pluginName;

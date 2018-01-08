@@ -53,7 +53,7 @@ private:
     typedef MappingDesc::SuperCellSize SuperCellSize;
 
     MappingDesc *cellDescription;
-    uint32_t notifyPeriod;
+    std::string notifyPeriod;
 
     std::string pluginName;
     std::string pluginPrefix;
@@ -71,7 +71,6 @@ public:
     pluginPrefix(ParticlesType::FrameType::getName() + std::string("_macroParticlesCount")),
     filename(pluginPrefix + ".dat"),
     cellDescription(nullptr),
-    notifyPeriod(0),
     writeToFile(false)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -91,7 +90,7 @@ public:
     {
         desc.add_options()
             ((pluginPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]");
+             po::value<std::string> (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -108,7 +107,7 @@ private:
 
     void pluginLoad()
     {
-        if (notifyPeriod > 0)
+        if(!notifyPeriod.empty())
         {
             writeToFile = reduce.hasResult(mpi::reduceMethods::Reduce());
 
@@ -130,7 +129,7 @@ private:
 
     void pluginUnload()
     {
-        if (notifyPeriod > 0)
+        if(!notifyPeriod.empty())
         {
             if (writeToFile)
             {

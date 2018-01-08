@@ -49,7 +49,7 @@ class ChargeConservation : public ISimulationPlugin
 private:
     std::string name;
     std::string prefix;
-    uint32_t notifyPeriod;
+    std::string notifyPeriod;
     const std::string filename;
     MappingDesc* cellDescription;
     std::ofstream output_file;

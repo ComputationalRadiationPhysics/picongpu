@@ -241,8 +241,7 @@ public:
         drawing_time(0),
         cell_count(0),
         particle_count(0),
-        last_notify(0),
-        notifyPeriod(0)
+        last_notify(0)
     {
         Environment<>::get().PluginConnector().registerPlugin(this);
     }
@@ -311,7 +310,7 @@ public:
     {
         /* register command line parameters for your plugin */
         desc.add_options()
-            ("isaac.period", po::value< uint32_t > (&render_interval)->default_value(0),
+            ("isaac.period", po::value< uint32_t > (&render_interval),
              "Enable IsaacPlugin [for each n-th step].")
             ("isaac.name", po::value< std::string > (&name)->default_value("default"),
              "The name of the simulation. Default is \"default\".")
@@ -339,7 +338,7 @@ public:
 
 private:
     MappingDesc *cellDescription;
-    uint32_t notifyPeriod;
+    std::string notifyPeriod;
     std::string url;
     std::string name;
     uint16_t port;
@@ -366,7 +365,7 @@ private:
         {
             //using an internal variable "render_interval" as notifyPeroid
             //of PIConGPU cannot be changed at runtime
-            notifyPeriod = 1;
+            notifyPeriod = "1";
             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
             MPI_Comm_size(MPI_COMM_WORLD, &numProc);
             if ( MovingWindow::getInstance().isSlidingWindowActive() )
@@ -414,7 +413,7 @@ private:
             {
                 if (rank == 0)
                     log<picLog::INPUT_OUTPUT > ("ISAAC Init failed");
-                notifyPeriod = 0;
+                notifyPeriod = "";
             }
             else
             {
@@ -431,7 +430,7 @@ private:
 
     void pluginUnload()
     {
-        if (notifyPeriod > 0)
+        if(!notifyPeriod.empty())
         {
             delete visualization;
             visualization = nullptr;

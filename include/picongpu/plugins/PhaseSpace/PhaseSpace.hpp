@@ -97,7 +97,7 @@ namespace picongpu
             >::type;
 
             //! periodicity of computing the particle energy
-            plugins::multi::Option< uint32_t > notifyPeriod = {
+            plugins::multi::Option< std::string > notifyPeriod = {
                 "period",
                 "notify period"
             };
