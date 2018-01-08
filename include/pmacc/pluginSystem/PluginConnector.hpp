@@ -24,9 +24,14 @@
 
 #include "pmacc/pluginSystem/INotify.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
+#include "pmacc/pluginSystem/TimeSlice.hpp"
+#include "pmacc/pluginSystem/toTimeSlice.hpp"
+#include "pmacc/pluginSystem/cointainsStep.hpp"
 
 #include <vector>
 #include <list>
+#include <string>
+
 
 namespace pmacc
 {
@@ -38,7 +43,12 @@ namespace pmacc
     class PluginConnector
     {
     private:
-        typedef std::list<std::pair<INotify*, uint32_t> > NotificationList;
+        using SeqOfTimeSlices = std::vector< pluginSystem::TimeSlice >;
+        using PluginPair = std::pair<
+            INotify*,
+            SeqOfTimeSlices
+        >;
+        using NotificationList = std::list< PluginPair >;
 
     public:
 
@@ -119,12 +129,18 @@ namespace pmacc
          * @param notifiedObj the object to notify, e.g. an IPlugin instance
          * @param period notification period
          */
-        void setNotificationPeriod(INotify* notifiedObj, uint32_t period)
+        void setNotificationPeriod(INotify* notifiedObj, std::string const & period)
         {
             if (notifiedObj != nullptr)
             {
-                if (period > 0)
-                    notificationList.push_back( std::make_pair(notifiedObj, period) );
+                if( !period.empty() )
+                {
+                    SeqOfTimeSlices seqTimeSlices = pluginSystem::toTimeSlice( period );
+                    notificationList.push_back( std::make_pair(
+                        notifiedObj,
+                        seqTimeSlices
+                    ) );
+                }
             }
             else
                 throw PluginException("Notifications for a nullptr object are not allowed.");
@@ -140,10 +156,14 @@ namespace pmacc
             for (NotificationList::iterator iter = notificationList.begin();
                     iter != notificationList.end(); ++iter)
             {
-                INotify* notifiedObj = iter->first;
-                uint32_t period = iter->second;
-                if (currentStep % period == 0)
+                if(
+                    cointainsStep(
+                        (*iter).second,
+                        currentStep
+                    )
+                )
                 {
+                    INotify* notifiedObj = iter->first;
                     notifiedObj->notify(currentStep);
                     notifiedObj->setLastNotify(currentStep);
                 }
