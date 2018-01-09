@@ -41,7 +41,7 @@ namespace derivedAttributes
      * Derives a scalar density field from a particle species at runtime.
      * Each value is mapped per cell according to the species' spatial shape.
      *
-     * @note only makes sense for party ionized ions
+     * @note only makes sense for partially ionized ions
      */
     struct BoundElectronDensity
     {
@@ -69,7 +69,7 @@ namespace derivedAttributes
             return "boundElectronDensity";
         }
 
-        /** Calculate a new attribute  per particle
+        /** Calculate a new attribute per particle
          *
          * Returns a new (on-the-fly calculated) attribute of a particle
          * that can then be mapped to the cells the particle contributes to.

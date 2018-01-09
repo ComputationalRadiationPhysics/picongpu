@@ -40,7 +40,7 @@ namespace picongpu
      * you can choose any of these particle to grid projections:
      *   - Density: particle position + shape on the grid
      *   - BoundElectronDensity: density of bound electrons
-     *       note: only makes sense for partly ionized ions
+     *       note: only makes sense for partially ionized ions
      *   - ChargeDensity: density * charge
      *       note: for species that do not change their charge state, this is
      *             the same as the density times a constant for the charge
