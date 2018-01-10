@@ -74,11 +74,7 @@ struct Foreach
 private:
     const int linearThreadIdx;
 public:
-    DINLINE Foreach()
-     : linearThreadIdx(
-        threadIdx.z * BlockDim::x::value * BlockDim::y::value +
-        threadIdx.y * BlockDim::x::value +
-        threadIdx.x) {}
+
     DINLINE Foreach(int linearThreadIdx) : linearThreadIdx(linearThreadIdx) {}
 
     /* operator()(zone, cursor0, cursor1, ..., cursorN-1, functor or lambdaFun)
