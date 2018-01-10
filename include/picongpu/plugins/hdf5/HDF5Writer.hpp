@@ -122,7 +122,7 @@ public:
             );
         }
 
-        plugins::multi::Option< uint32_t > notifyPeriod = {
+        plugins::multi::Option< std::string > notifyPeriod = {
             "period",
             "enable HDF5 IO [for each n-th step]"
         };
@@ -331,9 +331,9 @@ public:
 
         if( m_help->selfRegister )
         {
-            uint32_t notifyPeriod = m_help->notifyPeriod.get( id );
+            std::string notifyPeriod = m_help->notifyPeriod.get( id );
             /* only register for notify callback when .period is set on command line */
-            if (notifyPeriod > 0)
+            if(!notifyPeriod.empty())
             {
                 Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 

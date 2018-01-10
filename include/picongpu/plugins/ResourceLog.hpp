@@ -171,7 +171,7 @@ namespace picongpu
         {
             /* register command line parameters for your plugin */
             desc.add_options()
-                    ("resourceLog.period", po::value<uint32_t>(&notifyPeriod)->default_value(0),
+                    ("resourceLog.period", po::value<std::string>(&notifyPeriod),
                      "Enable ResourceLog plugin [for each n-th step]")
                     ("resourceLog.prefix", po::value<std::string>(&outputFilePrefix)->default_value("resourceLog_"),
                      "Set the filename prefix for output file if a filestream was selected")
@@ -189,10 +189,10 @@ namespace picongpu
         }
 
     private:
-        uint32_t notifyPeriod;
+        std::string notifyPeriod;
 
         void pluginLoad() {
-            if(notifyPeriod != 0) {
+            if(!notifyPeriod.empty()) {
                 Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
 
                 // Set default resources to log

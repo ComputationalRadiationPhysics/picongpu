@@ -80,7 +80,7 @@ class EnergyFields : public ISimulationPlugin
 {
 private:
     MappingDesc *cellDescription;
-    uint32_t notifyPeriod;
+    std::string notifyPeriod;
 
     std::string pluginName;
     std::string pluginPrefix;
@@ -102,7 +102,6 @@ public:
     pluginName("EnergyFields: calculate the energy of the fields"),
     pluginPrefix(std::string("fields_energy")),
     filename(pluginPrefix + ".dat"),
-    notifyPeriod(0),
     writeToFile(false),
     localReduce(nullptr)
     {
@@ -123,7 +122,7 @@ public:
     {
         desc.add_options()
             ((pluginPrefix + ".period").c_str(),
-             po::value<uint32_t > (&notifyPeriod)->default_value(0), "enable plugin [for each n-th step]");
+             po::value<std::string> (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -140,7 +139,7 @@ private:
 
     void pluginLoad()
     {
-        if (notifyPeriod > 0)
+        if(!notifyPeriod.empty())
         {
             localReduce = new nvidia::reduce::Reduce(1024);
             writeToFile = mpiReduce.hasResult(mpi::reduceMethods::Reduce());
@@ -162,7 +161,7 @@ private:
 
     void pluginUnload()
     {
-        if (notifyPeriod > 0)
+        if(!notifyPeriod.empty())
         {
             if (writeToFile)
             {

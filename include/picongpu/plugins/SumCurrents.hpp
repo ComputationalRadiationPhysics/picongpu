@@ -93,15 +93,14 @@ class SumCurrents : public ILightweightPlugin
 {
 private:
     MappingDesc *cellDescription;
-    uint32_t notifyPeriod;
+    std::string notifyPeriod;
 
     GridBuffer<float3_X, DIM1> *sumcurrents;
 
 public:
 
     SumCurrents() :
-    cellDescription(nullptr),
-    notifyPeriod(0)
+    cellDescription(nullptr)
     {
 
         Environment<>::get().PluginConnector().registerPlugin(this);
@@ -148,7 +147,7 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-            ("sumcurr.period", po::value<uint32_t > (&notifyPeriod), "enable plugin [for each n-th step]");
+            ("sumcurr.period", po::value<std::string> (&notifyPeriod), "enable plugin [for each n-th step]");
     }
 
     std::string pluginGetName() const
@@ -165,7 +164,7 @@ private:
 
     void pluginLoad()
     {
-        if (notifyPeriod > 0)
+        if (!notifyPeriod.empty())
         {
             sumcurrents = new GridBuffer<float3_X, DIM1 > (DataSpace<DIM1 > (1)); //create one int on gpu und host
 
@@ -175,7 +174,7 @@ private:
 
     void pluginUnload()
     {
-        if (notifyPeriod > 0)
+        if(!notifyPeriod.empty())
         {
             __delete(sumcurrents);
         }

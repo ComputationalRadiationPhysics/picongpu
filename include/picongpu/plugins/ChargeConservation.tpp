@@ -61,14 +61,14 @@ void ChargeConservation::pluginRegisterHelp(po::options_description& desc)
 {
     desc.add_options()
         ((this->prefix + ".period").c_str(),
-        po::value<uint32_t > (&this->notifyPeriod)->default_value(0), "enable plugin [for each n-th step]");
+        po::value<std::string> (&this->notifyPeriod), "enable plugin [for each n-th step]");
 }
 
 std::string ChargeConservation::pluginGetName() const {return this->name;}
 
 void ChargeConservation::pluginLoad()
 {
-    if(this->notifyPeriod == 0u)
+    if(this->notifyPeriod.empty())
         return;
 
     Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyPeriod);
@@ -88,7 +88,7 @@ void ChargeConservation::pluginLoad()
 
 void ChargeConservation::restart(uint32_t restartStep, const std::string restartDirectory)
 {
-    if(this->notifyPeriod == 0u)
+    if(this->notifyPeriod.empty())
         return;
 
     if(!this->allGPU_reduce->root())
@@ -102,7 +102,7 @@ void ChargeConservation::restart(uint32_t restartStep, const std::string restart
 
 void ChargeConservation::checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
 {
-    if(this->notifyPeriod == 0u)
+    if(this->notifyPeriod.empty())
         return;
 
     if(!this->allGPU_reduce->root())

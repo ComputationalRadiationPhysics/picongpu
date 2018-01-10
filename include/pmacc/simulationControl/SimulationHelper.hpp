@@ -31,10 +31,16 @@
 #include "pmacc/dataManagement/DataConnector.hpp"
 #include "pmacc/Environment.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
+#include "pmacc/pluginSystem/containsStep.hpp"
+#include "pmacc/pluginSystem/toTimeSlice.hpp"
+
 #include <boost/filesystem.hpp>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <string>
+#include <vector>
+
 
 namespace pmacc
 {
@@ -52,13 +58,14 @@ class SimulationHelper : public IPlugin
 {
 public:
 
+    using SeqOfTimeSlices = std::vector< pluginSystem::TimeSlice >;
+
     /**
      * Constructor
      *
      */
     SimulationHelper() :
     runSteps(0),
-    checkpointPeriod(0),
     checkpointDirectory("checkpoints"),
     numCheckpoints(0),
     restartStep(-1),
@@ -134,7 +141,13 @@ public:
         Environment<DIM>::get().PluginConnector().notifyPlugins(currentStep);
 
         /* trigger checkpoint notification */
-        if (checkpointPeriod && (currentStep % checkpointPeriod == 0))
+        if(
+            !checkpointPeriod.empty() &&
+            pluginSystem::containsStep(
+                seqCheckpointPeriod,
+                currentStep
+            )
+        )
         {
             /* first synchronize: if something failed, we can spare the time
              * for the checkpoint writing */
@@ -213,6 +226,9 @@ public:
     void startSimulation()
     {
         init();
+
+        // translate checkpointPeriod string into checkpoint intervals
+        seqCheckpointPeriod = pluginSystem::toTimeSlice( checkpointPeriod );
 
         for (uint32_t nthSoftRestart = 0; nthSoftRestart <= softRestarts; ++nthSoftRestart)
         {
@@ -299,7 +315,7 @@ public:
             ("checkpoint.restart.directory", po::value<std::string>(&restartDirectory)->default_value(restartDirectory),
              "Directory containing checkpoints for a restart")
             ("checkpoint.restart.step", po::value<int32_t>(&restartStep), "Checkpoint step to restart from")
-            ("checkpoint.period", po::value<uint32_t>(&checkpointPeriod), "Period for checkpoint creation")
+            ("checkpoint.period", po::value<std::string>(&checkpointPeriod), "Period for checkpoint creation")
             ("checkpoint.directory", po::value<std::string>(&checkpointDirectory)->default_value(checkpointDirectory),
              "Directory for checkpoints")
             ("author", po::value<std::string>(&author)->default_value(std::string("")),
@@ -342,7 +358,10 @@ protected:
     uint32_t softRestarts;
 
     /* period for checkpoint creation */
-    uint32_t checkpointPeriod;
+    std::string checkpointPeriod;
+
+    /* checkpoint intervals */
+    SeqOfTimeSlices seqCheckpointPeriod;
 
     /* common directory for checkpoints */
     std::string checkpointDirectory;

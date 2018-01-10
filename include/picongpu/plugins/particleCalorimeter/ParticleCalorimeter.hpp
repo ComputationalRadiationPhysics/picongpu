@@ -72,7 +72,7 @@ private:
     std::string name;
     std::string prefix;
     std::string foldername;
-    uint32_t notifyPeriod;
+    std::string notifyPeriod;
     MappingDesc* cellDescription;
     std::ofstream outFile;
     const std::string leftParticlesDatasetName;
@@ -134,7 +134,7 @@ private:
 
     void restart(uint32_t restartStep, const std::string restartDirectory)
     {
-        if(this->notifyPeriod == 0)
+        if(this->notifyPeriod.empty())
             return;
 
         HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->size());
@@ -187,7 +187,7 @@ private:
 
     void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
     {
-        if(this->notifyPeriod == 0)
+        if(this->notifyPeriod.empty())
             return;
 
         HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->size());
@@ -233,7 +233,7 @@ private:
     {
         namespace pm = pmacc::math;
 
-        if(this->notifyPeriod == 0)
+        if(this->notifyPeriod.empty())
             return;
 
         if(!(this->openingYaw_deg > float_X(0.0) && this->openingYaw_deg <= float_X(360.0)))
@@ -328,7 +328,7 @@ private:
 
     void pluginUnload()
     {
-        if(this->notifyPeriod == 0)
+        if(this->notifyPeriod.empty())
             return;
 
         __delete(this->dBufCalorimeter);
@@ -431,7 +431,6 @@ public:
         name("ParticleCalorimeter: (virtually) propagates and collects particles to infinite distance"),
         prefix(ParticlesType::FrameType::getName() + std::string("_calorimeter")),
         foldername(prefix),
-        notifyPeriod(0),
         cellDescription(nullptr),
         leftParticlesDatasetName("calorimeterLeftParticles"),
         dBufCalorimeter(nullptr),
@@ -497,7 +496,7 @@ public:
     void pluginRegisterHelp(po::options_description& desc)
     {
         desc.add_options()
-        ((this->prefix + ".period").c_str(), po::value<uint32_t > (&this->notifyPeriod)->default_value(0),
+        ((this->prefix + ".period").c_str(), po::value<std::string> (&this->notifyPeriod),
             "enable plugin [for each n-th step]")
         ((this->prefix + ".numBinsYaw").c_str(), po::value<uint32_t > (&this->numBinsYaw)->default_value(64),
             "number of bins for angle yaw.")
@@ -530,7 +529,7 @@ public:
 
     void onParticleLeave(const std::string& speciesName, int32_t direction)
     {
-        if(this->notifyPeriod == 0)
+        if(this->notifyPeriod.empty())
             return;
         if(speciesName != ParticlesType::FrameType::getName())
             return;

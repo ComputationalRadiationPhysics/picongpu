@@ -67,7 +67,7 @@ namespace particleMerging
     private:
         std::string name;
         std::string prefix;
-        uint32_t notifyPeriod;
+        std::string notifyPeriod;
         MappingDesc* cellDescription;
 
         uint32_t minParticlesToMerge;
@@ -87,7 +87,6 @@ namespace particleMerging
                 " similar position and momentum into a single one"
             ),
             prefix( ParticlesType::FrameType::getName() + std::string("_merger") ),
-            notifyPeriod( 0 ),
             cellDescription( nullptr )
         {
             Environment<>::get().PluginConnector().registerPlugin( this );
@@ -154,9 +153,9 @@ namespace particleMerging
             desc.add_options()
             (
                 ( this->prefix + ".period" ).c_str(),
-                po::value< uint32_t > (
+                po::value< std::string > (
                     &this->notifyPeriod
-                )->default_value( 0 ),
+                ),
                 "enable plugin [for each n-th step]"
             )
             (
@@ -212,7 +211,7 @@ namespace particleMerging
 
         void pluginLoad()
         {
-            if( notifyPeriod == 0 )
+            if( notifyPeriod.empty() )
                 return;
 
             Environment<>::get().PluginConnector().setNotificationPeriod(
@@ -270,7 +269,7 @@ namespace particleMerging
     private:
         std::string name;
         std::string prefix;
-    uint32_t notifyPeriod;
+        std::string notifyPeriod;
         MappingDesc* cellDescription;
 
     public:
@@ -284,7 +283,6 @@ namespace particleMerging
                 " attribute to the particle attribute list."
             ),
             prefix( ParticlesType::FrameType::getName() + std::string("_merger") ),
-            notifyPeriod( 0 ),
             cellDescription( nullptr )
         {
             Environment<>::get().PluginConnector().registerPlugin( this );

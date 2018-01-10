@@ -74,7 +74,7 @@ namespace picongpu
         {
 #if( PIC_ENABLE_PNG == 1 )
             desc.add_options()
-                    ((pluginPrefix + ".period").c_str(), po::value<std::vector<uint32_t> > (&notifyPeriod)->multitoken(), "enable data output [for each n-th step]")
+                    ((pluginPrefix + ".period").c_str(), po::value<std::vector<std::string> > (&notifyPeriod)->multitoken(), "enable data output [for each n-th step]")
                     ((pluginPrefix + ".axis").c_str(), po::value<std::vector<std::string > > (&axis)->multitoken(), "axis which are shown [valid values x,y,z] example: yz")
                     ((pluginPrefix + ".slicePoint").c_str(), po::value<std::vector<float_32> > (&slicePoints)->multitoken(), "value range: 0 <= x <= 1 , point of the slice")
                     ((pluginPrefix + ".folder").c_str(), po::value<std::vector<std::string> > (&folders)->multitoken(), "folder for output files");
@@ -102,8 +102,8 @@ namespace picongpu
                 {
                     for (int i = 0; i < (int) slicePoints.size(); ++i) /*!\todo: use vactor with max elements*/
                     {
-                        uint32_t frequ = getValue(notifyPeriod, i);
-                        if (frequ != 0)
+                        std::string period = getValue(notifyPeriod, i);
+                        if(!period.empty())
                         {
 
                             if (getValue(axis, i).length() == 2u)
@@ -137,7 +137,7 @@ namespace picongpu
                                                                       (transpose.x()==1 || transpose.y()==1);
                                 if( isAllowed2DSlice && isAllowedMovingWindowSlice )
                                 {
-                                    VisType* tmp = new VisType(pluginName, pngCreator, frequ, transpose, getValue(slicePoints, i));
+                                    VisType* tmp = new VisType(pluginName, pngCreator, period, transpose, getValue(slicePoints, i));
                                     visIO.push_back(tmp);
                                     tmp->setMappingDescription(cellDescription);
                                     tmp->init();
@@ -208,7 +208,7 @@ namespace picongpu
         std::string pluginName;
         std::string pluginPrefix;
 
-        std::vector<uint32_t> notifyPeriod;
+        std::vector<std::string> notifyPeriod;
         std::vector<float_32> slicePoints;
         std::vector<std::string> folders;
         std::vector<std::string> axis;
