@@ -42,10 +42,10 @@ namespace misc
      */
     std::vector< std::string > splitString(
         std::string const & input,
-        std::string const & regex = ","
+        std::string const & delimiter = ","
     )
     {
-        std::regex re( regex );
+        std::regex re( delimiter );
         // passing -1 as the submatch index parameter performs splitting
         std::sregex_token_iterator first{
             input.begin(),

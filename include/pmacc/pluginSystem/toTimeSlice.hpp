@@ -65,13 +65,13 @@ namespace detail
     std::vector< TimeSlice > toTimeSlice( std::string const & str )
     {
         std::vector< TimeSlice > result;
-        auto seqOfSlices = misc::splitString(
+        auto const seqOfSlices = misc::splitString(
             str,
             ","
         );
         for( auto const & slice : seqOfSlices )
         {
-            auto sliceComponents = misc::splitString(
+            auto const sliceComponents = misc::splitString(
                 slice,
                 ":"
             );
@@ -82,7 +82,7 @@ namespace detail
 
             // id of the component
             size_t n = 0;
-            bool hasOnlyPeriod = sliceComponents.size() == 1u;
+            bool const hasOnlyPeriod = sliceComponents.size() == 1u;
             TimeSlice timeSlice;
             for( auto& component : sliceComponents )
             {

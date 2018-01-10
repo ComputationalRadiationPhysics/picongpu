@@ -31,7 +31,7 @@
 #include "pmacc/dataManagement/DataConnector.hpp"
 #include "pmacc/Environment.hpp"
 #include "pmacc/pluginSystem/IPlugin.hpp"
-#include "pmacc/pluginSystem/cointainsStep.hpp"
+#include "pmacc/pluginSystem/containsStep.hpp"
 #include "pmacc/pluginSystem/toTimeSlice.hpp"
 
 #include <boost/filesystem.hpp>
@@ -143,7 +143,7 @@ public:
         /* trigger checkpoint notification */
         if(
             !checkpointPeriod.empty() &&
-            pluginSystem::cointainsStep(
+            pluginSystem::containsStep(
                 seqCheckpointPeriod,
                 currentStep
             )

@@ -26,7 +26,7 @@
 #include "pmacc/pluginSystem/IPlugin.hpp"
 #include "pmacc/pluginSystem/TimeSlice.hpp"
 #include "pmacc/pluginSystem/toTimeSlice.hpp"
-#include "pmacc/pluginSystem/cointainsStep.hpp"
+#include "pmacc/pluginSystem/containsStep.hpp"
 
 #include <vector>
 #include <list>
@@ -157,7 +157,7 @@ namespace pmacc
                     iter != notificationList.end(); ++iter)
             {
                 if(
-                    cointainsStep(
+                    containsStep(
                         (*iter).second,
                         currentStep
                     )

@@ -30,13 +30,13 @@ namespace pmacc
 {
 namespace pluginSystem
 {
-    /** check if a given step is defined within a interval list
+    /** check if a given step is within an interval list
      *
      * @param seqTimeSlices vector with time intervals
      * @param timeStep simulation time step to check
      * @return true if step is included in the interval list else false
      */
-    bool cointainsStep(
+    bool containsStep(
         std::vector< pluginSystem::TimeSlice > const & seqTimeSlices,
         uint32_t const timeStep
     )

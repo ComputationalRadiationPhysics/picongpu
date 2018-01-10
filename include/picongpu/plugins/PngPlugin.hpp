@@ -102,8 +102,8 @@ namespace picongpu
                 {
                     for (int i = 0; i < (int) slicePoints.size(); ++i) /*!\todo: use vactor with max elements*/
                     {
-                        std::string frequ = getValue(notifyPeriod, i);
-                        if(!frequ.empty())
+                        std::string period = getValue(notifyPeriod, i);
+                        if(!period.empty())
                         {
 
                             if (getValue(axis, i).length() == 2u)
@@ -137,7 +137,7 @@ namespace picongpu
                                                                       (transpose.x()==1 || transpose.y()==1);
                                 if( isAllowed2DSlice && isAllowedMovingWindowSlice )
                                 {
-                                    VisType* tmp = new VisType(pluginName, pngCreator, frequ, transpose, getValue(slicePoints, i));
+                                    VisType* tmp = new VisType(pluginName, pngCreator, period, transpose, getValue(slicePoints, i));
                                     visIO.push_back(tmp);
                                     tmp->setMappingDescription(cellDescription);
                                     tmp->init();

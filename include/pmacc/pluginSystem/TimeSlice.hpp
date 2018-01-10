@@ -65,7 +65,7 @@ namespace pluginSystem
                 uint32_t value = std::stoul( str );
                 PMACC_VERIFY_MSG(
                     !( idx == 2 && value == 0 ),
-                    "Zero is not valid period"
+                    "Zero is not a valid period"
                 );
                 values.at( idx )  = value;
             }
