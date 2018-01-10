@@ -24,7 +24,7 @@
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/plugins/PhaseSpace/PhaseSpaceFunctors.hpp"
 
-#include <pmacc/cuSTL/algorithm/kernel/ForeachBlock.hpp>
+#include <pmacc/cuSTL/algorithm/kernel/Foreach.hpp>
 #include <pmacc/cuSTL/cursor/BufferCursor.hpp>
 #include <pmacc/cuSTL/zone/SphericZone.hpp>
 #include <pmacc/communication/manager_common.hpp>
@@ -35,6 +35,7 @@
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <boost/mpl/min_max.hpp>
 #include <boost/mpl/int.hpp>
@@ -296,14 +297,22 @@ namespace picongpu
 
             template<
                 typename T_Filter,
+                typename T_Zone,
                 typename ... T_Args
             >
             void operator()(
                 T_Filter const & filter,
+                T_Zone const & zone,
                 T_Args && ... args
             ) const
             {
-                algorithm::kernel::ForeachBlock<SuperCellSize> forEachSuperCell;
+                constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+                    pmacc::math::CT::volume< SuperCellSize >::type::value
+                >::value;
+                algorithm::kernel::ForeachLockstep<
+                    numWorkers,
+                    SuperCellSize
+                > forEachSuperCell;
 
                 FunctorBlock<
                     Species,
@@ -311,7 +320,8 @@ namespace picongpu
                     float_PS,
                     num_pbins,
                     r_dir,
-                    T_Filter
+                    T_Filter,
+                    numWorkers
                 > functorBlock(
                     particlesBox,
                     curOriginPhaseSpace,
@@ -321,8 +331,9 @@ namespace picongpu
                 );
 
                 forEachSuperCell(
-                    args ...,
-                    functorBlock
+                    zone,
+                    functorBlock,
+                    args ...
                 );
             }
         };
