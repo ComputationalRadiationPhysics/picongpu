@@ -20,9 +20,8 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/manipulators/generic/FreeRng.def"
 
-#include <pmacc/nvidia/rng/distributions/Uniform_float.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
 
 #include <boost/mpl/integral_c.hpp>
 
@@ -91,11 +90,7 @@ namespace acc
      */
     using RandomPosition = generic::FreeRng<
         acc::RandomPosition,
-        nvidia::rng::distributions::Uniform_float,
-        boost::mpl::integral_c<
-            size_t,
-            POSITION_SEED
-        >
+        pmacc::random::distributions::Uniform< float_X >
     >;
 } // namespace unary
 } // namespace manipulators

@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Rene Widera
+/* Copyright 2017 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,10 +19,9 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include <pmacc/types.hpp>
 
-#include <boost/mpl/integral_c.hpp>
-#include <boost/mpl/placeholders.hpp>
+#include <functional>
 
 
 namespace picongpu
@@ -34,18 +33,42 @@ namespace functor
 namespace misc
 {
 
-    /** provide a random number generator
+    /** wraps an random number generator together with an alpaka accelerator
      *
-     * @tparam T_Distribution pmacc::random::distributions, random number distribution
-     * @tparam T_SpeciesType type of the species that shall be manipulated
+     * This class allows to generate random numbers without passing the accelerator
+     * to each functor call.
+     *
+     * @tparam T_Acc type of the alpaka accelerator
+     * @tparam T_Rng type of the random number generator
      */
     template<
-        typename T_Distribution,
-        typename T_SpeciesType = boost::mpl::_1
+        typename T_Acc,
+        typename T_Rng
     >
-    struct Rng;
+    struct RngWrapper
+    {
+        DINLINE RngWrapper(
+            T_Acc const & acc,
+            T_Rng const & rng
 
-} // namespace misc
+        ) :
+            m_acc( &acc ),
+            m_rng( rng )
+        { }
+
+        //! generate a random number
+        DINLINE
+        typename T_Rng::result_type
+        operator()()
+        {
+            return m_rng( *m_acc );
+        }
+
+        T_Acc const * m_acc;
+        mutable T_Rng m_rng;
+    };
+
+} // namepsace misc
 } // namespace functor
 } // namespace particles
 } // namespace picongpu

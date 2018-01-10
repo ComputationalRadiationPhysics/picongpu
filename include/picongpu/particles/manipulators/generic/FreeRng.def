@@ -38,8 +38,7 @@ namespace generic
      *
      *
      * @tparam T_Functor user defined unary functor
-     * @tparam T_Distribution random number distribution
-     * @tparam T_Seed seed to initialize the random number generator
+     * @tparam T_Distribution pmacc::random::distributions, random number distribution
      * @tparam T_SpeciesType type of the species that shall be manipulated
      *
      * example for `particle.param`: add
@@ -58,7 +57,7 @@ namespace generic
      *
      *   using RandomXPos = generic::FreeRng<
      *      FunctorRandomX,
-     *      nvidia::rng::distributions::Uniform_float
+     *      pmacc::random::distributions::Uniform< float_X >
      *   >;
      *   @endcode
      *
@@ -70,10 +69,6 @@ namespace generic
     template<
         typename T_Functor,
         typename T_Distribution,
-        typename T_Seed = boost::mpl::integral_c<
-            size_t,
-            FREERNG_SEED
-        >,
         typename T_SpeciesType = boost::mpl::_1
     >
     struct FreeRng;
