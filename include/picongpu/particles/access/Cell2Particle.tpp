@@ -25,6 +25,8 @@
 #include <pmacc/memory/shared/Allocate.hpp>
 #include <boost/mpl/void.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
 
 
 namespace picongpu
@@ -44,21 +46,32 @@ DINLINE void Cell2Particle<SuperCellSize, T_numWorkers>::operator() \
 (T_Acc const & acc, TParticlesBox pb, const uint32_t workerIdx, const CellIndex& cellIndex, Functor functor, T_Filter filter \
 BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
 { \
+    using namespace mappings::threads; \
+    constexpr uint32_t numWorkers = T_numWorkers; \
+    constexpr lcellId_t maxParticlesInFrame = pmacc::math::CT::volume< typename TParticlesBox::FrameType::SuperCellSize >::type::value; \
     CellIndex superCellIdx = cellIndex / (CellIndex)SuperCellSize::toRT(); \
-    \
-    uint16_t linearThreadIdx = threadIdx.z * SuperCellSize::x::value * SuperCellSize::y::value + \
-                               threadIdx.y * SuperCellSize::x::value + threadIdx.x; \
     \
     typedef typename TParticlesBox::FramePtr FramePtr; \
     typedef typename TParticlesBox::FrameType Frame; \
     PMACC_SMEM( acc, frame, FramePtr ); \
     PMACC_SMEM( acc, particlesInSuperCell, uint16_t ); \
+    ForEachIdx< \
+        IdxConfig< \
+            1, \
+            numWorkers \
+        > \
+    > onlyMaster{ workerIdx }; \
     \
-    if(linearThreadIdx == 0) \
-    { \
-        frame = pb.getLastFrame(superCellIdx); \
-        particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame(); \
-    } \
+    onlyMaster( \
+        [&]( \
+            uint32_t const, \
+            uint32_t const \
+        ) \
+        { \
+            frame = pb.getLastFrame(superCellIdx); \
+            particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame(); \
+        } \
+    ); \
     __syncthreads(); \
     \
     if (!frame.isValid()) return; /* leave kernel if we have no frames*/ \
@@ -71,26 +84,44 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
     \
     while (frame.isValid()) \
     { \
-        if (linearThreadIdx < particlesInSuperCell) \
-        { \
-            if( \
-                accFilter( \
-                    acc, \
-                    frame[ linearThreadIdx ] \
-                ) \
+        using ParticleDomCfg = IdxConfig< \
+            maxParticlesInFrame, \
+            numWorkers \
+        >; \
+        ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx ); \
+        forEachParticle( \
+            [&]( \
+                uint32_t const linearThreadIdx, \
+                uint32_t const \
             ) \
-                functor( \
-                    acc, \
-                    frame, linearThreadIdx \
-                    BOOST_PP_ENUM_TRAILING(N, ARGS, _) \
-                    ); \
-        } \
+            { \
+                if (linearThreadIdx < particlesInSuperCell) \
+                { \
+                    if( \
+                        accFilter( \
+                            acc, \
+                            frame[ linearThreadIdx ] \
+                        ) \
+                    ) \
+                        functor( \
+                            acc, \
+                            frame, linearThreadIdx \
+                            BOOST_PP_ENUM_TRAILING(N, ARGS, _) \
+                            ); \
+                } \
+            } \
+        ); \
         __syncthreads(); \
-        if (linearThreadIdx == 0) \
-        { \
-            frame = pb.getPreviousFrame(frame); \
-            particlesInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value; \
-        } \
+        onlyMaster( \
+            [&]( \
+                uint32_t const, \
+                uint32_t const \
+            ) \
+            { \
+                frame = pb.getPreviousFrame(frame); \
+                particlesInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value; \
+            } \
+        ); \
         __syncthreads(); \
     } \
 }

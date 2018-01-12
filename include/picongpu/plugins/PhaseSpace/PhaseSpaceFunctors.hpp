@@ -23,7 +23,6 @@
 
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
 #include <pmacc/cuSTL/algorithm/cudaBlock/Foreach.hpp>
-#include <pmacc/cuSTL/algorithm/kernel/ForeachBlock.hpp>
 #include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/VectorOperations.hpp>
@@ -141,7 +140,8 @@ namespace picongpu
         typename float_PS,
         uint32_t num_pbins,
         uint32_t r_dir,
-        typename T_Filter
+        typename T_Filter,
+        uint32_t T_numWorkers
     >
     struct FunctorBlock
     {
@@ -179,12 +179,15 @@ namespace picongpu
          *
          * \param indexBlockOffset cell index in global memory, describes where
          *                         the current block starts
-         *                         \see cuSTL/algorithm/kernel/ForeachBlock.hpp
+         *                         \see cuSTL/algorithm/kernel/Foreach.hpp
          */
         template< typename T_Acc >
         DINLINE void
         operator()( const T_Acc& acc,  const pmacc::math::Int<simDim>& indexBlockOffset )
         {
+            constexpr uint32_t numWorkers = T_numWorkers;
+            const uint32_t workerIdx = threadIdx.x;
+
             /** \todo write math::Vector constructor that supports dim3 */
             const pmacc::math::Int<simDim> indexGlobal = indexBlockOffset;
 
@@ -194,24 +197,17 @@ namespace picongpu
             container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock( acc );
 
             /* init shared mem */
-            pmacc::algorithm::cudaBlock::Foreach<SuperCellSize> forEachThreadInBlock;
-            {
-                forEachThreadInBlock( acc,
-                                      dBufferInBlock.zone(),
-                                      dBufferInBlock.origin(),
-                                      pmacc::algorithm::functor::AssignValue<float_PS>(0.0) );
-            }
+            pmacc::algorithm::cudaBlock::Foreach<
+                pmacc::math::CT::Int< numWorkers >
+            > forEachThreadInBlock(workerIdx);
+            forEachThreadInBlock( acc,
+                                  dBufferInBlock.zone(),
+                                  dBufferInBlock.origin(),
+                                  pmacc::algorithm::functor::AssignValue<float_PS>(0.0) );
             __syncthreads();
 
             FunctorParticle<r_dir, num_pbins, SuperCellSize> functorParticle;
-            //! \todo change this as soon as the kernel support lock step programming
-            constexpr uint32_t numWorkers = pmacc::math::CT::volume< SuperCellSize >::type::value;
-            /** \todo change this as soon as the kernel support lock step programming
-             * the current used `threadIdx` is an hack
-             */
-            const uint32_t workerIdx = DataSpaceOperations< simDim >::template map<
-                SuperCellSize
-            >( DataSpace< simDim >( threadIdx) );
+
             particleAccess::Cell2Particle<
                 SuperCellSize,
                 numWorkers

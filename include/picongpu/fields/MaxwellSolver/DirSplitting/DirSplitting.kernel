@@ -82,7 +82,12 @@ struct DirSplittingKernel
         float3_X fieldB_old;
         int threadPos_x = threadIdx.x;
 
-        algorithm::cudaBlock::Foreach<BlockDim> foreach;
+        //!@todo remove this explicit index calculation, this is a workaround during the lockstep refactoring
+        int linearThreadIdx = threadIdx.z * BlockDim::x::value * BlockDim::y::value +
+            threadIdx.y * BlockDim::x::value +
+            threadIdx.x;
+        algorithm::cudaBlock::Foreach<BlockDim> foreach(linearThreadIdx);
+
         for (int x_offset = 0; x_offset < this->m_totalLength; x_offset += BlockDim::x::value)
         {
             foreach(acc, typename CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
