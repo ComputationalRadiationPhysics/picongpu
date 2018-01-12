@@ -42,6 +42,7 @@
 #include "picongpu/simulation_defines/param/ionizationEnergies.param"
 #include "picongpu/simulation_defines/param/density.param"
 #include "picongpu/simulation_defines/param/particle.param"
+#include "picongpu/simulation_defines/param/unit.param"
 #include "picongpu/simulation_defines/param/particleFilters.param"
 #if( PMACC_CUDA_ENABLED == 1 )
 #   include "picongpu/simulation_defines/param/bremsstrahlung.param"
