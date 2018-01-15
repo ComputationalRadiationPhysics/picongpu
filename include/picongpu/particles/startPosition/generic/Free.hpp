@@ -146,13 +146,14 @@ namespace acc
          * @param configuration of the worker
          */
         template<
+            typename T,
             typename T_WorkerCfg,
             typename T_Acc
         >
         HDINLINE acc::Free< Functor >
         operator()(
             T_Acc const & acc,
-            DataSpace< simDim > const &,
+            T const &,
             T_WorkerCfg const &
         )
         {

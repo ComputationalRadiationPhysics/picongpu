@@ -45,7 +45,7 @@ namespace pmacc
  * @param pmacc_unique_id pre compiler unique id
  * @param pmacc_typeInfo a type that is shown in error message
  */
-#if ( PMACC_CUDA_COMPILER_CLANG == 1 )
+#if BOOST_LANG_CUDA && BOOST_COMP_CLANG_CUDA
 /* device compile with clang: boost static assert can not be used
  * error is: calling a `__host__` function from `__device__`
  * Therefore C++11 `static_assert` is used

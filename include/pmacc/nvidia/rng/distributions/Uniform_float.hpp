@@ -45,7 +45,7 @@ namespace detail
         using Dist =
             decltype(
                 ::alpaka::rand::distribution::createUniformReal<Type>(
-                    std::declval<T_Acc const &>()));
+                    alpaka::core::declval<T_Acc const &>()));
         PMACC_ALIGN(dist, Dist);
     public:
 

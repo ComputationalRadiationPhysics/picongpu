@@ -37,9 +37,9 @@ namespace methods
         using StateType =
             decltype(
                 ::alpaka::rand::generator::createDefault(
-                    std::declval<T_Acc const &>(),
-                    std::declval<uint32_t &>(),
-                    std::declval<uint32_t &>()
+                    alpaka::core::declval<T_Acc const &>(),
+                    alpaka::core::declval<uint32_t &>(),
+                    alpaka::core::declval<uint32_t &>()
                 )
             );
 

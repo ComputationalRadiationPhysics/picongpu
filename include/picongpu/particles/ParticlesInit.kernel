@@ -172,11 +172,11 @@ namespace picongpu
                 decltype(
                     positionFunctor(
                         acc,
-                        std::declval< DataSpace< simDim > const >( ),
+                        alpaka::core::declval< DataSpace< simDim > const >( ),
                         /* cellsPerSupercell is used because each virtual worker
                          * is creating **exactly one** functor
                          */
-                        std::declval< WorkerCfg< cellsPerSupercell > const >( )
+                        alpaka::core::declval< WorkerCfg< cellsPerSupercell > const >( )
                     )
                 ),
                 SuperCellDomCfg

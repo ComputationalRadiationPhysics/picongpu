@@ -91,7 +91,7 @@ namespace random
         HDINLINE typename GetRandomType<T_Distribution>::type
         applyDistribution()
         {
-            return GetRandomType<T_Distribution>::type(&getState());
+            return typename GetRandomType<T_Distribution>::type(&getState());
         }
 
     protected:
