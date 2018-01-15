@@ -67,9 +67,16 @@ namespace flylite
         )
         {
             boost::ignore_unused( ionSpeciesName, currentStep );
-
+            /* The compiler is allowed to evaluate an expression those not depends on a template parameter
+             * even if the class is never instantiated. In that case static assert is always
+             * evaluated (e.g. with clang), this results in an error if the condition is false.
+             * http://www.boost.org/doc/libs/1_60_0/doc/html/boost_staticassert.html
+             *
+             * A workaround is to add a template dependency to the expression.
+             * `sizeof(ANY_TYPE) != 0` is always true and defers the evaluation.
+             */
             PMACC_STATIC_ASSERT_MSG(
-                false,
+                false && sizeof(T_IonSpecies) != 0,
                 FLYlite_the_update_method_for_ion_population_kinetics_is_not_implemented
             );
         }

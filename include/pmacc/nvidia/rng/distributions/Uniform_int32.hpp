@@ -48,7 +48,7 @@ namespace detail
         using Dist =
             decltype(
                 ::alpaka::rand::distribution::createUniformUint<RngType>(
-                    std::declval<T_Acc const &>()));
+                    alpaka::core::declval<T_Acc const &>()));
         PMACC_ALIGN(dist, Dist);
     public:
         HDINLINE Uniform_int()

@@ -112,7 +112,7 @@ namespace detail
 
             // get the return type of the user functor
             using UserFunctorReturnType = decltype(
-                std::declval< UserFunctor >( )( acc, args ... )
+                alpaka::core::declval< UserFunctor >( )( acc, args ... )
             );
 
             // compare user functor return type with the interface requirements
@@ -216,7 +216,7 @@ namespace detail
         )
         -> acc::Interface<
             decltype(
-                std::declval< UserFunctor >( )(
+                alpaka::core::declval< UserFunctor >( )(
                     acc,
                     domainOffset,
                     workerCfg
