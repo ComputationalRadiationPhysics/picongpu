@@ -260,6 +260,8 @@ public:
             plugins::misc::speciesFilter::IsEligible< bmpl::_1 >
         >::type;
 
+        using AllFieldSources = FileOutputFields;
+
         ///! method used by plugin controller to get --help description
         void registerHelp(
             boost::program_options::options_description & desc,
@@ -271,6 +273,12 @@ public:
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleDataSourceNames;
             getEligibleDataSourceNames( forward( allowedDataSources ) );
+
+            ForEach<
+                AllFieldSources,
+                plugins::misc::AppendName< bmpl::_1 >
+            > appendFieldSourceNames;
+            appendFieldSourceNames( forward( allowedDataSources ) );
 
             // string list with all possible particle sources
             std::string concatenatedSourceNames = plugins::misc::concatenateToString(
@@ -467,11 +475,7 @@ private:
          */
         static std::string getName()
         {
-            std::stringstream str;
-            str << Species::FrameType::getName();
-            str << "_";
-            str << Solver().getName();
-            return str.str();
+            return FieldTmpOperation<Solver, Species>::getName();
         }
 
         HINLINE void operator_impl(ThreadParams* params)
@@ -722,11 +726,7 @@ private:
          */
         static std::string getName()
         {
-            std::stringstream str;
-            str << Solver().getName();
-            str << "_";
-            str << Species::FrameType::getName();
-            return str.str();
+            return FieldTmpOperation<Solver, Species>::getName();
         }
 
         /** Get the unit for the result from the solver*/
@@ -1260,6 +1260,56 @@ private:
         }
     };
 
+    template< typename T_Fields >
+    struct CallCollectFieldsSizes
+    {
+
+        void operator()(
+            const std::vector< std::string > & vectorOfDataSourceNames,
+            ThreadParams* params
+        )
+        {
+            bool const containsDataSource = plugins::misc::containsObject(
+                vectorOfDataSourceNames,
+                T_Fields::getName()
+            );
+
+            if( containsDataSource )
+            {
+                CollectFieldsSizes<
+                    T_Fields
+                > count;
+                count(params);
+            }
+
+        }
+    };
+
+    template< typename T_Fields >
+    struct CallGetFields
+    {
+
+        void operator()(
+            const std::vector< std::string > & vectorOfDataSourceNames,
+            ThreadParams* params
+        )
+        {
+            bool const containsDataSource = plugins::misc::containsObject(
+                vectorOfDataSourceNames,
+                T_Fields::getName()
+            );
+
+            if( containsDataSource )
+            {
+                GetFields<
+                    T_Fields
+                > getFields;
+                getFields( params );
+            }
+
+        }
+    };
+
     void *writeAdios(void *p_args, std::string mpiTransportParams)
     {
 
@@ -1347,6 +1397,14 @@ private:
                 > forEachCollectFieldsSizes;
                 forEachCollectFieldsSizes(threadParams);
             }
+
+            // move over all field data sources
+            ForEach<
+                typename Help::AllFieldSources,
+                CallCollectFieldsSizes<
+                    bmpl::_1
+                >
+            >{}(vectorOfDataSourceNames, forward(threadParams));
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) collecting fields.");
 
@@ -1451,6 +1509,14 @@ private:
                 > forEachGetFields;
                 forEachGetFields(threadParams);
             }
+
+            // move over all field data sources
+            ForEach<
+                typename Help::AllFieldSources,
+                CallGetFields<
+                    bmpl::_1
+                >
+            >{}(vectorOfDataSourceNames, forward(threadParams));
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing fields.");
 

@@ -181,6 +181,8 @@ public:
             plugins::misc::speciesFilter::IsEligible< bmpl::_1 >
         >::type;
 
+        using AllFieldSources = FileOutputFields;
+
         ///! method used by plugin controller to get --help description
         void registerHelp(
             boost::program_options::options_description & desc,
@@ -192,6 +194,12 @@ public:
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleDataSourceNames;
             getEligibleDataSourceNames( forward( allowedDataSources ) );
+
+            ForEach<
+                AllFieldSources,
+                plugins::misc::AppendName< bmpl::_1 >
+            > appendFieldSourceNames;
+            appendFieldSourceNames( forward( allowedDataSources ) );
 
             // string list with all possible data sources
             std::string concatenatedSourceNames = plugins::misc::concatenateToString(
@@ -611,6 +619,31 @@ private:
         }
     };
 
+    template< typename T_Field >
+    struct CallWriteFields
+    {
+
+        void operator()(
+            const std::vector< std::string > & vectorOfDataSourceNames,
+            ThreadParams* params
+        )
+        {
+            bool const containsDataSource = plugins::misc::containsObject(
+                vectorOfDataSourceNames,
+                T_Field::getName()
+            );
+
+            if( containsDataSource )
+            {
+                WriteFields<
+                    T_Field
+                > writeFields;
+                writeFields(params);
+            }
+
+        }
+    };
+
     void writeHDF5(void *p_args)
     {
         ThreadParams *threadParams = (ThreadParams*) (p_args);
@@ -652,6 +685,16 @@ private:
                 > forEachWriteFields;
                 forEachWriteFields(threadParams);
             }
+
+            ForEach<
+                typename Help::AllFieldSources,
+                CallWriteFields<
+                    bmpl::_1
+                >
+            >{}(
+                vectorOfDataSourceNames,
+                threadParams
+            );
         }
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing fields.");
 
