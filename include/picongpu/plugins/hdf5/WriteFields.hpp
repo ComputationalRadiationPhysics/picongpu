@@ -149,11 +149,7 @@ private:
      */
     static std::string getName()
     {
-        std::stringstream str;
-        str << Species::FrameType::getName();
-        str << "_";
-        str << Solver().getName();
-        return str.str();
+        return FieldTmpOperation<Solver, Species>::getName();
     }
 
     /** Get the unit for the result from the solver*/

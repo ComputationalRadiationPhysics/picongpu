@@ -79,8 +79,9 @@ namespace derivedAttributes
            return unitDimension;
         }
 
-        HINLINE std::string
-        getName() const
+        HINLINE static
+        std::string
+        getName()
         {
             const std::string name_lookup[] = {"x", "y", "z"};
 

@@ -85,7 +85,8 @@ namespace particleToGrid
         /** return name of the this solver
          * @return name of solver
          */
-        HINLINE std::string getName() const;
+        HINLINE static
+        std::string getName();
 
         template<
             typename FrameType,
