@@ -24,8 +24,10 @@
 #include <pmacc/particles/memory/frames/Frame.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/traits/Resolve.hpp>
+#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
 
 #include "picongpu/particles/synchrotronPhotons/PhotonCreator.def"
+
 
 namespace picongpu
 {
@@ -34,22 +36,38 @@ namespace particles
 namespace traits
 {
 
-template<typename T_SpeciesType>
-struct GetPhotonCreator
-{
-    using SpeciesType = T_SpeciesType;
-    using FrameType = typename SpeciesType::FrameType;
+    /** Get the functor to create photons from a species
+     *
+     * @tparam T_SpeciesType type or name as boost::mpl::string
+     */
+    template< typename T_SpeciesType >
+    struct GetPhotonCreator
+    {
+        using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+            VectorAllSpecies,
+            T_SpeciesType
+        >;
+        using FrameType = typename SpeciesType::FrameType;
 
-    /* The following line only fetches the alias */
-    typedef typename GetFlagType<FrameType, picongpu::synchrotronPhotons<> >::type FoundSynchrotronPhotonsAlias;
+        // The following line only fetches the alias
+        using FoundSynchrotronPhotonsAlias = typename GetFlagType<
+            FrameType,
+            picongpu::synchrotronPhotons<>
+        >::type;
 
-    /* This now resolves the alias into the actual object type */
-    typedef typename pmacc::traits::Resolve<FoundSynchrotronPhotonsAlias>::type FoundPhotonSpecies;
+        // This now resolves the alias into the actual object type and select the species from the species list
+        using FoundPhotonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+            VectorAllSpecies,
+            typename pmacc::traits::Resolve< FoundSynchrotronPhotonsAlias >::type
+        >;
 
-    /* This specifies the target species as the second template parameter of the photon creator */
-    typedef synchrotronPhotons::PhotonCreator<SpeciesType, FoundPhotonSpecies> type;
+        // This specifies the target species as the second template parameter of the photon creator
+        using type = synchrotronPhotons::PhotonCreator<
+            SpeciesType,
+            FoundPhotonSpecies
+        >;
 
-};
+    };
 
 } // namespace traits
 } // namespace particles

@@ -40,6 +40,7 @@
 #include <pmacc/cuSTL/algorithm/kernel/Reduce.hpp>
 #include <pmacc/algorithms/ForEach.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
 
 #include "common/txtFileHandling.hpp"
 
@@ -164,10 +165,13 @@ struct Div<DIM2, ValueType>
 };
 
 // functor for all species to calculate density
-template<typename T_SpeciesName, typename T_Area>
+template<typename T_SpeciesType, typename T_Area>
 struct ComputeChargeDensity
 {
-    using SpeciesName = typename T_SpeciesName::type;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     static const uint32_t area = T_Area::value;
 
     HINLINE void operator()( FieldTmp* fieldTmp,
@@ -176,18 +180,16 @@ struct ComputeChargeDensity
         DataConnector &dc = Environment<>::get().DataConnector();
 
         /* load species without copying the particle data to the host */
-        auto speciesTmp = dc.get< SpeciesName >( SpeciesName::FrameType::getName(), true );
+        auto speciesTmp = dc.get< SpeciesType >( SpeciesType::FrameType::getName(), true );
 
         /* run algorithm */
-//        typedef typename particles::particleToGrid::CreateDensityOperation<SpeciesName>::type::Solver ChargeDensitySolver;
-
         using ChargeDensitySolver = typename particles::particleToGrid::CreateFieldTmpOperation_t<
-            SpeciesName,
+            SpeciesType,
             particles::particleToGrid::derivedAttributes::ChargeDensity
         >::Solver;
 
         fieldTmp->computeValue < area, ChargeDensitySolver > (*speciesTmp, currentStep);
-        dc.releaseData( SpeciesName::FrameType::getName() );
+        dc.releaseData( SpeciesType::FrameType::getName() );
     }
 };
 
@@ -241,7 +243,7 @@ void ChargeConservation::notify(uint32_t currentStep)
             bmpl::_1,
             bmpl::int_< CORE + BORDER >
         >,
-        MakeIdentifier< bmpl::_1 >
+        bmpl::_1
     > computeChargeDensity;
     computeChargeDensity(forward(fieldTmp.get()), currentStep);
 

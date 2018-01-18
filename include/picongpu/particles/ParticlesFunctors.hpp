@@ -27,6 +27,8 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
+#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
 #   include "picongpu/particles/bremsstrahlung/Bremsstrahlung.hpp"
@@ -50,10 +52,17 @@ namespace picongpu
 namespace particles
 {
 
+/** assign nullptr to all attributes of a species
+ *
+ * @tparam T_SpeciesType type or name as boost::mpl::string of the species
+ */
 template<typename T_SpeciesType>
 struct AssignNull
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
     void operator()()
@@ -65,10 +74,17 @@ struct AssignNull
     }
 };
 
-template<typename T_SpeciesType>
+/** create memory for the given species type
+ *
+ * @tparam T_SpeciesType type or name as boost::mpl::string of the species
+ */
+template< typename T_SpeciesType >
 struct CreateSpecies
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
     template<
@@ -93,10 +109,17 @@ struct CreateSpecies
     }
 };
 
-template<typename T_SpeciesType>
+/** write memory statistics to the terminal
+ *
+ * @tparam T_SpeciesType type or name as boost::mpl::string of the species
+ */
+template< typename T_SpeciesType >
 struct LogMemoryStatisticsForSpecies
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
     template<typename T_DeviceHeap>
@@ -113,10 +136,17 @@ struct LogMemoryStatisticsForSpecies
     }
 };
 
-template<typename T_SpeciesType>
+/** call method reset for the given species
+ *
+ * @tparam T_SpeciesType type or name as boost::mpl::string of the species to reset
+ */
+template< typename T_SpeciesType >
 struct CallReset
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
     HINLINE void operator()( const uint32_t currentStep )
@@ -132,13 +162,15 @@ struct CallReset
  *
  * energy histograms, rate matrix, etc.
  *
- * @tparam T_SpeciesName name of ion species
+ * @tparam T_SpeciesType type or name as boost::mpl::string of ion species
  */
-template< typename T_SpeciesName >
+template< typename T_SpeciesType >
 struct CallPopulationKineticsInit
 {
-    using SpeciesName = T_SpeciesName;
-    using SpeciesType = typename SpeciesName::type;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
     using PopulationKineticsSolver = typename pmacc::traits::Resolve<
@@ -159,15 +191,16 @@ struct CallPopulationKineticsInit
 
 /** Calculate FLYlite population kinetics evolving one time step
  *
- * @tparam T_SpeciesName name of ion species as pmacc::TypeAsIdentifier
+ * @tparam T_SpeciesType type or name as boost::mpl::string of ion species
  */
-template< typename T_SpeciesName >
+template< typename T_SpeciesType >
 struct CallPopulationKinetics
 {
-    //! pmacc::TypeAsIdentifier for the particle species
-    using SpeciesName = T_SpeciesName;
-    //! expects a picongpu::Particles class
-    using SpeciesType = typename SpeciesName::type;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
+
     using FrameType = typename SpeciesType::FrameType;
 
     using PopulationKineticsSolver = typename pmacc::traits::Resolve<
@@ -191,12 +224,15 @@ struct CallPopulationKinetics
  *
  * push is only triggered for species with a pusher
  *
- * @tparam T_SpeciesType type of particle species that is checked
+ * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked
  */
 template<typename T_SpeciesType>
 struct PushSpecies
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
     template<typename T_EventList>
@@ -221,12 +257,15 @@ struct PushSpecies
  *
  * communication is only triggered for species with a pusher
  *
- * @tparam T_SpeciesType type of particle species that is checked
+ * @tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked
  */
 template<typename T_SpeciesType>
 struct CommunicateSpecies
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
     template<typename T_EventList>
@@ -300,13 +339,16 @@ struct PushAllSpecies
 
 /** Call an ionization method upon an ion species
  *
- * \tparam T_SpeciesType type of particle species that is going to be ionized with
+ * \tparam T_SpeciesType type or name as boost::mpl::string of particle species that is going to be ionized with
  *                       ionization scheme T_SelectIonizer
  */
 template< typename T_SpeciesType, typename T_SelectIonizer >
 struct CallIonizationScheme
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using SelectIonizer = T_SelectIonizer;
     using FrameType = typename SpeciesType::FrameType;
 
@@ -356,12 +398,15 @@ struct CallIonizationScheme
  *
  * Tests if species can be ionized and calls the kernels to do that
  *
- * \tparam T_SpeciesType type of particle species that is checked for ionization
+ * \tparam T_SpeciesType type or name as boost::mpl::string of particle species that is checked for ionization
  */
 template< typename T_SpeciesType >
 struct CallIonization
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
     // SelectIonizer will be either the specified one or fallback: None
@@ -397,22 +442,31 @@ struct CallIonization
 
 /** Handles the bremsstrahlung effect for electrons on ions.
  *
- * \tparam T_ElectronSpecies type of electron particle species
+ * @tparam T_ElectronSpecies type or name as boost::mpl::string of electron particle species
  */
 template<typename T_ElectronSpecies>
 struct CallBremsstrahlung
 {
-    using ElectronSpecies = T_ElectronSpecies;
+    using ElectronSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_ElectronSpecies
+    >;
     using ElectronFrameType = typename ElectronSpecies::FrameType;
 
-    using IonSpecies = typename pmacc::particles::traits::ResolveAliasFromSpecies<
-        ElectronSpecies,
-        bremsstrahlungIons<>
-    >::type;
-    using PhotonSpecies = typename pmacc::particles::traits::ResolveAliasFromSpecies<
-        ElectronSpecies,
-        bremsstrahlungPhotons<>
-    >::type;
+    using IonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        typename pmacc::particles::traits::ResolveAliasFromSpecies<
+            ElectronSpecies,
+            bremsstrahlungIons<>
+        >::type
+    >;
+    using PhotonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        typename pmacc::particles::traits::ResolveAliasFromSpecies<
+            ElectronSpecies,
+            bremsstrahlungPhotons<>
+        >::type
+    >;
     using PhotonFrameType = typename PhotonSpecies::FrameType;
     using BremsstrahlungFunctor = bremsstrahlung::Bremsstrahlung<
         IonSpecies,
@@ -462,12 +516,15 @@ struct CallBremsstrahlung
 
 /** Handles the synchrotron radiation emission of photons from electrons
  *
- * \tparam T_ElectronSpecies type of electron particle species
+ * @tparam T_ElectronSpecies type or name as boost::mpl::string of electron particle species
  */
 template<typename T_ElectronSpecies>
 struct CallSynchrotronPhotons
 {
-    using ElectronSpecies = T_ElectronSpecies;
+    using ElectronSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_ElectronSpecies
+    >;
     using ElectronFrameType = typename ElectronSpecies::FrameType;
 
     /* SelectedPhotonCreator will be either PhotonCreator or fallback: CreatorBase */
