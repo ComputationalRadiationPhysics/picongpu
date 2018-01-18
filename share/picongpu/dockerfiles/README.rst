@@ -9,8 +9,8 @@ Opens a bash prompt with a fully set up PIConGPU environment.
 
 .. code:: bash
 
-    nvidia-docker pull ax3l/picongpu
-    nvidia-docker run -it ax3l/picongpu
+    docker pull ax3l/picongpu
+    docker run --runtime=nvidia -it ax3l/picongpu
 
 or in singularity:
 
@@ -24,8 +24,8 @@ This exposes the ISAAC port to connect via the webclient to.
 
 .. code:: bash
 
-    nivida-docker pull ax3l/picongpu
-    nvidia-docker run -p 2459:2459 -t ax3l/picongpu:0.3.0 lwfa
+    docker pull ax3l/picongpu
+    docker run --runtime=nvidia -p 2459:2459 -t ax3l/picongpu:0.3.0 lwfa
     # open firefox and isaac client
 
 or
