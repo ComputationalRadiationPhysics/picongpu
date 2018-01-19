@@ -38,6 +38,7 @@ Installation
 .. toctree::
    :caption: INSTALLATION
    :maxdepth: 1
+   :hidden:
 
    install/path
    install/instructions
@@ -50,6 +51,7 @@ Usage
 .. toctree::
    :caption: USAGE
    :maxdepth: 1
+   :hidden:
 
    usage/reference
    usage/basics
@@ -66,6 +68,7 @@ Models
 .. toctree::
    :caption: MODELS
    :maxdepth: 1
+   :hidden:
 
    models/pic
    models/LL_RR
@@ -79,6 +82,7 @@ Post-Processing
 .. toctree::
    :caption: Post-Processing
    :maxdepth: 2
+   :hidden:
 
    postprocessing/python
    postprocessing/openPMD
@@ -90,6 +94,7 @@ Development
 .. toctree::
    :caption: DEVELOPMENT
    :maxdepth: 1
+   :hidden:
 
    dev/CONTRIBUTING.md
    dev/repostructure
@@ -107,5 +112,6 @@ Programming Patterns
 .. toctree::
    :caption: PROGRAMMING PATTERNS
    :maxdepth: 1
+   :hidden:
 
    prgpatterns/lockstep
