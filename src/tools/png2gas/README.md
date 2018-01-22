@@ -14,7 +14,7 @@ Required libraries:
  - **cmake** 2.8.12.2 or higher
  - **OpenMPI** 1.4 or higher
  - **boost** 1.47.0 or higher ("program options")
- - **PNGwriter** 0.5.6 or higher ([GitHub project](https://github.com/pngwriter/pngwriter))
+ - **PNGwriter** 0.7.0 or higher ([GitHub project](https://github.com/pngwriter/pngwriter))
  - **libSplash** (requires *hdf5*)
  - **hdf5** >= 1.8.6, standard shared version (no c++, enable parallel)
 
