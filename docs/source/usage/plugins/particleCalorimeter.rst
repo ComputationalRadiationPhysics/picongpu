@@ -57,7 +57,8 @@ PIConGPU command line option       Description
 Coordinate System
 ^^^^^^^^^^^^^^^^^
 
-![orientation of axis](images/YawPitch.png)
+.. image:: ../../../images/YawPitch.png
+   :alt: orientation of axes
 
 Yaw and pitch are `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`_ defining a point on a sphere's surface, where ``(0,0)`` points to the ``+y`` direction here. In the vicinity of ``(0,0)``, yaw points to ``+x`` and pitch to ``+z``.
 
@@ -85,6 +86,7 @@ Host
 """"
 
 as on accelerator.
+
 Output
 ^^^^^^
 
