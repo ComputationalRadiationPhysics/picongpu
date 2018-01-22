@@ -28,6 +28,13 @@ Plugin name                                                                     
 :ref:`sum currents <usage-plugins-sumCurrents>`                                    compute the total current summed over all cells
 ================================================================================== =======================================================================
 
+.. toctree::
+   :glob:
+   :maxdepth: 1
+   :hidden:
+
+   plugins/*
+
 Period Syntax
 =============
 
@@ -66,10 +73,3 @@ Examples
 .. [#f5] Deprecated
 .. [#f6] Only runs on the *CUDA* backend (GPU).
 .. [#f7] Multi-Plugin: Can be configured to run multiple times with varying parameters.
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   :hidden:
-
-   plugins/*
