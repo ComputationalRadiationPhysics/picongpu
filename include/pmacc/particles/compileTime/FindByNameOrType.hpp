@@ -40,7 +40,10 @@ namespace particles
 namespace compileTime
 {
 
-    /* find a type within a sequence by name or the type it self
+    /* find a type within a sequence by name or the type itself
+     *
+     * pmacc::traits::GetCTName is used to translate each element of
+     * T_MPLSeq into a name.
      *
      * @tparam T_MPLSeq source sequence where we search T_Identifier
      * @tparam T_Identifier name or type to search
@@ -74,7 +77,7 @@ namespace compileTime
             HasTypeOrName< bmpl::_1 >
         >::type;
 
-        using type =typename bmpl::if_<
+        using type = typename bmpl::if_<
             bmpl::empty< FilteredSeq >,
             bmpl::apply<
                 KeyNotFoundPolicy,

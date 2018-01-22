@@ -23,6 +23,7 @@
 
 #include <boost/mpl/string.hpp>
 
+
 namespace pmacc
 {
 namespace traits
@@ -44,5 +45,5 @@ namespace traits
     template< typename T_Type >
     using GetCTName_t = typename GetCTName< T_Type >::type;
 
-}//namespace traits
-}//namespace pmacc
+} // namespace traits
+} // namespace pmacc
