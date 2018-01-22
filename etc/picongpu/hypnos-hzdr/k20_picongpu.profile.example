@@ -28,7 +28,7 @@ then
         module load openmpi/1.8.6.kepler.cuda80
 
         # Plugins (optional)
-        module load pngwriter/0.6.0
+        module load pngwriter/0.7.0
         module load hdf5-parallel/1.8.15 libsplash/1.6.0
 
         # either use libSplash or ADIOS for file I/O

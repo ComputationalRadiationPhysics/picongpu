@@ -85,7 +85,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SPLASH_ROOT/lib
 #   tar -xvf libpng-1.6.9.tar.gz
 #   ./configure --host=x86 --prefix=$PROJWORK/$proj/lib/libpng
 # afterwards install pngwriter yourself:
-#   https://github.com/ax3l/pngwriter#install
+#   https://github.com/pngwriter/pngwriter#installation
 export LIBPNG_ROOT=$PROJWORK/$proj/lib/libpng
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBPNG_ROOT/lib
 export PNGWRITER_ROOT=$PROJWORK/$proj/lib/pngwriter
