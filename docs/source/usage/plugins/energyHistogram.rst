@@ -31,27 +31,28 @@ For example, to limit to particles within a cone with an opening angle of five d
                T_Particle const & particle
            )
            {
-               float3_X const mom = particle[ momentum_ ];
-
-               /* place detector in y direction, "infinite distance" to target,
-                * and five degree opening angle
-                */
-               float_X const openingAngle = 5.0 * PI / 180.;
-               float_X const dotP = mom.y() / math::abs(mom);
-               float_X const degForw = math::acos( dotP );
-
                bool result = false;
-               if( degForw <= openingAngle / 2.0 )
-                   if( degForw >= openingAngle / -2.0 )
+               float3_X const mom = particle[ momentum_ ];
+               float_X const absMom = math::abs( mom );
+
+               if( absMom > float_X( 0. ) )
+               {
+                   /* place detector in y direction, "infinite distance" to target,
+                    * and five degree opening angle
+                    */
+                   constexpr float_X openingAngle = 5.0 * PI / 180.;
+                   float_X const dotP = mom.y() / absMom;
+                   float_X const degForw = math::acos( dotP );
+
+                   if( math::abs( degForw ) <= openingAngle * float_X( 0.5 ) )
                        result = true;
+               }
                return result;
            }
        };
        using ParticlesForwardPinhole = generic::Free<
           FunctorParticlesForwardPinhole
        >;
-
-       // ...
    }
    }
    }

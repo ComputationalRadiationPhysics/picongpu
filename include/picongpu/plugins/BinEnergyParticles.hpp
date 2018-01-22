@@ -244,7 +244,7 @@ struct KernelBinEnergyParticles
                              * I think this is a problem with extern shared mem and atmic (only on TESLA)
                              * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
                              *
-                             * uses a normed float weighting to avoid a overflow of the floating point result
+                             * uses a normed float weighting to avoid an overflow of the floating point result
                              * for the reduced weighting if the particle weighting is very large
                              */
                             float_X const normedWeighting = weighting /
