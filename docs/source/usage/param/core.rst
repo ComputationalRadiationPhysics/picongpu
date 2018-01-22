@@ -106,6 +106,14 @@ particle.param
    :path: include/picongpu/simulation_defines/param/particle.param
    :no-link:
 
+unit.param
+^^^^^^^^^^^^^^
+
+.. doxygenfile:: unit.param
+   :project: PIConGPU
+   :path: include/picongpu/simulation_defines/param/unit.param
+   :no-link:
+
 particleFilters.param
 ^^^^^^^^^^^^^^^^^^^^^
 
