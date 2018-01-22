@@ -64,8 +64,7 @@ namespace po = boost::program_options;
 
 /** calculate a energy histogram of a species
  *
- * if a detector is defined than only particle traversing the detector are counted
- * else all particles are used
+ * if a particle filter is given, only the filtered particles are counted
  *
  * @tparam T_numWorkers number of workers
  */
@@ -87,8 +86,6 @@ struct KernelBinEnergyParticles
      * @param numBins number of bins in the histogram (must be fit into the shared memory)
      * @param minEnergy particle energy for the first bin
      * @param maxEnergy particle energy for the last bin
-     * @param maximumSlopeToDetectorX tangent of maximum opening angle to the detector in X direction
-     * @param maximumSlopeToDetectorZ tangent of maximum opening angle to the detector in Y direction
      * @param mapper functor to map a cuda block to a supercells index
      */
     template<
@@ -105,8 +102,6 @@ struct KernelBinEnergyParticles
         int const numBins,
         float_X const minEnergy,
         float_X const maxEnergy,
-        float_X const maximumSlopeToDetectorX,
-        float_X const maximumSlopeToDetectorZ,
         T_Mapping const mapper,
         T_Filter filter
     ) const
@@ -128,8 +123,6 @@ struct KernelBinEnergyParticles
             particlesInSuperCell,
             lcellId_t
         );
-
-        bool const enableDetector = maximumSlopeToDetectorX != float_X( 0.0 ) && maximumSlopeToDetectorZ != float_X( 0.0 );
 
         /* shBins index can go from 0 to (numBins+2)-1
          * 0 is for <minEnergy
@@ -218,63 +211,49 @@ struct KernelBinEnergyParticles
                              *                                   = c^2 * [p^2 + m^2*c^2]
                              */
                             float3_X const mom = particle[ momentum_ ];
+                            float_X const weighting = particle[ weighting_ ];
+                            float_X const mass = attribute::getMass(
+                                weighting,
+                                particle
+                            );
 
-                            bool calcParticle = true;
+                            // calculate kinetic energy of the macro particle
+                            float_X localEnergy = KinEnergy< >( )(
+                                mom,
+                                mass
+                            );
 
-                            if( enableDetector && mom.y() > 0.0 )
-                            {
-                                float_X const slopeMomX = abs( mom.x( ) / mom.y( ) );
-                                float_X const slopeMomZ = abs( mom.z( ) / mom.y( ) );
-                                if( slopeMomX >= maximumSlopeToDetectorX || slopeMomZ >= maximumSlopeToDetectorZ )
-                                    calcParticle = false;
-                            }
+                            localEnergy /= weighting;
 
-                            if( calcParticle )
-                            {
-                                float_X const weighting = particle[ weighting_ ];
-                                float_X const mass = attribute::getMass(
-                                    weighting,
-                                    particle
-                                );
+                            /* +1 move value from 1 to numBins+1 */
+                            int binNumber = math::floor(
+                                ( localEnergy - minEnergy ) /
+                                ( maxEnergy - minEnergy ) * static_cast< float_X >( numBins )
+                            )  + 1;
 
-                                // calculate kinetic energy of the macro particle
-                                float_X localEnergy = KinEnergy< >( )(
-                                    mom,
-                                    mass
-                                );
+                            int const maxBin = numBins + 1;
 
-                                localEnergy /= weighting;
+                            /* all entries larger than maxEnergy go into bin maxBin */
+                            binNumber = binNumber < maxBin ? binNumber : maxBin;
 
-                                /* +1 move value from 1 to numBins+1 */
-                                int binNumber = math::floor(
-                                    ( localEnergy - minEnergy ) /
-                                    ( maxEnergy - minEnergy ) * static_cast< float_X >( numBins )
-                                )  + 1;
+                            /* all entries smaller than minEnergy go into bin zero */
+                            binNumber = binNumber > 0 ? binNumber : 0;
 
-                                int const maxBin = numBins + 1;
-
-                                /* all entries larger than maxEnergy go into bin maxBin */
-                                binNumber = binNumber < maxBin ? binNumber : maxBin;
-
-                                /* all entries smaller than minEnergy go into bin zero */
-                                binNumber = binNumber > 0 ? binNumber : 0;
-
-                                /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
-                                 * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
-                                 * I think this is a problem with extern shared mem and atmic (only on TESLA)
-                                 * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
-                                 *
-                                 * uses a normed float weighting to avoid a overflow of the floating point result
-                                 * for the reduced weighting if the particle weighting is very large
-                                 */
-                                float_X const normedWeighting = weighting /
-                                    float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
-                                atomicAdd(
-                                    &( shBin[ binNumber ] ),
-                                    normedWeighting,
-                                    ::alpaka::hierarchy::Threads{}
-                                );
-                            }
+                            /*!\todo: we can't use 64bit type on this place (NVIDIA BUG?)
+                             * COMPILER ERROR: ptxas /tmp/tmpxft_00005da6_00000000-2_main.ptx, line 4246; error   : Global state space expected for instruction 'atom'
+                             * I think this is a problem with extern shared mem and atmic (only on TESLA)
+                             * NEXT BUG: don't do uint32_t w=__float2uint_rn(weighting); and use w for atomic, this create wrong results
+                             *
+                             * uses a normed float weighting to avoid an overflow of the floating point result
+                             * for the reduced weighting if the particle weighting is very large
+                             */
+                            float_X const normedWeighting = weighting /
+                                float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
+                            atomicAdd(
+                                &( shBin[ binNumber ] ),
+                                normedWeighting,
+                                ::alpaka::hierarchy::Threads{}
+                            );
                         }
                     }
                 }
@@ -380,21 +359,6 @@ private:
             "maxEnergy",
             "maxEnergy[in keV]"
         };
-        plugins::multi::Option< float_X > distanceToDetector = {
-            "distanceToDetector",
-            "distance between gas and detector, assumptions: simulated area in y direction << distance to detector AND simulated area in X,Z << slit [in meters]  (if not set, all particles are counted)",
-            0.0
-        };
-        plugins::multi::Option< float_X > slitDetectorX = {
-            "slitDetectorX",
-            "size of the detector slit in X [in meters] (if not set, all particles are counted)",
-            0.0
-        };
-        plugins::multi::Option< float_X > slitDetectorZ = {
-            "slitDetectorZ",
-            "size of the detector slit in Z [in meters] (if not set, all particles are counted)",
-            0.0
-        };
 
         //! string list with all possible particle filters
         std::string concatenatedFilterNames;
@@ -435,18 +399,6 @@ private:
                 masterPrefix + prefix
             );
             maxEnergy_keV.registerHelp(
-                desc,
-                masterPrefix + prefix
-            );
-            distanceToDetector.registerHelp(
-                desc,
-                masterPrefix + prefix
-            );
-            slitDetectorX.registerHelp(
-                desc,
-                masterPrefix + prefix
-            );
-            slitDetectorZ.registerHelp(
                 desc,
                 masterPrefix + prefix
             );
@@ -523,11 +475,6 @@ private:
     float_X minEnergy_keV;
     float_X maxEnergy_keV;
 
-    float_X distanceToDetector;
-    float_X slitDetectorX;
-    float_X slitDetectorZ;
-    bool enableDetector = false;
-
     std::ofstream outFile;
 
     /* only rank 0 create a file */
@@ -569,14 +516,8 @@ public:
             );
         }
 
-        slitDetectorX = m_help->slitDetectorX.get( m_id );
-        slitDetectorZ = m_help->slitDetectorZ.get( m_id );
-        distanceToDetector = m_help->distanceToDetector.get( m_id );
         minEnergy_keV = m_help->minEnergy_keV.get( m_id );
         maxEnergy_keV = m_help->maxEnergy_keV.get( m_id );
-
-        if (distanceToDetector != float_X(0.0) && slitDetectorX != float_X(0.0) && slitDetectorZ != float_X(0.0))
-            enableDetector = true;
 
         realNumBins = numBins + 2;
 
@@ -688,17 +629,6 @@ private:
         DataConnector &dc = Environment<>::get().DataConnector();
         auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
 
-        /** Assumption: distanceToDetector >> simulated Area in y-Direction
-         *          AND     simulated area in X,Z << slit  */
-        float_64 maximumSlopeToDetectorX = 0.0; /*0.0 is disabled detector*/
-        float_64 maximumSlopeToDetectorZ = 0.0; /*0.0 is disabled detector*/
-        if (enableDetector)
-        {
-            maximumSlopeToDetectorX = (slitDetectorX / 2.0) / (distanceToDetector);
-            maximumSlopeToDetectorZ = (slitDetectorZ / 2.0) / (distanceToDetector);
-            /* maximumSlopeToDetector = (radiusDetector * radiusDetector) / (distanceToDetector * distanceToDetector); */
-        }
-
         /* convert energy values from keV to PIConGPU units */
         float_X const minEnergy = minEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
         float_X const maxEnergy = maxEnergy_keV * UNITCONV_keV_to_Joule / UNIT_ENERGY;
@@ -725,8 +655,6 @@ private:
             numBins,
             minEnergy,
             maxEnergy,
-            maximumSlopeToDetectorX,
-            maximumSlopeToDetectorZ,
             mapper,
             std::placeholders::_1
         );

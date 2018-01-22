@@ -3,10 +3,68 @@
 Energy Histogram
 ----------------
 
-This plugin computes the energy histogram particle species simulated with PIConGPU.
-The energy binning can be set up using command line parameters.
-A *virtual detector* can be located in the y direction of the simulation to count only particles that would reach such a detector in an experimental setup.
-If the detector setup is not specified, all particles of a species are considered in the histogram. 
+This plugin computes the energy histogram (spectrum) of a selected particle species and stores it to plain text files.
+The acceptance of particles for counting in the energy histogram can be adjusted, e.g. to model the limited acceptance of a realistic spectrometer.
+
+.param file
+^^^^^^^^^^^
+
+The :ref:`particleFilters.param <usage-params-core>` file allows to define accepted particles for the energy histogram.
+A typical :ref:`filter <usage-particles>` could select particles within a specified opening angle in forward direction.
+
+For example, to limit to particles within a cone with an opening angle of five degrees (pinhole):
+
+.. code:: cpp
+
+   namespace picongpu
+   {
+   namespace particles
+   {
+   namespace filter
+   {
+       struct FunctorParticlesForwardPinhole
+       {
+           static constexpr char const * name = "forwardPinhole";
+
+           template< typename T_Particle >
+           HDINLINE bool operator()(
+               T_Particle const & particle
+           )
+           {
+               bool result = false;
+               float3_X const mom = particle[ momentum_ ];
+               float_X const absMom = math::abs( mom );
+
+               if( absMom > float_X( 0. ) )
+               {
+                   /* place detector in y direction, "infinite distance" to target,
+                    * and five degree opening angle
+                    */
+                   constexpr float_X openingAngle = 5.0 * PI / 180.;
+                   float_X const dotP = mom.y() / absMom;
+                   float_X const degForw = math::acos( dotP );
+
+                   if( math::abs( degForw ) <= openingAngle * float_X( 0.5 ) )
+                       result = true;
+               }
+               return result;
+           }
+       };
+       using ParticlesForwardPinhole = generic::Free<
+          FunctorParticlesForwardPinhole
+       >;
+   }
+   }
+   }
+
+and add ``ParticlesForwardPinhole`` to the ``AllParticleFilters`` list:
+
+.. code:: cpp
+
+   using AllParticleFilters = MakeSeq_t<
+       All,
+       ParticlesForwardPinhole
+   >;
 
 .cfg files
 ^^^^^^^^^^
@@ -31,15 +89,6 @@ PIConGPU command line option                description
 ``--e_energyHistogram.maxEnergy``           Set the maximum energy for the **electron** histogram in *keV*.
                                             There is **no default value**.
                                             This has to be set by the user if ``--e_energyHistogram.period 1`` is set.
-``--e_energyHistogram.distanceToDetector``  Distance in *meter* of a **electron** detector located far away in y direction with
-                                            slit opening in x and z direction. If set to *non-zero* value, only particles that 
-                                            would reach the detector are considered in the histogram.
-                                            Default ``0``, meaning all particles are considered in the **electron** histogram 
-                                            and no detector is assumed.
-``--e_energyHistogram.slitDetectorX``       Width of the **electron** detector in *meter*.
-                                            If not set, all particles are counted.
-``--e_energyHistogram.slitDetectorZ``       Hight of the **electron** detector in *meter*.
-                                            If not set, all particles are counted.
 =========================================== =====================================================================================
 
 .. note::
@@ -131,7 +180,7 @@ It accesses the gnuplot script ``BinEnergyPlot.gnuplot`` in ``src/tools/share/gn
 ======== ===================================================================
 Argument Value
 ======== ===================================================================
-1st      Path and filename to `e_energyHistogram.dat` file.
+1st      Path and filename to ``e_energyHistogram.dat`` file.
 2nd      Simulation time step (needs to exist)
 3rd      Label for particle count used in the graph that this tool produces.
 ======== ===================================================================
