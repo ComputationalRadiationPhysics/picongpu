@@ -152,7 +152,7 @@ We recommend to install at least **pngwriter** and either **libSplash** (+ **HDF
 
 pngwriter
 """""""""
-- 0.5.6+
+- 0.7.0+
 - *Spack:* ``spack install pngwriter``
 - *from source:*
 

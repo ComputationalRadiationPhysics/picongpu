@@ -102,14 +102,21 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES})
 ################################################################################
 
 # find PNGwriter installation
-find_package(PNGwriter 0.5.6 REQUIRED)
+find_package(PNGwriter 0.7.0 REQUIRED CONFIG)
 
 if(PNGwriter_FOUND)
-    include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})
     list(APPEND PNGwriter_DEFINITIONS "-DGOL_ENABLE_PNG=1")
-    add_definitions(${PNGwriter_DEFINITIONS})
-    set(LIBS ${LIBS} ${PNGwriter_LIBRARIES})
+    set(LIBS ${LIBS} PNGwriter::PNGwriter)
 endif(PNGwriter_FOUND)
+
+################################################################################
+# Math
+################################################################################
+
+if(NOT WIN32)
+    # automatically added on windows
+    set(LIBS ${LIBS} m)
+endif()
 
 
 ################################################################################
@@ -145,7 +152,7 @@ cupla_add_executable(gameOfLife
     ${SRCFILES}
 )
 
-target_link_libraries(gameOfLife ${LIBS} m)
+target_link_libraries(gameOfLife PRIVATE ${LIBS})
 
 
 ################################################################################

@@ -27,7 +27,7 @@ module load hdf5-mpi/gcc/1.8.18
 # Other Software ##############################################################
 #
 # needs to be compiled by the user
-export PNGWRITER_ROOT=$HOME/lib/pngwriter-0.6.0
+export PNGWRITER_ROOT=$HOME/lib/pngwriter-0.7.0
 export SPLASH_ROOT=$HOME/lib/splash-1.6.0
 
 export LD_LIBRARY_PATH=$PNGWRITER_ROOT/lib:$LD_LIBRARY_PATH

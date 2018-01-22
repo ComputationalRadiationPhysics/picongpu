@@ -22,7 +22,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.7.0)
 
 
 ################################################################################
@@ -113,12 +113,10 @@ endif(Splash_FOUND)
 ################################################################################
 
 # find PNGwriter installation
-find_package(PNGwriter 0.6.0 REQUIRED)
+find_package(PNGwriter 0.7.0 REQUIRED CONFIG)
 
 if(PNGwriter_FOUND)
-    include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})
-    add_definitions(${PNGwriter_DEFINITIONS})
-    set(LIBS ${LIBS} ${PNGwriter_LIBRARIES})
+    set(LIBS ${LIBS} PNGwriter::PNGwriter)
 endif(PNGwriter_FOUND)
 
 
@@ -130,7 +128,7 @@ file(GLOB SRCFILES "*.cpp")
 
 add_executable(png2gas ${SRCFILES})
 
-target_link_libraries (png2gas ${LIBS})
+target_link_libraries(png2gas PRIVATE ${LIBS})
 
 
 ################################################################################

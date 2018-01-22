@@ -297,13 +297,11 @@ endif(Splash_FOUND)
 ################################################################################
 
 # find PNGwriter installation
-find_package(PNGwriter 0.5.6)
+find_package(PNGwriter 0.7.0 CONFIG)
 
 if(PNGwriter_FOUND)
-    include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})
     list(APPEND PNGwriter_DEFINITIONS "-DPIC_ENABLE_PNG=1")
-    add_definitions(${PNGwriter_DEFINITIONS})
-    set(LIBS ${LIBS} ${PNGwriter_LIBRARIES})
+    set(LIBS ${LIBS} PNGwriter::PNGwriter)
 endif(PNGwriter_FOUND)
 
 
