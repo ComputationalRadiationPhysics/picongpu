@@ -17,6 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * In this file we define typical scales for normalization of physical
+ * quantities aka "units". Usually, a user would not change this file
+ * but might use the defined constants in other input files.
+ */
+
 #pragma once
 
 
