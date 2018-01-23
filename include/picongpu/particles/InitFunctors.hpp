@@ -33,6 +33,7 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/math/MapTuple.hpp>
+#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
 
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/plus.hpp>
@@ -83,7 +84,7 @@ struct CallFunctor
  *                           see particle.param,
  *                           examples: picongpu::particles::startPosition::Quiet,
  *                                     picongpu::particles::startPosition::Random
- * @tparam T_SpeciesType type of the used species,
+ * @tparam T_SpeciesType type or name as boost::mpl::string of the used species,
  *                       see speciesDefinition.param
  */
 template<
@@ -93,7 +94,10 @@ template<
 >
 struct CreateDensity
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
 
@@ -135,8 +139,8 @@ struct CreateDensity
  * @tparam T_Manipulator a pseudo-binary functor accepting two particle species:
  *                       destination and source,
  *                       @see picongpu::particles::manipulators
- * @tparam T_SrcSpeciesType source species
- * @tparam T_DestSpeciesType destination species
+ * @tparam T_SrcSpeciesType type or name as boost::mpl::string of the source species
+ * @tparam T_DestSpeciesType type or name as boost::mpl::string of the destination species
  * @tparam T_SrcFilter picongpu::particles::filter, particle filter type to
  *                     select particles in T_SrcSpeciesType to derive into
  *                     T_DestSpeciesType
@@ -149,9 +153,15 @@ template<
 >
 struct ManipulateDerive
 {
-    using DestSpeciesType = T_DestSpeciesType;
+    using DestSpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_DestSpeciesType
+    >;
     using DestFrameType = typename DestSpeciesType::FrameType;
-    using SrcSpeciesType = T_SrcSpeciesType;
+    using SrcSpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SrcSpeciesType
+    >;
     using SrcFrameType = typename SrcSpeciesType::FrameType;
 
     using DestFunctor = typename bmpl::apply1<
@@ -191,8 +201,8 @@ struct ManipulateDerive
  * @note FillAllGaps is called on on `T_DestSpeciesType` after the derivation is
  *       finished.
  *
- * @tparam T_SrcSpeciesType source species
- * @tparam T_DestSpeciesType destination species
+ * @tparam T_SrcSpeciesType type or name as boost::mpl::string of the source species
+ * @tparam T_DestSpeciesType type or name as boost::mpl::string of the destination species
  * @tparam T_Filter picongpu::particles::filter,
  *                  particle filter type to select source particles to derive
  */
@@ -223,12 +233,16 @@ struct Derive : ManipulateDerive<
  * contiguously with valid particles and that all frames but the last are full
  * is fulfilled.
  *
- * @tparam T_SpeciesType the particle species to fill gaps in memory
+ * @tparam T_SpeciesType type or name as boost::mpl::string of the particle species
+ *                       to fill gaps in memory
  */
 template< typename T_SpeciesType = bmpl::_1 >
 struct FillAllGaps
 {
-    using SpeciesType = T_SpeciesType;
+    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_SpeciesType
+    >;
     using FrameType = typename SpeciesType::FrameType;
 
     HINLINE void operator()( const uint32_t currentStep )

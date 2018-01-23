@@ -24,6 +24,7 @@
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/Environment.hpp>
+#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
 
 #include <boost/mpl/apply.hpp>
 
@@ -46,7 +47,7 @@ namespace particles
      * @tparam T_Manipulator unary lambda functor accepting one particle
      *                       species,
      *                       @see picongpu::particles::manipulators
-     * @tparam T_SpeciesType type of the used species
+     * @tparam T_SpeciesType type or name as boost::mpl::string of the used species
      * @tparam T_Filter picongpu::particles::filter, particle filter type to
      *                  select particles in `T_SpeciesType` to manipulate via
      *                  `T_DestSpeciesType`
@@ -58,7 +59,10 @@ namespace particles
     >
     struct Manipulate
     {
-        using SpeciesType = T_SpeciesType;
+        using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+            VectorAllSpecies,
+            T_SpeciesType
+        >;
         using FrameType = typename SpeciesType::FrameType;
 
         using SpeciesFunctor = typename bmpl::apply1<

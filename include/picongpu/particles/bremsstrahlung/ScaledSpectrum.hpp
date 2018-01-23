@@ -27,6 +27,8 @@
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
 #include <pmacc/cuSTL/cursor/BufferCursor.hpp>
 #include <pmacc/algorithms/math.hpp>
+#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+
 #include <boost/array.hpp>
 #if( BOOST_VERSION == 106400 )
     /* `array_wrapper.hpp` must be included before `integrate.hpp` to avoid
@@ -159,17 +161,24 @@ public:
  * and stores it in a map<atomic number, ScaledSpectrum> object.
  *
  * This functor is called from MySimulation::init() to generate lookup tables.
+ *
+ * @tparam T_ElectronSpecies type or name as boost::mpl::string of the electron species
  */
 template<typename T_ElectronSpecies>
 struct FillScaledSpectrumMap
 {
-    using ElectronSpecies = T_ElectronSpecies;
+    using ElectronSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        T_ElectronSpecies
+    >;
 
-    typedef typename pmacc::particles::traits::ResolveAliasFromSpecies<
-        ElectronSpecies,
-        bremsstrahlungIons<>
-    >::type IonSpecies;
-
+    using IonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        VectorAllSpecies,
+        typename pmacc::particles::traits::ResolveAliasFromSpecies<
+            ElectronSpecies,
+            bremsstrahlungIons<>
+        >::type
+    >;
 
     template<typename T_Map>
     void operator()(T_Map& map) const

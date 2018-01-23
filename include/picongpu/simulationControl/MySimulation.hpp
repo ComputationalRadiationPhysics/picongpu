@@ -359,7 +359,7 @@ public:
         ForEach<
             AllFlyLiteIons,
             particles::CallPopulationKineticsInit< bmpl::_1 >,
-            MakeIdentifier< bmpl::_1>
+            bmpl::_1
         > initPopulationKinetics;
         initPopulationKinetics(
             gridSizeLocal
@@ -544,7 +544,7 @@ public:
         ForEach<
             AllFlyLiteIons,
             particles::CallPopulationKinetics< bmpl::_1 >,
-            MakeIdentifier< bmpl::_1 >
+            bmpl::_1
         > populationKinetics;
         populationKinetics( currentStep );
 
