@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/traits/Resolve.hpp>
+#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
 #include "picongpu/traits/UsesRNG.hpp"
 
 #include "picongpu/fields/FieldTmp.hpp"
@@ -64,15 +65,21 @@ namespace ionization
      *
      * @tparam T_IonizationAlgorithm functor that returns a number of
      *         new free macro electrons to create, range: [0, boundElectrons]
-     * @tparam T_DestSpecies electron species to be created
-     * @tparam T_SrcSpecies particle species that is ionized
+     * @tparam T_DestSpecies type or name as boost::mpl::string of the electron species to be created
+     * @tparam T_SrcSpecies type or name as boost::mpl::string of the particle species that is ionized
      */
     template<typename T_IonizationAlgorithm, typename T_DestSpecies, typename T_SrcSpecies>
     struct ThomasFermi_Impl
     {
 
-        using DestSpecies = T_DestSpecies;
-        using SrcSpecies = T_SrcSpecies;
+        using DestSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+            VectorAllSpecies,
+            T_DestSpecies
+        >;
+        using SrcSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+            VectorAllSpecies,
+            T_SrcSpecies
+        >;
 
         using FrameType =  typename SrcSpecies::FrameType;
 
@@ -135,7 +142,7 @@ namespace ionization
              *        density of ionic potential wells
              */
             using DensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
-                T_SrcSpecies,
+                SrcSpecies,
                 particleToGrid::derivedAttributes::Density
             >::Solver;
 
@@ -145,7 +152,7 @@ namespace ionization
              * instead of just the destination species
              */
             using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
-                T_DestSpecies,
+                DestSpecies,
                 particleToGrid::derivedAttributes::EnergyDensityCutoff< CutoffMaxEnergy >
             >::Solver;
 
