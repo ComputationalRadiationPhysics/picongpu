@@ -300,8 +300,8 @@ endif(Splash_FOUND)
 find_package(PNGwriter 0.7.0 CONFIG)
 
 if(PNGwriter_FOUND)
-    list(APPEND PNGwriter_DEFINITIONS "-DPIC_ENABLE_PNG=1")
     set(LIBS ${LIBS} PNGwriter::PNGwriter)
+    add_definitions(-DPIC_ENABLE_PNG=1)
 endif(PNGwriter_FOUND)
 
 
