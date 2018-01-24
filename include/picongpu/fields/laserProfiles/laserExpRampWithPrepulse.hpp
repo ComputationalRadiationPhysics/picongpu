@@ -34,9 +34,8 @@ namespace picongpu
  * Be careful - problematic for few cycle pulses. Thought the rest is cloned
  * from laserWavepacket, the correctionFactor is not included (this made a
  * correction to the laser phase, which is necessary for very short pulses,
- * since otherwise the field is not a solution to the the free Maxwell Eq.; so
- * that in particular a test particle is, after the laser pulse has passed,
- * not returned to immobility, as it should. Since the analytical solution is
+ * since otherwise a test particle is, after the laser pulse has passed, not
+ * returned to immobility, as it should). Since the analytical solution is
  * only implemented for the Gaussian regime, and we have mostly exponential
  * regimes here, it was not retained here.
  */
@@ -106,7 +105,7 @@ namespace laserExpRampWithPrepulse
             if ( ramp_when_peakpulse > 0.5 )
             {
                 log< picLog::PHYSICS >(
-                    "Attention, the intensities of the ramp are very large!\n"
+                    "Attention, the intensities of the laser upramp are very large! "
                     "The extrapolation of the last exponential to the time of "
                     "the peakpulse gives more than half of the amplitude of "
                     "the peak Gaussian. This is not a Gaussian at all anymore, "
