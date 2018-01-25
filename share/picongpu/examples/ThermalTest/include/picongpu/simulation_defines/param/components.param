@@ -29,14 +29,21 @@ namespace picongpu
  */
 namespace simulation_starter = thermalTestStarter;
 
-/*! Laser Configuration --------------------------------------------------
- *  - laserNone             : no laser init
- *  - laserGaussianBeam     : Gaussian beam (focusing)
- *  - laserPulseFrontTilt   : Gaussian beam with a tilted pulse envelope
- *                            in 'x' direction
- *  - laserWavepacket       : wavepacket (Gaussian in time and space, not focusing)
- *  - laserPlaneWave        : a plane wave (Gaussian in time)
- *  - laserPolynom          : a polynomial laser envelope
+/** @namespace laserProfile
+ *
+ * Laser Profile Selection:
+ *  - laserNone                : no laser init
+ *  - laserGaussianBeam        : Gaussian beam (focusing)
+ *  - laserPulseFrontTilt      : Gaussian beam with a tilted pulse envelope
+ *                               in 'x' direction
+ *  - laserPlaneWave           : a plane wave (Gaussian in time)
+ *  - laserWavepacket          : wavepacket (Gaussian in time and space, not
+                                 focusing)
+ *  - laserPolynom             : a polynomial laser envelope
+ *  - laserExpRampWithPrepulse : gaussian in space, with exponential upramps
+                                 and prepulse in time
+ *
+ * Adjust the settings of the selected profile in laser.param
  */
 namespace laserProfile = laserNone;
 

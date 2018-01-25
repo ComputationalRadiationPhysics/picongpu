@@ -319,6 +319,114 @@ constexpr float_64 W0z_SI = W0x_SI; // waist in z-direction
 constexpr float_X LASER_PHASE = 0.0; /* unit: rad, periodic in 2*pi */
 }
 
+
+namespace laserExpRampWithPrepulse
+{
+/* Laser profile with Gaussian spatial envelope and the following
+ * temporal shape:
+ * A Gaussian peak (optionally lengthened by a plateau) is preceded by
+ * two pieces of exponential preramps, defined by 3 (time, intensity)-
+ * -points.
+ * The first two points get connected by an exponential, the 2nd and
+ * 3rd point are connected by another exponential, which is then
+ * extrapolated to the peak. The Gaussian is added everywhere, but
+ * typically contributes significantly only near the peak.
+ * It is advisable to set the third point far enough from the plateau
+ * (approx 3*FWHM), then the contribution from the Gaussian is
+ * negligible there, and the intensity can be set as measured from the
+ * laser profile.
+ * Optionally a Gaussian prepulse can be added, given by the parameters
+ * of the relative intersity and time point.
+ * The time of the prepulse and the three preramp points are given in
+ * SI, the intensities are given as multiples of the peak intensity.
+ */
+
+// Intensities of prepulse and exponential preramp
+constexpr float_X INT_RATIO_PREPULSE = 0.;
+constexpr float_X INT_RATIO_POINT_1 = 1.e-8;
+constexpr float_X INT_RATIO_POINT_2 = 1.e-4;
+constexpr float_X INT_RATIO_POINT_3 = 1.e-4;
+
+namespace SI
+{
+    // time-positions of prepulse and preramps points
+    constexpr float_64 TIME_PREPULSE_SI = -950.0e-15;
+    constexpr float_64 TIME_PEAKPULSE_SI = 0.0e-15;
+    constexpr float_64 TIME_POINT_1_SI = -1000.0e-15;
+    constexpr float_64 TIME_POINT_2_SI = -300.0e-15;
+    constexpr float_64 TIME_POINT_3_SI = -100.0e-15;
+
+    /** unit: meter */
+    constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+    /** UNITCONV */
+    constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI * ::picongpu::SI::ELECTRON_MASS_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI * ::picongpu::SI::SPEED_OF_LIGHT_SI / ::picongpu::SI::ELECTRON_CHARGE_SI;
+
+    /** unit: W / m^2 */
+    // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
+
+    /** unit: none */
+    constexpr float_64 _A0  = 20.;
+
+    /** unit: Volt /meter */
+    constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+
+    /** unit: Volt /meter */
+    //constexpr float_64 AMPLITUDE_SI = 1.738e13;
+
+    /** The profile of the test Lasers 0 and 2 can be stretched by a
+     *      constant area between the up and downramp
+     *  unit: seconds */
+    constexpr float_64 LASER_NOFOCUS_CONSTANT_SI = 0.0 * WAVE_LENGTH_SI / ::picongpu::SI::SPEED_OF_LIGHT_SI;
+
+    /** Pulse length: sigma of std. gauss for intensity (E^2)
+     *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
+     *                                          [    2.354820045     ]
+     *  Info:             FWHM_of_Intensity = FWHM_Illumination
+     *                      = what a experimentalist calls "pulse duration"
+     *  unit: seconds (1 sigma) */
+    constexpr float_64 PULSE_LENGTH_SI = 3.0e-14 / 2.35482; // half of the time in which E falls to half its initial value (then I falls to half its value in 15fs, approx 6 wavelengths). Those are 4.8 wavelenghts.
+
+    /** beam waist: distance from the axis where the pulse intensity (E^2)
+     *              decreases to its 1/e^2-th part,
+     *              WO_X_SI is this distance in x-direction
+     *              W0_Z_SI is this distance in z-direction
+     *              if both values are equal, the laser has a circular shape in x-z
+     * W0_SI = FWHM_of_Intensity / sqrt{ 2* ln(2) }
+     *                             [   1.17741    ]
+     *  unit: meter */
+    constexpr float_64 W0_X_SI = 2.5 * WAVE_LENGTH_SI;
+    constexpr float_64 W0_Z_SI = W0_X_SI;
+
+}
+
+/** The laser pulse will be initialized half of PULSE_INIT times of the PULSE_LENGTH before plateau
+and half at the end of the plateau
+ *  unit: none */
+constexpr float_64 RAMP_INIT = 16.0;
+
+/** laser phase shift (no shift: 0.0)
+ *
+ * sin(omega*time + laser_phase): starts with phase=0 at center --> E-field=0 at center
+ *
+ * unit: rad, periodic in 2*pi
+ */
+constexpr float_X LASER_PHASE = 0.0;
+
+/** Available polarisation types
+ */
+enum PolarisationType
+{
+    LINEAR_X = 1u,
+    LINEAR_Z = 2u,
+    CIRCULAR = 4u,
+};
+/** Polarization selection
+ */
+constexpr PolarisationType Polarisation = LINEAR_X;
+}
+
+
 namespace laserNone
 {
 namespace SI
