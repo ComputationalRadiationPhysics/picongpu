@@ -45,7 +45,7 @@ help()
 }
 
 # save cmd line args
-cmd_line_args="$@"
+cmd_line_args=$@
 
 # show help
 while [[ $# -gt 0 ]] ; do
@@ -91,7 +91,7 @@ then
 fi
 
 # cmake call
-$this_dir/pic-configure $cmd_line_args ..
+$this_dir/pic-configure "$cmd_line_args" ..
 if [ $? -ne 0 ]
 then
     # let pic-configure errors speak for themselves
