@@ -19,14 +19,14 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/algorithms/DifferenceToLower.def"
+
 #include <pmacc/math/Vector.hpp>
 
 
 namespace picongpu
 {
-using namespace pmacc;
-
 
 /** calculate difference to lower value
  *

@@ -19,7 +19,9 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/algorithms/DifferenceToUpper.def"
+
 #include <pmacc/math/Vector.hpp>
 
 
