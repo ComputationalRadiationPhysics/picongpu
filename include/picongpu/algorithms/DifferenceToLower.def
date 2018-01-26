@@ -19,7 +19,6 @@
 
 #pragma once
 
-
 #include <pmacc/math/Vector.hpp>
 
 
@@ -33,7 +32,7 @@ namespace picongpu
      * If `GetDifference` is called for a direction greater equal T_Dim always
      * a zeroed value is returned
      */
-    template<uint32_t T_Dim>
+    template< uint32_t T_Dim >
     struct DifferenceToLower;
 
 } //namespace picongpu
