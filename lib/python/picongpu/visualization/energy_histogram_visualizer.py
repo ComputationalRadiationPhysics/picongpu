@@ -11,8 +11,6 @@ class Visualizer:
         """
         Parameters
         ----------
-        Parameters
-        ----------
         layout_config: dictionary
             containing information about particle species (e.g. 'e' for
             electrons)
@@ -45,7 +43,8 @@ class Visualizer:
             self.energy_histogram.get_data_path(species=self.species)
         except IOError:
             print(
-                "No histogram file exists yet. Wait and hit visualize again after a while!")
+                "No histogram file exists yet. Wait and hit visualize again"
+				" after a while!")
             return
 
         counts, energy_bins = self.energy_histogram.get(
@@ -71,7 +70,8 @@ if __name__ == '__main__':
     def usage():
         print("usage:")
         print(
-            "python", sys.argv[0], "-p <path to run directory> -i <iteration> -s <particle species>")
+            "python", sys.argv[0], "-p <path to run directory> -i <iteration>"
+			" -s <particle species>")
 
     def main():
 
