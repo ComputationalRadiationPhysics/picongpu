@@ -36,6 +36,7 @@
 #include "pmacc/algorithms/math/defines/modf.hpp"
 #include "pmacc/algorithms/math/defines/fmod.hpp"
 #include "pmacc/algorithms/math/defines/bessel.hpp"
+#include "pmacc/algorithms/math/defines/pi.hpp"
 
 #include "pmacc/algorithms/math/floatMath/abs.tpp"
 #include "pmacc/algorithms/math/floatMath/sqrt.tpp"
