@@ -70,17 +70,17 @@ class Visualizer(object):
 
 
 if __name__ == '__main__':
-    import sys
-
-    def usage():
-        print("usage:")
-        print(
-            "python", sys.argv[0], "-p <path to run directory> -i <iteration>\
-            -s <particle species> -m <momentum term>")
 
     def main():
 
+        import sys
         import getopt
+
+        def usage():
+            print("usage:")
+            print(
+                "python", sys.argv[0], "-p <path to run directory> -i <iteration>\
+                -s <particle species> -m <momentum term>")
 
         path = None
         iteration = None
