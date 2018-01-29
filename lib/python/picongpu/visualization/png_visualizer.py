@@ -1,6 +1,3 @@
-from ipywidgets import widgets
-from IPython.display import display
-
 import os
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg

@@ -44,7 +44,7 @@ class Visualizer:
         except IOError:
             print(
                 "No histogram file exists yet. Wait and hit visualize again"
-				" after a while!")
+                " after a while!")
             return
 
         counts, energy_bins = self.energy_histogram.get(
@@ -71,7 +71,7 @@ if __name__ == '__main__':
         print("usage:")
         print(
             "python", sys.argv[0], "-p <path to run directory> -i <iteration>"
-			" -s <particle species>")
+            " -s <particle species>")
 
     def main():
 

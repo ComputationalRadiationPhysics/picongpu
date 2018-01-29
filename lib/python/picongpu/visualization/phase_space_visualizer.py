@@ -70,7 +70,8 @@ class Visualizer(object):
         if not self.plt_obj.colorbar:
             cbar = plt.colorbar(self.plt_obj, ax=ax)
             cbar.set_label(
-                r'$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}$]')
+                r'$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}'
+                '$')
 
         ax.set_xlabel(r'${0}$ [${1}$]'.format(meta.r, "\mathrm{\mu m}"))
         ax.set_ylabel(r'$p_{0}$ [$\beta\gamma$]'.format(meta.p))
