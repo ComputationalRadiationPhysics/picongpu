@@ -202,11 +202,13 @@ Active Team
 
 ### Maintainers* and core developers
 
+- Dr. Sergei Bastrakov
 - Dr. Alexander Debus
 - Marco Garten
 - Axel Huebl*
 - Alexander Matthes
 - Richard Pausch*
+- Sebastian Starke
 - Rene Widera*
 
 ### Former Members, Contributions and Thanks
