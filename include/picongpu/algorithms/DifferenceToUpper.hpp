@@ -19,76 +19,86 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/algorithms/DifferenceToUpper.def"
+
 #include <pmacc/math/Vector.hpp>
 
 
 namespace picongpu
 {
 
-/** calculate difference to upper value
- *
- * @tparam T_Dim for how many dimensions this operator access memory
- *
- * If `GetDifference` is called for a direction greater equal T_Dim always
- * a zeroed value is returned
- */
-template<uint32_t T_Dim>
-struct DifferenceToUpper
-{
-    static constexpr uint32_t dim = T_Dim;
-
-    typedef typename pmacc::math::CT::make_Int<dim, 0>::type OffsetOrigin;
-    typedef typename pmacc::math::CT::make_Int<dim, 1>::type OffsetEnd;
-
-    /** calculate the difference for a given direction
-     *
-     * @tparam T_direction direction for the difference operation
-     * @tparam T_isLesserThanDim not needed/ this is calculated by the compiler
-     */
-    template<uint32_t T_direction, bool T_isLesserThanDim = (T_direction < dim)>
-    struct GetDifference
+    template< uint32_t T_dim >
+    struct DifferenceToUpper
     {
-        static constexpr uint32_t direction = T_direction;
+        static constexpr uint32_t dim = T_dim;
 
-        HDINLINE GetDifference()
-        {
-        }
+        using OffsetOrigin = typename pmacc::math::CT::make_Int<
+            dim,
+            0
+        >::type;
+        using OffsetEnd = typename pmacc::math::CT::make_Int<
+            dim,
+            1
+        >::type;
 
-        /** get difference to lower value
-         * @return difference divided by cell size of the given direction
+        /** calculate the difference for a given direction
+         *
+         * @tparam T_direction direction for the difference operation
+         * @tparam T_isLesserThanDim not needed/ this is calculated by the compiler
          */
-        template<class Memory >
-        HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
+        template<
+            uint32_t T_direction,
+            bool T_isLesserThanDim = ( T_direction < dim )
+        >
+        struct GetDifference
         {
-            const DataSpace<dim> indexIdentity; /* defaults to (0, 0, 0) in 3D */
-            DataSpace<dim> indexUpper; /* e.g., (0, 1, 0) for d/dy in 3D */
-            indexUpper[direction] = 1;
+            static constexpr uint32_t direction = T_direction;
 
-            return ( mem(indexUpper) - mem(indexIdentity)) / cellSize[direction];
-        }
+            HDINLINE GetDifference( )
+            {
+            }
+
+            /** get difference to lower value
+             * @return difference divided by cell size of the given direction
+             */
+            template< typename Memory >
+            HDINLINE typename Memory::ValueType operator()( Memory const & mem ) const
+            {
+                // defaults to (0, 0, 0) in 3D
+                DataSpace< dim > const indexIdentity;
+                // e.g., (0, 1, 0) for d/dy in 3D
+                DataSpace< dim > indexUpper;
+                indexUpper[ direction ] = 1;
+
+                return ( mem( indexUpper ) - mem( indexIdentity ) ) /
+                    cellSize[ direction ];
+            }
+        };
+
+        /** special case for `direction >= simulation dimensions`
+         *
+         *  difference = d/dx = 0
+         */
+        template< uint32_t T_direction >
+        struct GetDifference<
+            T_direction,
+            false
+        >
+        {
+            HDINLINE GetDifference( )
+            {
+            }
+
+            /** @return always a zeroed value
+             */
+            template< typename Memory >
+            HDINLINE typename Memory::ValueType operator()( Memory const & mem) const
+            {
+                return Memory::ValueType::create( 0.0 );
+            }
+        };
+
     };
 
-    /** special case for `direction >= simulation dimensions`
-     *
-     *  difference = d/dx = 0
-     */
-    template<uint32_t T_direction>
-    struct GetDifference<T_direction, false>
-    {
-        HDINLINE GetDifference()
-        {
-        }
-
-        /** @return always a zeroed value
-         */
-        template<class Memory >
-        HDINLINE typename Memory::ValueType operator()(const Memory& mem) const
-        {
-            return Memory::ValueType::create(0.0);
-        }
-    };
-
-};
-
-} //namespace picongpu
+} // namespace picongpu
