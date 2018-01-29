@@ -39,9 +39,9 @@ namespace cursor
  * \tparam Type type of a single datum
  * \tparam dim dimension of the memory buffer
  */
-template<typename Type, int dim>
+template<typename Type, int T_dim>
 struct BufferCursor
- : public Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>
+ : public Cursor<PointerAccessor<Type>, BufferNavigator<T_dim>, Type*>
 {
     /* \param pointer data pointer
      * \param pitch pitch of the memory buffer
@@ -50,13 +50,13 @@ struct BufferCursor
      * pitch[1] is the distance in bytes to the incremented z-coordiante
      */
     HDINLINE
-    BufferCursor(Type* pointer, math::Size_t<dim-1> pitch)
-     : Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>
-            (PointerAccessor<Type>(), BufferNavigator<dim>(pitch), pointer) {}
+    BufferCursor(Type* pointer, math::Size_t<T_dim-1> pitch)
+     : Cursor<PointerAccessor<Type>, BufferNavigator<T_dim>, Type*>
+            (PointerAccessor<Type>(), BufferNavigator<T_dim>(pitch), pointer) {}
 
     HDINLINE
-    BufferCursor(const Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>& other)
-     : Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>(other) {}
+    BufferCursor(const Cursor<PointerAccessor<Type>, BufferNavigator<T_dim>, Type*>& other)
+     : Cursor<PointerAccessor<Type>, BufferNavigator<T_dim>, Type*>(other) {}
 };
 
 namespace traits
