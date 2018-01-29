@@ -27,12 +27,11 @@ namespace picongpu
 
     /** calculate difference to upper value
      *
-     * @tparam T_Dim for how many dimensions this operator access memory
+     * @tparam T_Dim number of dimensions of the accessed memory
      *
-     * If `GetDifference` is called for a direction greater equal T_Dim always
-     * a zeroed value is returned
+     * Zero is returned if `GetDifference` is called for a direction greater or equal to T_Dim.
      */
     template< uint32_t T_Dim >
     struct DifferenceToUpper;
 
-} //namespace picongpu
+} // namespace picongpu

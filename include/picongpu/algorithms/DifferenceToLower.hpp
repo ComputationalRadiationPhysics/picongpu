@@ -28,13 +28,6 @@
 namespace picongpu
 {
 
-    /** calculate difference to lower value
-     *
-     * @tparam T_dim for how many dimensions this operator access memory
-     *
-     * If `GetDifference` is called for a direction greater equal T_dim always
-     * a zeroed value is returned
-     */
     template< uint32_t T_dim >
     struct DifferenceToLower
     {
@@ -102,7 +95,7 @@ namespace picongpu
             /** @return always a zeroed value
              */
             template< typename Memory >
-            HDINLINE typename Memory::ValueType operator()( Memory const & mem) const
+            HDINLINE typename Memory::ValueType operator()( Memory const & mem ) const
             {
                 return Memory::ValueType::create( 0.0 );
             }

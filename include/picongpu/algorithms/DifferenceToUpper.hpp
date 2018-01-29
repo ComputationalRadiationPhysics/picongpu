@@ -28,13 +28,6 @@
 namespace picongpu
 {
 
-    /** calculate difference to upper value
-     *
-     * @tparam T_dim for how many dimensions this operator access memory
-     *
-     * If `GetDifference` is called for a direction greater equal T_dim always
-     * a zeroed value is returned
-     */
     template< uint32_t T_dim >
     struct DifferenceToUpper
     {
@@ -70,7 +63,7 @@ namespace picongpu
              * @return difference divided by cell size of the given direction
              */
             template< typename Memory >
-            HDINLINE typename Memory::ValueType operator()( Memory const & mem) const
+            HDINLINE typename Memory::ValueType operator()( Memory const & mem ) const
             {
                 // defaults to (0, 0, 0) in 3D
                 DataSpace< dim > const indexIdentity;
