@@ -19,6 +19,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
 #include "Cursor.hpp"
@@ -26,6 +27,7 @@
 #include "navigator/BufferNavigator.hpp"
 #include "pmacc/math/vector/Size_t.hpp"
 #include "pmacc/cuSTL/cursor/traits.hpp"
+
 
 namespace pmacc
 {
@@ -36,12 +38,15 @@ namespace cursor
  *
  * BufferCursor does access and jumping on a cartesian memory buffer.
  *
- * \tparam Type type of a single datum
- * \tparam dim dimension of the memory buffer
+ * \tparam T_Type type of a single datum
+ * \tparam T_dim dimension of the memory buffer
  */
-template<typename Type, int dim>
+template<
+    typename T_Type,
+    int T_dim
+>
 struct BufferCursor
- : public Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>
+ : public Cursor< PointerAccessor< T_Type >, BufferNavigator< T_dim >, T_Type * >
 {
     /* \param pointer data pointer
      * \param pitch pitch of the memory buffer
@@ -50,28 +55,31 @@ struct BufferCursor
      * pitch[1] is the distance in bytes to the incremented z-coordiante
      */
     HDINLINE
-    BufferCursor(Type* pointer, math::Size_t<dim-1> pitch)
-     : Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>
-            (PointerAccessor<Type>(), BufferNavigator<dim>(pitch), pointer) {}
+    BufferCursor( T_Type * pointer, math::Size_t< T_dim - 1 > pitch )
+     : Cursor< PointerAccessor< T_Type >, BufferNavigator< T_dim >, T_Type * >
+            ( PointerAccessor< T_Type >(), BufferNavigator< T_dim >( pitch ), pointer ) {}
 
     HDINLINE
-    BufferCursor(const Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>& other)
-     : Cursor<PointerAccessor<Type>, BufferNavigator<dim>, Type*>(other) {}
+    BufferCursor( const Cursor< PointerAccessor< T_Type >, BufferNavigator< T_dim >, T_Type * > & other )
+     : Cursor<PointerAccessor< T_Type >, BufferNavigator< T_dim >, T_Type * >( other ) {}
 };
 
 namespace traits
 {
 
 /* type trait to get the BufferCursor's dimension if it has one */
-template<typename Type, int T_dim>
-struct dim<BufferCursor<Type, T_dim> >
+template<
+    typename T_Type,
+    int T_dim
+>
+struct dim< BufferCursor< T_Type, T_dim > >
 {
     static constexpr int value = pmacc::cursor::traits::dim<
-        Cursor<PointerAccessor<Type>, BufferNavigator<T_dim>, Type*> >::value;
+        Cursor< PointerAccessor< T_Type >, BufferNavigator< T_dim >, T_Type * > >::value;
 };
 
-} // traits
+} // namespace traits
 
-} // cursor
-} // pmacc
+} // namespace cursor
+} // namespace pmacc
 
