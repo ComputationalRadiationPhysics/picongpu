@@ -130,11 +130,11 @@ struct Arg< ::pmacc::math::Complex<T_Type> >
         if ( other.get_real()==type(0.0) && other.get_imag()==type(0.0) )
             return type(0.0);
         else if ( other.get_real()==type(0.0) && other.get_imag()>type(0.0) )
-            return type(M_PI)/type(2.0);
+            return Pi< type >::halfValue;
         else if ( other.get_real()==type(0.0) && other.get_imag()<type(0.0) )
-            return type(-M_PI)/type(2.0);
+            return -Pi< type >::halfValue;
         else if ( other.get_real()<type(0.0) && other.get_imag()==type(0.0) )
-            return type(M_PI);
+            return Pi< type >::value;
         else
             return pmMath::atan2(other.get_imag(),other.get_real());
     }

@@ -134,7 +134,7 @@ namespace bessel
                 if( a0 >= float_T( 50.0 ) ) kz = 8u;       // can be changed to 10
                 else if( a0 >= float_T( 35.0 ) ) kz = 10u; //   "      "     "  12
                 else kz = 12u;                             //   "      "     "  14
-                complex_T ct1 = z1 - float_T( M_PI_4 );
+                complex_T ct1 = z1 - Pi< float_T >::quarterValue;
                 complex_T cp0 = cone;
                 for ( uint32_t k = 0u; k < kz; k++ )
                 {
@@ -151,7 +151,7 @@ namespace bessel
                         float_T( -2.0 ) * k - float_T( 3.0 )
                     );
                 }
-                complex_T const cu = pmMath::sqrt( float_T( M_2_PI ) / z1 );
+                complex_T const cu = pmMath::sqrt( Pi< float_T >::doubleReciprocalValue / z1 );
                 cj0 = cu * ( cp0 * pmMath::cos( ct1 ) - cq0 * pmMath::sin( ct1 ) );
             }
             return cj0;
@@ -216,8 +216,8 @@ namespace bessel
                 if( a0 >= float_T( 50.0 ) ) kz = 8u;        // can be changed to 10
                 else if ( a0 >= float_T( 35.0 ) ) kz = 10u; //   "      "     "  12
                 else kz = 12u;                              //   "      "     "  14
-                complex_T const cu = pmMath::sqrt( float_T( M_2_PI ) / z1 );
-                complex_T const ct2 = z1 - float_T( 0.75 ) * float_T( M_PI );
+                complex_T const cu = pmMath::sqrt( Pi< float_T >::doubleReciprocalValue / z1 );
+                complex_T const ct2 = z1 - float_T( 0.75 ) * Pi< float_T >::value;
                 complex_T cp1 = cone;
                 for ( uint32_t k = 0u; k < kz; k++ )
                 {
