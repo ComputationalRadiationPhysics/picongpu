@@ -31,6 +31,7 @@
 #include <pmacc/algorithms/math/defines/sqrt.hpp>
 #include <pmacc/algorithms/math/defines/dot.hpp>
 #include <pmacc/algorithms/math/defines/cross.hpp>
+#include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 
@@ -149,7 +150,7 @@ float3_X Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::scatt
     float_X sinTheta, cosTheta;
     math::sincos(theta, sinTheta, cosTheta);
 
-    const float_X phi = -float_X(M_PI) + float_X(2.0) * float_X(M_PI) * this->randomGen(acc);
+    const float_X phi = -math::Pi<float_X>::value + math::Pi<float_X>::doubleValue * this->randomGen(acc);
     float_X sinPhi, cosPhi;
     math::sincos(phi, sinPhi, cosPhi);
 
@@ -211,13 +212,14 @@ unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::n
 
     /* electron deflection due to Rutherford scattering without modifying the electron
        energy based on radiation emission */
-    const float_X zMin = float_X(1.0) / (float_X(M_PI)*float_X(M_PI));
+    const float_X zMin = float_X(1.0) / (math::Pi<float_X>::value * math::Pi<float_X>::value);
     const float_X zMax = float_X(1.0) / (electron::MIN_THETA*electron::MIN_THETA);
     const float_X z = zMin + this->randomGen(acc) * (zMax - zMin);
     const float_X theta = math::rsqrt(z);
     const float_X targetZ = GetAtomicNumbers<T_IonSpecies>::type::numberOfProtons;
-    const float_X rutherfordCoeff = float_X(2.0) * ELECTRON_CHARGE*ELECTRON_CHARGE / (float_X(4.0) * float_X(M_PI) * EPS0) * targetZ / Ekin;
-    const float_X scaledDeflectionDCS = float_X(M_PI) * (zMax - zMin) * rutherfordCoeff*rutherfordCoeff;
+    const float_X rutherfordCoeff = float_X(2.0) * ELECTRON_CHARGE*ELECTRON_CHARGE /
+        (float_X(4.0) * math::Pi<float_X>::value * EPS0) * targetZ / Ekin;
+    const float_X scaledDeflectionDCS = math::Pi<float_X>::value * (zMax - zMin) * rutherfordCoeff*rutherfordCoeff;
     const float_X deflectionProb = ionDensity * c * DELTA_T * scaledDeflectionDCS;
 
     if(this->randomGen(acc) < deflectionProb)

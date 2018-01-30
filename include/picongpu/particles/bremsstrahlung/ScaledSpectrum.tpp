@@ -18,6 +18,7 @@
  */
 
 #include "picongpu/simulation_defines.hpp"
+#include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
 
 namespace picongpu
@@ -91,9 +92,10 @@ HDINLINE float_X LookupTableFunctor::operator()(const float_X Ekin, const float_
  */
 float_64 ScaledSpectrum::dcs(const float_64 Ekin, const float_64 kappa, const float_64 targetZ) const
 {
-    const float_64 bohrRadius = float_64(4.0) * M_PI * EPS0 * HBAR*HBAR / (ELECTRON_MASS * ELECTRON_CHARGE*ELECTRON_CHARGE);
-    const float_64 classicalElRadius = ELECTRON_CHARGE*ELECTRON_CHARGE / (float_64(4.0) * M_PI * EPS0 * ELECTRON_MASS * SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-    const float_64 fineStructureConstant = ELECTRON_CHARGE*ELECTRON_CHARGE / (float_64(4.0) * M_PI * EPS0 * HBAR * SPEED_OF_LIGHT);
+    constexpr float_64 pi = pmacc::algorithms::math::Pi<float_64>::value;
+    const float_64 bohrRadius = float_64(4.0) * pi * EPS0 * HBAR*HBAR / (ELECTRON_MASS * ELECTRON_CHARGE*ELECTRON_CHARGE);
+    const float_64 classicalElRadius = ELECTRON_CHARGE*ELECTRON_CHARGE / (float_64(4.0) * pi * EPS0 * ELECTRON_MASS * SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+    const float_64 fineStructureConstant = ELECTRON_CHARGE*ELECTRON_CHARGE / (float_64(4.0) * pi * EPS0 * HBAR * SPEED_OF_LIGHT);
 
     const float_64 c = SPEED_OF_LIGHT;
     const float_64 c2 = c*c;

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/math/Complex.hpp>
 #include "parameters.hpp"
 #include <pmacc/mpi/GetMPI_StructAsArray.hpp>
@@ -110,7 +111,7 @@ public:
   {
       // const SI factor radiation
       const picongpu::float_64 factor = 1.0 /
-        (16. * util::cube(M_PI) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT);
+        (16. * util::cube(pmacc::algorithms::math::Pi< picongpu::float_64 >::value) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT);
 
       return factor * (picongpu::math::abs2(amp_x) + picongpu::math::abs2(amp_y) + picongpu::math::abs2(amp_z));
   }

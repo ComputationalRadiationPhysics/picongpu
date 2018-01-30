@@ -18,10 +18,10 @@
  */
 
 
-
 #pragma once
 
 #include <pmacc/types.hpp>
+#include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/math/Vector.hpp>
 
 namespace picongpu
@@ -47,8 +47,7 @@ namespace picongpu
             {
                 mySin = float_X(
                     math::sin(
-                        float_64( 0.5 ) *
-                        float_64( M_PI ) *  float_64( SPEED_OF_LIGHT ) *
+                        pmacc::algorithms::math::Pi< float_64 >::halfValue * float_64( SPEED_OF_LIGHT ) *
                         float_64( DELTA_T ) / float_64( CELL_WIDTH )
                     )
                 );
@@ -190,8 +189,7 @@ namespace picongpu
             {
                 mySin = float_X(
                     math::sin(
-                        float_64( 0.5 ) *
-                        float_64( M_PI ) *  float_64( SPEED_OF_LIGHT ) *
+                        pmacc::algorithms::math::Pi< float_64 >::halfValue *  float_64( SPEED_OF_LIGHT ) *
                         float_64( DELTA_T ) / float_64( CELL_HEIGHT )
                     )
                 );

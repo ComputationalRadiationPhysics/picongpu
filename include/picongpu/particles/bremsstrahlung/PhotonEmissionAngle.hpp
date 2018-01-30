@@ -190,7 +190,7 @@ private:
         minimum = boost::math::tools::brent_find_minima(
             aimForDelta,
             0.0,
-            M_PI,
+            pmacc::algorithms::math::Pi<float_64>::value,
             std::numeric_limits<float_64>::digits);
 
         return minimum.first;

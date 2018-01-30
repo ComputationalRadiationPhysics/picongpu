@@ -24,6 +24,7 @@
 #include "picongpu/particles/traits/GetAtomicNumbers.hpp"
 #include "picongpu/particles/traits/GetIonizationEnergies.hpp"
 #include "picongpu/traits/attribute/GetChargeState.hpp"
+#include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/algorithms/math/floatMath/floatingPoint.tpp>
 #include "picongpu/particles/ionization/utilities.hpp"
 
@@ -80,7 +81,7 @@ namespace ionization
                 uint32_t const cs = math::float2int_rd(chargeState);
                 float_X const iEnergy = typename GetIonizationEnergies<ParticleType>::type{ }[cs];
 
-                float_X const pi = precisionCast< float_X >( M_PI );
+                constexpr float_X pi = pmacc::algorithms::math::Pi< float_X >::value;
                 /* electric field in atomic units - only absolute value */
                 float_X const eInAU = math::abs( eField ) / ATOMIC_UNIT_EFIELD;
 
