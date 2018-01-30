@@ -20,65 +20,83 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/types.hpp>
-
 #include "picongpu/fields/currentInterpolation/None/None.def"
+
+#include <pmacc/dimensions/DataSpace.hpp>
+
 
 namespace picongpu
 {
 namespace currentInterpolation
 {
-using namespace pmacc;
 
-template<uint32_t T_dim>
-struct Binomial
-{
-    static constexpr uint32_t dim = T_dim;
-
-    typedef typename pmacc::math::CT::make_Int<dim, 1>::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
-
-    template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
-    HDINLINE void operator()(DataBoxE fieldE,
-                             DataBoxB,
-                             DataBoxJ fieldJ )
+    struct Binomial
     {
-        const DataSpace<dim> self;
-        using TypeJ = typename DataBoxJ::ValueType;
+        static constexpr uint32_t dim = simDim;
 
-        /* 1 2 1 weighting for "left"(1x) "center"(2x) "right"(1x),
-         * see Pascal's triangle level N=2 */
-        TypeJ dirSum( TypeJ::create(0.0) );
-        for( uint32_t d = 0; d < dim; ++d )
+        typedef typename pmacc::math::CT::make_Int<dim, 1>::type LowerMargin;
+        typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
+
+        template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
+        HDINLINE void operator()(DataBoxE fieldE,
+                                 DataBoxB,
+                                 DataBoxJ fieldJ )
         {
-            DataSpace<dim> dw;
-            dw[d] = -1;
-            DataSpace<dim> up;
-            up[d] =  1;
-            const TypeJ dirDw = fieldJ(dw) + fieldJ(self);
-            const TypeJ dirUp = fieldJ(up) + fieldJ(self);
+            const DataSpace<dim> self;
+            using TypeJ = typename DataBoxJ::ValueType;
 
-            /* each fieldJ component is added individually */
-            dirSum += dirDw + dirUp;
+            /* 1 2 1 weighting for "left"(1x) "center"(2x) "right"(1x),
+             * see Pascal's triangle level N=2 */
+            TypeJ dirSum( TypeJ::create(0.0) );
+            for( uint32_t d = 0; d < dim; ++d )
+            {
+                DataSpace<dim> dw;
+                dw[d] = -1;
+                DataSpace<dim> up;
+                up[d] =  1;
+                const TypeJ dirDw = fieldJ(dw) + fieldJ(self);
+                const TypeJ dirUp = fieldJ(up) + fieldJ(self);
+
+                /* each fieldJ component is added individually */
+                dirSum += dirDw + dirUp;
+            }
+
+            /* component-wise division by sum of all weightings,
+             * in the second order binomial filter these are 4 values per direction
+             * (1D: 4 values; 2D: 8 values; 3D: 12 values) */
+            const TypeJ filteredJ = dirSum / TypeJ::create(4.0 * dim);
+
+            const float_X deltaT = DELTA_T;
+            fieldE(self) -= filteredJ * (float_X(1.0) / EPS0) * deltaT;
         }
 
-        /* component-wise division by sum of all weightings,
-         * in the second order binomial filter these are 4 values per direction
-         * (1D: 4 values; 2D: 8 values; 3D: 12 values) */
-        const TypeJ filteredJ = dirSum / TypeJ::create(4.0 * dim);
+        static pmacc::traits::StringProperty getStringProperties()
+        {
+            pmacc::traits::StringProperty propList( "name", "Binomial" );
+            propList["param"] = "period=1;numPasses=1;compensator=false";
+            return propList;
+        }
+    };
 
-        const float_X deltaT = DELTA_T;
-        fieldE(self) -= filteredJ * (float_X(1.0) / EPS0) * deltaT;
-    }
+} // namespace currentInterpolation
 
-    static pmacc::traits::StringProperty getStringProperties()
+namespace traits
+{
+
+    /* Get margin of the current interpolation
+     *
+     * This class defines a LowerMargin and an UpperMargin.
+     */
+    template< >
+    struct GetMargin< picongpu::currentInterpolation::Binomial >
     {
-        pmacc::traits::StringProperty propList( "name", "Binomial" );
-        propList["param"] = "period=1;numPasses=1;compensator=false";
-        return propList;
-    }
-};
+    private:
+        typedef picongpu::currentInterpolation::Binomial MyInterpolation;
 
-} /* namespace currentInterpolation */
+    public:
+        typedef typename MyInterpolation::LowerMargin LowerMargin;
+        typedef typename MyInterpolation::UpperMargin UpperMargin;
+    };
 
-} /* namespace picongpu */
+} // namespace traits
+} // namespace picongpu

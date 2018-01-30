@@ -20,21 +20,19 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/fields/currentInterpolation/None/None.def"
 #include "picongpu/algorithms/DifferenceToUpper.hpp"
 #include "picongpu/algorithms/LinearInterpolateWithUpper.hpp"
-#include <pmacc/traits/GetComponentsType.hpp>
-
 #include "picongpu/fields/MaxwellSolver/Yee/Curl.hpp"
+
+#include <pmacc/traits/GetComponentsType.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
 
 
 namespace picongpu
 {
 namespace currentInterpolation
 {
-using namespace pmacc;
-
 namespace detail
 {
     template<uint32_t T_simDim, uint32_t T_plane>
@@ -132,56 +130,74 @@ namespace detail
                             Dx(sz(mem)).y() - Dy(sz(mem)).x());
         }
     };
-} /* namespace detail */
+} // namespace detail
 
-template<uint32_t T_simDim>
-struct NoneDS
+    struct NoneDS
+    {
+        static constexpr uint32_t dim = simDim;
+
+        typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
+        typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
+
+        template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
+        HDINLINE void operator()(DataBoxE fieldE,
+                                 DataBoxB fieldB,
+                                 DataBoxJ fieldJ )
+        {
+            typedef typename DataBoxJ::ValueType TypeJ;
+            typedef typename GetComponentsType<TypeJ>::type ComponentJ;
+
+            const DataSpace<dim> self;
+
+            const ComponentJ deltaT = DELTA_T;
+            const ComponentJ constE = (float_X(1.0)  / EPS0) * deltaT;
+            const ComponentJ constB = (float_X(0.25) / EPS0) * deltaT * deltaT;
+
+            const detail::LinearInterpolateComponentPlaneUpper<dim, 0> avgX;
+            const ComponentJ jXavg = avgX(fieldJ);
+            const detail::LinearInterpolateComponentPlaneUpper<dim, 1> avgY;
+            const ComponentJ jYavg = avgY(fieldJ);
+            const detail::LinearInterpolateComponentPlaneUpper<dim, 2> avgZ;
+            const ComponentJ jZavg = avgZ(fieldJ);
+
+            const TypeJ jAvgE = TypeJ(jXavg, jYavg, jZavg);
+            fieldE(self) -= jAvgE * constE;
+
+            using CurlRight = yeeSolver::Curl< DifferenceToUpper< dim > >;
+            using ShiftCurlRight = detail::ShiftCurl< DifferenceToUpper< dim > >;
+            CurlRight curl;
+            ShiftCurlRight shiftCurl;
+
+            const TypeJ jAvgB = curl(fieldJ) + shiftCurl(fieldJ);
+            fieldB(self) += jAvgB * constB;
+        }
+
+        static pmacc::traits::StringProperty getStringProperties()
+        {
+            pmacc::traits::StringProperty propList( "name", "none" );
+            return propList;
+        }
+    };
+
+} // namespace currentInterpolation
+
+namespace traits
 {
-    static constexpr uint32_t dim = T_simDim;
 
-    typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
-
-    template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
-    HDINLINE void operator()(DataBoxE fieldE,
-                             DataBoxB fieldB,
-                             DataBoxJ fieldJ )
+    /* Get margin of the current interpolation
+     *
+     * This class defines a LowerMargin and an UpperMargin.
+     */
+    template< >
+    struct GetMargin< picongpu::currentInterpolation::NoneDS >
     {
-        typedef typename DataBoxJ::ValueType TypeJ;
-        typedef typename GetComponentsType<TypeJ>::type ComponentJ;
+    private:
+        typedef picongpu::currentInterpolation::NoneDS MyInterpolation;
 
-        const DataSpace<dim> self;
+    public:
+        typedef typename MyInterpolation::LowerMargin LowerMargin;
+        typedef typename MyInterpolation::UpperMargin UpperMargin;
+    };
 
-        const ComponentJ deltaT = DELTA_T;
-        const ComponentJ constE = (float_X(1.0)  / EPS0) * deltaT;
-        const ComponentJ constB = (float_X(0.25) / EPS0) * deltaT * deltaT;
-
-        const detail::LinearInterpolateComponentPlaneUpper<dim, 0> avgX;
-        const ComponentJ jXavg = avgX(fieldJ);
-        const detail::LinearInterpolateComponentPlaneUpper<dim, 1> avgY;
-        const ComponentJ jYavg = avgY(fieldJ);
-        const detail::LinearInterpolateComponentPlaneUpper<dim, 2> avgZ;
-        const ComponentJ jZavg = avgZ(fieldJ);
-
-        const TypeJ jAvgE = TypeJ(jXavg, jYavg, jZavg);
-        fieldE(self) -= jAvgE * constE;
-
-        using CurlRight = yeeSolver::Curl< DifferenceToUpper< dim > >;
-        using ShiftCurlRight = detail::ShiftCurl< DifferenceToUpper< dim > >;
-        CurlRight curl;
-        ShiftCurlRight shiftCurl;
-
-        const TypeJ jAvgB = curl(fieldJ) + shiftCurl(fieldJ);
-        fieldB(self) += jAvgB * constB;
-    }
-
-    static pmacc::traits::StringProperty getStringProperties()
-    {
-        pmacc::traits::StringProperty propList( "name", "none" );
-        return propList;
-    }
-};
-
-} /* namespace currentInterpolation */
-
-} /* namespace picongpu */
+} // namespace traits
+} // namespace picongpu
