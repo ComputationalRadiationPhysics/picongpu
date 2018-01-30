@@ -29,13 +29,13 @@
  * species to the electro-magnetic fields.
  *
  * Allowed values are:
- *   - None< simDim >:
+ *   - None:
  *     - default for staggered grids/Yee-scheme
  *     - updates E
- *   - Binomial< simDim >: 2nd order Binomial filter
+ *   - Binomial: 2nd order Binomial filter
  *     - smooths the current before assignment in staggered grid
  *     - updates E & breaks local charge conservation slightly
- *   - NoneDS< simDim >:
+ *   - NoneDS:
  *     - experimental assignment for all-centered/directional splitting
  *     - updates E & B at the same time
  */
@@ -49,22 +49,22 @@ namespace picongpu
 {
     namespace fieldSolverNone
     {
-        using CurrentInterpolation = currentInterpolation::None< simDim >;
+        using CurrentInterpolation = currentInterpolation::None;
     }
 
     namespace fieldSolverYee
     {
-        using CurrentInterpolation = currentInterpolation::None< simDim >;
+        using CurrentInterpolation = currentInterpolation::None;
     }
 
     namespace fieldSolverYeeNative
     {
-        using CurrentInterpolation = currentInterpolation::None< simDim >;
+        using CurrentInterpolation = currentInterpolation::None;
     }
 #if( PMACC_CUDA_ENABLED == 1 )
     namespace fieldSolverDirSplitting
     {
-        using CurrentInterpolation = currentInterpolation::NoneDS< simDim >;
+        using CurrentInterpolation = currentInterpolation::NoneDS;
     }
 #endif
     /** Lehe Solver
@@ -82,7 +82,7 @@ namespace picongpu
          */
         using CherenkovFreeDir = CherenkovFreeDirection_Y;
 
-        using CurrentInterpolation = currentInterpolation::None< simDim >;
+        using CurrentInterpolation = currentInterpolation::None;
     }
 
 } // namespace picongpu
