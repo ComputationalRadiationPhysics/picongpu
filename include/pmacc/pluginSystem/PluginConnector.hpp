@@ -233,7 +233,7 @@ namespace pmacc
 
     private:
 
-        friend class detail::Environment;
+        friend struct detail::Environment;
 
         static PluginConnector& getInstance()
         {

@@ -76,7 +76,7 @@ namespace pmacc
 
     private:
 
-        friend class detail::Environment;
+        friend struct detail::Environment;
 
         inline ITask* getPassiveITaskIfNotFinished(id_t taskId) const;
 
