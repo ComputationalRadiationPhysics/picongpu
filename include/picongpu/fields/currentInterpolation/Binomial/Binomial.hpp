@@ -34,28 +34,37 @@ namespace currentInterpolation
     {
         static constexpr uint32_t dim = simDim;
 
-        typedef typename pmacc::math::CT::make_Int<dim, 1>::type LowerMargin;
-        typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
+        using LowerMargin = typename pmacc::math::CT::make_Int<
+            dim,
+            1
+        >::type ;
+        using UpperMargin = LowerMargin;
 
-        template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
-        HDINLINE void operator()(DataBoxE fieldE,
-                                 DataBoxB,
-                                 DataBoxJ fieldJ )
+        template<
+            typename T_DataBoxE,
+            typename T_DataBoxB,
+            typename T_DataBoxJ
+        >
+        HDINLINE void operator()(
+            T_DataBoxE fieldE,
+            T_DataBoxB const,
+            T_DataBoxJ const fieldJ
+        )
         {
-            const DataSpace<dim> self;
-            using TypeJ = typename DataBoxJ::ValueType;
+            DataSpace< dim > const self;
+            using TypeJ = typename T_DataBoxJ::ValueType;
 
             /* 1 2 1 weighting for "left"(1x) "center"(2x) "right"(1x),
              * see Pascal's triangle level N=2 */
-            TypeJ dirSum( TypeJ::create(0.0) );
+            TypeJ dirSum( TypeJ::create( 0.0 ) );
             for( uint32_t d = 0; d < dim; ++d )
             {
-                DataSpace<dim> dw;
+                DataSpace< dim > dw;
                 dw[d] = -1;
-                DataSpace<dim> up;
+                DataSpace< dim > up;
                 up[d] =  1;
-                const TypeJ dirDw = fieldJ(dw) + fieldJ(self);
-                const TypeJ dirUp = fieldJ(up) + fieldJ(self);
+                TypeJ const dirDw = fieldJ( dw ) + fieldJ( self );
+                TypeJ const dirUp = fieldJ( up ) + fieldJ( self );
 
                 /* each fieldJ component is added individually */
                 dirSum += dirDw + dirUp;
@@ -63,17 +72,21 @@ namespace currentInterpolation
 
             /* component-wise division by sum of all weightings,
              * in the second order binomial filter these are 4 values per direction
-             * (1D: 4 values; 2D: 8 values; 3D: 12 values) */
-            const TypeJ filteredJ = dirSum / TypeJ::create(4.0 * dim);
+             * (1D: 4 values; 2D: 8 values; 3D: 12 values)
+             */
+            TypeJ const filteredJ = dirSum / TypeJ::create( float_X( 4.0 ) * dim );
 
-            const float_X deltaT = DELTA_T;
-            fieldE(self) -= filteredJ * (float_X(1.0) / EPS0) * deltaT;
+            constexpr float_X deltaT = DELTA_T;
+            fieldE( self ) -= filteredJ * ( float_X( 1.0 ) / EPS0 ) * deltaT;
         }
 
         static pmacc::traits::StringProperty getStringProperties()
         {
-            pmacc::traits::StringProperty propList( "name", "Binomial" );
-            propList["param"] = "period=1;numPasses=1;compensator=false";
+            pmacc::traits::StringProperty propList(
+                "name",
+                "Binomial"
+            );
+            propList[ "param" ] = "period=1;numPasses=1;compensator=false";
             return propList;
         }
     };
@@ -91,11 +104,11 @@ namespace traits
     struct GetMargin< picongpu::currentInterpolation::Binomial >
     {
     private:
-        typedef picongpu::currentInterpolation::Binomial MyInterpolation;
+        using MyInterpolation = picongpu::currentInterpolation::Binomial;
 
     public:
-        typedef typename MyInterpolation::LowerMargin LowerMargin;
-        typedef typename MyInterpolation::UpperMargin UpperMargin;
+        using LowerMargin = typename MyInterpolation::LowerMargin;
+        using UpperMargin = typename MyInterpolation::UpperMargin;
     };
 
 } // namespace traits

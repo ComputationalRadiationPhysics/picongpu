@@ -33,23 +33,35 @@ namespace currentInterpolation
     {
         static constexpr uint32_t dim = simDim;
 
-        typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
-        typedef typename pmacc::math::CT::make_Int<dim, 0>::type UpperMargin;
+        using LowerMargin = typename pmacc::math::CT::make_Int<
+            dim,
+            0
+        >::type;
+        using UpperMargin = LowerMargin;
 
-        template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
-        HDINLINE void operator()(DataBoxE fieldE,
-                                 DataBoxB,
-                                 DataBoxJ fieldJ )
+        template<
+            typename T_DataBoxE,
+            typename T_DataBoxB,
+            typename T_DataBoxJ
+        >
+        HDINLINE void operator()(
+            T_DataBoxE fieldE,
+            T_DataBoxB const,
+            T_DataBoxJ const fieldJ
+        )
         {
-            const DataSpace<dim> self;
+            DataSpace< dim > const self;
 
-            const float_X deltaT = DELTA_T;
-            fieldE(self) -= fieldJ(self) * (float_X(1.0) / EPS0) * deltaT;
+            constexpr float_X deltaT = DELTA_T;
+            fieldE( self ) -= fieldJ( self ) * ( float_X( 1.0 ) / EPS0 ) * deltaT;
         }
 
-        static pmacc::traits::StringProperty getStringProperties()
+        static pmacc::traits::StringProperty getStringProperties( )
         {
-            pmacc::traits::StringProperty propList( "name", "none" );
+            pmacc::traits::StringProperty propList(
+                "name",
+                "none"
+            );
             return propList;
         }
     };
@@ -67,11 +79,11 @@ namespace traits
     struct GetMargin< picongpu::currentInterpolation::None >
     {
     private:
-        typedef picongpu::currentInterpolation::None MyInterpolation;
+        using MyInterpolation = picongpu::currentInterpolation::None;
 
     public:
-        typedef typename MyInterpolation::LowerMargin LowerMargin;
-        typedef typename MyInterpolation::UpperMargin UpperMargin;
+        using LowerMargin = typename MyInterpolation::LowerMargin;
+        using UpperMargin = typename MyInterpolation::UpperMargin;
     };
 
 } // namespace traits
