@@ -37,6 +37,7 @@ namespace math
         static constexpr T_Type value = static_cast< T_Type >(
             3.141592653589793238462643383279502884197169399
         );
+        static constexpr T_Type doubleValue = static_cast< T_Type >( 2.0 ) * value;
         static constexpr T_Type halfValue = value / static_cast< T_Type >( 2.0 );
         static constexpr T_Type quarterValue = value / static_cast< T_Type >( 4.0 );
         static constexpr T_Type doubleReciprocalValue = static_cast< T_Type >( 2.0 ) / value;
