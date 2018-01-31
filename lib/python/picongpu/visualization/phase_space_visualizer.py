@@ -1,3 +1,11 @@
+"""
+This file is part of the PIConGPU.
+
+Copyright 2017-2018 PIConGPU contributors
+Authors: Sebastian Starke
+License: GPLv3+
+"""
+
 from picongpu.plugins.phase_space import PhaseSpace
 
 import matplotlib.pyplot as plt
