@@ -16,19 +16,25 @@ class Visualizer(object):
     Class for providing a plot of a PNG file using matplotlib.
     """
 
-    def __init__(self, layout_config):
+    def __init__(self, run_directory):
         """
         Parameters
         ----------
-        layout_config: dictionary
-            Not used in this class, but needs to be there for interface
-            reasons.
+        run_directory: string
+            path to the run directory of PIConGPU
+            (the path before ``simOutput/``)
         """
+        if run_directory is None:
+            raise ValueError('The run_directory parameter can not be None!')
 
+        self.run_directory = run_directory
         self.png_subdir = "simOutput/pngElectronsYX"
         self.plt_obj = None
 
-    def visualize(self, path, iteration, ax):
+    def get_data_path(self):
+        return os.path.join(self.run_directory, self.png_subdir)
+
+    def visualize(self, iteration, ax, layout_config={}):
         """
         Creates a plot on the provided axes object for
         the PNG file of the given iteration using matpotlib.
@@ -43,9 +49,12 @@ class Visualizer(object):
 
         ax: matplotlib axes object
             the part of the figure where this plot will be shown.
+
+        layout_config (optional): dictionary with possible styling information.
+            NOTE: no options from this parameter are considered yet!
         """
         # get the available png files
-        png_path = os.path.join(path, self.png_subdir)
+        png_path = self.get_data_path()
         # list with complete path for all png images
         png_files = [os.path.join(png_path, f)
                      for f in os.listdir(png_path) if f.endswith(".png")]
@@ -117,7 +126,7 @@ if __name__ == '__main__':
             sys.exit(2)
 
         fig, ax = plt.subplots(1, 1)
-        Visualizer(layout_config={}).visualize(path, iteration, ax)
+        Visualizer(path).visualize(iteration, ax)
         plt.show()
 
     main()
