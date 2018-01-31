@@ -285,8 +285,9 @@ private:
         this->allGPU_reduce = AllGPU_reduce(new pmacc::algorithm::mpi::Reduce<simDim>(zone_allGPUs));
 
         /* calculate rotated calorimeter frame from posYaw_deg and posPitch_deg */
-        const float_64 posYaw_rad = this->posYaw_deg * float_64(M_PI / 180.0);
-        const float_64 posPitch_rad = this->posPitch_deg * float_64(M_PI / 180.0);
+        constexpr float_64 radsInDegree = pmacc::algorithms::math::Pi<float_64>::value / float_64(180.0);
+        const float_64 posYaw_rad = this->posYaw_deg * radsInDegree;
+        const float_64 posPitch_rad = this->posPitch_deg * radsInDegree;
         this->calorimeterFrameVecY = float3_X(math::sin(posYaw_rad) * math::cos(posPitch_rad),
                                               math::cos(posYaw_rad) * math::cos(posPitch_rad),
                                               math::sin(posPitch_rad));
@@ -307,8 +308,8 @@ private:
 
         /* create calorimeter functor instance */
         this->calorimeterFunctor = MyCalorimeterFunctorPtr(new MyCalorimeterFunctor(
-            this->maxYaw_deg * float_X(M_PI / 180.0),
-            this->maxPitch_deg * float_X(M_PI / 180.0),
+            this->maxYaw_deg * radsInDegree,
+            this->maxPitch_deg * radsInDegree,
             this->numBinsYaw,
             this->numBinsPitch,
             this->numBinsEnergy,
