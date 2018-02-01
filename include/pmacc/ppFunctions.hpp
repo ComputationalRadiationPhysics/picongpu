@@ -58,7 +58,7 @@
  * @param ... arguments
  * @return false if no arguments are given, else true
  */
-#define PMACC_HAS_ARGS(...)  ((sizeof((int[]){0, ##__VA_ARGS__}))==sizeof(int)?false:true)
+#define PMACC_HAS_ARGS(...)  (PMACC_COUNT_ARGS(int,__VA_ARGS__)>0)
 
 /** round up to next higher pow 2 value
  *
