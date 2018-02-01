@@ -34,23 +34,19 @@ class Visualizer(object):
     def get_data_path(self):
         return os.path.join(self.run_directory, self.png_subdir)
 
-    def visualize(self, iteration, ax, layout_config={}):
+    def visualize(self, iteration, ax, **kwargs):
         """
         Creates a plot on the provided axes object for
         the PNG file of the given iteration using matpotlib.
 
         Parameters
         ----------
-        path: string
-            full path to the 'run' subdirectory of an experiment.
-
         iteration: int
             the iteration number for which data will be plotted.
-
         ax: matplotlib axes object
             the part of the figure where this plot will be shown.
-
-        layout_config (optional): dictionary with possible styling information.
+        kwargs: dict
+            possible additional keyword args (e.g. for styling).
             NOTE: no options from this parameter are considered yet!
         """
         # get the available png files
@@ -96,8 +92,8 @@ if __name__ == '__main__':
         def usage():
             print("usage:")
             print(
-                "python", sys.argv[0], "-p <path to run directory> -i <iteration>\
-                -s <particle species> -m <momentum term>")
+                "python", sys.argv[0],
+                "-p <path to run directory> -i <iteration>")
 
         path = None
         iteration = None
