@@ -22,5 +22,6 @@
 #include "picongpu/particles/manipulators/generic/Free.hpp"
 #include "picongpu/particles/manipulators/generic/FreeRng.hpp"
 
+#include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.hpp"
 #include "picongpu/particles/manipulators/unary/Temperature.hpp"
 #include "picongpu/particles/manipulators/unary/Drift.hpp"
