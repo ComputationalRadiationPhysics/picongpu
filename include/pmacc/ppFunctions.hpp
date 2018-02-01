@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <boost/preprocessor/variadic/size.hpp>
+
 
 #define PMACC_MIN(x,y) (((x)<=(y))?x:y)
 #define PMACC_MAX(x,y) (((x)>(y))?x:y)
@@ -33,13 +35,20 @@
 #define PMACC_MAX_DO(what,x,y) (((x)>(y))?x what:y what)
 #define PMACC_MIN_DO(what,x,y) (((x)<(y))?x what:y what)
 
+#if( BOOST_PP_VARIADICS == 1 )
+#   define PMACC_COUNT_ARGS_DEF(type,...) (BOOST_PP_VARIADIC_SIZE(__VA_ARGS__))
+#else
+// A fallback implementation using compound literals, supported by some compilers
+#   define PMACC_COUNT_ARGS_DEF(type,...) (sizeof((type[]){type{}, ##__VA_ARGS__})/sizeof(type)-1u)
+#endif
+
 /**
  * Returns number of args... arguments.
  *
  * @param type type of the arguments in ...
  * @param ... arguments
  */
-#define PMACC_COUNT_ARGS(type,...)  (sizeof((type[]){type{}, ##__VA_ARGS__})/sizeof(type)-1u)
+#define PMACC_COUNT_ARGS(type,...) PMACC_COUNT_ARGS_DEF(type,__VA_ARGS__)
 
 /**
  * Check if ... has arguments or not
