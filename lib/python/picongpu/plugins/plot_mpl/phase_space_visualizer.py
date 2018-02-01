@@ -38,7 +38,7 @@ class Visualizer(object):
         self.e_mc_r = 1. / (9.1e-31 * 2.9979e8)
 
     def visualize(self, iteration, ax, species='e', species_filter='all',
-                  ps=None, **kwargs):
+                  ps='ypy', **kwargs):
         """
         Creates a phase space plot on the provided axes object for
         the data of the given iteration using matpotlib.
