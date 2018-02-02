@@ -36,8 +36,8 @@ namespace generic
 
     /** call simple free user defined functor and provide the cell information
      *
-     * The functor pass the cell offset of the particle relative to the total
-     * domain origin into the functor.     *
+     * The functor passes the cell offset of the particle relative to the total
+     * domain origin into the functor.
      *
      * @tparam T_Functor user defined unary functor
      *
@@ -60,7 +60,7 @@ namespace generic
      *       }
      *   };
      *
-     *   using EachParticleInXCell5 = FreeTotalCellOffset<
+     *   using EachParticleInXCell5 = generic::FreeTotalCellOffset<
      *      FunctorEachParticleInXCell5
      *   >;
      *   @endcode
