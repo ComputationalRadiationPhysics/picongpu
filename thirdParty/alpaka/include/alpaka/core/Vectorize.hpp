@@ -34,7 +34,6 @@
 //!  for(...){...}`
 // \TODO: Implement for other compilers.
 // See: http://stackoverflow.com/questions/2706286/pragmas-swp-ivdep-prefetch-support-in-various-compilers
-//-----------------------------------------------------------------------------
 /*#if BOOST_COMP_INTEL || BOOST_COMP_HPACC
     #define ALPAKA_VECTORIZE_HINT(...)  _Pragma("ivdep")
 #elif BOOST_COMP_PGI
@@ -55,7 +54,6 @@ namespace alpaka
         {
             //-----------------------------------------------------------------------------
             // The alignment required to enable optimal performance dependant on the target architecture.
-            //-----------------------------------------------------------------------------
             constexpr std::size_t defaultAlignment =
 #if defined(__AVX512BW__) || defined(__AVX512F__) || defined(__MIC__)
                 64u
@@ -69,7 +67,6 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
             // By default there is no vectorization.
-            //-----------------------------------------------------------------------------
             template<
                 typename TElem>
             struct GetVectorizationSizeElems
@@ -79,7 +76,6 @@ namespace alpaka
 
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 double>
@@ -111,7 +107,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 float>
@@ -142,7 +137,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 std::int8_t>
@@ -178,7 +172,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 std::uint8_t>
@@ -214,7 +207,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 std::int16_t>
@@ -250,7 +242,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 std::uint16_t>
@@ -286,7 +277,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 std::int32_t>
@@ -317,7 +307,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 std::uint32_t>
@@ -348,7 +337,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 std::int64_t>
@@ -377,7 +365,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             // Number of elements of the given type that can be processed in parallel in a vector register.
-            //-----------------------------------------------------------------------------
             template<>
             struct GetVectorizationSizeElems<
                 std::uint64_t>

@@ -60,7 +60,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The CPU OpenMP 2.0 thread accelerator executor.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize,
@@ -70,8 +69,6 @@ namespace alpaka
             public workdiv::WorkDivMembers<TDim, TSize>
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
@@ -88,29 +85,18 @@ namespace alpaka
                     "The work division and the executor have to be of the same dimensionality!");
             }
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ExecCpuOmp2Threads(ExecCpuOmp2Threads const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ExecCpuOmp2Threads(ExecCpuOmp2Threads &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuOmp2Threads const &) -> ExecCpuOmp2Threads & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuOmp2Threads &&) -> ExecCpuOmp2Threads & = default;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~ExecCpuOmp2Threads() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator()() const
             -> void
             {
@@ -231,7 +217,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block thread executor accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -250,7 +235,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block thread executor device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -269,7 +253,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block thread executor dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -288,7 +271,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block thread executor executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -309,7 +291,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block thread executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -328,7 +309,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block thread executor size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,

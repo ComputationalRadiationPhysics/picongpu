@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The round trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg,
@@ -46,7 +45,6 @@ namespace alpaka
 
             //#############################################################################
             //! The round trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg,
@@ -55,7 +53,6 @@ namespace alpaka
 
             //#############################################################################
             //! The round trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg,
@@ -70,7 +67,6 @@ namespace alpaka
         //! \tparam TArg The arg type.
         //! \param round The object specializing Round.
         //! \param arg The arg.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -103,7 +99,6 @@ namespace alpaka
         //! \tparam TArg The arg type.
         //! \param lround The object specializing Round.
         //! \param arg The arg.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -128,7 +123,6 @@ namespace alpaka
         //! \tparam TArg The arg type.
         //! \param llround The object specializing Round.
         //! \param arg The arg.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -151,7 +145,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Round specialization for classes with RoundBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -165,8 +158,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto round(
@@ -188,7 +179,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The Lround specialization for classes with RoundBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -202,8 +192,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto lround(
@@ -225,7 +213,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The Llround specialization for classes with RoundBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -239,8 +226,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto llround(

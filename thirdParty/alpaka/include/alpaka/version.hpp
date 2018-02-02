@@ -23,10 +23,6 @@
 
 #include <boost/predef/version_number.h>
 
-//#############################################################################
-// Define the version number.
-//#############################################################################
-
 #define ALPAKA_VERSION_MAJOR 0
 #define ALPAKA_VERSION_MINOR 2
 #define ALPAKA_VERSION_PATCH 0

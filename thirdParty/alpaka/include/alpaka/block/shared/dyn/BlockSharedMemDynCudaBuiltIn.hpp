@@ -43,34 +43,21 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The GPU CUDA block shared memory allocator.
-                //#############################################################################
                 class BlockSharedMemDynCudaBuiltIn
                 {
                 public:
                     using BlockSharedMemDynBase = BlockSharedMemDynCudaBuiltIn;
 
                     //-----------------------------------------------------------------------------
-                    //! Default constructor.
-                    //-----------------------------------------------------------------------------
                     BlockSharedMemDynCudaBuiltIn() = default;
-                    //-----------------------------------------------------------------------------
-                    //! Copy constructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn const &) = delete;
                     //-----------------------------------------------------------------------------
-                    //! Move constructor.
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn &&) = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Copy assignment operator.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSharedMemDynCudaBuiltIn const &) -> BlockSharedMemDynCudaBuiltIn & = delete;
                     //-----------------------------------------------------------------------------
-                    //! Move assignment operator.
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSharedMemDynCudaBuiltIn &&) -> BlockSharedMemDynCudaBuiltIn & = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Destructor.
                     //-----------------------------------------------------------------------------
                     /*virtual*/ ~BlockSharedMemDynCudaBuiltIn() = default;
                 };
@@ -78,16 +65,12 @@ namespace alpaka
                 namespace traits
                 {
                     //#############################################################################
-                    //!
-                    //#############################################################################
                     template<
                         typename T>
                     struct GetMem<
                         T,
                         BlockSharedMemDynCudaBuiltIn>
                     {
-                        //-----------------------------------------------------------------------------
-                        //
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_ACC_CUDA_ONLY static auto getMem(
                             block::shared::dyn::BlockSharedMemDynCudaBuiltIn const &)

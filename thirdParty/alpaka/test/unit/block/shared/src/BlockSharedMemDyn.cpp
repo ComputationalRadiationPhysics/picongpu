@@ -44,13 +44,9 @@
 #endif
 
 //#############################################################################
-//!
-//#############################################################################
 class BlockSharedMemDynTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
-    //!
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<
@@ -81,7 +77,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The trait for getting the size of the block shared dynamic memory for a kernel.
-            //#############################################################################
             template<
                 typename TAcc>
             struct BlockSharedMemDynSizeBytes<
@@ -90,7 +85,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //! \return The size of the shared memory allocated for a block.
-                //-----------------------------------------------------------------------------
                 template<
                     typename TVec>
                 ALPAKA_FN_HOST static auto getBlockSharedMemDynSizeBytes(
@@ -110,8 +104,6 @@ namespace alpaka
 
 BOOST_AUTO_TEST_SUITE(blockSharedMemDyn)
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     sameNonNullAdress,

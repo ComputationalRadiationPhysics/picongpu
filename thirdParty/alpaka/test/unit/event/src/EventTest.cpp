@@ -45,8 +45,6 @@
 BOOST_AUTO_TEST_SUITE(event)
 
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     eventTestShouldInitiallyBeTrue,
     TDevStream,
@@ -70,8 +68,6 @@ using TestStreams = alpaka::test::stream::TestStreams;
 using TestStreams = alpaka::test::stream::TestStreamsCpu;
 #endif
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     eventTestShouldBeFalseWhileInQueueAndTrueAfterBeingProcessed,
@@ -110,8 +106,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         alpaka::event::test(e1));
 }
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     eventReEnqueueShouldBePossibleIfNobodyWaitsFor,
@@ -166,8 +160,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     }
 }
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     eventReEnqueueShouldBePossibleIfSomeoneWaitsFor,
@@ -239,7 +231,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 
 //-----------------------------------------------------------------------------
 // github issue #388
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     waitForEventThatAlreadyFinishedShouldBeSkipped,
     TDevStream,

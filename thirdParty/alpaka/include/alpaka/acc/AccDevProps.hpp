@@ -37,14 +37,11 @@ namespace alpaka
         // \TODO:
         //  TSize m_maxClockFrequencyHz;            //!< Maximum clock frequency of the device in Hz.
         //  TSize m_sharedMemSizeBytes;             //!< Size of the available block shared memory in bytes.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize>
         struct AccDevProps
         {
-            //-----------------------------------------------------------------------------
-            //! Default-constructor
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST AccDevProps(
                 TSize const & multiProcessorCount,

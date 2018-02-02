@@ -21,7 +21,6 @@
 #------------------------------------------------------------------------------
 # Gets all recursive files with the given ending in the given directory and recursively below.
 # This makes adding files easier because we do not have to update a list each time a file is added but this prevents CMake from detecting if it should be rerun!
-#------------------------------------------------------------------------------
 FUNCTION(append_recursive_files In_RootDir In_FileExtension Out_FilePathsListVariableName)
     #MESSAGE("In_RootDir: ${In_RootDir}")
     #MESSAGE("In_FileExtension: ${In_FileExtension}")
@@ -41,7 +40,6 @@ ENDFUNCTION()
 
 #------------------------------------------------------------------------------
 # Gets all recursive relative subdirectories.
-#------------------------------------------------------------------------------
 FUNCTION(append_recursive_relative_subdirs In_RootDir Out_RecursiveRelativeSubDirsVariableName)
     #MESSAGE("In_RootDir: ${In_RootDir}")
     # Get all the recursive files with their relative paths.
@@ -91,7 +89,6 @@ ENDFUNCTION()
 
 #------------------------------------------------------------------------------
 # Groups the files in the same way the directories are structured.
-#------------------------------------------------------------------------------
 FUNCTION(add_recursive_files_to_src_group In_RootDir In_SrcGroupIgnorePrefix In_FileExtension)
     #MESSAGE("In_RootDir: ${In_RootDir}")
     #MESSAGE("In_SrcGroupIgnorePrefix: ${In_SrcGroupIgnorePrefix}")
@@ -171,7 +168,6 @@ ENDFUNCTION()
 # Gets all files with the given ending in the given directory.
 # Groups the files in the same way the directories are structured.
 # This makes adding files easier because we do not have to update a list each time a file is added but this prevents CMake from detecting if it should be rerun!
-#------------------------------------------------------------------------------
 FUNCTION(append_recursive_files_add_to_src_group In_RootDir In_SrcGroupIgnorePrefix In_FileExtension Out_FilePathsListVariableName)
     #MESSAGE("In_RootDir: ${In_RootDir}")
     #MESSAGE("In_SrcGroupIgnorePrefix: ${In_SrcGroupIgnorePrefix}")
@@ -202,7 +198,6 @@ ENDFUNCTION()
 # void list_add_prefix(string In_Prefix, list<string>* In_ListVariableName);
 # - returns The In_ListVariableName with In_Prefix prepended to all items.
 # - original list is modified
-#------------------------------------------------------------------------------
 FUNCTION(list_add_prefix In_Prefix In_ListVariableName)
     SET(local_list)
 

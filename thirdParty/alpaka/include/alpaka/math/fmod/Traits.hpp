@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The fmod trait.
-            //#############################################################################
             template<
                 typename T,
                 typename Tx,
@@ -55,7 +54,6 @@ namespace alpaka
         //! \param fmod The object specializing Fmod.
         //! \param x The first argument.
         //! \param y The second argument.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -92,7 +90,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Fmod specialization for classes with FmodBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -106,8 +103,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto fmod(

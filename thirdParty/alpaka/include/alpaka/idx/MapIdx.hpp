@@ -36,7 +36,6 @@ namespace alpaka
         {
             //#############################################################################
             //! Maps a linear index to a N dimensional index.
-            //#############################################################################
             template<
                 std::size_t TidxDimOut,
                 std::size_t TidxDimIn,
@@ -44,7 +43,6 @@ namespace alpaka
             struct MapIdx;
             //#############################################################################
             //! Maps a N dimensional index to the same N dimensional index.
-            //#############################################################################
             template<
                 std::size_t TidxDim>
             struct MapIdx<
@@ -56,7 +54,6 @@ namespace alpaka
                 // \param idx Idx to be mapped.
                 // \param extent Spatial size to map the index to.
                 // \return A N dimensional vector.
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
                     typename TElem>
@@ -77,7 +74,6 @@ namespace alpaka
             };
             //#############################################################################
             //! Maps a 1 dimensional index to a N dimensional index.
-            //#############################################################################
             template<
                 std::size_t TidxDimOut>
             struct MapIdx<
@@ -90,7 +86,6 @@ namespace alpaka
                 // \param idx Idx to be mapped.
                 // \param extent Spatial size to map the index to
                 // \return A N dimensional vector.
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
                     typename TElem>
@@ -123,7 +118,6 @@ namespace alpaka
             };
             //#############################################################################
             //! Maps a N dimensional index to a 1 dimensional index.
-            //#############################################################################
             template<
                 std::size_t TidxDimIn>
             struct MapIdx<
@@ -136,7 +130,6 @@ namespace alpaka
                 // \param idx Idx to be mapped.
                 // \param extent Spatial size to map the index to.
                 // \return A 1 dimensional vector.
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
                     typename TElem>
@@ -161,7 +154,6 @@ namespace alpaka
         //! \tparam TidxDimOut Dimension of the index vector to map to.
         //! \tparam TidxDimIn Dimension of the index vector to map from.
         //! \tparam TElem Type of the elements of the index vector to map from.
-        //#############################################################################
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             std::size_t TidxDimOut,

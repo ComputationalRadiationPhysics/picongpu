@@ -35,7 +35,6 @@ namespace alpaka
     {
         //#############################################################################
         //! A basic class holding the work division as grid block extent, block thread and thread element extent.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize>
@@ -45,11 +44,7 @@ namespace alpaka
             using WorkDivBase = WorkDivMembers;
 
             //-----------------------------------------------------------------------------
-            //! Default constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST_ACC WorkDivMembers() = delete;
-            //-----------------------------------------------------------------------------
-            //! Constructor from values.
             //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             template<
@@ -65,8 +60,6 @@ namespace alpaka
                 m_threadElemExtent(extent::getExtentVecEnd<TDim>(threadElemExtent))
             {}
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC explicit WorkDivMembers(
                 WorkDivMembers const & other) :
@@ -74,8 +67,6 @@ namespace alpaka
                     m_blockThreadExtent(other.m_blockThreadExtent),
                     m_threadElemExtent(other.m_threadElemExtent)
             {}
-            //-----------------------------------------------------------------------------
-            //! Copy constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             template<
@@ -87,19 +78,11 @@ namespace alpaka
                     m_threadElemExtent(vec::subVecEnd<TDim>(getWorkDiv<Thread, Elems>(other)))
             {}
             //-----------------------------------------------------------------------------
-            //! Move constructor.
-            //-----------------------------------------------------------------------------
             WorkDivMembers(WorkDivMembers &&) = default;
-            //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
             //-----------------------------------------------------------------------------
             auto operator=(WorkDivMembers const &) -> WorkDivMembers & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(WorkDivMembers &&) -> WorkDivMembers & = default;
-            //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
             //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             template<
@@ -114,8 +97,6 @@ namespace alpaka
                 return *this;
             }
             //-----------------------------------------------------------------------------
-            //! Destructor.
-            //-----------------------------------------------------------------------------
             /*virtual*/ ~WorkDivMembers() = default;
 
         public:
@@ -124,8 +105,6 @@ namespace alpaka
             vec::Vec<TDim, TSize> m_threadElemExtent;
         };
 
-        //-----------------------------------------------------------------------------
-        //! Stream out operator.
         //-----------------------------------------------------------------------------
         template<
             typename TDim,
@@ -149,7 +128,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The WorkDivMembers dimension get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -166,7 +144,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The WorkDivMembers size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -183,7 +160,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The WorkDivMembers grid block extent trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -194,7 +170,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //! \return The number of blocks in each dimension of the grid.
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
                     WorkDivMembers<TDim, TSize> const & workDiv)
@@ -206,7 +181,6 @@ namespace alpaka
 
             //#############################################################################
             //! The WorkDivMembers block thread extent trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -217,7 +191,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //! \return The number of threads in each dimension of a block.
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
                     WorkDivMembers<TDim, TSize> const & workDiv)
@@ -229,7 +202,6 @@ namespace alpaka
 
             //#############################################################################
             //! The WorkDivMembers thread element extent trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -240,7 +212,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //! \return The number of elements in each dimension of a thread.
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
                     WorkDivMembers<TDim, TSize> const & workDiv)

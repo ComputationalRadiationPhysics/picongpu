@@ -29,7 +29,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The trait is true if all values of TSubset are contained in TSuperset.
-        //#############################################################################
         template<
             typename TSuperset,
             typename TSubset>

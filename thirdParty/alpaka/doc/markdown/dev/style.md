@@ -46,8 +46,8 @@ Comments
 --------
 
 * Always use C++-Style comments `//`
-* For types use `//#############################################################################` to surround the comment block.
-* For functions use `//-----------------------------------------------------------------------------` to surround the comment block.
+* For types use `//#############################################################################` to start the comment block.
+* For functions use `//-----------------------------------------------------------------------------` to start the comment block.
 * Never write comments for closing braces (namespaces, classes, etc ...)
 
 

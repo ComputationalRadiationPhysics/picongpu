@@ -53,12 +53,9 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CPU device stream implementation.
-                //#############################################################################
                 class StreamCpuAsyncImpl final
                 {
                 private:
-                    //#############################################################################
-                    //
                     //#############################################################################
                     using ThreadPool = alpaka::core::detail::ConcurrentExecPool<
                         std::size_t,
@@ -71,31 +68,19 @@ namespace alpaka
 
                 public:
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST StreamCpuAsyncImpl(
                         dev::DevCpu const & dev) :
                             m_dev(dev),
                             m_workerThread(1u)
                     {}
                     //-----------------------------------------------------------------------------
-                    //! Copy constructor.
-                    //-----------------------------------------------------------------------------
                     StreamCpuAsyncImpl(StreamCpuAsyncImpl const &) = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Move constructor.
                     //-----------------------------------------------------------------------------
                     StreamCpuAsyncImpl(StreamCpuAsyncImpl &&) = default;
                     //-----------------------------------------------------------------------------
-                    //! Copy assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(StreamCpuAsyncImpl const &) -> StreamCpuAsyncImpl & = delete;
                     //-----------------------------------------------------------------------------
-                    //! Move assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(StreamCpuAsyncImpl &&) -> StreamCpuAsyncImpl & = default;
-                    //-----------------------------------------------------------------------------
-                    //! Destructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST ~StreamCpuAsyncImpl() noexcept(false)
                     {
@@ -111,12 +96,9 @@ namespace alpaka
 
         //#############################################################################
         //! The CPU device stream.
-        //#############################################################################
         class StreamCpuAsync final
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST StreamCpuAsync(
                 dev::DevCpu const & dev) :
@@ -125,23 +107,13 @@ namespace alpaka
                 dev.m_spDevCpuImpl->RegisterAsyncStream(m_spStreamImpl);
             }
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             StreamCpuAsync(StreamCpuAsync const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             StreamCpuAsync(StreamCpuAsync &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(StreamCpuAsync const &) -> StreamCpuAsync & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(StreamCpuAsync &&) -> StreamCpuAsync & = default;
-            //-----------------------------------------------------------------------------
-            //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(StreamCpuAsync const & rhs) const
             -> bool
@@ -149,15 +121,11 @@ namespace alpaka
                 return (m_spStreamImpl == rhs.m_spStreamImpl);
             }
             //-----------------------------------------------------------------------------
-            //! Inequality comparison operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator!=(StreamCpuAsync const & rhs) const
             -> bool
             {
                 return !((*this) == rhs);
             }
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~StreamCpuAsync() = default;
 
@@ -172,7 +140,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU async device stream device type trait specialization.
-            //#############################################################################
             template<>
             struct DevType<
                 stream::StreamCpuAsync>
@@ -181,13 +148,10 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU async device stream device get trait specialization.
-            //#############################################################################
             template<>
             struct GetDev<
                 stream::StreamCpuAsync>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     stream::StreamCpuAsync const & stream)
@@ -204,7 +168,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU async device stream event type trait specialization.
-            //#############################################################################
             template<>
             struct EventType<
                 stream::StreamCpuAsync>
@@ -220,15 +183,12 @@ namespace alpaka
             //#############################################################################
             //! The CPU async device stream enqueue trait specialization.
             //! This default implementation for all tasks directly invokes the function call operator of the task.
-            //#############################################################################
             template<
                 typename TTask>
             struct Enqueue<
                 stream::StreamCpuAsync,
                 TTask>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
@@ -249,13 +209,10 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU async device stream test trait specialization.
-            //#############################################################################
             template<>
             struct Empty<
                 stream::StreamCpuAsync>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto empty(
                     stream::StreamCpuAsync const & stream)

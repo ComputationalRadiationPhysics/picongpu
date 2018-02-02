@@ -46,8 +46,22 @@
 
 BOOST_AUTO_TEST_SUITE(stream)
 
+
 //-----------------------------------------------------------------------------
-//
+BOOST_AUTO_TEST_CASE_TEMPLATE(
+    streamIsInitiallyEmpty,
+    TDevStream,
+    alpaka::test::stream::TestStreams)
+{
+    using Fixture = alpaka::test::stream::StreamTestFixture<TDevStream>;
+    Fixture f;
+
+    BOOST_REQUIRE_EQUAL(true, alpaka::stream::empty(f.m_stream));
+}
+
+// gcc 5.4 in combination with nvcc 8.0 fails to compile those tests when --expt-relaxed-constexpr is enabled
+// /usr/include/c++/5/tuple(484) (col. 17): error: calling a __host__ function("std::_Tuple_impl<(unsigned long)0ul,  :: > ::_Tuple_impl [subobject]") from a __device__ function("std::tuple< :: > ::tuple") is not allowed
+#if !((BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(5, 0, 0)) && (BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(8, 0, 0)) && (BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(9, 0, 0)))
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     streamCallbackIsWorking,
@@ -72,22 +86,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 #endif
 }
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE_TEMPLATE(
-    streamIsInitiallyEmpty,
-    TDevStream,
-    alpaka::test::stream::TestStreams)
-{
-    using Fixture = alpaka::test::stream::StreamTestFixture<TDevStream>;
-    Fixture f;
-
-    BOOST_REQUIRE_EQUAL(true, alpaka::stream::empty(f.m_stream));
-}
-
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     streamShouldBeEmptyAfterProcessingFinished,
@@ -115,8 +113,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     BOOST_REQUIRE_EQUAL(true, CallbackFinished);
 }
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     streamWaitShouldWork,
     TDevStream,
@@ -133,5 +129,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::wait::wait(f.m_stream);
     BOOST_REQUIRE_EQUAL(true, CallbackFinished);
 }
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()

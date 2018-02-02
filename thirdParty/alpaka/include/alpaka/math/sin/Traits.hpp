@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The sin trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg,
@@ -52,7 +51,6 @@ namespace alpaka
         //! \tparam TArg The arg type.
         //! \param sin The object specializing Sin.
         //! \param arg The arg.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -83,7 +81,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Sin specialization for classes with SinBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -97,8 +94,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto sin(

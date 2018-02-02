@@ -33,7 +33,6 @@ namespace alpaka
         {
             //#############################################################################
             //! A zero block thread index provider.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -43,27 +42,15 @@ namespace alpaka
                 using IdxBtBase = IdxBtZero;
 
                 //-----------------------------------------------------------------------------
-                //! Default constructor.
-                //-----------------------------------------------------------------------------
                 IdxBtZero() = default;
-                //-----------------------------------------------------------------------------
-                //! Copy constructor.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA IdxBtZero(IdxBtZero const &) = delete;
                 //-----------------------------------------------------------------------------
-                //! Move constructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA IdxBtZero(IdxBtZero &&) = delete;
-                //-----------------------------------------------------------------------------
-                //! Copy assignment operator.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA auto operator=(IdxBtZero const &) -> IdxBtZero & = delete;
                 //-----------------------------------------------------------------------------
-                //! Move assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA auto operator=(IdxBtZero &&) -> IdxBtZero & = delete;
-                //-----------------------------------------------------------------------------
-                //! Destructor.
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~IdxBtZero() = default;
             };
@@ -76,7 +63,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The zero block thread index provider dimension get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -93,7 +79,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The zero block thread index provider block thread index get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -104,7 +89,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //! \return The index of the current thread in the block.
-                //-----------------------------------------------------------------------------
                 template<
                     typename TWorkDiv>
                 ALPAKA_FN_ACC_NO_CUDA static auto getIdx(
@@ -125,7 +109,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The zero block thread index size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>

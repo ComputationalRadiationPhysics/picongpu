@@ -39,14 +39,12 @@ namespace alpaka
     // Trait specializations for fixed size arrays.
     //
     // This allows the usage of multidimensional compile time arrays e.g. int[4][3] as argument to memory ops.
-    //-----------------------------------------------------------------------------
     /*namespace dev
     {
         namespace traits
         {
             //#############################################################################
             //! The fixed size array device type trait specialization.
-            //#############################################################################
             template<
                 typename TFixedSizeArray>
             struct DevType<
@@ -58,15 +56,12 @@ namespace alpaka
 
             //#############################################################################
             //! The fixed size array device get trait specialization.
-            //#############################################################################
             template<
                 typename TFixedSizeArray>
             struct GetDev<
                 TFixedSizeArray,
                 typename std::enable_if<std::is_array<TFixedSizeArray>::value>::type>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     TFixedSizeArray const & buf)
@@ -84,7 +79,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The fixed size array dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TFixedSizeArray>
             struct DimType<
@@ -101,7 +95,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The fixed size array memory element type get trait specialization.
-            //#############################################################################
             template<
                 typename TFixedSizeArray>
             struct ElemType<
@@ -119,7 +112,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The fixed size array width get trait specialization.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TFixedSizeArray>
@@ -131,8 +123,6 @@ namespace alpaka
                     && (std::rank<TFixedSizeArray>::value > TIdx::value)
                     && (std::extent<TFixedSizeArray, TIdx::value>::value > 0u)>::type>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static constexpr auto getExtent(
@@ -154,7 +144,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The fixed size array native pointer get trait specialization.
-                //#############################################################################
                 template<
                     typename TFixedSizeArray>
                 struct GetPtrNative<
@@ -165,8 +154,6 @@ namespace alpaka
                     using TElem = typename std::remove_all_extent<TFixedSizeArray>::type;
 
                     //-----------------------------------------------------------------------------
-                    //!
-                    //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_HOST_ACC static auto getPtrNative(
                         TFixedSizeArray const & buf)
@@ -174,8 +161,6 @@ namespace alpaka
                     {
                         return buf;
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_HOST_ACC static auto getPtrNative(
@@ -188,7 +173,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The fixed size array pitch get trait specialization.
-                //#############################################################################
                 template<
                     typename TFixedSizeArray>
                 struct GetPitchBytes<
@@ -200,8 +184,6 @@ namespace alpaka
                 {
                     using TElem = typename std::remove_all_extent<TFixedSizeArray>::type;
 
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_HOST_ACC static constexpr auto getPitchBytes(
@@ -220,7 +202,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The fixed size array offset get trait specialization.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TFixedSizeArray>
@@ -229,8 +210,6 @@ namespace alpaka
                 TFixedSizeArray,
                 typename std::enable_if<std::is_array<TFixedSizeArray>::value>::type>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getOffset(
@@ -248,7 +227,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::vector size type trait specialization.
-            //#############################################################################
             template<
                 typename TFixedSizeArray>
             struct SizeType<
@@ -262,14 +240,12 @@ namespace alpaka
 
     //-----------------------------------------------------------------------------
     // Trait specializations for std::array.
-    //-----------------------------------------------------------------------------
     namespace dev
     {
         namespace traits
         {
             //#############################################################################
             //! The std::array device type trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 std::size_t Tsize>
@@ -281,15 +257,12 @@ namespace alpaka
 
             //#############################################################################
             //! The std::array device get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 std::size_t Tsize>
             struct GetDev<
                 std::array<TElem, Tsize>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     std::array<TElem, Tsize> const & buf)
@@ -307,7 +280,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::array dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 std::size_t Tsize>
@@ -324,7 +296,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::array memory element type get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 std::size_t Tsize>
@@ -341,7 +312,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::array width get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 std::size_t Tsize>
@@ -349,8 +319,6 @@ namespace alpaka
                 dim::DimInt<0u>,
                 std::array<TElem, Tsize>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static constexpr auto getExtent(
                     std::array<TElem, Tsize> const & /*extent*/)
@@ -371,7 +339,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The std::array native pointer get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     std::size_t Tsize>
@@ -379,16 +346,12 @@ namespace alpaka
                     std::array<TElem, Tsize>>
                 {
                     //-----------------------------------------------------------------------------
-                    //!
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         std::array<TElem, Tsize> const & buf)
                     -> TElem const *
                     {
                         return buf.data();
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         std::array<TElem, Tsize> & buf)
@@ -400,7 +363,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The std::array pitch get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     std::size_t Tsize>
@@ -408,8 +370,6 @@ namespace alpaka
                     dim::DimInt<0u>,
                     std::array<TElem, Tsize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPitchBytes(
                         std::array<TElem, Tsize> const & pitch)
@@ -427,7 +387,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::array offset get trait specialization.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TElem,
@@ -436,8 +395,6 @@ namespace alpaka
                 TIdx,
                 std::array<TElem, Tsize>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getOffset(
                     std::array<TElem, Tsize> const &)
@@ -454,7 +411,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::vector size type trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 std::size_t Tsize>
@@ -468,14 +424,12 @@ namespace alpaka
 
     //-----------------------------------------------------------------------------
     // Trait specializations for std::vector.
-    //-----------------------------------------------------------------------------
     namespace dev
     {
         namespace traits
         {
             //#############################################################################
             //! The std::vector device type trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TAllocator>
@@ -487,15 +441,12 @@ namespace alpaka
 
             //#############################################################################
             //! The std::vector device get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TAllocator>
             struct GetDev<
                 std::vector<TElem, TAllocator>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     std::vector<TElem, TAllocator> const & buf)
@@ -513,7 +464,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::vector dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TAllocator>
@@ -530,7 +480,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::vector memory element type get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TAllocator>
@@ -547,7 +496,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::vector width get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TAllocator>
@@ -555,8 +503,6 @@ namespace alpaka
                 dim::DimInt<0u>,
                 std::vector<TElem, TAllocator>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getExtent(
                     std::vector<TElem, TAllocator> const & extent)
@@ -575,7 +521,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The std::vector native pointer get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TAllocator>
@@ -583,16 +528,12 @@ namespace alpaka
                     std::vector<TElem, TAllocator>>
                 {
                     //-----------------------------------------------------------------------------
-                    //!
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         std::vector<TElem, TAllocator> const & buf)
                     -> TElem const *
                     {
                         return buf.data();
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         std::vector<TElem, TAllocator> & buf)
@@ -604,7 +545,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The std::vector pitch get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TAllocator>
@@ -612,8 +552,6 @@ namespace alpaka
                     dim::DimInt<0u>,
                     std::vector<TElem, TAllocator>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPitchBytes(
                         std::vector<TElem, TAllocator> const & pitch)
@@ -631,7 +569,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::vector offset get trait specialization.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TElem,
@@ -640,8 +577,6 @@ namespace alpaka
                 TIdx,
                 std::vector<TElem, TAllocator>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getOffset(
                     std::vector<TElem, TAllocator> const &)
@@ -658,7 +593,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The std::vector size type trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TAllocator>

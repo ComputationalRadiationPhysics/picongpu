@@ -26,21 +26,19 @@
 
 //#############################################################################
 //! A vector addition kernel.
-//! \tparam TAcc The accelerator environment to be executed on.
-//#############################################################################
 class VectorAddKernel
 {
 public:
     //-----------------------------------------------------------------------------
     //! The kernel entry point.
     //!
+    //! \tparam TAcc The accelerator environment to be executed on.
     //! \tparam TElem The matrix element type.
     //! \param acc The accelerator to be executed on.
     //! \param A The first source vector.
     //! \param B The second source vector.
     //! \param C The destination vector.
     //! \param numElements The number of elements.
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<
         typename TAcc,
@@ -77,9 +75,6 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
-//! Program entry point.
-//-----------------------------------------------------------------------------
 auto main()
 -> int
 {

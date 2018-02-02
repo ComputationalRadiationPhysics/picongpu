@@ -37,8 +37,6 @@
 BOOST_AUTO_TEST_SUITE(meta)
 
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(conjunctionTrue)
 {
     using ConjunctionResult =
@@ -53,8 +51,6 @@ BOOST_AUTO_TEST_CASE(conjunctionTrue)
         "alpaka::meta::Conjunction failed!");
 }
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(conjunctionFalse)
 {
@@ -71,8 +67,6 @@ BOOST_AUTO_TEST_CASE(conjunctionFalse)
 }
 
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(disjunctionTrue)
 {
     using DisjunctionResult =
@@ -88,8 +82,6 @@ BOOST_AUTO_TEST_CASE(disjunctionTrue)
 }
 
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(disjunctionFalse)
 {
     using DisjunctionResult =
@@ -104,8 +96,6 @@ BOOST_AUTO_TEST_CASE(disjunctionFalse)
         "alpaka::meta::Disjunction failed!");
 }
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(negationFalse)
 {
@@ -125,8 +115,6 @@ BOOST_AUTO_TEST_CASE(negationFalse)
         "alpaka::meta::Negation failed!");
 }
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(negationTrue)
 {

@@ -29,17 +29,14 @@ namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The device specifics.
-    //-----------------------------------------------------------------------------
     namespace dev
     {
         //-----------------------------------------------------------------------------
         //! The device traits.
-        //-----------------------------------------------------------------------------
         namespace traits
         {
             //#############################################################################
             //! The device type trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TSfinae = void>
@@ -47,7 +44,6 @@ namespace alpaka
 
             //#############################################################################
             //! The device get trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TSfinae = void>
@@ -55,7 +51,6 @@ namespace alpaka
 
             //#############################################################################
             //! The device name get trait.
-            //#############################################################################
             template<
                 typename TDev,
                 typename TSfinae = void>
@@ -63,7 +58,6 @@ namespace alpaka
 
             //#############################################################################
             //! The device memory size get trait.
-            //#############################################################################
             template<
                 typename TDev,
                 typename TSfinae = void>
@@ -71,7 +65,6 @@ namespace alpaka
 
             //#############################################################################
             //! The device free memory size get trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TSfinae = void>
@@ -79,7 +72,6 @@ namespace alpaka
 
             //#############################################################################
             //! The device reset trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TSfinae = void>
@@ -88,14 +80,12 @@ namespace alpaka
 
         //#############################################################################
         //! The device type trait alias template to remove the ::type.
-        //#############################################################################
         template<
             typename T>
         using Dev = typename traits::DevType<T>::type;
 
         //-----------------------------------------------------------------------------
         //! \return The device this object is bound to.
-        //-----------------------------------------------------------------------------
         template<
             typename T>
         ALPAKA_FN_HOST auto getDev(
@@ -113,7 +103,6 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         //! \return The device name.
-        //-----------------------------------------------------------------------------
         template<
             typename TDev>
         ALPAKA_FN_HOST auto getName(
@@ -129,7 +118,6 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         //! \return The memory on the device in Bytes.
-        //-----------------------------------------------------------------------------
         template<
             typename TDev>
         ALPAKA_FN_HOST auto getMemBytes(
@@ -145,7 +133,6 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         //! \return The free memory on the device in Bytes.
-        //-----------------------------------------------------------------------------
         template<
             typename TDev>
         ALPAKA_FN_HOST auto getFreeMemBytes(
@@ -162,7 +149,6 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! Resets the device.
         //! What this method does is dependent on the accelerator.
-        //-----------------------------------------------------------------------------
         template<
             typename TDev>
         ALPAKA_FN_HOST auto reset(

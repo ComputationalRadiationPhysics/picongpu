@@ -63,7 +63,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA memory buffer.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -77,7 +76,6 @@ namespace alpaka
             public:
                 //-----------------------------------------------------------------------------
                 //! Constructor
-                //-----------------------------------------------------------------------------
                 template<
                     typename TExtent>
                 ALPAKA_FN_HOST BufCudaRt(
@@ -107,7 +105,6 @@ namespace alpaka
             private:
                 //-----------------------------------------------------------------------------
                 //! Frees the shared buffer.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto freeBuffer(
                     TElem * memPtr,
                     dev::DevCudaRt const & dev)
@@ -132,16 +129,12 @@ namespace alpaka
         }
     }
 
-    //-----------------------------------------------------------------------------
-    // Trait specializations for BufCudaRt.
-    //-----------------------------------------------------------------------------
     namespace dev
     {
         namespace traits
         {
             //#############################################################################
             //! The BufCudaRt device type trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -153,7 +146,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The BufCudaRt device get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -176,7 +168,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCudaRt dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -194,7 +185,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCudaRt memory element type get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -212,7 +202,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCudaRt extent get trait specialization.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TElem,
@@ -223,8 +212,6 @@ namespace alpaka
                 mem::buf::BufCudaRt<TElem, TDim, TSize>,
                 typename std::enable_if<(TDim::value > TIdx::value)>::type>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getExtent(
                     mem::buf::BufCudaRt<TElem, TDim, TSize> const & extent)
@@ -243,7 +230,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The BufCudaRt native pointer get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -252,16 +238,12 @@ namespace alpaka
                     mem::buf::BufCudaRt<TElem, TDim, TSize>>
                 {
                     //-----------------------------------------------------------------------------
-                    //!
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> const & buf)
                     -> TElem const *
                     {
                         return buf.m_spMem.get();
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> & buf)
@@ -272,7 +254,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCudaRt pointer on device get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -281,8 +262,6 @@ namespace alpaka
                     mem::buf::BufCudaRt<TElem, TDim, TSize>,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> const & buf,
@@ -298,8 +277,6 @@ namespace alpaka
                             throw std::runtime_error("The buffer is not accessible from the given device!");
                         }
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> & buf,
@@ -318,7 +295,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCudaRt pitch get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -327,8 +303,6 @@ namespace alpaka
                     dim::DimInt<TDim::value - 1u>,
                     mem::buf::BufCudaRt<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPitchBytes(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> const & buf)
@@ -345,7 +319,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CUDA 1D memory allocation trait specialization.
-                //#############################################################################
                 template<
                     typename T,
                     typename TSize>
@@ -355,8 +328,6 @@ namespace alpaka
                     TSize,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent>
@@ -398,7 +369,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CUDA 2D memory allocation trait specialization.
-                //#############################################################################
                 template<
                     typename T,
                     typename TSize>
@@ -408,8 +378,6 @@ namespace alpaka
                     TSize,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent>
@@ -458,7 +426,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CUDA 3D memory allocation trait specialization.
-                //#############################################################################
                 template<
                     typename T,
                     typename TSize>
@@ -468,8 +435,6 @@ namespace alpaka
                     TSize,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent>
@@ -520,7 +485,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCudaRt CUDA device memory mapping trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -529,8 +493,6 @@ namespace alpaka
                     mem::buf::BufCudaRt<TElem, TDim, TSize>,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto map(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> const & buf,
@@ -548,7 +510,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCudaRt CUDA device memory unmapping trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -557,8 +518,6 @@ namespace alpaka
                     mem::buf::BufCudaRt<TElem, TDim, TSize>,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto unmap(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> const & buf,
@@ -576,7 +535,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCudaRt memory pinning trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -584,8 +542,6 @@ namespace alpaka
                 struct Pin<
                     mem::buf::BufCudaRt<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto pin(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> &)
@@ -598,7 +554,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCudaRt memory unpinning trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -606,8 +561,6 @@ namespace alpaka
                 struct Unpin<
                     mem::buf::BufCudaRt<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto unpin(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> &)
@@ -620,7 +573,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCudaRt memory pin state trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -628,8 +580,6 @@ namespace alpaka
                 struct IsPinned<
                     mem::buf::BufCudaRt<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto isPinned(
                         mem::buf::BufCudaRt<TElem, TDim, TSize> const &)
@@ -650,7 +600,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCudaRt offset get trait specialization.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TElem,
@@ -660,8 +609,6 @@ namespace alpaka
                 TIdx,
                 mem::buf::BufCudaRt<TElem, TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getOffset(
                    mem::buf::BufCudaRt<TElem, TDim, TSize> const &)
@@ -678,7 +625,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCudaRt size type trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -693,7 +639,6 @@ namespace alpaka
 
     //-----------------------------------------------------------------------------
     // Trait specializations for BufCpu.
-    //-----------------------------------------------------------------------------
     namespace mem
     {
         namespace buf
@@ -702,7 +647,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The BufCpu CUDA device memory mapping trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -711,8 +655,6 @@ namespace alpaka
                     mem::buf::BufCpu<TElem, TDim, TSize>,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto map(
                         mem::buf::BufCpu<TElem, TDim, TSize> & buf,
@@ -737,7 +679,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpu CUDA device memory unmapping trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -746,8 +687,6 @@ namespace alpaka
                     mem::buf::BufCpu<TElem, TDim, TSize>,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto unmap(
                         mem::buf::BufCpu<TElem, TDim, TSize> & buf,
@@ -775,7 +714,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The BufCpu pointer on CUDA device get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -784,8 +722,6 @@ namespace alpaka
                     mem::buf::BufCpu<TElem, TDim, TSize>,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
                         mem::buf::BufCpu<TElem, TDim, TSize> const & buf,
@@ -801,8 +737,6 @@ namespace alpaka
                                 0));
                         return pDev;
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
                         mem::buf::BufCpu<TElem, TDim, TSize> & buf,

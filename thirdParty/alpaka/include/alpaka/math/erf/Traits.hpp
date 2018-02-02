@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The erf trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg,
@@ -52,7 +51,6 @@ namespace alpaka
         //! \tparam TArg The arg type.
         //! \param erf The object specializing Erf.
         //! \param arg The arg.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -83,7 +81,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Erf specialization for classes with ErfBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -97,8 +94,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto erf(

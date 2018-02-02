@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The asin trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg,
@@ -51,7 +50,6 @@ namespace alpaka
         //! \tparam TArg The arg type.
         //! \param asin The object specializing Asin.
         //! \param arg The arg.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -82,7 +80,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Asin specialization for classes with AsinBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -96,8 +93,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto asin(

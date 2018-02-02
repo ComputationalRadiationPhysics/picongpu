@@ -44,12 +44,9 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA RT device manager.
-        //#############################################################################
         class PltfCudaRt
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST PltfCudaRt() = delete;
         };
@@ -61,7 +58,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA RT device manager device type trait specialization.
-            //#############################################################################
             template<>
             struct DevType<
                 pltf::PltfCudaRt>
@@ -76,13 +72,10 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU platform device count get trait specialization.
-            //#############################################################################
             template<>
             struct GetDevCount<
                 pltf::PltfCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDevCount()
                 -> std::size_t
@@ -100,13 +93,10 @@ namespace alpaka
 
             //#############################################################################
             //! The CPU platform device get trait specialization.
-            //#############################################################################
             template<>
             struct GetDevByIdx<
                 pltf::PltfCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDevByIdx(
                     std::size_t const & devIdx)
@@ -152,7 +142,6 @@ namespace alpaka
             private:
                 //-----------------------------------------------------------------------------
                 //! \return If the device is usable.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto isDevUsable(
                     std::size_t iDevice)
                 -> bool
@@ -191,7 +180,6 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                 //-----------------------------------------------------------------------------
                 //! Prints all the device properties to std::cout.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto printDeviceProperties(
                     cudaDeviceProp const & devProp)
                 -> void

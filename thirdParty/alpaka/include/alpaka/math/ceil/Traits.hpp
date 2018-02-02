@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The ceil trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg,
@@ -52,7 +51,6 @@ namespace alpaka
         //! \tparam TArg The arg type.
         //! \param ceil The object specializing Ceil.
         //! \param arg The arg.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -83,7 +81,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Ceil specialization for classes with CeilBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -97,8 +94,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto ceil(

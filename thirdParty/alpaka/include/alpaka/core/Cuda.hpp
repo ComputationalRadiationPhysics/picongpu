@@ -71,7 +71,6 @@ namespace alpaka
         {
             //-----------------------------------------------------------------------------
             //! CUDA runtime API error checking with log and exception, ignoring specific error values
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST inline auto cudaRtCheck(
                 cudaError_t const & error,
                 char const * desc,
@@ -92,7 +91,6 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! CUDA runtime API error checking with log and exception, ignoring specific error values
             // NOTE: All ignored errors have to be convertible to cudaError_t.
-            //-----------------------------------------------------------------------------
             template<
                 typename... TErrors/*,
                 typename = typename std::enable_if<
@@ -125,7 +123,6 @@ namespace alpaka
             }
             //-----------------------------------------------------------------------------
             //! CUDA runtime API last error checking with log and exception.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST inline auto cudaRtCheckLastError(
                 char const * desc,
                 char const * file,
@@ -142,7 +139,6 @@ namespace alpaka
 #if BOOST_COMP_MSVC
     //-----------------------------------------------------------------------------
     //! CUDA runtime error checking with log and exception, ignoring specific error values
-    //-----------------------------------------------------------------------------
     #define ALPAKA_CUDA_RT_CHECK_IGNORE(cmd, ...)\
         ::alpaka::cuda::detail::cudaRtCheckLastError("'" #cmd "' A previous CUDA call (not this one) set the error ", __FILE__, __LINE__);\
         ::alpaka::cuda::detail::cudaRtCheckIgnore(cmd, #cmd, __FILE__, __LINE__, __VA_ARGS__)
@@ -153,7 +149,6 @@ namespace alpaka
     #endif
     //-----------------------------------------------------------------------------
     //! CUDA runtime error checking with log and exception, ignoring specific error values
-    //-----------------------------------------------------------------------------
     #define ALPAKA_CUDA_RT_CHECK_IGNORE(cmd, ...)\
         ::alpaka::cuda::detail::cudaRtCheckLastError("'" #cmd "' A previous CUDA call (not this one) set the error ", __FILE__, __LINE__);\
         ::alpaka::cuda::detail::cudaRtCheckIgnore(cmd, #cmd, __FILE__, __LINE__, ##__VA_ARGS__)
@@ -164,7 +159,6 @@ namespace alpaka
 
 //-----------------------------------------------------------------------------
 //! CUDA runtime error checking with log and exception.
-//-----------------------------------------------------------------------------
 #define ALPAKA_CUDA_RT_CHECK(cmd)\
     ALPAKA_CUDA_RT_CHECK_IGNORE(cmd)
 
@@ -176,7 +170,6 @@ namespace alpaka
         {
             //-----------------------------------------------------------------------------
             //! CUDA driver API error checking with log and exception, ignoring specific error values
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST inline auto cudaDrvCheck(
                 CUresult const & error,
                 char const * desc,
@@ -200,26 +193,22 @@ namespace alpaka
 
 //-----------------------------------------------------------------------------
 //! CUDA driver error checking with log and exception.
-//-----------------------------------------------------------------------------
 #define ALPAKA_CUDA_DRV_CHECK(cmd)\
     ::alpaka::cuda::detail::cudaDrvCheck(cmd, #cmd, __FILE__, __LINE__)
 
 
 //-----------------------------------------------------------------------------
 // CUDA vector_types.h trait specializations.
-//-----------------------------------------------------------------------------
 namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The CUDA specifics.
-    //-----------------------------------------------------------------------------
     namespace cuda
     {
         namespace traits
         {
             //#############################################################################
             //! The CUDA vectors 1D dimension get trait specialization.
-            //#############################################################################
             template<
                 typename T>
             struct IsCudaBuiltInType :
@@ -292,7 +281,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA vectors 1D dimension get trait specialization.
-            //#############################################################################
             template<
                 typename T>
             struct DimType<
@@ -316,7 +304,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors 2D dimension get trait specialization.
-            //#############################################################################
             template<
                 typename T>
             struct DimType<
@@ -340,7 +327,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors 3D dimension get trait specialization.
-            //#############################################################################
             template<
                 typename T>
             struct DimType<
@@ -371,7 +357,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors 4D dimension get trait specialization.
-            //#############################################################################
             template<
                 typename T>
             struct DimType<
@@ -401,7 +386,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA vectors elem type trait specialization.
-            //#############################################################################
             template<
                 typename T>
             struct ElemType<
@@ -419,7 +403,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA vectors extent get trait specialization.
-            //#############################################################################
             template<
                 typename TExtent>
             struct GetExtent<
@@ -439,7 +422,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors extent get trait specialization.
-            //#############################################################################
             template<
                 typename TExtent>
             struct GetExtent<
@@ -459,7 +441,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors extent get trait specialization.
-            //#############################################################################
             template<
                 typename TExtent>
             struct GetExtent<
@@ -479,7 +460,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors extent get trait specialization.
-            //#############################################################################
             template<
                 typename TExtent>
             struct GetExtent<
@@ -499,7 +479,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors extent set trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TExtentVal>
@@ -522,7 +501,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors extent set trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TExtentVal>
@@ -545,7 +523,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors extent set trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TExtentVal>
@@ -568,7 +545,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors extent set trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TExtentVal>
@@ -597,7 +573,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA vectors offset get trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets>
             struct GetOffset<
@@ -617,7 +592,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors offset get trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets>
             struct GetOffset<
@@ -637,7 +611,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors offset get trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets>
             struct GetOffset<
@@ -657,7 +630,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors offset get trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets>
             struct GetOffset<
@@ -677,7 +649,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors offset set trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets,
                 typename TOffset>
@@ -700,7 +671,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors offset set trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets,
                 typename TOffset>
@@ -723,7 +693,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors offset set trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets,
                 typename TOffset>
@@ -746,7 +715,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA vectors offset set trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets,
                 typename TOffset>
@@ -775,7 +743,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA vectors size type trait specialization.
-            //#############################################################################
             template<
                 typename TSize>
             struct SizeType<

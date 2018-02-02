@@ -31,17 +31,14 @@ namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The time traits specifics.
-    //-----------------------------------------------------------------------------
     namespace time
     {
         //-----------------------------------------------------------------------------
         //! The time traits.
-        //-----------------------------------------------------------------------------
         namespace traits
         {
             //#############################################################################
             //! The clock trait.
-            //#############################################################################
             template<
                 typename TTime,
                 typename TSfinae = void>
@@ -53,7 +50,6 @@ namespace alpaka
         //!
         //! \tparam TTime The time implementation type.
         //! \param time The time implementation.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TTime>
@@ -72,7 +68,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Clock trait specialization for classes with TimeBase member type.
-            //#############################################################################
             template<
                 typename TTime>
             struct Clock<
@@ -84,8 +79,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto clock(

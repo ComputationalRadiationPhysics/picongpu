@@ -52,7 +52,6 @@ namespace alpaka
                     //! The CPU device memory copy task base.
                     //!
                     //! Copies from CPU memory into CPU memory.
-                    //#############################################################################
                     template<
                         typename TDim,
                         typename TViewDst,
@@ -87,8 +86,6 @@ namespace alpaka
                             "The source and the destination view are required to have the same element type!");
 
                         //-----------------------------------------------------------------------------
-                        //! Constructor.
-                        //-----------------------------------------------------------------------------
                         TaskCopyBase(
                             TViewDst & viewDst,
                             TViewSrc const & viewSrc,
@@ -112,8 +109,6 @@ namespace alpaka
                         }
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto printDebug() const
                         -> void
@@ -148,7 +143,6 @@ namespace alpaka
 
                     //#############################################################################
                     //! The CPU device ND memory copy task.
-                    //#############################################################################
                     template<
                         typename TDim,
                         typename TViewDst,
@@ -159,12 +153,8 @@ namespace alpaka
                         using DimMin1 = dim::DimInt<TDim::value - 1u>;
 
                         //-----------------------------------------------------------------------------
-                        //! Constructor.
-                        //-----------------------------------------------------------------------------
                         using TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::TaskCopyBase;
 
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto operator()() const
                         -> void
@@ -200,7 +190,6 @@ namespace alpaka
 
                     //#############################################################################
                     //! The CPU device 1D memory copy task.
-                    //#############################################################################
                     template<
                         typename TViewDst,
                         typename TViewSrc,
@@ -212,12 +201,8 @@ namespace alpaka
                         TExtent> : public TaskCopyBase<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>
                     {
                         //-----------------------------------------------------------------------------
-                        //! Constructor.
-                        //-----------------------------------------------------------------------------
                         using TaskCopyBase<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>::TaskCopyBase;
 
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto operator()() const
                         -> void
@@ -245,7 +230,6 @@ namespace alpaka
                 //! The CPU device memory copy trait specialization.
                 //!
                 //! Copies from CPU memory into CPU memory.
-                //#############################################################################
                 template<
                     typename TDim>
                 struct TaskCopy<
@@ -253,8 +237,6 @@ namespace alpaka
                     dev::DevCpu,
                     dev::DevCpu>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent,

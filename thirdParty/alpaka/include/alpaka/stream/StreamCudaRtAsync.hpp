@@ -60,12 +60,9 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CUDA RT async stream implementation.
-                //#############################################################################
                 class StreamCudaRtAsyncImpl final
                 {
                 public:
-                    //-----------------------------------------------------------------------------
-                    //! Constructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST StreamCudaRtAsyncImpl(
                         dev::DevCudaRt const & dev) :
@@ -90,23 +87,13 @@ namespace alpaka
                                 cudaStreamNonBlocking));
                     }
                     //-----------------------------------------------------------------------------
-                    //! Copy constructor.
-                    //-----------------------------------------------------------------------------
                     StreamCudaRtAsyncImpl(StreamCudaRtAsyncImpl const &) = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Move constructor.
                     //-----------------------------------------------------------------------------
                     StreamCudaRtAsyncImpl(StreamCudaRtAsyncImpl &&) = default;
                     //-----------------------------------------------------------------------------
-                    //! Copy assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(StreamCudaRtAsyncImpl const &) -> StreamCudaRtAsyncImpl & = delete;
                     //-----------------------------------------------------------------------------
-                    //! Move assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(StreamCudaRtAsyncImpl &&) -> StreamCudaRtAsyncImpl & = default;
-                    //-----------------------------------------------------------------------------
-                    //! Destructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST ~StreamCudaRtAsyncImpl()
                     {
@@ -133,35 +120,22 @@ namespace alpaka
 
         //#############################################################################
         //! The CUDA RT async stream.
-        //#############################################################################
         class StreamCudaRtAsync final
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST StreamCudaRtAsync(
                 dev::DevCudaRt const & dev) :
                 m_spStreamImpl(std::make_shared<cuda::detail::StreamCudaRtAsyncImpl>(dev))
             {}
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             StreamCudaRtAsync(StreamCudaRtAsync const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             StreamCudaRtAsync(StreamCudaRtAsync &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(StreamCudaRtAsync const &) -> StreamCudaRtAsync & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(StreamCudaRtAsync &&) -> StreamCudaRtAsync & = default;
-            //-----------------------------------------------------------------------------
-            //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(StreamCudaRtAsync const & rhs) const
             -> bool
@@ -169,15 +143,11 @@ namespace alpaka
                 return (m_spStreamImpl == rhs.m_spStreamImpl);
             }
             //-----------------------------------------------------------------------------
-            //! Equality comparison operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator!=(StreamCudaRtAsync const & rhs) const
             -> bool
             {
                 return !((*this) == rhs);
             }
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~StreamCudaRtAsync() = default;
 
@@ -192,7 +162,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA RT async stream device type trait specialization.
-            //#############################################################################
             template<>
             struct DevType<
                 stream::StreamCudaRtAsync>
@@ -201,13 +170,10 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA RT async stream device get trait specialization.
-            //#############################################################################
             template<>
             struct GetDev<
                 stream::StreamCudaRtAsync>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     stream::StreamCudaRtAsync const & stream)
@@ -224,7 +190,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA RT async stream event type trait specialization.
-            //#############################################################################
             template<>
             struct EventType<
                 stream::StreamCudaRtAsync>
@@ -239,15 +204,12 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA RT sync stream enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TTask>
             struct Enqueue<
                 stream::StreamCudaRtAsync,
                 TTask>
             {
-                //#############################################################################
-                //!
                 //#############################################################################
                 struct CallbackSynchronizationData
                 {
@@ -256,8 +218,6 @@ namespace alpaka
                     bool notified = false;
                 };
 
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 static void CUDART_CB cudaRtCallback(cudaStream_t /*stream*/, cudaError_t /*status*/, void *arg)
                 {
@@ -271,8 +231,6 @@ namespace alpaka
                     callbackSynchronizationData.m_event.notify_one();
                 }
 
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -311,13 +269,10 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA RT async stream test trait specialization.
-            //#############################################################################
             template<>
             struct Empty<
                 stream::StreamCudaRtAsync>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto empty(
                     stream::StreamCudaRtAsync const & stream)
@@ -344,13 +299,10 @@ namespace alpaka
             //! The CUDA RT async stream thread wait trait specialization.
             //!
             //! Blocks execution of the calling thread until the stream has finished processing all previously requested tasks (kernels, data copies, ...)
-            //#############################################################################
             template<>
             struct CurrentThreadWaitFor<
                 stream::StreamCudaRtAsync>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
                     stream::StreamCudaRtAsync const & stream)

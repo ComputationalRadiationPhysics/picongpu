@@ -58,7 +58,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The CPU OpenMP 4.0 accelerator executor.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize,
@@ -68,8 +67,6 @@ namespace alpaka
             public workdiv::WorkDivMembers<TDim, TSize>
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
@@ -86,29 +83,18 @@ namespace alpaka
                     "The work division and the executor have to be of the same dimensionality!");
             }
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ExecCpuOmp4(ExecCpuOmp4 const & other) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ExecCpuOmp4(ExecCpuOmp4 && other) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuOmp4 const &) -> ExecCpuOmp4 & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuOmp4 &&) -> ExecCpuOmp4 & = default;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~ExecCpuOmp4() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator()() const
             -> void
             {
@@ -247,7 +233,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 4.0 executor accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -266,7 +251,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 4.0 executor device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -285,7 +269,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 4.0 executor dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -304,7 +287,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 4.0 executor executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -325,7 +307,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 4.0 executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -344,7 +325,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 4.0 executor size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,

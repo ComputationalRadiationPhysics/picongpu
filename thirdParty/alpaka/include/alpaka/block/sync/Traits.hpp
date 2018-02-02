@@ -31,22 +31,18 @@ namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The grid block specifics
-    //-----------------------------------------------------------------------------
     namespace block
     {
         //-----------------------------------------------------------------------------
         //! The block synchronization specifics.
-        //-----------------------------------------------------------------------------
         namespace sync
         {
             //-----------------------------------------------------------------------------
             //! The block synchronization traits.
-            //-----------------------------------------------------------------------------
             namespace traits
             {
                 //#############################################################################
                 //! The block synchronization operation trait.
-                //#############################################################################
                 template<
                     typename TBlockSync,
                     typename TSfinae = void>
@@ -54,7 +50,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The block synchronization and predicate operation trait.
-                //#############################################################################
                 template<
                     typename TOp,
                     typename TBlockSync,
@@ -67,7 +62,6 @@ namespace alpaka
             //!
             //! \tparam TBlockSync The block synchronization implementation type.
             //! \param blockSync The block synchronization implementation.
-            //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             template<
                 typename TBlockSync>
@@ -85,7 +79,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The AllocVar trait specialization for classes with BlockSyncBase member type.
-                //#############################################################################
                 template<
                     typename TBlockSync>
                 struct SyncBlockThreads<
@@ -97,8 +90,6 @@ namespace alpaka
                         >::value
                     >::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_ACC static auto syncBlockThreads(
@@ -114,12 +105,10 @@ namespace alpaka
 
             //-----------------------------------------------------------------------------
             //! Defines operation functors.
-            //-----------------------------------------------------------------------------
             namespace op
             {
                 //#############################################################################
                 //! The addition function object.
-                //#############################################################################
                 struct Count
                 {
                     enum { InitialValue = 0u};
@@ -137,7 +126,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The logical and function object.
-                //#############################################################################
                 struct LogicalAnd
                 {
                     enum { InitialValue = 1u};
@@ -155,7 +143,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The logical or function object.
-                //#############################################################################
                 struct LogicalOr
                 {
                     enum { InitialValue = 0u};
@@ -182,7 +169,6 @@ namespace alpaka
             //! \tparam TBlockSync The block synchronization implementation type.
             //! \param blockSync The block synchronization implementation.
             //! \param predicate The predicate value of the current thread.
-            //-----------------------------------------------------------------------------
             ALPAKA_NO_HOST_ACC_WARNING
             template<
                 typename TOp,
@@ -205,7 +191,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The AllocVar trait specialization for classes with BlockSyncBase member type.
-                //#############################################################################
                 template<
                     typename TOp,
                     typename TBlockSync>
@@ -219,8 +204,6 @@ namespace alpaka
                         >::value
                     >::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(

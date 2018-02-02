@@ -38,7 +38,6 @@ namespace alpaka
         //
         // \tparam THashTableSize size of the hash table to allow concurrency between
         //                        atomics to different addresses
-        //#############################################################################
         template<size_t THashTableSize>
         class AtomicStlLock
         {
@@ -62,7 +61,6 @@ namespace alpaka
             //
             // This is no perfect hash, there will be collisions if the size of pointer type
             // is not a power of two.
-            //-----------------------------------------------------------------------------
             template<typename TPtr>
             static size_t hash(TPtr const * const ptr)
             {
@@ -74,27 +72,15 @@ namespace alpaka
             }
 
             //-----------------------------------------------------------------------------
-            //! Default constructor.
-            //-----------------------------------------------------------------------------
             AtomicStlLock() = default;
-            //-----------------------------------------------------------------------------
-            //! Copy constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AtomicStlLock(AtomicStlLock const &) = delete;
             //-----------------------------------------------------------------------------
-            //! Move constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AtomicStlLock(AtomicStlLock &&) = delete;
-            //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AtomicStlLock const &) -> AtomicStlLock & = delete;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AtomicStlLock &&) -> AtomicStlLock & = delete;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AtomicStlLock() = default;
 
@@ -105,7 +91,6 @@ namespace alpaka
                 //! get the size of the hash table
                 //
                 // The size is at least 1 or THashTableSize rounded up to the next power of 2
-                //-----------------------------------------------------------------------------
                 constexpr size_t hashTableSize = THashTableSize == 0u ? 1u : nextPowerOf2(THashTableSize);
 
                 size_t const hashedAddr = hash(ptr) & (hashTableSize - 1u);
@@ -120,7 +105,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads accelerator atomic operation.
-            //#############################################################################
             template<
                 typename TOp,
                 typename T,
@@ -133,8 +117,6 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                //
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA static auto atomicOp(
                     atomic::AtomicStlLock<THashTableSize> const & atomic,
                     T * const addr,
@@ -144,8 +126,6 @@ namespace alpaka
                     std::lock_guard<std::mutex> lock(atomic.getMutex(addr));
                     return TOp()(addr, value);
                 }
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA static auto atomicOp(
                     atomic::AtomicStlLock<THashTableSize> const & atomic,

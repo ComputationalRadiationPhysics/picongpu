@@ -36,8 +36,6 @@
 BOOST_AUTO_TEST_SUITE(meta)
 
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(isIntegralSupersetTrue)
 {
     // unsigned - unsigned
@@ -156,8 +154,6 @@ BOOST_AUTO_TEST_CASE(isIntegralSupersetTrue)
 }
 
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(isIntegralSupersetNoIntegral)
 {
     static_assert(
@@ -168,8 +164,6 @@ BOOST_AUTO_TEST_CASE(isIntegralSupersetNoIntegral)
         "alpaka::meta::IsIntegralSuperset failed!");
 }
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(isIntegralSupersetFalse)
 {

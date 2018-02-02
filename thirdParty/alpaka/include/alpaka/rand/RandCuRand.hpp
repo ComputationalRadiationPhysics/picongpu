@@ -45,7 +45,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA rand implementation.
-        //#############################################################################
         class RandCuRand
         {
         public:
@@ -58,21 +57,15 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CUDA Xor random number generator.
-                //#############################################################################
                 class Xor
                 {
                 public:
 
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //
-                    // After calling this constructor the instance is not valid initialized and
-                    // need to be overwritten with a valid object
-                    //-----------------------------------------------------------------------------
+                    //! After calling this constructor the instance is not valid initialized and
+                    //! need to be overwritten with a valid object
                     Xor() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Constructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY Xor(
                         std::uint32_t const & seed,
@@ -97,26 +90,20 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CUDA random number floating point normal distribution.
-                //#############################################################################
                 template<
                     typename T>
                 class NormalReal;
 
                 //#############################################################################
                 //! The CUDA random number float normal distribution.
-                //#############################################################################
                 template<>
                 class NormalReal<
                     float>
                 {
                 public:
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     NormalReal() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Call operator.
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
@@ -129,19 +116,14 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CUDA random number float normal distribution.
-                //#############################################################################
                 template<>
                 class NormalReal<
                     double>
                 {
                 public:
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     NormalReal() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Call operator.
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
@@ -155,26 +137,20 @@ namespace alpaka
 
                 //#############################################################################
                 //! The CUDA random number floating point uniform distribution.
-                //#############################################################################
                 template<
                     typename T>
                 class UniformReal;
 
                 //#############################################################################
                 //! The CUDA random number float uniform distribution.
-                //#############################################################################
                 template<>
                 class UniformReal<
                     float>
                 {
                 public:
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     UniformReal() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Call operator.
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
@@ -191,19 +167,14 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CUDA random number float uniform distribution.
-                //#############################################################################
                 template<>
                 class UniformReal<
                     double>
                 {
                 public:
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     UniformReal() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Call operator.
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
@@ -221,26 +192,20 @@ namespace alpaka
 
                 //#############################################################################
                 //! The CUDA random number integer uniform distribution.
-                //#############################################################################
                 template<
                     typename T>
                 class UniformUint;
 
                 //#############################################################################
                 //! The CUDA random number unsigned integer uniform distribution.
-                //#############################################################################
                 template<>
                 class UniformUint<
                     unsigned int>
                 {
                 public:
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     UniformUint() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Call operator.
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
@@ -260,7 +225,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CUDA random number float normal distribution get trait specialization.
-                //#############################################################################
                 template<
                     typename T>
                 struct CreateNormalReal<
@@ -269,8 +233,6 @@ namespace alpaka
                     typename std::enable_if<
                         std::is_floating_point<T>::value>::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY static auto createNormalReal(
                         RandCuRand const & /*rand*/)
@@ -281,7 +243,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CUDA random number float uniform distribution get trait specialization.
-                //#############################################################################
                 template<
                     typename T>
                 struct CreateUniformReal<
@@ -290,8 +251,6 @@ namespace alpaka
                     typename std::enable_if<
                         std::is_floating_point<T>::value>::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY static auto createUniformReal(
                         RandCuRand const & /*rand*/)
@@ -302,7 +261,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CUDA random number integer uniform distribution get trait specialization.
-                //#############################################################################
                 template<
                     typename T>
                 struct CreateUniformUint<
@@ -311,8 +269,6 @@ namespace alpaka
                     typename std::enable_if<
                         std::is_integral<T>::value>::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY static auto createUniformUint(
                         RandCuRand const & /*rand*/)
@@ -329,13 +285,10 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CUDA random number default generator get trait specialization.
-                //#############################################################################
                 template<>
                 struct CreateDefault<
                     RandCuRand>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY static auto createDefault(
                         RandCuRand const & /*rand*/,

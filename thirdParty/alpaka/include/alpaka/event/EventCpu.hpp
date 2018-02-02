@@ -49,12 +49,9 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CPU device event implementation.
-                //#############################################################################
                 class EventCpuImpl final
                 {
                 public:
-                    //-----------------------------------------------------------------------------
-                    //! Constructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST EventCpuImpl(
                         dev::DevCpu const & dev) :
@@ -64,36 +61,22 @@ namespace alpaka
                             m_LastReadyEnqueueCount(0u)
                     {}
                     //-----------------------------------------------------------------------------
-                    //! Copy constructor.
-                    //-----------------------------------------------------------------------------
                     EventCpuImpl(EventCpuImpl const &) = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Move constructor.
                     //-----------------------------------------------------------------------------
                     EventCpuImpl(EventCpuImpl &&) = default;
                     //-----------------------------------------------------------------------------
-                    //! Copy assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(EventCpuImpl const &) -> EventCpuImpl & = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Move assignment operator.
                     //-----------------------------------------------------------------------------
                     auto operator=(EventCpuImpl &&) -> EventCpuImpl & = default;
                     //-----------------------------------------------------------------------------
-                    //! Destructor.
-                    //-----------------------------------------------------------------------------
                     ~EventCpuImpl() noexcept = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Destructor.
                     //-----------------------------------------------------------------------------
                     auto isReady() noexcept -> bool
                     {
                         return (m_LastReadyEnqueueCount == m_enqueueCount);
                     }
 
-                    //-----------------------------------------------------------------------------
-                    //! Destructor.
                     //-----------------------------------------------------------------------------
                     auto hasBeenReadieadSince(const std::size_t & enqueueCount) noexcept -> bool
                     {
@@ -115,35 +98,22 @@ namespace alpaka
 
         //#############################################################################
         //! The CPU device event.
-        //#############################################################################
         class EventCpu final
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST EventCpu(
                 dev::DevCpu const & dev) :
                     m_spEventImpl(std::make_shared<cpu::detail::EventCpuImpl>(dev))
             {}
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             EventCpu(EventCpu const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             EventCpu(EventCpu &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(EventCpu const &) -> EventCpu & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(EventCpu &&) -> EventCpu & = default;
-            //-----------------------------------------------------------------------------
-            //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(EventCpu const & rhs) const
             -> bool
@@ -151,15 +121,11 @@ namespace alpaka
                 return (m_spEventImpl == rhs.m_spEventImpl);
             }
             //-----------------------------------------------------------------------------
-            //! Inequality comparison operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator!=(EventCpu const & rhs) const
             -> bool
             {
                 return !((*this) == rhs);
             }
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~EventCpu() = default;
 
@@ -174,13 +140,10 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU device event device get trait specialization.
-            //#############################################################################
             template<>
             struct GetDev<
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     event::EventCpu const & event)
@@ -197,14 +160,12 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU device event test trait specialization.
-            //#############################################################################
             template<>
             struct Test<
                 event::EventCpu>
             {
                 //-----------------------------------------------------------------------------
                 //! \return If the event is not waiting within a stream (not enqueued or already handled).
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto test(
                     event::EventCpu const & event)
                 -> bool
@@ -222,14 +183,11 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU async device stream enqueue trait specialization.
-            //#############################################################################
             template<>
             struct Enqueue<
                 std::shared_ptr<stream::cpu::detail::StreamCpuAsyncImpl>,
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
@@ -274,14 +232,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU async device stream enqueue trait specialization.
-            //#############################################################################
             template<>
             struct Enqueue<
                 stream::StreamCpuAsync,
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCpuAsync & stream,
@@ -295,14 +250,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU sync device stream enqueue trait specialization.
-            //#############################################################################
             template<>
             struct Enqueue<
                 std::shared_ptr<stream::cpu::detail::StreamCpuSyncImpl>,
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     std::shared_ptr<stream::cpu::detail::StreamCpuSyncImpl> & spStreamImpl,
@@ -328,14 +280,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU sync device stream enqueue trait specialization.
-            //#############################################################################
             template<>
             struct Enqueue<
                 stream::StreamCpuSync,
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCpuSync & stream,
@@ -358,13 +307,10 @@ namespace alpaka
             //!
             //! Waits until the event itself and therefore all tasks preceding it in the stream it is enqueued to have been completed.
             //! If the event is not enqueued to a stream the method returns immediately.
-            //#############################################################################
             template<>
             struct CurrentThreadWaitFor<
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
                     event::EventCpu const & event)
@@ -380,13 +326,10 @@ namespace alpaka
             //! If the event is not enqueued to a stream the method returns immediately.
             //!
             //! NOTE: This method is for internal usage only.
-            //#############################################################################
             template<>
             struct CurrentThreadWaitFor<
                 std::shared_ptr<event::cpu::detail::EventCpuImpl>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
                     std::shared_ptr<event::cpu::detail::EventCpuImpl> const & spEventImpl)
@@ -405,14 +348,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU async device stream event wait trait specialization.
-            //#############################################################################
             template<>
             struct WaiterWaitFor<
                 std::shared_ptr<stream::cpu::detail::StreamCpuAsyncImpl>,
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
@@ -454,14 +394,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU async device stream event wait trait specialization.
-            //#############################################################################
             template<>
             struct WaiterWaitFor<
                 stream::StreamCpuAsync,
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
                     stream::StreamCpuAsync & stream,
@@ -473,14 +410,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU sync device stream event wait trait specialization.
-            //#############################################################################
             template<>
             struct WaiterWaitFor<
                 std::shared_ptr<stream::cpu::detail::StreamCpuSyncImpl>,
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
                     std::shared_ptr<stream::cpu::detail::StreamCpuSyncImpl> & spStreamImpl,
@@ -498,14 +432,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU sync device stream event wait trait specialization.
-            //#############################################################################
             template<>
             struct WaiterWaitFor<
                 stream::StreamCpuSync,
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
                     stream::StreamCpuSync & stream,
@@ -519,14 +450,11 @@ namespace alpaka
             //! The CPU async device event wait trait specialization.
             //!
             //! Any future work submitted in any stream of this device will wait for event to complete before beginning execution.
-            //#############################################################################
             template<>
             struct WaiterWaitFor<
                 dev::DevCpu,
                 event::EventCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
                     dev::DevCpu & dev,
@@ -552,13 +480,10 @@ namespace alpaka
             //! The CPU async device stream thread wait trait specialization.
             //!
             //! Blocks execution of the calling thread until the stream has finished processing all previously requested tasks (kernels, data copies, ...)
-            //#############################################################################
             template<>
             struct CurrentThreadWaitFor<
                 stream::StreamCpuAsync>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
                     stream::StreamCpuAsync const & stream)

@@ -71,7 +71,6 @@ namespace alpaka
         //!
         //! This accelerator allows parallel kernel execution on a CPU device.
         //! It uses C++11 std::thread to implement the parallelism.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize>
@@ -102,8 +101,6 @@ namespace alpaka
 
         private:
             //-----------------------------------------------------------------------------
-            //! Constructor.
-            //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
             ALPAKA_FN_ACC_NO_CUDA AccCpuThreads(
@@ -131,23 +128,13 @@ namespace alpaka
 
         public:
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AccCpuThreads(AccCpuThreads const &) = delete;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AccCpuThreads(AccCpuThreads &&) = delete;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuThreads const &) -> AccCpuThreads & = delete;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuThreads &&) -> AccCpuThreads & = delete;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AccCpuThreads() = default;
 
@@ -168,7 +155,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads accelerator accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -179,15 +165,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU threads accelerator device properties get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccDevProps<
                 acc::AccCpuThreads<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccDevProps(
                     dev::DevCpu const & dev)
@@ -221,15 +204,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU threads accelerator name trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccName<
                 acc::AccCpuThreads<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccName()
                 -> std::string
@@ -245,7 +225,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads accelerator device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -262,7 +241,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads accelerator dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -279,7 +257,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads accelerator executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -300,7 +277,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -317,7 +293,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads accelerator size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>

@@ -31,22 +31,18 @@ namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The memory specifics.
-    //-----------------------------------------------------------------------------
     namespace mem
     {
         //-----------------------------------------------------------------------------
         //! The buffer specifics.
-        //-----------------------------------------------------------------------------
         namespace buf
         {
             //-----------------------------------------------------------------------------
             //! The buffer traits.
-            //-----------------------------------------------------------------------------
             namespace traits
             {
                 //#############################################################################
                 //! The memory buffer type trait.
-                //#############################################################################
                 template<
                     typename TDev,
                     typename TElem,
@@ -57,7 +53,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The memory allocator trait.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -68,7 +63,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The memory mapping trait.
-                //#############################################################################
                 template<
                     typename TBuf,
                     typename TDev,
@@ -77,7 +71,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The memory unmapping trait.
-                //#############################################################################
                 template<
                     typename TBuf,
                     typename TDev,
@@ -86,7 +79,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The memory pinning trait.
-                //#############################################################################
                 template<
                     typename TBuf,
                     typename TSfinae = void>
@@ -94,7 +86,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The memory unpinning trait.
-                //#############################################################################
                 template<
                     typename TBuf,
                     typename TSfinae = void>
@@ -102,7 +93,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The memory pin state trait.
-                //#############################################################################
                 template<
                     typename TBuf,
                     typename TSfinae = void>
@@ -111,7 +101,6 @@ namespace alpaka
 
             //#############################################################################
             //! The memory buffer type trait alias template to remove the ::type.
-            //#############################################################################
             template<
                 typename TDev,
                 typename TElem,
@@ -128,7 +117,6 @@ namespace alpaka
             //! \param dev The device to allocate the buffer on.
             //! \param extent The extent of the buffer.
             //! \return The newly allocated buffer.
-            //-----------------------------------------------------------------------------
             template<
                 typename TElem,
                 typename TSize,
@@ -166,7 +154,6 @@ namespace alpaka
             //! \tparam TDev The device type.
             //! \param buf The buffer to map into the device memory.
             //! \param dev The device to map the buffer into.
-            //-----------------------------------------------------------------------------
             template<
                 typename TBuf,
                 typename TDev>
@@ -190,7 +177,6 @@ namespace alpaka
             //! \tparam TDev The device type.
             //! \param buf The buffer to unmap from the device memory.
             //! \param dev The device to unmap the buffer from.
-            //-----------------------------------------------------------------------------
             template<
                 typename TBuf,
                 typename TDev>
@@ -212,7 +198,6 @@ namespace alpaka
             //!
             //! \tparam TBuf The buffer type.
             //! \param buf The buffer to pin in the device memory.
-            //-----------------------------------------------------------------------------
             template<
                 typename TBuf>
             ALPAKA_FN_HOST auto pin(
@@ -230,7 +215,6 @@ namespace alpaka
             //!
             //! \tparam TBuf The buffer type.
             //! \param buf The buffer to unpin from the device memory.
-            //-----------------------------------------------------------------------------
             template<
                 typename TBuf>
             ALPAKA_FN_HOST auto unpin(
@@ -248,7 +232,6 @@ namespace alpaka
             //!
             //! \tparam TBuf The buffer type.
             //! \param buf The buffer to get the pin state of.
-            //-----------------------------------------------------------------------------
             template<
                 typename TBuf>
             ALPAKA_FN_HOST auto isPinned(
