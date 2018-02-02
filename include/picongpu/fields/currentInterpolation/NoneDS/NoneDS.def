@@ -24,34 +24,12 @@ namespace picongpu
 namespace currentInterpolation
 {
 
-/* The standard interpolation for Directional Splitting
- *
- * In the Directional Splitting scheme (see MaxwellSolver and
- * numericalCellTypes
- */
-template<uint32_t T_simDim>
-struct NoneDS;
+    /* The standard interpolation for Directional Splitting
+     *
+     * Experimental assignment for all-centered cells used in directional splitting.
+     * Updates E & B at the same time.
+     */
+    struct NoneDS;
 
-} /* namespace currentInterpolation */
-
-namespace traits
-{
-
-/* Get margin of the current interpolation
- *
- * This class defines a LowerMargin and an UpperMargin.
- */
-template<uint32_t T_dim>
-struct GetMargin<picongpu::currentInterpolation::NoneDS<T_dim > >
-{
-private:
-    typedef picongpu::currentInterpolation::NoneDS<T_dim> MyInterpolation;
-
-public:
-    typedef typename MyInterpolation::LowerMargin LowerMargin;
-    typedef typename MyInterpolation::UpperMargin UpperMargin;
-};
-
-} /* namespace traits */
-
-} /* namespace picongpu */
+} // namespace currentInterpolation
+} // namespace picongpu

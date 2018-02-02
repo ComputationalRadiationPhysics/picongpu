@@ -20,42 +20,71 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include <pmacc/types.hpp>
-
 #include "picongpu/fields/currentInterpolation/None/None.def"
+
+#include <pmacc/dimensions/DataSpace.hpp>
 
 namespace picongpu
 {
 namespace currentInterpolation
 {
-using namespace pmacc;
 
-template<uint32_t T_dim>
-struct None
+    struct None
+    {
+        static constexpr uint32_t dim = simDim;
+
+        using LowerMargin = typename pmacc::math::CT::make_Int<
+            dim,
+            0
+        >::type;
+        using UpperMargin = LowerMargin;
+
+        template<
+            typename T_DataBoxE,
+            typename T_DataBoxB,
+            typename T_DataBoxJ
+        >
+        HDINLINE void operator()(
+            T_DataBoxE fieldE,
+            T_DataBoxB const,
+            T_DataBoxJ const fieldJ
+        )
+        {
+            DataSpace< dim > const self;
+
+            constexpr float_X deltaT = DELTA_T;
+            fieldE( self ) -= fieldJ( self ) * ( float_X( 1.0 ) / EPS0 ) * deltaT;
+        }
+
+        static pmacc::traits::StringProperty getStringProperties( )
+        {
+            pmacc::traits::StringProperty propList(
+                "name",
+                "none"
+            );
+            return propList;
+        }
+    };
+
+} // namespace currentInterpolation
+
+namespace traits
 {
-    static constexpr uint32_t dim = T_dim;
 
-    typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int<dim, 0>::type UpperMargin;
-
-    template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
-    HDINLINE void operator()(DataBoxE fieldE,
-                             DataBoxB,
-                             DataBoxJ fieldJ )
+    /* Get margin of the current interpolation
+     *
+     * This class defines a LowerMargin and an UpperMargin.
+     */
+    template< >
+    struct GetMargin< picongpu::currentInterpolation::None >
     {
-        const DataSpace<dim> self;
+    private:
+        using MyInterpolation = picongpu::currentInterpolation::None;
 
-        const float_X deltaT = DELTA_T;
-        fieldE(self) -= fieldJ(self) * (float_X(1.0) / EPS0) * deltaT;
-    }
+    public:
+        using LowerMargin = typename MyInterpolation::LowerMargin;
+        using UpperMargin = typename MyInterpolation::UpperMargin;
+    };
 
-    static pmacc::traits::StringProperty getStringProperties()
-    {
-        pmacc::traits::StringProperty propList( "name", "none" );
-        return propList;
-    }
-};
-
-} /* namespace currentInterpolation */
-
-} /* namespace picongpu */
+} // namespace traits
+} // namespace picongpu

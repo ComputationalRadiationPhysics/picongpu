@@ -20,21 +20,19 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/fields/currentInterpolation/None/None.def"
 #include "picongpu/algorithms/DifferenceToUpper.hpp"
 #include "picongpu/algorithms/LinearInterpolateWithUpper.hpp"
-#include <pmacc/traits/GetComponentsType.hpp>
-
 #include "picongpu/fields/MaxwellSolver/Yee/Curl.hpp"
+
+#include <pmacc/traits/GetComponentsType.hpp>
+#include <pmacc/dimensions/DataSpace.hpp>
 
 
 namespace picongpu
 {
 namespace currentInterpolation
 {
-using namespace pmacc;
-
 namespace detail
 {
     template<uint32_t T_simDim, uint32_t T_plane>
@@ -43,21 +41,27 @@ namespace detail
         static constexpr uint32_t dim = T_simDim;
 
         /* UpperMargin is actually 0 in direction of T_plane */
-        typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
-        typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
+        using LowerMargin = typename pmacc::math::CT::make_Int<
+            dim,
+            0
+        >::type;
+        using UpperMargin = typename pmacc::math::CT::make_Int<
+            dim,
+            1
+        >::type;
 
         template<typename DataBox>
-        HDINLINE float_X operator()(DataBox field) const
+        HDINLINE float_X operator()( DataBox const & field ) const
         {
-            const DataSpace<dim> self;
-            DataSpace<dim> up;
+            DataSpace< dim > const self;
+            DataSpace< dim > up;
             up[(T_plane + 1) % dim] = 1;
 
             using Avg = LinearInterpolateWithUpper< dim >;
 
-            const typename Avg::template GetInterpolatedValue< (T_plane + 2) % dim > avg;
+            typename Avg::template GetInterpolatedValue< ( T_plane + 2 ) % dim > const avg;
 
-            return float_X(0.5) * ( avg(field)[T_plane] + avg(field.shift(up))[T_plane] );
+            return float_X( 0.5 ) * ( avg( field )[ T_plane ] + avg( field.shift( up ) )[ T_plane ] );
         }
     };
 
@@ -76,7 +80,11 @@ namespace detail
      * \tparam isShiftAble auto-filled value that decides if this direction
      *                     is actually non-existent == periodic
      */
-    template<uint32_t T_simDim, uint32_t T_direction, bool isShiftAble=(T_direction<T_simDim) >
+    template<
+        uint32_t T_simDim,
+        uint32_t T_direction,
+        bool isShiftAble = ( T_direction < T_simDim )
+    >
     struct ShiftMeIfYouCan
     {
         static constexpr uint32_t dim = T_simDim;
@@ -86,102 +94,160 @@ namespace detail
         {
         }
 
-        template<class T_DataBox >
-        HDINLINE T_DataBox operator()(const T_DataBox& dataBox) const
+        template< typename T_DataBox >
+        HDINLINE T_DataBox operator()( T_DataBox const & dataBox ) const
         {
-            DataSpace<dim> shift;
-            shift[dir] = 1;
-            return dataBox.shift(shift);
+            DataSpace< dim > shift;
+            shift[ dir ] = 1;
+            return dataBox.shift( shift );
         }
     };
 
-    template<uint32_t T_simDim, uint32_t T_direction>
-    struct ShiftMeIfYouCan<T_simDim, T_direction, false>
+    template<
+        uint32_t T_simDim,
+        uint32_t T_direction
+    >
+    struct ShiftMeIfYouCan<
+        T_simDim,
+        T_direction,
+        false
+    >
     {
         HDINLINE ShiftMeIfYouCan()
         {
         }
 
-        template<class T_DataBox >
-        HDINLINE T_DataBox operator()(const T_DataBox& dataBox) const
+        template< typename T_DataBox >
+        HDINLINE T_DataBox operator()( T_DataBox const & dataBox ) const
         {
             return dataBox;
         }
     };
 
     /* that is not a "real" yee curl, but it looks a bit like it */
-    template<class Difference>
+    template< typename Difference >
     struct ShiftCurl
     {
         using LowerMargin = typename Difference::OffsetOrigin;
         using UpperMargin = typename Difference::OffsetEnd;
 
         template<class DataBox >
-        HDINLINE typename DataBox::ValueType operator()(const DataBox& mem) const
+        HDINLINE typename DataBox::ValueType operator()( DataBox const & mem ) const
         {
-            const typename Difference::template GetDifference<0> Dx;
-            const typename Difference::template GetDifference<1> Dy;
-            const typename Difference::template GetDifference<2> Dz;
+            typename Difference::template GetDifference< 0 > const Dx;
+            typename Difference::template GetDifference< 1 > const Dy;
+            typename Difference::template GetDifference< 2 > const Dz;
 
-            const ShiftMeIfYouCan<simDim, 0> sx;
-            const ShiftMeIfYouCan<simDim, 1> sy;
-            const ShiftMeIfYouCan<simDim, 2> sz;
+            ShiftMeIfYouCan<
+                simDim,
+                0
+            > const sx;
+            ShiftMeIfYouCan<
+                simDim,
+                1
+            > const sy;
+            ShiftMeIfYouCan<
+                simDim,
+                2
+            > const sz;
 
-            return float3_X(Dy(sx(mem)).z() - Dz(sx(mem)).y(),
-                            Dz(sy(mem)).x() - Dx(sy(mem)).z(),
-                            Dx(sz(mem)).y() - Dy(sz(mem)).x());
+            return float3_X(
+                Dy( sx( mem ) ).z( ) - Dz( sx( mem ) ).y( ),
+                Dz( sy( mem ) ).x( ) - Dx( sy( mem ) ).z( ),
+                Dx( sz( mem ) ).y( ) - Dy( sz( mem ) ).x( )
+            );
         }
     };
-} /* namespace detail */
+} // namespace detail
 
-template<uint32_t T_simDim>
-struct NoneDS
+    struct NoneDS
+    {
+        static constexpr uint32_t dim = simDim;
+
+        typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
+        typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
+
+        template<
+            typename T_DataBoxE,
+            typename T_DataBoxB,
+            typename T_DataBoxJ
+        >
+        HDINLINE void operator()(
+            T_DataBoxE fieldE,
+            T_DataBoxB fieldB,
+            T_DataBoxJ const fieldJ
+        )
+        {
+            using TypeJ = typename T_DataBoxJ::ValueType;
+            using ComponentJ = typename GetComponentsType< TypeJ >::type;
+
+            DataSpace< dim > const self;
+
+            constexpr ComponentJ deltaT = DELTA_T;
+            ComponentJ const constE = ( float_X( 1.0 )  / EPS0 ) * deltaT;
+            ComponentJ const constB = ( float_X( 0.25 ) / EPS0 ) * deltaT * deltaT;
+
+            detail::LinearInterpolateComponentPlaneUpper<
+                dim,
+                0
+            > const avgX;
+            ComponentJ const jXavg = avgX( fieldJ );
+            detail::LinearInterpolateComponentPlaneUpper<
+                dim,
+                1
+            > const avgY;
+            ComponentJ const jYavg = avgY( fieldJ );
+            detail::LinearInterpolateComponentPlaneUpper<
+                dim,
+                2
+            > const avgZ;
+            ComponentJ const jZavg = avgZ( fieldJ );
+
+            TypeJ const jAvgE = TypeJ(
+                jXavg,
+                jYavg,
+                jZavg
+            );
+            fieldE( self ) -= jAvgE * constE;
+
+            using CurlRight = yeeSolver::Curl< DifferenceToUpper< dim > >;
+            using ShiftCurlRight = detail::ShiftCurl< DifferenceToUpper< dim > >;
+            CurlRight curl;
+            ShiftCurlRight shiftCurl;
+
+            TypeJ const jAvgB = curl( fieldJ ) + shiftCurl( fieldJ );
+            fieldB(self) += jAvgB * constB;
+        }
+
+        static pmacc::traits::StringProperty getStringProperties()
+        {
+            pmacc::traits::StringProperty propList(
+                "name",
+                "none"
+            );
+            return propList;
+        }
+    };
+
+} // namespace currentInterpolation
+
+namespace traits
 {
-    static constexpr uint32_t dim = T_simDim;
 
-    typedef typename pmacc::math::CT::make_Int<dim, 0>::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int<dim, 1>::type UpperMargin;
-
-    template<typename DataBoxE, typename DataBoxB, typename DataBoxJ>
-    HDINLINE void operator()(DataBoxE fieldE,
-                             DataBoxB fieldB,
-                             DataBoxJ fieldJ )
+    /* Get margin of the current interpolation
+     *
+     * This class defines a LowerMargin and an UpperMargin.
+     */
+    template< >
+    struct GetMargin< picongpu::currentInterpolation::NoneDS >
     {
-        typedef typename DataBoxJ::ValueType TypeJ;
-        typedef typename GetComponentsType<TypeJ>::type ComponentJ;
+    private:
+        using MyInterpolation = picongpu::currentInterpolation::NoneDS;
 
-        const DataSpace<dim> self;
+    public:
+        using LowerMargin = typename MyInterpolation::LowerMargin;
+        using UpperMargin = typename MyInterpolation::UpperMargin;
+    };
 
-        const ComponentJ deltaT = DELTA_T;
-        const ComponentJ constE = (float_X(1.0)  / EPS0) * deltaT;
-        const ComponentJ constB = (float_X(0.25) / EPS0) * deltaT * deltaT;
-
-        const detail::LinearInterpolateComponentPlaneUpper<dim, 0> avgX;
-        const ComponentJ jXavg = avgX(fieldJ);
-        const detail::LinearInterpolateComponentPlaneUpper<dim, 1> avgY;
-        const ComponentJ jYavg = avgY(fieldJ);
-        const detail::LinearInterpolateComponentPlaneUpper<dim, 2> avgZ;
-        const ComponentJ jZavg = avgZ(fieldJ);
-
-        const TypeJ jAvgE = TypeJ(jXavg, jYavg, jZavg);
-        fieldE(self) -= jAvgE * constE;
-
-        using CurlRight = yeeSolver::Curl< DifferenceToUpper< dim > >;
-        using ShiftCurlRight = detail::ShiftCurl< DifferenceToUpper< dim > >;
-        CurlRight curl;
-        ShiftCurlRight shiftCurl;
-
-        const TypeJ jAvgB = curl(fieldJ) + shiftCurl(fieldJ);
-        fieldB(self) += jAvgB * constB;
-    }
-
-    static pmacc::traits::StringProperty getStringProperties()
-    {
-        pmacc::traits::StringProperty propList( "name", "none" );
-        return propList;
-    }
-};
-
-} /* namespace currentInterpolation */
-
-} /* namespace picongpu */
+} // namespace traits
+} // namespace picongpu

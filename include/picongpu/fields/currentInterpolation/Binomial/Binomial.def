@@ -19,35 +19,18 @@
 
 #pragma once
 
+
 namespace picongpu
 {
 namespace currentInterpolation
 {
 
-/* 2nd order Binomial filter */
-template<uint32_t T_dim>
-struct Binomial;
+    /** 2nd order Binomial filter
+     *
+     * Smooths the current before assignment in staggered grid.
+     * Updates E & breaks local charge conservation slightly.
+     */
+    struct Binomial;
 
-} /* namespace currentInterpolation */
-
-namespace traits
-{
-
-/* Get margin of the current interpolation
- *
- * This class defines a LowerMargin and an UpperMargin.
- */
-template<uint32_t T_dim>
-struct GetMargin<picongpu::currentInterpolation::Binomial<T_dim > >
-{
-private:
-    typedef picongpu::currentInterpolation::Binomial<T_dim> MyInterpolation;
-
-public:
-    typedef typename MyInterpolation::LowerMargin LowerMargin;
-    typedef typename MyInterpolation::UpperMargin UpperMargin;
-};
-
-} /* namespace traits */
-
-} /* namespace picongpu */
+} // namespace currentInterpolation
+} // namespace picongpu
