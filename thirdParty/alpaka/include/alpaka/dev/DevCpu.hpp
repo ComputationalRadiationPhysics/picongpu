@@ -64,46 +64,30 @@ namespace alpaka
     {
         //-----------------------------------------------------------------------------
         //! The CPU device.
-        //-----------------------------------------------------------------------------
         namespace cpu
         {
             namespace detail
             {
                 //#############################################################################
                 //! The CPU device implementation.
-                //#############################################################################
                 class DevCpuImpl
                 {
                     friend stream::StreamCpuAsync;                   // stream::StreamCpuAsync::StreamCpuAsync calls RegisterAsyncStream.
                     friend stream::cpu::detail::StreamCpuAsyncImpl;  // StreamCpuAsyncImpl::~StreamCpuAsyncImpl calls UnregisterAsyncStream.
                 public:
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     DevCpuImpl() = default;
-                    //-----------------------------------------------------------------------------
-                    //! Copy constructor.
                     //-----------------------------------------------------------------------------
                     DevCpuImpl(DevCpuImpl const &) = default;
                     //-----------------------------------------------------------------------------
-                    //! Move constructor.
-                    //-----------------------------------------------------------------------------
                     DevCpuImpl(DevCpuImpl &&) = default;
-                    //-----------------------------------------------------------------------------
-                    //! Copy assignment operator.
                     //-----------------------------------------------------------------------------
                     auto operator=(DevCpuImpl const &) -> DevCpuImpl & = default;
                     //-----------------------------------------------------------------------------
-                    //! Move assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(DevCpuImpl &&) -> DevCpuImpl & = default;
-                    //-----------------------------------------------------------------------------
-                    //! Destructor.
                     //-----------------------------------------------------------------------------
                     ~DevCpuImpl() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! \return The list of all streams on this device.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST auto GetAllAsyncStreamImpls() const noexcept(false)
                     -> std::vector<std::shared_ptr<stream::cpu::detail::StreamCpuAsyncImpl>>
@@ -131,7 +115,6 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     //! Registers the given stream on this device.
                     //! NOTE: Every stream has to be registered for correct functionality of device wait operations!
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST auto RegisterAsyncStream(std::shared_ptr<stream::cpu::detail::StreamCpuAsyncImpl> spStreamImpl)
                     -> void
                     {
@@ -144,7 +127,6 @@ namespace alpaka
                     }
                     //-----------------------------------------------------------------------------
                     //! Unregisters the given stream from this device.
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST auto UnregisterAsyncStream(stream::cpu::detail::StreamCpuAsyncImpl const * const pStream) noexcept(false)
                     -> void
                     {
@@ -177,36 +159,23 @@ namespace alpaka
 
         //#############################################################################
         //! The CPU device handle.
-        //#############################################################################
         class DevCpu
         {
             friend struct pltf::traits::GetDevByIdx<pltf::PltfCpu>;
         protected:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST DevCpu() :
                 m_spDevCpuImpl(std::make_shared<cpu::detail::DevCpuImpl>())
             {}
         public:
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             DevCpu(DevCpu const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             DevCpu(DevCpu &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(DevCpu const &) -> DevCpu & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(DevCpu &&) -> DevCpu & = default;
-            //-----------------------------------------------------------------------------
-            //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(DevCpu const &) const
             -> bool
@@ -214,15 +183,11 @@ namespace alpaka
                 return true;
             }
             //-----------------------------------------------------------------------------
-            //! Inequality comparison operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator!=(DevCpu const & rhs) const
             -> bool
             {
                 return !((*this) == rhs);
             }
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~DevCpu() = default;
 
@@ -237,13 +202,10 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU device name get trait specialization.
-            //#############################################################################
             template<>
             struct GetName<
                 dev::DevCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getName(
                     dev::DevCpu const & dev)
@@ -257,13 +219,10 @@ namespace alpaka
 
             //#############################################################################
             //! The CPU device available memory get trait specialization.
-            //#############################################################################
             template<>
             struct GetMemBytes<
                 dev::DevCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getMemBytes(
                     dev::DevCpu const & dev)
@@ -277,13 +236,10 @@ namespace alpaka
 
             //#############################################################################
             //! The CPU device free memory get trait specialization.
-            //#############################################################################
             template<>
             struct GetFreeMemBytes<
                 dev::DevCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getFreeMemBytes(
                     dev::DevCpu const & dev)
@@ -297,13 +253,10 @@ namespace alpaka
 
             //#############################################################################
             //! The CPU device reset trait specialization.
-            //#############################################################################
             template<>
             struct Reset<
                 dev::DevCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto reset(
                     dev::DevCpu const & dev)
@@ -332,7 +285,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CPU device memory buffer type trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -354,7 +306,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU device platform type trait specialization.
-            //#############################################################################
             template<>
             struct PltfType<
                 dev::DevCpu>

@@ -74,7 +74,6 @@ namespace alpaka
         //! The GPU CUDA accelerator.
         //!
         //! This accelerator allows parallel kernel execution on devices supporting CUDA.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize>
@@ -96,8 +95,6 @@ namespace alpaka
         {
         public:
             //-----------------------------------------------------------------------------
-            //! Constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_CUDA_ONLY AccGpuCudaRt(
                 vec::Vec<TDim, TSize> const & threadElemExtent) :
                     workdiv::WorkDivCudaBuiltIn<TDim, TSize>(threadElemExtent),
@@ -118,23 +115,13 @@ namespace alpaka
 
         public:
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_CUDA_ONLY AccGpuCudaRt(AccGpuCudaRt const &) = delete;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_CUDA_ONLY AccGpuCudaRt(AccGpuCudaRt &&) = delete;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_CUDA_ONLY auto operator=(AccGpuCudaRt const &) -> AccGpuCudaRt & = delete;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_CUDA_ONLY auto operator=(AccGpuCudaRt &&) -> AccGpuCudaRt & = delete;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~AccGpuCudaRt() = default;
         };
@@ -146,7 +133,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA accelerator accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -157,15 +143,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The GPU CUDA accelerator device properties get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccDevProps<
                 acc::AccGpuCudaRt<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccDevProps(
                     dev::DevCudaRt const & dev)
@@ -203,15 +186,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The GPU CUDA accelerator name trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccName<
                 acc::AccGpuCudaRt<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccName()
                 -> std::string
@@ -227,7 +207,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA accelerator device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -244,7 +223,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA accelerator dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -261,7 +239,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA accelerator executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -282,7 +259,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU CUDA executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -299,7 +275,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA accelerator size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>

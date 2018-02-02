@@ -60,7 +60,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The CPU TBB block accelerator executor.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize,
@@ -70,8 +69,6 @@ namespace alpaka
             public workdiv::WorkDivMembers<TDim, TSize>
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
@@ -88,29 +85,18 @@ namespace alpaka
                     "The work division and the executor have to be of the same dimensionality!");
             }
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ExecCpuTbbBlocks(ExecCpuTbbBlocks const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ExecCpuTbbBlocks(ExecCpuTbbBlocks &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuTbbBlocks const &) -> ExecCpuTbbBlocks & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuTbbBlocks &&) -> ExecCpuTbbBlocks & = default;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~ExecCpuTbbBlocks() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator()() const
             -> void
             {
@@ -196,7 +182,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU TBB block executor accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -215,7 +200,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU TBB block executor device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -234,7 +218,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU TBB block executor dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -253,7 +236,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU TBB block executor executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -274,7 +256,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU TBB block executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -293,7 +274,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU TBB block executor size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,

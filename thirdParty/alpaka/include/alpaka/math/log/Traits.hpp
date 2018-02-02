@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The log trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg,
@@ -52,7 +51,6 @@ namespace alpaka
         //! \tparam TArg The arg type.
         //! \param log The object specializing Log.
         //! \param arg The arg.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -83,7 +81,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Log specialization for classes with LogBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -97,8 +94,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto log(

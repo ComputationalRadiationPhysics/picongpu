@@ -41,8 +41,6 @@
     #pragma clang diagnostic pop
 #endif
 
-#include <tuple>
-
 BOOST_AUTO_TEST_SUITE(kernel)
 
 // nvcc < 7.5 does not support lambdas as kernels.
@@ -56,8 +54,6 @@ BOOST_AUTO_TEST_SUITE(kernel)
 #if !BOOST_COMP_CLANG_CUDA || BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)
 
 #if !ALPAKA_CI
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     lambdaKernelIsWorking,
@@ -85,8 +81,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 }
 #endif
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     lambdaKernelWithArgumentIsWorking,
@@ -117,8 +111,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
             arg));
 }
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     lambdaKernelWithCapturingIsWorking,
@@ -153,8 +145,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 #if !defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
 #if !ALPAKA_CI
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     genericLambdaKernelIsWorking,
     TAcc,
@@ -181,8 +171,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 }
 #endif
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     variadicGenericLambdaKernelIsWorking,

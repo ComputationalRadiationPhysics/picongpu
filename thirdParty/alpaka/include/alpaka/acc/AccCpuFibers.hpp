@@ -75,7 +75,6 @@ namespace alpaka
         //! It uses boost::fibers to implement the cooperative parallelism.
         //! By using fibers the shared memory can reside in the closest memory/cache available.
         //! Furthermore there is no false sharing between neighboring threads as it is the case in real multi-threading.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize>
@@ -106,8 +105,6 @@ namespace alpaka
 
         private:
             //-----------------------------------------------------------------------------
-            //! Constructor.
-            //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
             ALPAKA_FN_ACC_NO_CUDA AccCpuFibers(
@@ -135,23 +132,13 @@ namespace alpaka
 
         public:
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AccCpuFibers(AccCpuFibers const &) = delete;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AccCpuFibers(AccCpuFibers &&) = delete;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuFibers const &) -> AccCpuFibers & = delete;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuFibers &&) -> AccCpuFibers & = delete;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AccCpuFibers() = default;
 
@@ -171,7 +158,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU fibers accelerator accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -182,15 +168,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU fibers accelerator device properties get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccDevProps<
                 acc::AccCpuFibers<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccDevProps(
                     dev::DevCpu const & dev)
@@ -222,15 +205,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU fibers accelerator name trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccName<
                 acc::AccCpuFibers<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccName()
                 -> std::string
@@ -246,7 +226,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU fibers accelerator device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -263,7 +242,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU fibers accelerator dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -280,7 +258,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU fibers accelerator executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -301,7 +278,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU fibers executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -318,7 +294,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU fibers accelerator size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>

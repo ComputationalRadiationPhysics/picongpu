@@ -56,7 +56,6 @@ namespace alpaka
                 {
                     //#############################################################################
                     //! The CPU memory buffer.
-                    //#############################################################################
                     template<
                         typename TElem,
                         typename TDim,
@@ -65,8 +64,6 @@ namespace alpaka
                         public mem::alloc::AllocCpuBoostAligned<std::integral_constant<std::size_t, core::vectorization::defaultAlignment>>
                     {
                     public:
-                        //-----------------------------------------------------------------------------
-                        //! Constructor
                         //-----------------------------------------------------------------------------
                         template<
                             typename TExtent>
@@ -100,23 +97,13 @@ namespace alpaka
 #endif
                         }
                         //-----------------------------------------------------------------------------
-                        //! Copy constructor.
-                        //-----------------------------------------------------------------------------
                         BufCpuImpl(BufCpuImpl const &) = delete;
-                        //-----------------------------------------------------------------------------
-                        //! Move constructor.
                         //-----------------------------------------------------------------------------
                         BufCpuImpl(BufCpuImpl &&) = default;
                         //-----------------------------------------------------------------------------
-                        //! Copy assignment operator.
-                        //-----------------------------------------------------------------------------
                         auto operator=(BufCpuImpl const &) -> BufCpuImpl & = delete;
                         //-----------------------------------------------------------------------------
-                        //! Move assignment operator.
-                        //-----------------------------------------------------------------------------
                         auto operator=(BufCpuImpl &&) -> BufCpuImpl & = default;
-                        //-----------------------------------------------------------------------------
-                        //! Destructor.
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST ~BufCpuImpl() noexcept(false)
                         {
@@ -133,7 +120,6 @@ namespace alpaka
                     private:
                         //-----------------------------------------------------------------------------
                         //! \return The number of elements to allocate.
-                        //-----------------------------------------------------------------------------
                         template<
                             typename TExtent>
                         ALPAKA_FN_HOST static auto computeElementCount(
@@ -158,7 +144,6 @@ namespace alpaka
             }
             //#############################################################################
             //! The CPU memory buffer.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -166,8 +151,6 @@ namespace alpaka
             class BufCpu
             {
             public:
-                //-----------------------------------------------------------------------------
-                //! Constructor
                 //-----------------------------------------------------------------------------
                 template<
                     typename TExtent>
@@ -177,23 +160,13 @@ namespace alpaka
                         m_spBufCpuImpl(std::make_shared<cpu::detail::BufCpuImpl<TElem, TDim, TSize>>(dev, extent))
                 {}
                 //-----------------------------------------------------------------------------
-                //! Copy constructor.
-                //-----------------------------------------------------------------------------
                 BufCpu(BufCpu const &) = default;
-                //-----------------------------------------------------------------------------
-                //! Move constructor.
                 //-----------------------------------------------------------------------------
                 BufCpu(BufCpu &&) = default;
                 //-----------------------------------------------------------------------------
-                //! Copy assignment operator.
-                //-----------------------------------------------------------------------------
                 auto operator=(BufCpu const &) -> BufCpu & = default;
                 //-----------------------------------------------------------------------------
-                //! Move assignment operator.
-                //-----------------------------------------------------------------------------
                 auto operator=(BufCpu &&) -> BufCpu & = default;
-                //-----------------------------------------------------------------------------
-                //! Destructor.
                 //-----------------------------------------------------------------------------
                 ~BufCpu() = default;
 
@@ -203,16 +176,12 @@ namespace alpaka
         }
     }
 
-    //-----------------------------------------------------------------------------
-    // Trait specializations for BufCpu.
-    //-----------------------------------------------------------------------------
     namespace dev
     {
         namespace traits
         {
             //#############################################################################
             //! The BufCpu device type trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -224,7 +193,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The BufCpu device get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -247,7 +215,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCpu dimension getter trait.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -265,7 +232,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCpu memory element type get trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,
@@ -283,7 +249,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCpu width get trait specialization.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TElem,
@@ -294,8 +259,6 @@ namespace alpaka
                 mem::buf::BufCpu<TElem, TDim, TSize>,
                 typename std::enable_if<(TDim::value > TIdx::value)>::type>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getExtent(
                     mem::buf::BufCpu<TElem, TDim, TSize> const & extent)
@@ -314,7 +277,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The BufCpu native pointer get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -323,16 +285,12 @@ namespace alpaka
                     mem::buf::BufCpu<TElem, TDim, TSize>>
                 {
                     //-----------------------------------------------------------------------------
-                    //!
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufCpu<TElem, TDim, TSize> const & buf)
                     -> TElem const *
                     {
                         return buf.m_spBufCpuImpl->m_pMem;
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufCpu<TElem, TDim, TSize> & buf)
@@ -343,7 +301,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpu pointer on device get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -352,8 +309,6 @@ namespace alpaka
                     mem::buf::BufCpu<TElem, TDim, TSize>,
                     dev::DevCpu>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
                         mem::buf::BufCpu<TElem, TDim, TSize> const & buf,
@@ -369,8 +324,6 @@ namespace alpaka
                             throw std::runtime_error("The buffer is not accessible from the given device!");
                         }
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
                         mem::buf::BufCpu<TElem, TDim, TSize> & buf,
@@ -389,7 +342,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpu pitch get trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -398,8 +350,6 @@ namespace alpaka
                     dim::DimInt<TDim::value - 1u>,
                     mem::buf::BufCpu<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPitchBytes(
                         mem::buf::BufCpu<TElem, TDim, TSize> const & pitch)
@@ -416,7 +366,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The BufCpu memory allocation trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -427,8 +376,6 @@ namespace alpaka
                     TSize,
                     dev::DevCpu>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent>
@@ -449,7 +396,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpu memory mapping trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -458,8 +404,6 @@ namespace alpaka
                     mem::buf::BufCpu<TElem, TDim, TSize>,
                     dev::DevCpu>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto map(
                         mem::buf::BufCpu<TElem, TDim, TSize> & buf,
@@ -477,7 +421,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpu memory unmapping trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -486,8 +429,6 @@ namespace alpaka
                     mem::buf::BufCpu<TElem, TDim, TSize>,
                     dev::DevCpu>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto unmap(
                         mem::buf::BufCpu<TElem, TDim, TSize> & buf,
@@ -505,7 +446,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpu memory pinning trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -513,8 +453,6 @@ namespace alpaka
                 struct Pin<
                     mem::buf::BufCpu<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto pin(
                         mem::buf::BufCpu<TElem, TDim, TSize> & buf)
@@ -550,7 +488,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpu memory unpinning trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -558,8 +495,6 @@ namespace alpaka
                 struct Unpin<
                     mem::buf::BufCpu<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto unpin(
                         mem::buf::BufCpu<TElem, TDim, TSize> & buf)
@@ -570,7 +505,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpuImpl memory unpinning trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -578,8 +512,6 @@ namespace alpaka
                 struct Unpin<
                     mem::buf::cpu::detail::BufCpuImpl<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto unpin(
                         mem::buf::cpu::detail::BufCpuImpl<TElem, TDim, TSize> & bufImpl)
@@ -606,7 +538,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpu memory pin state trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -614,8 +545,6 @@ namespace alpaka
                 struct IsPinned<
                     mem::buf::BufCpu<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto isPinned(
                         mem::buf::BufCpu<TElem, TDim, TSize> const & buf)
@@ -626,7 +555,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The BufCpuImpl memory pin state trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -634,8 +562,6 @@ namespace alpaka
                 struct IsPinned<
                     mem::buf::cpu::detail::BufCpuImpl<TElem, TDim, TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto isPinned(
                         mem::buf::cpu::detail::BufCpuImpl<TElem, TDim, TSize> const & bufImpl)
@@ -660,7 +586,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCpu offset get trait specialization.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TElem,
@@ -670,8 +595,6 @@ namespace alpaka
                 TIdx,
                 mem::buf::BufCpu<TElem, TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getOffset(
                     mem::buf::BufCpu<TElem, TDim, TSize> const &)
@@ -688,7 +611,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The BufCpu size type trait specialization.
-            //#############################################################################
             template<
                 typename TElem,
                 typename TDim,

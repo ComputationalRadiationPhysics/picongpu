@@ -34,7 +34,11 @@
 //#include <boost/core/ignore_unused.hpp>
 
 #include <type_traits>
-#include <math_functions.hpp>
+#if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 1, 0)
+    #include <crt/math_functions.hpp>
+#else
+    #include <math_functions.hpp>
+#endif
 #include <algorithm>
 
 namespace alpaka
@@ -43,7 +47,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library min.
-        //#############################################################################
         class MinCudaBuiltIn
         {
         public:
@@ -54,7 +57,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library integral min trait specialization.
-            //#############################################################################
             template<
                 typename Tx,
                 typename Ty>
@@ -78,7 +80,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The standard library mixed integral floating point min trait specialization.
-            //#############################################################################
             template<
                 typename Tx,
                 typename Ty>

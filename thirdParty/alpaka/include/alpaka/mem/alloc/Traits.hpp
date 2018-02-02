@@ -33,17 +33,14 @@ namespace alpaka
     {
         //-----------------------------------------------------------------------------
         //! The allocator specifics.
-        //-----------------------------------------------------------------------------
         namespace alloc
         {
             //-----------------------------------------------------------------------------
             //! The allocator traits.
-            //-----------------------------------------------------------------------------
             namespace traits
             {
                 //#############################################################################
                 //! The memory allocation trait.
-                //#############################################################################
                 template<
                     typename T,
                     typename TAlloc,
@@ -52,7 +49,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The memory free trait.
-                //#############################################################################
                 template<
                     typename T,
                     typename TAlloc,
@@ -62,7 +58,6 @@ namespace alpaka
 
             //-----------------------------------------------------------------------------
             //! \return The pointer to the allocated memory.
-            //-----------------------------------------------------------------------------
             template<
                 typename T,
                 typename TAlloc>
@@ -82,7 +77,6 @@ namespace alpaka
 
             //-----------------------------------------------------------------------------
             //! Frees the memory identified by the given pointer.
-            //-----------------------------------------------------------------------------
             template<
                 typename TAlloc,
                 typename T>
@@ -103,7 +97,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The Alloc specialization for classes with AllocBase member type.
-                //#############################################################################
                 template<
                     typename T,
                     typename TAlloc>
@@ -114,8 +107,6 @@ namespace alpaka
                         std::is_base_of<typename TAlloc::AllocBase, typename std::decay<TAlloc>::type>::value
                         && (!std::is_same<typename TAlloc::AllocBase, typename std::decay<TAlloc>::type>::value)>::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_HOST_ACC static auto alloc(
@@ -134,7 +125,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The Free specialization for classes with AllocBase member type.
-                //#############################################################################
                 template<
                     typename T,
                     typename TAlloc>
@@ -145,8 +135,6 @@ namespace alpaka
                         std::is_base_of<typename TAlloc::AllocBase, typename std::decay<TAlloc>::type>::value
                         && (!std::is_same<typename TAlloc::AllocBase, typename std::decay<TAlloc>::type>::value)>::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_HOST_ACC static auto free(

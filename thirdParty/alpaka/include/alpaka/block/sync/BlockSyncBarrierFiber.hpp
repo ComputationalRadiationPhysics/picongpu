@@ -40,7 +40,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The thread id map barrier block synchronization.
-            //#############################################################################
             template<
                 typename TSize>
             class BlockSyncBarrierFiber
@@ -48,8 +47,6 @@ namespace alpaka
             public:
                 using BlockSyncBase = BlockSyncBarrierFiber;
 
-                //-----------------------------------------------------------------------------
-                //! Constructor.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierFiber(
                     TSize const & blockThreadCount) :
@@ -59,23 +56,13 @@ namespace alpaka
                         m_generation(static_cast<TSize>(0u))
                 {}
                 //-----------------------------------------------------------------------------
-                //! Copy constructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierFiber(BlockSyncBarrierFiber const &) = delete;
-                //-----------------------------------------------------------------------------
-                //! Move constructor.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierFiber(BlockSyncBarrierFiber &&) = delete;
                 //-----------------------------------------------------------------------------
-                //! Copy assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSyncBarrierFiber const &) -> BlockSyncBarrierFiber & = delete;
                 //-----------------------------------------------------------------------------
-                //! Move assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSyncBarrierFiber &&) -> BlockSyncBarrierFiber & = delete;
-                //-----------------------------------------------------------------------------
-                //! Destructor.
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~BlockSyncBarrierFiber() = default;
 
@@ -90,15 +77,11 @@ namespace alpaka
             namespace traits
             {
                 //#############################################################################
-                //!
-                //#############################################################################
                 template<
                     typename TSize>
                 struct SyncBlockThreads<
                     BlockSyncBarrierFiber<TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA static auto syncBlockThreads(
                         block::sync::BlockSyncBarrierFiber<TSize> const & blockSync)
@@ -109,8 +92,6 @@ namespace alpaka
                 };
 
                 //#############################################################################
-                //!
-                //#############################################################################
                 template<
                     typename TOp,
                     typename TSize>
@@ -118,8 +99,6 @@ namespace alpaka
                     TOp,
                     BlockSyncBarrierFiber<TSize>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(

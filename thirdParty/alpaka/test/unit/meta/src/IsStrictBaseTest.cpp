@@ -41,8 +41,6 @@ class B : A {};
 class C {};
 
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(isStrictBaseTrue)
 {
     constexpr bool IsStrictBaseResult =
@@ -58,8 +56,6 @@ BOOST_AUTO_TEST_CASE(isStrictBaseTrue)
         "alpaka::meta::IsStrictBase failed!");
 }
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(isStrictBaseIdentity)
 {
@@ -77,8 +73,6 @@ BOOST_AUTO_TEST_CASE(isStrictBaseIdentity)
 }
 
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(isStrictBaseNoInheritance)
 {
     constexpr bool IsStrictBaseResult =
@@ -94,8 +88,6 @@ BOOST_AUTO_TEST_CASE(isStrictBaseNoInheritance)
         "alpaka::meta::IsStrictBase failed!");
 }
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(isStrictBaseWrongOrder)
 {

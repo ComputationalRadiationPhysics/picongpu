@@ -32,17 +32,14 @@ namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The atomic operation traits specifics.
-    //-----------------------------------------------------------------------------
     namespace atomic
     {
         //-----------------------------------------------------------------------------
         //! The atomic operation traits.
-        //-----------------------------------------------------------------------------
         namespace traits
         {
             //#############################################################################
             //! The atomic operation trait.
-            //#############################################################################
             template<
                 typename TOp,
                 typename TAtomic,
@@ -53,7 +50,6 @@ namespace alpaka
 
             //#############################################################################
             //! Get the atomic implementation for a hierarchy level
-            //#############################################################################
             template<
                 typename TAtomic,
                 typename THierarchy
@@ -71,7 +67,6 @@ namespace alpaka
         //! \param addr The value to change atomically.
         //! \param value The value used in the atomic operation.
         //! \param atomic The atomic implementation.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TOp,
@@ -107,7 +102,6 @@ namespace alpaka
         //! \param addr The value to change atomically.
         //! \param compare The comparison value used in the atomic operation.
         //! \param value The value used in the atomic operation.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TOp,
@@ -138,9 +132,7 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The AtomicOp trait specialization for classes with `UsedAtomicHierarchies`
-            //  member type.
-            //#############################################################################
+            //! The AtomicOp trait specialization for classes with `UsedAtomicHierarchies` member type.
             template<
                 typename TOp,
                 typename TAtomic,
@@ -152,8 +144,6 @@ namespace alpaka
                 T,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto atomicOp(
@@ -175,8 +165,6 @@ namespace alpaka
                                 value,
                                 THierarchy());
                 }
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto atomicOp(

@@ -20,7 +20,6 @@
 
 ################################################################################
 # Required CMake version.
-################################################################################
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
 
@@ -28,7 +27,6 @@ SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ################################################################################
 # Project.
-################################################################################
 
 SET(_TARGET_NAME "cudaOnly")
 
@@ -36,7 +34,6 @@ PROJECT(${_TARGET_NAME})
 
 #-------------------------------------------------------------------------------
 # Find alpaka test common.
-#-------------------------------------------------------------------------------
 
 SET(COMMON_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../common/" CACHE STRING  "The location of the alpaka test common library")
 LIST(APPEND CMAKE_MODULE_PATH "${COMMON_ROOT}")
@@ -44,7 +41,6 @@ FIND_PACKAGE(common REQUIRED)
 
 #-------------------------------------------------------------------------------
 # Boost.Test.
-#-------------------------------------------------------------------------------
 FIND_PACKAGE(Boost QUIET COMPONENTS unit_test_framework)
 IF(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
     MESSAGE(FATAL_ERROR "Required alpaka dependency Boost.Test could not be found!")
@@ -56,7 +52,6 @@ ENDIF()
 
 #-------------------------------------------------------------------------------
 # Add executable.
-#-------------------------------------------------------------------------------
 
 SET(_SOURCE_DIR "src/")
 

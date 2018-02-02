@@ -55,7 +55,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The CPU serial executor implementation.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize,
@@ -65,8 +64,6 @@ namespace alpaka
             public workdiv::WorkDivMembers<TDim, TSize>
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
@@ -83,29 +80,18 @@ namespace alpaka
                     "The work division and the executor have to be of the same dimensionality!");
             }
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ExecCpuSerial(ExecCpuSerial const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ExecCpuSerial(ExecCpuSerial &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuSerial const &) -> ExecCpuSerial & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuSerial &&) -> ExecCpuSerial & = default;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~ExecCpuSerial() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator()() const
             -> void
             {
@@ -184,7 +170,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU serial executor accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -203,7 +188,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU serial executor device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -222,7 +206,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU serial executor dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -241,7 +224,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU serial executor executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -262,7 +244,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU serial executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -281,7 +262,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU serial executor size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,

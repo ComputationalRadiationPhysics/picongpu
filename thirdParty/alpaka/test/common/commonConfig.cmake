@@ -20,13 +20,11 @@
 
 ################################################################################
 # Required CMake version.
-################################################################################
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
 
 ################################################################################
 # alpaka test common.
-################################################################################
 
 # Return values.
 UNSET(common_FOUND)
@@ -62,7 +60,6 @@ PROJECT(${_COMMON_TARGET_NAME})
 
 #-------------------------------------------------------------------------------
 # Find alpaka.
-#-------------------------------------------------------------------------------
 
 SET(ALPAKA_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../" CACHE STRING "The location of the alpaka library")
 LIST(APPEND CMAKE_MODULE_PATH "${ALPAKA_ROOT}")
@@ -84,7 +81,6 @@ ENDIF()
 
 #-------------------------------------------------------------------------------
 # Add library.
-#-------------------------------------------------------------------------------
 
 SET(_COMMON_INCLUDE_DIRECTORY "${_COMMON_ROOT_DIR}/include")
 LIST(APPEND _COMMON_INCLUDE_DIRECTORIES_PUBLIC "${_COMMON_INCLUDE_DIRECTORY}")
@@ -103,7 +99,6 @@ ENDIF()
 
 #-------------------------------------------------------------------------------
 # Target.
-#-------------------------------------------------------------------------------
 IF(NOT TARGET ${_COMMON_TARGET_NAME})
     # Always add all files to the target executable build call to add them to the build project.
     ADD_LIBRARY(

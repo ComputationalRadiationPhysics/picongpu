@@ -34,14 +34,12 @@ namespace alpaka
     {
         //-----------------------------------------------------------------------------
         //! The allocator specifics.
-        //-----------------------------------------------------------------------------
         namespace alloc
         {
             //#############################################################################
             //! The CPU boost aligned allocator.
             //!
             //! \tparam TAlignment An integral constant containing the alignment.
-            //#############################################################################
             template<
                 typename TAlignment>
             class AllocCpuBoostAligned
@@ -54,7 +52,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CPU boost aligned allocator memory allocation trait specialization.
-                //#############################################################################
                 template<
                     typename T,
                     typename TAlignment>
@@ -62,8 +59,6 @@ namespace alpaka
                     T,
                     AllocCpuBoostAligned<TAlignment>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto alloc(
                         AllocCpuBoostAligned<TAlignment> const & alloc,
@@ -79,7 +74,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! The CPU boost aligned allocator memory free trait specialization.
-                //#############################################################################
                 template<
                     typename T,
                     typename TAlignment>
@@ -87,8 +81,6 @@ namespace alpaka
                     T,
                     AllocCpuBoostAligned<TAlignment>>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto free(
                         AllocCpuBoostAligned<TAlignment> const & alloc,

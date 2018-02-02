@@ -77,7 +77,6 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! The GPU CUDA kernel entry point.
                 // \NOTE: 'A __global__ function or function template cannot have a trailing return type.'
-                //-----------------------------------------------------------------------------
                 template<
                     typename TDim,
                     typename TSize,
@@ -102,7 +101,6 @@ namespace alpaka
 
         //#############################################################################
         //! The GPU CUDA accelerator executor.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize,
@@ -124,8 +122,6 @@ namespace alpaka
 #endif
 
             //-----------------------------------------------------------------------------
-            //! Constructor.
-            //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
             ALPAKA_FN_HOST ExecGpuCudaRt(
@@ -141,23 +137,13 @@ namespace alpaka
                     "The work division and the executor have to be of the same dimensionality!");
             }
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ExecGpuCudaRt(ExecGpuCudaRt const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ExecGpuCudaRt(ExecGpuCudaRt &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecGpuCudaRt const &) -> ExecGpuCudaRt & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecGpuCudaRt &&) -> ExecGpuCudaRt & = default;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~ExecGpuCudaRt() = default;
 
@@ -172,7 +158,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA executor accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -191,7 +176,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA executor device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -210,7 +194,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA executor dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -229,7 +212,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA executor executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -250,7 +232,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU CUDA executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -269,7 +250,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA executor size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -288,7 +268,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA asynchronous kernel enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -298,8 +277,6 @@ namespace alpaka
                 stream::StreamCudaRtAsync,
                 exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -426,7 +403,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA synchronous kernel enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -436,8 +412,6 @@ namespace alpaka
                 stream::StreamCudaRtSync,
                 exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtSync & stream,

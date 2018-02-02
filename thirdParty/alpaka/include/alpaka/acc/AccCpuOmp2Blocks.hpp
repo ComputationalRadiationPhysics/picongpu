@@ -78,7 +78,6 @@ namespace alpaka
         //! This accelerator allows parallel kernel execution on a CPU device.
         //! It uses OpenMP 2.0 to implement the grid block parallelism.
         //! The block size is restricted to 1x1x1.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize>
@@ -109,8 +108,6 @@ namespace alpaka
 
         private:
             //-----------------------------------------------------------------------------
-            //! Constructor.
-            //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
             ALPAKA_FN_ACC_NO_CUDA AccCpuOmp2Blocks(
@@ -135,23 +132,13 @@ namespace alpaka
 
         public:
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AccCpuOmp2Blocks(AccCpuOmp2Blocks const &) = delete;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AccCpuOmp2Blocks(AccCpuOmp2Blocks &&) = delete;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuOmp2Blocks const &) -> AccCpuOmp2Blocks & = delete;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuOmp2Blocks &&) -> AccCpuOmp2Blocks & = delete;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AccCpuOmp2Blocks() = default;
 
@@ -167,7 +154,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block accelerator accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -178,15 +164,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU OpenMP 2.0 block accelerator device properties get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccDevProps<
                 acc::AccCpuOmp2Blocks<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccDevProps(
                     dev::DevCpu const & dev)
@@ -213,15 +196,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU OpenMP 2.0 block accelerator name trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccName<
                 acc::AccCpuOmp2Blocks<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccName()
                 -> std::string
@@ -237,7 +217,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block accelerator device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -254,7 +233,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block accelerator dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -271,7 +249,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block accelerator executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -292,7 +269,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -309,7 +285,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 block accelerator size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>

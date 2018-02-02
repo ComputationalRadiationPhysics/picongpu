@@ -29,8 +29,6 @@
 
 //#############################################################################
 //! A vector addition kernel.
-//! \tparam TAcc The accelerator environment to be executed on.
-//#############################################################################
 class AxpyKernel
 {
 public:
@@ -44,7 +42,6 @@ public:
     //! \param alpha Scalar the X vector is multiplied with.
     //! \param X Vector of at least n elements.
     //! \param Y Vector of at least n elements.
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<
         typename TAcc,
@@ -83,7 +80,6 @@ public:
 
 //#############################################################################
 //! Profiles the vector addition kernel.
-//#############################################################################
 struct AxpyKernelTester
 {
 #if BOOST_COMP_GNUC
@@ -245,9 +241,6 @@ public:
     bool allResultsCorrect = true;
 };
 
-//-----------------------------------------------------------------------------
-//! Program entry point.
-//-----------------------------------------------------------------------------
 auto main()
 -> int
 {

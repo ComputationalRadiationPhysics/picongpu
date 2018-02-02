@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The tan trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg,
@@ -52,7 +51,6 @@ namespace alpaka
         //! \tparam TArg The arg type.
         //! \param tan The object specializing Tan.
         //! \param arg The arg.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -83,7 +81,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Tan specialization for classes with TanBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TArg>
@@ -99,7 +96,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //
-                //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto tan(
                     T const & tan,

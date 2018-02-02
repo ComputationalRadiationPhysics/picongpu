@@ -52,12 +52,9 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CUDA RT device event implementation.
-                //#############################################################################
                 class EventCudaImpl final
                 {
                 public:
-                    //-----------------------------------------------------------------------------
-                    //! Constructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST EventCudaImpl(
                         dev::DevCudaRt const & dev,
@@ -83,23 +80,13 @@ namespace alpaka
                                 (bBusyWait ? cudaEventDefault : cudaEventBlockingSync) | cudaEventDisableTiming));
                     }
                     //-----------------------------------------------------------------------------
-                    //! Copy constructor.
-                    //-----------------------------------------------------------------------------
                     EventCudaImpl(EventCudaImpl const &) = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Move constructor.
                     //-----------------------------------------------------------------------------
                     EventCudaImpl(EventCudaImpl &&) = default;
                     //-----------------------------------------------------------------------------
-                    //! Copy assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(EventCudaImpl const &) -> EventCudaImpl & = delete;
                     //-----------------------------------------------------------------------------
-                    //! Move assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(EventCudaImpl &&) -> EventCudaImpl & = default;
-                    //-----------------------------------------------------------------------------
-                    //! Destructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST ~EventCudaImpl()
                     {
@@ -124,12 +111,9 @@ namespace alpaka
 
         //#############################################################################
         //! The CUDA RT device event.
-        //#############################################################################
         class EventCudaRt final
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST EventCudaRt(
                 dev::DevCudaRt const & dev,
@@ -139,23 +123,13 @@ namespace alpaka
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
             }
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             EventCudaRt(EventCudaRt const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             EventCudaRt(EventCudaRt &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(EventCudaRt const &) -> EventCudaRt & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(EventCudaRt &&) -> EventCudaRt & = default;
-            //-----------------------------------------------------------------------------
-            //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(EventCudaRt const & rhs) const
             -> bool
@@ -163,15 +137,11 @@ namespace alpaka
                 return (m_spEventImpl == rhs.m_spEventImpl);
             }
             //-----------------------------------------------------------------------------
-            //! Equality comparison operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator!=(EventCudaRt const & rhs) const
             -> bool
             {
                 return !((*this) == rhs);
             }
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~EventCudaRt() = default;
 
@@ -186,13 +156,10 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA RT device event device get trait specialization.
-            //#############################################################################
             template<>
             struct GetDev<
                 event::EventCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     event::EventCudaRt const & event)
@@ -209,13 +176,10 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA RT device event test trait specialization.
-            //#############################################################################
             template<>
             struct Test<
                 event::EventCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto test(
                     event::EventCudaRt const & event)
@@ -240,14 +204,11 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA RT stream enqueue trait specialization.
-            //#############################################################################
             template<>
             struct Enqueue<
                 stream::StreamCudaRtAsync,
                 event::EventCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -263,14 +224,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA RT stream enqueue trait specialization.
-            //#############################################################################
             template<>
             struct Enqueue<
                 stream::StreamCudaRtSync,
                 event::EventCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtSync & stream,
@@ -295,13 +253,10 @@ namespace alpaka
             //!
             //! Waits until the event itself and therefore all tasks preceding it in the stream it is enqueued to have been completed.
             //! If the event is not enqueued to a stream the method returns immediately.
-            //#############################################################################
             template<>
             struct CurrentThreadWaitFor<
                 event::EventCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
                     event::EventCudaRt const & event)
@@ -316,14 +271,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA RT stream event wait trait specialization.
-            //#############################################################################
             template<>
             struct WaiterWaitFor<
                 stream::StreamCudaRtAsync,
                 event::EventCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
                     stream::StreamCudaRtAsync & stream,
@@ -340,14 +292,11 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA RT stream event wait trait specialization.
-            //#############################################################################
             template<>
             struct WaiterWaitFor<
                 stream::StreamCudaRtSync,
                 event::EventCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
                     stream::StreamCudaRtSync & stream,
@@ -366,14 +315,11 @@ namespace alpaka
             //! The CUDA RT device event wait trait specialization.
             //!
             //! Any future work submitted in any stream of this device will wait for event to complete before beginning execution.
-            //#############################################################################
             template<>
             struct WaiterWaitFor<
                 dev::DevCudaRt,
                 event::EventCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
                     dev::DevCudaRt & dev,

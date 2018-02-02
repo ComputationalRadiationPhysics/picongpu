@@ -31,17 +31,14 @@
 
 //-----------------------------------------------------------------------------
 //! The alpaka accelerator library.
-//-----------------------------------------------------------------------------
 namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The kernel specifics.
-    //-----------------------------------------------------------------------------
     namespace kernel
     {
         //-----------------------------------------------------------------------------
         //! The kernel traits.
-        //-----------------------------------------------------------------------------
         namespace traits
         {
             //#############################################################################
@@ -51,7 +48,6 @@ namespace alpaka
             //! \tparam TAcc The accelerator.
             //!
             //! The default implementation returns 0.
-            //#############################################################################
             template<
                 typename TKernelFnObj,
                 typename TAcc,
@@ -70,7 +66,6 @@ namespace alpaka
                 //! \param args,... The kernel invocation arguments.
                 //! \return The size of the shared memory allocated for a block in bytes.
                 //! The default version always returns zero.
-                //-----------------------------------------------------------------------------
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic pop
 #endif
@@ -116,7 +111,6 @@ namespace alpaka
         //! \param args,... The kernel invocation arguments.
         //! \return The size of the shared memory allocated for a block in bytes.
         //! The default implementation always returns zero.
-        //-----------------------------------------------------------------------------
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic pop
 #endif

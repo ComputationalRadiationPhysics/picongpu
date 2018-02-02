@@ -36,7 +36,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library rand implementation.
-        //#############################################################################
         class RandStl
         {
         public:
@@ -49,18 +48,13 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The STL mersenne twister random number generator.
-                //#############################################################################
                 class MersenneTwister
                 {
                 public:
 
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     MersenneTwister() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Constructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA MersenneTwister(
                         std::uint32_t const & seed,
@@ -83,19 +77,14 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CPU random number normal distribution.
-                //#############################################################################
                 template<
                     typename T>
                 class NormalReal
                 {
                 public:
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     NormalReal() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Call operator.
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
@@ -110,19 +99,14 @@ namespace alpaka
 
                 //#############################################################################
                 //! The CPU random number uniform distribution.
-                //#############################################################################
                 template<
                     typename T>
                 class UniformReal
                 {
                 public:
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //-----------------------------------------------------------------------------
                     UniformReal() = default;
 
-                    //-----------------------------------------------------------------------------
-                    //! Call operator.
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
@@ -137,14 +121,11 @@ namespace alpaka
 
                 //#############################################################################
                 //! The CPU random number normal distribution.
-                //#############################################################################
                 template<
                     typename T>
                 class UniformUint
                 {
                 public:
-                    //-----------------------------------------------------------------------------
-                    //! Constructor.
                     //-----------------------------------------------------------------------------
                     UniformUint() :
                         m_dist(
@@ -152,8 +133,6 @@ namespace alpaka
                             std::numeric_limits<T>::max())
                     {}
 
-                    //-----------------------------------------------------------------------------
-                    //! Call operator.
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
@@ -174,7 +153,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CPU device random number float normal distribution get trait specialization.
-                //#############################################################################
                 template<
                     typename T>
                 struct CreateNormalReal<
@@ -183,8 +161,6 @@ namespace alpaka
                     typename std::enable_if<
                         std::is_floating_point<T>::value>::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA static auto createNormalReal(
                         RandStl const & rand)
@@ -196,7 +172,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CPU device random number float uniform distribution get trait specialization.
-                //#############################################################################
                 template<
                     typename T>
                 struct CreateUniformReal<
@@ -205,8 +180,6 @@ namespace alpaka
                     typename std::enable_if<
                         std::is_floating_point<T>::value>::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA static auto createUniformReal(
                         RandStl const & rand)
@@ -218,7 +191,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CPU device random number integer uniform distribution get trait specialization.
-                //#############################################################################
                 template<
                     typename T>
                 struct CreateUniformUint<
@@ -227,8 +199,6 @@ namespace alpaka
                     typename std::enable_if<
                         std::is_integral<T>::value>::type>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA static auto createUniformUint(
                         RandStl const & rand)
@@ -246,13 +216,10 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CPU device random number default generator get trait specialization.
-                //#############################################################################
                 template<>
                 struct CreateDefault<
                     RandStl>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA static auto createDefault(
                         RandStl const & rand,

@@ -29,7 +29,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The trait is true if TDerived is derived from TBase but is not TBase itself.
-        //#############################################################################
         template<
             typename TBase,
             typename TDerived>

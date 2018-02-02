@@ -45,8 +45,6 @@
 BOOST_AUTO_TEST_SUITE(rand_)
 
 //#############################################################################
-//!
-//#############################################################################
 class RandTestKernel
 {
 public:
@@ -54,8 +52,6 @@ public:
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
-    //-----------------------------------------------------------------------------
-    //!
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<
@@ -70,6 +66,9 @@ public:
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
+// gcc 5.4 in combination with nvcc 8.0 fails to compile the CPU STL distributions when --expt-relaxed-constexpr is enabled
+// /usr/include/c++/5/cmath(362): error: calling a __host__ function("__builtin_logl") from a __device__ function("std::log") is not allowed
+#if !((BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(5, 0, 0)) && (BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(8, 0, 0)) && (BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(9, 0, 0)))
         {
             auto dist(alpaka::rand::distribution::createNormalReal<float>(acc));
             auto const r = dist(gen);
@@ -85,7 +84,6 @@ public:
             BOOST_VERIFY(std::isfinite(r));
 #endif
         }
-
         {
             auto dist(alpaka::rand::distribution::createUniformReal<float>(acc));
             auto const r = dist(gen);
@@ -104,6 +102,7 @@ public:
             auto dist(alpaka::rand::distribution::createUniformUint<std::uint32_t>(acc));
             auto const r = dist(gen);
         }
+#endif
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic pop
 #endif
@@ -113,8 +112,6 @@ public:
 #endif
 };
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     defaultRandomGeneratorIsWorking,

@@ -39,34 +39,21 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA block synchronization.
-            //#############################################################################
             class BlockSyncCudaBuiltIn
             {
             public:
                 using BlockSyncBase = BlockSyncCudaBuiltIn;
 
                 //-----------------------------------------------------------------------------
-                //! Default constructor.
-                //-----------------------------------------------------------------------------
                 BlockSyncCudaBuiltIn() = default;
-                //-----------------------------------------------------------------------------
-                //! Copy constructor.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn const &) = delete;
                 //-----------------------------------------------------------------------------
-                //! Move constructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn &&) = delete;
-                //-----------------------------------------------------------------------------
-                //! Copy assignment operator.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSyncCudaBuiltIn const &) -> BlockSyncCudaBuiltIn & = delete;
                 //-----------------------------------------------------------------------------
-                //! Move assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSyncCudaBuiltIn &&) -> BlockSyncCudaBuiltIn & = delete;
-                //-----------------------------------------------------------------------------
-                //! Destructor.
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~BlockSyncCudaBuiltIn() = default;
             };
@@ -74,14 +61,10 @@ namespace alpaka
             namespace traits
             {
                 //#############################################################################
-                //!
-                //#############################################################################
                 template<>
                 struct SyncBlockThreads<
                     BlockSyncCudaBuiltIn>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreads(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/)
@@ -92,15 +75,11 @@ namespace alpaka
                 };
 
                 //#############################################################################
-                //!
-                //#############################################################################
                 template<>
                 struct SyncBlockThreadsPredicate<
                     block::sync::op::Count,
                     BlockSyncCudaBuiltIn>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreadsPredicate(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/,
@@ -112,15 +91,11 @@ namespace alpaka
                 };
 
                 //#############################################################################
-                //!
-                //#############################################################################
                 template<>
                 struct SyncBlockThreadsPredicate<
                     block::sync::op::LogicalAnd,
                     BlockSyncCudaBuiltIn>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreadsPredicate(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/,
@@ -132,15 +107,11 @@ namespace alpaka
                 };
 
                 //#############################################################################
-                //!
-                //#############################################################################
                 template<>
                 struct SyncBlockThreadsPredicate<
                     block::sync::op::LogicalOr,
                     BlockSyncCudaBuiltIn>
                 {
-                    //-----------------------------------------------------------------------------
-                    //
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreadsPredicate(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/,

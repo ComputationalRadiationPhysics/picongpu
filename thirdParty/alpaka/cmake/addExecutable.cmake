@@ -23,7 +23,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
 
 #------------------------------------------------------------------------------
 # Calls CUDA_ADD_EXECUTABLE or ADD_EXECUTABLE depending on the enabled alpaka accelerators.
-#------------------------------------------------------------------------------
 FUNCTION(ALPAKA_ADD_EXECUTABLE In_Name)
     IF(ALPAKA_ACC_GPU_CUDA_ENABLE)
         IF(ALPAKA_CUDA_COMPILER MATCHES "clang")

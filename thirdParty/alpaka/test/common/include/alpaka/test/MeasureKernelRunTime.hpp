@@ -34,7 +34,6 @@ namespace alpaka
         {
             //-----------------------------------------------------------------------------
             //! \return The run time of the given kernel.
-            //-----------------------------------------------------------------------------
             template<
                 typename TStream,
                 typename TExec>

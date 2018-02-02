@@ -61,7 +61,6 @@ namespace alpaka
 #if BOOST_ARCH_X86
     #if BOOST_COMP_GNUC || BOOST_COMP_CLANG || (!BOOST_COMP_MSVC_EMULATED && __INTEL_COMPILER)
         #include <cpuid.h>
-                //!
                 //-----------------------------------------------------------------------------
                 inline auto cpuid(std::uint32_t const level, std::uint32_t const subfunction, std::uint32_t ex[4])
                 -> void
@@ -71,7 +70,6 @@ namespace alpaka
 
     #elif BOOST_COMP_MSVC || __INTEL_COMPILER
         #include <intrin.h>
-                //!
                 //-----------------------------------------------------------------------------
                 inline auto cpuid(std::uint32_t const level, std::uint32_t const subfunction, std::uint32_t ex[4])
                 -> void
@@ -82,7 +80,6 @@ namespace alpaka
 #endif
                 //-----------------------------------------------------------------------------
                 //! \return The name of the CPU the code is running on.
-                //-----------------------------------------------------------------------------
                 inline auto getCpuName()
                 -> std::string
                 {
@@ -119,7 +116,6 @@ namespace alpaka
                 }
                 //-----------------------------------------------------------------------------
                 //! \return The frequency of the CPU the code is running on.
-                //-----------------------------------------------------------------------------
                 // TODO: implement!
                 /*inline auto getCpuFrequency()
                 -> std::size_t
@@ -129,7 +125,6 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! \return The total number of bytes of global memory.
                 //! Adapted from David Robert Nadeau: http://nadeausoftware.com/articles/2012/09/c_c_tip_how_get_physical_memory_size_system
-                //-----------------------------------------------------------------------------
                 inline auto getTotalGlobalMemSizeBytes()
                 -> std::size_t
                 {
@@ -197,7 +192,6 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 //! \return The free number of bytes of global memory.
                 //! \throws std::logic_error if not implemented on the system and std::runtime_error on other errors.
-                //-----------------------------------------------------------------------------
                 inline auto getFreeGlobalMemSizeBytes()
                 -> std::size_t
                 {

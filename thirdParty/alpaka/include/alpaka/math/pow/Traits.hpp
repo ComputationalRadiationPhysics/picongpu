@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The pow trait.
-            //#############################################################################
             template<
                 typename T,
                 typename TBase,
@@ -55,7 +54,6 @@ namespace alpaka
         //! \param pow The object specializing Pow.
         //! \param base The base.
         //! \param exp The exponent.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -92,7 +90,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Pow specialization for classes with PowBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename TBase,
@@ -108,8 +105,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto pow(

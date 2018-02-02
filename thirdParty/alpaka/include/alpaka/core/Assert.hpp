@@ -38,14 +38,10 @@ namespace alpaka
         namespace detail
         {
             //#############################################################################
-            //!
-            //#############################################################################
             template<
                 typename TArg,
                 typename TSfinae = void>
             struct AssertValueUnsigned;
-            //#############################################################################
-            //!
             //#############################################################################
             template<
                 typename TArg>
@@ -76,8 +72,6 @@ namespace alpaka
                 }
             };
             //#############################################################################
-            //!
-            //#############################################################################
             template<
                 typename TArg>
             struct AssertValueUnsigned<
@@ -103,7 +97,6 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! This method checks integral values if they are greater or equal zero.
         //! The implementation prevents warnings for checking this for unsigned types.
-        //-----------------------------------------------------------------------------
         template<
             typename TArg>
         ALPAKA_NO_HOST_ACC_WARNING

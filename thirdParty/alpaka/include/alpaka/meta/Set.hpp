@@ -31,20 +31,15 @@ namespace alpaka
         {
             //#############################################################################
             //! Empty dependent type.
-            //#############################################################################
             template<
                 typename T>
             struct Empty
             {};
 
             //#############################################################################
-            //!
-            //#############################################################################
             template<
                 typename... Ts>
             struct IsParameterPackSetImpl;
-            //#############################################################################
-            //!
             //#############################################################################
             template<>
             struct IsParameterPackSetImpl<>
@@ -54,7 +49,6 @@ namespace alpaka
             //#############################################################################
             // Based on code by Roland Bock: https://gist.github.com/rbock/ad8eedde80c060132a18
             // Linearly inherits from empty<T> and checks if it has already inherited from this type.
-            //#############################################################################
             template<
                 typename T,
                 typename... Ts>
@@ -69,7 +63,6 @@ namespace alpaka
         }
         //#############################################################################
         //! Trait that tells if the parameter pack contains only unique (no equal) types.
-        //#############################################################################
         template<
             typename... Ts>
         using IsParameterPackSet = detail::IsParameterPackSetImpl<Ts...>;
@@ -77,13 +70,9 @@ namespace alpaka
         namespace detail
         {
             //#############################################################################
-            //!
-            //#############################################################################
             template<
                 typename TList>
             struct IsSetImpl;
-            //#############################################################################
-            //!
             //#############################################################################
             template<
                 template<typename...> class TList,
@@ -96,7 +85,6 @@ namespace alpaka
         }
         //#############################################################################
         //! Trait that tells if the template contains only unique (no equal) types.
-        //#############################################################################
         template<
             typename TList>
         using IsSet = detail::IsSetImpl<TList>;

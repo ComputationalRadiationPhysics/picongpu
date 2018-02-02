@@ -28,7 +28,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The fixture for executing a kernel on a given accelerator.
-        //#############################################################################
         template<
             typename TAcc>
         class KernelExecutionFixture
@@ -42,8 +41,6 @@ namespace alpaka
             using StreamAcc = alpaka::test::stream::DefaultStream<DevAcc>;
 
         public:
-            //-----------------------------------------------------------------------------
-            //
             //-----------------------------------------------------------------------------
             template<
                 typename TExtent>
@@ -60,8 +57,6 @@ namespace alpaka
                             false,
                             alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted))
             {}
-            //-----------------------------------------------------------------------------
-            //
             //-----------------------------------------------------------------------------
             template<
                 typename TKernelFnObj,
@@ -83,8 +78,6 @@ namespace alpaka
 
                 return true;
             }
-            //-----------------------------------------------------------------------------
-            //
             //-----------------------------------------------------------------------------
             virtual ~KernelExecutionFixture()
             {}

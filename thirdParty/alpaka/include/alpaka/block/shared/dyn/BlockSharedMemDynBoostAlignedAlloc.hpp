@@ -41,14 +41,11 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The block shared dynamic memory allocator without synchronization.
-                //#############################################################################
                 class BlockSharedMemDynBoostAlignedAlloc
                 {
                 public:
                     using BlockSharedMemDynBase = BlockSharedMemDynBoostAlignedAlloc;
 
-                    //-----------------------------------------------------------------------------
-                    //! Default constructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA BlockSharedMemDynBoostAlignedAlloc(
                         std::size_t const & blockSharedMemDynSizeBytes)
@@ -61,23 +58,13 @@ namespace alpaka
                         }
                     }
                     //-----------------------------------------------------------------------------
-                    //! Copy constructor.
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA BlockSharedMemDynBoostAlignedAlloc(BlockSharedMemDynBoostAlignedAlloc const &) = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Move constructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA BlockSharedMemDynBoostAlignedAlloc(BlockSharedMemDynBoostAlignedAlloc &&) = delete;
                     //-----------------------------------------------------------------------------
-                    //! Copy assignment operator.
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSharedMemDynBoostAlignedAlloc const &) -> BlockSharedMemDynBoostAlignedAlloc & = delete;
                     //-----------------------------------------------------------------------------
-                    //! Move assignment operator.
-                    //-----------------------------------------------------------------------------
                     ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSharedMemDynBoostAlignedAlloc &&) -> BlockSharedMemDynBoostAlignedAlloc & = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Destructor.
                     //-----------------------------------------------------------------------------
                     /*virtual*/ ~BlockSharedMemDynBoostAlignedAlloc() = default;
 
@@ -91,16 +78,12 @@ namespace alpaka
                 namespace traits
                 {
                     //#############################################################################
-                    //!
-                    //#############################################################################
                     template<
                         typename T>
                     struct GetMem<
                         T,
                         BlockSharedMemDynBoostAlignedAlloc>
                     {
-                        //-----------------------------------------------------------------------------
-                        //
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_ACC_NO_CUDA static auto getMem(
                             block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc const & blockSharedMemDyn)

@@ -54,35 +54,22 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA RT device handle.
-        //#############################################################################
         class DevCudaRt
         {
             friend struct pltf::traits::GetDevByIdx<pltf::PltfCudaRt>;
 
         protected:
             //-----------------------------------------------------------------------------
-            //! Constructor.
-            //-----------------------------------------------------------------------------
             DevCudaRt() = default;
         public:
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             DevCudaRt(DevCudaRt const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             DevCudaRt(DevCudaRt &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(DevCudaRt const &) -> DevCudaRt & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(DevCudaRt &&) -> DevCudaRt & = default;
-            //-----------------------------------------------------------------------------
-            //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(DevCudaRt const & rhs) const
             -> bool
@@ -90,15 +77,11 @@ namespace alpaka
                 return m_iDevice == rhs.m_iDevice;
             }
             //-----------------------------------------------------------------------------
-            //! Inequality comparison operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator!=(DevCudaRt const & rhs) const
             -> bool
             {
                 return !((*this) == rhs);
             }
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~DevCudaRt() = default;
 
@@ -113,13 +96,10 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA RT device name get trait specialization.
-            //#############################################################################
             template<>
             struct GetName<
                 dev::DevCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getName(
                     dev::DevCudaRt const & dev)
@@ -137,13 +117,10 @@ namespace alpaka
 
             //#############################################################################
             //! The CUDA RT device available memory get trait specialization.
-            //#############################################################################
             template<>
             struct GetMemBytes<
                 dev::DevCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getMemBytes(
                     dev::DevCudaRt const & dev)
@@ -169,13 +146,10 @@ namespace alpaka
 
             //#############################################################################
             //! The CUDA RT device free memory get trait specialization.
-            //#############################################################################
             template<>
             struct GetFreeMemBytes<
                 dev::DevCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getFreeMemBytes(
                     dev::DevCudaRt const & dev)
@@ -200,13 +174,10 @@ namespace alpaka
 
             //#############################################################################
             //! The CUDA RT device reset trait specialization.
-            //#############################################################################
             template<>
             struct Reset<
                 dev::DevCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto reset(
                     dev::DevCudaRt const & dev)
@@ -238,7 +209,6 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CUDA RT device memory buffer type trait specialization.
-                //#############################################################################
                 template<
                     typename TElem,
                     typename TDim,
@@ -260,7 +230,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA RT device platform type trait specialization.
-            //#############################################################################
             template<>
             struct PltfType<
                 dev::DevCudaRt>
@@ -278,13 +247,10 @@ namespace alpaka
             //!
             //! Blocks until the device has completed all preceding requested tasks.
             //! Tasks that are enqueued or streams that are created after this call is made are not waited for.
-            //#############################################################################
             template<>
             struct CurrentThreadWaitFor<
                 dev::DevCudaRt>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
                     dev::DevCudaRt const & dev)

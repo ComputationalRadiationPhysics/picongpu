@@ -48,7 +48,6 @@ namespace alpaka
         //  \tparam TGridAtomic atomic implementation for atomic operations between grids within a device
         //  \tparam TBlockAtomic atomic implementation for atomic operations between blocks within a grid
         //  \tparam TThreadAtomic atomic implementation for atomic operations between threads within a block
-        //#############################################################################
         template<
             typename TGridAtomic,
             typename TBlockAtomic,
