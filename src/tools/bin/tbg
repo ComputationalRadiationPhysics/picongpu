@@ -461,6 +461,10 @@ fi
 mkdir -p "$job_outDir/tbg"
 cd "$job_outDir"
 
+# Add -o args to env to allow for all variables used in the *.tpl file to be set through the -o option
+for i in $tooltpl_overwrite; do
+    export $i
+done
 
 # get the full replaced and evaluated variable definitions
 tooltpl_solved_variables=`run_cfg_and_get_solved_variables "$TBG_cfgFile" tooltpl_file_data tooltpl_overwrite`
