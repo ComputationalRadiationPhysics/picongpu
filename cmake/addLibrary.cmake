@@ -37,7 +37,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
 # code filenames!
 # OPTIONS and the arguments thereafter are ignored if not using CUDA, they
 # won't throw an error in that case.
-#------------------------------------------------------------------------------
 FUNCTION(ALPAKA_ADD_LIBRARY libraryName)
     # CUDA_ADD_LIBRARY( cuda_target file0 file1 ...
     #                   [STATIC | SHARED | MODULE]

@@ -39,7 +39,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The threads accelerator index provider.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -51,30 +50,18 @@ namespace alpaka
                 using ThreadIdToIdxMap = std::map<std::thread::id, vec::Vec<TDim, TSize>>;
 
                 //-----------------------------------------------------------------------------
-                //! Constructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA IdxBtRefThreadIdMap(
                     ThreadIdToIdxMap const & mThreadToIndices) :
                     m_threadToIndexMap(mThreadToIndices)
                 {}
                 //-----------------------------------------------------------------------------
-                //! Copy constructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA IdxBtRefThreadIdMap(IdxBtRefThreadIdMap const &) = delete;
-                //-----------------------------------------------------------------------------
-                //! Move constructor.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA IdxBtRefThreadIdMap(IdxBtRefThreadIdMap &&) = delete;
                 //-----------------------------------------------------------------------------
-                //! Copy assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA auto operator=(IdxBtRefThreadIdMap const &) -> IdxBtRefThreadIdMap & = delete;
                 //-----------------------------------------------------------------------------
-                //! Move assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA auto operator=(IdxBtRefThreadIdMap &&) -> IdxBtRefThreadIdMap & = delete;
-                //-----------------------------------------------------------------------------
-                //! Destructor.
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~IdxBtRefThreadIdMap() = default;
 
@@ -90,7 +77,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads accelerator index dimension get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -107,7 +93,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads accelerator block thread index get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -118,7 +103,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //! \return The index of the current thread in the block.
-                //-----------------------------------------------------------------------------
                 template<
                     typename TWorkDiv>
                 ALPAKA_FN_ACC_NO_CUDA static auto getIdx(
@@ -141,7 +125,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads accelerator block thread index size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>

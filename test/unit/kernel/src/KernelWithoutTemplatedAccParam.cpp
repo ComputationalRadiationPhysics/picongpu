@@ -49,7 +49,6 @@ BOOST_AUTO_TEST_SUITE(kernel)
 //! everything can be resolved at the first time the template is parsed which results in the given error.
 //!
 //! Currently, the only possible way to solve this is to make the function call operator a template nonetheless by providing an unused template parameter.
-//#############################################################################
 
 using Dim = alpaka::dim::DimInt<2u>;
 using Size = std::uint32_t;
@@ -62,12 +61,8 @@ using AccGpu = alpaka::acc::AccGpuCudaRt<Dim, Size>;
 
 #if !defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
 //#############################################################################
-//!
-//#############################################################################
 struct KernelNoTemplateCpu
 {
-    //-----------------------------------------------------------------------------
-    //!
     //-----------------------------------------------------------------------------
     ALPAKA_FN_ACC
     auto operator()(
@@ -79,8 +74,6 @@ struct KernelNoTemplateCpu
     }
 };
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(kernelNoTemplateCpu)
 {
@@ -99,11 +92,8 @@ BOOST_AUTO_TEST_CASE(kernelNoTemplateCpu)
 /*#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
 //#############################################################################
 //! DO NOT ENABLE! COMPILATION WILL FAIL!
-//#############################################################################
 struct KernelNoTemplateGpu
 {
-    //-----------------------------------------------------------------------------
-    //!
     //-----------------------------------------------------------------------------
     ALPAKA_FN_ACC
     auto operator()(
@@ -115,8 +105,6 @@ struct KernelNoTemplateGpu
     }
 };
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(kernelNoTemplateGpu)
 {
@@ -134,12 +122,8 @@ BOOST_AUTO_TEST_CASE(kernelNoTemplateGpu)
 
 #if !defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
 //#############################################################################
-//!
-//#############################################################################
 struct KernelWithoutTemplateParamCpu
 {
-    //-----------------------------------------------------------------------------
-    //!
     //-----------------------------------------------------------------------------
     template<
         typename TNotUsed = void>
@@ -153,8 +137,6 @@ struct KernelWithoutTemplateParamCpu
     }
 };
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(kernelWithoutTemplateParamCpu)
 {
@@ -172,12 +154,8 @@ BOOST_AUTO_TEST_CASE(kernelWithoutTemplateParamCpu)
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
 //#############################################################################
-//!
-//#############################################################################
 struct KernelWithoutTemplateParamGpu
 {
-    //-----------------------------------------------------------------------------
-    //!
     //-----------------------------------------------------------------------------
     template<
         typename TNotUsed = void>
@@ -191,8 +169,6 @@ struct KernelWithoutTemplateParamGpu
     }
 };
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(kernelWithoutTemplateParamGpu)
 {

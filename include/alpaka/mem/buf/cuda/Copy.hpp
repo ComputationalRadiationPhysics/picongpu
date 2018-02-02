@@ -56,7 +56,6 @@ namespace alpaka
                 {
                     //#############################################################################
                     //! The CUDA memory copy trait.
-                    //#############################################################################
                     template<
                         typename TDim,
                         typename TViewDst,
@@ -66,7 +65,6 @@ namespace alpaka
 
                     //#############################################################################
                     //! The 1D CUDA memory copy trait.
-                    //#############################################################################
                     template<
                         typename TViewDst,
                         typename TViewSrc,
@@ -90,8 +88,6 @@ namespace alpaka
 
                         using Size = size::Size<TExtent>;
 
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST TaskCopy(
                             TViewDst & viewDst,
@@ -119,8 +115,6 @@ namespace alpaka
                         }
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto printDebug() const
                         -> void
@@ -151,7 +145,6 @@ namespace alpaka
                     };
                     //#############################################################################
                     //! The 2D CUDA memory copy trait.
-                    //#############################################################################
                     template<
                         typename TViewDst,
                         typename TViewSrc,
@@ -175,8 +168,6 @@ namespace alpaka
 
                         using Size = size::Size<TExtent>;
 
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST TaskCopy(
                             TViewDst & viewDst,
@@ -218,8 +209,6 @@ namespace alpaka
                         }
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto printDebug() const
                         -> void
@@ -267,7 +256,6 @@ namespace alpaka
                     };
                     //#############################################################################
                     //! The 3D CUDA memory copy trait.
-                    //#############################################################################
                     template<
                         typename TViewDst,
                         typename TViewSrc,
@@ -291,8 +279,6 @@ namespace alpaka
 
                         using Size = size::Size<TExtent>;
 
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST TaskCopy(
                             TViewDst & viewDst,
@@ -342,8 +328,6 @@ namespace alpaka
                         }
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto printDebug() const
                         -> void
@@ -400,12 +384,10 @@ namespace alpaka
 
             //-----------------------------------------------------------------------------
             // Trait specializations for TaskCopy.
-            //-----------------------------------------------------------------------------
             namespace traits
             {
                 //#############################################################################
                 //! The CUDA to CPU memory copy trait specialization.
-                //#############################################################################
                 template<
                     typename TDim>
                 struct TaskCopy<
@@ -413,8 +395,6 @@ namespace alpaka
                     dev::DevCpu,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent,
@@ -451,7 +431,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CPU to CUDA memory copy trait specialization.
-                //#############################################################################
                 template<
                     typename TDim>
                 struct TaskCopy<
@@ -459,8 +438,6 @@ namespace alpaka
                     dev::DevCudaRt,
                     dev::DevCpu>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent,
@@ -497,7 +474,6 @@ namespace alpaka
                 };
                 //#############################################################################
                 //! The CUDA to CUDA memory copy trait specialization.
-                //#############################################################################
                 template<
                     typename TDim>
                 struct TaskCopy<
@@ -505,8 +481,6 @@ namespace alpaka
                     dev::DevCudaRt,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent,
@@ -543,8 +517,6 @@ namespace alpaka
             {
                 namespace detail
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent,
@@ -601,8 +573,6 @@ namespace alpaka
 
                         return cudaMemCpy3DParms;
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TViewDst,
@@ -663,8 +633,6 @@ namespace alpaka
 
                         return cudaMemCpy3DPeerParms;
                     }
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TViewDst,
@@ -735,7 +703,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA async device stream 1D copy enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TViewSrc,
@@ -744,8 +711,6 @@ namespace alpaka
                 stream::StreamCudaRtAsync,
                 mem::view::cuda::detail::TaskCopy<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -798,7 +763,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA sync device stream 1D copy enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TViewSrc,
@@ -807,8 +771,6 @@ namespace alpaka
                 stream::StreamCudaRtSync,
                 mem::view::cuda::detail::TaskCopy<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtSync &,
@@ -859,7 +821,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA async device stream 2D copy enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TViewSrc,
@@ -868,8 +829,6 @@ namespace alpaka
                 stream::StreamCudaRtAsync,
                 mem::view::cuda::detail::TaskCopy<dim::DimInt<2u>, TViewDst, TViewSrc, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -930,7 +889,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA sync device stream 2D copy enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TViewSrc,
@@ -939,8 +897,6 @@ namespace alpaka
                 stream::StreamCudaRtSync,
                 mem::view::cuda::detail::TaskCopy<dim::DimInt<2u>, TViewDst, TViewSrc, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtSync &,
@@ -999,7 +955,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA async device stream 3D copy enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TViewSrc,
@@ -1008,8 +963,6 @@ namespace alpaka
                 stream::StreamCudaRtAsync,
                 mem::view::cuda::detail::TaskCopy<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -1056,7 +1009,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA sync device stream 3D copy enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TExtent,
                 typename TViewSrc,
@@ -1065,8 +1017,6 @@ namespace alpaka
                 stream::StreamCudaRtSync,
                 mem::view::cuda::detail::TaskCopy<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtSync &,

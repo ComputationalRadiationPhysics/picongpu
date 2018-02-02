@@ -33,19 +33,16 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! Rounds to the next higher power of two (if not already power of two).
         // Adapted from llvm/ADT/SmallPtrSet.h
-        //-----------------------------------------------------------------------------
         template<
             std::size_t N>
         struct RoundUpToPowerOfTwo;
 
         //-----------------------------------------------------------------------------
         //! Defines implementation details that should not be used directly by the user.
-        //-----------------------------------------------------------------------------
         namespace detail
         {
             //-----------------------------------------------------------------------------
             //! Base case for N being a power of two.
-            //-----------------------------------------------------------------------------
             template<
                 std::size_t N,
                 bool TisPowerTwo>
@@ -58,7 +55,6 @@ namespace alpaka
             //! Case for N not being a power of two.
             // We could just use NextVal = N+1, but this converges faster.  N|(N-1) sets
             // the right-most zero bits to one all at once, e.g. 0b0011000 -> 0b0011111.
-            //-----------------------------------------------------------------------------
             template<
                 std::size_t N>
             struct RoundUpToPowerOfTwoHelper<
@@ -69,8 +65,6 @@ namespace alpaka
                         RoundUpToPowerOfTwo<(N | (N - 1)) + 1>::value>
             {};
         }
-        //-----------------------------------------------------------------------------
-        //
         //-----------------------------------------------------------------------------
         template<
             std::size_t N>
@@ -84,12 +78,10 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         //! The alignment specifics.
-        //-----------------------------------------------------------------------------
         namespace align
         {
             //-----------------------------------------------------------------------------
             //! Calculates the optimal alignment for data of the given size.
-            //-----------------------------------------------------------------------------
             template<
                 std::size_t TsizeBytes>
             struct OptimalAlignment :

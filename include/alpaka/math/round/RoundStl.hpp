@@ -34,7 +34,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library round.
-        //#############################################################################
         class RoundStl
         {
         public:
@@ -45,7 +44,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library round trait specialization.
-            //#############################################################################
             template<
                 typename TArg>
             struct Round<
@@ -65,7 +63,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The standard library round trait specialization.
-            //#############################################################################
             template<
                 typename TArg>
             struct Lround<
@@ -85,7 +82,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The standard library round trait specialization.
-            //#############################################################################
             template<
                 typename TArg>
             struct Llround<

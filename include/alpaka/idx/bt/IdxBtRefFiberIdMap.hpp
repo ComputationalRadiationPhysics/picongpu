@@ -40,7 +40,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The fibers accelerator index provider.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -52,30 +51,18 @@ namespace alpaka
                 using FiberIdToIdxMap = std::map<boost::fibers::fiber::id, vec::Vec<TDim, TSize>>;
 
                 //-----------------------------------------------------------------------------
-                //! Constructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA IdxBtRefFiberIdMap(
                     FiberIdToIdxMap const & mFibersToIndices) :
                     m_fibersToIndices(mFibersToIndices)
                 {}
                 //-----------------------------------------------------------------------------
-                //! Copy constructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA IdxBtRefFiberIdMap(IdxBtRefFiberIdMap const &) = delete;
-                //-----------------------------------------------------------------------------
-                //! Move constructor.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA IdxBtRefFiberIdMap(IdxBtRefFiberIdMap &&) = delete;
                 //-----------------------------------------------------------------------------
-                //! Copy assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA auto operator=(IdxBtRefFiberIdMap const &) -> IdxBtRefFiberIdMap & = delete;
                 //-----------------------------------------------------------------------------
-                //! Move assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_NO_CUDA auto operator=(IdxBtRefFiberIdMap &&) -> IdxBtRefFiberIdMap & = delete;
-                //-----------------------------------------------------------------------------
-                //! Destructor.
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~IdxBtRefFiberIdMap() = default;
 
@@ -91,7 +78,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU fibers accelerator index dimension get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -108,7 +94,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU fibers accelerator block thread index get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -119,7 +104,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //! \return The index of the current thread in the block.
-                //-----------------------------------------------------------------------------
                 template<
                     typename TWorkDiv>
                 ALPAKA_FN_ACC_NO_CUDA static auto getIdx(
@@ -142,7 +126,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU fibers accelerator block thread index size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>

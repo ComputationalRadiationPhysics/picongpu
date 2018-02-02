@@ -35,7 +35,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library max.
-        //#############################################################################
         class MaxStl
         {
         public:
@@ -46,7 +45,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library integral max trait specialization.
-            //#############################################################################
             template<
                 typename Tx,
                 typename Ty>
@@ -70,7 +68,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The standard library mixed integral floating point max trait specialization.
-            //#############################################################################
             template<
                 typename Tx,
                 typename Ty>

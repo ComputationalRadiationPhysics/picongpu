@@ -369,13 +369,9 @@ namespace alpaka
                 namespace detail
                 {
                     //#############################################################################
-                    //!
-                    //#############################################################################
                     class EventHostManualTriggerCudaImpl final
                     {
                     public:
-                        //-----------------------------------------------------------------------------
-                        //! Constructor.
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST EventHostManualTriggerCudaImpl(
                             dev::DevCudaRt const & dev) :
@@ -402,23 +398,13 @@ namespace alpaka
                                     static_cast<size_t>(sizeof(int32_t))));
                         }
                         //-----------------------------------------------------------------------------
-                        //! Copy constructor.
-                        //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST EventHostManualTriggerCudaImpl(EventHostManualTriggerCudaImpl const &) = delete;
-                        //-----------------------------------------------------------------------------
-                        //! Move constructor.
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST EventHostManualTriggerCudaImpl(EventHostManualTriggerCudaImpl &&) = default;
                         //-----------------------------------------------------------------------------
-                        //! Copy assignment operator.
-                        //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto operator=(EventHostManualTriggerCudaImpl const &) -> EventHostManualTriggerCudaImpl & = delete;
                         //-----------------------------------------------------------------------------
-                        //! Move assignment operator.
-                        //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto operator=(EventHostManualTriggerCudaImpl &&) -> EventHostManualTriggerCudaImpl & = default;
-                        //-----------------------------------------------------------------------------
-                        //! Destructor.
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST ~EventHostManualTriggerCudaImpl()
                         {
@@ -432,8 +418,6 @@ namespace alpaka
                             cudaFree(m_devMem);
                         }
 
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         void trigger()
                         {
@@ -464,13 +448,9 @@ namespace alpaka
             }
 
             //#############################################################################
-            //!
-            //#############################################################################
             class EventHostManualTriggerCuda final
             {
             public:
-                //-----------------------------------------------------------------------------
-                //! Constructor.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST EventHostManualTriggerCuda(
                     dev::DevCudaRt const & dev) :
@@ -479,23 +459,13 @@ namespace alpaka
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
                 }
                 //-----------------------------------------------------------------------------
-                //! Copy constructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST EventHostManualTriggerCuda(EventHostManualTriggerCuda const &) = default;
-                //-----------------------------------------------------------------------------
-                //! Move constructor.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST EventHostManualTriggerCuda(EventHostManualTriggerCuda &&) = default;
                 //-----------------------------------------------------------------------------
-                //! Copy assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto operator=(EventHostManualTriggerCuda const &) -> EventHostManualTriggerCuda & = default;
                 //-----------------------------------------------------------------------------
-                //! Move assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto operator=(EventHostManualTriggerCuda &&) -> EventHostManualTriggerCuda & = default;
-                //-----------------------------------------------------------------------------
-                //! Equality comparison operator.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto operator==(EventHostManualTriggerCuda const & rhs) const
                 -> bool
@@ -503,20 +473,14 @@ namespace alpaka
                     return (m_spEventImpl == rhs.m_spEventImpl);
                 }
                 //-----------------------------------------------------------------------------
-                //! Equality comparison operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST auto operator!=(EventHostManualTriggerCuda const & rhs) const
                 -> bool
                 {
                     return !((*this) == rhs);
                 }
                 //-----------------------------------------------------------------------------
-                //! Destructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST ~EventHostManualTriggerCuda() = default;
 
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 void trigger()
                 {
@@ -529,8 +493,6 @@ namespace alpaka
 
             namespace traits
             {
-                //#############################################################################
-                //!
                 //#############################################################################
                 template<>
                 struct EventHostManualTriggerType<
@@ -547,13 +509,10 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU device event device get trait specialization.
-            //#############################################################################
             template<>
             struct GetDev<
                 test::event::EventHostManualTriggerCuda>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     test::event::EventHostManualTriggerCuda const & event)
@@ -570,14 +529,12 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU device event test trait specialization.
-            //#############################################################################
             template<>
             struct Test<
                 test::event::EventHostManualTriggerCuda>
             {
                 //-----------------------------------------------------------------------------
                 //! \return If the event is not waiting within a stream (not enqueued or already handled).
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto test(
                     test::event::EventHostManualTriggerCuda const & event)
                 -> bool
@@ -594,15 +551,11 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //!
-            //#############################################################################
             template<>
             struct Enqueue<
                 stream::StreamCudaRtAsync,
                 test::event::EventHostManualTriggerCuda>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -638,15 +591,11 @@ namespace alpaka
                 }
             };
             //#############################################################################
-            //!
-            //#############################################################################
             template<>
             struct Enqueue<
                 stream::StreamCudaRtSync,
                 test::event::EventHostManualTriggerCuda>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtSync & stream,

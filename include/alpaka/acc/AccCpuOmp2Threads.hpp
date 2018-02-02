@@ -76,7 +76,6 @@ namespace alpaka
         //!
         //! This accelerator allows parallel kernel execution on a CPU device.
         //! It uses OpenMP 2.0 to implement the block thread parallelism.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize>
@@ -107,8 +106,6 @@ namespace alpaka
 
         private:
             //-----------------------------------------------------------------------------
-            //! Constructor.
-            //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
             ALPAKA_FN_ACC_NO_CUDA AccCpuOmp2Threads(
@@ -135,23 +132,13 @@ namespace alpaka
 
         public:
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AccCpuOmp2Threads(AccCpuOmp2Threads const &) = delete;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA AccCpuOmp2Threads(AccCpuOmp2Threads &&) = delete;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuOmp2Threads const &) -> AccCpuOmp2Threads & = delete;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuOmp2Threads &&) -> AccCpuOmp2Threads & = delete;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AccCpuOmp2Threads() = default;
 
@@ -167,7 +154,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 thread accelerator accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -178,15 +164,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU OpenMP 2.0 thread accelerator device properties get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccDevProps<
                 acc::AccCpuOmp2Threads<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccDevProps(
                     dev::DevCpu const & dev)
@@ -219,15 +202,12 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU OpenMP 2.0 thread accelerator name trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
             struct GetAccName<
                 acc::AccCpuOmp2Threads<TDim, TSize>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccName()
                 -> std::string
@@ -243,7 +223,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 thread accelerator device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -260,7 +239,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 thread accelerator dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -277,7 +255,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 thread accelerator executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -298,7 +275,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 thread executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -315,7 +291,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU OpenMP 2.0 thread accelerator size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>

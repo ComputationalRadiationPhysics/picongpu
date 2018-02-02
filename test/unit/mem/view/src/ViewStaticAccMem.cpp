@@ -66,7 +66,6 @@ ALPAKA_STATIC_DEV_MEM_CONSTANT Elem g_constantMemory2DUninitialized[3][2];
 
 //#############################################################################
 //! Uses static device memory on the defined globally for the whole compilation unit.
-//#############################################################################
 struct StaticDeviceMemoryTestKernel
 {
     ALPAKA_NO_HOST_ACC_WARNING
@@ -91,8 +90,6 @@ struct StaticDeviceMemoryTestKernel
 
 using TestAccs = alpaka::test::acc::EnabledAccs<Dim, Size>;
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     staticDeviceMemoryConstant,
@@ -170,8 +167,6 @@ ALPAKA_STATIC_DEV_MEM_GLOBAL Elem g_globalMemory2DInitialized[3][2] =
 
 ALPAKA_STATIC_DEV_MEM_GLOBAL Elem g_globalMemory2DUninitialized[3][2];
 
-//-----------------------------------------------------------------------------
-//
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     staticDeviceMemoryGlobal,

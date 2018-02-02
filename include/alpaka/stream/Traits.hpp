@@ -32,17 +32,14 @@ namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The stream specifics.
-    //-----------------------------------------------------------------------------
     namespace stream
     {
         //-----------------------------------------------------------------------------
         //! The stream traits.
-        //-----------------------------------------------------------------------------
         namespace traits
         {
             //#############################################################################
             //! The stream enqueue trait.
-            //#############################################################################
             template<
                 typename TStream,
                 typename TTask,
@@ -51,7 +48,6 @@ namespace alpaka
 
             //#############################################################################
             //! The stream empty trait.
-            //#############################################################################
             template<
                 typename TStream,
                 typename TSfinae = void>
@@ -64,7 +60,6 @@ namespace alpaka
         //! Special Handling for events:
         //!   If the event has previously been queued, then this call will overwrite any existing state of the event.
         //!   Any subsequent calls which examine the status of event will only examine the completion of this most recent call to enqueue.
-        //-----------------------------------------------------------------------------
         template<
             typename TStream,
             typename TTask>
@@ -83,7 +78,6 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         //! Tests if the stream is empty (all ops in the given stream have been completed).
-        //-----------------------------------------------------------------------------
         template<
             typename TStream>
         ALPAKA_FN_HOST auto empty(

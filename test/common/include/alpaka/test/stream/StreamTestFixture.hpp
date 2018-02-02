@@ -28,8 +28,6 @@ namespace alpaka
         namespace stream
         {
             //#############################################################################
-            //!
-            //#############################################################################
             template<
                 typename TDevStream>
             struct StreamTestFixture
@@ -39,8 +37,6 @@ namespace alpaka
 
                 using Pltf = alpaka::pltf::Pltf<Dev>;
 
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 StreamTestFixture() :
                     m_dev(alpaka::pltf::getDevByIdx<Pltf>(0u)),

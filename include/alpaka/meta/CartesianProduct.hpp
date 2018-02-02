@@ -30,18 +30,14 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         // This is based on code by Patrick Fromberg.
         // See http://stackoverflow.com/questions/9122028/how-to-create-the-cartesian-product-of-a-type-list/19611856#19611856
-        //-----------------------------------------------------------------------------
         namespace detail
         {
-            //#############################################################################
-            //
             //#############################################################################
             template<
                 typename... Ts>
             struct CartesianProductImplHelper;
             //#############################################################################
             // Stop condition.
-            //#############################################################################
             template<
                 template<typename...> class TList,
                 typename... Ts>
@@ -52,7 +48,6 @@ namespace alpaka
             };
             //#############################################################################
             // Catches first empty tuple.
-            //#############################################################################
             template<
                 template<typename...> class TList,
                 typename... Ts>
@@ -64,7 +59,6 @@ namespace alpaka
             };
             //#############################################################################
             // Catches any empty tuple except first.
-            //#############################################################################
             template<
                 template<typename...> class TList,
                 typename... Ts,
@@ -76,8 +70,6 @@ namespace alpaka
             {
                 using type = TList<>;
             };
-            //#############################################################################
-            //
             //#############################################################################
             template<
                 template<typename...> class TList,
@@ -92,8 +84,6 @@ namespace alpaka
                 using type1 = TList<Concatenate<X, TList<H>>...>;
                 using type = typename CartesianProductImplHelper<type1, Rests...>::type;
             };
-            //#############################################################################
-            //
             //#############################################################################
             template<
                 template<typename...> class TList,
@@ -114,15 +104,12 @@ namespace alpaka
             };
 
             //#############################################################################
-            //
-            //#############################################################################
             template<
                 template<typename...> class TList,
                 typename... Ts>
             struct CartesianProductImpl;
             //#############################################################################
             // The base case for no input returns an empty sequence.
-            //#############################################################################
             template<
                 template<typename...> class TList>
             struct CartesianProductImpl<
@@ -132,7 +119,6 @@ namespace alpaka
             };
             //#############################################################################
             // R is the return type, Head<A...> is the first input list
-            //#############################################################################
             template<
                 template<typename...> class TList,
                 template<typename...> class Head,
@@ -151,8 +137,6 @@ namespace alpaka
             };
         }
 
-        //#############################################################################
-        //
         //#############################################################################
         template<
             template<typename...> class TList,

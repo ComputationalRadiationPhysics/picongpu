@@ -41,33 +41,20 @@ namespace alpaka
         //
         //  Atomics can used in the hierarchy level grids, blocks and threads.
         //  Atomics are not guaranteed to be save between devices
-        //#############################################################################
         class AtomicCudaBuiltIn
         {
         public:
 
             //-----------------------------------------------------------------------------
-            //! Default constructor.
-            //-----------------------------------------------------------------------------
             AtomicCudaBuiltIn() = default;
-            //-----------------------------------------------------------------------------
-            //! Copy constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_CUDA_ONLY AtomicCudaBuiltIn(AtomicCudaBuiltIn const &) = delete;
             //-----------------------------------------------------------------------------
-            //! Move constructor.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_CUDA_ONLY AtomicCudaBuiltIn(AtomicCudaBuiltIn &&) = delete;
-            //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_CUDA_ONLY auto operator=(AtomicCudaBuiltIn const &) -> AtomicCudaBuiltIn & = delete;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_ACC_CUDA_ONLY auto operator=(AtomicCudaBuiltIn &&) -> AtomicCudaBuiltIn & = delete;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AtomicCudaBuiltIn() = default;
         };
@@ -77,13 +64,12 @@ namespace alpaka
             //#############################################################################
             //! The specializations to execute the requested atomic ops of the CUDA accelerator.
             // See: http://docs.nvidia.com/cuda/cuda-c-programming-guide/#atomic-functions how to implement everything with CAS
-            //#############################################################################
+
             //-----------------------------------------------------------------------------
             // Add.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -92,8 +78,6 @@ namespace alpaka
                 int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -106,7 +90,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -115,8 +98,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -129,7 +110,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -140,7 +120,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned long long int * const addr,
@@ -152,7 +131,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -163,7 +141,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     float * const addr,
@@ -175,7 +152,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -184,8 +160,6 @@ namespace alpaka
                 double,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -215,12 +189,12 @@ namespace alpaka
 #endif
                 }
             };
+
             //-----------------------------------------------------------------------------
             // Sub.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -229,8 +203,6 @@ namespace alpaka
                 int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -243,7 +215,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -252,8 +223,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -264,12 +233,12 @@ namespace alpaka
                     return atomicSub(addr, value);
                 }
             };
+
             //-----------------------------------------------------------------------------
             // Min.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -278,8 +247,6 @@ namespace alpaka
                 int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -292,7 +259,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -301,8 +267,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -315,7 +279,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             /*template<
                typename THierarchy>
             struct AtomicOp<
@@ -324,8 +287,6 @@ namespace alpaka
                 unsigned long long int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -336,12 +297,12 @@ namespace alpaka
                     return atomicMin(addr, value);
                 }
             };*/
+
             //-----------------------------------------------------------------------------
             // Max.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -350,8 +311,6 @@ namespace alpaka
                 int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -364,7 +323,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -384,7 +342,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             /*template<
                typename THierarchy>
             struct AtomicOp<
@@ -393,8 +350,6 @@ namespace alpaka
                 unsigned long long int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -405,12 +360,12 @@ namespace alpaka
                     return atomicMax(addr, value);
                 }
             };*/
+
             //-----------------------------------------------------------------------------
             // Exch.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -419,8 +374,6 @@ namespace alpaka
                 int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -433,7 +386,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -442,8 +394,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -456,7 +406,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -465,8 +414,6 @@ namespace alpaka
                 unsigned long long int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -479,7 +426,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -488,8 +434,6 @@ namespace alpaka
                 float,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -500,12 +444,12 @@ namespace alpaka
                     return atomicExch(addr, value);
                 }
             };
+
             //-----------------------------------------------------------------------------
             // Inc.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -514,8 +458,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -526,12 +468,12 @@ namespace alpaka
                     return atomicInc(addr, value);
                 }
             };
+
             //-----------------------------------------------------------------------------
             // Dec.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -540,8 +482,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -552,12 +492,12 @@ namespace alpaka
                     return atomicDec(addr, value);
                 }
             };
+
             //-----------------------------------------------------------------------------
             // And.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -566,8 +506,6 @@ namespace alpaka
                 int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -580,7 +518,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -589,8 +526,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -603,7 +538,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             /*template<
                 typename THierarchy>
             struct AtomicOp<
@@ -612,8 +546,6 @@ namespace alpaka
                 unsigned long long int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -624,12 +556,12 @@ namespace alpaka
                     return atomicAnd(addr, value);
                 }
             };*/
+
             //-----------------------------------------------------------------------------
             // Or.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -638,8 +570,6 @@ namespace alpaka
                 int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -652,7 +582,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -661,8 +590,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -675,7 +602,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             /*template<
                typename THierarchy>
             struct AtomicOp<
@@ -684,8 +610,6 @@ namespace alpaka
                 unsigned long long int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -696,12 +620,12 @@ namespace alpaka
                     return atomicOr(addr, value);
                 }
             };*/
+
             //-----------------------------------------------------------------------------
             // Xor.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -710,8 +634,6 @@ namespace alpaka
                 int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -724,7 +646,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -733,8 +654,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -747,7 +666,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             /*template<
                typename THierarchy>
             struct AtomicOp<
@@ -756,8 +674,6 @@ namespace alpaka
                 unsigned long long int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -768,12 +684,12 @@ namespace alpaka
                     return atomicXor(addr, value);
                 }
             };*/
+
             //-----------------------------------------------------------------------------
             // Cas.
-            //-----------------------------------------------------------------------------
+
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -782,8 +698,6 @@ namespace alpaka
                 int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -797,7 +711,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -806,8 +719,6 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
@@ -821,7 +732,6 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            //-----------------------------------------------------------------------------
             template<
                 typename THierarchy>
             struct AtomicOp<
@@ -830,8 +740,6 @@ namespace alpaka
                 unsigned long long int,
                 THierarchy>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,

@@ -44,7 +44,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA accelerator ND index provider.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -54,27 +53,15 @@ namespace alpaka
                 using IdxGbBase = IdxGbCudaBuiltIn;
 
                 //-----------------------------------------------------------------------------
-                //! Default constructor.
-                //-----------------------------------------------------------------------------
                 IdxGbCudaBuiltIn() = default;
-                //-----------------------------------------------------------------------------
-                //! Copy constructor.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY IdxGbCudaBuiltIn(IdxGbCudaBuiltIn const &) = delete;
                 //-----------------------------------------------------------------------------
-                //! Move constructor.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY IdxGbCudaBuiltIn(IdxGbCudaBuiltIn &&) = delete;
-                //-----------------------------------------------------------------------------
-                //! Copy assignment operator.
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY auto operator=(IdxGbCudaBuiltIn const & ) -> IdxGbCudaBuiltIn & = delete;
                 //-----------------------------------------------------------------------------
-                //! Move assignment operator.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC_CUDA_ONLY auto operator=(IdxGbCudaBuiltIn &&) -> IdxGbCudaBuiltIn & = delete;
-                //-----------------------------------------------------------------------------
-                //! Destructor.
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~IdxGbCudaBuiltIn() = default;
             };
@@ -87,7 +74,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA accelerator index dimension get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -104,7 +90,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA accelerator grid block index get trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>
@@ -115,7 +100,6 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //! \return The index of the current block in the grid.
-                //-----------------------------------------------------------------------------
                 template<
                     typename TWorkDiv>
                 ALPAKA_FN_ACC_CUDA_ONLY static auto getIdx(
@@ -135,7 +119,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA accelerator grid block index size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize>

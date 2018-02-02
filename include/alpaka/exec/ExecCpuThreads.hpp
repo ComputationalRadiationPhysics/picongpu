@@ -59,7 +59,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The CPU threads executor.
-        //#############################################################################
         template<
             typename TDim,
             typename TSize,
@@ -71,12 +70,10 @@ namespace alpaka
         private:
             //#############################################################################
             //! The type given to the ConcurrentExecPool for yielding the current thread.
-            //#############################################################################
             struct ThreadPoolYield
             {
                 //-----------------------------------------------------------------------------
                 //! Yields the current thread.
-                //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto yield()
                 -> void
                 {
@@ -87,7 +84,6 @@ namespace alpaka
             // When using the thread pool the threads are yielding because this is faster.
             // Using condition variables and going to sleep is very costly for real threads.
             // Especially when the time to wait is really short (syncBlockThreads) yielding is much faster.
-            //#############################################################################
             using ThreadPool = alpaka::core::detail::ConcurrentExecPool<
                 TSize,
                 std::thread,        // The concurrent execution type.
@@ -95,8 +91,6 @@ namespace alpaka
                 ThreadPoolYield>;   // The type yielding the current concurrent execution.
 
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
@@ -113,29 +107,18 @@ namespace alpaka
                     "The work division and the executor have to be of the same dimensionality!");
             }
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             ExecCpuThreads(ExecCpuThreads const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             ExecCpuThreads(ExecCpuThreads &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuThreads const &) -> ExecCpuThreads & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(ExecCpuThreads &&) -> ExecCpuThreads & = default;
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~ExecCpuThreads() = default;
 
             //-----------------------------------------------------------------------------
             //! Executes the kernel function object.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator()() const
             -> void
             {
@@ -200,7 +183,6 @@ namespace alpaka
         private:
             //-----------------------------------------------------------------------------
             //! The function executed for each grid block.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto gridBlockExecHost(
                 acc::AccCpuThreads<TDim, TSize> & acc,
                 vec::Vec<TDim, TSize> const & gridBlockIdx,
@@ -251,7 +233,6 @@ namespace alpaka
             }
             //-----------------------------------------------------------------------------
             //! The function executed for each block thread on the host.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto blockThreadExecHost(
                 acc::AccCpuThreads<TDim, TSize> & acc,
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
@@ -290,7 +271,6 @@ namespace alpaka
             }
             //-----------------------------------------------------------------------------
             //! The thread entry point on the accelerator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto blockThreadExecAcc(
                 acc::AccCpuThreads<TDim, TSize> & acc,
                 vec::Vec<TDim, TSize> const & blockThreadIdx,
@@ -339,7 +319,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads executor accelerator type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -358,7 +337,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads executor device type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -377,7 +355,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads executor dimension getter trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -396,7 +373,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads executor executor type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -417,7 +393,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads executor platform type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,
@@ -436,7 +411,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU threads executor size type trait specialization.
-            //#############################################################################
             template<
                 typename TDim,
                 typename TSize,

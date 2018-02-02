@@ -48,35 +48,22 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CPU device stream implementation.
-                //#############################################################################
                 class StreamCpuSyncImpl final
                 {
                 public:
-                    //-----------------------------------------------------------------------------
-                    //! Constructor.
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST StreamCpuSyncImpl(
                         dev::DevCpu const & dev) :
                             m_dev(dev)
                     {}
                     //-----------------------------------------------------------------------------
-                    //! Copy constructor.
-                    //-----------------------------------------------------------------------------
                     StreamCpuSyncImpl(StreamCpuSyncImpl const &) = delete;
-                    //-----------------------------------------------------------------------------
-                    //! Move constructor.
                     //-----------------------------------------------------------------------------
                     StreamCpuSyncImpl(StreamCpuSyncImpl &&) = default;
                     //-----------------------------------------------------------------------------
-                    //! Copy assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(StreamCpuSyncImpl const &) -> StreamCpuSyncImpl & = delete;
                     //-----------------------------------------------------------------------------
-                    //! Move assignment operator.
-                    //-----------------------------------------------------------------------------
                     auto operator=(StreamCpuSyncImpl &&) -> StreamCpuSyncImpl & = default;
-                    //-----------------------------------------------------------------------------
-                    //! Destructor.
                     //-----------------------------------------------------------------------------
                     ~StreamCpuSyncImpl() = default;
 
@@ -88,35 +75,22 @@ namespace alpaka
 
         //#############################################################################
         //! The CPU device stream.
-        //#############################################################################
         class StreamCpuSync final
         {
         public:
-            //-----------------------------------------------------------------------------
-            //! Constructor.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST StreamCpuSync(
                 dev::DevCpu const & dev) :
                     m_spStreamImpl(std::make_shared<cpu::detail::StreamCpuSyncImpl>(dev))
             {}
             //-----------------------------------------------------------------------------
-            //! Copy constructor.
-            //-----------------------------------------------------------------------------
             StreamCpuSync(StreamCpuSync const &) = default;
-            //-----------------------------------------------------------------------------
-            //! Move constructor.
             //-----------------------------------------------------------------------------
             StreamCpuSync(StreamCpuSync &&) = default;
             //-----------------------------------------------------------------------------
-            //! Copy assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(StreamCpuSync const &) -> StreamCpuSync & = default;
             //-----------------------------------------------------------------------------
-            //! Move assignment operator.
-            //-----------------------------------------------------------------------------
             auto operator=(StreamCpuSync &&) -> StreamCpuSync & = default;
-            //-----------------------------------------------------------------------------
-            //! Equality comparison operator.
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator==(StreamCpuSync const & rhs) const
             -> bool
@@ -124,15 +98,11 @@ namespace alpaka
                 return (m_spStreamImpl == rhs.m_spStreamImpl);
             }
             //-----------------------------------------------------------------------------
-            //! Inequality comparison operator.
-            //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST auto operator!=(StreamCpuSync const & rhs) const
             -> bool
             {
                 return !((*this) == rhs);
             }
-            //-----------------------------------------------------------------------------
-            //! Destructor.
             //-----------------------------------------------------------------------------
             ~StreamCpuSync() = default;
 
@@ -147,7 +117,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU sync device stream device type trait specialization.
-            //#############################################################################
             template<>
             struct DevType<
                 stream::StreamCpuSync>
@@ -156,13 +125,10 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU sync device stream device get trait specialization.
-            //#############################################################################
             template<>
             struct GetDev<
                 stream::StreamCpuSync>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     stream::StreamCpuSync const & stream)
@@ -179,7 +145,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU sync device stream event type trait specialization.
-            //#############################################################################
             template<>
             struct EventType<
                 stream::StreamCpuSync>
@@ -195,15 +160,12 @@ namespace alpaka
             //#############################################################################
             //! The CPU sync device stream enqueue trait specialization.
             //! This default implementation for all tasks directly invokes the function call operator of the task.
-            //#############################################################################
             template<
                 typename TTask>
             struct Enqueue<
                 stream::StreamCpuSync,
                 TTask>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCpuSync & stream,
@@ -216,13 +178,10 @@ namespace alpaka
             };
             //#############################################################################
             //! The CPU sync device stream test trait specialization.
-            //#############################################################################
             template<>
             struct Empty<
                 stream::StreamCpuSync>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto empty(
                     stream::StreamCpuSync const & stream)
@@ -243,13 +202,10 @@ namespace alpaka
             //! The CPU sync device stream thread wait trait specialization.
             //!
             //! Blocks execution of the calling thread until the stream has finished processing all previously requested tasks (kernels, data copies, ...)
-            //#############################################################################
             template<>
             struct CurrentThreadWaitFor<
                 stream::StreamCpuSync>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
                     stream::StreamCpuSync const & stream)

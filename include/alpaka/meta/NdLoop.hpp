@@ -38,19 +38,15 @@ namespace alpaka
         {
             //#############################################################################
             //! N-dimensional loop iteration template.
-            //#############################################################################
             template<
                 typename TIndexSequence>
             struct NdLoop;
             //#############################################################################
             //! N-dimensional loop iteration template.
-            //#############################################################################
             template<>
             struct NdLoop<
                 meta::IndexSequence<>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
@@ -78,14 +74,11 @@ namespace alpaka
             };
             //#############################################################################
             //! N-dimensional loop iteration template.
-            //#############################################################################
             template<
                 std::size_t Tdim>
             struct NdLoop<
                 meta::IndexSequence<Tdim>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
@@ -116,15 +109,12 @@ namespace alpaka
             };
             //#############################################################################
             //! N-dimensional loop iteration template.
-            //#############################################################################
             template<
                 std::size_t Tdim,
                 std::size_t... Tdims>
             struct NdLoop<
                 meta::IndexSequence<Tdim, Tdims...>>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
@@ -168,7 +158,6 @@ namespace alpaka
 #endif
         //! \param extent N-dimensional loop extent.
         //! \param f The function called at each iteration.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TExtentVec,
@@ -214,7 +203,6 @@ namespace alpaka
         //!
         //! \param extent N-dimensional loop extent.
         //! \param f The function called at each iteration.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TExtentVec,

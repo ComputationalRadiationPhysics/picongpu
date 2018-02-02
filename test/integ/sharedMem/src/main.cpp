@@ -30,23 +30,20 @@
 
 //#############################################################################
 //! A kernel using atomicOp, syncBlockThreads, getMem, getIdx, getWorkDiv and global memory to compute a (useless) result.
-//! \tparam TAcc The accelerator environment to be executed on.
 //! \tparam TnumUselessWork The number of useless calculations done in each kernel execution.
-//#############################################################################
 template<
-    typename TnumUselessWork>
+    typename TnumUselessWork,
+    typename TVal>
 class SharedMemKernel
 {
 public:
-    //-----------------------------------------------------------------------------
-    //! The kernel.
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
         TAcc const & acc,
-        std::int32_t * const puiBlockRetVals) const
+        TVal * const puiBlockRetVals) const
     -> void
     {
         using Size = alpaka::size::Size<TAcc>;
@@ -59,32 +56,32 @@ public:
         Size const blockThreadCount(alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc)[0u]);
 
         // Get the dynamically allocated shared memory.
-        std::int32_t * const pBlockShared(alpaka::block::shared::dyn::getMem<std::int32_t>(acc));
+        TVal * const pBlockShared(alpaka::block::shared::dyn::getMem<TVal>(acc));
 
         // Calculate linearized index of the thread in the block.
         Size const blockThreadIdx1d(alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc)[0u]);
 
 
         // Fill the shared block with the thread ids [1+X, 2+X, 3+X, ..., #Threads+X].
-        std::int32_t iSum1(blockThreadIdx1d+1);
-        for(std::int32_t i(0); i<TnumUselessWork::value; ++i)
+        auto sum1 = static_cast<TVal>(blockThreadIdx1d+1);
+        for(TVal i(0); i<static_cast<TVal>(TnumUselessWork::value); ++i)
         {
-            iSum1 += i;
+            sum1 += i;
         }
-        pBlockShared[blockThreadIdx1d] = iSum1;
+        pBlockShared[blockThreadIdx1d] = sum1;
 
 
         // Synchronize all threads because now we are writing to the memory again but inverse.
         alpaka::block::sync::syncBlockThreads(acc);
 
         // Do something useless.
-        std::int32_t iSum2(blockThreadIdx1d);
-        for(std::int32_t i(0); i<TnumUselessWork::value; ++i)
+        auto sum2 = static_cast<TVal>(blockThreadIdx1d);
+        for(TVal i(0); i<static_cast<TVal>(TnumUselessWork::value); ++i)
         {
-            iSum2 -= i;
+            sum2 -= i;
         }
         // Add the inverse so that every cell is filled with [#Threads, #Threads, ..., #Threads].
-        pBlockShared[(blockThreadCount-1)-blockThreadIdx1d] += iSum2;
+        pBlockShared[(blockThreadCount-1)-blockThreadIdx1d] += sum2;
 
 
         // Synchronize all threads again.
@@ -118,29 +115,28 @@ namespace alpaka
         {
             //#############################################################################
             //! The trait for getting the size of the block shared dynamic memory for a kernel.
-            //#############################################################################
             template<
                 typename TnumUselessWork,
+                typename TVal,
                 typename TAcc>
             struct BlockSharedMemDynSizeBytes<
-                SharedMemKernel<TnumUselessWork>,
+                SharedMemKernel<TnumUselessWork, TVal>,
                 TAcc>
             {
                 //-----------------------------------------------------------------------------
                 //! \return The size of the shared memory allocated for a block.
-                //-----------------------------------------------------------------------------
                 template<
                     typename TVec,
                     typename... TArgs>
                 ALPAKA_FN_HOST static auto getBlockSharedMemDynSizeBytes(
-                    SharedMemKernel<TnumUselessWork> const & sharedMemKernel,
+                    SharedMemKernel<TnumUselessWork, TVal> const & sharedMemKernel,
                     TVec const & blockThreadExtent,
                     TVec const & threadElemExtent,
                     TArgs && ...)
                 -> size::Size<TAcc>
                 {
                     boost::ignore_unused(sharedMemKernel);
-                    return blockThreadExtent.prod() * threadElemExtent.prod() * static_cast<size::Size<TAcc>>(sizeof(std::int32_t));
+                    return blockThreadExtent.prod() * threadElemExtent.prod() * static_cast<size::Size<TAcc>>(sizeof(TVal));
                 }
             };
         }
@@ -149,7 +145,6 @@ namespace alpaka
 
 //#############################################################################
 //! Profiles the example kernel and checks the result.
-//#############################################################################
 template<
     typename TnumUselessWork,
     typename TVal>
@@ -170,7 +165,7 @@ struct SharedMemTester
         using StreamAcc = alpaka::test::stream::DefaultStream<DevAcc>;
 
         // Create the kernel function object.
-        SharedMemKernel<TnumUselessWork> kernel;
+        SharedMemKernel<TnumUselessWork, TVal> kernel;
 
         // Select a device to execute on.
         auto const devAcc(
@@ -258,9 +253,6 @@ public:
     bool allResultsCorrect = true;
 };
 
-//-----------------------------------------------------------------------------
-//! Program entry point.
-//-----------------------------------------------------------------------------
 auto main()
 -> int
 {
@@ -272,20 +264,23 @@ auto main()
         std::cout << "################################################################################" << std::endl;
         std::cout << std::endl;
 
+        using Size = std::uint32_t;
+        using Val = std::int32_t;
+
         // Logs the enabled accelerators.
-        alpaka::test::acc::writeEnabledAccs<alpaka::dim::DimInt<1u>, std::int32_t>(std::cout);
+        alpaka::test::acc::writeEnabledAccs<alpaka::dim::DimInt<1u>, Size>(std::cout);
 
         std::cout << std::endl;
 
-        using TnumUselessWork = std::integral_constant<std::int32_t, 100>;
+        using TnumUselessWork = std::integral_constant<Size, 100>;
 
-        SharedMemTester<TnumUselessWork, std::int32_t> sharedMemTester;
+        SharedMemTester<TnumUselessWork, Val> sharedMemTester;
 
         // Execute the kernel on all enabled accelerators.
         alpaka::meta::forEachType<
-            alpaka::test::acc::EnabledAccs<alpaka::dim::DimInt<1u>, std::int32_t>>(
+            alpaka::test::acc::EnabledAccs<alpaka::dim::DimInt<1u>, Size>>(
                 sharedMemTester,
-                512);
+                static_cast<Size>(512));
 
         return sharedMemTester.allResultsCorrect ? EXIT_SUCCESS : EXIT_FAILURE;
     }

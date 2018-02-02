@@ -31,19 +31,16 @@ namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The offset specifics.
-    //-----------------------------------------------------------------------------
     namespace offset
     {
         //-----------------------------------------------------------------------------
         //! The offset traits.
-        //-----------------------------------------------------------------------------
         namespace traits
         {
             //#############################################################################
             //! The x offset get trait.
             //!
             //! If not specialized explicitly it returns 0.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TOffsets,
@@ -61,7 +58,6 @@ namespace alpaka
 
             //#############################################################################
             //! The x offset set trait.
-            //#############################################################################
             template<
                 typename TIdx,
                 typename TOffsets,
@@ -72,7 +68,6 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         //! \return The offset in the given dimension.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             std::size_t Tidx,
@@ -90,7 +85,6 @@ namespace alpaka
         }
         //-----------------------------------------------------------------------------
         //! \return The offset in x dimension.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TOffsets>
@@ -102,7 +96,6 @@ namespace alpaka
         }
         //-----------------------------------------------------------------------------
         //! \return The offset in y dimension.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TOffsets>
@@ -114,7 +107,6 @@ namespace alpaka
         }
         //-----------------------------------------------------------------------------
         //! \return The offset in z dimension.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TOffsets>
@@ -127,7 +119,6 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         //! Sets the offset in the given dimension.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             std::size_t Tidx,
@@ -148,7 +139,6 @@ namespace alpaka
         }
         //-----------------------------------------------------------------------------
         //! Sets the offset in x dimension.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TOffsets,
@@ -162,7 +152,6 @@ namespace alpaka
         }
         //-----------------------------------------------------------------------------
         //! Sets the offset in y dimension.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TOffsets,
@@ -176,7 +165,6 @@ namespace alpaka
         }
         //-----------------------------------------------------------------------------
         //! Sets the offset in z dimension.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TOffsets,
@@ -191,12 +179,10 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         // Trait specializations for unsigned integral types.
-        //-----------------------------------------------------------------------------
         namespace traits
         {
             //#############################################################################
             //! The unsigned integral x offset get trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets>
             struct GetOffset<
@@ -215,7 +201,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The unsigned integral x offset set trait specialization.
-            //#############################################################################
             template<
                 typename TOffsets,
                 typename TOffset>

@@ -38,21 +38,15 @@ namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The test specifics.
-    //-----------------------------------------------------------------------------
     namespace test
     {
         //-----------------------------------------------------------------------------
         //! The test mem specifics.
-        //-----------------------------------------------------------------------------
         namespace mem
         {
             //-----------------------------------------------------------------------------
-            //!
-            //-----------------------------------------------------------------------------
             namespace view
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 template<
                     typename TElem,
@@ -132,10 +126,19 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     // alpaka::mem::view::traits::GetPtrNative
                     {
-                        TElem const * const invalidPtr(nullptr);
-                        BOOST_REQUIRE_NE(
-                            invalidPtr,
-                            alpaka::mem::view::getPtrNative(view));
+                        if(alpaka::extent::getProductOfExtent(view) != static_cast<TSize>(0u))
+                        {
+                            // The pointer is only required to be non-null when the extent is > 0.
+                            TElem const * const invalidPtr(nullptr);
+                            BOOST_REQUIRE_NE(
+                                invalidPtr,
+                                alpaka::mem::view::getPtrNative(view));
+                        }
+                        else
+                        {
+                            // When the extent is 0, the pointer is undefined but it should still be possible get it.
+                            alpaka::mem::view::getPtrNative(view);
+                        }
                     }
 
                     //-----------------------------------------------------------------------------
@@ -157,7 +160,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! Compares element-wise that all bytes are set to the same value.
-                //#############################################################################
 #if BOOST_COMP_GNUC
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wfloat-equal"  // "comparing floating point with == or != is unsafe"
@@ -198,8 +200,6 @@ namespace alpaka
     #pragma GCC diagnostic pop
 #endif
                 //-----------------------------------------------------------------------------
-                //!
-                //-----------------------------------------------------------------------------
                 template<
                     typename TAcc,
                     typename TView,
@@ -237,7 +237,6 @@ namespace alpaka
 
                 //#############################################################################
                 //! Compares iterators element-wise
-                //#############################################################################
 #if BOOST_COMP_GNUC
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wfloat-equal"  // "comparing floating point with == or != is unsafe"
@@ -273,8 +272,6 @@ namespace alpaka
     #pragma GCC diagnostic pop
 #endif
 
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 template<
                     typename TAcc,
@@ -318,7 +315,6 @@ namespace alpaka
 
                 //-----------------------------------------------------------------------------
                 //! Fills the given view with increasing values starting at 0.
-                //-----------------------------------------------------------------------------
                 template<
                     typename TView,
                     typename TStream>
@@ -352,8 +348,6 @@ namespace alpaka
                     alpaka::wait::wait(stream);
                 }
 
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 template<
                     typename TAcc,

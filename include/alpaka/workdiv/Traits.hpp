@@ -38,17 +38,14 @@ namespace alpaka
 {
     //-----------------------------------------------------------------------------
     //! The work division traits specifics.
-    //-----------------------------------------------------------------------------
     namespace workdiv
     {
         //-----------------------------------------------------------------------------
         //! The work division traits.
-        //-----------------------------------------------------------------------------
         namespace traits
         {
             //#############################################################################
             //! The work div trait.
-            //#############################################################################
             template<
                 typename TWorkDiv,
                 typename TOrigin,
@@ -59,7 +56,6 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         //! Get the extent requested.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TOrigin,
@@ -82,7 +78,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The work div grid block extent trait specialization for classes with WorkDivBase member type.
-            //#############################################################################
             template<
                 typename TWorkDiv>
             struct GetWorkDiv<
@@ -96,8 +91,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
@@ -114,7 +107,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The work div block thread extent trait specialization for classes with WorkDivBase member type.
-            //#############################################################################
             template<
                 typename TWorkDiv>
             struct GetWorkDiv<
@@ -128,8 +120,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
@@ -146,7 +136,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The work div block thread extent trait specialization for classes with WorkDivBase member type.
-            //#############################################################################
             template<
                 typename TWorkDiv>
             struct GetWorkDiv<
@@ -160,8 +149,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
@@ -179,7 +166,6 @@ namespace alpaka
 
             //#############################################################################
             //! The work div grid thread extent trait specialization.
-            //#############################################################################
             template<
                 typename TWorkDiv>
             struct GetWorkDiv<
@@ -187,8 +173,6 @@ namespace alpaka
                 origin::Grid,
                 unit::Threads>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
@@ -206,7 +190,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The work div grid element extent trait specialization.
-            //#############################################################################
             template<
                 typename TWorkDiv>
             struct GetWorkDiv<
@@ -214,8 +197,6 @@ namespace alpaka
                 origin::Grid,
                 unit::Elems>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
@@ -233,7 +214,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The work div block element extent trait specialization.
-            //#############################################################################
             template<
                 typename TWorkDiv>
             struct GetWorkDiv<
@@ -241,8 +221,6 @@ namespace alpaka
                 origin::Block,
                 unit::Elems>
             {
-                //-----------------------------------------------------------------------------
-                //!
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(

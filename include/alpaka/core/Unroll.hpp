@@ -30,7 +30,6 @@
 //!  `ALPAKA_UNROLL
 //!  for(...){...}`
 // \TODO: Implement for other compilers.
-//-----------------------------------------------------------------------------
 #if BOOST_ARCH_CUDA_DEVICE
     #if BOOST_COMP_MSVC
         #define ALPAKA_UNROLL(...) __pragma(unroll __VA_ARGS__)

@@ -52,9 +52,6 @@ namespace alpaka
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
-    // Trait specializations for Set.
-    //-----------------------------------------------------------------------------
     namespace mem
     {
         namespace view
@@ -65,15 +62,12 @@ namespace alpaka
                 {
                     //#############################################################################
                     //! The CUDA memory set trait.
-                    //#############################################################################
                     template<
                         typename TDim,
                         typename TView,
                         typename TExtent>
                     struct TaskSet
                     {
-                        //-----------------------------------------------------------------------------
-                        //!
                         //-----------------------------------------------------------------------------
                         TaskSet(
                             TView & buf,
@@ -100,15 +94,12 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CUDA device memory set trait specialization.
-                //#############################################################################
                 template<
                     typename TDim>
                 struct TaskSet<
                     TDim,
                     dev::DevCudaRt>
                 {
-                    //-----------------------------------------------------------------------------
-                    //!
                     //-----------------------------------------------------------------------------
                     template<
                         typename TExtent,
@@ -141,7 +132,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The CUDA async device stream 1D set enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TView,
                 typename TExtent>
@@ -149,8 +139,6 @@ namespace alpaka
                 stream::StreamCudaRtAsync,
                 mem::view::cuda::detail::TaskSet<dim::DimInt<1u>, TView, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -196,7 +184,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA sync device stream 1D set enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TView,
                 typename TExtent>
@@ -204,8 +191,6 @@ namespace alpaka
                 stream::StreamCudaRtSync,
                 mem::view::cuda::detail::TaskSet<dim::DimInt<1u>, TView, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtSync &,
@@ -250,7 +235,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA async device stream 2D set enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TView,
                 typename TExtent>
@@ -258,8 +242,6 @@ namespace alpaka
                 stream::StreamCudaRtAsync,
                 mem::view::cuda::detail::TaskSet<dim::DimInt<2u>, TView, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -311,7 +293,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA sync device stream 2D set enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TView,
                 typename TExtent>
@@ -319,8 +300,6 @@ namespace alpaka
                 stream::StreamCudaRtSync,
                 mem::view::cuda::detail::TaskSet<dim::DimInt<2u>, TView, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtSync &,
@@ -371,7 +350,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA async device stream 3D set enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TView,
                 typename TExtent>
@@ -379,8 +357,6 @@ namespace alpaka
                 stream::StreamCudaRtAsync,
                 mem::view::cuda::detail::TaskSet<dim::DimInt<3u>, TView, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtAsync & stream,
@@ -448,7 +424,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The CUDA sync device stream 3D set enqueue trait specialization.
-            //#############################################################################
             template<
                 typename TView,
                 typename TExtent>
@@ -456,8 +431,6 @@ namespace alpaka
                 stream::StreamCudaRtSync,
                 mem::view::cuda::detail::TaskSet<dim::DimInt<3u>, TView, TExtent>>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
                     stream::StreamCudaRtSync &,

@@ -35,7 +35,6 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library min.
-        //#############################################################################
         class MinStl
         {
         public:
@@ -46,7 +45,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The standard library integral min trait specialization.
-            //#############################################################################
             template<
                 typename Tx,
                 typename Ty>
@@ -70,7 +68,6 @@ namespace alpaka
             };
             //#############################################################################
             //! The standard library mixed integral floating point min trait specialization.
-            //#############################################################################
             template<
                 typename Tx,
                 typename Ty>

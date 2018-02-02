@@ -22,17 +22,16 @@
 
 #include <alpaka/alpaka.hpp>
 
-#include <functional> /* std::bind, std::placeholders */
+#include <functional>
 
-/**
- * This functions says hi to the world and
- * can be encapsulated into a std::function
- * and used as a kernel function. It is 
- * just another way to define alpaka kernels
- * and might be useful when it is necessary
- * to lift an existing function into a kernel
- * function.
- */
+//-----------------------------------------------------------------------------
+//! This functions says hi to the world and
+//! can be encapsulated into a std::function
+//! and used as a kernel function. It is 
+//! just another way to define alpaka kernels
+//! and might be useful when it is necessary
+//! to lift an existing function into a kernel
+//! function.
 template<typename Acc>
 void ALPAKA_FN_ACC hiWorldFunction(Acc& acc, size_t const nExclamationMarks){
     auto globalThreadIdx    = alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc);
@@ -56,9 +55,7 @@ void ALPAKA_FN_ACC hiWorldFunction(Acc& acc, size_t const nExclamationMarks){
 auto main()
 -> int
 {
-    /***************************************************************************
-     * Define accelerator types
-     ***************************************************************************/
+    // Define accelerator types
     using Dim = alpaka::dim::DimInt<3>;
     using Size = std::size_t;
     using Host = alpaka::acc::AccCpuSerial<Dim, Size>;
@@ -72,23 +69,14 @@ auto main()
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
     using WorkDiv = alpaka::workdiv::WorkDivMembers<Dim, Size>;
 
-
-    /***************************************************************************
-     * Get the first devices
-     ***************************************************************************/
+    // Get the first devices
     DevAcc const devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u));
     DevHost const devHost(alpaka::pltf::getDevByIdx<PltfHost>(0u));
 
-    
-    /***************************************************************************
-     * Create a stream to the accelerator device
-     ***************************************************************************/
+    // Create a stream to the accelerator device
     Stream stream(devAcc);
 
-
-    /***************************************************************************
-     * Init workdiv
-     ***************************************************************************/
+    // Init workdiv
     alpaka::vec::Vec<Dim, Size> const elementsPerThread(
         static_cast<Size>(1),
         static_cast<Size>(1),
@@ -121,25 +109,23 @@ auto main()
 // See: https://llvm.org/bugs/show_bug.cgi?id=26341
 #if !BOOST_COMP_CLANG_CUDA || BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)
 
-    /**
-     * Run "Hello World" kernel with lambda function
-     *
-     * Alpaka is able to execute lambda functions (anonymous functions) which
-     * are available since the C++11 standard.
-     * Alpaka forces the lambda function to accept
-     * the utilized accelerator as first argument. 
-     * All following arguments can be provided after
-     * the lambda function declaration or be captured. 
-     *
-     * This example passes the number exclamation marks, that should
-     * be written after we greet the world, to the 
-     * lambda function.
-     * 
-     * This kind of kernel function
-     * declaration might be useful when small kernels
-     * are written for testing or lambda functions
-     * already exist.
-     */
+    // Run "Hello World" kernel with lambda function
+    //
+    // Alpaka is able to execute lambda functions (anonymous functions) which
+    // are available since the C++11 standard.
+    // Alpaka forces the lambda function to accept
+    // the utilized accelerator as first argument. 
+    // All following arguments can be provided after
+    // the lambda function declaration or be captured. 
+    //
+    // This example passes the number exclamation marks, that should
+    // be written after we greet the world, to the 
+    // lambda function.
+    // 
+    // This kind of kernel function
+    // declaration might be useful when small kernels
+    // are written for testing or lambda functions
+    // already exist.
     auto const helloWorld(alpaka::exec::create<Acc>(
         workdiv,
         [] ALPAKA_FN_ACC (Acc & acc, size_t const nExclamationMarksAsArg) -> void {
@@ -169,54 +155,46 @@ auto main()
 #endif
 #endif
     
-    /**
-     * Run "Hello World" kernel with std::function
-     *
-     * This kernel says hi to world by using 
-     * std::functions, which are available since
-     * the C++11 standard.
-     * The interface for std::function can be used
-     * to encapsulate normal c++ functions and 
-     * lambda functions into a function object. 
-     * Alpaka accepts these std::functions 
-     * as kernel functions. Therefore, it is easy
-     * to wrap allready existing code into a
-     * std::function and provide it to the alpaka 
-     * library.
-     */
-     auto const hiWorld (alpaka::exec::create<Acc> (
-         workdiv,
-         std::function<void(Acc&, size_t)>( hiWorldFunction<Acc> ),
-         nExclamationMarks));
+    // Run "Hello World" kernel with std::function
+    //
+    // This kernel says hi to world by using 
+    // std::functions, which are available since
+    // the C++11 standard.
+    // The interface for std::function can be used
+    // to encapsulate normal c++ functions and 
+    // lambda functions into a function object. 
+    // Alpaka accepts these std::functions 
+    // as kernel functions. Therefore, it is easy
+    // to wrap allready existing code into a
+    // std::function and provide it to the alpaka 
+    // library.
+    auto const hiWorld (alpaka::exec::create<Acc> (
+        workdiv,
+        std::function<void(Acc&, size_t)>( hiWorldFunction<Acc> ),
+        nExclamationMarks));
 
-     alpaka::stream::enqueue(stream, hiWorld);
+    alpaka::stream::enqueue(stream, hiWorld);
 
     
-    /**
-     * Run "Hello World" kernel with std::bind
-     *
-     * This kernel binds arguments of the existing function hiWorldFunction
-     * to a std::function objects and provides it as alpaka kernel.
-     * The syntax needs to be the following:
-     * - std::bind(foo<Acc>, std::placeholders::_1, arg1, arg2, ...)
-     *
-     * The placeholder will be filled by alpaka with the 
-     * particular accelerator object.
-     *
-     * This approach has the advantage that you do
-     * not need to provide the signature of your function
-     * as it is the case for the std::function example above.
-     */
-     auto const hiWorldBind (alpaka::exec::create<Acc> (
-         workdiv,
-         std::bind( hiWorldFunction<Acc>, std::placeholders::_1, nExclamationMarks*2 )
-         ));
+    // Run "Hello World" kernel with std::bind
+    //
+    // This kernel binds arguments of the existing function hiWorldFunction
+    // to a std::function objects and provides it as alpaka kernel.
+    // The syntax needs to be the following:
+    // - std::bind(foo<Acc>, std::placeholders::_1, arg1, arg2, ...)
+    //
+    // The placeholder will be filled by alpaka with the 
+    // particular accelerator object.
+    //
+    // This approach has the advantage that you do
+    // not need to provide the signature of your function
+    // as it is the case for the std::function example above.
+    auto const hiWorldBind (alpaka::exec::create<Acc> (
+        workdiv,
+        std::bind( hiWorldFunction<Acc>, std::placeholders::_1, nExclamationMarks*2 )
+        ));
 
-     alpaka::stream::enqueue(stream, hiWorldBind);
+    alpaka::stream::enqueue(stream, hiWorldBind);
 
-    
-    /**
-     * Everything is fine, so lets return :)
-     */
     return EXIT_SUCCESS;
 }

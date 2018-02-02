@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The remainder trait.
-            //#############################################################################
             template<
                 typename T,
                 typename Tx,
@@ -55,7 +54,6 @@ namespace alpaka
         //! \param remainder The object specializing Max.
         //! \param x The first argument.
         //! \param y The second argument.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -92,7 +90,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Remainder specialization for classes with RemainderBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename Tx,
@@ -108,8 +105,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto remainder(

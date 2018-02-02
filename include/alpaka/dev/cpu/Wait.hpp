@@ -37,13 +37,10 @@ namespace alpaka
             //!
             //! Blocks until the device has completed all preceding requested tasks.
             //! Tasks that are enqueued or streams that are created after this call is made are not waited for.
-            //#############################################################################
             template<>
             struct CurrentThreadWaitFor<
                 dev::DevCpu>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
                     dev::DevCpu const & dev)

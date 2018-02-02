@@ -37,7 +37,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The min trait.
-            //#############################################################################
             template<
                 typename T,
                 typename Tx,
@@ -56,7 +55,6 @@ namespace alpaka
         //! \param min The object specializing Min.
         //! \param x The first argument.
         //! \param y The second argument.
-        //-----------------------------------------------------------------------------
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
@@ -93,7 +91,6 @@ namespace alpaka
         {
             //#############################################################################
             //! The Min specialization for classes with MinBase member type.
-            //#############################################################################
             template<
                 typename T,
                 typename Tx,
@@ -109,8 +106,6 @@ namespace alpaka
                     >::value
                 >::type>
             {
-                //-----------------------------------------------------------------------------
-                //
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto min(
