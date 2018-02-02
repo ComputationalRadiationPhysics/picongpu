@@ -23,11 +23,11 @@
 
 #include "pmacc/types.hpp"
 
-#include <sys/time.h>
-
+#include <chrono>
 #include <string>
 #include <iostream>
 #include <sstream>
+
 
 namespace pmacc
 {
@@ -46,9 +46,9 @@ namespace pmacc
          */
         static double getTime()
         {
-            struct timeval act_time;
-            gettimeofday(&act_time, nullptr);
-            return (double)act_time.tv_sec*1000. + (double)act_time.tv_usec / 1000.;
+            auto time( Clock::now().time_since_epoch() );
+            auto timestamp = std::chrono::duration_cast< Milliseconds >( time ).count();
+            return static_cast< double >(timestamp);
         }
 
         double toggleStart()
@@ -118,6 +118,12 @@ namespace pmacc
         }
 
     private:
+
+        using Clock = std::chrono::high_resolution_clock;
+        template< class Duration >
+        using TimePoint = std::chrono::time_point< Clock, Duration >;
+        using Milliseconds = std::chrono::milliseconds;
+
         double start;
         double end;
     };
