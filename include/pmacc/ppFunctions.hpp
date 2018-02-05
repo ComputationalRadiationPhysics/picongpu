@@ -22,7 +22,8 @@
 
 #pragma once
 
-#include <boost/preprocessor/variadic/size.hpp>
+
+#include <pmacc/preprocessor/size.hpp>
 
 
 #define PMACC_MIN(x,y) (((x)<=(y))?x:y)
@@ -35,10 +36,11 @@
 #define PMACC_MAX_DO(what,x,y) (((x)>(y))?x what:y what)
 #define PMACC_MIN_DO(what,x,y) (((x)<(y))?x what:y what)
 
-#if( BOOST_PP_VARIADICS == 1 )
-#   define PMACC_COUNT_ARGS_DEF(type,...) (BOOST_PP_VARIADIC_SIZE(__VA_ARGS__))
+
+#ifdef PMACC_PP_VARIADIC_SIZE
+#   define PMACC_COUNT_ARGS_DEF(type,...) (PMACC_PP_VARIADIC_SIZE(__VA_ARGS__))
 #else
-// A fallback implementation using compound literals, supported by some compilers
+    // A fallback implementation using compound literals, supported by some compilers
 #   define PMACC_COUNT_ARGS_DEF(type,...) (sizeof((type[]){type{}, ##__VA_ARGS__})/sizeof(type)-1u)
 #endif
 
