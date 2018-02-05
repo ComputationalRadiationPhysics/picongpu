@@ -6,7 +6,6 @@ Authors: Sebastian Starke
 License: GPLv3+
 """
 
-
 from picongpu.plugins.energy_histogram import EnergyHistogram
 import matplotlib.pyplot as plt
 
