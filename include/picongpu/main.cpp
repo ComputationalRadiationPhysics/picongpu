@@ -33,6 +33,14 @@
 #include <picongpu/simulation_defines.hpp>
 
 
+/* Workaround for Visual Studio to avoid a collision between ERROR macro
+ * defined in wingdi.h file (included from some standard library headers) and
+ * enumerator ArgsParser::ArgsErrorCode::ERROR.
+ */
+#ifdef _MSC_VER
+#   undef ERROR
+#endif
+
 /*! start of PIConGPU
  *
  * @param argc count of arguments in argv
