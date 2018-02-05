@@ -129,7 +129,7 @@ public:
         typedef DataBoxDim1Access<DataBoxType > D1Box;
         D1Box d1Box(memBox, this->getDataSpace());
         #pragma omp parallel for
-        for (size_t i = 0; i < current_size; i++)
+        for (int i = 0; i < current_size; i++)
         {
             d1Box[i] = value;
         }
