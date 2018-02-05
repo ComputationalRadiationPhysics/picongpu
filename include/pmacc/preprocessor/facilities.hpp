@@ -48,3 +48,8 @@
 
 /** remove parentheses with delay */
 #define PMACC_PP_DEFER_REMOVE_PAREN() PMACC_PP_REMOVE_PAREN
+
+/** call the given macro with the given argument.
+ * can be used as a helper for expanding arguments that are lists
+ */
+#define PMACC_PP_CALL(macro,argument) macro argument
