@@ -30,7 +30,7 @@ class Visualizer:
         self.plt_obj = None
 
     def visualize(self, iteration, ax, species='e', species_filter="all",
-                  include_overflow=False, **kwargs):
+                  **kwargs):
         """
         Creates a semilogy plot on the provided axes object for
         the data of the given iteration using matpotlib.
@@ -47,18 +47,15 @@ class Visualizer:
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        include_overflow: boolean, default: False
-            Include overflow and underflow bins as the first/last bins.
         kwargs: dict
-            possible additional keyword args (e.g. for styling).
-            NOTE: no options from this parameter are considered yet!
+            possible additional keyword args to pass to the reader.
         """
 
         counts, energy_bins = self.energy_histogram.get(
             species=species,
             species_filter=species_filter,
             iteration=iteration,
-            include_overflow=include_overflow)
+            **kwargs)
 
         # if it is the first time for plotting then object is
         # created, otherwise only data is updated
@@ -91,12 +88,10 @@ if __name__ == '__main__':
         iteration = None
         species = None
         filtr = None
-        overflow = None
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hp:i:s:f:o:", [
-                "help", "path", "iteration", "species", "filter",
-                "include_overflow"])
+            opts, args = getopt.getopt(sys.argv[1:], "hp:i:s:f:", [
+                "help", "path", "iteration", "species", "filter"])
         except getopt.GetoptError as err:
             print(err)
             usage()
@@ -114,8 +109,6 @@ if __name__ == '__main__':
                 species = arg
             elif opt in ["-f", "--filter"]:
                 filtr = arg
-            elif opt in ["-o", "--include_overflow"]:
-                overflow = bool(arg)
 
         # check that we got all args that we need
         if path is None or iteration is None:
@@ -128,14 +121,10 @@ if __name__ == '__main__':
         if filtr is None:
             filtr = 'all'
             print("Species filter was not given, will use", filtr)
-        if overflow is None:
-            overflow = False
-            print("include_overflow was not given, will use", overflow)
 
         fig, ax = plt.subplots(1, 1)
         Visualizer(path).visualize(iteration, ax, species=species,
-                                   species_filter=filtr,
-                                   include_overflow=overflow)
+                                   species_filter=filtr)
         plt.show()
 
     main()
