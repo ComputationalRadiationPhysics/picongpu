@@ -533,6 +533,15 @@ struct Vector<Type, 0 >
     {
         return false;
     }
+
+    HDINLINE
+    static Vector create(Type)
+    {
+        /* this method should never be actually called,
+         * it exists only for Visual Studio to handle pmacc::math::Size_t< 0 >
+         */
+        PMACC_CASSERT_MSG(Vector_dim_0_create_cannot_be_called, false);
+    }
 };
 
 template<typename Type, int dim, typename Accessor, typename Navigator>
