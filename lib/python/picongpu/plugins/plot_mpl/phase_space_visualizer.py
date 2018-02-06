@@ -107,7 +107,7 @@ if __name__ == '__main__':
                 "python", sys.argv[0],
                 "-p <path to run_directory> -i <iteration>"
                 " -s <particle species> -f <species_filter>"
-                " -m <momentum term>")
+                " -m <phase space selection>")
 
         path = None
         iteration = None
