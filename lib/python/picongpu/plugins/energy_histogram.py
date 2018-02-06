@@ -7,7 +7,9 @@ License: GPLv3+
 """
 
 import numpy as np
+import pandas as pd
 import os
+import collections
 
 
 class EnergyHistogram(object):
@@ -92,9 +94,11 @@ class EnergyHistogram(object):
         data_file_path = self.get_data_path(species, species_filter)
 
         # the first column contains the iterations
-        return np.loadtxt(data_file_path,
-                          usecols=(0,),
-                          dtype=np.uint64)
+        return pd.read_csv(data_file_path,
+                           skiprows=1,
+                           usecols=(0,),
+                           delimiter=" ",
+                           dtype=np.uint64).as_matrix()[:, 0]
 
     def get(self, species, species_filter="all", iteration=None,
             include_overflow=False):
@@ -111,46 +115,74 @@ class EnergyHistogram(object):
             (defined in ``particleFilters.param``)
         iteration : (unsigned) int [unitless]
             The iteration at which to read the data.
-            @TODO also allow lists here
+            A list of iterations is allowed as well.
+            ``None`` refers to the list of all available iterations.
         include_overflow : boolean, default: False
             Include overflow and underflow bins as the first/last bins.
 
         Returns
         -------
-        energies : np.array of dtype float [unitless]
+        counts : np.array of dtype float [unitless]
             count of particles in each bin
-            @todo if iteration is a list, return a dict
+            If iteration is a list, returns (ordered) dict with iterations as
+            its index.
         bins : np.array of dtype float [keV]
             upper ranges of each energy bin
         """
-        if iteration is None:
-            raise ValueError('The iteration needs to be set!')
+        if iteration is not None:
+            if not isinstance(iteration, collections.Iterable):
+                iteration = np.array([iteration])
 
         data_file_path = self.get_data_path(species, species_filter)
 
-        # matrix with data in keV
-        #   note: skips columns for iteration step, underflow bin (first 2) and
-        #         overflow bin, summation of all bins (last two)
-        ene = np.loadtxt(data_file_path)[:, 2:-2]
-        # upper range of each bin in keV
-        #    note: only reads first row and selects the actual valid bins
-        #    (default, see self.num_bins) in columns 2:num_bins+2
-        num_bins = ene.shape[1]
-        extra_bins = 0
-        if include_overflow:
-            extra_bins = 1
-        bins = np.loadtxt(
+        # read whole file as pandas.DataFrame
+        data = pd.read_csv(
             data_file_path,
-            comments=None,
-            usecols=list(range(2 - extra_bins, num_bins + 2 + 2 * extra_bins))
-        )[0, :]
+            skiprows=1,
+            delimiter=" "
+        )
+        # upper range of each bin in keV
+        #    note: only reads first row and selects the valid energy bins
+        bins = pd.read_csv(
+            data_file_path,
+            comment=None,
+            nrows=0,
+            delimiter=" ",
+            usecols=range(2, data.shape[1] - 2),
+            dtype=np.float64
+        ).columns.values.astype(np.float64)
 
-        available_iterations = self.get_iterations(species, species_filter)
-        if iteration not in available_iterations:
+        # set DataFrame column names properly
+        data.columns = [
+            'iteration',
+            'underflow'
+        ] + list(bins) + [
+            'overflow',
+            'sum'
+        ]
+        # set iteration as index
+        data.set_index('iteration', inplace=True)
+
+        # all iterations requested
+        if iteration is None:
+            iteration = np.array(data.index.values)
+
+        # verify requested iterations exist
+        if not set(iteration).issubset(data.index.values):
             raise IndexError('Iteration {} is not available!\n'
                              'List of available iterations: \n'
-                             '{}'.format(iteration, available_iterations))
+                             '{}'.format(iteration, data['iteration']))
 
-        dump_index = np.where(available_iterations == iteration)[0][0]
+        # remove unused columns
+        del data['sum']
+        if not include_overflow:
+            del data['underflow']
+            del data['overflow']
 
-        return ene[dump_index], bins
+        if len(iteration) > 1:
+            return collections.OrderedDict(zip(
+                    iteration,
+                    data.loc[iteration].as_matrix()
+                )), bins
+        else:
+            return data.loc[iteration].as_matrix()[0, :], bins
