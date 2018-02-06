@@ -89,7 +89,9 @@ class Visualizer(object):
                 '$')
 
         ax.set_xlabel(r'${0}$ [${1}$]'.format(meta.r, "\mathrm{\mu m}"))
-        ax.set_ylabel(r'$p_{0}$ [$\beta\gamma$]'.format(meta.p))
+        ax.set_ylabel(
+            r'$p_{0}$ [$\beta\gamma m_\mathrm{species} / m_\mathrm{e}$]'.format
+            (meta.p))
 
 
 if __name__ == '__main__':
