@@ -64,10 +64,11 @@ class Visualizer:
         else:
             self.plt_obj.set_data(energy_bins, counts)
 
-        ax.set_xlabel('Energy')
+        ax.set_xlabel('Energy [keV]')
         ax.set_ylabel('Count')
         ax.set_title('Energy Histogram for species ' +
-                     species + ', iteration ' + str(iteration))
+                     species + ', filter = ' + species_filter +
+                     ', iteration ' + str(iteration))
 
 
 if __name__ == '__main__':
