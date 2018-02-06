@@ -116,23 +116,22 @@ class EnergyHistogram(object):
         iteration : (unsigned) int [unitless]
             The iteration at which to read the data.
             A list of iterations is allowed as well.
+            ``None`` refers to the list of all available iterations.
         include_overflow : boolean, default: False
             Include overflow and underflow bins as the first/last bins.
 
         Returns
         -------
-        energies : np.array of dtype float [unitless]
+        counts : np.array of dtype float [unitless]
             count of particles in each bin
-            If iteration is a list, returns a matrix with first index being
-            the iteration as in the order of the requested iterations.
+            If iteration is a list, returns (ordered) dict with iterations as
+            its index.
         bins : np.array of dtype float [keV]
             upper ranges of each energy bin
         """
-        if iteration is None:
-            raise ValueError('The iteration needs to be set!')
-
-        if not isinstance(iteration, collections.Iterable):
-            iteration = np.array([iteration])
+        if iteration is not None:
+            if not isinstance(iteration, collections.Iterable):
+                iteration = np.array([iteration])
 
         data_file_path = self.get_data_path(species, species_filter)
 
@@ -164,6 +163,10 @@ class EnergyHistogram(object):
         # set iteration as index
         data.set_index('iteration', inplace=True)
 
+        # all iterations requested
+        if iteration is None:
+            iteration = np.array(data.index.values)
+
         # verify requested iterations exist
         if not set(iteration).issubset(data.index.values):
             raise IndexError('Iteration {} is not available!\n'
@@ -177,6 +180,9 @@ class EnergyHistogram(object):
             del data['overflow']
 
         if len(iteration) > 1:
-            return data.loc[iteration].as_matrix(), bins
+            return collections.OrderedDict(zip(
+                    iteration,
+                    data.loc[iteration].as_matrix()
+                )), bins
         else:
             return data.loc[iteration].as_matrix()[0, :], bins
