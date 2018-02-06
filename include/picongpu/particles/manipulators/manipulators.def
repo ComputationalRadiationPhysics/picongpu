@@ -29,6 +29,7 @@
 #include "picongpu/particles/manipulators/generic/FreeRng.def"
 #include "picongpu/particles/manipulators/generic/None.def"
 
+#include "picongpu/particles/manipulators/unary/FreeTotalCellOffset.def"
 #include "picongpu/particles/manipulators/unary/Temperature.def"
 #include "picongpu/particles/manipulators/unary/Drift.def"
 #include "picongpu/particles/manipulators/unary/CopyAttribute.def"

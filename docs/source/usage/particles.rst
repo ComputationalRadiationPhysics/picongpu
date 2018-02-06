@@ -60,6 +60,12 @@ FreeRng
 .. doxygenstruct:: picongpu::particles::manipulators::generic::FreeRng
    :project: PIConGPU
 
+FreeTotalCellOffset
+^^^^^^^^^^^^^^^^^^^
+
+.. doxygenstruct:: picongpu::particles::manipulators::unary::FreeTotalCellOffset
+   :project: PIConGPU
+
 CopyAttribute
 ^^^^^^^^^^^^^
 
