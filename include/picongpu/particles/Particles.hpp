@@ -110,7 +110,7 @@ class Particles : public ParticlesBase<
 {
 public:
 
-    typedef ParticleDescription<
+    typedef pmacc::ParticleDescription<
         T_Name,
         SuperCellSize,
         T_Attributes,
@@ -138,13 +138,13 @@ public:
             >
         >::type
     > SpeciesParticleDescription;
-    typedef ParticlesBase<SpeciesParticleDescription, MappingDesc, DeviceHeap> ParticlesBaseType;
+    typedef ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap> ParticlesBaseType;
     typedef typename ParticlesBaseType::FrameType FrameType;
     typedef typename ParticlesBaseType::FrameTypeBorder FrameTypeBorder;
     typedef typename ParticlesBaseType::ParticlesBoxType ParticlesBoxType;
 
 
-    Particles(const std::shared_ptr<DeviceHeap>& heap, MappingDesc cellDescription, SimulationDataId datasetID);
+    Particles(const std::shared_ptr<DeviceHeap>& heap, picongpu::MappingDesc cellDescription, SimulationDataId datasetID);
 
     void createParticleBuffer();
 

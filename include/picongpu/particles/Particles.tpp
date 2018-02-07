@@ -67,12 +67,12 @@ Particles<
     T_Attributes
 >::Particles(
     const std::shared_ptr<DeviceHeap>& heap,
-    MappingDesc cellDescription,
+    picongpu::MappingDesc cellDescription,
     SimulationDataId datasetID
 ) :
     ParticlesBase<
         SpeciesParticleDescription,
-        MappingDesc,
+        picongpu::MappingDesc,
         DeviceHeap
     >(
         heap,
@@ -257,7 +257,7 @@ Particles<
 
     AreaMapping<
         CORE + BORDER,
-        MappingDesc
+        picongpu::MappingDesc
     > mapper( this->cellDescription );
 
     constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
@@ -316,7 +316,7 @@ Particles<
 
     AreaMapping<
         CORE + BORDER,
-        MappingDesc
+        picongpu::MappingDesc
     > mapper( this->cellDescription );
     PMACC_KERNEL(
         KernelFillGridWithParticles<
