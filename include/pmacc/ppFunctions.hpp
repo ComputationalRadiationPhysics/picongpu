@@ -23,6 +23,9 @@
 #pragma once
 
 
+#include <pmacc/preprocessor/size.hpp>
+
+
 #define PMACC_MIN(x,y) (((x)<=(y))?x:y)
 #define PMACC_MAX(x,y) (((x)>(y))?x:y)
 
@@ -33,13 +36,21 @@
 #define PMACC_MAX_DO(what,x,y) (((x)>(y))?x what:y what)
 #define PMACC_MIN_DO(what,x,y) (((x)<(y))?x what:y what)
 
+
+#ifdef PMACC_PP_VARIADIC_SIZE
+#   define PMACC_COUNT_ARGS_DEF(type,...) (PMACC_PP_VARIADIC_SIZE(__VA_ARGS__))
+#else
+    // A fallback implementation using compound literals, supported by some compilers
+#   define PMACC_COUNT_ARGS_DEF(type,...) (sizeof((type[]){type{}, ##__VA_ARGS__})/sizeof(type)-1u)
+#endif
+
 /**
  * Returns number of args... arguments.
  *
  * @param type type of the arguments in ...
  * @param ... arguments
  */
-#define PMACC_COUNT_ARGS(type,...)  (sizeof((type[]){type{}, ##__VA_ARGS__})/sizeof(type)-1u)
+#define PMACC_COUNT_ARGS(type,...) PMACC_COUNT_ARGS_DEF(type,__VA_ARGS__)
 
 /**
  * Check if ... has arguments or not
@@ -49,7 +60,7 @@
  * @param ... arguments
  * @return false if no arguments are given, else true
  */
-#define PMACC_HAS_ARGS(...)  ((sizeof((int[]){0, ##__VA_ARGS__}))==sizeof(int)?false:true)
+#define PMACC_HAS_ARGS(...)  (PMACC_COUNT_ARGS(int,__VA_ARGS__)>0)
 
 /** round up to next higher pow 2 value
  *
