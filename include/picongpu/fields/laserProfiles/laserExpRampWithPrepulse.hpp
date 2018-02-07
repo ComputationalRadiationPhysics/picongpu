@@ -44,6 +44,8 @@ namespace laserExpRampWithPrepulse
 {
     constexpr float_X laserTimeShift = laser::initPlaneY * CELL_HEIGHT /
         SPEED_OF_LIGHT;
+    constexpr float_X time_start_init = TIME_1 -
+        ( 0.5 * RAMP_INIT * PULSE_LENGTH );
     constexpr float_64 f = SPEED_OF_LIGHT / WAVE_LENGTH;
     constexpr float_64 w = 2.0 * PI * f;
 
@@ -79,18 +81,18 @@ namespace laserExpRampWithPrepulse
     get_envelope(float_X runTime)
     {
         float_X env = 0.0;
-        const bool before_preupramp = ( float_X( -0.5 * RAMP_INIT *
-            PULSE_LENGTH ) > runTime );
-        const bool before_start = runTime < 0.;
+        const bool before_preupramp = runTime < time_start_init;
+        const bool before_start = runTime < TIME_1;
         const bool before_peakpulse = runTime < endUpramp;
         const bool during_first_exp = ( TIME_1 < runTime ) &&
             ( runTime < TIME_2 );
         const bool after_peakpulse = startDownramp <= runTime;
 
-        if ( !before_preupramp && before_start )
+        if ( before_preupramp )
+            env = 0.;
+        else if ( before_start )
         {
-            env = AMP_1 * gauss( runTime ) +
-                AMP_PREPULSE * gauss( runTime - TIME_PREPULSE );
+            env = AMP_1 * gauss( runTime - TIME_1 );
         }
         else if ( before_peakpulse )
         {
@@ -153,13 +155,12 @@ namespace laserExpRampWithPrepulse
         /* initialize the laser not in the first cell is equal to a negative shift
          * in time
          */
-        const float_64 runTime = (DELTA_T * currentStep - laserTimeShift -
-            0.5 * RAMP_INIT * PULSE_LENGTH );
+        const float_64 runTime = time_start_init - laserTimeShift +
+            DELTA_T * currentStep;
 
-        phase += float_X( w * runTime ) + LASER_PHASE ;
+        phase += float_X( w * runTime ) + LASER_PHASE;
 
         envelope = get_envelope( runTime );
-
 
         if( Polarisation == LINEAR_X )
         {
