@@ -124,12 +124,12 @@ public:
     void setValue(const TYPE& value)
     {
         __startOperation(ITask::TASK_HOST);
-        size_t current_size = this->getCurrentSize();
+        int64_t current_size = static_cast< int64_t >(this->getCurrentSize());
         auto memBox = getDataBox();
         typedef DataBoxDim1Access<DataBoxType > D1Box;
         D1Box d1Box(memBox, this->getDataSpace());
         #pragma omp parallel for
-        for (int i = 0; i < current_size; i++)
+        for (int64_t i = 0; i < current_size; i++)
         {
             d1Box[i] = value;
         }
