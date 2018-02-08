@@ -16,7 +16,7 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 # General modules #############################################################
 #
 module purge
-module load cmake/3.9.0
+module load cmake/3.10.1
 module load git
 module load intelmpi/2017.2.174
 
