@@ -29,7 +29,7 @@
 ###############################################################################
 # PMacc
 ###############################################################################
-cmake_minimum_required(VERSION 3.7.0)
+cmake_minimum_required(VERSION 3.10.0)
 
 # set helper pathes to find libraries and packages
 # Add specific hints
