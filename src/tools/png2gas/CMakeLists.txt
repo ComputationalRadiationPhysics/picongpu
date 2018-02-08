@@ -96,16 +96,10 @@ endif()
 ################################################################################
 
 # find libSplash installation
-# prefer static libraries over shared ones (but do not force them)
-set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.6.0 REQUIRED COMPONENTS PARALLEL)
+find_package(Splash 1.7.0 REQUIRED CONFIG COMPONENTS PARALLEL)
 
-if(Splash_FOUND)
-    include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
-    list(APPEND Splash_DEFINITIONS "-DENABLE_HDF5=1")
-    add_definitions(${Splash_DEFINITIONS})
-    set(LIBS ${LIBS} ${Splash_LIBRARIES})
-endif(Splash_FOUND)
+add_definitions(-DENABLE_HDF5=1)
+message(STATUS "Found Splash: ${Splash_DIR}")
 
 
 ################################################################################
@@ -115,9 +109,7 @@ endif(Splash_FOUND)
 # find PNGwriter installation
 find_package(PNGwriter 0.7.0 REQUIRED CONFIG)
 
-if(PNGwriter_FOUND)
-    set(LIBS ${LIBS} PNGwriter::PNGwriter)
-endif(PNGwriter_FOUND)
+set(LIBS ${LIBS} PNGwriter::PNGwriter)
 
 
 ################################################################################

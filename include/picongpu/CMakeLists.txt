@@ -279,17 +279,16 @@ endif()
 # libSplash (+ hdf5 due to required headers)
 ################################################################################
 
-# find libSplash installation
-# prefer static libraries over shared ones (but do not force them)
-set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.6.0 COMPONENTS PARALLEL)
+find_package(Splash 1.7.0 CONFIG COMPONENTS PARALLEL)
 
-if(Splash_FOUND)
-    include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
-    list(APPEND Splash_DEFINITIONS "-DENABLE_HDF5=1")
-    add_definitions(${Splash_DEFINITIONS})
-    set(LIBS ${LIBS} ${Splash_LIBRARIES})
-endif(Splash_FOUND)
+if(TARGET Splash::Splash)
+    add_definitions(-DENABLE_HDF5=1)
+    set(LIBS ${LIBS} Splash::Splash)
+    message(STATUS "Found Splash: ${Splash_DIR}")
+else()
+    message(STATUS "Could NOT find Splash - "
+                   "set Splash_DIR or check your CMAKE_PREFIX_PATH")
+endif()
 
 
 ################################################################################
@@ -302,6 +301,10 @@ find_package(PNGwriter 0.7.0 CONFIG)
 if(PNGwriter_FOUND)
     set(LIBS ${LIBS} PNGwriter::PNGwriter)
     add_definitions(-DPIC_ENABLE_PNG=1)
+    message(STATUS "Found PNGwriter: ${PNGwriter_DIR}")
+else()
+    message(STATUS "Could NOT find PNGwriter - "
+                   "set PNGwriter_DIR or check your CMAKE_PREFIX_PATH")
 endif(PNGwriter_FOUND)
 
 
