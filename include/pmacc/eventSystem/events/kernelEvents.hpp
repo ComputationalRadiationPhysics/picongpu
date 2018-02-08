@@ -238,7 +238,7 @@ namespace exec
             T_Args const &... args
         )
         {
-            return static_cast< const KernelStarter >(*this)( args ... );
+            return static_cast< const KernelStarter & >(*this)( args ... );
         }
 
         /** @} */
