@@ -11,16 +11,22 @@ The first part is usually the job of a system administrator while the second par
 Depending on your experience, role, computing environment and expectations for optimal hardware utilization, you have several ways to install and select PIConGPU's dependencies.
 Choose your favorite *install and environment management method* below, young padavan, and follow the corresponding sections of the next chapters.
 
-Before you Start
-----------------
+Ways to Install
+---------------
+
+Choose *one* of the install methods below to get started:
+
+Load Modules
+^^^^^^^^^^^^
+
+On HPC systems and clusters, software is usually provided by system administrators via a module system (e.g. [modules]_, [Lmod]_).
+In case our :ref:`software dependencies <install-dependencies>` are available, we usually create a file in our ``$HOME`` named :ref:`<queueName>_picongpu.profile <install-profile>`.
+It loads according modules and sets :ref:`helper environment variables <install-dependencies-picongpu>`.
 
 .. important::
 
    For many HPC systems we already prepared and maintain an environment for you which will run out-of-the-box.
    See if yours is :ref:`in the list <install-profile>` so you can skip the installation completely!
-
-Ways to Install
----------------
 
 Spack
 ^^^^^

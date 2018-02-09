@@ -10,24 +10,24 @@
 *A particle-in-cell code for GPGPUs*
 
 PIConGPU is a fully relativistic, many GPGPU, 3D3V particle-in-cell (PIC) code.
-The Particle-in-Cell algorithm is a central tool in plasma physics.
+The PIC algorithm is a central tool in plasma physics.
 It describes the dynamics of a plasma by computing the motion of electrons and ions in the plasma based on Maxwell's equations.
 
 How to Read This Document
 -------------------------
 
-Generally, you want to follow those pages in-order to get started.
+Generally, **follow the manual pages in-order** to get started.
 Individual chapters are based on the information of the chapters before.
-
 In case you are already fluent in compiling C++ projects and HPC, running PIC simulations or scientific data analysis feel free to jump the respective sections.
 
-.. attention::
-   This documentation is just getting started.
-   Learn more about how to improve it :ref:`here <development-sphinx>` and please contribute via pull requests! :-)
+.. only:: html
 
-.. note::
-   We also have a `wiki`_
-   and a general `official homepage`_
+   The online version of this document is **versioned** and shows by default the manual of the last *stable* version of PIConGPU.
+   If you are looking for the latest *development* version, `click here <https://picongpu.readthedocs.io/en/latest/>`_.
+
+
+We are migrating our `wiki`_ to this manual, but some pages might still be missing.
+We also have an `official homepage`_ .
 
 .. _wiki: https://github.com/ComputationalRadiationPhysics/picongpu/wiki
 .. _official homepage: http://picongpu.hzdr.de
