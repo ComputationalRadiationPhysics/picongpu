@@ -5,7 +5,7 @@
 
 .. sectionauthor:: Axel Huebl
 
-Parameter files, ``*.param`` placed in ``include/picongpu/simulation_defines/param/`` are used to set all **compile-time options** for a PIConGPU simulation.
+Parameter files, ``*.param`` placed in ``include/picongpu/param/`` are used to set all **compile-time options** for a PIConGPU simulation.
 This includes most fundamental options such as numerical solvers, floating precision, memory usage due to attributes and super-cell based algorithms, density profiles, initial conditions etc.
 
 Editing

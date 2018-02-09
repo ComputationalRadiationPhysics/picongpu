@@ -147,6 +147,13 @@ if [ -z "$install_path" ] ; then
 fi
 extension_param="-DPIC_EXTENSION_PATH=$extension_param"
 
+# legacy check: we removed simulation_defines/ after PIConGPU 0.3.X
+if [ -d "$extension_param/include/picongpu/simulation_defines" ]; then
+    echo "ERROR: simulation_defines/ directory found!" >&2
+    echo "       Please update your input directory to the new structure!" >&2
+    exit 3
+fi
+
 # warn on missing backend selection
 if [ -z "$alpaka_backend" ] ; then
     echo "Warning: no compute backend set! " >&2

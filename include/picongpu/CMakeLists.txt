@@ -355,7 +355,7 @@ endif(ISAAC_FOUND)
 ################################################################################
 
 find_path(PIC_EXTENSION_PATH
-    NAMES include/simulation_defines/param/components.param
+    NAMES include/picongpu/param/components.param
     PATHS "${CMAKE_CURRENT_SOURCE_DIR}"
     DOC "search PATH to extension folder"
     NO_DEFAULT_PATH
@@ -363,7 +363,7 @@ find_path(PIC_EXTENSION_PATH
     NO_CMAKE_SYSTEM_PATH
     )
 
-set(PIC_COPY_ON_INSTALL "include/picongpu/simulation_defines;etc/picongpu;lib"
+set(PIC_COPY_ON_INSTALL "include/picongpu;etc/picongpu;lib"
     CACHE LIST
     "Folders that are copied to installation path during install" )
 
@@ -472,7 +472,7 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin/" DESTINATION bin
 if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR
     (NOT EXISTS "${CMAKE_INSTALL_PREFIX}/include"))
 
-    #copy all important subfolders to install folder
+    # copy all important subfolders to install folder
     foreach(dir ${PIC_COPY_ON_INSTALL})
 
       #if source not exists than copy

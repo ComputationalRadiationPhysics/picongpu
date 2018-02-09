@@ -93,6 +93,18 @@ if [ -d "$src_path/include/picongpu" ] ; then
     src_path="$src_path"
 fi
 
+# legacy check: we removed simulation_defines/ after PIConGPU 0.3.X
+if [ -d "$src_path/include/picongpu/simulation_defines" ]; then
+    echo "ERROR: simulation_defines/ directory found in source!" >&2
+    echo "       Please update your input directory to the new structure!" >&2
+    exit 3
+fi
+if [ -d "$dst_path/include/picongpu/simulation_defines" ]; then
+    echo "ERROR: simulation_defines/ directory found in destination!" >&2
+    echo "       Please update your input directory to the new structure!" >&2
+    exit 4
+fi
+
 if [ -d "$dst_path" ] && [ "$force_param" -eq 0 ] ; then
     echo "$dst_path already exists!" >&2
     read -e -p "Merge data into $dst_path [yes|NO]? : " input

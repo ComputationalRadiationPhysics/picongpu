@@ -1,0 +1,65 @@
+/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * only PIConGPU programmers should change this file
+ *
+ * for examples use extensionParam.loader
+ */
+#pragma once
+
+#include "picongpu/param/dimension.param"
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/param/mallocMC.param"
+#endif
+#include "picongpu/param/memory.param"
+#include "picongpu/param/seed.param"
+#include "picongpu/param/precision.param"
+#include "picongpu/param/physicalConstants.param"
+#include "picongpu/param/flylite.param"
+#include "picongpu/param/speciesConstants.param"
+#include "picongpu/param/speciesAttributes.param"
+#include "picongpu/param/synchrotronPhotons.param"
+#include "picongpu/param/grid.param"
+#include "picongpu/param/pusher.param"
+#include "picongpu/param/ionizer.param"
+#include "picongpu/param/ionizationEnergies.param"
+#include "picongpu/param/density.param"
+#include "picongpu/param/particle.param"
+#include "picongpu/param/unit.param"
+#include "picongpu/param/particleFilters.param"
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/param/bremsstrahlung.param"
+#endif
+#include "picongpu/param/radiation.param"
+#include "picongpu/param/species.param"
+#include "picongpu/param/speciesDefinition.param"
+#include "picongpu/param/speciesInitialization.param"
+#include "picongpu/param/laser.param"
+#include "picongpu/param/fieldSolver.param"
+#include "picongpu/param/fieldBackground.param"
+
+#include "picongpu/param/fileOutput.param"
+#include "picongpu/param/visColorScales.param"
+#include "picongpu/param/visualization.param"
+#include "picongpu/param/particleCalorimeter.param"
+#include "picongpu/param/isaac.param"
+#include "picongpu/param/radiationObserver.param"
+#include "picongpu/param/particleMerger.param"

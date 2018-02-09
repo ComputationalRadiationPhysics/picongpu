@@ -8,7 +8,7 @@ fieldBackground.param
 
 .. doxygenfile:: fieldBackground.param
    :project: PIConGPU
-   :path: include/picongpu/simulation_defines/param/fieldBackground.param
+   :path: include/picongpu/param/fieldBackground.param
    :no-link:
 
 bremsstrahlung.param
@@ -16,7 +16,7 @@ bremsstrahlung.param
 
 .. doxygenfile:: bremsstrahlung.param
    :project: PIConGPU
-   :path: include/picongpu/simulation_defines/param/bremsstrahlung.param
+   :path: include/picongpu/param/bremsstrahlung.param
    :no-link:
 
 synchrotronPhotons.param
@@ -24,7 +24,7 @@ synchrotronPhotons.param
 
 .. doxygenfile:: synchrotronPhotons.param
    :project: PIConGPU
-   :path: include/picongpu/simulation_defines/param/synchrotronPhotons.param
+   :path: include/picongpu/param/synchrotronPhotons.param
    :no-link:
 
 ionizer.param
@@ -32,7 +32,7 @@ ionizer.param
 
 .. doxygenfile:: ionizer.param
    :project: PIConGPU
-   :path: include/picongpu/simulation_defines/param/ionizer.param
+   :path: include/picongpu/param/ionizer.param
    :no-link:
 
 ionizationEnergies.param
@@ -40,7 +40,7 @@ ionizationEnergies.param
 
 .. doxygenfile:: ionizationEnergies.param
    :project: PIConGPU
-   :path: include/picongpu/simulation_defines/param/ionizationEnergies.param
+   :path: include/picongpu/param/ionizationEnergies.param
    :no-link:
 
 flylite.param
@@ -48,5 +48,5 @@ flylite.param
 
 .. doxygenfile:: flylite.param
    :project: PIConGPU
-   :path: include/picongpu/simulation_defines/param/flylite.param
+   :path: include/picongpu/param/flylite.param
    :no-link:

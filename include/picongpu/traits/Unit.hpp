@@ -33,7 +33,7 @@ namespace traits
      *
      * Unitless identifies, see \UnitDimension, can still be scaled by a
      * factor. If they are not scaled, implement the unit as 1.0;
-     * \see simulation_defines/unitless/speciesAttributes.unitless
+     * \see unitless/speciesAttributes.unitless
      */
     template<typename T_Identifier>
     struct Unit;
