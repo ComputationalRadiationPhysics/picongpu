@@ -277,6 +277,7 @@ endif()
 # Boost 1.55 added support for a define that makes result_of look for
 # the result<> template and falls back to decltype if none is found. This is
 # great for the transition from the "wrong" usage to the "correct" one as
+message(STATUS "Boost: result_of with TR1 style and decltype fallback")
 set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
 
 # Boost >= 1.60.0 and CUDA != 7.5 failed when used with C++11
@@ -290,6 +291,8 @@ if( (Boost_VERSION GREATER 105999) AND
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    message(STATUS "Boost: Disable variadic templates")
+    message(STATUS "Boost: Do not use fenv.h from standard library")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_VARIADIC_TEMPLATES")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_FENV_H")
@@ -297,6 +300,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # suppress boost error
     # 'no member named "impl" in "boost::detail::thread_move_t<boost::detail::nullary_function<void ()> >"'
     # in 'boost/thread/detail/nullary_function.hpp'
+    message(STATUS "Boost: Do not use C++11 smart pointers from standard library")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_SMART_PTR")
 endif()
 
@@ -306,6 +310,7 @@ endif()
 if( ("${PMACC_CUDA_COMPILER}" STREQUAL "nvcc") AND
     (Boost_VERSION EQUAL 106400) AND
     (CUDA_VERSION VERSION_EQUAL 8.0) )
+    message(STATUS "Boost: Disable C++11 noexcept")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_NOEXCEPT")
 endif()
 

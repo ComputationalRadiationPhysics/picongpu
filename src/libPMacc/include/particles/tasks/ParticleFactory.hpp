@@ -68,7 +68,7 @@ namespace PMacc
 
     private:
 
-        friend class detail::Environment;
+        friend struct detail::Environment;
 
         /**
          * returns the instance of this factory

@@ -229,6 +229,22 @@ private:
                 << std::endl;
             throw std::runtime_error(msg.str());
         }
+        if(this->minEnergy < float_X(0.0))
+        {
+            std::stringstream msg;
+            msg << "[Plugin] [" << this->prefix
+                << "] minEnergy can not be negative."
+                << std::endl;
+            throw std::runtime_error(msg.str());
+        }
+        if(this->logScale && this->minEnergy == float_X(0.0))
+        {
+            std::stringstream msg;
+            msg << "[Plugin] [" << this->prefix
+                << "] minEnergy can not be zero in logarithmic scaling."
+                << std::endl;
+            throw std::runtime_error(msg.str());
+        }
         if(this->numBinsEnergy > 1 && this->maxEnergy <= this->minEnergy)
         {
             std::stringstream msg;
