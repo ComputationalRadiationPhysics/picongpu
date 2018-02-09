@@ -24,7 +24,7 @@
 # PMacc tests
 ################################################################################
 
-cmake_minimum_required(VERSION 3.7.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(PMaccTest)
 
 # set helper pathes to find libraries and packages

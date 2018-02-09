@@ -48,7 +48,7 @@ gcc
 
 CMake
 """""
-- 3.7.0 or higher
+- 3.10.0 or higher
 - *Debian/Ubuntu:* ``sudo apt-get install cmake file cmake-curses-gui``
 - *Arch Linux:* ``sudo pacman --sync cmake``
 - *Spack:* ``spack install cmake``
@@ -171,12 +171,12 @@ pngwriter
 
   - *environment:* (assumes install from source in ``$HOME/lib/pngwriter``)
 
-    - ``export PNGWRITER_ROOT=$HOME/lib/pngwriter``
-    - ``export LD_LIBRARY_PATH=$PNGWRITER_ROOT/lib:$LD_LIBRARY_PATH``
+    - ``export CMAKE_PREFIX_PATH=$HOME/lib/pngwriter:$CMAKE_PREFIX_PATH``
+    - ``export LD_LIBRARY_PATH=$HOME/lib/pngwriter/lib:$LD_LIBRARY_PATH``
 
 libSplash
 """""""""
-- 1.6.0+ (requires *HDF5*, *boost program-options*)
+- 1.7.0+ (requires *HDF5*, *boost program-options*)
 - *Debian/Ubuntu dependencies:* ``sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev``
 - *Arch Linux dependencies:* ``sudo pacman --sync hdf5-openmpi boost``
 - *Spack:* ``spack install libsplash ^hdf5~fortran``
@@ -185,13 +185,13 @@ libSplash
   - ``mkdir -p ~/src ~/build ~/lib``
   - ``git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/``
   - ``cd ~/build``
-  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash ~/src/splash``
+  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash -DSplash_USE_MPI=ON -DSplash_USE_PARALLE=ON ~/src/splash``
   - ``make install``
 
 - *environment:* (assumes install from source in ``$HOME/lib/splash``)
 
-  - ``export SPLASH_ROOT=$HOME/lib/splash``
-  - ``export LD_LIBRARY_PATH=$SPLASH_ROOT/lib:$LD_LIBRARY_PATH``
+  - ``export CMAKE_PREFIX_PATH=$HOME/lib/splash:$CMAKE_PREFIX_PATH``
+  - ``export LD_LIBRARY_PATH=$HOME/lib/splash/lib:$LD_LIBRARY_PATH``
 
 HDF5
 """"

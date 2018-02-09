@@ -448,7 +448,7 @@ public:
 
         /* load number of slides to initialize MovingWindow */
         uint32_t slides = 0;
-        mThreadParams.dataCollector->readAttribute(restartStep, nullptr, "sim_slides", &slides);
+        mThreadParams.dataCollector->readAttributeInfo(restartStep, nullptr, "sim_slides").read(&slides, sizeof(slides));
 
         /* apply slides to set gpus to last/written configuration */
         log<picLog::INPUT_OUTPUT > ("HDF5 setting slide count for moving window to %1%") % slides;

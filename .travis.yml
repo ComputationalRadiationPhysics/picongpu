@@ -36,17 +36,11 @@ install:
       mkdir -p $SPACK_ROOT &&
       git clone --depth 50 https://github.com/spack/spack.git $SPACK_ROOT &&
       echo -e "config:""\n  build_jobs:"" 2" > $SPACK_ROOT/etc/spack/config.yaml;
-      echo -e "packages:""\n  cmake:"
-              "\n    paths:"
-              "\n      cmake@3.9.2$COMPILERSPEC arch=linux-ubuntu14.04-x86_64:"
-              " $(dirname $(which cmake))"
-              "\n    buildable:"" False" > $SPACK_ROOT/etc/spack/packages.yaml;
     fi
   - spack compiler add
   - travis_wait spack install
-      cmake@3.9.2
+      cmake@3.10.0~openssl~ncurses
       $COMPILERSPEC
-      # ~openssl~ncurses
   - travis_wait spack install
       boost@1.62.0~date_time~graph~iostreams~locale~log~random~thread~timer~wave
       $COMPILERSPEC
