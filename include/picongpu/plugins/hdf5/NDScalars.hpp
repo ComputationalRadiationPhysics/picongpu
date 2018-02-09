@@ -120,7 +120,7 @@ struct ReadNDScalars
         if(!attrName.empty())
         {
             log<picLog::INPUT_OUTPUT>("HDF5: read attribute %1% for scalars: %2%") % attrName % name;
-            params.dataCollector->readAttribute(params.currentStep, name.c_str(), attrName.c_str(), attribute);
+            params.dataCollector->readAttributeInfo(params.currentStep, name.c_str(), attrName.c_str()).read(attribute, sizeof(T_Attribute));
             log<picLog::INPUT_OUTPUT>("HDF5: attribute %1% = %2%") % attrName % *attribute;
         }
     }

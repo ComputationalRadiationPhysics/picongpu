@@ -232,8 +232,7 @@ void ToolsSplashParallel::convertToText()
     DomainCollector::DomDataClass ref_data_class = DomainCollector::UndefinedType;
     try
     {
-        dc.readAttribute(m_options.step, m_options.data[0].c_str(), DOMCOL_ATTR_CLASS,
-                &ref_data_class, nullptr);
+        dc.readAttributeInfo(m_options.step, m_options.data[0].c_str(), DOMCOL_ATTR_CLASS).read(&ref_data_class, sizeof(ref_data_class));
     } catch (const DCException&)
     {
         errorStream << "Error: No domain information for dataset '" << m_options.data[0] << "' available." << std::endl;
@@ -265,8 +264,7 @@ void ToolsSplashParallel::convertToText()
         //
 
         DomainCollector::DomDataClass data_class = DomainCollector::UndefinedType;
-        dc.readAttribute(m_options.step, iter->c_str(), DOMCOL_ATTR_CLASS,
-                &data_class, nullptr);
+        dc.readAttributeInfo(m_options.step, iter->c_str(), DOMCOL_ATTR_CLASS).read(&data_class, sizeof(data_class));
         if (data_class != ref_data_class)
             throw std::runtime_error("All requested datasets must be of the same data class");
 
@@ -311,8 +309,7 @@ void ToolsSplashParallel::convertToText()
         {
             try
             {
-                dc.readAttribute(m_options.step, iter->c_str(), "unitSI",
-                        &(excontainer.unit), nullptr);
+                dc.readAttribute(m_options.step, iter->c_str(), "unitSI").read(&(excontainer.unit), sizeof(excontainer.unit));
             } catch (const DCException&)
             {
                 if (m_options.verbose)
