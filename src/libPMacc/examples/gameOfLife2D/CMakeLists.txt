@@ -108,7 +108,7 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES})
 ################################################################################
 
 # find PNGwriter installation
-find_package(PNGwriter 0.5.6 REQUIRED)
+find_package(PNGwriter 0.6.0 EXACT REQUIRED)
 
 if(PNGwriter_FOUND)
     include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})

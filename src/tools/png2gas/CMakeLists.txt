@@ -98,7 +98,7 @@ endif()
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.6.0 REQUIRED COMPONENTS PARALLEL)
+find_package(Splash 1.6.0 EXACT REQUIRED COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
@@ -113,7 +113,7 @@ endif(Splash_FOUND)
 ################################################################################
 
 # find PNGwriter installation
-find_package(PNGwriter 0.6.0 REQUIRED)
+find_package(PNGwriter 0.6.0 EXACT REQUIRED)
 
 if(PNGwriter_FOUND)
     include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})
