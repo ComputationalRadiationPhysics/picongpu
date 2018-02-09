@@ -291,7 +291,7 @@ public:
             dc.share( std::shared_ptr< ISimulationData >( newFld ) );
         }
         pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
-        currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
+        currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER > (*cellDescription);
 
         laser = new LaserPhysics(cellDescription->getGridLayout());
 
@@ -738,7 +738,7 @@ protected:
     fieldSolver::CurrentInterpolation* myCurrentInterpolation;
 
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
-    cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* currentBGField;
+    cellwiseOperation::CellwiseOperation< CORE + BORDER >* currentBGField;
 
     LaserPhysics *laser;
 
