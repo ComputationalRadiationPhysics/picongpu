@@ -135,7 +135,7 @@ struct KernelFillGapsLastFrame
                 uint32_t const
             )
             {
-                lastFrame = pb.getLastFrame( DataSpace< dim >( superCellIdx ) );
+                lastFrame = pb.getLastFrame( superCellIdx );
                 counterGaps = 0;
                 counterParticles = 0;
                 srcGap = 0;
@@ -324,8 +324,8 @@ struct KernelFillGaps
                 uint32_t const
             )
             {
-                firstFrame = pb.getFirstFrame( DataSpace< dim >(superCellIdx) );
-                lastFrame = pb.getLastFrame( DataSpace< dim >(superCellIdx) );
+                firstFrame = pb.getFirstFrame( superCellIdx );
+                lastFrame = pb.getLastFrame( superCellIdx );
             }
         );
 
@@ -512,7 +512,7 @@ struct KernelShiftParticles
         using FrameType = typename ParBox::FrameType;
         using FramePtr = typename ParBox::FramePtr;
 
-        constexpr uint32_t dim = Mapping::Dim;
+        PMACC_CONSTEXPR_CAPTURE uint32_t dim = Mapping::Dim;
         constexpr uint32_t frameSize = math::CT::volume< typename FrameType::SuperCellSize >::type::value;
         /* number exchanges in 2D=9 and in 3D=27 */
         constexpr uint32_t numExchanges = traits::NumberOfExchanges< dim >::value;
@@ -962,7 +962,7 @@ struct KernelCopyGuardToExchange
         using namespace particles::operations;
         using namespace mappings::threads;
 
-        constexpr uint32_t dim = T_Mapping::Dim;
+        PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
         constexpr uint32_t frameSize = math::CT::volume< typename T_ParBox::FrameType::SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 
@@ -1180,7 +1180,7 @@ struct KernelInsertParticles
         using namespace particles::operations;
         using namespace mappings::threads;
 
-        constexpr uint32_t dim = T_Mapping::Dim;
+        PMACC_CONSTEXPR_CAPTURE uint32_t dim = T_Mapping::Dim;
         constexpr uint32_t frameSize = math::CT::volume< typename T_ParBox::FrameType::SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 

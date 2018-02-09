@@ -85,7 +85,7 @@ namespace operations
             // number of cells in a superCell
             constexpr uint32_t numCells = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
-            constexpr int dim = T_Mapping::Dim;
+            PMACC_CONSTEXPR_CAPTURE int dim = T_Mapping::Dim;
 
             uint32_t const workerIdx = threadIdx.x;
 
