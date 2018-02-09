@@ -135,7 +135,7 @@ struct KernelFillGapsLastFrame
                 uint32_t const
             )
             {
-                lastFrame = pb.getLastFrame( DataSpace< dim >( superCellIdx ) );
+                lastFrame = pb.getLastFrame( superCellIdx );
                 counterGaps = 0;
                 counterParticles = 0;
                 srcGap = 0;
@@ -324,8 +324,8 @@ struct KernelFillGaps
                 uint32_t const
             )
             {
-                firstFrame = pb.getFirstFrame( DataSpace< dim >(superCellIdx) );
-                lastFrame = pb.getLastFrame( DataSpace< dim >(superCellIdx) );
+                firstFrame = pb.getFirstFrame( superCellIdx );
+                lastFrame = pb.getLastFrame( superCellIdx );
             }
         );
 
