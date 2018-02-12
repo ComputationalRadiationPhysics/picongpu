@@ -44,6 +44,7 @@ Installation
    install/instructions
    install/dependencies
    install/profile
+   install/changelog.md
 
 *****
 Usage
