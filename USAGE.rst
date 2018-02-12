@@ -2,7 +2,7 @@
 
 .. seealso::
 
-   You need to have an :ref:`environment loaded <install-profile>` (``. $HOME/picongpu.profile``) that provides all :ref:`PIConGPU dependencies <install-dependencies>` to complete this chapter.
+   You need to have an :ref:`environment loaded <install-profile>` (``source $HOME/picongpu.profile``) that provides all :ref:`PIConGPU dependencies <install-dependencies>` to complete this chapter.
 
 Basics
 ======
