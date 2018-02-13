@@ -14,7 +14,7 @@ Ideally, store that file directly in your ``$HOME/`` and source it after connect
 
 .. code-block:: bash
 
-   . $HOME/picongpu.profile
+   source $HOME/picongpu.profile
 
 We listed some example ``picongpu.profile`` files below which can be used to set up PIConGPU's dependencies on various HPC systems.
 
