@@ -6,14 +6,15 @@ Authors: Sebastian Starke
 License: GPLv3+
 """
 
-from picongpu.plugins.phase_space import PhaseSpace
-
-import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
 
+from picongpu.plugins.phase_space import PhaseSpace
+from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
+    BaseVisualizer, plt
 
-class Visualizer(object):
+
+class Visualizer(BaseVisualizer):
     """
     Class for creating a matplotlib plot of phase space diagrams.
     """
@@ -26,62 +27,58 @@ class Visualizer(object):
             path to the run directory of PIConGPU
             (the path before ``simOutput/``)
         """
-        if run_directory is None:
-            raise ValueError('The run_directory parameter can not be None!')
-
-        # initialize the data-reader
-        self.phase_space = PhaseSpace(run_directory)
-        self.plt_obj = None
+        super(Visualizer, self).__init__(run_directory)
 
         # for unit-conversion from SI (taken from picongpu readthedocs)
         self.mu = 1.e6
         self.e_mc_r = 1. / (9.1e-31 * 2.9979e8)
 
-    def visualize(self, iteration, ax, species='e', species_filter='all',
-                  ps='ypy', **kwargs):
+    def _create_data_reader(self, run_directory):
+        return PhaseSpace(run_directory)
+
+    def _create_plt_obj(self, ax):
+        self.plt_obj = ax.imshow(
+            np.array([[]]),
+            interpolation='nearest',
+            aspect='auto',
+            origin='lower',
+            norm=LogNorm()
+        )
+
+    def _update_plt_obj(self):
+        dat, meta = self.data
+        self.plt_obj.set_data(np.abs(dat).T * meta.dV)
+
+        self.plt_obj.set_extent(
+            meta.extent * [self.mu, self.mu, self.e_mc_r, self.e_mc_r])
+
+    def visualize(self, ax=plt.gca(), **kwargs):
         """
         Creates a phase space plot on the provided axes object for
         the data of the given iteration using matpotlib.
 
         Parameters
         ----------
-        iteration: int
-            the iteration number for which data will be plotted.
         ax: matplotlib axes object
             the part of the figure where this plot will be shown.
-        species : string
-            short name of the particle species, e.g. 'e' for electrons
-            (defined in ``speciesDefinition.param``)
-        species_filter: string
-            name of the particle species filter, default is 'all'
-            (defined in ``particleFilters.param``)
-        ps : string
-            phase space selection in order: spatial, momentum component,
-            e.g. 'ypy' or 'ypx'
-        kwargs: dict
-            possible additional keyword args (e.g. for styling).
-            NOTE: no options from this parameter are considered yet!
+        kwargs: dict with possible additional keyword args. Valid are:
+            iteration: int
+                the iteration number for which data will be plotted.
+            species : string
+                short name of the particle species, e.g. 'e' for electrons
+                (defined in ``speciesDefinition.param``)
+            species_filter: string
+                name of the particle species filter, default is 'all'
+                (defined in ``particleFilters.param``)
+            ps : string
+                phase space selection in order: spatial, momentum component,
+                e.g. 'ypy' or 'ypx'
         """
-        data, meta = self.phase_space.get(
-            species=species,
-            species_filter=species_filter,
-            ps=ps,
-            iteration=iteration)
-
-        if self.plt_obj is None:
-            self.plt_obj = ax.imshow(
-                np.abs(data).T * meta.dV,
-                extent=meta.extent *
-                [self.mu, self.mu, self.e_mc_r, self.e_mc_r],
-                interpolation='nearest',
-                aspect='auto',
-                origin='lower',
-                norm=LogNorm()
-            )
-        else:
-            self.plt_obj.set_data(np.abs(data).T * meta.dV)
+        super(Visualizer, self).visualize(ax, **kwargs)
 
         # prevent multiple rendering of colorbar
+        _, meta = self.data
+
         if not self.plt_obj.colorbar:
             cbar = plt.colorbar(self.plt_obj, ax=ax)
             cbar.set_label(
@@ -153,7 +150,7 @@ if __name__ == '__main__':
             print("Momentum term was not given, will use", momentum)
 
         fig, ax = plt.subplots(1, 1)
-        Visualizer(path).visualize(iteration, ax, species=species,
+        Visualizer(path).visualize(ax, iteration=iteration, species=species,
                                    species_filter=filtr, ps=momentum)
         plt.show()
 
