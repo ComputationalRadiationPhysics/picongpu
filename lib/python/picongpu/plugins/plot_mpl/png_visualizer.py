@@ -7,11 +7,14 @@ License: GPLv3+
 """
 
 import os
-import matplotlib.pyplot as plt
+import numpy as np
 import matplotlib.image as mpimg
+from picongpu.plugins.png import PNG
+from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
+    BaseVisualizer, plt
 
 
-class Visualizer(object):
+class Visualizer(BaseVisualizer):
     """
     Class for providing a plot of a PNG file using matplotlib.
     """
@@ -24,62 +27,50 @@ class Visualizer(object):
             path to the run directory of PIConGPU
             (the path before ``simOutput/``)
         """
-        if run_directory is None:
-            raise ValueError('The run_directory parameter can not be None!')
+        super(Visualizer, self).__init__(run_directory)
 
-        self.run_directory = run_directory
-        self.png_subdir = "simOutput/pngElectronsYX"
-        self.plt_obj = None
+    def _create_data_reader(self, run_directory):
+        return PNG(run_directory)
 
-    def get_data_path(self):
-        return os.path.join(self.run_directory, self.png_subdir)
+    def _create_plt_obj(self, ax):
+        self.plt_obj = ax.imshow(
+            np.array([[]])
+        )
 
-    def visualize(self, iteration, ax, **kwargs):
+    def _update_plt_obj(self):
+        self.plt_obj.set_data(self.data)
+
+    def visualize(self, ax, **kwargs):
         """
         Creates a plot on the provided axes object for
         the PNG file of the given iteration using matpotlib.
 
         Parameters
         ----------
-        iteration: int
-            the iteration number for which data will be plotted.
         ax: matplotlib axes object
             the part of the figure where this plot will be shown.
         kwargs: dict
-            possible additional keyword args (e.g. for styling).
-            NOTE: no options from this parameter are considered yet!
+            additional keyword args. Necessary are the following:
+            species : string
+                short name of the particle species, e.g. 'e' for electrons
+                (defined in ``speciesDefinition.param``)
+            species_filter: string
+                name of the particle species filter, default is 'all'
+                (defined in ``particleFilters.param``)
+            axis: string
+                the coordinate system axis labels (e.g. 'yx' or 'yz')
+            slice_point: float
+                relative offset in the third axis not given in the axis\
+                argument.\
+                Should be between 0 and 1
+            iteration: int or list of ints
+                The iteration at which to read the data.
+                if set to 'None', then return images for all available\
+                    iterations
+
+
         """
-        # get the available png files
-        png_path = self.get_data_path()
-        # list with complete path for all png images
-        png_files = [os.path.join(png_path, f)
-                     for f in os.listdir(png_path) if f.endswith(".png")]
-
-        # make sure they are in correct timely order
-        png_files = sorted(png_files)
-
-        # find the png file that matches the current iteration number
-        img_file = ""
-        for png in png_files:
-            # take only filename without path (e.g. 'e_png_yx_0.5_001024.png')
-            tmp = os.path.basename(png)
-            # split the iteration number from the filename
-            png_iter = int(tmp.split("_")[4].split(".")[0])
-            if iteration == png_iter:
-                img_file = png
-
-        if img_file:
-            img = mpimg.imread(img_file)
-
-            # on first plotting command the object is created
-            # afterwards, only data is updated
-            if self.plt_obj is None:
-                self.plt_obj = ax.imshow(img)
-            else:
-                self.plt_obj.set_data(img)
-
-        else:
-            print("Could not find png_file for iteration ", iteration)
+        super(Visualizer, self).visualize(ax, **kwargs)
 
 
 if __name__ == '__main__':
@@ -93,14 +84,21 @@ if __name__ == '__main__':
             print("usage:")
             print(
                 "python", sys.argv[0],
-                "-p <path to run directory> -i <iteration>")
+                "-p <path to run directory> -i <iteration>"
+                " -s <particle species> -f <species filter>"
+                " -a <axis> -o <slice point offset>")
 
         path = None
         iteration = None
+        species = None
+        filtr = None
+        axis = None
+        slice_point = None
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hp:i:", [
-                "help", "path", "iteration"])
+            opts, args = getopt.getopt(sys.argv[1:], "hp:i:s:f:a:o:", [
+                "help", "path", "iteration", "species", "filter", "axis",
+                "offset"])
         except getopt.GetoptError as err:
             print(err)
             usage()
@@ -114,15 +112,36 @@ if __name__ == '__main__':
                 path = arg
             elif opt in ["-i", "--iteration"]:
                 iteration = int(arg)
+            elif opt in ["-s", "--species"]:
+                species = arg
+            elif opt in ["-f", "--filter"]:
+                filtr = arg
+            elif opt in ["-a", "--axis"]:
+                axis = arg
+            elif opt in ["-o", "--offset"]:
+                slice_point = float(arg)
 
         # check that we got all args that we need
         if path is None or iteration is None:
             print("Path to 'run' directory and iteration have to be provided!")
             usage()
             sys.exit(2)
+        if species is None:
+            species = 'e'
+            print("Particle species was not given, will use", species)
+        if filtr is None:
+            filtr = 'all'
+            print("Species filter was not given, will use", filtr)
+        if axis is None:
+            axis = "yx"
+            print("Axis was not given, will use", axis)
+        if slice_point is None:
+            print("Offset was not given, will determine from file")
 
         fig, ax = plt.subplots(1, 1)
-        Visualizer(path).visualize(iteration, ax)
+        Visualizer(path).visualize(ax, iteration=iteration, species=species,
+                                   species_filter=filtr, axis=axis,
+                                   slice_point=slice_point)
         plt.show()
 
     main()
