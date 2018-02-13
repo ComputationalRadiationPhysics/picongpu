@@ -7,30 +7,30 @@ License: GPLv3+
 """
 
 from picongpu.plugins.energy_histogram import EnergyHistogram
-import matplotlib.pyplot as plt
+from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
+    BaseVisualizer, plt
 
 
-class Visualizer:
+class Visualizer(BaseVisualizer):
     """
     Class for creation of histogram plots on a logscaled y-axis.
     """
 
     def __init__(self, run_directory):
-        """
-        Parameters
-        ----------
-        run_directory : string
-            path to the run directory of PIConGPU
-            (the path before ``simOutput/``)
-        """
-        if run_directory is None:
-            raise ValueError('The run_directory parameter can not be None!')
+        super(Visualizer, self).__init__(run_directory)
 
-        self.energy_histogram = EnergyHistogram(run_directory)
-        self.plt_obj = None
+    def _create_data_reader(self, run_directory):
+        return EnergyHistogram(run_directory)
 
-    def visualize(self, iteration, ax, species='e', species_filter="all",
-                  **kwargs):
+    def _create_plt_obj(self, ax):
+
+        self.plt_obj = ax.semilogy([], [], nonposy='clip')[0]
+
+    def _update_plt_obj(self):
+        bins, counts = self.data
+        self.plt_obj.set_data(bins, counts)
+
+    def visualize(self, ax=plt.gca(), **kwargs):
         """
         Creates a semilogy plot on the provided axes object for
         the data of the given iteration using matpotlib.
@@ -41,28 +41,27 @@ class Visualizer:
             the iteration number for which data will be plotted.
         ax: matplotlib axes object
             the part of the figure where this plot will be shown.
-        species : string
-            short name of the particle species, e.g. 'e' for electrons
-            (defined in ``speciesDefinition.param``)
-        species_filter: string
-            name of the particle species filter, default is 'all'
-            (defined in ``particleFilters.param``)
-        kwargs: dict
-            possible additional keyword args to pass to the reader.
+        kwargs: dictionary with further keyword arguments, valid are:
+            species: string
+                short name of the particle species, e.g. 'e' for electrons
+                (defined in ``speciesDefinition.param``)
+            iteration: int
+                number of the iteration
+            species_filter: string
+                name of the particle species filter, default is 'all'
+                (defined in ``particleFilters.param``)
+
         """
 
-        counts, energy_bins = self.energy_histogram.get(
-            species=species,
-            species_filter=species_filter,
-            iteration=iteration,
-            **kwargs)
+        # this already throws error if no species or iteration in kwargs
+        super(Visualizer, self).visualize(ax, **kwargs)
+        iteration = kwargs.get('iteration')
+        species = kwargs.get('species')
+        species_filter = kwargs.get('species_filter', 'all')
 
-        # if it is the first time for plotting then object is
-        # created, otherwise only data is updated
-        if self.plt_obj is None:
-            self.plt_obj = ax.semilogy(energy_bins, counts, nonposy='clip')[0]
-        else:
-            self.plt_obj.set_data(energy_bins, counts)
+        if iteration is None or species is None:
+            raise ValueError("Iteration and species have to be provided as\
+            keyword arguments!")
 
         ax.set_xlabel('Energy [keV]')
         ax.set_ylabel('Count')
@@ -124,7 +123,7 @@ if __name__ == '__main__':
             print("Species filter was not given, will use", filtr)
 
         fig, ax = plt.subplots(1, 1)
-        Visualizer(path).visualize(iteration, ax, species=species,
+        Visualizer(path).visualize(ax, iteration=iteration, species=species,
                                    species_filter=filtr)
         plt.show()
 
