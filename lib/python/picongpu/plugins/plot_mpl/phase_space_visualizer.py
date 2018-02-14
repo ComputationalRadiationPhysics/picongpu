@@ -39,12 +39,13 @@ class Visualizer(BaseVisualizer):
     def _create_plt_obj(self, ax):
         dat, meta = self.data
         self.plt_obj = ax.imshow(
-        np.abs(dat).T * meta.dV,
-        extent=meta.extent * [self.mu, self.mu, self.e_mc_r, self.e_mc_r],
-        interpolation='nearest',
-        aspect='auto',
-        origin='lower',
-        norm=LogNorm())
+            np.abs(dat).T * meta.dV,
+            extent=meta.extent * [self.mu, self.mu, self.e_mc_r, self.e_mc_r],
+            interpolation='nearest',
+            aspect='auto',
+            origin='lower',
+            norm=LogNorm()
+        )
 
     def _update_plt_obj(self):
         dat, meta = self.data
@@ -76,7 +77,6 @@ class Visualizer(BaseVisualizer):
         super(Visualizer, self).visualize(ax, **kwargs)
 
         _, meta = self.data
-        species = kwargs.get('species')
         # prevent multiple rendering of colorbar
         if not self.plt_obj.colorbar:
             cbar = plt.colorbar(self.plt_obj, ax=ax)
