@@ -142,7 +142,7 @@ class PNG(object):
 
         Returns
         -------
-        A sorted array of unsigned integers.
+        A sorted list of unsigned integers.
         """
         # get the available png files in the directory
         png_path = self.get_data_path(
@@ -153,7 +153,7 @@ class PNG(object):
         # split iteration number from the filenames
         iters = [int(f.split("_")[4].split(".")[0]) for f in png_files]
 
-        return np.array(sorted(iters))
+        return sorted(iters)
 
     def get(self, species=None, species_filter='all', iteration=None,
             axis=None, slice_point=None, **kwargs):
@@ -179,15 +179,23 @@ class PNG(object):
 
         Returns
         -------
-        A (list of) numpy arrays with shape equal to the resolution of the png\
-        file for each iteration that was requested.
+        TODO
         """
+
+        print("called PNG.get() with parameters")
+        print("species=", species)
+        print("species_filter=", species_filter)
+        print("iteration=", iteration)
+        print("axis=", axis)
+        print("slice_point=", slice_point)
+        print("kwargs=", kwargs)
+
         available_iterations = self.get_iterations(
             species, species_filter, axis, slice_point)
 
         if iteration is not None:
             if not isinstance(iteration, collections.Iterable):
-                iteration = np.array([iteration])
+                iteration = [iteration]
             # verify requested iterations exist
             if not set(iteration).issubset(available_iterations):
                 raise IndexError('Iteration {} is not available!\n'
@@ -197,8 +205,12 @@ class PNG(object):
             # iteration is None, so we use all available data
             iteration = available_iterations
 
-        return [
+        imgs = {it:
             mpimg.imread(
                 self.get_data_path(species, species_filter, axis, slice_point,
                                    it)) for it in iteration
-        ]
+        }
+        if len(iteration) == 1:
+            return imgs[iteration[0]]
+        else:
+            return imgs
