@@ -179,17 +179,11 @@ class PNG(object):
 
         Returns
         -------
-        TODO
+        A dictionary mapping iteration number to numpy array representation of
+        the corresponding png file if multiple iterations were requested.
+        Otherwise a single nump array representation for the requested\
+        iteration.
         """
-
-        print("called PNG.get() with parameters")
-        print("species=", species)
-        print("species_filter=", species_filter)
-        print("iteration=", iteration)
-        print("axis=", axis)
-        print("slice_point=", slice_point)
-        print("kwargs=", kwargs)
-
         available_iterations = self.get_iterations(
             species, species_filter, axis, slice_point)
 
@@ -205,11 +199,9 @@ class PNG(object):
             # iteration is None, so we use all available data
             iteration = available_iterations
 
-        imgs = {it:
-            mpimg.imread(
-                self.get_data_path(species, species_filter, axis, slice_point,
-                                   it)) for it in iteration
-        }
+        imgs = {it: mpimg.imread(
+            self.get_data_path(species, species_filter, axis,
+                               slice_point, it)) for it in iteration}
         if len(iteration) == 1:
             return imgs[iteration[0]]
         else:
