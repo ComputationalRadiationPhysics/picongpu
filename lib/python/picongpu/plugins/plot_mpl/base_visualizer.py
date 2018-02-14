@@ -29,7 +29,7 @@ class Visualizer(object):
         """
         raise NotImplementedError
 
-    def visualize(self, ax=plt.gca(), **kwargs):
+    def visualize(self, ax, **kwargs):
         """
         1. Creates the 'plt_obj' if it does not exist
         2. Fills the 'data' parameter by using the reader

@@ -30,7 +30,7 @@ class Visualizer(BaseVisualizer):
         bins, counts = self.data
         self.plt_obj.set_data(bins, counts)
 
-    def visualize(self, ax=plt.gca(), **kwargs):
+    def visualize(self, ax, **kwargs):
         """
         Creates a semilogy plot on the provided axes object for
         the data of the given iteration using matpotlib.
