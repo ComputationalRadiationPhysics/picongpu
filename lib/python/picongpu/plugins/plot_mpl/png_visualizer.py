@@ -65,8 +65,6 @@ class Visualizer(BaseVisualizer):
                 The iteration at which to read the data.
                 if set to 'None', then return images for all available\
                     iterations
-
-
         """
         super(Visualizer, self).visualize(ax, **kwargs)
 

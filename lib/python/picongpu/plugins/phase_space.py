@@ -217,14 +217,6 @@ class PhaseSpace(object):
 
         @todo if iteration is a list, return a dict
         """
-
-        print("called PhaseSpace.get() with")
-        print("species = ", species)
-        print("species_filter = ", species_filter)
-        print("iteration = ", iteration)
-        print("ps = ", ps)
-        print("kwargs = ", kwargs)
-
         if iteration is None:
             raise ValueError('The iteration needs to be set!')
 
