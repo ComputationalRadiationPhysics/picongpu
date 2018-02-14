@@ -29,15 +29,24 @@ class Visualizer(object):
         """
         raise NotImplementedError
 
-    def visualize(self, ax, **kwargs):
+    def _ax_or_gca(self, ax):
+        """
+        Returns the passed ax if it is not None or the current
+        matplotlib axes object otherwise.
+        """
+
+        return ax or plt.gca()
+
+    def visualize(self, ax=None, **kwargs):
         """
         1. Creates the 'plt_obj' if it does not exist
         2. Fills the 'data' parameter by using the reader
         3. Updates the 'plt_obj' with the new data.
         """
-
-        self.data = self.data_reader.get(**kwargs)
+        if ax is None:
+            raise ValueError("A matplotlib axes object needs to be passed!")
         
+        self.data = self.data_reader.get(**kwargs)
         if self.plt_obj is None:
             self._create_plt_obj(ax)
         else:

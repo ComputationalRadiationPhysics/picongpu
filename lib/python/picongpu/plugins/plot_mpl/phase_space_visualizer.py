@@ -50,7 +50,7 @@ class Visualizer(BaseVisualizer):
         dat, meta = self.data
         self.plt_obj.set_data(np.abs(dat).T * meta.dV)
 
-    def visualize(self, ax, **kwargs):
+    def visualize(self, ax=None, **kwargs):
         """
         Creates a phase space plot on the provided axes object for
         the data of the given iteration using matpotlib.
@@ -72,6 +72,7 @@ class Visualizer(BaseVisualizer):
                 phase space selection in order: spatial, momentum component,
                 e.g. 'ypy' or 'ypx'
         """
+        ax = self._ax_or_gca(ax)
         super(Visualizer, self).visualize(ax, **kwargs)
 
         _, meta = self.data

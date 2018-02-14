@@ -30,7 +30,7 @@ class Visualizer(BaseVisualizer):
         bins, counts = self.data
         self.plt_obj.set_data(bins, counts)
 
-    def visualize(self, ax, **kwargs):
+    def visualize(self, ax=None, **kwargs):
         """
         Creates a semilogy plot on the provided axes object for
         the data of the given iteration using matpotlib.
@@ -52,7 +52,7 @@ class Visualizer(BaseVisualizer):
                 (defined in ``particleFilters.param``)
 
         """
-
+        ax=self._ax_or_gca(ax)
         # this already throws error if no species or iteration in kwargs
         super(Visualizer, self).visualize(ax, **kwargs)
         iteration = kwargs.get('iteration')

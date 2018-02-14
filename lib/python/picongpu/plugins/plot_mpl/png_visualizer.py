@@ -37,7 +37,7 @@ class Visualizer(BaseVisualizer):
     def _update_plt_obj(self):
         self.plt_obj.set_data(self.data)
 
-    def visualize(self, ax, **kwargs):
+    def visualize(self, ax=None, **kwargs):
         """
         Creates a plot on the provided axes object for
         the PNG file of the given iteration using matpotlib.
@@ -65,6 +65,7 @@ class Visualizer(BaseVisualizer):
                 if set to 'None', then return images for all available\
                     iterations
         """
+        ax = self._ax_or_gca(ax)
         super(Visualizer, self).visualize(ax, **kwargs)
 
 
