@@ -23,8 +23,8 @@ class Visualizer(BaseVisualizer):
         return EnergyHistogram(run_directory)
 
     def _create_plt_obj(self, ax):
-
-        self.plt_obj = ax.semilogy([], [], nonposy='clip')[0]
+        bins, counts = self.data
+        self.plt_obj = ax.semilogy(bins, counts, nonposy='clip')[0]
 
     def _update_plt_obj(self):
         bins, counts = self.data

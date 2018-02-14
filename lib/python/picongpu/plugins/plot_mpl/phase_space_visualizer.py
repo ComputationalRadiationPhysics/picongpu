@@ -37,20 +37,18 @@ class Visualizer(BaseVisualizer):
         return PhaseSpace(run_directory)
 
     def _create_plt_obj(self, ax):
+        dat, meta = self.data
         self.plt_obj = ax.imshow(
-            np.array([[]]),
-            interpolation='nearest',
-            aspect='auto',
-            origin='lower',
-            norm=LogNorm()
-        )
+        np.abs(dat).T * meta.dV,
+        extent=meta.extent * [self.mu, self.mu, self.e_mc_r, self.e_mc_r],
+        interpolation='nearest',
+        aspect='auto',
+        origin='lower',
+        norm=LogNorm())
 
     def _update_plt_obj(self):
         dat, meta = self.data
         self.plt_obj.set_data(np.abs(dat).T * meta.dV)
-
-        self.plt_obj.set_extent(
-            meta.extent * [self.mu, self.mu, self.e_mc_r, self.e_mc_r])
 
     def visualize(self, ax=plt.gca(), **kwargs):
         """
@@ -76,9 +74,9 @@ class Visualizer(BaseVisualizer):
         """
         super(Visualizer, self).visualize(ax, **kwargs)
 
-        # prevent multiple rendering of colorbar
         _, meta = self.data
-
+        species = kwargs.get('species')
+        # prevent multiple rendering of colorbar
         if not self.plt_obj.colorbar:
             cbar = plt.colorbar(self.plt_obj, ax=ax)
             cbar.set_label(
@@ -87,8 +85,7 @@ class Visualizer(BaseVisualizer):
 
         ax.set_xlabel(r'${0}$ [${1}$]'.format(meta.r, "\mathrm{\mu m}"))
         ax.set_ylabel(
-            r'$p_{0}$ [$\beta\gamma m_\mathrm{species} / m_\mathrm{e}$]'.format
-            (meta.p))
+            r'$p_{0}$ [$\beta\gamma$]'.format(meta.p))
 
 
 if __name__ == '__main__':

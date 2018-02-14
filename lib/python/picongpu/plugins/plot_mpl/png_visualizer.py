@@ -33,9 +33,7 @@ class Visualizer(BaseVisualizer):
         return PNG(run_directory)
 
     def _create_plt_obj(self, ax):
-        self.plt_obj = ax.imshow(
-            np.array([[]])
-        )
+        self.plt_obj = ax.imshow(self.data)
 
     def _update_plt_obj(self):
         self.plt_obj.set_data(self.data)

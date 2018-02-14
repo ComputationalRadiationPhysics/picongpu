@@ -36,9 +36,9 @@ class Visualizer(object):
         3. Updates the 'plt_obj' with the new data.
         """
 
+        self.data = self.data_reader.get(**kwargs)
+        
         if self.plt_obj is None:
             self._create_plt_obj(ax)
-
-        # TODO: this requires all the readers to consume **kwargs as well
-        self.data = self.data_reader.get(**kwargs)
-        self._update_plt_obj()
+        else:
+            self._update_plt_obj()
