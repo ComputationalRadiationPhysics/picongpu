@@ -8,7 +8,6 @@ License: GPLv3+
 
 import os
 import numpy as np
-import matplotlib.image as mpimg
 from picongpu.plugins.png import PNG
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
     BaseVisualizer, plt
