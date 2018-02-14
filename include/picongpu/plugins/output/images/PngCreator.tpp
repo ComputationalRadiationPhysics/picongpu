@@ -74,7 +74,7 @@ namespace picongpu
         }
 
         /* scale the image by a user defined relative factor
-         * `scale_image` is defined in `visualization.param`
+         * `scale_image` is defined in `png.param`
          */
         float_X scale_x( scale_image );
         float_X scale_y( scale_image );

@@ -51,19 +51,19 @@ radiationObserver.param
    :path: include/picongpu/param/radiationObserver.param
    :no-link:
 
-visualization.param
-^^^^^^^^^^^^^^^^^^^
+png.param
+^^^^^^^^^
 
-.. doxygenfile:: visualization.param
+.. doxygenfile:: png.param
    :project: PIConGPU
-   :path: include/picongpu/param/visualization.param
+   :path: include/picongpu/param/png.param
    :no-link:
 
-visColorScales.param
+pngColorScales.param
 ^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfile:: visColorScales.param
+.. doxygenfile:: pngColorScales.param
    :project: PIConGPU
-   :path: include/picongpu/param/visColorScales.param
+   :path: include/picongpu/param/pngColorScales.param
    :no-link:
 

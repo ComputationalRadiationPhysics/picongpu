@@ -57,8 +57,8 @@
 #include "picongpu/param/fieldBackground.param"
 
 #include "picongpu/param/fileOutput.param"
-#include "picongpu/param/visColorScales.param"
-#include "picongpu/param/visualization.param"
+#include "picongpu/param/pngColorScales.param"
+#include "picongpu/param/png.param"
 #include "picongpu/param/particleCalorimeter.param"
 #include "picongpu/param/isaac.param"
 #include "picongpu/param/radiationObserver.param"

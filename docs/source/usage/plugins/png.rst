@@ -59,13 +59,13 @@ E.g. in the following example, two different slices are visualized and stored in
 .param files
 ^^^^^^^^^^^^
 
-The two param files :ref:`visualization.param <usage-params-plugins>` and :ref:`visColorScales.param <usage-params-plugins>` are used to specify the desired output.
+The two param files :ref:`png.param <usage-params-plugins>` and :ref:`pngColorScales.param <usage-params-plugins>` are used to specify the desired output.
 
-**Specifying the field values using** ``visualization.param``
+**Specifying the field values using** ``png.param``
 
 Depending on the used prefix in the command line flags, electron and/or ion density is drawn. 
 Additionally to that, three field values can be visualized together with the particle density.
-In order to set up the visualized field values, the ``visualization.param`` needs to be changed.
+In order to set up the visualized field values, the ``png.param`` needs to be changed.
 In this file, a variety of other parameters used for the PngModule can be specified. 
 
 The ratio of the image can be set.
@@ -86,7 +86,7 @@ In order to scale the image, ``scale_to_cellsize`` needs to be set to ``true`` a
    Make sure to reduce the preview size!
 
 It  is possible to draw the borders between the GPUs used as white lines. 
-This can be done by setting the parameter ``white_box_per_GPU`` in ``visualization.param`` to ``true``
+This can be done by setting the parameter ``white_box_per_GPU`` in ``png.param`` to ``true``
 
 .. code:: cpp
 
@@ -137,11 +137,11 @@ and add different coloring:
    namespace preChannel2Col = colorScales::green;    /* draw channel 2 in green */
    namespace preChannel3Col = colorScales::none;     /* do not draw channel 3 */
 
-The colors available are defined in ``visColorScales.param`` and their usage is described below. 
+The colors available are defined in ``pngColorScales.param`` and their usage is described below. 
 If ``colorScales::none`` is used, the channel is not drawn.
 
 
-In order to specify what the three channels represent, three functions can be defined in ``visualization.param``. 
+In order to specify what the three channels represent, three functions can be defined in ``png.param``. 
 The define the values computed for the png visualization.
 The data structures used are those available in PIConGPU. 
 
@@ -174,7 +174,7 @@ Only positive values are drawn. Negative values are clipped to zero.
 In the above example, this feature is used for ``preChannel3``. 
 
 
-**Defining coloring schemes in** ``visColorScales.param``
+**Defining coloring schemes in** ``pngColorScales.param``
 
 There are several predefined color schemes available:
 
