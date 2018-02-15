@@ -46,5 +46,5 @@
 
 #include "picongpu/unitless/fileOutput.unitless"
 #include "picongpu/unitless/checkpoints.unitless"
-#include "picongpu/unitless/visualization.unitless"
+#include "picongpu/unitless/png.unitless"
 #include "picongpu/unitless/radiation.unitless"
