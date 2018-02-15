@@ -24,6 +24,12 @@ class Visualizer(object):
     def __init__(self, run_directory):
         """
         Initialize the reader and data as member parameters.
+
+        Parameters
+        ----------
+        run_directory : string
+            path to the run directory of PIConGPU
+            (the path before ``simOutput/``)
         """
         if run_directory is None:
             raise ValueError('The run_directory parameter can not be None!')
@@ -46,6 +52,10 @@ class Visualizer(object):
         object (or derived classes) which can be updated
         by feeding new data into it.
         Only called on the first call for visualization.
+
+        Parameters
+        ----------
+        ax: matplotlib.axes.Axes instance
         """
         raise NotImplementedError
 
@@ -60,6 +70,13 @@ class Visualizer(object):
         """
         Returns the passed ax if it is not None or the current
         matplotlib axes object otherwise.
+
+        Parameters
+        ----------
+        ax: None or matplotlib.axes.Axes instance
+        Returns
+        -------
+        A matplotlib.axes.Axes instance
         """
 
         return ax or plt.gca()

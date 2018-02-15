@@ -34,9 +34,16 @@ class Visualizer(BaseVisualizer):
         self.e_mc_r = 1. / (9.1e-31 * 2.9979e8)
 
     def _create_data_reader(self, run_directory):
+        """
+        Implementation of base class function.
+        """
         return PhaseSpace(run_directory)
 
     def _create_plt_obj(self, ax):
+        """
+        Implementation of base class function.
+        Turns 'self.plt_obj' into a matplotlib.image.AxesImage object.
+        """
         dat, meta = self.data
         self.plt_obj = ax.imshow(
             np.abs(dat).T * meta.dV,
@@ -48,6 +55,9 @@ class Visualizer(BaseVisualizer):
         )
 
     def _update_plt_obj(self):
+        """
+        Implementation of base class function.
+        """
         dat, meta = self.data
         self.plt_obj.set_data(np.abs(dat).T * meta.dV)
 

@@ -17,16 +17,33 @@ class Visualizer(BaseVisualizer):
     """
 
     def __init__(self, run_directory):
+        """
+        Parameters
+        ----------
+        run_directory : string
+            path to the run directory of PIConGPU
+            (the path before ``simOutput/``)
+        """
         super(Visualizer, self).__init__(run_directory)
 
     def _create_data_reader(self, run_directory):
+        """
+        Implementation of base class function.
+        """
         return EnergyHistogram(run_directory)
 
     def _create_plt_obj(self, ax):
+        """
+        Implementation of base class function.
+        Turns 'self.plt_obj' into a matplotlib.pyplot.plot object.
+        """
         bins, counts = self.data
         self.plt_obj = ax.semilogy(bins, counts, nonposy='clip')[0]
 
     def _update_plt_obj(self):
+        """
+        Implementation of base class function.
+        """
         bins, counts = self.data
         self.plt_obj.set_data(bins, counts)
 

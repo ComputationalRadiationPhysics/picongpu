@@ -27,12 +27,23 @@ class Visualizer(BaseVisualizer):
         super(Visualizer, self).__init__(run_directory)
 
     def _create_data_reader(self, run_directory):
+        """
+        Implementation of base class function.
+        """
+
         return PNG(run_directory)
 
     def _create_plt_obj(self, ax):
+        """
+        Implementation of base class function.
+        Turns 'self.plt_obj' into a matplotlib.image.AxesImage object.
+        """
         self.plt_obj = ax.imshow(self.data)
 
     def _update_plt_obj(self):
+        """
+        Implementation of base class function.
+        """
         self.plt_obj.set_data(self.data)
 
     def visualize(self, ax=None, **kwargs):
