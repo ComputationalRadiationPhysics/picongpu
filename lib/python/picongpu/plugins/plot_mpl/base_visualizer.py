@@ -6,6 +6,7 @@ Authors: Sebastian Starke
 License: GPLv3+
 """
 
+import os
 import matplotlib.pyplot as plt
 
 
@@ -13,10 +14,17 @@ class Visualizer(object):
     """
     Abstract base class for matplotlib visualizers that implements
     the visualization logic.
+    Classes that derive from this class need to write their own implementations
+    for the following functions in order to work:
+        _create_data_reader(self, run_directory)
+        _create_plt_obj(self, ax)
+        _update_plt_obj(self)
     """
 
     def __init__(self, run_directory):
-
+        """
+        Initialize the reader and data as member parameters.
+        """
         if run_directory is None:
             raise ValueError('The run_directory parameter can not be None!')
 
@@ -25,20 +33,26 @@ class Visualizer(object):
         self.data = None
 
     def _create_data_reader(self, run_directory):
+        """
+        Needs to return an instance of a picongpu data reader
+        (as defined in the ../plugin directory) which implements
+        a 'get()' method.
+        """
         raise NotImplementedError
 
     def _create_plt_obj(self, ax):
         """
-        Creates a matplotlib figure of some kind which can be updated
-        by feeding new values into it. Only called on the first call for
-        visualization.
+        Sets 'self.plt_obj' to an instance of a matplotlib.artist.Artist
+        object (or derived classes) which can be updated
+        by feeding new data into it.
+        Only called on the first call for visualization.
         """
         raise NotImplementedError
 
     def _update_plt_obj(self):
         """
-        Take the 'data' member which was filled before,
-        interpret it and feed it into an existing 'plt_obj'
+        Take the 'self.data' member, interpret it and feed it into the
+        'self.plt_obj'.
         """
         raise NotImplementedError
 
