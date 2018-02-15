@@ -8,11 +8,13 @@ License: GPLv3+
 
 import matplotlib.pyplot as plt
 
+
 class Visualizer(object):
     """
     Abstract base class for matplotlib visualizers that implements
     the visualization logic.
     """
+
     def __init__(self, run_directory):
 
         if run_directory is None:
@@ -56,7 +58,7 @@ class Visualizer(object):
         """
         if ax is None:
             raise ValueError("A matplotlib axes object needs to be passed!")
-        
+
         self.data = self.data_reader.get(**kwargs)
         if self.plt_obj is None:
             self._create_plt_obj(ax)

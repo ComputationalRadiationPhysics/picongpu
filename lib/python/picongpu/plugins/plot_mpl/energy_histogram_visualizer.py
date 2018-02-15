@@ -52,7 +52,7 @@ class Visualizer(BaseVisualizer):
                 (defined in ``particleFilters.param``)
 
         """
-        ax=self._ax_or_gca(ax)
+        ax = self._ax_or_gca(ax)
         # this already throws error if no species or iteration in kwargs
         super(Visualizer, self).visualize(ax, **kwargs)
         iteration = kwargs.get('iteration')
