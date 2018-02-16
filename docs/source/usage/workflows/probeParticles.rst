@@ -27,7 +27,7 @@ Workflow
     >;
 
     using Probes = Particles<
-        bmpl::string< 'p', 'r', 'o', 'b', 'e' >,
+        PMACC_CSTRING( "probe" ),
         ParticleFlagsProbes,
         MakeSeq_t<
             position< position_pic >,
