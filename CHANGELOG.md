@@ -1,6 +1,47 @@
 Change Log / Release Log for PIConGPU
 ================================================================
 
+0.3.2
+-----
+**Date:** 2018-02-16
+
+Phase Space Momentum, ADIOS One-Particle Dumps & Field Names
+
+This release fixes a bug in the phase space plugin which derived a too-low
+momentum bin for particles below the typical weighting (and too-high for above
+it). ADIOS dumps crashed on one-particle dumps and in the name of on-the-fly
+particle-derived fields species name and field name were in the wrong order.
+The plugins libSplash (1.6.0) and PNGwriter (0.6.0) need exact versions,
+later releases will require a newer version of PIConGPU.
+
+### Changes to "0.3.1"
+
+**Bug Fixes:**
+ - PIConGPU:
+   - wrong border with current background field #2326
+ - libPMacc:
+   - cuSTL: missing include in `ForEach` #2406
+   - warning concerning forward declarations of `pmacc::detail::Environment` #2489
+   - `pmacc::math::Size_t<0>::create()` in Visual Studio #2513
+ - plugins:
+   - phase space plugin: weighted particles' momentum #2428
+   - calorimeter: validate `minEnergy` #2512
+   - ADIOS:
+     - one-particle dumps #2437
+     - `FieldTmp`: derived field name #2461
+   - exact versions of libSplash 1.6.0 & PNGwriter 0.6.0
+ - tools:
+   - tbg: wrong quoting of `'` #2419
+   - CMake: false-positive on in-source build check #2407
+   - pic-configure: cmakeFlags return code #2323
+
+**Misc:**
+ - Hypnos (HZDR): new modules #2521 #2524
+
+Thanks to Axel Huebl, René Widera, Sergei Bastrakov and Sebastian Hahn
+for contributing to this release!
+
+
 0.3.1
 -----
 **Date:** 2017-10-20

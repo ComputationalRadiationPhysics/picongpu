@@ -52,16 +52,17 @@ namespace cellwiseOperation
             class FieldBox,
             class Mapping>
         DINLINE void
-        operator()( FieldBox field, T_OpFunctor opFunctor, T_ValFunctor valFunctor, const DataSpace<simDim> totalCellOffset,
+        operator()( FieldBox field, T_OpFunctor opFunctor, T_ValFunctor valFunctor, const DataSpace<simDim> totalDomainOffset,
             const uint32_t currentStep, Mapping mapper ) const
         {
             const DataSpace<simDim> block( mapper.getSuperCellIndex( DataSpace<simDim>( blockIdx ) ) );
             const DataSpace<simDim> blockCell = block * MappingDesc::SuperCellSize::toRT();
+            const DataSpace<simDim> guardCells = mapper.getGuardingSuperCells( ) * SuperCellSize::toRT( );
 
             const DataSpace<simDim> threadIndex( threadIdx );
 
             opFunctor( field( blockCell + threadIndex ),
-                       valFunctor( blockCell + threadIndex + totalCellOffset,
+                       valFunctor( blockCell + threadIndex + totalDomainOffset - guardCells,
                                    currentStep )
                      );
         }
@@ -98,25 +99,19 @@ namespace cellwiseOperation
                 return;
 
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
-            /** offset due to being the n-th GPU */
-            DataSpace<simDim> totalCellOffset(subGrid.getLocalDomain().offset);
+            // offset to the local domain relative to the origin of the global domain
+            DataSpace<simDim> totalDomainOffset(subGrid.getLocalDomain().offset);
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter( currentStep );
 
             /** Assumption: all GPUs have the same number of cells in
              *              y direction for sliding window */
-            totalCellOffset.y() += numSlides * subGrid.getLocalDomain().size.y();
-            /* the first block will start with less offset if started in the GUARD */
-            if( T_Area & GUARD)
-                totalCellOffset -= m_cellDescription.getSuperCellSize() * m_cellDescription.getGuardingSuperCells();
-            /* if we run _only_ in the CORE we have to add the BORDER's offset */
-            else if( T_Area == CORE )
-                totalCellOffset += m_cellDescription.getSuperCellSize() * m_cellDescription.getBorderSuperCells();
+            totalDomainOffset.y( ) += numSlides * subGrid.getLocalDomain().size.y( );
 
             /* start kernel */
             AreaMapping<T_Area, MappingDesc> mapper(m_cellDescription);
             PMACC_KERNEL(KernelCellwiseOperation{})
                     (mapper.getGridDim(), SuperCellSize::toRT())
-                    (field->getDeviceDataBox(), opFunctor, valFunctor, totalCellOffset, currentStep, mapper);
+                    (field->getDeviceDataBox(), opFunctor, valFunctor, totalDomainOffset, currentStep, mapper);
         }
     };
 

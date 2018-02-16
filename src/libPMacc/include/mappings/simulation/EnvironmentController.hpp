@@ -64,7 +64,7 @@ public:
 
 private:
 
-    friend class detail::Environment;
+    friend struct detail::Environment;
 
     /*! Default constructor.
      */

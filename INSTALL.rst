@@ -133,7 +133,7 @@ We recommend to install at least **pngwriter** and either **libSplash** (HDF5) o
 
 pngwriter
 """""""""
-- 0.5.6+
+- 0.6.0 (exact!)
 - *Spack:* ``spack install pngwriter``
 - *from source:*
 
@@ -145,7 +145,7 @@ pngwriter
   - example:
 
     - ``mkdir -p ~/src ~/build ~/lib``
-    - ``git clone https://github.com/pngwriter/pngwriter.git ~/src/pngwriter/``
+    - ``git clone https://github.com/pngwriter/pngwriter.git --branch 0.6.0 ~/src/pngwriter/``
     - ``cd ~/build``
     - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/pngwriter ~/src/pngwriter``
     - ``make install``
@@ -157,14 +157,14 @@ pngwriter
 
 libSplash
 """""""""
-- 1.6.0+ (requires *HDF5*, *boost program-options*)
+- 1.6.0 (exact! requires *HDF5*, *boost program-options*)
 - *Debian/Ubuntu dependencies:* ``sudo apt-get install libhdf5-openmpi-dev libboost-program-options-dev``
 - *Arch Linux dependencies:* ``sudo pacman --sync hdf5-openmpi boost``
 - *Spack:* ``spack install libsplash ^hdf5~fortran``
 - *from source:*
 
   - ``mkdir -p ~/src ~/build ~/lib``
-  - ``git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/``
+  - ``git clone https://github.com/ComputationalRadiationPhysics/libSplash.git --branch v1.6.0 ~/src/splash/``
   - ``cd ~/build``
   - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash ~/src/splash``
   - ``make install``

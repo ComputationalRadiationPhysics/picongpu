@@ -83,7 +83,12 @@ if [ ! -d "$extension_param" ] ; then
 fi
 #check for cmakeFlags file (interprete with sh)
 if [ -f "$extension_param/cmakeFlags" ] ; then
-    cmake_flags=`$extension_param/cmakeFlags $cmakeFlagsNr`
+    cmake_flags=$($extension_param/cmakeFlags $cmakeFlagsNr)
+    if [ $? -ne 0 ] ; then
+        echo "ERROR: Executing '$extension_param/cmakeFlags' failed!" >&2
+        echo "       Is the file executable? (chmod u+x cmakeFlags)" >&2
+        exit 2
+    fi
 fi
 
 #set default install path if no path is set by paramater

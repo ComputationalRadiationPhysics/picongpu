@@ -62,7 +62,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 get_filename_component(SOURCE_DIR_ROOT ${PIConGPU_SOURCE_DIR}/../.. ABSOLUTE)
 string(FIND "${PIConGPU_BINARY_DIR}"
-            "${SOURCE_DIR_ROOT}" IN_SRC_POS)
+            "${SOURCE_DIR_ROOT}/" IN_SRC_POS)
 if(IN_SRC_POS GREATER -1)
   message(FATAL_ERROR
     "PICoNGPU requires an out of source build. "
@@ -272,7 +272,7 @@ endif()
 # find libSplash installation
 # prefer static libraries over shared ones (but do not force them)
 set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.6.0 COMPONENTS PARALLEL)
+find_package(Splash 1.6.0 EXACT COMPONENTS PARALLEL)
 
 if(Splash_FOUND)
     include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
@@ -287,7 +287,7 @@ endif(Splash_FOUND)
 ################################################################################
 
 # find PNGwriter installation
-find_package(PNGwriter 0.5.6)
+find_package(PNGwriter 0.6.0 EXACT)
 
 if(PNGwriter_FOUND)
     include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})

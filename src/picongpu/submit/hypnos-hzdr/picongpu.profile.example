@@ -12,11 +12,11 @@ then
         module load cmake/3.7.2
         module load boost/1.62.0
         module load cuda/8.0
-        module load openmpi/1.8.6.kepler.cuda80
+        module load openmpi/2.1.2.cuda80
 
         # Plugins (optional)
-        module load pngwriter/0.5.6
-        module load hdf5-parallel/1.8.15 libsplash/1.6.0
+        module load pngwriter/0.6.0
+        module load hdf5-parallel/1.8.20 libsplash/1.6.0
 
         # either use libSplash or ADIOS for file I/O
         #module load adios/1.10.0
