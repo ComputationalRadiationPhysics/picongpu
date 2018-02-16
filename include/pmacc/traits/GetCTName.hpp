@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <boost/mpl/string.hpp>
+#include <pmacc/compileTime/String.hpp>
 
 
 namespace pmacc
@@ -32,14 +32,14 @@ namespace traits
     /** Return the compile time name
      *
      * @tparam T_Type type of the object where the name is queried
-     * @return ::type name of the object as boost::mpl::string,
+     * @return ::type name of the object as pmacc::compileTime::String,
      *         empty string is returned if the trait is not specified for
      *         T_Type
      */
     template< typename T_Type >
     struct GetCTName
     {
-        using type = boost::mpl::string< >;
+        using type = pmacc::compileTime::String< >;
     };
 
     template< typename T_Type >

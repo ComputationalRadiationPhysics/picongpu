@@ -47,7 +47,6 @@
 #include <boost/mpl/contains.hpp>
 
 #include "pmacc/particles/ParticleDescription.hpp"
-#include <boost/mpl/string.hpp>
 
 namespace pmacc
 {
@@ -156,7 +155,7 @@ public InheritLinearly<
 
     HINLINE static std::string getName()
     {
-        return std::string(boost::mpl::c_str<Name>::value);
+        return Name::str();
     }
 
 };
