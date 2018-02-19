@@ -33,7 +33,7 @@ namespace picongpu
 
         /** equals X
          *  unit: meter */
-#define fieldSolverDirSplitting 1
+#define DirSplitting 1
 #if (PARAM_FIELDSOLVER == 1)
         /* THIS CODE PATH IS ONLY USED IF `PARAM_FIELDSOLVER` IS CHANGED IN
          * `cmakeFlags` and the field solver there is set to fieldSolverDirSplitting
@@ -52,7 +52,7 @@ namespace picongpu
          */
         constexpr float_64 CELL_WIDTH_SI = 9.34635e-8;
 #endif
-#undef fieldSolverDirSplitting
+#undef DirSplitting
 
         /** equals Y
          *  unit: meter */
@@ -104,6 +104,3 @@ namespace picongpu
     constexpr float_64 movePoint = 0.90;
 
 }
-
-
-

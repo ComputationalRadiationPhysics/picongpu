@@ -47,21 +47,6 @@ namespace simulation_starter = defaultPIConGPU;
  */
 namespace laserProfile = laserGaussianBeam;
 
-/*! Field Configuration --------------------------------------------------
- *  - fieldSolverYee : standard Yee solver
- *  - fieldSolverLehe: Num. Cherenkov free field solver in a chosen direction
- *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
- *  - fieldSolverNone: disable the vacuum update of E and B
- *
- * * For development purposes: ---------------------------------------------
- *  - fieldSolverYeeNative : generic version of fieldSolverYee
- *    (need more shared memory per GPU and is slow)
- */
-#ifndef PARAM_FIELDSOLVER
-#define PARAM_FIELDSOLVER fieldSolverYee
-#endif
-namespace fieldSolver = PARAM_FIELDSOLVER;
-
 /*enable (1) or disable (0) current calculation*/
 #ifndef ENABLE_CURRENT
 #define ENABLE_CURRENT 1

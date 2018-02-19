@@ -59,22 +59,6 @@ namespace picongpu
      */
     namespace laserProfile = PARAM_LASERPROFILE;
 
-    /** @namespace fieldSolver
-     *
-     * Field Solver Selection:
-     *  - fieldSolverYee : standard Yee solver
-     *  - fieldSolverLehe: Num. Cherenkov free field solver in a chosen direction
-     *  - fieldSolverDirSplitting: Sentoku's Directional Splitting Method
-     *  - fieldSolverNone: disable the vacuum update of E and B
-     *
-     * For development purposes:
-     *  - fieldSolverYeeNative : generic version of fieldSolverYee
-     *    (need more shared memory per GPU and is slow)
-     *
-     * Adjust the settings of the selected field solver in fieldSolver.param
-     */
-    namespace fieldSolver = fieldSolverYee;
-
 /** enable (1) or disable (0) current calculation (deprecated) */
 #define ENABLE_CURRENT 1
 
