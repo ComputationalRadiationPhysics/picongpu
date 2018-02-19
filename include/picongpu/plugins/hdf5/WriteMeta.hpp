@@ -214,7 +214,7 @@ namespace writeMeta
                                       ctDate, "date",
                                       date.c_str() );
             /*   ED-PIC */
-            GetStringProperties<fieldSolver::FieldSolver> fieldSolverProps;
+            GetStringProperties<fields::Solver> fieldSolverProps;
             const std::string fieldSolver( fieldSolverProps["name"].value );
             ColTypeString ctFieldSolver( fieldSolver.length() );
             dc->writeAttribute(currentStep, ctFieldSolver, meshesPath.c_str(),
@@ -258,7 +258,7 @@ namespace writeMeta
 
             writeMeta::OfAllSpecies<>()( dc, meshesPath, currentStep );
 
-            GetStringProperties<fieldSolver::CurrentInterpolation> currentSmoothingProp;
+            GetStringProperties<typename fields::Solver::CurrentInterpolation> currentSmoothingProp;
             const std::string currentSmoothing( currentSmoothingProp["name"].value );
             ColTypeString ctCurrentSmoothing( currentSmoothing.length() );
             dc->writeAttribute( currentStep, ctCurrentSmoothing, meshesPath.c_str(),

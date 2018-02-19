@@ -84,12 +84,12 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
      *   -> use max(shape,filter) */
     typedef pmacc::math::CT::max<
         LowerMarginShapes,
-        GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin
+        GetMargin<typename fields::Solver::CurrentInterpolation>::LowerMargin
         >::type LowerMargin;
 
     typedef pmacc::math::CT::max<
         UpperMarginShapes,
-        GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin
+        GetMargin<typename fields::Solver::CurrentInterpolation>::UpperMargin
         >::type UpperMargin;
 
     const DataSpace<simDim> originGuard( LowerMargin( ).toRT( ) );
@@ -125,8 +125,8 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
     }
 
     /* Receive border values in own guard for "receive" communication pattern - necessary for current interpolation/filter */
-    const DataSpace<simDim> originRecvGuard( GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin( ).toRT( ) );
-    const DataSpace<simDim> endRecvGuard( GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin( ).toRT( ) );
+    const DataSpace<simDim> originRecvGuard( GetMargin<typename fields::Solver::CurrentInterpolation>::LowerMargin( ).toRT( ) );
+    const DataSpace<simDim> endRecvGuard( GetMargin<typename fields::Solver::CurrentInterpolation>::UpperMargin( ).toRT( ) );
     if( originRecvGuard != DataSpace<simDim>::create(0) ||
         endRecvGuard != DataSpace<simDim>::create(0) )
     {

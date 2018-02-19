@@ -34,7 +34,7 @@
 
 #include "picongpu/fields/FieldE.kernel"
 
-#include "MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include <pmacc/math/Vector.hpp>
@@ -81,11 +81,11 @@ SimulationFieldHelper<MappingDesc>( cellDescription )
     /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
     typedef pmacc::math::CT::max<
         LowerMarginInterpolation,
-        GetMargin<fieldSolver::FieldSolver, FIELD_E>::LowerMargin
+        GetMargin<fields::Solver, FIELD_E>::LowerMargin
         >::type LowerMarginInterpolationAndSolver;
     typedef pmacc::math::CT::max<
         UpperMarginInterpolation,
-        GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin
+        GetMargin<fields::Solver, FIELD_E>::UpperMargin
         >::type UpperMarginInterpolationAndSolver;
 
     /* Calculate upper and lower margin for pusher
@@ -233,7 +233,7 @@ void FieldE::laserManipulation( uint32_t currentStep )
          *
          *
          *  @todo: might also lack temporal offset since our formulas are E(x,z,t) instead of E(x,y,z,t)
-         *  `const int max_y_neighbors = Get<fieldSolver::FieldSolver::OffsetOrigin_E, 1 >::value;`
+         *  `const int max_y_neighbors = Get<fields::Solver::OffsetOrigin_E, 1 >::value;`
          *
          * @todo Right now, the phase could be wrong ( == is cloned)
          *       @see LaserPhysics.hpp

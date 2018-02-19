@@ -600,8 +600,8 @@ struct PushParticlePerFrame
 
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
 
-        const fieldSolver::numericalCellType::traits::FieldPosition<FieldE> fieldPosE;
-        const fieldSolver::numericalCellType::traits::FieldPosition<FieldB> fieldPosB;
+        const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE> fieldPosE;
+        const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldB> fieldPosB;
 
         auto functorEfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()( eBox.shift(localCell).toCursor(), fieldPosE() );
         auto functorBfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()( bBox.shift(localCell).toCursor(), fieldPosB() );

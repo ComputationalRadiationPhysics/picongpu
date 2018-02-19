@@ -22,6 +22,8 @@
 #include "picongpu/algorithms/Gamma.hpp"
 #include "picongpu/traits/frame/GetMass.hpp"
 #include "picongpu/traits/frame/GetCharge.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/particles/particleToGrid/ComputeGridValuePerFrame.def"
 #include <pmacc/particles/operations/Assign.hpp>
 #include <pmacc/particles/operations/Deselect.hpp>
@@ -190,7 +192,7 @@ unsigned int Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::n
     /* multi-dim coordinate of the local cell inside the super cell */
     const DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
     /* interpolation of fieldTmp */
-    const fieldSolver::numericalCellType::traits::FieldPosition<FieldTmp, simDim> fieldTmpPos;
+    const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldTmp, simDim> fieldTmpPos;
     const ValueTypeIonDensity ionDensity_norm = Field2ParticleInterpolation()
         (cachedIonDensity.shift(localCell).toCursor(), pos, fieldTmpPos());
 

@@ -22,7 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/FieldTmp.kernel"
-#include "MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 #include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
@@ -102,8 +102,8 @@ namespace picongpu
             FieldTmpLowerMargin>::type SpeciesFieldTmpLowerMargin;
 
         typedef pmacc::math::CT::max<
-            GetMargin<fieldSolver::FieldSolver, FIELD_B>::LowerMargin,
-            GetMargin<fieldSolver::FieldSolver, FIELD_E>::LowerMargin>::type
+            GetMargin<fields::Solver, FIELD_B>::LowerMargin,
+            GetMargin<fields::Solver, FIELD_E>::LowerMargin>::type
             FieldSolverLowerMargin;
 
         typedef pmacc::math::CT::max<
@@ -130,8 +130,8 @@ namespace picongpu
             FieldTmpUpperMargin>::type SpeciesFieldTmpUpperMargin;
 
         typedef pmacc::math::CT::max<
-            GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin,
-            GetMargin<fieldSolver::FieldSolver, FIELD_E>::UpperMargin>::type
+            GetMargin<fields::Solver, FIELD_B>::UpperMargin,
+            GetMargin<fields::Solver, FIELD_E>::UpperMargin>::type
             FieldSolverUpperMargin;
 
         typedef pmacc::math::CT::max<

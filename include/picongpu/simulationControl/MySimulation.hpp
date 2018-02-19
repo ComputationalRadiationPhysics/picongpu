@@ -407,10 +407,10 @@ public:
         IdProvider<simDim>::init();
 
         // create field solver
-        this->myFieldSolver = new fieldSolver::FieldSolver(*cellDescription);
+        this->myFieldSolver = new fields::Solver(*cellDescription);
 
         // create current interpolation
-        this->myCurrentInterpolation = new fieldSolver::CurrentInterpolation;
+        this->myCurrentInterpolation = new typename fields::Solver::CurrentInterpolation;
 #if( PMACC_CUDA_ENABLED == 1 )
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
@@ -624,8 +624,8 @@ public:
         {
             EventTask eRecvCurrent = fieldJ->asyncCommunication(__getTransactionEvent());
 
-            const DataSpace<simDim> currentRecvLower( GetMargin<fieldSolver::CurrentInterpolation>::LowerMargin( ).toRT( ) );
-            const DataSpace<simDim> currentRecvUpper( GetMargin<fieldSolver::CurrentInterpolation>::UpperMargin( ).toRT( ) );
+            const DataSpace<simDim> currentRecvLower( GetMargin<typename fields::Solver::CurrentInterpolation>::LowerMargin( ).toRT( ) );
+            const DataSpace<simDim> currentRecvUpper( GetMargin<typename fields::Solver::CurrentInterpolation>::UpperMargin( ).toRT( ) );
 
             /* without interpolation, we do not need to access the FieldJ GUARD
              * and can therefor overlap communication of GUARD->(ADD)BORDER & computation of CORE */
@@ -763,8 +763,8 @@ protected:
     std::shared_ptr<DeviceHeap> deviceHeap;
 
     // field solver
-    fieldSolver::FieldSolver* myFieldSolver;
-    fieldSolver::CurrentInterpolation* myCurrentInterpolation;
+    fields::Solver* myFieldSolver;
+    typename fields::Solver::CurrentInterpolation* myCurrentInterpolation;
 
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
     cellwiseOperation::CellwiseOperation< CORE + BORDER >* currentBGField;
