@@ -20,30 +20,33 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/fields/Fields.def"
+
 #include <pmacc/math/Vector.hpp>
 
 
 namespace picongpu
 {
-namespace yeeCell
+namespace numericalCellTypes
 {
+    struct YeeCell{};
+} //namespace numericalCellTypes
+
 namespace traits
 {
-    /** \tparam floatD_X position of the component in the cell
-     *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
-     */
-    typedef const ::pmacc::math::Vector<float2_X,DIM3> VectorVector2D3V;
-    typedef const ::pmacc::math::Vector<float3_X,DIM3> VectorVector3D3V;
-
-    template<typename T_Field, uint32_t T_simDim = simDim>
-    struct FieldPosition;
-
     /** position (float2_X) in cell for E_x, E_y, E_z
      */
     template<>
-    struct FieldPosition<FieldE, DIM2>
+    struct FieldPosition<numericalCellTypes::YeeCell, FieldE, DIM2>
     {
+        /** \tparam float2_X position of the component in the cell
+         *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+         */
+       using VectorVector2D3V = const ::pmacc::math::Vector<
+           float2_X,
+           DIM3
+       >;
         /// boost::result_of hints
         template<class> struct result;
 
@@ -69,8 +72,16 @@ namespace traits
     /** position (float3_X) in cell for E_x, E_y, E_z
      */
     template<>
-    struct FieldPosition<FieldE, DIM3>
+    struct FieldPosition<numericalCellTypes::YeeCell, FieldE, DIM3>
     {
+        /** \tparam float2_X position of the component in the cell
+         *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+         */
+        using VectorVector3D3V = const ::pmacc::math::Vector<
+            float3_X,
+            DIM3
+        >;
+
         /// boost::result_of hints
         template<class> struct result;
 
@@ -96,8 +107,15 @@ namespace traits
     /** position (float2_X) in cell for B_x, B_y, B_z
      */
     template<>
-    struct FieldPosition<FieldB, DIM2>
+    struct FieldPosition<numericalCellTypes::YeeCell, FieldB, DIM2>
     {
+        /** \tparam float2_X position of the component in the cell
+         *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+         */
+       using VectorVector2D3V = const ::pmacc::math::Vector<
+           float2_X,
+           DIM3
+       >;
         /// boost::result_of hints
         template<class> struct result;
 
@@ -123,8 +141,16 @@ namespace traits
     /** position (float3_X) in cell for B_x, B_y, B_z
      */
     template<>
-    struct FieldPosition<FieldB, DIM3>
+    struct FieldPosition<numericalCellTypes::YeeCell, FieldB, DIM3>
     {
+        /** \tparam float2_X position of the component in the cell
+         *  \tparam DIM3     Fields (E/B/J) have 3 components, even in 1 or 2D !
+         */
+        using VectorVector3D3V = const ::pmacc::math::Vector<
+            float3_X,
+            DIM3
+        >;
+
         /// boost::result_of hints
         template<class> struct result;
 
@@ -151,8 +177,8 @@ namespace traits
      *  J_x, J_y, J_z
      */
     template<uint32_t T_simDim>
-    struct FieldPosition<FieldJ, T_simDim> :
-        public FieldPosition<FieldE, T_simDim>
+    struct FieldPosition<numericalCellTypes::YeeCell, FieldJ, T_simDim> :
+        public FieldPosition<numericalCellTypes::YeeCell, FieldE, T_simDim>
     {
         HDINLINE FieldPosition()
         {
@@ -164,7 +190,7 @@ namespace traits
      * scalar field FieldTmp
      */
     template<uint32_t T_simDim>
-    struct FieldPosition<FieldTmp, T_simDim>
+    struct FieldPosition<numericalCellTypes::YeeCell, FieldTmp, T_simDim>
     {
         typedef pmacc::math::Vector<float_X, T_simDim> FieldPos;
         typedef pmacc::math::Vector<FieldPos, DIM1> ReturnType;
@@ -186,6 +212,5 @@ namespace traits
             return ReturnType( FieldPos::create(0.0) );
         }
     };
-} // traits
-} // yeeCell
-} // picongpu
+} // namespace traits
+} // namespace picongpu
