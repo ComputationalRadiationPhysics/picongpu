@@ -30,6 +30,10 @@
 
 namespace picongpu
 {
+namespace fields
+{
+namespace maxwellSolver
+{
 
 template<typename BlockDim>
 struct DirSplittingKernel
@@ -122,4 +126,6 @@ struct DirSplittingKernel
 
 };
 
-} // picongpu
+} // namespace maxwellSolver
+} // namespace fields
+} // namespace picongpu

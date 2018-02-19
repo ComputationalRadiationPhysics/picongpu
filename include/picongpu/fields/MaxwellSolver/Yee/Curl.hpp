@@ -17,34 +17,46 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
+
+#include "picongpu/algorithms/DifferenceToUpper.hpp"
+#include "picongpu/algorithms/DifferenceToLower.hpp"
+#include "picongpu/fields/MaxwellSolver/Yee/Curl.def"
 
 #include <pmacc/types.hpp>
 
+
 namespace picongpu
 {
-namespace yeeSolver
+namespace fields
 {
-using namespace pmacc;
-
-template<class Difference>
-struct Curl
+namespace maxwellSolver
 {
-    using LowerMargin = typename Difference::OffsetOrigin;
-    using UpperMargin = typename Difference::OffsetEnd;
+namespace yee
+{
 
-    template<class Memory >
-    HDINLINE typename Memory::ValueType operator()(const Memory & mem) const
+    template< typename  Difference >
+    struct Curl
     {
-        const typename Difference::template GetDifference<0> Dx;
-        const typename Difference::template GetDifference<1> Dy;
-        const typename Difference::template GetDifference<2> Dz;
+        using LowerMargin = typename Difference::OffsetOrigin;
+        using UpperMargin = typename Difference::OffsetEnd;
 
-        return float3_X(Dy(mem).z() - Dz(mem).y(),
-                        Dz(mem).x() - Dx(mem).z(),
-                        Dx(mem).y() - Dy(mem).x());
-    }
-};
-} // namespace yeeSolver
+        template<class Memory >
+        HDINLINE typename Memory::ValueType operator()( Memory const & mem ) const
+        {
+            const typename Difference::template GetDifference< 0 > Dx;
+            const typename Difference::template GetDifference< 1 > Dy;
+            const typename Difference::template GetDifference< 2 > Dz;
+
+            return float3_X(
+                Dy( mem ).z() - Dz( mem ).y(),
+                Dz( mem ).x() - Dx( mem ).z(),
+                Dx( mem ).y() - Dy( mem ).x()
+            );
+        }
+    };
+
+} // namespace yee
+} // namespace maxwellSolver
+} // namespace fields
 } // namespace picongpu

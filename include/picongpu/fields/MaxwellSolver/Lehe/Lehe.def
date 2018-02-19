@@ -1,0 +1,57 @@
+/* Copyright 2013-2018 Axel Huebl, Remi Lehe
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/fields/MaxwellSolver/Lehe/Curl.def"
+#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
+
+
+namespace picongpu
+{
+namespace fields
+{
+namespace maxwellSolver
+{
+
+    /** modified Yee solver
+     *
+     * Reference: R. Lehe et al
+     *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
+     *
+     * @tparam T_CherenkovFreeDir the direction (axis) which should be free of cherenkov radiation
+     *                            valid types: lehe::CherenkovFreeDirection_Y, lehe::CherenkovFreeDirection_Y
+     */
+    template<
+        typename T_CurrentInterpolation = currentInterpolation::None,
+        typename T_CherenkovFreeDir = lehe::CherenkovFreeDirection_Y
+    >
+    using Lehe = ::picongpu::fields::maxwellSolver::Yee<
+        T_CurrentInterpolation,
+        lehe::CurlE< T_CherenkovFreeDir >
+    >;
+
+    /* we need no definition of margins, because the YeeSolver uses its curl
+     * classes to define margins
+     */
+
+} // namespace maxwellSolver
+} // namespace fields
+} // namespace picongpu

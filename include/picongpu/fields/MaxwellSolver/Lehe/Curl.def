@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
  *
  * This file is part of PIConGPU.
  *
@@ -17,36 +17,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
+
+#include <pmacc/types.hpp>
 #include <pmacc/math/Vector.hpp>
+
 
 namespace picongpu
 {
-namespace noSolver
+namespace fields
 {
-class NoSolver;
-} // noSolver
-
-namespace traits
+namespace maxwellSolver
 {
-using namespace pmacc;
-
-template<>
-struct GetMargin<picongpu::noSolver::NoSolver, FIELD_B>
+namespace lehe
 {
-    typedef typename pmacc::math::CT::make_Int< simDim, 0 >::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int< simDim, 0 >::type UpperMargin;
-};
 
-template<>
-struct GetMargin<picongpu::noSolver::NoSolver, FIELD_E>
-{
-    typedef typename pmacc::math::CT::make_Int< simDim, 0 >::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int< simDim, 0 >::type UpperMargin;
-};
+    class CherenkovFreeDirection_X{ };
+    class CherenkovFreeDirection_Y{ };
 
-} //namespace traits
+    template< class Direction >
+    struct CurlE;
 
-} // picongpu
+} // namespace lehe
+} // namespace maxwellSolver
+} // namespace fields
+} // namespace picongpu

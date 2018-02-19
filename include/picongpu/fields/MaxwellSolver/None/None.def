@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau
+/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include "picongpu/simulation_defines.hpp"
+#include <pmacc/math/Vector.hpp>
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
+
 
 namespace picongpu
 {
@@ -29,8 +30,8 @@ namespace fields
 namespace maxwellSolver
 {
 
-    template< typename T_CurrentInterpolation = currentInterpolation::NoneDS >
-    class DirSplitting;
+    template< typename T_CurrentInterpolation = currentInterpolation::None >
+    class None;
 
 } // namespace maxwellSolver
 } // namespace fields
@@ -40,31 +41,29 @@ namespace traits
 
     template< typename T_CurrentInterpolation >
     struct GetMargin<
-        picongpu::fields::maxwellSolver::DirSplitting< T_CurrentInterpolation >,
-        picongpu::FIELD_B
+        picongpu::fields::maxwellSolver::None< T_CurrentInterpolation >,
+        FIELD_B
     >
     {
-        using LowerMargin = pmacc::math::CT::Int <
-            1,
-            1,
-            1
-        >;
+        using LowerMargin = typename pmacc::math::CT::make_Int<
+            simDim,
+            0
+        >::type;
         using UpperMargin = LowerMargin;
     };
 
     template< typename T_CurrentInterpolation >
     struct GetMargin<
-        picongpu::fields::maxwellSolver::DirSplitting< T_CurrentInterpolation >,
-        picongpu::FIELD_E
+        picongpu::fields::maxwellSolver::None< T_CurrentInterpolation >,
+        FIELD_E
     >
     {
-        using LowerMargin = pmacc::math::CT::Int <
-            1,
-            1,
-            1
-        >;
+        using LowerMargin = typename pmacc::math::CT::make_Int<
+            simDim,
+            0
+        >::type;
         using UpperMargin = LowerMargin;
     };
 
-} //namespace traits
-} // picongpu
+} // namespace traits
+} // namespace picongpu

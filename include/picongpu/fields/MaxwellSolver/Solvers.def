@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Remi Lehe
+/* Copyright 2013-2018 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,29 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Reference: R. Lehe et al
- *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
- */
+
 
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/Lehe/LeheCurl.hpp"
-#include "picongpu/fields/MaxwellSolver/Yee/YeeSolver.def"
-
-
-namespace picongpu
-{
-namespace leheSolver
-{
-    using namespace pmacc;
-
-    using CurlELeheDir = CurlELehe< picongpu::fieldSolverLehe::CherenkovFreeDir >;
-
-    typedef ::picongpu::yeeSolver::YeeSolver< CurlELeheDir > LeheSolver;
-
-    /* we need no definition of margins, because the YeeSolver uses its curl
-     * classes to define margins
-     */
-
-} // namespace leheSolver
-} // namespace picongpu
+#include "picongpu/fields/MaxwellSolver/None/None.def"
+#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+#if (SIMDIM==3)
+#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
+#if( PMACC_CUDA_ENABLED == 1 )
+#   include "picongpu/fields/MaxwellSolver/DirSplitting/DirSplitting.def"
+#endif
+#endif

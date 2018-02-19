@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera
+/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,15 +17,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/None/None.hpp"
-#include "picongpu/fields/MaxwellSolver/Yee/Yee.hpp"
-#if (SIMDIM==3)
-#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.hpp"
-#if( PMACC_CUDA_ENABLED == 1 )
-#   include "picongpu/fields/MaxwellSolver/DirSplitting/DirSplitting.hpp"
-#endif
-#endif
+#include "picongpu/algorithms/DifferenceToUpper.def"
+#include "picongpu/algorithms/DifferenceToLower.def"
+
+#include <pmacc/types.hpp>
+
+
+namespace picongpu
+{
+namespace fields
+{
+namespace maxwellSolver
+{
+namespace yee
+{
+
+    template< typename Difference >
+    struct Curl;
+
+    using CurlLeft = Curl< DifferenceToLower< simDim > >;
+    using CurlRight = Curl< DifferenceToUpper< simDim > >;
+
+} // namespace yee
+} // namespace maxwellSolver
+} // namespace fields
+} // namespace picongpu
