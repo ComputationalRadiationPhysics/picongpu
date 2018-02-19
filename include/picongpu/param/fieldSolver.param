@@ -19,70 +19,48 @@
 
 /** @file
  *
- * Configure the selected field solver method
- *
- * You can set/modify Maxwell solver specific options in the
- * section of each "FieldSolver".
- *
- * CurrentInterpolation is used to set a method performing the
- * interpolate/assign operation from the generated currents of particle
- * species to the electro-magnetic fields.
- *
- * Allowed values are:
- *   - None:
- *     - default for staggered grids/Yee-scheme
- *     - updates E
- *   - Binomial: 2nd order Binomial filter
- *     - smooths the current before assignment in staggered grid
- *     - updates E & breaks local charge conservation slightly
- *   - NoneDS:
- *     - experimental assignment for all-centered/directional splitting
- *     - updates E & B at the same time
+ * Configure the field solver
  */
 
 #pragma once
 
+#include "picongpu/fields/MaxwellSolver/Solvers.def"
 #include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
 
 
 namespace picongpu
 {
-    namespace fieldSolverNone
-    {
-        using CurrentInterpolation = currentInterpolation::None;
-    }
+namespace fields
+{
 
-    namespace fieldSolverYee
-    {
-        using CurrentInterpolation = currentInterpolation::None;
-    }
-
-    namespace fieldSolverYeeNative
-    {
-        using CurrentInterpolation = currentInterpolation::None;
-    }
-#if( PMACC_CUDA_ENABLED == 1 )
-    namespace fieldSolverDirSplitting
-    {
-        using CurrentInterpolation = currentInterpolation::NoneDS;
-    }
-#endif
-    /** Lehe Solver
-     * The solver proposed by R. Lehe et al
-     * in Phys. Rev. ST Accel. Beams 16, 021301 (2013)
+    /** Current Interpolation
+     *
+     * CurrentInterpolation is used to set a method performing the
+     * interpolate/assign operation from the generated currents of particle
+     * species to the electro-magnetic fields.
+     *
+     * Allowed values are:
+     *   - None:
+     *     - default for staggered grids/Yee-scheme
+     *     - updates E
+     *   - Binomial: 2nd order Binomial filter
+     *     - smooths the current before assignment in staggered grid
+     *     - updates E & breaks local charge conservation slightly
+     *   - NoneDS:
+     *     - experimental assignment for all-centered/directional splitting
+     *     - updates E & B at the same time
      */
-    namespace fieldSolverLehe
-    {
-        class CherenkovFreeDirection_X{};
-        class CherenkovFreeDirection_Y{};
-        class CherenkovFreeDirection_Z{};
+    using CurrentInterpolation = currentInterpolation::None;
 
-        /** Distinguish the direction where numerical Cherenkov Radiation
-         *  by moving particles shall be suppressed.
-         */
-        using CherenkovFreeDir = CherenkovFreeDirection_Y;
+    /** FieldSolver
+     *
+     * Field Solver Selection:
+     *  - Yee< CurrentInterpolation > : standard Yee solver
+     *  - Lehe< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
+     *  - DirSplitting< CurrentInterpolation >: Sentoku's Directional Splitting Method
+     *  - None< CurrentInterpolation >: disable the vacuum update of E and B
+     */
+    using Solver = maxwellSolver::Yee< CurrentInterpolation >;
 
-        using CurrentInterpolation = currentInterpolation::None;
-    }
-
+} // namespace fields
 } // namespace picongpu
