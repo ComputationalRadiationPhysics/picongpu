@@ -50,7 +50,7 @@ namespace traits
  * > ParticleFlagsElectrons;
  *
  * typedef picongpu::Particles<
- *     bmpl::string<'e'>,
+ *     PMACC_CSTRING( "e" ),
  *     ParticleFlagsElectrons,
  *     DefaultAttributesSeq
  * > PIC_Electrons;

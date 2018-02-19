@@ -20,12 +20,13 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/Particles.hpp"
+
 #include <pmacc/particles/Identifier.hpp>
 #include <pmacc/compileTime/conversion/MakeSeq.hpp>
 #include <pmacc/identifier/value_identifier.hpp>
-
-#include "picongpu/particles/Particles.hpp"
-#include <boost/mpl/string.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+#include <pmacc/compileTime/String.hpp>
 
 
 namespace picongpu
@@ -62,7 +63,7 @@ using ParticleFlagsElectrons = bmpl::vector<
 
 /* define species electrons */
 using PIC_Electrons = Particles<
-    bmpl::string< 'e' >,
+    PMACC_CSTRING( "e" ),
     ParticleFlagsElectrons,
     DefaultParticleAttributes
 >;
@@ -89,7 +90,7 @@ using ParticleFlagsIons = bmpl::vector<
 
 /*define specie ions*/
 using PIC_Ions = Particles<
-    bmpl::string<'i'>,
+    PMACC_CSTRING( "i" ),
     ParticleFlagsIons,
     DefaultParticleAttributes
 >;

@@ -20,12 +20,13 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/Particles.hpp"
+
 #include <pmacc/particles/Identifier.hpp>
 #include <pmacc/compileTime/conversion/MakeSeq.hpp>
 #include <pmacc/identifier/value_identifier.hpp>
-
-#include "picongpu/particles/Particles.hpp"
-#include <boost/mpl/string.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+#include <pmacc/compileTime/String.hpp>
 
 
 namespace picongpu
@@ -71,7 +72,7 @@ using ParticleFlagsPhotons = bmpl::vector<
 
 /* define species photons */
 using Photons = Particles<
-    bmpl::string< 'p', 'h' >,
+    PMACC_CSTRING( "ph" ),
     ParticleFlagsPhotons,
     DefaultParticleAttributes
 >;
@@ -108,7 +109,7 @@ using ParticleFlagsElectrons = bmpl::vector<
 
 /* thermal bulk electrons */
 using BulkElectrons = Particles<
-    bmpl::string< 'e', 't', 'h' >,
+    PMACC_CSTRING( "eth" ),
     MakeSeq_t<
         ParticleFlagsElectrons,
         densityRatio< DensityRatioBulkElectrons >
@@ -118,7 +119,7 @@ using BulkElectrons = Particles<
 
 /* non-thermal "hot"/prompt electrons */
 using PromptElectrons = Particles<
-    bmpl::string< 'e', 'h', 'o', 't' >,
+    PMACC_CSTRING( "ehot" ),
     MakeSeq_t<
         ParticleFlagsElectrons,
         densityRatio< DensityRatioPromptElectrons >
@@ -162,7 +163,7 @@ using ParticleFlagsCopper = bmpl::vector<
 
 /* define species ions */
 using CopperIons = Particles<
-    bmpl::string< 'C', 'u' >,
+    PMACC_CSTRING( "Cu" ),
     ParticleFlagsCopper,
     MakeSeq_t<
         DefaultParticleAttributes,

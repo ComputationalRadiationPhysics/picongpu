@@ -33,13 +33,13 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/Particles.hpp"
+
 #include <pmacc/particles/Identifier.hpp>
 #include <pmacc/compileTime/conversion/MakeSeq.hpp>
 #include <pmacc/identifier/value_identifier.hpp>
-
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-#include "picongpu/particles/Particles.hpp"
-#include <boost/mpl/string.hpp>
+#include <pmacc/compileTime/String.hpp>
 
 
 namespace picongpu
@@ -81,7 +81,7 @@ using ParticleFlagsElectrons = bmpl::vector<
 
 /* define species electrons */
 using Electrons = Particles<
-    bmpl::string< 'e' >,
+    PMACC_CSTRING( "e" ),
     ParticleFlagsElectrons,
     DefaultParticleAttributes
 >;
@@ -117,7 +117,7 @@ using ParticleFlagsHydrogen = bmpl::vector<
 
 /* define species Hydrogen */
 using Hydrogen = Particles<
-    bmpl::string< 'H' >,
+    PMACC_CSTRING( "H" ),
     ParticleFlagsHydrogen,
     IonParticleAttributes
 >;
@@ -153,7 +153,7 @@ using ParticleFlagsCarbon = bmpl::vector<
 
 /* define species Carbon */
 using Carbon = Particles<
-    bmpl::string< 'C' >,
+    PMACC_CSTRING( "C" ),
     ParticleFlagsCarbon,
     IonParticleAttributes
 >;
@@ -189,7 +189,7 @@ using ParticleFlagsNitrogen = bmpl::vector<
 
 /* define species Nitrogen */
 using Nitrogen = Particles<
-    bmpl::string< 'N' >,
+    PMACC_CSTRING( "N" ),
     ParticleFlagsNitrogen,
     IonParticleAttributes
 >;
@@ -204,7 +204,7 @@ using ParticleFlagsProbes = bmpl::vector<
 
 /* define species Probe */
 using Probes = Particles<
-    bmpl::string< 'p', 'r', 'o', 'b', 'e' >,
+    PMACC_CSTRING( "probe" ),
     ParticleFlagsProbes,
     MakeSeq_t<
         position< position_pic >,
