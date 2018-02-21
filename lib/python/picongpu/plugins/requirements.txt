@@ -2,3 +2,4 @@ numpy
 pandas>=0.21.0
 h5py
 matplotlib
+-r plot_mpl/requirements.txt
