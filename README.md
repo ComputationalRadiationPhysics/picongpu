@@ -32,8 +32,8 @@ Its features for the electro-magnetic PIC algorithm include:
   [*Yee's*](http://dx.doi.org/10.1109/TAP.1966.1138693) and
   [*Lehe's*](http://dx.doi.org/10.1103/PhysRevSTAB.16.021301) scheme
 - rigorously charge conserving current deposition schemes, such as
-  [*Villasenor-Buneman*](http://dx.doi.org/10.1016/0010-4655(92)90169-Y),
-  [*Esirkepov*](http://dx.doi.org/10.1016/S0010-4655(00)00228-9)
+  [*Villasenor-Buneman*](http://dx.doi.org/10.1016/0010-4655%2892%2990169-Y),
+  [*Esirkepov*](http://dx.doi.org/10.1016/S0010-4655%2800%2900228-9)
   and *ZigZag*
 - macro-particle form factors ranging from NGP (0th order), CIC (1st),
   TSC (2nd), PSQ (3rd) to P4S (4th)
