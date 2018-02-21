@@ -336,4 +336,3 @@ namespace lehe
 } // namespace maxwellSolver
 } // namespace fields
 } // namespace picongpu
-

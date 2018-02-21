@@ -74,11 +74,11 @@ namespace dirSplitting
         PMACC_CASSERT_MSG(DirectionSplitting_use_cubic_cells____check_your_gridConfig_param_file,
                           SI::CELL_HEIGHT_SI == SI::CELL_WIDTH_SI &&
                           (sizeof(T_Dummy) != 0));
-    #if (SIMDIM == DIM3)
+#if (SIMDIM == DIM3)
         PMACC_CASSERT_MSG(DirectionSplitting_use_cubic_cells____check_your_gridConfig_param_file,
                           SI::CELL_DEPTH_SI == SI::CELL_WIDTH_SI &&
                           (sizeof(T_Dummy) != 0));
-    #endif
+#endif
     };
 } // namespace dirSplitting
 
@@ -95,7 +95,7 @@ namespace dirSplitting
             auto gridSizeTwisted = twistComponents<OrientationTwist>(gridSize);
 
             /* twist components of the supercell */
-            typedef typename CT::TwistComponents<SuperCellSize, OrientationTwist>::type BlockDim;
+            using BlockDim = typename CT::TwistComponents<SuperCellSize, OrientationTwist>::type;
 
             algorithm::kernel::ForeachBlock<BlockDim> foreach;
             foreach(zone::SphericZone<3>(pmacc::math::Size_t<3>(BlockDim::x::value, gridSizeTwisted.y(), gridSizeTwisted.z())),
@@ -112,7 +112,7 @@ namespace dirSplitting
 
         void update_beforeCurrent(uint32_t currentStep) const
         {
-            typedef SuperCellSize GuardDim;
+            using GuardDim = SuperCellSize;
 
             DataConnector &dc = Environment<>::get().DataConnector();
 
@@ -134,7 +134,7 @@ namespace dirSplitting
             pmacc::math::Size_t<3> gridSize = fieldE_coreBorder.size();
 
 
-            typedef pmacc::math::CT::Int<0,1,2> Orientation_X;
+            using Orientation_X = pmacc::math::CT::Int<0,1,2>;
             propagate<Orientation_X>(
                       fieldE_coreBorder.origin(),
                       fieldB_coreBorder.origin(),
@@ -143,7 +143,7 @@ namespace dirSplitting
             __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
             __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
 
-            typedef pmacc::math::CT::Int<1,2,0> Orientation_Y;
+            using Orientation_Y = pmacc::math::CT::Int<1,2,0>;
             propagate<Orientation_Y>(
                       fieldE_coreBorder.origin(),
                       fieldB_coreBorder.origin(),
@@ -152,7 +152,7 @@ namespace dirSplitting
             __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
             __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));
 
-            typedef pmacc::math::CT::Int<2,0,1> Orientation_Z;
+            using Orientation_Z = pmacc::math::CT::Int<2,0,1>;
             propagate<Orientation_Z>(
                       fieldE_coreBorder.origin(),
                       fieldB_coreBorder.origin(),

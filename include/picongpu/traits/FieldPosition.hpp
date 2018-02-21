@@ -21,9 +21,9 @@
 
 #include "picongpu/simulation_defines.hpp"
 
+
 namespace picongpu
 {
-
 namespace traits
 {
     template<
@@ -33,6 +33,5 @@ namespace traits
     >
     struct FieldPosition;
 
-} //namespace traits
-
-}// namespace picongpu
+} // namespace traits
+} // namespace picongpu
