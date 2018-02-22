@@ -29,7 +29,7 @@ cmake_minimum_required(VERSION 3.10.0)
 # Project
 ################################################################################
 
-project(PIConGPU)
+project(PIConGPUapp)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "install prefix" FORCE)
@@ -60,12 +60,12 @@ set(CMAKE_CXX_STANDARD 11)
 # Disallow in-source build
 ################################################################################
 
-get_filename_component(SOURCE_DIR_ROOT ${PIConGPU_SOURCE_DIR}/../.. ABSOLUTE)
-string(FIND "${PIConGPU_BINARY_DIR}"
+get_filename_component(SOURCE_DIR_ROOT ${PIConGPUapp_SOURCE_DIR}/../.. ABSOLUTE)
+string(FIND "${PIConGPUapp_BINARY_DIR}"
             "${SOURCE_DIR_ROOT}/" IN_SRC_POS)
 if(IN_SRC_POS GREATER -1)
   message(FATAL_ERROR
-    "PICoNGPU requires an out of source build. "
+    "PIConGPU requires an out of source build. "
     "Please remove \n"
     "  - CMakeCache.txt\n"
     "  - CMakeFiles/\n"
@@ -80,7 +80,7 @@ unset(IN_SRC_POS)
 # Find PMacc
 ################################################################################
 
-find_package(PMacc REQUIRED CONFIG PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../pmacc")
+find_package(PMacc REQUIRED CONFIG PATHS "${PIConGPUapp_SOURCE_DIR}/../pmacc")
 include_directories(SYSTEM ${PMacc_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${PMacc_LIBRARIES})
 add_definitions(${PMacc_DEFINITIONS})
@@ -120,7 +120,7 @@ if(ALPAKA_ACC_GPU_CUDA_ENABLE)
 
     if(NOT mallocMC_FOUND)
         message(STATUS "Using mallocMC from thirdParty/ directory")
-        set(MALLOCMC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/mallocMC")
+        set(MALLOCMC_ROOT "${PIConGPUapp_SOURCE_DIR}/../../thirdParty/mallocMC")
         find_package(mallocMC 2.2.0 REQUIRED)
     endif(NOT mallocMC_FOUND)
 
@@ -193,22 +193,20 @@ endif()
 if(CUDAMEMTEST_ENABLE)
     set(SAME_NVCC_FLAGS_IN_SUBPROJECTS OFF)
     find_path(CUDA_MEMTEST_DIR
-            NAMES CMakeLists.txt
-            PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/cuda_memtest"
+            NAMES cuda_memtest.h
+            PATHS "${PIConGPUapp_SOURCE_DIR}/../../thirdParty/cuda_memtest"
             DOC "path to cuda_memtest"
-            )
-
+    )
     add_subdirectory(${CUDA_MEMTEST_DIR}
                      "${CMAKE_CURRENT_BINARY_DIR}/build_cuda_memtest")
 
 
     # mpiInfo utility
     find_path(MPI_INFO_DIR
-            NAMES CMakeLists.txt
-            PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../mpiInfo"
+            NAMES mpiInfo.cpp
+            PATHS "${PIConGPUapp_SOURCE_DIR}/../mpiInfo"
             DOC "path to mpiInfo"
-            )
-
+    )
     add_subdirectory(${MPI_INFO_DIR}
                      "${CMAKE_CURRENT_BINARY_DIR}/build_mpiInfo")
 endif()
@@ -356,7 +354,7 @@ endif(ISAAC_FOUND)
 
 find_path(PIC_EXTENSION_PATH
     NAMES include/picongpu/param/components.param
-    PATHS "${CMAKE_CURRENT_SOURCE_DIR}"
+    PATHS "${PIConGPUapp_SOURCE_DIR}"
     DOC "search PATH to extension folder"
     NO_DEFAULT_PATH
     NO_CMAKE_ENVIRONMENT_PATH
@@ -378,8 +376,8 @@ include_directories(BEFORE ${PIC_EXTENSION_PATH}/include)
 
 # files with accelerator code (kernel and API calls)
 list(APPEND ACCSRCFILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/versionFormat.cpp"
+    "${PIConGPUapp_SOURCE_DIR}/main.cpp"
+    "${PIConGPUapp_SOURCE_DIR}/versionFormat.cpp"
 )
 
 # host-only sources
@@ -419,8 +417,8 @@ if(${CLANG_TIDY_RETURN} EQUAL 0)
            CLANG_TIDY_VERSION ${CLANG_TIDY_OUTPUT})
 
     if("${CLANG_TIDY_VERSION}" VERSION_GREATER_EQUAL "3.9.0")
-        get_directory_property(ALL_INCLUDES DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} INCLUDE_DIRECTORIES)
-        get_directory_property(ALL_DEFINES DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMPILE_DEFINITIONS)
+        get_directory_property(ALL_INCLUDES DIRECTORY ${PIConGPUapp_SOURCE_DIR} INCLUDE_DIRECTORIES)
+        get_directory_property(ALL_DEFINES DIRECTORY ${PIConGPUapp_SOURCE_DIR} COMPILE_DEFINITIONS)
         foreach(i ${ALL_INCLUDES})
             list(APPEND ALL_INCLUDES_STR "-I${i}")
         endforeach()
@@ -454,14 +452,14 @@ endif()
 install(TARGETS picongpu
          RUNTIME DESTINATION bin)
 
-#file(GLOB scripts_to_copy "${CMAKE_CURRENT_SOURCE_DIR}/bin/*.sh")
+#file(GLOB scripts_to_copy "${PIConGPUapp_SOURCE_DIR}/bin/*.sh")
 #foreach(f ${scripts_to_copy})
 #   GET_FILENAME_COMPONENT(file_name ${f} NAME CACHE)
 #   install(FILES "${f}" DESTINATION bin PERMISSIONS OWNER_EXECUTE OWNER_READ
 #           OWNER_WRITE GROUP_READ GROUP_EXECUTE)
 #endforeach(f)
 
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin/" DESTINATION bin
+install(DIRECTORY "${PIConGPUapp_SOURCE_DIR}/../../bin/" DESTINATION bin
     FILES_MATCHING PATTERN "*"
     PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE
     PATTERN .svn EXCLUDE
@@ -478,8 +476,8 @@ if( (NOT "${CMAKE_INSTALL_PREFIX}" STREQUAL "${PIC_EXTENSION_PATH}") OR
       #if source not exists than copy
       if(NOT EXISTS "${CMAKE_INSTALL_PREFIX}/${dir}")
           #copy important subfolders from extension path (default PIConGPU parameter)
-          if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../${dir}/")
-            install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../${dir}/."
+          if(EXISTS "${PIConGPUapp_SOURCE_DIR}/../../${dir}/")
+            install(DIRECTORY "${PIConGPUapp_SOURCE_DIR}/../../${dir}/."
               DESTINATION "${CMAKE_INSTALL_PREFIX}/${dir}"
               PATTERN .svn EXCLUDE
               PATTERN .git EXCLUDE
