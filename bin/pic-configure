@@ -21,6 +21,8 @@
 
 this_dir=$(cd $(dirname $0) && pwd)
 
+# PIConGPU prefix path
+picongpu_prefix=$(cd $this_dir/.. && pwd)
 
 help()
 {
@@ -160,6 +162,6 @@ if [ -z "$alpaka_backend" ] ; then
     echo "(Use -b|--backend or export PIC_BACKEND)" >&2
 fi
 
-own_command="cmake $cmake_flags $install_path $cmake_extension_param $cmake_options $alpaka_backend $this_dir/include/picongpu"
+own_command="cmake $cmake_flags $install_path $cmake_extension_param $cmake_options $alpaka_backend $picongpu_prefix/include/picongpu"
 echo -e "\033[32mcmake command:\033[0m $own_command"
 eval $own_command
