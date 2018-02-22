@@ -203,7 +203,7 @@ if(CUDAMEMTEST_ENABLE)
 
     # mpiInfo utility
     find_path(MPI_INFO_DIR
-            NAMES main.cpp
+            NAMES mpiInfo.cpp
             PATHS "${PIConGPUapp_SOURCE_DIR}/../mpiInfo"
             DOC "path to mpiInfo"
     )

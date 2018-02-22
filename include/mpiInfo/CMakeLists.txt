@@ -94,7 +94,7 @@ endif()
 ################################################################################
 
 add_executable(mpiInfo
-    main.cpp
+    mpiInfo.cpp
 )
 
 target_link_libraries(mpiInfo ${LIBS})
