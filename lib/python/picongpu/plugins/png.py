@@ -7,7 +7,7 @@ License: GPLv3+
 """
 
 import os
-import matplotlib.image as mpimg
+from scipy import misc
 import collections
 
 SPECIES_LONG_NAMES = {
@@ -198,7 +198,7 @@ class PNG(object):
             # iteration is None, so we use all available data
             iteration = available_iterations
 
-        imgs = {it: mpimg.imread(
+        imgs = {it: misc.imread(
             self.get_data_path(species, species_filter, axis,
                                slice_point, it)) for it in iteration}
         if len(iteration) == 1:
