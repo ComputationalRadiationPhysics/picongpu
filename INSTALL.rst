@@ -119,15 +119,45 @@ PIConGPU Source Code
 
 - ``git clone https://github.com/ComputationalRadiationPhysics/picongpu.git $HOME/src/picongpu``
 
-  - *optional:* update the source code with ``cd $HOME/src/picongpu && git fetch && git pull``
+  - *optional:* update the source code with:
+
+    - ``cd $HOME/src/picongpu && git fetch && git pull``
   - *optional:* change to a different branch with ``git branch`` (show) and ``git checkout <BranchName>`` (switch)
+  - *install* (user mode):
+
+    - ``mkdir $HOME/src/picongpu-build``
+    - ``cd $HOME/src/picongpu-build``
+    - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/picongpu $HOME/src/picongpu``
+    - ``make install``
+
+The following options can be added to the `cmake` call to control installed components:
+
+============================= ========== ============================================
+CMake Option                  Values     Description
+============================= ========== ============================================
+``PIConGPU_INSTALL_DEFAULTS`` **ON**/OFF Select or deselect all components by default
+``PIConGPU_INSTALL_APP``      ON/OFF     Install the PIConGPU application sources
+``PIConGPU_INSTALL_PMACC``    ON/OFF     Install internally shipped PMacc sources
+``PIConGPU_INSTALL_TOOLS``    ON/OFF     Install internally shipped tools
+``PIConGPU_INSTALL_TBG``      ON/OFF     Install internally shipped tbg
+``PIConGPU_INSTALL_ALPAKA``   ON/OFF     Install internally shipped alpaka
+``PIConGPU_INSTALL_CUPLA``    ON/OFF     Install internally shipped cupla
+``PIConGPU_INSTALL_MALLOCMC`` ON/OFF     Install internally shipped mallocMC
+``PIConGPU_INSTALL_CMAKEM``   ON/OFF     Install internally shipped CMake modules
+``PIConGPU_INSTALL_MEMTEST``  ON/OFF     Install internally shipped CUDA memtest
+``PIConGPU_INSTALL_MPIINFO``  ON/OFF     Install internally shipped mpiInfo
+============================= ========== ============================================
+
 - *environment*:
 
-  - ``export PICSRC=$PICHOME/src/picongpu``
+  - Developer mode:
+
+    - ``export PICSRC=$HOME/src/picongpu``
+  - User mode:
+
+    - ``export PICSRC=$HOME/lib/picongpu``
   - ``export PIC_EXAMPLES=$PICSRC/share/picongpu/examples``
-  - ``export PATH=$PICSRC:$PATH``
   - ``export PATH=$PICSRC/bin:$PATH``
-  - ``export PATH=$PICSRC/src/tools/bin:$PATH``
   - ``export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH``
 
 Optional Libraries
