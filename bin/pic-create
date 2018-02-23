@@ -21,6 +21,8 @@
 
 this_dir=$(cd $(dirname $0) && pwd)
 
+# PIConGPU prefix path
+picongpu_prefix=$(cd $this_dir/.. && pwd)
 # files always cloned from defaults, can be overwritten by input set
 default_folder_to_copy="etc/picongpu lib"
 # if we clone an input set we copy from it
@@ -68,8 +70,6 @@ done
 
 cmake_path="$*"
 
-default_param_dir="$this_dir"
-
 if [ $# -eq 0 ] || [ $# -gt 2 ] ; then
     echo "Missing destination directory or to many directories were given." >&2
     exit
@@ -80,7 +80,7 @@ if [ $# -eq 2 ] ; then
     dst_path=$2
     selected_default_folder_to_copy=$folder_to_clone
 else
-    src_path=$this_dir
+    src_path=$this_dir/..
     dst_path=$1
     selected_default_folder_to_copy=$default_folder_to_copy
 fi
@@ -126,7 +126,7 @@ fi
 for d in $default_folder_to_copy
 do
     dir_dst="$dst_path/$d"
-    dir_src="$default_param_dir/$d"
+    dir_src="$picongpu_prefix/$d"
     if [ ! -d "$dir_dst" ] ; then
         mkdir -p "$dir_dst"
     fi
@@ -134,7 +134,7 @@ do
 done
 
 #copy all data from src_path if path is not picongpu default param path
-if [ "$src_path" != "$this_dir" ] ; then
+if [ "$src_path" != "$picongpu_prefix" ] ; then
     for d in $selected_default_folder_to_copy
     do
         dir_dst="$dst_path/$d"

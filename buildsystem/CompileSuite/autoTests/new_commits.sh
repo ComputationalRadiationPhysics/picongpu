@@ -100,7 +100,7 @@ touch "$thisDir"runGuard
             module load libjpeg-turbo/1.5.1 icet/2.1.1 jansson/2.9 isaac/1.1.0
 
             # compile all examples, fetch output and return code
-            $cnf_gitdir/pic-compile -l -q -j $cnf_numParallel \
+            $cnf_gitdir/bin/pic-compile -l -q -j $cnf_numParallel \
                                 $cnf_gitdir/share/picongpu/examples $cnf_builddir \
                                 &> $cnf_builddir/outputColored
 

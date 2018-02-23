@@ -23,15 +23,18 @@ this_dir=$(cd $(dirname $0) && pwd)
 known_editors=( 'nano' 'vim' 'vi' 'emacs' )
 file_prefix="include/picongpu/param"
 
+# PIConGPU prefix path
+picongpu_prefix=$(cd $this_dir/.. && pwd)
+
 find_inputs()
 {
     if [ -d "$file_prefix" ]
     then
         files_local=$(cd $file_prefix && ls *.param 2>/dev/null)
     fi
-    if [ -d "$this_dir/$file_prefix" ]
+    if [ -d "$picongpu_prefix/$file_prefix" ]
     then
-        files_defaults=$(cd $this_dir/$file_prefix && ls *.param 2>/dev/null)
+        files_defaults=$(cd $picongpu_prefix/$file_prefix && ls *.param 2>/dev/null)
     fi
     # only basename of the files
     echo "${files_local//\.param/} ${files_defaults//\.param/}" | sort -u
@@ -136,7 +139,7 @@ do
     if [ ! -f "$file_path" ]
     then
         # if the file is missing, but does exist in the defaults, add it from defaults
-        defaults_path="$this_dir/$file_prefix/$file_name"
+        defaults_path="$picongpu_prefix/$file_prefix/$file_name"
         if [ -f "$defaults_path" ]
         then
             cp $defaults_path $file_path
