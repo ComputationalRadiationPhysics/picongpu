@@ -154,7 +154,7 @@ class PNG(object):
 
         return sorted(iters)
 
-    def get(self, species=None, species_filter='all', iteration=None,
+    def get(self, species, species_filter='all', iteration=None,
             axis=None, slice_point=None, **kwargs):
         """
         Get an array representation of a PNG file.

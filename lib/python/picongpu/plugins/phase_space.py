@@ -188,7 +188,7 @@ class PhaseSpace(object):
 
         return iterations
 
-    def get(self, species=None, species_filter='all', iteration=None, ps=None,
+    def get(self, species, species_filter='all', iteration=None, ps=None,
             **kwargs):
         """
         Get a phase space histogram.
