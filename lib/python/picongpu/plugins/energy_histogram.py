@@ -101,7 +101,7 @@ class EnergyHistogram(object):
                            dtype=np.uint64).as_matrix()[:, 0]
 
     def get(self, species, species_filter="all", iteration=None,
-            include_overflow=False):
+            include_overflow=False, **kwargs):
         """
         Get a histogram.
 
