@@ -85,7 +85,7 @@ public:
         params->gridLayout = field->getGridLayout();
 
         // convert in a std::vector of std::vector format for writeField API
-        const fieldSolver::numericalCellType::traits::FieldPosition<T> fieldPos;
+        const traits::FieldPosition<typename fields::Solver::NummericalCellType, T> fieldPos;
 
         std::vector<std::vector<float_X> > inCellPosition;
         for( uint32_t n = 0; n < T::numComponents; ++n )
@@ -188,7 +188,7 @@ private:
         /*## finish update field ##*/
 
         /*wrap in a one-component vector for writeField API*/
-        const fieldSolver::numericalCellType::traits::FieldPosition<FieldTmp>
+        const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldTmp>
             fieldPos;
 
         std::vector<std::vector<float_X> > inCellPosition;

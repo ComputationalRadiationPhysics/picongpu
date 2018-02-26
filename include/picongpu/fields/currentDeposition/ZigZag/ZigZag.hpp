@@ -34,6 +34,8 @@
 #include <boost/mpl/if.hpp>
 #include <pmacc/compileTime/AllCombinations.hpp>
 #include "picongpu/fields/currentDeposition/ZigZag/EvalAssignmentFunction.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/traits/FieldPosition.hpp"
 
 
 namespace picongpu
@@ -222,7 +224,7 @@ struct ZigZag
              *   - run calculations in a shape optimized coordinate system
              *     with fixed interpolation points
              */
-            const fieldSolver::numericalCellType::traits::FieldPosition<FieldJ> fieldPosJ;
+            const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldJ> fieldPosJ;
             ShiftCoordinateSystem<Supports_direction>()(cursor, pos, fieldPosJ()[dir]);
 
             /* define grid points where we evaluate the shape function*/

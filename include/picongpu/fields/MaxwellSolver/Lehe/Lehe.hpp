@@ -21,28 +21,32 @@
 
 #pragma once
 
-#include "LeheSolver.def"
+#include "picongpu/fields/MaxwellSolver/Lehe/Lehe.def"
+#include "picongpu/fields/MaxwellSolver/Lehe/Curl.hpp"
 #include "picongpu/simulation_defines.hpp"
-
-namespace picongpu
-{
-namespace leheSolver
-{
-
-} // namespace leheSolver
-} // namespace picongpu
 
 namespace pmacc
 {
 namespace traits
 {
-    template< >
-    struct StringProperties< picongpu::leheSolver::LeheSolver >
+    template<
+        typename T_CurrentInterpolation,
+        typename T_CherenkovFreeDir
+    >
+    struct StringProperties<
+        ::picongpu::fields::maxwellSolver::Lehe<
+            T_CurrentInterpolation,
+            T_CherenkovFreeDir
+        >
+    >
     {
         static StringProperty get()
         {
             auto propList =
-                ::picongpu::leheSolver::LeheSolver::getStringProperties();
+                ::picongpu::fields::maxwellSolver::Lehe<
+                    T_CurrentInterpolation,
+                    T_CherenkovFreeDir
+                >::getStringProperties();
             // overwrite the name of the yee solver (inherit all other properties)
             propList["name"].value = "Lehe";
             return propList;

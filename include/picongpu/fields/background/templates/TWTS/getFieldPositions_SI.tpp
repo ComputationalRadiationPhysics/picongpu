@@ -59,7 +59,7 @@ namespace detail
          * that to the total cell indices. The physical field coordinate origin is transversally
          * centered with respect to the global simulation volume.
          * pmacc::math::Vector<floatD_X, numComponents> fieldPositions =
-         *                fieldSolver::numericalCellType::traits::FieldPosition<FieldE>(); */
+         *                traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE>(); */
         pmacc::math::Vector<floatD_X, numComponents> fieldPositions = fieldOnGridPositions;
 
         pmacc::math::Vector<floatD_64,numComponents> fieldPositions_SI;

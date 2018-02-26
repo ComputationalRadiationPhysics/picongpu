@@ -180,7 +180,7 @@ namespace writeMeta
             const std::string fullMeshesPath( threadParams->adiosBasePath +
                 std::string(ADIOS_PATH_FIELDS) );
 
-            GetStringProperties<fieldSolver::FieldSolver> fieldSolverProps;
+            GetStringProperties<fields::Solver> fieldSolverProps;
             const std::string fieldSolver( fieldSolverProps["name"].value );
             ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
                 "fieldSolver", fullMeshesPath.c_str(), adios_string, 1, (void*)fieldSolver.c_str()));
@@ -217,7 +217,7 @@ namespace writeMeta
 
             writeMeta::OfAllSpecies<>()( threadParams, fullMeshesPath );
 
-            GetStringProperties<fieldSolver::CurrentInterpolation> currentSmoothingProp;
+            GetStringProperties<typename fields::Solver::CurrentInterpolation> currentSmoothingProp;
             const std::string currentSmoothing( currentSmoothingProp["name"].value );
             ADIOS_CMD(adios_define_attribute_byvalue(threadParams->adiosGroupHandle,
                 "currentSmoothing", fullMeshesPath.c_str(), adios_string, 1, (void*)currentSmoothing.c_str()));

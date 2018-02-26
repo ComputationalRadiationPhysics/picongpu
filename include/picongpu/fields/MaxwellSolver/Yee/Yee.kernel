@@ -22,11 +22,17 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/mappings/threads/ThreadCollective.hpp>
+#include <pmacc/memory/boxes/CachedBox.hpp>
 
 
 namespace picongpu
 {
-namespace yeeSolver
+namespace fields
+{
+namespace maxwellSolver
+{
+namespace yee
 {
     using namespace pmacc;
 
@@ -227,5 +233,7 @@ namespace yeeSolver
         }
     };
 
-} // namespace yeeSolver
+} // namespace yee
+} // namespace maxwellSolver
+} // namespace fields
 } // namespace picongpu

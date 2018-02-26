@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Remi Lehe
+/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -17,29 +17,21 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Reference: R. Lehe et al
- *            Phys. Rev. ST Accel. Beams 16, 021301 (2013)
- */
-
 #pragma once
 
-#include "picongpu/fields/MaxwellSolver/Lehe/LeheCurl.hpp"
-#include "picongpu/fields/MaxwellSolver/Yee/YeeSolver.def"
+#include "picongpu/simulation_defines.hpp"
 
 
 namespace picongpu
 {
-namespace leheSolver
+namespace traits
 {
-    using namespace pmacc;
+    template<
+        typename T_CellType,
+        typename T_Field,
+        uint32_t T_simDim = simDim
+    >
+    struct FieldPosition;
 
-    using CurlELeheDir = CurlELehe< picongpu::fieldSolverLehe::CherenkovFreeDir >;
-
-    typedef ::picongpu::yeeSolver::YeeSolver< CurlELeheDir > LeheSolver;
-
-    /* we need no definition of margins, because the YeeSolver uses its curl
-     * classes to define margins
-     */
-
-} // namespace leheSolver
+} // namespace traits
 } // namespace picongpu

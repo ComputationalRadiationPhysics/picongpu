@@ -36,7 +36,7 @@
 
 #include <pmacc/dimensions/SuperCellDescription.hpp>
 
-#include "MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include <pmacc/math/Vector.hpp>
@@ -86,11 +86,11 @@ SimulationFieldHelper<MappingDesc>( cellDescription )
     /* Calculate the maximum Neighbors we need from MAX(ParticleShape, FieldSolver) */
     typedef pmacc::math::CT::max<
         LowerMarginInterpolation,
-        GetMargin<fieldSolver::FieldSolver, FIELD_B>::LowerMargin
+        GetMargin<fields::Solver, FIELD_B>::LowerMargin
         >::type LowerMarginInterpolationAndSolver;
     typedef pmacc::math::CT::max<
         UpperMarginInterpolation,
-        GetMargin<fieldSolver::FieldSolver, FIELD_B>::UpperMargin
+        GetMargin<fields::Solver, FIELD_B>::UpperMargin
         >::type UpperMarginInterpolationAndSolver;
 
     /* Calculate upper and lower margin for pusher

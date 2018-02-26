@@ -210,7 +210,7 @@ namespace detail
             );
             fieldE( self ) -= jAvgE * constE;
 
-            using CurlRight = yeeSolver::Curl< DifferenceToUpper< dim > >;
+            using CurlRight = fields::maxwellSolver::yee::Curl< DifferenceToUpper< dim > >;
             using ShiftCurlRight = detail::ShiftCurl< DifferenceToUpper< dim > >;
             CurlRight curl;
             ShiftCurlRight shiftCurl;
