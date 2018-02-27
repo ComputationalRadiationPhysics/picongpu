@@ -149,10 +149,10 @@ namespace pmacc
         template<class TVEC>
         static HDINLINE DataSpace<DIM2> map(uint32_t pos)
         {
-            return DataSpace< DIM2 >(
-                pos % TVEC::x::value,
-                pos / TVEC::x::value
-            );
+            auto const y = pos / TVEC::x::value;
+            auto const x = pos - y * TVEC::x::value;
+
+            return DataSpace< DIM2 >( x , y );
         }
 
         template<class TVEC>
@@ -165,10 +165,10 @@ namespace pmacc
 
         static HDINLINE DataSpace<DIM2> map(const DataSpace<DIM2>& size, uint32_t pos)
         {
-            return DataSpace< DIM2 >(
-                pos % size.x(),
-                pos / size.x()
-            );
+            auto const y = pos / size.x();
+            auto const x = pos - y * size.x();
+
+            return DataSpace< DIM2 >( x , y );
         }
 
         static HDINLINE uint32_t map(const DataSpace<DIM2>& size, const DataSpace<DIM2>& pos)
@@ -266,27 +266,31 @@ namespace pmacc
         template<class TVEC>
         static HDINLINE DataSpace<DIM3> map(uint32_t pos)
         {
-            return DataSpace< DIM3 >(
-                pos                                      % TVEC::x::value,
-                pos /   TVEC::x::value                   % TVEC::y::value,
-                pos / ( TVEC::x::value * TVEC::y::value )
-            );
+            constexpr auto xyPlane = TVEC::x::value * TVEC::y::value;
+            auto const z = pos / xyPlane;
+            pos -= z * xyPlane;
+            auto const y = pos / TVEC::x::value;
+            auto const x = pos - y * TVEC::x::value;
+
+            return DataSpace< DIM3 >( x , y, z );
         }
 
         static HDINLINE DataSpace<DIM3> map(const DataSpace<DIM3>& size, uint32_t pos)
         {
-            return DataSpace< DIM3 >(
-                pos                           % size.x(),
-                pos /   size.x()              % size.y(),
-                pos / ( size.x() * size.y() )
-            );
+            auto const xyPlane = size.x() * size.y();
+            auto const z = pos / xyPlane;
+            pos -= z * xyPlane;
+            auto const y = pos / size.x();
+            auto const x = pos - y * size.x();
+
+            return DataSpace< DIM3 >( x , y, z );
         }
 
         template<class TVEC>
         static HDINLINE uint32_t map(const DataSpace<DIM3>& pos)
         {
             return
-                pos.z() * TVEC::x::value * TVEC::y::value +
+                pos.z() * ( TVEC::x::value * TVEC::y::value ) +
                 pos.y() * TVEC::x::value +
                 pos.x();
         }
