@@ -16,7 +16,7 @@ sleep 5
 cd /opt/picInputs/lwfa
 tbg \
   -s "bash -l" \
-  -c etc/picongpu/0001gpus_isaac.cfg \
+  -c etc/picongpu/1_isaac.cfg \
   -t etc/picongpu/bash/mpirun.tpl \
   /tmp/lwfa_001
 
