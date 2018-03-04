@@ -197,7 +197,7 @@ libSplash
 HDF5
 """"
 - 1.8.6+
-- standard shared version (no c++, enable parallel), e.g. ``hdf5/1.8.5-threadsafe``
+- standard shared version (no c++, enable parallel)
 - *Debian/Ubuntu:* ``sudo apt-get install libhdf5-openmpi-dev``
 - *Arch Linux:* ``sudo pacman --sync hdf5-openmpi``
 - *Spack:* ``spack install hdf5~fortran``
@@ -207,9 +207,9 @@ HDF5
   - ``cd ~/src``
   - download hdf5 source code from `release list of the HDF5 group <https://www.hdfgroup.org/ftp/HDF5/releases/>`_, for example:
 
-  - ``wget https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/hdf5-1.8.14.tar.gz``
-  - ``tar -xvzf hdf5-1.8.14.tar.gz``
-  - ``cd hdf5-1.8.14``
+  - ``wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz``
+  - ``tar -xvzf hdf5-1.8.20.tar.gz``
+  - ``cd hdf5-1.8.20``
   - ``./configure --enable-parallel --enable-shared --prefix $HOME/lib/hdf5/``
   - ``make``
   - *optional:* ``make test``
