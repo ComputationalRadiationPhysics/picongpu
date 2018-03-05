@@ -38,7 +38,7 @@ class Parameter(object):
     """
 
     def __init__(self, name, ptype, unit, default,
-                 values=None, range=None, ,
+                 values=None, range=None,
                  label=None, pic_to_SI=lambda x: x,
                  pic_from_SI=lambda x: x):
         """
@@ -144,15 +144,6 @@ class Parameter(object):
             self._check_input(ui_results)
         return ui_results
 
-    def macro_name(self):
-        """
-        Returns
-        -------
-        A string containing the objects name as it will be used within cmake
-        defines and cpp headers.
-        """
-        return "PARAM_" + self.name.upper()
-
     def dict_name(self):
         """
         Returns
@@ -168,4 +159,4 @@ class Parameter(object):
         A new Parameter object with the same name, type and unit but whose
         value is set to the default value.
         """
-        return UiParameter(self.name, self.type, self.unit, self.default)
+        return Parameter(self.name, self.type, self.unit, self.default)
