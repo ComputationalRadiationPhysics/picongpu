@@ -73,7 +73,7 @@ RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/LaserWakefield /opt/picInputs/lwfa && \
                cd /opt/picInputs/lwfa && \
-               pic-build -b "cuda:30;35;37;50;60" && \
+               pic-build -b "cuda:30;35;37;50;60" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
                rm -rf .build'
 
 COPY       start_lwfa.sh /usr/bin/lwfa
