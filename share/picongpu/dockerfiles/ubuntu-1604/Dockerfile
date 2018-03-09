@@ -61,14 +61,19 @@ RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
                         "spack load $PIC_PACKAGE\n" \
                         'if [ $(id -u) -eq 0 ]; then\n' \
                         '   function mpirun { $(which mpirun) --allow-run-as-root $@; }\n' \
-                        'fi' \
+                        'fi\n' \
+                        'export -f mpirun\n' \
+                        'if [ $(id -u) -eq 0 ]; then\n' \
+                        '   function mpiexec { $(which mpiexec) --allow-run-as-root $@; }\n' \
+                        'fi\n' \
+                        'export -f mpiexec\n' \
                > /etc/profile.d/picongpu.sh
 
 # build example for out-of-the-box usage: LWFA
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/LaserWakefield /opt/picInputs/lwfa && \
                cd /opt/picInputs/lwfa && \
-               pic-build -b "cuda:30;35;37;50;60" && \
+               pic-build -b "cuda:30;35;37;50;60" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
                rm -rf .build'
 
 COPY       start_lwfa.sh /usr/bin/lwfa

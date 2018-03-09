@@ -24,8 +24,8 @@
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
-# 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
-.TBG_gpusPerNode=$(if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi)
+# 8 gpus per node if we need more than 8 gpus else same count as TBG_tasks
+.TBG_gpusPerNode=$(if [ $TBG_tasks -gt 8 ] ; then echo 8; else echo $TBG_tasks; fi)
 
 ## end calculations ##
 
