@@ -28,7 +28,6 @@ class Parameter(object):
     user adjusts time in nanoseconds but internally the precise number is
     needed (--> linear conversion)
     )
-
     Also the kind of widget representation should depend on the attributes of
     this class. Either as MultiRangeSlider or as MultiSelection or as Checkbox
     depending on the 'values' (discrete) or 'range' (continuous)
@@ -57,9 +56,11 @@ class Parameter(object):
             The default value for this parameter (on the UI scale) used when\
             no 'values' or 'range' parameter is passed.
         values: list
-            list of discrete options for the parameter as shown on UI side
+            list of discrete options for the parameter as shown on UI side.
+            Only one of the attributes range/value can be given.
         range: tuple
-            start and stop value for the selectable range on UI side
+            start and stop value for the selectable range on UI side.
+            Only one of the attributes range/value can be given.
         label: string [optional]
             Overwrite the name for UI
         pic_to_SI: callable, e.g. lambda function
@@ -102,7 +103,17 @@ class Parameter(object):
 
     def _check_input(self, vals):
         """
-        Assumes vals are in UI units, i.e. with unit = self.unit
+        For values that are assumed to be on the UI scale (i.e. with unit =
+        self.unit), checks whether they are in the allowed range or the
+        allowed discrete values.
+        Raises a ValueError if a value value outside the range is detected.
+
+        Parameters
+        ----------
+        vals: float or list of floats
+            values on the parameters UI scale which will be checked.
+
+
         """
         if self.values is not None:
             # check for valid values
@@ -122,6 +133,18 @@ class Parameter(object):
         """
         Takes values in UI units, converts them to SI and after that
         to quantities used within PIConGPU.
+
+        Parameters
+        ----------
+        vals: float or list of floats
+            values that will be converted to the PIC scale
+        check_vals: bool
+            Flag to decide whether given values are within the allowed
+            range for this parameters UI scale.
+
+        Returns
+        -------
+        A list of converted values.
         """
         # todo check if vals are in specified range
         if check_vals:
@@ -134,6 +157,19 @@ class Parameter(object):
         """
         Takes PIC values and returns values on UI scale after converting to SI
         values as intermediate step.
+
+        Parameters
+        ----------
+        vals: float or list of floats
+            values that will be converted to the UI scale.
+
+        check_vals: bool
+            Flag to decide whether converted values are within the allowed
+            range for this parameters UI scale.
+
+        Returns
+        -------
+        A list of converted values.
         """
         # v is given in PIC quantity, so we convert to UI unit
         ui_results = [
