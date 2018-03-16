@@ -92,6 +92,10 @@ class Parameter(object):
         if values is not None:
             if not isinstance(values, collections.Iterable):
                 self.values = [values]
+            if not self.values:
+                raise ValueError("Values attribute can not be an empty\
+                    iterable!")
+
         if range is not None:
             if len(range) != 2:
                 raise ValueError("Range needs to be a tuple of length 2!")
