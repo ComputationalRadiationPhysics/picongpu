@@ -93,8 +93,9 @@ class Parameter(object):
             if not isinstance(values, collections.Iterable):
                 self.values = [values]
             if not self.values:
-                raise ValueError("Values attribute can not be an empty\
-                    iterable!")
+                self.values = [self.default]
+                print("WARNING: Values attribute can not be an empty\
+                    iterable! Settting values to", self.values)
 
         if range is not None:
             if len(range) != 2:
