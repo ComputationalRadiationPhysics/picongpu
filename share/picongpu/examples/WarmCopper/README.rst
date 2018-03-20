@@ -11,6 +11,10 @@ The observable of interest is <Z> over time of the copper ions.
 For low thermal energies, collisional excitation, de-excitation and recombinations should be sufficient to reach the LTE state after about 0.1-1 ps.
 For higher initial temperatures, radiative rates get more relevant and the Non-LTE steady-state solution can only be reached correctly when also adding radiative rates.
 
+.. note::
+
+   FLYlite is still in development!
+
 .. [#FLYlite] In PIConGPU, we generally refer to the implemented subset of *SCFLY* (solving Non-LTE population kinetics) as *FLYlite*.
 
 References
