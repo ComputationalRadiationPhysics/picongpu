@@ -24,7 +24,7 @@ For example, if you want to edit the *grid* and time step resolution, *file outp
 
 See ``pic-edit --help`` for all available files:
 
-.. program-output:: ../../pic-edit --help
+.. program-output:: ../../bin/pic-edit --help
 
 Rationale
 ---------
