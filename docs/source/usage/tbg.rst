@@ -17,7 +17,7 @@ todo: explain idea and use case
 Usage
 ^^^^^
 
-.. program-output:: ../../src/tools/bin/tbg --help
+.. program-output:: ../../bin/tbg --help
 
 .. _usage-cfg:
 

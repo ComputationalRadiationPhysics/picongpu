@@ -108,7 +108,7 @@ It does a copy from an already existing set of input files (e.g. our examples or
 
 See ``pic-create --help`` for more options during input set creation:
 
-.. program-output:: ../../pic-create --help
+.. program-output:: ../../bin/pic-create --help
 
 A run simulation can also be reused to create derived input sets via ``pic-create``:
 
@@ -149,7 +149,7 @@ For example, if you want to build for running on CPUs instead of a GPUs, call:
 
 Its full documentation from ``pic-build --help`` reads:
 
-.. program-output:: ../../pic-build --help
+.. program-output:: ../../bin/pic-build --help
 
 pic-configure
 """""""""""""
@@ -183,7 +183,7 @@ For running on a CPU instead of a GPU, set this:
 
 See ``pic-configure --help`` for more options during input set configuration:
 
-.. program-output:: ../../pic-configure --help
+.. program-output:: ../../bin/pic-configure --help
 
 After running configure you can run ``ccmake .`` to set additional compile options (optimizations, debug levels, hardware version, etc.).
 This will influence your build done via ``make``.
