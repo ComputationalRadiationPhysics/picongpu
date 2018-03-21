@@ -29,8 +29,8 @@ negligible.
 Output
 ^^^^^^
 
-The electron trajectory is written directly to the *standard out*.
-Therefore, it goes both to ``./simOutput/output`` as well as to the output file specified by the machine used (usually the ``stdout`` file in the main directory of the simulation).
+The electron trajectory is written directly to the *standard output*.
+Therefore, it goes both to ``simOutput/output`` as well as to the output file specified by the machine used (usually the ``stdout`` file in the main directory of the simulation).
 The output is ASCII-text only.
 It has the following format:
 
@@ -59,7 +59,7 @@ Value                                          Description                      
    [ANALYSIS] [2] [COUNTER] [e_position] [878] 1.46440742e-14 {1.032e-05 4.570851689815522e-05 5.2e-06} {0 -1.
    337873603181226e-21 0} 9.109382e-31 1 -1.602176e-19 4.999998569488525
 
-In order to extract only the trajectory information from the total output stored in `stdout`, the following command on a bash command line could be used:
+In order to extract only the trajectory information from the total output stored in ``stdout``, the following command on a bash command line could be used:
 
 .. code:: bash
 
@@ -84,5 +84,5 @@ Known Issues
 
 .. attention::
 
-   Currently, both `output` and `stdout`are overwritten at restart. 
+   Currently, both ``simOutput/output`` and ``stdout`` are overwritten at restart.
    All data from the plugin is lost, if these file are not backuped manually.
