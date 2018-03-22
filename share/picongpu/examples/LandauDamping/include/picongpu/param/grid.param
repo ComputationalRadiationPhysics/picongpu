@@ -24,7 +24,7 @@
 namespace picongpu
 {
     //! wavenumber of first mode
-    constexpr float_64 k_0 = 0.05;
+    constexpr float_64 k_0 = 0.5; // 0.05
 
     //! box length: set in .cfg file!
     constexpr float_64 L_x = 2. * PI / k_0;
@@ -45,8 +45,10 @@ namespace picongpu
         constexpr float_64 CELL_DEPTH_SI = L_x / N_x;
 
         /** Duration of one timestep
-         *  unit: seconds */
-        constexpr float_64 DELTA_T_SI = 0.577;
+         *  unit: seconds                       CFL criteria for Yee MW Solver
+         *                                             2D: sqrt(2) = 1.415
+         *                                             3D: sqrt(3) = 1.733  */
+        constexpr float_64 DELTA_T_SI = CELL_WIDTH_SI / ( 1.733 * SPEED_OF_LIGHT_SI );
 
         /** Note on units in reduced dimensions
          *

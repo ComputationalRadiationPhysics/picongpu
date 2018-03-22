@@ -1,5 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
- *                     Marco Garten
+/* Copyright 2013-2018 Axel Huebl, Jakob Ameres
  *
  * This file is part of PIConGPU.
  *
@@ -44,9 +43,9 @@ namespace picongpu
 
         // Electron properties
         /** unit: kg */
-        constexpr float_64 ELECTRON_MASS_SI = 9.109382e-31;
+        constexpr float_64 ELECTRON_MASS_SI = 1.0;
         /** unit: C */
-        constexpr float_64 ELECTRON_CHARGE_SI = -1.602176e-19;
+        constexpr float_64 ELECTRON_CHARGE_SI = -1.0;
 
         /* atomic unit for energy:
          * 1 Rydberg = 27.21 eV --> converted to Joule
