@@ -37,9 +37,9 @@ The first row is a comment describing the columns:
 
 .. code::
 
-   #step Joule
-   0     0.0e0
-   100   1.2.e-3
+   #step total[Joule] Bx[Joule] By[Joule] Bz[Joule] Ex[Joule] Ey[Joule] Ez[Joule]
+   0     2.5e+18      0         0         0         2.5e+18   0         0
+   100   2.5e+18      2.45e-22  2.26e-08  2.24e-08  2.5e+18   2.29e-08  2.30e-08
 
 Example Visualization
 ^^^^^^^^^^^^^^^^^^^^^
@@ -49,6 +49,8 @@ Python example snippet:
 .. code:: python
 
    import numpy as np
+   import matplotlib.pyplot as plt
+
 
    simDir = "path/to/simOutput/"
 
@@ -72,3 +74,4 @@ Python example snippet:
        label="sum"
    )
    plt.legend()
+   plt.show()
