@@ -43,14 +43,14 @@ The equations of motion are given by the Lorentz force as
 
 .. math::
 
-  \frac{\mathrm{d}}{\mathrm{d}t} \mathbf{V_s}(t) &= \frac{q_s}{m_s}  \left[ \mathbf{E}(\mathbf{X_s}(t),t) + \mathbf{V_s}(t) \times \mathbf{B}(\mathbf{X_s}(t),t) \right]\\
- \frac{\mathrm{d}}{\mathrm{d}t} \mathbf{X_s}(t) &= \mathbf{V_s}(t) .
+   \frac{\mathrm{d}}{\mathrm{d}t} \mathbf{V_s}(t) &= \frac{q_s}{m_s}  \left[ \mathbf{E}(\mathbf{X_s}(t),t) + \mathbf{V_s}(t) \times \mathbf{B}(\mathbf{X_s}(t),t) \right]\\
+   \frac{\mathrm{d}}{\mathrm{d}t} \mathbf{X_s}(t) &= \mathbf{V_s}(t) .
 
 .. attention::
 
    TODO: write proper relativistic form
 
-where :math:`\mathbf{X_s}, \mathbf{V_s}` describe the ensemble of particle species' position and velocity.
+:math:`\mathbf{X}_s = (\mathbf x_1, \mathbf x_2, ...)_s` and :math:`\mathbf{V}_s = (\mathbf v_1, \mathbf v_2, ...)_s` are vectors of *marker* positions and velocities, respectively, which describe the ensemble of particles belonging to species :math:`s`.
 
 .. note::
 
@@ -62,9 +62,11 @@ Electro-Magnetic PIC Method
 
 **Fields** such as :math:`\mathbf{E}(t), \mathbf{B}(t)` and :math:`\mathbf{J}(t)` are discretized on a regular mesh in Eulerian frame of reference (see [EulerLagrangeFrameOfReference]_).
 
-The distribution function :math:`f_s(\mathbf{x},\mathbf{v},t)` for **particles** is described in Lagrangian frame of reference.
-It is sampled with *markers*, sometimes referred to as *macro-particles*.
-These markers carry a spatial shape of order :math:`n` and a delta-distribution in momentum space.
+The distribution of **Particles** is described by the distribution function :math:`f_s(\mathbf{x},\mathbf{v},t)`.
+This distribution function is sampled by *markers* (commonly referred to as *macro-particles*).
+The temporal evolution of the distribution function is simulated by advancing the markers over time according to the Vlasov--Maxwell--Equation in Lagrangian frame (see eq. :eq:`VlasovMaxwell` and [EulerLagrangeFrameOfReference]_).
+
+Markers carry a spatial shape of order :math:`n` and a delta-distribution in momentum space.
 In most cases, these shapes are implemented as B-splines and are pre-integrated to *assignment functions* :math:`S` of the form:
 
 .. math::
@@ -74,6 +76,7 @@ In most cases, these shapes are implemented as B-splines and are pre-integrated 
    S^n(x) = \left(S^{n-1} * S^0\right)(x) = \int_{x-1}^x S^{n-1}(\xi) d\xi
 
 PIConGPU implements these up to order :math:`n=4`.
+The three dimensional marker shape is a multiplicative union of B-splines :math:`S^n(x,y,z) = S^n(x) S^n(y) S^n(z)`.
 
 References
 ----------
