@@ -1,0 +1,33 @@
+#!/usr/bin/env python
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+simDir="./simOutput/"
+
+# Ekin in Joules (see EnergyParticles)
+e_sum_ene = np.loadtxt(simDir + "e_energy_all.dat")[:, 0:2]
+# Etotal in Joules
+fields_all_sum_ene = np.loadtxt(simDir + "fields_energy.dat")[:, 0:8]
+Bx_sum_ene = fields_all_sum_ene[:, 2]
+By_sum_ene = fields_all_sum_ene[:, 3]
+Bz_sum_ene = fields_all_sum_ene[:, 4]
+Ex_sum_ene = fields_all_sum_ene[:, 5]
+Ey_sum_ene = fields_all_sum_ene[:, 6]
+Ez_sum_ene = fields_all_sum_ene[:, 7]
+fields_sum_ene = fields_all_sum_ene[:, 0:2]
+
+
+plt.figure()
+plt.plot(e_sum_ene[:,0], e_sum_ene[:,1], label="e")
+plt.plot(fields_sum_ene[:,0], fields_sum_ene[:,1], label="fields")
+plt.plot(fields_sum_ene[:,0], Ex_sum_ene[:], label="Ex")
+plt.plot(
+    e_sum_ene[:,0],
+    e_sum_ene[:,1] + fields_sum_ene[:,1],
+    label="sum"
+)
+ax = plt.gca()
+ax.set_yscale("log")
+plt.legend()
+plt.show()
