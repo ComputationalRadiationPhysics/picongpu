@@ -36,7 +36,7 @@ namespace particles
      *      be created / will be deleted
      *  unit: none
      */
-    constexpr float_X MIN_WEIGHTING = 0.0001;
+    constexpr float_X MIN_WEIGHTING = 1.e-10;
 
 namespace manipulators
 {
