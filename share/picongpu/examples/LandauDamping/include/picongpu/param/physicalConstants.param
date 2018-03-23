@@ -31,7 +31,7 @@ namespace picongpu
         constexpr float_64 SPEED_OF_LIGHT_SI = 1.0;
 
         /** unit: N / A^2 */
-        constexpr float_64 MUE0_SI = PI * 4.e-7;
+        constexpr float_64 MUE0_SI = 1.0;
         /** unit: C / (V m) */
         constexpr float_64 EPS0_SI = 1.0 / MUE0_SI / SPEED_OF_LIGHT_SI
             / SPEED_OF_LIGHT_SI;
@@ -45,7 +45,7 @@ namespace picongpu
         /** unit: kg */
         constexpr float_64 ELECTRON_MASS_SI = 1.0;
         /** unit: C */
-        constexpr float_64 ELECTRON_CHARGE_SI = -1.0;
+        constexpr float_64 ELECTRON_CHARGE_SI = 1.0;
 
         /* atomic unit for energy:
          * 1 Rydberg = 27.21 eV --> converted to Joule
@@ -96,7 +96,7 @@ namespace picongpu
     //   constexpr float_64 An_Arbitrary_Energy_Input_keV = 30.0; // unit: keV
     //   constexpr float_X An_Arbitrary_Energy_Input = float_X(An_Arbitrary_Energy_Input_SI * UNITCONV_keV_to_Joule / UNIT_ENERGY) // unit: none
     //
-    constexpr float_64 UNITCONV_keV_to_Joule = 1.60217646e-16;
+    constexpr float_64 UNITCONV_keV_to_Joule = 1.0;
     constexpr float_64 UNITCONV_Joule_to_keV = (1.0 / UNITCONV_keV_to_Joule);
 
     /* 1 atomic unit of energy is equal to 1 Hartree or 2 Rydberg
