@@ -47,22 +47,27 @@ namespace picongpu
         operator()( const DataSpace<simDim>& cellIdx,
                     const uint32_t currentStep ) const
         {
-            /* calculate cells -> SI [m] */
-            float_64 const x_SI = cellIdx.x() * SI::CELL_WIDTH_SI;
+            if( currentStep == 0 )
+            {
+                /* calculate cells -> SI [m] */
+                float_64 const x_SI = cellIdx.x() * SI::CELL_WIDTH_SI;
 
-            /* note: you can also transform the time step to seconds by
-             *       multiplying with DELTA_T_SI */
+                /* note: you can also transform the time step to seconds by
+                 *       multiplying with DELTA_T_SI */
 
-            /* specify your E-Field in V/m and convert to PIConGPU units */
-            float_X const arg = precisionCast< float_X >( x_SI * k_0 );
-            float_X const eps = 0.05;
-            float_X const C = SI::EPS0_SI * SI::BASE_CHARGE_SI;
+                /* specify your E-Field in V/m and convert to PIConGPU units */
+                float_X const arg = precisionCast< float_X >( x_SI * k_0 );
+                float_X const eps = 0.05;
+                float_X const C = SI::EPS0_SI * SI::BASE_CHARGE_SI;
 
-            return float3_X(
-                -C * eps * math::sin( arg ) / k_0 / m_unitField[0],
-                0.0,
-                0.0
-            );
+                return float3_X(
+                    -C * eps * math::sin( arg ) / k_0 / m_unitField[0],
+                    0.0,
+                    0.0
+                );
+            }
+            else
+                return float3_X::create( 0. );
         }
     };
 
