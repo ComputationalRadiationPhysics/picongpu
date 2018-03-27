@@ -109,16 +109,6 @@ int64_t defineAdiosVar(int64_t group_id,
                        bool compression,
                        std::string compressionMethod)
 {
-    /* disable compression if this rank writes no data */
-    bool canCompress = true;
-    for (size_t i = 0; i < DIM; ++i)
-    {
-        if (dimensions[i] == 0 || globalDimensions[i] == 0)
-        {
-            canCompress = false;
-        }
-    }
-
     int64_t var_id = 0;
 
     var_id = adios_define_var(
@@ -128,9 +118,9 @@ int64_t defineAdiosVar(int64_t group_id,
         offset.revert().toString(",", "").c_str()
     );
 
-    if (compression && canCompress)
+    if(compression)
     {
-        /* enable zlib compression for variable, default compression level */
+        /* enable adios transform layer for variable */
         adios_set_transform(var_id, compressionMethod.c_str());
     }
 
