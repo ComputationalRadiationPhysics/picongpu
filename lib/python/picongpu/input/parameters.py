@@ -14,7 +14,7 @@ class Parameter(object):
     """
     Parameter that can have a corresponding representation as a jupyter widget
     within interactive jupyter notebooks.
-    The widget allows the user to adjust values as he likes but this class
+    The widget allows the user to adjust values as he/she likes but this class
     controls the true value that will be passed to PIConGPU. This is necessary
     since possibly internal values (the pic-scale) and the scale presented in
     the UI might differ
@@ -32,8 +32,7 @@ class Parameter(object):
     this class. Either as MultiRangeSlider or as MultiSelection or as Checkbox
     depending on the 'values' (discrete) or 'range' (continuous)
 
-    Stepsizes will be handled by the widget representation, not here.q
-
+    Stepsizes will be handled by the widget representation, not here.
     """
 
     def __init__(self, name, ptype, unit, default,
@@ -53,7 +52,7 @@ class Parameter(object):
             Implicitely we assume the pic unit is SI. If this is not possible,
             the converter needs to translate those scales.
         default: float, int or string
-            The default value for this parameter (on the UI scale) used when\
+            The default value for this parameter (on the UI scale) used when
             no 'values' or 'range' parameter is passed.
         values: list
             list of discrete options for the parameter as shown on UI side.
@@ -64,7 +63,7 @@ class Parameter(object):
         label: string [optional]
             Overwrite the name for UI
         pic_to_SI: callable, e.g. lambda function
-            Specifies how to transform a value on the pic scale to an\
+            Specifies how to transform a value on the pic scale to an
             appropriate SI value. Usually given via a Converter object.
         pic_from_SI: callable, e.g. lambda function
             Specifies how to transform an SI value to the internal pic scale.
@@ -94,8 +93,8 @@ class Parameter(object):
                 self.values = [values]
             if not self.values:
                 self.values = [self.default]
-                print("WARNING: Values attribute can not be an empty\
-                    iterable! Settting values to", self.values)
+                print("WARNING: Values attribute can not be an empty "
+                      "iterable! Setting values to", self.values)
 
         if range is not None:
             if len(range) != 2:
@@ -117,22 +116,20 @@ class Parameter(object):
         ----------
         vals: float or list of floats
             values on the parameters UI scale which will be checked.
-
-
         """
         if self.values is not None:
             # check for valid values
             res = all([v in self.values for v in vals])
             if not res:
                 raise ValueError(
-                    "Invalid values found! Values should be elements of\
-                     self.values!")
+                    "Invalid values found! Values should be elements of "
+                    "self.values!")
         else:
             # check for valid range
             res = all([self.range[0] <= v <= self.range[1] for v in vals])
             if not res:
-                raise ValueError("Invalid values found! Values should be\
-                contained in self.range!")
+                raise ValueError("Invalid values found! Values should be "
+                                 "contained in self.range!")
 
     def convert_to_PIC(self, vals, check_vals=True):
         """
@@ -151,7 +148,6 @@ class Parameter(object):
         -------
         A list of converted values.
         """
-        # todo check if vals are in specified range
         if check_vals:
             self._check_input(vals)
 
