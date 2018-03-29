@@ -23,3 +23,19 @@ div#misc.section > div > div.breathe-sectiondef
     display: none;
 }
 
+/* fix for position of equation numbers
+ * https://github.com/rtfd/sphinx_rtd_theme/issues/301
+ */
+.eqno {
+    margin-left: 5px;
+    float: right;
+}
+.math .headerlink {
+    display: none;
+    visibility: hidden;
+}
+.math:hover .headerlink {
+    display: inline-block;
+    visibility: visible;
+    margin-right: -0.7em;
+}
