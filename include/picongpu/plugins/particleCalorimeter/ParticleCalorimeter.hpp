@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Heiko Burau
+/* Copyright 2016-2018 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -23,8 +23,9 @@
 #include "ParticleCalorimeter.kernel"
 
 #include "picongpu/traits/PICToSplash.hpp"
-#include "picongpu/plugins/ISimulationPlugin.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+#include "picongpu/plugins/multi/multi.hpp"
+#include "picongpu/plugins/misc/misc.hpp"
 
 #include <pmacc/cuSTL/container/DeviceBuffer.hpp>
 #include <pmacc/cuSTL/container/HostBuffer.hpp>
@@ -66,47 +67,11 @@ namespace po = boost::program_options;
  *
  */
 template<class ParticlesType>
-class ParticleCalorimeter : public ISimulationPlugin
+class ParticleCalorimeter : public plugins::multi::ISlave
 {
-private:
-    std::string name;
-    std::string prefix;
-    std::string foldername;
-    std::string notifyPeriod;
-    MappingDesc* cellDescription;
-    std::ofstream outFile;
-    const std::string leftParticlesDatasetName;
-
-    uint32_t numBinsYaw;
-    uint32_t numBinsPitch;
-    uint32_t numBinsEnergy;
-    float_X minEnergy;
-    float_X maxEnergy;
-    bool logScale;
-    float_X openingYaw_deg;
-    float_X openingPitch_deg;
-    float_X maxYaw_deg;
-    float_X maxPitch_deg;
-
-    float_64 posYaw_deg;
-    float_64 posPitch_deg;
-
-    /* Rotated calorimeter frame */
-    float3_X calorimeterFrameVecX;
-    float3_X calorimeterFrameVecY;
-    float3_X calorimeterFrameVecZ;
-
     typedef pmacc::container::DeviceBuffer<float_X, DIM3> DBufCalorimeter;
     typedef pmacc::container::HostBuffer<float_X, DIM3> HBufCalorimeter;
 
-    /* device calorimeter buffer for a single gpu */
-    DBufCalorimeter* dBufCalorimeter;
-    /* device calorimeter buffer for all particles which have left the simulation volume  */
-    DBufCalorimeter* dBufLeftParsCalorimeter;
-    /* host calorimeter buffer for a single mpi rank */
-    HBufCalorimeter* hBufCalorimeter;
-    /* host calorimeter buffer for summation of all mpi ranks */
-    HBufCalorimeter* hBufTotalCalorimeter;
 
     template<typename T_Type>
     struct DivideInPlace
@@ -132,11 +97,9 @@ private:
     typedef boost::shared_ptr<pmacc::algorithm::mpi::Reduce<simDim> > AllGPU_reduce;
     AllGPU_reduce allGPU_reduce;
 
-    void restart(uint32_t restartStep, const std::string restartDirectory)
+public:
+    void restart(uint32_t restartStep, const std::string & restartDirectory)
     {
-        if(this->notifyPeriod.empty())
-            return;
-
         HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->size());
 
         pmacc::GridController<simDim>& gridCon = pmacc::Environment<simDim>::get().GridController();
@@ -152,7 +115,7 @@ private:
             fAttr.fileAccType = splash::DataCollector::FAT_READ;
 
             std::stringstream filename;
-            filename << restartDirectory << "/" << prefix << "_" << restartStep;
+            filename << restartDirectory << "/" << ( this->foldername + "_" + m_help->fileName.get( m_id ) ) << "_" << restartStep;
 
             hdf5DataFile.open(filename.str().c_str(), fAttr);
 
@@ -185,11 +148,8 @@ private:
     }
 
 
-    void checkpoint(uint32_t currentStep, const std::string checkpointDirectory)
+    void checkpoint(uint32_t currentStep, const std::string & checkpointDirectory)
     {
-        if(this->notifyPeriod.empty())
-            return;
-
         HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->size());
         HBufCalorimeter hBufTotal(hBufLeftParsCalorimeter.size());
 
@@ -206,7 +166,7 @@ private:
         splash::DataCollector::initFileCreationAttr(fAttr);
 
         std::stringstream filename;
-        filename << checkpointDirectory << "/" << prefix << "_" << currentStep;
+        filename << checkpointDirectory << "/" << ( this->foldername + "_" + m_help->fileName.get( m_id ) ) << "_" << currentStep;
 
         hdf5DataFile.open(filename.str().c_str(), fAttr);
 
@@ -228,18 +188,15 @@ private:
         hdf5DataFile.close();
     }
 
-
-    void pluginLoad()
+private:
+    void initPlugin()
     {
         namespace pm = pmacc::math;
-
-        if(this->notifyPeriod.empty())
-            return;
 
         if(!(this->openingYaw_deg > float_X(0.0) && this->openingYaw_deg <= float_X(360.0)))
         {
             std::stringstream msg;
-            msg << "[Plugin] [" << this->prefix
+            msg << "[Plugin] [" << m_help->getOptionPrefix()
                 << "] openingYaw has to be within (0, 360]."
                 << std::endl;
             throw std::runtime_error(msg.str());
@@ -247,7 +204,7 @@ private:
         if(!(this->openingPitch_deg > float_X(0.0) && this->openingPitch_deg <= float_X(180.0)))
         {
             std::stringstream msg;
-            msg << "[Plugin] [" << this->prefix
+            msg << "[Plugin] [" << m_help->getOptionPrefix()
                 << "] openingPitch has to be within (0, 180]."
                 << std::endl;
             throw std::runtime_error(msg.str());
@@ -255,7 +212,7 @@ private:
         if(this->minEnergy < float_X(0.0))
         {
             std::stringstream msg;
-            msg << "[Plugin] [" << this->prefix
+            msg << "[Plugin] [" << m_help->getOptionPrefix()
                 << "] minEnergy can not be negative."
                 << std::endl;
             throw std::runtime_error(msg.str());
@@ -263,7 +220,7 @@ private:
         if(this->logScale && this->minEnergy == float_X(0.0))
         {
             std::stringstream msg;
-            msg << "[Plugin] [" << this->prefix
+            msg << "[Plugin] [" << m_help->getOptionPrefix()
                 << "] minEnergy can not be zero in logarithmic scaling."
                 << std::endl;
             throw std::runtime_error(msg.str());
@@ -271,7 +228,7 @@ private:
         if(this->numBinsEnergy > 1 && this->maxEnergy <= this->minEnergy)
         {
             std::stringstream msg;
-            msg << "[Plugin] [" << this->prefix
+            msg << "[Plugin] [" << m_help->getOptionPrefix()
                 << "] minEnergy has to be less than maxEnergy."
                 << std::endl;
             throw std::runtime_error(msg.str());
@@ -339,21 +296,12 @@ private:
         /* create folder for hdf5 files*/
         Environment<simDim>::get().Filesystem().createDirectoryWithPermissions(this->foldername);
 
-        Environment<>::get().PluginConnector().setNotificationPeriod(this, this->notifyPeriod);
+        // set how often the plugin should be executed while PIConGPU is running
+        Environment<>::get( ).PluginConnector( ).setNotificationPeriod(
+            this,
+            m_help->notifyPeriod.get( m_id )
+        );
     }
-
-
-    void pluginUnload()
-    {
-        if(this->notifyPeriod.empty())
-            return;
-
-        __delete(this->dBufCalorimeter);
-        __delete(this->dBufLeftParsCalorimeter);
-        __delete(this->hBufCalorimeter);
-        __delete(this->hBufTotalCalorimeter);
-    }
-
 
     void writeToHDF5File(uint32_t currentStep)
     {
@@ -363,7 +311,7 @@ private:
         splash::DataCollector::initFileCreationAttr(fAttr);
 
         std::stringstream filename;
-        filename << this->foldername << "/" << this->prefix << "_" << currentStep;
+        filename << this->foldername << "/" << m_help->fileName.get( m_id ) << "_" << currentStep;
 
         hdf5DataFile.open(filename.str().c_str(), fAttr);
 
@@ -444,18 +392,225 @@ private:
     }
 
 public:
-    ParticleCalorimeter() :
-        name("ParticleCalorimeter: (virtually) propagates and collects particles to infinite distance"),
-        prefix(ParticlesType::FrameType::getName() + std::string("_calorimeter")),
-        foldername(prefix),
-        cellDescription(nullptr),
+
+    struct Help : public plugins::multi::IHelp
+    {
+
+        /** creates an instance of ISlave
+         *
+         * @tparam T_Slave type of the interface implementation (must inherit from ISlave)
+         * @param help plugin defined help
+         * @param id index of the plugin, range: [0;help->getNumPlugins())
+         */
+        std::shared_ptr< ISlave > create(
+            std::shared_ptr< IHelp > & help,
+            size_t const id,
+            MappingDesc* cellDescription
+        )
+        {
+            return std::shared_ptr< ISlave >(
+                new ParticleCalorimeter< ParticlesType >(
+                    help,
+                    id,
+                    cellDescription
+                )
+            );
+        }
+
+        //! periodicity of computing the particle energy
+        plugins::multi::Option< std::string > notifyPeriod = {
+            "period",
+            "enable plugin [for each n-th step]"
+        };
+        plugins::multi::Option< std::string > fileName = {
+            "file",
+            "output filename (prefix)"
+        };
+        plugins::multi::Option< uint32_t > numBinsYaw = {
+            "numBinsYaw",
+            "number of bins for angle yaw.",
+            64
+        };
+        plugins::multi::Option< uint32_t > numBinsPitch = {
+            "numBinsPitch",
+            "number of bins for angle pitch.",
+            64
+        };
+        plugins::multi::Option< uint32_t > numBinsEnergy = {
+            "numBinsEnergy",
+            "number of bins for the energy spectrum. Disabled by default.",
+            1
+        };
+        plugins::multi::Option< float_X > minEnergy = {
+            "minEnergy",
+            "minimal detectable energy in keV.",
+            0.0
+        };
+        plugins::multi::Option< float_X > maxEnergy = {
+            "maxEnergy",
+            "maximal detectable energy in keV.",
+            1.0e3
+        };
+        plugins::multi::Option< uint32_t > logScale = {
+            "logScale",
+            "enable logarithmic energy scale.",
+            0
+        };
+        plugins::multi::Option< float_X > openingYaw = {
+            "openingYaw",
+            "opening angle yaw in degrees. 0 < x < 360.",
+            360.0
+        };
+        plugins::multi::Option< float_X > openingPitch = {
+            "openingPitch",
+            "opening angle pitch in degrees. 0 < x < 180.",
+            180.0
+        };
+        plugins::multi::Option< float_64 > posYaw = {
+            "posYaw",
+            "yaw coordinate of calorimeter position in degrees. Defaults to +y direction.",
+            0.0
+        };
+        plugins::multi::Option< float_64 > posPitch = {
+            "posPitch",
+            "pitch coordinate of calorimeter position in degrees. Defaults to +y direction.",
+            0.0
+        };
+
+        ///! method used by plugin controller to get --help description
+        void registerHelp(
+            boost::program_options::options_description & desc,
+            std::string const & masterPrefix = std::string{ }
+        )
+        {
+            notifyPeriod.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            fileName.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            numBinsYaw.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            numBinsPitch.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            numBinsEnergy.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            minEnergy.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            maxEnergy.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            logScale.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            openingYaw.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            openingPitch.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            posYaw.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+            posPitch.registerHelp(
+                desc,
+                masterPrefix + prefix
+            );
+        }
+
+        void expandHelp(
+            boost::program_options::options_description & desc,
+            std::string const & masterPrefix = std::string{ }
+        )
+        {
+        }
+
+
+        void validateOptions()
+        {
+            if( notifyPeriod.size() != fileName.size() )
+                throw std::runtime_error( name + ": parameter filter and period are not used the same number of times" );
+        }
+
+        size_t getNumPlugins() const
+        {
+            return notifyPeriod.size();
+        }
+
+        std::string getDescription() const
+        {
+            return description;
+        }
+
+        std::string getOptionPrefix() const
+        {
+            return prefix;
+        }
+
+        std::string getName() const
+        {
+            return name;
+        }
+
+        std::string const name = "ParticleCalorimeter";
+        //! short description of the plugin
+        std::string const description = "(virtually) propagates and collects particles to infinite distance";
+        //! prefix used for command line arguments
+        std::string const prefix = ParticlesType::FrameType::getName( ) + std::string( "_calorimeter" );
+    };
+
+    static std::shared_ptr< plugins::multi::IHelp > getHelp()
+    {
+        return std::shared_ptr< plugins::multi::IHelp >( new Help{ } );
+    }
+
+    ParticleCalorimeter(
+        std::shared_ptr< plugins::multi::IHelp > & help,
+        size_t const id,
+        MappingDesc* cellDescription
+    ) :
+        foldername(m_help->getOptionPrefix()),
         leftParticlesDatasetName("calorimeterLeftParticles"),
         dBufCalorimeter(nullptr),
         dBufLeftParsCalorimeter(nullptr),
         hBufCalorimeter(nullptr),
         hBufTotalCalorimeter(nullptr)
     {
-        Environment<>::get().PluginConnector().registerPlugin(this);
+        numBinsYaw = m_help->numBinsYaw.get( m_id );
+        numBinsPitch = m_help->numBinsPitch.get( m_id );
+        numBinsEnergy = m_help->numBinsEnergy.get( m_id );
+        minEnergy = m_help->minEnergy.get( m_id );
+        maxEnergy = m_help->maxEnergy.get( m_id );
+        logScale = m_help->logScale.get( m_id );
+        openingYaw_deg = m_help->openingYaw.get( m_id );
+        openingPitch_deg = m_help->openingPitch.get( m_id );
+        posYaw_deg = m_help->posYaw.get( m_id );
+        posPitch_deg = m_help->posPitch.get( m_id );
+
+        initPlugin();
+    }
+
+    virtual ~ParticleCalorimeter()
+    {
+        __delete(this->dBufCalorimeter);
+        __delete(this->dBufLeftParsCalorimeter);
+        __delete(this->hBufCalorimeter);
+        __delete(this->hBufTotalCalorimeter);
     }
 
 
@@ -474,7 +629,7 @@ public:
         AreaMapping<
             CORE + BORDER,
             MappingDesc
-        > const mapper( *this->cellDescription );
+        > const mapper( *this->m_cellDescription );
         auto const grid = mapper.getGridDim();
 
         constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
@@ -502,47 +657,6 @@ public:
 
         this->writeToHDF5File(currentStep);
     }
-
-
-    void setMappingDescription(MappingDesc* cellDescription)
-    {
-        this->cellDescription = cellDescription;
-    }
-
-
-    void pluginRegisterHelp(po::options_description& desc)
-    {
-        desc.add_options()
-        ((this->prefix + ".period").c_str(), po::value<std::string> (&this->notifyPeriod),
-            "enable plugin [for each n-th step]")
-        ((this->prefix + ".numBinsYaw").c_str(), po::value<uint32_t > (&this->numBinsYaw)->default_value(64),
-            "number of bins for angle yaw.")
-        ((this->prefix + ".numBinsPitch").c_str(), po::value<uint32_t > (&this->numBinsPitch)->default_value(64),
-            "number of bins for angle pitch.")
-        ((this->prefix + ".numBinsEnergy").c_str(), po::value<uint32_t > (&this->numBinsEnergy)->default_value(1),
-            "number of bins for the energy spectrum. Disabled by default.")
-        ((this->prefix + ".minEnergy").c_str(), po::value<float_X > (&this->minEnergy)->default_value(float_X(0.0)),
-            "minimal detectable energy in keV.")
-        ((this->prefix + ".maxEnergy").c_str(), po::value<float_X > (&this->maxEnergy)->default_value(float_X(1.0e3)),
-            "maximal detectable energy in keV.")
-        ((this->prefix + ".logScale").c_str(), po::bool_switch(&this->logScale),
-            "enable logarithmic energy scale.")
-        ((this->prefix + ".openingYaw").c_str(), po::value<float_X > (&this->openingYaw_deg)->default_value(float_X(360.0)),
-            "opening angle yaw in degrees. 0 < x < 360.")
-        ((this->prefix + ".openingPitch").c_str(), po::value<float_X > (&this->openingPitch_deg)->default_value(float_X(180.0)),
-            "opening angle pitch in degrees. 0 < x < 180.")
-        ((this->prefix + ".posYaw").c_str(), po::value<float_64 > (&this->posYaw_deg)->default_value(float_64(0.0)),
-            "yaw coordinate of calorimeter position in degrees. Defaults to +y direction.")
-        ((this->prefix + ".posPitch").c_str(), po::value<float_64 > (&this->posPitch_deg)->default_value(float_64(0.0)),
-            "pitch coordinate of calorimeter position in degrees. Defaults to +y direction.");
-    }
-
-
-    std::string pluginGetName() const
-    {
-        return this->name;
-    }
-
 
     void onParticleLeave(const std::string& speciesName, int32_t direction)
     {
@@ -574,6 +688,42 @@ public:
         );
         dc.releaseData( speciesName );
     }
+
+private:
+    std::shared_ptr< Help > m_help;
+    size_t m_id;
+    std::string foldername;
+    MappingDesc* m_cellDescription;
+    std::ofstream outFile;
+    const std::string leftParticlesDatasetName;
+
+    uint32_t numBinsYaw;
+    uint32_t numBinsPitch;
+    uint32_t numBinsEnergy;
+    float_X minEnergy;
+    float_X maxEnergy;
+    bool logScale;
+    float_X openingYaw_deg;
+    float_X openingPitch_deg;
+    float_X maxYaw_deg;
+    float_X maxPitch_deg;
+
+    float_64 posYaw_deg;
+    float_64 posPitch_deg;
+
+    /* Rotated calorimeter frame */
+    float3_X calorimeterFrameVecX;
+    float3_X calorimeterFrameVecY;
+    float3_X calorimeterFrameVecZ;
+
+    /* device calorimeter buffer for a single gpu */
+    DBufCalorimeter* dBufCalorimeter;
+    /* device calorimeter buffer for all particles which have left the simulation volume  */
+    DBufCalorimeter* dBufLeftParsCalorimeter;
+    /* host calorimeter buffer for a single mpi rank */
+    HBufCalorimeter* hBufCalorimeter;
+    /* host calorimeter buffer for summation of all mpi ranks */
+    HBufCalorimeter* hBufTotalCalorimeter;
 };
 
 namespace particles
