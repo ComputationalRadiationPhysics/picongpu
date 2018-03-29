@@ -32,7 +32,7 @@ class Parameter(object):
     this class. Either as MultiRangeSlider or as MultiSelection or as Checkbox
     depending on the 'values' (discrete) or 'range' (continuous)
 
-    Stepsizes will be handled by the widget representation, not here.
+    Stepping will be handled by the widget representation, not here.
     """
 
     def __init__(self, name, ptype, unit, default,
