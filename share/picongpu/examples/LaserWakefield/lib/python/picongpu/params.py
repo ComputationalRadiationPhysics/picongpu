@@ -13,42 +13,39 @@ C language macro statements. The names of the macros should be the uppercase
 versions of the names provided here with an additional PARAM_ prefix.
 
 In order to visualize parameters via jupyter notebooks and ipython widgets,
-they need to be at least of class UiParameter (or inherited).
+they need to be at least of class Parameter (or inherited).
 """
 
-from picongpu.input.parameters import LogScaledParameter, LinearScaledParameter
+from picongpu.input.parameters import Parameter
 
-pico = 1.e-12
-dt_r = 1. / 1.39e-16 * pico
+
+dt = 1.39e-16
 
 PARAMETERS = {
     'laser': [
-        LinearScaledParameter(
-            name="_A0", ptype="compile", unit="",
-            default=1.5, slider_min=0.1, slider_max=50.01,
-            slider_step=0.1),
+        Parameter(
+            name="_A0", ptype="compile", unit="1",
+            default=1.5, range=(0.1, 50.01)),
 
-        LinearScaledParameter(
+        Parameter(
             name="Wave_Length_SI", ptype="compile", unit="nm",
-            default=800.0, slider_min=400.0, slider_max=1400.0,
-            slider_step=1, scale_factor=1.e-9),
+            default=800.0, range=(400.0, 1400.0)),
 
-        LinearScaledParameter(
+        Parameter(
             name="Pulse_Length_SI", ptype="compile", unit="fs",
-            default=5.0, slider_min=1.0, slider_max=150.0,
-            slider_step=1, scale_factor=1.e-15),
+            default=5.0, range=(1.0, 150.0)),
     ],
     'target': [
-        LogScaledParameter(
+        Parameter(
             name="Base_Density_SI", ptype="compile", unit="1/m^3",
-            default=25.0, slider_min=20.0, slider_max=26.0,
-            slider_step=1, base=10),
+            default=1.e25, range=(1.e20, 1.e26)),
     ],
     'resolution': [
-        LinearScaledParameter(
+        Parameter(
             name="TBG_steps", ptype="run", unit="ps",
-            default=1.0, slider_min=0.1, slider_max=10.0,
-            slider_step=0.1, scale_factor=dt_r, dtype=int,
+            default=1.0, range=(0.1, 10.0),
+            pic_to_SI=lambda steps: steps * dt,
+            pic_from_SI=lambda time: int(time / dt),
             label="simulation time")
 
     ]
