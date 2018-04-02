@@ -6,7 +6,7 @@ server_id=$!
 
 echo ""
 echo "Let's watch a laser-plasma movie!"
-echo "  http://plasma.ninja/isaac_1_3_0/interface.htm"
+echo "  http://laser.plasma.ninja/isaac_1_3_0/interface.htm"
 echo ""
 
 # wait until server is up
