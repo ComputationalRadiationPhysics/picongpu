@@ -85,7 +85,9 @@ namespace picongpu
 #endif
 
         std::stringstream boost;
-        boost << BOOST_PP_STRINGIZE(BOOST_VERSION);
+        boost << int(BOOST_VERSION / 100000) << "."
+              << int(BOOST_VERSION / 100 % 1000) << "."
+              << int(BOOST_VERSION % 100);
 
         std::stringstream mpiStandard;
         std::stringstream mpiFlavor;
