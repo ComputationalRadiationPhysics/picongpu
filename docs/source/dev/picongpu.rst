@@ -46,7 +46,7 @@ Particles
 ComputeGridValuePerFrame
 ------------------------
 
-.. doxygenclass:: picongpu::particleToGrid::ComputeGridValuePerFrame
+.. doxygenclass:: picongpu::particles::particleToGrid::ComputeGridValuePerFrame
    :project: PIConGPU
    :members:
    :undoc-members:
