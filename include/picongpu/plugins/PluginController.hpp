@@ -215,7 +215,7 @@ private:
         PngPlugin< Visualisation<bmpl::_1, PngCreator> >
 #if(ENABLE_HDF5 == 1)
         , Radiation<bmpl::_1>
-        , ParticleCalorimeter<bmpl::_1>
+        , plugins::multi::Master< ParticleCalorimeter<bmpl::_1> >
         , plugins::multi::Master< PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1> >
 #endif
 #if( PMACC_CUDA_ENABLED == 1 )

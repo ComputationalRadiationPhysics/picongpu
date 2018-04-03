@@ -26,11 +26,12 @@ Therein, a species can be also be marked for detecting particles leaving the sim
 All options are denoted for the photon (``ph``) particle species here.
 
 
-================================== ===================================================================================
+================================== =========================================================================================
 PIConGPU command line option       Description
-================================== ===================================================================================
+================================== =========================================================================================
 ``--ph_calorimeter.period``        The ouput periodicity of the plugin.
                                    A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
+``--ph_calorimeter.file``          Output file prefix. Files will be stored in the folder ``ph_calorimeter``
 ``--ph_calorimeter.numBinsYaw``    Specifies the number of bins used for the yaw axis of the calorimeter.
                                    Defaults to ``64``.
 ``--ph_calorimeter.numBinsPitch``  Specifies the number of bins used for the pitch axis of the calorimeter.
@@ -43,7 +44,7 @@ PIConGPU command line option       Description
 ``--ph_calorimeter.maxEnergy``     Maximum detectable energy in keV.
                                    Ignored if ``numBinsEnergy`` is ``1``.
                                    Defaults to ``1000``.
-``--ph_calorimeter.logScale``      if given the energy binning is logarithmic.
+``--ph_calorimeter.logScale``      En-/Disable logarithmic energy binning.  Allowed values: ``0`` for disable, ``1`` enable.
 ``--ph_calorimeter.openingYaw``    opening angle yaw of the calorimeter in degrees.
                                    Defaults to the maximum value: ``360``.
 ``--ph_calorimeter.openingPitch``  opening angle pitch of the calorimeter in degrees.
@@ -52,7 +53,7 @@ PIConGPU command line option       Description
                                    Defaults to the +y direction: ``0``.
 ``--ph_calorimeter.posPitch``      pitch coordinate of the calorimeter position in degrees.
                                    Defaults to the +y direction: ``0``.
-================================== ===================================================================================
+================================== =========================================================================================
 
 Coordinate System
 ^^^^^^^^^^^^^^^^^
@@ -109,6 +110,23 @@ Attribute          Description
 ``maxEnergy[keV]`` maximal detectable energy.
 ``logScale``       boolean indicating logarithmic scale.
 ================== ==================================================
+
+.. note::
+
+   This plugin is a multi plugin. 
+   Command line parameters can be used multiple times to create e.g. dumps with different dumping period.
+   In the case where an optional parameter with a default value is explicitly defined the parameter will be always passed to the instance of the multi plugin where the parameter is not set.
+   e.g. 
+
+   .. code-block:: bash
+
+      --ph_calorimeter.period 128 --ph_calorimeter.file calo1 
+      --ph_calorimeter.period 1000 --ph_calorimeter.file calo2 --ph_calorimeter.logScale 1 --ph_calorimeter.minEnergy 1
+
+   creates two plugins:
+ 
+   #. calorimeter for species ph each 128th time step **with** logarithmic energy binning.
+   #. calorimeter for species ph each 1000th time step **without** (this is the default) logarithmic energy binning.
 
 Analysis Tools
 ^^^^^^^^^^^^^^
