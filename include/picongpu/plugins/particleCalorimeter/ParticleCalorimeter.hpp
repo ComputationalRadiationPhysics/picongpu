@@ -544,7 +544,7 @@ public:
         void validateOptions()
         {
             if( notifyPeriod.size() != fileName.size() )
-                throw std::runtime_error( name + ": parameter filter and period are not used the same number of times" );
+                throw std::runtime_error( name + ": parameter fileName and period are not used the same number of times" );
         }
 
         size_t getNumPlugins() const
@@ -711,18 +711,18 @@ private:
     float_64 posYaw_deg;
     float_64 posPitch_deg;
 
-    /* Rotated calorimeter frame */
+    //! Rotated calorimeter frame
     float3_X calorimeterFrameVecX;
     float3_X calorimeterFrameVecY;
     float3_X calorimeterFrameVecZ;
 
-    /* device calorimeter buffer for a single gpu */
+    //! device calorimeter buffer for a single gpu
     DBufCalorimeter* dBufCalorimeter;
-    /* device calorimeter buffer for all particles which have left the simulation volume  */
+    //! device calorimeter buffer for all particles which have left the simulation volume
     DBufCalorimeter* dBufLeftParsCalorimeter;
-    /* host calorimeter buffer for a single mpi rank */
+    //! host calorimeter buffer for a single mpi rank
     HBufCalorimeter* hBufCalorimeter;
-    /* host calorimeter buffer for summation of all mpi ranks */
+    //! host calorimeter buffer for summation of all mpi ranks
     HBufCalorimeter* hBufTotalCalorimeter;
 };
 

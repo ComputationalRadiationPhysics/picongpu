@@ -114,8 +114,8 @@ Attribute          Description
 .. note::
 
    This plugin is a multi plugin. 
-   Command line parameter can be used multiple times to create e.g. dumps with different dumping period.
-   In the case where a optional parameter with a default value is explicitly defined the parameter will be always passed to the instance of the multi plugin where the parameter is not set.
+   Command line parameters can be used multiple times to create e.g. dumps with different dumping period.
+   In the case where an optional parameter with a default value is explicitly defined the parameter will be always passed to the instance of the multi plugin where the parameter is not set.
    e.g. 
 
    .. code-block:: bash
