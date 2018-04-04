@@ -115,7 +115,7 @@ public:
             fAttr.fileAccType = splash::DataCollector::FAT_READ;
 
             std::stringstream filename;
-            filename << restartDirectory << "/" << ( this->foldername + "_" + m_help->fileName.get( m_id ) ) << "_" << restartStep;
+            filename << restartDirectory << "/" << ( this->foldername + "/" + filenamePrefix ) << "_" << restartStep;
 
             hdf5DataFile.open(filename.str().c_str(), fAttr);
 
@@ -150,6 +150,8 @@ public:
 
     void checkpoint(uint32_t currentStep, const std::string & checkpointDirectory)
     {
+        /* create folder for hdf5 checkpoint files*/
+        Environment<simDim>::get().Filesystem().createDirectoryWithPermissions( checkpointDirectory + "/" + this->foldername);
         HBufCalorimeter hBufLeftParsCalorimeter(this->dBufLeftParsCalorimeter->size());
         HBufCalorimeter hBufTotal(hBufLeftParsCalorimeter.size());
 
@@ -166,7 +168,7 @@ public:
         splash::DataCollector::initFileCreationAttr(fAttr);
 
         std::stringstream filename;
-        filename << checkpointDirectory << "/" << ( this->foldername + "_" + m_help->fileName.get( m_id ) ) << "_" << currentStep;
+        filename << checkpointDirectory << "/" << ( this->foldername + "/" + filenamePrefix ) << "_" << currentStep;
 
         hdf5DataFile.open(filename.str().c_str(), fAttr);
 
@@ -311,7 +313,7 @@ private:
         splash::DataCollector::initFileCreationAttr(fAttr);
 
         std::stringstream filename;
-        filename << this->foldername << "/" << m_help->fileName.get( m_id ) << "_" << currentStep;
+        filename << this->foldername << "/" << filenamePrefix << "_" << currentStep;
 
         hdf5DataFile.open(filename.str().c_str(), fAttr);
 
@@ -417,6 +419,17 @@ public:
             );
         }
 
+        // find all valid filter for the current used species
+        using EligibleFilters = typename MakeSeqFromNestedSeq<
+            typename bmpl::transform<
+                particles::filter::AllParticleFilters,
+                particles::traits::GenerateSolversIfSpeciesEligible<
+                    bmpl::_1,
+                    ParticlesType
+                >
+            >::type
+        >::type;
+
         //! periodicity of computing the particle energy
         plugins::multi::Option< std::string > notifyPeriod = {
             "period",
@@ -425,6 +438,10 @@ public:
         plugins::multi::Option< std::string > fileName = {
             "file",
             "output filename (prefix)"
+        };
+        plugins::multi::Option< std::string > filter = {
+            "filter",
+            "particle filter: "
         };
         plugins::multi::Option< uint32_t > numBinsYaw = {
             "numBinsYaw",
@@ -458,12 +475,12 @@ public:
         };
         plugins::multi::Option< float_X > openingYaw = {
             "openingYaw",
-            "opening angle yaw in degrees. 0 < x < 360.",
+            "opening angle yaw in degrees. 0 <= x <= 360.",
             360.0
         };
         plugins::multi::Option< float_X > openingPitch = {
             "openingPitch",
-            "opening angle pitch in degrees. 0 < x < 180.",
+            "opening angle pitch in degrees. 0 <= x <= 180.",
             180.0
         };
         plugins::multi::Option< float_64 > posYaw = {
@@ -477,12 +494,27 @@ public:
             0.0
         };
 
+        //! string list with all possible particle filters
+        std::string concatenatedFilterNames;
+        std::vector< std::string > allowedFilters;
+
         ///! method used by plugin controller to get --help description
         void registerHelp(
             boost::program_options::options_description & desc,
             std::string const & masterPrefix = std::string{ }
         )
         {
+            ForEach<
+                EligibleFilters,
+                plugins::misc::AppendName< bmpl::_1 >
+            > getEligibleFilterNames;
+            getEligibleFilterNames( forward( allowedFilters ) );
+
+            concatenatedFilterNames = plugins::misc::concatenateToString(
+                allowedFilters,
+                ", "
+            );
+
             notifyPeriod.registerHelp(
                 desc,
                 masterPrefix + prefix
@@ -490,6 +522,11 @@ public:
             fileName.registerHelp(
                 desc,
                 masterPrefix + prefix
+            );
+            filter.registerHelp(
+                desc,
+                masterPrefix + prefix,
+                std::string( "[" ) + concatenatedFilterNames + "]"
             );
             numBinsYaw.registerHelp(
                 desc,
@@ -545,6 +582,24 @@ public:
         {
             if( notifyPeriod.size() != fileName.size() )
                 throw std::runtime_error( name + ": parameter fileName and period are not used the same number of times" );
+
+            if( notifyPeriod.size() != filter.size() )
+                    throw std::runtime_error( name + ": parameter filter and period are not used the same number of times" );
+
+            // check if user passed filter name are valid
+            for( auto const & filterName : filter)
+            {
+                if(
+                    std::find(
+                        allowedFilters.begin(),
+                        allowedFilters.end(),
+                        filterName
+                    ) == allowedFilters.end()
+                )
+                {
+                    throw std::runtime_error( name + ": unknown filter '" + filterName + "'" );
+                }
+            }
         }
 
         size_t getNumPlugins() const
@@ -584,13 +639,14 @@ public:
         size_t const id,
         MappingDesc* cellDescription
     ) :
-        foldername(m_help->getOptionPrefix()),
         leftParticlesDatasetName("calorimeterLeftParticles"),
         dBufCalorimeter(nullptr),
         dBufLeftParsCalorimeter(nullptr),
         hBufCalorimeter(nullptr),
         hBufTotalCalorimeter(nullptr)
     {
+        foldername = m_help->getOptionPrefix() + "/" + m_help->filter.get( m_id );
+        filenamePrefix = m_help->getOptionPrefix() + "_" + m_help->fileName.get( m_id ) + "_" + m_help->filter.get( m_id );
         numBinsYaw = m_help->numBinsYaw.get( m_id );
         numBinsPitch = m_help->numBinsPitch.get( m_id );
         numBinsEnergy = m_help->numBinsEnergy.get( m_id );
@@ -636,13 +692,25 @@ public:
             pmacc::math::CT::volume< SuperCellSize >::type::value
         >::value;
 
-        PMACC_KERNEL( KernelParticleCalorimeter< numWorkers >{ } )(
+        auto kernel = PMACC_KERNEL( KernelParticleCalorimeter< numWorkers >{ } )(
             grid,
             numWorkers
-        )(
+        );
+        auto unaryKernel = std::bind(
+            kernel,
             particles->getDeviceParticlesBox( ),
             *this->calorimeterFunctor,
-            mapper
+            mapper,
+            std::placeholders::_1
+        );
+
+        ForEach<
+            typename Help::EligibleFilters,
+            plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
+        >{ }(
+            m_help->filter.get( m_id ),
+            currentStep,
+            unaryKernel
         );
 
         dc.releaseData( ParticlesType::FrameType::getName() );
@@ -678,14 +746,27 @@ public:
             pmacc::math::CT::volume< SuperCellSize >::type::value
         >::value;
 
-        PMACC_KERNEL( KernelParticleCalorimeter< numWorkers >{ } )(
+        auto kernel = PMACC_KERNEL( KernelParticleCalorimeter< numWorkers >{ } )(
             grid,
             numWorkers
-        )(
+        );
+        auto unaryKernel = std::bind(
+            kernel,
             particles->getDeviceParticlesBox( ),
             (MyCalorimeterFunctor)*this->calorimeterFunctor,
-            mapper
+            mapper,
+            std::placeholders::_1
         );
+
+        ForEach<
+            typename Help::EligibleFilters,
+            plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
+        >{ }(
+            m_help->filter.get( m_id ),
+            Environment<>::get().SimulationDescription().getCurrentStep(),
+            unaryKernel
+        );
+
         dc.releaseData( speciesName );
     }
 
@@ -693,6 +774,7 @@ private:
     std::shared_ptr< Help > m_help;
     size_t m_id;
     std::string foldername;
+    std::string filenamePrefix;
     MappingDesc* m_cellDescription;
     std::ofstream outFile;
     const std::string leftParticlesDatasetName;
