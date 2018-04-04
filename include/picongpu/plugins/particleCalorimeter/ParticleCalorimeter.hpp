@@ -639,6 +639,9 @@ public:
         size_t const id,
         MappingDesc* cellDescription
     ) :
+        m_help( std::static_pointer_cast< Help >(help) ),
+        m_id( id ),
+        m_cellDescription( cellDescription ),
         leftParticlesDatasetName("calorimeterLeftParticles"),
         dBufCalorimeter(nullptr),
         dBufLeftParsCalorimeter(nullptr),
