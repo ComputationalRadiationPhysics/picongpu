@@ -32,6 +32,7 @@ PIConGPU command line option       Description
 ``--ph_calorimeter.period``        The ouput periodicity of the plugin.
                                    A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
 ``--ph_calorimeter.file``          Output file prefix. Files will be stored in the folder ``ph_calorimeter``
+``--ph_energy.filter``             Use filtered particles. All available filters will be shown with ``picongpu --help``
 ``--ph_calorimeter.numBinsYaw``    Specifies the number of bins used for the yaw axis of the calorimeter.
                                    Defaults to ``64``.
 ``--ph_calorimeter.numBinsPitch``  Specifies the number of bins used for the pitch axis of the calorimeter.
@@ -91,7 +92,7 @@ as on accelerator.
 Output
 ^^^^^^
 
-The calorimeters are stored in hdf5-files in the ``simOutput/<species>_calorimeter`` directory.
+The calorimeters are stored in hdf5-files in the ``simOutput/<species>_calorimeter/<filter>/`` directory.
 The dataset within the hdf5-file is located at ``/data/<timestep>/calorimeter``.
 Depending on whether energy binning is enabled the dataset is two or three dimensional.
 The dataset has the following attributes:

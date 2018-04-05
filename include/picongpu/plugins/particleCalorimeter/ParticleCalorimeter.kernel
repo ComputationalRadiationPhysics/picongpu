@@ -48,13 +48,15 @@ struct KernelParticleCalorimeter
         typename T_ParticlesBox,
         typename T_CalorimeterFunctor,
         typename T_Mapper,
-        typename T_Acc
+        typename T_Acc,
+        typename T_Filter
     >
     DINLINE void operator()(
         T_Acc const & acc,
         T_ParticlesBox particlesBox,
         T_CalorimeterFunctor calorimeterFunctor,
-        T_Mapper mapper
+        T_Mapper mapper,
+        T_Filter filter
     ) const
     {
         using namespace mappings::threads;
@@ -72,6 +74,17 @@ struct KernelParticleCalorimeter
         ParticlesFramePtr particlesFrame;
 
         particlesFrame = particlesBox.getLastFrame( block );
+
+        // end kernel if we have no frames within the supercell
+        if( !particlesFrame.isValid( ) )
+            return;
+
+        auto accFilter = filter(
+            acc,
+            block - mapper.getGuardingSuperCells( ),
+            WorkerCfg< numWorkers >{ workerIdx }
+        );
+
         // number of particles in the current frame
         auto numParticles = particlesBox.getSuperCell( block ).getSizeLastFrame( );
 
@@ -90,7 +103,18 @@ struct KernelParticleCalorimeter
                     uint32_t const
                 )
                 {
-                    if( linearIdx < numParticles )
+                    auto particle = particlesFrame[ linearIdx ];
+                    if( linearIdx >= numParticles )
+                    {
+                        particle.setHandleInvalid( );
+                    }
+
+                    if(
+                        accFilter(
+                            acc,
+                            particle
+                        )
+                    )
                     {
                         calorimeterFunctor(
                             acc,
