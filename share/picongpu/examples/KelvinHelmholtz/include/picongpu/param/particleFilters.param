@@ -17,9 +17,26 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * A common task in both modeling and in situ processing (output) is the
+ * selection of particles of a particle species by attributes. Users can
+ * define such selections as particle filters in this file.
+ *
+ * Particle filters are simple mappings assigning each particle of a species
+ * either `true` or `false` (ignore / filter out).
+ *
+ * All active filters need to be listed in `AllParticleFilters`. They are then
+ * combined with `VectorAllSpecies` at compile-time, e.g. for plugins.
+ */
+
 #pragma once
 
 #include "picongpu/particles/filter/filter.def"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
 
 
 namespace picongpu
@@ -99,5 +116,12 @@ namespace filter
     >;
 
 } // namespace filter
+
+namespace traits
+{
+    /* if needed for generic "free" filters,
+     * place `SpeciesEligibleForSolver` traits for filters here
+     */
+} // namespace traits
 } // namespace particles
 } // namespace picongpu
