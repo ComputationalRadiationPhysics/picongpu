@@ -81,7 +81,7 @@ That means: if one accesses specific *attributes* or *flags* of a species in a f
 As an example, :ref:`probe particles <usage-workflows-probeParticles>` usually do not need even have a ``momentum`` attribute which would be used for an energy filter.
 So they should be ignored from compilation when combining filters with particle species.
 
-In order to exclude all species that have no ``momentum`` attribute from the ``ParticlesForwardPinhole`` filter, define the C++ trait ``SpeciesEligibleForSolver``.
+In order to exclude all species that have no ``momentum`` attribute from the ``ParticlesForwardPinhole`` filter, specialize the C++ trait ``SpeciesEligibleForSolver``.
 This trait is implemented to be checked during compile time when combining filters with species:
 
 .. code:: cpp
