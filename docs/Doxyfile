@@ -27,8 +27,7 @@ FILE_PATTERNS          = *.cu       \
                          *.def      \
                          *.param    \
                          *.unitless \
-                         *.loader   \
-                         *.md
+                         *.loader
 
 EXTENSION_MAPPING      = .cu=C++       \
                          .cpp=C++      \
