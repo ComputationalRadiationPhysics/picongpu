@@ -17,16 +17,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * @mainpage PIConGPU-Frame
- *
- * Project with HZDR for porting their PiC-code to a GPU cluster.
- *
- * \image html ../../docs/logo/pic_logo_320x140.png
- *
- * @author Heiko Burau, Rene Widera, Wolfgang Hoenig, Felix Schmitt, Axel Huebl, Michael Bussmann, Guido Juckeland
- */
-
 #include "picongpu/ArgsParser.hpp"
 #include <pmacc/Environment.hpp>
 
