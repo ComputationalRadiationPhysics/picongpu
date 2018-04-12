@@ -17,14 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-
 #pragma once
-
 
 #include "particle.hpp"
 
+#include <iostream>
 
+
+namespace picongpu
+{
 //protected:
 // error class for wrong time access
 
@@ -169,5 +170,4 @@ private:
 
 };
 
-
-
+} // namespace picongpu
