@@ -26,6 +26,9 @@
 #include "taylor.hpp"
 
 
+namespace picongpu
+{
+
 class When
 {
     // a enum to describe all needed times
@@ -148,7 +151,6 @@ private:
 }; // end of Particle definition
 
 
-
 template<>
 HDINLINE vector_64 Particle::get_location<When::now>(void) const
 {
@@ -167,3 +169,4 @@ HDINLINE vector_64 Particle::get_momentum<When::old>(void) const
     return momentum_old;
 } // get momentum at time when
 
+} // namespace picongpu

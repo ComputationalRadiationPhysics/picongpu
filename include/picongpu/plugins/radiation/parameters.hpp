@@ -20,12 +20,13 @@
 #pragma once
 
 
-#include "vector.hpp"
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/plugins/radiation/vector.hpp"
 
 
-typedef cuda_vec<picongpu::float3_X, picongpu::float_X> vector_X;
-typedef /*__align__(16)*/ cuda_vec<picongpu::float3_32, picongpu::float_32> vector_32;
-typedef /*__align__(32)*/ cuda_vec<picongpu::float3_64, picongpu::float_64> vector_64;
-
-
+namespace picongpu
+{
+    using vector_X = cuda_vec< picongpu::float3_X, picongpu::float_X >;
+    using vector_32 = /*__align__(16)*/ cuda_vec< picongpu::float3_32, picongpu::float_32 >;
+    using vector_64 = /*__align__(32)*/ cuda_vec< picongpu::float3_64, picongpu::float_64 >;
+} // namespace picongpu

@@ -352,7 +352,7 @@ namespace picongpu
 
                                         // set up particle using the radiation's own particle class
                                         /*!\todo please add a namespace for Particle class*/
-                                        ::Particle const particle(
+                                        Particle const particle(
                                             particle_locationNow,
                                             particle_momentumOld,
                                             particle_momentumNow,

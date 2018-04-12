@@ -17,12 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "calc_amplitude.hpp"
 #include "parameters.hpp"
 #include "particle.hpp"
+
+
+namespace picongpu
+{
 
 class NyquistLowPass : public One_minus_beta_times_n
 {
@@ -34,8 +37,8 @@ public:
      * so that all Amplitudes for higher frequencies can be ignored
     **/
     HDINLINE NyquistLowPass(const vector_64& n, const Particle& particle)
-      : omegaNyquist((picongpu::PI - 0.01)/
-           (picongpu::DELTA_T *
+      : omegaNyquist((PI - 0.01)/
+           (DELTA_T *
             One_minus_beta_times_n()(n, particle)))
     { }
 
@@ -49,12 +52,13 @@ public:
     /**
      * checks if frequency omega is below Nyquist frequency
     **/
-    HDINLINE bool check(const picongpu::float_32 omega)
+    HDINLINE bool check(const float_32 omega)
     {
-        return omega < omegaNyquist * picongpu::radiationNyquist::NyquistFactor;
+        return omega < omegaNyquist * radiationNyquist::NyquistFactor;
     }
 
 private:
-    picongpu::float_32 omegaNyquist; // Nyquist frequency for a particle (at a certain time step) for one direction
+    float_32 omegaNyquist; // Nyquist frequency for a particle (at a certain time step) for one direction
 };
 
+} // namespace picongpu

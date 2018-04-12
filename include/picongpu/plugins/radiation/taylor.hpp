@@ -17,11 +17,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "parameters.hpp"
 
+namespace picongpu
+{
 struct Taylor
 {
     // a Taylor development for 1-sqrt(1-x)
@@ -36,5 +37,4 @@ struct Taylor
 
 };
 
-
-
+} // namespace picongpu

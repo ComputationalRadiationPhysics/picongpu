@@ -17,8 +17,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
+
+namespace picongpu
+{
 
 namespace util
 {
@@ -106,3 +108,5 @@ namespace details
   }
 
 } // namespace util
+
+} // namespace picongpu

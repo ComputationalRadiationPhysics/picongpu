@@ -24,13 +24,16 @@
 #include "parameters.hpp"
 #include <pmacc/mpi/GetMPI_StructAsArray.hpp>
 
-typedef pmacc::math::Complex<picongpu::float_64> complex_64;
 
+namespace picongpu
+{
 /** class to store 3 complex numbers for the radiated amplitude
  */
 class Amplitude
 {
 public:
+  using complex_64 = pmacc::math::Complex< picongpu::float_64 >;
+
   /* number of scalar components in Amplitude = 3 (3D) * 2 (complex) = 6 */
   static constexpr uint32_t numComponents = uint32_t(3) * uint32_t(sizeof(complex_64) / sizeof(typename complex_64::type));
 
@@ -132,7 +135,7 @@ private:
   complex_64 amp_z; // complex amplitude z-component
 
 };
-
+} // namespace picongpu
 
 namespace pmacc
 {
@@ -141,15 +144,12 @@ namespace mpi
 
   /** implementation of MPI transaction on Amplitude class */
   template<>
-  MPI_StructAsArray getMPI_StructAsArray< ::Amplitude >()
+  MPI_StructAsArray getMPI_StructAsArray< picongpu::Amplitude >()
   {
-      MPI_StructAsArray result = getMPI_StructAsArray< complex_64::type > ();
-      result.sizeMultiplier *= Amplitude::numComponents;
+      MPI_StructAsArray result = getMPI_StructAsArray< picongpu::Amplitude::complex_64::type > ();
+      result.sizeMultiplier *= picongpu::Amplitude::numComponents;
       return result;
   };
 
-}//namespace mpi
-}//namespace pmacc
-
-
-
+} // namespace mpi
+} // namespace pmacc
