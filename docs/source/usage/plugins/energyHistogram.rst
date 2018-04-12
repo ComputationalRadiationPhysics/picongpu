@@ -10,61 +10,7 @@ The acceptance of particles for counting in the energy histogram can be adjusted
 ^^^^^^^^^^^
 
 The :ref:`particleFilters.param <usage-params-core>` file allows to define accepted particles for the energy histogram.
-A typical :ref:`filter <usage-particles>` could select particles within a specified opening angle in forward direction.
-
-For example, to limit to particles within a cone with an opening angle of five degrees (pinhole):
-
-.. code:: cpp
-
-   namespace picongpu
-   {
-   namespace particles
-   {
-   namespace filter
-   {
-       struct FunctorParticlesForwardPinhole
-       {
-           static constexpr char const * name = "forwardPinhole";
-
-           template< typename T_Particle >
-           HDINLINE bool operator()(
-               T_Particle const & particle
-           )
-           {
-               bool result = false;
-               float3_X const mom = particle[ momentum_ ];
-               float_X const absMom = math::abs( mom );
-
-               if( absMom > float_X( 0. ) )
-               {
-                   /* place detector in y direction, "infinite distance" to target,
-                    * and five degree opening angle
-                    */
-                   constexpr float_X openingAngle = 5.0 * PI / 180.;
-                   float_X const dotP = mom.y() / absMom;
-                   float_X const degForw = math::acos( dotP );
-
-                   if( math::abs( degForw ) <= openingAngle * float_X( 0.5 ) )
-                       result = true;
-               }
-               return result;
-           }
-       };
-       using ParticlesForwardPinhole = generic::Free<
-          FunctorParticlesForwardPinhole
-       >;
-   }
-   }
-   }
-
-and add ``ParticlesForwardPinhole`` to the ``AllParticleFilters`` list:
-
-.. code:: cpp
-
-   using AllParticleFilters = MakeSeq_t<
-       All,
-       ParticlesForwardPinhole
-   >;
+A typical :ref:`filter <usage-particles-filters>` could select particles within a specified :ref:`opening angle in forward direction <usage-workflows-particleFilters>`.
 
 .cfg files
 ^^^^^^^^^^

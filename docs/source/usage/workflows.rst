@@ -15,3 +15,4 @@ This section contains typical user workflows and best practices.
    workflows/quasiNeutrality
    workflows/probeParticles
    workflows/tracerParticles
+   workflows/particleFilters
