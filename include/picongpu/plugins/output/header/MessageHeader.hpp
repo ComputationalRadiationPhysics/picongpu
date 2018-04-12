@@ -25,7 +25,6 @@
 #include "picongpu/plugins/output/header/DataHeader.hpp"
 #include "picongpu/plugins/output/header/NodeHeader.hpp"
 #include "picongpu/plugins/output/header/SimHeader.hpp"
-//#include "picongpu/plugins/output/header/ColorHeader.hpp"
 #include "picongpu/plugins/output/header/WindowHeader.hpp"
 
 #include "picongpu/simulationControl/Window.hpp"
@@ -34,10 +33,12 @@
 #include <cstdlib>
 
 
-typedef pmacc::DataSpace<DIM2> Size2D;
+namespace picongpu
+{
 
 struct MessageHeader
 {
+    using Size2D = WindowHeader::Size2D;
 
     enum
     {
@@ -170,3 +171,4 @@ private:
 
 };
 
+} // namespace picongpu

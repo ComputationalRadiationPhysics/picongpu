@@ -19,19 +19,18 @@
 
 #pragma once
 
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/plugins/output/header/MessageHeader.hpp"
+
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
-#include "header/MessageHeader.hpp"
-
-#include "picongpu/simulation_defines.hpp"
-
 #include <pmacc/types.hpp>
 
 #include <mpi.h>
 
 #include <vector>
-
 #include <sys/stat.h>
+
 
 namespace picongpu
 {
@@ -197,7 +196,7 @@ struct GatherSlice
     }
 
     template<class DstBox, class SrcBox>
-    void insertData(DstBox& dst, const SrcBox& src, Size2D offsetToSimNull, Size2D srcSize)
+    void insertData(DstBox& dst, const SrcBox& src, MessageHeader::Size2D offsetToSimNull, MessageHeader::Size2D srcSize)
     {
         for (int y = 0; y < srcSize.y(); ++y)
         {

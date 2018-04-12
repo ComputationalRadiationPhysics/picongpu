@@ -19,6 +19,10 @@
 
 #pragma once
 
+
+namespace picongpu
+{
+
 struct DataHeader
 {
 
@@ -34,3 +38,5 @@ struct DataHeader
     }
 
 };
+
+} // namespace picongpu

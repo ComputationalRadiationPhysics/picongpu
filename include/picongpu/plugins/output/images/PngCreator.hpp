@@ -95,7 +95,7 @@ namespace picongpu
         template<class Box>
         void operator()(
                         const Box data,
-                        const Size2D size,
+                        const MessageHeader::Size2D size,
                         const MessageHeader  header)
         {
             if(m_isThreadActive)
@@ -110,7 +110,7 @@ namespace picongpu
 
         template<class Box>
         void createImage(const Box data,
-                        const Size2D size,
+                        const MessageHeader::Size2D size,
                         const MessageHeader header);
 
         std::string m_name;
