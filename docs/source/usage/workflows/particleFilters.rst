@@ -72,13 +72,13 @@ and add ``ParticlesForwardPinhole`` to the ``AllParticleFilters`` list:
 Limiting Filters to Eligible Species
 """"""""""""""""""""""""""""""""""""
 
-Besides :ref:`the list of pre-defined filters <usage-particles-filters>` with parametrization users can also define generic, "free" implementations as shown above.
+Besides :ref:`the list of pre-defined filters <usage-particles-filters>` with parametrization, users can also define generic, "free" implementations as shown above.
 All filters are added to ``AllParticleFilters`` and then *combined with all available species* from ``VectorAllSpecies`` (see :ref:`speciesDefinition.param <usage-params-core>`).
 
 In the case of user-defined free filters we can now check if each species in ``VectorAllSpecies`` fulfills the requirements of the filter.
 That means: if one accesses specific *attributes* or *flags* of a species in a filter, they must exist or will lead to a compile error.
 
-As an example, :ref:`probe particles <usage-workflows-probeParticles>` usually do not need even have a ``momentum`` attribute which would be used for an energy filter.
+As an example, :ref:`probe particles <usage-workflows-probeParticles>` usually do not need a ``momentum`` attribute which would be used for an energy filter.
 So they should be ignored from compilation when combining filters with particle species.
 
 In order to exclude all species that have no ``momentum`` attribute from the ``ParticlesForwardPinhole`` filter, specialize the C++ trait ``SpeciesEligibleForSolver``.
