@@ -276,7 +276,7 @@ namespace exec
  *
  * @param ... instance of kernel functor
  */
-#define PMACC_KERNEL( ... ) pmacc::exec::kernel( __VA_ARGS__, __FILE__,  static_cast< size_t >( __LINE__ ) )
+#define PMACC_KERNEL( ... ) ::pmacc::exec::kernel( __VA_ARGS__, __FILE__,  static_cast< size_t >( __LINE__ ) )
 
 
 #include "pmacc/eventSystem/events/kernelEvents.tpp"

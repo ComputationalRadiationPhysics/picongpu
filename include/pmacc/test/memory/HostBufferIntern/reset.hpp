@@ -23,6 +23,16 @@
 
 /* #includes in "test/memoryUT.cu" */
 
+
+namespace pmacc
+{
+namespace test
+{
+namespace memory
+{
+namespace HostBufferIntern
+{
+
 /**
  * Checks if the HostBufferIntern is reseted correctly to zero.
  */
@@ -31,9 +41,10 @@ struct ResetTest {
     template<typename T_Dim>
     void exec(T_Dim)
     {
+        using Data = uint8_t ;
+        using Extents = size_t;
 
-        typedef uint8_t Data;
-        typedef size_t Extents;
+        using ::pmacc::test::memory::getElementsPerDim;
 
         std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
 
@@ -60,7 +71,13 @@ struct ResetTest {
     }
 };
 
-BOOST_AUTO_TEST_CASE( reset ){
-    ::boost::mpl::for_each< Dims >( ResetTest() );
+} // namespace HostBufferIntern
+} // namespace memory
+} // namespace test
+} // namespace pmacc
 
+BOOST_AUTO_TEST_CASE( reset )
+{
+    using namespace pmacc::test::memory::HostBufferIntern;
+    ::boost::mpl::for_each< Dims >( ResetTest() );
 }

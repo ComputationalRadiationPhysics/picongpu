@@ -32,13 +32,22 @@
 #include "pmacc/dataManagement/ISimulationData.hpp"
 #include "pmacc/Environment.hpp"
 #include "pmacc/eventSystem/tasks/ITask.hpp"
+
 #include <stdint.h>
 #include <iostream>
 #include <fstream>
 #include <limits>
 
-typedef pmacc::DataSpace<DIM2> Space2D;
-typedef pmacc::DataSpace<DIM3> Space3D;
+
+namespace pmacc
+{
+namespace test
+{
+namespace random
+{
+
+using Space2D = pmacc::DataSpace< DIM2 >;
+using Space3D = pmacc::DataSpace< DIM3 >;
 
 template<
     uint32_t T_numWorkers,
@@ -319,14 +328,21 @@ void runTest(uint32_t numSamples)
     std::cout << " std. dev: " << stdDev << std::endl;
 }
 
+} // namespace random
+} // namespace test
+} // namespace pmacc
+
 int main(int argc, char** argv)
 {
-    pmacc::Environment<2>::get().initDevices(Space2D::create(1), Space2D::create(0));
+    using namespace pmacc;
+    using namespace test::random;
+
+    Environment<2>::get().initDevices(Space2D::create(1), Space2D::create(0));
 
     const uint32_t numSamples = (argc > 1) ? atoi(argv[1]) : 100;
 
-    runTest< pmacc::random::methods::AlpakaRand< cupla::Acc> >(numSamples);
+    runTest< random::methods::AlpakaRand< cupla::Acc> >(numSamples);
 
     /* finalize the pmacc context */
-    pmacc::Environment<>::get().finalize();
+    Environment<>::get().finalize();
 }
