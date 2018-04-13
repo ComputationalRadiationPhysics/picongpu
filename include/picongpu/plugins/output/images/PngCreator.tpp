@@ -19,18 +19,20 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
-#include <pmacc/memory/boxes/DataBox.hpp>
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
+
+#include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/verify.hpp>
+#include <pmacc/types.hpp>
+
+#include <boost/core/ignore_unused.hpp>
 
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-#include <boost/core/ignore_unused.hpp>
 
 #if( PIC_ENABLE_PNG == 1 )
 #   include <pngwriter.h>
@@ -41,7 +43,7 @@ namespace picongpu
     template< class Box >
     inline void PngCreator::createImage(
         const Box data,
-        const Size2D size,
+        const MessageHeader::Size2D size,
         const MessageHeader header
     )
     {

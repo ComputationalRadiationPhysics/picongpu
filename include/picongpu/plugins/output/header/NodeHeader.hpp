@@ -21,8 +21,13 @@
 
 #include <pmacc/types.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
+
 #include <iostream>
 #include <cstdlib>
+
+
+namespace picongpu
+{
 
 struct NodeHeader
 {
@@ -55,3 +60,4 @@ struct NodeHeader
 
 };
 
+} // namespace picongpu

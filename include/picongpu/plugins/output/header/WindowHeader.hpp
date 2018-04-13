@@ -21,12 +21,17 @@
 
 #include <pmacc/types.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
+
 #include <iostream>
 #include <cstdlib>
 
+
+namespace picongpu
+{
+
 struct WindowHeader
 {
-    typedef pmacc::DataSpace<DIM2> Size2D;
+    using Size2D = pmacc::DataSpace< DIM2 >;
 
     Size2D size;
     Size2D offset;
@@ -39,3 +44,4 @@ struct WindowHeader
 
 };
 
+} // namespace picongpu

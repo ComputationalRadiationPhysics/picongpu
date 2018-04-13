@@ -21,9 +21,13 @@
 
 #include <pmacc/types.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
+
 #include <iostream>
 #include <string>
 
+
+namespace picongpu
+{
 /** Color Header for Preview Images
  *
  *  Used to store the relation of color channels to min/max units
@@ -74,3 +78,4 @@ struct ColorHeader
 
 };
 
+} // namespace picongpu
