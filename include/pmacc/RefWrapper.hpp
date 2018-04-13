@@ -21,6 +21,9 @@
 
 #pragma once
 
+namespace pmacc
+{
+
 template<typename Type>
 class RefWrapper
 {
@@ -77,3 +80,5 @@ public:
         return myRef;
     }
 };
+
+} // namespace pmacc
