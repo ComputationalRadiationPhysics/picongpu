@@ -79,6 +79,11 @@ unset MODULES_NO_OUTPUT
 mkdir simOutput 2> /dev/null
 cd simOutput
 
+# the next three lines were recommended by Cray to avoid warnings
+export PMI_MMAP_SYNC_WAIT_TIME=300
+export PMI_NO_FORK=1
+export PMI_NO_PREINITIALIZE=1
+
 # test if cuda_memtest binary is available
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
   srun  -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
