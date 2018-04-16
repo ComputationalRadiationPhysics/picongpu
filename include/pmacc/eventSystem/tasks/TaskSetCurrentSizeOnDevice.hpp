@@ -30,7 +30,8 @@
 #include "pmacc/nvidia/gpuEntryFunction.hpp"
 
 
-
+namespace pmacc
+{
 
 struct KernelSetValueOnDeviceMemory
 {
@@ -40,9 +41,6 @@ struct KernelSetValueOnDeviceMemory
         *pointer = size;
     }
 };
-
-namespace pmacc
-{
 
 template <class TYPE, unsigned DIM>
 class DeviceBuffer;
