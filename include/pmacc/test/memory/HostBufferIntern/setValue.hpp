@@ -23,6 +23,16 @@
 
 /* #includes in "test/memoryUT.cu" */
 
+
+namespace pmacc
+{
+namespace test
+{
+namespace memory
+{
+namespace HostBufferIntern
+{
+
 /**
  * Checks if the HostBufferIntern is set to a constant value.
  */
@@ -32,9 +42,10 @@ struct setValueTest
     template<typename T_Dim>
     void exec(T_Dim)
     {
+        using Data = uint8_t ;
+        using Extents = size_t;
 
-        typedef uint8_t Data;
-        typedef size_t Extents;
+        using ::pmacc::test::memory::getElementsPerDim;
 
         std::vector<size_t> nElementsPerDim = getElementsPerDim<T_Dim>();
 
@@ -64,8 +75,13 @@ struct setValueTest
     }
 };
 
+} // namespace HostBufferIntern
+} // namespace memory
+} // namespace test
+} // namespace pmacc
+
 BOOST_AUTO_TEST_CASE( setValue )
 {
+    using namespace pmacc::test::memory::HostBufferIntern;
     ::boost::mpl::for_each< Dims >( setValueTest() );
-
 }

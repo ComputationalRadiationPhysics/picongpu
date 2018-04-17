@@ -25,6 +25,12 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 
+
+namespace pmacc
+{
+namespace test
+{
+
 /** Fixture that initializes PMacc for a given dimensionality */
 template<unsigned T_dim>
 struct PMaccFixture
@@ -43,5 +49,8 @@ struct PMaccFixture
     }
 };
 
-typedef PMaccFixture<2> PMaccFixture2D;
-typedef PMaccFixture<3> PMaccFixture3D;
+using PMaccFixture2D = PMaccFixture< 2 >;
+using PMaccFixture3D = PMaccFixture< 3 >;
+
+} // namespace test
+} // namespace pmacc

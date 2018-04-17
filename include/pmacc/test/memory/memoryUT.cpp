@@ -46,10 +46,16 @@
 #include "pmacc/types.hpp" /* DIM1,DIM2,DIM3 */
 
 
+namespace pmacc
+{
+namespace test
+{
+namespace memory
+{
+
 /*******************************************************************************
  * Configuration
  ******************************************************************************/
-
 
 /**
  * Defines for which numbers of elements a
@@ -75,6 +81,9 @@ std::vector<size_t> getElementsPerDim(){
     return nElementsPerDim;
 }
 
+} // namespace memory
+} // namespace test
+} // namespace pmacc
 
 /**
  * Definition of a list of dimension types. This
@@ -82,16 +91,16 @@ std::vector<size_t> getElementsPerDim(){
  * each dimension setup automatically. For this
  * purpose boost::mpl::for_each is used.
  */
-typedef ::boost::mpl::list<boost::mpl::int_<DIM1>,
-                           boost::mpl::int_<DIM2>,
-                           boost::mpl::int_<DIM3> > Dims;
-
+using Dims = ::boost::mpl::list< boost::mpl::int_< DIM1 >,
+                                 boost::mpl::int_< DIM2 >,
+                                 boost::mpl::int_< DIM3 > >;
 
 /*******************************************************************************
  * Test Suites
  ******************************************************************************/
-typedef PMaccFixture<TEST_DIM> MyPMaccFixture;
-BOOST_GLOBAL_FIXTURE(MyPMaccFixture);
+using MyPMaccFixture = pmacc::test::PMaccFixture< TEST_DIM >;
+
+BOOST_GLOBAL_FIXTURE( MyPMaccFixture );
 
 BOOST_AUTO_TEST_SUITE( memory )
 

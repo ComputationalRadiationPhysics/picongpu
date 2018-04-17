@@ -39,10 +39,15 @@
 
 BOOST_AUTO_TEST_SUITE( particles )
 
-namespace bmpl = boost::mpl;
 
-namespace
+namespace pmacc
 {
+namespace test
+{
+namespace particles
+{
+    namespace bmpl = boost::mpl;
+
     template<
         uint32_t T_numWorkers,
         uint32_t T_numIdsPerBlock,
@@ -53,7 +58,9 @@ namespace
         template<class T_Box, typename T_Acc>
         HDINLINE void operator()(const T_Acc & acc, T_Box outputbox, uint32_t numThreads, uint32_t numIdsPerThread) const
         {
-            using namespace pmacc::mappings::threads;
+            using namespace ::pmacc;
+            using namespace mappings::threads;
+
             constexpr uint32_t numWorkers = T_numWorkers;
 
             uint32_t const workerIdx = threadIdx.x;
@@ -82,7 +89,6 @@ namespace
 
         }
     };
-}
 
 /**
  * Boost.Test compatible function that checks if a value is in a collection
@@ -120,13 +126,15 @@ struct IdProviderTest
 {
     void operator()()
     {
+        using namespace ::pmacc;
+
         constexpr uint32_t numBlocks = 4;
         constexpr uint32_t numIdsPerBlock = 64;
         constexpr uint32_t numThreads = numBlocks * numIdsPerBlock;
         constexpr uint32_t numIdsPerThread = 2;
         constexpr uint32_t numIds = numThreads * numIdsPerThread;
 
-        typedef pmacc::IdProvider<T_dim> IdProvider;
+        using IdProvider = IdProvider< T_dim >;
         IdProvider::init();
         // Check initial state
         typename IdProvider::State state = IdProvider::getState();
@@ -146,8 +154,8 @@ struct IdProviderTest
         IdProvider::setState(state);
         BOOST_REQUIRE_EQUAL(IdProvider::getNewIdHost(), state.nextId);
         // Generate the same IDs on the device
-        pmacc::HostDeviceBuffer<uint64_t, 1> idBuf(numIds);
-        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+        HostDeviceBuffer< uint64_t, 1 > idBuf(numIds);
+        constexpr uint32_t numWorkers = traits::GetNumWorkers<
             numIdsPerBlock
         >::value;
         PMACC_KERNEL( GenerateIds<
@@ -173,10 +181,14 @@ struct IdProviderTest
     }
 };
 
+} // namespace particles
+} // namespace test
+} // namespace pmacc
+
 BOOST_AUTO_TEST_CASE(IdProvider)
 {
+    using namespace pmacc::test::particles;
     IdProviderTest<TEST_DIM>()();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
