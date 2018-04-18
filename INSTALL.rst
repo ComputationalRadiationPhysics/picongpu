@@ -244,7 +244,7 @@ png2gas
 
 ADIOS
 """""
-- 1.10.0+ (requires *MPI* and *zlib*)
+- 1.13.1+ (requires *MPI* and *zlib*)
 - *Debian/Ubuntu:* ``sudo apt-get install libadios-dev libadios-bin``
 - *Arch Linux* using an `AUR helper <https://wiki.archlinux.org/index.php/AUR_helpers>`_: ``pacaur --sync libadios``
 - *Arch Linux* using the `AUR <https://wiki.archlinux.org/index.php/Arch_User_Repository>`_ manually:
@@ -258,9 +258,9 @@ ADIOS
 
   - ``mkdir -p ~/src ~/build ~/lib``
   - ``cd ~/src``
-  - ``wget http://users.nccs.gov/~pnorbert/adios-1.10.0.tar.gz``
-  - ``tar -xvzf adios-1.10.0.tar.gz``
-  - ``cd adios-1.10.0``
+  - ``wget http://users.nccs.gov/~pnorbert/adios-1.13.1.tar.gz``
+  - ``tar -xvzf adios-1.13.1.tar.gz``
+  - ``cd adios-1.13.1``
   - ``CFLAGS="-fPIC" ./configure --enable-static --enable-shared --prefix=$HOME/lib/adios --with-mpi=$MPI_ROOT --with-zlib=/usr``
   - ``make``
   - ``make install``
