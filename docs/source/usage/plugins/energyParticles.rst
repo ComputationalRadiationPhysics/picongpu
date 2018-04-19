@@ -48,6 +48,15 @@ Following the header, each line is the output of one time step.
 The time step is given as first value.
 The second value is the kinetic energy of all particles at that time step. And the last value is the total energy (kinetic + rest energy) of all particles at that time step.
 
+.. attention::
+
+   The output of this plugin computes a *sum over all particles* in a very naive implementation.
+   This can lead to significant errors due to the finite precision in floating-point numbers.
+   Do not expect the output to be precise to more than a few percent.
+   Do not expect the output to be deterministic due to the statistical nature of the implemented reduce operation.
+
+   Please see `this issue <https://github.com/ComputationalRadiationPhysics/picongpu/issues/523#issuecomment-70630415>`_ for a longer discussion and possible future implementations.
+
 Example Visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
