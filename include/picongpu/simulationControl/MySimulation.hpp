@@ -782,8 +782,6 @@ protected:
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
     cellwiseOperation::CellwiseOperation< CORE + BORDER >* currentBGField;
 
-    LaserPhysics *laser;
-
 #if( PMACC_CUDA_ENABLED == 1 )
     // creates lookup tables for the bremsstrahlung effect
     // map<atomic number, scaled bremsstrahlung spectrum>

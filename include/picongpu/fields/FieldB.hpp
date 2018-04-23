@@ -35,7 +35,6 @@
 /*PMacc*/
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
-#include "picongpu/fields/LaserPhysics.def"
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
 
@@ -96,8 +95,6 @@ namespace picongpu
     private:
 
         void absorbeBorder();
-
-        void laserManipulation(uint32_t currentStep);
 
         GridBuffer<ValueType, simDim> *fieldB;
     };

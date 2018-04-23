@@ -26,85 +26,75 @@
 
 namespace picongpu
 {
-using namespace pmacc;
-
-/** compute the electric field of the laser
- *
- * @tparam T_numWorkers number of workers
- * @tparam T_LaserPlaneSizeInSuperCell number of cells per dimension which
- *  initialize the laser (size must be less or equal than the supercell size)
- */
-template<
-    uint32_t T_numWorkers,
-    typename T_LaserPlaneSizeInSuperCell
->
-struct KernelLaserE
-{
+    /** compute the electric field of the laser
+     *
+     * @tparam T_numWorkers number of workers
+     * @tparam T_LaserPlaneSizeInSuperCell number of cells per dimension which
+     *  initialize the laser (size must be less or equal than the supercell size)
+     */
     template<
-        typename EBox,
-        typename T_Acc
+        uint32_t T_numWorkers,
+        typename T_LaserPlaneSizeInSuperCell
     >
-    DINLINE void operator()(
-        T_Acc const & acc,
-        EBox fieldE,
-        LaserManipulator lMan
-    ) const
+    struct KernelLaser
     {
-        using LaserPlaneSizeInSuperCell = T_LaserPlaneSizeInSuperCell;
+        template<
+            typename EBox,
+            typename T_Acc
+        >
+        DINLINE void operator()(
+            T_Acc const & acc,
+            LaserFunctor laserFunctor
+        ) const
+        {
+            using LaserPlaneSizeInSuperCell = T_LaserPlaneSizeInSuperCell;
 
-        PMACC_CASSERT_MSG(
-            __LaserPlaneSizeInSuperCell_y_must_be_less_or_equal_than_SuperCellSize_y,
-            LaserPlaneSizeInSuperCell::y::value <= SuperCellSize::y::value
-        );
+            PMACC_CASSERT_MSG(
+                __LaserPlaneSizeInSuperCell_y_must_be_less_or_equal_than_SuperCellSize_y,
+                LaserPlaneSizeInSuperCell::y::value <= SuperCellSize::y::value
+            );
 
-        constexpr uint32_t planeSize = pmacc::math::CT::volume< LaserPlaneSizeInSuperCell >::type::value;
-        constexpr uint32_t numWorkers = T_numWorkers;
+            constexpr uint32_t planeSize = pmacc::math::CT::volume< LaserPlaneSizeInSuperCell >::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
 
-        const uint32_t workerIdx = threadIdx.x;
+            const uint32_t workerIdx = threadIdx.x;
 
-        /* offset in cells to the superCell of the local GPU (relative from the local origin of the border) */
-        DataSpace< simDim > const superCellOffset = DataSpace< simDim >( blockIdx ) * SuperCellSize::toRT();
+            DataSpace< simDim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) );
 
-        mappings::threads::ForEachIdx<
-            mappings::threads::IdxConfig<
-                planeSize,
-                numWorkers
-            >
-        > { workerIdx }(
-            [&](
-                uint32_t const linearIdx,
-                uint32_t const
-            )
-            {
-                /* cell index within the superCell */
-                DataSpace< simDim > const cellIdxInSuperCell = DataSpaceOperations<simDim>::template map< LaserPlaneSizeInSuperCell >( linearIdx );
-                /* cell index (relative to the local origin of the border)*/
-                auto cellIdx = superCellOffset + cellIdxInSuperCell;
-                cellIdx.y() += laser::initPlaneY;
+            // offset of the superCell (in cells, without any guards) to the origin of the local domain
+            DataSpace< simDim > localSuperCellOffset =
+                superCellIdx - mapper.getGuardingSuperCells( );
 
-                auto const eField = lMan.getManipulation( cellIdx );
-                if( laser::initPlaneY != 0 ) // compile time if
+            // add not handled supercells from laser::initPlaneY
+            localSuperCellOffset.y() += laser::initPlaneY / SuperCellSize::y;
+
+            uint32_t cellOffsetInSuperCellFromInitPlaneY = laser::initPlaneY % SuperCellSize::y;
+
+            auto accLaserFunctor = laserFunctor(
+                acc,
+                localSuperCellOffset,
+                WorkerCfg< numWorker >{ workerIdx }
+            );
+
+            mappings::threads::ForEachIdx<
+                mappings::threads::IdxConfig<
+                    planeSize,
+                    numWorkers
+                >
+            > { workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
                 {
-                    /* If the laser is not initialized in the first cell we emit a
-                     * negatively and positively propagating wave. Therefore we need to multiply the
-                     * amplitude with a correction factor depending of the cell size in
-                     * propagation direction.
-                     * The negatively propagating wave is damped by the absorber.
-                     *
-                     * The `correctionFactor` assume that the wave is moving in y direction.
-                     */
-                    auto correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * float_X( 2. );
-                    /* jump over the guard of the electric field */
-                    fieldE( cellIdx + SuperCellSize::toRT() * GUARD_SIZE ) +=  correctionFactor * eField;
+                    /* cell index within the superCell */
+                    DataSpace< simDim > const cellIdxInSuperCell = DataSpaceOperations< simDim >::template map< LaserPlaneSizeInSuperCell >( linearIdx );
+                    cellIdxInSuperCell.y() += cellOffsetInSuperCellFromInitPlaneY;
+
+                    accLaserFunctor( cellIdxInSuperCell );
                 }
-                else
-                {
-                    /* jump over the guard of the electric field */
-                    fieldE( cellIdx + SuperCellSize::toRT() * GUARD_SIZE ) = eField;
-                }
-            }
-        );
-    }
-};
+            );
+        }
+    };
 
 }

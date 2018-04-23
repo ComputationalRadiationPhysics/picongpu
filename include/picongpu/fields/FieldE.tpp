@@ -44,7 +44,6 @@
 #include "picongpu/traits/GetMargin.hpp"
 #include "picongpu/traits/SIBaseUnits.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"
-#include "picongpu/fields/LaserPhysics.hpp"
 
 #include <boost/mpl/accumulate.hpp>
 
@@ -170,108 +169,6 @@ GridBuffer<FieldE::ValueType, simDim> &FieldE::getGridBuffer( )
 GridLayout< simDim> FieldE::getGridLayout( )
 {
     return cellDescription.getGridLayout( );
-}
-
-void FieldE::laserManipulation( uint32_t currentStep )
-{
-    /* initialize the laser not in the first cell is equal to a negative shift
-     * in time
-     */
-    constexpr float_X laserTimeShift = laser::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
-
-    const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
-
-    /* Disable laser if
-     * - init time of laser is over or
-     * - we have periodic boundaries in Y direction or
-     * - we already performed a slide
-     */
-    bool const laserNone = ( laserProfile::INIT_TIME == float_X(0.0) );
-    bool const laserInitTimeOver =
-        ( ( currentStep * DELTA_T  - laserTimeShift ) >= laserProfile::INIT_TIME );
-    bool const topBoundariesArePeriodic =
-        ( Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) );
-    bool const boxHasSlided = ( numSlides != 0 );
-
-    bool const disableLaser =
-        laserNone ||
-        laserInitTimeOver ||
-        topBoundariesArePeriodic ||
-        boxHasSlided;
-    if( !disableLaser )
-    {
-        PMACC_VERIFY_MSG(
-            laser::initPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
-            "initPlaneY must be located in the top GPU"
-        );
-
-        PMACC_CASSERT_MSG(
-            __initPlaneY_needs_to_be_greate_than_the_top_absorber_cells_or_zero,
-            laser::initPlaneY > ABSORBER_CELLS[1][0] ||
-            laser::initPlaneY == 0 ||
-            laserProfile::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
-        );
-
-        /* Calculate how many neighbors to the left we have
-         * to initialize the laser in the E-Field
-         *
-         * Example: Yee needs one neighbor to perform dB = curlE
-         *            -> initialize in y=0 plane
-         *          A second order solver could need 2 neighbors left:
-         *            -> initialize in y=0 and y=1 plane
-         *
-         * Question: Why do other codes initialize the B-Field instead?
-         * Answer:   Because our fields are defined on the lower cell side
-         *           (C-Style ftw). Therefore, our curls (for example Yee)
-         *           are shifted nabla+ <-> nabla- compared to Fortran codes
-         *           (in other words: curlLeft <-> curlRight)
-         *           for E and B.
-         *           For this reason, we have to initialize E instead of B.
-         *
-         * Problem: that's still not our case. For example our Yee does a
-         *          dE = curlLeft(B) - therefor, we should init B, too.
-         *
-         *
-         *  @todo: might also lack temporal offset since our formulas are E(x,z,t) instead of E(x,y,z,t)
-         *  `const int max_y_neighbors = Get<fields::Solver::OffsetOrigin_E, 1 >::value;`
-         *
-         * @todo Right now, the phase could be wrong ( == is cloned)
-         *       @see LaserPhysics.hpp
-         *
-         * @todo What about the B-Field in the second plane?
-         *
-         */
-        constexpr int laserInitCellsInY = 1;
-
-        using LaserPlaneSizeInSuperCells = typename pmacc::math::CT::AssignIfInRange<
-                typename SuperCellSize::vector_type,
-                bmpl::integral_c< uint32_t, 1 >, /* y direction */
-                bmpl::integral_c< int, laserInitCellsInY >
-        >::type;
-
-        DataSpace<simDim> gridBlocks = fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ) / SuperCellSize::toRT();
-        // use the one supercell in y to initialize the laser plane
-        gridBlocks.y() = 1;
-
-        constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-            pmacc::math::CT::volume< LaserPlaneSizeInSuperCells >::type::value
-        >::value;
-
-        LaserPhysics laser( fieldE->getGridLayout() );
-
-        PMACC_KERNEL(
-            KernelLaserE<
-                numWorkers,
-                LaserPlaneSizeInSuperCells
-            >{}
-        )(
-            gridBlocks,
-            numWorkers
-        )(
-            this->getDeviceDataBox( ),
-            laser.getLaserManipulator( currentStep )
-        );
-    }
 }
 
 void FieldE::reset( uint32_t )

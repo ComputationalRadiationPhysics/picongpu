@@ -28,12 +28,12 @@
 #include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.kernel"
 #include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/LaserPhysics.hpp"
 
 #include <pmacc/nvidia/functors/Assign.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-
 
 
 namespace picongpu
@@ -137,7 +137,7 @@ namespace maxwellSolver
         {
             FieldManipulator::absorbBorder(currentStep,this->m_cellDescription, this->fieldE->getDeviceDataBox());
             if (laserProfile::INIT_TIME > float_X(0.0))
-                fieldE->laserManipulation(currentStep);
+                LaserPhysics{}(currentStep);
 
             EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());
 
