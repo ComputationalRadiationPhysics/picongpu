@@ -32,8 +32,6 @@
 #include "picongpu/fields/FieldManipulator.hpp"
 #include <pmacc/dimensions/SuperCellDescription.hpp>
 
-#include "picongpu/fields/FieldE.kernel"
-
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 

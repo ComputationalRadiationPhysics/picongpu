@@ -17,18 +17,24 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/LaserPhysics.def"
+#include "picongpu/fields/laserProfiles/profiles.hpp"
+
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
+
 #include <cmath>
 
 
-
 namespace picongpu
+{
+namespace fields
 {
     /** compute the electric field of the laser
      *
@@ -43,15 +49,16 @@ namespace picongpu
     struct KernelLaser
     {
         template<
-            typename EBox,
-            typename T_Acc
+            typename T_Acc,
+            typename T_LaserFunctor
         >
         DINLINE void operator()(
             T_Acc const & acc,
-            LaserFunctor laserFunctor
+            T_LaserFunctor laserFunctor
         ) const
         {
             using LaserPlaneSizeInSuperCell = T_LaserPlaneSizeInSuperCell;
+            using LaserFunctor = T_LaserFunctor;
 
             PMACC_CASSERT_MSG(
                 __LaserPlaneSizeInSuperCell_y_must_be_less_or_equal_than_SuperCellSize_y,
@@ -63,21 +70,19 @@ namespace picongpu
 
             const uint32_t workerIdx = threadIdx.x;
 
-            DataSpace< simDim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) );
-
             // offset of the superCell (in cells, without any guards) to the origin of the local domain
-            DataSpace< simDim > localSuperCellOffset =
-                superCellIdx - mapper.getGuardingSuperCells( );
 
-            // add not handled supercells from laser::initPlaneY
-            localSuperCellOffset.y() += laser::initPlaneY / SuperCellSize::y;
+            DataSpace< simDim > localSuperCellOffset = DataSpace< simDim >( blockIdx );
 
-            uint32_t cellOffsetInSuperCellFromInitPlaneY = laser::initPlaneY % SuperCellSize::y;
+            // add not handled supercells from LaserFunctor::Unitless::initPlaneY
+            localSuperCellOffset.y() += LaserFunctor::Unitless::initPlaneY / SuperCellSize::y::value;
+
+            uint32_t cellOffsetInSuperCellFromInitPlaneY = LaserFunctor::Unitless::initPlaneY % SuperCellSize::y::value;
 
             auto accLaserFunctor = laserFunctor(
                 acc,
                 localSuperCellOffset,
-                WorkerCfg< numWorker >{ workerIdx }
+                mappings::threads::WorkerCfg< numWorkers >{ workerIdx }
             );
 
             mappings::threads::ForEachIdx<
@@ -92,15 +97,16 @@ namespace picongpu
                 )
                 {
                     /* cell index within the superCell */
-                    DataSpace< simDim > const cellIdxInSuperCell = DataSpaceOperations< simDim >::template map< LaserPlaneSizeInSuperCell >( linearIdx );
+                    DataSpace< simDim > cellIdxInSuperCell = DataSpaceOperations< simDim >::template map< LaserPlaneSizeInSuperCell >( linearIdx );
                     cellIdxInSuperCell.y() += cellOffsetInSuperCellFromInitPlaneY;
 
-                    accLaserFunctor( cellIdxInSuperCell );
+                    accLaserFunctor( acc, cellIdxInSuperCell );
                 }
             );
         }
     };
 
+    /** Laser init in a single xz plane */
     struct LaserPhysics
     {
         void operator()(uint32_t currentStep) const
@@ -108,7 +114,7 @@ namespace picongpu
             /* initialize the laser not in the first cell is equal to a negative shift
              * in time
              */
-            constexpr float_X laserTimeShift = laser::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+            constexpr float_X laserTimeShift = laserProfiles::Profile::Unitless::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
 
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
@@ -117,9 +123,9 @@ namespace picongpu
              * - we have periodic boundaries in Y direction or
              * - we already performed a slide
              */
-            bool const laserNone = ( laserProfile::INIT_TIME == float_X(0.0) );
+            bool const laserNone = ( laserProfiles::Profile::Unitless::INIT_TIME == float_X(0.0) );
             bool const laserInitTimeOver =
-                ( ( currentStep * DELTA_T  - laserTimeShift ) >= laserProfile::INIT_TIME );
+                ( ( currentStep * DELTA_T  - laserTimeShift ) >= laserProfiles::Profile::Unitless::INIT_TIME );
             bool const topBoundariesArePeriodic =
                 ( Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) );
             bool const boxHasSlided = ( numSlides != 0 );
@@ -132,15 +138,15 @@ namespace picongpu
             if( !disableLaser )
             {
                 PMACC_VERIFY_MSG(
-                    laser::initPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
+                    laserProfiles::Profile::Unitless::initPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
                     "initPlaneY must be located in the top GPU"
                 );
 
                 PMACC_CASSERT_MSG(
                     __initPlaneY_needs_to_be_greate_than_the_top_absorber_cells_or_zero,
-                    laser::initPlaneY > ABSORBER_CELLS[1][0] ||
-                    laser::initPlaneY == 0 ||
-                    laserProfile::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
+                    laserProfiles::Profile::Unitless::initPlaneY > ABSORBER_CELLS[1][0] ||
+                    laserProfiles::Profile::Unitless::initPlaneY == 0 ||
+                    laserProfiles::Profile::Unitless::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
                 );
 
                 /* Calculate how many neighbors to the left we have
@@ -180,7 +186,7 @@ namespace picongpu
                         bmpl::integral_c< int, laserInitCellsInY >
                 >::type;
 
-                DataSpace<simDim> gridBlocks = fieldE->getGridLayout( ).getDataSpaceWithoutGuarding( ) / SuperCellSize::toRT();
+                DataSpace< simDim > gridBlocks = Environment< simDim >::get().SubGrid().getLocalDomain().size / SuperCellSize::toRT();
                 // use the one supercell in y to initialize the laser plane
                 gridBlocks.y() = 1;
 
@@ -197,9 +203,10 @@ namespace picongpu
                     gridBlocks,
                     numWorkers
                 )(
-                    LaserDefinition( currentStep )
+                    laserProfiles::Profile( currentStep )
                 );
             }
         }
     };
-}
+} // namespace fields
+} // namespace picongpu
