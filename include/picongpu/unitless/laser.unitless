@@ -26,6 +26,7 @@
 
 namespace picongpu
 {
+#if 0
     namespace laserPulseFrontTilt
     {
         //normed laser parameter
@@ -36,17 +37,6 @@ namespace picongpu
         constexpr float_X FOCUS_POS = float_X(SI::FOCUS_POS_SI / UNIT_LENGTH); //unit: meter
         constexpr float_X INIT_TIME = float_X ((PULSE_INIT*SI::PULSE_LENGTH_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
         constexpr float_X TILT_X = float_X (( SI::TILT_X_SI * PI ) / 180); // unit: raidiant (in dimensions of pi)
-    }
-
-    namespace laserGaussianBeam
-    {
-        //normed laser parameter
-        constexpr float_X WAVE_LENGTH = float_X (SI::WAVE_LENGTH_SI / UNIT_LENGTH); //unit: meter
-        constexpr float_X PULSE_LENGTH = float_X (SI::PULSE_LENGTH_SI / UNIT_TIME); //unit: seconds (1 sigma)
-        constexpr float_X AMPLITUDE = float_X (SI::AMPLITUDE_SI / UNIT_EFIELD); //unit: Volt /meter
-        constexpr float_X W0 = float_X(SI::W0_SI / UNIT_LENGTH); // unit: meter
-        constexpr float_X FOCUS_POS = float_X(SI::FOCUS_POS_SI / UNIT_LENGTH); //unit: meter
-        constexpr float_X INIT_TIME = float_X ((PULSE_INIT*SI::PULSE_LENGTH_SI) / UNIT_TIME); // unit: seconds (full inizialisation length)
     }
 
     namespace laserPlaneWave
@@ -150,14 +140,5 @@ namespace picongpu
             "The intensities of the ramp are very large - the extrapolation to the time of the main pulse would give more than half of the pulse amplitude. This is not a Gaussian pulse at all anymore - probably some of the parameters are different from what you think!?"
         );
     }
-
+#endif
 }
-
-    /* include implemented laser profiles */
-#include "picongpu/fields/laserProfiles/laserExpRampWithPrepulse.hpp"
-#include "picongpu/fields/laserProfiles/laserPulseFrontTilt.hpp"
-#include "picongpu/fields/laserProfiles/laserGaussianBeam.hpp"
-#include "picongpu/fields/laserProfiles/laserWavepacket.hpp"
-#include "picongpu/fields/laserProfiles/laserPlaneWave.hpp"
-#include "picongpu/fields/laserProfiles/laserPolynom.hpp"
-#include "picongpu/fields/laserProfiles/laserNone.hpp"

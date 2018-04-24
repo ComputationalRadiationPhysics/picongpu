@@ -29,7 +29,7 @@ namespace picongpu
     //
     // setting 1: Laser
 #if( EM_FIELD_SCALE_CHANNEL1 == 1 || EM_FIELD_SCALE_CHANNEL2 == 1 || EM_FIELD_SCALE_CHANNEL3 == 1 )
-    PMACC_DEF_IN_NAMESPACE_MSG( You_can_not_scale_your_preview_to_laser_without_using_a_laser___change_png_param, laserProfile, AMPLITUDE );
+    PMACC_DEF_IN_NAMESPACE_MSG( You_can_not_scale_your_preview_to_laser_without_using_a_laser___change_png_param, fields::laserProfiles, Profile );
 #endif
 
     // setting 2: Drifting Plasma
@@ -51,6 +51,6 @@ namespace picongpu
     // setting 5: Blow Out
 #if( EM_FIELD_SCALE_CHANNEL1 == 5 || EM_FIELD_SCALE_CHANNEL2 == 5 || EM_FIELD_SCALE_CHANNEL3 == 5 )
     //PMACC_CASSERT_MSG( You_can_not_scale_your_preview_to_a_zero_plasma_density___change_png_param, (BASE_DENSITY>0.0) );
-    PMACC_DEF_IN_NAMESPACE_MSG( You_can_not_scale_your_preview_to_blowout_with_a_laser_without_beam_waist___change_png_param, laserProfile, W0 );
+    PMACC_DEF_IN_NAMESPACE_MSG( You_can_not_scale_your_preview_to_blowout_with_a_laser_without_beam_waist___change_png_param, fields::laserProfiles, Profile );
 #endif
 }
