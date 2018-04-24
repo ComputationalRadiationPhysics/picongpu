@@ -18,6 +18,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Select a user-defined simulation class here, e.g. with strongly modified
+ * initialization and/or PIC loop beyond the parametrization given in other
+ * .param files.
+ */
 
 #pragma once
 
@@ -29,24 +35,6 @@ namespace picongpu
  */
 namespace simulation_starter = thermalTestStarter;
 
-/** @namespace laserProfile
- *
- * Laser Profile Selection:
- *  - laserNone                : no laser init
- *  - laserGaussianBeam        : Gaussian beam (focusing)
- *  - laserPulseFrontTilt      : Gaussian beam with a tilted pulse envelope
- *                               in 'x' direction
- *  - laserPlaneWave           : a plane wave (Gaussian in time)
- *  - laserWavepacket          : wavepacket (Gaussian in time and space, not
-                                 focusing)
- *  - laserPolynom             : a polynomial laser envelope
- *  - laserExpRampWithPrepulse : gaussian in space, with exponential upramps
-                                 and prepulse in time
- *
- * Adjust the settings of the selected profile in laser.param
- */
-namespace laserProfile = laserNone;
-
 #define ENABLE_CURRENT 1
 
-}
+} // namespace picongpu

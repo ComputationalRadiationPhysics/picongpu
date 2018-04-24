@@ -20,7 +20,7 @@
 
 /** @file
  *
- * Configure laser profiles.
+ * Configure laser profiles. All laser propagate in y direction.
  *
  * Available profiles:
  *  - None                : no laser init
@@ -29,12 +29,17 @@
  *                          in 'x' direction
  *  - PlaneWave           : a plane wave (Gaussian in time)
  *  - Wavepacket          : wavepacket (Gaussian in time and space, not
-                            focusing)
+ *                          focusing)
  *  - Polynom             : a polynomial laser envelope
- *  - ExpRampWithPrepulse : gaussian in space, with exponential upramps
-                            and prepulse in time
+ *  - ExpRampWithPrepulse : wavepacket with exponential upramps and prepulse
  *
- * Adjust the settings of the selected profile in laser.param
+ * In the end, this file needs to define a `Profile` class in namespace
+ * `picongpu::fields::laserProfiles`. A typical profile consists of a
+ * laser profile class and its parameters. For example:
+ *
+ * @code{.cpp}
+ * using Selected = GaussianBeam< GaussianBeamParam >;
+ * @endcode
  */
 
 #pragma once
@@ -323,7 +328,7 @@ namespace gaussianBeam
      * negligible there, and the intensity can be set as measured from the
      * laser profile.
      * Optionally a Gaussian prepulse can be added, given by the parameters
-     * of the relative intersity and time point.
+     * of the relative intensity and time point.
      * The time of the prepulse and the three preramp points are given in
      * SI, the intensities are given as multiples of the peak intensity.
      */
@@ -576,19 +581,8 @@ namespace gaussianBeam
         static constexpr PolarisationType Polarisation = LINEAR_X;
     };
 
-    struct NoneParam
-    {
-        /** unit: meter */
-        static constexpr float_64 WAVE_LENGTH_SI = 0.0;
-
-        /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = 0.0;
-
-        static constexpr float_64 PULSE_LENGTH_SI = 0.0;
-    };
-
     //! currently selected laser profile
-    using Profile = None< NoneParam >;
+    using Profile = None<>;
 
 } // namespace laserProfiles
 } // namespace fields
