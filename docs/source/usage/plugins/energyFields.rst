@@ -41,6 +41,15 @@ The first row is a comment describing the columns:
    0     2.5e+18      0         0         0         2.5e+18   0         0
    100   2.5e+18      2.45e-22  2.26e-08  2.24e-08  2.5e+18   2.29e-08  2.30e-08
 
+.. attention::
+
+   The output of this plugin computes a *sum over all cells* in a very naive implementation.
+   This can lead to significant errors due to the finite precision in floating-point numbers.
+   Do not expect the output to be precise to more than a few percent.
+   Do not expect the output to be deterministic due to the statistical nature of the implemented reduce operation.
+
+   Please see `this issue <https://github.com/ComputationalRadiationPhysics/picongpu/issues/523#issuecomment-70630415>`_ for a longer discussion and possible future implementations.
+
 Example Visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
