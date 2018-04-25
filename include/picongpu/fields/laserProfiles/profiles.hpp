@@ -1,5 +1,5 @@
 /* Copyright 2013-2018 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch, Alexander Debus
+ *                     Richard Pausch, Alexander Debus, Ilja Goethel
  *
  * This file is part of PIConGPU.
  *
@@ -20,4 +20,5 @@
 
 #pragma once
 
+#include "picongpu/fields/laserProfiles/ExpRampWithPrepulse.hpp"
 #include "picongpu/fields/laserProfiles/GaussianBeam.hpp"
