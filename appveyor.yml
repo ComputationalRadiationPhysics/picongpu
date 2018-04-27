@@ -1,5 +1,5 @@
 #
-# Copyright 2015 Benjamin Worpitz, Erik Zenker
+# Copyright 2015-2017 Benjamin Worpitz, Erik Zenker
 #
 # This file is part of alpaka.
 #
@@ -51,15 +51,9 @@ environment:
           OMP_NUM_THREADS: 4
           ALPAKA_BOOST_BRANCH: boost-1.65.1
           APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-        #- OMP_NUM_THREADS: 4
-        #  ALPAKA_BOOST_BRANCH: boost-1.64.0
-        #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-        - OMP_NUM_THREADS: 3
-          ALPAKA_BOOST_BRANCH: boost-1.65.1
-          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-        - OMP_NUM_THREADS: 1
-          ALPAKA_BOOST_BRANCH: boost-1.62.0
-          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+        - OMP_NUM_THREADS: 4
+          ALPAKA_BOOST_BRANCH: boost-1.64.0
+          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
 matrix:
     fast_finish: true
@@ -146,7 +140,6 @@ before_build:
     - cmd: set ALPAKA_BOOST_B2=--with-test
     - cmd: if "%ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE%"=="ON" set ALPAKA_BOOST_B2=%ALPAKA_BOOST_B2% --with-fiber --with-context --with-thread --with-system --with-atomic --with-chrono --with-date_time
 
-    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" set ALPAKA_BOOST_TOOLSET=msvc-14.0
     - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" set ALPAKA_BOOST_TOOLSET=msvc-14.1
     - cmd: b2 -j2 --toolset=%ALPAKA_BOOST_TOOLSET% --layout=versioned %ALPAKA_BOOST_B2% architecture=x86 address-model=%ALPAKA_BOOST_ADDRESS_MODEL% variant=%ALPAKA_BOOST_VARIANT% link=static threading=multi runtime-link=shared define=_CRT_NONSTDC_NO_DEPRECATE define=_CRT_SECURE_NO_DEPRECATE define=_SCL_SECURE_NO_DEPRECAT define=BOOST_USE_WINFIBERS --stagedir="%ALPAKA_B2_STAGE_DIR%"
 
@@ -168,8 +161,6 @@ before_build:
     # Build the visual studio soultion from the cmake files.
     - cmd: cd C:\projects\alpaka
 
-    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" set ALPAKA_CMAKE_GENERATOR=Visual Studio 14 2015
-    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
     - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" set ALPAKA_CMAKE_GENERATOR=Visual Studio 15 2017
     - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
     - cmd: if "%PLATFORM%"=="x64" set ALPAKA_CMAKE_GENERATOR=%ALPAKA_CMAKE_GENERATOR% Win64
