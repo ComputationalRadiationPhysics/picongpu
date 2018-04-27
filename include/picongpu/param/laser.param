@@ -256,6 +256,17 @@ namespace gaussianBeam
         static constexpr PolarisationType Polarisation = LINEAR_X;
     };
 
+    struct None
+    {
+        /** unit: meter */
+        static constexpr float_64 WAVE_LENGTH_SI = 0.0;
+
+        /** unit: Volt / meter */
+        static constexpr float_64 AMPLITUDE_SI = 0.0;
+
+        static constexpr float_64 PULSE_LENGTH_SI = 0.0;
+    };
+
     //! currently selected laser profile
     using Profile = GaussianBeam< GaussianBeamParam >;
 
@@ -510,21 +521,6 @@ namespace gaussianBeam
          * unit: rad, periodic in 2*pi
          */
         constexpr float_X LASER_PHASE = 0.0;
-    }
-
-
-    namespace laserNone
-    {
-        namespace SI
-        {
-            /** unit: meter */
-            constexpr float_64 WAVE_LENGTH_SI = 0.0;
-
-            /** unit: Volt /meter */
-            constexpr float_64 AMPLITUDE_SI = 0.0;
-
-            constexpr float_64 PULSE_LENGTH_SI = 0.0;
-        }
     }
 
 }

@@ -22,3 +22,4 @@
 
 #include "picongpu/fields/laserProfiles/ExpRampWithPrepulse.def"
 #include "picongpu/fields/laserProfiles/GaussianBeam.def"
+#include "picongpu/fields/laserProfiles/None.def"
