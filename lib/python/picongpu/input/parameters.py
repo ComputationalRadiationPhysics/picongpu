@@ -57,9 +57,11 @@ class Parameter(object):
         values: list
             list of discrete options for the parameter as shown on UI side.
             Only one of the attributes range/value can be given.
+            Due to rounding issues, the values are only approximate.
         range: tuple
             start and stop value for the selectable range on UI side.
             Only one of the attributes range/value can be given.
+            Due to rounding issues, the range is only approximate.
         label: string [optional]
             Overwrite the name for UI
         pic_to_SI: callable, e.g. lambda function
@@ -78,29 +80,34 @@ class Parameter(object):
         # for slider widget creation
         self.label = label or name
 
-        self.values = values
-        self.range = range
-        # either set range or values
+        self.range = None
+        self.values = None
+
         if values is not None and range is not None:
             raise ValueError("Can only set either 'values' or 'range'!")
-        if values is None and range is None:
-            # raise ValueError("Need either 'values' or 'range' parameter!")
-            self.values = [self.default]
-            print("WARNING: Neither 'values' nor 'range' was given, setting"
-                  " 'values' to ", self.values)
-        if values is not None:
+        elif values is not None:
             if not isinstance(values, collections.Iterable):
-                self.values = [values]
-            if not self.values:
+                values = [values]
+            if not values:
+                # check empty values list
                 self.values = [self.default]
                 print("WARNING: Values attribute can not be an empty "
                       "iterable! Setting values to", self.values)
-
-        if range is not None:
+            # double conversion to avoid rounding issues
+            self.values = self.convert_from_PIC(
+                self.convert_to_PIC(self.values))
+        elif range is not None:
             if len(range) != 2:
                 raise ValueError("Range needs to be a tuple of length 2!")
             else:
-                self.range = tuple(range)
+                self.range = tuple(self.convert_from_PIC(
+                    self.convert_to_PIC(range)))
+        else:
+            # raise ValueError("Need either 'values' or 'range' parameter!")
+            self.values = self.convert_from_PIC(
+                self.convert_to_PIC([self.default]))
+            print("WARNING: Neither 'values' nor 'range' was given, setting"
+                  " 'values' to ", self.values)
 
         self.pic_to_SI = pic_to_SI
         self.pic_from_SI = pic_from_SI
@@ -131,7 +138,7 @@ class Parameter(object):
                 raise ValueError("Invalid values found! Values should be "
                                  "contained in self.range!")
 
-    def convert_to_PIC(self, vals, check_vals=True):
+    def convert_to_PIC(self, vals, check_vals=False):
         """
         Takes values in UI units, converts them to SI and after that
         to quantities used within PIConGPU.
@@ -154,7 +161,7 @@ class Parameter(object):
         return [self.pic_from_SI(
             (v * self.unit).to_base_units().magnitude) for v in vals]
 
-    def convert_from_PIC(self, vals, check_vals=True):
+    def convert_from_PIC(self, vals, check_vals=False):
         """
         Takes PIC values and returns values on UI scale after converting to SI
         values as intermediate step.
