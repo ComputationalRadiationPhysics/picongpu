@@ -442,7 +442,7 @@ public:
             initialiserController->printInformation();
             if (this->restartRequested)
             {
-                /* we do not require --restart.step if a master checkpoint file is found */
+                /* we do not require '--checkpoint.restart.step' if a master checkpoint file is found */
                 if (this->restartStep < 0)
                 {
                     std::vector<uint32_t> checkpoints = readCheckpointMasterFile();
@@ -450,7 +450,7 @@ public:
                     if (checkpoints.empty())
                     {
                         throw std::runtime_error(
-                            "Restart failed. You must provide the '--restart.step' argument. See picongpu --help."
+                            "Restart failed. You must provide the '--checkpoint.restart.step' argument. See picongpu --help."
                         );
                     } else
                         this->restartStep = checkpoints.back();
