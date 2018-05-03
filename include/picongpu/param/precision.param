@@ -17,6 +17,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Define the precision of typically used floating point types in the
+ * simulation.
+ *
+ * PIConGPU normalizes input automatically, allowing to use single-precision by
+ * default for the core algorithms. Note that implementations of various
+ * algorithms (usually plugins or non-core components) might still decide to
+ * hard-code a different (mixed) precision for some critical operations.
+ */
+
 #pragma once
 
 
@@ -38,7 +49,7 @@ namespace precisionPIConGPU      = precision32Bit;
  */
 namespace precisionSqrt          = precisionPIConGPU;
 namespace precisionExp           = precisionPIConGPU;
-namespace precisionTrigonemetric = precisionPIConGPU;
+namespace precisionTrigonometric = precisionPIConGPU;
 
 
 } // namespace picongpu
