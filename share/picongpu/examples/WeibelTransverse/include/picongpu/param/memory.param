@@ -46,6 +46,21 @@ using SuperCellSize = typename mCT::shrinkTo<
 
 /** define the object for mapping superCells to cells*/
 using MappingDesc = MappingDescription< simDim, SuperCellSize >;
+
+/** define the size of the core, border and guard area
+ *
+ * PIConGPU uses spatial domain-decomposition for parallelization
+ * over multiple devices with non-shared memory architecture.
+ * The global spatial domain is organized per device in three
+ * sections: the GUARD area contains copies of neighboring
+ * devices (also known as "halo"/"ghost").
+ * The BORDER area is the outermost layer of cells of a device,
+ * equally to what neighboring devices see as GUARD area.
+ * The CORE area is the innermost area of a device. In union with
+ * the BORDER area it defines the "active" spatial domain on a device.
+ *
+ * GUARD_SIZE is defined in units of SuperCellSize.
+ */
 constexpr uint32_t GUARD_SIZE = 1;
 
 /** bytes reserved for species exchange buffer
