@@ -53,7 +53,7 @@ export ZLIB_ROOT=$SCRATCH/lib/zlib-1.2.11
 export PNG_ROOT=$SCRATCH/lib/libpng-1.6.34
 export BLOSC_ROOT=$SCRATCH/lib/blosc-1.12.1
 export PNGwriter_DIR=$SCRATCH/lib/pngwriter-0.7.0
-export ADIOS_ROOT=$SCRATCH/lib/adios-1.13.0
+export ADIOS_ROOT=$SCRATCH/lib/adios-1.13.1
 export Splash_DIR=$SCRATCH/lib/splash-1.7.0
 
 export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
