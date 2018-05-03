@@ -17,6 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Define low-level memory settings for compute devices.
+ *
+ * Settings for memory layout for supercells and particle frame-lists,
+ * data exchanges in multi-device domain-decomposition and reserved
+ * fields for temporarily derived quantities are defined here.
+ */
+
 #pragma once
 
 #include <pmacc/math/Vector.hpp>
