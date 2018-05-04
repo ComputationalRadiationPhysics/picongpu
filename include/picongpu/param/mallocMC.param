@@ -20,9 +20,9 @@
 
 /** @file
  *
- * Fine-tuning of the particle heap for GPUs. When running on GPUs, we use a
- * high-performance "new" allocator (mallocMC) for that can be parametrized
- * here.
+ * Fine-tuning of the particle heap for GPUs: When running on GPUs, we use a
+ * high-performance parallel "new" allocator (mallocMC) which can be
+ * parametrized here.
  */
 
 #pragma once
