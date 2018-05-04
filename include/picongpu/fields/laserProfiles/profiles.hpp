@@ -24,5 +24,6 @@
 #include "picongpu/fields/laserProfiles/GaussianBeam.hpp"
 #include "picongpu/fields/laserProfiles/PlaneWave.hpp"
 #include "picongpu/fields/laserProfiles/Polynom.hpp"
+#include "picongpu/fields/laserProfiles/PulseFrontTilt.hpp"
 #include "picongpu/fields/laserProfiles/Wavepacket.hpp"
 #include "picongpu/fields/laserProfiles/None.hpp"
