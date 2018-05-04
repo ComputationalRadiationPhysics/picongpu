@@ -69,6 +69,6 @@ namespace picongpu
     using sqrt_X = precisionSqrt::precisionType;
     using exp_X = precisionExp::precisionType;
     // trigonometric functions
-    using trigo_X = precisionTrigonemetric::precisionType;
+    using trigo_X = precisionTrigonometric::precisionType;
 
 } // namespace picongpu
