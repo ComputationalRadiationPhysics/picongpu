@@ -18,6 +18,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Fine-tuning of the particle heap for GPUs: When running on GPUs, we use a
+ * high-performance parallel "new" allocator (mallocMC) which can be
+ * parametrized here.
+ */
 
 #pragma once
 
@@ -25,29 +31,34 @@
 #include <boost/mpl/bool.hpp>
 #include <mallocMC/mallocMC.hpp>
 
+
 namespace picongpu
 {
 
-    /* configure the CreationPolicy "Scatter" */
+    //! configure the CreationPolicy "Scatter"
     struct DeviceHeapConfig
     {
-        /* 2MiB page can hold around 256 particle frames */
+        //! 2MiB page can hold around 256 particle frames
         using pagesize = boost::mpl::int_< 2 * 1024 * 1024 >;
-        /* accessblocks, regionsize and wastefactor are not conclusively
+
+        /** accessblocks, regionsize and wastefactor are not conclusively
          * investigated and might be performance sensitive for multiple
          * particle species with heavily varying attributes (frame sizes)
          */
         using accessblocks = boost::mpl::int_< 4 >;
         using regionsize = boost::mpl::int_< 8 >;
         using wastefactor = boost::mpl::int_< 2 >;
-        /* resetfreedpages is used to minimize memory fragmentation with
+
+        /** resetfreedpages is used to minimize memory fragmentation with
          * varying frame sizes
          */
         using resetfreedpages = boost::mpl::bool_< true >;
     };
 
-    /* Define a new allocator and call it ScatterAllocator
-     * which resembles the behaviour of ScatterAlloc
+    /** Define a new allocator
+     *
+     * This is an allocator resembling the behaviour of the ScatterAlloc
+     * algorithm.
      */
     using DeviceHeap = mallocMC::Allocator<
         mallocMC::CreationPolicies::Scatter< DeviceHeapConfig >,
@@ -57,4 +68,4 @@ namespace picongpu
         mallocMC::AlignmentPolicies::Shrink<>
     >;
 
-} //namespace picongpu
+} // namespace picongpu
