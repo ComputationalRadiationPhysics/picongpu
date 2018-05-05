@@ -17,6 +17,15 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Define low-level memory settings for compute devices.
+ *
+ * Settings for memory layout for supercells and particle frame-lists,
+ * data exchanges in multi-device domain-decomposition and reserved
+ * fields for temporarily derived quantities are defined here.
+ */
+
 #pragma once
 
 #include <pmacc/math/Vector.hpp>
@@ -44,6 +53,20 @@ namespace picongpu
     /** define mapper which is used for kernel call mappings */
     using MappingDesc = MappingDescription< simDim, SuperCellSize >;
 
+    /** define the size of the core, border and guard area
+     *
+     * PIConGPU uses spatial domain-decomposition for parallelization
+     * over multiple devices with non-shared memory architecture.
+     * The global spatial domain is organized per device in three
+     * sections: the GUARD area contains copies of neighboring
+     * devices (also known as "halo"/"ghost").
+     * The BORDER area is the outermost layer of cells of a device,
+     * equally to what neighboring devices see as GUARD area.
+     * The CORE area is the innermost area of a device. In union with
+     * the BORDER area it defines the "active" spatial domain on a device.
+     *
+     * GUARD_SIZE is defined in units of SuperCellSize.
+     */
     constexpr uint32_t GUARD_SIZE = 1;
 
     /** bytes reserved for species exchange buffer
