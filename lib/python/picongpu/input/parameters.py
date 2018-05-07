@@ -75,15 +75,17 @@ class Parameter(object):
         self.type = ptype
         self.unit = ureg.parse_units(unit)
         self.base_unit = ureg.get_base_units(self.unit)[1]
-        self.default = default
         self.pic_to_SI = pic_to_SI
         self.pic_from_SI = pic_from_SI
-
+        self.default = default
+        self.pic_default = self.convert_to_PIC([default])[0]
         # for slider widget creation
         self.label = label or name
 
         self.range = None
+        self.pic_range = None
         self.values = None
+        self.pic_values = None
 
         if values is not None and range is not None:
             raise ValueError("Can only set either 'values' or 'range'!")
@@ -96,26 +98,25 @@ class Parameter(object):
                 print("WARNING: Values attribute can not be an empty "
                       "iterable! Setting values to", values)
             # double conversion to avoid rounding issues
-            self.values = self.convert_from_PIC(
-                self.convert_to_PIC(values))
+            self.values = values
+            self.pic_values = self.convert_to_PIC(values)
         elif range is not None:
             if len(range) != 2:
                 raise ValueError("Range needs to be a tuple of length 2!")
             else:
-                self.range = tuple(self.convert_from_PIC(
-                    self.convert_to_PIC(range)))
+                self.range = range
+                self.pic_range = tuple(self.convert_to_PIC(range))
         else:
             # raise ValueError("Need either 'values' or 'range' parameter!")
-            self.values = self.convert_from_PIC(
-                self.convert_to_PIC([self.default]))
+            self.pic_values = self.pic_default
+            self.values = self.default
             print("WARNING: Neither 'values' nor 'range' was given, setting"
                   " 'values' to ", self.values)
 
     def _check_input(self, vals):
         """
-        For values that are assumed to be on the UI scale (i.e. with unit =
-        self.unit), checks whether they are in the allowed range or the
-        allowed discrete values.
+        For values that are assumed to be on the PIC scale, checks whether they
+        are in the allowed range or the allowed discrete values.
         Raises a ValueError if a value value outside the range is detected.
 
         Parameters
@@ -125,17 +126,19 @@ class Parameter(object):
         """
         if self.values is not None:
             # check for valid values
-            res = all([v in self.values for v in vals])
+            res = all([v in self.pic_values for v in vals])
             if not res:
                 raise ValueError(
                     "Invalid values found! Values should be elements of "
-                    "self.values!")
+                    "{0} but are {1}!".format(self.pic_values, vals))
         else:
             # check for valid range
-            res = all([self.range[0] <= v <= self.range[1] for v in vals])
+            res = all([self.pic_range[0] <= v <= self.pic_range[1]
+                       for v in vals])
             if not res:
                 raise ValueError("Invalid values found! Values should be "
-                                 "contained in self.range!")
+                                 "contained in {0} but are {1}!".format(
+                                     self.pic_range, vals))
 
     def convert_to_PIC(self, vals, check_vals=False):
         """
@@ -154,11 +157,13 @@ class Parameter(object):
         -------
         A list of converted values.
         """
-        if check_vals:
-            self._check_input(vals)
-
-        return [self.pic_from_SI(
+        pic_vals = [self.pic_from_SI(
             (v * self.unit).to_base_units().magnitude) for v in vals]
+
+        if check_vals:
+            self._check_input(pic_vals)
+
+        return pic_vals
 
     def convert_from_PIC(self, vals, check_vals=False):
         """
@@ -179,12 +184,13 @@ class Parameter(object):
         A list of converted values.
         """
         # v is given in PIC quantity, so we convert to UI unit
+        if check_vals:
+            self._check_input(vals)
+
         ui_results = [
             ureg.convert(self.pic_to_SI(v), self.base_unit, self.unit)
             for v in vals]
 
-        if check_vals:
-            self._check_input(ui_results)
         return ui_results
 
     def dict_name(self):
