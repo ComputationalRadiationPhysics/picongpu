@@ -45,8 +45,7 @@ PARAMETERS = {
             name="TBG_steps", ptype="run", unit="ps",
             default=1.0, range=(0.1, 10.0),
             pic_to_SI=lambda steps: steps * dt,
-            pic_from_SI=lambda time: int(time / dt),
+            pic_from_SI=lambda time: int(round(time / dt)),
             label="simulation time")
-
     ]
 }
