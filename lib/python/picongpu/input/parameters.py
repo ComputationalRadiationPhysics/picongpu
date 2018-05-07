@@ -92,12 +92,12 @@ class Parameter(object):
                 values = [values]
             if not values:
                 # check empty values list
-                self.values = [self.default]
+                values = [self.default]
                 print("WARNING: Values attribute can not be an empty "
-                      "iterable! Setting values to", self.values)
+                      "iterable! Setting values to", values)
             # double conversion to avoid rounding issues
             self.values = self.convert_from_PIC(
-                self.convert_to_PIC(self.values))
+                self.convert_to_PIC(values))
         elif range is not None:
             if len(range) != 2:
                 raise ValueError("Range needs to be a tuple of length 2!")
