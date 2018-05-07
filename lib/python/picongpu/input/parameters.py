@@ -77,14 +77,14 @@ class Parameter(object):
         self.base_unit = ureg.get_base_units(self.unit)[1]
         self.pic_to_SI = pic_to_SI
         self.pic_from_SI = pic_from_SI
+
         self.default = default
-        self.pic_default = self.convert_to_PIC([default])[0]
         # for slider widget creation
         self.label = label or name
 
-        self.range = None
+        self.range = None  # only as reference for UI handling
         self.pic_range = None
-        self.values = None
+        self.values = None  # only as reference for UI handling
         self.pic_values = None
 
         if values is not None and range is not None:
@@ -108,8 +108,8 @@ class Parameter(object):
                 self.pic_range = tuple(self.convert_to_PIC(range))
         else:
             # raise ValueError("Need either 'values' or 'range' parameter!")
-            self.pic_values = self.pic_default
             self.values = self.default
+            self.pic_values = self.convert_to_PIC(default)
             print("WARNING: Neither 'values' nor 'range' was given, setting"
                   " 'values' to ", self.values)
 
