@@ -57,11 +57,9 @@ class Parameter(object):
         values: list
             list of discrete options for the parameter as shown on UI side.
             Only one of the attributes range/value can be given.
-            Due to rounding issues, the values are only approximate.
         range: tuple
             start and stop value for the selectable range on UI side.
             Only one of the attributes range/value can be given.
-            Due to rounding issues, the range is only approximate.
         label: string [optional]
             Overwrite the name for UI
         pic_to_SI: callable, e.g. lambda function
