@@ -76,6 +76,8 @@ class Parameter(object):
         self.unit = ureg.parse_units(unit)
         self.base_unit = ureg.get_base_units(self.unit)[1]
         self.default = default
+        self.pic_to_SI = pic_to_SI
+        self.pic_from_SI = pic_from_SI
 
         # for slider widget creation
         self.label = label or name
@@ -108,9 +110,6 @@ class Parameter(object):
                 self.convert_to_PIC([self.default]))
             print("WARNING: Neither 'values' nor 'range' was given, setting"
                   " 'values' to ", self.values)
-
-        self.pic_to_SI = pic_to_SI
-        self.pic_from_SI = pic_from_SI
 
     def _check_input(self, vals):
         """
