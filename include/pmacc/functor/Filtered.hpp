@@ -207,7 +207,7 @@ namespace acc
             T_Acc const & acc,
             T_OffsetType const & domainOffset,
             mappings::threads::WorkerCfg< T_numWorkers > const & workerCfg
-        )
+        ) const
         -> acc::Filtered<
             T_FilterOperator,
             decltype(
@@ -243,12 +243,12 @@ namespace acc
                     )
                 )
             >(
-                ( *static_cast< Filter * >( this ) )(
+                ( *static_cast< Filter const * >( this ) )(
                     acc,
                     domainOffset,
                     workerCfg
                 ),
-                ( *static_cast< Functor * >( this ) )(
+                ( *static_cast< Functor const * >( this ) )(
                     acc,
                     domainOffset,
                     workerCfg

@@ -213,7 +213,7 @@ namespace detail
             T_Acc const & acc,
             T_OffsetType const & domainOffset,
             mappings::threads::WorkerCfg< T_numWorkers > const & workerCfg
-        )
+        ) const
         -> acc::Interface<
             decltype(
                 alpaka::core::declval< UserFunctor >( )(
@@ -226,7 +226,7 @@ namespace detail
             T_ReturnType
         >
         {
-            return ( *static_cast< UserFunctor * >( this ) )(
+            return ( *static_cast< UserFunctor const * >( this ) )(
                 acc,
                 domainOffset,
                 workerCfg
