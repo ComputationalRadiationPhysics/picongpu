@@ -524,10 +524,12 @@ private:
 
     void closeH5File()
     {
-        if (mThreadParams.dataCollector != nullptr)
+        if (mThreadParams.dataCollector)
         {
             log<picLog::INPUT_OUTPUT > ("HDF5 close DataCollector");
             mThreadParams.dataCollector->close();
+            mThreadParams.dataCollector->finalize();
+            __delete(mThreadParams.dataCollector);
         }
     }
 
