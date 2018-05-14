@@ -66,7 +66,7 @@ namespace misc
             T_Acc const & acc,
             DataSpace< simDim > const & localSupercellOffset,
             T_WorkerCfg const &
-        )
+        ) const
         {
             DataSpace< simDim > const superCellToLocalOriginCellOffset(
                 localSupercellOffset * SuperCellSize::toRT( )

@@ -111,9 +111,9 @@ namespace acc
             T_Acc const &,
             DataSpace< simDim > const &,
             T_WorkerCfg const &
-        )
+        ) const
         {
-            return acc::Free< Functor >( *static_cast< Functor * >( this ) );
+            return acc::Free< Functor >( *static_cast< Functor const * >( this ) );
         }
 
         //! get the name of the functor

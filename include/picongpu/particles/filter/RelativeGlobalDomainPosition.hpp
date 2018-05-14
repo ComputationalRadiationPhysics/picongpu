@@ -144,7 +144,7 @@ namespace acc
             T_Acc const & acc,
             DataSpace< simDim > const & localSuperCellOffset,
             T_WorkerCfg const &
-        )
+        ) const
         {
             return acc::RelativeGlobalDomainPosition< Params >(
                 localDomainOffset,
