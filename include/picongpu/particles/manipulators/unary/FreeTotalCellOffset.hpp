@@ -134,9 +134,9 @@ namespace acc
         )
         -> acc::FreeTotalCellOffset< Functor >
         {
-            auto & cellOffsetFunctor = *static_cast< CellOffsetFunctor * >( this );
+            auto & cellOffsetFunctor = *static_cast< CellOffsetFunctor const * >( this );
             return acc::FreeTotalCellOffset< Functor >(
-                *static_cast< Functor * >( this ),
+                *static_cast< Functor const * >( this ),
                 cellOffsetFunctor(
                     acc,
                     localSupercellOffset,

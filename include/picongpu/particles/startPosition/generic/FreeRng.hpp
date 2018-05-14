@@ -190,13 +190,13 @@ namespace acc
             T_Acc const & acc,
             DataSpace< simDim > const & localSupercellOffset,
             T_WorkerCfg const & workerCfg
-        )
+        ) const
         -> acc::FreeRng<
             Functor,
             RngType
         >
         {
-            RngType const rng = ( *static_cast< RngGenerator * >( this ) )(
+            RngType const rng = ( *static_cast< RngGenerator const * >( this ) )(
                 acc,
                 localSupercellOffset,
                 workerCfg
@@ -206,7 +206,7 @@ namespace acc
                 Functor,
                 RngType
             >(
-                *static_cast< Functor * >( this ),
+                *static_cast< Functor const * >( this ),
                 rng
             );
         }

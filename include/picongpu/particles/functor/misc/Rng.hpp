@@ -96,20 +96,20 @@ namespace misc
             T_Acc const & acc,
             DataSpace< simDim > const & localSupercellOffset,
             T_WorkerCfg const & workerCfg
-        )
+        ) const
         {
             namespace nvrng = nvidia::rng;
 
             using FrameType = typename SpeciesType::FrameType;
             using SuperCellSize = typename FrameType::SuperCellSize;
-
-            rngHandle.init(
+            RngHandle tmp( rngHandle );
+            tmp.init(
                 localSupercellOffset * SuperCellSize::toRT() +
                 DataSpaceOperations< simDim >::template map< SuperCellSize >( workerCfg.getWorkerIdx( ) )
             );
             return RandomGen(
                 acc,
-                rngHandle.applyDistribution< Distribution >()
+                tmp.applyDistribution< Distribution >()
             );
         }
 

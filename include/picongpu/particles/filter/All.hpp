@@ -84,7 +84,7 @@ namespace acc
             T_Acc const & acc,
             DataSpace< simDim > const &,
             T_WorkerCfg const &
-        )
+        ) const
         {
             return acc::All{ };
 

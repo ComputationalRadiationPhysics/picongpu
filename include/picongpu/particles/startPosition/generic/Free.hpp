@@ -155,9 +155,9 @@ namespace acc
             T_Acc const & acc,
             T const &,
             T_WorkerCfg const &
-        )
+        ) const
         {
-            return acc::Free< Functor >( *static_cast< Functor * >( this ) );
+            return acc::Free< Functor >( *static_cast< Functor const * >( this ) );
         }
     };
 
