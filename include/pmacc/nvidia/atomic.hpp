@@ -90,7 +90,7 @@ namespace nvidia
             {
                 /* Get a bitmask with 1 for each thread in the warp, that executes this */
 #if(__CUDACC_VER_MAJOR__ >= 9)
-                const int mask = __ballot_sync(0xFFFFFFFF, 1);
+                const int mask = __activemask();
 #else
                 const int mask = __ballot(1);
 #endif
@@ -101,7 +101,7 @@ namespace nvidia
                 /* Get the start value for this warp */
                 if (laneId == leader)
                     result = ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc,ptr, static_cast<T_Type>(__popc(mask)), hierarchy);
-                result = warpBroadcast(result, leader, static_cast< uint32_t >(mask));
+                result = warpBroadcast(result, leader);
                 /* Add offset per thread */
                 return result + static_cast<T_Type>(__popc(mask & ((1 << laneId) - 1)));
             }
@@ -185,7 +185,7 @@ atomicAllExch(const T_Acc& acc, T_Type* ptr, const T_Type value, const T_Hierarc
 {
 #if (__CUDA_ARCH__ >= 200)
 #   if(__CUDACC_VER_MAJOR__ >= 9)
-    const int mask = __ballot_sync(0xFFFFFFFF, 1);
+    const int mask = __activemask();
 #   else
     const int mask = __ballot(1);
 #   endif
