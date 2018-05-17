@@ -304,6 +304,28 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return result;
     }
 
+    /** Removes a component
+     *
+     * It is not allowed to call this method on a vector with the dimensionality of one.
+     *
+     * @tparam dimToRemove index which shall be removed; range: [ 0; dim - 1 ]
+     * @return vector with `dim - 1` elements
+     */
+    template<int dimToRemove>
+    HDINLINE Vector<type, dim - 1, Accessor, Navigator> remove() const
+    {
+        PMACC_CASSERT_MSG(__math_Vector__dim_must_be_greater_than_1__, dim > 1);
+        PMACC_CASSERT_MSG(__math_Vector__dimToRemove_must_be_lesser_than_dim__, dimToRemove < dim);
+        Vector<type, dim - 1, Accessor, Navigator> result;
+        for (int i = 0; i < dim - 1; ++i)
+        {
+            // skip component which must be deleted
+            const int sourceIdx = i >= dimToRemove ? i + 1 : i;
+            result[i] = (*this)[sourceIdx];
+        }
+        return result;
+    }
+
     /**
      * Returns product of all components.
      *
