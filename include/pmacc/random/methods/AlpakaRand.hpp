@@ -30,7 +30,7 @@ namespace random
 namespace methods
 {
 
-    template< typename T_Acc >
+    template< typename T_Acc = cupla::Acc>
     class AlpakaRand
     {
     public:
