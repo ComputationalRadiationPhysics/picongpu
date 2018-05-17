@@ -119,7 +119,7 @@ namespace ionization
 
             /* random number generator */
             using RNGFactory = pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin< cupla::Acc>>;
-            using Distribution = pmacc::random::distributions::Uniform<float>;
+            using Distribution = pmacc::random::distributions::Uniform<float_X>;
             using RandomGen = typename RNGFactory::GetRandomType<Distribution>::type;
             RandomGen randomGen;
 

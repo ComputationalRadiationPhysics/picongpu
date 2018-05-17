@@ -110,7 +110,7 @@ namespace ionization
 
             /* random number generator */
             typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin< cupla::Acc>> RNGFactory;
-            typedef pmacc::random::distributions::Uniform<float> Distribution;
+            typedef pmacc::random::distributions::Uniform<float_X> Distribution;
             typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
             RandomGen randomGen;
 
