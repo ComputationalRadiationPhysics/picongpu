@@ -30,7 +30,7 @@
 #   include "picongpu/param/mallocMC.param"
 #endif
 #include "picongpu/param/memory.param"
-#include "picongpu/param/seed.param"
+#include "picongpu/param/random.param"
 #include "picongpu/param/precision.param"
 #include "picongpu/param/physicalConstants.param"
 #include "picongpu/param/flylite.param"

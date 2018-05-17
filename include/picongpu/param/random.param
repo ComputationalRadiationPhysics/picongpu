@@ -17,11 +17,23 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
+
+#include <pmacc/random/methods/methods.hpp>
+
 
 namespace picongpu
 {
+    /** Random number generation methods
+     *
+     * It is not allowed to change the method and restart an already existing checkpoint.
+     *
+     *  - pmacc::random::methods::XorMin
+     *  - pmacc::random::methods::MRG32k3aMin
+     *  - pmacc::random::methods::AlpakaRand
+     */
+    using RandomGenrator =  pmacc::random::methods::XorMin< >;
+
     /** global seed
      *
      *  global seed to derive GPU local seeds from
@@ -38,15 +50,6 @@ namespace picongpu
              *  time(nullptr) from \see <ctime> (precision: seconds) */
             return 42;
         }
-    };
-
-    /* seed for randomization of different particle attributes */
-    enum Seeds
-    {
-        TEMPERATURE_SEED = 255845,
-        POSITION_SEED = 854666252,
-        IONIZATION_SEED = 431630977,
-        FREERNG_SEED = 99991
     };
 
 } /* namespace picongpu */
