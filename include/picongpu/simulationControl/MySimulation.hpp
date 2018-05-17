@@ -55,7 +55,7 @@
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
-#include <pmacc/random/methods/XorMin.hpp>
+#include <pmacc/random/methods/methods.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -317,7 +317,7 @@ public:
                                                                 bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
 
         // create factory for the random number generator
-        using RNGFactory = pmacc::random::RNGProvider< simDim, pmacc::random::methods::XorMin< cupla::Acc> >;
+        using RNGFactory = pmacc::random::RNGProvider< simDim, random::Generator >;
         auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
 
         // init and share random number generator

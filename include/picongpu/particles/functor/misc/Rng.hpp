@@ -26,7 +26,7 @@
 #include <pmacc/nvidia/rng/methods/Xor.hpp>
 #include <pmacc/mpi/SeedPerRank.hpp>
 #include <pmacc/traits/GetUniqueTypeId.hpp>
-#include <pmacc/random/methods/XorMin.hpp>
+#include <pmacc/random/methods/methods.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
 #include <utility>
@@ -59,7 +59,7 @@ namespace misc
         using SpeciesType = T_SpeciesType;
         using RNGFactory = pmacc::random::RNGProvider<
             simDim,
-            pmacc::random::methods::XorMin< cupla::Acc >
+            random::Generator
         >;
         using RngHandle = typename RNGFactory::Handle;
         using RandomGen = RngWrapper<

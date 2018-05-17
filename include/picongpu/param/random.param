@@ -24,6 +24,8 @@
 
 namespace picongpu
 {
+namespace random
+{
     /** Random number generation methods
      *
      * It is not allowed to change the method and restart an already existing checkpoint.
@@ -32,7 +34,7 @@ namespace picongpu
      *  - pmacc::random::methods::MRG32k3aMin
      *  - pmacc::random::methods::AlpakaRand
      */
-    using RandomGenrator =  pmacc::random::methods::XorMin< >;
+    using Generator =  pmacc::random::methods::XorMin< >;
 
     /** global seed
      *
@@ -51,5 +53,5 @@ namespace picongpu
             return 42;
         }
     };
-
-} /* namespace picongpu */
+} // namespace random
+} // namespace picongpu

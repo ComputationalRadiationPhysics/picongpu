@@ -36,7 +36,7 @@
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 
-#include <pmacc/random/methods/XorMin.hpp>
+#include <pmacc/random/methods/methods.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
@@ -115,7 +115,7 @@ private:
     PMACC_ALIGN(photon_mom, float3_X);
 
     /* random number generator */
-    typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin< cupla::Acc>> RNGFactory;
+    typedef pmacc::random::RNGProvider<simDim, random::Generator> RNGFactory;
     typedef pmacc::random::distributions::Uniform<float_X> Distribution;
     typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
     RandomGen randomGen;
