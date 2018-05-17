@@ -40,11 +40,11 @@ namespace methods
 
 #if( PMACC_CUDA_ENABLED != 1 )
     //! fallback to alpaka RNG if a cpu accelerator is used
-    template< typename T_Acc >
+    template< typename T_Acc = cupla::Acc>
     using MRG32k3aMin = AlpakaRand< T_Acc >;
 #else
     //! Mersenne-Twister random number generator with a reduced state
-    template< typename T_Acc >
+    template< typename T_Acc = cupla::Acc>
     class MRG32k3aMin
     {
     public:

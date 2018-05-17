@@ -40,11 +40,11 @@ namespace methods
 
 #if( PMACC_CUDA_ENABLED != 1 )
     //! fallback to alpaka RNG if a cpu accelerator is used
-    template< typename T_Acc >
+    template< typename T_Acc = cupla::Acc>
     using XorMin = AlpakaRand< T_Acc >;
 #else
     //! Uses the CUDA XORWOW RNG but does not store state members required for normal distribution
-    template< typename T_Acc >
+    template< typename T_Acc = cupla::Acc>
     class XorMin
     {
     public:
