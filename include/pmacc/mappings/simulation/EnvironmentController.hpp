@@ -22,14 +22,12 @@
 #pragma once
 
 #include "pmacc/memory/dataTypes/Mask.hpp"
-
+#include "pmacc/Environment.def"
 #include "pmacc/communication/ICommunicator.hpp"
+
 
 namespace pmacc
 {
-
-template<unsigned DIM>
-class Environment;
 
 class EnvironmentController
 {
