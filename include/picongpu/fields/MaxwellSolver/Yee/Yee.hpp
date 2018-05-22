@@ -136,7 +136,7 @@ namespace maxwellSolver
         void update_afterCurrent(uint32_t currentStep)
         {
             FieldManipulator::absorbBorder(currentStep,this->m_cellDescription, this->fieldE->getDeviceDataBox());
-            if (laserProfiles::Profile::INIT_TIME > float_X(0.0))
+            if (laserProfiles::Selected::INIT_TIME > float_X(0.0))
                 LaserPhysics{}(currentStep);
 
             EventTask eRfieldE = fieldE->asyncCommunication(__getTransactionEvent());

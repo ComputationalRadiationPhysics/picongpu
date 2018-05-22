@@ -159,7 +159,7 @@ namespace dirSplitting
                       fieldB_coreBorder.origin(),
                       gridSize);
 
-            if (laserProfiles::Profile::INIT_TIME > float_X(0.0))
+            if (laserProfiles::Selected::INIT_TIME > float_X(0.0))
                 LaserPhysics{}(currentStep);
 
             __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));

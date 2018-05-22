@@ -286,7 +286,7 @@ namespace acc
             T_Acc const &,
             DataSpace< simDim > const & localSupercellOffset,
             T_WorkerCfg const &
-        )
+        ) const
         {
             auto const superCellToLocalOriginCellOffset = localSupercellOffset * SuperCellSize::toRT();
             return acc::PulseFrontTilt< Unitless >( dataBoxE, superCellToLocalOriginCellOffset, offsetToTotalDomain, elong, phase );

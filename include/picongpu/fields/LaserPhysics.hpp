@@ -111,10 +111,12 @@ namespace fields
     {
         void operator()(uint32_t currentStep) const
         {
-            /* initialize the laser not in the first cell is equal to a negative shift
-             * in time
+            /* The laser can be initialized in the plane of the first cell or
+             * any later x-y plane inside the simulation. Initializing the
+             * laser in planes inside the simulation corresponds to an
+             * evaluation of the field at negatively shifted time.
              */
-            constexpr float_X laserTimeShift = laserProfiles::Profile::Unitless::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
+            constexpr float_X laserTimeShift = laserProfiles::Selected::Unitless::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
 
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
@@ -123,9 +125,9 @@ namespace fields
              * - we have periodic boundaries in Y direction or
              * - we already performed a slide
              */
-            bool const laserNone = ( laserProfiles::Profile::Unitless::INIT_TIME == float_X(0.0) );
+            bool const laserNone = ( laserProfiles::Selected::Unitless::INIT_TIME == float_X(0.0) );
             bool const laserInitTimeOver =
-                ( ( currentStep * DELTA_T  - laserTimeShift ) >= laserProfiles::Profile::Unitless::INIT_TIME );
+                ( ( currentStep * DELTA_T  - laserTimeShift ) >= laserProfiles::Selected::Unitless::INIT_TIME );
             bool const topBoundariesArePeriodic =
                 ( Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) );
             bool const boxHasSlided = ( numSlides != 0 );
@@ -138,15 +140,15 @@ namespace fields
             if( !disableLaser )
             {
                 PMACC_VERIFY_MSG(
-                    laserProfiles::Profile::Unitless::initPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
+                    laserProfiles::Selected::Unitless::initPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
                     "initPlaneY must be located in the top GPU"
                 );
 
                 PMACC_CASSERT_MSG(
                     __initPlaneY_needs_to_be_greate_than_the_top_absorber_cells_or_zero,
-                    laserProfiles::Profile::Unitless::initPlaneY > ABSORBER_CELLS[1][0] ||
-                    laserProfiles::Profile::Unitless::initPlaneY == 0 ||
-                    laserProfiles::Profile::Unitless::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
+                    laserProfiles::Selected::Unitless::initPlaneY > ABSORBER_CELLS[1][0] ||
+                    laserProfiles::Selected::Unitless::initPlaneY == 0 ||
+                    laserProfiles::Selected::Unitless::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
                 );
 
                 /* Calculate how many neighbors to the left we have
@@ -203,7 +205,7 @@ namespace fields
                     gridBlocks,
                     numWorkers
                 )(
-                    laserProfiles::Profile( currentStep )
+                    laserProfiles::Selected( currentStep )
                 );
             }
         }

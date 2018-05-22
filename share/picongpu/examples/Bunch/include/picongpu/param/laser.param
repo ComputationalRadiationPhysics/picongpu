@@ -32,7 +32,7 @@
  *  - Polynom             : a polynomial laser envelope
  *  - ExpRampWithPrepulse : wavepacket with exponential upramps and prepulse
  *
- * In the end, this file needs to define a `Profile` class in namespace
+ * In the end, this file needs to define a `Selected` class in namespace
  * `picongpu::fields::laserProfiles`. A typical profile consists of a
  * laser profile class and its parameters. For example:
  *
@@ -123,7 +123,7 @@ namespace laserProfiles
     };
 
     //! currently selected laser profile
-    using Profile = PlaneWave< PlaneWaveParam >;
+    using Selected = PlaneWave< PlaneWaveParam >;
 
 } // namespace laserProfiles
 } // namespace fields

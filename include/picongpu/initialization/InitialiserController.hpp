@@ -139,9 +139,9 @@ public:
             ForEach< SpeciesWithMassCharge, LogOmegaP<> > logOmegaP;
             logOmegaP();
 
-            if (fields::laserProfiles::Profile::INIT_TIME > float_X(0.0))
+            if (fields::laserProfiles::Selected::INIT_TIME > float_X(0.0))
                 log<picLog::PHYSICS >("y-cells per wavelength: %1%") %
-                                     (fields::laserProfiles::Profile::WAVE_LENGTH / CELL_HEIGHT);
+                                     (fields::laserProfiles::Selected::WAVE_LENGTH / CELL_HEIGHT);
             const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
             log<picLog::PHYSICS >("macro particles per gpu: %1%") %
                                  (localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL * (bmpl::size<VectorAllSpecies>::type::value));

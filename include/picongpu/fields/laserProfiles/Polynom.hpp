@@ -115,7 +115,8 @@ namespace acc
             // @todo add half-cells via traits::FieldPosition< Solver::NumicalCellType, FieldE >()
 
             // transversal position only
-            auto const w0( Unitless::W0_X, 0., Unitless::W0_Z ).shrink< simDim >().remove< planeNormalDir >();
+            float3_X const w0_3D( Unitless::W0_X, 0., Unitless::W0_Z );
+            auto const w0( w0_3D.shrink< simDim >().remove< planeNormalDir >() );
             auto const pos_trans( pos.remove< planeNormalDir >() );
             auto const exp_compos( pos_trans * pos_trans / ( w0 * w0 ) );
             float_X const exp_arg( exp_compos.sumOfComponents() );
@@ -247,7 +248,7 @@ namespace acc
             T_Acc const &,
             DataSpace< simDim > const & localSupercellOffset,
             T_WorkerCfg const &
-        )
+        ) const
         {
             auto const superCellToLocalOriginCellOffset = localSupercellOffset * SuperCellSize::toRT();
             return acc::Polynom< Unitless >( dataBoxE, superCellToLocalOriginCellOffset, offsetToTotalDomain, elong, phase );

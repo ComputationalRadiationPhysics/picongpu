@@ -97,7 +97,7 @@ namespace acc
             T_Acc const &,
             DataSpace< simDim > const &,
             T_WorkerCfg const &
-        )
+        ) const
         {
             return acc::None< Unitless >( );
         }
