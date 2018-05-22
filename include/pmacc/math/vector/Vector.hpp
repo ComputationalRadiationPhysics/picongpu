@@ -326,8 +326,7 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return result;
     }
 
-    /**
-     * Returns product of all components.
+    /** Returns product of all components.
      *
      * @return product of components
      */
@@ -336,6 +335,18 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         type result = (*this)[0];
         for (int i = 1; i < dim; i++)
             result *= (*this)[i];
+        return result;
+    }
+
+    /** Returns sum of all components.
+     *
+     * @return sum of components
+     */
+    HDINLINE type sumOfComponents() const
+    {
+        type result = (*this)[0];
+        for (int i = 1; i < dim; i++)
+            result += (*this)[i];
         return result;
     }
 
