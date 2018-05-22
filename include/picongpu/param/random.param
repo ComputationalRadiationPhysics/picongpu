@@ -17,6 +17,13 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Configure the pseudorandom number generator (PRNG).
+ * Allows to select method and global seeds in order to vary the
+ * initial state of the parallel PRNG.
+ */
+
 #pragma once
 
 #include <pmacc/random/methods/methods.hpp>

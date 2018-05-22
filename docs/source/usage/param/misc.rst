@@ -11,12 +11,12 @@ starter.param
    :path: include/picongpu/param/starter.param
    :no-link:
 
-seed.param
-^^^^^^^^^^
+random.param
+^^^^^^^^^^^^
 
-.. doxygenfile:: seed.param
+.. doxygenfile:: random.param
    :project: PIConGPU
-   :path: include/picongpu/param/seed.param
+   :path: include/picongpu/param/random.param
    :no-link:
 
 physicalConstants.param
