@@ -17,11 +17,32 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ *
+ * Configure the pseudorandom number generator (PRNG).
+ * Allows to select method and global seeds in order to vary the
+ * initial state of the parallel PRNG.
+ */
 
 #pragma once
 
+#include <pmacc/random/methods/methods.hpp>
+
+
 namespace picongpu
 {
+namespace random
+{
+    /** Random number generation methods
+     *
+     * It is not allowed to change the method and restart an already existing checkpoint.
+     *
+     *  - pmacc::random::methods::XorMin
+     *  - pmacc::random::methods::MRG32k3aMin
+     *  - pmacc::random::methods::AlpakaRand
+     */
+    using Generator =  pmacc::random::methods::XorMin< >;
+
     /** global seed
      *
      *  global seed to derive GPU local seeds from
@@ -39,14 +60,5 @@ namespace picongpu
             return 42;
         }
     };
-
-    /* seed for randomization of different particle attributes */
-    enum Seeds
-    {
-        TEMPERATURE_SEED = 255845,
-        POSITION_SEED = 854666252,
-        IONIZATION_SEED = 431630977,
-        FREERNG_SEED = 99991
-    };
-
-} /* namespace picongpu */
+} // namespace random
+} // namespace picongpu

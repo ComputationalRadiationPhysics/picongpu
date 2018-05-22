@@ -31,7 +31,7 @@
 #include "picongpu/particles/ionization/byField/ADK/ADK.def"
 #include "picongpu/particles/ionization/byField/ADK/AlgorithmADK.hpp"
 
-#include <pmacc/random/methods/XorMin.hpp>
+#include <pmacc/random/methods/methods.hpp>
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -109,7 +109,7 @@ namespace ionization
             using IonizationAlgorithm = T_IonizationAlgorithm;
 
             /* random number generator */
-            typedef pmacc::random::RNGProvider<simDim, pmacc::random::methods::XorMin< cupla::Acc>> RNGFactory;
+            typedef pmacc::random::RNGProvider<simDim, random::Generator> RNGFactory;
             typedef pmacc::random::distributions::Uniform<float_X> Distribution;
             typedef typename RNGFactory::GetRandomType<Distribution>::type RandomGen;
             RandomGen randomGen;
