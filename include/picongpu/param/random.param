@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "picongpu/random/seed/Seed.hpp"
+
 #include <pmacc/random/methods/methods.hpp>
 
 
@@ -43,22 +45,16 @@ namespace random
      */
     using Generator =  pmacc::random::methods::XorMin< >;
 
-    /** global seed
+    /** random number start seed
      *
-     *  global seed to derive GPU local seeds from
-     *  - vary it to shuffle pseudo random generators for exactly same simulation
-     *  - note: even when kept constant, highly parallel simulations do not ensure
-     *          100% deterministic simulations on the floating point level
+     * Generator to create a seed for the random number generator.
+     * Depending of the generator the seed is reproducible or
+     * or changed with each program execution.
+     *
+     *   - seed::Value< 42 >
+     *   - seed::FromTime
+     *   - seed::FromEnvironment
      */
-    struct GlobalSeed
-    {
-        uint32_t
-        operator()()
-        {
-            /** to vary (binary) identical simulations, use a combination of
-             *  time(nullptr) from \see <ctime> (precision: seconds) */
-            return 42;
-        }
-    };
+    using SeedGenerator = seed::Value< 42 > ;
 } // namespace random
 } // namespace picongpu

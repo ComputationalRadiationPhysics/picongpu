@@ -33,6 +33,7 @@
 #include <pmacc/simulationControl/SimulationHelper.hpp>
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/versionFormat.hpp"
+#include "picongpu/random/seed/ISeed.hpp"
 
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
@@ -86,6 +87,7 @@
 
 #include <boost/mpl/int.hpp>
 #include <memory>
+#include <functional>
 
 
 namespace picongpu
@@ -317,12 +319,23 @@ public:
                                                                 bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
 
         // create factory for the random number generator
+        const uint32_t userSeed = random::seed::ISeed< random::SeedGenerator >{}();
+        const uint32_t seed = std::hash<std::string>{}(
+            std::to_string( userSeed )
+        );
+
         using RNGFactory = pmacc::random::RNGProvider< simDim, random::Generator >;
         auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
+        if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
+        {
+            log<picLog::PHYSICS >("used Random Number Generator: %1% seed: %2%") %
+                rngFactory->getName() %
+                userSeed;
+        }
 
         // init and share random number generator
         pmacc::GridController<simDim>& gridCon = pmacc::Environment<simDim>::get().GridController();
-        rngFactory->init( gridCon.getScalarPosition() );
+        rngFactory->init( gridCon.getScalarPosition() ^ seed );
         dc.share( std::shared_ptr< ISimulationData >( rngFactory ) );
 
         // Initialize synchrotron functions, if there are synchrotron photon species
