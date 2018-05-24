@@ -231,7 +231,7 @@ public:
 
         SimulationHelper<simDim>::pluginLoad();
 
-        GridLayout<SIMDIM> layout(gridSizeLocal, MappingDesc::SuperCellSize::toRT());
+        GridLayout<SIMDIM> layout(gridSizeLocal, GUARD_SIZE * MappingDesc::SuperCellSize::toRT());
         cellDescription = new MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
 
         checkGridConfiguration(global_grid_size, cellDescription->getGridLayout());

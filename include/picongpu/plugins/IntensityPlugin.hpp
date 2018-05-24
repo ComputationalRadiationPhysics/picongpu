@@ -84,7 +84,7 @@ struct KernelIntensity
         );
 
         int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
-        int yGlobal = y + SuperCellSize::y::value;
+        int yGlobal = y + GUARD_SIZE * SuperCellSize::y::value;
         const DataSpace<DIM2> threadId(threadIdx);
 
         if (threadId.x() == 0)
