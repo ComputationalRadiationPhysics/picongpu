@@ -278,7 +278,28 @@ void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
         typename GetMargin<ParticleCurrentSolver>::UpperMargin
     > BlockArea;
 
-    StrideMapping<AREA, 3, MappingDesc> mapper( cellDescription );
+    /* The needed stride for the stride mapper depends on the stencil width.
+     * If the upper and lower margin of the stencil fits into one supercell
+     * a double checker board (stride 2) is needed.
+     * The round up sum of margins is the number of supercells to skip.
+     */
+    using MarginPerDim = typename pmacc::math::CT::add<
+        typename GetMargin<ParticleCurrentSolver>::LowerMargin,
+        typename GetMargin<ParticleCurrentSolver>::UpperMargin
+    >::type;
+    using MaxMargin = typename pmacc::math::CT::max< MarginPerDim >::type;
+    using SuperCellMinSize = typename pmacc::math::CT::min< SuperCellSize >::type;
+
+    /* number of supercells which must be skipped to avoid overlapping areas
+     * between different blocks in the kernel
+     */
+    constexpr uint32_t skipSuperCells = ( MaxMargin::value + SuperCellMinSize::value - 1u ) / SuperCellMinSize::value;
+    StrideMapping<
+        AREA,
+        skipSuperCells + 1u, // stride 1u means each supercell is used
+        MappingDesc
+    > mapper( cellDescription );
+
     typename ParticlesClass::ParticlesBoxType pBox = parClass.getDeviceParticlesBox( );
     FieldJ::DataBoxType jBox = this->fieldJ.getDeviceBuffer( ).getDataBox( );
     FrameSolver solver( DELTA_T );
