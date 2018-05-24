@@ -100,6 +100,8 @@ namespace operations
                 * SuperCellSize::toRT()
             );
 
+            auto const numGuardSuperCells = mapper.getGuardingSuperCells();
+
             ForEachIdx<
                 IdxConfig<
                     numCells,
@@ -116,6 +118,9 @@ namespace operations
                     DataSpace< dim > targetCell( blockCell + cellIdx );
                     DataSpace< dim > sourceCell( targetCell - nullSourceCell );
 
+                    // supercell offset relative to the guard origin (in cells)
+                    DataSpace< dim > superCellOffsetInGuard( ( sourceCell / SuperCellSize::toRT() ) * SuperCellSize::toRT() );
+
                     /* defines if the virtual worker needs to add the value from
                      * the exchange box to the cell in the border
                      */
@@ -125,16 +130,19 @@ namespace operations
                     {
                         if( direction[ d ] == 1 )
                         {
-                            if( cellIdx[ d ] < SuperCellSize::toRT()[ d ] - exchangeSize[ d ] )
+                            if(
+                                superCellOffsetInGuard[ d ] + cellIdx[ d ] <
+                                numGuardSuperCells * SuperCellSize::toRT()[ d ] - exchangeSize[ d ]
+                            )
                                 addValue = false;
-                            sourceCell[ d ] -= SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
-                            targetCell[ d ] -= SuperCellSize::toRT()[ d ];
+                            sourceCell[ d ] -= numGuardSuperCells * SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
+                            targetCell[ d ] -= numGuardSuperCells * SuperCellSize::toRT()[ d ];
                         }
                         else if( direction[ d ] == -1 )
                         {
-                            if( cellIdx[ d ] >= exchangeSize[ d ] )
+                            if( superCellOffsetInGuard[ d ] + cellIdx[ d ] >= exchangeSize[ d ] )
                                 addValue = false;
-                            targetCell[ d ] += SuperCellSize::toRT()[ d ];
+                            targetCell[ d ] += numGuardSuperCells * SuperCellSize::toRT()[ d ];
                         }
                     }
                     if( addValue )

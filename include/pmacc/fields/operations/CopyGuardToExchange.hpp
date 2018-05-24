@@ -97,6 +97,8 @@ namespace operations
                 SuperCellSize::toRT()
             );
 
+            auto const numGuardSuperCells = mapper.getGuardingSuperCells();
+
             ForEachIdx<
                 IdxConfig<
                     numCells,
@@ -114,6 +116,9 @@ namespace operations
                     DataSpace< T_Mapping::Dim > const sourceCell( blockCell + cellIdx );
                     DataSpace< dim > targetCell( sourceCell - nullSourceCell );
 
+                    // supercell offset relative to the guard origin (in cells)
+                    DataSpace< dim > superCellOffsetInGuard( ( targetCell / SuperCellSize::toRT() ) * SuperCellSize::toRT() );
+
                     /* defines if the virtual worker needs to copy the value of
                      * the cell to to the exchange box
                      */
@@ -123,11 +128,17 @@ namespace operations
                     {
                         if( direction[ d ] == -1 )
                         {
-                            if( cellIdx[ d ] < SuperCellSize::toRT()[ d ] - exchangeSize[ d ] )
+                            if(
+                                superCellOffsetInGuard[ d ] + cellIdx[ d ] <
+                                numGuardSuperCells * SuperCellSize::toRT()[ d ] - exchangeSize[ d ]
+                            )
                                 copyValue = false;
-                            targetCell[ d ] -= SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
+                            targetCell[ d ] -= numGuardSuperCells * SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
                         }
-                        else if( direction[d] == 1 && cellIdx[ d ] >= exchangeSize[d]  )
+                        else if(
+                            direction[d] == 1 && superCellOffsetInGuard[ d ] + cellIdx[ d ] >=
+                            exchangeSize[d]
+                        )
                             copyValue = false;
                     }
 
