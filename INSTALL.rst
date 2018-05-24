@@ -271,7 +271,7 @@ ADIOS
 
 ISAAC
 """""
-- 1.3.1+
+- 1.3.3+
 - requires *boost* (header only), *IceT*, *Jansson*, *libjpeg* (preferably *libjpeg-turbo*), *libwebsockets* (only for the ISAAC server, but not the plugin itself)
 - enables live in situ visualization, see more here `Plugin description <https://github.com/ComputationalRadiationPhysics/picongpu/wiki/Plugin%3A-ISAAC>`_
 - *Spack:* ``spack install isaac``
