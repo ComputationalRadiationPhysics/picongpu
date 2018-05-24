@@ -20,6 +20,7 @@
 #include "picongpu/random/seed/Seed.hpp"
 
 #include <mpi.h>
+#include <string>
 #include <chrono>
 #include <cstdlib>
 
