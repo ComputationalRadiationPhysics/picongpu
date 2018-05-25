@@ -162,8 +162,8 @@ struct ZigZag
 
     PMACC_CASSERT_MSG(
         __ZigZag_supercell_is_to_small_for_stencil,
-        pmacc::math::CT::min< SuperCellSize >::type::value >= currentLowerMargin &&
-        pmacc::math::CT::min< SuperCellSize >::type::value >= currentUpperMargin
+        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentLowerMargin &&
+        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentUpperMargin
     );
 
     /* calculate grid point where we calculate the assigned values

@@ -50,8 +50,8 @@ struct Esirkepov<T_ParticleShape, DIM3>
 
     PMACC_CASSERT_MSG(
         __Esirkepov_supercell_is_to_small_for_stencil,
-        pmacc::math::CT::min< SuperCellSize >::type::value >= currentLowerMargin &&
-        pmacc::math::CT::min< SuperCellSize >::type::value >= currentUpperMargin
+        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentLowerMargin &&
+        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentUpperMargin
     );
 
     float_X charge;

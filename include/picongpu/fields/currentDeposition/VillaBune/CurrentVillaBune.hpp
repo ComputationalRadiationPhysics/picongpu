@@ -274,7 +274,7 @@ struct GetMargin<picongpu::currentSolver::VillaBune<T_ParticleShape> >
 
     PMACC_CASSERT_MSG(
         __VillaBune_supercell_is_to_small_for_stencil,
-        pmacc::math::CT::min< SuperCellSize >::type::value >= 2
+        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= 2
     );
 };
 
