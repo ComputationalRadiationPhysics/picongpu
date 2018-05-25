@@ -233,7 +233,14 @@ struct mul
 
 //________________________M A X____________________________
 
-template<typename Lhs, typename Rhs>
+/** maximum value
+ *
+ * @tparam Lhs input vector
+ * @tparam Rhs input vector
+ * @return ::type if Rhs is not given - maximum value in elements of Lhs else
+ *         vector with point-wise maximum value per component
+ */
+template<typename Lhs, typename Rhs = void>
 struct max
 {
     typedef typename applyOperator<
@@ -242,8 +249,38 @@ struct max
     mpl::max<mpl::_1, mpl::_2> >::type type;
 };
 
+
+/** get element with maximum value
+ *
+ * @tparam T_Vec input vector
+ * @return ::type maximum value in elements of T_Vec
+ */
+template<typename T_Vec>
+struct max<
+    T_Vec,
+    void
+>
+{
+    typedef typename mpl::accumulate<
+        typename T_Vec::mplVector,
+        typename T_Vec::x,
+        mpl::max<
+            mpl::_1,
+            mpl::_2
+        >
+    >::type type;
+};
+
 //________________________M I N____________________________
 
+
+/** minimum value
+ *
+ * @tparam Lhs input vector
+ * @tparam Rhs input vector
+ * @return ::type if Rhs is not given - minimum value in elements of Lhs else
+ *         vector with point-wise minimum value per component
+ */
 template<typename Lhs, typename Rhs = void>
 struct min
 {
@@ -253,6 +290,11 @@ struct min
     mpl::min<mpl::_1, mpl::_2> >::type type;
 };
 
+/** get element with minimum value
+ *
+ * @tparam T_Vec input vector
+ * @return ::type minimum value in elements of T_Vec
+ */
 template<typename T_Vec>
 struct min<
     T_Vec,
