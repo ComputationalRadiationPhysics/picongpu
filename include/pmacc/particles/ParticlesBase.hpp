@@ -93,7 +93,7 @@ protected:
         particlesBuffer = new BufferType(
             deviceHeap,
             description.getGridLayout().getDataSpace(),
-            description.getGridLayout().getGuard()
+            MappingDesc::SuperCellSize::toRT()
         );
     }
 
