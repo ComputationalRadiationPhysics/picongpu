@@ -32,7 +32,7 @@ PIConGPU command line option       Description
 ``--ph_calorimeter.period``        The ouput periodicity of the plugin.
                                    A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
 ``--ph_calorimeter.file``          Output file prefix. Files will be stored in the folder ``ph_calorimeter``
-``--ph_energy.filter``             Use filtered particles. All available filters will be shown with ``picongpu --help``
+``--ph_calorimeter.filter``        Use filtered particles. All available filters will be shown with ``picongpu --help``
 ``--ph_calorimeter.numBinsYaw``    Specifies the number of bins used for the yaw axis of the calorimeter.
                                    Defaults to ``64``.
 ``--ph_calorimeter.numBinsPitch``  Specifies the number of bins used for the pitch axis of the calorimeter.
@@ -121,8 +121,8 @@ Attribute          Description
 
    .. code-block:: bash
 
-      --ph_calorimeter.period 128 --ph_calorimeter.file calo1 
-      --ph_calorimeter.period 1000 --ph_calorimeter.file calo2 --ph_calorimeter.logScale 1 --ph_calorimeter.minEnergy 1
+      --ph_calorimeter.period 128 --ph_calorimeter.file calo1 --ph_calorimeter.filter all
+      --ph_calorimeter.period 1000 --ph_calorimeter.file calo2 --ph_calorimeter.filter all --ph_calorimeter.logScale 1 --ph_calorimeter.minEnergy 1
 
    creates two plugins:
  

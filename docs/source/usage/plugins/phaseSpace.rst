@@ -19,7 +19,7 @@ Example for *y-pz* phase space for the *electron* species (``.cfg`` file macro):
 
    # Calculate a 2D phase space
    # - momentum range in m_e c
-   TGB_ePSypz="--e_phaseSpace.period 10 --e_phaseSpace.space y --e_phaseSpace.momentum pz --e_phaseSpace.min -1.0 --e_phaseSpace.max 1.0"
+   TGB_ePSypz="--e_phaseSpace.period 10 --e_phaseSpace.filter all --e_phaseSpace.space y --e_phaseSpace.momentum pz --e_phaseSpace.min -1.0 --e_phaseSpace.max 1.0"
 
 
 The distinct options are (assuming a species ``e`` for electrons):
