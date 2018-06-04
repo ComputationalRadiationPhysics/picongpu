@@ -1286,7 +1286,7 @@ struct KernelInsertParticles
                         compressedSuperCellIdxCtx[ idx ],
                         mapper.getExchangeType( ),
                         mapper.getGridSuperCells( ),
-                        DataSpace< dim >::create( mapper.getGuardingSuperCells( ) )
+                        mapper.getGuardingSuperCells( )
                     );
 
                     pb.setAsLastFrame(

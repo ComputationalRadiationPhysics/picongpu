@@ -130,10 +130,10 @@ namespace operations
                         {
                             if(
                                 superCellOffsetInGuard[ d ] + cellIdx[ d ] <
-                                numGuardSuperCells * SuperCellSize::toRT()[ d ] - exchangeSize[ d ]
+                                numGuardSuperCells[ d ] * SuperCellSize::toRT()[ d ] - exchangeSize[ d ]
                             )
                                 copyValue = false;
-                            targetCell[ d ] -= numGuardSuperCells * SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
+                            targetCell[ d ] -= numGuardSuperCells[ d ] * SuperCellSize::toRT()[ d ] - exchangeSize[ d ];
                         }
                         else if(
                             direction[d] == 1 && superCellOffsetInGuard[ d ] + cellIdx[ d ] >=
@@ -192,12 +192,11 @@ namespace operations
              * pmacc restriction: all dimension must have the some number of guarding
              * supercells.
              */
-            int const numGuardSuperCells = srcBuffer.getGridLayout().getGuard().x() /
-                SuperCellSize::x::value;
+            auto const numGuardSuperCells = srcBuffer.getGridLayout().getGuard() /
+                SuperCellSize::toRT();
 
             MappingDesc const mappingDesc(
                 srcBuffer.getGridLayout().getDataSpace(),
-                numGuardSuperCells,
                 numGuardSuperCells
             );
 
