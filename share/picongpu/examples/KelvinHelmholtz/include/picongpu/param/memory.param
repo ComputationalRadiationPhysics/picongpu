@@ -68,9 +68,12 @@ using MappingDesc = MappingDescription< simDim, SuperCellSize >;
  * The CORE area is the innermost area of a device. In union with
  * the BORDER area it defines the "active" spatial domain on a device.
  *
- * GUARD_SIZE is defined in units of SuperCellSize.
+ * GuardSize is defined in units of SuperCellSize per dimension.
  */
-constexpr uint32_t GUARD_SIZE = 1;
+using GuardSize = typename mCT::shrinkTo<
+    mCT::Int< 1, 1, 1 >,
+    simDim
+>::type;
 
 /** bytes reserved for species exchange buffer
  *
