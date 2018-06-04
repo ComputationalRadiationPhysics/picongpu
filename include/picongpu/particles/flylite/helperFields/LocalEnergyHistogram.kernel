@@ -121,7 +121,7 @@ namespace helperFields
              *                   histogram in global RAM
              */
             DataSpace< simDim > const localEnergyBlock =
-                ( superCellIdx - DataSpace< simDim >::create( GUARD_SIZE ) ) *
+                ( superCellIdx - GuardSize::toRT() ) *
                 SuperCellSize::toRT() / spatialAverageBox::toRT();
 
             /* shift the energyHistogramBox to the local spatial average box and

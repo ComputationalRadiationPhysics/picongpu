@@ -161,9 +161,19 @@ struct ZigZag
     using UpperMargin = typename pmacc::math::CT::make_Int< simDim, currentUpperMargin >::type;
 
     PMACC_CASSERT_MSG(
-        __ZigZag_supercell_is_to_small_for_stencil,
-        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentLowerMargin &&
-        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentUpperMargin
+        __ZigZag_supercell_or_number_of_guard_supercells_is_to_small_for_stencil,
+        pmacc::math::CT::min<
+            typename pmacc::math::CT::mul<
+                SuperCellSize,
+                GuardSize
+            >::type
+        >::type::value >= currentLowerMargin &&
+        pmacc::math::CT::min<
+            typename pmacc::math::CT::mul<
+                SuperCellSize,
+                GuardSize
+            >::type
+        >::type::value >= currentUpperMargin
     );
 
     /* calculate grid point where we calculate the assigned values

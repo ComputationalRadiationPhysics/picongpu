@@ -231,8 +231,8 @@ public:
 
         SimulationHelper<simDim>::pluginLoad();
 
-        GridLayout<SIMDIM> layout(gridSizeLocal, GUARD_SIZE * MappingDesc::SuperCellSize::toRT());
-        cellDescription = new MappingDesc(layout.getDataSpace(), GUARD_SIZE, GUARD_SIZE);
+        GridLayout<simDim> layout(gridSizeLocal, GuardSize::toRT() * SuperCellSize::toRT());
+        cellDescription = new MappingDesc(layout.getDataSpace(), DataSpace<simDim>(GuardSize::toRT()));
 
         checkGridConfiguration(global_grid_size, cellDescription->getGridLayout());
 
@@ -765,10 +765,9 @@ private:
             PMACC_VERIFY(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
             // local size must be a devisor of supercell size
             PMACC_VERIFY(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
-            // local size must be at least 3 supercells (1x core + 2x border)
+            // local size must be at least 2 supercells (1x core + 2x border)
             // note: size of border = guard_size (in supercells)
-            // \todo we have to add the guard_x/y/z for modified supercells here
-            PMACC_VERIFY((uint32_t) gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 3 * GUARD_SIZE);
+            PMACC_VERIFY(gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 2 * GuardSize::toRT()[i] + 1);
         }
     }
 

@@ -95,6 +95,7 @@ namespace detail
             uint32_t const workerIdx = threadIdx.x;
 
             auto const numGuardSuperCells = mapper.getGuardingSuperCells();
+            DataSpace< simDim > guardCells(numGuardSuperCells * SuperCellSize::toRT());
 
             // cell index of the supercell within the local domain (incl. the guards)
             DataSpace< simDim > const localDomainCells = mapper.getGridSuperCells() * SuperCellSize::toRT();
@@ -118,19 +119,20 @@ namespace detail
 
                     DataSpace< simDim > cell( superCellIdx * SuperCellSize::toRT( ) + cellIdx);
 
+
                     do
                     {
-                        cell[ axis ] += numGuardSuperCells * SuperCellSize::toRT()[ axis ] * -relExchangeDir[ axis ];
+                        cell[ axis ] += guardCells[ axis ] * -relExchangeDir[ axis ];
                         int factor(0);
 
                         if( relExchangeDir[ axis ] < 0 )
                         {
-                            factor = numGuardSuperCells * SuperCellSize::toRT()[ axis ] - cell[ axis ] +
+                            factor = guardCells[ axis ] - cell[ axis ] +
                                 thickness - 1;
                         }
                         else
                         {
-                            factor = numGuardSuperCells * SuperCellSize::toRT()[ axis ] + cell[ axis ] -
+                            factor = guardCells[ axis ] + cell[ axis ] -
                                 localDomainCells[ axis ] + thickness;
                         }
 

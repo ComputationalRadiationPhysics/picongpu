@@ -206,8 +206,8 @@ namespace picongpu
     template<uint32_t r_dir>
     void PhaseSpace<AssignmentFunction, Species>::calcPhaseSpace( const uint32_t currentStep )
     {
-        const pmacc::math::Int<simDim> guardCells = SuperCellSize().toRT() * int(GUARD_SIZE);
-        const pmacc::math::Size_t<simDim> coreBorderSuperCells( this->m_cellDescription->getGridSuperCells() - 2*int(GUARD_SIZE) );
+        const pmacc::math::Int<simDim> guardCells = SuperCellSize().toRT() * GuardSize::toRT();
+        const pmacc::math::Size_t<simDim> coreBorderSuperCells( this->m_cellDescription->getGridSuperCells() - 2 * GuardSize::toRT() );
         const pmacc::math::Size_t<simDim> coreBorderCells = coreBorderSuperCells *
             precisionCast<size_t>( SuperCellSize().toRT() );
 

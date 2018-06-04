@@ -56,9 +56,19 @@ struct EsirkepovNative
     typedef pmacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
     PMACC_CASSERT_MSG(
-        __EsirkepovNative_supercell_is_to_small_for_stencil,
-        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentLowerMargin &&
-        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentUpperMargin
+        __EsirkepovNative_supercell_or_number_of_guard_supercells_is_to_small_for_stencil,
+        pmacc::math::CT::min<
+            typename pmacc::math::CT::mul<
+                SuperCellSize,
+                GuardSize
+            >::type
+        >::type::value >= currentLowerMargin &&
+        pmacc::math::CT::min<
+            typename pmacc::math::CT::mul<
+                SuperCellSize,
+                GuardSize
+            >::type
+        >::type::value >= currentUpperMargin
     );
 
     /* iterate over all grid points */

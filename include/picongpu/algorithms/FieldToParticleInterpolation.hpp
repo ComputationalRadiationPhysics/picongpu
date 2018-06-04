@@ -53,8 +53,18 @@ struct FieldToParticleInterpolation
 
     PMACC_CASSERT_MSG(
         __FieldToParticleInterpolation_supercell_is_to_small_for_stencil,
-        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= lowerMargin &&
-        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= upperMargin
+        pmacc::math::CT::min<
+            typename pmacc::math::CT::mul<
+                SuperCellSize,
+                GuardSize
+            >::type
+        >::type::value >= lowerMargin &&
+        pmacc::math::CT::min<
+            typename pmacc::math::CT::mul<
+                SuperCellSize,
+                GuardSize
+            >::type
+        >::type::value >= upperMargin
     );
 
     /*(supp + 1) % 2 is 1 for even supports else 0*/

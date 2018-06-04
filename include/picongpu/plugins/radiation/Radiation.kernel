@@ -172,7 +172,7 @@ namespace picongpu
             vector_64 const look = radiation_observer::observation_direction( theta_idx );
 
             // get extent of guarding super cells (needed to ignore them)
-            int const guardingSuperCells = mapper.getGuardingSuperCells();
+            DataSpace< simDim > const guardingSuperCells = mapper.getGuardingSuperCells();
 
             /* number of super cells on GPU per dimension (still including guard cells)
              * remove both guards from count [later one sided guard needs to be added again]

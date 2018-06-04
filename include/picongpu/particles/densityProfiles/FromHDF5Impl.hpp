@@ -65,7 +65,7 @@ struct FromHDF5Impl : public T_ParamClass
     HDINLINE float_X operator()(const DataSpace<simDim>& totalCellOffset)
     {
         const DataSpace<simDim> localCellIdx(totalCellOffset - totalGpuOffset);
-        return precisionCast<float_X>(deviceDataBox(localCellIdx + SuperCellSize::toRT()*int(GUARD_SIZE)).x());
+        return precisionCast<float_X>(deviceDataBox(localCellIdx + SuperCellSize::toRT() * GuardSize::toRT()).x());
     }
 
 private:

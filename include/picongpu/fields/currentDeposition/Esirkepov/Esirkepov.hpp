@@ -49,9 +49,19 @@ struct Esirkepov<T_ParticleShape, DIM3>
     typedef pmacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
     PMACC_CASSERT_MSG(
-        __Esirkepov_supercell_is_to_small_for_stencil,
-        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentLowerMargin &&
-        pmacc::math::CT::min< SuperCellSize >::type::value * GUARD_SIZE >= currentUpperMargin
+        __Esirkepov_supercell_or_number_of_guard_supercells_is_to_small_for_stencil,
+        pmacc::math::CT::min<
+            typename pmacc::math::CT::mul<
+                SuperCellSize,
+                GuardSize
+            >::type
+        >::type::value >= currentLowerMargin &&
+        pmacc::math::CT::min<
+            typename pmacc::math::CT::mul<
+                SuperCellSize,
+                GuardSize
+            >::type
+        >::type::value >= currentUpperMargin
     );
 
     float_X charge;
