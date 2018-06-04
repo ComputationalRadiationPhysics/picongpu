@@ -100,7 +100,7 @@ namespace pmacc
             for(int i = 0; i < Dim; i++)
             {
                 if (directions[i] != 0)
-                    result[i] = this->getBorderSuperCells();
+                    result[i] = this->getGuardingSuperCells()[i];
             }
 
             return result;
@@ -121,9 +121,9 @@ namespace pmacc
             for(int i = 0; i < Dim; i++)
             {
                 if (directions[i] == 1)
-                    result[i] += this->getGridSuperCells()[i] - this->getGuardingSuperCells() - this->getBorderSuperCells();
+                    result[i] += this->getGridSuperCells()[i] - 2 * this->getGuardingSuperCells()[i];
                 else
-                    result[i] += this->getGuardingSuperCells();
+                    result[i] += this->getGuardingSuperCells()[i];
             }
 
             return result;

@@ -71,11 +71,11 @@ namespace pmacc
 
             DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (exchangeType);
 
-            if (directions.x() != 0)
-                result.x() = base.getGuardingSuperCells();
-
-            if (directions.y() != 0)
-                result.y() = base.getGuardingSuperCells();
+            for( uint32_t d = 0; d < DIM2; ++d )
+            {
+                if (directions[ d ] != 0)
+                    result[ d ] = base.getGuardingSuperCells()[ d ];
+            }
 
             return result;
         }
@@ -88,17 +88,14 @@ namespace pmacc
 
             DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (exchangeType);
 
-            if (directions.x() == 0)
-                result.x() += base.getGuardingSuperCells();
-            else
-                if (directions.x() == 1)
-                result.x() += base.getGridSuperCells().x() - base.getGuardingSuperCells();
-
-            if (directions.y() == 0)
-                result.y() += base.getGuardingSuperCells();
-            else
-                if (directions.y() == 1)
-                result.y() += base.getGridSuperCells().y() - base.getGuardingSuperCells();
+            for( uint32_t d = 0; d < DIM2; ++d )
+            {
+                if (directions[ d ] == 0)
+                    result[ d ] += base.getGuardingSuperCells()[ d ];
+                else
+                    if (directions[ d ] == 1)
+                    result[ d ] += base.getGridSuperCells()[ d ] - base.getGuardingSuperCells()[ d ];
+            }
 
             return result;
         }
@@ -116,15 +113,15 @@ namespace pmacc
         HINLINE static DataSpace<DIM2> getGridDim(const Base &base, uint32_t exchangeType)
         {
             DataSpace<DIM2> result(base.getGridSuperCells() - 2 * base.getGuardingSuperCells() -
-                    2 * base.getBorderSuperCells());
+                    2 * base.getGuardingSuperCells());
 
             DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (exchangeType);
 
-            if (directions.x() != 0)
-                result.x() = base.getBorderSuperCells();
-
-            if (directions.y() != 0)
-                result.y() = base.getBorderSuperCells();
+            for( uint32_t d = 0; d < DIM2; ++d )
+            {
+                if (directions[ d ] != 0)
+                    result[ d ] = base.getGuardingSuperCells()[ d ];
+            }
 
             return result;
         }
@@ -137,34 +134,22 @@ namespace pmacc
 
             DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (exchangeType);
 
-            size_t guardingBlocks = base.getGuardingSuperCells();
+            DataSpace<DIM2> guardingBlocks = base.getGuardingSuperCells();
 
-            switch (directions.x())
+            for( uint32_t d = 0; d < DIM2; ++d )
             {
-                case 0:
-                    result.x() += guardingBlocks + base.getBorderSuperCells();
-                    break;
-                case -1:
-                    result.x() += guardingBlocks;
-                    break;
-                case 1:
-                    result.x() += base.getGridSuperCells().x() - guardingBlocks -
-                            base.getBorderSuperCells();
-                    break;
-            }
-
-            switch (directions.y())
-            {
-                case 0:
-                    result.y() += guardingBlocks + base.getBorderSuperCells();
-                    break;
-                case -1:
-                    result.y() += guardingBlocks;
-                    break;
-                case 1:
-                    result.y() += base.getGridSuperCells().y() - guardingBlocks -
-                            base.getBorderSuperCells();
-                    break;
+                switch( directions[ d ] )
+                {
+                    case 0:
+                        result[ d ] += guardingBlocks[ d ] + base.getGuardingSuperCells()[ d ];
+                        break;
+                    case -1:
+                        result[ d ] += guardingBlocks[ d ];
+                        break;
+                    case 1:
+                        result[ d ] += base.getGridSuperCells()[ d ] - 2 * guardingBlocks[ d ];
+                        break;
+                }
             }
 
             return result;
@@ -184,18 +169,16 @@ namespace pmacc
         template<class Base>
         HINLINE static DataSpace<DIM3> getGridDim(const Base &base, uint32_t exchangeType)
         {
-            DataSpace<DIM3> result(base.getGridSuperCells() - 2 * base.getGuardingSuperCells());
+            const DataSpace<DIM3> guardingSupercells = base.getGuardingSuperCells();
+            DataSpace<DIM3> result(base.getGridSuperCells() - 2 * guardingSupercells);
 
-            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
+            const DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
 
-            if (directions.x() != 0)
-                result.x() = base.getGuardingSuperCells();
-
-            if (directions.y() != 0)
-                result.y() = base.getGuardingSuperCells();
-
-            if (directions.z() != 0)
-                result.z() = base.getGuardingSuperCells();
+            for( uint32_t d = 0; d < DIM3; ++d )
+            {
+                if (directions[ d ] != 0)
+                    result[ d ] = guardingSupercells[ d ];
+            }
 
             return result;
         }
@@ -206,25 +189,17 @@ namespace pmacc
         {
             DataSpace<DIM3> result(_blockIdx);
 
-            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
+            const DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
+            const DataSpace<DIM3> guardingSupercells = base.getGuardingSuperCells();
 
-            if (directions.x() == 0)
-                result.x() += base.getGuardingSuperCells();
-            else
-                if (directions.x() == 1)
-                result.x() += base.getGridSuperCells().x() - base.getGuardingSuperCells();
-
-            if (directions.y() == 0)
-                result.y() += base.getGuardingSuperCells();
-            else
-                if (directions.y() == 1)
-                result.y() += base.getGridSuperCells().y() - base.getGuardingSuperCells();
-
-            if (directions.z() == 0)
-                result.z() += base.getGuardingSuperCells();
-            else
-                if (directions.z() == 1)
-                result.z() += base.getGridSuperCells().z() - base.getGuardingSuperCells();
+            for( uint32_t d = 0; d < DIM3; ++d )
+            {
+                if (directions[ d ] == 0)
+                    result[ d ] += guardingSupercells[ d ];
+                else
+                    if (directions[ d ] == 1)
+                    result[ d ] += base.getGridSuperCells()[ d ] - guardingSupercells[ d ];
+            }
 
             return result;
         }
@@ -242,18 +217,15 @@ namespace pmacc
         HINLINE static DataSpace<DIM3> getGridDim(const Base &base, uint32_t exchangeType)
         {
             DataSpace<DIM3> result(base.getGridSuperCells() - 2 * base.getGuardingSuperCells() -
-                    2 * base.getBorderSuperCells());
+                    2 * base.getGuardingSuperCells());
 
             DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
 
-            if (directions.x() != 0)
-                result.x() = base.getBorderSuperCells();
-
-            if (directions.y() != 0)
-                result.y() = base.getBorderSuperCells();
-
-            if (directions.z() != 0)
-                result.z() = base.getBorderSuperCells();
+            for( uint32_t d = 0; d < DIM3; ++d )
+            {
+                if (directions[ d ] != 0)
+                    result[ d ] = base.getGuardingSuperCells()[ d ];
+            }
 
             return result;
         }
@@ -266,49 +238,22 @@ namespace pmacc
 
             DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
 
-            size_t guardingBlocks = base.getGuardingSuperCells();
-            size_t borderBlocks = base.getBorderSuperCells();
+            DataSpace<DIM3> guardingBlocks = base.getGuardingSuperCells();
 
-            switch (directions.x())
+            for( uint32_t d = 0; d < DIM3; ++d )
             {
-                case 0:
-                    result.x() += guardingBlocks + borderBlocks;
-                    break;
-                case -1:
-                    result.x() += guardingBlocks;
-                    break;
-                case 1:
-                    result.x() += base.getGridSuperCells().x() - guardingBlocks -
-                            borderBlocks;
-                    break;
-            }
-
-            switch (directions.y())
-            {
-                case 0:
-                    result.y() += guardingBlocks + borderBlocks;
-                    break;
-                case -1:
-                    result.y() += guardingBlocks;
-                    break;
-                case 1:
-                    result.y() += base.getGridSuperCells().y() - guardingBlocks -
-                            borderBlocks;
-                    break;
-            }
-
-            switch (directions.z())
-            {
-                case 0:
-                    result.z() += guardingBlocks + borderBlocks;
-                    break;
-                case -1:
-                    result.z() += guardingBlocks;
-                    break;
-                case 1:
-                    result.z() += base.getGridSuperCells().z() - guardingBlocks -
-                            borderBlocks;
-                    break;
+                switch (directions[ d ])
+                {
+                    case 0:
+                        result[ d ] += 2 * guardingBlocks[ d ];
+                        break;
+                    case -1:
+                        result[ d ] += guardingBlocks[ d ];
+                        break;
+                    case 1:
+                        result[ d ] += base.getGridSuperCells()[ d ] - 2 * guardingBlocks[ d ];
+                        break;
+                }
             }
 
             return result;
