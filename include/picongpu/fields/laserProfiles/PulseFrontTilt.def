@@ -115,7 +115,7 @@ namespace defaults
 
         /** Polarization selection
          */
-        static constexpr PolarisationType Polarisation = CIRCULAR;
+        static constexpr PolarisationType Polarisation = LINEAR_X;
     };
 } // namespace defaults
 } // namespace pulseFrontTilt

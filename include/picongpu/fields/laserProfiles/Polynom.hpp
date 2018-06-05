@@ -41,8 +41,8 @@ namespace polynom
         static constexpr float_X WAVE_LENGTH = float_X( Params::WAVE_LENGTH_SI / UNIT_LENGTH ); // unit: meter
         static constexpr float_X PULSE_LENGTH = float_X( Params::PULSE_LENGTH_SI / UNIT_TIME ); // unit: seconds (1 sigma)
         static constexpr float_X AMPLITUDE = float_X( Params::AMPLITUDE_SI / UNIT_EFIELD ); // unit: Volt /meter
-        static constexpr float_X W0x = float_X( Params::W0x_SI / UNIT_LENGTH ); // unit: meter
-        static constexpr float_X W0z = float_X( Params::W0z_SI / UNIT_LENGTH ); // unit: meter
+        static constexpr float_X W0_X = float_X( Params::W0_X_SI / UNIT_LENGTH ); // unit: meter
+        static constexpr float_X W0_Z = float_X( Params::W0_Z_SI / UNIT_LENGTH ); // unit: meter
         static constexpr float_X INIT_TIME = float_X( ( Params::PULSE_INIT * Params::PULSE_LENGTH_SI ) / UNIT_TIME ); // unit: seconds (full initialization length)
 
         /* initialize the laser not in the first cell is equal to a negative shift

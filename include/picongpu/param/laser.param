@@ -470,8 +470,8 @@ namespace gaussianBeam
          *              at the focus position of the laser
          *  unit: meter
          */
-        static constexpr float_64 W0x_SI = 4.246e-6; // waist in x-direction
-        static constexpr float_64 W0z_SI = W0x_SI; // waist in z-direction
+        static constexpr float_64 W0_X_SI = 4.246e-6; // waist in x-direction
+        static constexpr float_64 W0_Z_SI = W0_X_SI; // waist in z-direction
 
         /** cell from top where the laser is initialized
          *

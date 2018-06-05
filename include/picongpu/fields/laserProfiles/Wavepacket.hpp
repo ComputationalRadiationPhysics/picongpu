@@ -45,9 +45,9 @@ namespace wavepacket
         static constexpr float_X AMPLITUDE = float_X( Params::AMPLITUDE_SI / UNIT_EFIELD ); // unit: Volt /meter
         static constexpr float_X W0_X = float_X( Params::W0_X_SI / UNIT_LENGTH ); // unit: meter
         static constexpr float_X W0_Z = float_X( Params::W0_Z_SI / UNIT_LENGTH ); // unit: meter
-        static constexpr float_X INIT_TIME = float_X( ( Params::PULSE_INIT * Params::PULSE_LENGTH_SI ) / UNIT_TIME ); // unit: seconds (full initialization length)
-        static constexpr float_X endUpramp = float_X( -0.5 * Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME ); // unit: seconds
-        static constexpr float_X startDownramp = float_X( 0.5 * Params::LASER_NOFOCUS_CONSTANT_SI / UNIT_TIME ); // unit: seconds
+        static constexpr float_X INIT_TIME = float_X( Params::PULSE_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT ); // unit: seconds (full initialization length)
+        static constexpr float_X endUpramp = float_X( -0.5 * LASER_NOFOCUS_CONSTANT ); // unit: seconds
+        static constexpr float_X startDownramp = float_X( 0.5 * LASER_NOFOCUS_CONSTANT ); // unit: seconds
 
         /* initialize the laser not in the first cell is equal to a negative shift
          * in time
@@ -186,7 +186,13 @@ namespace acc
             // @todo reset origin of direction of moving window
             // offsetToTotalDomain.y() = 0
 
-            float_64 const runTime = DELTA_T * currentStep - Unitless::laserTimeShift;
+            // a symmetric pulse will be initialized at position z=0 for
+            // a time of RAMP_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT = INIT_TIME.
+            // we shift the complete pulse for the half of this time to start with
+            // the front of the laser pulse.
+            const float_64 mue = 0.5 * Unitless::INIT_TIME;
+
+            float_64 const runTime = DELTA_T * currentStep - Unitless::laserTimeShift - mue;
 
             elong = float3_X::create( 0.0 );
             float_X envelope = float_X( Unitless::AMPLITUDE );
