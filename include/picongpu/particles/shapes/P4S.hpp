@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Rene Widera
+/* Copyright 2015-2018 Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -35,48 +35,46 @@ struct P4S
 {
     static constexpr int support = 5;
 
-    HDINLINE static float_X ff_1st_radius(const float_X x)
+    HDINLINE static float_X ff_1st_radius( float_X const x )
     {
         /*
          * W(x)= 115/192 - 5/8 * x^2 + 1/4 * x^4
          *     = 115/192 + x^2 * (-5/8 + 1/4 * x^2)
          */
-        const float_X square_x = x * x;
-        return float_X(115. / 192.)
-            + square_x
-            * (
-               float_X(-5. / 8.)
-               + float_X(1.0 / 4.0) * square_x
-               );
+        float_X const square_x = x * x;
+        return 115._X / 192._X + square_x * (
+            -5._X / 8._X +
+            1.0_X / 4.0_X * square_x
+        );
     }
 
-    HDINLINE static float_X ff_2nd_radius(const float_X x)
+    HDINLINE static float_X ff_2nd_radius( float_X const x )
     {
         /*
          * W(x)= 1/96 * (55 + 20 * x - 120 * x^2 + 80 * x^3 - 16 * x^4)
          *     = 1/96 * (55 + 4 * x * (5 - 2 * x * (15 + 2 * x * (-5 + x))))
          */
-        return float_X(1. / 96.)*
-            (
-             float_X(55.) + float_X(4.) * x
-             * (float_X(5.) - float_X(2.) * x
-                * (float_X(15.) + float_X(2.) * x
-                   * (float_X(-5.) + x)
-                   )
+        return 1._X / 96._X * (
+            55._X + 4._X * x * (
+                5._X - 2._X * x * (
+                    15._X + 2._X * x * (
+                        -5._X + x
+                    )
                 )
-             );
+            )
+        );
     }
 
-    HDINLINE static float_X ff_3rd_radius(const float_X x)
+    HDINLINE static float_X ff_3rd_radius( float_X const x )
     {
         /*
          * W(x)=1/384 * (5 - 2*x)^4
          */
-        const float_X tmp = (float_X(5.) - float_X(2.) * x);
-        const float_X square_tmp = tmp * tmp;
-        const float_X biquadratic_tmp = square_tmp*square_tmp;
+        float_X const tmp = 5._X - 2._X * x;
+        float_X const square_tmp = tmp * tmp;
+        float_X const biquadratic_tmp = square_tmp * square_tmp;
 
-        return float_X(1. / 384.) * biquadratic_tmp;
+        return 1._X / 384._X * biquadratic_tmp;
     }
 };
 
@@ -91,7 +89,7 @@ struct P4S : public shared_P4S::P4S
     struct ChargeAssignmentOnSupport : public shared_P4S::P4S
     {
 
-        HDINLINE float_X operator()(const float_X x)
+        HDINLINE float_X operator()( float_X const x )
         {
             /*       -
              *       |  115/192 + x^2 * (-5/8 + 1/4 * x^2)                          if -1/2 < x < 1/2
@@ -101,19 +99,19 @@ struct P4S : public shared_P4S::P4S
              *       |  1/384 * (5 - 2 * x)^4                                       if 3/2 <= |x| < 5/2
              *       -
              */
-            float_X abs_x = algorithms::math::abs(x);
+            float_X const abs_x = algorithms::math::abs( x );
 
-            const bool below_2nd_radius = abs_x < float_X(1.5);
-            const bool below_1st_radius = abs_x < float_X(0.5);
+            bool const below_2nd_radius = abs_x < 1.5_X;
+            bool const below_1st_radius = abs_x < 0.5_X;
 
-            const float_X rad1 = ff_1st_radius(abs_x);
-            const float_X rad2 = ff_2nd_radius(abs_x);
-            const float_X rad3 = ff_3rd_radius(abs_x);
+            float_X const rad1 = ff_1st_radius( abs_x );
+            float_X const rad2 = ff_2nd_radius( abs_x );
+            float_X const rad3 = ff_3rd_radius( abs_x );
 
             float_X result = rad3;
-            if(below_1st_radius)
+            if( below_1st_radius )
                 result = rad1;
-            else if(below_2nd_radius)
+            else if( below_2nd_radius )
                 result = rad2;
 
             return result;
@@ -124,7 +122,7 @@ struct P4S : public shared_P4S::P4S
     struct ChargeAssignment : public shared_P4S::P4S
     {
 
-        HDINLINE float_X operator()(const float_X x)
+        HDINLINE float_X operator()( float_X const x )
         {
 
             /*       -
@@ -137,14 +135,14 @@ struct P4S : public shared_P4S::P4S
              *       |  0                                                           otherwise
              *       -
              */
-            float_X abs_x = algorithms::math::abs(x);
+            float_X const abs_x = algorithms::math::abs( x );
 
-            const bool below_max = abs_x < float_X(2.5);
+            bool const below_max = abs_x < 2.5_X;
 
-            const float_X onSupport = ChargeAssignmentOnSupport()(abs_x);
+            float_X const onSupport = ChargeAssignmentOnSupport()( abs_x );
 
-            float_X result(0.0);
-            if(below_max)
+            float_X result( 0.0 );
+            if( below_max )
                 result = onSupport;
 
             return result;

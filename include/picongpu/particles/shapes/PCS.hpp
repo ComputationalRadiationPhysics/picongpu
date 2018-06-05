@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera
+/* Copyright 2013-2018 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -36,24 +36,24 @@ struct PCS
 
 
 
-    HDINLINE static float_X ff_1st_radius(const float_X x)
+    HDINLINE static float_X ff_1st_radius( float_X const x )
     {
         /*
          * W(x)=1/6*(4 - 6*x^2 + 3*|x|^3)
          */
-        const float_X square_x = x*x;
-        const float_X triple_x = square_x*x;
-        return float_X(1.0 / 6.0)*(float_X(4.0) - float_X(6.0) * square_x + float_X(3.0) * triple_x);
+        float_X const square_x = x * x;
+        float_X const triple_x = square_x * x;
+        return 1.0_X / 6.0_X * ( 4.0_X - 6.0_X * square_x + 3.0_X * triple_x );
     }
 
-    HDINLINE static float_X ff_2nd_radius(const float_X x)
+    HDINLINE static float_X ff_2nd_radius( float_X const x )
     {
         /*
          * W(x)=1/6*(2 - |x|)^3
          */
-        const float_X tmp = (float_X(2.0) - x);
-        const float_X triple_tmp = tmp * tmp * tmp;
-        return float_X(1.0 / 6.0) * triple_tmp;
+        float_X const tmp = 2.0_X - x;
+        float_X const triple_tmp = tmp * tmp * tmp;
+        return 1.0_X / 6.0_X * triple_tmp;
     }
 };
 
@@ -65,7 +65,7 @@ struct PCS : public shared_PCS::PCS
     struct ChargeAssignment : public shared_PCS::PCS
     {
 
-        HDINLINE float_X operator()(const float_X x)
+        HDINLINE float_X operator()( float_X const x )
         {
             /*       -
              *       |  1/6*(4 - 6*x^2 + 3*|x|^3)   if 0<=|x|<1
@@ -73,18 +73,18 @@ struct PCS : public shared_PCS::PCS
              *       |  0                           otherwise
              *       -
              */
-            float_X abs_x = algorithms::math::abs(x);
+            float_X const abs_x = algorithms::math::abs( x );
 
-            const bool below_1 = abs_x < float_X(1.0);
-            const bool below_2 = abs_x < float_X(2.0);
+            bool const below_1 = abs_x < 1.0_X;
+            bool const below_2 = abs_x < 2.0_X;
 
-            const float_X rad1 = ff_1st_radius(abs_x);
-            const float_X rad2 = ff_2nd_radius(abs_x);
+            float_X const rad1 = ff_1st_radius( abs_x );
+            float_X const rad2 = ff_2nd_radius( abs_x );
 
-            float_X result(0.0);
-            if(below_1)
+            float_X result( 0.0 );
+            if( below_1 )
                 result = rad1;
-            else if(below_2)
+            else if( below_2 )
                 result = rad2;
 
             return result;
@@ -94,7 +94,7 @@ struct PCS : public shared_PCS::PCS
     struct ChargeAssignmentOnSupport : public shared_PCS::PCS
     {
 
-        HDINLINE float_X operator()(const float_X x)
+        HDINLINE float_X operator()( float_X const x )
         {
             /*       -
              *       |  1/6*(4 - 6*x^2 + 3*|x|^3)   if 0<=|x|<1
@@ -102,22 +102,22 @@ struct PCS : public shared_PCS::PCS
              *       |  1/6*(2 - |x|)^3             if 1<=|x|<2
              *       -
              */
-            float_X abs_x = algorithms::math::abs(x);
+            float_X const abs_x = algorithms::math::abs( x );
 
-            const bool below_1 = abs_x < float_X(1.0);
-            const float_X rad1 = ff_1st_radius(abs_x);
-            const float_X rad2 = ff_2nd_radius(abs_x);
+            bool const below_1 = abs_x < 1.0_X;
+            float_X const rad1 = ff_1st_radius( abs_x );
+            float_X const rad2 = ff_2nd_radius( abs_x );
 
             float_X result = rad2;
-            if(below_1)
+            if( below_1 )
                 result = rad1;
 
             return result;
 
-            /* Semantix:
-            if (abs_x < float_X(1.0))
-                return ff_1st_radius(abs_x);
-            return ff_2nd_radius(abs_x);
+            /* Semantics:
+            if( abs_x < 1.0_X )
+                return ff_1st_radius( abs_x );
+            return ff_2nd_radius( abs_x );
              */
         }
 
@@ -126,5 +126,5 @@ struct PCS : public shared_PCS::PCS
 };
 
 } // namespace shapes
-} //namespace particles
-} //namespace picongpu
+} // namespace particles
+} // namespace picongpu

@@ -49,7 +49,7 @@ namespace shapes
         struct ChargeAssignment : public shared_NGP::NGP
         {
 
-            HDINLINE float_X operator()(const float_X x)
+            HDINLINE float_X operator()( float_X const x )
             {
                 /*       -
                  *       |  1               if -1/2<=x<1/2
@@ -58,10 +58,9 @@ namespace shapes
                  *       -
                  */
 
-                const bool below_half = ( float_X(-0.5) <= x &&
-                                                           x < float_X(0.5) );
+                bool const below_half = -0.5_X <= x && x < 0.5_X;
 
-                return float_X(below_half);
+                return float_X( below_half );
             }
         };
 
@@ -71,12 +70,12 @@ namespace shapes
             /** form factor of this particle shape.
              * \param x has to be within [-support/2, support/2)
              */
-            HDINLINE float_X operator()(const float_X)
+            HDINLINE float_X operator()( float_X const )
             {
                 /*
                  * W(x)=1
                  */
-                return float_X(1.0);
+                return 1.0_X;
             }
 
         };
