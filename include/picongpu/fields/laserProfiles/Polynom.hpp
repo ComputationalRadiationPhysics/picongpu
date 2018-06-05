@@ -43,7 +43,7 @@ namespace polynom
         static constexpr float_X AMPLITUDE = float_X( Params::AMPLITUDE_SI / UNIT_EFIELD ); // unit: Volt /meter
         static constexpr float_X W0_X = float_X( Params::W0_X_SI / UNIT_LENGTH ); // unit: meter
         static constexpr float_X W0_Z = float_X( Params::W0_Z_SI / UNIT_LENGTH ); // unit: meter
-        static constexpr float_X INIT_TIME = float_X( ( Params::PULSE_INIT * Params::PULSE_LENGTH_SI ) / UNIT_TIME ); // unit: seconds (full initialization length)
+        static constexpr float_X INIT_TIME = float_X( Params::PULSE_LENGTH_SI / UNIT_TIME ); // unit: seconds (full initialization length)
 
         /* initialize the laser not in the first cell is equal to a negative shift
          * in time
@@ -161,10 +161,10 @@ namespace acc
         Tpolynomial( float_X const tau )
         {
             float_X result( 0.0 );
-            if( tau >= 0.0 && tau <= 1.0 )
-                result = tau * tau * tau * (10.0 - 15.0 * tau + 6.0 * tau * tau);
-            else if( tau > 1.0 && tau <= 2.0 )
-                result = (2.0 - tau) * (2.0 - tau) * (2.0 - tau) * (4.0 - 9.0 * tau + 6.0 * tau * tau);
+            if( tau >= float_X( 0.0 ) && tau <= float_X( 1.0 ) )
+                result = tau * tau * tau * (float_X( 10.0 ) - float_X( 15.0 ) * tau + float_X( 6.0 ) * tau * tau);
+            else if( tau > float_X( 1.0 ) && tau <= float_X( 2.0 ) )
+                result = (float_X( 2.0 ) - tau) * (float_X( 2.0 ) - tau) * (float_X( 2.0 ) - tau) * (float_X( 4.0 ) - float_X( 9.0 ) * tau + float_X( 6.0 ) * tau * tau);
 
             return result;
         }
@@ -205,10 +205,10 @@ namespace acc
              * making the laser pulse 2*t_rise long
              */
 
-            const float_X t_rise = 0.5 * Unitless::PULSE_LENGTH;
+            const float_X t_rise = float_X( 0.5 ) * Unitless::PULSE_LENGTH;
             const float_X tau = runTime / t_rise;
 
-            const float_X omegaLaser = 2.0 * PI * Unitless::f;
+            const float_X omegaLaser = float_X( 2.0 ) * PI * Unitless::f;
 
             if( Unitless::Polarisation == Unitless::LINEAR_X )
             {
