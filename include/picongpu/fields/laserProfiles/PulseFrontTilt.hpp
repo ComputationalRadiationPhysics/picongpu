@@ -179,12 +179,12 @@ namespace acc
                 auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * float_X( 2. );
 
                 // jump over the guard of the electric field
-                m_dataBoxE( localCell + SuperCellSize::toRT() * GUARD_SIZE ) +=  correctionFactor * m_elong;
+                m_dataBoxE( localCell + SuperCellSize::toRT() * GuardSize::toRT() ) +=  correctionFactor * m_elong;
             }
             else
             {
                 // jump over the guard of the electric field
-                m_dataBoxE( localCell + SuperCellSize::toRT() * GUARD_SIZE ) = m_elong;
+                m_dataBoxE( localCell + SuperCellSize::toRT() * GuardSize::toRT() ) = m_elong;
             }
         }
     };
