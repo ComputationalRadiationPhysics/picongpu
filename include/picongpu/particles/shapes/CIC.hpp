@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera
+/* Copyright 2013-2018 Heiko Burau, Rene Widera, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -48,7 +48,7 @@ struct CIC : public shared_CIC::CIC
     struct ChargeAssignment : public shared_CIC::CIC
     {
 
-        HDINLINE float_X operator()(const float_X x)
+        HDINLINE float_X operator()( float_X const x )
         {
             /*       -
              *       |  1-|x|           if |x|<1
@@ -56,13 +56,13 @@ struct CIC : public shared_CIC::CIC
              *       |  0               otherwise
              *       -
              */
-            float_X abs_x = algorithms::math::abs(x);
+            float_X const abs_x = algorithms::math::abs( x );
 
-            const bool below_1 = abs_x < float_X(1.0);
-            const float_X onSupport = float_X(1.0) - abs_x;
+            bool const below_1 = abs_x < 1.0_X;
+            float_X const onSupport = 1.0_X - abs_x;
 
-            float_X result(0.0);
-            if(below_1)
+            float_X result( 0.0 );
+            if( below_1 )
                 result = onSupport;
 
             return result;
@@ -75,18 +75,18 @@ struct CIC : public shared_CIC::CIC
         /** form factor of this particle shape.
          * \param x has to be within [-support/2, support/2]
          */
-        HDINLINE float_X operator()(const float_X x)
+        HDINLINE float_X operator()( float_X const x )
         {
             /*
              * W(x)=1-|x|
              */
-            return float_X(1.0) - algorithms::math::abs(x);
+            return 1.0_X - algorithms::math::abs( x );
         }
 
     };
 
 };
 
-} //namespace shapes
-} //namespace particles
-} //namespace picongpu
+} // namespace shapes
+} // namespace particles
+} // namespace picongpu

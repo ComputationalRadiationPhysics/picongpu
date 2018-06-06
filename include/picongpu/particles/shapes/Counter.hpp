@@ -49,7 +49,7 @@ namespace shapes
         struct ChargeAssignment : public shared_Counter::Counter
         {
 
-            HDINLINE float_X operator()(const float_X x)
+            HDINLINE float_X operator()( float_X const x )
             {
                 /*       -
                  *       | -1               if -1<x<=0
@@ -58,10 +58,9 @@ namespace shapes
                  *       -
                  */
 
-                const bool in_cell = ( float_X(-1.0) < x &&
-                                                       x <= float_X(0.0) );
+                bool const in_cell = -1.0_X < x && x <= 0.0_X;
 
-                return float_X(in_cell);
+                return float_X( in_cell );
             }
         };
 
@@ -71,12 +70,11 @@ namespace shapes
             /** form factor of this particle shape.
              * \param x has to be within [-support/2, support/2)
              */
-            HDINLINE float_X operator()(const float_X x)
+            HDINLINE float_X operator()( float_X const x )
             {
-                const bool in_cell = ( float_X(0.0) <= x &&
-                                                       x < float_X(1.0) );
+                bool const in_cell = 0.0_X <= x && x < 1.0_X;
 
-                return float_X(in_cell);
+                return float_X( in_cell );
             }
 
         };
