@@ -55,7 +55,7 @@ namespace densityProfiles
      *
      *   takes `gasCenterLeft_SI      for y < gasCenterLeft_SI`,
      *         `gasCenterRight_SI     for y > gasCenterRight_SI`,
-     *   and `exponent = float_X(0.0) for gasCenterLeft_SI < y < gasCenterRight_SI`
+     *   and `exponent = 0.0 for gasCenterLeft_SI < y < gasCenterRight_SI`
      */
     PMACC_STRUCT(GaussianParam,
         /** ...
@@ -266,7 +266,7 @@ namespace densityProfiles
 
             /* triangle function example
              * for a density profile from 0 to 400 microns */
-            float_X s = float_X( 1.0 - 5.0 * math::abs( y - 0.2 ) );
+            float_X s = 1.0_X - 5.0_X * math::abs( y - 0.2_X );
 
             /* give it an empty/filled striping for every second cell */
             //s *= float_X( (y_cell_id % 2) == 0 );

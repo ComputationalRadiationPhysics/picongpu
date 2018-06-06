@@ -36,7 +36,7 @@ namespace picongpu
      * high-precision formulas for relativistic and non-relativistic
      * use-cases, e.g. energy-binning algorithms.
      */
-    constexpr float_X GAMMA_THRESH = float_X(1.005);
+    constexpr float_X GAMMA_THRESH = 1.005_X;
 
     /** Threshold in radiation plugin between relativistic and non-relativistic regime
      *
@@ -46,7 +46,7 @@ namespace picongpu
      * With 0.18 the relative error between Taylor approximation and real value
      * will be below 0.001% = 1e-5 * for x=1/gamma^2 < 0.18
      */
-    constexpr float_X GAMMA_INV_SQUARE_RAD_THRESH = float_X(0.18);
+    constexpr float_X GAMMA_INV_SQUARE_RAD_THRESH = 0.18_X;
 
     namespace SI
     {

@@ -76,7 +76,7 @@ namespace manipulators
         )
         {
             constexpr float_X protonNumber = GetAtomicNumbers< T_Particle >::type::numberOfProtons;
-            particle[ boundElectrons_ ] = protonNumber - float_X( 2. );
+            particle[ boundElectrons_ ] = protonNumber - 2._X;
         }
     };
 

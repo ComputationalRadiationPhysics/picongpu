@@ -53,7 +53,10 @@ struct FoilFunctor
      *
      * @return float_X density [normalized to 1.0]
      */
-    HDINLINE float_X operator()(float2_64 pos, const float3_64& cellSize_SI)
+    HDINLINE float_X operator()(
+        float2_64 pos,
+        const float3_64& cellSize_SI
+    )
     {
         /* center point of foil */
         constexpr float_64 plateauPos = 4e-6;
@@ -64,19 +67,20 @@ struct FoilFunctor
 
         using namespace pmacc::algorithms::math;
 
-        if(abs(pos.y() - plateauPos) < plateauLength / 2.0)
+        if( abs( pos.y() - plateauPos) < plateauLength / 2.0 )
         {
-            return float_X(1.0);
+            return 1.0_X;
         }
-        const float_64 d = math::min(abs(pos.y() - plateauPos + plateauLength / 2.0),
-                               abs(pos.y() - plateauPos - plateauLength / 2.0));
-        return exp(-d*d / (2.0 * rampLength*rampLength));
+        const float_64 d = math::min(
+            abs( pos.y() - plateauPos + plateauLength / 2.0 ),
+            abs( pos.y() - plateauPos - plateauLength / 2.0 )
+        );
+        return float_X( exp( -d * d / ( 2.0_X * rampLength * rampLength ) ) );
     }
 };
 
-/* definition of free formula profile */
+//! definition of free formula profile
 using Foil = FreeFormulaImpl< FoilFunctor >;
 
-}//namespace densityProfiles
-
-} //namepsace picongpu
+} // namespace densityProfiles
+} // namepsace picongpu
