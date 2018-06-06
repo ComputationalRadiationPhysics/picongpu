@@ -35,7 +35,6 @@
 /*PMacc*/
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
-#include "picongpu/fields/LaserPhysics.def"
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
 
@@ -93,8 +92,6 @@ namespace picongpu
         void synchronize();
 
         void syncToDevice();
-
-        void laserManipulation(uint32_t currentStep);
 
     private:
 

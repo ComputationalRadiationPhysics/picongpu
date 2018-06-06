@@ -1,5 +1,5 @@
 /* Copyright 2013-2018 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
- *                     Richard Pausch
+ *                     Richard Pausch, Alexander Debus, Ilja Goethel
  *
  * This file is part of PIConGPU.
  *
@@ -18,23 +18,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- *
- * Select a user-defined simulation class here, e.g. with strongly modified
- * initialization and/or PIC loop beyond the parametrization given in other
- * .param files.
- */
-
 #pragma once
 
-
-namespace picongpu
-{
-/*! Simulation Starter ---------------------------------------------------
- *  - thermalTestStarter         : starter for thermal test
- */
-namespace simulation_starter = thermalTestStarter;
-
-#define ENABLE_CURRENT 1
-
-} // namespace picongpu
+#include "picongpu/fields/laserProfiles/ExpRampWithPrepulse.hpp"
+#include "picongpu/fields/laserProfiles/GaussianBeam.hpp"
+#include "picongpu/fields/laserProfiles/PlaneWave.hpp"
+#include "picongpu/fields/laserProfiles/Polynom.hpp"
+#include "picongpu/fields/laserProfiles/PulseFrontTilt.hpp"
+#include "picongpu/fields/laserProfiles/Wavepacket.hpp"
+#include "picongpu/fields/laserProfiles/None.hpp"

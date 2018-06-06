@@ -17,83 +17,198 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/LaserPhysics.def"
+#include "picongpu/fields/laserProfiles/profiles.hpp"
+
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/mappings/simulation/SubGrid.hpp>
-#include <cmath>
+#include <pmacc/mappings/threads/WorkerCfg.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
 
+#include <cmath>
 
 
 namespace picongpu
 {
-using namespace pmacc;
-
-class LaserManipulator
+namespace fields
 {
-public:
-
-    HINLINE LaserManipulator(float3_X elong, DataSpace<simDim> globalCentered, float_X phase) :
-    m_elong(elong), m_globalCentered(globalCentered), m_phase(phase)
+    /** compute the electric field of the laser
+     *
+     * @tparam T_numWorkers number of workers
+     * @tparam T_LaserPlaneSizeInSuperCell number of cells per dimension which
+     *  initialize the laser (size must be less or equal than the supercell size)
+     */
+    template<
+        uint32_t T_numWorkers,
+        typename T_LaserPlaneSizeInSuperCell
+    >
+    struct KernelLaser
     {
-        //  std::cout<<globalCenteredXOffset<<std::endl;
-    }
+        template<
+            typename T_Acc,
+            typename T_LaserFunctor
+        >
+        DINLINE void operator()(
+            T_Acc const & acc,
+            T_LaserFunctor laserFunctor
+        ) const
+        {
+            using LaserPlaneSizeInSuperCell = T_LaserPlaneSizeInSuperCell;
+            using LaserFunctor = T_LaserFunctor;
 
-    HDINLINE float3_X getManipulation(DataSpace<simDim> iOffset)
+            PMACC_CASSERT_MSG(
+                __LaserPlaneSizeInSuperCell_y_must_be_less_or_equal_than_SuperCellSize_y,
+                LaserPlaneSizeInSuperCell::y::value <= SuperCellSize::y::value
+            );
+
+            constexpr uint32_t planeSize = pmacc::math::CT::volume< LaserPlaneSizeInSuperCell >::type::value;
+            constexpr uint32_t numWorkers = T_numWorkers;
+
+            const uint32_t workerIdx = threadIdx.x;
+
+            // offset of the superCell (in cells, without any guards) to the origin of the local domain
+
+            DataSpace< simDim > localSuperCellOffset = DataSpace< simDim >( blockIdx );
+
+            // add not handled supercells from LaserFunctor::Unitless::initPlaneY
+            localSuperCellOffset.y() += LaserFunctor::Unitless::initPlaneY / SuperCellSize::y::value;
+
+            uint32_t cellOffsetInSuperCellFromInitPlaneY = LaserFunctor::Unitless::initPlaneY % SuperCellSize::y::value;
+
+            auto accLaserFunctor = laserFunctor(
+                acc,
+                localSuperCellOffset,
+                mappings::threads::WorkerCfg< numWorkers >{ workerIdx }
+            );
+
+            mappings::threads::ForEachIdx<
+                mappings::threads::IdxConfig<
+                    planeSize,
+                    numWorkers
+                >
+            > { workerIdx }(
+                [&](
+                    uint32_t const linearIdx,
+                    uint32_t const
+                )
+                {
+                    /* cell index within the superCell */
+                    DataSpace< simDim > cellIdxInSuperCell = DataSpaceOperations< simDim >::template map< LaserPlaneSizeInSuperCell >( linearIdx );
+                    cellIdxInSuperCell.y() += cellOffsetInSuperCellFromInitPlaneY;
+
+                    accLaserFunctor( acc, cellIdxInSuperCell );
+                }
+            );
+        }
+    };
+
+    /** Laser init in a single xz plane */
+    struct LaserPhysics
     {
-        const float_X posX = float_X(m_globalCentered.x() + iOffset.x()) * CELL_WIDTH;
+        void operator()(uint32_t currentStep) const
+        {
+            /* The laser can be initialized in the plane of the first cell or
+             * any later x-y plane inside the simulation. Initializing the
+             * laser in planes inside the simulation corresponds to an
+             * evaluation of the field at negatively shifted time.
+             */
+            constexpr float_X laserTimeShift = laserProfiles::Selected::Unitless::initPlaneY * CELL_HEIGHT / SPEED_OF_LIGHT;
 
-        /*! \todo this is very dirty, please fix laserTransversal interface and use floatD_X
-            and not posX,posY */
-        const float_X posZ =
-#if (SIMDIM==DIM3)
-        float_X(m_globalCentered.z() + iOffset.z()) * CELL_DEPTH;
-#else
-        0.0;
-#endif
+            const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
 
-        return laserProfile::laserTransversal(m_elong, m_phase, posX, posZ);
-    }
+            /* Disable laser if
+             * - init time of laser is over or
+             * - we have periodic boundaries in Y direction or
+             * - we already performed a slide
+             */
+            bool const laserNone = ( laserProfiles::Selected::Unitless::INIT_TIME == float_X(0.0) );
+            bool const laserInitTimeOver =
+                ( ( currentStep * DELTA_T  - laserTimeShift ) >= laserProfiles::Selected::Unitless::INIT_TIME );
+            bool const topBoundariesArePeriodic =
+                ( Environment<simDim>::get().GridController().getCommunicationMask( ).isSet( TOP ) );
+            bool const boxHasSlided = ( numSlides != 0 );
 
-private:
-    float3_X m_elong;
-    float_X m_phase;
-    DataSpace<simDim> m_globalCentered;
-};
+            bool const disableLaser =
+                laserNone ||
+                laserInitTimeOver ||
+                topBoundariesArePeriodic ||
+                boxHasSlided;
+            if( !disableLaser )
+            {
+                PMACC_VERIFY_MSG(
+                    laserProfiles::Selected::Unitless::initPlaneY < static_cast<uint32_t>( Environment<simDim>::get().SubGrid().getLocalDomain().size.y() ),
+                    "initPlaneY must be located in the top GPU"
+                );
 
-class LaserPhysics
-{
-public:
+                PMACC_CASSERT_MSG(
+                    __initPlaneY_needs_to_be_greate_than_the_top_absorber_cells_or_zero,
+                    laserProfiles::Selected::Unitless::initPlaneY > ABSORBER_CELLS[1][0] ||
+                    laserProfiles::Selected::Unitless::initPlaneY == 0 ||
+                    laserProfiles::Selected::Unitless::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
+                );
 
-    LaserPhysics(GridLayout<simDim> layout) :
-    m_layout(layout)
-    {
-    }
+                /* Calculate how many neighbors to the left we have
+                 * to initialize the laser in the E-Field
+                 *
+                 * Example: Yee needs one neighbor to perform dB = curlE
+                 *            -> initialize in y=0 plane
+                 *          A second order solver could need 2 neighbors left:
+                 *            -> initialize in y=0 and y=1 plane
+                 *
+                 * Question: Why do other codes initialize the B-Field instead?
+                 * Answer:   Because our fields are defined on the lower cell side
+                 *           (C-Style ftw). Therefore, our curls (for example Yee)
+                 *           are shifted nabla+ <-> nabla- compared to Fortran codes
+                 *           (in other words: curlLeft <-> curlRight)
+                 *           for E and B.
+                 *           For this reason, we have to initialize E instead of B.
+                 *
+                 * Problem: that's still not our case. For example our Yee does a
+                 *          dE = curlLeft(B) - therefor, we should init B, too.
+                 *
+                 *
+                 *  @todo: might also lack temporal offset since our formulas are E(x,z,t) instead of E(x,y,z,t)
+                 *  `const int max_y_neighbors = Get<fields::Solver::OffsetOrigin_E, 1 >::value;`
+                 *
+                 * @todo Right now, the phase could be wrong ( == is cloned)
+                 *       @see LaserPhysics.hpp
+                 *
+                 * @todo What about the B-Field in the second plane?
+                 *
+                 */
+                constexpr int laserInitCellsInY = 1;
 
-    LaserManipulator getLaserManipulator(uint32_t currentStep)
-    {
-        float3_X elong;
-        float_X phase = 0.0;
+                using LaserPlaneSizeInSuperCells = typename pmacc::math::CT::AssignIfInRange<
+                        typename SuperCellSize::vector_type,
+                        bmpl::integral_c< uint32_t, 1 >, /* y direction */
+                        bmpl::integral_c< int, laserInitCellsInY >
+                >::type;
 
-        elong = laserProfile::laserLongitudinal(currentStep,
-                                                phase);
+                DataSpace< simDim > gridBlocks = Environment< simDim >::get().SubGrid().getLocalDomain().size / SuperCellSize::toRT();
+                // use the one supercell in y to initialize the laser plane
+                gridBlocks.y() = 1;
 
-        const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
+                constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+                    pmacc::math::CT::volume< LaserPlaneSizeInSuperCells >::type::value
+                >::value;
 
-        const DataSpace<simDim> globalCellOffset(subGrid.getLocalDomain().offset);
-        const DataSpace<simDim> halfSimSize(subGrid.getGlobalDomain().size / 2);
-
-        DataSpace<simDim> centeredOrigin(globalCellOffset - halfSimSize);
-        return LaserManipulator(elong,
-                                centeredOrigin,
-                                phase);
-    }
-
-private:
-
-    GridLayout<simDim> m_layout;
-};
-}
+                PMACC_KERNEL(
+                    KernelLaser<
+                        numWorkers,
+                        LaserPlaneSizeInSuperCells
+                    >{}
+                )(
+                    gridBlocks,
+                    numWorkers
+                )(
+                    laserProfiles::Selected( currentStep )
+                );
+            }
+        }
+    };
+} // namespace fields
+} // namespace picongpu

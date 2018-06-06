@@ -21,9 +21,5 @@
 
 namespace picongpu
 {
-using namespace pmacc;
-
-class LaserManipulator;
-
-class LaserPhysics;
+    struct LaserPhysics;
 }//namespace picongpu

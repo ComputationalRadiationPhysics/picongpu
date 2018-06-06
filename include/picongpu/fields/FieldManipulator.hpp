@@ -22,6 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "FieldManipulator.kernel"
 #include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/fields/laserProfiles/profiles.hpp"
 
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
@@ -68,13 +69,13 @@ public:
                 /* allow to enable the absorber on the top side if the laser
                  * initialization plane in y direction is *not* in cell zero
                  */
-                if (laser::initPlaneY == 0)
+                if (fields::laserProfiles::Selected::initPlaneY == 0)
                 {
                     /* disable the absorber on top side if
                      *      no slide was performed and
                      *      laser init time is not over
                      */
-                    if (numSlides == 0 && ((currentStep * DELTA_T) <= laserProfile::INIT_TIME))
+                    if (numSlides == 0 && ((currentStep * DELTA_T) <= fields::laserProfiles::Selected::INIT_TIME))
                     {
                         /* disable absorber on top side */
                         if (i == TOP) continue;

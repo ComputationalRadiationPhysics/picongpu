@@ -43,6 +43,14 @@ laser.param
    :path: include/picongpu/param/laser.param
    :no-link:
 
+:ref:`List of available laser profiles <usage-params-core-laser-profiles>`.
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   laser/profiles.rst
+
 pusher.param
 ^^^^^^^^^^^^
 

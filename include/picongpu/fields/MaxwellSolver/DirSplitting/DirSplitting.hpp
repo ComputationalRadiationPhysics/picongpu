@@ -25,6 +25,7 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/LaserPhysics.hpp"
 
 #include <pmacc/cuSTL/algorithm/kernel/ForeachBlock.hpp>
 #include <pmacc/cuSTL/cursor/NestedCursor.hpp>
@@ -158,8 +159,8 @@ namespace dirSplitting
                       fieldB_coreBorder.origin(),
                       gridSize);
 
-            if (laserProfile::INIT_TIME > float_X(0.0))
-                fieldE->laserManipulation(currentStep);
+            if (laserProfiles::Selected::INIT_TIME > float_X(0.0))
+                LaserPhysics{}(currentStep);
 
             __setTransactionEvent(fieldE->asyncCommunication(__getTransactionEvent()));
             __setTransactionEvent(fieldB->asyncCommunication(__getTransactionEvent()));

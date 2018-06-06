@@ -24,8 +24,6 @@
 
 #include "picongpu/fields/FieldB.hpp"
 
-#include "picongpu/fields/LaserPhysics.hpp"
-
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>

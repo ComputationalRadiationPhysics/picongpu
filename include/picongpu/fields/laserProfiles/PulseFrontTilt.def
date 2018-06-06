@@ -1,4 +1,5 @@
-/* Copyright 2013-2018 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch, Alexander Debus
+/* Copyright 2013-2018 Anton Helm, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Axel Huebl, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -17,33 +18,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- *
- * Configure laser profiles. All laser propagate in y direction.
- *
- * Available profiles:
- *  - None                : no laser init
- *  - GaussianBeam        : Gaussian beam (focusing)
- *  - PulseFrontTilt      : Gaussian beam with a tilted pulse envelope
- *                          in 'x' direction
- *  - PlaneWave           : a plane wave (Gaussian in time)
- *  - Wavepacket          : wavepacket (Gaussian in time and space, not
- *                          focusing)
- *  - Polynom             : a polynomial laser envelope
- *  - ExpRampWithPrepulse : wavepacket with exponential upramps and prepulse
- *
- * In the end, this file needs to define a `Selected` class in namespace
- * `picongpu::fields::laserProfiles`. A typical profile consists of a
- * laser profile class and its parameters. For example:
- *
- * @code{.cpp}
- * using Selected = GaussianBeam< GaussianBeamParam >;
- * @endcode
- */
-
 #pragma once
 
-#include "picongpu/fields/laserProfiles/profiles.def"
+#include <pmacc/types.hpp>
 
 
 namespace picongpu
@@ -52,18 +29,11 @@ namespace fields
 {
 namespace laserProfiles
 {
-namespace gaussianBeam
+namespace pulseFrontTilt
 {
-    //! Use only the 0th Laguerremode for a standard Gaussian
-    static constexpr uint32_t MODENUMBER = 0;
-    PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, 1.0);
-    // This is just an example for a more complicated set of Laguerre modes
-    //constexpr uint32_t MODENUMBER = 12;
-    //PMACC_CONST_VECTOR(float_X, MODENUMBER + 1, LAGUERREMODES, -1.0, 0.0300519, 0.319461, -0.23783, 0.0954839, 0.0318653, -0.144547, 0.0249208, -0.111989, 0.0434385, -0.030038, -0.00896321, -0.0160788);
-
-} // namespace gaussianBeam
-
-    struct GaussianBeamParam
+namespace defaults
+{
+    struct PulseFrontTiltParam
     {
         /** unit: meter */
         static constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
@@ -75,13 +45,13 @@ namespace gaussianBeam
         // calculate: _A0 = 8.549297e-6 * sqrt( Intensity[W/m^2] ) * wavelength[m] (linearly polarized)
 
         /** unit: none */
-        static constexpr float_64 _A0  = 40.0;
+        //static constexpr float_64 _A0  = 1.5;
 
         /** unit: Volt / meter */
-        static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
+        //static constexpr float_64 AMPLITUDE_SI = _A0 * UNITCONV_A0_to_Amplitude_SI;
 
         /** unit: Volt / meter */
-        //static constexpr float_64 AMPLITUDE_SI = 1.738e13;
+        static constexpr float_64 AMPLITUDE_SI = 1.738e13;
 
         /** Pulse length: sigma of std. gauss for intensity (E^2)
          *  PULSE_LENGTH_SI = FWHM_of_Intensity   / [ 2*sqrt{ 2* ln(2) } ]
@@ -90,7 +60,7 @@ namespace gaussianBeam
          *                      = what a experimentalist calls "pulse duration"
          *
          *  unit: seconds (1 sigma) */
-        static constexpr float_64 PULSE_LENGTH_SI = 8.0e-15;
+        static constexpr float_64 PULSE_LENGTH_SI = 10.615e-15 / 4.0;
 
         /** beam waist: distance from the axis where the pulse intensity (E^2)
          *              decreases to its 1/e^2-th part,
@@ -99,15 +69,21 @@ namespace gaussianBeam
          *                             [   1.17741    ]
          *
          *  unit: meter */
-        static constexpr float_64 W0_SI = 1.5e-6;
+        static constexpr float_64 W0_SI = 5.0e-6 / 1.17741;
+
         /** the distance to the laser focus in y-direction
          *  unit: meter */
-        static constexpr float_64 FOCUS_POS_SI = 4.e-6;
+        static constexpr float_64 FOCUS_POS_SI = 4.62e-5;
+
+        /** the tilt angle between laser propagation in y-direction and laser axis in
+        *  x-direction (0 degree == no tilt)
+        *  unit: degree */
+        static constexpr float_64 TILT_X_SI = 0.0;
 
         /** The laser pulse will be initialized PULSE_INIT times of the PULSE_LENGTH
          *
          *  unit: none */
-        static constexpr float_64 PULSE_INIT = 6.0;
+        static constexpr float_64 PULSE_INIT = 20.0;
 
         /** cell from top where the laser is initialized
          *
@@ -129,24 +105,30 @@ namespace gaussianBeam
          */
         static constexpr float_X LASER_PHASE = 0.0;
 
-        using LAGUERREMODES_t = gaussianBeam::LAGUERREMODES_t;
-        static constexpr uint32_t MODENUMBER = gaussianBeam::MODENUMBER;
-
-        /** Available polarisation types
-         */
+        //! Available polarisation types
         enum PolarisationType
         {
             LINEAR_X = 1u,
             LINEAR_Z = 2u,
             CIRCULAR = 4u,
         };
+
         /** Polarization selection
          */
         static constexpr PolarisationType Polarisation = LINEAR_X;
     };
+} // namespace defaults
+} // namespace pulseFrontTilt
 
-    //! currently selected laser profile
-    using Selected = GaussianBeam< GaussianBeamParam >;
+    /** Gaussian Beam laser profile with titled pulse front
+     *
+     * @tparam T_Params class parameter to configure the Gaussian Beam with
+     *                  pulse front titlt, see members of
+     *                  pulseFrontTilt::defaults::PulseFrontTiltParam for
+     *                  required members
+     */
+    template< typename T_Params = pulseFrontTilt::defaults::PulseFrontTiltParam >
+    struct PulseFrontTilt;
 
 } // namespace laserProfiles
 } // namespace fields
