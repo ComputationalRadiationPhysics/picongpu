@@ -77,8 +77,7 @@ namespace detail
             // mapper to access species in CORE & BORDER only
             MappingDesc cellDescription(
                 speciesTmp->getParticlesBuffer().getSuperCellsLayout().getDataSpace() * SuperCellSize::toRT(),
-                GUARD_SIZE,
-                GUARD_SIZE
+                GuardSize::toRT()
             );
             AreaMapping<
                 CORE + BORDER,

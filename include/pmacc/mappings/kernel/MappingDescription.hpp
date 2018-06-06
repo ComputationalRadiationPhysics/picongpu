@@ -51,22 +51,36 @@ public:
 
     typedef SuperCellSize_ SuperCellSize;
 
-    MappingDescription(DataSpace<DIM> localGridCells = DataSpace<DIM> (),
-                       int borderSuperCells = 0,
-                       int guardingSuperCells = 0) :
-    gridSuperCells(localGridCells / SuperCellSize::toRT()), /*block count per dimension*/
-    guardingSuperCells(guardingSuperCells),
-    borderSuperCells(borderSuperCells)
+    /** constructor
+     *
+     * @param localGridCells number of cells in the local value (including guarding cells)
+     * @param guardingSuperCells number of **supercells** within the guard
+     */
+    MappingDescription(
+        DataSpace<DIM> localGridCells = DataSpace<DIM> (),
+        DataSpace<DIM> guardingSuperCells = DataSpace<DIM>::create(0)
+    ) :
+        gridSuperCells(localGridCells / SuperCellSize::toRT()), /*block count per dimension*/
+        guardingSuperCells(guardingSuperCells)
     {
-        /*minimal 3 blocks are needed if we have guarding blocks*/
-        int minBlock = std::min(gridSuperCells.x(), gridSuperCells.y());
-        if (DIM == DIM3)
+        /* each dimension needs at least one supercell for the core and 2 * guardingSuperCells
+         * (one supercell for the border and one for the guard) or it has no guarding and border
+         * and contains only a core (this is allowed for local arrays which can not sync the
+         * outer supercells with there neighbor MPI ranks.
+         */
+        for( uint32_t d = 0; d < DIM; ++d )
         {
-            minBlock = std::min(minBlock, gridSuperCells[2]);
+            /*minimal 3 blocks are needed if we have guarding blocks*/
+            int minBlock = std::min(gridSuperCells.x(), gridSuperCells.y());
+            if (DIM == DIM3)
+            {
+                minBlock = std::min(minBlock, gridSuperCells[2]);
+            }
+            PMACC_VERIFY(
+                ( guardingSuperCells[ d ] == 0 && gridSuperCells[ d ] >= 1) ||
+                gridSuperCells[ d ] >= 2 * guardingSuperCells[ d ] + 1
+            );
         }
-        PMACC_VERIFY((guardingSuperCells == 0) || (minBlock >= 3));
-        /*border block count must smaller or equal to core blocks count*/
-        PMACC_VERIFY(borderSuperCells <= (minBlock - (2 * guardingSuperCells)));
     }
 
     HDINLINE DataSpace<DIM> getGridSuperCells() const
@@ -74,12 +88,7 @@ public:
         return this->gridSuperCells;
     }
 
-    HDINLINE int getBorderSuperCells() const
-    {
-        return borderSuperCells;
-    }
-
-    HDINLINE int getGuardingSuperCells() const
+    HDINLINE DataSpace<DIM> getGuardingSuperCells() const
     {
         return guardingSuperCells;
     }
@@ -119,8 +128,7 @@ protected:
 
     //\todo: keine Eigenschaft einer Zelle
     PMACC_ALIGN(gridSuperCells, DataSpace<DIM>);
-    PMACC_ALIGN(guardingSuperCells, int);
-    PMACC_ALIGN(borderSuperCells, int);
+    PMACC_ALIGN(guardingSuperCells, DataSpace<DIM>);
 
 };
 

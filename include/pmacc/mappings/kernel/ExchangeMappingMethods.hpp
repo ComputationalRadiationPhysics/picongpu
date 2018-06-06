@@ -55,50 +55,47 @@ namespace pmacc
         }
     };
 
-    // DIM2
-
     // areaType == GUARD
 
-    template<>
-    class ExchangeMappingMethods<GUARD, DIM2>
+    template<unsigned DIM>
+    class ExchangeMappingMethods<GUARD, DIM>
     {
     public:
 
         template<class Base>
-        HINLINE static DataSpace<DIM2> getGridDim(const Base &base, uint32_t exchangeType)
+        HINLINE static DataSpace< DIM > getGridDim(const Base &base, uint32_t exchangeType)
         {
-            DataSpace<DIM2> result(base.getGridSuperCells() - 2 * base.getGuardingSuperCells());
+            const DataSpace< DIM > guardingSupercells = base.getGuardingSuperCells();
+            DataSpace< DIM > result(base.getGridSuperCells() - 2 * guardingSupercells);
 
-            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (exchangeType);
+            const DataSpace< DIM > directions = Mask::getRelativeDirections< DIM > (exchangeType);
 
-            if (directions.x() != 0)
-                result.x() = base.getGuardingSuperCells();
-
-            if (directions.y() != 0)
-                result.y() = base.getGuardingSuperCells();
+            for( uint32_t d = 0; d < DIM; ++d )
+            {
+                if (directions[ d ] != 0)
+                    result[ d ] = guardingSupercells[ d ];
+            }
 
             return result;
         }
 
         template<class Base>
-        HDINLINE static DataSpace<DIM2> getBlockIndex(const Base &base,
-        const DataSpace<DIM2>& _blockIdx, uint32_t exchangeType)
+        HDINLINE static DataSpace< DIM > getBlockIndex(const Base &base,
+        const DataSpace< DIM >& _blockIdx, uint32_t exchangeType)
         {
-            DataSpace<DIM2> result(_blockIdx);
+            DataSpace< DIM > result(_blockIdx);
 
-            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (exchangeType);
+            const DataSpace< DIM > directions = Mask::getRelativeDirections< DIM > (exchangeType);
+            const DataSpace< DIM > guardingSupercells = base.getGuardingSuperCells();
 
-            if (directions.x() == 0)
-                result.x() += base.getGuardingSuperCells();
-            else
-                if (directions.x() == 1)
-                result.x() += base.getGridSuperCells().x() - base.getGuardingSuperCells();
-
-            if (directions.y() == 0)
-                result.y() += base.getGuardingSuperCells();
-            else
-                if (directions.y() == 1)
-                result.y() += base.getGridSuperCells().y() - base.getGuardingSuperCells();
+            for( uint32_t d = 0; d < DIM; ++d )
+            {
+                if (directions[ d ] == 0)
+                    result[ d ] += guardingSupercells[ d ];
+                else
+                    if (directions[ d ] == 1)
+                    result[ d ] += base.getGridSuperCells()[ d ] - guardingSupercells[ d ];
+            }
 
             return result;
         }
@@ -107,208 +104,52 @@ namespace pmacc
 
     // areaType == BORDER
 
-    template<>
-    class ExchangeMappingMethods<BORDER, DIM2>
+    template< unsigned DIM >
+    class ExchangeMappingMethods<BORDER, DIM>
     {
     public:
 
         template<class Base>
-        HINLINE static DataSpace<DIM2> getGridDim(const Base &base, uint32_t exchangeType)
+        HINLINE static DataSpace< DIM > getGridDim(const Base &base, uint32_t exchangeType)
         {
-            DataSpace<DIM2> result(base.getGridSuperCells() - 2 * base.getGuardingSuperCells() -
-                    2 * base.getBorderSuperCells());
+            // skip 2 x (border + guard) == 4 x guard
+            DataSpace< DIM > result(base.getGridSuperCells() - 4 * base.getGuardingSuperCells());
 
-            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (exchangeType);
+            DataSpace< DIM > directions = Mask::getRelativeDirections< DIM > (exchangeType);
 
-            if (directions.x() != 0)
-                result.x() = base.getBorderSuperCells();
-
-            if (directions.y() != 0)
-                result.y() = base.getBorderSuperCells();
-
-            return result;
-        }
-
-        template<class Base>
-        HDINLINE static DataSpace<DIM2> getBlockIndex(const Base &base,
-        const DataSpace<DIM2>& _blockIdx, uint32_t exchangeType)
-        {
-            DataSpace<DIM2> result(_blockIdx);
-
-            DataSpace<DIM2> directions = Mask::getRelativeDirections<DIM2 > (exchangeType);
-
-            size_t guardingBlocks = base.getGuardingSuperCells();
-
-            switch (directions.x())
+            for( uint32_t d = 0; d < DIM; ++d )
             {
-                case 0:
-                    result.x() += guardingBlocks + base.getBorderSuperCells();
-                    break;
-                case -1:
-                    result.x() += guardingBlocks;
-                    break;
-                case 1:
-                    result.x() += base.getGridSuperCells().x() - guardingBlocks -
-                            base.getBorderSuperCells();
-                    break;
-            }
-
-            switch (directions.y())
-            {
-                case 0:
-                    result.y() += guardingBlocks + base.getBorderSuperCells();
-                    break;
-                case -1:
-                    result.y() += guardingBlocks;
-                    break;
-                case 1:
-                    result.y() += base.getGridSuperCells().y() - guardingBlocks -
-                            base.getBorderSuperCells();
-                    break;
+                if (directions[ d ] != 0)
+                    result[ d ] = base.getGuardingSuperCells()[ d ];
             }
 
             return result;
         }
-    };
-
-
-    // DIM3
-
-    // areaType == GUARD
-
-    template<>
-    class ExchangeMappingMethods<GUARD, DIM3>
-    {
-    public:
 
         template<class Base>
-        HINLINE static DataSpace<DIM3> getGridDim(const Base &base, uint32_t exchangeType)
+        HDINLINE static DataSpace< DIM > getBlockIndex(const Base &base,
+        const DataSpace< DIM >& _blockIdx, uint32_t exchangeType)
         {
-            DataSpace<DIM3> result(base.getGridSuperCells() - 2 * base.getGuardingSuperCells());
+            DataSpace< DIM > result(_blockIdx);
 
-            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
+            DataSpace< DIM > directions = Mask::getRelativeDirections< DIM > (exchangeType);
 
-            if (directions.x() != 0)
-                result.x() = base.getGuardingSuperCells();
+            DataSpace< DIM > guardingBlocks = base.getGuardingSuperCells();
 
-            if (directions.y() != 0)
-                result.y() = base.getGuardingSuperCells();
-
-            if (directions.z() != 0)
-                result.z() = base.getGuardingSuperCells();
-
-            return result;
-        }
-
-        template<class Base>
-        HDINLINE static DataSpace<DIM3> getBlockIndex(const Base &base,
-        const DataSpace<DIM3>& _blockIdx, uint32_t exchangeType)
-        {
-            DataSpace<DIM3> result(_blockIdx);
-
-            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
-
-            if (directions.x() == 0)
-                result.x() += base.getGuardingSuperCells();
-            else
-                if (directions.x() == 1)
-                result.x() += base.getGridSuperCells().x() - base.getGuardingSuperCells();
-
-            if (directions.y() == 0)
-                result.y() += base.getGuardingSuperCells();
-            else
-                if (directions.y() == 1)
-                result.y() += base.getGridSuperCells().y() - base.getGuardingSuperCells();
-
-            if (directions.z() == 0)
-                result.z() += base.getGuardingSuperCells();
-            else
-                if (directions.z() == 1)
-                result.z() += base.getGridSuperCells().z() - base.getGuardingSuperCells();
-
-            return result;
-        }
-    };
-
-
-    // areaType == BORDER
-
-    template<>
-    class ExchangeMappingMethods<BORDER, DIM3>
-    {
-    public:
-
-        template<class Base>
-        HINLINE static DataSpace<DIM3> getGridDim(const Base &base, uint32_t exchangeType)
-        {
-            DataSpace<DIM3> result(base.getGridSuperCells() - 2 * base.getGuardingSuperCells() -
-                    2 * base.getBorderSuperCells());
-
-            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
-
-            if (directions.x() != 0)
-                result.x() = base.getBorderSuperCells();
-
-            if (directions.y() != 0)
-                result.y() = base.getBorderSuperCells();
-
-            if (directions.z() != 0)
-                result.z() = base.getBorderSuperCells();
-
-            return result;
-        }
-
-        template<class Base>
-        HDINLINE static DataSpace<DIM3> getBlockIndex(const Base &base,
-        const DataSpace<DIM3>& _blockIdx, uint32_t exchangeType)
-        {
-            DataSpace<DIM3> result(_blockIdx);
-
-            DataSpace<DIM3> directions = Mask::getRelativeDirections<DIM3 > (exchangeType);
-
-            size_t guardingBlocks = base.getGuardingSuperCells();
-            size_t borderBlocks = base.getBorderSuperCells();
-
-            switch (directions.x())
+            for( uint32_t d = 0; d <  DIM; ++d )
             {
-                case 0:
-                    result.x() += guardingBlocks + borderBlocks;
-                    break;
-                case -1:
-                    result.x() += guardingBlocks;
-                    break;
-                case 1:
-                    result.x() += base.getGridSuperCells().x() - guardingBlocks -
-                            borderBlocks;
-                    break;
-            }
-
-            switch (directions.y())
-            {
-                case 0:
-                    result.y() += guardingBlocks + borderBlocks;
-                    break;
-                case -1:
-                    result.y() += guardingBlocks;
-                    break;
-                case 1:
-                    result.y() += base.getGridSuperCells().y() - guardingBlocks -
-                            borderBlocks;
-                    break;
-            }
-
-            switch (directions.z())
-            {
-                case 0:
-                    result.z() += guardingBlocks + borderBlocks;
-                    break;
-                case -1:
-                    result.z() += guardingBlocks;
-                    break;
-                case 1:
-                    result.z() += base.getGridSuperCells().z() - guardingBlocks -
-                            borderBlocks;
-                    break;
+                switch (directions[ d ])
+                {
+                    case 0:
+                        result[ d ] += 2 * guardingBlocks[ d ];
+                        break;
+                    case -1:
+                        result[ d ] += guardingBlocks[ d ];
+                        break;
+                    case 1:
+                        result[ d ] += base.getGridSuperCells()[ d ] - 2 * guardingBlocks[ d ];
+                        break;
+                }
             }
 
             return result;

@@ -70,13 +70,13 @@ namespace creation
         ParBoxSource sourceBox;
         ParBoxTarget targetBox;
         ParticleCreator particleCreator;
-        uint32_t const guardSuperCells;
+        DataSpace< simDim > const guardSuperCells;
 
         CreateParticlesKernel(
             ParBoxSource const & sourceBox,
             ParBoxTarget const & targetBox,
             ParticleCreator const & particleCreator,
-            uint32_t const guardSuperCells
+            DataSpace< simDim > const guardSuperCells
         ) :
             sourceBox( sourceBox ),
             targetBox( targetBox ),
@@ -429,7 +429,7 @@ namespace creation
      * @param parBoxSource particle box of the source species
      * @param parBoxTarget particle box of the target species
      * @param particleCreator particle creation functor
-     * @param guardSuperCells number of guard cells
+     * @param guardSuperCells number of guard cells per dimension
      * @return new `CreateParticlesKernel` instance
      */
     template<
@@ -448,7 +448,7 @@ namespace creation
         T_ParBoxSource const & parBoxSource,
         T_ParBoxTarget const & parBoxTarget,
         T_ParticleCreator const & particleCreator,
-        uint32_t const guardSuperCells)
+        DataSpace< simDim > const & guardSuperCells)
     {
         return CreateParticlesKernel<
             T_numWorkers,

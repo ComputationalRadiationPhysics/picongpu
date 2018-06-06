@@ -53,8 +53,8 @@ void createParticlesFromSpecies(T_SourceSpecies& sourceSpecies,
 {
     typedef typename MappingDesc::SuperCellSize SuperCellSize;
     const pmacc::math::Int<simDim> coreBorderGuardSuperCells = cellDesc->getGridSuperCells();
-    const uint32_t guardSuperCells = cellDesc->getGuardingSuperCells();
-    const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2*guardSuperCells;
+    const pmacc::math::Int<simDim> guardSuperCells = cellDesc->getGuardingSuperCells();
+    const pmacc::math::Int<simDim> coreBorderSuperCells = coreBorderGuardSuperCells - 2 * guardSuperCells;
 
     constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
         pmacc::math::CT::volume< SuperCellSize >::type::value

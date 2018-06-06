@@ -78,7 +78,7 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
     \
     auto accFilter = filter( \
         acc, \
-        superCellIdx - GUARD_SIZE, \
+        superCellIdx - GuardSize::toRT(), \
         mappings::threads::WorkerCfg< numWorkers >{ workerIdx } \
     ); \
     \

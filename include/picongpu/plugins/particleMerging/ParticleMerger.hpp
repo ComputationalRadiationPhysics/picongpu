@@ -98,7 +98,7 @@ namespace particleMerging
 
             const pmacc::math::Int<simDim> coreBorderGuardSuperCells =
                 this->cellDescription->getGridSuperCells();
-            const uint32_t guardSuperCells =
+            const pmacc::math::Int<simDim> guardSuperCells =
                 this->cellDescription->getGuardingSuperCells();
             const pmacc::math::Int<simDim> coreBorderSuperCells =
                 coreBorderGuardSuperCells - 2 * guardSuperCells;

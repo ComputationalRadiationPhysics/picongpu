@@ -102,7 +102,7 @@ namespace picongpu
 
             /** calculate GUARD offset in the source hBuffer *****************/
             const uint32_t rGuardCells =
-                SuperCellSize().toRT()[axis_element.space] * GUARD_SIZE;
+                SuperCellSize().toRT()[axis_element.space] * GuardSize::toRT()[axis_element.space];
 
             /** calculate local and global size of the phase space ***********/
             const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);

@@ -84,7 +84,7 @@ struct KernelIntensity
         );
 
         int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
-        int yGlobal = y + GUARD_SIZE * SuperCellSize::y::value;
+        int yGlobal = y + GuardSize::y::value * SuperCellSize::y::value;
         const DataSpace<DIM2> threadId(threadIdx);
 
         if (threadId.x() == 0)
@@ -96,10 +96,10 @@ struct KernelIntensity
         __syncthreads();
 
         /*move cell wise over z direction(without garding cells)*/
-        for (int z = GUARD_SIZE * SuperCellSize::z::value; z < cellsCount.z() - GUARD_SIZE * SuperCellSize::z::value; ++z)
+        for (int z = GuardSize::z::value * SuperCellSize::z::value; z < cellsCount.z() - GuardSize::z::value * SuperCellSize::z::value; ++z)
         {
             /*move supercell wise over x direction without guarding*/
-            for (int x = GUARD_SIZE * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GUARD_SIZE * SuperCellSize::x::value; x += SuperCellSize::x::value)
+            for (int x = GuardSize::x::value * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GuardSize::x::value * SuperCellSize::x::value; x += SuperCellSize::x::value)
             {
                 const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
                 s_field(threadId) = math::abs2(field_at_point);
@@ -349,7 +349,7 @@ private:
         auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
 
         /*start only worker for any supercell in laser propagation direction*/
-        DataSpace<DIM2> grid(1,cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells());
+        DataSpace<DIM2> grid(1,cellDescription->getGridSuperCells().y() - cellDescription->getGuardingSuperCells().y());
         /*use only 2D slice XY for supercell handling*/
         typedef typename MappingDesc::SuperCellSize SuperCellSize;
         auto block = pmacc::math::CT::Vector<SuperCellSize::x,SuperCellSize::y>::toRT();

@@ -154,7 +154,7 @@ namespace detail
             )
             (
                 // start in border (jump over GUARD area)
-                fieldTmp->getDeviceDataBox().shift( SuperCellSize::toRT() * GUARD_SIZE ),
+                fieldTmp->getDeviceDataBox().shift( SuperCellSize::toRT() * GuardSize::toRT() ),
                 // start in border (has no GUARD area)
                 nlocal->getGridBuffer().getDeviceBuffer( ).getDataBox( )
             );
