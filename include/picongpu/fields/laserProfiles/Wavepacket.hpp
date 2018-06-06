@@ -46,8 +46,8 @@ namespace wavepacket
         static constexpr float_X W0_X = float_X( Params::W0_X_SI / UNIT_LENGTH ); // unit: meter
         static constexpr float_X W0_Z = float_X( Params::W0_Z_SI / UNIT_LENGTH ); // unit: meter
         static constexpr float_X INIT_TIME = float_X( Params::PULSE_INIT * PULSE_LENGTH + LASER_NOFOCUS_CONSTANT ); // unit: seconds (full initialization length)
-        static constexpr float_X endUpramp = float_X( -0.5 * LASER_NOFOCUS_CONSTANT ); // unit: seconds
-        static constexpr float_X startDownramp = float_X( 0.5 * LASER_NOFOCUS_CONSTANT ); // unit: seconds
+        static constexpr float_X endUpramp = -0.5_X * LASER_NOFOCUS_CONSTANT; // unit: seconds
+        static constexpr float_X startDownramp = 0.5_X * LASER_NOFOCUS_CONSTANT; // unit: seconds
 
         /* initialize the laser not in the first cell is equal to a negative shift
          * in time
@@ -119,13 +119,13 @@ namespace acc
             // @todo add half-cells via traits::FieldPosition< Solver::NumicalCellType, FieldE >()
 
             // transversal position only
-            float3_X const w0_3D( Unitless::W0_X, 0., Unitless::W0_Z );
+            float3_X const w0_3D( Unitless::W0_X, 0._X, Unitless::W0_Z );
             auto const w0( w0_3D.shrink< simDim >().remove< planeNormalDir >() );
             auto const pos_trans( pos.remove< planeNormalDir >() );
             auto const exp_compos( pos_trans * pos_trans / ( w0 * w0 ) );
             float_X const exp_arg( exp_compos.sumOfComponents() );
 
-            m_elong *= math::exp( float_X( -1.0 ) * exp_arg );
+            m_elong *= math::exp( -1.0_X * exp_arg );
 
             if( Unitless::initPlaneY != 0 ) // compile time if
             {
@@ -137,7 +137,7 @@ namespace acc
                  *
                  * The `correctionFactor` assume that the wave is moving in y direction.
                  */
-                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * float_X( 2. );
+                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * 2._X;
 
                 // jump over the guard of the electric field
                 m_dataBoxE( localCell + SuperCellSize::toRT() * GuardSize::toRT() ) +=  correctionFactor * m_elong;
@@ -194,10 +194,10 @@ namespace acc
 
             float_64 const runTime = DELTA_T * currentStep - Unitless::laserTimeShift - mue;
 
-            elong = float3_X::create( 0.0 );
+            elong = float3_X::create( 0.0_X );
             float_X envelope = float_X( Unitless::AMPLITUDE );
 
-            const float_64 tau = Unitless::PULSE_LENGTH * math::sqrt( 2.0 );
+            const float_64 tau = Unitless::PULSE_LENGTH * math::sqrt( 2.0_X );
 
             float_64 correctionFactor = 0.0;
 
@@ -213,8 +213,8 @@ namespace acc
             else if( runTime < Unitless::endUpramp )
             {
                 // upramp = start
-                const float_64 exponent = ( ( runTime - Unitless::endUpramp ) / Unitless::PULSE_LENGTH / math::sqrt( 2.0 ) );
-                envelope *= math::exp( -0.5 * exponent * exponent );
+                const float_X exponent = ( ( runTime - Unitless::endUpramp ) / Unitless::PULSE_LENGTH / math::sqrt( 2.0_X ) );
+                envelope *= math::exp( -0.5_X * exponent * exponent );
                 correctionFactor = ( runTime - Unitless::endUpramp ) / ( tau * tau * Unitless::w );
             }
 
@@ -222,16 +222,16 @@ namespace acc
 
             if( Unitless::Polarisation == Unitless::LINEAR_X )
             {
-                elong.x() = float_X( envelope * ( math::sin( phase ) + correctionFactor * math::cos( phase ) ) );
+                elong.x() = envelope * ( math::sin( phase ) + correctionFactor * math::cos( phase ) );
             }
             else if( Unitless::Polarisation == Unitless::LINEAR_Z )
             {
-                elong.z() = float_X( envelope * ( math::sin( phase ) + correctionFactor * math::cos( phase ) ) );
+                elong.z() = envelope * ( math::sin( phase ) + correctionFactor * math::cos( phase ) );
             }
             else if( Unitless::Polarisation == Unitless::CIRCULAR )
             {
-                elong.x() = float_X( envelope / math::sqrt( 2.0 ) * ( math::sin( phase ) + correctionFactor * math::cos( phase ) ) );
-                elong.z() = float_X( envelope / math::sqrt( 2.0 ) * ( math::cos( phase ) + correctionFactor * math::sin( phase ) ) );
+                elong.x() = envelope / math::sqrt( 2.0_X ) * ( math::sin( phase ) + correctionFactor * math::cos( phase ) );
+                elong.z() = envelope / math::sqrt( 2.0_X ) * ( math::cos( phase ) + correctionFactor * math::sin( phase ) );
             }
         }
 

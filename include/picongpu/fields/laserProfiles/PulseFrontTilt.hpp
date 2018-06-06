@@ -119,7 +119,7 @@ namespace acc
             // calculate focus position relative to the laser initialization plane
             float_X const focusPos = Unitless::FOCUS_POS - pos.y();
 
-            float_X const timeShift = m_phase / ( float_X( 2.0 ) * float_X( PI ) * float_X( Unitless::f ) ) + focusPos / SPEED_OF_LIGHT;
+            float_X const timeShift = m_phase / ( 2.0_X * float_X( PI ) * float_X( Unitless::f ) ) + focusPos / SPEED_OF_LIGHT;
             float_X const local_tilt_x = Unitless::TILT_X;
             float_X const spaceShift_x = SPEED_OF_LIGHT * algorithms::math::tan( local_tilt_x ) * timeShift / cellSize.y();
 
@@ -137,33 +137,33 @@ namespace acc
             float_X const y_R = float_X( PI ) * Unitless::W0 * Unitless::W0 / Unitless::WAVE_LENGTH;
 
             // the radius of curvature of the beam's  wavefronts
-            float_X const R_y = -focusPos * ( float_X(1.0) + ( y_R / focusPos )*( y_R / focusPos ) );
+            float_X const R_y = -focusPos * ( 1.0_X + ( y_R / focusPos )*( y_R / focusPos ) );
 
             // beam waist in the near field: w_y(y=0) == W0
-            float_X const w_y = Unitless::W0 * algorithms::math::sqrt( float_X(1.0) + ( focusPos / y_R )*( focusPos / y_R ) );
+            float_X const w_y = Unitless::W0 * algorithms::math::sqrt( 1.0_X + ( focusPos / y_R )*( focusPos / y_R ) );
             //! the Gouy phase shift
             float_X const xi_y = algorithms::math::atan( -focusPos / y_R );
 
             if( Unitless::Polarisation == Unitless::LINEAR_X || Unitless::Polarisation == Unitless::LINEAR_Z )
             {
-                m_elong *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + m_phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * Unitless::PULSE_LENGTH ) / ( float_X(2.0) * Unitless::PULSE_LENGTH ) );
+                m_elong *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + xi_y + m_phase )
+                    * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                          *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
             }
             else if( Unitless::Polarisation == Unitless::CIRCULAR )
             {
-                m_elong.x() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + m_phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * Unitless::PULSE_LENGTH ) / ( float_X(2.0) * Unitless::PULSE_LENGTH ) );
-                m_phase += float_X( PI / 2.0 );
-                m_elong.z() *= math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / float_X(2.0) / R_y + xi_y + m_phase )
-                    * math::exp( -( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                          *( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::Unitless::WAVE_LENGTH )
-                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * Unitless::PULSE_LENGTH ) / ( float_X(2.0) * Unitless::PULSE_LENGTH ) );
+                m_elong.x() *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + xi_y + m_phase )
+                    * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                          *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
+                m_phase += float_X( PI ) / 2.0_X;
+                m_elong.z() *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + xi_y + m_phase )
+                    * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                          *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::Unitless::WAVE_LENGTH )
+                          / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 // reminder: if you want to use phase below, substract pi/2
-                // m_phase -= float_X( PI / 2.0 );
+                // m_phase -= float_X( PI ) / 2.0_X;
             }
 
             if( Unitless::initPlaneY != 0 ) // compile time if
@@ -176,7 +176,7 @@ namespace acc
                  *
                  * The `correctionFactor` assume that the wave is moving in y direction.
                  */
-                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * float_X( 2. );
+                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * 2._X;
 
                 // jump over the guard of the electric field
                 m_dataBoxE( localCell + SuperCellSize::toRT() * GuardSize::toRT() ) +=  correctionFactor * m_elong;
@@ -260,11 +260,11 @@ namespace acc
             }
             else if( Unitless::Polarisation == Unitless::CIRCULAR )
             {
-                elong.x() = float_X( envelope / math::sqrt( 2.0 ) );
-                elong.z() = float_X( envelope / math::sqrt( 2.0 ) );
+                elong.x() = float_X( envelope ) / math::sqrt( 2.0_X );
+                elong.z() = float_X( envelope ) / math::sqrt( 2.0_X );
             }
 
-            phase = float_X( 2.0 ) * float_X( PI ) * float_X( Unitless::f ) * ( runTime - float_X( mue ) - focusPos / SPEED_OF_LIGHT ) + Unitless::LASER_PHASE;
+            phase = 2.0_X * float_X( PI ) * float_X( Unitless::f ) * ( runTime - float_X( mue ) - focusPos / SPEED_OF_LIGHT ) + Unitless::LASER_PHASE;
         }
 
         /** create device manipulator functor
