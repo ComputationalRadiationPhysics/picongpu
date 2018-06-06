@@ -52,7 +52,7 @@ struct FieldToParticleInterpolation
     typedef typename pmacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
 
     PMACC_CASSERT_MSG(
-        __FieldToParticleInterpolation_supercell_is_to_small_for_stencil,
+        __FieldToParticleInterpolation_supercell_is_too_small_for_stencil,
         pmacc::math::CT::min<
             typename pmacc::math::CT::mul<
                 SuperCellSize,

@@ -161,7 +161,7 @@ struct ZigZag
     using UpperMargin = typename pmacc::math::CT::make_Int< simDim, currentUpperMargin >::type;
 
     PMACC_CASSERT_MSG(
-        __ZigZag_supercell_or_number_of_guard_supercells_is_to_small_for_stencil,
+        __ZigZag_supercell_or_number_of_guard_supercells_is_too_small_for_stencil,
         pmacc::math::CT::min<
             typename pmacc::math::CT::mul<
                 SuperCellSize,

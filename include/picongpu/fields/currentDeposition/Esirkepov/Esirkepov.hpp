@@ -49,7 +49,7 @@ struct Esirkepov<T_ParticleShape, DIM3>
     typedef pmacc::math::CT::Int<currentUpperMargin, currentUpperMargin, currentUpperMargin> UpperMargin;
 
     PMACC_CASSERT_MSG(
-        __Esirkepov_supercell_or_number_of_guard_supercells_is_to_small_for_stencil,
+        __Esirkepov_supercell_or_number_of_guard_supercells_is_too_small_for_stencil,
         pmacc::math::CT::min<
             typename pmacc::math::CT::mul<
                 SuperCellSize,

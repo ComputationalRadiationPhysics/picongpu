@@ -272,14 +272,17 @@ struct GetMargin<picongpu::currentSolver::VillaBune<T_ParticleShape> >
     typedef ::pmacc::math::CT::Int < 1, 1, 1 > LowerMargin;
     typedef ::pmacc::math::CT::Int < 2, 2, 2 > UpperMargin;
 
+    /** maximum margin size of LowerMargin and UpperMargin */
+    static constexpr int maxMargin = 2;
+
     PMACC_CASSERT_MSG(
-        __VillaBune_supercell_or_number_of_guard_supercells_is_to_small_for_stencil,
+        __VillaBune_supercell_or_number_of_guard_supercells_is_too_small_for_stencil,
         pmacc::math::CT::min<
             typename pmacc::math::CT::mul<
                 SuperCellSize,
                 GuardSize
             >::type
-        >::type::value >= 2
+        >::type::value >= maxMargin
     );
 };
 

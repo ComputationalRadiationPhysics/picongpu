@@ -45,7 +45,7 @@ struct EmZ
     typedef typename pmacc::math::CT::make_Int<simDim, currentUpperMargin>::type UpperMargin;
 
     PMACC_CASSERT_MSG(
-        __EmZ_supercell_or_number_of_guard_supercells_is_to_small_for_stencil,
+        __EmZ_supercell_or_number_of_guard_supercells_is_too_small_for_stencil,
         pmacc::math::CT::min<
             typename pmacc::math::CT::mul<
                 SuperCellSize,

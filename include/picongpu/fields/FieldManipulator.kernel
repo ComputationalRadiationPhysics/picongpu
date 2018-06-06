@@ -95,7 +95,7 @@ namespace detail
             uint32_t const workerIdx = threadIdx.x;
 
             auto const numGuardSuperCells = mapper.getGuardingSuperCells();
-            DataSpace< simDim > guardCells(numGuardSuperCells * SuperCellSize::toRT());
+            DataSpace< simDim > guardCells( numGuardSuperCells * SuperCellSize::toRT() );
 
             // cell index of the supercell within the local domain (incl. the guards)
             DataSpace< simDim > const localDomainCells = mapper.getGridSuperCells() * SuperCellSize::toRT();
