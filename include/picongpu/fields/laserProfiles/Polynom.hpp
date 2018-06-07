@@ -121,7 +121,7 @@ namespace acc
             auto const exp_compos( pos_trans * pos_trans / ( w0 * w0 ) );
             float_X const exp_arg( exp_compos.sumOfComponents() );
 
-            m_elong *= math::exp( float_X( -1.0 ) * exp_arg );
+            m_elong *= math::exp( -1.0_X * exp_arg );
 
             if( Unitless::initPlaneY != 0 ) // compile time if
             {
@@ -133,7 +133,7 @@ namespace acc
                  *
                  * The `correctionFactor` assume that the wave is moving in y direction.
                  */
-                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * float_X( 2. );
+                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * 2._X;
 
                 // jump over the guard of the electric field
                 m_dataBoxE( localCell + SuperCellSize::toRT() * GuardSize::toRT() ) +=  correctionFactor * m_elong;
@@ -160,11 +160,11 @@ namespace acc
         HDINLINE float_X
         Tpolynomial( float_X const tau )
         {
-            float_X result( 0.0 );
-            if( tau >= float_X( 0.0 ) && tau <= float_X( 1.0 ) )
-                result = tau * tau * tau * (float_X( 10.0 ) - float_X( 15.0 ) * tau + float_X( 6.0 ) * tau * tau);
-            else if( tau > float_X( 1.0 ) && tau <= float_X( 2.0 ) )
-                result = (float_X( 2.0 ) - tau) * (float_X( 2.0 ) - tau) * (float_X( 2.0 ) - tau) * (float_X( 4.0 ) - float_X( 9.0 ) * tau + float_X( 6.0 ) * tau * tau);
+            float_X result( 0.0_X );
+            if( tau >= 0.0_X && tau <= 1.0_X )
+                result = tau * tau * tau * ( 10.0_X - 15.0_X * tau + 6.0_X * tau * tau );
+            else if( tau > 1.0_X && tau <= 2.0_X )
+                result = ( 2.0_X - tau ) * ( 2.0_X - tau ) * ( 2.0_X - tau ) * ( 4.0_X - 9.0_X * tau + 6.0_X * tau * tau );
 
             return result;
         }
@@ -174,7 +174,7 @@ namespace acc
          * @param currentStep current simulation time step
          */
         HINLINE Polynom( uint32_t currentStep ) :
-            phase( float_X( 0.0 ) )
+            phase( 0.0_X )
         {
             // get data
             DataConnector & dc = Environment< >::get( ).DataConnector( );
@@ -197,7 +197,7 @@ namespace acc
 
             float_64 const runTime = DELTA_T * currentStep - Unitless::laserTimeShift;
 
-            elong = float3_X::create( 0.0 );
+            elong = float3_X::create( 0.0_X );
 
             /* a symmetric pulse will be initialized at position z=0
              * the laser amplitude rises  for t_rise
@@ -205,10 +205,10 @@ namespace acc
              * making the laser pulse 2*t_rise long
              */
 
-            const float_X t_rise = float_X( 0.5 ) * Unitless::PULSE_LENGTH;
+            const float_X t_rise = 0.5_X * Unitless::PULSE_LENGTH;
             const float_X tau = runTime / t_rise;
 
-            const float_X omegaLaser = float_X( 2.0 ) * PI * Unitless::f;
+            const float_X omegaLaser = 2.0_X * PI * Unitless::f;
 
             if( Unitless::Polarisation == Unitless::LINEAR_X )
             {
@@ -222,9 +222,9 @@ namespace acc
             }
             else if( Unitless::Polarisation == Unitless::CIRCULAR )
             {
-                elong.x() = Unitless::AMPLITUDE * Tpolynomial( tau ) / math::sqrt( 2.0 ) *
+                elong.x() = Unitless::AMPLITUDE * Tpolynomial( tau ) / math::sqrt( 2.0_X ) *
                     math::sin( omegaLaser * ( runTime - t_rise ) + Unitless::LASER_PHASE );
-                elong.z() = Unitless::AMPLITUDE * Tpolynomial( tau ) / math::sqrt( 2.0 ) *
+                elong.z() = Unitless::AMPLITUDE * Tpolynomial( tau ) / math::sqrt( 2.0_X ) *
                     math::cos( omegaLaser * ( runTime - t_rise ) + Unitless::LASER_PHASE );
             }
         }

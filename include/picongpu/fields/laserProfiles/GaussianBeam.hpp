@@ -78,15 +78,15 @@ namespace acc
         HDINLINE float_X simpleLaguerre( const uint32_t n, const float_X x )
         {
             //Result for special case n == 0
-            if (n == 0) return float_X(1.0);
+            if (n == 0) return 1.0_X;
             uint32_t currentN = 1;
-            float_X laguerreNMinus1 = float_X(1.0);
-            float_X laguerreN = float_X(1.0) - x;
-            float_X laguerreNPlus1 = float_X(0.0);
+            float_X laguerreNMinus1 = 1.0_X;
+            float_X laguerreN = 1.0_X - x;
+            float_X laguerreNPlus1( 0.0_X );
             while (currentN < n)
             {
                 //Core statement of the algorithm
-                laguerreNPlus1 = ( ( float_X(2.0) * float_X(currentN) + float_X(1.0) - x) * laguerreN - float_X(currentN) * laguerreNMinus1 ) / float_X(currentN + 1);
+                laguerreNPlus1 = ( ( 2.0_X * float_X(currentN) + 1.0_X - x) * laguerreN - float_X(currentN) * laguerreNMinus1 ) / float_X(currentN + 1u);
                 //Advance by one order
                 laguerreNMinus1 = laguerreN;
                 laguerreN = laguerreNPlus1;
@@ -142,8 +142,8 @@ namespace acc
             // @todo add half-cells via traits::FieldPosition< Solver::NumicalCellType, FieldE >()
 
             // transversal position only
-            floatD_X planeNoNormal = floatD_X::create( 1.0 );
-            planeNoNormal[ planeNormalDir ] = 0.0;
+            floatD_X planeNoNormal = floatD_X::create( 1.0_X );
+            planeNoNormal[ planeNormalDir ] = 0.0_X;
             float_X const r2 = math::abs2( pos * planeNoNormal );
 
             // calculate focus position relative to the laser initialization plane
@@ -153,11 +153,11 @@ namespace acc
             float_X const y_R = float_X( PI ) * Unitless::W0 * Unitless::W0 / Unitless::WAVE_LENGTH;
 
             // the radius of curvature of the beam's  wavefronts
-            float_X const R_y = -focusPos * ( float_X(1.0) + ( y_R / focusPos )*( y_R / focusPos ) );
+            float_X const R_y = -focusPos * ( 1.0_X + ( y_R / focusPos )*( y_R / focusPos ) );
 
             // initialize temporary variables
-            float_X etrans = float_X( 0.0 );
-            float_X etrans_norm = float_X( 0.0 );
+            float_X etrans( 0.0_X );
+            float_X etrans_norm( 0.0_X );
             PMACC_CASSERT_MSG(
                 MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector,
                 Unitless::MODENUMBER < Unitless::LAGUERREMODES_t::dim
@@ -166,7 +166,7 @@ namespace acc
                 etrans_norm += typename Unitless::LAGUERREMODES_t{}[m];
 
             // beam waist in the near field: w_y(y=0) == W0
-            float_X const w_y = Unitless::W0 * algorithms::math::sqrt( float_X(1.0) + ( focusPos / y_R )*( focusPos / y_R ) );
+            float_X const w_y = Unitless::W0 * algorithms::math::sqrt( 1.0_X + ( focusPos / y_R )*( focusPos / y_R ) );
             //! the Gouy phase shift
             float_X const xi_y = algorithms::math::atan( -focusPos / y_R );
 
@@ -174,11 +174,11 @@ namespace acc
             {
                 for( uint32_t m = 0 ; m <= Unitless::MODENUMBER ; ++m )
                 {
-                    etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre( m, float_X(2.0) * r2 / w_y / w_y )
-                        * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + m_phase )
-                        * math::exp( -( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                              *( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * Unitless::PULSE_LENGTH ) / ( float_X(2.0) * Unitless::PULSE_LENGTH ) );
+                    etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre( m, 2.0_X * r2 / w_y / w_y )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + ( 2._X * float_X( m ) + 1._X ) * xi_y + m_phase )
+                        * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                              *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 }
                 m_elong *= etrans / etrans_norm;
             }
@@ -186,22 +186,22 @@ namespace acc
             {
                 for( uint32_t m = 0 ; m <= Unitless::MODENUMBER ; ++m )
                 {
-                    etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre( m, float_X(2.0) * r2 / w_y / w_y )
-                        * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + m_phase )
-                        * math::exp( -( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                              *( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * Unitless::PULSE_LENGTH ) / ( float_X(2.0) * Unitless::PULSE_LENGTH ) );
+                    etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre( m, 2.0_X * r2 / w_y / w_y )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + ( 2._X * float_X( m ) + 1._X ) * xi_y + m_phase )
+                        * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                              *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 }
                 m_elong.x() *= etrans / etrans_norm;
                 m_phase += float_X( PI / 2.0 );
-                etrans = float_X(0.0);
+                etrans = 0.0_X;
                 for( uint32_t m = 0 ; m <= Unitless::MODENUMBER ; ++m )
                 {
-                    etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre( m, float_X(2.0) * r2 / w_y / w_y )
-                        * math::exp( -r2 / w_y / w_y ) * math::cos( float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - float_X(2.0) * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / float_X(2.0) / R_y + ( 2*m + 1 ) * xi_y + m_phase )
-                        * math::exp( -( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                              *( r2 / float_X(2.0) / R_y - focusPos - m_phase / float_X(2.0) / float_X( PI ) * Unitless::WAVE_LENGTH )
-                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( float_X(2.0) * Unitless::PULSE_LENGTH ) / ( float_X(2.0) * Unitless::PULSE_LENGTH ) );
+                    etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre( m, 2.0_X * r2 / w_y / w_y )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + ( 2._X * float_X( m ) + 1._X ) * xi_y + m_phase )
+                        * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                              *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                              / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 }
                 m_elong.z() *= etrans / etrans_norm;
                 // reminder: if you want to use phase below, substract pi/2
@@ -218,7 +218,7 @@ namespace acc
                  *
                  * The `correctionFactor` assume that the wave is moving in y direction.
                  */
-                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * float_X( 2. );
+                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * 2._X;
 
                 // jump over the guard of the electric field
                 m_dataBoxE( localCell + SuperCellSize::toRT() * GuardSize::toRT() ) +=  correctionFactor * m_elong;
@@ -272,10 +272,10 @@ namespace acc
             // calculate focus position relative to the laser initialization plane
             float_X const focusPos = Unitless::FOCUS_POS - Unitless::initPlaneY * CELL_HEIGHT;
 
-            elong = float3_X::create( 0.0 );
+            elong = float3_X::create( 0.0_X );
 
             // This check is done here on HOST, since std::numeric_limits<float_X>::epsilon() does not compile on laserTransversal(), which is on DEVICE.
-            float_X etrans_norm = float_X( 0.0 );
+            float_X etrans_norm( 0.0_X );
 
             PMACC_CASSERT_MSG(
                 MODENUMBER_must_be_smaller_than_number_of_entries_in_LAGUERREMODES_vector,
@@ -317,11 +317,11 @@ namespace acc
             }
             else if( Unitless::Polarisation == Unitless::CIRCULAR )
             {
-                elong.x() = float_X( envelope / math::sqrt( 2.0 ) );
-                elong.z() = float_X( envelope / math::sqrt( 2.0 ) );
+                elong.x() = float_X( envelope ) / math::sqrt( 2.0_X );
+                elong.z() = float_X( envelope ) / math::sqrt( 2.0_X );
             }
 
-            phase = float_X( 2.0 ) * float_X( PI ) * float_X( Unitless::f ) * ( runTime - float_X( mue ) - focusPos / SPEED_OF_LIGHT ) + Unitless::LASER_PHASE;
+            phase = 2.0_X * float_X( PI ) * float_X( Unitless::f ) * ( runTime - float_X( mue ) - focusPos / SPEED_OF_LIGHT ) + Unitless::LASER_PHASE;
         }
 
         /** create device manipulator functor

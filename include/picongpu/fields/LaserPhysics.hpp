@@ -112,7 +112,7 @@ namespace fields
         void operator()(uint32_t currentStep) const
         {
             /* The laser can be initialized in the plane of the first cell or
-             * any later x-y plane inside the simulation. Initializing the
+             * any later x-z plane inside the simulation. Initializing the
              * laser in planes inside the simulation corresponds to an
              * evaluation of the field at negatively shifted time.
              */

@@ -50,8 +50,8 @@ namespace expRampWithPrepulse
         static constexpr float_64 TIME_1 = float_64( Params::TIME_POINT_1_SI / UNIT_TIME );
         static constexpr float_64 TIME_2 = float_64( Params::TIME_POINT_2_SI / UNIT_TIME );
         static constexpr float_64 TIME_3 = float_64( Params::TIME_POINT_3_SI / UNIT_TIME );
-        static constexpr float_X endUpramp = TIME_PEAKPULSE - 0.5 * LASER_NOFOCUS_CONSTANT;
-        static constexpr float_X startDownramp = TIME_PEAKPULSE + 0.5 * LASER_NOFOCUS_CONSTANT;
+        static constexpr float_X endUpramp = TIME_PEAKPULSE - 0.5_X * LASER_NOFOCUS_CONSTANT;
+        static constexpr float_X startDownramp = TIME_PEAKPULSE + 0.5_X * LASER_NOFOCUS_CONSTANT;
 
         static constexpr float_X INIT_TIME = float_X( ( TIME_PEAKPULSE + Params::RAMP_INIT * PULSE_LENGTH ) / UNIT_TIME );
 
@@ -62,28 +62,28 @@ namespace expRampWithPrepulse
         );
 
         // some prerequisites for check of intensities (approximate check, because I can't use exp and log)
-        static constexpr float ratio_dt = ( endUpramp - TIME_3 ) / ( TIME_3 - TIME_2 ); // ratio of time intervals
-        static constexpr float ri1 = Params::INT_RATIO_POINT_3 / Params::INT_RATIO_POINT_2; // first intensity ratio
-        static constexpr float ri2 = 0.2 / Params::INT_RATIO_POINT_3; // second intensity ratio (0.2 is an arbitrary upper border for the intensity of the exp ramp)
+        static constexpr float_X ratio_dt = ( endUpramp - TIME_3 ) / ( TIME_3 - TIME_2 ); // ratio of time intervals
+        static constexpr float_X ri1 = Params::INT_RATIO_POINT_3 / Params::INT_RATIO_POINT_2; // first intensity ratio
+        static constexpr float_X ri2 = 0.2_X / Params::INT_RATIO_POINT_3; // second intensity ratio (0.2 is an arbitrary upper border for the intensity of the exp ramp)
 
         /* Approximate check, if ri1 ^ ratio_dt > ri2. That would mean, that the exponential curve through (time2, int2) and (time3, int3) lies above (endUpramp, 0.2)
          * the power function is emulated by "rounding" the exponent to a rational number and expanding both sides by the common denominator, to get integer powers, see below
          * for this, the range for ratio_dt is split into parts; the checked condition is "rounded down", i.e. it's weaker in every point of those ranges except one.
          */
         static constexpr bool intensity_too_big =
-            ( ratio_dt >= 3.   && ri1 * ri1 * ri1 > ri2) ||
-            ( ratio_dt >= 2.   && ri1 * ri1 > ri2) ||
-            ( ratio_dt >= 1.5  && ri1 * ri1 * ri1 > ri2 * ri2) ||
-            ( ratio_dt >= 1.   && ri1 > ri2) ||
-            ( ratio_dt >= 0.8  && ri1 * ri1 * ri1 * ri1 > ri2 * ri2 * ri2 * ri2 * ri2 ) ||
-            ( ratio_dt >= 0.75 && ri1 * ri1 * ri1 > ri2 * ri2 * ri2 * ri2 ) ||
-            ( ratio_dt >= 0.67 && ri1 * ri1 > ri2 * ri2 * ri2 ) ||
-            ( ratio_dt >= 0.6  && ri1 * ri1 * ri1 > ri2 * ri2 * ri2 * ri2 * ri2 ) ||
-            ( ratio_dt >= 0.5  && ri1 > ri2 * ri2 ) ||
-            ( ratio_dt >= 0.4  && ri1 * ri1 > ri2 * ri2 * ri2 * ri2 * ri2 ) ||
-            ( ratio_dt >= 0.33 && ri1 > ri2 * ri2 * ri2 ) ||
-            ( ratio_dt >= 0.25 && ri1 > ri2 * ri2 * ri2 * ri2 ) ||
-            ( ratio_dt >= 0.2  && ri1 > ri2 * ri2 * ri2 * ri2 * ri2 );
+            ( ratio_dt >= 3._X   && ri1 * ri1 * ri1 > ri2) ||
+            ( ratio_dt >= 2._X   && ri1 * ri1 > ri2) ||
+            ( ratio_dt >= 1.5_X  && ri1 * ri1 * ri1 > ri2 * ri2) ||
+            ( ratio_dt >= 1._X   && ri1 > ri2) ||
+            ( ratio_dt >= 0.8_X  && ri1 * ri1 * ri1 * ri1 > ri2 * ri2 * ri2 * ri2 * ri2 ) ||
+            ( ratio_dt >= 0.75_X && ri1 * ri1 * ri1 > ri2 * ri2 * ri2 * ri2 ) ||
+            ( ratio_dt >= 0.67_X && ri1 * ri1 > ri2 * ri2 * ri2 ) ||
+            ( ratio_dt >= 0.6_X  && ri1 * ri1 * ri1 > ri2 * ri2 * ri2 * ri2 * ri2 ) ||
+            ( ratio_dt >= 0.5_X  && ri1 > ri2 * ri2 ) ||
+            ( ratio_dt >= 0.4_X  && ri1 * ri1 > ri2 * ri2 * ri2 * ri2 * ri2 ) ||
+            ( ratio_dt >= 0.33_X && ri1 > ri2 * ri2 * ri2 ) ||
+            ( ratio_dt >= 0.25_X && ri1 > ri2 * ri2 * ri2 * ri2 ) ||
+            ( ratio_dt >= 0.2_X  && ri1 > ri2 * ri2 * ri2 * ri2 * ri2 );
         static_assert(
             !intensity_too_big,
             "The intensities of the ramp are very large - the extrapolation to the time of the main pulse would give more than half of the pulse amplitude. This is not a Gaussian pulse at all anymore - probably some of the parameters are different from what you think!?"
@@ -169,7 +169,7 @@ namespace acc
             auto const exp_compos( pos_trans * pos_trans / ( w0 * w0 ) );
             float_X const exp_arg( exp_compos.sumOfComponents() );
 
-            m_elong *= math::exp( float_X( -1.0 ) * exp_arg );
+            m_elong *= math::exp( -1.0_X * exp_arg );
 
             if( Unitless::initPlaneY != 0 ) // compile time if
             {
@@ -181,7 +181,7 @@ namespace acc
                  *
                  * The `correctionFactor` assume that the wave is moving in y direction.
                  */
-                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * float_X( 2. );
+                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * 2._X;
 
                 // jump over the guard of the electric field
                 m_dataBoxE( localCell + SuperCellSize::toRT() * GuardSize::toRT() ) +=  correctionFactor * m_elong;
@@ -213,7 +213,7 @@ namespace acc
         gauss( float_X const t )
         {
             float_X const exponent = t / float_X( Unitless::PULSE_LENGTH );
-            return math::exp( float_X( -0.25 ) * exponent * exponent );
+            return math::exp( -0.25_X * exponent * exponent );
         }
 
         /** get value of exponential curve through two points at given t
@@ -276,7 +276,7 @@ namespace acc
                     );
                 }
 
-                env += Unitless::AMPLITUDE * ( float_X( 1. ) - ramp_when_peakpulse ) *
+                env += Unitless::AMPLITUDE * ( 1._X - ramp_when_peakpulse ) *
                     gauss( runTime - Unitless::endUpramp );
                 env += AMP_PREPULSE * gauss( runTime - Unitless::TIME_PREPULSE );
                 if( during_first_exp )
@@ -342,16 +342,16 @@ namespace acc
 
             if( Unitless::Polarisation == Unitless::LINEAR_X )
             {
-                elong.x() = float_X( envelope * ( math::sin( phase ) ) );
+                elong.x() = envelope * math::sin( phase );
             }
             else if( Unitless::Polarisation == Unitless::LINEAR_Z )
             {
-                elong.z() = float_X( envelope * ( math::sin( phase ) ) );
+                elong.z() = envelope * math::sin( phase );
             }
             else if( Unitless::Polarisation == Unitless::CIRCULAR )
             {
-                elong.x() = float_X( envelope / math::sqrt( 2.0 ) * ( math::sin( phase ) ) );
-                elong.z() = float_X( envelope / math::sqrt( 2.0 ) * ( math::cos( phase ) ) );
+                elong.x() = envelope / math::sqrt( 2.0_X ) * math::sin( phase );
+                elong.z() = envelope / math::sqrt( 2.0_X ) * math::cos( phase );
             }
         }
 

@@ -113,7 +113,7 @@ namespace acc
                  *
                  * The `correctionFactor` assume that the wave is moving in y direction.
                  */
-                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * float_X( 2. );
+                auto const correctionFactor = ( SPEED_OF_LIGHT * DELTA_T ) / CELL_HEIGHT * 2._X;
 
                 // jump over the guard of the electric field
                 m_dataBoxE( localCell + SuperCellSize::toRT() * GuardSize::toRT() ) +=  correctionFactor * m_elong;
@@ -142,7 +142,7 @@ namespace acc
          * @param currentStep current simulation time step
          */
         HINLINE PlaneWave( uint32_t currentStep ) :
-            phase( float_X( 0.0 ) )
+            phase( 0.0_X )
         {
             // get data
             DataConnector & dc = Environment< >::get( ).DataConnector( );
