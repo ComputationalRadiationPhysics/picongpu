@@ -80,14 +80,14 @@ namespace picongpu
     value_identifier(
         float3_X,
         momentumPrev1,
-        float3_X::create( 0. )
+        float3_X::create( 0._X )
     );
 
     //! weighting of the macro particle
     value_identifier(
         float_X,
         weighting,
-        float_X( 0. )
+        0._X
     );
 
     //! Voronoi cell of the macro particle
@@ -135,7 +135,7 @@ namespace picongpu
     value_identifier(
         float_X,
         boundElectrons,
-        float_X( 0. )
+        0._X
     );
 
     /** atomic superconfiguration

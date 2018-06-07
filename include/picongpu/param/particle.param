@@ -93,7 +93,7 @@ namespace manipulators
         template< typename T_Particle >
         DINLINE void operator()( T_Particle& particle )
         {
-            particle[weighting_] *= float_X(2.0);
+            particle[weighting_] *= 2.0_X;
         }
     };
 
@@ -106,7 +106,7 @@ namespace manipulators
         DINLINE void operator()( T_Rng& rng, T_Particle& particle )
         {
             // enable radiation for 10% of the particles
-            particle[ radiationMask_ ] = rng() < ( 0.1 );
+            particle[ radiationMask_ ] = rng() < 0.1_X;
         }
     };
 

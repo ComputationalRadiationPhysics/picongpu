@@ -41,8 +41,10 @@ HDINLINE float2_X mapYawPitchToNormedRange(const float_X yaw,
                                            const float_X maxYaw,
                                            const float_X maxPitch)
 {
-    return float2_X(float_X(0.5) + float_X(0.5) * yaw / maxYaw,
-                    float_X(0.5) + float_X(0.5) * pitch / maxPitch);
+    return float2_X(
+        0.5_X + 0.5_X * yaw / maxYaw,
+        0.5_X + 0.5_X * pitch / maxPitch
+    );
 }
 
 } // namespace particleCalorimeter
