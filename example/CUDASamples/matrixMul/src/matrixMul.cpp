@@ -1,5 +1,4 @@
-/**
- * Copyright 1993-2014 NVIDIA Corporation.  All rights reserved.
+/* Copyright 1993-2014 NVIDIA Corporation.  All rights reserved.
  *
  * Please refer to the NVIDIA end user license agreement (EULA) associated
  * with this source code for terms and conditions that govern your use of
@@ -9,8 +8,7 @@
  *
  */
 
-/**
- * Matrix multiplication: C = A * B.
+/** @file Matrix multiplication: C = A * B.
  * Host code.
  *
  * This sample implements matrix multiplication as described in Chapter 3
@@ -38,7 +36,7 @@
  * Matrix multiplication (CUDA Kernel) on the device: C = A * B
  * wA is A's width and wB is B's width
  */
-template <int BLOCK_SIZE> 
+template <int BLOCK_SIZE>
 struct matrixMulCUDA
 {
 
@@ -75,7 +73,7 @@ void operator()(T_Acc const& acc,float *C, float *A, float *B, int wA, int wB) c
 
    sharedMem(As, cupla::Array<cupla::Array<float,BLOCK_SIZE>,BLOCK_SIZE>);
    sharedMem(Bs, cupla::Array<cupla::Array<float,BLOCK_SIZE>,BLOCK_SIZE>);
-    
+
     // Loop over all the sub-matrices of A and B
     // required to compute the block sub-matrix
     for (int a = aBegin, b = bBegin;

@@ -1,5 +1,4 @@
-/**
- * Copyright 2016 Rene Widera
+/* Copyright 2016 Rene Widera
  *
  * This file is part of cupla.
  *
@@ -78,7 +77,7 @@ namespace manager
                 )
             );
             cuplaStream_t streamId = reinterpret_cast< cuplaStream_t >(
-                m_mapVector[ device.id() ].size()
+                m_id++
             );
             m_mapVector[ device.id() ].insert(
                 std::make_pair( streamId, std::move( streamPtr ) )
@@ -151,6 +150,8 @@ namespace manager
             const auto deviceId = device.id();
 
             m_mapVector[ deviceId ].clear( );
+            // reset id to allow that this instance can be reused
+            m_id = 0u;
 
             // @todo: check if clear creates errors
             return true;
@@ -160,6 +161,9 @@ namespace manager
         Stream() :  m_mapVector( Device< DeviceType >::get().count() )
         {
         }
+
+        //! unique if for the next stream
+        size_t m_id = 0u;
 
     };
 

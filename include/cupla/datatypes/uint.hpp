@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Rene Widera
+/* Copyright 2015-2016 Rene Widera
  *
  * This file is part of cupla.
  *

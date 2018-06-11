@@ -1,4 +1,4 @@
-/* Copyright 2015-2016 Rene Widera
+/* Copyright 2018 Rene Widera
  *
  * This file is part of cupla.
  *
@@ -18,41 +18,9 @@
  *
  */
 
-
 #pragma once
 
-#include "cupla/types.hpp"
-
-namespace cupla{
-
-    template<
-        typename T_Type,
-        size_t T_size
-    >
-    struct Array{
-        T_Type m_data[T_size];
-
-        template<
-            typename T_Idx
-        >
-        ALPAKA_FN_HOST_ACC
-        const T_Type &
-        operator[](
-            const T_Idx idx
-        ) const {
-            return m_data[idx];
-        }
-
-        template<
-            typename T_Idx
-        >
-        ALPAKA_FN_HOST_ACC
-        T_Type &
-        operator[](
-            const T_Idx idx
-        ){
-            return m_data[idx];
-        }
-    };
-
-} //namespace cupla
+#define CUPLA_VERSION_MAJOR 0
+#define CUPLA_VERSION_MINOR 1
+#define CUPLA_VERSION_PATCH 0
+#define CUPLA_VERSION_LABEL ""
