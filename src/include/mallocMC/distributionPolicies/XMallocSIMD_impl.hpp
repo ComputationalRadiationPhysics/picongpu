@@ -101,7 +101,7 @@ namespace DistributionPolicies{
         //necessary for offset calculation
         bool coalescible = bytes > 0 && bytes < (pagesize / 32);
 #if(__CUDACC_VER_MAJOR__ >= 9)
-        threadcount = __popc(__ballot_sync(0xFFFFFFFF, coalescible));
+        threadcount = __popc(__ballot_sync(__activemask(), coalescible));
 #else
         threadcount = __popc(__ballot(coalescible));
 #endif
