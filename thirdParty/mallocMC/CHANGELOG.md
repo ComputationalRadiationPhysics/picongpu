@@ -1,6 +1,42 @@
 Change Log / Release Log for mallocMC
 ================================================================
 
+2.3.0crp
+--------
+**Date:** 2018-06-11
+
+This release adds support for CUDA 9 and clang's -x cuda frontend and fixes several bugs.
+Global objects have been refactored to separate objects on host and device.
+
+### Changes to mallocMC 2.2.0crp
+
+**Features**
+ - CUDA 9 support #144 #145
+ - clang++ -x cuda support #133
+ - add `destructiveResize` method #136
+ - heap as separate object on host and device, no more globals #116
+ - use `BOOST_STATIC_CONSTEXPR` where possible #109
+
+**Bug fixes**
+ - fix uninitialized pointers #110 #112
+ - fix crash in getAvailableSlots #106 #107
+ - Fix `uint32_t` cstdint #104 #105
+ - fix missing boost include #142
+ - fix includes from C headers #121
+ - fix missing local size change in `finalizeHeap()` #135
+ - check heap pointer in Scatter creation policy #126
+
+**Misc:**
+ - better link usage and install docs #141
+ - self consistent allocator #140
+ - rename some shadowed variables in C++11 mode #108
+ - properly enforce `-Werror` in Travis-CI #128
+ - update Travis-CI image #119
+ - improved docs #125 #127
+
+Thanks to Carlchristian Eckert, René Widera, Axel Huebl and Alexander Grund for contributing to this release!
+
+
 2.2.0crp
 -------------
 **Date:** 2015-09-25
