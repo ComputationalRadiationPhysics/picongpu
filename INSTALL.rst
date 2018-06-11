@@ -112,6 +112,19 @@ rsync
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
 
+alpaka 0.3.1
+""""""""""""
+- `alpaka <https://github.com/ComputationalRadiationPhysics/alpaka>`_ is included in the PIConGPU source code
+
+cupla 0.1.0
+"""""""""""
+- `cupla <https://github.com/ComputationalRadiationPhysics/cupla>`_ is included in the PIConGPU source code
+
+mallocMC 2.3.0crp-dev
+"""""""""""""""""""""
+- only required for CUDA backend
+- `mallocMC <https://github.com/ComputationalRadiationPhysics/mallocMC>`_ is included in the PIConGPU source code
+
 .. _install-dependencies-picongpu:
 
 PIConGPU Source Code
