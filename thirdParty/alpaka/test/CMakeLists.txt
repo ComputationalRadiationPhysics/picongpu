@@ -22,7 +22,7 @@
 # Required CMake version.
 ################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
 
 PROJECT("alpakaTest")
 

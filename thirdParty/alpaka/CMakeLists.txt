@@ -19,14 +19,26 @@
 #
 
 ################################################################################
-# Required CMake version.
+# Required CMake version
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
+cmake_minimum_required(VERSION 3.7.0)
 
-PROJECT("alpakaAll")
+project("alpakaAll")
+
+################################################################################
+# Options and Variants
+
+option(alpaka_BUILD_EXAMPLES "Build the examples" ON)
+
+include(CTest)
+# automatically defines: BUILD_TESTING, default is ON
 
 ################################################################################
 # Add subdirectories.
 
-ADD_SUBDIRECTORY("example/")
-ADD_SUBDIRECTORY("test/")
+if(alpaka_BUILD_EXAMPLES)
+    add_subdirectory("example/")
+endif()
+if(BUILD_TESTING)
+    add_subdirectory("test/")
+endif()
