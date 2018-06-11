@@ -74,5 +74,5 @@ ${CXX} -v
 
 source ./script/travis/prepare_sanitizers.sh
 if [ "${ALPAKA_CI_ANALYSIS}" == "ON" ] ;then ./script/travis/run_analysis.sh ;fi
-if [ "${ALPAKA_CI_ANALYSIS}" == "ON" -a "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "OFF" ] ;then ./script/travis/run_headerCheck.sh ;fi
+if [ "${ALPAKA_CI_ANALYSIS}" == "ON" ] ;then ./script/travis/run_headerCheck.sh ;fi
 if [ "${ALPAKA_CI_ANALYSIS}" == "OFF" ] ;then ./script/travis/run_tests.sh ;fi

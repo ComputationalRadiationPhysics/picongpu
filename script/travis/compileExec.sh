@@ -27,6 +27,36 @@
 set -eo pipefail
 
 #-------------------------------------------------------------------------------
+
+# create a cmake variable definition if an environment variable exists
+#
+# This function can not handle environment variables with spaces in its content.
+#
+# @param $1 environment variable name
+# @param $2 cmake variable name (optional)
+#           if not defined than cmake variable name is equal to environment name
+# 
+# @result if $2 exists cmake variable definition else nothing is returned
+#
+# @code{.bash}
+# FOO=ON
+# echo "$(env2cmake FOO)" # returns "-DFOO=ON"
+# echo "$(env2cmake FOO CMAKE_FOO_DEF)" # returns "-DCMAKE_FOO_DEF=ON"
+# echo "$(env2cmake BAR)" # returns nothing
+# @endcode
+function env2cmake()
+{
+    if [ $# -ne 2 ] ; then
+        cmakeName=$1
+    else
+        cmakeName=$2
+    fi
+    if [ -v "$1" ] ; then
+        echo -n "-D$cmakeName=${!1}"
+    fi
+}
+
+#-------------------------------------------------------------------------------
 # Build and execute all tests.
 oldPath=${PWD}
 cd "${1}"
@@ -38,7 +68,7 @@ cmake -G "Unix Makefiles" \
     -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE="${ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE}" -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE="${ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE}" -DALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE="${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" \
     -DALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE="${ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE}"\
     -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE="${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE}" -DALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE="${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE}" -DALPAKA_ACC_CPU_BT_OMP4_ENABLE="${ALPAKA_ACC_CPU_BT_OMP4_ENABLE}" \
-    -DALPAKA_ACC_GPU_CUDA_ENABLE="${ALPAKA_ACC_GPU_CUDA_ENABLE}" -DALPAKA_CUDA_VERSION="${ALPAKA_CUDA_VER}" -DALPAKA_CUDA_COMPILER="${ALPAKA_CUDA_COMPILER}" -DALPAKA_ACC_GPU_CUDA_ONLY_MODE="${ALPAKA_ACC_GPU_CUDA_ONLY_MODE}" -DALPAKA_CUDA_ARCH="${ALPAKA_CUDA_ARCH}"\
+    "$(env2cmake ALPAKA_ACC_GPU_CUDA_ENABLE)" "$(env2cmake ALPAKA_CUDA_VER ALPAKA_CUDA_VERSION)" "$(env2cmake ALPAKA_ACC_GPU_CUDA_ONLY_MODE)" "$(env2cmake ALPAKA_CUDA_ARCH)" "$(env2cmake ALPAKA_CUDA_COMPILER)" \
     -DALPAKA_DEBUG="${ALPAKA_DEBUG}" -DALPAKA_CI=ON \
     "../../"
 make VERBOSE=1

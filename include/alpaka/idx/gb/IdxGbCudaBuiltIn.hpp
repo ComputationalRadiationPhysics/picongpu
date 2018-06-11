@@ -33,6 +33,7 @@
 
 #include <alpaka/vec/Vec.hpp>
 #include <alpaka/core/Cuda.hpp>
+#include <alpaka/core/Positioning.hpp>
 
 //#include <boost/core/ignore_unused.hpp>
 

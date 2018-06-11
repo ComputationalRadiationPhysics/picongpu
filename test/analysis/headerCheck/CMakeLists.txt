@@ -81,7 +81,7 @@ ENDFOREACH()
 SET(_SOURCE_DIR "src/")
 
 append_recursive_files_add_to_src_group("${_GENERATED_SOURCE_DIR}" "${_GENERATED_SOURCE_DIR}" "cpp" "_FILES_SOURCE")
-append_recursive_files_add_to_src_group("${_SOURCE_DIR}" "${_SOURCE_DIR}" "cpp" "_FILES_SOURCE")
+LIST(APPEND _FILES_SOURCE "src/main.cpp")
 
 # Always add all files to the target executable build call to add them to the build project.
 ALPAKA_ADD_EXECUTABLE(
@@ -106,5 +106,4 @@ ENDIF()
 # Group the targets into subfolders for IDEs supporting this.
 SET_TARGET_PROPERTIES(headerCheck PROPERTIES FOLDER "test/analysis")
 
-ENABLE_TESTING()
 ADD_TEST(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME})

@@ -81,7 +81,7 @@ The following tables list the functions available in the [CUDA Runtime API](http
 |cudaDeviceSetSharedMemConfig|-|
 |cudaDeviceSynchronize|void alpaka::wait::wait(device)|
 |cudaGetDevice|n/a (no current device)|
-|cudaGetDeviceCount|std::size_t alpaka::pltf::DevMan< TPltf >::getDevCount()|
+|cudaGetDeviceCount|std::size_t alpaka::pltf::getDevCount< TPltf >()|
 |cudaGetDeviceFlags|-|
 |cudaGetDeviceProperties|alpaka::acc::getAccDevProps(dev) *NOTE: Only some properties available*|
 |cudaIpcCloseMemHandle|-|
