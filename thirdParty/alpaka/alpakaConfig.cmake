@@ -49,7 +49,6 @@ UNSET(_ALPAKA_COMMON_FILE)
 UNSET(_ALPAKA_ADD_EXECUTABLE_FILE)
 UNSET(_ALPAKA_ADD_LIBRRAY_FILE)
 UNSET(_ALPAKA_FILES_HEADER)
-UNSET(_ALPAKA_FILES_SOURCE)
 UNSET(_ALPAKA_FILES_OTHER)
 UNSET(_ALPAKA_VERSION_DEFINE)
 UNSET(_ALPAKA_VER_MAJOR)
@@ -128,7 +127,7 @@ IF(${ALPAKA_DEBUG} GREATER 1)
     SET(Boost_DETAILED_FAILURE_MSG ON)
 ENDIF()
 IF(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
-    FIND_PACKAGE(Boost ${_ALPAKA_BOOST_MIN_VER} QUIET COMPONENTS fiber context system thread chrono date_time)
+    FIND_PACKAGE(Boost ${_ALPAKA_BOOST_MIN_VER} QUIET COMPONENTS fiber context system thread atomic chrono date_time)
     IF(NOT Boost_FIBER_FOUND)
         MESSAGE(STATUS "Optional alpaka dependency Boost fiber could not be found! Fibers back-end disabled!")
         SET(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE OFF CACHE BOOL "Enable the Fibers CPU back-end" FORCE)
@@ -207,8 +206,29 @@ IF(NOT Boost_FOUND)
     SET(_ALPAKA_FOUND FALSE)
 
 ELSE()
-    LIST(APPEND _ALPAKA_INCLUDE_DIRECTORIES_PUBLIC ${Boost_INCLUDE_DIRS})
-    LIST(APPEND _ALPAKA_LINK_LIBRARIES_PUBLIC ${Boost_LIBRARIES})
+    IF(Boost_FIBER_FOUND)
+        # Boost fiber and default header-only libraries
+        IF(TARGET Boost::fiber)
+            LIST(APPEND _ALPAKA_LINK_LIBRARIES_PUBLIC
+                 Boost::boost
+                 Boost::fiber Boost::context Boost::system Boost::thread
+                 Boost::chrono Boost::date_time Boost::atomic
+            )
+        ELSE()
+            # fallback: Boost version is too new for CMake
+            LIST(APPEND _ALPAKA_INCLUDE_DIRECTORIES_PUBLIC ${Boost_INCLUDE_DIRS})
+            LIST(APPEND _ALPAKA_LINK_LIBRARIES_PUBLIC ${Boost_LIBRARIES})
+        ENDIF()
+    ELSE()
+        # header-only libraries
+        IF(TARGET Boost::boost)
+            LIST(APPEND _ALPAKA_LINK_LIBRARIES_PUBLIC Boost::boost)
+        ELSE()
+            # fallback: Boost version is too new for CMake
+            LIST(APPEND _ALPAKA_INCLUDE_DIRECTORIES_PUBLIC ${Boost_INCLUDE_DIRS})
+            LIST(APPEND _ALPAKA_LINK_LIBRARIES_PUBLIC ${Boost_LIBRARIES})
+        ENDIF()
+    ENDIF()
 ENDIF()
 
 #-------------------------------------------------------------------------------
@@ -491,7 +511,6 @@ IF(ALPAKA_CI)
 ENDIF()
 
 SET(_ALPAKA_INCLUDE_DIRECTORY "${_ALPAKA_ROOT_DIR}/include")
-LIST(APPEND _ALPAKA_INCLUDE_DIRECTORIES_PUBLIC "${_ALPAKA_INCLUDE_DIRECTORY}")
 SET(_ALPAKA_SUFFIXED_INCLUDE_DIR "${_ALPAKA_INCLUDE_DIRECTORY}/alpaka")
 
 SET(_ALPAKA_LINK_LIBRARY)
@@ -499,7 +518,6 @@ LIST(APPEND _ALPAKA_LINK_LIBRARIES_PUBLIC "${_ALPAKA_LINK_LIBRARY}")
 
 # Add all the source and include files in all recursive subdirectories and group them accordingly.
 append_recursive_files_add_to_src_group("${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "hpp" _ALPAKA_FILES_HEADER)
-append_recursive_files_add_to_src_group("${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "${_ALPAKA_SUFFIXED_INCLUDE_DIR}" "cpp" _ALPAKA_FILES_SOURCE)
 
 append_recursive_files_add_to_src_group("${_ALPAKA_ROOT_DIR}/script" "${_ALPAKA_ROOT_DIR}" "sh" _ALPAKA_FILES_SCRIPT)
 SET_SOURCE_FILES_PROPERTIES(${_ALPAKA_FILES_SCRIPT} PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -517,9 +535,13 @@ SET_SOURCE_FILES_PROPERTIES(${_ALPAKA_FILES_OTHER} PROPERTIES HEADER_FILE_ONLY T
 #-------------------------------------------------------------------------------
 # Target.
 IF(NOT TARGET "alpaka")
-    ADD_LIBRARY(
-        "alpaka"
-        ${_ALPAKA_FILES_HEADER} ${_ALPAKA_FILES_SOURCE} ${_ALPAKA_FILES_SCRIPT} ${_ALPAKA_FILES_CMAKE} ${_ALPAKA_FILES_DOC} ${_ALPAKA_FILES_OTHER})
+    ADD_LIBRARY("alpaka" INTERFACE)
+
+    # HACK: Workaround for the limitation that files added to INTERFACE targets (target_sources) can not be marked as PUBLIC or PRIVATE but only as INTERFACE.
+    # Therefore those files will be added to projects "linking" to the INTERFACE library, but are not added to the project itself within an IDE.
+    add_custom_target("alpakaIde"
+        SOURCES ${_ALPAKA_FILES_HEADER} ${_ALPAKA_FILES_SCRIPT} ${_ALPAKA_FILES_CMAKE} ${_ALPAKA_FILES_DOC} ${_ALPAKA_FILES_OTHER}
+    )
 
     # Compile options.
     IF(${ALPAKA_DEBUG} GREATER 1)
@@ -532,7 +554,7 @@ IF(NOT TARGET "alpaka")
     IF(${_ALPAKA_COMPILE_OPTIONS_PUBLIC_LENGTH} GREATER 0)
         TARGET_COMPILE_OPTIONS(
             "alpaka"
-            PUBLIC ${_ALPAKA_COMPILE_OPTIONS_PUBLIC})
+            INTERFACE ${_ALPAKA_COMPILE_OPTIONS_PUBLIC})
     ENDIF()
 
     # Compile definitions.
@@ -546,7 +568,7 @@ IF(NOT TARGET "alpaka")
     IF(${_ALPAKA_COMPILE_DEFINITIONS_PUBLIC_LENGTH} GREATER 0)
         TARGET_COMPILE_DEFINITIONS(
             "alpaka"
-            PUBLIC ${_ALPAKA_COMPILE_DEFINITIONS_PUBLIC})
+            INTERFACE ${_ALPAKA_COMPILE_DEFINITIONS_PUBLIC})
     ENDIF()
 
     # Include directories.
@@ -560,8 +582,14 @@ IF(NOT TARGET "alpaka")
     IF(${_ALPAKA_INCLUDE_DIRECTORIES_PUBLIC_LENGTH} GREATER 0)
         TARGET_INCLUDE_DIRECTORIES(
             "alpaka"
-            PUBLIC ${_ALPAKA_INCLUDE_DIRECTORIES_PUBLIC})
+            SYSTEM
+            INTERFACE ${_ALPAKA_INCLUDE_DIRECTORIES_PUBLIC})
     ENDIF()
+    # the alpaka library itself
+    TARGET_INCLUDE_DIRECTORIES(
+        "alpaka"
+        INTERFACE ${_ALPAKA_INCLUDE_DIRECTORY}
+    )
 
     # Link libraries.
     # There are no PUBLIC_LINK_FLAGS in CMAKE:
@@ -576,7 +604,7 @@ IF(NOT TARGET "alpaka")
     IF(${_ALPAKA_LINK_LIBRARIES_PUBLIC_LENGTH} GREATER 0)
         TARGET_LINK_LIBRARIES(
             "alpaka"
-            PUBLIC ${_ALPAKA_LINK_LIBRARIES_PUBLIC} ${_ALPAKA_LINK_FLAGS_PUBLIC})
+            INTERFACE ${_ALPAKA_LINK_LIBRARIES_PUBLIC} ${_ALPAKA_LINK_FLAGS_PUBLIC})
     ENDIF()
 ENDIF()
 
@@ -604,6 +632,7 @@ list_add_prefix("-D" alpaka_DEFINITIONS)
 LIST(APPEND alpaka_DEFINITIONS ${_ALPAKA_COMPILE_OPTIONS_PUBLIC})
 SET(alpaka_INCLUDE_DIR ${_ALPAKA_INCLUDE_DIRECTORY})
 SET(alpaka_INCLUDE_DIRS ${_ALPAKA_INCLUDE_DIRECTORIES_PUBLIC})
+LIST(APPEND alpaka_INCLUDE_DIRS ${_ALPAKA_INCLUDE_DIRECTORY})
 SET(alpaka_LIBRARY ${_ALPAKA_LINK_LIBRARY})
 SET(alpaka_LIBRARIES ${_ALPAKA_LINK_FLAGS_PUBLIC})
 LIST(APPEND alpaka_LIBRARIES ${_ALPAKA_LINK_LIBRARIES_PUBLIC})
@@ -646,7 +675,6 @@ IF(NOT _ALPAKA_FOUND)
     UNSET(_ALPAKA_ADD_EXECUTABLE_FILE)
     UNSET(_ALPAKA_ADD_LIBRARY_FILE)
     UNSET(_ALPAKA_FILES_HEADER)
-    UNSET(_ALPAKA_FILES_SOURCE)
     UNSET(_ALPAKA_FILES_OTHER)
     UNSET(_ALPAKA_BOOST_MIN_VER)
     UNSET(_ALPAKA_VERSION_DEFINE)
@@ -669,7 +697,6 @@ ELSE()
         _ALPAKA_ADD_EXECUTABLE_FILE
         _ALPAKA_ADD_LIBRARY_FILE
         _ALPAKA_FILES_HEADER
-        _ALPAKA_FILES_SOURCE
         _ALPAKA_FILES_OTHER
         _ALPAKA_BOOST_MIN_VER
         _ALPAKA_VERSION_DEFINE

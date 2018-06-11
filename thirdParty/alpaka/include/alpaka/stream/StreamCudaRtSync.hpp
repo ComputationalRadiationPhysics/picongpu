@@ -41,6 +41,8 @@
 #include <stdexcept>
 #include <memory>
 #include <functional>
+#include <mutex>
+#include <condition_variable>
 
 namespace alpaka
 {

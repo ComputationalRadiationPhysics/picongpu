@@ -1,5 +1,4 @@
-/**
- * Copyright 2015-2016 Rene Widera, Maximilian Knespel
+/* Copyright 2015-2016 Rene Widera, Maximilian Knespel
  *
  * This file is part of cupla.
  *

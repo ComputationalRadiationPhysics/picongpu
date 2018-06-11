@@ -18,8 +18,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-# CUDA_SOURCE_PROPERTY_FORMAT is only supported starting from 3.3.0.
-CMAKE_MINIMUM_REQUIRED(VERSION 3.3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
 
 #------------------------------------------------------------------------------
 # Calls CUDA_ADD_LIBRARY or ADD_LIBRARY depending on the enabled alpaka

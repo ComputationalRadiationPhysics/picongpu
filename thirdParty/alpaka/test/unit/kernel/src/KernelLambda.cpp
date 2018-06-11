@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_SUITE(kernel)
 // See: https://llvm.org/bugs/show_bug.cgi?id=26341
 #if !BOOST_COMP_CLANG_CUDA || BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)
 
-#if !ALPAKA_CI
+#if !defined(ALPAKA_CI)
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     lambdaKernelIsWorking,
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 
 // Generic lambdas are a C++14 feature.
 #if !defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
-#if !ALPAKA_CI
+#if !defined(ALPAKA_CI)
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     genericLambdaKernelIsWorking,
