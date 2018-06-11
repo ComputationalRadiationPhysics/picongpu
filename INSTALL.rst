@@ -31,7 +31,11 @@ Mandatory
 
 gcc
 """
-- 4.9 to 5.X (depends on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
+- 4.9 - 7 (if you want to build of Nvidia GPUs, supported compilers depend on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
+
+  - CUDA 8.0: Use gcc 4.9
+  - CUDA 9.0 - 9.1: Use gcc 4.9 - 5
+  - CUDA 9.2: Use gcc 4.9 - 7
 - *note:* be sure to build all libraries/dependencies with the *same* gcc version
 - *Debian/Ubuntu:*
   
