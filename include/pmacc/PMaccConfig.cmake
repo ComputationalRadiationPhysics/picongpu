@@ -322,6 +322,25 @@ if( ("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc") AND
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_NOEXCEPT")
 endif()
 
+# GCC's C++11 tuples are broken in "supported" NVCC versions
+if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        if(CUDA_VERSION VERSION_EQUAL 8.0)
+            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 5.0)
+                message(FATAL_ERROR "NVCC 8.0 does not support the std::tuple "
+                        "implementation in GCC 5+. Please use GCC 4.9!")
+            endif()
+        elseif(
+            (CUDA_VERSION VERSION_EQUAL 9.0) OR
+            (CUDA_VERSION VERSION_EQUAL 9.1))
+            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 6.0)
+                message(FATAL_ERROR "NVCC 9.0-9.1 do not support the std::tuple "
+                        "implementation in GCC 6+. Please use GCC 4.9 or 5!")
+            endif()
+        endif()
+    endif()
+endif()
+
 
 ################################################################################
 # Find OpenMP
