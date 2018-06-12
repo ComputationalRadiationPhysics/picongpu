@@ -341,6 +341,18 @@ if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
     endif()
 endif()
 
+# CUDA 9.2 is not yet supported by alpaka
+if(CUDA_VERSION VERSION_EQUAL 9.2)
+    if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
+        message(FATAL_ERROR "NVCC 9.2 is not yet supported by alpaka!")
+    endif()
+endif()
+
+# Newer CUDA releases: probably troublesome, warn at least
+if(CUDA_VERSION VERSION_GREATER 9.2)
+    message(WARNING "Untested CUDA release! Maybe use a newer PIConGPU?")
+endif()
+
 
 ################################################################################
 # Find OpenMP
