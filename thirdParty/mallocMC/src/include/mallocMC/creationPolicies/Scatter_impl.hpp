@@ -619,7 +619,7 @@ namespace ScatterKernelDetail{
         void* res = 0;
         for(
 #if(__CUDACC_VER_MAJOR__ >= 9)
-          unsigned int __mask = __ballot_sync(0xFFFFFFFF, 1),
+          unsigned int __mask = __activemask(),
 #else
           unsigned int __mask = __ballot(1),
 #endif
@@ -936,7 +936,7 @@ namespace ScatterKernelDetail{
         int wId = threadIdx.x >> 5; //do not use warpid-function, since this value is not guaranteed to be stable across warp lifetime
 
 #if(__CUDACC_VER_MAJOR__ >= 9)
-        uint32 activeThreads  = __popc(__ballot_sync(0xFFFFFFFF, true));
+        uint32 activeThreads  = __popc(__activemask());
 #else
         uint32 activeThreads  = __popc(__ballot(true));
 #endif

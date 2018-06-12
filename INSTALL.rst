@@ -124,8 +124,8 @@ cupla 0.1.0
 """""""""""
 - `cupla <https://github.com/ComputationalRadiationPhysics/cupla>`_ is included in the PIConGPU source code
 
-mallocMC 2.3.0crp-dev
-"""""""""""""""""""""
+mallocMC 2.3.0crp
+"""""""""""""""""
 - only required for CUDA backend
 - `mallocMC <https://github.com/ComputationalRadiationPhysics/mallocMC>`_ is included in the PIConGPU source code
 
