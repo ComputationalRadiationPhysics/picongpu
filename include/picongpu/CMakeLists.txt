@@ -312,7 +312,7 @@ endif(PNGwriter_FOUND)
 
 SET(ISAAC_CUDA OFF CACHE BOOL "Using CUDA")
 SET(ISAAC_ALPAKA ON CACHE BOOL "Using Alpaka")
-find_package(ISAAC 1.3.3 CONFIG QUIET)
+find_package(ISAAC 1.4.0 CONFIG QUIET)
 if(ISAAC_FOUND)
     message(STATUS "Found ISAAC: ${ISAAC_DIR}")
     SET(ISAAC_STEREO "No" CACHE STRING "Using stereoscopy")
