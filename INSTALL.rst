@@ -35,7 +35,7 @@ gcc
 
   - CUDA 8.0: Use gcc 4.9
   - CUDA 9.0 - 9.1: Use gcc 4.9 - 5
-  - CUDA 9.2: Use gcc 4.9 - 7
+  - CUDA 9.2: Use gcc 4.9 - 7 (not yet supported)
 - *note:* be sure to build all libraries/dependencies with the *same* gcc version
 - *Debian/Ubuntu:*
   
@@ -152,7 +152,7 @@ Optional Libraries
 
 CUDA
 """"
-- `8.0+ <https://developer.nvidia.com/cuda-downloads>`_
+- `8.0 - 9.1 <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``
