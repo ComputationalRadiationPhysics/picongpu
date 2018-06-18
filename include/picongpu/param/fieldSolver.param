@@ -19,7 +19,12 @@
 
 /** @file
  *
- * Configure the field solver
+ * Configure the field solver.
+ *
+ * Select the numerical Maxwell solver (e.g. Yee's method).
+ *
+ * Also allows to configure ad hoc mitigations for high frequency
+ * noise in some setups via current smoothing.
  */
 
 #pragma once
