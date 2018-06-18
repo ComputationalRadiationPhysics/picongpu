@@ -39,7 +39,7 @@ PIConGPU command line option description
 ``--adios.compression``      Set data transform compression method. See ``adios_config -m`` for which compression methods are available. This flag also influences compression for checkpoints.
 ``--adios.aggregators``      Set number of I/O aggregator nodes for ADIOS ``MPI_AGGREGATE`` transport method.
 ``--adios.ost``              Set number of I/O OSTs for ADIOS ``MPI_AGGREGATE`` transport method.
-``--adios.disable-meta``     Disable on-defly creation of the adios journal file. Allowed values ``0`` means write a journal file, ``1`` skips its generation.
+``--adios.disable-meta``     Disable on-the-fly creation of the adios journal file. Allowed values: ``0`` means write a journal file, ``1`` skips its generation.
 ``--adios.source``           Select data sources to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
 ============================ ==================================================================================================================================================================
 
@@ -59,6 +59,45 @@ PIConGPU command line option description
 
    #. dump all species data each 128th time step, **do not create** the adios journal meta file.
    #. dump all field data each 1000th time step but **create** the adios journal meta file.
+
+.. _usage-plugins-ADIOS-meta:
+
+Meta Files
+^^^^^^^^^^
+
+Disabling on-the-fly meta (journal) file creation can improve output performance for large scale runs.
+After your simulation finished, make sure to run ``bpmeta <theoretical-meta-fileName>`` on created ADIOS output.
+
+You also need to create the meta file if you skipped on-the-fly creation in checkpointing and want to :ref:`restart from such a checkpoint <usage-plugins-checkpoint>` (with ADIOS as IO backend).
+
+Example:
+
+.. code-block:: bash
+
+   ls simOutput/
+   # bp  checkpoints  [...]
+
+   ls simOutput/{bp,checkpoints}
+   # simOutput/bp:
+   #   simData_0.bp.dir simData_100.bp.dir [...]
+   # simOutput/checkpoints:
+   #   checkpoint_0.bp.dir checkpoint_2000.bp.dir
+
+   cd simOutput/bp
+   bpmeta simData_0.bp
+   bpmeta simData_100.bp
+   # [...]
+   cd ../checkpoints
+   bpmeta checkpoint_0.bp
+   bpmeta checkpoint_2000.bp
+
+   ls simOutput/{bp,checkpoints}
+   # simOutput/bp:
+   #   simData_0.bp simData_0.bp.dir
+   #   simData_100.bp simData_100.bp.dir [...]
+   # simOutput/checkpoints:
+   #   checkpoint_0.bp checkpoint_0.bp.dir
+   #   checkpoint_2000.bp checkpoint_2000.bp.dir
 
 Memory Complexity
 ^^^^^^^^^^^^^^^^^
