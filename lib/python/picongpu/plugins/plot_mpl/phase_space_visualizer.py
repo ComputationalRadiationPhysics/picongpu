@@ -32,6 +32,7 @@ class Visualizer(BaseVisualizer):
         # for unit-conversion from SI (taken from picongpu readthedocs)
         self.mu = 1.e6
         self.e_mc_r = 1. / (9.1e-31 * 2.9979e8)
+        self.cbar = None
 
     def _create_data_reader(self, run_directory):
         """
@@ -89,14 +90,19 @@ class Visualizer(BaseVisualizer):
         _, meta = self.data
         # prevent multiple rendering of colorbar
         if not self.plt_obj.colorbar:
-            cbar = plt.colorbar(self.plt_obj, ax=ax)
-            cbar.set_label(
+            self.cbar = plt.colorbar(self.plt_obj, ax=ax)
+            self.cbar.set_label(
                 r'$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}'
                 '$')
 
         ax.set_xlabel(r'${0}$ [${1}$]'.format(meta.r, "\mathrm{\mu m}"))
         ax.set_ylabel(
             r'$p_{0}$ [$\beta\gamma$]'.format(meta.p))
+
+    def clear_cbar(self):
+        """Clear colorbar if present."""
+        if self.cbar is not None:
+            self.cbar.remove()
 
 
 if __name__ == '__main__':
