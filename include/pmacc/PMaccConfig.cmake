@@ -326,9 +326,9 @@ endif()
 if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         if(CUDA_VERSION VERSION_EQUAL 8.0)
-            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 5.0)
+            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 5.4)
                 message(FATAL_ERROR "NVCC 8.0 does not support the std::tuple "
-                        "implementation in GCC 5+. Please use GCC 4.9!")
+                        "implementation in GCC 5.4+. Please use GCC 4.9 - 5.3!")
             endif()
         elseif(
             (CUDA_VERSION VERSION_EQUAL 9.0) OR
