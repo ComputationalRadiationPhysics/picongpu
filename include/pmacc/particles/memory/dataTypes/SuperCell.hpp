@@ -22,6 +22,8 @@
 #pragma once
 
 #include "pmacc/types.hpp"
+#include "pmacc/math/vector/compile-time/Vector.hpp"
+
 
 namespace pmacc
 {
@@ -32,10 +34,10 @@ class SuperCell
 public:
 
     HDINLINE SuperCell() :
-    firstFramePtr(nullptr),
-    lastFramePtr(nullptr),
-    mustShiftVal(false),
-    sizeLastFrame(0)
+        firstFramePtr(nullptr),
+        lastFramePtr(nullptr),
+        numParticles(0),
+        mustShiftVal(false)
     {
     }
 
@@ -69,23 +71,30 @@ public:
         mustShiftVal = value;
     }
 
-    HDINLINE lcellId_t getSizeLastFrame()
+    HDINLINE uint32_t getSizeLastFrame()
     {
-        return sizeLastFrame;
+        constexpr uint32_t frameSize = math::CT::volume<
+            typename TYPE::SuperCellSize
+        >::type::value;
+            return numParticles ? ( ( numParticles - 1u ) % frameSize + 1u ) : 0u;
     }
 
-    HDINLINE void setSizeLastFrame(lcellId_t size)
+    HDINLINE uint32_t getNumParticles()
     {
-        sizeLastFrame = size;
+        return numParticles;
     }
 
+    HDINLINE void setNumParticles(uint32_t size)
+    {
+        numParticles = size;
+    }
 
-private:
-    PMACC_ALIGN(mustShiftVal, bool);
-    PMACC_ALIGN(sizeLastFrame, lcellId_t);
 public:
     PMACC_ALIGN(firstFramePtr, TYPE*);
     PMACC_ALIGN(lastFramePtr, TYPE*);
+private:
+    PMACC_ALIGN(numParticles, uint32_t);
+    PMACC_ALIGN(mustShiftVal, bool);
 };
 
-} //end namespace
+} //namespace pmacc

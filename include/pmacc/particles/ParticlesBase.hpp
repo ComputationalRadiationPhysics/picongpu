@@ -172,6 +172,11 @@ public:
     /** copy guard particles to intermediate exchange buffer
      *
      * Copy all particles from the guard of a direction to the device exchange buffer.
+     *  @warning This method resets the number of particles in the processed supercells even
+     * if there are particles left in the supercell and not fulfill the rule that the
+     * last frame is contiguous filled.
+     * Call KernelFillGaps afterwards if you need a valid number of particles
+     * and a contiguous filled last frame.
      */
     void copyGuardToExchange(uint32_t exchangeType);
 
