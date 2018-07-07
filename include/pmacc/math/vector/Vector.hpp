@@ -65,14 +65,14 @@ struct Vector_components
 };
 
 
-/** functor to copy a object element wise
+/** functor to copy a object element-wise
  *
  * @tparam isDestConst define if destination is const (not copyable) object
  */
 template<bool isDestConst>
 struct CopyElementWise
 {
-    /** copy object element wise
+    /** copy object element-wise
      *
      * @tparam T_Dest destination object type
      * @tparam T_Src source object type

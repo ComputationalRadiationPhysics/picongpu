@@ -89,16 +89,16 @@ struct KernelIntensity
 
         if (threadId.x() == 0)
         {
-            /*clear destination arrays*/
+            // clear destination arrays
             s_integrated[threadId.y()] = float_X(0.0);
             s_max[threadId.y()] = float_X(0.0);
         }
         __syncthreads();
 
-        /*move cell wise over z direction(without garding cells)*/
+        // move cell-wise over z direction (without guarding cells)
         for (int z = GuardSize::z::value * SuperCellSize::z::value; z < cellsCount.z() - GuardSize::z::value * SuperCellSize::z::value; ++z)
         {
-            /*move supercell wise over x direction without guarding*/
+            // move supercell-wise over x direction without guarding
             for (int x = GuardSize::x::value * SuperCellSize::x::value + threadId.x(); x < cellsCount.x() - GuardSize::x::value * SuperCellSize::x::value; x += SuperCellSize::x::value)
             {
                 const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
@@ -106,7 +106,7 @@ struct KernelIntensity
                 __syncthreads();
                 if (threadId.x() == 0)
                 {
-                    /*master threads moves cell wise over 2D supercell*/
+                    // master thread moves cell-wise over 2D supercell
                     for (int x_local = 0; x_local < SuperCellSize::x::value; ++x_local)
                     {
                         DataSpace<DIM2> localId(x_local, threadId.y());

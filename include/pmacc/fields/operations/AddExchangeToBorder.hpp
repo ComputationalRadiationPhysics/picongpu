@@ -162,7 +162,7 @@ namespace operations
     {
         /** add exchange to border of the local buffer
          *
-         * Add data cell wise from the exchange to the border of the local buffer.
+         * Add data cell-wise from the exchange to the border of the local buffer.
          * The `template< typename T> operator+( T const & rhs )` must be defined for
          * the value type of the buffer.
          *

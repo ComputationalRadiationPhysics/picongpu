@@ -54,7 +54,7 @@ namespace helperFields
     {
         /** Functor
          *
-         * The functor is executed frame-list wise, meaning locally per
+         * The functor is executed frame-list-wise, meaning locally per
          * supercell. All particles of a supercell generate a shared memory
          * histogram and write that back into global memory. Particles outside
          * of the range of the histogram are ignored and not counted.
