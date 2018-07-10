@@ -39,6 +39,7 @@ PIConGPU command line option description
 ``--adios.compression``      Set data transform compression method. See ``adios_config -m`` for which compression methods are available. This flag also influences compression for checkpoints.
 ``--adios.aggregators``      Set number of I/O aggregator nodes for ADIOS ``MPI_AGGREGATE`` transport method.
 ``--adios.ost``              Set number of I/O OSTs for ADIOS ``MPI_AGGREGATE`` transport method.
+``--adios.transport-params`` Further options for transports, see ADIOS manual chapter 6.1.5. Lustre example: ``random_offset=1;stripe_count=4`` (FS chooses OST; user chooses striping factor).
 ``--adios.disable-meta``     Disable on-the-fly creation of the adios journal file. Allowed values: ``0`` means write a journal file, ``1`` skips its generation.
 ``--adios.source``           Select data sources to dump. Default is ``species_all,fields_all``, which dumps all fields and particle species.
 ============================ ==================================================================================================================================================================
@@ -59,6 +60,25 @@ PIConGPU command line option description
 
    #. dump all species data each 128th time step, **do not create** the adios journal meta file.
    #. dump all field data each 1000th time step but **create** the adios journal meta file.
+
+Compression
+^^^^^^^^^^^
+
+ADIOS supports various on-the-fly compression methods.
+Typical options:
+
+.. code-block:: bash
+
+   # single-threaded, slow zlib
+   --adios.compression zlib
+
+   # 6x multi-threaded, fast zstd via blosc, bitshuffle pre-conditioner and compression threshold of 2kB
+   --adios.compression blosc:threshold=2048,shuffle=bit,lvl=1,threads=6,compressor=zstd
+
+See the `ADIOS manual <https://users.nccs.gov/~pnorbert/ADIOS-UsersManual-1.13.1.pdf>`_, chapter 8.2 for full details.
+
+See ``adios_config -m`` for available compression methods and recompile ADIOS with further dependencies if needed.
+Typically, ADIOS adds compressors during the ``configure`` step with options such as ``--with-zlib=<ZLIB_DIR>`` and ``--with-blosc=<BLOSC_DIR>``.
 
 .. _usage-plugins-ADIOS-meta:
 
