@@ -330,12 +330,11 @@ if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
                 message(FATAL_ERROR "NVCC 8.0 does not support the std::tuple "
                         "implementation in GCC 5.4+. Please use GCC 4.9 - 5.3!")
             endif()
-        elseif(
-            (CUDA_VERSION VERSION_EQUAL 9.0) OR
-            (CUDA_VERSION VERSION_EQUAL 9.1))
+        elseif(CUDA_VERSION VERSION_EQUAL 9.0 OR
+               CUDA_VERSION VERSION_EQUAL 9.1)
             if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 6.0)
-                message(FATAL_ERROR "NVCC 9.0-9.1 do not support the std::tuple "
-                        "implementation in GCC 6+. Please use GCC 4.9 or 5!")
+                message(FATAL_ERROR "NVCC 9.0 - 9.1 do not support the std::tuple "
+                        "implementation in GCC 6+. Please use GCC 4.9 - 5.5!")
             endif()
         endif()
     endif()
@@ -344,7 +343,7 @@ endif()
 # CUDA 9.2 is not yet supported by alpaka
 if(CUDA_VERSION VERSION_EQUAL 9.2)
     if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
-        message(FATAL_ERROR "NVCC 9.2 is not yet supported by alpaka!")
+        message(FATAL_ERROR "NVCC 9.2 is not yet supported!")
     endif()
 endif()
 
