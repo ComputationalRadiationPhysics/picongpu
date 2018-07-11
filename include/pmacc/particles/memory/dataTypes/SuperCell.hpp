@@ -56,7 +56,7 @@ namespace pmacc
             return firstFramePtr;
         }
 
-        HDINLINE T_FrameType const*  LastFramePtr() const
+        HDINLINE T_FrameType const *  LastFramePtr() const
         {
             return lastFramePtr;
         }
