@@ -109,10 +109,10 @@ fieldJ( cellDescription.getGridLayout( ) ), fieldJrecv( nullptr )
              */
             switch ( relativMask[d] )
             {
-                /*receive from negativ side positiv (end) garding cells*/
+                // receive from negativ side to positiv (end) guarding cells
             case -1: guardingCells[d] = endGuard[d];
                 break;
-                /*receive from positiv side negativ (origin) garding cells*/
+                // receive from positiv side to negativ (origin) guarding cells
             case 1: guardingCells[d] = originGuard[d];
                 break;
             case 0: guardingCells[d] = coreBorderSize[d];

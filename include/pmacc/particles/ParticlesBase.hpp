@@ -169,7 +169,7 @@ public:
     template<uint32_t T_area>
     void deleteParticlesInArea();
 
-    /** copy gard particles to intermediate exchange buffer
+    /** copy guard particles to intermediate exchange buffer
      *
      * Copy all particles from the guard of a direction to the device exchange buffer.
      */
