@@ -83,7 +83,7 @@ namespace helper
                 std::vector<char>::iterator startIt =
                     result.buffers.begin() + startIdx;
 
-                // copy byte wise onto padding
+                // copy byte-wise onto padding
                 std::copy(
                     listIt->begin(),
                     listIt->end(),
@@ -129,7 +129,7 @@ namespace helper
                 std::vector<char>::iterator startIt =
                     result.buffers.begin() + startIdx;
 
-                // copy byte wise onto padding
+                // copy byte-wise onto padding
                 std::copy(
                     listIt->begin(),
                     listIt->end(),

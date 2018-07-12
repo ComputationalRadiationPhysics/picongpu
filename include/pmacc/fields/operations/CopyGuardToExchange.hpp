@@ -158,7 +158,7 @@ namespace operations
     {
         /** copy local guard to exchange buffer
          *
-         * Copy data cell wise from the guard of the local to the exchange buffer.
+         * Copy data cell-wise from the guard of the local to the exchange buffer.
          *
          * @tparam T_SrcBuffer pmacc::GridBuffer, type of the used buffer
          * @tparam T_SuperCellSize pmacc::math::CT::vector, size of the supercell in each direction

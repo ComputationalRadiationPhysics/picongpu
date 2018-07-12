@@ -813,7 +813,7 @@ struct KernelDeleteParticles
 {
     /** deletes all particles
      *
-     * @warning the particle memory of the particle is not byte wise zeroed
+     * @warning the particle memory of the particle is not byte-wise zeroed
      *
      * @tparam T_ParticleBox pmacc::ParticlesBox, particle box type
      * @tparam T_Mapping mapper functor type
