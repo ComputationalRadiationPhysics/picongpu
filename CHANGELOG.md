@@ -1,6 +1,538 @@
 Changelog
 =========
 
+0.4.0
+-----
+**Date:** 2018-08-TBA
+
+CPU Support, Particle Filter, Probes & Merging
+
+This release adds CPU support, making PIConGPU a many-core, single-source,
+performance portable PIC code for all kinds of supercomputers.
+We added particle filters to initialization routines and plugins, allowing
+fine-grained in situ control of physical observables. All particle plugins
+now support those filters and can be called multiple times with different
+settings.
+
+Particle probes and more particle initialization manipulators have been added.
+A particle merging plugin has been added. The Thomas-Fermi model has been
+improved, allowing to set empirical cut-offs. PIConGPU input and output
+(plugins) received initial Python bindings for efficient control and analysis.
+
+User input files have been dramatically simplified. For example, creating the
+PIConGPU binary from input files for GPU or CPU is now as easy as
+`pic-build -b cuda` or `pic-build -b omp2b` respectively.
+
+Thanks to Axel Huebl, René Widera, Sebastian Starke, Marco Garten,
+Richard Pausch, Alexander Matthes, Sergei Bastrakov, Heiko Burau,
+Alexander Debus, Ilja Göthel, Sophie Rudat, Jeffrey Kelling, Klaus Steiniger,
+and Sebastian Hahn for contributing to this release!
+
+### Changes to "0.3.0"
+
+**User Input Changes:**
+ - (re)move directory `simulation_defines/` #2331
+ - add new param file `particleFilters.param` #2385
+ - `components.param`: remove define `ENABLE_CURRENT` #2678
+ - `laser.param`: refactor Laser Profiles to Functors #2587 #2652
+ - `visualization.param`: renamed to `png.param` #2530
+ - `speciesAttributes.param`: format #2087
+ - `fieldSolver.param`: doxygen, refactored #2534 #2632
+ - `mallocMC.param`: file doxygen #2594
+ - `precision.param`: file doxygen #2593
+ - `memory.param`:
+   - `GUARD_SIZE` docs #2591
+   - exchange buffer size per species #2290
+   - guard size per dimension #2621
+ - `density.param`:
+   - Gaussian density #2214
+   - Free density: fix `float_X` #2555
+ - `ionizer.param`: fixed excess 5p shell entry in gold effective Z #2558
+ - `seed.param`:
+   - renamed to `random.param` #2605
+   - expose random number method #2605
+ - `isaac.param`: doxygen documentation #2260
+ - `unit.param`:
+   - doxygen documentation #2467
+   - move conversion units #2457
+   - earlier normalized speed of light in `physicalConstants.param` #2663
+ - `float_X` constants to literals #2625
+ - refactor particle manipulators #2125
+ - new tools:
+   - `pic-edit`: adjust `.param` files #2219
+   - `pic-build`: combine pic-configure and make install #2204
+ - `pic-configure`:
+   - select CPU/GPU backend and architecture with `-b` #2243
+   - default backend: CUDA #2248
+ - `tbg`:
+   - `.tpl` no `_profile` suffix #2244
+   - refactor `.cfg` files: devices #2543
+   - adjust LWFA setup for 8GPUs #2480
+ - `SliceField` plugin: Option `.frequency` to `.period `#2034
+ - particle filters:
+   - add filter support to phase space plugin #2425
+   - multi plugin energy histogram with filter #2424
+   - add particle filter to `EnergyParticles` #2386
+ - Default Inputs: C++11 `using` for `typedef` #2315
+ - Examples: C++11 `using` for `typedef` #2314
+ - Python: Parameter Ranges for Param Files (LWFA) #2289
+ - `FieldTmp`: `SpeciesEligibleForSolver` Traits #2377
+ - Particle Init Methods: Unify API & Docs #2442
+ - get species by name #2464
+ - remove template dimension from current interpolator's #2491
+ - compile time string #2532
+
+**New Features:**
+ - PIC:
+   - particle merging #1959
+   - check cells needed for stencils #2257
+   - exchange buffer size per species #2290
+   - push with `currentStep` #2318
+   - `InitController`: unphysical particles #2365
+   - New Trait: `SpeciesEligibleForSolver` #2364
+   - Add upper energy cut-off to ThomasFermi model #2330
+   - Particle Pusher: Probe #2371
+   - Add lower ion density cut-off to ThomasFermi model #2361
+   - CT Factory: `GenerateSolversIfSpeciesEligible` #2380
+   - add new param file `particleFilters.param` #2385
+   - Probe Particle Usage #2384
+   - Add lower electron temperature cut-off to ThomasFermi model #2376
+   - new particle filters #2418 #2659 #2660 #2682
+   - Derived Attribute: Bound Electron Density #2453
+   - get species by name #2464
+   - New Laser Profile: Exp. Ramps with Prepulse #2352
+   - Manipulator: `UnboundElectronsTimesWeighting` #2398
+   - Manipulator: `unary::FreeTotalCellOffset` #2498
+   - expose random number method to the user #2605
+   - seed generator for RNG #2607
+   - FLYlite: initial interface & helper fields #2075
+ - PMacc:
+   - cupla compatible RNG #2226
+   - generic `min()` and `max()` implementation #2173
+   - Array: store elements without a default constructor #1973
+   - add array to hold context variables #1978
+   - add `ForEachIdx` #1977
+   - add trait `GetNumWorker` #1985
+   - add index pool #1958
+   - Vector `float1_X` to `float_X` cast #2020
+   - extend particle handle #2114
+   - add worker config class #2116
+   - add interfaces for functor and filter #2117
+   - Add complex logarithm to math #2157
+   - remove unused file `BitData.hpp` #2174
+   - Add Bessel functions to math library #2156
+   - Travis: Test PMacc Unit Tests #2207
+   - rename CUDA index names in `ConcatListOfFrames` #2235
+   - cuSTL `Foreach` with lockstep support #2233
+   - Add complex `sin()` and `cos()` functions. #2298
+   - Complex `BesselJ0` and `BesselJ1` functions #2161
+   - CUDA9 default constructor warnings #2347
+   - New Trait: HasIdentifiers #2363
+   - RNG with reduced state #2410
+   - PMacc RNG 64bit support #2451
+   - PhaseSpace: add lockstep support #2454
+   - signed and unsigned comparison #2509
+   - add a workaround for MSVC bug with capturing `constexpr` #2522
+   - compile time string #2532
+   - `Vector`: add method `remove<...>()` #2602
+   - add support for more cpu alpaka accelerators #2603
+   - Vector `sumOfComponents` #2609
+   - `math::CT::max` improvement #2612
+ - plugins:
+   - ADIOS: allow usage with accelerator `omp2b` #2236
+   - ISAAC:
+     - alpaka support #2268 #2349
+     - require version 1.4.0+ #2630
+   - `InSituVolumeRenderer`: removed (use ISAAC instead) #2238
+   - HDF5: Allow Unphysical Particle Dump #2366
+   - `SpeciesEligibleForSolver` Traits #2367
+   - PNG:
+     - lockstep kernel refactoring `Visualisation.hpp` #2225
+     - require PNGwriter version 0.7.0+ #2468
+   - `ParticleCalorimeter`:
+     - add particle filter #2569
+     - fix usage of uninitialized variable #2320
+   - Python:
+     - Energy Histogram Reader #2209 #2658
+     - Phase Space Reader #2334 #2634 #2679
+     - Move SliceField Module #2354
+     - Multi-Iteration Energy Histogram #2508
+     - MPL Visualization modules #2484
+     - migrated documentation to Sphinx manual #2172
+ - tools:
+   - Tool: New Version #2080
+   - Changelog & Left-Overs from 0.3.0 #2120
+   - TBG: Check Modified Input #2123
+   - Hypnos (HZDR) templates:
+     - `mpiexec` and `LD_LIBRARY_PATH` #2149
+     - K20 restart #2627
+     - restart `.tpl` files: new `checkpoints.period` syntax #2650
+   - Travis: Enforce PEP8 #2145
+   - New Tool: pic-build #2204
+   - Docker:
+     - `Dockerfile` introduced #2115 #2286
+     - `spack clean` & `load` #2208
+     - update ISAAC client URL #2565
+   - add HZDR cluster `hydra` #2242
+   - pic-configure: default backend CUDA #2248
+   - New Tool: pic-edit #2219
+   - FoilLCT: Plot Densities #2259
+   - tbg: Add `-f` | `--force` #2266
+   - Improved the cpuNumaStarter.sh script to support not using all hw threads #2269
+   - Removed libm dependency for Intel compiler... #2278
+   - CMake: Same Boost Min for Tools #2293
+   - HZDR tpl: killall return #2295
+   - PMacc: Set CPU Architecture #2296
+   - ThermalTest: Flake Dispersion #2297
+   - Python: Parameter Ranges for Param Files (LWFA) #2289
+   - LWFA: GUI .cfg & Additional Parameters #2336
+   - Move mpiInfo to new location #2355
+   - bracket test for external libraries includes #2399
+   - Clang-Tidy #2303
+   - tbg -f: mkdir -p submitAction #2413
+   - Fix initial setting of Parameter values #2422
+   - Move TBG to bin/ #2537
+   - Tools: Move pic-* to bin/ #2539
+   - Simpler Python Parameter class #2550
+
+**Bug Fixes:**
+ - PIC:
+   - fix restart with background fields enabled #2113
+   - wrong border with current background field #2326
+   - remove usage of pure `float` with `float_X` #2606
+   - fix stencil conditions #2613
+   - fix that guard size must be one #2614
+   - fix dead code #2301
+   - fix memory leaks #2669
+ - PMacc:
+   - event system:
+     - fix illegal memory access #2151
+     - fix possible deadlock in blocking MPI ops #2683
+   - cuSTL:
+     - missing `#include` in `ForEach` #2406
+     - `HostBuffer` 1D Support #2657
+   - fix warning concerning forward declarations of `pmacc::detail::Environment` #2489
+   - `pmacc::math::Size_t<0>::create()` in Visual Studio #2513
+   - fix V100 deadlock #2600
+   - fix missing include #2608
+ - plugins:
+   - energy fields: fix reduce #2112
+   - background fields: fix restart `GUARD` #2139
+   - Phase Space:
+     - fix weighted particles #2428
+     - fix momentum meta information #2651
+   - ADIOS:
+     - fix 1 particle dumps #2437
+     - fix zero size transform writes #2561
+     - remove `adios_set_max_buffer_size` #2670
+     - require 1.13.1+ #2583
+   - IO fields as source #2461
+   - ISAAC: fix gcc compile #2680
+   - Calorimeter: Validate minEnergy #2512
+ - tools:
+   - fix possible linker error #2107
+   - cmakeFlags: Escape Lists #2183
+   - splash2txt: C++98 #2136
+   - png2gas: C++98 #2162
+   - tbg env variables escape \ and & #2262
+   - XDMF Scripts: Fix Replacements & Offset #2309
+   - pic-configure: cmakeFlags return code #2323
+   - tbg: fix wrong quoting of `'` #2419
+   - CMake in-source builds: too strict #2407
+ - `--help` to stdout #2148
+ - Density: Param Gaussian Density #2214
+ - Fixed excess 5p shell entry in gold effective Z #2558
+ - Hypnos: Zlib #2570
+ - Limit Supported GCC with nvcc 8.0-9.1 #2628
+ - Syntax Highlighting: Fix RTD Theme #2596
+ - remove extra typename in documentation of manipulators #2044
+
+**Misc:**
+ - new example: Foil (LCT) TNSA #2008
+ - adjust LWFA setup for 8 GPUs #2480
+ - `picongpu --version` #2147
+ - add Internal Alpaka & cupla #2179 #2345
+ - add alpaka dependency #2205 #2328 #2346 #2590 #2501 #2626 #2648 #2684
+ - Update mallocMC to `2.3.0crp` #2350 #2629
+ - Update cuda_memtest #2356
+ - Examples: remove unused loaders #2247
+ - examples: Update `species.param` #2474
+ - Bunch: no `precision.param` #2329
+ - Travis:
+   - stages #2341
+   - static code analysis #2404
+ - Visual Studio: ERROR macro defined in `wingdi.h` #2503
+ - Compile Suite: update plugins #2595
+ - refactoring:
+   - PIC:
+     - `const` POD Default Constructor #2300
+     - `FieldE`: Fix Unreachable Code Warning #2332
+     - Yee solver lockstep refactoring #2027
+     - lockstep refactoring of `KernelComputeCurrent` #2025
+     - `FieldJ` bash/insert lockstep refactoring #2054
+     - lockstep refactoring of `KernelFillGridWithParticles` #2059
+     - lockstep refactoring `KernelLaserE` #2056
+     - lockstep refactoring of `KernelBinEnergyParticles` #2067
+     - remove empty `init()` methods #2082
+     - remove `ParticlesBuffer::createParticleBuffer()` #2081
+     - remove init method in `FieldE` and `FieldB` #2088
+     - move folder `fields/tasks` to libPMacc #2090
+     - add `AddExchangeToBorder`, `CopyGuardToExchange` #2091
+     - lockstep refactoring of `KernelDeriveParticles` #2097
+     - lockstep refactoring of `ThreadCollective` #2101
+     - lockstep refactoring of `KernelMoveAndMarkParticles` #2104
+     - Esirkepov: reorder code order #2121
+     - refactor particle manipulators #2125
+     - Restructure Repository Structure  #2135
+     - lockstep refactoring `KernelManipulateAllParticles` #2140
+     - remove all lambda expressions. #2150
+     - remove usage of native CUDA function prefix #2153
+     - use `nvidia::atomicAdd` instead of our old wrapper #2152
+     - lockstep refactoring `KernelAbsorbBorder` #2160
+     - functor interface refactoring #2167
+     - lockstep kernel refactoring `KernelAddCurrentToEMF` #2170
+     - lockstep kernel refactoring `KernelComputeSupercells` #2171
+     - lockstep kernel refactoring `CopySpecies` #2177
+     - Marriage of PIConGPU and cupla/alpaka #2178
+     - Ionization: make use of generalized particle creation #2189
+     - use fast `atomicAllExch` in `KernelFillGridWithParticles` #2230
+     - enable ionization for CPU backend #2234
+     - ionization: speedup particle creation #2258
+     - lockstep kernel refactoring `KernelCellwiseOperation` #2246
+     - optimize particle shape implementation #2275
+     - improve speed to calculate number of ppc #2274
+     - refactor `picongpu::particles::startPosition` #2168
+     - Particle Pusher: Clean-Up Interface #2359
+     - create separate plugin for checkpointing #2362
+     - Start Pos: OnePosition w/o Weighting #2378
+     - rename filter: `IsHandleValid` -> `All` #2381
+     - FieldTmp: `SpeciesEligibleForSolver` Traits #2377
+     - use lower case begin for filter names #2389
+     - refactor PMacc functor interface #2395
+     - PIConGPU: C++11 `using` #2402
+     - refactor particle manipulators/filter/startPosition #2408
+     - rename `GuardHandlerCallPlugins` #2441
+     - activate synchrotron for CPU back-end #2284
+     - `DifferenceToLower/Upper` forward declaration #2478
+     - Replace usage of M_PI in picongpu with Pi #2492
+     - remove template dimension from current interpolator's #2491
+     - Fix issues with name hiding in Particles #2506
+     - refactor: field solvers #2534
+     - optimize stride size for update `FieldJ` #2615
+     - guard size per dimension #2621
+     - Lasers: `float_X` Constants to Literals #2624
+     - `float_X`: C++11 Literal #2622
+     - log: per "device" instead of "GPU" #2662 #2677
+     - earlier normalized speed of light #2663
+     - fix GCC 7 fallthrough warning #2665 #2671
+     - `png.unitless`: static asserts `clang` compatible #2676
+     - remove define `ENABLE_CURRENT` #2678
+   - PMacc:
+     - refactor `ThreadCollective` #2021
+     - refactor reduce #2015
+     - lock step kernel `KernelShiftParticles` #2014
+     - lockstep refactoring of `KernelCountParticles` #2061
+     - lockstep refactoring `KernelFillGapsLastFrame` #2055
+     - lockstep refactoring of `KernelFillGaps` #2083
+     - lockstep refactoring of `KernelDeleteParticles` #2084
+     - lockstep refactoring of `KernelInsertParticles` #2089
+     - lockstep refactoring of `KernelBashParticles` #2086
+     - call `KernelFillGaps*` from device #2098
+     - lockstep refactoring of `KernelSetValue` #2099
+     - Game of Life lockstep refactoring #2142
+     - `HostDeviceBuffer` rename conflicting type defines #2154
+     - use c++11 move semantic in cuSTL #2155
+     - lockstep kernel refactoring `SplitIntoListOfFrames` #2163
+     - lockstep kernel refactoring `Reduce` #2169
+     - enable cuSTL CartBuffer on CPU #2271
+     - allow update of a particle handle #2382
+     - add support for particle filters #2397
+     - RNG: Normal distribution #2415
+     - RNG: use non generic place holder #2440
+     - extended period syntax #2452
+     - Fix buffer cursor dim #2488
+     - Get rid of `<sys/time.h>` #2495
+     - Add a workaround for `PMACC_STRUCT` to work in Visual Studio #2502
+     - Fix type of index in OpenMP-parallelized loop #2505
+     - add support for CUDA9 `__shfl_snyc, __ballot_sync` #2348
+     - Partially replace compound literals in PMacc #2494
+     - fix type cast in `pmacc::exec::KernelStarter::operator()` #2518
+     - remove modulo in 1D to ND index transformation #2542
+     - Add Missing Namespaces #2579
+     - Tests: Add Missing Namespaces #2580
+     - refactor RNG method interface #2604
+     - eliminate `M_PI` from PMacc #2486
+     - remove empty last frame #2649
+     - no `throw` in destructors #2666
+     - check minimum GCC & Clang versions #2675
+   - plugins:
+     - SliceField Plugin: Option .frequency to .period #2034
+     - change notifyFrequency(s) to notifyPeriod #2039
+     - lockstep refactoring `KernelEnergyParticles` #2164
+     - remove `LiveViewPlugin`  #2237
+     - Png Plugin: Boost to std Thread #2197
+     - lockstep kernel refactoring `KernelRadiationParticles` #2240
+     - generic multi plugin #2375
+     - add particle filter to `EnergyParticles` #2386
+     - PluginController: Eligible Species #2368
+     - IO with filtered particles #2403
+     - multi plugin energy histogram with filter #2424
+     - lockstep kernel refactoring `ParticleCalorimeter` #2291
+     - Splash: 1.7.0 #2520
+     - multi plugin `ParticleCalorimeter` #2563
+     - Radiation Plugin: Namespace #2576
+     - Misc Plugins: Namespace #2578
+     - EnergyHistogram: Remove Detector Filter #2465
+     - ISAAC: unify the usage of period #2455
+     - add filter support to phase space plugin #2425
+   - tools:
+     - Python: Fix Scripts PEP8 #2028
+     - Prepare for Python Modules #2058
+     - pic-compile: fix internal typo #2186
+     - Tools: All C++11 #2194
+     - CMake: Use Imported Targets Zlib, Boost #2193
+     - Python Tools: Move lib to / #2217
+     - pic-configure: backend #2243
+     - tbg: Fix existing-folder error message to stderr #2288
+     - Docs: Fix Flake8 Errors #2340
+     - Group parameters in LWFA example #2417
+     - Python Tools (PS, Histo): Filter Aware #2431
+     - Clearer conversion functions for Parameter values between UI scale and internal scale #2432
+     - tbg: Add content of -o arg to env #2499
+   - Format speciesAttributes.param #2087
+   - Reduce # photons in Bremsstrahlung example #1979
+   - TBG: .tpl no `_profile` suffix #2244
+   - Default Inputs: C++11 Using for Typedef #2315
+   - Examples: C++11 Using for Typedef #2314
+   - LWFA Example: Restore a0=8.0 #2324
+   - add support for CUDA9 `__shfl_snyc` #2333
+   - Update cuda_memtest: no cuBLAS #2401
+   - Examples: Init of Particles per Cell #2412
+   - Travis: Image Updates #2435
+   - Particle Init Methods: Unify API & Docs #2442
+   - PIConGPU use tiny RNG #2447
+   - move conversion units to `unit.param` #2457
+   - (Re)Move simulation_defines/ #2331
+   - CMake: Project Vars & Fix Memtest #2538
+   - Refactor .cfg files: devices #2543
+   - Free Density: Fix float_X #2555
+   - Boost: Format String Version #2566
+   - Refactor Laser Profiles to Functors #2587
+   - Params: float_X Constants to Literals #2625
+ - documentation:
+   - Lockstep Programming Model #2026 #2064
+   - `IdxConfig` append documentation #2022
+   - `multiMask`: Refactor Documentation #2119
+   - `CtxArray` #2390
+   - Update openPMD Post-Processing #2322
+   - Checkpoints Backends #2387
+   - Plugins:
+     - HDF5: fix links & lists #2313
+     - External dependencies #2175
+     - Multi & CPU #2423
+     - Update PS & Energy Histo #2427
+     - Memory Complexity #2434
+   - Image Particle Calorimeter #2470
+   - Update EnergyFields #2559
+   - Note on Energy Reduce #2584
+   - ADIOS: More Transport & Compression Doc #2640
+   - ADIOS Metafile #2633
+   - radiation parameters #1986
+   - CPU Compile #2185
+   - `pic-configure` help #2191
+   - Python yt 3.4 #2273
+   - Namespace `ComputeGridValuePerFrame` #2567
+   - Document ionization param files for issue #1982 #1983
+   - Remove ToDo from `ionizationEnergies.param` #1989
+   - Parameter Order in Manual #1991
+   - Sphinx:
+     - Document Laser Cutoff #2000
+     - Move Author Macros #2005
+     - PDF Radiation  #2184
+     - Changelog in Manual #2527
+   - PBS usage example #2006
+   - add missing linestyle to ionization plot for documentation #2032
+   - fix unit ionization rate plot #2033
+   - fix mathmode issue in ionization plot #2036
+   - fix spelling of guard #2644
+   - param: extended description #2041
+   - fix typos found in param files and associated files #2047
+   - Link New Coding Style #2074
+   - Install: Rsync Missing #2079
+   - Dev Version: 0.4.0-dev #2085
+   - Fix typo in ADK documentation #2096
+   - Profile Preparations #2095
+   - SuperConfig: Header Fix #2108
+   - Extended $SCRATCH Info #2093
+   - Doxygen: Fix Headers #2118
+   - Doxygen: How to Build HTML #2134
+   - Badge: Docs #2144
+   - CMake 3.7.0 #2181
+   - Boost 1.62.0 #2182
+   - Bash Subshells: `cmd` to $(cmd) #2187
+   - Boost Transient Deps: date_time, chrono, atomic #2195
+   - Install Docs: CUDA is optional #2199
+   - Fix broken links #2200
+   - PIConGPU Logo: More Platforms #2190
+   - Profiles for Titan & Taurus #2201
+   - Repo Structure #2218
+   - Document KNL GCC -march #2252
+   - Streamline Install #2256
+   - Added doxygen documentation for isaac.param file #2260
+   - License Docs: Update #2282
+   - Heiko to Former Members #2294
+   - Added an example profile and tpl file for taurus' KNL #2270
+   - Profile: Draco (MPCDF) #2308
+   - $PIC_EXAMPLES #2327
+   - CUDA 8.0.61 on Taurus #2337
+   - Link KNL Profile #2339
+   - Move ParaView Profile #2353
+   - Spack: Own GitHub Org #2358
+   - LWFA Example: Improve Ranges #2360
+   - fix spelling mistake in checkpoint #2372
+   - Spack Install: Clarify #2373
+   - Probe Pusher #2379
+   - CI/Deps: CUDA 8.0 #2420
+   - Piz Daint (CSCS):
+     - Update Profiles #2306 #2655
+     - ADIOS Build #2343
+     - ADIOS 1.13.0 #2416
+     - Update CMake #2436
+     - Module Update #2536
+     - avoid `pmi_alps` warnings #2581
+   - Hypnos (HZDR): New Modules #2521 #2661
+   - Hypnos: PNGwriter 0.6.0 #2166
+   - Hypnos & Taurus: Profile Examples Per Queue #2249
+   - Community Map #2445
+   - License Header: Update 2018 #2448
+   - Docker: Nvidia-Docker 2.0 #2462
+   - Hide Double ToC #2463
+   - Param Docs: Title Only #2466
+   - New Developers #2487
+   - Fix Docs: `FreeTotalCellOffset` Filter #2493
+   - Stream-line Intro #2519
+   - Fix HDF5 Release Link #2544
+   - Minor Formatting #2553
+   - PIC Model #2560
+   - Doxygen: Publish As Well  #2575
+   - Limit Filters to Eligible Species #2574
+   - Doxygen: Less XML #2641
+   - NVCC 8.0 GCC <= 5.3 && 9.0/9.1: GCC <= 5.5 #2639
+   - typo: element-wise #2638
+   - fieldSolver.param doxygen #2632
+   - `memory.param`: `GUARD_SIZE` docs #2591
+   - changelog script updated to python3 #2646
+ - not yet supported on CPU (Alpaka): #2180
+   - core:
+     - Bremsstrahlung
+   - plugins:
+     - PositionsParticles
+     - ChargeConservation
+     - ParticleMerging
+     - count per supercell (macro particles)
+     - field intensity
+
+
 0.3.2
 -----
 **Date:** 2018-02-16
