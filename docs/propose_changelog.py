@@ -12,13 +12,13 @@ from github import Github
 from cursesmenu import SelectionMenu
 
 # config
+#          see: https://github.com/settings/tokens
 g = Github("add token with public repo read rights here")
 org = g.get_organization("ComputationalRadiationPhysics")
 repo = org.get_repo("picongpu")
 milestones = repo.get_milestones(sort="asc", state="all")
 
-m_list = map(lambda m: m.title, milestones)
-print(list(m_list))
+m_list = list(map(lambda m: m.title, milestones))
 menu = SelectionMenu(m_list, "Select a Milestone")
 menu.show()
 menu.join()
@@ -37,6 +37,9 @@ issues = repo.get_issues(state="closed", sort="updated", direction="asc",
 
 
 # categories
+user = {
+    "input": []
+}
 bugs = {
     "core": [],
     "pmacc": [],
@@ -71,7 +74,7 @@ for i in issues:
     # filter out bugs that only appeared in development
     pr_nr = i.number
     pr_labels = i.labels
-    pr_labels_names = map(lambda l: l.name, pr_labels)
+    pr_labels_names = list(map(lambda l: l.name, pr_labels))
     pr_url = "https://github.com/ComputationalRadiationPhysics/picongpu/pull/"
     if "bug" in pr_labels_names:
         if "affects latest release" not in pr_labels_names:
@@ -90,46 +93,55 @@ for i in issues:
 
     # sort by categories
     pr_title = i.title
+    if "component: user input" in pr_labels_names:
+        user["input"].append(i.title + " #" + str(pr_nr))
     if "affects latest release" in pr_labels_names:
-        if "core" in pr_labels_names:
+        if "component: core" in pr_labels_names:
             bugs["core"].append(i.title + " #" + str(pr_nr))
-        elif "PMacc" in pr_labels_names:
+        elif "component: PMacc" in pr_labels_names:
             bugs["pmacc"].append(i.title + " #" + str(pr_nr))
-        elif "plugin" in pr_labels_names:
+        elif "component: plugin" in pr_labels_names:
             bugs["plugin"].append(i.title + " #" + str(pr_nr))
-        elif "tools" in pr_labels_names:
+        elif "component: tools" in pr_labels_names:
             bugs["tools"].append(i.title + " #" + str(pr_nr))
         else:
             bugs["other"].append(i.title + " #" + str(pr_nr))
         continue
-    if "feature" in pr_labels_names:
-        if "core" in pr_labels_names:
-            features["core"].append(i.title + " #" + str(pr_nr))
-        elif "PMacc" in pr_labels_names:
-            features["pmacc"].append(i.title + " #" + str(pr_nr))
-        elif "plugin" in pr_labels_names:
-            features["plugin"].append(i.title + " #" + str(pr_nr))
-        elif "tools" in pr_labels_names:
-            features["tools"].append(i.title + " #" + str(pr_nr))
-        else:
-            features["other"].append(i.title + " #" + str(pr_nr))
-        continue
     if "refactoring" in pr_labels_names:
-        if "core" in pr_labels_names:
+        if "component: core" in pr_labels_names:
             refactoring["core"].append(i.title + " #" + str(pr_nr))
-        elif "PMacc" in pr_labels_names:
+        elif "component: PMacc" in pr_labels_names:
             refactoring["pmacc"].append(i.title + " #" + str(pr_nr))
-        elif "plugin" in pr_labels_names:
+        elif "component: plugin" in pr_labels_names:
             refactoring["plugin"].append(i.title + " #" + str(pr_nr))
-        elif "tools" in pr_labels_names:
+        elif "component: tools" in pr_labels_names:
             refactoring["tools"].append(i.title + " #" + str(pr_nr))
         else:
             refactoring["other"].append(i.title + " #" + str(pr_nr))
         continue
+    # all others are features
+    if "component: core" in pr_labels_names:
+        features["core"].append(i.title + " #" + str(pr_nr))
+        continue
+    elif "component: PMacc" in pr_labels_names:
+        features["pmacc"].append(i.title + " #" + str(pr_nr))
+        continue
+    elif "component: plugin" in pr_labels_names:
+        features["plugin"].append(i.title + " #" + str(pr_nr))
+        continue
+    elif "component: tools" in pr_labels_names:
+        features["tools"].append(i.title + " #" + str(pr_nr))
+        continue
+    # all leftovers are miscellaneous changes
     if "documentation" in pr_labels_names:
         misc["docs"].append(i.title + " #" + str(pr_nr))
         continue
     misc["other"].append(i.title + " #" + str(pr_nr))
+
+print("")
+print("**User Input Changes:**")
+for p in user["input"]:
+    print(" - " + p)
 
 print("")
 print("**New Features:**")
