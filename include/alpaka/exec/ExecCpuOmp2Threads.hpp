@@ -41,11 +41,12 @@
 #include <alpaka/kernel/Traits.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
-#include <alpaka/core/OpenMp.hpp>
 #include <alpaka/meta/NdLoop.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>
 
 #include <boost/core/ignore_unused.hpp>
+
+#include <omp.h>
 
 #include <stdexcept>
 #include <tuple>
@@ -169,27 +170,28 @@ namespace alpaka
                         // Therefore we use 'omp parallel' with the specified number of threads in a block.
                         #pragma omp parallel num_threads(iBlockThreadCount)
                         {
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-                            // GCC 5.1 fails with:
-                            // error: redeclaration of const int& iBlockThreadCount
-                            // if(numThreads != iBlockThreadCount
-                            //                ^
-                            // note: const int& iBlockThreadCount previously declared here
-                            // #pragma omp parallel num_threads(iBlockThreadCount)
-                            //         ^
-#if (!BOOST_COMP_GNUC) || (BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(5, 0, 0))
                             // The first thread does some checks in the first block executed.
-                            if((::omp_get_thread_num() == 0) && (acc.m_gridBlockIdx.sum() == 0u))
+                            if((::omp_get_thread_num() == 0) && (acc.m_gridBlockIdx.sum() == static_cast<TSize>(0)))
                             {
                                 int const numThreads(::omp_get_num_threads());
+                                boost::ignore_unused(numThreads);
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                                 std::cout << BOOST_CURRENT_FUNCTION << " omp_get_num_threads: " << numThreads << std::endl;
+#endif
+                                // GCC 5.1 fails with:
+                                // error: redeclaration of const int& iBlockThreadCount
+                                // if(numThreads != iBlockThreadCount)
+                                //                  ^
+                                // note: const int& iBlockThreadCount previously declared here
+                                // #pragma omp parallel num_threads(iBlockThreadCount)
+                                //         ^
+#if (!BOOST_COMP_GNUC) || (BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(5, 0, 0)) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(6, 0, 0))
                                 if(numThreads != iBlockThreadCount)
                                 {
                                     throw std::runtime_error("The OpenMP 2.0 runtime did not use the number of threads that had been required!");
                                 }
+#endif
                             }
-#endif
-#endif
                             boundKernelFnObj(
                                 acc);
 

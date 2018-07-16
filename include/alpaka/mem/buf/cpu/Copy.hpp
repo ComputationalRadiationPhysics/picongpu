@@ -151,6 +151,9 @@ namespace alpaka
                     struct TaskCopy : public TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>
                     {
                         using DimMin1 = dim::DimInt<TDim::value - 1u>;
+                        using typename TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::ExtentSize;
+                        using typename TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::DstSize;
+                        using typename TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::SrcSize;
 
                         //-----------------------------------------------------------------------------
                         using TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::TaskCopyBase;
@@ -165,12 +168,9 @@ namespace alpaka
                             this->printDebug();
 #endif
                             // [z, y, x] -> [z, y] because all elements with the innermost x dimension are handled within one iteration.
-                            using ExtentSize = typename TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::ExtentSize;
                             vec::Vec<DimMin1, ExtentSize> const extentWithoutInnermost(vec::subVecBegin<DimMin1>(this->m_extent));
                             // [z, y, x] -> [y, x] because the z pitch (the full size of the buffer) is not required.
-                            using DstSize = typename TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::DstSize;
                             vec::Vec<DimMin1, DstSize> const dstPitchBytesWithoutOutmost(vec::subVecEnd<DimMin1>(this->m_dstPitchBytes));
-                            using SrcSize = typename TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::SrcSize;
                             vec::Vec<DimMin1, SrcSize> const srcPitchBytesWithoutOutmost(vec::subVecEnd<DimMin1>(this->m_srcPitchBytes));
 
                             if(static_cast<std::size_t>(this->m_extent.prod()) != 0u)

@@ -81,7 +81,6 @@
 #include <alpaka/core/Cuda.hpp>
 #include <alpaka/core/Debug.hpp>
 #include <alpaka/core/Fibers.hpp>
-#include <alpaka/core/OpenMp.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unroll.hpp>
 #include <alpaka/core/Utility.hpp>

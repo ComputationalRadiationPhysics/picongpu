@@ -285,6 +285,10 @@ namespace alpaka
         {
             namespace traits
             {
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wcast-align" // "cast from 'std::uint8_t*' to 'TElem*' increases required alignment of target type"
+#endif
                 //#############################################################################
                 //! The ViewSubView native pointer get trait specialization.
                 template<
@@ -355,6 +359,9 @@ namespace alpaka
                             * mem::view::getPitchBytes<Tidx + 1u>(view);
                     }
                 };
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic pop
+#endif
 
                 //#############################################################################
                 //! The ViewSubView pitch get trait specialization.

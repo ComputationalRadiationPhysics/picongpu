@@ -42,10 +42,11 @@
 #include <alpaka/kernel/Traits.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
-#include <alpaka/core/OpenMp.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>
 
 #include <boost/assert.hpp>
+
+#include <omp.h>
 
 #include <stdexcept>
 #include <tuple>
@@ -145,8 +146,10 @@ namespace alpaka
 
                 // The number of blocks in the grid.
                 TSize const numBlocksInGrid(gridBlockExtent.prod());
-                // There is only ever one thread in a block in the OpenMP 2.0 block accelerator.
-                BOOST_VERIFY(blockThreadExtent.prod() == static_cast<TSize>(1u));
+                if(blockThreadExtent.prod() != static_cast<TSize>(1u))
+                {
+                    throw std::runtime_error("Only one thread per block allowed in the OpenMP 2.0 block accelerator!");
+                }
 
                 // Force the environment to use the given number of threads.
                 int const ompIsDynamic(::omp_get_dynamic());

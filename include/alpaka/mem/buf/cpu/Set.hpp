@@ -123,6 +123,8 @@ namespace alpaka
                     struct TaskSet : public TaskSetBase<TDim, TView, TExtent>
                     {
                         using DimMin1 = dim::DimInt<TDim::value - 1u>;
+                        using typename TaskSetBase<TDim, TView, TExtent>::ExtentSize;
+                        using typename TaskSetBase<TDim, TView, TExtent>::DstSize;
 
                         //-----------------------------------------------------------------------------
                         using TaskSetBase<TDim, TView, TExtent>::TaskSetBase;
@@ -137,10 +139,8 @@ namespace alpaka
                             this->printDebug();
 #endif
                             // [z, y, x] -> [z, y] because all elements with the innermost x dimension are handled within one iteration.
-                            using ExtentSize = typename TaskSetBase<TDim, TView, TExtent>::ExtentSize;
                             vec::Vec<DimMin1, ExtentSize> const extentWithoutInnermost(vec::subVecBegin<DimMin1>(this->m_extent));
-                            // [z, y, x] -> [y, x] because the z pitch (the full size of the buffer) is not required.
-                            using DstSize = typename TaskSetBase<TDim, TView, TExtent>::DstSize;
+                            // [z, y, x] -> [y, x] because the z pitch (the full idx of the buffer) is not required.
                             vec::Vec<DimMin1, DstSize> const dstPitchBytesWithoutOutmost(vec::subVecEnd<DimMin1>(this->m_dstPitchBytes));
 
                             if(static_cast<std::size_t>(this->m_extent.prod()) != 0u)

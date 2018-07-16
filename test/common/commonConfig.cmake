@@ -96,7 +96,6 @@ IF(MSVC)
     LIST(APPEND _COMMON_COMPILE_OPTIONS_PUBLIC "/wd4996")   # This function or variable may be unsafe. Consider using <safe_version> instead.
 ENDIF()
 
-
 #-------------------------------------------------------------------------------
 # Target.
 IF(NOT TARGET ${_COMMON_TARGET_NAME})

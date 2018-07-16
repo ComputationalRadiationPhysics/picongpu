@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017 Benjamin Worpitz, Erik Zenker
+# Copyright 2014-2018 Benjamin Worpitz, Erik Zenker, Axel Huebl
 #
 # This file is part of alpaka.
 #
@@ -50,10 +50,6 @@ UNSET(_ALPAKA_ADD_EXECUTABLE_FILE)
 UNSET(_ALPAKA_ADD_LIBRRAY_FILE)
 UNSET(_ALPAKA_FILES_HEADER)
 UNSET(_ALPAKA_FILES_OTHER)
-UNSET(_ALPAKA_VERSION_DEFINE)
-UNSET(_ALPAKA_VER_MAJOR)
-UNSET(_ALPAKA_VER_MINOR)
-UNSET(_ALPAKA_VER_PATCH)
 
 #-------------------------------------------------------------------------------
 # Common.
@@ -117,6 +113,18 @@ IF(${ALPAKA_DEBUG} GREATER 1)
     MESSAGE(STATUS "_ALPAKA_ADD_EXECUTABLE_FILE : ${_ALPAKA_ADD_EXECUTABLE_FILE}")
     MESSAGE(STATUS "_ALPAKA_ADD_LIBRARY_FILE : ${_ALPAKA_ADD_LIBRARY_FILE}")
     MESSAGE(STATUS "CMAKE_BUILD_TYPE : ${CMAKE_BUILD_TYPE}")
+ENDIF()
+
+#-------------------------------------------------------------------------------
+# Check supported compilers.
+IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.5)
+    MESSAGE(FATAL_ERROR "Clang versions < 3.5 are not supported!")
+    SET(_ALPAKA_FOUND FALSE)
+ENDIF()
+
+IF(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE AND ALPAKA_ACC_GPU_CUDA_ENABLE)
+    MESSAGE(FATAL_ERROR "Fibers and CUDA back-end can not be enabled both at the same time.")
+    SET(_ALPAKA_FOUND FALSE)
 ENDIF()
 
 #-------------------------------------------------------------------------------
@@ -325,6 +333,20 @@ IF(ALPAKA_ACC_GPU_CUDA_ENABLE)
             OPTION(ALPAKA_CUDA_KEEP_FILES "Keep all intermediate files that are generated during internal compilation steps (folder: nvcc_tmp)" OFF)
 
             IF(ALPAKA_CUDA_COMPILER MATCHES "clang")
+                IF(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+                    MESSAGE(FATAL_ERROR "Using clang as CUDA compiler is only possible if clang is the host compiler!")
+                ENDIF()
+
+                IF(CMAKE_CXX_COMPILER_VERSION LESS 6.0)
+                    IF(CUDA_VERSION GREATER_EQUAL 9.0)
+                        MESSAGE(FATAL_ERROR "Clang versions lower than 6 do not support CUDA 9 or greater!")
+                    ENDIF()
+                ELSEIF(CMAKE_CXX_COMPILER_VERSION LESS 7.0)
+                    IF(CUDA_VERSION GREATER_EQUAL 9.2)
+                        MESSAGE(FATAL_ERROR "Clang versions lower than 7 do not support CUDA 9.2 or greater!")
+                    ENDIF()
+                ENDIF()
+
                 FOREACH(_CUDA_ARCH_ELEM ${ALPAKA_CUDA_ARCH})
                     LIST(APPEND _ALPAKA_COMPILE_OPTIONS_PUBLIC "--cuda-gpu-arch=sm_${_CUDA_ARCH_ELEM}")
                 ENDFOREACH()
@@ -357,6 +379,46 @@ IF(ALPAKA_ACC_GPU_CUDA_ENABLE)
                 ENDIF()
 
             ELSE()
+                IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+                    IF(CUDA_VERSION VERSION_EQUAL 8.0)
+                        IF(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 5.4)
+                            MESSAGE(FATAL_ERROR "NVCC 8.0 does not support GCC 5.4+. Please use GCC 4.9 - 5.3!")
+                        ENDIF()
+                    ELSEIF((CUDA_VERSION VERSION_EQUAL 9.0) OR (CUDA_VERSION VERSION_EQUAL 9.1))
+                        IF(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 6.0)
+                            MESSAGE(FATAL_ERROR "NVCC 9.0 - 9.1 do not support GCC 7+ and fail compiling the std::tuple implementation in GCC 6+. Please use GCC 4.9 - 5.5!")
+                        ENDIF()
+                    ELSEIF(CUDA_VERSION VERSION_EQUAL 9.2)
+                        IF(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 8.0)
+                            MESSAGE(FATAL_ERROR "NVCC 9.2 does not support GCC 8+. Please use GCC 4.9, 5, 6 or 7!")
+                        ENDIF()
+                    ENDIF()
+                ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+                    IF(CUDA_VERSION VERSION_EQUAL 8.0)
+                        IF(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 4.0)
+                            MESSAGE(FATAL_ERROR "NVCC 8.0 does not support clang 4+. Please use NVCC 9.1!")
+                        ENDIF()
+                    ELSEIF(CUDA_VERSION VERSION_EQUAL 9.0)
+                        IF(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 4.0)
+                            MESSAGE(FATAL_ERROR "NVCC 9.0 does not support clang 4+. Please use NVCC 9.1!")
+                        ENDIF()
+                    ELSEIF(CUDA_VERSION VERSION_EQUAL 9.1)
+                        IF(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 5.0)
+                            MESSAGE(FATAL_ERROR "NVCC 9.1 does not support clang 5+. Please use clang 4!")
+                        ENDIF()
+                    ELSEIF(CUDA_VERSION VERSION_EQUAL 9.2)
+                        IF(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 6.0)
+                            MESSAGE(FATAL_ERROR "NVCC 9.2 does not support clang 6+ and fails compiling with clang 5. Please use clang 4!")
+                        ENDIF()
+                    ENDIF()
+                ENDIF()
+
+                # CUDA 9.0 removed the __CUDACC_VER__ macro. Boost versions lower than 1.65.1 still use this macro.
+                IF(CUDA_VERSION VERSION_GREATER_EQUAL 9.0 AND Boost_VERSION VERSION_LESS 1.65.1)
+                    MESSAGE(WARNING "CUDA 9.0 or newer requires boost-1.65.1 or newer!")
+                    SET(_ALPAKA_FOUND FALSE)
+                ENDIF()
+
                 # Clean up the flags. Else, multiple find calls would result in duplicate flags. Furthermore, other modules may have set different settings.
                 SET(CUDA_NVCC_FLAGS)
 
@@ -386,8 +448,6 @@ IF(ALPAKA_ACC_GPU_CUDA_ENABLE)
 
                 IF(NOT MSVC)
                     LIST(APPEND CUDA_NVCC_FLAGS "-std=c++11")
-                ELSE()
-                    LIST(APPEND _ALPAKA_COMPILE_DEFINITIONS_PUBLIC "_HAS_ITERATOR_DEBUGGING=0")
                 ENDIF()
 
                 SET(CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
@@ -677,10 +737,6 @@ IF(NOT _ALPAKA_FOUND)
     UNSET(_ALPAKA_FILES_HEADER)
     UNSET(_ALPAKA_FILES_OTHER)
     UNSET(_ALPAKA_BOOST_MIN_VER)
-    UNSET(_ALPAKA_VERSION_DEFINE)
-    UNSET(_ALPAKA_VER_MAJOR)
-    UNSET(_ALPAKA_VER_MINOR)
-    UNSET(_ALPAKA_VER_PATCH)
 ELSE()
     # Make internal variables advanced options in the GUI.
     MARK_AS_ADVANCED(
@@ -698,11 +754,7 @@ ELSE()
         _ALPAKA_ADD_LIBRARY_FILE
         _ALPAKA_FILES_HEADER
         _ALPAKA_FILES_OTHER
-        _ALPAKA_BOOST_MIN_VER
-        _ALPAKA_VERSION_DEFINE
-        _ALPAKA_VER_MAJOR
-        _ALPAKA_VER_MINOR
-        _ALPAKA_VER_PATCH)
+        _ALPAKA_BOOST_MIN_VER)
 ENDIF()
 
 ###############################################################################

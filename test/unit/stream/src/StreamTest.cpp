@@ -88,6 +88,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
+    streamWaitShouldWork,
+    TDevStream,
+    alpaka::test::stream::TestStreams)
+{
+    using Fixture = alpaka::test::stream::StreamTestFixture<TDevStream>;
+    Fixture f;
+
+    bool CallbackFinished = false;
+    alpaka::stream::enqueue(f.m_stream, [&CallbackFinished]() noexcept {std::this_thread::sleep_for(std::chrono::milliseconds(100u)); CallbackFinished = true;});
+
+    alpaka::wait::wait(f.m_stream);
+    BOOST_REQUIRE_EQUAL(true, CallbackFinished);
+}
+
+//-----------------------------------------------------------------------------
+BOOST_AUTO_TEST_CASE_TEMPLATE(
     streamShouldBeEmptyAfterProcessingFinished,
     TDevStream,
     alpaka::test::stream::TestStreams)
@@ -96,37 +112,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     Fixture f;
 
     bool CallbackFinished = false;
-
-    alpaka::stream::enqueue(f.m_stream, [&CallbackFinished]() noexcept {CallbackFinished = true;});
+    alpaka::stream::enqueue(f.m_stream, [&CallbackFinished]() noexcept {std::this_thread::sleep_for(std::chrono::milliseconds(100u)); CallbackFinished = true;});
 
     // A synchronous stream will always stay empty because the task has been executed immediately.
     if(!alpaka::test::stream::IsSyncStream<typename Fixture::Stream>::value)
     {
-        // Wait that the stream finally gets empty again.
-        while(!alpaka::stream::empty(f.m_stream))
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
+        alpaka::wait::wait(f.m_stream);
     }
 
     BOOST_REQUIRE_EQUAL(true, alpaka::stream::empty(f.m_stream));
-    BOOST_REQUIRE_EQUAL(true, CallbackFinished);
-}
-//-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE_TEMPLATE(
-    streamWaitShouldWork,
-    TDevStream,
-    alpaka::test::stream::TestStreams)
-{
-    using Fixture = alpaka::test::stream::StreamTestFixture<TDevStream>;
-    Fixture f;
-
-    // TODO: better add some long running (~0.5s) task here
-
-    bool CallbackFinished = false;
-    alpaka::stream::enqueue(f.m_stream, [&CallbackFinished]() noexcept {CallbackFinished = true;});
-
-    alpaka::wait::wait(f.m_stream);
     BOOST_REQUIRE_EQUAL(true, CallbackFinished);
 }
 #endif

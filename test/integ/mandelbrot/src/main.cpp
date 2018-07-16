@@ -160,7 +160,7 @@ public:
 
             auto const iterationCount(iterateMandelbrot(c, maxIterations));
 
-            auto const pColorsRow(reinterpret_cast<std::uint32_t *>(reinterpret_cast<std::uint8_t *>(pColors) + gridThreadIdxY * pitchBytes));
+            auto const pColorsRow(pColors + ((gridThreadIdxY * pitchBytes) / sizeof(std::uint32_t)));
             pColorsRow[gridThreadIdxX] =
 #ifdef ALPAKA_MANDELBROT_TEST_CONTINOUS_COLOR_MAPPING
                 iterationCountToContinousColor(iterationCount, maxIterations);
