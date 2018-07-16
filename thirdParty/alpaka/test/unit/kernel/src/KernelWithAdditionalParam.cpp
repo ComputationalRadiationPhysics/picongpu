@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         true,
         fixture(
             kernel,
-            static_cast<std::int32_t>(42)));
+            42));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

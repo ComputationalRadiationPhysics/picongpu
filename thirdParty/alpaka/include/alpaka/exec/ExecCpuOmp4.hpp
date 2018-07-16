@@ -42,8 +42,9 @@
 #include <alpaka/kernel/Traits.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
-#include <alpaka/core/OpenMp.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>
+
+#include <omp.h>
 
 #include <stdexcept>
 #include <tuple>
@@ -145,6 +146,11 @@ namespace alpaka
                 // The number of threads in a block.
                 TSize const blockThreadCount(blockThreadExtent.prod());
 
+                // We have to make sure, that the OpenMP runtime keeps enough threads for executing a block in parallel.
+                auto const maxOmpThreadCount(::omp_get_max_threads());
+                auto const maxTeamCount(maxOmpThreadCount/static_cast<int>(blockThreadCount));
+                auto const teamCount(std::min(maxTeamCount, static_cast<int>(gridBlockCount)));
+
                 // Force the environment to use the given number of threads.
                 int const ompIsDynamic(::omp_get_dynamic());
                 ::omp_set_dynamic(0);
@@ -152,19 +158,14 @@ namespace alpaka
                 // `When an if(scalar-expression) evaluates to false, the structured block is executed on the host.`
                 #pragma omp target if(0)
                 {
-                    #pragma omp teams num_teams(gridBlockCount) thread_limit(blockThreadCount)
+                    #pragma omp teams num_teams(teamCount) thread_limit(blockThreadCount)
                     {
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                         // The first team does some checks ...
                         if((::omp_get_team_num() == 0))
                         {
                             int const iNumTeams(::omp_get_num_teams());
-                            // NOTE: No std::cout in omp target!
                             printf("%s omp_get_num_teams: %d\n", BOOST_CURRENT_FUNCTION, iNumTeams);
-                            if(iNumTeams <= 0)    // NOTE: No throw inside target region
-                            {
-                                throw std::runtime_error("ERROR: The OpenMP runtime did not use a valid number of teams!");
-                            }
                         }
 #endif
                         acc::AccCpuOmp4<TDim, TSize> acc(
@@ -196,7 +197,6 @@ namespace alpaka
                                 if((::omp_get_thread_num() == 0) && (b == 0))
                                 {
                                     int const numThreads(::omp_get_num_threads());
-                                    // NOTE: No std::cout in omp target!
                                     printf("%s omp_get_num_threads: %d\n", BOOST_CURRENT_FUNCTION, numThreads);
                                     if(numThreads != static_cast<int>(blockThreadCount))
                                     {

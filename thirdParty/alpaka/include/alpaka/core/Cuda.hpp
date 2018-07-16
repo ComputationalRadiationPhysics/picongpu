@@ -177,15 +177,34 @@ namespace alpaka
                 int const & line)
             -> void
             {
-                if(error != CUDA_SUCCESS)
+                if(error == CUDA_SUCCESS)
+                    return;
+
+                char const * cu_err_name = nullptr;
+                char const * cu_err_string = nullptr;
+                CUresult cu_result_name = cuGetErrorName(error, &cu_err_name);
+                CUresult cu_result_string = cuGetErrorString(error, &cu_err_string);
+                std::string sError = std::string(file)
+                                   + "(" + std::to_string(line) + ") "
+                                   + std::string(desc) + " : '";
+                if( cu_result_name == CUDA_SUCCESS && cu_result_string == CUDA_SUCCESS )
                 {
-                    std::string const sError(std::string(file) + "(" + std::to_string(line) + ") " + std::string(desc) + " : '" + cudaGetErrorName(static_cast<cudaError_t>(error)) +  "': '" + std::string(cudaGetErrorString(static_cast<cudaError_t>(error))) + "'!");
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-                    std::cerr << sError << std::endl;
-#endif
-                    ALPAKA_DEBUG_BREAK;
-                    throw std::runtime_error(sError);
+                    sError += std::string(cu_err_name) +  "': '"
+                            + std::string(cu_err_string) + "'!";
+                } else {
+                    // cuGetError*() failed, so append corresponding error message
+                    if( cu_result_name == CUDA_ERROR_INVALID_VALUE ) {
+                        sError += " cuGetErrorName: 'Invalid Value'!";
+                    }
+                    if( cu_result_string == CUDA_ERROR_INVALID_VALUE ) {
+                        sError += " cuGetErrorString: 'Invalid Value'!";
+                    }
                 }
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
+                std::cerr << sError << std::endl;
+#endif
+                ALPAKA_DEBUG_BREAK;
+                throw std::runtime_error(sError);
             }
         }
     }

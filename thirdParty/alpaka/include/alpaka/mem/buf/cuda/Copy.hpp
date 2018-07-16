@@ -563,7 +563,7 @@ namespace alpaka
                                 dstNativePtr,
                                 static_cast<std::size_t>(dstPitchBytesX),
                                 static_cast<std::size_t>(dstWidth),
-                                static_cast<std::size_t>(dstPitchBytesY/dstPitchBytesX));
+                                static_cast<std::size_t>(dstPitchBytesY / dstPitchBytesX));
                         cudaMemCpy3DParms.extent =
                             make_cudaExtent(
                                 static_cast<std::size_t>(extentWidthBytes),
@@ -615,7 +615,7 @@ namespace alpaka
                                 dstNativePtr,
                                 static_cast<std::size_t>(dstPitchBytesX),
                                 static_cast<std::size_t>(dstWidth),
-                                static_cast<std::size_t>(dstPitchBytesY/dstPitchBytesX));
+                                static_cast<std::size_t>(dstPitchBytesY / dstPitchBytesX));
                         cudaMemCpy3DPeerParms.extent =
                             make_cudaExtent(
                                 static_cast<std::size_t>(extentWidthBytes),
@@ -629,7 +629,7 @@ namespace alpaka
                                 const_cast<void *>(srcNativePtr),
                                 static_cast<std::size_t>(srcPitchBytesX),
                                 static_cast<std::size_t>(srcWidth),
-                                static_cast<std::size_t>(srcPitchBytesY/srcPitchBytesX));
+                                static_cast<std::size_t>(srcPitchBytesY / srcPitchBytesX));
 
                         return cudaMemCpy3DPeerParms;
                     }
@@ -689,7 +689,7 @@ namespace alpaka
                                 const_cast<void *>(srcNativePtr),
                                 static_cast<std::size_t>(srcPitchBytesX),
                                 static_cast<std::size_t>(srcWidth),
-                                static_cast<std::size_t>(srcPitchBytesY/srcPitchBytesX));
+                                static_cast<std::size_t>(srcPitchBytesY / srcPitchBytesX));
 
                         return cudaMemCpy3DPeerParms;
                     }
@@ -722,6 +722,11 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     task.printDebug();
 #endif
+                    if(task.m_extentWidthBytes == 0)
+                    {
+                        return;
+                    }
+
                     auto const & iDstDev(task.m_iDstDevice);
                     auto const & iSrcDev(task.m_iSrcDevice);
 
@@ -782,6 +787,11 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     task.printDebug();
 #endif
+                    if(task.m_extentWidthBytes == 0)
+                    {
+                        return;
+                    }
+
                     auto const & iDstDev(task.m_iDstDevice);
                     auto const & iSrcDev(task.m_iSrcDevice);
 
@@ -840,6 +850,12 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     task.printDebug();
 #endif
+                    // This is not only an optimization but also prevents a division by zero.
+                    if(task.m_extentWidthBytes == 0 || task.m_extentHeight == 0)
+                    {
+                        return;
+                    }
+
                     auto const & iDstDev(task.m_iDstDevice);
                     auto const & iSrcDev(task.m_iSrcDevice);
 
@@ -908,6 +924,12 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     task.printDebug();
 #endif
+                    // This is not only an optimization but also prevents a division by zero.
+                    if(task.m_extentWidthBytes == 0 || task.m_extentHeight == 0)
+                    {
+                        return;
+                    }
+
                     auto const & iDstDev(task.m_iDstDevice);
                     auto const & iSrcDev(task.m_iSrcDevice);
 
@@ -974,6 +996,12 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     task.printDebug();
 #endif
+                    // This is not only an optimization but also prevents a division by zero.
+                    if(task.m_extentWidthBytes == 0 || task.m_extentHeight == 0 || task.m_extentDepth == 0)
+                    {
+                        return;
+                    }
+
                     auto const & iDstDev(task.m_iDstDevice);
                     auto const & iSrcDev(task.m_iSrcDevice);
 
@@ -1028,6 +1056,12 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     task.printDebug();
 #endif
+                    // This is not only an optimization but also prevents a division by zero.
+                    if(task.m_extentWidthBytes == 0 || task.m_extentHeight == 0 || task.m_extentDepth == 0)
+                    {
+                        return;
+                    }
+
                     auto const & iDstDev(task.m_iDstDevice);
                     auto const & iSrcDev(task.m_iSrcDevice);
 

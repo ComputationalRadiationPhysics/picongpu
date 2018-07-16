@@ -54,8 +54,8 @@ Accelerator Back-ends
 |OpenMP 4.0+ (CPU)|OpenMP 4.0+|Host CPU (multi core)|parallel (undefined)|parallel (preemptive multitasking)|
 | std::thread | std::thread |Host CPU (multi core)|sequential|parallel (preemptive multitasking)|
 | Boost.Fiber | boost::fibers::fiber |Host CPU (single core)|sequential|parallel (cooperative multitasking)|
-|TBB 2.2+ blocks|TBB 2.2+|Host CPU (multi core)|parallel (preemptive multitasking)|sequential (only 1 thread per block)|
-|CUDA 7.0+|CUDA 7.0+|NVIDIA GPUs SM 2.0+|parallel (undefined)|parallel (lock-step within warps)|
+|TBB|TBB 2.2+|Host CPU (multi core)|parallel (preemptive multitasking)|sequential (only 1 thread per block)|
+|CUDA|CUDA 7.0-9.2|NVIDIA GPUs|parallel (undefined)|parallel (lock-step within warps)|
 
 
 Supported Compilers
@@ -63,22 +63,23 @@ Supported Compilers
 
 This library uses C++11 (or newer when available).
 
-|Accelerator Back-end|gcc 4.9.2|gcc 5.4|gcc 6.3/7.2|clang 3.5/3.6|clang 3.7/3.8|clang 3.9|clang 4/5|MSVC 2017.5|
-|---|---|---|---|---|---|---|---|---|
-|Serial|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|OpenMP 2.0+ blocks|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|OpenMP 2.0+ threads|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|OpenMP 4.0+ (CPU)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|:white_check_mark:|:white_check_mark:|:x:|
-| std::thread |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-| Boost.Fiber |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|TBB 2.2+|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|CUDA 7.0+|:white_check_mark: (nvcc 7.0+)|:white_check_mark: (nvcc 8.0+)|:x:|:white_check_mark: (nvcc 8.0+)|:white_check_mark: (nvcc 8.0+)|:white_check_mark: (native)|:white_check_mark: (native)|:x:|
+|Accelerator Back-end|gcc 4.9.2|gcc 5.4|gcc 6.3/7.2|clang 3.5/3.6|clang 3.7/3.8|clang 3.9|clang 4|clang 5|MSVC 2017.5|
+|---|---|---|---|---|---|---|---|
+|Serial|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|OpenMP 2.0+ blocks|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|OpenMP 2.0+ threads|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|OpenMP 4.0+ (CPU)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:x:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|
+| std::thread |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+| Boost.Fiber |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|TBB|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|CUDA (nvcc)|:white_check_mark: <br/> (CUDA 7.0-9.2)|:white_check_mark: <br/> (CUDA 9.0-9.2)|:white_check_mark: <br/> (CUDA 9.2)|:white_check_mark: <br/> (CUDA 8.0)|:x:|:white_check_mark: <br/> (CUDA 9.1-9.2)|:white_check_mark: <br/> (CUDA 9.1-9.2)|:x:|:x:|
+|CUDA (clang) | - | - | - | - | - | - | :white_check_mark: <br/> (CUDA 8.0)| :white_check_mark: <br/> (CUDA 8.0) | - |
 
 
 Dependencies
 ------------
 
-[Boost](http://boost.org/) 1.62+ is the only mandatory external dependency.
+[Boost](http://boost.org/) 1.62+ is the only mandatory external dependency (for CUDA 9+ Boost >=1.65.1 is required).
 The **alpaka** library itself just requires header-only libraries.
 However some of the accelerator back-end implementations require different boost libraries to be built.
 

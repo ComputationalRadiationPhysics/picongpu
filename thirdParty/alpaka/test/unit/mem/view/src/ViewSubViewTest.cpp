@@ -90,6 +90,10 @@ struct CreateExtentViewVal
     }
 };
 
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wcast-align" // "cast from 'std::uint8_t*' to 'Elem*' increases required alignment of target type"
+#endif
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     viewSubViewTest,
@@ -165,5 +169,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
             alpaka::mem::view::getPtrNative(view));
     }
 }
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic pop
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()

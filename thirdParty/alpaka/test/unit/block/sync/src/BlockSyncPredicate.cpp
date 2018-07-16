@@ -42,6 +42,8 @@
     #pragma clang diagnostic pop
 #endif
 
+#if !((BOOST_COMP_CLANG >= BOOST_VERSION_NUMBER(3, 7, 0)) && (BOOST_COMP_CLANG < BOOST_VERSION_NUMBER(3, 8, 0)))
+
 //#############################################################################
 class BlockSyncPredicateTestKernel
 {
@@ -151,3 +153,5 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+#endif

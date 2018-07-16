@@ -110,7 +110,9 @@ namespace alpaka
             public workdiv::WorkDivMembers<TDim, TSize>
         {
         public:
-#if (!__GLIBCXX__) // libstdc++ even for gcc-4.9 does not support std::is_trivially_copyable.
+// gcc-4.9 libstdc++ does not support std::is_trivially_copyable.
+// MSVC std::is_trivially_copyable seems to be buggy (last tested at 15.7).
+#if (!__GLIBCXX__) && (!BOOST_COMP_MSVC)
             static_assert(
                 meta::Conjunction<
                     std::is_trivially_copyable<
@@ -515,7 +517,7 @@ namespace alpaka
                             exec::cuda::detail::cudaKernel<TDim, TSize, TKernelFnObj, TArgs...><<<
                                 gridDim,
                                 blockDim,
-                                blockSharedMemDynSizeBytes,
+                                static_cast<std::size_t>(blockSharedMemDynSizeBytes),
                                 stream.m_spStreamImpl->m_CudaStream>>>(
                                     threadElemExtent,
                                     task.m_kernelFnObj,
