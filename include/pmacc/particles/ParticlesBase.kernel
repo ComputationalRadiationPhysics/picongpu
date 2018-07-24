@@ -229,6 +229,16 @@ struct KernelFillGapsLastFrame
                 uint32_t const
             )
             {
+                if( lastFrame.isValid() && counterParticles == 0 )
+                {
+                    lastFrame = getPreviousFrameAndRemoveLastFrame(lastFrame, pb, superCellIdx);
+                    /* if there is a previous valid frame then this frame is fully filled and
+                     * now the last frame
+                     */
+                    if( lastFrame.isValid() )
+                        counterParticles = frameSize;
+                }
+
                 pb.getSuperCell( superCellIdx ).setSizeLastFrame( counterParticles );
             }
         );
