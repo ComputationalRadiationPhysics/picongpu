@@ -106,8 +106,8 @@ namespace defaults
          */
         static constexpr float_X LASER_PHASE = 0.0;
 
-        using LAGUERREMODES_t = LAGUERREMODES_t;
-        static constexpr uint32_t MODENUMBER = MODENUMBER;
+        using LAGUERREMODES_t = defaults::LAGUERREMODES_t;
+        static constexpr uint32_t MODENUMBER = defaults::MODENUMBER;
 
         /** Available polarisation types
          */
