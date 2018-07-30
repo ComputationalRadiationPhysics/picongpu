@@ -69,7 +69,7 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 
 .. note::
 
-   Please find a `Piz Daint quick start from December 2017 here <https://gist.github.com/ax3l/68cb4caa597df3def9b01640959ea56b>`_.
+   Please find a `Piz Daint quick start from December 2017 here <https://gist.github.com/n01r/20dacc20987b75d1858db5261d5d0205>`_.
 
 .. literalinclude:: profiles/pizdaint-cscs/picongpu.profile.example
    :language: bash
