@@ -37,15 +37,18 @@ class Visualizer(BaseVisualizer):
         Implementation of base class function.
         Turns 'self.plt_obj' into a matplotlib.pyplot.plot object.
         """
-        bins, counts = self.data
+        counts, bins = self.data
         self.plt_obj = ax.semilogy(bins, counts, nonposy='clip')[0]
 
     def _update_plt_obj(self):
         """
         Implementation of base class function.
         """
-        bins, counts = self.data
+        counts, bins = self.data
         self.plt_obj.set_data(bins, counts)
+        ax = self._ax_or_gca(None)
+        ax.relim()
+        ax.autoscale_view(True, True, True)
 
     def visualize(self, ax=None, **kwargs):
         """
@@ -75,16 +78,14 @@ class Visualizer(BaseVisualizer):
         iteration = kwargs.get('iteration')
         species = kwargs.get('species')
         species_filter = kwargs.get('species_filter', 'all')
-
         if iteration is None or species is None:
             raise ValueError("Iteration and species have to be provided as\
             keyword arguments!")
 
         ax.set_xlabel('Energy [keV]')
-        ax.set_ylabel('Count')
+        ax.set_ylabel('Counts')
         ax.set_title('Energy Histogram for species ' +
-                     species + ', filter = ' + species_filter +
-                     ', iteration ' + str(iteration))
+                     species + ', filter = ' + species_filter)
 
 
 if __name__ == '__main__':
