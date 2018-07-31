@@ -28,7 +28,37 @@
 
 namespace pmacc
 {
+    template <class TYPE, unsigned DIM>
+    class HostBuffer;
 
+namespace detail
+{
+    template< class TYPE >
+    container::HostBuffer< TYPE, 1u >
+    make_CartBuffer( HostBuffer<TYPE, 1u> & hb )
+    {
+        return container::HostBuffer<TYPE, 1u>(hb.getBasePointer(), hb.getDataSpace(), false);
+    }
+
+    template< class TYPE >
+    container::HostBuffer< TYPE, 2u >
+    make_CartBuffer( HostBuffer<TYPE, 2u> & hb )
+    {
+        math::Size_t<2u - 1u> pitch;
+        pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
+        return container::HostBuffer<TYPE, 2u>(hb.getBasePointer(), hb.getDataSpace(), false, pitch);
+    }
+
+    template< class TYPE >
+    container::HostBuffer< TYPE, 3u >
+    make_CartBuffer( HostBuffer<TYPE, 3u> & hb )
+    {
+        math::Size_t<3u - 1u> pitch;
+        pitch[0] = hb.getPhysicalMemorySize()[0] * sizeof(TYPE);
+        pitch[1] = pitch[0] * hb.getPhysicalMemorySize()[1];
+        return container::HostBuffer<TYPE, 3u>(hb.getBasePointer(), hb.getDataSpace(), false, pitch);
+    }
+}
     class EventTask;
 
     template <class TYPE, unsigned DIM>
@@ -72,17 +102,16 @@ namespace pmacc
         {
         };
 
+        /**
+         * Conversion to cuSTL HostBuffer.
+         *
+         * Returns a cuSTL HostBuffer with reference to the same data.
+         */
         HINLINE
         container::HostBuffer<TYPE, DIM>
         cartBuffer()
         {
-            math::Size_t<DIM - 1> pitch;
-            if(DIM >= 2)
-                pitch[0] = this->getPhysicalMemorySize()[0] * sizeof(TYPE);
-            if(DIM == 3)
-                pitch[1] = pitch[0] * this->getPhysicalMemorySize()[1];
-            container::HostBuffer<TYPE, DIM> result(this->getBasePointer(), this->getDataSpace(), false, pitch);
-            return result;
+            return detail::make_CartBuffer( *this );
         }
 
     protected:
