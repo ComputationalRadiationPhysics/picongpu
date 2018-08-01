@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -301,9 +301,7 @@ namespace picongpu
          *   \see PhaseSpaceMulti::pluginLoad( )
          */
         float_64 const pRange_unit =
-            float_64( frame::getMass< typename Species::FrameType >() ) *
-            float_64( SPEED_OF_LIGHT ) *
-            ( UNIT_MASS * float_64( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE ) ) *
+            UNIT_MASS *
             UNIT_SPEED;
 
         DumpHBuffer dumpHBuffer;
