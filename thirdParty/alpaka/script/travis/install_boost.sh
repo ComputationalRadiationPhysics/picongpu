@@ -26,6 +26,7 @@
 
 : ${ALPAKA_CI_BOOST_ROOT_DIR?"ALPAKA_CI_BOOST_ROOT_DIR must be specified"}
 : ${ALPAKA_CI_BOOST_LIB_DIR?"ALPAKA_CI_BOOST_LIB_DIR must be specified"}
+: ${CMAKE_BUILD_TYPE?"CMAKE_BUILD_TYPE must be specified"}
 : ${CXX?"CXX must be specified"}
 : ${CC?"CC must be specified"}
 
@@ -49,7 +50,13 @@ mkdir --parents "${ALPAKA_CI_BOOST_LIB_DIR}"
 ALPAKA_BOOST_B2_CFLAGS="-fPIC"
 ALPAKA_BOOST_B2_CXXFLAGS="-fPIC"
 ALPAKA_BOOST_B2="sudo ./b2 -j1 --layout=tagged --toolset=${CC}"
-ALPAKA_BOOST_B2+=" architecture=x86 address-model=64 variant=debug,release link=static threading=multi runtime-link=shared"
+ALPAKA_BOOST_B2+=" architecture=x86 address-model=64 link=static threading=multi runtime-link=shared"
+if [ "${CMAKE_BUILD_TYPE}" == "Debug" ]
+then
+  ALPAKA_BOOST_B2+=" variant=debug"
+else
+  ALPAKA_BOOST_B2+=" variant=release"
+fi
 # Clang is not supported by the FindBoost script.
 # boost (especially old versions) produces too much warnings when using clang (newer versions) so that the 4 MiB log is too short.
 if [ "${CXX}" == "clang++" ]
@@ -65,7 +72,7 @@ ALPAKA_BOOST_B2+=" --with-test"
 if [ "${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" == "ON" ]
 then
     ALPAKA_BOOST_B2_CXXFLAGS+=" -std=c++11"
-    ALPAKA_BOOST_B2+=" --with-fiber --with-context --with-thread --with-system --with-atomic --with-chrono --with-date_time"
+    ALPAKA_BOOST_B2+=" --with-fiber --with-context --with-thread --with-atomic --with-system --with-chrono --with-date_time"
 fi
 if [ "${ALPAKA_BOOST_B2_CFLAGS}" != "" ]
 then

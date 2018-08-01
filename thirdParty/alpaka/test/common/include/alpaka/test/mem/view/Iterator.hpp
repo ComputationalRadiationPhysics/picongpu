@@ -52,6 +52,10 @@ namespace alpaka
                         typename std::add_const<T>::type,
                         typename std::remove_const<T>::type>;
 
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wcast-align" // "cast from 'Byte*' to 'Elem*' increases required alignment of target type"
+#endif
                     //#############################################################################
                     template<
                         typename TView,
@@ -172,7 +176,6 @@ namespace alpaka
                                 << " v: " << *reinterpret_cast<Elem *>(ptr)
                                 << std::endl;
 #endif
-
                             return *reinterpret_cast<Elem *>(ptr);
                         }
 
@@ -182,6 +185,9 @@ namespace alpaka
                         vec::Vec<Dim, Size> const m_extents;
                         vec::Vec<Dim, Size> const m_pitchBytes;
                     };
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic pop
+#endif
 
                     //#############################################################################
                     template<

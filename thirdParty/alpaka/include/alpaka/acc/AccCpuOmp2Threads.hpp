@@ -51,9 +51,9 @@
 // Implementation details.
 #include <alpaka/dev/DevCpu.hpp>
 
-#include <alpaka/core/OpenMp.hpp>
-
 #include <boost/core/ignore_unused.hpp>
+
+#include <omp.h>
 
 #include <limits>
 #include <typeinfo>
@@ -177,11 +177,10 @@ namespace alpaka
                 {
                     boost::ignore_unused(dev);
 
-                    // m_blockThreadCountMax
 #ifdef ALPAKA_CI
-                    auto const blockThreadCountMax(static_cast<TSize>(4));
+                    auto const blockThreadCountMax(static_cast<TSize>(std::min(4, ::omp_get_max_threads())));
 #else
-                    auto const blockThreadCountMax(static_cast<TSize>(omp::getMaxOmpThreads()));
+                    auto const blockThreadCountMax(static_cast<TSize>(::omp_get_max_threads()));
 #endif
                     return {
                         // m_multiProcessorCount

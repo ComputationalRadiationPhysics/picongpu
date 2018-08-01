@@ -162,7 +162,12 @@ namespace alpaka
                     auto const & iDevice(task.m_iDevice);
 
                     auto const extentWidth(extent::getWidth(extent));
-                    auto const extentWidthBytes(extentWidth * static_cast<Size>(sizeof(elem::Elem<TView>)));
+
+                    if(extentWidth == 0)
+                    {
+                        return;
+                    }
+
 #if !defined(NDEBUG)
                     auto const dstWidth(extent::getWidth(buf));
 #endif
@@ -173,6 +178,9 @@ namespace alpaka
                     ALPAKA_CUDA_RT_CHECK(
                         cudaSetDevice(
                             iDevice));
+
+                    auto const extentWidthBytes(extentWidth * static_cast<Size>(sizeof(elem::Elem<TView>)));
+
                     // Initiate the memory set.
                     ALPAKA_CUDA_RT_CHECK(
                         cudaMemsetAsync(
@@ -214,12 +222,19 @@ namespace alpaka
                     auto const & iDevice(task.m_iDevice);
 
                     auto const extentWidth(extent::getWidth(extent));
-                    auto const extentWidthBytes(extentWidth * static_cast<Size>(sizeof(elem::Elem<TView>)));
+
+                    if(extentWidth == 0)
+                    {
+                        return;
+                    }
+
 #if !defined(NDEBUG)
                     auto const dstWidth(extent::getWidth(buf));
 #endif
                     auto const dstNativePtr(reinterpret_cast<void *>(mem::view::getPtrNative(buf)));
                     assert(extentWidth <= dstWidth);
+
+                    auto const extentWidthBytes(extentWidth * static_cast<Size>(sizeof(elem::Elem<TView>)));
 
                     // Set the current device.
                     ALPAKA_CUDA_RT_CHECK(
@@ -265,8 +280,15 @@ namespace alpaka
                     auto const & iDevice(task.m_iDevice);
 
                     auto const extentWidth(extent::getWidth(extent));
-                    auto const extentWidthBytes(extentWidth * static_cast<Size>(sizeof(elem::Elem<TView>)));
                     auto const extentHeight(extent::getHeight(extent));
+
+                    if(extentWidth == 0 || extentHeight == 0)
+                    {
+                        return;
+                    }
+
+                    auto const extentWidthBytes(extentWidth * static_cast<Size>(sizeof(elem::Elem<TView>)));
+
 #if !defined(NDEBUG)
                     auto const dstWidth(extent::getWidth(buf));
                     auto const dstHeight(extent::getHeight(buf));
@@ -323,8 +345,15 @@ namespace alpaka
                     auto const & iDevice(task.m_iDevice);
 
                     auto const extentWidth(extent::getWidth(extent));
-                    auto const extentWidthBytes(extentWidth * static_cast<Size>(sizeof(elem::Elem<TView>)));
                     auto const extentHeight(extent::getHeight(extent));
+
+                    if(extentWidth == 0 || extentHeight == 0)
+                    {
+                        return;
+                    }
+
+                    auto const extentWidthBytes(extentWidth * static_cast<Size>(sizeof(elem::Elem<TView>)));
+
 #if !defined(NDEBUG)
                     auto const dstWidth(extent::getWidth(buf));
                     auto const dstHeight(extent::getHeight(buf));
@@ -338,6 +367,7 @@ namespace alpaka
                     ALPAKA_CUDA_RT_CHECK(
                         cudaSetDevice(
                             iDevice));
+
                     // Initiate the memory set.
                     ALPAKA_CUDA_RT_CHECK(
                         cudaMemset2D(
@@ -383,6 +413,13 @@ namespace alpaka
                     auto const extentWidth(extent::getWidth(extent));
                     auto const extentHeight(extent::getHeight(extent));
                     auto const extentDepth(extent::getDepth(extent));
+
+                    // This is not only an optimization but also prevents a division by zero.
+                    if(extentWidth == 0 || extentHeight == 0 || extentDepth == 0)
+                    {
+                        return;
+                    }
+
                     auto const dstWidth(extent::getWidth(buf));
 #if !defined(NDEBUG)
                     auto const dstHeight(extent::getHeight(buf));
@@ -401,7 +438,7 @@ namespace alpaka
                             dstNativePtr,
                             static_cast<size_t>(dstPitchBytesX),
                             static_cast<size_t>(dstWidth * static_cast<Size>(sizeof(Elem))),
-                            static_cast<size_t>(dstPitchBytesY/dstPitchBytesX)));
+                            static_cast<size_t>(dstPitchBytesY / dstPitchBytesX)));
 
                     cudaExtent const cudaExtentVal(
                         make_cudaExtent(
@@ -457,6 +494,13 @@ namespace alpaka
                     auto const extentWidth(extent::getWidth(extent));
                     auto const extentHeight(extent::getHeight(extent));
                     auto const extentDepth(extent::getDepth(extent));
+
+                    // This is not only an optimization but also prevents a division by zero.
+                    if(extentWidth == 0 || extentHeight == 0 || extentDepth == 0)
+                    {
+                        return;
+                    }
+
                     auto const dstWidth(extent::getWidth(buf));
 #if !defined(NDEBUG)
                     auto const dstHeight(extent::getHeight(buf));
@@ -475,7 +519,7 @@ namespace alpaka
                             dstNativePtr,
                             static_cast<size_t>(dstPitchBytesX),
                             static_cast<size_t>(dstWidth * static_cast<Size>(sizeof(Elem))),
-                            static_cast<size_t>(dstPitchBytesY/dstPitchBytesX)));
+                            static_cast<size_t>(dstPitchBytesY / dstPitchBytesX)));
 
                     cudaExtent const cudaExtentVal(
                         make_cudaExtent(

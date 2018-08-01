@@ -48,7 +48,6 @@ IF(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
 ELSE()
     LIST(APPEND _INCLUDE_DIRECTORIES_PRIVATE ${Boost_INCLUDE_DIRS})
     LIST(APPEND _LINK_LIBRARIES_PRIVATE ${Boost_LIBRARIES})
-
 ENDIF()
 
 #-------------------------------------------------------------------------------
@@ -58,6 +57,13 @@ SET(_SOURCE_DIR "src/")
 
 # Add all the source files in all recursive subdirectories and group them accordingly.
 append_recursive_files_add_to_src_group("${_SOURCE_DIR}" "${_SOURCE_DIR}" "cpp" _FILES_SOURCE)
+
+# NVCC does not incorporate the COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
+IF(ALPAKA_ACC_GPU_CUDA_ENABLE AND NOT ALPAKA_CUDA_COMPILER MATCHES "clang")
+    GET_TARGET_PROPERTY(_COMMON_COMPILE_OPTIONS common COMPILE_OPTIONS)
+    STRING(REPLACE ";" " " _COMMON_COMPILE_OPTIONS_STRING "${_COMMON_COMPILE_OPTIONS}")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_COMMON_COMPILE_OPTIONS_STRING}")
+ENDIF()
 
 # Always add all files to the target executable build call to add them to the build project.
 ALPAKA_ADD_EXECUTABLE(

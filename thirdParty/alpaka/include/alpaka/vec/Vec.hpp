@@ -49,7 +49,7 @@
 // Some compilers do not support the out of class versions:
 // - the nvcc CUDA compiler (at least 7.0, 7.5 and 8.0)
 // - the intel compiler
-#if BOOST_COMP_NVCC || BOOST_COMP_INTEL || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0))
+#if BOOST_COMP_NVCC || BOOST_COMP_INTEL || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 0, 0))
     #define ALPAKA_CREATE_VEC_IN_CLASS
 #endif
 
@@ -155,6 +155,8 @@ namespace alpaka
         class Vec final
         {
         public:
+            static_assert(TDim::value >= 0u, "Invalid dimensionality");
+
             using Dim = TDim;
             static constexpr auto s_uiDim = TDim::value;
             using Val = TSize;
@@ -335,7 +337,7 @@ namespace alpaka
             {
                 core::assertValueUnsigned(iIdx);
                 auto const idx(static_cast<typename TDim::value_type>(iIdx));
-                assert(TDim::value > 0u && idx<TDim::value);
+                assert(idx < TDim::value);
                 return m_data[idx];
             }
 
@@ -353,7 +355,7 @@ namespace alpaka
             {
                 core::assertValueUnsigned(iIdx);
                 auto const idx(static_cast<typename TDim::value_type>(iIdx));
-                assert(TDim::value > 0u && idx<TDim::value);
+                assert(idx < TDim::value);
                 return m_data[idx];
             }
 

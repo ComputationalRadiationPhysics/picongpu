@@ -21,6 +21,12 @@
 #-------------------------------------------------------------------------------
 # Compiler settings.
 #-------------------------------------------------------------------------------
+# By marking the boost headers as system headers, warnings produced within them are ignored.
+# Marking the boost headers as system headers does not work for nvcc (FindCUDA always uses -I)
+TARGET_INCLUDE_DIRECTORIES(
+    "alpaka"
+    SYSTEM
+    INTERFACE ${Boost_INCLUDE_DIRS})
 
 #MSVC
 IF(MSVC)
@@ -41,6 +47,7 @@ IF(MSVC)
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "/Zc:throwingNew" "/Zc:strictStrings")
     ENDIF()
 ELSE()
+  IF(NOT (ALPAKA_ACC_GPU_CUDA_ENABLE AND NOT ALPAKA_CUDA_COMPILER MATCHES "clang"))
     # GNU
     IF(CMAKE_COMPILER_IS_GNUCXX)
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wall")
@@ -111,12 +118,16 @@ ELSE()
             LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wduplicated-cond")
             LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wsubobject-linkage")
         ENDIF()
-        # By marking the boost headers as system headers, warnings produced within them are ignored.
-        FIND_PACKAGE(Boost QUIET)
-        IF(NOT Boost_FOUND)
-            MESSAGE(FATAL_ERROR "Required alpaka dependency Boost.Test could not be found!")
+        IF(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
+            # This warning might be useful but it is triggered by comile-time code where it does not make any sense:
+            # E.g. "vec::Vec<dim::DimInt<(TidxDimOut < TidxDimIn) ? TidxDimIn : TidxDimOut>, TElem>" when both values are equal
+            #LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wduplicated-branches")
+            LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Walloc-zero")
+            LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Walloca")
         ENDIF()
-        INCLUDE_DIRECTORIES(SYSTEM ${Boost_INCLUDE_DIRS})
+        IF(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+            LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wcast-align=strict")
+        ENDIF()
 
     # Clang or AppleClang
     ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -133,8 +144,6 @@ ELSE()
         # as they are stored as members. Therefore, the padding warning is triggered by the calling code
         # and does not indicate a failure within alpaka.
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wno-padded")
-        # By marking the boost headers as system headers, warnings produced within them are ignored.
-        LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "--system-header-prefix=boost/")
     # ICC
     ELSEIF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Wall")
@@ -142,4 +151,5 @@ ELSE()
     ELSEIF(${CMAKE_CXX_COMPILER_ID} STREQUAL "PGI")
         LIST(APPEND ALPAKA_DEV_COMPILE_OPTIONS "-Minform=inform")
     ENDIF()
+  ENDIF()
 ENDIF()

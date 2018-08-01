@@ -27,9 +27,11 @@
 
 #include <alpaka/idx/MapIdx.hpp>
 
-#include <alpaka/core/OpenMp.hpp>
+#include <alpaka/core/Positioning.hpp>
 
 #include <boost/core/ignore_unused.hpp>
+
+#include <omp.h>
 
 #include <cassert>
 

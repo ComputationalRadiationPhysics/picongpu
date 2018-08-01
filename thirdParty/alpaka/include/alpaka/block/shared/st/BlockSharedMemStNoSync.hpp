@@ -71,6 +71,10 @@ namespace alpaka
 
                 namespace traits
                 {
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wcast-align" // "cast from 'unsigned char*' to 'unsigned int*' increases required alignment of target type"
+#endif
                     //#############################################################################
                     template<
                         typename T,
@@ -85,6 +89,10 @@ namespace alpaka
                             block::shared::st::BlockSharedMemStNoSync const & blockSharedMemSt)
                         -> T &
                         {
+                            static_assert(
+                                core::vectorization::defaultAlignment >= alignof(T),
+                                "Unable to get block shared static memory for types with alignment higher than defaultAlignment!");
+
                             blockSharedMemSt.m_sharedAllocs.emplace_back(
                                 reinterpret_cast<uint8_t *>(
                                     boost::alignment::aligned_alloc(core::vectorization::defaultAlignment, sizeof(T))));
@@ -94,6 +102,9 @@ namespace alpaka
                                         blockSharedMemSt.m_sharedAllocs.back().get()));
                         }
                     };
+#if BOOST_COMP_GNUC
+    #pragma GCC diagnostic pop
+#endif
                     //#############################################################################
                     template<>
                     struct FreeMem<

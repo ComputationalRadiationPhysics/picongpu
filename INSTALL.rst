@@ -35,7 +35,7 @@ gcc
 
   - CUDA 8.0: Use gcc 4.9 - 5.3
   - CUDA 9.0 - 9.1: Use gcc 4.9 - 5.5
-  - CUDA 9.2: Use gcc 4.9 - 7 (not yet supported)
+  - CUDA 9.2: Use gcc 4.9 - 7
 - *note:* be sure to build all libraries/dependencies with the *same* gcc version
 - *Debian/Ubuntu:*
   
@@ -116,7 +116,7 @@ rsync
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
 
-alpaka 0.3.1
+alpaka 0.3.2
 """"""""""""
 - `alpaka <https://github.com/ComputationalRadiationPhysics/alpaka>`_ is included in the PIConGPU source code
 
@@ -152,7 +152,7 @@ Optional Libraries
 
 CUDA
 """"
-- `8.0 - 9.1 <https://developer.nvidia.com/cuda-downloads>`_
+- `8.0 - 9.2 <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``

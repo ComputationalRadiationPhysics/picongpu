@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2017 Benjamin Worpitz
+# Copyright 2017-2018 Benjamin Worpitz
 #
 # This file is part of alpaka.
 #
@@ -56,8 +56,13 @@ then
     ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-ubuntu1604-9-1-local
     ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_9.1.85-1_amd64
     ALPAKA_CUDA_PKG_FILE_PATH=https://developer.nvidia.com/compute/cuda/9.1/Prod/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
+elif [ "${ALPAKA_CUDA_VER}" == "9.2" ]
+then
+    ALPAKA_CUDA_PKG_DEB_NAME=cuda-repo-ubuntu1604-9-2-local
+    ALPAKA_CUDA_PKG_FILE_NAME="${ALPAKA_CUDA_PKG_DEB_NAME}"_9.2.88-1_amd64
+    ALPAKA_CUDA_PKG_FILE_PATH=https://developer.nvidia.com/compute/cuda/9.2/Prod/local_installers/${ALPAKA_CUDA_PKG_FILE_NAME}
 else
-    echo CUDA versions other than 7.0, 7.5, 8.0, 9.0 and 9.1 are not currently supported!
+    echo CUDA versions other than 7.0, 7.5, 8.0, 9.0, 9.1 and 9.2 are not currently supported!
 fi
 if [ -z "$(ls -A "${ALPAKA_CI_CUDA_DIR}")" ]
 then

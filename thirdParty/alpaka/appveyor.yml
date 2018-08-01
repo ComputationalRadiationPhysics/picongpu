@@ -121,11 +121,11 @@ before_build:
 
     #-------------------------------------------------------------------------------
     # Clone boost.
-    - cmd: set BOOST_ROOT=C:\projects\boost
+    - cmd: set ALPAKA_CI_BOOST_ROOT_DIR=C:\projects\boost
     - cmd: set ALPAKA_B2_STAGE_DIR=C:\projects\boost_libs
-    - cmd: set BOOST_LIBRARYDIR=%ALPAKA_B2_STAGE_DIR%\lib
-    - cmd: git clone -b %ALPAKA_BOOST_BRANCH% --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git %BOOST_ROOT%
-    - cmd: cd %BOOST_ROOT%
+    - cmd: set ALPAKA_CI_BOOST_LIB_DIR=%ALPAKA_B2_STAGE_DIR%\lib
+    - cmd: git clone -b %ALPAKA_BOOST_BRANCH% --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git %ALPAKA_CI_BOOST_ROOT_DIR%
+    - cmd: cd %ALPAKA_CI_BOOST_ROOT_DIR%
 
     # Prepare building of boost.
     - cmd: call bootstrap.bat
@@ -166,7 +166,7 @@ before_build:
     - cmd: if "%PLATFORM%"=="x64" set ALPAKA_CMAKE_GENERATOR=%ALPAKA_CMAKE_GENERATOR% Win64
     - cmd: mkdir build
     - cmd: cd build
-    - cmd: cmake -G "%ALPAKA_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DTBB_ROOT_DIR="%TBB_ROOT_DIR%" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF -DALPAKA_DEBUG="%ALPAKA_DEBUG%" -DALPAKA_CI=ON ".."
+    - cmd: cmake -G "%ALPAKA_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DTBB_ROOT_DIR="%TBB_ROOT_DIR%" -DBOOST_ROOT="%ALPAKA_CI_BOOST_ROOT_DIR%" -DBOOST_LIBRARYDIR="%ALPAKA_CI_BOOST_LIB_DIR%" -DBoost_USE_STATIC_LIBS=ON -DBoost_USE_MULTITHREADED=ON -DBoost_USE_STATIC_RUNTIME=OFF -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE="%ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE%" -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE="%ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE%" -DALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE="%ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE%" -DALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE="%ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE%" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE="%ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE%" -DALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE="%ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE%" -DALPAKA_ACC_CPU_BT_OMP4_ENABLE="%ALPAKA_ACC_CPU_BT_OMP4_ENABLE%" -DALPAKA_ACC_GPU_CUDA_ENABLE="%ALPAKA_ACC_GPU_CUDA_ENABLE%" -DALPAKA_ACC_GPU_CUDA_ONLY_MODE="%ALPAKA_ACC_GPU_CUDA_ONLY_MODE%" -DALPAKA_DEBUG="%ALPAKA_DEBUG%" -DALPAKA_CI=APPVEYOR ".."
 
 build:
     project: C:\projects\alpaka\build\alpakaAll.sln

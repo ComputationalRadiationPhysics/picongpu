@@ -52,8 +52,6 @@
 // Implementation details.
 #include <alpaka/dev/DevCpu.hpp>
 
-#include <alpaka/core/OpenMp.hpp>
-
 #include <boost/core/ignore_unused.hpp>
 
 #include <limits>

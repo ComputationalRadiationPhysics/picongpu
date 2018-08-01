@@ -97,9 +97,9 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! This method checks integral values if they are greater or equal zero.
         //! The implementation prevents warnings for checking this for unsigned types.
+        ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TArg>
-        ALPAKA_NO_HOST_ACC_WARNING
         ALPAKA_FN_HOST_ACC auto assertValueUnsigned(
             TArg const & arg)
         -> void

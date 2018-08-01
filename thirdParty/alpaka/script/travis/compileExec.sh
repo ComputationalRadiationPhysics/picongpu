@@ -58,6 +58,11 @@ function env2cmake()
 
 #-------------------------------------------------------------------------------
 # Build and execute all tests.
+echo KMP_DEVICE_THREAD_LIMIT=${KMP_DEVICE_THREAD_LIMIT}
+echo KMP_ALL_THREADS=${KMP_ALL_THREADS}
+echo KMP_TEAMS_THREAD_LIMIT=${KMP_TEAMS_THREAD_LIMIT}
+echo OMP_THREAD_LIMIT=${OMP_THREAD_LIMIT}
+echo OMP_NUM_THREADS=${OMP_NUM_THREADS}
 oldPath=${PWD}
 cd "${1}"
 mkdir --parents build/make/
