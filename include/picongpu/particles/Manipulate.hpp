@@ -70,9 +70,14 @@ namespace particles
             SpeciesType
         >::type;
 
+        using SpeciesFilter = typename bmpl::apply1<
+            T_Filter,
+            SpeciesType
+        >::type;
+
         using FilteredManipulator = manipulators::IUnary<
             SpeciesFunctor,
-            T_Filter
+            SpeciesFilter
         >;
 
         HINLINE void

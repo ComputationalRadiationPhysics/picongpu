@@ -169,12 +169,17 @@ struct ManipulateDerive
         DestSpeciesType
     >::type;
 
+    using SrcFilter = typename bmpl::apply1<
+        T_SrcFilter,
+        SrcSpeciesType
+    >::type;
+
     /* note: this is a FilteredManipulator with filter::All for
      * destination species, users can filter the destination directly via if's
      * in the T_Manipulator.
      */
     using FilteredManipulator = manipulators::IBinary< DestFunctor >;
-    using SrcFilter = filter::IUnary< T_SrcFilter >;
+    using SrcFilterInterfaced = filter::IUnary< SrcFilter >;
 
     HINLINE void operator()( const uint32_t currentStep )
     {
@@ -183,7 +188,7 @@ struct ManipulateDerive
         auto srcSpeciesPtr = dc.get< SrcSpeciesType >( SrcFrameType::getName(), true );
 
         FilteredManipulator filteredManipulator( currentStep );
-        SrcFilter srcFilter( currentStep );
+        SrcFilterInterfaced srcFilter( currentStep );
 
         speciesPtr->deviceDeriveFrom( *srcSpeciesPtr, filteredManipulator, srcFilter );
 
