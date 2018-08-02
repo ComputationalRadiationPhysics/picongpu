@@ -48,13 +48,14 @@ module load cray-hdf5-parallel/1.10.0.3
 # Self-Build Software #########################################################
 #
 # needs to be compiled by the user
-export BOOST_ROOT=$SCRATCH/lib/boost-1.62.0
-export ZLIB_ROOT=$SCRATCH/lib/zlib-1.2.11
-export PNG_ROOT=$SCRATCH/lib/libpng-1.6.34
-export BLOSC_ROOT=$SCRATCH/lib/blosc-1.12.1
-export PNGwriter_DIR=$SCRATCH/lib/pngwriter-0.7.0
-export ADIOS_ROOT=$SCRATCH/lib/adios-1.13.1
-export Splash_DIR=$SCRATCH/lib/splash-1.7.0
+export PIC_LIBS="$HOME/lib"
+export BOOST_ROOT=$PIC_LIBS/boost-1.62.0
+export ZLIB_ROOT=$PIC_LIBS/zlib-1.2.11
+export PNG_ROOT=$PIC_LIBS/libpng-1.6.34
+export BLOSC_ROOT=$PIC_LIBS/blosc-1.12.1
+export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0
+export ADIOS_ROOT=$PIC_LIBS/adios-1.13.1
+export Splash_DIR=$PIC_LIBS/splash-1.7.0
 
 export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$ZLIB_ROOT/lib:$LD_LIBRARY_PATH
