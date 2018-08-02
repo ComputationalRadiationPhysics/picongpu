@@ -39,7 +39,6 @@ namespace generic
      *
      * @tparam T_Functor user defined unary functor
      * @tparam T_Distribution pmacc::random::distributions, random number distribution
-     * @tparam T_SpeciesType type of the species that shall be manipulated
      *
      * example for `particle.param`: add
      *   @code{.cpp}
@@ -68,8 +67,7 @@ namespace generic
      */
     template<
         typename T_Functor,
-        typename T_Distribution,
-        typename T_SpeciesType = boost::mpl::_1
+        typename T_Distribution
     >
     struct FreeRng;
 
