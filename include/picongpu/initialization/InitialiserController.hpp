@@ -143,7 +143,7 @@ public:
                 log<picLog::PHYSICS >("y-cells per wavelength: %1%") %
                                      (fields::laserProfiles::Selected::WAVE_LENGTH / CELL_HEIGHT);
             const int localNrOfCells = cellDescription->getGridLayout().getDataSpaceWithoutGuarding().productOfComponents();
-            log<picLog::PHYSICS >("macro particles per gpu: %1%") %
+            log<picLog::PHYSICS >("macro particles per device: %1%") %
                                  (localNrOfCells * particles::TYPICAL_PARTICLES_PER_CELL * (bmpl::size<VectorAllSpecies>::type::value));
             log<picLog::PHYSICS >("typical macro particle weighting: %1%") % (particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
 

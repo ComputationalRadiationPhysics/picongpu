@@ -175,7 +175,7 @@ public:
 
         // enforce that the filter interface is fulfilled
         particles::filter::IUnary< typename T_SpeciesFilter::Filter > particleFilter{ params->currentStep };
-        /* at this point we cast to uint64_t, before we assume that per GPU
+        /* at this point we cast to uint64_t, before we assume that per device
          * less then 1e9 (int range) particles will be counted
          */
         numParticles = uint64_t( pmacc::CountParticles::countOnDevice< CORE + BORDER >(
@@ -214,7 +214,7 @@ public:
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 
-            /* int: assume < 2e9 particles per GPU */
+            /* int: assume < 2e9 particles per device */
             GridBuffer<int, DIM1> counterBuffer(DataSpace<DIM1>(1));
             AreaMapping < CORE + BORDER, MappingDesc > mapper(*(params->cellDescription));
 
