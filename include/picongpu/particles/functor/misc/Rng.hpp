@@ -45,18 +45,13 @@ namespace misc
     /** call simple free user defined functor and provide a random number generator
      *
      * @tparam T_Distribution random number distribution
-     * @tparam T_SpeciesType type of the species that shall used to generate a unique
-     *                       seed to initialize the random number generator
      */
     template<
-        typename T_Distribution,
-        typename T_SpeciesType
+        typename T_Distribution
     >
     struct Rng
     {
-
         using Distribution = T_Distribution;
-        using SpeciesType = T_SpeciesType;
         using RNGFactory = pmacc::random::RNGProvider<
             simDim,
             random::Generator
@@ -100,8 +95,6 @@ namespace misc
         {
             namespace nvrng = nvidia::rng;
 
-            using FrameType = typename SpeciesType::FrameType;
-            using SuperCellSize = typename FrameType::SuperCellSize;
             RngHandle tmp( rngHandle );
             tmp.init(
                 localSupercellOffset * SuperCellSize::toRT() +

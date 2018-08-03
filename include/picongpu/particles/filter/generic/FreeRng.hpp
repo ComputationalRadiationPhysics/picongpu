@@ -96,26 +96,28 @@ namespace acc
 
     template<
         typename T_Functor,
-        typename T_Distribution,
-        typename T_SpeciesType
+        typename T_Distribution
     >
     struct FreeRng :
     protected functor::User< T_Functor >,
         private picongpu::particles::functor::misc::Rng<
-            T_Distribution,
-            T_SpeciesType
+            T_Distribution
         >
     {
+        template< typename T_SpeciesType >
+        struct apply
+        {
+            using type = FreeRng;
+        };
+
         using RngGenerator = picongpu::particles::functor::misc::Rng<
-            T_Distribution,
-            T_SpeciesType
+            T_Distribution
         >;
 
         using RngType = typename RngGenerator::RandomGen;
 
         using Functor = functor::User< T_Functor >;
         using Distribution = T_Distribution;
-        using SpeciesType = T_SpeciesType;
 
         /** constructor
          *
