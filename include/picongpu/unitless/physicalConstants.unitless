@@ -22,9 +22,6 @@
 
 namespace picongpu
 {
-
-    constexpr float_X SPEED_OF_LIGHT = float_X(SI::SPEED_OF_LIGHT_SI / UNIT_SPEED);
-
     //! reduced Planck constant
     constexpr float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
 

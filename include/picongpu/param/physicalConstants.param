@@ -73,6 +73,10 @@ namespace picongpu
         constexpr float_64 N_AVOGADRO = 6.02214076e23;
     }
 
+    /** Unit of speed */
+    constexpr float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
+    constexpr float_X SPEED_OF_LIGHT = float_X( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
+
     // converts
     //
     // UNIT_A to UNIT_B
