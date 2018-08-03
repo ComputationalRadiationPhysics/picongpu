@@ -54,14 +54,13 @@ class HostBuffer
                                 assigner::HostMemAssigner<> >
 {
 private:
-    typedef CartBuffer<Type, T_dim, allocator::HostMemAllocator<Type, T_dim>,
+    using Base = CartBuffer<Type, T_dim, allocator::HostMemAllocator<Type, T_dim>,
                                   copier::H2HCopier<T_dim>,
-                                  assigner::HostMemAssigner<> > Base;
-
+                                  assigner::HostMemAssigner<> >;
 protected:
     HostBuffer() {}
 public:
-    typedef typename Base::PitchType PitchType;
+    using PitchType = typename Base::PitchType;
 
     /* constructors
      *
@@ -82,14 +81,29 @@ public:
      * @param ownMemory Set to false if the memory is only a reference and managed outside of this class
      * @param pitch Pitch in bytes (number of bytes in the lower dimensions)
      */
-    HINLINE HostBuffer(Type* ptr, const math::Size_t<T_dim>& size, bool ownMemory, PitchType pitch = PitchType::create(0))
+    HINLINE HostBuffer(Type* ptr, const math::Size_t<3>& size, bool ownMemory, math::Size_t<2> pitch = math::Size_t<2>::create(0) )
     {
         this->dataPointer = ptr;
         this->_size = size;
-        if(T_dim >= 2)
-            this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
-        if(T_dim == 3)
-            this->pitch[1] = (pitch[1]) ? pitch[1] : this->pitch[0] * size.y();
+        this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
+        this->pitch[1] = (pitch[1]) ? pitch[1] : this->pitch[0] * size.y();
+        this->refCount = new int;
+        *this->refCount = (ownMemory) ? 1 : 2;
+    }
+    HINLINE HostBuffer(Type* ptr, const math::Size_t<2>& size, bool ownMemory, math::Size_t<1> pitch = math::Size_t<1>::create(0) )
+    {
+        this->dataPointer = ptr;
+        this->_size = size;
+        this->pitch[0] = (pitch[0]) ? pitch[0] : size.x() * sizeof(Type);
+        this->refCount = new int;
+        *this->refCount = (ownMemory) ? 1 : 2;
+    }
+    HINLINE HostBuffer(Type* ptr, const math::Size_t<1>& size, bool ownMemory)
+    {
+        this->dataPointer = ptr;
+        this->_size = size;
+        // intentionally uninitialized and not RT accessible via []
+        // this->pitch = pitch;
         this->refCount = new int;
         *this->refCount = (ownMemory) ? 1 : 2;
     }
