@@ -29,8 +29,6 @@
 
 namespace picongpu
 {
-    /** Unit of Speed */
-    constexpr float_64 UNIT_SPEED = SI::SPEED_OF_LIGHT_SI;
     /** Unit of time */
     constexpr float_64 UNIT_TIME = SI::DELTA_T_SI;
     /** Unit of length */
