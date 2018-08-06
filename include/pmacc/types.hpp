@@ -67,6 +67,7 @@
 
 // compatibility macros (compiler or C++ standard version specific)
 #include <boost/config.hpp>
+#include <boost/predef.h>
 
 #include <stdint.h>
 #include <stdexcept>
@@ -254,6 +255,18 @@ enum AreaType
 #   define PMACC_CONSTEXPR_CAPTURE static constexpr
 #else
 #   define PMACC_CONSTEXPR_CAPTURE constexpr
+#endif
+
+/** C++11 and C++14 explicit fallthrough in switch cases
+ *
+ * Use [[fallthrough]] in C++17
+ */
+#if BOOST_COMP_GNUC
+#   define PMACC_FALLTHROUGH [[gnu::fallthrough]]
+#elif BOOST_COMP_CLANG
+#   define PMACC_FALLTHROUGH [[clang::fallthrough]]
+#else
+#   define PMACC_FALLTHROUGH
 #endif
 
 } //namespace pmacc
