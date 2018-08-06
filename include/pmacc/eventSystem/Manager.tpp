@@ -38,9 +38,9 @@ namespace pmacc
 
 inline Manager::~Manager( )
 {
-    CUDA_CHECK( cudaGetLastError( ) );
+    CUDA_CHECK_NO_EXCEP(cudaGetLastError( ));
     waitForAllTasks( );
-    CUDA_CHECK( cudaGetLastError( ) );
+    CUDA_CHECK_NO_EXCEP(cudaGetLastError( ));
 }
 
 inline bool Manager::execute( id_t taskToWait )

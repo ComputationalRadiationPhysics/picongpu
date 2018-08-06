@@ -74,8 +74,8 @@ namespace pmacc
 
             /* This is the single point in PIC where ALL CUDA work must be finished. */
             /* Accessing CUDA objects after this point may fail! */
-            CUDA_CHECK(cudaDeviceSynchronize());
-            CUDA_CHECK(cudaDeviceReset());
+            CUDA_CHECK_NO_EXCEP(cudaDeviceSynchronize());
+            CUDA_CHECK_NO_EXCEP(cudaDeviceReset());
         }
 
         /**

@@ -77,9 +77,9 @@ public:
 
     virtual ~TaskReceiveMPI()
     {
-        //\\todo: this make problems because we send bytes and not combined types
+        //! \todo this make problems because we send bytes and not combined types
         int recv_data_count;
-        MPI_CHECK(MPI_Get_count(&(this->status), MPI_CHAR, &recv_data_count));
+        MPI_CHECK_NO_EXCEP(MPI_Get_count(&(this->status), MPI_CHAR, &recv_data_count));
 
 
         IEventData *edata = new EventDataReceive(nullptr, recv_data_count);
