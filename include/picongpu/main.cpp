@@ -19,6 +19,7 @@
 
 #include "picongpu/ArgsParser.hpp"
 #include <pmacc/Environment.hpp>
+#include <pmacc/types.hpp>
 
 #include <picongpu/simulation_defines.hpp>
 
@@ -53,7 +54,7 @@ int main(int argc, char **argv)
             sim.load();
             sim.start();
             sim.unload();
-            /* missing `break` is voluntarily to set the error code to 0 */
+            PMACC_FALLTHROUGH;
         case ArgsParser::SUCCESS_EXIT:
             errorCode = 0;
             break;
