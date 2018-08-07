@@ -55,8 +55,6 @@ namespace picongpu
         uint32_t slotId
     ) :
         SimulationFieldHelper<MappingDesc>( cellDescription ),
-        fieldTmp( nullptr ),
-        fieldTmpRecv( nullptr ),
         m_slotId( slotId )
     {
         m_commTagScatter =
@@ -65,10 +63,14 @@ namespace picongpu
         m_commTagGather = ++pmacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
             SPECIES_FIRSTTAG;
 
-        fieldTmp = new GridBuffer <ValueType, simDim >( cellDescription.getGridLayout( ) );
+        fieldTmp.reset(
+            new GridBuffer <ValueType, simDim >( cellDescription.getGridLayout( ) )
+        );
 
         if( fieldTmpSupportGatherCommunication )
-            fieldTmpRecv = new GridBuffer< ValueType, simDim >( fieldTmp->getDeviceBuffer(), cellDescription.getGridLayout( ) );
+            fieldTmpRecv.reset(
+                new GridBuffer< ValueType, simDim >( fieldTmp->getDeviceBuffer(), cellDescription.getGridLayout( ) )
+            );
 
         /** \todo The exchange has to be resetted and set again regarding the
          *  temporary "Fill-"Functor we want to use.
@@ -185,7 +187,6 @@ namespace picongpu
 
     FieldTmp::~FieldTmp( )
     {
-        __delete( fieldTmp );
     }
 
     template<uint32_t AREA, class FrameSolver, class ParticlesClass>

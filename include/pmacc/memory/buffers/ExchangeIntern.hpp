@@ -129,9 +129,7 @@ namespace pmacc
             return result;
         }
 
-        virtual ~ExchangeIntern()
-        {
-        }
+        virtual ~ExchangeIntern() = default;
 
         DataSpace<DIM> exchangeTypeToOffset(uint32_t exchange, GridLayout<DIM> &memoryLayout,
                                             DataSpace<DIM> guardingCells, uint32_t area) const
