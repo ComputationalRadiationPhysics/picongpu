@@ -23,6 +23,8 @@
 
 #include "pmacc/eventSystem/EventSystem.hpp"
 
+#include <iostream>
+
 
 namespace pmacc
 {
@@ -30,9 +32,11 @@ namespace pmacc
 inline TransactionManager::~TransactionManager() /*noexcept(false)*/
 {
     if(transactions.size() == 0)
-        throw std::runtime_error("Missing transaction on the stack!");
+        std::cerr << "[PMacc] [TransactionManager] "
+                  << "Missing transaction on the stack!" << std::endl;
     else if(transactions.size() > 1)
-        throw std::runtime_error("Unfinished transactions on the stack");
+        std::cerr << "[PMacc] [TransactionManager] "
+                  << "Unfinished transactions on the stack" << std::endl;
     transactions.pop( );
 }
 

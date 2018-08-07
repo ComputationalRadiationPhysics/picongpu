@@ -52,9 +52,9 @@ public:
      */
     virtual ~EventStream()
     {
-        //wait for all kernels in stream to finish
-        CUDA_CHECK(cudaStreamSynchronize(stream));
-        CUDA_CHECK(cudaStreamDestroy(stream));
+        // wait for all kernels in stream to finish
+        CUDA_CHECK_NO_EXCEPT(cudaStreamSynchronize(stream));
+        CUDA_CHECK_NO_EXCEPT(cudaStreamDestroy(stream));
     }
 
     /**

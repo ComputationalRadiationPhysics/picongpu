@@ -202,7 +202,7 @@ enum EventType
 
 #define CUDA_CHECK_MSG(cmd,msg) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR_AND_THROW(error, msg); }}
 
-#define CUDA_CHECK_NO_EXCEP(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR(""); }}
+#define CUDA_CHECK_NO_EXCEPT(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR(""); }}
 
 /** calculate and set the optimal alignment for data
   *

@@ -42,8 +42,8 @@ namespace pmacc
         PMACC_ASSERT( refCounter == 0u );
         log( ggLog::CUDA_RT()+ggLog::EVENT(), "sync and delete event" );
         // free cuda event
-        CUDA_CHECK( cudaEventSynchronize( event ) );
-        CUDA_CHECK( cudaEventDestroy( event ) );
+        CUDA_CHECK_NO_EXCEPT(cudaEventSynchronize( event ));
+        CUDA_CHECK_NO_EXCEPT(cudaEventDestroy( event ));
 
     }
 

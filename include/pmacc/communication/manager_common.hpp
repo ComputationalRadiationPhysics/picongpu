@@ -36,3 +36,5 @@ enum {
 };
 
 #define MPI_CHECK(cmd) {int error = cmd; if(error!=MPI_SUCCESS){std::cerr << "<" << __FILE__ << ">:" << __LINE__; throw std::runtime_error(std::string("[MPI] Error"));}}
+
+#define MPI_CHECK_NO_EXCEPT(cmd) {int error = cmd; if(error!=MPI_SUCCESS){std::cerr << "[MPI] Error code " << error << " in <" << __FILE__ << ">:" << __LINE__;}}

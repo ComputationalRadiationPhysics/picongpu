@@ -87,11 +87,11 @@ public:
 
         if (sizeOnDevice)
         {
-            CUDA_CHECK(cudaFree(sizeOnDevicePtr));
+            CUDA_CHECK_NO_EXCEPT(cudaFree(sizeOnDevicePtr));
         }
         if (!useOtherMemory)
         {
-            CUDA_CHECK(cudaFree(data.ptr));
+            CUDA_CHECK_NO_EXCEPT(cudaFree(data.ptr));
 
         }
     }

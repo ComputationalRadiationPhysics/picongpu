@@ -49,7 +49,7 @@ struct MPIReduce
     {
         if (isMPICommInitialized)
         {
-            MPI_CHECK(MPI_Comm_free(&comm));
+            MPI_CHECK_NO_EXCEPT(MPI_Comm_free(&comm));
         }
     }
 

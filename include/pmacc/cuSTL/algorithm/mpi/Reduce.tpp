@@ -88,7 +88,7 @@ Reduce<dim>::~Reduce()
 {
     if(this->comm != MPI_COMM_NULL)
     {
-        MPI_CHECK(MPI_Comm_free(&this->comm));
+        MPI_CHECK_NO_EXCEPT(MPI_Comm_free(&this->comm));
     }
 }
 
