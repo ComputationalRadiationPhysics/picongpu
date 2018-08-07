@@ -293,7 +293,7 @@ public:
     {
         if (valuePointer_host != nullptr)
         {
-            CUDA_CHECK_NO_EXCEP(cudaFreeHost(valuePointer_host));
+            CUDA_CHECK_NO_EXCEPT(cudaFreeHost(valuePointer_host));
             valuePointer_host = nullptr;
         }
     }

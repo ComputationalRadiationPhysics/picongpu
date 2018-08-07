@@ -70,7 +70,7 @@ public:
 
         if (pointer && ownPointer)
         {
-            CUDA_CHECK_NO_EXCEP(cudaFreeHost(pointer));
+            CUDA_CHECK_NO_EXCEPT(cudaFreeHost(pointer));
         }
     }
 
