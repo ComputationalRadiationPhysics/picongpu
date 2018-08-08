@@ -261,12 +261,12 @@ enum AreaType
  *
  * Use [[fallthrough]] in C++17
  */
-#if BOOST_COMP_GNUC
+#if (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(7,0,0))
 #   define PMACC_FALLTHROUGH [[gnu::fallthrough]]
 #elif BOOST_COMP_CLANG
 #   define PMACC_FALLTHROUGH [[clang::fallthrough]]
 #else
-#   define PMACC_FALLTHROUGH
+#   define PMACC_FALLTHROUGH ( (void)0 )
 #endif
 
 } //namespace pmacc
