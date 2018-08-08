@@ -133,8 +133,8 @@ public:
              "size of the simulation grid")
 
             ("gridDist", po::value<std::vector<std::string> > (&gridDistribution)->multitoken(),
-             "Regex to describe the static distribution of the cells for each GPU,"
-             "default: equal distribution over all GPUs\n"
+             "Regex to describe the static distribution of the cells for each device,"
+             "default: equal distribution over all devices\n"
              "  example:\n"
              "    -d 2 4 1\n"
              "    -g 128 192 12\n"
@@ -391,7 +391,7 @@ public:
             std::stringstream msg;
             msg << "Cannot reserve "
                 << (reservedGpuMemorySize / 1024 / 1024) << " MiB as there is only "
-                << (freeGpuMem / 1024 / 1024) << " MiB free GPU memory left";
+                << (freeGpuMem / 1024 / 1024) << " MiB free device memory left";
             throw std::runtime_error(msg.str());
         }
 
