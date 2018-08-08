@@ -616,7 +616,7 @@ public:
         __setTransactionEvent(commEvent);
         (*currentBGField)(fieldJ, nvfct::Add(), FieldBackgroundJ(fieldJ->getUnit()),
                           currentStep, FieldBackgroundJ::activated);
-#if (ENABLE_CURRENT == 1)
+
         typedef typename pmacc::particles::traits::FilterByFlag
         <
             VectorAllSpecies,
@@ -630,9 +630,7 @@ public:
             >
         > computeCurrent;
         computeCurrent( currentStep );
-#endif
 
-#if  (ENABLE_CURRENT == 1)
         if(bmpl::size<VectorSpeciesWithCurrentSolver>::type::value > 0)
         {
             EventTask eRecvCurrent = fieldJ->asyncCommunication(__getTransactionEvent());
@@ -661,7 +659,7 @@ public:
                 fieldJ->addCurrentToEMF<CORE + BORDER>(*myCurrentInterpolation);
             }
         }
-#endif
+
         dc.releaseData( FieldJ::getName() );
 
         this->myFieldSolver->update_afterCurrent(currentStep);
