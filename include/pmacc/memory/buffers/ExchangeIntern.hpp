@@ -33,6 +33,8 @@
 #include "pmacc/assert.hpp"
 #include "pmacc/types.hpp"
 
+#include <memory>
+
 
 namespace pmacc
 {
@@ -47,7 +49,7 @@ namespace pmacc
 
         ExchangeIntern(DeviceBuffer<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
                        uint32_t communicationTag, uint32_t area = BORDER, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(nullptr)
+        Exchange<TYPE, DIM>(exchange, communicationTag)
         {
 
             PMACC_ASSERT(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
@@ -67,31 +69,41 @@ namespace pmacc
 
             /*This is only a pointer to other device data
              */
-            this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (source, tmp_size,
-                                                                     exchangeTypeToOffset(exchange, memoryLayout, guardingCells, area),
-                                                                     sizeOnDevice);
+            deviceBuffer.reset(
+                new DeviceBufferIntern<TYPE, DIM >(
+                    source,
+                    tmp_size,
+                    exchangeTypeToOffset(
+                        exchange,
+                        memoryLayout,
+                        guardingCells,
+                        area
+                    ),
+                    sizeOnDevice
+                )
+            );
             if (DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-                this->deviceDoubleBuffer = new DeviceBufferIntern<TYPE, DIM > (tmp_size, false, true);
+                deviceDoubleBuffer.reset( new DeviceBufferIntern<TYPE, DIM > (tmp_size, false, true) );
             }
 
-            this->hostBuffer = new HostBufferIntern<TYPE, DIM > (tmp_size);
+            hostBuffer.reset( new HostBufferIntern<TYPE, DIM > (tmp_size) );
         }
 
         ExchangeIntern(DataSpace<DIM> exchangeDataSpace, uint32_t exchange,
                        uint32_t communicationTag, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(nullptr)
+        Exchange<TYPE, DIM>(exchange, communicationTag)
         {
-            this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice);
+            deviceBuffer.reset( new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice) );
            //  this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice,true);
             if (DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-               this->deviceDoubleBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, false, true);
+               deviceDoubleBuffer.reset( new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, false, true) );
             }
 
-            this->hostBuffer = new HostBufferIntern<TYPE, DIM > (exchangeDataSpace);
+            hostBuffer.reset( new HostBufferIntern<TYPE, DIM > (exchangeDataSpace) );
         }
 
         /**
@@ -117,12 +129,7 @@ namespace pmacc
             return result;
         }
 
-        virtual ~ExchangeIntern()
-        {
-            __delete(hostBuffer);
-            __delete(deviceBuffer);
-            __delete(deviceDoubleBuffer);
-        }
+        virtual ~ExchangeIntern() = default;
 
         DataSpace<DIM> exchangeTypeToOffset(uint32_t exchange, GridLayout<DIM> &memoryLayout,
                                             DataSpace<DIM> guardingCells, uint32_t area) const
@@ -225,12 +232,11 @@ namespace pmacc
         }
 
     protected:
-        HostBufferIntern<TYPE, DIM> *hostBuffer;
+        std::unique_ptr< HostBufferIntern<TYPE, DIM> > hostBuffer;
 
-        /*! This buffer is a vector which is used as message buffer for faster memcopy
-         */
-        DeviceBufferIntern<TYPE, DIM> *deviceDoubleBuffer;
-        DeviceBufferIntern<TYPE, DIM> *deviceBuffer;
+        //! This buffer is a vector which is used as message buffer for faster memcopy
+        std::unique_ptr< DeviceBufferIntern<TYPE, DIM> > deviceDoubleBuffer;
+        std::unique_ptr< DeviceBufferIntern<TYPE, DIM> > deviceBuffer;
 
     };
 

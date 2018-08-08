@@ -38,6 +38,8 @@
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
 
+#include <memory>
+
 
 namespace picongpu
 {
@@ -132,8 +134,8 @@ namespace picongpu
 
     private:
 
-        GridBuffer<ValueType, simDim> *fieldTmp;
-        GridBuffer<ValueType, simDim>* fieldTmpRecv;
+        std::unique_ptr< GridBuffer<ValueType, simDim> > fieldTmp;
+        std::unique_ptr< GridBuffer<ValueType, simDim> > fieldTmpRecv;
 
         uint32_t m_slotId;
 
