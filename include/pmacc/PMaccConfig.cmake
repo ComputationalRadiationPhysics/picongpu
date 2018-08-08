@@ -66,6 +66,26 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 11)
 
 
+###############################################################################
+# Definitely Unsupported Compilers
+###############################################################################
+# GNU
+if(CMAKE_COMPILER_IS_GNUCXX)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
+        message(FATAL_ERROR "GCC too old! Use GCC 4.9 or newer")
+    endif()
+# Clang
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+        message(FATAL_ERROR "Apple Clang (Xcode) too old! Use Xcode 8.0 or newer")
+    endif()
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9)
+        message(FATAL_ERROR "Clang too old! Use Clang 3.9 or newer")
+    endif()
+endif()
+
+
 ################################################################################
 # alpaka path
 ################################################################################
