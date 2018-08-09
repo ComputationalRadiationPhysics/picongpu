@@ -131,7 +131,7 @@ namespace acc
             T_Acc const & acc,
             DataSpace< simDim > const & localSupercellOffset,
             T_WorkerCfg const & workerCfg
-        )
+        ) const
         -> acc::FreeTotalCellOffset< Functor >
         {
             auto & cellOffsetFunctor = *static_cast< CellOffsetFunctor const * >( this );
