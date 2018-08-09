@@ -147,7 +147,7 @@ class TFieldSource< FieldTmpOperation< FrameSolver, ParticleType > >
                 auto particles = dc.get< ParticleType >( ParticleType::FrameType::getName(), true );
 
                 fieldTmp->getGridBuffer().getDeviceBuffer().setValue( FieldTmp::ValueType(0.0) );
-                fieldTmp->computeValue < CORE + BORDER, FrameSolver > (*particles, *currentStep);
+                fieldTmp->template computeValue < CORE + BORDER, FrameSolver > (*particles, *currentStep);
                 EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());
 
                 __setTransactionEvent(fieldTmpEvent);
