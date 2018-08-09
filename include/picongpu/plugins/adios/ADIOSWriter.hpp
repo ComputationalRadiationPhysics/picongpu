@@ -1444,12 +1444,8 @@ private:
         writeIdProviderStartId.prepare(*threadParams, idProviderState.maxNumProc);
         writeIdProviderNextId.prepare(*threadParams);
 
-        /* allocate buffer in MB according to our current group size */
-        /* `1 + mem` minimum 1 MiB that we can write attributes on empty GPUs */
-        size_t writeBuffer_in_MiB=1+threadParams->adiosGroupSize / 1024 / 1024;
-        /* value `1.1` is the secure factor if we miss to count some small buffers*/
-        size_t buffer_mem=static_cast<size_t>(1.1 * static_cast<float_64>(writeBuffer_in_MiB));
-        adios_set_max_buffer_size(buffer_mem);
+        // in the past, we had to explicitly estiamte our buffers.
+        // this is now done automatically by ADIOS on `adios_write()`
         threadParams->adiosBufferInitialized = true;
 
         /* open adios file. all variables need to be defined at this point */
