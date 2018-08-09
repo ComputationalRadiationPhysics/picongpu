@@ -35,6 +35,4 @@ namespace picongpu
  */
 namespace simulation_starter = thermalTestStarter;
 
-#define ENABLE_CURRENT 1
-
 } // namespace picongpu

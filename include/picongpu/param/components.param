@@ -38,8 +38,4 @@ namespace picongpu
  *  - defaultPIConGPU         : default PIConGPU configuration
  */
 namespace simulation_starter = defaultPIConGPU;
-
-/** enable (1) or disable (0) current calculation (deprecated) */
-#define ENABLE_CURRENT 1
-
 } // namespace picongpu
