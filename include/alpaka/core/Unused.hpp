@@ -1,6 +1,6 @@
 /**
 * \file
-* Copyright 2016-2018 Erik Zenker, Benjamin Worpitz
+* Copyright 2018 Axel Huebl
 *
 * This file is part of alpaka.
 *
@@ -21,11 +21,29 @@
 
 #pragma once
 
-#include <boost/predef/version_number.h>
+#include <alpaka/core/Common.hpp>
 
-#define ALPAKA_VERSION_MAJOR 0
-#define ALPAKA_VERSION_MINOR 3
-#define ALPAKA_VERSION_PATCH 3
+#include <boost/config.hpp>
 
-//! The alpaka library version number
-#define ALPAKA_VERSION BOOST_VERSION_NUMBER(ALPAKA_VERSION_MAJOR, ALPAKA_VERSION_MINOR, ALPAKA_VERSION_PATCH)
+namespace alpaka
+{
+    ALPAKA_NO_HOST_ACC_WARNING
+    template< typename... Ts >
+    BOOST_FORCEINLINE
+    BOOST_CXX14_CONSTEXPR
+    ALPAKA_FN_HOST_ACC
+    void
+    ignore_unused( Ts const& ... )
+    {}
+
+    ALPAKA_NO_HOST_ACC_WARNING
+    template< typename... Ts >
+    BOOST_FORCEINLINE
+    BOOST_CXX14_CONSTEXPR
+    ALPAKA_FN_HOST_ACC
+    void
+    ignore_unused()
+    {}
+
+} // namespace alpaka
+
