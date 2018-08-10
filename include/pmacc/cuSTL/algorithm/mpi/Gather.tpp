@@ -78,6 +78,8 @@ Gather<dim>::Gather(const zone::SphericZone<dim>& p_zone) : comm(MPI_COMM_NULL)
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
     std::vector<Int<dim> > allPositions(numWorldRanks);
 
+    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+    __getTransactionEvent().waitForFinished();
     MPI_CHECK(MPI_Allgather(static_cast<void*>(&pos), sizeof(Int<dim>), MPI_CHAR,
                   static_cast<void*>(allPositions.data()), sizeof(Int<dim>), MPI_CHAR,
                   MPI_COMM_WORLD));
@@ -97,6 +99,8 @@ Gather<dim>::Gather(const zone::SphericZone<dim>& p_zone) : comm(MPI_COMM_NULL)
     }
     MPI_Group world_group, new_group;
 
+    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+    __getTransactionEvent().waitForFinished();
     MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &world_group));
     MPI_CHECK(MPI_Group_incl(world_group, new_ranks.size(), new_ranks.data(), &new_group));
     MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm));
@@ -108,6 +112,8 @@ Gather<dim>::~Gather()
 {
     if(this->comm != MPI_COMM_NULL)
     {
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_CHECK_NO_EXCEPT(MPI_Comm_free(&this->comm));
     }
 }
@@ -227,6 +233,8 @@ void Gather<dim>::operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy
     // Get number of elements for each source buffer
     std::vector<Size_t<memDim> > srcBufferSizes(numRanks);
     Size_t<memDim> srcBufferSize = source.size();
+    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+    __getTransactionEvent().waitForFinished();
     MPI_CHECK(MPI_Gather(
         static_cast<void*>(&srcBufferSize),
         sizeof(Size_t<memDim>),
@@ -258,6 +266,8 @@ void Gather<dim>::operator()(container::CartBuffer<Type, memDim, T_Alloc, T_Copy
         }
     }
 
+    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+    __getTransactionEvent().waitForFinished();
     // gather
     MPI_CHECK(MPI_Gatherv(
                useTmpSrc ? static_cast<void*>(tmpSrc.getDataPointer()) : static_cast<void*>(source.getDataPointer()),

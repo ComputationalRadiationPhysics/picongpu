@@ -44,6 +44,9 @@ struct Reduce
     template<class Functor, typename Type >
     HINLINE void operator()(Functor, Type* dest, Type* src, const size_t count, MPI_Datatype type, MPI_Op op, MPI_Comm comm) const
     {
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
+
         MPI_CHECK(MPI_Reduce((void*) src,
                              (void*) dest,
                              count,
