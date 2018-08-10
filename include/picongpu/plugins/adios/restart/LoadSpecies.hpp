@@ -115,6 +115,8 @@ public:
         uint64_t count = 5; // ADIOSCountParticles: uint64_t
         ADIOS_SELECTION* piSel = adios_selection_boundingbox( 1, &start, &count );
 
+        // avoid deadlock between not finished pmacc tasks and mpi calls in adios
+        __getTransactionEvent().waitForFinished();
         ADIOS_CMD(adios_schedule_read( params->fp,
                                        piSel,
                                        (particlePath + std::string("particles_info")).c_str(),
@@ -132,6 +134,8 @@ public:
 
         uint64_t fullParticlesInfo[gc.getGlobalSize()];
 
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_CHECK(MPI_Allgather( particlesInfo, 1, MPI_UINT64_T,
                                  fullParticlesInfo, 1, MPI_UINT64_T,
                                  gc.getCommunicator().getMPIComm() ));

@@ -90,6 +90,11 @@ class TFieldSource
             typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
             shifted = dataBox.shift( guarding );
             dc.releaseData( FieldType::getName() );
+            /* avoid deadlock between not finished pmacc tasks and potential blocking operations
+             * within ISAAC
+             */
+            __getTransactionEvent().waitForFinished();
+
         }
 
         ISAAC_NO_HOST_DEVICE_WARNING

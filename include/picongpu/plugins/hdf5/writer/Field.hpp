@@ -142,6 +142,8 @@ struct Field
                 sizeSrcData[d] = field_no_guard[d];
             }
 
+            // avoid deadlock between not finished pmacc tasks and mpi calls in splash/HDF5
+            __getTransactionEvent().waitForFinished();
             params->dataCollector->writeDomain(params->currentStep,             /* id == time step */
                                                splashGlobalDomainSize,          /* total size of dataset over all processes */
                                                splashGlobalOffsetFile,          /* write offset for this process */

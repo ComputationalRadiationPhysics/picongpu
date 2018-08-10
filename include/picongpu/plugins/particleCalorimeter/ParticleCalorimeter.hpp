@@ -138,6 +138,8 @@ public:
                                               DivideInPlace<float_X>(float_X(numRanks)));
         }
 
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_Bcast(&(*hBufLeftParsCalorimeter.origin()),
                   hBufLeftParsCalorimeter.size().productOfComponents() * sizeof(float_X),
                   MPI_CHAR,

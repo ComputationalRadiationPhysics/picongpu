@@ -255,6 +255,9 @@ private:
 
         size_t* ptr = localResult->getHostBuffer().getPointer();
 
+        // avoid deadlock between not finished pmacc tasks and mpi calls in adios
+        __getTransactionEvent().waitForFinished();
+
         dataCollector->writeDomain(currentStep,                     /* id == time step */
                                    splashGlobalSize,                /* total size of dataset over all processes */
                                    splashGlobalOffset,              /* write offset for this process */

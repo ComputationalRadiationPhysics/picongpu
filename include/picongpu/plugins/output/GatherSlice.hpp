@@ -75,6 +75,8 @@ struct GatherSlice
         if (!isActive)
             mpiRank = -1;
 
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_CHECK(MPI_Allgather(&mpiRank, 1, MPI_INT, &gatherRanks[0], 1, MPI_INT, MPI_COMM_WORLD));
 
         for (int i = 0; i < countRanks; ++i)
@@ -86,6 +88,8 @@ struct GatherSlice
             }
         }
 
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_Group group = MPI_GROUP_NULL;
         MPI_Group newgroup = MPI_GROUP_NULL;
         MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &group));
@@ -131,6 +135,8 @@ struct GatherSlice
             fullData = (char*) new ValueType[header.sim.size.productOfComponents()];
 
 
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_CHECK(MPI_Gather(fakeHeader, MessageHeader::bytes, MPI_CHAR, recvHeader, MessageHeader::bytes,
                              MPI_CHAR, masterRank, comm));
 
@@ -147,6 +153,8 @@ struct GatherSlice
 
         const size_t elementsCount = header.node.maxSize.productOfComponents() * sizeof (ValueType);
 
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_CHECK(MPI_Gatherv(
                               (char*) (data.getPointer()), elementsCount, MPI_CHAR,
                               fullData, &counts[0], &displs[0], MPI_CHAR,
@@ -221,7 +229,11 @@ private:
             delete[] fullData;
         fullData = nullptr;
         if (isMPICommInitialized)
+        {
+            // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+            __getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Comm_free(&comm));
+        }
         isMPICommInitialized = false;
     }
 

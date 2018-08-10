@@ -79,6 +79,9 @@ public:
         for (uint32_t d = 0; d < simDim; ++d)
             local_domain_size[d] = params->window.localDimensions.size[d];
 
+        // avoid deadlock between not finished pmacc tasks and mpi calls in splash/HDF5
+        __getTransactionEvent().waitForFinished();
+
         auto destBox = field.getHostBuffer().getDataBox();
         for (uint32_t i = 0; i < numComponents; ++i)
         {

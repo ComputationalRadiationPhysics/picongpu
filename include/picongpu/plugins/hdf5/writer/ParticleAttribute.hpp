@@ -142,6 +142,8 @@ struct ParticleAttribute
                 tmpArray[i] = ((ComponentValueType*)dataPtr)[i * components + d];
             }
 
+            // avoid deadlock between not finished pmacc tasks and mpi calls in splash/HDF5
+            __getTransactionEvent().waitForFinished();
             threadParams->dataCollector->writeDomain(
                 threadParams->currentStep,
                 /* Dimensions for global collective buffer */

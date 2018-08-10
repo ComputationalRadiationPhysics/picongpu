@@ -152,6 +152,9 @@ namespace picongpu
             /** write local domain ********************************************/
             typename PICToSplash<Type>::type ctPhaseSpace;
 
+            // avoid deadlock between not finished pmacc tasks and mpi calls in HDF5
+            __getTransactionEvent().waitForFinished();
+
             pdc.writeDomain( currentStep,
                              /* global domain and my local offset within it */
                              globalPhaseSpace_size,

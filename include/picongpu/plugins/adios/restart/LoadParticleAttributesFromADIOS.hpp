@@ -101,6 +101,8 @@ struct LoadParticleAttributesFromADIOS
              *        ADIOS method and can therefore be skipped for empty reads */
             if( elements > 0 )
             {
+                // avoid deadlock between not finished pmacc tasks and mpi calls in adios
+                __getTransactionEvent().waitForFinished();
                 ADIOS_CMD(adios_schedule_read( params->fp,
                                                sel,
                                                datasetName.str().c_str(),

@@ -812,6 +812,8 @@ public:
             }
         }
 
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         /* Initialize adios library */
         mThreadParams.adiosComm = MPI_COMM_NULL;
         MPI_CHECK(MPI_Comm_dup(gc.getCommunicator().getMPIComm(), &(mThreadParams.adiosComm)));
@@ -836,6 +838,8 @@ public:
     {
         if (mThreadParams.adiosComm != MPI_COMM_NULL)
         {
+            // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+            __getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Comm_free(&(mThreadParams.adiosComm)));
         }
     }
@@ -1051,6 +1055,9 @@ public:
         /* free memory allocated in ADIOS calls */
         free(slidesPtr);
         free(lastStepPtr);
+
+        // avoid deadlock between not finished pmacc tasks and mpi calls in adios
+        __getTransactionEvent().waitForFinished();
 
         /* clean shut down: close file and finalize */
         adios_release_step( mThreadParams.fp );
@@ -1541,12 +1548,13 @@ private:
         writeIdProviderStartId(*threadParams, idProviderState.startId);
         writeIdProviderNextId(*threadParams, idProviderState.nextId);
 
+        // avoid deadlock between not finished pmacc tasks and mpi calls in adios
+        __getTransactionEvent().waitForFinished();
+
         /* close adios file, most likely the actual write point */
         log<picLog::INPUT_OUTPUT > ("ADIOS: closing file: %1%") % threadParams->fullFilename;
         ADIOS_CMD(adios_close(threadParams->adiosFileHandle));
 
-        /* avoid deadlock between not finished pmacc tasks and MPI_Barrier */
-        __getTransactionEvent().waitForFinished();
         /*\todo: copied from adios example, we might not need this ? */
         MPI_CHECK(MPI_Barrier(threadParams->adiosComm));
 

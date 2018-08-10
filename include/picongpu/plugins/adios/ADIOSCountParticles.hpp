@@ -119,6 +119,8 @@ public:
         uint64_t globalNumParticles = 0;
         uint64_t myParticleOffset = 0;
 
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_CHECK(MPI_Allgather(
                 &myNumParticles, 1, MPI_UNSIGNED_LONG_LONG,
                 allNumParticles, 1, MPI_UNSIGNED_LONG_LONG,
