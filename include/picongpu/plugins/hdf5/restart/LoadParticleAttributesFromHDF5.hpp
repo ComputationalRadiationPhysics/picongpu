@@ -80,6 +80,10 @@ struct LoadParticleAttributesFromHDF5
             tmpArray = new ComponentType[elements];
 
         ParallelDomainCollector* dataCollector = params->dataCollector;
+
+        // avoid deadlock between not finished pmacc tasks and mpi calls in splash/HDF5
+        __getTransactionEvent().waitForFinished();
+
         for (uint32_t d = 0; d < components; d++)
         {
             OpenPMDName<T_Identifier> openPMDName;

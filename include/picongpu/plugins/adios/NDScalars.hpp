@@ -141,6 +141,9 @@ struct ReadNDScalars
 
         ADIOS_SELECTION* fSel = adios_selection_boundingbox(varInfo->ndim, start, count);
 
+        // avoid deadlock between not finished pmacc tasks and mpi calls in adios
+        __getTransactionEvent().waitForFinished();
+
         /* specify what we want to read, but start reading at below at `adios_perform_reads` */
         /* magic parameters (0, 1): `from_step` (not used in streams), `nsteps` to read (must be 1 for stream) */
         log<picLog::INPUT_OUTPUT > ("ADIOS: Schedule read skalar %1%)") % datasetName;

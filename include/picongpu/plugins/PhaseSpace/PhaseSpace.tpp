@@ -162,6 +162,8 @@ namespace picongpu
                 int myRootRank = gc.getGlobalRank() * this->isPlaneReduceRoot
                                - ( ! this->isPlaneReduceRoot );
 
+                // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+                __getTransactionEvent().waitForFinished();
                 MPI_Group world_group, new_group;
                 MPI_CHECK(MPI_Allgather( &myRootRank, 1, MPI_INT,
                                          &(planeReduceRootRanks.front()),
@@ -199,7 +201,11 @@ namespace picongpu
         __delete( planeReduce );
 
         if( commFileWriter != MPI_COMM_NULL )
+        {
+            // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+            __getTransactionEvent().waitForFinished();
             MPI_CHECK(MPI_Comm_free( &commFileWriter ));
+        }
     }
 
     template<class AssignmentFunction, class Species >

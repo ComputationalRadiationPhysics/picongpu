@@ -118,6 +118,9 @@ public:
             speciesSubGroup + std::string("particlePatches/")
         );
 
+        // avoid deadlock between not finished pmacc tasks and mpi calls in splash/HDF5
+        __getTransactionEvent().waitForFinished();
+
         // read particle patches
         openPMD::PatchReader patchReader;
 

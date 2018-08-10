@@ -154,7 +154,7 @@ public:
             CUDA_CHECK(cudaDeviceSynchronize());
             CUDA_CHECK(cudaGetLastError());
 
-            /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
+            // avoid deadlock between not finished PMacc tasks and MPI_Barrier
             __getTransactionEvent().waitForFinished();
 
             GridController<DIM> &gc = Environment<DIM>::get().GridController();

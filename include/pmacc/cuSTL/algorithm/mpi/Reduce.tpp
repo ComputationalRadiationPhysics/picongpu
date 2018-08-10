@@ -53,6 +53,8 @@ Reduce<dim>::Reduce(const zone::SphericZone<dim>& p_zone, bool setThisAsRoot) : 
     int numWorldRanks; MPI_Comm_size(MPI_COMM_WORLD, &numWorldRanks);
     std::vector<PosFlag> allPositionsFlags(numWorldRanks);
 
+    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+    __getTransactionEvent().waitForFinished();
     MPI_CHECK(MPI_Allgather((void*)&posFlag, sizeof(PosFlag), MPI_CHAR,
                   (void*)allPositionsFlags.data(), sizeof(PosFlag), MPI_CHAR,
                   MPI_COMM_WORLD));
@@ -76,6 +78,8 @@ Reduce<dim>::Reduce(const zone::SphericZone<dim>& p_zone, bool setThisAsRoot) : 
     MPI_Group world_group = MPI_GROUP_NULL;
     MPI_Group new_group = MPI_GROUP_NULL;
 
+    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+    __getTransactionEvent().waitForFinished();
     MPI_CHECK(MPI_Comm_group(MPI_COMM_WORLD, &world_group));
     MPI_CHECK(MPI_Group_incl(world_group, new_ranks.size(), &(new_ranks.front()), &new_group));
     MPI_CHECK(MPI_Comm_create(MPI_COMM_WORLD, new_group, &this->comm));
@@ -88,6 +92,8 @@ Reduce<dim>::~Reduce()
 {
     if(this->comm != MPI_COMM_NULL)
     {
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_CHECK_NO_EXCEPT(MPI_Comm_free(&this->comm));
     }
 }
@@ -146,6 +152,9 @@ void Reduce<dim>::operator()
                     Functor) const
 {
     if(!this->m_participate) return;
+
+    // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+    __getTransactionEvent().waitForFinished();
 
     MPI_Op user_op;
     MPI_CHECK(MPI_Op_create(&detail::MPI_User_Op<Functor, Type>::callback, 1, &user_op));

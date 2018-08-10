@@ -259,6 +259,8 @@ private:
         float_32* integretedAllTmp = new float_32[yLocalSize * gpus];
         memset(integretedAll, 0, sizeof (float_32) *yGlobalSize);
 
+        // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
+        __getTransactionEvent().waitForFinished();
         MPI_CHECK(MPI_Gather(&yOffset, 1, MPI_INT, yOffsetsAll, 1,
                              MPI_INT, 0, MPI_COMM_WORLD));
 

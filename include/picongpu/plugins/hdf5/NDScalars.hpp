@@ -58,6 +58,9 @@ struct WriteNDScalars
 
         Dimensions localSize(1, 1, 1);
 
+        // avoid deadlock between not finished pmacc tasks and mpi calls in adios
+        __getTransactionEvent().waitForFinished();
+
         typename traits::PICToSplash<T_Scalar>::type splashType;
         params.dataCollector->writeDomain(params.currentStep,            /* id == time step */
                                            globalSize,                   /* total size of dataset over all processes */
@@ -105,6 +108,9 @@ struct ReadNDScalars
         Dimensions domain_offset(0, 0, 0);
         for (uint32_t d = 0; d < simDim; ++d)
             domain_offset[d] = Environment<simDim>::get().GridController().getPosition()[d];
+
+        // avoid deadlock between not finished pmacc tasks and mpi calls in adios
+        __getTransactionEvent().waitForFinished();
 
         DomainCollector::DomDataClass data_class;
         DataContainer *dataContainer =
