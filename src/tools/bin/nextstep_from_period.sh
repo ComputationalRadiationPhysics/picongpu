@@ -77,9 +77,16 @@ splitSections()
 }
 expandPeriods()
 {
-    # split a string on occurences of ':' and always return a 3-tuple
-    # with some default values if there were less than two ':' - also
-    # breaks, if there were more than two ':'
+    # split a string on occurences of ':' and transform it into a
+    # sequence of checkpoint timesteps. Reads the global variable
+    # $lastStep to determine the end of the sequence if not given
+    # otherwise
+    #   input syntax:
+    #       period  or
+    #       start:end[:period]
+    #   examples: 5:20:5 -> 5 10 15 20
+    #             3      -> 0 3 6 9   (with $lastStep == 10)
+    #             3:5    -> 3 4 5
     IFS=':'
     input=($1)
     len=${#input[@]}

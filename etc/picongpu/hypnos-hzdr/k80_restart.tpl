@@ -99,7 +99,6 @@ do
         file=""
     fi
 done
-file
 
 #this sed call extracts the final simulation step from the cfg (assuming a standard cfg)
 finalStep=`echo !TBG_programParams | sed 's/.*-s[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
