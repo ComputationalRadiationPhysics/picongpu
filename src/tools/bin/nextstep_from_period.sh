@@ -39,8 +39,8 @@ helpText()
 
 for p in $@; do
     if [ "$p" = "-h" ] || [ "$p" = "--help" ]; then
-	    helpText
-	    exit 0
+        helpText
+        exit 0
     fi
 done
 
