@@ -1,6 +1,6 @@
 /**
  * \file
- * Copyright 2017 Benjamin Worpitz
+ * Copyright 2017-2018 Benjamin Worpitz, Axel Huebl
  *
  * This file is part of alpaka.
  *
@@ -28,6 +28,7 @@
 #define BOOST_MPL_CFG_GPU_ENABLED
 
 #include <alpaka/alpaka.hpp>
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/test/acc/Acc.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
@@ -47,34 +48,24 @@ BOOST_AUTO_TEST_SUITE(rand_)
 //#############################################################################
 class RandTestKernel
 {
-public:
-#if BOOST_COMP_GNUC
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<
-        typename TAcc>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
-    -> void
+        typename TAcc,
+        typename T_Generator
+    >
+    ALPAKA_FN_ACC void
+    genNumbers(
+        TAcc const & acc,
+        T_Generator & gen
+    ) const
     {
-        auto gen(alpaka::rand::generator::createDefault(acc, 12345u, 6789u));
-
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-variable"
-#endif
-// gcc 5.4 in combination with nvcc 8.0 fails to compile the CPU STL distributions when --expt-relaxed-constexpr is enabled
-// /usr/include/c++/5/cmath(362): error: calling a __host__ function("__builtin_logl") from a __device__ function("std::log") is not allowed
-#if !((BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(5, 0, 0)) && (BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(8, 0, 0)) && (BOOST_COMP_NVCC < BOOST_VERSION_NUMBER(9, 0, 0)))
         {
             auto dist(alpaka::rand::distribution::createNormalReal<float>(acc));
             auto const r = dist(gen);
 #if !BOOST_ARCH_CUDA_DEVICE
             BOOST_VERIFY(std::isfinite(r));
 #endif
+            alpaka::ignore_unused(r);
         }
 
         {
@@ -83,6 +74,7 @@ public:
 #if !BOOST_ARCH_CUDA_DEVICE
             BOOST_VERIFY(std::isfinite(r));
 #endif
+            alpaka::ignore_unused(r);
         }
         {
             auto dist(alpaka::rand::distribution::createUniformReal<float>(acc));
@@ -101,15 +93,54 @@ public:
         {
             auto dist(alpaka::rand::distribution::createUniformUint<std::uint32_t>(acc));
             auto const r = dist(gen);
+            alpaka::ignore_unused(r);
         }
-#endif
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
+    }
+
+public:
+
+    //-----------------------------------------------------------------------------
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<
+        typename TAcc>
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const & acc) const
+    -> void
+    {
+        // default generator for accelerator
+        auto genDefault = alpaka::rand::generator::createDefault(
+            acc,
+            12345u,
+            6789u
+        );
+        genNumbers( acc, genDefault );
+
+#if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+        // std::random_device
+        auto genRandomDevice = alpaka::rand::generator::createDefault(
+            alpaka::rand::RandomDevice{},
+            12345u,
+            6789u
+        );
+        genNumbers( acc, genRandomDevice );
+
+        // MersenneTwister
+        auto genMersenneTwister = alpaka::rand::generator::createDefault(
+            alpaka::rand::MersenneTwister{},
+            12345u,
+            6789u
+        );
+        genNumbers( acc, genMersenneTwister );
+
+        // TinyMersenneTwister
+        auto genTinyMersenneTwister = alpaka::rand::generator::createDefault(
+            alpaka::rand::TinyMersenneTwister{},
+            12345u,
+            6789u
+        );
+        genNumbers( acc, genTinyMersenneTwister );
 #endif
     }
-#if BOOST_COMP_GNUC
-    #pragma GCC diagnostic pop
-#endif
 };
 
 //-----------------------------------------------------------------------------

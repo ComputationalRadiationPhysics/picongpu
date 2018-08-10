@@ -138,7 +138,7 @@ before_build:
     - cmd: if "%CONFIGURATION%"=="Release" set ALPAKA_BOOST_VARIANT=release
     # Select the libraries required.
     - cmd: set ALPAKA_BOOST_B2=--with-test
-    - cmd: if "%ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE%"=="ON" set ALPAKA_BOOST_B2=%ALPAKA_BOOST_B2% --with-fiber --with-context --with-thread --with-system --with-atomic --with-chrono --with-date_time
+    - cmd: if not "%ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE%"=="OFF" set ALPAKA_BOOST_B2=%ALPAKA_BOOST_B2% --with-fiber --with-context --with-thread --with-system --with-atomic --with-chrono --with-date_time
 
     - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" set ALPAKA_BOOST_TOOLSET=msvc-14.1
     - cmd: b2 -j2 --toolset=%ALPAKA_BOOST_TOOLSET% --layout=versioned %ALPAKA_BOOST_B2% architecture=x86 address-model=%ALPAKA_BOOST_ADDRESS_MODEL% variant=%ALPAKA_BOOST_VARIANT% link=static threading=multi runtime-link=shared define=_CRT_NONSTDC_NO_DEPRECATE define=_CRT_SECURE_NO_DEPRECATE define=_SCL_SECURE_NO_DEPRECAT define=BOOST_USE_WINFIBERS --stagedir="%ALPAKA_B2_STAGE_DIR%"
