@@ -33,7 +33,7 @@ set -euo pipefail
 
 if [ -z "$(ls -A "${ALPAKA_CI_CLANG_DIR}")" ]
 then
-    if (( ALPAKA_CI_CLANG_VER_MAJOR >= 5 ))
+    if (( ALPAKA_CI_CLANG_VER_MAJOR == 5 ))
     then
         ALPAKA_CLANG_PKG_FILE_NAME=clang+llvm-${ALPAKA_CI_CLANG_VER}-linux-x86_64-ubuntu14.04.tar.xz
     else
