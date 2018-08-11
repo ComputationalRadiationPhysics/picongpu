@@ -8,6 +8,8 @@
 Parameter files, ``*.param`` placed in ``include/picongpu/param/`` are used to set all **compile-time options** for a PIConGPU simulation.
 This includes most fundamental options such as numerical solvers, floating precision, memory usage due to attributes and super-cell based algorithms, density profiles, initial conditions etc.
 
+.. _usage-params-edit:
+
 Editing
 -------
 
@@ -25,6 +27,8 @@ For example, if you want to edit the *grid* and time step resolution, *file outp
 See ``pic-edit --help`` for all available files:
 
 .. program-output:: ../../bin/pic-edit --help
+
+.. _usage-params-rationale:
 
 Rationale
 ---------
