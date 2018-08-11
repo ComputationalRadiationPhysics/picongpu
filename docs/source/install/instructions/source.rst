@@ -49,7 +49,7 @@ An example could look like this
 
 .. code-block:: bash
 
-   # go to an empty, temporary build project
+   # go to an empty, temporary build directory
    cd $HOME/build
    rm -rf ../build/*
    

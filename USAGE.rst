@@ -104,8 +104,11 @@ For example, if you want to run on the HPC System `"Hypnos" at HZDR <https://www
 .. code-block:: bash
    :emphasize-lines: 2
 
-   # request 16 GPUs from the PBS batch system and run on the queue k20
+   # request 1 GPU from the PBS batch system and run on the queue "k20"
    tbg -s qsub -c etc/picongpu/1.cfg -t etc/picongpu/hypnos-hzdr/k20.tpl $SCRATCH/runs/lwfa_002
+
+   # run again, this time on 16 GPUs
+   tbg -s qsub -c etc/picongpu/16.cfg -t etc/picongpu/hypnos-hzdr/k20.tpl $SCRATCH/runs/lwfa_003
 
 Note that we can use the same ``1.cfg`` file, your input set is *portable*.
 
