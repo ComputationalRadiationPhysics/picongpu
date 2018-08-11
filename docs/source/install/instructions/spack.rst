@@ -4,6 +4,11 @@
 
    You will need to understand how to use `the terminal <http://www.ks.uiuc.edu/Training/Tutorials/Reference/unixprimer.html>`_.
 
+.. warning::
+
+   Our spack package is still in beta state and is continuously improved.
+   Please feel free to report any issues that you might encounter.
+
 Spack
 -----
 
@@ -26,7 +31,7 @@ First `install spack <http://spack.readthedocs.io/en/latest/getting_started.html
    spack bootstrap
 
    # install a supported compiler
-   spack compiler list | grep gcc@5.4.0 || spack install gcc@5.4.0 && spack load gcc@5.4.0 && spack compiler add
+   spack compiler list | grep gcc@5.4.0 | spack install gcc@5.4.0 && spack load gcc@5.4.0 && spack compiler add
 
    # add the PIConGPU repository
    git clone https://github.com/ComputationalRadiationPhysics/spack-repo.git $HOME/src/spack-repo
@@ -56,7 +61,7 @@ PIConGPU can now be loaded with
 
 .. code-block:: bash
 
-   spack load picongpu %gcc@5.4.0
+   spack load picongpu
 
 For more information on *variants* of the ``picongpu`` package in spack run ``spack info picongpu`` and refer to the `official spack documentation <https://spack.readthedocs.io/>`_.
 
@@ -67,5 +72,5 @@ For more information on *variants* of the ``picongpu`` package in spack run ``sp
    
    .. code-block:: bash
 
-      spack install picongpu backend=omp2b %gcc@5.4.0
-      spack load picongpu backend=omp2b %gcc@5.4.0
+      spack install picongpu backend=omp2b
+      spack load picongpu backend=omp2b
