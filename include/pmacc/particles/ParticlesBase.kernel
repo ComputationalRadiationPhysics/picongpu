@@ -229,17 +229,21 @@ struct KernelFillGapsLastFrame
                 uint32_t const
             )
             {
-                if( lastFrame.isValid() && counterParticles == 0 )
+                // there is no need to add a zero to the global memory
+                if( counterParticles != 0 )
                 {
-                    lastFrame = getPreviousFrameAndRemoveLastFrame(lastFrame, pb, superCellIdx);
-                    /* if there is a previous valid frame then this frame is fully filled and
-                     * now the last frame
-                     */
-                    if( lastFrame.isValid() )
-                        counterParticles = frameSize;
+                    auto & superCell = pb.getSuperCell( superCellIdx );
+                    superCell.setNumParticles(
+                        superCell.getNumParticles() + counterParticles
+                    );
                 }
-
-                pb.getSuperCell( superCellIdx ).setSizeLastFrame( counterParticles );
+                else
+                {
+                    /* The last frame is empty therefore it must be removed.
+                     * It is save to call this method even if there is no last frame.
+                     */
+                    pb.removeLastFrame( superCellIdx );
+                }
             }
         );
     }
@@ -320,6 +324,8 @@ struct KernelFillGaps
             counterParticles,
             int
         );
+
+        uint32_t numParticlesPerSuperCell = 0u;
 
         ForEachIdx<
             IdxConfig<
@@ -438,6 +444,7 @@ struct KernelFillGaps
                     {
                         if( counterGaps < counterParticles )
                         {
+                            numParticlesPerSuperCell += frameSize;
                             // any gap in the first frame is filled
                             firstFrame = pb.getNextFrame( firstFrame );
                         }
@@ -460,6 +467,7 @@ struct KernelFillGaps
                             );
                             if( lastFrame.isValid( ) && lastFrame != firstFrame )
                             {
+                                numParticlesPerSuperCell += frameSize;
                                 firstFrame = pb.getNextFrame( firstFrame );
                             }
                         }
@@ -475,6 +483,7 @@ struct KernelFillGaps
                         uint32_t const
                     )
                     {
+                        numParticlesPerSuperCell += frameSize;
                         firstFrame = pb.getNextFrame( firstFrame );
                     }
                 );
@@ -483,6 +492,20 @@ struct KernelFillGaps
             __syncthreads( );
 
         }
+
+        onlyMaster(
+            [&](
+                uint32_t const,
+                uint32_t const
+            )
+            {
+                /* numParticlesPerSuperCell is the number of particles in the
+                 * supercell except the particles in the last frame
+                 */
+                auto & superCell = pb.getSuperCell( superCellIdx );
+                superCell.setNumParticles( numParticlesPerSuperCell );
+            }
+        );
 
         // fill all gaps in the last frame of the supercell
         KernelFillGapsLastFrame< numWorkers >{ }(
@@ -595,9 +618,9 @@ struct KernelShiftParticles
         >;
 
         memory::CtxArray<
-            uint32_t,
+            int,
             ExchangeDomCfg
-        > lastFrameSizeCtx( 0 );
+        > newParticleInFrame( 0 );
 
         memory::CtxArray<
             DataSpace< dim >,
@@ -633,12 +656,13 @@ struct KernelShiftParticles
 
                 if ( tmpFrame.isValid() )
                 {
-                    lastFrameSizeCtx[ idx ] = pb.getSuperCell( relativeCtx[ idx ] ).getSizeLastFrame( );
+                    uint32_t particlesInFrame = pb.getSuperCell( relativeCtx[ idx ] ).getSizeLastFrame( );
                     // do not use the neighbor's last frame if it is full
-                    if ( lastFrameSizeCtx[ idx ] < frameSize )
+                    if ( particlesInFrame < frameSize )
                     {
+                        newParticleInFrame[ idx ] = -particlesInFrame;
                         destFrames[ linearIdx ] = tmpFrame;
-                        destFramesCounter[ linearIdx ] = lastFrameSizeCtx[ idx ];
+                        destFramesCounter[ linearIdx ] = particlesInFrame;
                     }
                 }
             }
@@ -702,7 +726,6 @@ struct KernelShiftParticles
                      */
                     if ( destFramesCounter[ linearIdx ] > 0 )
                     {
-                        lastFrameSizeCtx[ idx ] = destFramesCounter[ linearIdx ];
                         /* if we had no `low frame` we load a new empty one */
                         if ( !destFrames[ linearIdx ].isValid( ) )
                         {
@@ -717,7 +740,6 @@ struct KernelShiftParticles
                         /* check if a `high frame` is needed */
                         if ( destFramesCounter[ linearIdx ] > frameSize )
                         {
-                            lastFrameSizeCtx[ idx ] = destFramesCounter[ linearIdx ] - frameSize;
                             FramePtr tmpFrame( pb.getEmptyFrame( ) );
                             destFrames[ linearIdx + numExchanges ] = tmpFrame;
                             pb.setAsLastFrame(
@@ -770,7 +792,7 @@ struct KernelShiftParticles
             forEachExchange(
                 [&](
                     uint32_t const linearIdx,
-                    uint32_t const
+                    uint32_t const idx
                 )
                 {
                     /* if the `low frame` is full, each master thread
@@ -779,6 +801,7 @@ struct KernelShiftParticles
                      */
                     if ( destFramesCounter[ linearIdx ] >= frameSize )
                     {
+                        newParticleInFrame[ idx ] += frameSize;
                         destFramesCounter[ linearIdx ] -= frameSize;
                         destFrames[ linearIdx ] = destFrames[ linearIdx + numExchanges ];
                         destFrames[ linearIdx + numExchanges ] = FramePtr( );
@@ -794,14 +817,23 @@ struct KernelShiftParticles
 
         forEachExchange(
             [&](
-                uint32_t const,
+                uint32_t const linearIdx,
                 uint32_t const idx
             )
             {
-                /* each master thread updates the number of particles in the last frame
-                 * of the neighbors supercell
-                 */
-                pb.getSuperCell( relativeCtx[ idx ] ).setSizeLastFrame( lastFrameSizeCtx[ idx ] );
+                newParticleInFrame[ idx ] += destFramesCounter[ linearIdx ];
+                if( newParticleInFrame[ idx ] > 0 )
+                {
+                    /* Each master thread updates the number of particles
+                     * for the neighbor frame. The number of particles in the neighbor
+                     * frame must be correct because fill gaps is only called on the
+                     * current used supercell.
+                     */
+                    auto & superCell = pb.getSuperCell( relativeCtx[ idx ] );
+                    superCell.setNumParticles(
+                        superCell.getNumParticles() + newParticleInFrame[ idx ]
+                    );
+                }
             }
         );
 
@@ -926,16 +958,20 @@ struct KernelDeleteParticles
                 uint32_t const
             )
             {
-                /* all frames and particles are removed, set counter for particles
-                 * in the last frame to zero
-                 */
-                pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
+                // all frames and particles are removed
+                pb.getSuperCell( superCellIdx ).setNumParticles( 0 );
             }
         );
     }
 };
 
 /** copy particles from the guard to an exchange buffer
+ *
+ * @warning This kernel resets the number of particles in the processed supercells even
+ * if there are particles left in the supercell and does not guarantee that the last frame is
+ * contiguous filled.
+ * Call KernelFillGaps afterwards if you need a valid number of particles
+ * and a contiguously filled last frame.
  *
  * @tparam T_numWorkers number of workers
  */
@@ -1146,7 +1182,10 @@ struct KernelCopyGuardToExchange
                 uint32_t const
             )
             {
-                pb.getSuperCell( superCellIdx ).setSizeLastFrame( 0 );
+                /* Mark supercell as empty even if there are particles left.
+                 * This kernel not depends on the correct number particles in the supercell.
+                 */
+                pb.getSuperCell( superCellIdx ).setNumParticles( 0 );
             }
         );
 
