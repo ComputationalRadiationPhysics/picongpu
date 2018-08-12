@@ -118,7 +118,7 @@ pic-create
 """"""""""
 
 This tool is just a short-hand to create a new set of input files.
-It does a copy from an already existing set of input files (e.g. our examples or a previous simulation) and adds additional helper files.
+It copies from an already existing set of input files (e.g. our examples or a previous simulation) and adds additional helper files.
 
 See ``pic-create --help`` for more options during input set creation:
 
