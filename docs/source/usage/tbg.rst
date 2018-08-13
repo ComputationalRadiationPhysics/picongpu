@@ -14,9 +14,10 @@ Scheduling on today's supercomputers is usually done via *batch systems* that de
 An unfortunate aspect about batch systems from a user's perspective is, that their usage varies a lot.
 And naturally, different systems have different resources in queues that need to be described.
 
-We abstract the description of queues, resource acquisition and job submission away from PIConGPU user input via *template files* (``.tpl``).
-For example, the ``.cfg`` file defines how many *devices* shall be used for computation, but the ``.tpl`` file calculates how many *physical nodes* will be requested.
-Also, the ``.tpl`` file takes care of how to spawn a process when scheduled, e.g. with ``mpiexec`` and which flags for networking details need to be passed.
+PIConGPU runtime options are described in *configuration files* (``.cfg``).
+We abstract the description of queues, resource acquisition and job submission via *template files* (``.tpl``).
+For example, a ``.cfg`` file defines how many *devices* shall be used for computation, but a ``.tpl`` file calculates how many *physical nodes* will be requested.
+Also, ``.tpl`` files takes care of how to spawn a process when scheduled, e.g. with ``mpiexec`` and which flags for networking details need to be passed.
 After combining the *machine independent* (portable) ``.cfg`` file from user input with the *machine dependent* ``.tpl`` file, ``tbg`` can submit the requested job to the batch system.
 
 Last but not least, one usually wants to store the input of a simulation with its output.
