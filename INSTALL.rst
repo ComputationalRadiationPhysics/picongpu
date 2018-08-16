@@ -31,7 +31,7 @@ Mandatory
 
 gcc
 """
-- 4.9 - 7 (if you want to build of Nvidia GPUs, supported compilers depend on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
+- 4.9 - 7 (if you want to build for Nvidia GPUs, supported compilers depend on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
 
   - CUDA 8.0: Use gcc 4.9 - 5.3
   - CUDA 9.0 - 9.1: Use gcc 4.9 - 5.5
@@ -89,13 +89,16 @@ zlib
 
 boost
 """""
-- 1.62.0-1.64.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
-- download from `http://www.boost.org <http://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.gz/download>`_
+- 1.62.0 - 1.67.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
+- *note:* for CUDA 9 support, use boost 1.65.1 or newer
 - *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
 - *from source:*
 
+  - ``curl -Lo boost_1_65_1.tar.gz https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz``
+  - ``tar -xzf boost_1_65_1.tar.gz``
+  - ``cd boost_1_65_1``
   - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,regex,serialization,system,thread --prefix=$HOME/lib/boost``
   - ``./b2 cxxflags="-std=c++11" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
@@ -116,7 +119,7 @@ rsync
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
 
-alpaka 0.3.2
+alpaka 0.3.3
 """"""""""""
 - `alpaka <https://github.com/ComputationalRadiationPhysics/alpaka>`_ is included in the PIConGPU source code
 
@@ -160,7 +163,7 @@ CUDA
 - at least one **CUDA** capable **GPU**
 - *compute capability*: ``sm_20`` or higher (for CUDA 9+: ``sm_30`` or higher)
 - `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
-- `More <http://www.olcf.ornl.gov/titan/>`_ is always `better <http://www.cscs.ch/computers/piz_daint/index.html>`_. Especially, if we are talking GPUs :-)
+- `More <http://www.olcf.ornl.gov/summit/>`_ is always `better <http://www.cscs.ch/computers/piz_daint/index.html>`_. Especially, if we are talking GPUs :-)
 - *environment:*
 
   - ``export CUDA_ROOT=<CUDA_INSTALL>``
@@ -224,8 +227,8 @@ HDF5
   - ``cd ~/src``
   - download hdf5 source code from `release list of the HDF5 group <https://www.hdfgroup.org/ftp/HDF5/releases/>`_, for example:
 
-  - ``wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz``
-  - ``tar -xvzf hdf5-1.8.20.tar.gz``
+  - ``curl -Lo hdf5-1.8.20.tar.gz https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz``
+  - ``tar -xzf hdf5-1.8.20.tar.gz``
   - ``cd hdf5-1.8.20``
   - ``./configure --enable-parallel --enable-shared --prefix $HOME/lib/hdf5/``
   - ``make``
@@ -275,8 +278,8 @@ ADIOS
 
   - ``mkdir -p ~/src ~/build ~/lib``
   - ``cd ~/src``
-  - ``wget http://users.nccs.gov/~pnorbert/adios-1.13.1.tar.gz``
-  - ``tar -xvzf adios-1.13.1.tar.gz``
+  - ``curl -Lo adios-1.13.1.tar.gz http://users.nccs.gov/~pnorbert/adios-1.13.1.tar.gz``
+  - ``tar -xzf adios-1.13.1.tar.gz``
   - ``cd adios-1.13.1``
   - ``CFLAGS="-fPIC" ./configure --enable-static --enable-shared --prefix=$HOME/lib/adios --with-mpi=$MPI_ROOT --with-zlib=/usr``
   - ``make``
@@ -303,8 +306,8 @@ VampirTrace
 
   - ``mkdir -p ~/src ~/build ~/lib``
   - ``cd ~/src``
-  - ``wget -O VampirTrace-5.14.4.tar.gz "http://wwwpub.zih.tu-dresden.de/~mlieber/dcount/dcount.php?package=vampirtrace&get=VampirTrace-5.14.4.tar.gz"``
-  - ``tar -xvzf VampirTrace-5.14.4.tar.gz``
+  - ``curl -Lo VampirTrace-5.14.4.tar.gz "http://wwwpub.zih.tu-dresden.de/~mlieber/dcount/dcount.php?package=vampirtrace&get=VampirTrace-5.14.4.tar.gz"``
+  - ``tar -xzf VampirTrace-5.14.4.tar.gz``
   - ``cd VampirTrace-5.14.4``
   - ``./configure --prefix=$HOME/lib/vampirtrace --with-cuda-dir=<CUDA_ROOT>``
   - ``make all -j``
