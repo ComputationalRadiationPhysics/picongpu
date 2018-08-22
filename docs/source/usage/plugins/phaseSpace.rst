@@ -125,6 +125,36 @@ Options                              Value
 -m (optional, defaults to 'ypy')     Momentum string to specify the phase space
 ================================     =======================================================
 
+Jupyter Widget
+""""""""""""""
+
+If you want more interactive visualization, then start a jupyter notebook and make
+sure that ``ipywidgets`` and ``ìpympl`` are installed.
+
+Since this widget makes most sense in cases where many simulations were run and
+ordered in so called 'scans' it is assumed that there exists an output directory
+which contains directories ``scan_1``, ..., ``scan_N`` and each such directory
+contains one or many simulation directories ``sim_1`` to ``sim_M``.
+Of course visualizing iterations of a single simulation is also possible, but please
+adhere to the directory structure explained above.
+
+After starting the notebook server write the following
+
+.. code:: python
+
+   %matplotlib widget
+   import matplotlib.pyplot as plt
+   plt.ioff()
+
+   from IPython.display import display
+   from picongpu.plugins.jupyter_widgets import PhaseSpaceVisualizer
+
+   v = PhaseSpaceVisualizer(experiment_path="path/to/scan/outputs")
+   display(v)
+
+and then interact with the displayed widgets.
+
+
 Out-of-Range Behavior
 ^^^^^^^^^^^^^^^^^^^^^
 
