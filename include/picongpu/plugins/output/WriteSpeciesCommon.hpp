@@ -145,16 +145,24 @@ struct FreeMemory
         if (ptr != nullptr)
         {
 #if( PMACC_CUDA_ENABLED == 1 )
-            auto rc = cudaFreeHost(ptr);
-            /* cupla can't handle foreign memory allocated with `cudaHostAlloc`
-             * therefore the cupla error `cuplaErrorMemoryAllocation` is ignored
-             */
-            if(rc != cuplaErrorMemoryAllocation)
-                CUDA_CHECK(rc)
+/* cupla 0.1.0 does not support the function cudaHostAlloc to create mapped memory.
+ * Therefore we need to call the native CUDA function cudaFreeHost to free memory.
+ * Due to the renaming of cuda functions with cupla via macros we need to remove
+ * the renaming to get access to the native cuda function.
+ * @todo this is a workaround please fix me. We need to investigate if
+ * it is possible to have mapped/unified memory in alpaka.
+ *
+ * corresponding alpaka issues:
+ *   https://github.com/ComputationalRadiationPhysics/alpaka/issues/296
+ *   https://github.com/ComputationalRadiationPhysics/alpaka/issues/612
+ */
+#   undef cudaFreeHost
+            CUDA_CHECK((cuplaError_t)cudaFreeHost(ptr));
+// re-introduce the cupla macro
+#   define cudaFreeHost(...) cuplaFreeHost(__VA_ARGS__)
 #else
             __deleteArray(ptr);
 #endif
-            ptr=nullptr;
         }
     }
 };

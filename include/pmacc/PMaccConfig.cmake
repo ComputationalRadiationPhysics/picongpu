@@ -365,6 +365,17 @@ if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
     endif()
 endif()
 
+# Boost predef headers for NVCC are broken in Boost 1.68.0
+#   Alpaka 0.3.3 does not include a work-around yet
+#   `pmacc/types.hpp` does not include a work-around yet
+#   https://github.com/ComputationalRadiationPhysics/alpaka/pull/606
+if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
+    if(Boost_VERSION EQUAL 106800)
+        message(FATAL_ERROR "Boost 1.68.0 has broken CUDA NVCC detection in "
+                "boost/predef.h Please use Boost 1.65.1 - 1.67.0")
+    endif()
+endif()
+
 # Newer CUDA releases: probably troublesome, warn at least
 if(CUDA_VERSION VERSION_GREATER 9.2)
     message(WARNING "Untested CUDA release! Maybe use a newer PIConGPU?")

@@ -79,12 +79,6 @@ namespace fields
 
             uint32_t cellOffsetInSuperCellFromInitPlaneY = LaserFunctor::Unitless::initPlaneY % SuperCellSize::y::value;
 
-            auto accLaserFunctor = laserFunctor(
-                acc,
-                localSuperCellOffset,
-                mappings::threads::WorkerCfg< numWorkers >{ workerIdx }
-            );
-
             mappings::threads::ForEachIdx<
                 mappings::threads::IdxConfig<
                     planeSize,
@@ -96,6 +90,12 @@ namespace fields
                     uint32_t const
                 )
                 {
+                   auto accLaserFunctor = laserFunctor(
+                       acc,
+                       localSuperCellOffset,
+                       mappings::threads::WorkerCfg< numWorkers >{ workerIdx }
+                    );
+
                     /* cell index within the superCell */
                     DataSpace< simDim > cellIdxInSuperCell = DataSpaceOperations< simDim >::template map< LaserPlaneSizeInSuperCell >( linearIdx );
                     cellIdxInSuperCell.y() += cellOffsetInSuperCellFromInitPlaneY;

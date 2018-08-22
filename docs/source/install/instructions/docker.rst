@@ -17,6 +17,7 @@ Preparation
 ^^^^^^^^^^^
 
 First `install nvidia-docker <https://github.com/NVIDIA/nvidia-docker>`_ for your distribution.
+Use version 2 or newer.
 
 Install
 ^^^^^^^
@@ -25,7 +26,7 @@ The download of a pre-configured image with the latest version of PIConGPU is no
 
 .. code-block:: bash
 
-   nvidia-docker pull ax3l/picongpu
+   docker pull ax3l/picongpu
 
 Use PIConGPU
 ^^^^^^^^^^^^
@@ -34,14 +35,14 @@ Start a pre-configured LWFA live-simulation with
 
 .. code-block:: bash
 
-   nvidia-docker run -p 2459:2459 -t ax3l/picongpu:0.3.0 /bin/bash -lc start_lwfa
+   docker run --runtime=nvidia -p 2459:2459 -t ax3l/picongpu /bin/bash -lc start_lwfa
    # open firefox and isaac client
 
 or just open the container and run your own:
 
 .. code-block:: bash
 
-   nvidia-docker run -it ax3l/picongpu
+   docker run --runtime=nvidia -it ax3l/picongpu
 
 .. note::
 
