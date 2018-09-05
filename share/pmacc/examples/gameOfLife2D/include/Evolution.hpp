@@ -34,6 +34,8 @@
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 
+#include <memory>
+
 namespace gol
 {
 namespace kernel
@@ -226,7 +228,7 @@ namespace kernel
     template< typename T_MappingDesc >
     struct Evolution
     {
-        T_MappingDesc mapping;
+        std::unique_ptr< T_MappingDesc > mapping;
         uint32_t rule;
 
         Evolution( uint32_t rule ) : rule( rule )
@@ -234,9 +236,17 @@ namespace kernel
 
         }
 
-        void init( T_MappingDesc const & desc )
+        void init(
+            Space const & layout,
+            Space const & guardSize
+        )
         {
-            mapping = desc;
+            mapping = std::unique_ptr< T_MappingDesc >(
+                new T_MappingDesc(
+                    layout,
+                    guardSize
+                )
+            );
         }
 
         template< typename DBox >
@@ -248,7 +258,7 @@ namespace kernel
             AreaMapping <
                 CORE + BORDER,
                 T_MappingDesc
-            > mapper( mapping );
+            > mapper( *mapping );
             constexpr uint32_t numWorkers = traits::GetNumWorkers<
                 math::CT::volume< typename T_MappingDesc::SuperCellSize >::type::value
             >::value;
@@ -279,7 +289,7 @@ namespace kernel
             AreaMapping <
                 Area,
                 T_MappingDesc
-            > mapper( mapping );
+            > mapper( *mapping );
             constexpr uint32_t numWorkers = traits::GetNumWorkers<
                 math::CT::volume< typename T_MappingDesc::SuperCellSize >::type::value
             >::value;

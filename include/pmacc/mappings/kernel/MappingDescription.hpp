@@ -57,7 +57,7 @@ public:
      * @param guardingSuperCells number of **supercells** within the guard
      */
     MappingDescription(
-        DataSpace<DIM> localGridCells = DataSpace<DIM> (),
+        DataSpace<DIM> localGridCells,
         DataSpace<DIM> guardingSuperCells = DataSpace<DIM>::create(0)
     ) :
         gridSuperCells(localGridCells / SuperCellSize::toRT()), /*block count per dimension*/

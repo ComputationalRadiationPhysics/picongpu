@@ -151,7 +151,7 @@ public:
          * MappingDesc stores the layout regarding Core, Border and Guard     *
          * in units of SuperCells.                                            *
          * This is saved by init to be used by the kernel to identify itself. */
-        evo.init(MappingDesc(layout.getDataSpace(), Space::create(1)));
+        evo.init(layout.getDataSpace(), Space::create(1));
 
         buff1 = new Buffer(layout, false);
         buff2 = new Buffer(layout, false);
