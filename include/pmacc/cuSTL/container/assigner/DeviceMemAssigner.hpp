@@ -31,7 +31,11 @@
 
 #include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
 
-#include <boost/math/common_factor_rt.hpp>
+#if( BOOST_VERSION < 106700 )
+#   include <boost/math/common_factor_rt.hpp>
+#else
+#   include <boost/integer/common_factor_rt.hpp>
+#endif
 #include <boost/mpl/placeholders.hpp>
 
 #include <stdint.h>
