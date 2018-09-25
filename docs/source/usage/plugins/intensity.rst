@@ -3,7 +3,7 @@
 Intensity
 ---------
 
-The maximum amplitude of the electric field for each cell in y-cell-position in **V/m** and the integrated amplitude of the electric field (integrated over the entirer x- and z-extent of the simulated volume and given for each y-cell-position).
+The maximum amplitude of the electric field for each cell in y-cell-position in **V/m** and the integrated amplitude of the electric field (integrated over the entire x- and z-extent of the simulated volume and given for each y-cell-position).
 
 
 .. attention::

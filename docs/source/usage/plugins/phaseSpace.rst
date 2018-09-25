@@ -111,7 +111,7 @@ Known Limitations
 ^^^^^^^^^^^^^^^^^
 
 - only one range per selected space-momentum-pair possible right now (naming collisions)
-- charge deposition uses the counter shape for now (would need one more write to neighbours to get it correct to the shape)
+- charge deposition uses the counter shape for now (would need one more write to neighbors to get it correct to the shape)
 - the user has to define the momentum range in advance
 - the resolution is fixed to ``1024 bins`` in momentum and the number of cells in the selected spatial dimension
 - this plugin does not yet use :ref:`openPMD markup <pp-openPMD>`.

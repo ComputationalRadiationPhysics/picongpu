@@ -22,8 +22,8 @@ Currently, the plugin can be set *once for each species*.
 =========================================== =====================================================================================
 PIConGPU command line option                description
 =========================================== =====================================================================================
-``--e_energyHistogram.period``              The ouput periodicity of the **electron** histogram.
-                                            A value of ``100`` would mean aoutput at simulation time step *0, 100, 200, ...*.
+``--e_energyHistogram.period``              The output periodicity of the **electron** histogram.
+                                            A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
                                             If set to a non-zero value, the energy histogram of all **electrons** is computed.
                                             By default, the value is ``0`` and no histogram for the electrons is computed.
 ``--e_energy.filter``                       Use filtered particles. Available filters are set up in 
