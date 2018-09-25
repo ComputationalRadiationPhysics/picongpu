@@ -309,13 +309,19 @@ message(STATUS "Boost: result_of with TR1 style and decltype fallback")
 set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
 
 # Boost >= 1.60.0 and CUDA != 7.5 failed when used with C++11
-# seen with boost 1.60.0 - 1.62.0 (atm latest) and CUDA 7.0, 8.0 (atm latest)
+# seen with Boost 1.60.0 - 1.62.0 (maybe later) and CUDA 7.0 and 8.0
 # CUDA 7.5 works without a workaround
-if( (Boost_VERSION GREATER 105999) AND
-    (NOT CUDA_VERSION VERSION_EQUAL 7.5) )
-    # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
-    message(STATUS "Boost: Disable template aliases")
-    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_NO_CXX11_TEMPLATE_ALIASES)
+# CUDA 8.0.44 bug reappeared, but work-around was mainlined in 1.63.0+
+# CUDA 9.0 unknown, likely fixed
+# CUDA 9.1.85-3 and above fixed
+if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
+    if( (Boost_VERSION GREATER 105999) AND
+        (NOT CUDA_VERSION VERSION_EQUAL 7.5) AND
+        (CUDA_VERSION VERSION_LESS 9.1) )
+        # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
+        message(STATUS "Boost: Disable template aliases")
+        set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_NO_CXX11_TEMPLATE_ALIASES)
+    endif()
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
