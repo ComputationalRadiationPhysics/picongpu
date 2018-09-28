@@ -4,7 +4,7 @@ Count per Supercell
 -------------------
 
 This plugin counts the total number of *macro particles of a species* for each super cell and stores the result in an hdf5 file. 
-Only in case of constant particle density, where each macro particle describes the same number of real particles (weighting), conclusions on the plasma density can be drawn.
+Only in case of constant particle weighting, where each macro particle describes the same number of real particles, conclusions on the plasma density can be drawn.
 
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
