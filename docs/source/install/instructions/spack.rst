@@ -39,7 +39,7 @@ First `install spack <http://spack.readthedocs.io/en/latest/getting_started.html
 
 .. note::
 
-   When you next time open a terminal or log back into the machine, make sure to activate the spack environment again via:
+   When you open a terminal next time or log back into the machine, make sure to activate the spack environment again via:
 
    .. code-block:: bash
 
@@ -68,7 +68,7 @@ For more information on *variants* of the ``picongpu`` package in spack run ``sp
 .. note::
 
    PIConGPU can also run *without a GPU*!
-   For example for our OpenMP backend, just specify the backend with ``backend=omp2b`` for the two commands above:
+   For example, to use our OpenMP backend, just add ``backend=omp2b`` to the two commands above:
    
    .. code-block:: bash
 
