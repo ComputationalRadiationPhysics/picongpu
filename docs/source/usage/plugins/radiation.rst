@@ -164,7 +164,7 @@ In order to do that, the radiating particle species needs the attribute ``radiat
 .. note::
 
    The reduction of the total intensity is not considered in the output.
-   The intensity will be (in the incoherent case) by the fraction of marked particles smaller than in the case of selecting all particles.
+   The intensity will be (in the incoherent case) will be smaller by the fraction of marked to all particles.
 
 .. note::
 

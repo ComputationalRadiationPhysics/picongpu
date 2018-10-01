@@ -113,7 +113,7 @@ Since an adequate color scaling is essential, there several option the user can 
    #define EM_FIELD_SCALE_CHANNEL3 -1
 
 In the above example, all channels are set to **auto scale**.
-**Be careful**, when using another normalization than auto scale, because depending on your set up, the normalization might fail due to parameters not set by PIConGPU.
+**Be careful**, when using a normalization other than auto-scale, depending on your setup, the normalization might fail due to parameters not set by PIConGPU.
 *Use the other normalization options only in case of the specified scenarios or if you know, how the scaling is computed.*
 
 

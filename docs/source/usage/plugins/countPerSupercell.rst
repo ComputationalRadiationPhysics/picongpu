@@ -14,8 +14,8 @@ The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <insta
 .cfg files
 ^^^^^^^^^^
 
-By specifying the periodicity of the output using the command line argument ``--e_macroParticlesPerSuperCell.period`` (here for an electron species ``e``) with picongpu, the plugin is enabled.
-Setting ``--e_macroParticlesPerSuperCell.period 100`` adds the number of all electron like macro particles to the file ``e_macroParticlesCount.dat`` for every 100th time step of the simulation.
+By specifying the periodicity of the output using the command line argument ``--e_macroParticlesPerSuperCell.period`` (here for an electron species ``e``) with picongpu the plugin is enabled.
+Setting ``--e_macroParticlesPerSuperCell.period 100`` adds the number of all electron macro particles to the file ``e_macroParticlesCount.dat`` for every 100th time step of the simulation.
 
 Accelerator
 """""""""""

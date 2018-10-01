@@ -12,7 +12,7 @@ Only in case of constant particle density, where each macro particle describes t
 
 The *CountParticles* plugin is always complied for all species.
 By specifying the periodicity of the output using the command line argument ``--e_macroParticlesCount.period`` (here for an electron species called ``e``) with picongpu, the plugin is enabled.
-Setting ``--e_macroParticlesCount.period 100`` adds the number of all electron like macro particles to the file `ElectronsCount.dat` for every 100th time step of the simulation.
+Setting ``--e_macroParticlesCount.period 100`` adds the number of all electron macro particles to the file `ElectronsCount.dat` for every 100th time step of the simulation.
 
 Memory Complexity
 ^^^^^^^^^^^^^^^^^
@@ -30,7 +30,7 @@ negligible.
 Output
 ^^^^^^
 
-In the output file ``e_macroParticlesCount.dat``, there are three columns.
+In the output file ``e_macroParticlesCount.dat`` there are three columns.
 The first is the integer number of the time step.
 The second is the number of macro particles as integer - useful for exact counts.
 And the third is the number of macro particles in scientific floating point notation - provides better human readability.
