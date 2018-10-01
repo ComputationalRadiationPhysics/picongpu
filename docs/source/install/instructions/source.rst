@@ -13,7 +13,7 @@ From Source
 
 .. sectionauthor:: Axel Huebl
 
-Don't be afraid young physicist, self-compiling C/C++ projects is easy, fun and profitable!
+Don't be afraid, young physicist, self-compiling C/C++ projects is easy, fun and profitable!
 
 Compiling a project from source essentially requires three steps:
 
