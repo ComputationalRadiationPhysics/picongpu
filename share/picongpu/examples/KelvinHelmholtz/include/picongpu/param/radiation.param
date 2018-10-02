@@ -80,7 +80,7 @@ namespace radiationNyquist
 ///////////////////////////////////////////////////
 
 
-  // corect treatment of coherent and incoherent  radiation from macroparticles
+  // correct treatment of coherent and incoherent  radiation from macroparticles
   /* Choose different form factors in order to consider different  particle shapes for radiation
    *  - radFormFactor_CIC_3D ... CIC charge distribution
    *  - radFormFactor_TSC_3D ... TSC charge distribution

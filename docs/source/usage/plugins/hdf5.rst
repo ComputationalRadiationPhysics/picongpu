@@ -12,7 +12,7 @@ What is the format of the created HDF5 files?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We write our fields and particles in an open markup called **openPMD**.
-You can investigate your files via a large collection of `tools and frameworks <https://github.com/openPMD/openPMD-projects>`_ or your use the native HDF5 bindings of your `favourite programming language <https://en.wikipedia.org/wiki/Hierarchical_Data_Format#Interfaces>`_.
+You can investigate your files via a large collection of `tools and frameworks <https://github.com/openPMD/openPMD-projects>`_ or use the native HDF5 bindings of your `favorite programming language <https://en.wikipedia.org/wiki/Hierarchical_Data_Format#Interfaces>`_.
 
 **Resources for a quick-start:**
 

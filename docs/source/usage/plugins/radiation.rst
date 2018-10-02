@@ -16,7 +16,7 @@ Variable                       Meaning
 ============================== ================================================================================
 :math:`\vec r_k(t)`            The position of particle *k* at time *t*.
 :math:`\vec \beta_k(t)`        The normalized speed of particle *k* at time *t*.
-                               (Speed devided by the speed of light)
+                               (Speed divided by the speed of light)
 :math:`\dot{\vec{\beta}}_k(t)` The normalized acceleration of particle *k* at time *t*.
                                (Time derivative of the normalized speed.)
 :math:`t`                      Time
@@ -26,7 +26,7 @@ Variable                       Meaning
 :math:`k`                      Running index of the particles.
 ============================== ================================================================================
 
-Currently this allows to predict the emitted radiation from plasmas if it can be described by classical means.
+Currently this allows to predict the emitted radiation from plasma if it can be described by classical means.
 Not considered are emissions from ionization, Compton scattering or any bremsstrahlung that originate from scattering on scales smaller than the PIC cell size. 
 
 External Dependencies
@@ -125,7 +125,7 @@ By default, it should be switched off by setting ``__COHERENTINCOHERENTWEIGHTING
 
 .. code:: cpp
 
-   // corect treatment of coherent and incoherent radiation from macroparticles
+   // correct treatment of coherent and incoherent radiation from macroparticles
    // 1 = on (slower and more memory, but correct quantitative treatment)
    // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
    #define __COHERENTINCOHERENTWEIGHTING__ 0
@@ -164,7 +164,7 @@ In order to do that, the radiating particle species needs the attribute ``radiat
 .. note::
 
    The reduction of the total intensity is not considered in the output.
-   The intensity will be (in the incoherent case) by the fraction of marked marticles smaller than in the case of selecting all particles.
+   The intensity will be (in the incoherent case) will be smaller by the fraction of marked to all particles.
 
 .. note::
 
@@ -300,7 +300,7 @@ Command line flag                        Output description
 ``--radiation_<species>.lastRadiation``  has the same format as the output of *totalRadiation*.
                                          The spectral intensity is only summed over the last radiation `dump` period.
 ``--radiation_<species>.radPerGPU``      Same output as *totalRadiation* but only summed over each GPU. 
-                                         ecause each GPU specifies a spatial region, the origin of radiation signatures can be distinguished.
+                                         Because each GPU specifies a spatial region, the origin of radiation signatures can be distinguished.
 *radiationHDF5*                          In the folder  ``radiationHDF5``, hdf5 files for each radiation dump and species are stored.
                                          These are complex amplitudes in units used by *PIConGPU*.
                                          These are for restart purposes and for more complex data analysis.
@@ -318,7 +318,7 @@ Tool                           Description
                                This is a python script that has its own help.
                                Run ``plotRadiation --help`` for more information.
 ``radiationSyntheticDetector`` Reads *ASCII* radiation data and statistically analysis the spectra for a user specified region of observation angles and frequencies.
-                               This is a python script that has its own help. Run ``radiationSyntheticDetector --help`` for more informations.
+                               This is a python script that has its own help. Run ``radiationSyntheticDetector --help`` for more information.
 *smooth.py*                    Python module needed by `plotRadiation`.
 ============================== ======================================================================================================================================
 

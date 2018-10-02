@@ -31,7 +31,7 @@ Command line option    Description
                        If flags are not set, no pngs are created.
 ``--e_png.axis``       Set 2D slice through 3D volume that will be drawn.
                        Combine two of the three dimensions ``x``, ``y``and ``z``, the define a slice.
-                       E.g. setting ``--e_png.axis yz`` draws both the y and z dimension and performes a slice in x-direction.
+                       E.g. setting ``--e_png.axis yz`` draws both the y and z dimension and performs a slice in x-direction.
 ``--e_png.slicePoint`` Specifies at what ratio of the total depth of the remaining dimension, the slice should be performed.
                        The value given should lie between ``0.0`` and ``1.0``.
 ``--e_png.folder``     Name of the folder, where all pngs for the above setup should be stored.
@@ -113,7 +113,7 @@ Since an adequate color scaling is essential, there several option the user can 
    #define EM_FIELD_SCALE_CHANNEL3 -1
 
 In the above example, all channels are set to **auto scale**.
-**Be careful**, when using other normalizations than auto scale, because depending on your set up, the normalization might fail due to parameters not set by PIConGPU.
+**Be careful**, when using a normalization other than auto-scale, depending on your setup, the normalization might fail due to parameters not set by PIConGPU.
 *Use the other normalization options only in case of the specified scenarios or if you know, how the scaling is computed.*
 
 
