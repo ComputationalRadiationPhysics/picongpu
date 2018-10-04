@@ -37,11 +37,7 @@
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-#if( BOOST_VERSION < 106700 )
-#   include <boost/math/common_factor_rt.hpp>
-#else
-#   include <boost/integer/common_factor_rt.hpp>
-#endif
+#include <boost/integer/common_factor_rt.hpp>
 
 #include "pmacc/eventSystem/tasks/TaskKernel.hpp"
 #include "pmacc/eventSystem/events/kernelEvents.hpp"
@@ -112,7 +108,7 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDimension)
         MaxCudaBlockDim<dim>::type::toRT(); /* max threads per axis */
     for(int i = 0; i < dim; i++)
     {
-        result[i] = boost::math::gcd(gridDimension[i], maxThreads[i]);
+        result[i] = boost::integer::gcd(gridDimension[i], maxThreads[i]);
     }
 
     return result;
