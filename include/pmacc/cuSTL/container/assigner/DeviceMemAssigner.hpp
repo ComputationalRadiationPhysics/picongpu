@@ -31,7 +31,7 @@
 
 #include <pmacc/cuSTL/algorithm/functor/AssignValue.hpp>
 
-#include <boost/math/common_factor_rt.hpp>
+#include <boost/integer/common_factor_rt.hpp>
 #include <boost/mpl/placeholders.hpp>
 
 #include <stdint.h>
@@ -64,7 +64,7 @@ struct DeviceMemAssigner
         size_t maxValues[] = {16, 16, 4}; // maximum values for each dimension
         for(int i = 0; i < dim; i++)
         {
-            blockSize[i] = boost::math::gcd(buffer->size()[i], maxValues[dim-1]);
+            blockSize[i] = boost::integer::gcd(buffer->size()[i], maxValues[dim-1]);
         }
         /* the maximum number of threads per block for devices with
          * compute capability > 2.0 is 1024 */
