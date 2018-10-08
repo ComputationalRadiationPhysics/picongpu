@@ -105,7 +105,6 @@ def parse(file, ptype):
 
 if __name__ == '__main__':
 
-    # parse command line params
     type = ''
     file = ''
 
@@ -114,9 +113,6 @@ if __name__ == '__main__':
     except getopt.GetoptError:
         print("paramParser.py -t <parameterType -i <inputfile>")
         sys.exit(2)
-
-    #print("opts = ", opts)
-    #print("args = ", args)
 
     for opt, arg in opts:
         if opt in ("-h", "--help"):
