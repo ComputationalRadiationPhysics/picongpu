@@ -77,7 +77,7 @@ def readFieldSlices(File):
         # go through all valid field vectors
         for x in range(N_x):
             fieldValue = line[x]
-            data[y, x, :] = [ float(x) for x in fieldValue[1:-1].split(',') ]
+            data[y, x, :] = [float(x) for x in fieldValue[1:-1].split(',')]
     return data
 
 
