@@ -31,7 +31,7 @@ First `install spack <http://spack.readthedocs.io/en/latest/getting_started.html
    spack bootstrap
 
    # install a supported compiler
-   spack compiler list | grep gcc@5.4.0 | spack install gcc@5.4.0 && spack load gcc@5.4.0 && spack compiler add
+   spack compiler list | grep gcc@7.3.0 | spack install gcc@7.3.0 && spack load gcc@7.3.0 && spack compiler add
 
    # add the PIConGPU repository
    git clone https://github.com/ComputationalRadiationPhysics/spack-repo.git $HOME/src/spack-repo
@@ -52,7 +52,7 @@ The installation of the latest version of PIConGPU is now as easy as:
 
 .. code-block:: bash
 
-   spack install picongpu %gcc@5.4.0
+   spack install picongpu %gcc@7.3.0
 
 Use PIConGPU
 ^^^^^^^^^^^^
@@ -74,3 +74,22 @@ For more information on *variants* of the ``picongpu`` package in spack run ``sp
 
       spack install picongpu backend=omp2b
       spack load picongpu backend=omp2b
+
+.. note::
+
+   If the install fails or you want to compile for CUDA 8.0, try using GCC 5.3.0:
+
+   .. code-block:: bash
+
+      spack compiler list | grep gcc@5.3.0 | spack install gcc@5.3.0 && spack load gcc@5.3.0 && spack compiler add
+      spack install picongpu %gcc@5.3.0
+      spack load picongpu %gcc@5.3.0
+
+   If the install fails or you want to compile for CUDA 9.0/9.1, try using GCC 5.5.0:
+
+   .. code-block:: bash
+
+      spack compiler list | grep gcc@5.5.0 | spack install gcc@5.5.0 && spack load gcc@5.5.0 && spack compiler add
+      spack install picongpu %gcc@5.5.0
+      spack load picongpu %gcc@5.5.0
+
