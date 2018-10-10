@@ -49,6 +49,25 @@
 #include <stdlib.h> /* itoa */
 #include <stdint.h> /* uint32_t */
 
+/* provide a specialization of swap for std::string
+ *
+ * workaround for: https://github.com/ComputationalRadiationPhysics/picongpu/issues/2714
+ * Boost is shipping a swap implementation with support for device
+ * if `BOOST_GPU_ENABLED` is `__host__ __device__` but is calling a pure host function `std::swap`
+ * within the device code. Even if swap is not called on the device this implementation
+ * can pull host only code inside the device compile path of CUDA.
+ */
+namespace boost_swap_impl
+{
+    BOOST_GPU_ENABLED
+    void swap(std::string& s1, std::string& s2)
+    {
+#ifndef __CUDA_ARCH__
+        std::swap(s1, s2);
+#endif
+    }
+}
+
 namespace picongpu
 {
     using namespace pmacc;
