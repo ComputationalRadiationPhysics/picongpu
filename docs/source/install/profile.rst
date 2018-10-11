@@ -18,6 +18,23 @@ Ideally, store that file directly in your ``$HOME/`` and source it after connect
 
 We listed some example ``picongpu.profile`` files below which can be used to set up PIConGPU's dependencies on various HPC systems.
 
+Hemera (HZDR)
+-------------
+
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
+
+Queue: defq (2x Intel Xeon Gold 6148, 20 Cores + 20 HyperThreads/CPU)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/hemera-hzdr/defq_picongpu.profile.example
+   :language: bash
+
+Queue: gpu (4x NVIDIA P100 16GB)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/hemera-hzdr/gpu_picongpu.profile.example
+   :language: bash
+
 Hypnos (HZDR)
 -------------
 
