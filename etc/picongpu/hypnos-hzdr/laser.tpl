@@ -29,7 +29,6 @@
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
 #PBS -m !TBG_mailSettings -M !TBG_mailAddress
 #PBS -d !TBG_dstPath
-#PBS -n
 
 #PBS -o stdout
 #PBS -e stderr
