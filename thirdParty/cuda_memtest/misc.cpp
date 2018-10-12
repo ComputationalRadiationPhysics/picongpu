@@ -26,11 +26,22 @@ void update_temperature(void)
 void get_serial_number(unsigned int devIdx, char* serial)
 {
 #if (ENABLE_NVML==1)
-    nvmlDevice_t devHandle;
-    NVML_CHECK(nvmlDeviceGetHandleByIndex( devIdx, &devHandle ));
+    try
+    {
+        nvmlDevice_t devHandle;
+        NVML_CHECK(nvmlDeviceGetHandleByIndex( devIdx, &devHandle ));
 
-    unsigned int serialLength = NVML_DEVICE_SERIAL_BUFFER_SIZE;
-    NVML_CHECK(nvmlDeviceGetSerial( devHandle, serial, serialLength ));
+        unsigned int serialLength = NVML_DEVICE_SERIAL_BUFFER_SIZE;
+        NVML_CHECK(nvmlDeviceGetSerial( devHandle, serial, serialLength ));
+    }
+    catch(const std::runtime_error& e)
+    {
+        std::strncpy(
+            serial,
+            "unknown (NVML runtime error)",
+            NVML_DEVICE_SERIAL_BUFFER_SIZE);
+        serial[NVML_DEVICE_SERIAL_BUFFER_SIZE-1] = '\0';
+    }
 #else
     (void)(devIdx);
     (void)(serial);
