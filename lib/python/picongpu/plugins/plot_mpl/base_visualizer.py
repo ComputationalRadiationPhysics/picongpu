@@ -20,7 +20,7 @@ class Visualizer(object):
         _update_plt_obj(self)
     """
 
-    def __init__(self, run_directory):
+    def __init__(self, run_directory, ax=None):
         """
         Initialize the reader and data as member parameters.
 
@@ -29,6 +29,7 @@ class Visualizer(object):
         run_directory : string
             path to the run directory of PIConGPU
             (the path before ``simOutput/``)
+        ax: matplotlib.axes
         """
         if run_directory is None:
             raise ValueError('The run_directory parameter can not be None!')
@@ -36,6 +37,10 @@ class Visualizer(object):
         self.plt_obj = None
         self.data_reader = self._create_data_reader(run_directory)
         self.data = None
+
+        if ax is None:
+            print("Warning: No axes was given, using plt.gca() instead!")
+        self.ax = plt.gca() if ax is None else ax
 
     def _create_data_reader(self, run_directory):
         """
@@ -45,16 +50,12 @@ class Visualizer(object):
         """
         raise NotImplementedError
 
-    def _create_plt_obj(self, ax):
+    def _create_plt_obj(self):
         """
         Sets 'self.plt_obj' to an instance of a matplotlib.artist.Artist
-        object (or derived classes) which can be updated
-        by feeding new data into it.
+        object (or derived classes) created by using 'self.ax'
+        which can later be updated by feeding new data into it.
         Only called on the first call for visualization.
-
-        Parameters
-        ----------
-        ax: matplotlib.axes.Axes instance
         """
         raise NotImplementedError
 
@@ -65,32 +66,15 @@ class Visualizer(object):
         """
         raise NotImplementedError
 
-    def _ax_or_gca(self, ax):
-        """
-        Returns the passed ax if it is not None or the current
-        matplotlib axes object otherwise.
-
-        Parameters
-        ----------
-        ax: None or matplotlib.axes.Axes instance
-        Returns
-        -------
-        A matplotlib.axes.Axes instance
-        """
-
-        return ax or plt.gca()
-
-    def visualize(self, ax=None, **kwargs):
+    def visualize(self, **kwargs):
         """
         1. Creates the 'plt_obj' if it does not exist
         2. Fills the 'data' parameter by using the reader
         3. Updates the 'plt_obj' with the new data.
         """
-        if ax is None:
-            raise ValueError("A matplotlib axes object needs to be passed!")
 
         self.data = self.data_reader.get(**kwargs)
         if self.plt_obj is None:
-            self._create_plt_obj(ax)
+            self._create_plt_obj()
         else:
             self._update_plt_obj()
