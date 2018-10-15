@@ -8,7 +8,7 @@ License: GPLv3+
 
 from picongpu.plugins.energy_histogram import EnergyHistogram
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
-    BaseVisualizer, plt
+    BaseVisualizer
 
 
 class Visualizer(BaseVisualizer):
@@ -16,15 +16,16 @@ class Visualizer(BaseVisualizer):
     Class for creation of histogram plots on a logscaled y-axis.
     """
 
-    def __init__(self, run_directory):
+    def __init__(self, run_directory, ax=None):
         """
         Parameters
         ----------
         run_directory : string
             path to the run directory of PIConGPU
             (the path before ``simOutput/``)
+        ax: matplotlib.axes
         """
-        super(Visualizer, self).__init__(run_directory)
+        super().__init__(run_directory, ax)
 
     def _create_data_reader(self, run_directory):
         """
@@ -32,13 +33,13 @@ class Visualizer(BaseVisualizer):
         """
         return EnergyHistogram(run_directory)
 
-    def _create_plt_obj(self, ax):
+    def _create_plt_obj(self):
         """
         Implementation of base class function.
         Turns 'self.plt_obj' into a matplotlib.pyplot.plot object.
         """
         counts, bins = self.data
-        self.plt_obj = ax.semilogy(bins, counts, nonposy='clip')[0]
+        self.plt_obj = self.ax.semilogy(bins, counts, nonposy='clip')[0]
 
     def _update_plt_obj(self):
         """
@@ -46,21 +47,14 @@ class Visualizer(BaseVisualizer):
         """
         counts, bins = self.data
         self.plt_obj.set_data(bins, counts)
-        ax = self._ax_or_gca(None)
-        ax.relim()
-        ax.autoscale_view(True, True, True)
 
-    def visualize(self, ax=None, **kwargs):
+    def visualize(self, **kwargs):
         """
         Creates a semilogy plot on the provided axes object for
         the data of the given iteration using matpotlib.
 
         Parameters
         ----------
-        iteration: int
-            the iteration number for which data will be plotted.
-        ax: matplotlib axes object
-            the part of the figure where this plot will be shown.
         kwargs: dictionary with further keyword arguments, valid are:
             species: string
                 short name of the particle species, e.g. 'e' for electrons
@@ -72,20 +66,22 @@ class Visualizer(BaseVisualizer):
                 (defined in ``particleFilters.param``)
 
         """
-        ax = self._ax_or_gca(ax)
-        # this already throws error if no species or iteration in kwargs
-        super(Visualizer, self).visualize(ax, **kwargs)
         iteration = kwargs.get('iteration')
         species = kwargs.get('species')
-        species_filter = kwargs.get('species_filter', 'all')
         if iteration is None or species is None:
             raise ValueError("Iteration and species have to be provided as\
             keyword arguments!")
 
-        ax.set_xlabel('Energy [keV]')
-        ax.set_ylabel('Counts')
-        ax.set_title('Energy Histogram for species ' +
-                     species + ', filter = ' + species_filter)
+        super().visualize(**kwargs)
+
+        species_filter = kwargs.get('species_filter', 'all')
+
+        self.ax.relim()
+        self.ax.autoscale_view(True, True, True)
+        self.ax.set_xlabel('Energy [keV]')
+        self.ax.set_ylabel('Counts')
+        self.ax.set_title('Energy Histogram for species ' +
+                          species + ', filter = ' + species_filter)
 
 
 if __name__ == '__main__':
@@ -93,6 +89,7 @@ if __name__ == '__main__':
     def main():
         import sys
         import getopt
+        import matplotlib.pyplot as plt
 
         def usage():
             print("usage:")
@@ -139,9 +136,9 @@ if __name__ == '__main__':
             filtr = 'all'
             print("Species filter was not given, will use", filtr)
 
-        fig, ax = plt.subplots(1, 1)
-        Visualizer(path).visualize(ax, iteration=iteration, species=species,
-                                   species_filter=filtr)
+        _, ax = plt.subplots(1, 1)
+        Visualizer(path, ax).visualize(iteration=iteration, species=species,
+                                       species_filter=filtr)
         plt.show()
 
     main()
