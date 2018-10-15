@@ -18,6 +18,9 @@ class Visualizer(object):
         _create_data_reader(self, run_directory)
         _create_plt_obj(self, ax)
         _update_plt_obj(self)
+
+    Note: When using classes derived from this within jupyter notebooks, use
+    %matplotlib notebook mode.
     """
 
     def __init__(self, run_directory, ax=None):
