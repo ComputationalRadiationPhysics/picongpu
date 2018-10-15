@@ -1,9 +1,9 @@
 from .energy_histogram_visualizer import Visualizer as \
-    EnergyHistogramVisualizer
-from .phase_space_visualizer import Visualizer as PhaseSpaceVisualizer
-from .png_visualizer import Visualizer as PNGVisualizer
+    EnergyHistogramMPL
+from .phase_space_visualizer import Visualizer as PhaseSpaceMPL
+from .png_visualizer import Visualizer as PNGMPL
 
 
-__all__ = ["EnergyHistogramVisualizer",
-           "PhaseSpaceVisualizer",
-           "PNGVisualizer"]
+__all__ = ["EnergyHistogramMPL",
+           "PhaseSpaceMPL",
+           "PNGMPL"]
