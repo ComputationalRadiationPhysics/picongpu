@@ -234,7 +234,7 @@ HDF5
   - ``make``
   - *optional:* ``make test``
   - ``make install``
-  - If you encounter errors related to linking MPI during ``./configure``, you might try setting ``export CC=mpicc`` and ``export CXX=mpic++`` before running ``./configure``.
+  - If you encounter errors related to linking MPI during ``./configure``, you might try setting the compiler manually via ``./configure --enable-parallel --enable-shared --prefix $HOME/lib/hdf5/ CC=mpicc CXX=mpic++``.
 - *environment:* (assumes install from source in ``$HOME/lib/hdf5``)
 
   - ``export HDF5_ROOT=$HOME/lib/hdf5``
