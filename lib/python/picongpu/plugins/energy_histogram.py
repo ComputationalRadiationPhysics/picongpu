@@ -98,7 +98,7 @@ class EnergyHistogram(object):
                            skiprows=1,
                            usecols=(0,),
                            delimiter=" ",
-                           dtype=np.uint64).as_matrix()[:, 0]
+                           dtype=np.uint64).values[:, 0]
 
     def get(self, species, species_filter="all", iteration=None,
             include_overflow=False, **kwargs):
@@ -182,7 +182,7 @@ class EnergyHistogram(object):
         if len(iteration) > 1:
             return collections.OrderedDict(zip(
                     iteration,
-                    data.loc[iteration].as_matrix()
+                    data.loc[iteration].values
                 )), bins
         else:
-            return data.loc[iteration].as_matrix()[0, :], bins
+            return data.loc[iteration].values[0, :], bins
