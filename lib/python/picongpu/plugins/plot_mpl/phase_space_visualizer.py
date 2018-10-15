@@ -11,7 +11,9 @@ import numpy as np
 
 from picongpu.plugins.phase_space import PhaseSpace
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
-    BaseVisualizer, plt
+    BaseVisualizer
+
+import matplotlib.pyplot as plt
 
 
 class Visualizer(BaseVisualizer):
@@ -19,15 +21,16 @@ class Visualizer(BaseVisualizer):
     Class for creating a matplotlib plot of phase space diagrams.
     """
 
-    def __init__(self, run_directory):
+    def __init__(self, run_directory, ax=None):
         """
         Parameters
         ----------
         run_directory : string
             path to the run directory of PIConGPU
             (the path before ``simOutput/``)
+        ax: matplotlib.axes
         """
-        super(Visualizer, self).__init__(run_directory)
+        super().__init__(run_directory, ax)
 
         # for unit-conversion from SI (taken from picongpu readthedocs)
         self.mu = 1.e6
@@ -40,25 +43,24 @@ class Visualizer(BaseVisualizer):
         """
         return PhaseSpace(run_directory)
 
-    def _create_plt_obj(self, ax):
+    def _create_plt_obj(self):
         """
         Implementation of base class function.
         Turns 'self.plt_obj' into a matplotlib.image.AxesImage object.
         """
         dat, meta = self.data
-        self.plt_obj = ax.imshow(
+        self.plt_obj = self.ax.imshow(
             np.abs(dat).T * meta.dV,
             extent=meta.extent * [self.mu, self.mu, self.e_mc_r, self.e_mc_r],
             interpolation='nearest',
             aspect='auto',
             origin='lower',
-            norm=LogNorm()
-        )
-        self.cbar = plt.colorbar(self.plt_obj, ax=ax)
+            norm=LogNorm())
+        self.cbar = plt.colorbar(self.plt_obj, ax=self.ax)
         self.cbar.set_label(
             r'$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}$] ')
-        ax.set_xlabel(r'${0}$ [${1}$]'.format(meta.r, "\mathrm{\mu m}"))
-        ax.set_ylabel(r'$p_{0}$ [$\beta\gamma$]'.format(meta.p))
+        self.ax.set_xlabel(r'${0}$ [${1}$]'.format(meta.r, "\mathrm{\mu m}"))
+        self.ax.set_ylabel(r'$p_{0}$ [$\beta\gamma$]'.format(meta.p))
 
     def _update_plt_obj(self):
         """
@@ -69,15 +71,13 @@ class Visualizer(BaseVisualizer):
         self.plt_obj.autoscale()
         self.cbar.update_normal(self.plt_obj)
 
-    def visualize(self, ax=None, **kwargs):
+    def visualize(self, **kwargs):
         """
         Creates a phase space plot on the provided axes object for
         the data of the given iteration using matpotlib.
 
         Parameters
         ----------
-        ax: matplotlib axes object
-            the part of the figure where this plot will be shown.
         kwargs: dict with possible additional keyword args. Valid are:
             iteration: int
                 the iteration number for which data will be plotted.
@@ -91,8 +91,7 @@ class Visualizer(BaseVisualizer):
                 phase space selection in order: spatial, momentum component,
                 e.g. 'ypy' or 'ypx'
         """
-        ax = self._ax_or_gca(ax)
-        super(Visualizer, self).visualize(ax, **kwargs)
+        super().visualize(**kwargs)
 
     def clear_cbar(self):
         """Clear colorbar if present."""
@@ -158,9 +157,9 @@ if __name__ == '__main__':
             momentum = 'ypy'
             print("Momentum term was not given, will use", momentum)
 
-        fig, ax = plt.subplots(1, 1)
-        Visualizer(path).visualize(ax, iteration=iteration, species=species,
-                                   species_filter=filtr, ps=momentum)
+        _, ax = plt.subplots(1, 1)
+        Visualizer(path, ax).visualize(iteration=iteration, species=species,
+                                       species_filter=filtr, ps=momentum)
         plt.show()
 
     main()
