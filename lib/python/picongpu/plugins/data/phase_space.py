@@ -54,7 +54,7 @@ class PhaseSpaceMeta(object):
         self.dp = self.p_edges[1] - self.p_edges[0]
 
 
-class PhaseSpace(DataReader):
+class PhaseSpaceData(DataReader):
     """
     Data Reader for the Phase Space Plugin.
     """

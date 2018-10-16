@@ -9,7 +9,7 @@ License: GPLv3+
 from matplotlib.colors import LogNorm
 import numpy as np
 
-from picongpu.plugins.phase_space import PhaseSpace
+from picongpu.plugins.data import PhaseSpaceData
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
     BaseVisualizer
 
@@ -41,7 +41,7 @@ class Visualizer(BaseVisualizer):
         """
         Implementation of base class function.
         """
-        return PhaseSpace(run_directory)
+        return PhaseSpaceData(run_directory)
 
     def _create_plt_obj(self):
         """

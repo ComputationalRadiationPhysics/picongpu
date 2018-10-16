@@ -16,7 +16,7 @@ SPECIES_LONG_NAMES = {
 }
 
 
-class PNG(DataReader):
+class PNGData(DataReader):
     """
     Data reader for the PNG plugin.
     """

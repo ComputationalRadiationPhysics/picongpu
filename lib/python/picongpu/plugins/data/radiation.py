@@ -20,7 +20,7 @@ import numpy as np
 import h5py
 
 
-class radiationHDF5:
+class RadiationData:
     def __init__(self, filename):
         """
         Open references to hdf5 file to access radiation data.
