@@ -21,7 +21,7 @@ import numpy as _numpy
 from io import IOBase
 
 
-def readFieldSlices(File):
+def FieldSliceData(File):
     """
     Function to read one data file from PIConGPUs SliceFieldPrinter plug-in
     and returns the field data as array of size [N_y, N_x, 3], with
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # load data from file using this module
-    data = readFieldSlices(args.file)
+    data = FieldSliceData(args.file)
 
     # show data (field_x only)
     plt.imshow(data[:, :, 0])

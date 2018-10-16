@@ -91,11 +91,11 @@ You can quickly plot the data in Python with:
 
 .. code:: python
 
-   from picongpu.plugins.energy_histogram import EnergyHistogram
+   from picongpu.plugins.data import EnergyHistogramData
    import matplotlib.pyplot as plt
 
    # load data
-   energy_histogram = EnergyHistogram('/home/axel/runs/lwfa_001')
+   energy_histogram = EnergyHistogramData('/home/axel/runs/lwfa_001')
    counts, bins = energy_histogram.get('e', species_filter='all', iteration=2000)
 
    # unit conversion

@@ -13,7 +13,7 @@ import os
 import collections
 
 
-class EnergyHistogram(DataReader):
+class EnergyHistogramData(DataReader):
     """
     Data Reader for the Energy Histogram Plugin.
     """

@@ -6,7 +6,7 @@ Authors: Sebastian Starke
 License: GPLv3+
 """
 
-from picongpu.plugins.png import PNG
+from picongpu.plugins.data import PNGData
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
     BaseVisualizer
 
@@ -32,7 +32,7 @@ class Visualizer(BaseVisualizer):
         Implementation of base class function.
         """
 
-        return PNG(run_directory)
+        return PNGData(run_directory)
 
     def _create_plt_obj(self):
         """
