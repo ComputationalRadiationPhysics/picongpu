@@ -5,6 +5,7 @@ Copyright 2017-2018 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
+from .base_reader import DataReader
 
 import os
 from scipy import misc
@@ -15,7 +16,7 @@ SPECIES_LONG_NAMES = {
 }
 
 
-class PNG(object):
+class PNGData(DataReader):
     """
     Data reader for the PNG plugin.
     """
@@ -28,10 +29,8 @@ class PNG(object):
             path to the run directory of PIConGPU
             (the path before ``simOutput/``)
         """
-        if run_directory is None:
-            raise ValueError('The run_directory parameter can not be None!')
+        super().__init__(run_directory)
 
-        self.run_directory = run_directory
         self.data_file_prefix = "{0}_png_{1}_{2}_{3}"
         self.data_file_suffix = ".png"
 

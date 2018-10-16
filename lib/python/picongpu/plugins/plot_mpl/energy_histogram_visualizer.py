@@ -6,7 +6,7 @@ Authors: Sebastian Starke
 License: GPLv3+
 """
 
-from picongpu.plugins.energy_histogram import EnergyHistogram
+from picongpu.plugins.data import EnergyHistogramData
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
     BaseVisualizer
 
@@ -31,7 +31,7 @@ class Visualizer(BaseVisualizer):
         """
         Implementation of base class function.
         """
-        return EnergyHistogram(run_directory)
+        return EnergyHistogramData(run_directory)
 
     def _create_plt_obj(self):
         """
