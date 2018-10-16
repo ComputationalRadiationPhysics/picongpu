@@ -32,7 +32,7 @@
 #include <alpaka/test/stream/Stream.hpp>
 #include <alpaka/test/mem/view/ViewTest.hpp>
 
-#include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -48,10 +48,10 @@
 BOOST_AUTO_TEST_SUITE(memView)
 
 //#############################################################################
-//! 1D: sizeof(TSize) * (5)
-//! 2D: sizeof(TSize) * (5, 4)
-//! 3D: sizeof(TSize) * (5, 4, 3)
-//! 4D: sizeof(TSize) * (5, 4, 3, 2)
+//! 1D: static_cast<TSize>(5)
+//! 2D: static_cast<TSize>(5, 4)
+//! 3D: static_cast<TSize>(5, 4, 3)
+//! 4D: static_cast<TSize>(5, 4, 3, 2)
 //#############################################################################
 template<
     std::size_t Tidx>
@@ -66,15 +66,15 @@ struct CreateExtentBufVal
         TSize)
     -> TSize
     {
-        return sizeof(TSize) * (5u - Tidx);
+        return static_cast<TSize>(5u - Tidx);
     }
 };
 
 //#############################################################################
-//! 1D: sizeof(TSize) * (4)
-//! 2D: sizeof(TSize) * (4, 3)
-//! 3D: sizeof(TSize) * (4, 3, 2)
-//! 4D: sizeof(TSize) * (4, 3, 2, 1)
+//! 1D: static_cast<TSize> * (4)
+//! 2D: static_cast<TSize> * (4, 3)
+//! 3D: static_cast<TSize> * (4, 3, 2)
+//! 4D: static_cast<TSize> * (4, 3, 2, 1)
 template<
     std::size_t Tidx>
 struct CreateExtentViewVal
@@ -86,7 +86,7 @@ struct CreateExtentViewVal
         TSize)
     -> TSize
     {
-        return sizeof(TSize) * (4u - Tidx);
+        return static_cast<TSize>(4u - Tidx);
     }
 };
 
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 
     // TODO: Test failing cases of view extents larger then the underlying buffer extents.
     auto const extentView(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Size, CreateExtentViewVal>(Size()));
-    auto const offsetView(alpaka::vec::Vec<Dim, Size>::all(sizeof(Size)));
+    auto const offsetView(alpaka::vec::Vec<Dim, Size>::all(static_cast<Size>(1)));
     View view(buf, extentView, offsetView);
 
     //-----------------------------------------------------------------------------

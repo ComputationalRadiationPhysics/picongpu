@@ -30,7 +30,7 @@
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/acc/Acc.hpp>
 
-#include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"

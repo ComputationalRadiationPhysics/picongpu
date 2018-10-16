@@ -23,8 +23,8 @@
 
 #include <alpaka/vec/Vec.hpp>
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
-#include <boost/predef.h>
 #if !BOOST_ARCH_CUDA_DEVICE
     #include <boost/core/ignore_unused.hpp>
 #endif
