@@ -78,9 +78,6 @@ namespace alpaka
 
                 return true;
             }
-            //-----------------------------------------------------------------------------
-            virtual ~KernelExecutionFixture()
-            {}
 
         private:
             alpaka::dev::DevCpu m_devHost;

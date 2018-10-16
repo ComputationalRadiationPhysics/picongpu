@@ -31,7 +31,7 @@
 #include <alpaka/test/stream/Stream.hpp>
 #include <alpaka/test/stream/StreamTestFixture.hpp>
 
-#include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     using Fixture = alpaka::test::stream::StreamTestFixture<TDevStream>;
     Fixture f;
 
-    BOOST_REQUIRE_EQUAL(true, alpaka::stream::empty(f.m_stream));
+    BOOST_CHECK_EQUAL(true, alpaka::stream::empty(f.m_stream));
 }
 
 //-----------------------------------------------------------------------------
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         }
     );
 
-    BOOST_REQUIRE_EQUAL(true, promise.get_future().get());
+    BOOST_CHECK_EQUAL(true, promise.get_future().get());
 #endif
 }
 
@@ -93,15 +93,21 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     Fixture f;
 
     bool CallbackFinished = false;
-    alpaka::stream::enqueue(f.m_stream, [&CallbackFinished]() noexcept {std::this_thread::sleep_for(std::chrono::milliseconds(100u)); CallbackFinished = true;});
+    alpaka::stream::enqueue(
+        f.m_stream,
+        [&CallbackFinished]() noexcept
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100u));
+            CallbackFinished = true;
+        });
 
     alpaka::wait::wait(f.m_stream);
-    BOOST_REQUIRE_EQUAL(true, CallbackFinished);
+    BOOST_CHECK_EQUAL(true, CallbackFinished);
 }
 
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
-    streamShouldBeEmptyAfterProcessingFinished,
+    queueShouldNotBeEmptyWhenLastTaskIsStillExecutingAndIsEmptyAfterProcessingFinished,
     TDevStream,
     alpaka::test::stream::TestStreams)
 {
@@ -109,7 +115,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     Fixture f;
 
     bool CallbackFinished = false;
-    alpaka::stream::enqueue(f.m_stream, [&CallbackFinished]() noexcept {std::this_thread::sleep_for(std::chrono::milliseconds(100u)); CallbackFinished = true;});
+    alpaka::stream::enqueue(
+        f.m_stream,
+        [&f, &CallbackFinished]() noexcept
+        {
+            BOOST_CHECK_EQUAL(false, alpaka::stream::empty(f.m_stream));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100u));
+            CallbackFinished = true;
+        });
 
     // A synchronous stream will always stay empty because the task has been executed immediately.
     if(!alpaka::test::stream::IsSyncStream<typename Fixture::Stream>::value)
@@ -117,8 +130,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         alpaka::wait::wait(f.m_stream);
     }
 
-    BOOST_REQUIRE_EQUAL(true, alpaka::stream::empty(f.m_stream));
-    BOOST_REQUIRE_EQUAL(true, CallbackFinished);
+    BOOST_CHECK_EQUAL(true, alpaka::stream::empty(f.m_stream));
+    BOOST_CHECK_EQUAL(true, CallbackFinished);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
