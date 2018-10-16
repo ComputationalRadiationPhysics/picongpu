@@ -35,7 +35,7 @@ gcc
 
   - CUDA 8.0: Use gcc 4.9 - 5.3
   - CUDA 9.0 - 9.1: Use gcc 4.9 - 5.5
-  - CUDA 9.2: Use gcc 4.9 - 7
+  - CUDA 9.2 - 10.0: Use gcc 4.9 - 7
 - *note:* be sure to build all libraries/dependencies with the *same* gcc version
 - *Debian/Ubuntu:*
   
@@ -89,8 +89,8 @@ zlib
 
 boost
 """""
-- 1.62.0 - 1.67.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
-- *note:* for CUDA 9 support, use boost 1.65.1 or newer
+- 1.62.0 - 1.68.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
+- *note:* for CUDA 9+ support, use boost 1.65.1 or newer
 - *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
@@ -155,7 +155,7 @@ Optional Libraries
 
 CUDA
 """"
-- `8.0 - 9.2 <https://developer.nvidia.com/cuda-downloads>`_
+- `8.0 - 10.0 <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``
