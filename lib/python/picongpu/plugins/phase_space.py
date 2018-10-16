@@ -5,6 +5,7 @@ Copyright 2017-2018 PIConGPU contributors
 Authors: Axel Huebl
 License: GPLv3+
 """
+from .base_reader import DataReader
 
 import numpy as np
 import os
@@ -53,7 +54,7 @@ class PhaseSpaceMeta(object):
         self.dp = self.p_edges[1] - self.p_edges[0]
 
 
-class PhaseSpace(object):
+class PhaseSpace(DataReader):
     """
     Data Reader for the Phase Space Plugin.
     """
@@ -66,10 +67,8 @@ class PhaseSpace(object):
             path to the run directory of PIConGPU
             (the path before ``simOutput/``)
         """
-        if run_directory is None:
-            raise ValueError('The run_directory parameter can not be None!')
+        super().__init__(run_directory)
 
-        self.run_directory = run_directory
         self.data_file_prefix = "PhaseSpace_{0}_{1}_{2}_{3}"
         self.data_file_suffix = ".h5"
         self.data_hdf5_path = "/data/{0}/{1}"
