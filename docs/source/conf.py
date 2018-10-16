@@ -19,8 +19,9 @@
 import os
 import subprocess
 from recommonmark.parser import CommonMarkParser
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import sys
+python_libs = os.path.abspath('../../lib/python')
+sys.path.insert(0, python_libs)
 
 
 # -- General configuration ------------------------------------------------
@@ -38,12 +39,16 @@ show_authors = True
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.mathjax',
+              'sphinx.ext.napoleon',
               'breathe',
               'sphinxcontrib.programoutput',
               'matplotlib.sphinxext.plot_directive']
 
 if not on_rtd:
     extensions.append('sphinx.ext.githubpages')
+
+# napoleon autodoc config
+napoleon_include_init_with_doc = True
 
 # breathe config
 breathe_projects = {'PIConGPU': '../xml'}
