@@ -3,7 +3,7 @@ recommonmark
 sphinx==1.7
 breathe>=4.5
 sphinxcontrib.programoutput
-sphinxcontrib.napoleon>=1.8.1
+sphinxcontrib-napoleon>=0.7
 pygments
 # generate plots
 matplotlib
