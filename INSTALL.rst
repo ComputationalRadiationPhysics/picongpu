@@ -206,7 +206,7 @@ libSplash
   - ``mkdir -p ~/src ~/build ~/lib``
   - ``git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/``
   - ``cd ~/build``
-  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash -DSplash_USE_MPI=ON -DSplash_USE_PARALLE=ON ~/src/splash``
+  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash -DSplash_USE_MPI=ON -DSplash_USE_PARALLEL=ON ~/src/splash``
   - ``make install``
 
 - *environment:* (assumes install from source in ``$HOME/lib/splash``)
