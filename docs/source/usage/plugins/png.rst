@@ -6,7 +6,7 @@ PNG
 This plugin generates **images in the png format** for slices through the simulated volume.
 It allows to draw a **species density** together with electric, magnetic and/or current field values.
 The exact field values, their coloring and their normalization can be set using ``*.param`` files.
-It is a very rudimentary and useful tool to get a first impression on what happens in the simulation and to verify that the parameter set chosen leads to  the desired physics. 
+It is a very rudimentary and useful tool to get a first impression on what happens in the simulation and to verify that the parameter set chosen leads to the desired physics.
 
 .. note::
 
@@ -20,7 +20,7 @@ The plugin is available as soon as the :ref:`PNGwriter library <install-dependen
 .cfg file
 ^^^^^^^^^
 
-For **electrons** (``e``) the following table describes the command line arguments used for the visualization. 
+For **electrons** (``e``) the following table describes the command line arguments used for the visualization.
 
 ====================== ==========================================================================================================
 Command line option    Description
@@ -38,14 +38,14 @@ Command line option    Description
 ====================== ==========================================================================================================
 
 These flags use ``boost::program_options``'s ``multitoken()``.
-Therefore, **several setups** can be specified e.g. to draw different slices. 
+Therefore, **several setups** can be specified e.g. to draw different slices.
 The order of the flags is important in this case.
 E.g. in the following example, two different slices are visualized and stored in different directories:
 
 .. code:: bash
 
    picongpu [more args]
-     # first 
+     # first
      --e_png.period 100
      --e_png.axis xy
      --e_png.slicePoint 0.5
@@ -63,10 +63,10 @@ The two param files :ref:`png.param <usage-params-plugins>` and :ref:`pngColorSc
 
 **Specifying the field values using** ``png.param``
 
-Depending on the used prefix in the command line flags, electron and/or ion density is drawn. 
+Depending on the used prefix in the command line flags, electron and/or ion density is drawn.
 Additionally to that, three field values can be visualized together with the particle density.
 In order to set up the visualized field values, the ``png.param`` needs to be changed.
-In this file, a variety of other parameters used for the PngModule can be specified. 
+In this file, a variety of other parameters used for the PngModule can be specified.
 
 The ratio of the image can be set.
 
@@ -78,14 +78,14 @@ The ratio of the image can be set.
    /* if true image is scaled if cellsize is not quadratic, else no scale */
    const bool scale_to_cellsize = true;
 
-In order to scale the image, ``scale_to_cellsize`` needs to be set to ``true`` and ``scale_image`` needs to specify the reduction ratio of the image. 
+In order to scale the image, ``scale_to_cellsize`` needs to be set to ``true`` and ``scale_image`` needs to specify the reduction ratio of the image.
 
 .. note::
 
    For a 2D simulation, even a 2D image can be a quite heavy output.
    Make sure to reduce the preview size!
 
-It  is possible to draw the borders between the GPUs used as white lines. 
+It is possible to draw the borders between the GPUs used as white lines.
 This can be done by setting the parameter ``white_box_per_GPU`` in ``png.param`` to ``true``
 
 .. code:: cpp
@@ -94,7 +94,7 @@ This can be done by setting the parameter ``white_box_per_GPU`` in ``png.param``
 
 There are three field values that can be drawn: ``CHANNEL1``, ``CHANNEL2`` and ``CHANNEL3``.
 
-Since an adequate color scaling is essential, there several option the user can choose from. 
+Since an adequate color scaling is essential, there several option the user can choose from.
 
 .. code:: cpp
 
@@ -137,27 +137,27 @@ and add different coloring:
    namespace preChannel2Col = colorScales::green;    /* draw channel 2 in green */
    namespace preChannel3Col = colorScales::none;     /* do not draw channel 3 */
 
-The colors available are defined in ``pngColorScales.param`` and their usage is described below. 
+The colors available are defined in ``pngColorScales.param`` and their usage is described below.
 If ``colorScales::none`` is used, the channel is not drawn.
 
 
-In order to specify what the three channels represent, three functions can be defined in ``png.param``. 
+In order to specify what the three channels represent, three functions can be defined in ``png.param``.
 The define the values computed for the png visualization.
-The data structures used are those available in PIConGPU. 
+The data structures used are those available in PIConGPU.
 
 .. code:: cpp
 
    /* png preview settings for each channel */
    DINLINE float_X preChannel1( float3_X const & field_B, float3_X const & field_E, float3_X const & field_J )
    {
-       /* Channel1 
+       /* Channel1
         * computes the absolute value squared of the electric current */
        return math::abs2(field_J);
    }
 
    DINLINE float_X preChannel2( float3_X const & field_B, float3_X const & field_E, float3_X const & field_J )
    {
-       /* Channel2 
+       /* Channel2
         * computes the square of the x-component of the electric field */
        return field_E.x() * field_E.x();
    }
@@ -170,8 +170,8 @@ The data structures used are those available in PIConGPU.
        return -float_X(1.0) * field_E.y();
    }
 
-Only positive values are drawn. Negative values are clipped to zero. 
-In the above example, this feature is used for ``preChannel3``. 
+Only positive values are drawn. Negative values are clipped to zero.
+In the above example, this feature is used for ``preChannel3``.
 
 
 **Defining coloring schemes in** ``pngColorScales.param``
@@ -200,12 +200,12 @@ But the user can also specify his or her own color scheme by defining a namespac
             * In this example, the color yellow (RGB=1,1,0) is used. */
            const float3_X myChannel( 1.0, 1.0, 0.0 );
 
-           /* here, the previously calculated image (in case, other channels have already 
+           /* here, the previously calculated image (in case, other channels have already
             * contributed to the png) is changed.
             * First of all, the total image intensity is reduced by the opacity of this
             * channel, but only in the color channels specified by this color "NameOfColor".
-            * Then, the actual values are added with the correct color (myChannel) and opacity. */ 
-           img = img 
+            * Then, the actual values are added with the correct color (myChannel) and opacity. */
+           img = img
                  - opacity * float3_X( myChannel.x() * img.x(),
                                        myChannel.y() * img.y(),
                                        myChannel.z() * img.z() )
@@ -241,8 +241,73 @@ The pngs follow a naming convention:
 
    <species>_png_yx_0.5_002000.png
 
-First, either ``<species>`` names the particle type. 
+First, either ``<species>`` names the particle type.
 Following the 2nd underscore, the drawn dimensions are given.
 Then the slice ratio, specified by ``--e_png.slicePoint`` or ``--i_png.slicePoint``, is stated in the file name.
-The last part of the file name is a 6 digit number, specifying the simulation time step, at which the picture was created. 
+The last part of the file name is a 6 digit number, specifying the simulation time step, at which the picture was created.
 This naming convention allows to put all pngs in one directory and still be able to identify them correctly if necessary.
+
+Analysis Tools
+^^^^^^^^^^^^^^
+
+Data Reader
+"""""""""""
+
+You can quickly load and interact with the data in Python with:
+
+.. code:: python
+
+   from picongpu.plugins.data import PNGData
+
+
+   png_data = PNGData('path/to/run_dir')
+
+   # get the available iterations for which output exists
+   iters = png_data.get_iterations(species="e", axis="yx")
+
+   # pngs as numpy arrays
+   pngs = png_data.get(species="e", axis="yx", iteration=iters[:3])
+
+   pngs[iters[0]].shape
+
+Matplotlib Visualizer
+"""""""""""""""""""""
+
+If you are only interested in visualizing the generated png files it is
+even easier since you don't have to load the data manually.
+
+.. code:: python
+
+   from picongpu.plugins.plot_mpl import PNGMPL
+   import matplotlib.pyplot as plt
+
+
+   # create a figure and axes
+   fig, ax = plt.subplots(1, 1)
+
+   # create the visualizer
+   png_vis = PNGMPL('path/to/run_dir', ax)
+
+   # plot
+   png_vis.visualize(iteration=200, species='e', axis='yx')
+
+   plt.show()
+
+The visualizer can also be used from the command line by writing
+
+ .. code:: bash
+
+    python png_visualizer.py
+
+with the following command line options
+
+=================================  ==================================================================
+Options                            Value
+=================================  ==================================================================
+-p                                 Path and to the run directory of a simulation.
+-i                                 An iteration number
+-s                                 Particle species abbreviation (e.g. 'e' for electrons)
+-f (optional, defaults to 'e')     Species filter string
+-a (optional, defaults to 'yx')    Axis string (e.g. 'yx' or 'xy')
+-o (optional, defaults to 'None')  A float between 0 and 1 for slice offset along the third dimension
+=================================  ==================================================================
