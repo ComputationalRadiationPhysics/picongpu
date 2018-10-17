@@ -25,9 +25,8 @@
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/pltf/PltfCpu.hpp>
 #include <alpaka/core/Common.hpp>
-
-#include <boost/core/ignore_unused.hpp>
-#include <boost/predef.h>
+#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #include <type_traits>
 #include <vector>
@@ -130,7 +129,7 @@ namespace alpaka
                 )
                 -> size::Size<TFixedSizeArray>
                 {
-                    //boost::ignore_unused(extent);
+                    //alpaka::ignore_unused(extent);
                     return std::extent<TFixedSizeArray, TIdx::value>::value;
                 }
             };
@@ -268,7 +267,7 @@ namespace alpaka
                     std::array<TElem, Tsize> const & buf)
                 -> dev::DevCpu
                 {
-                    boost::ignore_unused(buf);
+                    alpaka::ignore_unused(buf);
                     return pltf::getDevByIdx<pltf::PltfCpu>(0u);
                 }
             };
@@ -325,7 +324,7 @@ namespace alpaka
                 -> size::Size<std::array<TElem, Tsize>>
                 {
                     // C++14
-                    /*boost::ignore_unused(extent);*/
+                    /*alpaka::ignore_unused(extent);*/
                     return Tsize;
                 }
             };
@@ -452,7 +451,7 @@ namespace alpaka
                     std::vector<TElem, TAllocator> const & buf)
                 -> dev::DevCpu
                 {
-                    boost::ignore_unused(buf);
+                    alpaka::ignore_unused(buf);
                     return pltf::getDevByIdx<pltf::PltfCpu>(0u);
                 }
             };

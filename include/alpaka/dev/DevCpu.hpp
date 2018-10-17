@@ -73,7 +73,6 @@ namespace alpaka
                 class DevCpuImpl
                 {
                     friend stream::StreamCpuAsync;                   // stream::StreamCpuAsync::StreamCpuAsync calls RegisterAsyncStream.
-                    friend stream::cpu::detail::StreamCpuAsyncImpl;  // StreamCpuAsyncImpl::~StreamCpuAsyncImpl calls UnregisterAsyncStream.
                 public:
                     //-----------------------------------------------------------------------------
                     DevCpuImpl() = default;
@@ -89,23 +88,24 @@ namespace alpaka
                     ~DevCpuImpl() = default;
 
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto GetAllAsyncStreamImpls() const noexcept(false)
+                    ALPAKA_FN_HOST auto GetAllAsyncStreamImpls() const
                     -> std::vector<std::shared_ptr<stream::cpu::detail::StreamCpuAsyncImpl>>
                     {
                         std::vector<std::shared_ptr<stream::cpu::detail::StreamCpuAsyncImpl>> vspStreams;
 
                         std::lock_guard<std::mutex> lk(m_Mutex);
 
-                        for(auto const & pairStream : m_mapStreams)
+                        for(auto it = m_streams.begin(); it != m_streams.end();)
                         {
-                            auto spStream(pairStream.second.lock());
+                            auto spStream(it->lock());
                             if(spStream)
                             {
                                 vspStreams.emplace_back(std::move(spStream));
+                                ++it;
                             }
                             else
                             {
-                                throw std::logic_error("One of the streams registered on the device is invalid!");
+                                it = m_streams.erase(it);
                             }
                         }
                         return vspStreams;
@@ -123,36 +123,13 @@ namespace alpaka
                         // Register this stream on the device.
                         // NOTE: We have to store the plain pointer next to the weak pointer.
                         // This is necessary to find the entry on unregistering because the weak pointer will already be invalid at that point.
-                        m_mapStreams.emplace(spStreamImpl.get(), spStreamImpl);
+                        m_streams.push_back(spStreamImpl);
                     }
-                    //-----------------------------------------------------------------------------
-                    //! Unregisters the given stream from this device.
-                    ALPAKA_FN_HOST auto UnregisterAsyncStream(stream::cpu::detail::StreamCpuAsyncImpl const * const pStream) noexcept(false)
-                    -> void
-                    {
-                        std::lock_guard<std::mutex> lk(m_Mutex);
 
-                        // Unregister this stream from the device.
-                        auto const itFind(std::find_if(
-                            m_mapStreams.begin(),
-                            m_mapStreams.end(),
-                            [pStream](std::pair<stream::cpu::detail::StreamCpuAsyncImpl *, std::weak_ptr<stream::cpu::detail::StreamCpuAsyncImpl>> const & pair)
-                            {
-                                return (pStream == pair.first);
-                            }));
-                        if(itFind != m_mapStreams.end())
-                        {
-                            m_mapStreams.erase(itFind);
-                        }
-                        else
-                        {
-                            throw std::logic_error("The stream to unregister from the device could not be found in the list of registered streams!");
-                        }
-                    }
 
                 private:
                     std::mutex mutable m_Mutex;
-                    std::map<stream::cpu::detail::StreamCpuAsyncImpl *, std::weak_ptr<stream::cpu::detail::StreamCpuAsyncImpl>> m_mapStreams;
+                    std::vector<std::weak_ptr<stream::cpu::detail::StreamCpuAsyncImpl>> mutable m_streams;
                 };
             }
         }

@@ -151,6 +151,12 @@ namespace alpaka
                 TSize const blockThreadCount(blockThreadExtent.prod());
                 int const iBlockThreadCount(static_cast<int>(blockThreadCount));
                 boost::ignore_unused(iBlockThreadCount);
+
+                if(::omp_in_parallel() != 0)
+                {
+                    throw std::runtime_error("The OpenMP 2.0 thread backend can not be used within an existing parallel region!");
+                }
+
                 // Force the environment to use the given number of threads.
                 int const ompIsDynamic(::omp_get_dynamic());
                 ::omp_set_dynamic(0);

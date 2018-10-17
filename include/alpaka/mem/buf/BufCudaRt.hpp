@@ -1,6 +1,6 @@
 /**
 * \file
-* Copyright 2014-2015 Benjamin Worpitz
+* Copyright 2014-2018 Benjamin Worpitz, Alexander Matthes
 *
 * This file is part of alpaka.
 *
@@ -590,6 +590,25 @@ namespace alpaka
 
                         // CUDA device memory is always pinned, it can not be swapped out.
                         return true;
+                    }
+                };
+                //#############################################################################
+                //! The BufCudaRt memory prepareForAsyncCopy trait specialization.
+                template<
+                    typename TElem,
+                    typename TDim,
+                    typename TIdx>
+                struct PrepareForAsyncCopy<
+                    mem::buf::BufCudaRt<TElem, TDim, TIdx>>
+                {
+                    //-----------------------------------------------------------------------------
+                    ALPAKA_FN_HOST static auto prepareForAsyncCopy(
+                        mem::buf::BufCudaRt<TElem, TDim, TIdx> &)
+                    -> void
+                    {
+                        ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+
+                        // CUDA device memory is always ready for async copy
                     }
                 };
             }

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 
 #include <cstddef>
 #include <type_traits>

@@ -43,6 +43,7 @@
 #include <functional>
 #include <mutex>
 #include <condition_variable>
+#include <thread>
 
 namespace alpaka
 {
@@ -213,24 +214,45 @@ namespace alpaka
                 TTask>
             {
                 //#############################################################################
-                struct CallbackSynchronizationData
+                enum class CallbackState
+                {
+                    enqueued,
+                    notified,
+                    finished,
+                };
+
+                //#############################################################################
+                struct CallbackSynchronizationData : public std::enable_shared_from_this<CallbackSynchronizationData>
                 {
                     std::mutex m_mutex;
                     std::condition_variable m_event;
                     bool notified = false;
+                    CallbackState state = CallbackState::enqueued;
                 };
 
                 //-----------------------------------------------------------------------------
                 static void CUDART_CB cudaRtCallback(cudaStream_t /*stream*/, cudaError_t /*status*/, void *arg)
                 {
-                    auto& callbackSynchronizationData = *reinterpret_cast<CallbackSynchronizationData*>(arg);
+                    // explicitly copy the shared_ptr so that this method holds the state even when the executing thread has already finished.
+                    const auto pCallbackSynchronizationData = reinterpret_cast<CallbackSynchronizationData*>(arg)->shared_from_this();
 
+                    // Notify the executing thread.
                     {
-                        std::unique_lock<std::mutex> lock(callbackSynchronizationData.m_mutex);
-                        callbackSynchronizationData.notified = true;
+                        std::unique_lock<std::mutex> lock(pCallbackSynchronizationData->m_mutex);
+                        pCallbackSynchronizationData->state = CallbackState::notified;
                     }
 
-                    callbackSynchronizationData.m_event.notify_one();
+                    // Wait for the executing thread to finish the task if it has not already finished.
+                    std::unique_lock<std::mutex> lock(pCallbackSynchronizationData->m_mutex);
+                    if(pCallbackSynchronizationData->state != CallbackState::finished)
+                    {
+                        pCallbackSynchronizationData->m_event.wait(
+                            lock,
+                            [pCallbackSynchronizationData](){
+                                return pCallbackSynchronizationData->state == CallbackState::finished;
+                            }
+                        );
+                    }
                 }
 
                 //-----------------------------------------------------------------------------
@@ -247,19 +269,36 @@ namespace alpaka
                         pCallbackSynchronizationData.get(),
                         0u));
 
-                    // If the callback has not yet been called, we wait for it.
-                    std::unique_lock<std::mutex> lock(pCallbackSynchronizationData->m_mutex);
-                    if(!pCallbackSynchronizationData->notified)
-                    {
-                        pCallbackSynchronizationData->m_event.wait(
-                            lock,
-                            [pCallbackSynchronizationData](){
-                                return pCallbackSynchronizationData->notified;
-                            }
-                        );
-                    }
+                    // We start a new std::thread which stores the task to be executed.
+                    // This circumvents the limitation that it is not possible to call CUDA methods within the CUDA callback thread.
+                    // The CUDA thread signals the std::thread when it is ready to execute the task.
+                    // The CUDA thread is waiting for the std::thread to signal that it is finished executing the task
+                    // before it executes the next task in the queue (CUDA stream).
+                    std::thread t(
+                        [pCallbackSynchronizationData, task](){
 
-                    task();
+                            // If the callback has not yet been called, we wait for it.
+                            {
+                                std::unique_lock<std::mutex> lock(pCallbackSynchronizationData->m_mutex);
+                                if(pCallbackSynchronizationData->state != CallbackState::notified)
+                                {
+                                    pCallbackSynchronizationData->m_event.wait(
+                                        lock,
+                                        [pCallbackSynchronizationData](){
+                                            return pCallbackSynchronizationData->state == CallbackState::notified;
+                                        }
+                                    );
+                                }
+
+                                task();
+
+                                // Notify the waiting CUDA thread.
+                                pCallbackSynchronizationData->state = CallbackState::finished;
+                            }
+                            pCallbackSynchronizationData->m_event.notify_one();
+                        }
+                    );
+                    t.join();
                 }
             };
             //#############################################################################

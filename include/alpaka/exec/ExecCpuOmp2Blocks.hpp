@@ -151,56 +151,72 @@ namespace alpaka
                     throw std::runtime_error("Only one thread per block allowed in the OpenMP 2.0 block accelerator!");
                 }
 
-                // Force the environment to use the given number of threads.
-                int const ompIsDynamic(::omp_get_dynamic());
-                ::omp_set_dynamic(0);
-
-                // Execute the blocks in parallel.
-                // NOTE: Setting num_threads(number_of_cores) instead of the default thread number does not improve performance.
-                #pragma omp parallel
+                if(::omp_in_parallel() != 0)
                 {
+                    parallelFn(
+                        boundKernelFnObj,
+                        blockSharedMemDynSizeBytes,
+                        numBlocksInGrid,
+                        gridBlockExtent);
+                }
+                else
+                {
+                    #pragma omp parallel
+                    parallelFn(
+                        boundKernelFnObj,
+                        blockSharedMemDynSizeBytes,
+                        numBlocksInGrid,
+                        gridBlockExtent);
+                }
+            }
+
+            template<
+                typename FnObj>
+            ALPAKA_FN_HOST auto parallelFn(
+                FnObj const & boundKernelFnObj,
+                TSize const & blockSharedMemDynSizeBytes,
+                TSize const & numBlocksInGrid,
+                vec::Vec<TDim, TSize> const & gridBlockExtent) const
+            -> void
+            {
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-                    // The first thread does some debug logging.
-                    if(::omp_get_thread_num() == 0)
-                    {
-                        int const numThreads(::omp_get_num_threads());
-                        std::cout << BOOST_CURRENT_FUNCTION << " omp_get_num_threads: " << numThreads << std::endl;
-                    }
+                // The first thread does some debug logging.
+                if(::omp_get_thread_num() == 0)
+                {
+                    int const numThreads(::omp_get_num_threads());
+                    std::cout << BOOST_CURRENT_FUNCTION << " omp_get_num_threads: " << numThreads << std::endl;
+                }
 #endif
                     acc::AccCpuOmp2Blocks<TDim, TSize> acc(
                         *static_cast<workdiv::WorkDivMembers<TDim, TSize> const *>(this),
-                        blockSharedMemDynSizeBytes);
+                    blockSharedMemDynSizeBytes);
 
-                    // NOTE: schedule(static) does not improve performance.
+                // NOTE: schedule(static) does not improve performance.
 #if _OPENMP < 200805    // For OpenMP < 3.0 you have to declare the loop index (a signed integer) outside of the loop header.
-                    std::intmax_t iNumBlocksInGrid(static_cast<std::intmax_t>(numBlocksInGrid));
-                    std::intmax_t i;
-                    #pragma omp for nowait schedule(guided)
-                    for(i = 0; i < iNumBlocksInGrid; ++i)
+                std::intmax_t iNumBlocksInGrid(static_cast<std::intmax_t>(numBlocksInGrid));
+                std::intmax_t i;
+                #pragma omp for nowait schedule(guided)
+                for(i = 0; i < iNumBlocksInGrid; ++i)
 #else
-                    #pragma omp for nowait schedule(guided)
+                #pragma omp for nowait schedule(guided)
                     for(TSize i = 0; i < numBlocksInGrid; ++i)
 #endif
-                    {
-                        acc.m_gridBlockIdx =
-                            idx::mapIdx<TDim::value>(
+                {
+                    acc.m_gridBlockIdx =
+                        idx::mapIdx<TDim::value>(
 #if _OPENMP < 200805
                                 vec::Vec<dim::DimInt<1u>, TSize>(static_cast<TSize>(i)),
 #else
                                 vec::Vec<dim::DimInt<1u>, TSize>(i),
 #endif
-                                gridBlockExtent);
+                            gridBlockExtent);
 
-                        boundKernelFnObj(
-                            acc);
+                    boundKernelFnObj(
+                        acc);
 
-                        // After a block has been processed, the shared memory has to be deleted.
-                        block::shared::st::freeMem(acc);
-                    }
+                    // After a block has been processed, the shared memory has to be deleted.
+                    block::shared::st::freeMem(acc);
                 }
-
-                // Reset the dynamic thread number setting.
-                ::omp_set_dynamic(ompIsDynamic);
             }
 
             TKernelFnObj m_kernelFnObj;

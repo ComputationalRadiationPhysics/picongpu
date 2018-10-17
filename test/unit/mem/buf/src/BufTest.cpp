@@ -32,7 +32,7 @@
 #include <alpaka/test/stream/Stream.hpp>
 #include <alpaka/test/mem/view/ViewTest.hpp>
 
-#include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -63,7 +63,7 @@ struct CreateExtentBufVal
         TSize)
     -> TSize
     {
-        return sizeof(TSize) * (5u - Tidx);
+        return static_cast<TSize>(5u - Tidx);
     }
 };
 

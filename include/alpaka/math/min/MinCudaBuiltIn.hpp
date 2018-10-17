@@ -33,12 +33,8 @@
 
 //#include <boost/core/ignore_unused.hpp>
 
+#include <cuda_runtime.h>
 #include <type_traits>
-#if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 1, 0)
-    #include <crt/math_functions.hpp>
-#else
-    #include <math_functions.hpp>
-#endif
 #include <algorithm>
 
 namespace alpaka
@@ -93,7 +89,7 @@ namespace alpaka
                     && !(std::is_integral<Tx>::value
                         && std::is_integral<Ty>::value)>::type>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto max(
+                ALPAKA_FN_ACC_CUDA_ONLY static auto min(
                     MinCudaBuiltIn const & /*min*/,
                     Tx const & x,
                     Ty const & y)

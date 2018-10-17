@@ -151,6 +151,11 @@ namespace alpaka
                 auto const maxTeamCount(maxOmpThreadCount/static_cast<int>(blockThreadCount));
                 auto const teamCount(std::min(maxTeamCount, static_cast<int>(gridBlockCount)));
 
+                if(::omp_in_parallel() != 0)
+                {
+                    throw std::runtime_error("The OpenMP 4.0 backend can not be used within an existing parallel region!");
+                }
+
                 // Force the environment to use the given number of threads.
                 int const ompIsDynamic(::omp_get_dynamic());
                 ::omp_set_dynamic(0);
