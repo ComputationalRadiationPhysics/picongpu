@@ -32,9 +32,9 @@
 #include <alpaka/meta/Fold.hpp>
 #include <alpaka/core/Align.hpp>
 #include <alpaka/core/Assert.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
 
-#include <boost/predef.h>
 #include <boost/config.hpp>
 #if !BOOST_ARCH_CUDA_DEVICE
     #include <boost/core/ignore_unused.hpp>
@@ -42,7 +42,6 @@
 
 #include <cstdint>
 #include <ostream>
-#include <cassert>
 #include <type_traits>
 #include <algorithm>
 
@@ -337,7 +336,7 @@ namespace alpaka
             {
                 core::assertValueUnsigned(iIdx);
                 auto const idx(static_cast<typename TDim::value_type>(iIdx));
-                assert(idx < TDim::value);
+                core::assertGreaterThan<TDim>(idx);
                 return m_data[idx];
             }
 
@@ -355,7 +354,7 @@ namespace alpaka
             {
                 core::assertValueUnsigned(iIdx);
                 auto const idx(static_cast<typename TDim::value_type>(iIdx));
-                assert(idx < TDim::value);
+                core::assertGreaterThan<TDim>(idx);
                 return m_data[idx];
             }
 

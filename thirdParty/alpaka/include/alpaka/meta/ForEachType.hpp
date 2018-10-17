@@ -21,13 +21,12 @@
 
 #pragma once
 
+#include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
 
-#include <boost/predef.h>
 #if !BOOST_ARCH_CUDA_DEVICE
     #include <boost/core/ignore_unused.hpp>
 #endif
-
 #include <utility>
 
 namespace alpaka

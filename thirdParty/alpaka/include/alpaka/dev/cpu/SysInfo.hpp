@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if BOOST_OS_WINDOWS || BOOST_OS_CYGWIN
     #ifndef NOMINMAX

@@ -1,6 +1,6 @@
 /**
 * \file
-* Copyright 2014-2015 Benjamin Worpitz
+* Copyright 2014-2018 Benjamin Worpitz, Alexander Matthes
 *
 * This file is part of alpaka.
 *
@@ -97,6 +97,13 @@ namespace alpaka
                     typename TBuf,
                     typename TSfinae = void>
                 struct IsPinned;
+
+                //#############################################################################
+                //! The memory prepareForAsyncCopy trait.
+                template<
+                    typename TBuf,
+                    typename TSfinae = void>
+                struct PrepareForAsyncCopy;
             }
 
             //#############################################################################
@@ -242,6 +249,24 @@ namespace alpaka
                     traits::IsPinned<
                         TBuf>
                     ::isPinned(
+                        buf);
+            }
+            //-----------------------------------------------------------------------------
+            //! Prepares the buffer for async copy operations, e.g. pinning if
+            //! async copy between a cpu and a cuda device is wanted
+            //!
+            //! \tparam TBuf The buffer type.
+            //! \param buf The buffer to prepare in the device memory.
+            template<
+                typename TBuf>
+            ALPAKA_FN_HOST auto prepareForAsyncCopy(
+                TBuf & buf)
+            -> void
+            {
+                return
+                    traits::PrepareForAsyncCopy<
+                        TBuf>
+                    ::prepareForAsyncCopy(
                         buf);
             }
         }
