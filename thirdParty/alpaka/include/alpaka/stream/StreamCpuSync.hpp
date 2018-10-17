@@ -54,7 +54,8 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST StreamCpuSyncImpl(
                         dev::DevCpu const & dev) :
-                            m_dev(dev)
+                            m_dev(dev),
+                            m_bCurrentlyExecutingTask(false)
                     {}
                     //-----------------------------------------------------------------------------
                     StreamCpuSyncImpl(StreamCpuSyncImpl const &) = delete;
@@ -69,6 +70,7 @@ namespace alpaka
 
                 public:
                     dev::DevCpu const m_dev;            //!< The device this stream is bound to.
+                    bool m_bCurrentlyExecutingTask;
                 };
             }
         }
@@ -172,8 +174,9 @@ namespace alpaka
                     TTask const & task)
                 -> void
                 {
-                    boost::ignore_unused(stream);
+                    stream.m_spStreamImpl->m_bCurrentlyExecutingTask = true;
                     task();
+                    stream.m_spStreamImpl->m_bCurrentlyExecutingTask = false;
                 }
             };
             //#############################################################################
@@ -187,8 +190,7 @@ namespace alpaka
                     stream::StreamCpuSync const & stream)
                 -> bool
                 {
-                    boost::ignore_unused(stream);
-                    return true;
+                    return !stream.m_spStreamImpl->m_bCurrentlyExecutingTask;
                 }
             };
         }

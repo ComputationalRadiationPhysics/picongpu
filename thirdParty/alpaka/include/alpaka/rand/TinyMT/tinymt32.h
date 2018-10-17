@@ -16,9 +16,18 @@
  * LICENSE.txt
  */
 
-#include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 
 #include <cstdint>
+/* work-around for glibc < 2.18 according to bug
+ * https://sourceware.org/bugzilla/show_bug.cgi?id=15366
+ */
+#ifndef UINT32_MAX
+#   define UINT32_MAX ((uint32_t)-1u)
+#endif
+#ifndef UINT32_C
+#   define UINT32_C(value) uint_least32_t(value)
+#endif
 #include <cinttypes>
 
 #if BOOST_COMP_CLANG

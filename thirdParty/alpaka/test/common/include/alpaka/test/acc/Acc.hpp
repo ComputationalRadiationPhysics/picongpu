@@ -220,7 +220,7 @@ namespace alpaka
             //! A std::tuple holding size types.
             using TestSizes =
                 std::tuple<
-                    std::size_t,
+                    //std::size_t,
                     //std::int64_t,
                     std::uint64_t,
                     std::int32_t,
@@ -238,7 +238,7 @@ namespace alpaka
             using TestDims =
                 std::tuple<
                     alpaka::dim::DimInt<1u>,
-                    alpaka::dim::DimInt<2u>,
+                    //alpaka::dim::DimInt<2u>,
                     alpaka::dim::DimInt<3u>
             // The CUDA acceleator does not currently support 4D buffers and 4D acceleration.
 #if !(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA)
@@ -255,7 +255,7 @@ namespace alpaka
                     //std::size_t,
                     std::int64_t,
                     std::uint64_t,
-                    std::int32_t,
+                    //std::int32_t,
                     std::uint32_t,
                     //std::int16_t,
                     std::uint16_t/*,

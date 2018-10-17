@@ -19,6 +19,7 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/MeasureKernelRunTime.hpp>
 #include <alpaka/test/acc/Acc.hpp>

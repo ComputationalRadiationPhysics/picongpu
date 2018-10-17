@@ -25,7 +25,7 @@
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/meta/NdLoop.hpp>
-#include <alpaka/meta/IsIntegralSuperset.hpp>
+#include <alpaka/meta/Integral.hpp>
 
 #include <cassert>
 #include <cstring>

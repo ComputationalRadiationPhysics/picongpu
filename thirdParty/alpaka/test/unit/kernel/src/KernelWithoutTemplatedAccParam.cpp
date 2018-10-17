@@ -23,7 +23,7 @@
 
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"

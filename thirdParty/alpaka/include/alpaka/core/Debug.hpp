@@ -21,8 +21,9 @@
 
 #pragma once
 
+#include <alpaka/core/BoostPredef.hpp>
+
 #include <boost/current_function.hpp>
-#include <alpaka/core/BoostPredefWorkaround.hpp>
 
 #include <string>
 #include <iostream>

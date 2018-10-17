@@ -31,7 +31,7 @@
 #include <alpaka/test/acc/Acc.hpp>                  // alpaka::test::acc::TestAccs
 #include <alpaka/test/KernelExecutionFixture.hpp>   // alpaka::test::KernelExecutionFixture
 
-#include <boost/predef.h>                           // BOOST_COMP_CLANG
+#include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"
