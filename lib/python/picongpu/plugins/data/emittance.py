@@ -2,7 +2,7 @@
 This file is part of the PIConGPU.
 
 Copyright 2017-2018 PIConGPU contributors
-Authors: Axel Huebl
+Authors: Sophie Rudat, Axel Huebl
 License: GPLv3+
 """
 from .base_reader import DataReader
@@ -13,9 +13,9 @@ import os
 import collections
 
 
-class EnergyHistogramData(DataReader):
+class EmittanceData(DataReader):
     """
-    Data Reader for the Energy Histogram Plugin.
+    Data Reader for the emittance plugin
     """
 
     def __init__(self, run_directory):
@@ -28,7 +28,7 @@ class EnergyHistogramData(DataReader):
         """
         super().__init__(run_directory)
 
-        self.data_file_prefix = "_energyHistogram_"
+        self.data_file_prefix = "_emittance_"
         self.data_file_suffix = ".dat"
 
     def get_data_path(self, species, species_filter="all"):
@@ -98,32 +98,39 @@ class EnergyHistogramData(DataReader):
                            delimiter=" ",
                            dtype=np.uint64).values[:, 0]
 
-    def _get_for_iteration(self, iteration, species, species_filter="all",
-                           include_overflow=False, **kwargs):
+    def _get_for_iteration(self, iteration, species,
+                           species_filter="all", **kwargs):
         """
-        Get a histogram for a given iteration.
+        Get a histogram.
 
         Parameters
         ----------
-        iteration : (unsigned) int [unitless] or list of int or None.
-            The iteration at which to read the data.
-            ``None`` refers to the list of all available iterations.
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        include_overflow : boolean, default: False
-            Include overflow and underflow bins as the first/last bins.
+        iteration : (unsigned) int [unitless]
+            The iteration at which to read the data.
+            A list of iterations is allowed as well.
+            ``None`` refers to the list of all available iterations.
+        sum : float
+            emittance value [m rad] without slicing
 
         Returns
         -------
-        counts : np.array of dtype float [unitless]
-            count of particles in each bin
-            If iteration is a list, returns a list of counts.
-        bins : np.array of dtype float [keV]
-            upper ranges of each energy bin
+        slice_emit : np.array of float
+            slice emittance [m rad] for each y_slice
+            If iteration is a list, returns (ordered) dict with
+            iterations as its index.
+        y_slices : np.array of float
+            beginning of each slice [m]
+        iteration : (unsigned) int [unitless]
+            The iteration at which to read the data.
+            A list of iterations is allowed as well.
+        dt: float
+            time for itteration
         """
         if iteration is not None:
             if not isinstance(iteration, collections.Iterable):
@@ -136,25 +143,23 @@ class EnergyHistogramData(DataReader):
             data_file_path,
             delimiter=" "
         )
-        # upper range of each bin in keV
-        #    note: only reads first row and selects the valid energy bins
-        bins = pd.read_csv(
+
+        # note: only reads first row and selects the valid emittance slices
+        y_slices = pd.read_csv(
             data_file_path,
             comment=None,
             nrows=0,
             delimiter=" ",
-            usecols=range(2, data.shape[1] - 2),
+            usecols=range(2, data.shape[1]),
             dtype=np.float64
         ).columns.values.astype(np.float64)
 
         # set DataFrame column names properly
         data.columns = [
             'iteration',
-            'underflow'
-        ] + list(bins) + [
-            'overflow',
             'sum'
-        ]
+        ] + list(y_slices)
+
         # set iteration as index
         data.set_index('iteration', inplace=True)
 
@@ -167,14 +172,8 @@ class EnergyHistogramData(DataReader):
             raise IndexError('Iteration {} is not available!\n'
                              'List of available iterations: \n'
                              '{}'.format(iteration, data.index.values))
-
-        # remove unused columns
-        del data['sum']
-        if not include_overflow:
-            del data['underflow']
-            del data['overflow']
         dt = self.get_dt()
         if len(iteration) > 1:
-            return data.loc[iteration].values, bins, iteration, dt
+            return data.loc[iteration].values, y_slices, iteration, dt
         else:
-            return data.loc[iteration].values[0, :], bins
+            return (data.loc[iteration].values[0, :], y_slices)
