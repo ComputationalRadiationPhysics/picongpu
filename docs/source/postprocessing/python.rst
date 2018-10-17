@@ -39,12 +39,22 @@ https://jupyter.readthedocs.io
 openPMD-viewer
 --------------
 
-A library that reads and visualizes data in our HDF5 files thanks to their :ref:`openPMD markup <pp-openPMD>`.
-Provides an API to correctly convert units to SI, interpret iteration steps correctly, annotate axis and much more.
+An exploratory framework that visualizes and analyzes data in our HDF5 files thanks to their :ref:`openPMD markup <pp-openPMD>`.
+Automatically converts units to SI, interprets iteration steps as time series, annotates axes and provides some domain specific analysis, e.g. for LWFA.
 Also provides an interactive GUI for fast exploration via Jupyter notebooks.
 
 * `Project Homepage <https://github.com/openPMD/openPMD-viewer>`_
 * `Tutorial <https://github.com/openPMD/openPMD-viewer/tree/master/tutorials>`_
+
+
+openPMD-api
+-----------
+
+A data library that reads (and writes) data in our openPMD files (HDF5 and ADIOS) to and from Numpy data structures.
+Provides an API to correctly convert units to SI, interprets iteration steps correctly, etc.
+
+* `Manual <https://openpmd-api.readthedocs.io/>`_
+* `Examples <https://github.com/openPMD/openPMD-api/tree/dev/examples>`_
 
 
 yt-project
