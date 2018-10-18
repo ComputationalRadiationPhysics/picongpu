@@ -49,6 +49,12 @@ if not on_rtd:
 
 # napoleon autodoc config
 napoleon_include_init_with_doc = True
+autodoc_mock_imports = [
+    'h5py',
+    'pandas',
+    'ipywidgets',
+    'ipympl',
+]
 
 # breathe config
 breathe_projects = {'PIConGPU': '../xml'}
