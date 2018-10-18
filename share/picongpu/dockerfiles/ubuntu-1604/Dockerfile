@@ -6,7 +6,7 @@ ENV        DEBIAN_FRONTEND=noninteractive \
            FORCE_UNSAFE_CONFIGURE=1 \
            SPACK_ROOT=/usr/local \
            SPACK_EXTRA_REPO=/usr/local/share/spack-repo \
-           PIC_PACKAGE='picongpu@develop+isaac backend=cuda'
+           PIC_PACKAGE='picongpu@0.4.0-rc4+isaac backend=cuda'
 
 # install minimal spack dependencies
 #   - adds gfortran for spack's openmpi package
@@ -38,6 +38,7 @@ RUN        apt-get update && \
               pkg-config \
               python \
               rsync \
+              time \
               unzip \
               vim && \
            rm -rf /var/lib/apt/lists/*
@@ -73,8 +74,31 @@ RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/LaserWakefield /opt/picInputs/lwfa && \
                cd /opt/picInputs/lwfa && \
-               pic-build -b "cuda:30;35;37;50;60" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
+               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
+               rm -rf .build'
+# KHI (Benchmark)
+RUN        /bin/bash -l -c ' \
+               pic-create $PICSRC/share/picongpu/examples/KelvinHelmholtz /opt/picInputs/khi && \
+               cd /opt/picInputs/khi && \
+               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
+               rm -rf .build'
+# Laser-Ion Acceleration
+RUN        /bin/bash -l -c ' \
+               pic-create $PICSRC/share/picongpu/examples/FoilLCT /opt/picInputs/foil && \
+               cd /opt/picInputs/foil && \
+               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
                rm -rf .build'
 
+
 COPY       start_lwfa.sh /usr/bin/lwfa
+COPY       start_lwfa_4.sh /usr/bin/lwfa4
+COPY       start_lwfa_8.sh /usr/bin/lwfa8
+COPY       start_lwfa_live.sh /usr/bin/lwfa_live
+COPY       start_lwfa_live_4.sh /usr/bin/lwfa_live4
+COPY       start_lwfa_live_8.sh /usr/bin/lwfa_live8
+COPY       start_khi_1.sh /usr/bin/bench1
+COPY       start_khi_4.sh /usr/bin/bench4
+COPY       start_khi_8.sh /usr/bin/bench8
+COPY       start_foil_4.sh /usr/bin/foil4
+COPY       start_foil_8.sh /usr/bin/foil8
 CMD        /bin/bash -l
