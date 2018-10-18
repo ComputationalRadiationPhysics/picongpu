@@ -29,7 +29,6 @@
 # send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
 #PBS -m !TBG_mailSettings -M !TBG_mailAddress
 #PBS -d !TBG_dstPath
-#PBS -n
 
 #PBS -o stdout
 #PBS -e stderr
@@ -44,8 +43,11 @@
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
-# 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
-.TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
+# number of available/hosted GPUs per node in the system
+.TBG_numHostedGPUPerNode=4
+
+# required GPUs per node for the current job
+.TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
 
 #number of cores per parallel node / default is 2 cores per gpu on k20 queue
 .TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
@@ -90,11 +92,11 @@ cd simOutput
 # wait for all nodes to see the output folder
 sleep 1
 
-# test if cuda_memtest binary is available
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
+# test if cuda_memtest binary is available and we have the node exclusive
+if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
   mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
 else
-  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
+  echo "no binary 'cuda_memtest' available or compute node is not exclusively allocated, skip GPU memory test" >&2
 fi
 
 if [ $? -eq 0 ] ; then

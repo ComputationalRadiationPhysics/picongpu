@@ -5,6 +5,7 @@ Copyright 2017-2018 PIConGPU contributors
 Authors: Axel Huebl
 License: GPLv3+
 """
+from .base_reader import DataReader
 
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ import os
 import collections
 
 
-class EnergyHistogram(object):
+class EnergyHistogramData(DataReader):
     """
     Data Reader for the Energy Histogram Plugin.
     """
@@ -25,10 +26,8 @@ class EnergyHistogram(object):
             path to the run directory of PIConGPU
             (the path before ``simOutput/``)
         """
-        if run_directory is None:
-            raise ValueError('The run_directory parameter can not be None!')
+        super().__init__(run_directory)
 
-        self.run_directory = run_directory
         self.data_file_prefix = "_energyHistogram_"
         self.data_file_suffix = ".dat"
 
@@ -98,7 +97,7 @@ class EnergyHistogram(object):
                            skiprows=1,
                            usecols=(0,),
                            delimiter=" ",
-                           dtype=np.uint64).as_matrix()[:, 0]
+                           dtype=np.uint64).values[:, 0]
 
     def get(self, species, species_filter="all", iteration=None,
             include_overflow=False, **kwargs):
@@ -182,7 +181,7 @@ class EnergyHistogram(object):
         if len(iteration) > 1:
             return collections.OrderedDict(zip(
                     iteration,
-                    data.loc[iteration].as_matrix()
+                    data.loc[iteration].values
                 )), bins
         else:
-            return data.loc[iteration].as_matrix()[0, :], bins
+            return data.loc[iteration].values[0, :], bins

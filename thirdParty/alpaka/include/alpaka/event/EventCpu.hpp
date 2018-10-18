@@ -78,16 +78,24 @@ namespace alpaka
                     }
 
                     //-----------------------------------------------------------------------------
-                    auto hasBeenReadieadSince(const std::size_t & enqueueCount) noexcept -> bool
+                    auto wait(std::size_t const & enqueueCount, std::unique_lock<std::mutex>& lk) noexcept -> void
                     {
-                        return (m_LastReadyEnqueueCount >= enqueueCount);
+                        assert(enqueueCount <= m_enqueueCount);
+
+                        while(enqueueCount > m_LastReadyEnqueueCount)
+                        {
+                            auto future = m_future;
+                            lk.unlock();
+                            future.get();
+                            lk.lock();
+                        }
                     }
 
                 public:
                     dev::DevCpu const m_dev;                                //!< The device this event is bound to.
 
                     std::mutex mutable m_mutex;                             //!< The mutex used to synchronize access to the event.
-                    std::condition_variable mutable m_conditionVariable;    //!< The condition signaling the event completion.
+                    std::shared_future<void> m_future;                      //!< The future signaling the event completion.
                     std::size_t m_enqueueCount;                             //!< The number of times this event has been enqueued.
                     std::size_t m_LastReadyEnqueueCount;                    //!< The time this event has been ready the last time.
                                                                             //!< Ready means that the event was not waiting within a stream (not enqueued or already completed).
@@ -214,7 +222,7 @@ namespace alpaka
                     auto const enqueueCount = spEventImpl->m_enqueueCount;
 
                     // Enqueue a task that only resets the events flag if it is completed.
-                    spStreamImpl->m_workerThread.enqueueTask(
+                    spEventImpl->m_future = spStreamImpl->m_workerThread.enqueueTask(
                         [spEventImpl, enqueueCount]()
                         {
                             std::unique_lock<std::mutex> lk2(spEventImpl->m_mutex);
@@ -223,8 +231,6 @@ namespace alpaka
                             if(enqueueCount == spEventImpl->m_enqueueCount)
                             {
                                 spEventImpl->m_LastReadyEnqueueCount = spEventImpl->m_enqueueCount;
-                                lk2.unlock();
-                                spEventImpl->m_conditionVariable.notify_all();
                             }
                         });
 #endif
@@ -267,6 +273,7 @@ namespace alpaka
 
                     auto spEventImpl(event.m_spEventImpl);
 
+                    std::promise<void> promise;
                     {
                         // Setting the event state and enqueuing it has to be atomic.
                         std::lock_guard<std::mutex> lk(spEventImpl->m_mutex);
@@ -274,8 +281,10 @@ namespace alpaka
                         ++spEventImpl->m_enqueueCount;
                         // NOTE: Difference to async version: directly set the event state instead of enqueuing.
                         spEventImpl->m_LastReadyEnqueueCount = spEventImpl->m_enqueueCount;
+
+                        spEventImpl->m_future = promise.get_future();
                     }
-                    spEventImpl->m_conditionVariable.notify_all();
+                    promise.set_value();
                 }
             };
             //#############################################################################
@@ -337,13 +346,9 @@ namespace alpaka
                 {
                     std::unique_lock<std::mutex> lk(spEventImpl->m_mutex);
 
-                    if(!spEventImpl->isReady())
-                    {
-                        auto const enqueueCount = spEventImpl->m_enqueueCount;
-                        spEventImpl->m_conditionVariable.wait(
-                            lk,
-                            [spEventImpl, enqueueCount]{return spEventImpl->hasBeenReadieadSince(enqueueCount);});
-                    }
+                    auto const enqueueCount = spEventImpl->m_enqueueCount;
+                    spEventImpl->wait(enqueueCount, lk);
+
                 }
             };
             //#############################################################################
@@ -380,13 +385,7 @@ namespace alpaka
                             [spEventImpl, enqueueCount]()
                             {
                                 std::unique_lock<std::mutex> lk2(spEventImpl->m_mutex);
-
-                                if(!spEventImpl->hasBeenReadieadSince(enqueueCount))
-                                {
-                                    spEventImpl->m_conditionVariable.wait(
-                                        lk2,
-                                        [spEventImpl, enqueueCount]{return spEventImpl->hasBeenReadieadSince(enqueueCount);});
-                                }
+                                spEventImpl->wait(enqueueCount, lk2);
                             });
 #endif
                     }

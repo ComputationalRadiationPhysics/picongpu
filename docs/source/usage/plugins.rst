@@ -61,6 +61,19 @@ Examples
 * ``42,30:50:10``: at steps 30 40 42 50 84 126 168 ...
 * ``5,10``: at steps 0 5 10 15 20 25 ... (only executed once per step in overlapping intervals)
 
+Python Postprocessing
+=====================
+
+In order to further work with the data produced by a plugin during a simulation run, PIConGPU provides python tools that can be used for reading data and visualization.
+They can be found under ``lib/python/picongpu/plugins``.
+
+It is our goal to provide at least two modules for each plugin to make postprocessing as convenient as possible:
+1. a data reader (inside the ``data`` subdirectory)
+2. a matplotlib visualizer (inside the ``plot_mpl`` subdirectory)
+
+Further information on how to use these tools can be found at each plugin page.
+
+If you would like to help in developing those classes for a plugin of your choice, please read :ref:`python postprocessing <development-pytools>`.
 
 .. rubric:: Footnotes
 

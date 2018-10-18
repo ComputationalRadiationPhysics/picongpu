@@ -1,5 +1,5 @@
-PIConGPU - A Many GPGPU PIC Code
-================================================================
+PIConGPU - Particle-in-Cell Simulations for the Exascale Era
+============================================================
 
 [![Code Status master](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/master.svg?label=master)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
 [![Code Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
@@ -15,8 +15,8 @@ PIConGPU - A Many GPGPU PIC Code
 Introduction
 ------------
 
-PIConGPU is a fully relativistic, many
-[GPGPU](http://en.wikipedia.org/wiki/Graphics_processing_unit),
+PIConGPU is a fully relativistic,
+[manycore](https://en.wikipedia.org/wiki/Manycore_processor),
 3D3V particle-in-cell ([PIC](http://en.wikipedia.org/wiki/Particle-in-cell))
 code. The Particle-in-Cell algorithm is a central tool in plasma physics.
 It describes the dynamics of a plasma by computing the motion of
@@ -59,9 +59,10 @@ a wide range of tools and diagnostics, e.g.:
   extreme I/O scalability and massively parallel online-analysis
 - 2D and 3D live view and diagnostics tools
 - a large selection of extensible
-  [online-plugins](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-Plugins)
+  [online-plugins](http://picongpu.readthedocs.io/en/latest/usage/plugins.html)
 
-Todays GPUs provide a computational performance of several
+As one of our supported compute platforms, GPUs provide a computational
+performance of several
 [TFLOP/s](http://en.wikipedia.org/wiki/FLOPS) at considerable lower invest and
 maintenance costs compared to multi CPU-based compute architectures of similar
 performance. The latest high-performance systems

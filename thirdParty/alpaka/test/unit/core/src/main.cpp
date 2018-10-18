@@ -1,6 +1,6 @@
 /**
  * \file
- * Copyright 2017 Alexander Matthes
+ * Copyright 2018 Benjamin Worpitz
  *
  * This file is part of alpaka.
  *
@@ -19,18 +19,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#define BOOST_TEST_MODULE core
 
-#include <boost/predef.h>
-#if BOOST_COMP_INTEL == 0 // Work around for broken intel detection
-    #if defined(__INTEL_COMPILER)
-        #ifdef BOOST_COMP_INTEL_DETECTION
-            #undef BOOST_COMP_INTEL_DETECTION
-        #endif
-        #define BOOST_COMP_INTEL_DETECTION BOOST_PREDEF_MAKE_10_VVRR(__INTEL_COMPILER)
-        #if defined(BOOST_COMP_INTEL)
-            #undef BOOST_COMP_INTEL
-        #endif
-        #define BOOST_COMP_INTEL BOOST_COMP_INTEL_DETECTION
-    #endif
+#include <alpaka/core/BoostPredef.hpp>
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
+#include <boost/test/unit_test.hpp>
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic pop
 #endif

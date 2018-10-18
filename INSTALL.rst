@@ -35,7 +35,7 @@ gcc
 
   - CUDA 8.0: Use gcc 4.9 - 5.3
   - CUDA 9.0 - 9.1: Use gcc 4.9 - 5.5
-  - CUDA 9.2: Use gcc 4.9 - 7
+  - CUDA 9.2 - 10.0: Use gcc 4.9 - 7
 - *note:* be sure to build all libraries/dependencies with the *same* gcc version
 - *Debian/Ubuntu:*
   
@@ -89,8 +89,8 @@ zlib
 
 boost
 """""
-- 1.62.0 - 1.67.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
-- *note:* for CUDA 9 support, use boost 1.65.1 or newer
+- 1.62.0 - 1.68.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
+- *note:* for CUDA 9+ support, use boost 1.65.1 or newer
 - *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
@@ -155,7 +155,7 @@ Optional Libraries
 
 CUDA
 """"
-- `8.0 - 9.2 <https://developer.nvidia.com/cuda-downloads>`_
+- `8.0 - 10.0 <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``
@@ -206,7 +206,7 @@ libSplash
   - ``mkdir -p ~/src ~/build ~/lib``
   - ``git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/``
   - ``cd ~/build``
-  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash -DSplash_USE_MPI=ON -DSplash_USE_PARALLE=ON ~/src/splash``
+  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash -DSplash_USE_MPI=ON -DSplash_USE_PARALLEL=ON ~/src/splash``
   - ``make install``
 
 - *environment:* (assumes install from source in ``$HOME/lib/splash``)
@@ -234,6 +234,7 @@ HDF5
   - ``make``
   - *optional:* ``make test``
   - ``make install``
+  - If you encounter errors related to linking MPI during ``./configure``, you might try setting the compiler manually via ``./configure --enable-parallel --enable-shared --prefix $HOME/lib/hdf5/ CC=mpicc CXX=mpic++``.
 - *environment:* (assumes install from source in ``$HOME/lib/hdf5``)
 
   - ``export HDF5_ROOT=$HOME/lib/hdf5``

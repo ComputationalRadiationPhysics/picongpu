@@ -21,10 +21,9 @@
 
 #pragma once
 
+#include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
 #include <alpaka/meta/Set.hpp>
-
-#include <boost/predef.h>
 
 #include <type_traits>
 #include <cstddef>

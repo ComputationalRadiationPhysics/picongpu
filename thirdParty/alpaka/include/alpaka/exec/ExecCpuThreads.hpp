@@ -37,11 +37,10 @@
 #include <alpaka/kernel/Traits.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
+#include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/ConcurrentExecPool.hpp>
 #include <alpaka/meta/NdLoop.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>
-
-#include <boost/predef.h>
 
 #include <algorithm>
 #include <thread>

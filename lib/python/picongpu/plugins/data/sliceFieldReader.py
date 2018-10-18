@@ -1,4 +1,4 @@
-# Copyright 2014-2018 Richard Pausch
+# Copyright 2014-2018 Richard Pausch, Klaus Steiniger
 #
 # This file is part of PIConGPU.
 #
@@ -21,7 +21,7 @@ import numpy as _numpy
 from io import IOBase
 
 
-def readFieldSlices(File):
+def FieldSliceData(File):
     """
     Function to read one data file from PIConGPUs SliceFieldPrinter plug-in
     and returns the field data as array of size [N_y, N_x, 3], with
@@ -42,7 +42,7 @@ def readFieldSlices(File):
     elif type(File) is str:
         theFile = open(File, 'r')
     else:
-        # if neither trow arrow
+        # if neither throw error
         raise IOError("the argument - {} - is not a file".format(File))
 
     # determine size of slice:
@@ -77,7 +77,7 @@ def readFieldSlices(File):
         # go through all valid field vectors
         for x in range(N_x):
             fieldValue = line[x]
-            data[y, x, :] = map(float, fieldValue[1:-1].split(','))
+            data[y, x, :] = [float(x) for x in fieldValue[1:-1].split(',')]
     return data
 
 
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # load data from file using this module
-    data = readFieldSlices(args.file)
+    data = FieldSliceData(args.file)
 
     # show data (field_x only)
     plt.imshow(data[:, :, 0])

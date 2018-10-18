@@ -6,9 +6,9 @@ Authors: Sebastian Starke
 License: GPLv3+
 """
 
-from picongpu.plugins.png import PNG
+from picongpu.plugins.data import PNGData
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
-    BaseVisualizer, plt
+    BaseVisualizer
 
 
 class Visualizer(BaseVisualizer):
@@ -16,29 +16,30 @@ class Visualizer(BaseVisualizer):
     Class for providing a plot of a PNG file using matplotlib.
     """
 
-    def __init__(self, run_directory):
+    def __init__(self, run_directory, ax=None):
         """
         Parameters
         ----------
         run_directory: string
             path to the run directory of PIConGPU
             (the path before ``simOutput/``)
+        ax: matplotlib.axes
         """
-        super(Visualizer, self).__init__(run_directory)
+        super().__init__(run_directory, ax)
 
     def _create_data_reader(self, run_directory):
         """
         Implementation of base class function.
         """
 
-        return PNG(run_directory)
+        return PNGData(run_directory)
 
-    def _create_plt_obj(self, ax):
+    def _create_plt_obj(self):
         """
         Implementation of base class function.
         Turns 'self.plt_obj' into a matplotlib.image.AxesImage object.
         """
-        self.plt_obj = ax.imshow(self.data)
+        self.plt_obj = self.ax.imshow(self.data)
 
     def _update_plt_obj(self):
         """
@@ -46,15 +47,13 @@ class Visualizer(BaseVisualizer):
         """
         self.plt_obj.set_data(self.data)
 
-    def visualize(self, ax=None, **kwargs):
+    def visualize(self, **kwargs):
         """
         Creates a plot on the provided axes object for
         the PNG file of the given iteration using matpotlib.
 
         Parameters
         ----------
-        ax: matplotlib axes object
-            the part of the figure where this plot will be shown.
         kwargs: dict
             additional keyword args. Necessary are the following:
             species : string
@@ -74,8 +73,7 @@ class Visualizer(BaseVisualizer):
                 if set to 'None', then return images for all available\
                     iterations
         """
-        ax = self._ax_or_gca(ax)
-        super(Visualizer, self).visualize(ax, **kwargs)
+        super().visualize(**kwargs)
 
 
 if __name__ == '__main__':
@@ -84,6 +82,7 @@ if __name__ == '__main__':
 
         import sys
         import getopt
+        import matplotlib.pyplot as plt
 
         def usage():
             print("usage:")
@@ -143,10 +142,10 @@ if __name__ == '__main__':
         if slice_point is None:
             print("Offset was not given, will determine from file")
 
-        fig, ax = plt.subplots(1, 1)
-        Visualizer(path).visualize(ax, iteration=iteration, species=species,
-                                   species_filter=filtr, axis=axis,
-                                   slice_point=slice_point)
+        _, ax = plt.subplots(1, 1)
+        Visualizer(path, ax).visualize(iteration=iteration, species=species,
+                                       species_filter=filtr, axis=axis,
+                                       slice_point=slice_point)
         plt.show()
 
     main()

@@ -45,13 +45,15 @@
 #include <alpaka/size/Traits.hpp>
 
 // Implementation details.
+#include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/ClipCast.hpp>
+#include <alpaka/core/Fibers.hpp>
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/DevCpu.hpp>
 
 #include <alpaka/core/Fibers.hpp>
 
 #include <boost/core/ignore_unused.hpp>
-#include <boost/predef.h>
-
 #include <memory>
 #include <typeinfo>
 
@@ -188,7 +190,7 @@ namespace alpaka
 #endif
                     return {
                         // m_multiProcessorCount
-                        std::max(static_cast<TSize>(1), static_cast<TSize>(std::thread::hardware_concurrency())),   // \TODO: This may be inaccurate.
+                        std::max(static_cast<TSize>(1), alpaka::core::clipCast<TSize>(std::thread::hardware_concurrency())),   // \TODO: This may be inaccurate.
                         // m_gridBlockExtentMax
                         vec::Vec<TDim, TSize>::all(std::numeric_limits<TSize>::max()),
                         // m_gridBlockCountMax

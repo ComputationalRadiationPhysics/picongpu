@@ -7,9 +7,9 @@
 
   .. image:: ../logo/pic_logo.pdf
 
-*A particle-in-cell code for GPGPUs*
+*Particle-in-Cell Simulations for the Exascale Era*
 
-PIConGPU is a fully relativistic, many GPGPU, 3D3V particle-in-cell (PIC) code.
+PIConGPU is a fully relativistic, manycore, 3D3V particle-in-cell (PIC) code.
 The PIC algorithm is a central tool in plasma physics.
 It describes the dynamics of a plasma by computing the motion of electrons and ions in the plasma based on Maxwell's equations.
 
@@ -113,6 +113,7 @@ Development
    dev/clangtools
    dev/picongpu
    dev/pmacc
+   dev/py_postprocessing
    dev/doxyindex
 
 ********************

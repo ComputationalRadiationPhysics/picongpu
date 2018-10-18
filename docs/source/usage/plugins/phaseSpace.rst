@@ -58,48 +58,71 @@ A file is created per species, phasespace selection and time step.
 Values are given as *charge density* per phase space bin.
 In order to scale to a simpler *charge of particles* per :math:`\mathrm{d}r_i` and :math:`\mathrm{d}p_i` -bin multiply by the cell volume ``dV``.
 
-Analysis
-^^^^^^^^
+Analysis Tools
+^^^^^^^^^^^^^^
 
-The easiest way is to load the data in Python:
+Data Reader
+"""""""""""
+You can quickly load and interact with the data in Python with:
 
 .. code:: python
 
-   from picongpu.plugins.phase_space import PhaseSpace
-   import matplotlib.pyplot as plt
-   from matplotlib.colors import LogNorm
+   from picongpu.plugins.data import PhaseSpaceData
    import numpy as np
 
 
    # load data
-   phase_space = PhaseSpace('/home/axel/runs/foil_001')
-   e_ps, e_ps_meta = phase_space.get('e', species_filter='all', iteration=1000, ps='ypy')
+   ps_data = PhaseSpaceData('/home/axel/runs/lwfa_001')
+   ps, meta = ps_data.get(species='e', species_filter='all', ps='ypy', iteration=2000)
 
    # unit conversion from SI
    mu = 1.e6  # meters to microns
    e_mc_r = 1. / (9.109e-31 * 2.9979e8)  # electrons: kg * m / s to beta * gamma
 
-   # plotting
-   plt.imshow(
-       np.abs(e_ps).T * e_ps_meta.dV,
-       extent = e_ps_meta.extent * [mu, mu, e_mc_r, e_mc_r],
-       interpolation = 'nearest',
-       aspect = 'auto',
-       origin='lower',
-       norm = LogNorm()
-   )
+   Q_dr_dp = np.abs(e_ps) * e_ps_meta.dV  # C s kg^-1 m^-2
+   extent = e_ps_meta.extent * [mu, mu, e_mc_r, e_mc_r]  # spatial: microns, momentum: beta*gamma
 
-   # annotations
-   cbar = plt.colorbar()
-   cbar.set_label(r'$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}$]')
+Note that the spatial extent of the output over time might change when running a moving window simulation.
 
-   ax = plt.gca()
-   ax.set_xlabel(r'${0}$'.format(e_ps_meta.r) + r' [$\mathrm{\mu m}$]')
-   ax.set_ylabel(r'$p_{0}$ [$\beta\gamma$]'.format(e_ps_meta.p))
+Matplotlib Visualizer
+"""""""""""""""""""""
+
+You can quickly plot the data in Python with:
+
+.. code:: python
+
+   from picongpu.plugins.plot_mpl import PhaseSpaceMPL
+   import matplotlib.pyplot as plt
+
+
+   # create a figure and axes
+   fig, ax = plt.subplots(1, 1)
+
+   # create the visualizer
+   ps_vis = PhaseSpaceMPL('path/to/run_dir', ax)
+
+   # plot
+   ps_vis.visualize(iteration=200, species='e')
 
    plt.show()
 
-Note that the spatial extent of the output over time might change when running a moving window simulation.
+The visualizer can also be used from the command line by writing
+
+ .. code:: bash
+
+    python phase_space_visualizer.py
+
+with the following command line options
+
+================================     =======================================================
+Options                              Value
+================================     =======================================================
+-p                                   Path and filename to the run directory of a simulation.
+-i                                   An iteration number
+-s (optional, defaults to 'e')       Particle species abbreviation (e.g. 'e' for electrons)
+-f (optional, defaults to 'all')     Species filter string
+-m (optional, defaults to 'ypy')     Momentum string to specify the phase space
+================================     =======================================================
 
 Out-of-Range Behavior
 ^^^^^^^^^^^^^^^^^^^^^
