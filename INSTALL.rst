@@ -119,7 +119,7 @@ rsync
 - *Arch Linux:* ``sudo pacman --sync rsync``
 - *Spack:* ``spack install rsync``
 
-alpaka 0.3.3
+alpaka 0.3.4
 """"""""""""
 - `alpaka <https://github.com/ComputationalRadiationPhysics/alpaka>`_ is included in the PIConGPU source code
 
