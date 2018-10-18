@@ -73,18 +73,20 @@ struct Push
         // normalize input SI values to
         const float3_X eField(UnitlessParam::AMPLITUDEx, UnitlessParam::AMPLITUDEy, UnitlessParam::AMPLITUDEz);
 
-        /* Maybe refactor later to ensure a smooth and slow incease */
+        /* ToDo: Refactor to ensure a smooth and slow increase of eField with time
+         * which may help to reduce radiation due to acceleration, if present.
+         */
         if ( currentStep * DELTA_T <= UnitlessParam::ACCELERATION_TIME )
             new_mom += charge * eField * deltaT;
 
         particle[ momentum_ ] = new_mom;
 
         Velocity velocity;
-        const float3_X vel = velocity(new_mom, mass);
+        const float3_X vel = velocity( new_mom, mass );
 
-        for(uint32_t d=0;d<simDim;++d)
+        for( uint32_t d = 0; d < simDim; ++d )
         {
-            pos[d] += (vel[d] * deltaT) / cellSize[d];
+            pos[d] += ( vel[d] * deltaT ) / cellSize[d];
         }
 
     }
@@ -95,5 +97,5 @@ struct Push
         return propList;
     }
 };
-} // namespace particlePusherBoris
+} // namespace particlePusherAcceleration
 } // namespace picongpu
