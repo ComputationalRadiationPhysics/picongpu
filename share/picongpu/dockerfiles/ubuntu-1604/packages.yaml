@@ -11,3 +11,8 @@ packages:
     paths:
       python@2.7.12%gcc@5.4.0 arch=linux-ubuntu16-x86_64: /usr
     buildable: False
+  openmpi:
+    version: [2.1.2]
+  all:
+    providers:
+      mpi: [openmpi]

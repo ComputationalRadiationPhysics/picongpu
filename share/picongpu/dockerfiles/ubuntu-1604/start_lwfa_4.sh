@@ -2,7 +2,7 @@
 #
 
 # output directory from startup arguments
-output_dir=${1:-"/tmp/lwfa1_001/"}
+output_dir=${1:-"/tmp/lwfa4_001/"}
 
 if [ "$output_dir" = "-h" ] || [ "$output_dir" = "--help" ]
 then
@@ -29,7 +29,7 @@ cd /opt/picInputs/lwfa
 tbg \
   -f \
   -s "bash -l" \
-  -c etc/picongpu/1.cfg \
+  -c etc/picongpu/4.cfg \
   -t etc/picongpu/bash/mpirun.tpl \
   $output_dir
 

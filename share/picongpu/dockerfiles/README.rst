@@ -25,7 +25,7 @@ This exposes the ISAAC port to connect via the webclient to.
 .. code:: bash
 
     docker pull ax3l/picongpu
-    docker run --runtime=nvidia -p 2459:2459 -t ax3l/picongpu:0.3.0 lwfa
+    docker run --runtime=nvidia -p 2459:2459 -t ax3l/picongpu:0.4.0 lwfa_live
     # open firefox and isaac client
 
 or
@@ -33,7 +33,15 @@ or
 .. code:: bash
 
     singularity pull shub://ax3l/picongpu
-    singularity exec --nv shub://ax3l/picongpu lwfa
+    singularity exec --nv shub://ax3l/picongpu lwfa_live
+
+.. note::
+
+   PIConGPU is perfectly multi-GPU capable and scales up to thousands of GPUs on the largest GPU clusters available.
+   In order to share data between ranks, the communication layer we use (MPI) requires shared system memory for IPC and pinned (page-locked) system memory.
+   The default docker limits on these resources are very small (few dozen MB) and need to be increased in order to run on multiple GPUs.
+
+   For the ``docker run`` commands above, append: ``--shm-size=1g --ulimit memlock=-1`` to increase the defaults.
 
 Maintainer / Developer
 ----------------------
