@@ -13,21 +13,37 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
 
-# General modules #############################################################
+# Modules #############################################################
 #
-module purge
-module load cmake/3.10.1
-module load git
-module load intelmpi/2017.2.174
+module load modenv/scs5
+module load iimpi/2018a
+module load git/2.18.0-GCCcore-6.4.0
+module load CMake/3.11.4-GCCcore-7.3.0
+module load Boost/1.66.0-intel-2018a
+module load HDF5/1.10.1-intel-2018a
+module load libpng/1.6.34-GCCcore-7.3.0
 
-# Compilers ###################################################################
-### ICC
-module load intel/2017.2.174
-# Boost needs to be build by yourself for now!
-# The boost root path needs to be adjusted.
-export BOOST_ROOT=$HOME/lib/boost-1.62.0
-export LD_LIBRARY_PATH=$BOOST_ROOT:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+# module system does not export cmake prefix path:
+export CMAKE_PREFIX_PATH=$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$EBROOTZLIB:$CMAKE_PREFIX_PATH
+
+# Environment ###################################################################
+#
+
+# compilers are not set correctly by the module system:
+export CC=`which icc`
+export CXX=$CC
+
+# path to own libraries:
+export ownLibs=$HOME
+
+export PNGwriter_DIR=$ownLibs/lib/pngwriter
+export CMAKE_PREFIX_PATH=$PNGwriter_DIR:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGwriter_DIR/lib/
+
+export Splash_DIR=$ownLibs/lib/splash
+export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_DIR/lib/
 
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
