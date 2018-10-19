@@ -3,7 +3,7 @@ Changelog
 
 0.4.0
 -----
-**Date:** 2018-08-TBA
+**Date:** 2018-10-19
 
 CPU Support, Particle Filter, Probes & Merging
 
@@ -23,8 +23,8 @@ User input files have been dramatically simplified. For example, creating the
 PIConGPU binary from input files for GPU or CPU is now as easy as
 `pic-build -b cuda` or `pic-build -b omp2b` respectively.
 
-Thanks to Axel Huebl, René Widera, Sebastian Starke, Marco Garten,
-Richard Pausch, Alexander Matthes, Sergei Bastrakov, Heiko Burau,
+Thanks to Axel Huebl, René Widera, Benjamin Worpitz, Sebastian Starke,
+Marco Garten, Richard Pausch, Alexander Matthes, Sergei Bastrakov, Heiko Burau,
 Alexander Debus, Ilja Göthel, Sophie Rudat, Jeffrey Kelling, Klaus Steiniger,
 and Sebastian Hahn for contributing to this release!
 
@@ -135,7 +135,7 @@ and Sebastian Hahn for contributing to this release!
    - add a workaround for MSVC bug with capturing `constexpr` #2522
    - compile time string #2532
    - `Vector`: add method `remove<...>()` #2602
-   - add support for more cpu alpaka accelerators #2603
+   - add support for more cpu alpaka accelerators #2603 #2701
    - Vector `sumOfComponents` #2609
    - `math::CT::max` improvement #2612
  - plugins:
@@ -155,10 +155,14 @@ and Sebastian Hahn for contributing to this release!
    - Python:
      - Energy Histogram Reader #2209 #2658
      - Phase Space Reader #2334 #2634 #2679
-     - Move SliceField Module #2354
+     - Move SliceField Module & add Python3 support #2354 #2718
      - Multi-Iteration Energy Histogram #2508
-     - MPL Visualization modules #2484
-     - migrated documentation to Sphinx manual #2172
+     - MPL Visualization modules #2484 #2728
+     - migrated documentation to Sphinx manual #2172 #2726 #2738
+     - shorter python imports for postprocessing tools #2727
+     - fix energy histogram deprecation warning #2729
+     - `data`: base class for readers #2730
+     - `param_parser` for JSON parameter files #2719
  - tools:
    - Tool: New Version #2080
    - Changelog & Left-Overs from 0.3.0 #2120
@@ -215,6 +219,8 @@ and Sebastian Hahn for contributing to this release!
    - `pmacc::math::Size_t<0>::create()` in Visual Studio #2513
    - fix V100 deadlock #2600
    - fix missing include #2608
+   - fix gameOfLife #2700
+   - Boost template aliases: fix older CUDA workaround #2706
  - plugins:
    - energy fields: fix reduce #2112
    - background fields: fix restart `GUARD` #2139
@@ -251,12 +257,15 @@ and Sebastian Hahn for contributing to this release!
  - new example: Foil (LCT) TNSA #2008
  - adjust LWFA setup for 8 GPUs #2480
  - `picongpu --version` #2147
- - add Internal Alpaka & cupla #2179 #2345
- - add alpaka dependency #2205 #2328 #2346 #2590 #2501 #2626 #2648 #2684
+ - add internal Alpaka & cupla #2179 #2345
+ - add alpaka dependency #2205 #2328 #2346 #2590 #2501 #2626 #2648 #2684 #2717
  - Update mallocMC to `2.3.0crp` #2350 #2629
- - Update cuda_memtest #2356
- - Examples: remove unused loaders #2247
- - examples: Update `species.param` #2474
+ - cuda_memtest:
+   - update #2356 #2724
+   - usage on hypnos #2722
+ - Examples:
+   - remove unused loaders #2247
+   - update `species.param` #2474
  - Bunch: no `precision.param` #2329
  - Travis:
    - stages #2341
@@ -385,6 +394,7 @@ and Sebastian Hahn for contributing to this release!
      - EnergyHistogram: Remove Detector Filter #2465
      - ISAAC: unify the usage of period #2455
      - add filter support to phase space plugin #2425
+     - Resource Plugin: `fix boost::core::swap` #2721
    - tools:
      - Python: Fix Scripts PEP8 #2028
      - Prepare for Python Modules #2058
@@ -398,7 +408,9 @@ and Sebastian Hahn for contributing to this release!
      - Group parameters in LWFA example #2417
      - Python Tools (PS, Histo): Filter Aware #2431
      - Clearer conversion functions for Parameter values between UI scale and internal scale #2432
-     - tbg: Add content of -o arg to env #2499
+     - tbg:
+       - add content of -o arg to env #2499
+       - better handling of missing egetopt error message #2712
    - Format speciesAttributes.param #2087
    - Reduce # photons in Bremsstrahlung example #1979
    - TBG: .tpl no `_profile` suffix #2244
@@ -406,6 +418,7 @@ and Sebastian Hahn for contributing to this release!
    - Examples: C++11 Using for Typedef #2314
    - LWFA Example: Restore a0=8.0 #2324
    - add support for CUDA9 `__shfl_snyc` #2333
+   - add support for CUDA10 #2732
    - Update cuda_memtest: no cuBLAS #2401
    - Examples: Init of Particles per Cell #2412
    - Travis: Image Updates #2435
@@ -420,14 +433,16 @@ and Sebastian Hahn for contributing to this release!
    - Refactor Laser Profiles to Functors #2587
    - Params: float_X Constants to Literals #2625
  - documentation:
+   - new subtitle #2734
    - Lockstep Programming Model #2026 #2064
    - `IdxConfig` append documentation #2022
    - `multiMask`: Refactor Documentation #2119
    - `CtxArray` #2390
-   - Update openPMD Post-Processing #2322
+   - Update openPMD Post-Processing #2322 #2733
    - Checkpoints Backends #2387
    - Plugins:
-     - HDF5: fix links & lists #2313
+     - HDF5: fix links, lists & MPI hints #2313 #2711
+     - typo in libSplash install #2735
      - External dependencies #2175
      - Multi & CPU #2423
      - Update PS & Energy Histo #2427
@@ -468,13 +483,12 @@ and Sebastian Hahn for contributing to this release!
    - Doxygen: How to Build HTML #2134
    - Badge: Docs #2144
    - CMake 3.7.0 #2181
-   - Boost 1.62.0 #2182
+   - Boost (1.62.0-) 1.65.1 - 1.68.0 #2182 #2707 #2713
    - Bash Subshells: `cmd` to $(cmd) #2187
    - Boost Transient Deps: date_time, chrono, atomic #2195
    - Install Docs: CUDA is optional #2199
    - Fix broken links #2200
    - PIConGPU Logo: More Platforms #2190
-   - Profiles for Titan & Taurus #2201
    - Repo Structure #2218
    - Document KNL GCC -march #2252
    - Streamline Install #2256
@@ -484,13 +498,16 @@ and Sebastian Hahn for contributing to this release!
    - Added an example profile and tpl file for taurus' KNL #2270
    - Profile: Draco (MPCDF) #2308
    - $PIC_EXAMPLES #2327
-   - CUDA 8.0.61 on Taurus #2337
-   - Link KNL Profile #2339
+   - Profiles for Titan & Taurus #2201
+   - Taurus:
+     - CUDA 8.0.61 #2337
+     - Link KNL Profile #2339
+     - SCS5 Update #2667
    - Move ParaView Profile #2353
    - Spack: Own GitHub Org #2358
    - LWFA Example: Improve Ranges #2360
    - fix spelling mistake in checkpoint #2372
-   - Spack Install: Clarify #2373
+   - Spack Install: Clarify #2373 #2720
    - Probe Pusher #2379
    - CI/Deps: CUDA 8.0 #2420
    - Piz Daint (CSCS):
@@ -503,9 +520,10 @@ and Sebastian Hahn for contributing to this release!
    - Hypnos (HZDR): New Modules #2521 #2661
    - Hypnos: PNGwriter 0.6.0 #2166
    - Hypnos & Taurus: Profile Examples Per Queue #2249
+   - Hemera: tbg templates #2723
    - Community Map #2445
    - License Header: Update 2018 #2448
-   - Docker: Nvidia-Docker 2.0 #2462
+   - Docker: Nvidia-Docker 2.0 #2462 #2557
    - Hide Double ToC #2463
    - Param Docs: Title Only #2466
    - New Developers #2487
