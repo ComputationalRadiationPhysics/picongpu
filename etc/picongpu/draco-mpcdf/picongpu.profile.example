@@ -3,9 +3,9 @@ export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURC
 
 # User Information ######################################### (edit those lines)
 #   - automatically add your name and contact to output file meta data
-#   - send me a mail on batch system jobs: BEGIN, END, FAIL, REQUEUE, ALL,
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
 #     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
-export MY_MAILNOTIFY="ALL"
+export MY_MAILNOTIFY="NONE"
 export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 

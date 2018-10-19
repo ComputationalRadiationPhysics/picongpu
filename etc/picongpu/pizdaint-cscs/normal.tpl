@@ -30,8 +30,6 @@
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --ntasks-per-core=1
 #SBATCH --gres=gpu:!TBG_gpusPerNode
-# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
-# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --constraint=gpu
@@ -44,7 +42,7 @@
 .TBG_queue="normal"
 
 # settings that can be controlled by environment variables before submit
-.TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
+.TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"${SCRATCH}/picongpu.profile"}
