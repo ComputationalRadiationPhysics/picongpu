@@ -125,11 +125,6 @@ Additionally, you need to make the ``rsync`` command available as written below.
 .. literalinclude:: profiles/lawrencium-lbnl/picongpu.profile.example
    :language: bash
 
-Judge (FZJ)
------------
-
-(example missing)
-
 Draco (MPCDF)
 -------------
 
