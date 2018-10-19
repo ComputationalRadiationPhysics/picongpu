@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: ax3l/picongpu:0.3.0
+
+
+%labels
+Maintainer Axel Huebl <a.huebl@hzdr.de>
+Version 0.3.0
+
+
+%runscript
+exec /bin/bash -l

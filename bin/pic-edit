@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+#
+# Copyright 2017-2018 Axel Huebl
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+this_dir=$(cd $(dirname $0) && pwd)
+known_editors=( 'nano' 'vim' 'vi' 'emacs' )
+file_prefix="include/picongpu/param"
+
+# PIConGPU prefix path
+picongpu_prefix=$(cd $this_dir/.. && pwd)
+
+find_inputs()
+{
+    if [ -d "$file_prefix" ]
+    then
+        files_local=$(cd $file_prefix && ls *.param 2>/dev/null)
+    fi
+    if [ -d "$picongpu_prefix/$file_prefix" ]
+    then
+        files_defaults=$(cd $picongpu_prefix/$file_prefix && ls *.param 2>/dev/null)
+    fi
+    # only basename of the files
+    echo "${files_local//\.param/} ${files_defaults//\.param/}" | sort -u
+}
+
+find_editor()
+{
+    if [ ! -z "$EDITOR" ]
+    then
+        echo "$EDITOR"
+        return 0
+    fi
+    # fallback to system default
+    if which editor >/dev/null
+    then
+        echo "$(readlink -f $(which editor))"
+        return 0
+    fi
+    # fallback to know editors if they exist
+    for ke in "${known_editors[@]}"
+    do
+        if ! which $ke >/dev/null
+        then
+            echo "$(which $ke)"
+            return 0
+        fi
+    done
+    # none found
+    return 3
+}
+
+help()
+{
+    echo "Edit compile-time options for a PIConGPU input set"
+    echo ""
+    echo 'Opens .param files in an input set with the default "EDITOR".'
+    echo "If a .param file is not yet part of the input set but exists in the"
+    echo "defaults, it will be transparently added to the input set."
+    echo ""
+    echo "You must run this command inside an input directory."
+    echo ""
+    test_editor="$(find_editor)"
+    if [ -z "$test_editor" ]
+    then
+        test_editor="NOT FOUND"
+    fi
+    echo "The currently selected editor is: $test_editor"
+    echo 'You can change it via the "EDITOR" environment variable.'
+    echo ""
+    echo "usage: pic-edit <input>"
+    echo ""
+    echo "Available <input>s:"
+    inputs=($(find_inputs))
+    echo "${inputs[@]}"
+}
+
+# save cmd line args (names of inputs)
+cmd_line_args=("$@")
+
+if [ $# -eq 0 ]
+then
+    echo -e "$(help)"
+    exit 2
+fi
+
+# show help
+while [[ $# -gt 0 ]] ; do
+    case "$1" in
+        -h|--help)
+            echo -e "$(help)"
+            exit 0
+            ;;
+        *)
+            # just ignore other options
+            ;;
+    esac
+    shift # next token
+done
+
+# check if we are in an input directory
+if [ ! -d "include/picongpu/param" ]
+then
+    echo "ERROR: Could not find directory" >&2
+    echo "       'include/picongpu/param'!" >&2
+    echo "       Are you in a PIConGPU input directory?" >&2
+    exit 1
+fi
+
+# legacy check: we removed simulation_defines/ after PIConGPU 0.3.X
+if [ -d "include/picongpu/simulation_defines" ]; then
+    echo "ERROR: simulation_defines/ directory found!" >&2
+    echo "       Please update your input directory to the new structure!" >&2
+    exit 5
+fi
+
+for input in "${cmd_line_args[@]}"
+do
+    # check if the file exists locally (even if it does not exist in defaults)
+    file_name="$input.param"
+    file_path="$file_prefix/$file_name"
+    file_paths="$file_path $file_paths"
+    if [ ! -f "$file_path" ]
+    then
+        # if the file is missing, but does exist in the defaults, add it from defaults
+        defaults_path="$picongpu_prefix/$file_prefix/$file_name"
+        if [ -f "$defaults_path" ]
+        then
+            cp $defaults_path $file_path
+        else
+            echo "ERROR: input '$input' does not exist!" >&2
+            echo "Available inputs:" >&2
+            inputs=($(find_inputs))
+            echo "${inputs[@]}"
+            exit 4
+        fi
+    fi
+done
+
+# get editor
+use_editor="$(find_editor)"
+if [ $? -ne 0 ]
+then
+    echo 'ERROR: Could not find a working text editor!' >&2
+    echo '       You might want to set the "EDITOR" environment variable.' >&2
+    exit 3
+fi
+
+# open the files for editing
+$use_editor $file_paths
+editor_exit=$?
+
+# remove new files that are unchanged
+# TODO: grep -Fxvf file1 file2
+
+exit $editor_exit

@@ -1,5 +1,4 @@
-#
-# Copyright 2013-2017 Felix Schmitt, Axel Huebl, Rene Widera
+# Copyright 2013-2018 Felix Schmitt, Axel Huebl, Rene Widera
 #
 # This file is part of splash2txt.
 #
@@ -23,7 +22,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.10.0)
 
 
 ################################################################################
@@ -100,17 +99,10 @@ endif(MPI_CXX_FOUND)
 ################################################################################
 
 # find libSplash installation
-# prefer static libraries over shared ones (but do not force them)
-set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.6.0 EXACT REQUIRED COMPONENTS PARALLEL)
+find_package(Splash 1.7.0 REQUIRED CONFIG COMPONENTS PARALLEL)
 
-if(Splash_FOUND)
-    include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
-    list(APPEND Splash_DEFINITIONS "-DENABLE_HDF5=1")
-    add_definitions(${Splash_DEFINITIONS})
-    message(STATUS "libSplash compiler definitions: ${Splash_DEFINITIONS}")
-    set(LIBS ${LIBS} ${Splash_LIBRARIES})
-endif(Splash_FOUND)
+add_definitions(-DENABLE_HDF5=1)
+message(STATUS "Found Splash: ${Splash_DIR}")
 
 
 ################################################################################
@@ -119,7 +111,7 @@ endif(Splash_FOUND)
 
 # find adios installation
 #   set(ADIOS_USE_STATIC_LIBS ON) # force static linking
-find_package(ADIOS 1.10.0)
+find_package(ADIOS 1.13.1)
 
 if(ADIOS_FOUND)
     add_definitions(-DENABLE_ADIOS=1)
@@ -133,7 +125,7 @@ endif(ADIOS_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options regex)
+find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex)
 if(TARGET Boost::program_options)
     set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex)
 else()
@@ -148,9 +140,7 @@ endif()
 
 set(SRCFILES "splash2txt.cpp")
 
-if(Splash_FOUND)
-    list(APPEND SRCFILES "tools_splash_parallel.cpp")
-endif(Splash_FOUND)
+list(APPEND SRCFILES "tools_splash_parallel.cpp")
 if(ADIOS_FOUND)
     list(APPEND SRCFILES "tools_adios_parallel.cpp")
 endif(ADIOS_FOUND)

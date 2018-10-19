@@ -1,0 +1,48 @@
+/* Copyright 2013-2018 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+namespace picongpu
+{
+    //! reduced Planck constant
+    constexpr float_X HBAR = (float_X) (SI::HBAR_SI / UNIT_ENERGY / UNIT_TIME);
+
+    //! Charge of electron
+    constexpr float_X ELECTRON_CHARGE = (float_X) (SI::ELECTRON_CHARGE_SI / UNIT_CHARGE);
+    //! Mass of electron
+    constexpr float_X ELECTRON_MASS = (float_X) (SI::ELECTRON_MASS_SI / UNIT_MASS);
+
+    //! magnetic constexprant must be double 3.92907e-39
+    constexpr float_X MUE0 = (float_X) (SI::MUE0_SI / UNIT_LENGTH / UNIT_MASS * UNIT_CHARGE * UNIT_CHARGE);
+
+    //! electric constexprant must be double 2.54513e+38
+    constexpr float_X EPS0 = (float_X) (1. / MUE0 / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+
+    // = 1/c^2
+    constexpr float_X MUE0_EPS0 = float_X(1. / SPEED_OF_LIGHT / SPEED_OF_LIGHT);
+
+    /* Atomic unit of electric field in PIC Efield units */
+    constexpr float_X ATOMIC_UNIT_EFIELD = float_X(SI::ATOMIC_UNIT_EFIELD / UNIT_EFIELD);
+
+    /* Atomic unit of time in PIC units */
+    constexpr float_X ATOMIC_UNIT_TIME = float_X(SI::ATOMIC_UNIT_TIME / UNIT_TIME);
+
+} //namespace picongpu

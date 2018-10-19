@@ -1,15 +1,18 @@
 PROJECT_NAME      = "PIConGPU"
 XML_OUTPUT        = xml
-INPUT             = ../src
+INPUT             = ../include
+INPUT             += ../README.md
 GENERATE_LATEX    = NO
 GENERATE_MAN      = NO
 GENERATE_RTF      = NO
 CASE_SENSE_NAMES  = NO
 GENERATE_HTML     = NO
 GENERATE_XML      = YES
+XML_PROGRAMLISTING = NO
 RECURSIVE         = YES
 #QUIET             = YES
 JAVADOC_AUTOBRIEF = YES
+USE_MDFILE_AS_MAINPAGE = README.md
 
 # ideally, you want to warn on missing doc coverage!
 WARN_IF_UNDOCUMENTED = NO

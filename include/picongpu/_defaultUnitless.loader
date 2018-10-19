@@ -1,0 +1,48 @@
+/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                      Marco Garten
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * only PIConGPU programmers should change this file
+ *
+ * for examples use extensionUnitless.loader
+ */
+#pragma once
+
+#include "picongpu/unitless/physicalConstants.unitless"
+#include "picongpu/unitless/speciesConstants.unitless"
+#include "picongpu/unitless/grid.unitless"
+#include "picongpu/unitless/density.unitless"
+#include "picongpu/unitless/particle.unitless"
+#include "picongpu/unitless/pusher.unitless"
+#include "picongpu/unitless/ionizer.unitless"
+#include "picongpu/unitless/speciesAttributes.unitless"
+#include "picongpu/unitless/speciesDefinition.unitless"
+#include "picongpu/unitless/speciesInitialization.unitless"
+#include "picongpu/unitless/fieldBackground.unitless"
+#include "picongpu/unitless/synchrotronPhotons.unitless"
+#if( PMACC_CUDA_ENABLED == 1 )
+#    include "picongpu/unitless/bremsstrahlung.unitless"
+#endif
+
+#include "picongpu/unitless/fileOutput.unitless"
+#include "picongpu/unitless/checkpoints.unitless"
+#include "picongpu/unitless/png.unitless"
+#include "picongpu/unitless/radiation.unitless"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013-2017 Richard Pausch
+# Copyright 2013-2018 Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -41,9 +41,10 @@ is used.
 '''
 
 import matplotlib
-import sys, os, re
+import os
+import re
 import warnings
-from numpy import *
+import numpy as np
 from matplotlib.colors import LogNorm
 
 tested_matplotlib_version = ['1.2.0', '1.3.1', '2.0.0rc1']
@@ -335,7 +336,7 @@ my_cmap = colors.LinearSegmentedColormap('my_colormap',cdict,256)
 
 for myfile in args.path2Data:
     # load ascii data files
-    data = loadtxt(myfile)
+    data = np.loadtxt(myfile)
 
     # select only theta range of interest
     if(args.split[0] != -1 and args.split[1] != -1):
@@ -343,10 +344,10 @@ for myfile in args.path2Data:
 
     # find indices for zoomed plot
     if(args.logOmega):
-        omega_max_index = int((log(omega_max_draw) - log(omega_min_data)) /
-                              (log(omega_max_data) - log(omega_min_data)) * data.shape[1])
-        omega_min_index = int((log(omega_min_draw) - log(omega_min_data)) /
-                              (log(omega_max_data) - log(omega_min_data)) * data.shape[1])
+        omega_max_index = int((np.log(omega_max_draw) - np.log(omega_min_data)) /
+                              (np.log(omega_max_data) - np.log(omega_min_data)) * data.shape[1])
+        omega_min_index = int((np.log(omega_min_draw) - np.log(omega_min_data)) /
+                              (np.log(omega_max_data) - np.log(omega_min_data)) * data.shape[1])
         theta_max_index = int((theta_max_draw - theta_min_data)/(theta_max_data -
                                              theta_min_data) * data.shape[0])
         theta_min_index = int((theta_min_draw - theta_min_data)/(theta_max_data -
@@ -367,7 +368,7 @@ for myfile in args.path2Data:
 
     # reduction to maximum value
     if(args.dataMax[0] != -1):
-        dataZoomed = minimum(args.dataMax[0], dataZoomed)
+        dataZoomed = np.minimum(args.dataMax[0], dataZoomed)
 
     #smoothing data:
     if(args.smooth[0] != -1):
@@ -392,7 +393,7 @@ for myfile in args.path2Data:
     plt.xticks(size=tickfontsize)
     plt.ylabel(args.labelTheta, fontsize=labelfontsize)
     plt.yticks(size=tickfontsize)
-    SP.set_yticks(linspace(theta_min_draw, theta_max_draw, 5))
+    SP.set_yticks(np.linspace(theta_min_draw, theta_max_draw, 5))
 
     #find max for colorbar
     if not args.colorbarMax:
@@ -402,20 +403,20 @@ for myfile in args.path2Data:
         colorbarMax = args.colorbarMax
 
     # set omega-(x)-scale to log if needed
-    shape = shape(dataZoomed)
+    shape = np.shape(dataZoomed)
     if(args.logOmega):
         SP.set_xscale('log')
-        x = logspace(log10(omega_min_draw),
-                     log10(omega_max_draw),
-                     shape[1])
+        x = np.logspace(np.log10(omega_min_draw),
+                        np.log10(omega_max_draw),
+                        shape[1])
     else:
-        x = linspace(omega_min_draw,
-                     omega_max_draw,
-                     shape[1])
+        x = np.linspace(omega_min_draw,
+                        omega_max_draw,
+                        shape[1])
 
-    y = linspace(theta_min_draw,
-                 theta_max_draw,
-                 shape[0])
+    y = np.linspace(theta_min_draw,
+                    theta_max_draw,
+                    shape[0])
 
     # plot data: (this is the only command that plots data)
     cax =  SP.pcolormesh(x, y, dataZoomed,

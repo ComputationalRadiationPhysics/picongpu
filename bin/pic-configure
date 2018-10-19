@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+#
+# Copyright 2013-2018 Axel Huebl, Rene Widera
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+this_dir=$(cd $(dirname $0) && pwd)
+
+# PIConGPU prefix path
+picongpu_prefix=$(cd $this_dir/.. && pwd)
+
+help()
+{
+    echo "Configure PIConGPU with CMake"
+    echo ""
+    echo "Generates a call to CMake and provides short-hand access to selected"
+    echo "PIConGPU CMake options."
+    echo "Advanced users can always run 'ccmake .' after this call for further"
+    echo "compilation options."
+    echo ""
+    echo "usage: pic-configure [OPTIONS] <inputDirectory>"
+    echo ""
+    echo "-i | --install       - path were picongpu shall be installed"
+    echo "                       (default is <inputDirectory>)"
+    echo "-b | --backend       - set compute backend and optionally the architecture"
+    echo "                       syntax: backend[:architecture]"
+    echo "                       supported backends: cuda, omp2b, serial, tbb, threads"
+    echo "                       (e.g.: \"cuda:20;35;37;52;60\" or \"omp2b:native\" or \"omp2b\")"
+    echo "                       default: \"cuda\" if not set via environment variable PIC_BACKEND"
+    echo "                       note: architecture names are compiler dependent"
+    echo "-c | --cmake         - overwrite options for cmake"
+    echo "                       (e.g.: \"-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug\")"
+    echo "-t <presetNumber>    - configure this preset from cmakeFlags"
+    echo "-h | --help          - show this help message"
+}
+
+get_backend_flags()
+{
+    backend_cfg=(${1//:/ })
+    num_options="${#backend_cfg[@]}"
+    if [ $num_options -gt 2 ] ; then
+        echo "-b|--backend must be contain 'backend:arch' or 'backend'" >&2
+        exit 1
+    fi
+    if [ "${backend_cfg[0]}" == "cuda" ] ; then
+        result+=" -DALPAKA_ACC_GPU_CUDA_ENABLE=ON -DALPAKA_ACC_GPU_CUDA_ONLY_MODE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DALPAKA_CUDA_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "omp2b" ] ; then
+        result+=" -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "serial" ] ; then
+        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "tbb" ] ; then
+        result+=" -DALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    elif [ "${backend_cfg[0]}" == "threads" ] ; then
+        result+=" -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON"
+        if [ $num_options -eq 2 ] ; then
+            result+=" -DPMACC_CPU_ARCH=\"${backend_cfg[1]}\""
+        fi
+    else
+        echo "unsupported backend given '$1'" >&2
+        exit 1
+    fi
+
+    echo "$result"
+    exit 0
+}
+
+# options may be followed by one colon to indicate they have a required argument
+OPTS=`getopt -o i:b:c:p:t:h -l install:,backend:,cmake:,params:,help -- "$@"`
+if [ $? != 0 ] ; then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
+fi
+
+# configure a specific preset in the cmakeFlags file
+# note: can be overwritten with a command line flag
+cmakeFlagsNr=0
+
+# set a default backend (and architecture) if supplied via environment var
+# note: can be overwritten with a command line flag
+pic_backend=${PIC_BACKEND:-"cuda"}
+if [ -n "$pic_backend" ]
+then
+    alpaka_backend=$(get_backend_flags $pic_backend)
+fi
+
+eval set -- "$OPTS"
+
+while true ; do
+    case "$1" in
+        -b|--backend)
+            alpaka_backend=$(get_backend_flags $2)
+            if [ $? -ne 0 ] ; then
+                exit 1
+            fi
+            shift
+            ;;
+        -i|--install)
+            install_path="-DCMAKE_INSTALL_PREFIX=$2"
+            shift
+            ;;
+        -h|--help)
+            echo -e "$(help)"
+            exit 0
+            ;;
+        -c|--cmake)
+            cmake_options="$2"
+            shift
+            ;;
+        -t)
+            cmakeFlagsNr="$2"
+            shift
+            ;;
+        --) shift; break;;
+    esac
+    shift
+done
+
+extension_param="$*"
+
+if [ ! -d "$extension_param" ] ; then
+    echo "Path \"$extension_param\" does not exist." >&2
+    exit 1
+fi
+# check for cmakeFlags file (interprete with sh)
+if [ -f "$extension_param/cmakeFlags" ] ; then
+    cmake_flags=$($extension_param/cmakeFlags $cmakeFlagsNr)
+    if [ $? -ne 0 ] ; then
+        echo "ERROR: Executing '$extension_param/cmakeFlags' failed!" >&2
+        echo "       Is the file executable? (chmod u+x cmakeFlags)" >&2
+        exit 2
+    fi
+fi
+
+# legacy check: we removed simulation_defines/ after PIConGPU 0.3.X
+if [ -d "$extension_param/include/picongpu/simulation_defines" ]; then
+    echo "ERROR: simulation_defines/ directory found!" >&2
+    echo "       Please update your input directory to the new structure!" >&2
+    exit 3
+fi
+
+# set default install path if no path is set by parameter
+if [ -z "$install_path" ] ; then
+    install_path="-DCMAKE_INSTALL_PREFIX=$extension_param"
+fi
+cmake_extension_param="-DPIC_EXTENSION_PATH=$extension_param"
+
+# warn on missing backend selection
+if [ -z "$alpaka_backend" ] ; then
+    echo "Warning: no compute backend set! " >&2
+    echo "(Use -b|--backend or export PIC_BACKEND)" >&2
+fi
+
+own_command="cmake $cmake_flags $install_path $cmake_extension_param $cmake_options $alpaka_backend $picongpu_prefix/include/picongpu"
+echo -e "\033[32mcmake command:\033[0m $own_command"
+eval $own_command

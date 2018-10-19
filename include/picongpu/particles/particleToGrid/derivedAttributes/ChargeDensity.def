@@ -1,0 +1,131 @@
+/* Copyright 2013-2018 Axel Huebl, Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+
+#include <boost/mpl/and.hpp>
+
+#include <vector>
+
+
+namespace picongpu
+{
+namespace particles
+{
+namespace particleToGrid
+{
+namespace derivedAttributes
+{
+    /** Charge Density Operation for Particle to Grid Projections
+     *
+     * Derives a scalar charge density field from a particle species at runtime.
+     * Each value is mapped per cell according to the species' spatial shape.
+     *
+     * @note for species that do not change their charge state, this is identical
+     *       to the density times the (constant) particles' charge,
+     *       @see CreateDensityOperation
+     */
+    struct ChargeDensity
+    {
+
+        HDINLINE float1_64
+        getUnit() const;
+
+        HINLINE std::vector<float_64>
+        getUnitDimension() const
+        {
+           /* L, M, T, I, theta, N, J
+            *
+            * ChargeDensity is in Coulomb / cubic meter: Q / m^3 = A * s / m^3
+            *   -> L^-3 * T * I
+            */
+           std::vector<float_64> unitDimension( 7, 0.0 );
+           unitDimension.at(SIBaseUnits::length) = -3.0;
+           unitDimension.at(SIBaseUnits::time)   =  1.0;
+           unitDimension.at(SIBaseUnits::electricCurrent) =  1.0;
+
+           return unitDimension;
+        }
+
+        HINLINE static
+        std::string
+        getName()
+        {
+            return "chargeDensity";
+        }
+
+        /** Calculate a new attribute  per particle
+         *
+         * Returns a new (on-the-fly calculated) attribute of a particle
+         * that can then be mapped to the cells the particle contributes to.
+         * This method is called on a per-thread basis (each thread of a block
+         * handles a particle of a frame).
+         *
+         * \tparam T_Particle particle in the frame
+         * \param particle particle in the frame
+         *
+         * \return new attribute for the particle (type \see T_AttributeType)
+         */
+        template< class T_Particle >
+        DINLINE float_X
+        operator()( T_Particle& particle ) const;
+    };
+} // namespace derivedAttributes
+} // namespace particleToGrid
+
+namespace traits
+{
+    template< typename T_Species >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        particleToGrid::derivedAttributes::ChargeDensity
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting,
+            position<>
+        >;
+
+        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+
+        using SpeciesHasFlags = typename pmacc::traits::HasFlag<
+            FrameType,
+            chargeRatio<>
+        >::type;
+
+        using type = typename bmpl::and_<
+            SpeciesHasIdentifiers,
+            SpeciesHasFlags
+        >;
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu

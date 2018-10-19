@@ -1,0 +1,47 @@
+/* Copyright 2015-2018 Heiko Burau
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <pmacc/algorithms/math/defines/pi.hpp>
+
+
+namespace picongpu
+{
+namespace particles
+{
+namespace synchrotronPhotons
+{
+
+/** Sample point stepping */
+constexpr float_64 SYNC_FUNCS_STEP_WIDTH =
+    SYNC_FUNCS_CUTOFF / static_cast<float_64>(SYNC_FUNCS_NUM_SAMPLES - 1u);
+
+/** In the definition of the first synchrotron function the bessel function is integrated
+ * up to infinity but in fact it is sufficient to integrate up to this constant. */
+constexpr float_64 SYNC_FUNCS_F1_INTEGRAL_BOUND = 50.0;
+
+constexpr float_X SOFT_PHOTONS_CUTOFF_MOM = static_cast<float_X>(
+    HBAR * pmacc::algorithms::math::Pi<float_X>::doubleValue / SOFT_PHOTONS_CUTOFF_RATIO / DELTA_T / SPEED_OF_LIGHT);
+
+} // namespace synchrotronPhotons
+} // namespace particles
+} // namespace picongpu
+
+#include "picongpu/particles/synchrotronPhotons/PhotonCreator.hpp"

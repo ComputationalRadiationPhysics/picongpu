@@ -1,0 +1,87 @@
+/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/Particles.hpp"
+
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+#include <pmacc/compileTime/String.hpp>
+
+
+namespace picongpu
+{
+
+/*########################### define particle attributes #####################*/
+
+/** describe attributes of a particle*/
+using DefaultParticleAttributes = MakeSeq_t<
+    position<position_pic>,
+    momentum,
+    weighting
+>;
+
+/*########################### end particle attributes ########################*/
+
+/*########################### define species #################################*/
+
+/* enable pusher by default if `PARAM_ENABLEPUSHER` is not defined in `cmakeFlags` */
+#ifndef PARAM_ENABLEPUSHER
+#   define PARAM_ENABLEPUSHER 1
+#endif
+
+/*--------------------------- electrons --------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier(float_X, MassRatioElectrons, 1.0);
+value_identifier(float_X, ChargeRatioElectrons, 1.0);
+
+using ParticleFlagsElectrons = bmpl::vector<
+/* enable the pusher only if PARAM_ENABLEPUSHER is defined as one `1` */
+#if( PARAM_ENABLEPUSHER == 1 )
+    particlePusher<UsedParticlePusher>,
+#endif
+    shape<UsedParticleShape>,
+    interpolation<UsedField2Particle>,
+    current<UsedParticleCurrentSolver>,
+    massRatio<MassRatioElectrons>,
+    chargeRatio<ChargeRatioElectrons>
+>;
+
+/* define species electrons */
+using PIC_Electrons = Particles<
+    PMACC_CSTRING( "e" ),
+    ParticleFlagsElectrons,
+    DefaultParticleAttributes
+>;
+
+/*########################### end species ####################################*/
+
+using VectorAllSpecies = MakeSeq_t<
+    PIC_Electrons
+>;
+
+
+} //namespace picongpu

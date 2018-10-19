@@ -1,0 +1,184 @@
+/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz, Heiko Burau
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/Particles.hpp"
+
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+#include <pmacc/compileTime/String.hpp>
+
+
+namespace picongpu
+{
+
+/*########################### define particle attributes #####################*/
+
+/** describe attributes of a particle*/
+using DefaultParticleAttributes = MakeSeq_t<
+    position< position_pic >,
+    momentum,
+    weighting,
+    particleId
+>;
+
+/** The default example keeps particles in place and does not create a current
+ */
+#ifndef PARAM_ENABLE_PUSHER
+#    define PARAM_ENABLE_PUSHER 0
+#endif
+#ifndef PARAM_ENABLE_CURRENT
+#    define PARAM_ENABLE_CURRENT 0
+#endif
+
+/*########################### end particle attributes ########################*/
+
+/*########################### define species #################################*/
+
+/*--------------------------- photons -------------------------------------------*/
+
+value_identifier( float_X, MassRatioPhotons, 0.0 );
+value_identifier( float_X, ChargeRatioPhotons, 0.0 );
+
+using ParticleFlagsPhotons = bmpl::vector<
+#if( PARAM_ENABLE_PUSHER == 1 )
+    particlePusher< particles::pusher::Photon >,
+#endif
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    massRatio< MassRatioPhotons >,
+    chargeRatio< ChargeRatioPhotons >
+>;
+
+/* define species photons */
+using Photons = Particles<
+    PMACC_CSTRING( "ph" ),
+    ParticleFlagsPhotons,
+    DefaultParticleAttributes
+>;
+
+/*--------------------------- electrons --------------------------------------*/
+/* thermal bulk electrons: 10, 100, 1000 eV
+ *   and
+ * non-thermal "hot"/prompt electrons: 200 keV
+ */
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier( float_X, MassRatioElectrons, 1.0 );
+value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+
+/* ratio relative to BASE_DENSITY
+ * thermal "bulk": 1x ionized n_Cu
+ * non-thermal "hot"/prompt: 0.1% ne_bulk = 0.001 * n_Cu ~ 1e20 / cm3
+ */
+value_identifier( float_X, DensityRatioBulkElectrons, 0.999 );
+value_identifier( float_X, DensityRatioPromptElectrons, 0.001 );
+
+using ParticleFlagsElectrons = bmpl::vector<
+#if( PARAM_ENABLE_PUSHER == 1 )
+    particlePusher< UsedParticlePusher >,
+#endif
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+#if( PARAM_ENABLE_CURRENT == 1 )
+    current< UsedParticleCurrentSolver >,
+#endif
+    massRatio< MassRatioElectrons >,
+    chargeRatio< ChargeRatioElectrons >
+>;
+
+/* thermal bulk electrons */
+using BulkElectrons = Particles<
+    PMACC_CSTRING( "eth" ),
+    MakeSeq_t<
+        ParticleFlagsElectrons,
+        densityRatio< DensityRatioBulkElectrons >
+    >,
+    DefaultParticleAttributes
+>;
+
+/* non-thermal "hot"/prompt electrons */
+using PromptElectrons = Particles<
+    PMACC_CSTRING( "ehot" ),
+    MakeSeq_t<
+        ParticleFlagsElectrons,
+        densityRatio< DensityRatioPromptElectrons >
+    >,
+    DefaultParticleAttributes
+>;
+
+/*--------------------------- ions -------------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier( float_X, MassRatioCopper, 115840. );
+value_identifier( float_X, ChargeRatioCopper, -29.0 );
+
+/* ratio relative to BASE_DENSITY */
+value_identifier( float_X, DensityRatioCopper, 1.0 );
+
+using ParticleFlagsCopper = bmpl::vector<
+#if( PARAM_ENABLE_PUSHER == 1 )
+    particlePusher< UsedParticlePusher >,
+#endif
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+#if( PARAM_ENABLE_CURRENT == 1 )
+    current< UsedParticleCurrentSolver >,
+#endif
+    massRatio< MassRatioCopper >,
+    chargeRatio< ChargeRatioCopper >,
+    densityRatio< DensityRatioCopper >,
+    atomicNumbers< ionization::atomicNumbers::Copper_t >,
+    // note: this method is not yet fully implemented
+    populationKinetics<
+        particles::flylite::NonLTE<
+            MakeSeq_t<
+                BulkElectrons,
+                PromptElectrons
+            >,
+            MakeSeq_t< Photons >
+        >
+    >
+>;
+
+/* define species ions */
+using CopperIons = Particles<
+    PMACC_CSTRING( "Cu" ),
+    ParticleFlagsCopper,
+    MakeSeq_t<
+        DefaultParticleAttributes,
+        boundElectrons,
+        superconfig
+    >
+>;
+
+/*########################### end species ####################################*/
+
+using VectorAllSpecies = MakeSeq_t<
+    Photons,
+    BulkElectrons,
+    PromptElectrons,
+    CopperIons
+>;
+
+}

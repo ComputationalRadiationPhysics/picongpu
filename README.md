@@ -1,9 +1,10 @@
-PIConGPU - A Many GPGPU PIC Code
-================================================================
+PIConGPU - Particle-in-Cell Simulations for the Exascale Era
+============================================================
 
 [![Code Status master](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/master.svg?label=master)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
 [![Code Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
 [![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=latest)](http://picongpu.readthedocs.io)
+[![Doxygen](https://img.shields.io/badge/API-Doxygen-blue.svg)](http://computationalradiationphysics.github.io/picongpu)
 [![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)](https://isocpp.org/)
 [![License PIConGPU](https://img.shields.io/badge/license-GPLv3-blue.svg?label=PIConGPU)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![License PMacc](https://img.shields.io/badge/license-LGPLv3-blue.svg?label=PMacc)](https://www.gnu.org/licenses/lgpl-3.0.html)
@@ -14,8 +15,8 @@ PIConGPU - A Many GPGPU PIC Code
 Introduction
 ------------
 
-PIConGPU is a fully relativistic, many
-[GPGPU](http://en.wikipedia.org/wiki/Graphics_processing_unit),
+PIConGPU is a fully relativistic,
+[manycore](https://en.wikipedia.org/wiki/Manycore_processor),
 3D3V particle-in-cell ([PIC](http://en.wikipedia.org/wiki/Particle-in-cell))
 code. The Particle-in-Cell algorithm is a central tool in plasma physics.
 It describes the dynamics of a plasma by computing the motion of
@@ -32,8 +33,8 @@ Its features for the electro-magnetic PIC algorithm include:
   [*Yee's*](http://dx.doi.org/10.1109/TAP.1966.1138693) and
   [*Lehe's*](http://dx.doi.org/10.1103/PhysRevSTAB.16.021301) scheme
 - rigorously charge conserving current deposition schemes, such as
-  [*Villasenor-Buneman*](http://dx.doi.org/10.1016/0010-4655(92)90169-Y),
-  [*Esirkepov*](http://dx.doi.org/10.1016/S0010-4655(00)00228-9)
+  [*Villasenor-Buneman*](http://dx.doi.org/10.1016/0010-4655%2892%2990169-Y),
+  [*Esirkepov*](http://dx.doi.org/10.1016/S0010-4655%2800%2900228-9)
   and *ZigZag*
 - macro-particle form factors ranging from NGP (0th order), CIC (1st),
   TSC (2nd), PSQ (3rd) to P4S (4th)
@@ -58,9 +59,10 @@ a wide range of tools and diagnostics, e.g.:
   extreme I/O scalability and massively parallel online-analysis
 - 2D and 3D live view and diagnostics tools
 - a large selection of extensible
-  [online-plugins](https://github.com/ComputationalRadiationPhysics/picongpu/wiki/PIConGPU-Plugins)
+  [online-plugins](http://picongpu.readthedocs.io/en/latest/usage/plugins.html)
 
-Todays GPUs provide a computational performance of several
+As one of our supported compute platforms, GPUs provide a computational
+performance of several
 [TFLOP/s](http://en.wikipedia.org/wiki/FLOPS) at considerable lower invest and
 maintenance costs compared to multi CPU-based compute architectures of similar
 performance. The latest high-performance systems
@@ -91,6 +93,9 @@ Our according **up-to-date publication** at **the time of your publication**
 should be inquired from:
 - [REFERENCE.md](https://raw.githubusercontent.com/ComputationalRadiationPhysics/picongpu/master/REFERENCE.md)
 
+Please also consider adding yourself to our [community map](https://github.com/ComputationalRadiationPhysics/picongpu-communitymap).
+We would love to hear from you!
+
 Oral Presentations
 ------------------
 
@@ -104,8 +109,8 @@ Software License
 ----------------
 
 *PIConGPU* is licensed under the **GPLv3+**. Furthermore, you can develop your
-own particle-mesh algorithms based on our general library *libPMacc* that is
-shipped alongside PIConGPU. *libPMacc* is *dual licensed* under both the
+own particle-mesh algorithms based on our general library *PMacc* that is
+shipped alongside PIConGPU. *PMacc* is *dual licensed* under both the
 **GPLv3+ and LGPLv3+**.
 For a detailed description, please refer to [LICENSE.md](LICENSE.md)
 
@@ -143,7 +148,8 @@ Before you post a question, browse the PIConGPU
 [mailing list history](https://cg.hzdr.de/Lists/picongpu-users/List.html)
 to see if your question has been answered, already.
 
-PIConGPU is a collaborative project. We thus encourage users to engage in answering questions of other users and post solutions to problems to the list.
+PIConGPU is a collaborative project.
+We thus encourage users to engage in answering questions of other users and post solutions to problems to the list.
 A problem you have encountered might be the future problem of another user.
 
 In addition, please consider using the collaborative features of GitHub if you have questions or comments on code or documentation.
@@ -198,21 +204,22 @@ Active Team
 
 ### Maintainers* and core developers
 
-- Heiko Burau*
+- Dr. Sergei Bastrakov
 - Dr. Alexander Debus
 - Marco Garten
 - Axel Huebl*
 - Alexander Matthes
 - Richard Pausch*
+- Sebastian Starke
 - Rene Widera*
 
 ### Former Members, Contributions and Thanks
 
 The PIConGPU Team expresses its gratitude to:
 
-Florian Berninger, Robert Dietrich, Carlchristian Eckert, Wen Fu, Ph.D.,
-Alexander Grund, Anton Helm, Wolfgang Hoehnig, Maximilian Knespel,
-Dr. Remi Lehe, Felix Schmitt, Benjamin Schneider, Joseph Schuchart,
+Florian Berninger, Heiko Burau, Robert Dietrich, Carlchristian Eckert,
+Wen Fu, Ph.D., Alexander Grund, Anton Helm, Wolfgang Hoehnig, Maximilian
+Knespel, Dr. Remi Lehe, Felix Schmitt, Benjamin Schneider, Joseph Schuchart,
 Conrad Schumann, Klaus Steiniger, Stefan Tietze, Marija Vranic, Ph.D.,
 Benjamin Worpitz, Erik Zenker, Alexander Matthes
 

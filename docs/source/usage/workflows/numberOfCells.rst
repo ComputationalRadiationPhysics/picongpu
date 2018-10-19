@@ -3,6 +3,8 @@
 Setting the Number of Cells
 ---------------------------
 
+.. sectionauthor:: Axel Huebl
+
 Together with the grid resolution in :ref:`grid.param <usage-params-core>`, the number of cells in our :ref:`.cfg files <usage-tbg>` determine the overall size of a simulation (box).
 The following rules need to be applied when setting the number of cells:
 

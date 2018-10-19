@@ -1,0 +1,127 @@
+/* Copyright 2013-2018 Rene Widera, Marco Garten, Richard Pausch,
+ *                     Benjamin Worpitz, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/Particles.hpp"
+
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+#include <pmacc/compileTime/String.hpp>
+
+
+namespace picongpu
+{
+
+/*########################### define particle attributes #####################*/
+
+/** describe attributes of a particle*/
+using DefaultParticleAttributes = MakeSeq_t<
+    position<position_pic>,
+    momentum,
+    weighting
+>;
+
+/* attribute sequence for species: ions */
+using AttributeSeqIons = MakeSeq_t<
+    DefaultParticleAttributes
+#if( PARAM_IONIZATION == 1 )
+    , boundElectrons
+#endif
+>;
+
+/*########################### end particle attributes ########################*/
+
+/*########################### define species #################################*/
+
+
+/*--------------------------- electrons --------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier( float_X, MassRatioElectrons, 1.0 );
+value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+
+using ParticleFlagsElectrons = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioElectrons >,
+    chargeRatio< ChargeRatioElectrons >
+>;
+
+/* define species: electrons */
+using PIC_Electrons = Particles<
+    PMACC_CSTRING( "e" ),
+    ParticleFlagsElectrons,
+    DefaultParticleAttributes
+>;
+
+/*--------------------------- ions -------------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier( float_X, MassRatioIons, 1836.152672 );
+value_identifier( float_X, ChargeRatioIons, -1.0 );
+
+using ParticleFlagsIons = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioIons >,
+    chargeRatio< ChargeRatioIons >,
+#if( PARAM_IONIZATION == 1 )
+    ionizers<
+        MakeSeq_t<
+            particles::ionization::BSIEffectiveZ< PIC_Electrons >,
+            particles::ionization::ADKCircPol< PIC_Electrons >
+        >
+    >,
+    ionizationEnergies< ionization::energies::AU::Hydrogen_t >,
+    effectiveNuclearCharge< ionization::effectiveNuclearCharge::Hydrogen_t >,
+#endif
+    atomicNumbers< ionization::atomicNumbers::Hydrogen_t >
+>;
+
+/* define species: ions */
+using PIC_Ions = Particles<
+    PMACC_CSTRING( "i" ),
+    ParticleFlagsIons,
+    AttributeSeqIons
+>;
+
+/*########################### end species ####################################*/
+
+/*enable (1) or disable (0) ions*/
+#ifndef PARAM_IONS
+#   define PARAM_IONS 0
+#endif
+
+using VectorAllSpecies = MakeSeq_t<
+    PIC_Electrons
+#if( PARAM_IONS == 1)
+    ,PIC_Ions
+#endif
+>;
+
+} //namespace picongpu

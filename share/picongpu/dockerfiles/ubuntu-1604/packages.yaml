@@ -1,0 +1,18 @@
+packages:
+  cuda:
+    paths:
+      cuda@9.0.176%gcc@5.4.0 arch=linux-ubuntu16-x86_64: /usr/local/cuda
+    buildable: False
+  pkg-config:
+    paths:
+      pkg-config@0.29.1%gcc@5.4.0 arch=linux-ubuntu16-x86_64: /usr
+    buildable: False
+  python:
+    paths:
+      python@2.7.12%gcc@5.4.0 arch=linux-ubuntu16-x86_64: /usr
+    buildable: False
+  openmpi:
+    version: [2.1.2]
+  all:
+    providers:
+      mpi: [openmpi]

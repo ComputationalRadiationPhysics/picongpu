@@ -1,0 +1,159 @@
+language: cpp
+sudo: false
+
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/cuda
+    - $HOME/.cache/cmake
+    - $HOME/.cache/boost
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.5
+    packages:
+      - g++-4.9
+      - clang-3.5
+
+env:
+  global:
+    - CUDA_ROOT: $HOME/.cache/cuda
+    - CMAKE_ROOT: $HOME/.cache/cmake
+    - BOOST_ROOT: $HOME/.cache/boost
+    - BOOST_MIN: 106000 # careful: hard coded below
+    - CUPLA_ROOT: $TRAVIS_BUILD_DIR
+    - OMP_NUM_THREADS: 4 # ignored in thread layer
+  matrix:
+    #                          Acc Block Thread
+    - COMPILER=gcc   STRATEGY="CPU_B_SEQ_T_OMP2"
+    - COMPILER=gcc   STRATEGY="CPU_B_OMP2_T_SEQ"
+    - COMPILER=gcc   STRATEGY="CPU_B_SEQ_T_SEQ"
+    - COMPILER=clang STRATEGY="CPU_B_SEQ_T_THREADS"
+    - COMPILER=clang STRATEGY="CPU_B_SEQ_T_SEQ"
+    - COMPILER=nvcc  STRATEGY="GPU_CUDA"
+
+before_install:
+  - mkdir -p $HOME/matrixMul
+  - mkdir -p $HOME/asyncAPI
+  - mkdir -p $HOME/asyncAPI_tuned
+  - mkdir -p $HOME/vectorAdd
+  - export CMAKE_FLAGS="-DALPAKA_ACC_"$STRATEGY"_ENABLE=ON"
+  - if [ "$COMPILER" == "gcc" ]; then
+        echo "Using g++-4.9 and sequential OpenMP2 threads ...";
+        export CXX=g++-4.9;
+        export CC=gcc-4.9;
+        unset CUDA_ROOT;
+    elif [ "$COMPILER" == "clang" ]; then
+        echo "Using clang++-3.5 & sequential threads ...";
+        export CXX=clang++-3.5;
+        export CC=clang-3.5;
+        unset CUDA_ROOT;
+    elif [ "$COMPILER" == "nvcc" ]; then
+        echo "Using CUDA 7.5 ...";
+        export CXX=g++-4.9;
+        export CC=gcc-4.9;
+        export PATH=$CUDA_ROOT/bin:$PATH;
+    fi
+  - echo "$CMAKE_FLAGS"
+  - echo "$CXX $CC"
+  - $CXX --version
+  - $CC --version
+
+install:
+  #############################################################################
+  # CMAKE                                                                     #
+  #############################################################################
+  - export PATH=$CMAKE_ROOT/bin:$PATH
+  - CMAKE_39_FOUND=$(cmake --version | grep " 3\.9\." >/dev/null && { echo 0; } || { echo 1; })
+  - if [ $CMAKE_39_FOUND -ne 0 ]; then
+      mkdir -p $CMAKE_ROOT &&
+      cd $CMAKE_ROOT &&
+      rm -rf $CMAKE_ROOT/* &&
+      travis_retry wget --no-check-certificate http://cmake.org/files/v3.9/cmake-3.9.4-Linux-x86_64.tar.gz &&
+      tar -xzf cmake-3.9.4-Linux-x86_64.tar.gz &&
+      mv cmake-3.9.4-Linux-x86_64/* . &&
+      rm -rf cmake-3.9.4-Linux-x86_64.tar.gz cmake-3.9.4-Linux-x86_64 &&
+      cd -;
+    fi
+  - cmake --version
+  #############################################################################
+  # BOOST                                                                     #
+  #############################################################################
+  - export CMAKE_PREFIX_PATH=$BOOST_ROOT:$CMAKE_PREFIX_PATH
+  # cmake --find-package -DNAME=Boost -DCOMPILER_ID=GNU -DLANGUAGE=CXX -DMODE=EXIST
+  - echo -e "#include <boost/version.hpp>\n#include <iostream>\nint main() { std::cout << BOOST_VERSION << std::endl; return 0; }"
+        | $CXX -I$BOOST_ROOT/include -x c++ - >/dev/null || { echo 0; }
+  - ls $BOOST_ROOT
+  - BOOST_FOUND=$([ $(./a.out) -ge $BOOST_MIN ] && { echo 0; } || { echo 1; })
+  - if [ $BOOST_FOUND -ne 0 ]; then
+      mkdir -p $ BOOST_ROOT &&
+      cd $BOOST_ROOT &&
+      travis_retry wget --no-check-certificate -O boost.tar.bz2 http://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2/download &&
+      tar -xjf boost.tar.bz2 &&
+      cd boost_1_62_0 &&
+      ./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,system,thread --prefix=$BOOST_ROOT &&
+      ./b2 -j2 &&
+      ./b2 install &&
+      rm -rf boost.tar.bz2 boost_1_62_0 &&
+      cd $HOME;
+    fi
+  #############################################################################
+  # CUDA                                                                      #
+  #############################################################################
+  - NVCC_FOUND=$(which nvcc >/dev/null && { echo 0; } || { echo 1; })
+  - if [ $NVCC_FOUND -ne 0 ] && [ $COMPILER == "nvcc" ]; then
+      mkdir -p $CUDA_ROOT &&
+      cd $CUDA_ROOT &&
+      travis_retry wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run &&
+      chmod u+x *.run &&
+      ./cuda_7.5.18_linux.run --silent --verbose --toolkit --toolkitpath=$CUDA_ROOT &&
+      rm -rf cuda_7.5.18_linux.run $CUDA_ROOT/{samples,jre,doc,share} &&
+      cd -;
+    fi
+
+script:
+  #############################################################################
+  # Example: Matrix Multiplication (adapted original)                         #
+  #############################################################################
+  - cd $HOME/matrixMul
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/matrixMul/ $CMAKE_FLAGS
+  - make
+  # can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original
+  #   SDK example
+  # CPU_B_SEQ_T_OMP2/THREADS: too many threads necessary (256)
+  # - ./matrixMul -wA=64 -wB=64 -hA=64 -hB=64
+  #############################################################################
+  # Example: Async API (adapted original)                                     #
+  #############################################################################
+  - cd $HOME/asyncAPI
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/asyncAPI/ $CMAKE_FLAGS
+  - make
+  # can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original
+  #   SDK example
+  # CPU_B_SEQ_T_OMP2/THREADS: too many threads necessary (512)
+  # - ./asyncAPI
+  #############################################################################
+  # Example: Async API (added elements layer)                                 #
+  #############################################################################
+  - cd $HOME/asyncAPI_tuned
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/asyncAPI_tuned/ $CMAKE_FLAGS
+  - make
+  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
+       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
+      ./asyncAPI_tuned;
+    fi
+  #############################################################################
+  # Example: vectorAdd (added elements layer)                                 #
+  #############################################################################
+  - cd $HOME/vectorAdd
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/vectorAdd/ $CMAKE_FLAGS
+  - make
+  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
+       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
+      ./vectorAdd 100000;
+    fi
+  #############################################################################
+  # Test: (To do: add tests in $TRAVIS_BUILD_DIR/test/                        #
+  #############################################################################

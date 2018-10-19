@@ -1,9 +1,9 @@
 .. _install-path:
 
-.. sectionauthor:: Axel Huebl
-
-Installation
+Introduction
 ============
+
+.. sectionauthor:: Axel Huebl
 
 Installing PIConGPU means :ref:`installing C++ libraries <install-dependencies>` that PIConGPU depends on and :ref:`setting environment variables <install-profile>` to find those dependencies.
 The first part is usually the job of a system administrator while the second part needs to be configured on the user-side.
@@ -14,20 +14,34 @@ Choose your favorite *install and environment management method* below, young pa
 Ways to Install
 ---------------
 
+Choose *one* of the install methods below to get started:
+
+Load Modules
+^^^^^^^^^^^^
+
+On HPC systems and clusters, software is usually provided by system administrators via a module system (e.g. [modules]_, [Lmod]_).
+In case our :ref:`software dependencies <install-dependencies>` are available, we usually create a file in our ``$HOME`` named :ref:`<queueName>_picongpu.profile <install-profile>`.
+It loads according modules and sets :ref:`helper environment variables <install-dependencies-picongpu>`.
+
+.. important::
+
+   For many HPC systems we already prepared and maintain an environment for you which will run out-of-the-box.
+   See if yours is :ref:`in the list <install-profile>` so you can skip the installation completely!
+
+Spack
+^^^^^
+
+[Spack]_ is a flexible package manager that can build and organize software dependencies for you.
+It can be configured once for your hardware architecture to create optimally tuned binaries and provides modulefile support (e.g. [modules]_, [Lmod]_).
+Those auto-build modules manage your environment variables and allow easy switching between versions, configurations and compilers.
+
 Build from Source
 ^^^^^^^^^^^^^^^^^
 
 You choose a supported C++ compiler and configure, compile and install all missing dependencies from source.
 You are responsible to manage the right versions and configurations.
-Performance can be near-ideal if architecture is choosen correctly (and/or if build directly on your hardware).
+Performance will be ideal if architecture is chosen correctly (and/or if build directly on your hardware).
 You then set environment variables to find those installs.
-
-Spack
-^^^^^
-
-[Spack]_ is a flexible package manager for HPC systems that can organize versions and dependencies for you.
-It can be configured once for your hardware architecture to create optimally tuned binaries and provides modulefile support (e.g. [modules]_, [Lmod]_).
-Those auto-build modules manage your environment variables and allow easy switching between versions, configurations and compilers.
 
 Conda
 ^^^^^
@@ -39,74 +53,10 @@ Useful for small desktop or single-node runs.
 Nvidia-Docker
 ^^^^^^^^^^^^^
 
-Not yet officially supported but we already provide a `dockerfile <https://github.com/ComputationalRadiationPhysics/picongpu/issues/829>`_ to get started.
+Not yet officially supported but we already provide a ``Dockerfile`` to get started.
 Performance might be sub-ideal if the image is not build for the specific local hardware again.
 Useful for small desktop or single-node runs.
-
-Compute Environments
---------------------
-
-HPC Cluster
-^^^^^^^^^^^
-
-SysAdmin
-""""""""
-
-- use [Spack]_ and auto-build modules, ideally via [Lmod]_
-- or build from source, manage binary and version incompatibilities and provide modules
-
-User
-""""
-
-As a user, you ideally start with a configured compiler and MPI version for your HPC system (at least).
-Those and further dependencies can be set up by:
-
-- loading modules (e.g. via [Lmod]_ or [modules]_)
-
-or self-adding them:
-
-- build from source
-- or use [Spack]_
-
-Desktop
-^^^^^^^
-
-Root/Admin
-""""""""""
-
-Use your package manager to install drivers and core dependencies, e.g. via `apt-get install` as far as possible.
-Build further dependencies from source.
-
-Alternately, use [Spack]_ for all dependencies.
-
-User
-""""
-
-If drivers are already installed:
-
-- use [Spack]_
-- or use [nvidia-docker]_ (`dockerfile <https://github.com/ComputationalRadiationPhysics/picongpu/issues/829>`_)
-- or build from source
-
-Cloud
-^^^^^
-
-For single nodes, essentially the same as working via SSH on any other machine.
-We did not investigate deeper into multi-node cloud setups yet.
-
-AWS
-"""
-
-- use [Spack]_
-- or use [nvidia-docker]_ (`dockerfile <https://github.com/ComputationalRadiationPhysics/picongpu/issues/829>`_)
-- or build from source
-
-Google Cloud
-""""""""""""
-
-- use [Spack]_
-- or use [nvidia-docker]_ (`dockerfile <https://github.com/ComputationalRadiationPhysics/picongpu/issues/829>`_)
-- or build from source
+We are also working on `Singularity <http://singularity.lbl.gov/>`_ images.
 
 References
 ----------
@@ -116,7 +66,7 @@ References
         *A flexible package manager that supports multiple versions, configurations, platforms, and compilers*,
         SC '15 Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (2015),
         `DOI:10.1145/2807591.2807623 <https://dx.doi.org/10.1145/2807591.2807623>`_,
-        https://github.com/LLNL/spack
+        https://github.com/spack/spack
 
 .. [modules]
         J.L. Furlani, P.W. Osel.

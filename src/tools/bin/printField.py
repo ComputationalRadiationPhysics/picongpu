@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2013-2017 Richard Pausch
+# Copyright 2013-2018 Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -18,25 +18,24 @@
 # along with PIConGPU.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-
-from numpy import *
+import numpy as np
+import matplotlib.pyplot as plt
 import sys
 
-data = loadtxt(sys.argv[1], dtype=str)
+
+data = np.loadtxt(sys.argv[1], dtype=str)
 
 format = data.shape
 data = data.flatten()
 
-for i in xrange(data.size):
+for i in np.range(data.size):
     data[i] = data[i].replace(",", " ")
 
 data = data.astype(float)
 data = data.reshape((format[0], format[1] / 3, 3))
 
-dataAbs = sqrt(data[:,:,0]**2 + data[:,:,1]**2 + data[:,:,2]**2)
+dataAbs = np.sqrt(data[:, :, 0]**2 + data[:, :, 1]**2 + data[:, :, 2]**2)
 
-import matplotlib.pyplot as plt
 plt.imshow(dataAbs, interpolation='nearest')
 plt.colorbar()
 plt.show()
-

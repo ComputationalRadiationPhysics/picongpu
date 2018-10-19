@@ -1,0 +1,15 @@
+{
+    "creators": [
+        {
+            "name": "Widera, René",
+            "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf",
+            "orcid": "0000-0003-1642-0459"
+        }
+    ],
+    "title": "cupla - C++ User interface for the Platform independent Library Alpaka",
+    "access_right": "open",
+    "upload_type": "software",
+    "license": "LGPL-3.0",
+    "pub_id": "27585",
+    "description": "cupla [qχɑpˈlɑʔ] is a simple user interface for the platform independent parallel kernel acceleration library alpaka. It follows a similar concept as the NVIDIA® CUDA® API by providing a software layer to manage accelerator devices. alpaka is used as backend for cupla."
+}

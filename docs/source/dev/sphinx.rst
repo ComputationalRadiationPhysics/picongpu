@@ -1,9 +1,9 @@
 .. _development-sphinx:
 
-.. sectionauthor:: Axel Huebl
-
 Sphinx
 ======
+
+.. sectionauthor:: Axel Huebl
 
 In the following section we explain how to contribute to this documentation.
 

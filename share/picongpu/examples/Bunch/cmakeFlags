@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+#
+# Copyright 2013-2018 Axel Huebl, Rene Widera, Richard Pausch
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+#
+# generic compile options
+#
+
+################################################################################
+# add presets here
+#   - default: index 0
+#   - start with zero index
+#   - increase by 1, no gaps
+
+flags[0]=""
+flags[1]="-DPARAM_OVERWRITES:LIST='-DPARAM_INCLUDE_FIELDBACKGROUND=true'"
+flags[2]="-DPARAM_OVERWRITES:LIST='-DPARAM_INCLUDE_FIELDBACKGROUND=true;-DPARAM_DIMENSION=DIM2'"
+flags[3]="-DPARAM_OVERWRITES:LIST='-DPARAM_SINGLE_PARTICLE=true;-DPARAM_RADFORMFACTOR=radFormFactor_coherent'"
+flags[4]="-DPARAM_OVERWRITES:LIST='-DENABLE_SYNCHROTRON_PHOTONS=1;-DPARAM_RADFORMFACTOR=radFormFactor_Gauss_cell'"
+flags[5]="-DPARAM_OVERWRITES:LIST='-DPARAM_FILTER_GAMMA=1;-DPARAM_RADFORMFACTOR=radFormFactor_incoherent'"
+flags[6]="-DPARAM_OVERWRITES:LIST='-DPARAM_RADWINDOW=radWindowFunctionTriangle;-DPARAM_RADFORMFACTOR=radFormFactor_CIC_3D'"
+flags[7]="-DPARAM_OVERWRITES:LIST='-DPARAM_RADWINDOW=radWindowFunctionHamming;-DPARAM_RADFORMFACTOR=radFormFactor_TSC_3D'"
+flags[8]="-DPARAM_OVERWRITES:LIST='-DPARAM_RADWINDOW=radWindowFunctionTriplett;-DPARAM_RADFORMFACTOR=radFormFactor_PCS_3D'"
+flags[9]="-DPARAM_OVERWRITES:LIST='-DPARAM_RADWINDOW=radWindowFunctionGauss;-DPARAM_RADFORMFACTOR=radFormFactor_CIC_1Dy'"
+
+
+################################################################################
+# execution
+
+case "$1" in
+    -l)  echo ${#flags[@]}
+         ;;
+    -ll) for f in "${flags[@]}"; do echo $f; done
+         ;;
+    *)   echo -n ${flags[$1]}
+         ;;
+esac

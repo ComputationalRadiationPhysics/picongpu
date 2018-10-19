@@ -1,9 +1,9 @@
 .. _pp-python:
 
-.. sectionauthor:: Axel Huebl
-
 Python
 ======
+
+.. sectionauthor:: Axel Huebl
 
 If you are new to python, get your hands on the tutorials of the following important libraries to get started.
 
@@ -39,25 +39,37 @@ https://jupyter.readthedocs.io
 openPMD-viewer
 --------------
 
-A library that reads and visualizes data in our HDF5 files.
-Provides an API to correctly convert units to SI, interpret iteration steps correctly, annotate axis and much more.
+An exploratory framework that visualizes and analyzes data in our HDF5 files thanks to their :ref:`openPMD markup <pp-openPMD>`.
+Automatically converts units to SI, interprets iteration steps as time series, annotates axes and provides some domain specific analysis, e.g. for LWFA.
 Also provides an interactive GUI for fast exploration via Jupyter notebooks.
 
-https://github.com/openPMD/openPMD-viewer/tree/master/tutorials
+* `Project Homepage <https://github.com/openPMD/openPMD-viewer>`_
+* `Tutorial <https://github.com/openPMD/openPMD-viewer/tree/master/tutorials>`_
 
 
-yt-project (dev)
-----------------
+openPMD-api
+-----------
 
-Starting with yt 3.4, our HDF5 output, which uses the openPMD markup, can be read, processed and visualized with yt.
+A data library that reads (and writes) data in our openPMD files (HDF5 and ADIOS) to and from Numpy data structures.
+Provides an API to correctly convert units to SI, interprets iteration steps correctly, etc.
 
-http://yt-project.org/docs/dev/
+* `Manual <https://openpmd-api.readthedocs.io/>`_
+* `Examples <https://github.com/openPMD/openPMD-api/tree/dev/examples>`_
 
+
+yt-project
+----------
+
+With yt 3.4 or newer, our HDF5 output, which uses the :ref:`openPMD markup <pp-openPMD>`, can be read, processed and visualized with yt.
+
+* `Project Homepage <http://yt-project.org>`_
+* `Data Loading <http://yt-project.org/doc/examining/loading_data.html#openpmd-data>`_
+* `Data Tutorial <https://gist.github.com/C0nsultant/5808d5f61b271b8f969d5c09f5ca91dc>`_
 
 pyDive (experimental)
 ---------------------
 
 pyDive provides numpy-style array and file processing on distributed memory systems ("numpy on MPI" for data sets that are much larger than your local RAM).
-pyDive is currently not ready to interpret openPMD directly, but can work on generated raw ADIOS and HDF5 files.
+pyDive is currently not ready to interpret :ref:`openPMD <pp-openPMD>` directly, but can work on generated raw ADIOS and HDF5 files.
 
-https://github.com/ComputationalRadiationPhysics/pyDive#documentation
+https://github.com/ComputationalRadiationPhysics/pyDive

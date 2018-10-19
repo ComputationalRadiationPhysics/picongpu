@@ -1,0 +1,107 @@
+/* Copyright 2015-2018 Rene Widera, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Initialize particles inside particle species. This is the final step in
+ * setting up particles (defined in speciesDefinition.param) via density profiles
+ * (defined in density.param). One can then further derive particles from one
+ * species to an other and manipulate attributes with "manipulators" and "filters"
+ * (defined in particle.param and particleFilters.param).
+ *
+ * For a full list of options, see the user manual section "Usage" - "Particles".
+ */
+
+#pragma once
+
+#include "picongpu/particles/InitFunctors.hpp"
+
+
+namespace picongpu
+{
+namespace particles
+{
+
+    /** InitPipeline defines in which order species are initialized
+     *
+     * the functors are called in order (from first to last functor)
+     */
+    using InitPipeline = mpl::vector<
+        CreateDensity<
+            densityProfiles::FlatFoilWithRamp,
+            startPosition::Random6ppc,
+            Hydrogen
+        >,
+        /* derive the other two ion species and adjust their weighting to have always all
+         * three of macro ions present in a cell, even in cut-off regions of the density profile */
+        ManipulateDerive<
+            manipulators::binary::DensityWeighting,
+            Hydrogen,
+            Carbon
+        >,
+        ManipulateDerive<
+            manipulators::binary::DensityWeighting,
+            Hydrogen,
+            Nitrogen
+        >,
+        // randomize C & N in-cell
+        Manipulate<
+            manipulators::unary::RandomPosition,
+            Carbon
+        >,
+        Manipulate<
+            manipulators::unary::RandomPosition,
+            Nitrogen
+        >,
+        // partial pre-ionization: set bound electrons for C2+ & N2+
+        Manipulate<
+            manipulators::TwiceIonized,
+            Carbon
+        >,
+        // note: boundElectrons default is 0, so Hydrogen's default is H+
+        Manipulate<
+            manipulators::TwiceIonized,
+            Nitrogen
+        >,
+        // partial pre-ionization: create free electrons
+        Derive<
+            Hydrogen,
+            Electrons
+        >,
+        ManipulateDerive<
+            manipulators::binary::UnboundElectronsTimesWeighting,
+            Carbon,
+            Electrons
+        >,
+        ManipulateDerive<
+            manipulators::binary::UnboundElectronsTimesWeighting,
+            Nitrogen,
+            Electrons
+        >,
+        /* create non-physical "probe" particles that sit in every 4x4x4th cell
+         * and monitor the electro-magnetic fields */
+        CreateDensity<
+            densityProfiles::ProbeEveryFourthCell,
+            startPosition::OnePosition,
+            Probes
+        >
+    >;
+
+} // namespace particles
+} // namespace picongpu

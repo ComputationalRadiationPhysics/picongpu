@@ -1,0 +1,80 @@
+/* Copyright 2013-2018 Axel Huebl, Rene Widera, Marco Garten, Benjamin Worpitz,
+ *                     Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/startPosition/functors.def"
+#include "picongpu/particles/manipulators/manipulators.def"
+
+#include <pmacc/nvidia/functors/Assign.hpp>
+
+
+namespace picongpu
+{
+namespace particles
+{
+
+    /** a particle with a weighting below MIN_WEIGHTING will not
+     *      be created / will be deleted
+     *  unit: none
+     */
+    constexpr float_X MIN_WEIGHTING = 10.0;
+
+namespace startPosition
+{
+
+    struct RandomParameter2ppc
+    {
+        /** Count of particles per cell at initial state
+         *  unit: none
+         */
+        static constexpr uint32_t numParticlesPerCell = 2u;
+    };
+    using Random2ppc = RandomImpl< RandomParameter2ppc >;
+
+} // namespace startPosition
+
+    /** During unit normalization, we assume this is a typical
+     *  number of particles per cell for normalization of weighted
+     *  particle attributes.
+     */
+    constexpr uint32_t TYPICAL_PARTICLES_PER_CELL =
+        startPosition::RandomParameter2ppc::numParticlesPerCell;
+
+namespace manipulators
+{
+
+    struct SetIonToNeutral
+    {
+        template< typename T_Particle >
+        DINLINE void operator()( T_Particle & particle )
+        {
+            using Particle = T_Particle;
+
+            // number of bound electrons at initialization state of the neutral atom
+            float_X const protonNumber = traits::GetAtomicNumbers< T_Particle >::type::numberOfProtons;
+
+            particle[ boundElectrons_ ] = protonNumber;
+        }
+    };
+    using SetBoundElectrons = generic::Free< SetIonToNeutral >;
+} // namespace manipulators
+} // namespace particles
+} // namespace picongpu

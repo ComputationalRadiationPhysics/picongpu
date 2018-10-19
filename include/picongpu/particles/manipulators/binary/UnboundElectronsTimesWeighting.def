@@ -1,0 +1,102 @@
+/* Copyright 2015-2018 Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/manipulators/generic/Free.def"
+#include "picongpu/particles/traits/GetAtomicNumbers.hpp"
+
+
+namespace picongpu
+{
+namespace particles
+{
+namespace manipulators
+{
+namespace binary
+{
+namespace acc
+{
+
+    //! Re-scale the weighting of a cloned species by numberOfProtons - boundElectrons
+    struct UnboundElectronsTimesWeighting
+    {
+
+        /** Increase weighting of particleDest by ... number of SrcParticle
+         *
+         * The frame's `numberOfProtons`of `T_SrcParticle`
+         * is used to increase the weighting of particleDest.
+         * Useful to increase the weighting of macro electrons when cloned from an
+         * ion with Z>1. Otherwise one would need Z macro electrons (each with the
+         * same weighting as the initial ion) to keep the charge of a pre-ionized
+         * atom neutral.
+         *
+         * @tparam T_DestParticle type of the particle species with weighting to manipulate
+         * @tparam T_SrcParticle type of the particle species with proton number Z
+         * @tparam T_Args pmacc::Particle, arbitrary number of particles types
+         *
+         * @param particleDest destination particle
+         * @param source particle (the number of protons of this particle is used)
+         * @param unused particles
+         *
+         * @see picongpu::particles::ManipulateDerive, picongpu::particles::Manipulate
+         */
+        template<
+            typename T_DesParticle,
+            typename T_SrcParticle,
+            typename ... T_Args
+        >
+        DINLINE void operator()(
+            T_DesParticle & particleDest,
+            T_SrcParticle const & particleSrc,
+            T_Args && ...
+        )
+        {
+            float_X const protonNumber = traits::GetAtomicNumbers< T_SrcParticle >::type::numberOfProtons;
+            float_X const boundElectrons = particleSrc[ boundElectrons_ ];
+            float_X const freeElectrons = protonNumber - boundElectrons;
+            particleDest[ weighting_ ] *= freeElectrons;
+        }
+    };
+} // namespace acc
+
+    /** Re-scale the weighting of a cloned species by numberOfProtons - ...
+     *
+     * When deriving species from each other, the new
+     * species "inherits" the macro-particle weighting
+     * of the first one.
+     * This functor can be used to manipulate the weighting
+     * of the new species' macro particles to be a multiplied by
+     * the number of protons of the initial species.
+     *
+     * As an example, this is useful when initializing a quasi-neutral,
+     * pre-ionized plasma of ions and electrons. Electrons can be created
+     * from ions via deriving and increasing their weight to avoid simulating
+     * multiple macro electrons per macro ion (with Z>1).
+     *
+     * note: needs the atomicNumbers flag on the initial species,
+     *       used by the GetAtomicNumbers trait.
+     */
+    using UnboundElectronsTimesWeighting = generic::Free< acc::UnboundElectronsTimesWeighting >;
+
+} // namespace binary
+} // namespace manipulators
+} // namespace particles
+} // namespace picongpu

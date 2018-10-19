@@ -1,0 +1,231 @@
+/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz, Heiko Burau, Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * Define particle species.
+ *
+ * This file collects all previous declarations of base (reference) quantities
+ * and configured solvers for species and defines particle species. This
+ * includes "attributes" (lvalues to store with each species) and "flags"
+ * (rvalues & aliases for solvers to perform with the species for each timestep
+ * and ratios to base quantities). With those information, a `Particles` class
+ * is defined for each species and then collected in the list
+ * `VectorAllSpecies`.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/Particles.hpp"
+
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+#include <pmacc/compileTime/String.hpp>
+
+
+namespace picongpu
+{
+
+/*########################### define particle attributes #####################*/
+
+//! describe attributes of a particle
+using DefaultParticleAttributes = MakeSeq_t<
+    position< position_pic >,
+    momentum,
+    weighting
+>;
+
+//! ions also need to have a boundElectrons attribute for ionization
+using IonParticleAttributes = MakeSeq_t<
+    DefaultParticleAttributes,
+    boundElectrons
+>;
+
+/*########################### end particle attributes ########################*/
+
+/*########################### define species #################################*/
+
+/*--------------------------- electrons --------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier( float_X, MassRatioElectrons, 1.0 );
+value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+
+using ParticleFlagsElectrons = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioElectrons >,
+    chargeRatio< ChargeRatioElectrons >
+>;
+
+/* define species electrons */
+using Electrons = Particles<
+    PMACC_CSTRING( "e" ),
+    ParticleFlagsElectrons,
+    DefaultParticleAttributes
+>;
+
+/*--------------------------- H+ --------------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier( float_X, MassRatioHydrogen, 1836.152672 );
+value_identifier( float_X, ChargeRatioHydrogen, -1.0 );
+
+/* ratio relative to BASE_DENSITY (n_e) */
+value_identifier( float_X, DensityRatioHydrogen, 25. / 158. );
+
+using ParticleFlagsHydrogen = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioHydrogen >,
+    chargeRatio< ChargeRatioHydrogen >,
+    densityRatio< DensityRatioHydrogen >,
+    atomicNumbers< ionization::atomicNumbers::Hydrogen_t >,
+    ionizationEnergies< ionization::energies::AU::Hydrogen_t >,
+    effectiveNuclearCharge< ionization::effectiveNuclearCharge::Hydrogen_t >,
+    ionizers<
+        MakeSeq_t<
+            particles::ionization::BSIEffectiveZ< Electrons >,
+            particles::ionization::ADKLinPol< Electrons >,
+            particles::ionization::ThomasFermi< Electrons >
+        >
+    >
+>;
+
+/* define species Hydrogen */
+using Hydrogen = Particles<
+    PMACC_CSTRING( "H" ),
+    ParticleFlagsHydrogen,
+    IonParticleAttributes
+>;
+
+/*--------------------------- C ---------------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier( float_X, MassRatioCarbon, 22032.0 );
+value_identifier( float_X, ChargeRatioCarbon, -6.0 );
+
+/* ratio relative to BASE_DENSITY (n_e) */
+value_identifier( float_X, DensityRatioCarbon, 21. / 158. );
+
+using ParticleFlagsCarbon = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioCarbon >,
+    chargeRatio< ChargeRatioCarbon >,
+    densityRatio< DensityRatioCarbon >,
+    atomicNumbers< ionization::atomicNumbers::Carbon_t >,
+    ionizationEnergies< ionization::energies::AU::Carbon_t >,
+    effectiveNuclearCharge< ionization::effectiveNuclearCharge::Carbon_t >,
+    ionizers<
+        MakeSeq_t<
+            particles::ionization::BSIEffectiveZ< Electrons >,
+            particles::ionization::ADKLinPol< Electrons >,
+            particles::ionization::ThomasFermi< Electrons >
+        >
+    >
+>;
+
+/* define species Carbon */
+using Carbon = Particles<
+    PMACC_CSTRING( "C" ),
+    ParticleFlagsCarbon,
+    IonParticleAttributes
+>;
+
+/*--------------------------- N ---------------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier( float_X, MassRatioNitrogen, 25716.852 );
+value_identifier( float_X, ChargeRatioNitrogen, -7.0 );
+
+/* ratio relative to BASE_DENSITY (n_e) */
+value_identifier( float_X, DensityRatioNitrogen, 1. / 158. );
+
+using ParticleFlagsNitrogen = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioNitrogen >,
+    chargeRatio< ChargeRatioNitrogen >,
+    densityRatio< DensityRatioNitrogen >,
+    atomicNumbers< ionization::atomicNumbers::Nitrogen_t >,
+    ionizationEnergies< ionization::energies::AU::Nitrogen_t >,
+    effectiveNuclearCharge< ionization::effectiveNuclearCharge::Nitrogen_t >,
+    ionizers<
+        MakeSeq_t<
+            particles::ionization::BSIEffectiveZ< Electrons >,
+            particles::ionization::ADKLinPol< Electrons >,
+            particles::ionization::ThomasFermi< Electrons >
+        >
+    >
+>;
+
+/* define species Nitrogen */
+using Nitrogen = Particles<
+    PMACC_CSTRING( "N" ),
+    ParticleFlagsNitrogen,
+    IonParticleAttributes
+>;
+
+/*--------------------------- Probe Particles -------------------------------*/
+
+using ParticleFlagsProbes = bmpl::vector<
+    particlePusher< particles::pusher::Probe >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >
+>;
+
+/* define species Probe */
+using Probes = Particles<
+    PMACC_CSTRING( "probe" ),
+    ParticleFlagsProbes,
+    MakeSeq_t<
+        position< position_pic >,
+        probeB,
+        probeE
+    >
+>;
+
+/*########################### end species ####################################*/
+
+/** All known particle species of the simulation
+ *
+ * List all defined particle species from above in this list
+ * to make them available to the PIC algorithm.
+ */
+using VectorAllSpecies = MakeSeq_t<
+    Electrons,
+    Hydrogen,
+    Carbon,
+    Nitrogen,
+    Probes
+>;
+
+} // namespace picongpu

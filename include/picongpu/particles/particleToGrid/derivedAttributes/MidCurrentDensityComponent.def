@@ -1,0 +1,151 @@
+/* Copyright 2016-2018 Axel Huebl
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
+#include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
+
+#include <pmacc/traits/HasIdentifiers.hpp>
+#include <pmacc/traits/HasFlag.hpp>
+#include <pmacc/static_assert.hpp>
+
+#include <boost/mpl/and.hpp>
+
+#include <vector>
+
+
+namespace picongpu
+{
+namespace particles
+{
+namespace particleToGrid
+{
+namespace derivedAttributes
+{
+    /** Current Density Operation for Particle to Grid Projections
+     *
+     * Calculate the on-charge current density in a selected direction.
+     * Derives a scalar field with density * charge * velocity_component from a
+     * particle species at runtime.
+     * Each value is mapped per cell according to the species' spatial shape.
+     *
+     * @note Mainly useful for debug purposes, e.g. when implementing a new current
+     *       solver.
+     *
+     * @tparam T_direction perpendicular direction x=0, y=1, z=2
+     */
+    template< size_t T_direction >
+    struct MidCurrentDensityComponent
+    {
+        PMACC_CASSERT_MSG( Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param, ((T_direction)>=0) );
+        PMACC_CASSERT_MSG( Valid_directions_are_0_to_2_for_X_to_Z__in_fileOutput_param, ((T_direction)<3) );
+
+        HDINLINE float1_64
+        getUnit() const;
+
+        HINLINE std::vector<float_64>
+        getUnitDimension() const
+        {
+           /* L, M, T, I, theta, N, J
+            *
+            * MidCurrentDensity is in Ampere / square meters: A / m^2
+            *   charge density: Coulomb / m^3
+            *   velocity:       m / s
+            *   current density = charge density * velocity
+            *   -> L^-2 * I
+            */
+           std::vector<float_64> unitDimension( 7, 0.0 );
+           unitDimension.at(SIBaseUnits::length) = -2.0;
+           unitDimension.at(SIBaseUnits::electricCurrent) =  1.0;
+
+           return unitDimension;
+        }
+
+        HINLINE static
+        std::string
+        getName()
+        {
+            const std::string name_lookup[] = {"x", "y", "z"};
+
+            return "midCurrentDensity/" + name_lookup[T_direction];
+        }
+
+        /** Calculate a new attribute per particle
+         *
+         * Returns a new (on-the-fly calculated) attribute of a particle
+         * that can then be mapped to the cells the particle contributes to.
+         * This method is called on a per-thread basis (each thread of a block
+         * handles a particle of a frame).
+         *
+         * \tparam T_Particle particle in the frame
+         * \param particle particle in the frame
+         *
+         * \return new attribute for the particle (type \see T_AttributeType)
+         */
+        template< class T_Particle >
+        DINLINE float_X
+        operator()( T_Particle& particle ) const;
+    };
+} // namespace derivedAttributes
+} // namespace particleToGrid
+
+namespace traits
+{
+    template<
+        typename T_Species,
+        size_t T_direction
+    >
+    struct SpeciesEligibleForSolver<
+        T_Species,
+        particleToGrid::derivedAttributes::MidCurrentDensityComponent< T_direction >
+    >
+    {
+        using FrameType = typename T_Species::FrameType;
+
+        using RequiredIdentifiers = MakeSeq_t<
+            weighting,
+            position<>,
+            momentum
+        >;
+
+        using SpeciesHasIdentifiers = typename pmacc::traits::HasIdentifiers<
+            FrameType,
+            RequiredIdentifiers
+        >::type;
+
+        using SpeciesHasMass = typename pmacc::traits::HasFlag<
+            FrameType,
+            massRatio<>
+        >::type;
+        using SpeciesHasCharge = typename pmacc::traits::HasFlag<
+            FrameType,
+            chargeRatio<>
+        >::type;
+
+        using type = typename bmpl::and_<
+            SpeciesHasIdentifiers,
+            SpeciesHasMass,
+            SpeciesHasCharge
+        >;
+    };
+} // namespace traits
+} // namespace particles
+} // namespace picongpu

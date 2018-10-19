@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2015-2017 Richard Pausch
+# Copyright 2015-2018 Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -25,7 +25,6 @@ import numpy as np
 import h5py
 import matplotlib.pyplot as plt
 
-
 __doc__ = '''
 This program reads electric field and charge density data
 from hdf5 files created by PIConGPU and checks charge conservation
@@ -37,6 +36,7 @@ normalized to the maximum [per-species] charge in the simulation.
 Developer: Richard Pausch
 '''
 
+
 def set_colorbar(cb):
     """
     sets label and font size of color bar
@@ -45,11 +45,12 @@ def set_colorbar(cb):
     cb: pyplot colorbar object
         colorbar to be adjusted
     """
-    cb.set_label(r"$\vec \nabla \vec E - \rho / \varepsilon_0"+
+    cb.set_label(r"$\vec \nabla \vec E - \rho / \varepsilon_0" +
                  r" \,[ \mathrm{max}(|\rho_k|) / \varepsilon_0 ]$",
                  fontsize=22)
     for t in cb.ax.get_yticklabels():
         t.set_fontsize(16)
+
 
 def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     """
@@ -78,7 +79,6 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     CELL_WIDTH = f["/data/{}".format(timestep)].attrs["cell_width"]
     CELL_HEIGHT = f["/data/{}".format(timestep)].attrs["cell_height"]
     CELL_DEPTH = f["/data/{}".format(timestep)].attrs["cell_depth"]
-    CELL_VOLUME = CELL_WIDTH * CELL_HEIGHT * CELL_DEPTH
 
     # load electric field
     Ex = np.array(f["/data/{}/fields/E/x".format(timestep)])
@@ -91,7 +91,9 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     for field_name in f["/data/{}/fields/".format(timestep)].keys():
         if field_name[-14:] == "_chargeDensity":
             # load species density
-            species_Density = np.array(f["/data/{}/fields/".format(timestep) + field_name])
+            species_Density = np.array(
+                f["/data/{}/fields/".format(timestep) + field_name]
+            )
             # choose norm to be the maximal charge density of all species
             norm = np.max([norm, np.amax(np.abs(species_Density))])
             # add charge density to total charge density
@@ -101,12 +103,12 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     f.close()
 
     # compute divergence of electric field according to Yee scheme
-    div = ((Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1])/CELL_WIDTH +
-           (Ey[1:, 1:, 1:] - Ey[1:, :-1, 1:])/CELL_HEIGHT +
-           (Ez[1:, 1:, 1:] - Ez[:-1, 1:, 1:])/CELL_DEPTH)
+    div = ((Ex[1:, 1:, 1:] - Ex[1:, 1:, :-1]) / CELL_WIDTH +
+           (Ey[1:, 1:, 1:] - Ey[1:, :-1, 1:]) / CELL_HEIGHT +
+           (Ez[1:, 1:, 1:] - Ez[:-1, 1:, 1:]) / CELL_DEPTH)
 
     # compute difference between electric field divergence and charge density
-    diff = (div  - charge[1:, 1:, 1:]/EPS0)
+    diff = (div - charge[1:, 1:, 1:] / EPS0)
 
     limit = np.amax(np.abs(diff))
 
@@ -114,7 +116,7 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
     plt.figure(figsize=(14, 5))
 
     plt.subplot(131)
-    slice_cell_z = np.int(np.floor((diff.shape[0]-1)*slice_pos[0]))
+    slice_cell_z = np.int(np.floor((diff.shape[0]-1) * slice_pos[0]))
     plt.title("slice in z at {}".format(slice_cell_z), fontsize=20)
     plt.imshow(diff[slice_cell_z, :, :],
                vmin=-limit, vmax=+limit,
@@ -130,7 +132,7 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
                  )
 
     plt.subplot(132)
-    slice_cell_y = np.int(np.floor((diff.shape[1]-1)*slice_pos[1]))
+    slice_cell_y = np.int(np.floor((diff.shape[1]-1) * slice_pos[1]))
     plt.title("slice in y at {}".format(slice_cell_y), fontsize=20)
     plt.imshow(diff[:, slice_cell_y, :],
                vmin=-limit, vmax=+limit,
@@ -145,9 +147,8 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
                               ticks=[-limit, 0, +limit])
                  )
 
-
     plt.subplot(133)
-    slice_cell_x = np.int(np.floor((diff.shape[2]-1)*slice_pos[2]))
+    slice_cell_x = np.int(np.floor((diff.shape[2]-1) * slice_pos[2]))
     plt.title("slice in x at {}".format(slice_cell_x), fontsize=20)
     plt.imshow(diff[:, :, slice_cell_x],
                vmin=-limit, vmax=+limit,
@@ -162,14 +163,12 @@ def plotError(h5file, slice_pos=[0.5, 0.5, 0.5]):
                               ticks=[-limit, 0, +limit])
                  )
 
-
     plt.tight_layout()
 
     if not args.output_file:
         plt.show()
     else:
         plt.savefig(args.output_file)
-
 
 
 if __name__ == "__main__":
@@ -188,29 +187,33 @@ if __name__ == "__main__":
     parser.add_argument("--x",
                         dest="x_split",
                         action='store',
-                        default = 0.5,
+                        default=0.5,
                         type=np.float,
-                        help='float value between [0,1] to set slice position in x (default = 0.5)')
+                        help='float value between [0,1] to set slice ' +
+                             'position in x (default = 0.5)')
 
     parser.add_argument("--y",
                         dest="y_split",
                         action='store',
-                        default = 0.5,
+                        default=0.5,
                         type=np.float,
-                        help='float value between [0,1] to set slice position in y (default = 0.5)')
+                        help='float value between [0,1] to set slice ' +
+                             'position in y (default = 0.5)')
 
     parser.add_argument("--z",
                         dest="z_split",
                         action='store',
-                        default = 0.5,
+                        default=0.5,
                         type=np.float,
-                        help='float value between [0,1] to set slice position in z (default = 0.5)')
+                        help='float value between [0,1] to set slice ' +
+                             'position in z (default = 0.5)')
 
     parser.add_argument("--export",
                         metavar="file name",
                         dest="output_file",
                         default="",
-                        help="export plot to file (disable interactive window)")
+                        help="export plot to file " +
+                             "(disable interactive window)")
 
     args = parser.parse_args()
 
@@ -223,4 +226,3 @@ if __name__ == "__main__":
         plotError(args.h5file_name, slice_pos=slice_pos)
     else:
         print("ERROR: {} is not a file".format(args.h5file_name))
-

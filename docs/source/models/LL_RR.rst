@@ -3,6 +3,8 @@
 Landau-Lifschitz Radiation Reaction
 ===================================
 
+.. moduleauthor:: Richard Pausch, Marija Vranic
+
 To do
 
 References

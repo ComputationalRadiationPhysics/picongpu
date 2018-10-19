@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
+# Copyright 2014-2018 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -22,7 +22,7 @@
 # Required cmake version
 ################################################################################
 
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 3.10.0)
 
 
 ################################################################################
@@ -82,7 +82,7 @@ endif(NOT RELEASE)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options)
 if(TARGET Boost::program_options)
     set(LIBS ${LIBS} Boost::boost Boost::program_options)
 else()
@@ -96,16 +96,10 @@ endif()
 ################################################################################
 
 # find libSplash installation
-# prefer static libraries over shared ones (but do not force them)
-set(Splash_USE_STATIC_LIBS ON)
-find_package(Splash 1.6.0 EXACT REQUIRED COMPONENTS PARALLEL)
+find_package(Splash 1.7.0 REQUIRED CONFIG COMPONENTS PARALLEL)
 
-if(Splash_FOUND)
-    include_directories(SYSTEM ${Splash_INCLUDE_DIRS})
-    list(APPEND Splash_DEFINITIONS "-DENABLE_HDF5=1")
-    add_definitions(${Splash_DEFINITIONS})
-    set(LIBS ${LIBS} ${Splash_LIBRARIES})
-endif(Splash_FOUND)
+add_definitions(-DENABLE_HDF5=1)
+message(STATUS "Found Splash: ${Splash_DIR}")
 
 
 ################################################################################
@@ -113,13 +107,9 @@ endif(Splash_FOUND)
 ################################################################################
 
 # find PNGwriter installation
-find_package(PNGwriter 0.6.0 EXACT REQUIRED)
+find_package(PNGwriter 0.7.0 REQUIRED CONFIG)
 
-if(PNGwriter_FOUND)
-    include_directories(SYSTEM ${PNGwriter_INCLUDE_DIRS})
-    add_definitions(${PNGwriter_DEFINITIONS})
-    set(LIBS ${LIBS} ${PNGwriter_LIBRARIES})
-endif(PNGwriter_FOUND)
+set(LIBS ${LIBS} PNGwriter::PNGwriter)
 
 
 ################################################################################
@@ -130,7 +120,7 @@ file(GLOB SRCFILES "*.cpp")
 
 add_executable(png2gas ${SRCFILES})
 
-target_link_libraries (png2gas ${LIBS})
+target_link_libraries(png2gas PRIVATE ${LIBS})
 
 
 ################################################################################

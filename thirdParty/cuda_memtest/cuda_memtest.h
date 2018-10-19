@@ -41,14 +41,13 @@
 #ifndef __MEMTEST_H__
 #define __MEMTEST_H__
 
-#include <stdio.h>
+#include <cstdio>
 #include <stdint.h>
 #include <pthread.h>
 #include <iostream>
 #include <stdexcept>
 
 #include <cuda.h>
-#include <cublas.h>
 #if (ENABLE_NVML==1)
 #include <nvml.h>
 #endif

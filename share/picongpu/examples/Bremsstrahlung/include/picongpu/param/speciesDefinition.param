@@ -1,0 +1,136 @@
+/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz, Heiko Burau
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/particles/Particles.hpp"
+
+#include <pmacc/particles/Identifier.hpp>
+#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/identifier/value_identifier.hpp>
+#include <pmacc/particles/traits/FilterByFlag.hpp>
+#include <pmacc/compileTime/String.hpp>
+
+
+namespace picongpu
+{
+
+/*########################### define particle attributes #####################*/
+
+/** describe attributes of a particle*/
+using DefaultParticleAttributes = MakeSeq_t<
+    position< position_pic >,
+    momentum,
+    weighting,
+    particleId,
+    momentumPrev1
+#if( RAD_MARK_PARTICLE > 1 ) || ( RAD_ACTIVATE_GAMMA_FILTER != 0 )
+    , radiationFlag
+#endif
+>;
+
+/*########################### end particle attributes ########################*/
+
+/*########################### define species #################################*/
+
+/*--------------------------- photons -------------------------------------------*/
+
+value_identifier( float_X, MassRatioPhotons, 0.0 );
+value_identifier( float_X, ChargeRatioPhotons, 0.0 );
+
+using ParticleFlagsPhotons = bmpl::vector<
+    particlePusher< particles::pusher::Photon >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    massRatio< MassRatioPhotons >,
+    chargeRatio< ChargeRatioPhotons >
+>;
+
+/* define species photons */
+using PIC_Photons = Particles<
+    PMACC_CSTRING( "ph" ),
+    ParticleFlagsPhotons,
+    DefaultParticleAttributes
+>;
+
+
+/*--------------------------- ions -------------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier(float_X, MassRatioIons, 359100);
+value_identifier(float_X, ChargeRatioIons, -79.0);
+value_identifier(float_X, DensityRatioIons, 1.0);
+
+using ParticleFlagsIons = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioIons >,
+    chargeRatio< ChargeRatioIons >,
+    densityRatio< DensityRatioIons >,
+    atomicNumbers< ionization::atomicNumbers::Gold_t >
+>;
+
+/* define species ions */
+using PIC_Ions = Particles<
+    PMACC_CSTRING( "i" ),
+    ParticleFlagsIons,
+    DefaultParticleAttributes
+>;
+
+
+/*--------------------------- electrons --------------------------------------*/
+
+/* ratio relative to BASE_CHARGE and BASE_MASS */
+value_identifier( float_X, MassRatioElectrons, 1.0 );
+value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+value_identifier( float_X, DensityRatioElectrons, 79.0 );
+
+using ParticleFlagsElectrons = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    current< UsedParticleCurrentSolver >,
+    massRatio< MassRatioElectrons >,
+    chargeRatio< ChargeRatioElectrons >,
+    densityRatio< DensityRatioElectrons >,
+    bremsstrahlungIons< PIC_Ions >,
+    bremsstrahlungPhotons< PIC_Photons >
+>;
+
+/* define species electrons */
+using PIC_Electrons = Particles<
+    PMACC_CSTRING( "e" ),
+    ParticleFlagsElectrons,
+    DefaultParticleAttributes
+>;
+
+
+/*########################### end species ####################################*/
+
+
+using VectorAllSpecies = MakeSeq_t<
+    PIC_Electrons,
+    PIC_Ions,
+    PIC_Photons
+>;
+
+} //namespace picongpu

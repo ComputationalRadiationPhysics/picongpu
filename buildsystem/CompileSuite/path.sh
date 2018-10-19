@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2017 Axel Huebl
+# Copyright 2013-2018 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -19,7 +19,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-function absulte_path()
+function absolute_path()
 {
     cd $1
     pwd

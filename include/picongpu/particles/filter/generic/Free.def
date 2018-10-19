@@ -1,0 +1,64 @@
+/* Copyright 2017-2018 Rene Widera
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+
+namespace picongpu
+{
+namespace particles
+{
+namespace filter
+{
+namespace generic
+{
+
+    /** call simple free user defined filter
+     *
+     * @tparam T_Functor user defined filter
+     *                   **optional**: can implement **one** host side constructor
+     *                   `T_Functor()` or `T_Functor(uint32_t currentTimeStep)`
+     *
+     * example for `particleFilters.param`: each particle with in-cell position greater than 0.5
+     *   @code{.cpp}
+     *
+     *   struct FunctorEachParticleAboveMiddleOfTheCell
+     *   {
+     *       template< typename T_Particle >
+     *       HDINLINE bool operator()( T_Particle const & particle )
+     *       {
+     *           bool result = false;
+     *           if( particle[ position_ ] >= float_X( 0.5 ) )
+     *               result = true;
+     *           return result;
+     *       }
+     *   };
+     *
+     *   using EachParticleAboveMiddleOfTheCell = generic::Free<
+     *      FunctorEachParticleAboveMiddleOfTheCell
+     *   >;
+     *   @endcode
+     */
+    template< typename T_Functor >
+    struct Free;
+
+} // namespace generic
+} // namespace filter
+} // namespace particles
+} // namespace picongpu
