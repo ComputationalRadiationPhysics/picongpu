@@ -1,13 +1,15 @@
- PIConGPU - Licenses
-================================================================================
+PIConGPU - Licenses
+===============================================================================
 
-**Copyright 2009-2017** Florian Berninger, Heiko Burau, Michael Bussmann,
-                        Alexander Debus, Robert Dietrich, Carlchristian Eckert,
-                        Wen Fu, Marco Garten, Anton Helm, Wolfgang Hoehnig,
-                        Axel Huebl, Maximilian Knespel, Remi Lehe,
-                        Richard Pausch, Felix Schmitt, Conrad Schumann,
-                        Benjamin Schneider, Joseph Schuchart, Klaus Steiniger,
-                        Rene Widera, Benjamin Worpitz
+**Copyright 2009-2018** (in alphabetical order)
+
+Sergei Bastrakov, Florian Berninger, Heiko Burau, Michael Bussmann,
+Alexander Debus, Robert Dietrich, Carlchristian Eckert, Wen Fu, Marco Garten,
+Ilja Goethel, Alexander Grund, Sebastian Hahn, Anton Helm, Wolfgang Hoehnig,
+Axel Huebl, Jeffrey Kelling, Maximilian Knespel, Remi Lehe, Alexander Matthes,
+Richard Pausch, Rophie Rudat, Felix Schmitt, Conrad Schumann,
+Benjamin Schneider, Joseph Schuchart, Sebastian Starke, Klaus Steiniger,
+Rene Widera, Benjamin Worpitz
 
 See [active team](README.md#active-team).
 
