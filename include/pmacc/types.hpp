@@ -67,7 +67,11 @@
 
 // compatibility macros (compiler or C++ standard version specific)
 #include <boost/config.hpp>
-#include <boost/predef.h>
+// work-around for Boost 1.68.0
+//   fixed in https://github.com/boostorg/predef/pull/84
+//   see https://github.com/ComputationalRadiationPhysics/alpaka/pull/606
+// include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 
 #include <stdint.h>
 #include <stdexcept>
