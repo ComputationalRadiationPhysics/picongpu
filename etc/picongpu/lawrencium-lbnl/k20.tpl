@@ -51,7 +51,7 @@
 .TBG_feature="lr_kepler"
 
 # settings that can be controlled by environment variables before submit
-.TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
+.TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}

@@ -49,7 +49,6 @@ fi`
 # Sets batch job's name
 #PBS -N !TBG_jobName
 #PBS -l nodes=!TBG_nodes:ppn=!TBG_coresPerNode
-# send me mails on job (b)egin, (e)nd, (a)bortion or (n)o mail
 #PBS -m !TBG_mailSettings -M !TBG_mailAddress
 #PBS -d !TBG_dstPath
 #PBS -o stdout
