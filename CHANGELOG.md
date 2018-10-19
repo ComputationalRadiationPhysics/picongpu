@@ -3,7 +3,7 @@ Changelog
 
 0.4.0
 -----
-**Date:** 2018-08-TBA
+**Date:** 2018-10-19
 
 CPU Support, Particle Filter, Probes & Merging
 
