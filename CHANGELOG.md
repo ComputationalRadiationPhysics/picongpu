@@ -23,8 +23,8 @@ User input files have been dramatically simplified. For example, creating the
 PIConGPU binary from input files for GPU or CPU is now as easy as
 `pic-build -b cuda` or `pic-build -b omp2b` respectively.
 
-Thanks to Axel Huebl, René Widera, Sebastian Starke, Marco Garten,
-Richard Pausch, Alexander Matthes, Sergei Bastrakov, Heiko Burau,
+Thanks to Axel Huebl, René Widera, Benjamin Worpitz, Sebastian Starke,
+Marco Garten, Richard Pausch, Alexander Matthes, Sergei Bastrakov, Heiko Burau,
 Alexander Debus, Ilja Göthel, Sophie Rudat, Jeffrey Kelling, Klaus Steiniger,
 and Sebastian Hahn for contributing to this release!
 
