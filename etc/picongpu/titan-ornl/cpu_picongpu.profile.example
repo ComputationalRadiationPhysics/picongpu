@@ -18,9 +18,8 @@ export proj=<yourProject>
 
 # basic environment ###########################################################
 source /opt/modules/3.2.6.7/init/bash
-module load craype-accel-nvidia35
 module swap PrgEnv-pgi PrgEnv-gnu
-module swap gcc gcc/5.3.0
+module swap gcc gcc/7.3.0
 
 # Compile for CLE nodes
 #   (CMake likes to unwrap the Cray wrappers)
@@ -30,7 +29,7 @@ export FC=$(which ftn)
 #export LD="/sw/xk6/altd/bin/ld"
 
 # symbol bug work around (should not be required)
-#MY_CRAY_LIBS=/opt/gcc/5.3.0/snos/lib64
+#MY_CRAY_LIBS=/opt/gcc/7.3.0/snos/lib64
 #export LD_PRELOAD=$MY_CRAY_LIBS/libstdc++.so.6:$LD_PRELOAD
 #export LD_PRELOAD=$MY_CRAY_LIBS/libgomp.so.1:$LD_PRELOAD
 #export LD_PRELOAD=$MY_CRAY_LIBS/libgfortran.so.3:$LD_PRELOAD
@@ -38,7 +37,6 @@ export FC=$(which ftn)
 # required tools and libs
 module load git
 module load cmake3/3.11.3
-module load cudatoolkit  # 9.1.85
 # might fail to link with missing symbols:
 #   C++11 module rebuild pending [CCS #389072]
 module load boost/1.67.0
@@ -56,7 +54,7 @@ export MPI_ROOT=$MPICH_DIR
 #   pic-configure with -c "-DCMAKE_CXX_COMPILER=$(which scorep-CC) \
 #                          -DCUDA_NVCC_EXECUTABLE=$(which scorep-nvcc)"
 #   e.g.:
-#     SCOREP_WRAPPER=OFF pic-configure -b "cuda:35" \
+#     SCOREP_WRAPPER=OFF pic-configure -b "omp2b:bdver1" \
 #         -c "-DCMAKE_CXX_COMPILER=$(which scorep-CC) \
 #         -DCUDA_NVCC_EXECUTABLE=$(which scorep-nvcc)" \
 #         ~/picInputs/case001
@@ -94,7 +92,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib
 # helper variables and tools ##################################################
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
-export PIC_BACKEND="cuda:35"
+export PIC_BACKEND="omp2b:bdver1"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
@@ -106,4 +104,4 @@ alias getNode="qsub -I -A $proj -q debug -l nodes=1,walltime=30:00"
 
 # "tbg" default options #######################################################
 export TBG_SUBMIT="qsub"
-export TBG_TPLFILE="etc/picongpu/titan-ornl/gpu_batch.tpl"
+export TBG_TPLFILE="etc/picongpu/titan-ornl/cpu_batch.tpl"
