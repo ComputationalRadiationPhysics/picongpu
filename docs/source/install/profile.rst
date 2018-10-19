@@ -71,7 +71,16 @@ Titan (ORNL)
 
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libSplash, libpng and PNGwriter <install-dependencies>` manually.
 
-.. literalinclude:: profiles/titan-ornl/picongpu.profile.example
+K20x GPUs (recommended)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/titan-ornl/gpu_picongpu.profile.example
+   :language: bash
+
+AMD Opteron 6274 (Interlagos) CPUs (for experiments)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/titan-ornl/cpu_picongpu.profile.example
    :language: bash
 
 Piz Daint (CSCS)
