@@ -134,8 +134,9 @@ namespace particleMerging
             forEachFrame(
                 acc,
                 this->particlesBox,
+                workerIdx,
                 cellIdx,
-                [this]( FramePtr frame, const int linearThreadIdx )
+                [this]( const T_Acc & acc, FramePtr frame, const int linearThreadIdx )
                 {
                     auto particle = frame[linearThreadIdx];
 
@@ -198,7 +199,7 @@ namespace particleMerging
                 this->particlesBox,
                 workerIdx,
                 cellIdx,
-                [&]( FramePtr frame, const int linearThreadIdx )
+                [&]( const T_Acc & acc, FramePtr frame, const int linearThreadIdx )
                 {
                     auto particle = frame[linearThreadIdx];
 
@@ -433,12 +434,13 @@ namespace particleMerging
                 listVoronoiCells[linearThreadIdx] = VoronoiCell();
 
             /* init the voronoiCellId attribute for each particle */
-            this->initVoronoiCellIdAttribute( cellIndex );
+            this->initVoronoiCellIdAttribute( acc, cellIndex );
 
             /* main loop of the merging algorithm */
             while( voronoiIndexPool.size() > 0 )
             {
                 this->processParticles(
+                    acc,
                     cellIndex,
                     listVoronoiCells
                 );
