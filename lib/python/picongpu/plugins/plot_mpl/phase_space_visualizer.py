@@ -21,55 +21,68 @@ class Visualizer(BaseVisualizer):
     Class for creating a matplotlib plot of phase space diagrams.
     """
 
-    def __init__(self, run_directory, ax=None):
+    def __init__(self, run_directory=None, ax=None):
         """
         Parameters
         ----------
         run_directory : string
             path to the run directory of PIConGPU
-            (the path before ``simOutput/``)
+            (the path before ``simOutput/``).
+            If None, the user is responsible for providing run_directories
+            later on via set_run_directories() before calling visualize().
         ax: matplotlib.axes
         """
-        super().__init__(run_directory, ax)
-
-        # for unit-conversion from SI (taken from picongpu readthedocs)
+        # TODO: remove this and get it from the readers metadata
+        # since it seems only correct for species='e' anyway.
         self.mu = 1.e6
         self.e_mc_r = 1. / (9.1e-31 * 2.9979e8)
         self.cbar = None
 
-    def _create_data_reader(self, run_directory):
-        """
-        Implementation of base class function.
-        """
-        return PhaseSpaceData(run_directory)
+        super().__init__(PhaseSpaceData, run_directory, ax)
 
-    def _create_plt_obj(self):
+    def _check_and_fix_run_dirs(self, run_directories):
+        """
+        Overridden from base class. Makes sure to only accept
+        a single simulation's run_directory.
+        """
+        base_checked = super()._check_and_fix_run_dirs(run_directories)
+
+        # Fail if more than one run_directory since plotting
+        # several imshow plots at the same time does not make sense!
+        if len(base_checked) > 1:
+            raise ValueError("This visualizer only supports plotting a single"
+                             " simulation! Parameter 'run_directory' can"
+                             " contain only a single element!")
+
+        return base_checked
+
+    def _create_plt_obj(self, idx):
         """
         Implementation of base class function.
         Turns 'self.plt_obj' into a matplotlib.image.AxesImage object.
         """
-        dat, meta = self.data
-        self.plt_obj = self.ax.imshow(
+        dat, meta = self.data[idx]
+        self.plt_obj[idx] = self.ax.imshow(
             np.abs(dat).T * meta.dV,
             extent=meta.extent * [self.mu, self.mu, self.e_mc_r, self.e_mc_r],
             interpolation='nearest',
             aspect='auto',
             origin='lower',
             norm=LogNorm())
-        self.cbar = plt.colorbar(self.plt_obj, ax=self.ax)
+        self.cbar = plt.colorbar(self.plt_obj[idx], ax=self.ax)
         self.cbar.set_label(
             r'$Q / \mathrm{d}r \mathrm{d}p$ [$\mathrm{C s kg^{-1} m^{-2}}$] ')
         self.ax.set_xlabel(r'${0}$ [${1}$]'.format(meta.r, r'\mathrm{\mu m}'))
         self.ax.set_ylabel(r'$p_{0}$ [$\beta\gamma$]'.format(meta.p))
 
-    def _update_plt_obj(self):
+    def _update_plt_obj(self, idx):
         """
         Implementation of base class function.
         """
-        dat, meta = self.data
-        self.plt_obj.set_data(np.abs(dat).T * meta.dV)
-        self.plt_obj.autoscale()
-        self.cbar.update_normal(self.plt_obj)
+        dat, meta = self.data[idx]
+        self.plt_obj[idx].set_data(np.abs(dat).T * meta.dV)
+        self.plt_obj[idx].autoscale()
+        self.cbar.update_normal(self.plt_obj[idx])
 
     def visualize(self, **kwargs):
         """

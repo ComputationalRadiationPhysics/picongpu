@@ -105,8 +105,9 @@ class DataReader(object):
                 # use all times that are available, i.e. all iterations
                 iteration = self.get_iterations(**kwargs)
             else:
-                iteration = self.find_time.get_iteration(time)
-            print("got 'time'=", time, ", converting to iteration", iteration)
+                iteration = self.find_time.get_iteration(
+                    time, method='closest')
+            # print("got 'time'=", time, ", converted to iter", iteration)
 
         return self._get_for_iteration(iteration, **kwargs)
 

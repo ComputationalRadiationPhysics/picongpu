@@ -9,6 +9,9 @@ License: GPLv3+
 from picongpu.plugins.data import EnergyHistogramData
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
     BaseVisualizer
+from picongpu.plugins.plot_mpl.utils import get_different_colors
+
+import matplotlib.pyplot as plt
 
 
 class Visualizer(BaseVisualizer):
@@ -16,37 +19,57 @@ class Visualizer(BaseVisualizer):
     Class for creation of histogram plots on a logscaled y-axis.
     """
 
-    def __init__(self, run_directory, ax=None):
+    def __init__(self, run_directories=None, ax=None):
         """
         Parameters
         ----------
-        run_directory : string
-            path to the run directory of PIConGPU
-            (the path before ``simOutput/``)
+        run_directories: list of tuples of length 2
+            or single tuple of length 2.
+            Each tuple is of the following form (sim_name, sim_path)
+            and consists of strings.
+            sim_name is a short string used e.g. in plot legends.
+            sim_path leads to the run directory of PIConGPU
+            (the path before ``simOutput/``).
+            If None, the user is responsible for providing run_directories
+            later on via set_run_directories() before calling visualize().
         ax: matplotlib.axes
         """
-        super().__init__(run_directory, ax)
+        super().__init__(EnergyHistogramData, run_directories, ax)
 
-    def _create_data_reader(self, run_directory):
-        """
-        Implementation of base class function.
-        """
-        return EnergyHistogramData(run_directory)
-
-    def _create_plt_obj(self):
+    def _create_plt_obj(self, idx):
         """
         Implementation of base class function.
         Turns 'self.plt_obj' into a matplotlib.pyplot.plot object.
         """
-        counts, bins = self.data
-        self.plt_obj = self.ax.semilogy(bins, counts, nonposy='clip')[0]
+        # NOTE: for ax.semilogy one can also provide matrices Bins, Counts
+        # where columns are the separate data to be plotted.
+        # Returned would then be a list of plt_objects
 
-    def _update_plt_obj(self):
+        counts, bins = self.data[idx]
+        label = self.sim_labels[idx]
+        self.plt_obj[idx] = self.ax.semilogy(
+            bins, counts, nonposy='clip', label=label,
+            color=self.colors[idx])[0]
+
+    def _update_plt_obj(self, idx):
         """
         Implementation of base class function.
         """
-        counts, bins = self.data
-        self.plt_obj.set_data(bins, counts)
+        counts, bins = self.data[idx]
+        self.plt_obj[idx].set_data(bins, counts)
+
+    def _legend(self):
+        # draw the legend only for those lines for which there is data.
+        # colors will not change in between simulations since they are
+        # tied to the data readers index directly.
+        handles = []
+        labels = []
+        for plt_obj, lab in zip(self.plt_obj, self.sim_labels):
+            if plt_obj is not None:
+                handles.append(plt_obj)
+                labels.append(lab)
+
+        self.ax.legend(handles, labels)
 
     def visualize(self, **kwargs):
         """
@@ -74,6 +97,7 @@ class Visualizer(BaseVisualizer):
         species = kwargs['species']
         species_filter = kwargs.get('species_filter', 'all')
 
+        self._legend()
         self.ax.relim()
         self.ax.autoscale_view(True, True, True)
         self.ax.set_xlabel('Energy [keV]')
