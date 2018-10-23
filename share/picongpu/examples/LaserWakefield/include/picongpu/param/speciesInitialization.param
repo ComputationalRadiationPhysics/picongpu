@@ -50,7 +50,7 @@ namespace particles
         >
 #   if( PARAM_IONS == 1 )
         ,
-        DeriveSpecies<
+        Derive<
             PIC_Electrons,
             PIC_Ions
         >
