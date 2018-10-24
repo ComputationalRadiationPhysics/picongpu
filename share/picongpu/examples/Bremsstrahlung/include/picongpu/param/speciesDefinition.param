@@ -81,7 +81,7 @@ using Probes = Particles<
 
   using Tracers = Particles<
     PMACC_CSTRING( "trace" ),
-    ParticleFlagsProbes,
+    ParticleFlagsTracers,
     MakeSeq_t<
       position< position_pic >,
       momentum,
