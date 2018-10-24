@@ -86,7 +86,6 @@ using ParticleFlagsElectrons = bmpl::vector<
     particlePusher< UsedParticlePusher >,
     shape< UsedParticleShape >,
     interpolation< UsedField2Particle >,
-    current< UsedParticleCurrentSolver >,
     massRatio< MassRatioElectrons >,
     chargeRatio< ChargeRatioElectrons >
 #if( ENABLE_SYNCHROTRON_PHOTONS == 1 )
