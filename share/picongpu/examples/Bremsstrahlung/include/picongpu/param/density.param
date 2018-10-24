@@ -113,7 +113,7 @@ using ProbeYCell = EveryNthCellImpl<
         )
         {
             /* add particle in cell at center of foil profile */
-          const float3_64 position_start_SI( 1.e-6, 4.e-6, 0.0 );
+          const float3_64 position_start_SI( 1.e-6, 3.e-6, 0.0 );
 
             /* from all cells ... */
             const pmacc::math::UInt64< simDim > cell_id( position_SI / cellSize_SI.shrink< simDim >() );
