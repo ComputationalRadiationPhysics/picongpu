@@ -44,14 +44,23 @@ namespace particles
     using InitPipeline = mpl::vector<
         CreateDensity<
             densityProfiles::Foil,
-            startPosition::Quiet1ppc,
+            startPosition::Random10ppc,
             PIC_Ions
         >,
-        CreateDensity<
-            densityProfiles::Foil,
-            startPosition::Random100ppc,
+        Derive<
+            PIC_Ions,
             PIC_Electrons
-        >
+        >,
+        CreateDensity<
+            densityProfiles::ProbeYCell,
+            startPosition::OnePosition,
+            Probes
+        >,
+       CreateDensity<
+            densityProfiles::FreeFormula,
+            startPosition::Quiet1ppc,
+            Tracers
+      >
     >;
 
 } // namespace particles

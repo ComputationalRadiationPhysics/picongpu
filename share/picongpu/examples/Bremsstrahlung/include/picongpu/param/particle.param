@@ -40,14 +40,14 @@ namespace particles
 namespace startPosition
 {
 
-    struct RandomParameter100ppc
+    struct RandomParameter10ppc
     {
         /** Count of particles per cell at initial state
          *  unit: none
          */
-        static constexpr uint32_t numParticlesPerCell = 100u;
+        static constexpr uint32_t numParticlesPerCell = 10u;
     };
-    using Random100ppc = RandomImpl< RandomParameter100ppc >;
+    using Random10ppc = RandomImpl< RandomParameter10ppc >;
 
 
     struct QuietParameter1ppc
@@ -62,6 +62,25 @@ namespace startPosition
     };
     using Quiet1ppc = QuietImpl< QuietParameter1ppc >;
 
+  // for probe particles:
+  CONST_VECTOR(
+               float_X,
+               3,
+               InCellOffset,
+               /* each x, y, z in-cell position component
+                * in range [0.0, 1.0) */
+               0.5,
+               0.5,
+               0.5
+               );
+  struct OnePositionParameter
+  {
+    static constexpr uint32_t numParticlesPerCell = 1u;
+    const InCellOffset_t inCellOffset;
+  };
+
+  using OnePosition = OnePositionImpl< OnePositionParameter >;
+
 } // namespace startPosition
 
     /** During unit normalization, we assume this is a typical
@@ -69,7 +88,7 @@ namespace startPosition
      *  particle attributes.
      */
     constexpr uint32_t TYPICAL_PARTICLES_PER_CELL =
-        startPosition::RandomParameter100ppc::numParticlesPerCell;
+        startPosition::RandomParameter10ppc::numParticlesPerCell;
 
 } // namespace particles
 } // namespace picongpu

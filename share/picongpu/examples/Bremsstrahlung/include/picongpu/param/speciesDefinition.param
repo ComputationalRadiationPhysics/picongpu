@@ -41,14 +41,58 @@ using DefaultParticleAttributes = MakeSeq_t<
     weighting,
     particleId,
     momentumPrev1
-#if( RAD_MARK_PARTICLE > 1 ) || ( RAD_ACTIVATE_GAMMA_FILTER != 0 )
-    , radiationFlag
-#endif
+    //voronoiCellId
 >;
 
 /*########################### end particle attributes ########################*/
 
 /*########################### define species #################################*/
+
+/*--------------------------- probe particles -------------------------------------------*/
+
+  using ParticleFlagsProbes = bmpl::vector<
+    particlePusher< particles::pusher::Probe >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >
+    >;
+
+using Probes = Particles<
+  PMACC_CSTRING( "probe" ),
+  ParticleFlagsProbes,
+    MakeSeq_t<
+      position< position_pic >,
+      probeB,
+      probeE
+      >
+  >;
+
+/*--------------------------- trace particles -------------------------------------------*/
+
+  value_identifier( float_X, MassRatioTrace, 1.0 );
+  value_identifier( float_X, ChargeRatioTrace, 1.0 );
+
+  using ParticleFlagsTracers = bmpl::vector<
+    particlePusher< UsedParticlePusher >,
+    shape< UsedParticleShape >,
+    interpolation< UsedField2Particle >,
+    massRatio< MassRatioTrace >,
+    chargeRatio< ChargeRatioTrace >
+    >;
+
+  using Tracers = Particles<
+    PMACC_CSTRING( "trace" ),
+    ParticleFlagsProbes,
+    MakeSeq_t<
+      position< position_pic >,
+      momentum,
+      weighting,
+      particleId,
+      probeB,
+      probeE
+      >
+  >;
+
+
 
 /*--------------------------- photons -------------------------------------------*/
 
@@ -63,9 +107,16 @@ using ParticleFlagsPhotons = bmpl::vector<
     chargeRatio< ChargeRatioPhotons >
 >;
 
-/* define species photons */
-using PIC_Photons = Particles<
-    PMACC_CSTRING( "ph" ),
+/* define species photons bremsstrahlung */
+using Brems_Photons = Particles<
+    PMACC_CSTRING( "ph_b" ),
+    ParticleFlagsPhotons,
+    DefaultParticleAttributes
+>;
+
+/* define species photons synchrotron */
+using Sync_Photons = Particles<
+    PMACC_CSTRING( "ph_s" ),
     ParticleFlagsPhotons,
     DefaultParticleAttributes
 >;
@@ -113,7 +164,8 @@ using ParticleFlagsElectrons = bmpl::vector<
     chargeRatio< ChargeRatioElectrons >,
     densityRatio< DensityRatioElectrons >,
     bremsstrahlungIons< PIC_Ions >,
-    bremsstrahlungPhotons< PIC_Photons >
+    bremsstrahlungPhotons< Brems_Photons >,
+    synchrotronPhotons< Sync_Photons >
 >;
 
 /* define species electrons */
@@ -130,7 +182,10 @@ using PIC_Electrons = Particles<
 using VectorAllSpecies = MakeSeq_t<
     PIC_Electrons,
     PIC_Ions,
-    PIC_Photons
+    Brems_Photons,
+    Sync_Photons,
+    Probes,
+    Tracers
 >;
 
 } //namespace picongpu
