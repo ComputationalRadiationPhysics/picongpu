@@ -55,7 +55,7 @@ using DefaultParticleAttributes = MakeSeq_t<
 value_identifier( float_X, MassRatioPhotons, 0.0 );
 value_identifier( float_X, ChargeRatioPhotons, 0.0 );
 
-using ParticleFlagsPhotons = bmpl::vector<
+using ParticleFlagsPhotons = MakeSeq_t<
     particlePusher< particles::pusher::Photon >,
     shape< UsedParticleShape >,
     interpolation< UsedField2Particle >,
@@ -78,7 +78,7 @@ value_identifier(float_X, MassRatioIons, 359100);
 value_identifier(float_X, ChargeRatioIons, -79.0);
 value_identifier(float_X, DensityRatioIons, 1.0);
 
-using ParticleFlagsIons = bmpl::vector<
+using ParticleFlagsIons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
     shape< UsedParticleShape >,
     interpolation< UsedField2Particle >,
@@ -104,7 +104,7 @@ value_identifier( float_X, MassRatioElectrons, 1.0 );
 value_identifier( float_X, ChargeRatioElectrons, 1.0 );
 value_identifier( float_X, DensityRatioElectrons, 79.0 );
 
-using ParticleFlagsElectrons = bmpl::vector<
+using ParticleFlagsElectrons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
     shape< UsedParticleShape >,
     interpolation< UsedField2Particle >,

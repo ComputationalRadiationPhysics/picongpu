@@ -111,7 +111,7 @@ namespace picongpu
     /** FileOutputParticles: Groups all Species that shall be dumped **********
      *
      * hint: to disable particle output set to
-     *   using FileOutputParticles = bmpl::vector0< >;
+     *   using FileOutputParticles = MakeSeq_t< >;
      */
     using FileOutputParticles = VectorAllSpecies;
 
