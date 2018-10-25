@@ -77,27 +77,27 @@ if __name__ == "__main__":
     p_H = plt.plot(fields, H, label="ADK H")
 
     p_Csimple = plt.plot(fields, Csimple,
-                         label="ADK C  $ \quad Z = 2\mathrm{+}$")
+                         label=r"ADK C  $ \quad Z = 2\mathrm{+}$")
     p_Ceff = plt.plot(fields, Ceff,
-                      label="ADK C (eff) $ \quad Z = 3.136 = Z_\mathrm{eff}$")
+                      label=r"ADK C (eff) $ \quad Z = 3.136 = Z_\mathrm{eff}$")
     plt.vlines(E_H**2./(4*1), ymin, ymax,
                colors="{}".format(p_H[0].get_color()),
-               label="$F_\mathrm{BSI}$ H", linestyles="--")
+               label=r"$F_\mathrm{BSI}$ H", linestyles="--")
 
     plt.vlines(E_C[1]**2. / (4*2), ymin, ymax,
                colors="{}".format(p_Csimple[0].get_color()),
-               label="$F_\mathrm{BSI}$ C", linestyles="--")
+               label=r"$F_\mathrm{BSI}$ C", linestyles="--")
     plt.vlines(E_C[1]**2. / (4*3.136), ymin, ymax,
                colors="{}".format(p_Ceff[0].get_color()),
-               label="$F_\mathrm{BSI}$ C (eff)", linestyles="--")
+               label=r"$F_\mathrm{BSI}$ C (eff)", linestyles="--")
 
     plt.title("Comparison of ADK ionization rates for\nCarbon-II and Hydrogen")
     plt.ylim([ymin, ymax])
     plt.xlim([1e-2, 1e1])
     plt.yscale("log")
     plt.xscale("log")
-    plt.ylabel("ionization rate $\Gamma$ [s$^{-1}$]")
-    plt.xlabel("field strength $F$ [AU = 5.1422$\cdot 10^{11}$ V/m]")
+    plt.ylabel(r"ionization rate $\Gamma$ [s$^{-1}$]")
+    plt.xlabel(r"field strength $F$ [AU = 5.1422$\cdot 10^{11}$ V/m]")
     plt.legend(loc="best")
 
     plt.show()
