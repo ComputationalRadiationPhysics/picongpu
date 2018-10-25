@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+#
+# Copyright 2013-2018 Axel Huebl, Rene Widera, Richard Pausch
+#
+# This file is part of PIConGPU.
+#
+# PIConGPU is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PIConGPU is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PIConGPU.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+
+# This script parses template files for a batch systems and fills them
+# with a platform-independent configuration, which can then be submitted
+# to a batch system or plainly executed. It can also execute additional
+# commands at that point, e.g. to copy and archive input files alongside
+# a batch job.
+
+function absolute_path()
+{
+    cd $1
+    pwd
+}
+
+help()
+{
+    echo "pic-submit"
+    echo "submit a job created by tbg"
+    echo ""
+    echo "usage: pic-submit [-s submitcommand] [-h] simulationDirectory"
+    echo ""
+    echo "-s | --submit   command        - Submit command (qsub, \"qsub -h\", sbatch, ...)"
+    echo "                                 Default: submitcommand via export TBG_SUBMIT"
+    echo "-h | --help                    - Shows help (this output)."
+    echo ""
+    echo "simulationDirectory            - Directory for simulation output."
+}
+
+# by default the submit command from the environment is used
+# this can be overwritten by the user with the option -s
+submit_command=${submit_command:-$TBG_SUBMIT}
+
+# options may be followed by
+# - one colon to indicate they has a required argument
+# - two colons to indicate they has a optional argument
+OPTS=`getopt -o s:h -l submit:,help -- "$@"`
+if [ $? != 0 ] ; then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
+fi
+
+eval set -- "$OPTS"
+
+# parser
+while true ; do
+    case "$1" in
+        -s|--submit)
+            submit_command=$2
+            shift
+            ;;
+        -h|--help)
+            echo -e "$(help)"
+            shift
+            exit 0
+            ;;
+        --) shift; break;;
+    esac
+    shift
+done
+
+if [ -z "$*" ] ; then
+    echo "No output directory is set (last parameter)." >&2
+    exit 1;
+fi
+
+# only one parameter is allowed
+# an empty parameter list is handled later
+if [ $# -gt 1 ] ; then
+    echo "Too many job directories are given '$*'" >&2
+    exit 1;
+fi
+
+# the last parameter is the `destinationPath`
+outDir="$1"
+
+job_name=`basename "$outDir"`
+job_relative_dir=`dirname "$outDir"`
+
+# TBG_SUBMIT is empty/not and '-s' is not used
+if [ -z "$submit_command" ] ; then
+    echo "No submit command provided, set the environment variable 'TBG_SUBMIT' or use the option `-s`." >&2
+    exit 1;
+fi
+
+job_outDir=`cd "$job_relative_dir"; pwd`"/$job_name"
+submitStart=$job_outDir/tbg/submit.start
+
+if [ ! -f $submitStart  ] ; then
+    echo "File '$submitStart' not exists. Is '$job_outDir/' created by tbg?" >&2
+    exit 1
+fi
+
+# some batch systems wrote the job status files to the directory from where the submit command is called
+cd $job_outDir
+$submit_command tbg/submit.start
