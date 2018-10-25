@@ -65,7 +65,7 @@ def get_list_of_hdf5_files(base_directory):
 
     for filename in os.listdir(h5_dir):
         if os.path.isfile(h5_dir+filename):
-            if re.search(".+_[0-9]+\.h5", filename):
+            if re.search(r".+_[0-9]+\.h5", filename):
                 h5_list.append(h5_dir + filename)
     return h5_list
 
