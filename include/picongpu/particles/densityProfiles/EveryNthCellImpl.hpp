@@ -67,7 +67,7 @@ namespace densityProfiles
 
             // is this cell populated with a probe particle?
             bool const isPopulated(
-                isThisCellWithProbe.productOfComponents() == 0
+                isThisCellWithProbe == DataSpace< simDim >::create( 0 )
             );
 
             /* every how many (volumentric) cells do we set a particle:
