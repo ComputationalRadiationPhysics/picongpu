@@ -99,3 +99,9 @@ class RadiationData:
     def get_Polarization_Z(self):
         """Returns real spectra for z-polarization in [Js]."""
         return np.abs(self.get_Amplitude_z())**2
+
+    def get_omega(self):
+        """Returns frequency 'omega' of spectrum in [s^-1]."""
+        omega_h = self.h5_file[("/data/{}/DetectorMesh/" +
+                                "DetectorFrequency/omega").format(self.timestep)]
+        return omega_h[0, :, 0] * omega_h.attrs['unitSI']
