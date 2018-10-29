@@ -56,19 +56,20 @@ You can also push the result to dockerhub and singularity-hub (you need an accou
     cd ubuntu-1604
 
     # docker image
-    docker build -t ax3l/picongpu:0.3.0 .
+    docker build -t ax3l/picongpu:0.4.0 .
     # optional: push to dockerhub (needed for singularity bootstrap)
     docker login
-    docker push ax3l/picongpu:0.3.0
+    docker push ax3l/picongpu:0.4.0
     # optional: mark as latest release
-    docker tag ax3l/picongpu:0.3.0 ax3l/picongpu:latest
+    docker tag ax3l/picongpu:0.4.0 ax3l/picongpu:latest
     docker push ax3l/picongpu:latest
 
     # singularity image
     singularity create -s 4096 picongpu.img
     sudo singularity bootstrap picongpu.img Singularity
-    # optional: push to singularity-hub
-    singularity push picongpu.img --name ax3l/picongpu --tag 0.3.0
+    # optional: push to a singularity registry
+    # setup your $HOME/.sregistry first
+    sregistry push picongpu.img --name ax3l/picongpu --tag 0.4.0
 
 Recipes
 -------
