@@ -102,14 +102,14 @@ class RadiationData:
 
     def get_omega(self):
         """Returns frequency 'omega' of spectrum in [s^-1]."""
-        omega_h = self.h5_file[("/data/{}/DetectorMesh/" +
-                                "DetectorFrequency/omega").format(self.timestep)]
+        omega_h = self.h5_file["/data/{}/".format(self.timestep) +
+                               "DetectorMesh/DetectorFrequency/omega"]
         return omega_h[0, :, 0] * omega_h.attrs['unitSI']
 
     def get_vector_n(self):
         """Returns the unit vector 'n' of the observation directions."""
-        n_h = self.h5_file[("/data/{}/DetectorMesh/" +
-                            "DetectorDirection/").format(self.timestep)]
+        n_h = self.h5_file["/data/{}/".format(self.timestep) +
+                           "DetectorMesh/DetectorDirection/"]
         n_x = n_h['x'][:, 0, 0] * n_h['x'].attrs['unitSI']
         n_y = n_h['y'][:, 0, 0] * n_h['y'].attrs['unitSI']
         n_z = n_h['z'][:, 0, 0] * n_h['z'].attrs['unitSI']
