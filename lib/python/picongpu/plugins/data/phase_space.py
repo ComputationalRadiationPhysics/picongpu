@@ -206,18 +206,18 @@ class PhaseSpaceData(DataReader):
 
         Parameters
         ----------
-        iteration : (unsigned) int [unitless]
+        iteration : (unsigned) int [unitless] or list of int or None.
             The iteration at which to read the data.
-            @TODO also allow lists here
+            ``None`` refers to the list of all available iterations.
+        ps : string
+            phase space selection in order: spatial, momentum component,
+            e.g. 'ypy' or 'ypx'
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        ps : string
-            phase space selection in order: spatial, momentum component,
-            e.g. 'ypy' or 'ypx'
 
         Returns
         -------
@@ -226,9 +226,9 @@ class PhaseSpaceData(DataReader):
         ps_meta :
             PhaseSpaceMeta object with meta information about the 2D histogram
 
-        If iteration is a list (or None), return a dict matching iteration
-        number to a tuple containing ps and ps_meta. If a single iteration is
-        requested, return the tuple (ps, ps_meta).
+        If iteration is a list (or None), return a list of tuples
+        containing ps and ps_meta for each requested iteration.
+        If a single iteration is requested, return the tuple (ps, ps_meta).
         """
         available_iterations = self.get_iterations(
             ps, species, species_filter)
