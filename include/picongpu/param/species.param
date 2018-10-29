@@ -76,6 +76,7 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov< UsedParticleShape >;
  *                                              with classical radiation reaction
  *
  * For diagnostics & modeling: ------------------------------------------------
+ * - particles::pusher::Acceleration : Accelerate particles by applying a constant electric field
  * - particles::pusher::Free : free propagation, ignore fields
  *                             (= free stream model)
  * - particles::pusher::Photon : propagate with c in direction of normalized mom.
