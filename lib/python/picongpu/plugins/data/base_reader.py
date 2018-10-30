@@ -32,6 +32,23 @@ class DataReader(object):
         self.data_file_prefix = None
         self.data_file_suffix = None
 
+    def get_dt(self):
+        """
+        Return the timestep for the chosen simulation.
+        """
+        return self.find_time.get_dt()
+
+    def get_times(self, **kwargs):
+        """
+        Returns
+        -------
+        An array of floats of simulation time steps for which
+        data is available
+        """
+
+        iterations = np.array(self.get_iterations(**kwargs))
+        return self.find_time.get_time(iterations)
+
     def get_data_path(self, **kwargs):
         """
         Returns
@@ -48,22 +65,6 @@ class DataReader(object):
         data is available.
         """
         raise NotImplementedError
-
-    def get_dt(self):
-        """
-        """
-        return self.find_time.get_dt()
-
-    def get_times(self, **kwargs):
-        """
-        Returns
-        -------
-        An array of floats of simulation time steps for which
-        data is available
-        """
-
-        iterations = np.array(self.get_iterations(**kwargs))
-        return self.find_time.get_time(iterations)
 
     def get(self, **kwargs):
         """
