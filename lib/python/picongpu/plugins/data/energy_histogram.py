@@ -106,9 +106,8 @@ class EnergyHistogramData(DataReader):
 
         Parameters
         ----------
-        iteration : (unsigned) int [unitless]
+        iteration : (unsigned) int [unitless] or list of int or None.
             The iteration at which to read the data.
-            A list of iterations is allowed as well.
             ``None`` refers to the list of all available iterations.
         species : string
             short name of the particle species, e.g. 'e' for electrons
@@ -123,8 +122,7 @@ class EnergyHistogramData(DataReader):
         -------
         counts : np.array of dtype float [unitless]
             count of particles in each bin
-            If iteration is a list, returns (ordered) dict with iterations as
-            its index.
+            If iteration is a list, returns a list of counts.
         bins : np.array of dtype float [keV]
             upper ranges of each energy bin
         """
@@ -179,9 +177,6 @@ class EnergyHistogramData(DataReader):
             del data['overflow']
 
         if len(iteration) > 1:
-            return collections.OrderedDict(zip(
-                    iteration,
-                    data.loc[iteration].values
-                )), bins
+            return data.loc[iteration].values, bins
         else:
             return data.loc[iteration].values[0, :], bins

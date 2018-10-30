@@ -7,6 +7,7 @@ License: GPLv3+
 """
 from .base_reader import DataReader
 
+import numpy as np
 import os
 from scipy import misc
 import collections
@@ -140,7 +141,7 @@ class PNGData(DataReader):
 
         Returns
         -------
-        A sorted list of unsigned integers.
+        A numpy array of sorted unsigned integers.
         """
         # get the available png files in the directory
         png_path = self.get_data_path(
@@ -151,7 +152,7 @@ class PNGData(DataReader):
         # split iteration number from the filenames
         iters = [int(f.split("_")[4].split(".")[0]) for f in png_files]
 
-        return sorted(iters)
+        return np.array(sorted(iters))
 
     def _get_for_iteration(self, iteration, species, species_filter='all',
                            axis=None, slice_point=None, **kwargs):
@@ -160,9 +161,9 @@ class PNGData(DataReader):
 
         Parameters
         ----------
-        iteration: int or list of ints
+        iteration: int or list of ints or None
             The iteration at which to read the data.
-            if set to 'None', then return images for all available iterations
+            if set to 'None', return images for all available iterations
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
@@ -177,8 +178,8 @@ class PNGData(DataReader):
 
         Returns
         -------
-        A dictionary mapping iteration number to numpy array representation of
-        the corresponding png file if multiple iterations were requested.
+        A list of numpy array representations of
+        the corresponding png files if multiple iterations were requested.
         Otherwise a single nump array representation for the requested\
         iteration.
         """
@@ -197,10 +198,10 @@ class PNGData(DataReader):
             # iteration is None, so we use all available data
             iteration = available_iterations
 
-        imgs = {it: misc.imread(
+        imgs = [misc.imread(
             self.get_data_path(species, species_filter, axis,
-                               slice_point, it)) for it in iteration}
+                               slice_point, it)) for it in iteration]
         if len(iteration) == 1:
-            return imgs[iteration[0]]
+            return imgs[0]
         else:
             return imgs

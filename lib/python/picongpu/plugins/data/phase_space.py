@@ -214,7 +214,7 @@ class PhaseSpaceData(DataReader):
         ps_meta :
             PhaseSpaceMeta object with meta information about the 2D histogram
 
-        @todo if iteration is a list, return a dict
+        @todo if iteration is a list, return a list of tuples
         """
         if iteration is None:
             raise ValueError('The iteration needs to be set!')
