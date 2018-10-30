@@ -75,9 +75,11 @@ class DataReader(object):
         an iteration and data for the iteration matching the time
         is returned.
 
-        time: float or np.array of float
+        time: float or np.array of float or None.
+            If None, data for all available times is returned.
 
-        iteration: int or np.array of int
+        iteration: int or np.array of int or None.
+            If None, data for all available iterations is returned.
 
         Returns
         -------
@@ -89,13 +91,22 @@ class DataReader(object):
                 "One of 'iteration' and 'time' parameters"
                 " has to be present!")
 
-        iteration = kwargs.get('iteration', None)
+        iteration = None
+        if 'iteration' in kwargs:
+            # remove the entry from kwargs since we pass that
+            # on
+            iteration = kwargs.pop('iteration')
 
-        time = kwargs.get('time', None)
-        if time is not None:
+        if 'time' in kwargs:
             # we have time and override the iteration
-            # so convert time to iteration
-            iteration = self.find_time.get_iteration(time)
+            # by the converted time
+            time = kwargs.pop('time')
+            if time is None:
+                # use all times that are available, i.e. all iterations
+                iteration = self.get_iterations(**kwargs)
+            else:
+                iteration = self.find_time.get_iteration(time)
+            print("got 'time'=", time, ", converting to iteration", iteration)
 
         return self._get_for_iteration(iteration, **kwargs)
 
