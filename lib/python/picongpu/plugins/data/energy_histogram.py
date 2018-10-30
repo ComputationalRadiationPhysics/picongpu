@@ -99,23 +99,23 @@ class EnergyHistogramData(DataReader):
                            delimiter=" ",
                            dtype=np.uint64).values[:, 0]
 
-    def get(self, species, species_filter="all", iteration=None,
-            include_overflow=False, **kwargs):
+    def _get_for_iteration(self, iteration, species, species_filter="all",
+                           include_overflow=False, **kwargs):
         """
-        Get a histogram.
+        Get a histogram for a given iteration.
 
         Parameters
         ----------
+        iteration : (unsigned) int [unitless]
+            The iteration at which to read the data.
+            A list of iterations is allowed as well.
+            ``None`` refers to the list of all available iterations.
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        iteration : (unsigned) int [unitless]
-            The iteration at which to read the data.
-            A list of iterations is allowed as well.
-            ``None`` refers to the list of all available iterations.
         include_overflow : boolean, default: False
             Include overflow and underflow bins as the first/last bins.
 

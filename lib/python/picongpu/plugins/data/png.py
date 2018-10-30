@@ -153,13 +153,16 @@ class PNGData(DataReader):
 
         return sorted(iters)
 
-    def get(self, species, species_filter='all', iteration=None,
-            axis=None, slice_point=None, **kwargs):
+    def _get_for_iteration(self, iteration, species, species_filter='all',
+                           axis=None, slice_point=None, **kwargs):
         """
         Get an array representation of a PNG file.
 
         Parameters
         ----------
+        iteration: int or list of ints
+            The iteration at which to read the data.
+            if set to 'None', then return images for all available iterations
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
@@ -171,9 +174,6 @@ class PNGData(DataReader):
         slice_point: float
             relative offset in the third axis not given in the axis argument.\
             Should be between 0 and 1
-        iteration: int or list of ints
-            The iteration at which to read the data.
-            if set to 'None', then return images for all available iterations
 
         Returns
         -------
