@@ -99,3 +99,22 @@ class RadiationData:
     def get_Polarization_Z(self):
         """Returns real spectra for z-polarization in [Js]."""
         return np.abs(self.get_Amplitude_z())**2
+
+    def get_omega(self):
+        """Returns frequency 'omega' of spectrum in [s^-1]."""
+        omega_h = self.h5_file["/data/{}/".format(self.timestep) +
+                               "DetectorMesh/DetectorFrequency/omega"]
+        return omega_h[0, :, 0] * omega_h.attrs['unitSI']
+
+    def get_vector_n(self):
+        """Returns the unit vector 'n' of the observation directions."""
+        n_h = self.h5_file["/data/{}/".format(self.timestep) +
+                           "DetectorMesh/DetectorDirection/"]
+        n_x = n_h['x'][:, 0, 0] * n_h['x'].attrs['unitSI']
+        n_y = n_h['y'][:, 0, 0] * n_h['y'].attrs['unitSI']
+        n_z = n_h['z'][:, 0, 0] * n_h['z'].attrs['unitSI']
+        n_vec = np.empty((len(n_x), 3))
+        n_vec[:, 0] = n_x
+        n_vec[:, 1] = n_y
+        n_vec[:, 2] = n_z
+        return n_vec
