@@ -61,19 +61,17 @@ class Visualizer(BaseVisualizer):
                 (defined in ``speciesDefinition.param``)
             iteration: int
                 number of the iteration
+            time: float
+                simulation time.
+                Only one of 'iteration' or 'time' should be passed!
             species_filter: string
                 name of the particle species filter, default is 'all'
                 (defined in ``particleFilters.param``)
 
         """
-        iteration = kwargs.get('iteration')
-        species = kwargs.get('species')
-        if iteration is None or species is None:
-            raise ValueError("Iteration and species have to be provided as\
-            keyword arguments!")
-
         super().visualize(**kwargs)
 
+        species = kwargs['species']
         species_filter = kwargs.get('species_filter', 'all')
 
         self.ax.relim()
