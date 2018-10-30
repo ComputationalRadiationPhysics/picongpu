@@ -72,6 +72,9 @@ class Visualizer(BaseVisualizer):
                 The iteration at which to read the data.
                 if set to 'None', then return images for all available\
                     iterations
+            time: float
+                simulation time.
+                Only one of 'iteration' or 'time' should be passed!
         """
         super().visualize(**kwargs)
 
