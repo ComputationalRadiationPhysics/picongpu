@@ -1,0 +1,120 @@
+{
+    "creators": [
+      {
+        "affiliation": "HZDR, TU Dresden",
+        "name": "Huebl, Axel",
+        "orcid": "0000-0003-1943-7141"
+      },
+      {
+        "affiliation": "HZDR",
+        "name": "Widera, René",
+        "orcid": "0000-0003-1642-0459"
+      },
+      {
+        "affiliation": "LogMeIn, Inc.",
+        "name": "Worpitz, Benjamin"
+      },
+      {
+        "affiliation": "HZDR, TU Dresden",
+        "name": "Pausch, Richard",
+        "orcid": "0000-0001-7990-9564"
+      },
+      {
+        "affiliation": "HZDR, TU Dresden",
+        "name": "Burau, Heiko"
+      },
+      {
+        "affiliation": "HZDR, TU Dresden",
+        "name": "Garten, Marco",
+        "orcid": "0000-0001-6994-2475"
+      },
+      {
+        "affiliation": "HZDR",
+        "name": "Starke, Sebastian"
+      },
+      {
+        "affiliation": "HZDR, TU Dresden",
+        "name": "Grund, Alexander",
+        "orcid": "0000-0002-7196-8452"
+      },
+      {
+        "affiliation": "HZDR",
+        "name": "Debus, Alexander",
+        "orcid": "0000-0002-3844-3697"
+      },
+      {
+        "affiliation": "HZDR, TU Dresden",
+        "name": "Matthes, Alexander",
+        "orcid": "0000-0002-6702-2015"
+      },
+      {
+        "affiliation": "HZDR",
+        "name": "Bastrakov, Sergei",
+        "orcid": "0000-0003-3396-6154"
+      },
+      {
+        "affiliation": "HZDR",
+        "name": "Steiniger, Klaus",
+        "orcid": "0000-0001-8965-1149"
+      },
+      {
+        "affiliation": "HZDR",
+        "name": "Göthel, Ilja"
+      },
+      {
+        "affiliation": "HZDR, TU Dresden",
+        "name": "Rudat, Sophie"
+      },
+      {
+        "affiliation": "HZDR",
+        "name": "Kelling, Jeffrey",
+        "orcid": "0000-0003-1761-2591"
+      },
+      {
+        "affiliation": "HZDR",
+        "name": "Bussmann, Michael",
+        "orcid": "0000-0002-8258-3881"
+      }
+    ],
+    "grants": [
+      {
+        "acronym": "EUCALL",
+        "code": "654220",
+        "funder": {
+          "acronyms": [
+            "EC"
+          ],
+          "doi": "10.13039/501100000780",
+          "links": {
+            "self": "https://zenodo.org/api/funders/10.13039/501100000780"
+          },
+          "name": "European Commission"
+        },
+        "links": {
+          "self": "https://zenodo.org/api/grants/10.13039/501100000780::654220"
+        },
+        "program": "H2020",
+        "title": "European Cluster of Advanced Laser Light Sources"
+      }
+    ],
+    "keywords": [
+      "PIConGPU",
+      "CUDA",
+      "OpenMP",
+      "manycore",
+      "Plasma Physics",
+      "GPU"
+    ],
+    "language": "eng",
+    "access_right": "open",
+    "license": {
+      "id": "GPL-3.0"
+    },
+    "references": [
+      "M. Vranic et al. (2015). Classical radiation reaction in particle-in-cell simulations. DOI:10.1016/j.cpc.2016.04.002",
+      "A. Gonoskov et al. (2015). Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments. DOI:10.1103/PhysRevE.92.023305",
+      "L. V. Keldysh (1965). Ionization in the field of a strong electromagnetic wave.",
+      "D. Bauer and P. Mulser (1999). Exact field ionization rates in the barrier-suppression regime from numerical time-dependent Schr\u00f6dinger-equation calculations. DOI:10.1103/PhysRevA.59.569",
+      "A. Huebl et al. (2015). openPMD 1.0.0 - A meta data standard for particle and mesh based data. DOI:10.5281/zenodo.33624"
+    ]
+}
