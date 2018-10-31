@@ -81,6 +81,9 @@ class Visualizer(BaseVisualizer):
         kwargs: dict with possible additional keyword args. Valid are:
             iteration: int
                 the iteration number for which data will be plotted.
+            time: float
+                simulation time.
+                Only one of 'iteration' or 'time' should be passed!
             species : string
                 short name of the particle species, e.g. 'e' for electrons
                 (defined in ``speciesDefinition.param``)

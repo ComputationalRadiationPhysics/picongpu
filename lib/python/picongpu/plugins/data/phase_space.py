@@ -187,13 +187,16 @@ class PhaseSpaceData(DataReader):
 
         return iterations
 
-    def get(self, species, species_filter='all', iteration=None, ps=None,
-            **kwargs):
+    def _get_for_iteration(self, iteration, species, species_filter='all',
+                           ps=None, **kwargs):
         """
         Get a phase space histogram.
 
         Parameters
         ----------
+        iteration : (unsigned) int [unitless]
+            The iteration at which to read the data.
+            @TODO also allow lists here
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
@@ -203,9 +206,6 @@ class PhaseSpaceData(DataReader):
         ps : string
             phase space selection in order: spatial, momentum component,
             e.g. 'ypy' or 'ypx'
-        iteration : (unsigned) int [unitless]
-            The iteration at which to read the data.
-            @TODO also allow lists here
 
         Returns
         -------
@@ -214,7 +214,7 @@ class PhaseSpaceData(DataReader):
         ps_meta :
             PhaseSpaceMeta object with meta information about the 2D histogram
 
-        @todo if iteration is a list, return a dict
+        @todo if iteration is a list, return a list of tuples
         """
         if iteration is None:
             raise ValueError('The iteration needs to be set!')

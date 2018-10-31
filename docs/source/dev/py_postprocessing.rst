@@ -15,7 +15,7 @@ Data Reader
 
 The data readers should reside in the ``lib/python/picongpu/plugins/data`` directory.
 There is a base class in ``base_reader.py`` defining the interface of a reader.
-Each reader class should derive from this class and needs to implement the following interface functions:
+Each reader class should derive from this class and implement the interface functions not implemented in this class.
 
 .. autoclass:: picongpu.plugins.data.base_reader.DataReader
    :members:

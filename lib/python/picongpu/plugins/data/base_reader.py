@@ -5,6 +5,9 @@ Copyright 2017-2018 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
+from ...utils.find_time import FindTime
+
+import numpy as np
 
 
 class DataReader(object):
@@ -23,9 +26,28 @@ class DataReader(object):
             raise ValueError('The run_directory parameter can not be None!')
 
         self.run_directory = run_directory
+        self.find_time = FindTime(run_directory)
+
         # need to be set in derived classes
         self.data_file_prefix = None
         self.data_file_suffix = None
+
+    def get_dt(self):
+        """
+        Return the timestep for the chosen simulation.
+        """
+        return self.find_time.get_dt()
+
+    def get_times(self, **kwargs):
+        """
+        Returns
+        -------
+        An array of floats of simulation time steps for which
+        data is available
+        """
+
+        iterations = np.array(self.get_iterations(**kwargs))
+        return self.find_time.get_time(iterations)
 
     def get_data_path(self, **kwargs):
         """
@@ -46,6 +68,52 @@ class DataReader(object):
 
     def get(self, **kwargs):
         """
+        Parameters
+        ----------
+        Either 'iteration' or 'time' should be present in the kwargs.
+        If both are given, the 'time' argument is converted to
+        an iteration and data for the iteration matching the time
+        is returned.
+
+        time: float or np.array of float or None.
+            If None, data for all available times is returned.
+
+        iteration: int or np.array of int or None.
+            If None, data for all available iterations is returned.
+
+        Returns
+        -------
+        The data for the requested parameters in a plugin
+        dependent format and type.
+        """
+        if 'iteration' not in kwargs and 'time' not in kwargs:
+            raise ValueError(
+                "One of 'iteration' and 'time' parameters"
+                " has to be present!")
+
+        iteration = None
+        if 'iteration' in kwargs:
+            # remove the entry from kwargs since we pass that
+            # on
+            iteration = kwargs.pop('iteration')
+
+        if 'time' in kwargs:
+            # we have time and override the iteration
+            # by the converted time
+            time = kwargs.pop('time')
+            if time is None:
+                # use all times that are available, i.e. all iterations
+                iteration = self.get_iterations(**kwargs)
+            else:
+                iteration = self.find_time.get_iteration(time)
+            print("got 'time'=", time, ", converting to iteration", iteration)
+
+        return self._get_for_iteration(iteration, **kwargs)
+
+    def _get_for_iteration(self, iteration, **kwargs):
+        """
+        Get the data for a given iteration.
+
         Returns
         -------
         The data for the requested parameters in a plugin
