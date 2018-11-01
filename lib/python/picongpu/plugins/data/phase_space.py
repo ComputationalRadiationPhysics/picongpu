@@ -245,7 +245,7 @@ class PhaseSpaceData(DataReader):
             # take all availble iterations
             iteration = available_iterations
 
-        ret = {}
+        ret = []
         for it in iteration:
             data_file_path, data_hdf5_name = self.get_data_path(
                 ps,
@@ -281,9 +281,9 @@ class PhaseSpaceData(DataReader):
 
             ps_meta = PhaseSpaceMeta(
                 species, species_filter, ps, ps_cut.shape, extent, dV)
-            ret[it] = (ps_cut, ps_meta)
+            ret.append((ps_cut, ps_meta))
 
         if len(iteration) == 1:
-            return ret[iteration[0]]
+            return ret[0]
         else:
             return ret
