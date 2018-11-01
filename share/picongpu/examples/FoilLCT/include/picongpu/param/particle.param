@@ -62,7 +62,7 @@ namespace manipulators
         )
         {
             constexpr float_X protonNumber = GetAtomicNumbers< T_Particle >::type::numberOfProtons;
-            particle[ boundElectrons_ ] = protonNumber - 1;
+            particle[ boundElectrons_ ] = protonNumber - 1.0_X;
         }
     };
     using OnceIonized = generic::Free< OnceIonizedImpl >;
