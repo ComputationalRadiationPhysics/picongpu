@@ -136,8 +136,6 @@ class PNGData(DataReader):
         slice_point: float
             relative offset in the third axis not given in the axis argument.\
             Should be between 0 and 1
-        iteration: int
-            The iteration at which to read the data.
 
         Returns
         -------

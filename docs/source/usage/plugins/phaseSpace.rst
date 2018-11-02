@@ -73,14 +73,15 @@ You can quickly load and interact with the data in Python with:
 
    # load data
    ps_data = PhaseSpaceData('/home/axel/runs/lwfa_001')
-   ps, meta = ps_data.get(species='e', species_filter='all', ps='ypy', iteration=2000)
+   # a list of iterations is also possible
+   ps, meta = ps_data.get(ps='ypy', species='e', species_filter='all', iteration=2000)
 
    # unit conversion from SI
    mu = 1.e6  # meters to microns
    e_mc_r = 1. / (9.109e-31 * 2.9979e8)  # electrons: kg * m / s to beta * gamma
 
-   Q_dr_dp = np.abs(e_ps) * e_ps_meta.dV  # C s kg^-1 m^-2
-   extent = e_ps_meta.extent * [mu, mu, e_mc_r, e_mc_r]  # spatial: microns, momentum: beta*gamma
+   Q_dr_dp = np.abs(ps) * meta.dV  # C s kg^-1 m^-2
+   extent = meta.extent * [mu, mu, e_mc_r, e_mc_r]  # spatial: microns, momentum: beta*gamma
 
 Note that the spatial extent of the output over time might change when running a moving window simulation.
 

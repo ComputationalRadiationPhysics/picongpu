@@ -7,6 +7,7 @@ License: GPLv3+
 """
 from .base_reader import DataReader
 
+import collections
 import numpy as np
 import os
 import glob
@@ -73,28 +74,31 @@ class PhaseSpaceData(DataReader):
         self.data_file_suffix = ".h5"
         self.data_hdf5_path = "/data/{0}/{1}"
 
-    def get_data_path(self, species, species_filter, ps, iteration=None):
+    def get_data_path(self, ps, species, species_filter="all", iteration=None):
         """
         Return the path to the underlying data file.
 
         Parameters
         ----------
+        ps : string
+            phase space selection in order: spatial, momentum component,
+            e.g. 'ypy' or 'ypx'
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        ps : string
-            phase space selection in order: spatial, momentum component,
-            e.g. 'ypy' or 'ypx'
-        iteration : (unsigned) int [unitless]
+        iteration : (unsigned) int or list of int [unitless]
             The iteration at which to read the data.
-            @TODO also allow lists here
+            If 'None', a regular expression string matching
+            all iterations will be returned.
 
         Returns
         -------
-        A string with a file path and a string with a in-file HDF5 path.
+        A string with a file path and a string with a in-file HDF5 path if
+        iteration is a single value or a list of length one.
+        If iteration is a list of length > 1, a dictionary is returned.
         If iteration is None, only the first string is returned and contains a
         regex-* for the position iteration.
         """
@@ -113,63 +117,71 @@ class PhaseSpaceData(DataReader):
         if not os.path.isdir(output_dir):
             raise IOError('The simOutput/phaseSpace/ directory does not '
                           'exist inside path:\n  {}\n'
-                          'Did you set the proper path to the run directory?\n'
+                          'Did you set the proper path to the '
+                          'run directory?\n'
                           'Did you enable the phase space plugin?\n'
                           'Did the simulation already run?'
                           .format(self.run_directory))
 
-        if iteration is None:
+        if iteration is not None:
+            if not isinstance(iteration, collections.Iterable):
+                iteration = [iteration]
+
+            ret = {}
+            for it in iteration:
+                data_file_name = self.data_file_prefix.format(
+                    species,
+                    species_filter,
+                    ps,
+                    str(it)) + self.data_file_suffix
+                data_file_path = os.path.join(output_dir, data_file_name)
+
+                if not os.path.isfile(data_file_path):
+                    raise IOError('The file {} does not exist.\n'
+                                  'Did the simulation already run?'
+                                  .format(data_file_path))
+
+                data_hdf5_name = self.data_hdf5_path.format(
+                    it,
+                    ps)
+
+                ret[it] = (data_file_path, data_hdf5_name)
+            if len(iteration) == 1:
+                return ret[iteration[0]]
+            else:
+                return ret
+        else:
             iteration_str = "*"
-        else:
-            iteration_str = str(iteration)
 
-        data_file_name = self.data_file_prefix.format(
-            species,
-            species_filter,
-            ps,
-            iteration_str
-        ) + self.data_file_suffix
-        data_file_path = os.path.join(
-            output_dir,
-            data_file_name
-        )
+            data_file_name = self.data_file_prefix.format(
+                species,
+                species_filter,
+                ps,
+                iteration_str
+            ) + self.data_file_suffix
+            return os.path.join(output_dir, data_file_name)
 
-        if iteration is None:
-            return data_file_path
-        else:
-            if not os.path.isfile(data_file_path):
-                raise IOError('The file {} does not exist.\n'
-                              'Did the simulation already run?'
-                              .format(data_file_path))
-
-            data_hdf5_name = self.data_hdf5_path.format(
-                iteration,
-                ps
-            )
-
-            return data_file_path, data_hdf5_name
-
-    def get_iterations(self, species, species_filter='all', ps=None):
+    def get_iterations(self, ps, species, species_filter='all'):
         """
         Return an array of iterations with available data.
 
         Parameters
         ----------
+        ps : string
+            phase space selection in order: spatial, momentum component,
+            e.g. 'ypy' or 'ypx'
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        ps : string
-            phase space selection in order: spatial, momentum component,
-            e.g. 'ypy' or 'ypx'
 
         Returns
         -------
         An array with unsigned integers.
         """
-        data_file_path = self.get_data_path(species, species_filter, ps)
+        data_file_path = self.get_data_path(ps, species, species_filter)
 
         matching_files = glob.glob(data_file_path)
         re_it = re.compile(data_file_path.replace("*", "([0-9]+)"))
@@ -187,25 +199,25 @@ class PhaseSpaceData(DataReader):
 
         return iterations
 
-    def _get_for_iteration(self, iteration, species, species_filter='all',
-                           ps=None, **kwargs):
+    def _get_for_iteration(self, iteration, ps, species, species_filter='all',
+                           **kwargs):
         """
         Get a phase space histogram.
 
         Parameters
         ----------
-        iteration : (unsigned) int [unitless]
+        iteration : (unsigned) int [unitless] or list of int or None.
             The iteration at which to read the data.
-            @TODO also allow lists here
+            ``None`` refers to the list of all available iterations.
+        ps : string
+            phase space selection in order: spatial, momentum component,
+            e.g. 'ypy' or 'ypx'
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        ps : string
-            phase space selection in order: spatial, momentum component,
-            e.g. 'ypy' or 'ypx'
 
         Returns
         -------
@@ -214,50 +226,64 @@ class PhaseSpaceData(DataReader):
         ps_meta :
             PhaseSpaceMeta object with meta information about the 2D histogram
 
-        @todo if iteration is a list, return a list of tuples
+        If iteration is a list (or None), return a list of tuples
+        containing ps and ps_meta for each requested iteration.
+        If a single iteration is requested, return the tuple (ps, ps_meta).
         """
-        if iteration is None:
-            raise ValueError('The iteration needs to be set!')
+        available_iterations = self.get_iterations(
+            ps, species, species_filter)
 
-        data_file_path, data_hdf5_name = self.get_data_path(
-            species,
-            species_filter,
-            ps,
-            iteration
-        )
+        if iteration is not None:
+            if not isinstance(iteration, collections.Iterable):
+                iteration = [iteration]
+            # verify requested iterations exist
+            if not set(iteration).issubset(available_iterations):
+                raise IndexError('Iteration {} is not available!\n'
+                                 'List of available iterations: \n'
+                                 '{}'.format(iteration, available_iterations))
+        else:
+            # take all availble iterations
+            iteration = available_iterations
 
-        available_iterations = self.get_iterations(species, species_filter, ps)
-        if iteration not in available_iterations:
-            raise IndexError('Iteration {} is not available!\n'
-                             'List of available iterations: \n'
-                             '{}'.format(iteration, available_iterations))
+        ret = []
+        for it in iteration:
+            data_file_path, data_hdf5_name = self.get_data_path(
+                ps,
+                species,
+                species_filter,
+                it)
 
-        f = h5.File(data_file_path, 'r')
-        ps_data = f[data_hdf5_name]
+            f = h5.File(data_file_path, 'r')
+            ps_data = f[data_hdf5_name]
 
-        # all in SI
-        dV = ps_data.attrs['dV'] * ps_data.attrs['dr_unit']**3
-        unitSI = ps_data.attrs['sim_unit']
-        p_range = ps_data.attrs['p_unit'] * \
-            np.array([ps_data.attrs['p_min'], ps_data.attrs['p_max']])
+            # all in SI
+            dV = ps_data.attrs['dV'] * ps_data.attrs['dr_unit']**3
+            unitSI = ps_data.attrs['sim_unit']
+            p_range = ps_data.attrs['p_unit'] * \
+                np.array([ps_data.attrs['p_min'], ps_data.attrs['p_max']])
 
-        mv_start = ps_data.attrs['movingWindowOffset']
-        mv_end = mv_start + ps_data.attrs['movingWindowSize']
-        #                2D histogram:         0 (r_i); 1 (p_i)
-        spatial_offset = ps_data.attrs['_global_start'][1]
+            mv_start = ps_data.attrs['movingWindowOffset']
+            mv_end = mv_start + ps_data.attrs['movingWindowSize']
+            #                2D histogram:         0 (r_i); 1 (p_i)
+            spatial_offset = ps_data.attrs['_global_start'][1]
 
-        dr = ps_data.attrs['dr'] * ps_data.attrs['dr_unit']
+            dr = ps_data.attrs['dr'] * ps_data.attrs['dr_unit']
 
-        r_range_cells = np.array([mv_start, mv_end]) + spatial_offset
-        r_range = r_range_cells * dr
+            r_range_cells = np.array([mv_start, mv_end]) + spatial_offset
+            r_range = r_range_cells * dr
 
-        extent = np.append(r_range, p_range)
+            extent = np.append(r_range, p_range)
 
-        # cut out the current window & scale by unitSI
-        ps_cut = ps_data[mv_start:mv_end, :] * unitSI
+            # cut out the current window & scale by unitSI
+            ps_cut = ps_data[mv_start:mv_end, :] * unitSI
 
-        f.close()
+            f.close()
 
-        ps_meta = PhaseSpaceMeta(species, species_filter, ps, ps_cut.shape,
-                                 extent, dV)
-        return ps_cut, ps_meta
+            ps_meta = PhaseSpaceMeta(
+                species, species_filter, ps, ps_cut.shape, extent, dV)
+            ret.append((ps_cut, ps_meta))
+
+        if len(iteration) == 1:
+            return ret[0]
+        else:
+            return ret
