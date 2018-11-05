@@ -60,8 +60,6 @@
 #include <stdexcept>
 
 
-
-
 namespace picongpu
 {
 
@@ -76,9 +74,14 @@ namespace picongpu
          * @tparam T_ParBox pmacc::ParticlesBox, particle box type
          * @tparam T_DBox pmacc::DataBox, type of the memory box for the reduced values
          * @tparam T_Mapping mapper functor type
+         * @tparam T_Acc accelerator functor type
+         * @tparam T_Filter particle filter functor type
          *
          * @param pb particle memory
-         * @param gSum...,gCount_e storage for the reduced values
+         * @param gSumMom2 global (reduced) sum of momentum square
+         * @param gSumPos2 global (reduced) sum of position square
+         * @param gSumMomPos global (reduced) sum of momentum times position
+         * @param gCount_e global real particle counter
          * @param mapper functor to map a block to a supercell
          */
         template<
@@ -93,7 +96,7 @@ namespace picongpu
             T_ParBox pb,
             T_DBox gSumMom2,
             T_DBox gSumPos2,
-            T_DBox gSumMomPos2,
+            T_DBox gSumMomPos,
             T_DBox gCount_e,
             DataSpace<simDim> globalOffset,
             const int subGridY,
@@ -112,10 +115,38 @@ namespace picongpu
             using FramePtr = typename T_ParBox::FramePtr;
 
             // shared sums of x^2, ux^2, (x*ux)^2, particle counter
-            PMACC_SMEM( acc, shSumMom2, memory::Array< float_X,SuperCellSize::y::value > );
-            PMACC_SMEM( acc, shSumPos2, memory::Array< float_X,SuperCellSize::y::value > );
-            PMACC_SMEM( acc, shSumMomPos2, memory::Array< float_X,SuperCellSize::y::value > );
-            PMACC_SMEM( acc, shCount_e, memory::Array< float_X,SuperCellSize::y::value > );
+            PMACC_SMEM(
+                acc,
+                shSumMom2,
+                memory::Array<
+                    float_X,
+                    SuperCellSize::y::value
+                >
+            );
+            PMACC_SMEM(
+                acc,
+                shSumPos2,
+                memory::Array<
+                    float_X,
+                    SuperCellSize::y::value
+                >
+            );
+            PMACC_SMEM(
+                acc,
+                shSumMomPos,
+                memory::Array<
+                    float_X,
+                    SuperCellSize::y::value
+                >
+            );
+            PMACC_SMEM(
+                acc,
+                shCount_e,
+                memory::Array<
+                    float_X,
+                    SuperCellSize::y::value
+                >
+            );
 
             using ParticleDomCfg = IdxConfig<
                 numParticlesPerFrame,
@@ -135,10 +166,10 @@ namespace picongpu
                 )
                 {
                     // set shared sums of x^2, ux^2, (x*ux)^2, particle counter to zero
-                    shSumMom2[linearIdx] = 0.0_X;
-                    shSumPos2[linearIdx] = 0.0_X;
-                    shSumMomPos2[linearIdx] = 0.0_X;
-                    shCount_e[linearIdx] = 0.0_X;
+                    shSumMom2[ linearIdx ] = 0.0_X;
+                    shSumPos2[ linearIdx ] = 0.0_X;
+                    shSumMomPos[ linearIdx ] = 0.0_X;
+                    shCount_e[ linearIdx ] = 0.0_X;
                 }
             );
             __syncthreads( );
@@ -194,32 +225,50 @@ namespace picongpu
                     {
                         /* get one particle */
                         auto & particle = currentParticleCtx[ idx ];
-                        if(accFilter(acc,particle)){
+                        if( accFilter( acc, particle ) ){
 
                             float_X const weighting = particle[ weighting_ ];
                             float3_X const mom = particle[ momentum_ ] / weighting;
                             floatD_X const pos = particle[ position_ ];
 
                             lcellId_t const cellIdx = particle[ localCellIdx_ ];
-                            DataSpace<simDim> const frameCellOffset(DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (cellIdx));
-                            auto const localSupercellStart = (superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT();
+                            DataSpace< simDim > const frameCellOffset(
+                                DataSpaceOperations< simDim >::template
+                                map< MappingDesc::SuperCellSize > ( cellIdx )
+                            );
+                            auto const localSupercellStart = (
+                                superCellIdx -
+                                mapper.getGuardingSuperCells()
+                            ) * MappingDesc::SuperCellSize::toRT();
                             int const index_y = frameCellOffset.y();
                             auto const globalCellOffset = globalOffset
                                                         + localSupercellStart
                                                         + frameCellOffset;
                             float_X const posX = ( float_X( globalCellOffset.x() ) + pos.x() ) * cellSize.x();
 
-                            atomicAdd( &(shCount_e[index_y]), weighting, ::alpaka::hierarchy::Threads{});
+                            atomicAdd( &(shCount_e[index_y]), weighting, ::alpaka::hierarchy::Threads{} );
                             //weighted sum of single Electron values (Momentum = particle_momentum/weighting)
-                            atomicAdd( &(shSumMom2[index_y]), mom.x() * mom.x() * weighting, ::alpaka::hierarchy::Threads{});
-                            atomicAdd( &(shSumPos2[index_y]), posX*posX*weighting, ::alpaka::hierarchy::Threads{});
-                            atomicAdd( &(shSumMomPos2[index_y]), mom.x()*posX* weighting, ::alpaka::hierarchy::Threads{});
+                            atomicAdd(
+                                &( shSumMom2[ index_y ] ),
+                                mom.x() * mom.x() * weighting,
+                                ::alpaka::hierarchy::Threads{}
+                            );
+                            atomicAdd(
+                                &( shSumPos2[ index_y ]),
+                                posX * posX * weighting,
+                                ::alpaka::hierarchy::Threads{}
+                            );
+                            atomicAdd(
+                                &( shSumMomPos[ index_y ] ),
+                                mom.x() * posX * weighting,
+                                ::alpaka::hierarchy::Threads{}
+                            );
                         }
                     }
                 );
 
                 // set frame to next particle frame
-                frame = pb.getPreviousFrame(frame);
+                frame = pb.getPreviousFrame( frame );
                 forEachParticle(
                     [&](
                         uint32_t const linearIdx,
@@ -237,20 +286,41 @@ namespace picongpu
             }
 
 
-            // wait that all virtual threads updated the shared memory energies
+            // wait that all virtual threads updated the shared memory
             __syncthreads( );
 
-            const int gOffset = ( (superCellIdx - mapper.getGuardingSuperCells()) * MappingDesc::SuperCellSize::toRT()).y();
+            const int gOffset = (
+                (
+                    superCellIdx -
+                    mapper.getGuardingSuperCells()
+                ) *
+            MappingDesc::SuperCellSize::toRT()).y();
             ForEachIdx< SuperCellYDom >{ workerIdx }(
                 [&](
                     uint32_t const linearIdx,
                     uint32_t const
                 )
                 {
-                    atomicAdd(&( gSumMom2[gOffset+linearIdx] ),static_cast< float_64 >( shSumMom2[linearIdx] ),::alpaka::hierarchy::Blocks{});
-                    atomicAdd(&( gSumPos2[gOffset+linearIdx] ),static_cast< float_64 >( shSumPos2[linearIdx] ),::alpaka::hierarchy::Blocks{});
-                    atomicAdd(&( gSumMomPos2[gOffset+linearIdx] ),static_cast< float_64 >( shSumMomPos2[linearIdx] ),::alpaka::hierarchy::Blocks{});
-                    atomicAdd(&( gCount_e[gOffset+linearIdx] ),static_cast< float_64 >( shCount_e[linearIdx] ),::alpaka::hierarchy::Blocks{});
+                    atomicAdd(
+                        &( gSumMom2[ gOffset + linearIdx ] ),
+                        static_cast< float_64 >( shSumMom2[ linearIdx ] ),
+                        ::alpaka::hierarchy::Blocks{ }
+                    );
+                    atomicAdd(
+                        &( gSumPos2[ gOffset + linearIdx ] ),
+                        static_cast< float_64 >( shSumPos2[ linearIdx ] ),
+                        ::alpaka::hierarchy::Blocks{ }
+                    );
+                    atomicAdd(
+                        &( gSumMomPos[ gOffset + linearIdx ] ),
+                        static_cast< float_64 >( shSumMomPos[ linearIdx ] ),
+                        ::alpaka::hierarchy::Blocks{ }
+                    );
+                    atomicAdd(
+                        &( gCount_e[ gOffset + linearIdx ] ),
+                        static_cast< float_64 >( shCount_e[ linearIdx ] ),
+                        ::alpaka::hierarchy::Blocks{ }
+                    );
                 }
             );
         }
@@ -350,7 +420,6 @@ namespace picongpu
                 std::string const & masterPrefix = std::string{ }
             )
             {
-
                 ForEach<
                     EligibleFilters,
                     plugins::misc::AppendName< bmpl::_1 >
@@ -462,7 +531,7 @@ namespace picongpu
             /* my plane means: the r_element I am calculating should be 1GPU in width */
             pmacc::math::Size_t<simDim> sizeTransversalPlane(gpuDim);
             sizeTransversalPlane[r_element] = 1;
-            
+
             // avoid deadlock for following, blocking MPI operations
             __getTransactionEvent().waitForFinished();
 
@@ -542,7 +611,7 @@ namespace picongpu
                 float_64,
                 DIM1
             >( DataSpace< DIM1 >( subGrid.getLocalDomain().size.y() ) );
-            gSumMomPos2 = new GridBuffer<
+            gSumMomPos = new GridBuffer<
                 float_64,
                 DIM1
             >( DataSpace< DIM1 >( subGrid.getLocalDomain().size.y() ) );
@@ -583,9 +652,8 @@ namespace picongpu
         {
             if( writeToFile )
             {
-                outFile.flush( );
-                // flush cached data to file
-                outFile << std::endl;
+                // flush  cached data to file
+                outFile.flush( ) << std::endl;
 
                 if( outFile.fail( ) )
                     std::cerr << "Error on flushing file [" << filename << "]. " << std::endl;
@@ -594,12 +662,12 @@ namespace picongpu
             // free global memory on GPU
             __delete( gSumMom2 );
             __delete( gSumPos2 );
-            __delete( gSumMomPos2 );
+            __delete( gSumMomPos );
             __delete( gCount_e );
         }
 
         /** this code is executed if the current time step is supposed to compute
-         * gSumMom2, gSumPos2, gSumMomPos2, gCount_e
+         * gSumMom2, gSumPos2, gSumMomPos, gCount_e
          */
         void notify( uint32_t currentStep )
         {
@@ -656,7 +724,7 @@ namespace picongpu
             // initialize global gSum... with zero
             gSumMom2->getDeviceBuffer( ).setValue( 0.0 );
             gSumPos2->getDeviceBuffer( ).setValue( 0.0 );
-            gSumMomPos2->getDeviceBuffer( ).setValue( 0.0 );
+            gSumMomPos->getDeviceBuffer( ).setValue( 0.0 );
             gCount_e->getDeviceBuffer( ).setValue( 0.0 );
 
             constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
@@ -686,7 +754,7 @@ namespace picongpu
                 particles->getDeviceParticlesBox( ),
                 gSumMom2->getDeviceBuffer( ).getDataBox( ),
                 gSumPos2->getDeviceBuffer( ).getDataBox( ),
-                gSumMomPos2->getDeviceBuffer( ).getDataBox( ),
+                gSumMomPos->getDeviceBuffer( ).getDataBox( ),
                 gCount_e->getDeviceBuffer( ).getDataBox( ),
                 globalOffset,
                 subGridY,
@@ -708,16 +776,16 @@ namespace picongpu
             // get gSum, ... from GPU
             gSumMom2->deviceToHost( );
             gSumPos2->deviceToHost( );
-            gSumMomPos2->deviceToHost( );
+            gSumMomPos->deviceToHost( );
             gCount_e->deviceToHost( );
 
             container::HostBuffer<float_64, DIM1> reducedSumMom2( subGrid.getLocalDomain().size.y() );
             container::HostBuffer<float_64, DIM1> reducedSumPos2( subGrid.getLocalDomain().size.y() );
-            container::HostBuffer<float_64, DIM1> reducedSumMomPos2( subGrid.getLocalDomain().size.y() );
+            container::HostBuffer<float_64, DIM1> reducedSumMomPos( subGrid.getLocalDomain().size.y() );
             container::HostBuffer<float_64, DIM1> reducedCount_e( subGrid.getLocalDomain().size.y() );
             reducedSumMom2.assign( 0.0 );
             reducedSumPos2.assign( 0.0 );
-            reducedSumMomPos2.assign( 0.0 );
+            reducedSumMomPos.assign( 0.0 );
             reducedCount_e.assign( 0.0 );
 
             // add gSum values from all GPUs using MPI
@@ -732,8 +800,8 @@ namespace picongpu
                              /* the functors return value will be written to dst */
                              pmacc::algorithm::functor::Add() );
             planeReduce->template operator()( /* parameters: dest, source */
-                             reducedSumMomPos2,
-                             gSumMomPos2->getHostBuffer( ).cartBuffer(),
+                             reducedSumMomPos,
+                             gSumMomPos->getHostBuffer( ).cartBuffer(),
                              /* the functors return value will be written to dst */
                              pmacc::algorithm::functor::Add() );
             planeReduce->template operator()( /* parameters: dest, source */
@@ -749,7 +817,7 @@ namespace picongpu
             // gather to file writer
             container::HostBuffer< float_64, DIM1 > globalSumMom2( subGrid.getGlobalDomain().size.y() );
             container::HostBuffer< float_64, DIM1 > globalSumPos2( subGrid.getGlobalDomain().size.y() );
-            container::HostBuffer< float_64, DIM1 > globalSumMomPos2( subGrid.getGlobalDomain().size.y() );
+            container::HostBuffer< float_64, DIM1 > globalSumMomPos( subGrid.getGlobalDomain().size.y() );
             container::HostBuffer< float_64, DIM1 > globalCount_e( subGrid.getGlobalDomain().size.y() );
 
             // gather y offsets, so we can store our gathered data in the right order
@@ -825,10 +893,10 @@ namespace picongpu
                 commGather
             ));
             MPI_CHECK(MPI_Gatherv(
-                gSumMomPos2->getHostBuffer( ).getBasePointer( ),
+                gSumMomPos->getHostBuffer( ).getBasePointer( ),
                 subGrid.getLocalDomain().size.y(),
                 MPI_DOUBLE,
-                globalSumMomPos2.getDataPointer( ),
+                globalSumMomPos.getDataPointer( ),
                 y_sizes.data(),
                 y_offsets.data(),
                 MPI_DOUBLE,
@@ -855,7 +923,7 @@ namespace picongpu
                 if (currentStep > 0.0){
                     int startWindow_y = movingWindow.globalDimensions.offset.y();
                     int endWindow_y = movingWindow.globalDimensions.size.y() + startWindow_y;
-                    if (fisttimestep == true) 
+                    if (fisttimestep == true)
                     {
                         outFile << "#step emit_all" << std::scientific;
                         for (int i = startWindow_y; i < (endWindow_y + 10); i+=10)
@@ -864,7 +932,7 @@ namespace picongpu
                         }
                         outFile << std::endl;
                         fisttimestep = false;
-                    } 
+                    }
                     outFile << currentStep << " "
                             << std::scientific;
 
@@ -878,9 +946,9 @@ namespace picongpu
                             numElec_all+= static_cast<long double>(globalCount_e.getDataPointer( )[i]);
                             ux2_all    += static_cast<long double>(globalSumMom2.getDataPointer( )[i]) * UNIT_MASS* UNIT_MASS /(SI::ELECTRON_MASS_SI*SI::ELECTRON_MASS_SI);
                             pos2_SI_all+= static_cast<long double>(globalSumPos2.getDataPointer( )[i]) *UNIT_LENGTH*UNIT_LENGTH ;
-                            xux_all    += static_cast<long double>(globalSumMomPos2.getDataPointer( )[i])*UNIT_MASS *UNIT_LENGTH /SI::ELECTRON_MASS_SI;
+                            xux_all    += static_cast<long double>(globalSumMomPos.getDataPointer( )[i])*UNIT_MASS *UNIT_LENGTH /SI::ELECTRON_MASS_SI;
                     }
-                    double emit_all = algorithms::math::sqrt(((double)pos2_SI_all * (double)ux2_all - (double)xux_all * (double)xux_all)/((double)numElec_all*(double)numElec_all));
+                    float64 emit_all = algorithms::math::sqrt(((float64)pos2_SI_all * (float64)ux2_all - (float64)xux_all * (float64)xux_all)/((float64)numElec_all*(float64)numElec_all));
                     if (emit_all > 0.0){
                         outFile << emit_all << " ";
                     }
@@ -890,23 +958,23 @@ namespace picongpu
 
                     for (int i = startWindow_y; i < endWindow_y; i+=10)
                     {
-                        double numElec   = globalCount_e.getDataPointer( )[i];
-                        double mom2_SI   = globalSumMom2.getDataPointer( )[i] * UNIT_MASS * UNIT_SPEED* UNIT_MASS * UNIT_SPEED;
-                        double pos2_SI   = globalSumPos2.getDataPointer( )[i] *UNIT_LENGTH*UNIT_LENGTH ;
-                        double mompos_SI = globalSumMomPos2.getDataPointer( )[i]*UNIT_MASS * UNIT_SPEED*UNIT_LENGTH;
+                        float64 numElec = globalCount_e.getDataPointer( )[i];
+                        float64 mom2_SI   = globalSumMom2.getDataPointer( )[i] * UNIT_MASS * UNIT_SPEED* UNIT_MASS * UNIT_SPEED;
+                        float64 pos2_SI   = globalSumPos2.getDataPointer( )[i] *UNIT_LENGTH*UNIT_LENGTH ;
+                        float64 mompos_SI = globalSumMomPos.getDataPointer( )[i]*UNIT_MASS * UNIT_SPEED*UNIT_LENGTH;
                         for ( int j=i+1; j<i+10 && j < endWindow_y; j++ ){
                                 numElec   += globalCount_e.getDataPointer( )[j];
                                 mom2_SI   += globalSumMom2.getDataPointer( )[j] * UNIT_MASS * UNIT_SPEED* UNIT_MASS * UNIT_SPEED;
                                 pos2_SI   += globalSumPos2.getDataPointer( )[j] *UNIT_LENGTH*UNIT_LENGTH;
-                                mompos_SI += globalSumMomPos2.getDataPointer( )[j]*UNIT_MASS * UNIT_SPEED*UNIT_LENGTH;
+                                mompos_SI += globalSumMomPos.getDataPointer( )[j]*UNIT_MASS * UNIT_SPEED*UNIT_LENGTH;
                         }
-                        double ux2 = mom2_SI/(UNIT_SPEED*UNIT_SPEED*SI::ELECTRON_MASS_SI*SI::ELECTRON_MASS_SI);
-                        double xux = mompos_SI/(UNIT_SPEED*SI::ELECTRON_MASS_SI);
-                        double emit = algorithms::math::sqrt((pos2_SI * ux2 - xux * xux)/ numElec/ numElec);
-                        if(numElec<std::numeric_limits<float>::epsilon()){
+                        float64 ux2 = mom2_SI/(UNIT_SPEED*UNIT_SPEED*SI::ELECTRON_MASS_SI*SI::ELECTRON_MASS_SI);
+                        float64 xux = mompos_SI/(UNIT_SPEED*SI::ELECTRON_MASS_SI);
+                        float64 emit = algorithms::math::sqrt((pos2_SI * ux2 - xux * xux)/ numElec/ numElec);
+                        if(numElec<std::numeric_limits<float64>::epsilon()){
                             outFile << "0.0 ";
                         }
-                        else if(emit> 0.0 && emit <std::numeric_limits<float>::max() ){
+                        else if( emit > 0.0 && emit < std::numeric_limits< float64 >::max() ){
                             outFile << emit << " ";
                         }
                         else{
@@ -918,7 +986,6 @@ namespace picongpu
             }
         }
 
-        //! energy values (global on GPU)
         GridBuffer<
             float_64,
             DIM1
@@ -932,7 +999,7 @@ namespace picongpu
         GridBuffer<
             float_64,
             DIM1
-        > * gSumMomPos2 = nullptr;
+        > * gSumMomPos = nullptr;
 
         GridBuffer<
             float_64,
