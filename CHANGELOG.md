@@ -3,7 +3,7 @@ Changelog
 
 0.4.1
 -----
-**Date:** TBA
+**Date:** 2018-11-06
 
 Minor Bugs and Example Updates
 
