@@ -1,6 +1,46 @@
 Changelog
 =========
 
+0.4.1
+-----
+**Date:** TBA
+
+Minor Bugs and Example Updates
+
+This release fixes minor bugs found after the 0.4.0 release.
+Some examples were slightly outdated in syntax, the new "probe particle"
+`EveryNthCell` initialization functor was broken when not used with equal
+spacing per dimension. In some rare cases, sliding could occur twice in
+moving window simulations.
+
+Thanks to Axel Huebl, René Widera, Richard Pausch and Andrei Berceanu for
+contributions to this release!
+
+### Changes to "0.4.1"
+
+**Bug Fixes:**
+- PIConGPU:
+  - avoid sliding twice in some corner-cases #2774
+  - EveryNthCell: broken if not used with same spacing #2768
+  - broken compile with particle merging #2753
+- Examples:
+  - fix outdated derive species #2756
+  - remove current deposition in bunch example #2758
+  - fix 2D case of single electron init (via density) #2766
+- Tools:
+  - Python Regex: r Literals #2767
+  - `cuda_memtest`: avoid noisy output if NVML is not found #2785
+
+**Misc:**
+- `.param` files: refactor `boost::vector<>` usage #2769
+- Docs:
+  - Spack: Improve Bootstrap #2773
+  - Fix docs for radiation in 2D #2772
+  - Containers: Update 0.4.0 #2750
+  - Update Readme & License: People #2749
+  - Add `.zenodo.json` #2747
+
+
 0.4.0
 -----
 **Date:** 2018-10-19
