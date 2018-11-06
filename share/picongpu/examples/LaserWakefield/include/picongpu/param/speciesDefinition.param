@@ -61,7 +61,7 @@ using AttributeSeqIons = MakeSeq_t<
 value_identifier( float_X, MassRatioElectrons, 1.0 );
 value_identifier( float_X, ChargeRatioElectrons, 1.0 );
 
-using ParticleFlagsElectrons = bmpl::vector<
+using ParticleFlagsElectrons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
     shape< UsedParticleShape >,
     interpolation< UsedField2Particle >,
@@ -83,7 +83,7 @@ using PIC_Electrons = Particles<
 value_identifier( float_X, MassRatioIons, 1836.152672 );
 value_identifier( float_X, ChargeRatioIons, -1.0 );
 
-using ParticleFlagsIons = bmpl::vector<
+using ParticleFlagsIons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
     shape< UsedParticleShape >,
     interpolation< UsedField2Particle >,

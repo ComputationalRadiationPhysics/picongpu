@@ -109,7 +109,7 @@ namespace densityProfiles
                 precisionCast< uint64_t >(
                     math::floor(
                         position_start_SI.shrink< simDim >() /
-                        cellSize_SI
+                        cellSize_SI.shrink< simDim >()
                     )
                 )
             );

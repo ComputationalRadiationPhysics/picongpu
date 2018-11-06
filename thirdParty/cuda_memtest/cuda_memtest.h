@@ -42,6 +42,7 @@
 #define __MEMTEST_H__
 
 #include <cstdio>
+#include <sstream>
 #include <stdint.h>
 #include <pthread.h>
 #include <iostream>
@@ -143,11 +144,26 @@ extern void get_driver_info(char* info, unsigned int len);
  *
  * @param cmd command with nvmlReturn_t return value to check
  */
-#define NVML_CHECK(cmd) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){std::cerr<<"<"<<__FILE__<<">:"<<__LINE__<<std::endl; throw std::runtime_error(std::string("[NVML] Error: ") + std::string(nvmlErrorString(returnVal)));}}
+#define NVML_CHECK(cmd) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){ \
+    std::ostringstream sstr;                                                        \
+    sstr << "[NVML] Error: '" << nvmlErrorString(returnVal)                         \
+         << "' in <" << __FILE__ << ">:" << __LINE__;                               \
+    throw std::runtime_error(sstr.str());                                           \
+    }}
 
-#define NVML_CHECK_MSG(cmd,msg) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){std::cerr<<"<"<<__FILE__<<">:"<<__LINE__<<msg<<std::endl; throw std::runtime_error(std::string("[NVML] Error: ") + std::string(nvmlErrorString(returnVal)));}}
+#define NVML_CHECK_MSG(cmd,msg) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){ \
+    std::ostringstream sstr;                                                        \
+    sstr << "[NVML] Error: '" << nvmlErrorString(returnVal)                         \
+         << "' in <" << __FILE__ << ">:" << __LINE__                                \
+         << " " << msg;                                                             \
+    throw std::runtime_error(sstr.str());                                           \
+    }}
 
-#define NVML_CHECK_NO_EXCEP(cmd) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){std::cerr<<"[NVML] Error: <"<<__FILE__<<">:"<<__LINE__<<std::endl;}}
+#define NVML_CHECK_NO_EXCEP(cmd) {nvmlReturn_t returnVal = cmd; if(returnVal!=NVML_SUCCESS){{ \
+    std::cerr << "[NVML] Error: '" << nvmlErrorString(returnVal)                    \
+              << "' in <" << __FILE__ << ">:" << __LINE__                           \
+              << std::endl                                                          \
+    }}
 #endif
 
 #define TDIFF(tb, ta) (tb.tv_sec - ta.tv_sec + 0.000001*(tb.tv_usec - ta.tv_usec))

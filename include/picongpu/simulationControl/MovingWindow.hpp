@@ -180,7 +180,8 @@ private:
      */
     void incrementSlideCounter(const uint32_t currentStep)
     {
-        if (slidingWindowActive==true && lastSlideStep != currentStep)
+        // do not slide twice in one simulation step
+        if (slidingWindowActive==true && lastSlideStep < currentStep)
         {
             slideCounter++;
             lastSlideStep = currentStep;
