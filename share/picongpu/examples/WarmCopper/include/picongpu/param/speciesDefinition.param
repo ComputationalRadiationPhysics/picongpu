@@ -60,7 +60,7 @@ using DefaultParticleAttributes = MakeSeq_t<
 value_identifier( float_X, MassRatioPhotons, 0.0 );
 value_identifier( float_X, ChargeRatioPhotons, 0.0 );
 
-using ParticleFlagsPhotons = bmpl::vector<
+using ParticleFlagsPhotons = MakeSeq_t<
 #if( PARAM_ENABLE_PUSHER == 1 )
     particlePusher< particles::pusher::Photon >,
 #endif
@@ -94,7 +94,7 @@ value_identifier( float_X, ChargeRatioElectrons, 1.0 );
 value_identifier( float_X, DensityRatioBulkElectrons, 0.999 );
 value_identifier( float_X, DensityRatioPromptElectrons, 0.001 );
 
-using ParticleFlagsElectrons = bmpl::vector<
+using ParticleFlagsElectrons = MakeSeq_t<
 #if( PARAM_ENABLE_PUSHER == 1 )
     particlePusher< UsedParticlePusher >,
 #endif
@@ -136,7 +136,7 @@ value_identifier( float_X, ChargeRatioCopper, -29.0 );
 /* ratio relative to BASE_DENSITY */
 value_identifier( float_X, DensityRatioCopper, 1.0 );
 
-using ParticleFlagsCopper = bmpl::vector<
+using ParticleFlagsCopper = MakeSeq_t<
 #if( PARAM_ENABLE_PUSHER == 1 )
     particlePusher< UsedParticlePusher >,
 #endif

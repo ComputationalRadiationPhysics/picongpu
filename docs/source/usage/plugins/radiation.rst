@@ -326,8 +326,6 @@ Tool                           Description
 Known Issues
 ^^^^^^^^^^^^
 
-Currently, the radiation plugin does not support 2D simulations. 
-This should be fixed with `issue #289 <https://github.com/ComputationalRadiationPhysics/picongpu/issues/289>`_ .
 The plugin supports multiple radiation species but spectra (frequencies and observation directions) are the same for all species. 
 
 

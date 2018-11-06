@@ -41,7 +41,7 @@ namespace particles
      *
      * the functors are called in order (from first to last functor)
      */
-    using InitPipeline = mpl::vector<
+    using InitPipeline = bmpl::vector<
         CreateDensity<
             densityProfiles::FreeFormula,
             startPosition::OnePosition,

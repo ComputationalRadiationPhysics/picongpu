@@ -78,8 +78,8 @@ if __name__ == "__main__":
     plt.hlines(-E_CII, xmin, xmax)
 
     # add the legend and format the plot
-    plt.title("Effective atomic potentials of Carbon-II and Hydrogen in\n"
-              "homogeneous electric field $F_\mathrm{BSI}$ (C-II)")
+    plt.title(r"Effective atomic potentials of Carbon-II and Hydrogen in\n"
+              r"homogeneous electric field $F_\mathrm{BSI}$ (C-II)")
     plt.legend(loc="best")
     plt.text(xmin+1, -E_H+.05, r"$E_\mathrm{i}$ H")
     plt.text(xmin+1, -E_CII+.05, r"$E_\mathrm{i}$ C-II (Z_eff)")
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     plt.text(xmin+1, -2.6, r"$\mathrm{\ with\ } F = F_\mathrm{BSI}$(C-II)")
     plt.xlim([-10., 10.])
     plt.ylim([-3., 1.])
-    plt.ylabel("$V_\mathrm{eff}$ [AU = Rydberg]")
-    plt.xlabel("$x$ [AU = Bohr radii]")
+    plt.ylabel(r"$V_\mathrm{eff}$ [AU = Rydberg]")
+    plt.xlabel(r"$x$ [AU = Bohr radii]")
 
     plt.show()
