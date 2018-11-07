@@ -26,13 +26,16 @@ module load git/2.18.0-GCCcore-6.4.0
 module load gnuplot/5.2.4-foss-2018a
 
 module load Boost/1.66.0-foss-2018a
-# currently not linking correctly:
-#module load HDF5/1.10.1-foss-2018a
+# currently not linking correctly - thus clean LIBRARY_PATH later:
+module load HDF5/1.10.1-foss-2018a
 module load zlib/1.2.11-GCCcore-6.4.0
 
 # module system does not export cmake prefix path:
 export CMAKE_PREFIX_PATH=$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
 export CMAKE_PREFIX_PATH=$EBROOTZLIB:$CMAKE_PREFIX_PATH
+
+# clean LIBRARY_PATH due to hdf5 linking error
+export LIBRARY_PATH=""
 
 # Environment #################################################################
 #
@@ -40,18 +43,13 @@ export CMAKE_PREFIX_PATH=$EBROOTZLIB:$CMAKE_PREFIX_PATH
 # path to own libraries:
 export ownLibs=$HOME
 
-# workaround HDF5:
-export HDF5_ROOT=$ownLibs/lib/hdf5
-export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
-export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
-
 # pngwriter needs to be built by the user:
 export PNGwriter_DIR=$ownLibs/lib/pngwriter
 export CMAKE_PREFIX_PATH=$PNGwriter_DIR:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGwriter_DIR/lib/
 
 # splash needs to be built by the user:
-export Splash_DIR=$ownLibs/lib/splashModule2
+export Splash_DIR=$ownLibs/lib/splash
 export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_DIR/lib/
 
