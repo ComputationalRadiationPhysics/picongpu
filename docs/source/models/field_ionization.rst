@@ -98,7 +98,7 @@ Ammosov-Delone-Krainov (ADK)
    :nowrap:
 
     \begin{align}
-        \Gamma_\mathrm{ADK} &= \underbrace{\sqrt{\frac{3 n^{*3} F}{\pi Z^3}}}_\text{lin. pol.} \frac{F D^2}{8 \pi Z} \exp\left(-\frac{2Z}{3n^{*3}F}\right) \\
+        \Gamma_\mathrm{ADK} &= \underbrace{\sqrt{\frac{3 n^{*3} F}{\pi Z^3}}}_\text{lin. pol.} \frac{F D^2}{8 \pi Z} \exp\left(-\frac{2Z^3}{3n^{*3}F}\right) \\
         D &\equiv \left( \frac{4 \mathrm{e} Z^3}{F n^{*4}} \right)^{n^*} \hspace{2cm} n^* \equiv \frac{Z}{\sqrt{2 E_\mathrm{ip}}}
     \end{align}
 
