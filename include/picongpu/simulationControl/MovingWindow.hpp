@@ -36,9 +36,7 @@ class MovingWindow
 {
 private:
 
-    MovingWindow() : slidingWindowActive(false), slideCounter(0), lastSlideStep(0)
-    {
-    }
+    MovingWindow() = default;
 
     MovingWindow(MovingWindow& cc);
 
@@ -50,8 +48,15 @@ private:
         if (offsetFirstGPU)
             *offsetFirstGPU = 0.0;
 
-        if (slidingWindowActive)
+        if (slidingWindowEnabled)
         {
+            /* Sliding stayed enabled but if we reach the end step where we should stop sliding
+             * the moving window is freezed.
+             * All offsets will stay constant until the end of the simulation.
+             */
+            if (currentStep >= endSlidingOnStep)
+                currentStep = endSlidingOnStep;
+
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
 
             /* speed of the moving window */
@@ -181,34 +186,55 @@ private:
     void incrementSlideCounter(const uint32_t currentStep)
     {
         // do not slide twice in one simulation step
-        if (slidingWindowActive==true && lastSlideStep < currentStep)
+        if (isSlidingWindowActive( currentStep ) && lastSlideStep < currentStep)
         {
             slideCounter++;
             lastSlideStep = currentStep;
         }
     }
 
-    /** true is sliding window is activated */
-    bool slidingWindowActive;
+    /** true is sliding window is activated
+     *
+     * How long the window is sliding is defined with endSlidingOnStep.
+     */
+    bool slidingWindowEnabled = false;
 
     /** current number of slides since start of simulation */
-    uint32_t slideCounter;
+    uint32_t slideCounter = 0u;
 
     /**
      * last simulation step with slide
      * used to prevent multiple slides per simulation step
      */
-    uint32_t lastSlideStep;
+    uint32_t lastSlideStep = 0u;
+
+    //! time step where the sliding window is stopped
+    uint32_t endSlidingOnStep = 0u;
+
 public:
 
     /**
-     * Enable or disable sliding window
+     * Set step where the simulation stops the moving window
      *
-     * @param value true to enable, false otherwise
+     * @param step 0 means no sliding window, else sliding is enabled until step is reached.
      */
-    void setSlidingWindow(bool value)
+    void setEndSlideOnStep(int32_t step)
     {
-        slidingWindowActive = value;
+        // maybe we have a underflow in the cast, this is fine because it results in a very large number
+        const uint32_t maxSlideStep = static_cast<uint32_t>(step);
+        if ( maxSlideStep < lastSlideStep)
+            throw std::runtime_error("It is not allowed to stop the moving window in the past.");
+
+        endSlidingOnStep = maxSlideStep;
+
+        static bool firstCall = true;
+        /* Disable or enable sliding window only in the first call.
+         * Later changes of step will not influence if the sliding window is activated.
+         */
+        if (firstCall && endSlidingOnStep != 0u)
+            slidingWindowEnabled = true;
+
+        firstCall = false;
     }
 
     /**
@@ -240,13 +266,24 @@ public:
     }
 
     /**
-     * Returns if sliding window is active
+     * Returns if sliding window is enabled
      *
-     * @return true if active, false otherwise
+     * @return true if enabled, false otherwise
      */
-    bool isSlidingWindowActive() const
+    bool isEnabled() const
     {
-        return slidingWindowActive;
+        return slidingWindowEnabled;
+    }
+
+    /**
+     * Returns if the window can move in the current step
+     *
+     * @return false, if Moving window is activated (isEnabled() == true) but already stopped.
+     *         true if moving windows is enabled and simulation step is smaller than
+     */
+    bool isSlidingWindowActive(const uint32_t currenStep) const
+    {
+        return isEnabled() && currenStep < endSlidingOnStep;
     }
 
     /**
@@ -259,7 +296,7 @@ public:
     {
         bool doSlide = false;
 
-        if (slidingWindowActive)
+        if (slidingWindowEnabled)
         {
             getCurrentSlideInfo(currentStep, &doSlide, nullptr);
         }
@@ -311,7 +348,7 @@ public:
         window.globalDimensions = Selection<simDim>(subGrid.getGlobalDomain().size);
 
         /* moving window can only slide in y direction */
-        if (slidingWindowActive)
+        if (slidingWindowEnabled)
         {
             /* the moving window is smaller than the global domain by exactly one
              * GPU (local domain size) in moving (y) direction
