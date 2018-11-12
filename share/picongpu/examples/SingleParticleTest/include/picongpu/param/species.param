@@ -38,7 +38,7 @@ namespace picongpu
  *  - particles::shapes::PCS : 3rd order
  *  - particles::shapes::P4S : 4th order
  *
- *  example:             using CICShape = particles::shapes::CIC;
+ *  example: using UsedParticleShape = particles::shapes::CIC;
  */
 using UsedParticleShape = particles::shapes::CIC;
 
@@ -59,7 +59,7 @@ using UsedParticleCurrentSolver = currentSolver::Esirkepov<UsedParticleShape>;
 
 /*! particle pusher configuration ----------------------------------------------
  *
- * Define a pusher is optional for particles
+ * Defining a pusher is optional for particles
  *
  * - particles::pusher::Vay : better suited relativistic boris pusher
  * - particles::pusher::Boris : standard boris pusher
