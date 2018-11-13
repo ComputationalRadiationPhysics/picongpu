@@ -741,7 +741,7 @@ namespace picongpu
                 numWorkers
             );
 
-            // Some funny things that make it possible for the kernel
+            // Some variables required so that it is possible for the kernel
             // to calculate the absolute position of the particles
             DataSpace<simDim> localSize(m_cellDescription->getGridLayout().getDataSpaceWithoutGuarding());
             const SubGrid<simDim>& subGrid = Environment<simDim>::get().SubGrid();
@@ -928,7 +928,7 @@ namespace picongpu
                         outFile << "#step emit_all" << std::scientific;
                         for (int i = startWindow_y; i < (endWindow_y + 10); i+=10)
                         {
-                            outFile << " " << i * UNIT_LENGTH * SI::CELL_WIDTH_SI;
+                            outFile << " " << i * SI::CELL_HEIGHT_SI;
                         }
                         outFile << std::endl;
                         fisttimestep = false;
@@ -948,7 +948,7 @@ namespace picongpu
                             pos2_SI_all+= static_cast<long double>(globalSumPos2.getDataPointer( )[i]) *UNIT_LENGTH*UNIT_LENGTH ;
                             xux_all    += static_cast<long double>(globalSumMomPos.getDataPointer( )[i])*UNIT_MASS *UNIT_LENGTH /SI::ELECTRON_MASS_SI;
                     }
-                    float64 emit_all = algorithms::math::sqrt(((float64)pos2_SI_all * (float64)ux2_all - (float64)xux_all * (float64)xux_all)/((float64)numElec_all*(float64)numElec_all));
+                    float_64 emit_all = algorithms::math::sqrt(((float_64)pos2_SI_all * (float_64)ux2_all - (float_64)xux_all * (float_64)xux_all)/((float_64)numElec_all*(float_64)numElec_all));
                     if (emit_all > 0.0){
                         outFile << emit_all << " ";
                     }
@@ -958,23 +958,23 @@ namespace picongpu
 
                     for (int i = startWindow_y; i < endWindow_y; i+=10)
                     {
-                        float64 numElec = globalCount_e.getDataPointer( )[i];
-                        float64 mom2_SI   = globalSumMom2.getDataPointer( )[i] * UNIT_MASS * UNIT_SPEED* UNIT_MASS * UNIT_SPEED;
-                        float64 pos2_SI   = globalSumPos2.getDataPointer( )[i] *UNIT_LENGTH*UNIT_LENGTH ;
-                        float64 mompos_SI = globalSumMomPos.getDataPointer( )[i]*UNIT_MASS * UNIT_SPEED*UNIT_LENGTH;
+                        float_64 numElec = globalCount_e.getDataPointer( )[i];
+                        float_64 mom2_SI   = globalSumMom2.getDataPointer( )[i] * UNIT_MASS * UNIT_SPEED* UNIT_MASS * UNIT_SPEED;
+                        float_64 pos2_SI   = globalSumPos2.getDataPointer( )[i] *UNIT_LENGTH*UNIT_LENGTH ;
+                        float_64 mompos_SI = globalSumMomPos.getDataPointer( )[i]*UNIT_MASS * UNIT_SPEED*UNIT_LENGTH;
                         for ( int j=i+1; j<i+10 && j < endWindow_y; j++ ){
                                 numElec   += globalCount_e.getDataPointer( )[j];
                                 mom2_SI   += globalSumMom2.getDataPointer( )[j] * UNIT_MASS * UNIT_SPEED* UNIT_MASS * UNIT_SPEED;
                                 pos2_SI   += globalSumPos2.getDataPointer( )[j] *UNIT_LENGTH*UNIT_LENGTH;
                                 mompos_SI += globalSumMomPos.getDataPointer( )[j]*UNIT_MASS * UNIT_SPEED*UNIT_LENGTH;
                         }
-                        float64 ux2 = mom2_SI/(UNIT_SPEED*UNIT_SPEED*SI::ELECTRON_MASS_SI*SI::ELECTRON_MASS_SI);
-                        float64 xux = mompos_SI/(UNIT_SPEED*SI::ELECTRON_MASS_SI);
-                        float64 emit = algorithms::math::sqrt((pos2_SI * ux2 - xux * xux)/ numElec/ numElec);
-                        if(numElec<std::numeric_limits<float64>::epsilon()){
+                        float_64 ux2 = mom2_SI/(UNIT_SPEED*UNIT_SPEED*SI::ELECTRON_MASS_SI*SI::ELECTRON_MASS_SI);
+                        float_64 xux = mompos_SI/(UNIT_SPEED*SI::ELECTRON_MASS_SI);
+                        float_64 emit = algorithms::math::sqrt((pos2_SI * ux2 - xux * xux)/ numElec/ numElec);
+                        if(numElec<std::numeric_limits<float_64>::epsilon()){
                             outFile << "0.0 ";
                         }
-                        else if( emit > 0.0 && emit < std::numeric_limits< float64 >::max() ){
+                        else if( emit > 0.0 && emit < std::numeric_limits< float_64 >::max() ){
                             outFile << emit << " ";
                         }
                         else{
