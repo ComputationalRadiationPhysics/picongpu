@@ -527,8 +527,8 @@ namespace picongpu
                                                         isGroupRoot );
                 if( isInGroup )
                 {
-                    this->planeReduce = createReduce;
-                    this->isPlaneReduceRoot = isGroupRoot;
+                    planeReduce = createReduce;
+                    isPlaneReduceRoot = isGroupRoot;
                 }
                 else
                     __delete( createReduce );
@@ -539,8 +539,8 @@ namespace picongpu
                 /* Array with root ranks of the planeReduce operations */
                 std::vector<int> planeReduceRootRanks( gc.getGlobalSize(), -1 );
                 /* Am I one of the planeReduce root ranks? my global rank : -1 */
-                int myRootRank = gc.getGlobalRank() * this->isPlaneReduceRoot
-                               - ( ! this->isPlaneReduceRoot );
+                int myRootRank = gc.getGlobalRank() * isPlaneReduceRoot
+                               - ( ! isPlaneReduceRoot );
 
                 MPI_Group world_group, new_group;
                 MPI_CHECK(MPI_Allgather( &myRootRank, 1, MPI_INT,
@@ -778,7 +778,7 @@ namespace picongpu
                              pmacc::algorithm::functor::Add() );
 
             /** all non-reduce-root processes are done now */
-            if( !this->isPlaneReduceRoot )
+            if( ! isPlaneReduceRoot )
                 return;
 
             // gather to file writer
