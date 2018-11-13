@@ -94,7 +94,6 @@ class EnergyHistogramData(DataReader):
 
         # the first column contains the iterations
         return pd.read_csv(data_file_path,
-                           skiprows=1,
                            usecols=(0,),
                            delimiter=" ",
                            dtype=np.uint64).values[:, 0]
@@ -135,7 +134,6 @@ class EnergyHistogramData(DataReader):
         # read whole file as pandas.DataFrame
         data = pd.read_csv(
             data_file_path,
-            skiprows=1,
             delimiter=" "
         )
         # upper range of each bin in keV
@@ -168,7 +166,7 @@ class EnergyHistogramData(DataReader):
         if not set(iteration).issubset(data.index.values):
             raise IndexError('Iteration {} is not available!\n'
                              'List of available iterations: \n'
-                             '{}'.format(iteration, data['iteration']))
+                             '{}'.format(iteration, data.index.values))
 
         # remove unused columns
         del data['sum']
