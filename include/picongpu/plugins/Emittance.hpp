@@ -326,39 +326,6 @@ namespace picongpu
         }
     };
 
-    /** Compare two pairs by their .first ("key") attribute
-     */
-    template< typename T_Key, typename T_Value >
-    bool keySort(
-        std::pair< T_Key, T_Value > const & a,
-        std::pair< T_Key, T_Value > const & b
-    )
-    {
-        return a.first < b.first;
-    }
-
-    /** Sort two vectors by the first vector
-     */
-    template<typename T_Key, typename T_Value>
-    void sort_by_key(
-        std::vector< T_Key >& keys,
-        std::vector< T_Value >& values
-    )
-    {
-        using keyValPair = std::pair< T_Key, T_Value >;
-        const size_t N = keys.size();
-        std::vector< keyValPair > keyval( N );
-        for( size_t i = 0u; i < N; ++i )
-        {
-            keyval.at( i ) = std::make_pair( keys.at( i ), values.at( i ) );
-        }
-        std::sort( keyval.begin(), keyval.end(), keySort< T_Key, T_Value > );
-
-        keys.clear();
-        values.clear();
-        std::transform( keyval.begin(), keyval.end(), std::back_inserter(keys), [](keyValPair const & p){ return p.first; } );
-        std::transform( keyval.begin(), keyval.end(), std::back_inserter(values), [](keyValPair const & p){ return p.second; } );
-    }
 
     template< typename ParticlesType >
     class CalcEmittance : public plugins::multi::ISlave
@@ -861,11 +828,6 @@ namespace picongpu
                 0,
                 commGather
             ));
-
-            auto gatherRanks2 = gatherRanks;
-
-            sort_by_key( gatherRanks, y_offsets );
-            sort_by_key( gatherRanks2, y_sizes );
 
 
             std::vector< int > recvcounts( gatherSize, 1 );
