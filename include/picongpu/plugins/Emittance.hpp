@@ -228,6 +228,7 @@ namespace picongpu
                         if( accFilter( acc, particle ) )
                         {
                             float_X const weighting = particle[ weighting_ ];
+                            float_X const normedWeighting = weighting / float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
                             float3_X const mom = particle[ momentum_ ] / weighting;
                             floatD_X const pos = particle[ position_ ];
                             lcellId_t const cellIdx = particle[ localCellIdx_ ];
@@ -245,21 +246,25 @@ namespace picongpu
                                                         + frameCellOffset;
                             float_X const posX = ( float_X( globalCellOffset.x( ) ) + pos.x( ) ) * cellSize.x( );
 
-                            atomicAdd( &( shCount_e[ index_y ] ), weighting, ::alpaka::hierarchy::Threads{ } );
+                            atomicAdd(
+                                &( shCount_e[ index_y ] ),
+                                normedWeighting,
+                                ::alpaka::hierarchy::Threads{ }
+                            );
                             //weighted sum of single Electron values (Momentum = particle_momentum/weighting)
                             atomicAdd(
                                 &( shSumMom2[ index_y ] ),
-                                mom.x( ) * mom.x( ) * weighting,
+                                mom.x( ) * mom.x( ) * normedWeighting,
                                 ::alpaka::hierarchy::Threads{ }
                             );
                             atomicAdd(
                                 &( shSumPos2[ index_y ] ),
-                                posX * posX * weighting,
+                                posX * posX * normedWeighting,
                                 ::alpaka::hierarchy::Threads{ }
                             );
                             atomicAdd(
                                 &( shSumMomPos[ index_y ] ),
-                                mom.x( ) * posX * weighting,
+                                mom.x( ) * posX * normedWeighting,
                                 ::alpaka::hierarchy::Threads{ }
                             );
                         }
@@ -543,8 +548,8 @@ namespace picongpu
                     - ( ! isPlaneReduceRoot );
 
                 MPI_Group world_group, new_group;
-                MPI_CHECK( 
-                    MPI_Allgather( 
+                MPI_CHECK(
+                    MPI_Allgather(
                         &myRootRank,
                         1,
                         MPI_INT,
@@ -557,13 +562,13 @@ namespace picongpu
 
                 /* remove all non-roots (-1 values) */
                 std::sort( planeReduceRootRanks.begin( ), planeReduceRootRanks.end( ) );
-                std::vector< int > ranks( 
+                std::vector< int > ranks(
                     std::lower_bound(
                         planeReduceRootRanks.begin( ),
                         planeReduceRootRanks.end( ),
-                        0 
+                        0
                     ),
-                    planeReduceRootRanks.end( ) 
+                    planeReduceRootRanks.end( )
                 );
 
                 MPI_CHECK( MPI_Comm_group( MPI_COMM_WORLD, &world_group ) );
@@ -782,13 +787,13 @@ namespace picongpu
                 reducedSumMomPos,
                 gSumMomPos->getHostBuffer( ).cartBuffer( ),
                 /* the functors return value will be written to dst */
-                pmacc::algorithm::functor::Add( ) 
+                pmacc::algorithm::functor::Add( )
             );
             planeReduce->template operator( )( /* parameters: dest, source */
                 reducedCount_e,
                 gCount_e->getHostBuffer( ).cartBuffer( ),
                 /* the functors return value will be written to dst */
-                pmacc::algorithm::functor::Add( ) 
+                pmacc::algorithm::functor::Add( )
             );
 
             /** all non-reduce-root processes are done now */
@@ -924,14 +929,14 @@ namespace picongpu
                             pos2_SI_all += static_cast< long double >( globalSumPos2.getDataPointer( )[ i ] ) * UNIT_LENGTH * UNIT_LENGTH ;
                             xux_all += static_cast< long double >( globalSumMomPos.getDataPointer( )[ i ] ) * UNIT_MASS * UNIT_LENGTH / SI::ELECTRON_MASS_SI;
                     }
-                    float_64 emit_all = algorithms::math::sqrt( 
-                        (
-                            static_cast< float_64 >( pos2_SI_all ) * static_cast< float_64 >( ux2_all ) - 
-                            static_cast< float_64 >( xux_all ) * static_cast< float_64 >( xux_all ) 
-                        ) / ( 
-                            static_cast< float_64 >( numElec_all ) * static_cast< float_64 >( numElec_all ) 
-                        ) 
-                    );
+                    /* the scaling with normalized weighting (weighting / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE)
+                     * is compendated by the division by (normalized) number of particles
+                     */
+                    float_64 emit_all = algorithms::math::sqrt(
+                        static_cast< float_64 >( pos2_SI_all ) * static_cast< float_64 >( ux2_all ) -
+                        static_cast< float_64 >( xux_all ) * static_cast< float_64 >( xux_all )
+                    ) / static_cast< float_64 >( numElec_all );
+
                     if ( emit_all > 0.0 ){
                         outFile << emit_all << " ";
                     }
@@ -953,7 +958,7 @@ namespace picongpu
                         }
                         float_64 ux2 = mom2_SI / ( UNIT_SPEED * UNIT_SPEED * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI );
                         float_64 xux = mompos_SI / ( UNIT_SPEED * SI::ELECTRON_MASS_SI );
-                        float_64 emit = algorithms::math::sqrt( ( pos2_SI * ux2 - xux * xux ) / numElec / numElec );
+                        float_64 emit = algorithms::math::sqrt( ( pos2_SI * ux2 - xux * xux ) ) / numElec;
                         if( numElec < std::numeric_limits< float_64 >::epsilon( ) ){
                             outFile << "0.0 ";
                         }
