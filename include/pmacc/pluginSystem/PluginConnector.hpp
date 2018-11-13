@@ -31,6 +31,7 @@
 #include <vector>
 #include <list>
 #include <string>
+#include <iostream>
 
 
 namespace pmacc
@@ -81,6 +82,9 @@ namespace pmacc
             {
                 if (!(*iter)->isLoaded())
                 {
+                    std::cout << "Plugin load: "
+                              << (*iter)->pluginGetName()
+                              << std::endl;
                     (*iter)->load();
                 }
             }
@@ -164,6 +168,16 @@ namespace pmacc
                 )
                 {
                     INotify* notifiedObj = iter->first;
+                    IPlugin* plugin = dynamic_cast<IPlugin*>(notifiedObj);
+
+                    std::cout << "Plugin notify: "
+                              << notifiedObj << " | ";
+                    if( plugin )
+                        std::cout << plugin->pluginGetName();
+                    else
+                        std::cout << "[not a plugin]";
+
+                    std::cout << std::endl;
                     notifiedObj->notify(currentStep);
                     notifiedObj->setLastNotify(currentStep);
                 }
@@ -252,6 +266,7 @@ namespace pmacc
         }
 
         std::list<IPlugin*> plugins;
+        std::list<IPlugin*> notificationPlugins;
         NotificationList notificationList;
     };
 }
