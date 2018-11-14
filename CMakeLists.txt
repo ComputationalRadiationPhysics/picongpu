@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017 Benjamin Worpitz
+# Copyright 2015-2018 Benjamin Worpitz
 #
 # This file is part of alpaka.
 #
@@ -25,6 +25,8 @@ cmake_minimum_required(VERSION 3.7.0)
 
 project("alpakaAll")
 
+SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+
 ################################################################################
 # Options and Variants
 
@@ -34,7 +36,7 @@ include(CTest)
 # automatically defines: BUILD_TESTING, default is ON
 
 ################################################################################
-# Add subdirectories.
+# Add subdirectories
 
 if(alpaka_BUILD_EXAMPLES)
     add_subdirectory("example/")

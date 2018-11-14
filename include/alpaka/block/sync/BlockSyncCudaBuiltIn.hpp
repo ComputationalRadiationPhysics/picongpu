@@ -47,13 +47,13 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 BlockSyncCudaBuiltIn() = default;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn const &) = delete;
+                __device__ BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn const &) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn &&) = delete;
+                __device__ BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn &&) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSyncCudaBuiltIn const &) -> BlockSyncCudaBuiltIn & = delete;
+                __device__ auto operator=(BlockSyncCudaBuiltIn const &) -> BlockSyncCudaBuiltIn & = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSyncCudaBuiltIn &&) -> BlockSyncCudaBuiltIn & = delete;
+                __device__ auto operator=(BlockSyncCudaBuiltIn &&) -> BlockSyncCudaBuiltIn & = delete;
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~BlockSyncCudaBuiltIn() = default;
             };
@@ -66,7 +66,7 @@ namespace alpaka
                     BlockSyncCudaBuiltIn>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreads(
+                    __device__ static auto syncBlockThreads(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/)
                     -> void
                     {
@@ -81,7 +81,7 @@ namespace alpaka
                     BlockSyncCudaBuiltIn>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreadsPredicate(
+                    __device__ static auto syncBlockThreadsPredicate(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/,
                         int predicate)
                     -> int
@@ -97,7 +97,7 @@ namespace alpaka
                     BlockSyncCudaBuiltIn>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreadsPredicate(
+                    __device__ static auto syncBlockThreadsPredicate(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/,
                         int predicate)
                     -> int
@@ -113,7 +113,7 @@ namespace alpaka
                     BlockSyncCudaBuiltIn>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreadsPredicate(
+                    __device__ static auto syncBlockThreadsPredicate(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/,
                         int predicate)
                     -> int

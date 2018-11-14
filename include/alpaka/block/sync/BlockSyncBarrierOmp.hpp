@@ -26,8 +26,7 @@
 #include <alpaka/block/sync/Traits.hpp>
 
 #include <alpaka/core/Common.hpp>
-
-#include <boost/core/ignore_unused.hpp>
+#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -43,17 +42,17 @@ namespace alpaka
                 using BlockSyncBase = BlockSyncBarrierOmp;
 
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierOmp() :
+                ALPAKA_FN_HOST BlockSyncBarrierOmp() :
                     m_generation(0u)
                 {}
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierOmp(BlockSyncBarrierOmp const &) = delete;
+                ALPAKA_FN_HOST BlockSyncBarrierOmp(BlockSyncBarrierOmp const &) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierOmp(BlockSyncBarrierOmp &&) = delete;
+                ALPAKA_FN_HOST BlockSyncBarrierOmp(BlockSyncBarrierOmp &&) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSyncBarrierOmp const &) -> BlockSyncBarrierOmp & = delete;
+                ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOmp const &) -> BlockSyncBarrierOmp & = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSyncBarrierOmp &&) -> BlockSyncBarrierOmp & = delete;
+                ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOmp &&) -> BlockSyncBarrierOmp & = delete;
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~BlockSyncBarrierOmp() = default;
 
@@ -69,11 +68,11 @@ namespace alpaka
                     BlockSyncBarrierOmp>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA static auto syncBlockThreads(
+                    ALPAKA_FN_HOST static auto syncBlockThreads(
                         block::sync::BlockSyncBarrierOmp const & blockSync)
                     -> void
                     {
-                        boost::ignore_unused(blockSync);
+                        alpaka::ignore_unused(blockSync);
 
                         // NOTE: This waits for all threads in all blocks.
                         // If multiple blocks are executed in parallel this is not optimal.

@@ -44,33 +44,37 @@ BOOST_AUTO_TEST_SUITE(kernel)
 //! /alpaka/include/alpaka/workdiv/Traits.hpp(...): error: calling a __device__ function("getWorkDiv") from a __host__ __device__ function("getWorkDiv") is not allowed
 //! The kernel function objects function call operator is attributed with ALPAKA_FN_ACC which is identical to __host__ __device__.
 //! The 'alpaka::workdiv::getWorkDiv<...>(acc)' function that is called has the ALPAKA_FN_HOST_ACC attribute (also equal to __host__ __device__).
-//! The underlying trait calls the CUDA specialized method which has the ALPAKA_FN_ACC_CUDA_ONLY attribute (equal to __device__).
+//! The underlying trait calls the CUDA specialized method which has the __device__ attribute.
 //! Because this call chain does not contain any templates and therefore no calls depending on input types,
 //! everything can be resolved at the first time the template is parsed which results in the given error.
 //!
 //! Currently, the only possible way to solve this is to make the function call operator a template nonetheless by providing an unused template parameter.
 
 using Dim = alpaka::dim::DimInt<2u>;
-using Size = std::uint32_t;
-#if !defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
-using AccCpu = alpaka::acc::AccCpuSerial<Dim, Size>;
+using Idx = std::uint32_t;
+#if !defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) && !defined(ALPAKA_ACC_GPU_HIP_ONLY_MODE)
+using AccCpu = alpaka::acc::AccCpuSerial<Dim, Idx>;
 #endif
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
-using AccGpu = alpaka::acc::AccGpuCudaRt<Dim, Size>;
+#if defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP
+using AccGpu = alpaka::acc::AccGpuHipRt<Dim, Idx>;
+#elif defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
+using AccGpu = alpaka::acc::AccGpuCudaRt<Dim, Idx>;
 #endif
 
-#if !defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
+#if !defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) && !defined(ALPAKA_ACC_GPU_HIP_ONLY_MODE)
 //#############################################################################
 struct KernelNoTemplateCpu
 {
     //-----------------------------------------------------------------------------
     ALPAKA_FN_ACC
     auto operator()(
-        AccCpu const & acc) const
+        AccCpu const & acc,
+        bool* success) const
     -> void
     {
-        // Do something useless on the accelerator.
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+        ALPAKA_CHECK(
+            *success,
+            static_cast<alpaka::idx::Idx<AccCpu>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
     }
 };
 
@@ -78,7 +82,7 @@ struct KernelNoTemplateCpu
 BOOST_AUTO_TEST_CASE(kernelNoTemplateCpu)
 {
     alpaka::test::KernelExecutionFixture<AccCpu> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelNoTemplateCpu kernel;
 
@@ -97,11 +101,13 @@ struct KernelNoTemplateGpu
     //-----------------------------------------------------------------------------
     ALPAKA_FN_ACC
     auto operator()(
-        AccGpu const & acc) const
+        AccGpu const & acc,
+        bool* success) const
     -> void
     {
-        // Do something useless on the accelerator.
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+        ALPAKA_CHECK(
+            *success,
+            static_cast<alpaka::idx::Idx<AccGpu>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
     }
 };
 
@@ -109,7 +115,7 @@ struct KernelNoTemplateGpu
 BOOST_AUTO_TEST_CASE(kernelNoTemplateGpu)
 {
     alpaka::test::KernelExecutionFixture<AccGpu> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelNoTemplateGpu kernel;
 
@@ -120,7 +126,7 @@ BOOST_AUTO_TEST_CASE(kernelNoTemplateGpu)
 }
 #endif*/
 
-#if !defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
+#if !defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)  && !defined(ALPAKA_ACC_GPU_HIP_ONLY_MODE)
 //#############################################################################
 struct KernelWithoutTemplateParamCpu
 {
@@ -129,11 +135,13 @@ struct KernelWithoutTemplateParamCpu
         typename TNotUsed = void>
     ALPAKA_FN_ACC
     auto operator()(
-        AccCpu const & acc) const
+        AccCpu const & acc,
+        bool* success) const
     -> void
     {
-        // Do something useless on the accelerator.
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+        ALPAKA_CHECK(
+            *success,
+            static_cast<alpaka::idx::Idx<AccCpu>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
     }
 };
 
@@ -141,7 +149,7 @@ struct KernelWithoutTemplateParamCpu
 BOOST_AUTO_TEST_CASE(kernelWithoutTemplateParamCpu)
 {
     alpaka::test::KernelExecutionFixture<AccCpu> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelWithoutTemplateParamCpu kernel;
 
@@ -152,7 +160,8 @@ BOOST_AUTO_TEST_CASE(kernelWithoutTemplateParamCpu)
 }
 #endif
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
+#if (defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) \
+  || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
 //#############################################################################
 struct KernelWithoutTemplateParamGpu
 {
@@ -161,11 +170,13 @@ struct KernelWithoutTemplateParamGpu
         typename TNotUsed = void>
     ALPAKA_FN_ACC
     auto operator()(
-        AccGpu const & acc) const
+        AccGpu const & acc,
+        bool* success) const
     -> void
     {
-        // Do something useless on the accelerator.
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+        ALPAKA_CHECK(
+            *success,
+            static_cast<alpaka::idx::Idx<AccGpu>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
     }
 };
 
@@ -173,7 +184,7 @@ struct KernelWithoutTemplateParamGpu
 BOOST_AUTO_TEST_CASE(kernelWithoutTemplateParamGpu)
 {
     alpaka::test::KernelExecutionFixture<AccGpu> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelWithoutTemplateParamGpu kernel;
 

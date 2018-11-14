@@ -28,11 +28,9 @@
 #define BOOST_MPL_CFG_GPU_ENABLED
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/test/acc/Acc.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <boost/assert.hpp>
 #include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
@@ -56,38 +54,41 @@ class RandTestKernel
     ALPAKA_FN_ACC void
     genNumbers(
         TAcc const & acc,
+        bool * success,
         T_Generator & gen
     ) const
     {
         {
             auto dist(alpaka::rand::distribution::createNormalReal<float>(acc));
             auto const r = dist(gen);
-#if !BOOST_ARCH_CUDA_DEVICE
-            BOOST_VERIFY(std::isfinite(r));
-#endif
+#if !BOOST_ARCH_PTX
+            ALPAKA_CHECK(*success, std::isfinite(r));
+#else
             alpaka::ignore_unused(r);
+#endif
         }
 
         {
             auto dist(alpaka::rand::distribution::createNormalReal<double>(acc));
             auto const r = dist(gen);
-#if !BOOST_ARCH_CUDA_DEVICE
-            BOOST_VERIFY(std::isfinite(r));
-#endif
+#if !BOOST_ARCH_PTX
+            ALPAKA_CHECK(*success, std::isfinite(r));
+#else
             alpaka::ignore_unused(r);
+#endif
         }
         {
             auto dist(alpaka::rand::distribution::createUniformReal<float>(acc));
             auto const r = dist(gen);
-            BOOST_VERIFY(0.0f <= r);
-            BOOST_VERIFY(1.0f > r);
+            ALPAKA_CHECK(*success, 0.0f <= r);
+            ALPAKA_CHECK(*success, 1.0f > r);
         }
 
         {
             auto dist(alpaka::rand::distribution::createUniformReal<double>(acc));
             auto const r = dist(gen);
-            BOOST_VERIFY(0.0 <= r);
-            BOOST_VERIFY(1.0 > r);
+            ALPAKA_CHECK(*success, 0.0 <= r);
+            ALPAKA_CHECK(*success, 1.0 > r);
         }
 
         {
@@ -104,7 +105,8 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
         // default generator for accelerator
@@ -113,16 +115,17 @@ public:
             12345u,
             6789u
         );
-        genNumbers( acc, genDefault );
+        genNumbers( acc, success, genDefault );
 
-#if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+#if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && \
+  !defined(ALPAKA_ACC_GPU_HIP_ENABLED)
         // std::random_device
         auto genRandomDevice = alpaka::rand::generator::createDefault(
             alpaka::rand::RandomDevice{},
             12345u,
             6789u
         );
-        genNumbers( acc, genRandomDevice );
+        genNumbers( acc, success, genRandomDevice );
 
         // MersenneTwister
         auto genMersenneTwister = alpaka::rand::generator::createDefault(
@@ -130,7 +133,7 @@ public:
             12345u,
             6789u
         );
-        genNumbers( acc, genMersenneTwister );
+        genNumbers( acc, success, genMersenneTwister );
 
         // TinyMersenneTwister
         auto genTinyMersenneTwister = alpaka::rand::generator::createDefault(
@@ -138,7 +141,7 @@ public:
             12345u,
             6789u
         );
-        genNumbers( acc, genTinyMersenneTwister );
+        genNumbers( acc, success, genTinyMersenneTwister );
 #endif
     }
 };
@@ -150,10 +153,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     RandTestKernel kernel;
 

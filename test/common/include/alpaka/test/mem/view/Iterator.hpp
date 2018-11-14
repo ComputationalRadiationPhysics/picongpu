@@ -64,14 +64,14 @@ namespace alpaka
                     {
                         using TViewDecayed = typename std::decay<TView>::type;
                         using Dim = alpaka::dim::Dim<TViewDecayed>;
-                        using Size = alpaka::size::Size<TViewDecayed>;
+                        using Idx = alpaka::idx::Idx<TViewDecayed>;
                         using Elem = typename MimicConst<alpaka::elem::Elem<TViewDecayed>, TView>::type;
 
                     public:
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST IteratorView(
                             TView & view,
-                            Size const idx) :
+                            Idx const idx) :
                                 m_nativePtr(alpaka::mem::view::getPtrNative(view)),
                                 m_currentIdx(idx),
                                 m_extents(alpaka::extent::getExtentVec(view)),
@@ -145,22 +145,22 @@ namespace alpaka
                             using Dim1 = dim::DimInt<1>;
                             using DimMin1 = dim::DimInt<Dim::value - 1u>;
 
-                            vec::Vec<Dim1, Size> const currentIdxDim1{m_currentIdx};
-                            vec::Vec<Dim, Size> const currentIdxDimx(idx::mapIdx<Dim::value>(currentIdxDim1, m_extents));
+                            vec::Vec<Dim1, Idx> const currentIdxDim1{m_currentIdx};
+                            vec::Vec<Dim, Idx> const currentIdxDimx(idx::mapIdx<Dim::value>(currentIdxDim1, m_extents));
 
                             // [pz, py, px] -> [py, px]
                             auto const pitchWithoutOutermost(vec::subVecEnd<DimMin1>(m_pitchBytes));
                             // [ElemSize]
-                            vec::Vec<Dim1, Size> const elementSizeVec(static_cast<Size>(sizeof(Elem)));
+                            vec::Vec<Dim1, Idx> const elementSizeVec(static_cast<Idx>(sizeof(Elem)));
                             // [py, px] ++ [ElemSize] -> [py, px, ElemSize]
-                            vec::Vec<Dim, Size> const dstPitchBytes(vec::concat(pitchWithoutOutermost, elementSizeVec));
+                            vec::Vec<Dim, Idx> const dstPitchBytes(vec::concat(pitchWithoutOutermost, elementSizeVec));
                             // [py, px, ElemSize] [z, y, x] -> [py*z, px*y, ElemSize*x]
                             auto const dimensionalOffsetsInByte(currentIdxDimx * dstPitchBytes);
                             // sum{[py*z, px*y, ElemSize*x]} -> offset in byte
                             auto const offsetInByte(dimensionalOffsetsInByte.foldrAll(
-                                [](Size a, Size b)
+                                [](Idx a, Idx b)
                                 {
-                                    return static_cast<Size>(a + b);
+                                    return static_cast<Idx>(a + b);
                                 }));
 
                             using Byte = typename MimicConst<std::uint8_t, Elem>::type;
@@ -181,9 +181,9 @@ namespace alpaka
 
                     private:
                         Elem * const m_nativePtr;
-                        Size m_currentIdx;
-                        vec::Vec<Dim, Size> const m_extents;
-                        vec::Vec<Dim, Size> const m_pitchBytes;
+                        Idx m_currentIdx;
+                        vec::Vec<Dim, Idx> const m_extents;
+                        vec::Vec<Dim, Idx> const m_pitchBytes;
                     };
 #if BOOST_COMP_GNUC
     #pragma GCC diagnostic pop
@@ -229,7 +229,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 template<
                     typename TView>
-                ALPAKA_FN_HOST static auto begin(
+                ALPAKA_FN_HOST auto begin(
                     TView & view)
                 -> Iterator<TView>
                 {
@@ -239,7 +239,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 template<
                     typename TView>
-                ALPAKA_FN_HOST static auto end(
+                ALPAKA_FN_HOST auto end(
                     TView & view)
                 -> Iterator<TView>
                 {

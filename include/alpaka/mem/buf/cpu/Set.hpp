@@ -21,13 +21,13 @@
 
 #pragma once
 
+#include <alpaka/core/Assert.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/meta/NdLoop.hpp>
 #include <alpaka/meta/Integral.hpp>
 
-#include <cassert>
 #include <cstring>
 
 namespace alpaka
@@ -54,11 +54,15 @@ namespace alpaka
                         typename TDim,
                         typename TView,
                         typename TExtent>
-                    struct TaskSetBase
+                    struct TaskSetCpuBase
                     {
-                        using ExtentSize = size::Size<TExtent>;
-                        using DstSize = size::Size<TView>;
+                        using ExtentSize = idx::Idx<TExtent>;
+                        using DstSize = idx::Idx<TView>;
                         using Elem = elem::Elem<TView>;
+
+                        static_assert(
+                            !std::is_const<TView>::value,
+                            "The destination view can not be const!");
 
                         static_assert(
                             dim::Dim<TView>::value == dim::Dim<TExtent>::value,
@@ -69,10 +73,10 @@ namespace alpaka
 
                         static_assert(
                             meta::IsIntegralSuperset<DstSize, ExtentSize>::value,
-                            "The view and the extent are required to have compatible size type!");
+                            "The view and the extent are required to have compatible idx type!");
 
                         //-----------------------------------------------------------------------------
-                        TaskSetBase(
+                        TaskSetCpuBase(
                             TView & view,
                             std::uint8_t const & byte,
                             TExtent const & extent) :
@@ -85,8 +89,8 @@ namespace alpaka
                                 m_dstPitchBytes(mem::view::getPitchBytesVec(view)),
                                 m_dstMemNative(reinterpret_cast<std::uint8_t *>(mem::view::getPtrNative(view)))
                         {
-                            assert((vec::cast<DstSize>(m_extent) <= m_dstExtent).foldrAll(std::logical_or<bool>()));
-                            assert(m_extentWidthBytes <= m_dstPitchBytes[TDim::value - 1u]);
+                            ALPAKA_ASSERT((vec::cast<DstSize>(m_extent) <= m_dstExtent).foldrAll(std::logical_or<bool>()));
+                            ALPAKA_ASSERT(m_extentWidthBytes <= m_dstPitchBytes[TDim::value - 1u]);
                         }
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -120,14 +124,14 @@ namespace alpaka
                         typename TDim,
                         typename TView,
                         typename TExtent>
-                    struct TaskSet : public TaskSetBase<TDim, TView, TExtent>
+                    struct TaskSetCpu : public TaskSetCpuBase<TDim, TView, TExtent>
                     {
                         using DimMin1 = dim::DimInt<TDim::value - 1u>;
-                        using typename TaskSetBase<TDim, TView, TExtent>::ExtentSize;
-                        using typename TaskSetBase<TDim, TView, TExtent>::DstSize;
+                        using typename TaskSetCpuBase<TDim, TView, TExtent>::ExtentSize;
+                        using typename TaskSetCpuBase<TDim, TView, TExtent>::DstSize;
 
                         //-----------------------------------------------------------------------------
-                        using TaskSetBase<TDim, TView, TExtent>::TaskSetBase;
+                        using TaskSetCpuBase<TDim, TView, TExtent>::TaskSetCpuBase;
 
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto operator()() const
@@ -147,9 +151,17 @@ namespace alpaka
                             {
                                 meta::ndLoopIncIdx(
                                     extentWithoutInnermost,
+
+                                    // workaround for HIP(HCC) to
+                                    // avoid forbidden host-call
+                                    // within host-device functions
+                                    #if defined(BOOST_COMP_HCC) && BOOST_COMP_HCC
+                                    ALPAKA_FN_HOST_ACC
+                                    #endif
                                     [&](vec::Vec<DimMin1, ExtentSize> const & idx)
                                     {
-                                        std::memset(
+
+                                        memset(
                                             reinterpret_cast<void *>(this->m_dstMemNative + (vec::cast<DstSize>(idx) * dstPitchBytesWithoutOutmost).foldrAll(std::plus<DstSize>())),
                                             this->m_byte,
                                             static_cast<std::size_t>(this->m_extentWidthBytes));
@@ -163,13 +175,13 @@ namespace alpaka
                     template<
                         typename TView,
                         typename TExtent>
-                    struct TaskSet<
+                    struct TaskSetCpu<
                         dim::DimInt<1u>,
                         TView,
-                        TExtent> : public TaskSetBase<dim::DimInt<1u>, TView, TExtent>
+                        TExtent> : public TaskSetCpuBase<dim::DimInt<1u>, TView, TExtent>
                     {
                         //-----------------------------------------------------------------------------
-                        using TaskSetBase<dim::DimInt<1u>, TView, TExtent>::TaskSetBase;
+                        using TaskSetCpuBase<dim::DimInt<1u>, TView, TExtent>::TaskSetCpuBase;
 
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto operator()() const
@@ -198,7 +210,7 @@ namespace alpaka
                 //! The CPU device memory set trait specialization.
                 template<
                     typename TDim>
-                struct TaskSet<
+                struct CreateTaskSet<
                     TDim,
                     dev::DevCpu>
                 {
@@ -206,17 +218,17 @@ namespace alpaka
                     template<
                         typename TExtent,
                         typename TView>
-                    ALPAKA_FN_HOST static auto taskSet(
+                    ALPAKA_FN_HOST static auto createTaskSet(
                         TView & view,
                         std::uint8_t const & byte,
                         TExtent const & extent)
-                    -> cpu::detail::TaskSet<
+                    -> cpu::detail::TaskSetCpu<
                         TDim,
                         TView,
                         TExtent>
                     {
                         return
-                            cpu::detail::TaskSet<
+                            cpu::detail::TaskSetCpu<
                                 TDim,
                                 TView,
                                 TExtent>(

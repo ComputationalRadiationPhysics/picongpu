@@ -23,11 +23,19 @@
 
 #include <alpaka/vec/Vec.hpp>
 #include <alpaka/core/Common.hpp>
-#include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Unused.hpp>
 
-#if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp>
+#include <alpaka/dim/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
+#include <alpaka/queue/Traits.hpp>
+
+#include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Debug.hpp>
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+    #include <alpaka/workdiv/Traits.hpp>
 #endif
+
+#include <type_traits>
 
 //-----------------------------------------------------------------------------
 //! The alpaka accelerator library.
@@ -41,6 +49,16 @@ namespace alpaka
         //! The kernel traits.
         namespace traits
         {
+            //#############################################################################
+            //! The kernel execution task creation trait.
+            template<
+                typename TAcc,
+                typename TWorkDiv,
+                typename TKernelFnObj,
+                typename... TArgs/*,
+                typename TSfinae = void*/>
+            struct CreateTaskExec;
+
             //#############################################################################
             //! The trait for getting the size of the block shared dynamic memory of a kernel.
             //!
@@ -74,25 +92,16 @@ namespace alpaka
                     typename TDim,
                     typename... TArgs>
                 ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
-#if !BOOST_ARCH_CUDA_DEVICE
                     TKernelFnObj const & kernelFnObj,
-                    vec::Vec<TDim, size::Size<TAcc>> const & blockThreadExtent,
-                    vec::Vec<TDim, size::Size<TAcc>> const & threadElemExtent,
+                    vec::Vec<TDim, idx::Idx<TAcc>> const & blockThreadExtent,
+                    vec::Vec<TDim, idx::Idx<TAcc>> const & threadElemExtent,
                     TArgs const & ... args)
-#else
-                    TKernelFnObj const &,
-                    vec::Vec<TDim, size::Size<TAcc>> const &,
-                    vec::Vec<TDim, size::Size<TAcc>> const &,
-                    TArgs const & ...)
-#endif
-                -> size::Size<TAcc>
+                -> idx::Idx<TAcc>
                 {
-#if !BOOST_ARCH_CUDA_DEVICE
-                    boost::ignore_unused(kernelFnObj);
-                    boost::ignore_unused(blockThreadExtent);
-                    boost::ignore_unused(threadElemExtent);
-                    boost::ignore_unused(args...);
-#endif
+                    alpaka::ignore_unused(kernelFnObj);
+                    alpaka::ignore_unused(blockThreadExtent);
+                    alpaka::ignore_unused(threadElemExtent);
+                    alpaka::ignore_unused(args...);
 
                     return 0;
                 }
@@ -104,10 +113,10 @@ namespace alpaka
     #pragma clang diagnostic ignored "-Wdocumentation"  // clang does not support the syntax for variadic template arguments "args,..."
 #endif
         //-----------------------------------------------------------------------------
+        //! \tparam TAcc The accelerator type.
         //! \param kernelFnObj The kernel object for which the block shared memory size should be calculated.
         //! \param blockThreadExtent The block thread extent.
         //! \param threadElemExtent The thread element extent.
-        //! \tparam TArgs The kernel invocation argument types pack.
         //! \param args,... The kernel invocation arguments.
         //! \return The size of the shared memory allocated for a block in bytes.
         //! The default implementation always returns zero.
@@ -122,10 +131,10 @@ namespace alpaka
             typename... TArgs>
         ALPAKA_FN_HOST_ACC auto getBlockSharedMemDynSizeBytes(
             TKernelFnObj const & kernelFnObj,
-            vec::Vec<TDim, size::Size<TAcc>> const & blockThreadExtent,
-            vec::Vec<TDim, size::Size<TAcc>> const & threadElemExtent,
+            vec::Vec<TDim, idx::Idx<TAcc>> const & blockThreadExtent,
+            vec::Vec<TDim, idx::Idx<TAcc>> const & threadElemExtent,
             TArgs const & ... args)
-        -> size::Size<TAcc>
+        -> idx::Idx<TAcc>
         {
             return
                 traits::BlockSharedMemDynSizeBytes<
@@ -136,6 +145,104 @@ namespace alpaka
                     blockThreadExtent,
                     threadElemExtent,
                     args...);
+        }
+
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdocumentation"  // clang does not support the syntax for variadic template arguments "args,..."
+#endif
+        //-----------------------------------------------------------------------------
+        //! Creates a kernel execution task.
+        //!
+        //! \tparam TAcc The accelerator type.
+        //! \param workDiv The index domain work division.
+        //! \param kernelFnObj The kernel function object which should be executed.
+        //! \param args,... The kernel invocation arguments.
+        //! \return The kernel execution task.
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic pop
+#endif
+        template<
+            typename TAcc,
+            typename TWorkDiv,
+            typename TKernelFnObj,
+            typename... TArgs>
+        ALPAKA_FN_HOST auto createTaskExec(
+            TWorkDiv const & workDiv,
+            TKernelFnObj const & kernelFnObj,
+            TArgs const & ... args)
+#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+        -> decltype(
+            traits::CreateTaskExec<
+                TAcc,
+                TWorkDiv,
+                TKernelFnObj,
+                TArgs...>
+            ::createTaskExec(
+                workDiv,
+                kernelFnObj,
+                args...))
+#endif
+        {
+            static_assert(
+                dim::Dim<typename std::decay<TWorkDiv>::type>::value == dim::Dim<TAcc>::value,
+                "The dimensions of TAcc and TWorkDiv have to be identical!");
+            static_assert(
+                std::is_same<idx::Idx<typename std::decay<TWorkDiv>::type>, idx::Idx<TAcc>>::value,
+                "The idx type of TAcc and the idx type of TWorkDiv have to be identical!");
+
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+            std::cout << BOOST_CURRENT_FUNCTION
+                << " gridBlockExtent: " << workdiv::getWorkDiv<Grid, Blocks>(workDiv)
+                << ", blockThreadExtent: " << workdiv::getWorkDiv<Block, Threads>(workDiv)
+                << std::endl;
+#endif
+            return
+                traits::CreateTaskExec<
+                    TAcc,
+                    TWorkDiv,
+                    TKernelFnObj,
+                    TArgs...>::createTaskExec(
+                        workDiv,
+                        kernelFnObj,
+                        args...);
+        }
+
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdocumentation"  // clang does not support the syntax for variadic template arguments "args,..."
+#endif
+        //-----------------------------------------------------------------------------
+        //! Executes the given kernel in the given queue.
+        //!
+        //! \tparam TAcc The accelerator type.
+        //! \param queue The queue to enqueue the view copy task into.
+        //! \param workDiv The index domain work division.
+        //! \param kernelFnObj The kernel function object which should be executed.
+        //! \param args,... The kernel invocation arguments.
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic pop
+#endif
+        template<
+            typename TAcc,
+            typename TQueue,
+            typename TWorkDiv,
+            typename TKernelFnObj,
+            typename... TArgs>
+        ALPAKA_FN_HOST auto exec(
+            TQueue & queue,
+            TWorkDiv const & workDiv,
+            TKernelFnObj const & kernelFnObj,
+            TArgs const & ... args)
+        -> void
+        {
+            queue::enqueue(
+                queue,
+                kernel::createTaskExec<
+                    TAcc>(
+                    workDiv,
+                    kernelFnObj,
+                    args...));
         }
     }
 }

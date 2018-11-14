@@ -57,13 +57,18 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const &) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
+        alpaka::ignore_unused(acc);
+
         // We should be able to call some native CUDA functions when ALPAKA_ACC_GPU_CUDA_ONLY_MODE is enabled.
         __threadfence_block();
         userDefinedThreadFence();
         __threadfence_system();
+
+        *success = true;
     }
 };
 
@@ -74,10 +79,10 @@ BOOST_AUTO_TEST_CASE(cudaOnlyModeWorking)
 {
     using TAcc = alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<1u>, std::uint32_t>;
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     CudaOnlyTestKernel kernel;
 

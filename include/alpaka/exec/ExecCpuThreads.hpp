@@ -27,9 +27,8 @@
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dim/Traits.hpp>
-#include <alpaka/exec/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 // Implementation details.
 #include <alpaka/acc/AccCpuThreads.hpp>
@@ -60,11 +59,11 @@ namespace alpaka
         //! The CPU threads executor.
         template<
             typename TDim,
-            typename TSize,
+            typename TIdx,
             typename TKernelFnObj,
             typename... TArgs>
         class ExecCpuThreads final :
-            public workdiv::WorkDivMembers<TDim, TSize>
+            public workdiv::WorkDivMembers<TDim, TIdx>
         {
         private:
             //#############################################################################
@@ -84,7 +83,7 @@ namespace alpaka
             // Using condition variables and going to sleep is very costly for real threads.
             // Especially when the time to wait is really short (syncBlockThreads) yielding is much faster.
             using ThreadPool = alpaka::core::detail::ConcurrentExecPool<
-                TSize,
+                TIdx,
                 std::thread,        // The concurrent execution type.
                 std::promise,       // The promise type.
                 ThreadPoolYield>;   // The type yielding the current concurrent execution.
@@ -97,7 +96,7 @@ namespace alpaka
                 TWorkDiv && workDiv,
                 TKernelFnObj const & kernelFnObj,
                 TArgs const & ... args) :
-                    workdiv::WorkDivMembers<TDim, TSize>(std::forward<TWorkDiv>(workDiv)),
+                    workdiv::WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv)),
                     m_kernelFnObj(kernelFnObj),
                     m_args(args...)
             {
@@ -137,7 +136,7 @@ namespace alpaka
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
-                                    acc::AccCpuThreads<TDim, TSize>>(
+                                    acc::AccCpuThreads<TDim, TIdx>>(
                                         m_kernelFnObj,
                                         blockThreadExtent,
                                         threadElemExtent,
@@ -149,8 +148,8 @@ namespace alpaka
                 std::cout << BOOST_CURRENT_FUNCTION
                     << " blockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B" << std::endl;
 #endif
-                acc::AccCpuThreads<TDim, TSize> acc(
-                    *static_cast<workdiv::WorkDivMembers<TDim, TSize> const *>(this),
+                acc::AccCpuThreads<TDim, TIdx> acc(
+                    *static_cast<workdiv::WorkDivMembers<TDim, TIdx> const *>(this),
                     blockSharedMemDynSizeBytes);
 
                 auto const blockThreadCount(blockThreadExtent.prod());
@@ -163,7 +162,7 @@ namespace alpaka
                         {
                             return
                                 std::bind(
-                                    &ExecCpuThreads<TDim, TSize, TKernelFnObj, TArgs...>::gridBlockExecHost,
+                                    &ExecCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>::gridBlockExecHost,
                                     std::ref(acc),
                                     std::placeholders::_1,
                                     std::ref(blockThreadExtent),
@@ -183,9 +182,9 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! The function executed for each grid block.
             ALPAKA_FN_HOST static auto gridBlockExecHost(
-                acc::AccCpuThreads<TDim, TSize> & acc,
-                vec::Vec<TDim, TSize> const & gridBlockIdx,
-                vec::Vec<TDim, TSize> const & blockThreadExtent,
+                acc::AccCpuThreads<TDim, TIdx> & acc,
+                vec::Vec<TDim, TIdx> const & gridBlockIdx,
+                vec::Vec<TDim, TIdx> const & blockThreadExtent,
                 ThreadPool & threadPool,
                 TKernelFnObj const & kernelFnObj,
                 TArgs const & ... args)
@@ -199,7 +198,7 @@ namespace alpaka
 
                 // Bind the kernel and its arguments to the host block thread execution function.
                 auto boundBlockThreadExecHost(std::bind(
-                    &ExecCpuThreads<TDim, TSize, TKernelFnObj, TArgs...>::blockThreadExecHost,
+                    &ExecCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>::blockThreadExecHost,
                     std::ref(acc),
                     std::ref(futuresInBlock),
                     std::placeholders::_1,
@@ -211,7 +210,7 @@ namespace alpaka
                     blockThreadExtent,
                     boundBlockThreadExecHost);
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
-#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
+#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
                 // Wait for the completion of the block thread kernels.
                 std::for_each(
                     futuresInBlock.begin(),
@@ -233,14 +232,14 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! The function executed for each block thread on the host.
             ALPAKA_FN_HOST static auto blockThreadExecHost(
-                acc::AccCpuThreads<TDim, TSize> & acc,
-#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
+                acc::AccCpuThreads<TDim, TIdx> & acc,
+#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
                 std::vector<std::future<void>> & futuresInBlock,
-                vec::Vec<TDim, TSize> const & blockThreadIdx,
+                vec::Vec<TDim, TIdx> const & blockThreadIdx,
                 ThreadPool & threadPool,
 #else
                 std::vector<std::future<void>> &,
-                vec::Vec<TDim, TSize> const & blockThreadIdx,
+                vec::Vec<TDim, TIdx> const & blockThreadIdx,
                 ThreadPool &,
 #endif
                 TKernelFnObj const & kernelFnObj,
@@ -260,7 +259,7 @@ namespace alpaka
                     });
                 // Add the bound function to the block thread pool.
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
-#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_CUDA_DEVICE)
+#if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
                 futuresInBlock.emplace_back(
                     threadPool.enqueueTask(
                         boundBlockThreadExecAcc));
@@ -271,8 +270,8 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! The thread entry point on the accelerator.
             ALPAKA_FN_HOST static auto blockThreadExecAcc(
-                acc::AccCpuThreads<TDim, TSize> & acc,
-                vec::Vec<TDim, TSize> const & blockThreadIdx,
+                acc::AccCpuThreads<TDim, TIdx> & acc,
+                vec::Vec<TDim, TIdx> const & blockThreadIdx,
                 TKernelFnObj const & kernelFnObj,
                 TArgs const & ... args)
             -> void
@@ -299,7 +298,7 @@ namespace alpaka
 
                 // Execute the kernel itself.
                 kernelFnObj(
-                    const_cast<acc::AccCpuThreads<TDim, TSize> const &>(acc),
+                    const_cast<acc::AccCpuThreads<TDim, TIdx> const &>(acc),
                     args...);
 
                 // We have to sync all threads here because if a thread would finish before all threads have been started,
@@ -320,13 +319,13 @@ namespace alpaka
             //! The CPU threads executor accelerator type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct AccType<
-                exec::ExecCpuThreads<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = acc::AccCpuThreads<TDim, TSize>;
+                using type = acc::AccCpuThreads<TDim, TIdx>;
             };
         }
     }
@@ -338,11 +337,11 @@ namespace alpaka
             //! The CPU threads executor device type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DevType<
-                exec::ExecCpuThreads<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = dev::DevCpu;
             };
@@ -356,33 +355,13 @@ namespace alpaka
             //! The CPU threads executor dimension getter trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DimType<
-                exec::ExecCpuThreads<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = TDim;
-            };
-        }
-    }
-    namespace exec
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The CPU threads executor executor type trait specialization.
-            template<
-                typename TDim,
-                typename TSize,
-                typename TKernelFnObj,
-                typename... TArgs>
-            struct ExecType<
-                exec::ExecCpuThreads<TDim, TSize, TKernelFnObj, TArgs...>,
-                TKernelFnObj,
-                TArgs...>
-            {
-                using type = exec::ExecCpuThreads<TDim, TSize, TKernelFnObj, TArgs...>;
             };
         }
     }
@@ -394,31 +373,31 @@ namespace alpaka
             //! The CPU threads executor platform type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct PltfType<
-                exec::ExecCpuThreads<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = pltf::PltfCpu;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The CPU threads executor size type trait specialization.
+            //! The CPU threads executor idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
-            struct SizeType<
-                exec::ExecCpuThreads<TDim, TSize, TKernelFnObj, TArgs...>>
+            struct IdxType<
+                exec::ExecCpuThreads<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }

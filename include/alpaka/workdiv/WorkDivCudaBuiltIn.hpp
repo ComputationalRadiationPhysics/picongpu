@@ -30,12 +30,11 @@
 #endif
 
 #include <alpaka/workdiv/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
-#include <alpaka/vec/Vec.hpp>
 #include <alpaka/core/Cuda.hpp>
-
-//#include <boost/core/ignore_unused.hpp>
+#include <alpaka/core/Unused.hpp>
+#include <alpaka/vec/Vec.hpp>
 
 namespace alpaka
 {
@@ -45,32 +44,32 @@ namespace alpaka
         //! The GPU CUDA accelerator work division.
         template<
             typename TDim,
-            typename TSize>
+            typename TIdx>
         class WorkDivCudaBuiltIn
         {
         public:
             using WorkDivBase = WorkDivCudaBuiltIn;
 
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY WorkDivCudaBuiltIn(
-                vec::Vec<TDim, TSize> const & threadElemExtent) :
+            __device__ WorkDivCudaBuiltIn(
+                vec::Vec<TDim, TIdx> const & threadElemExtent) :
                     m_threadElemExtent(threadElemExtent)
             {}
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY WorkDivCudaBuiltIn(WorkDivCudaBuiltIn const &) = delete;
+            __device__ WorkDivCudaBuiltIn(WorkDivCudaBuiltIn const &) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY WorkDivCudaBuiltIn(WorkDivCudaBuiltIn &&) = delete;
+            __device__ WorkDivCudaBuiltIn(WorkDivCudaBuiltIn &&) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY auto operator=(WorkDivCudaBuiltIn const &) -> WorkDivCudaBuiltIn & = delete;
+            __device__ auto operator=(WorkDivCudaBuiltIn const &) -> WorkDivCudaBuiltIn & = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY auto operator=(WorkDivCudaBuiltIn &&) -> WorkDivCudaBuiltIn & = delete;
+            __device__ auto operator=(WorkDivCudaBuiltIn &&) -> WorkDivCudaBuiltIn & = delete;
             //-----------------------------------------------------------------------------
             /*virtual*/ ~WorkDivCudaBuiltIn() = default;
 
         public:
             // \TODO: Optimize! Add WorkDivCudaBuiltInNoElems that has no member m_threadElemExtent as well as AccGpuCudaRtNoElems.
             // Use it instead of AccGpuCudaRt if the thread element extent is one to reduce the register usage.
-            vec::Vec<TDim, TSize> const & m_threadElemExtent;
+            vec::Vec<TDim, TIdx> const & m_threadElemExtent;
         };
     }
 
@@ -82,27 +81,27 @@ namespace alpaka
             //! The GPU CUDA accelerator work division dimension get trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct DimType<
-                workdiv::WorkDivCudaBuiltIn<TDim, TSize>>
+                workdiv::WorkDivCudaBuiltIn<TDim, TIdx>>
             {
                 using type = TDim;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The GPU CUDA accelerator work division size type trait specialization.
+            //! The GPU CUDA accelerator work division idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
-            struct SizeType<
-                workdiv::WorkDivCudaBuiltIn<TDim, TSize>>
+                typename TIdx>
+            struct IdxType<
+                workdiv::WorkDivCudaBuiltIn<TDim, TIdx>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }
@@ -114,20 +113,20 @@ namespace alpaka
             //! The GPU CUDA accelerator work division grid block extent trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetWorkDiv<
-                WorkDivCudaBuiltIn<TDim, TSize>,
+                WorkDivCudaBuiltIn<TDim, TIdx>,
                 origin::Grid,
                 unit::Blocks>
             {
                 //-----------------------------------------------------------------------------
                 //! \return The number of blocks in each dimension of the grid.
-                ALPAKA_FN_ACC_CUDA_ONLY static auto getWorkDiv(
-                    WorkDivCudaBuiltIn<TDim, TSize> const & /*workDiv*/)
-                -> vec::Vec<TDim, TSize>
+                __device__ static auto getWorkDiv(
+                    WorkDivCudaBuiltIn<TDim, TIdx> const & workDiv)
+                -> vec::Vec<TDim, TIdx>
                 {
-                    //boost::ignore_unused(workDiv);
-                    return vec::cast<TSize>(extent::getExtentVecEnd<TDim>(gridDim));
+                    alpaka::ignore_unused(workDiv);
+                    return vec::cast<TIdx>(extent::getExtentVecEnd<TDim>(gridDim));
                 }
             };
 
@@ -135,20 +134,20 @@ namespace alpaka
             //! The GPU CUDA accelerator work division block thread extent trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetWorkDiv<
-                WorkDivCudaBuiltIn<TDim, TSize>,
+                WorkDivCudaBuiltIn<TDim, TIdx>,
                 origin::Block,
                 unit::Threads>
             {
                 //-----------------------------------------------------------------------------
                 //! \return The number of threads in each dimension of a block.
-                ALPAKA_FN_ACC_CUDA_ONLY static auto getWorkDiv(
-                    WorkDivCudaBuiltIn<TDim, TSize> const & /*workDiv*/)
-                -> vec::Vec<TDim, TSize>
+                __device__ static auto getWorkDiv(
+                    WorkDivCudaBuiltIn<TDim, TIdx> const & workDiv)
+                -> vec::Vec<TDim, TIdx>
                 {
-                    //boost::ignore_unused(workDiv);
-                    return vec::cast<TSize>(extent::getExtentVecEnd<TDim>(blockDim));
+                    alpaka::ignore_unused(workDiv);
+                    return vec::cast<TIdx>(extent::getExtentVecEnd<TDim>(blockDim));
                 }
             };
 
@@ -156,17 +155,17 @@ namespace alpaka
             //! The GPU CUDA accelerator work division thread element extent trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetWorkDiv<
-                WorkDivCudaBuiltIn<TDim, TSize>,
+                WorkDivCudaBuiltIn<TDim, TIdx>,
                 origin::Thread,
                 unit::Elems>
             {
                 //-----------------------------------------------------------------------------
                 //! \return The number of blocks in each dimension of the grid.
-                ALPAKA_FN_ACC_CUDA_ONLY static auto getWorkDiv(
-                    WorkDivCudaBuiltIn<TDim, TSize> const & workDiv)
-                -> vec::Vec<TDim, TSize>
+                __device__ static auto getWorkDiv(
+                    WorkDivCudaBuiltIn<TDim, TIdx> const & workDiv)
+                -> vec::Vec<TDim, TIdx>
                 {
                     return workDiv.m_threadElemExtent;
                 }

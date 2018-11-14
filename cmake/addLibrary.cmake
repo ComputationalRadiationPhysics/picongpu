@@ -36,7 +36,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
 # code filenames!
 # OPTIONS and the arguments thereafter are ignored if not using CUDA, they
 # won't throw an error in that case.
-FUNCTION(ALPAKA_ADD_LIBRARY libraryName)
+MACRO(ALPAKA_ADD_LIBRARY libraryName)
     # CUDA_ADD_LIBRARY( cuda_target file0 file1 ...
     #                   [STATIC | SHARED | MODULE]
     #                   [EXCLUDE_FROM_ALL] [OPTIONS <nvcc-flags> ... ] )
@@ -130,6 +130,23 @@ FUNCTION(ALPAKA_ADD_LIBRARY libraryName)
                 ${optionArguments}
             )
         ENDIF()
+    ELSEIF( ALPAKA_ACC_GPU_HIP_ENABLE )
+            FOREACH( _file ${ARGN} )
+                IF( ( ${_file} MATCHES "\\.cpp$" ) OR
+                    ( ${_file} MATCHES "\\.cxx$" )
+                )
+                    SET_SOURCE_FILES_PROPERTIES( ${_file} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT OBJ )
+                ENDIF()
+            ENDFOREACH()
+            CMAKE_POLICY(SET CMP0023 OLD)   # CUDA_ADD_LIBRARY calls TARGET_LINK_LIBRARIES without keywords.
+            HIP_ADD_LIBRARY(
+                ${libraryName}
+                ${sourceFileNames}
+                ${libraryType}
+                ${excludeFromAll}
+                ${optionArguments}
+            )
+
     ELSE()
         #message( "add_library( ${libraryName} ${libraryType} ${excludeFromAll} ${sourceFileNames} )" )
         ADD_LIBRARY(
@@ -145,4 +162,4 @@ FUNCTION(ALPAKA_ADD_LIBRARY libraryName)
     UNSET( sourceFileNames )
     UNSET( excludeFromAll )
     UNSET( optionArguments )
-ENDFUNCTION()
+ENDMACRO()

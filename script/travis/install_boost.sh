@@ -62,14 +62,11 @@ fi
 if [ "${CXX}" == "clang++" ]
 then
     ALPAKA_BOOST_B2_CXXFLAGS+=" -Wunused-private-field -Wno-unused-local-typedef -Wno-c99-extensions -Wno-variadic-macros"
-    if ( (( ALPAKA_CI_CLANG_VER_MAJOR >= 4 )) || ( (( ALPAKA_CI_CLANG_VER_MAJOR == 3 )) && (( ALPAKA_CI_CLANG_VER_MINOR >= 6 )) ) )
-    then
-        ALPAKA_BOOST_B2_CXXFLAGS+=" -Wno-unused-local-typedef"
-    fi
 fi
 # Select the libraries required.
 ALPAKA_BOOST_B2+=" --with-test"
-if [ "${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" == "ON" ]
+# If the variable is not set, the backend will most probably be used by default so we install it.
+if [[ ! -v ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE || "${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" == "ON" ]]
 then
     ALPAKA_BOOST_B2_CXXFLAGS+=" -std=c++11"
     ALPAKA_BOOST_B2+=" --with-fiber --with-context --with-thread --with-atomic --with-system --with-chrono --with-date_time"

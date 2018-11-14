@@ -1,6 +1,6 @@
 /**
 * \file
-* Copyright 2014-2015 Benjamin Worpitz
+* Copyright 2014-2018 Benjamin Worpitz
 *
 * This file is part of alpaka.
 *
@@ -19,11 +19,30 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+// \Hack: Boost.MPL defines BOOST_MPL_CFG_GPU_ENABLED to __host__ __device__ if nvcc is used.
+// BOOST_AUTO_TEST_CASE_TEMPLATE and its internals are not GPU enabled but is using boost::mpl::for_each internally.
+// For each template parameter this leads to:
+// /home/travis/build/boost/boost/mpl/for_each.hpp(78): warning: calling a __host__ function from a __host__ __device__ function is not allowed
+// because boost::mpl::for_each has the BOOST_MPL_CFG_GPU_ENABLED attribute but the test internals are pure host methods.
+// Because we do not use MPL within GPU code here, we can disable the MPL GPU support.
+#define BOOST_MPL_CFG_GPU_ENABLED
+
+#define BOOST_TEST_MODULE sharedMem
+
 #include <alpaka/core/BoostPredef.hpp>
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
+#include <boost/test/unit_test.hpp>
+#if BOOST_COMP_CLANG
+    #pragma clang diagnostic pop
+#endif
+
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/MeasureKernelRunTime.hpp>
 #include <alpaka/test/acc/Acc.hpp>
-#include <alpaka/test/stream/Stream.hpp>
+#include <alpaka/test/queue/Queue.hpp>
 
 #include <iostream>
 #include <typeinfo>
@@ -34,7 +53,7 @@
 //! \tparam TnumUselessWork The number of useless calculations done in each kernel execution.
 template<
     typename TnumUselessWork,
-    typename TVal>
+    typename Val>
 class SharedMemKernel
 {
 public:
@@ -44,28 +63,28 @@ public:
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
         TAcc const & acc,
-        TVal * const puiBlockRetVals) const
+        Val * const puiBlockRetVals) const
     -> void
     {
-        using Size = alpaka::size::Size<TAcc>;
+        using Idx = alpaka::idx::Idx<TAcc>;
 
         static_assert(
             alpaka::dim::Dim<TAcc>::value == 1,
             "The SharedMemKernel expects 1-dimensional indices!");
 
         // The number of threads in this block.
-        Size const blockThreadCount(alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc)[0u]);
+        Idx const blockThreadCount(alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(acc)[0u]);
 
         // Get the dynamically allocated shared memory.
-        TVal * const pBlockShared(alpaka::block::shared::dyn::getMem<TVal>(acc));
+        Val * const pBlockShared(alpaka::block::shared::dyn::getMem<Val>(acc));
 
         // Calculate linearized index of the thread in the block.
-        Size const blockThreadIdx1d(alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc)[0u]);
+        Idx const blockThreadIdx1d(alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc)[0u]);
 
 
         // Fill the shared block with the thread ids [1+X, 2+X, 3+X, ..., #Threads+X].
-        auto sum1 = static_cast<TVal>(blockThreadIdx1d+1);
-        for(TVal i(0); i<static_cast<TVal>(TnumUselessWork::value); ++i)
+        auto sum1 = static_cast<Val>(blockThreadIdx1d+1);
+        for(Val i(0); i<static_cast<Val>(TnumUselessWork::value); ++i)
         {
             sum1 += i;
         }
@@ -76,8 +95,8 @@ public:
         alpaka::block::sync::syncBlockThreads(acc);
 
         // Do something useless.
-        auto sum2 = static_cast<TVal>(blockThreadIdx1d);
-        for(TVal i(0); i<static_cast<TVal>(TnumUselessWork::value); ++i)
+        auto sum2 = static_cast<Val>(blockThreadIdx1d);
+        for(Val i(0); i<static_cast<Val>(TnumUselessWork::value); ++i)
         {
             sum2 -= i;
         }
@@ -101,7 +120,7 @@ public:
         if(blockThreadIdx1d==0)
         {
             // Calculate linearized block id.
-            Size const gridBlockIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0u]);
+            Idx const gridBlockIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0u]);
 
             puiBlockRetVals[gridBlockIdx] = pBlockShared[0];
         }
@@ -118,10 +137,10 @@ namespace alpaka
             //! The trait for getting the size of the block shared dynamic memory for a kernel.
             template<
                 typename TnumUselessWork,
-                typename TVal,
+                typename Val,
                 typename TAcc>
             struct BlockSharedMemDynSizeBytes<
-                SharedMemKernel<TnumUselessWork, TVal>,
+                SharedMemKernel<TnumUselessWork, Val>,
                 TAcc>
             {
                 //-----------------------------------------------------------------------------
@@ -129,170 +148,121 @@ namespace alpaka
                 template<
                     typename TVec,
                     typename... TArgs>
-                ALPAKA_FN_HOST static auto getBlockSharedMemDynSizeBytes(
-                    SharedMemKernel<TnumUselessWork, TVal> const & sharedMemKernel,
+                ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
+                    SharedMemKernel<TnumUselessWork, Val> const & sharedMemKernel,
                     TVec const & blockThreadExtent,
                     TVec const & threadElemExtent,
                     TArgs && ...)
-                -> size::Size<TAcc>
+                -> idx::Idx<TAcc>
                 {
-                    boost::ignore_unused(sharedMemKernel);
-                    return blockThreadExtent.prod() * threadElemExtent.prod() * static_cast<size::Size<TAcc>>(sizeof(TVal));
+                    alpaka::ignore_unused(sharedMemKernel);
+                    return blockThreadExtent.prod() * threadElemExtent.prod() * static_cast<idx::Idx<TAcc>>(sizeof(Val));
                 }
             };
         }
     }
 }
 
-//#############################################################################
-//! Profiles the example kernel and checks the result.
-template<
-    typename TnumUselessWork,
-    typename TVal>
-struct SharedMemTester
+BOOST_AUTO_TEST_SUITE(sharedMem)
+
+using TestAccs = alpaka::test::acc::EnabledAccs<
+    alpaka::dim::DimInt<1u>,
+    std::uint32_t>;
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(
+    calculateAxpy,
+    TAcc,
+    TestAccs)
 {
-    template<
-        typename TAcc,
-        typename TSize>
-    auto operator()(
-        TSize const numElements)
-    -> void
+    using Dim = alpaka::dim::Dim<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
+
+    Idx const numElements = 1u<<16u;
+
+    using Val = std::int32_t;
+    using TnumUselessWork = std::integral_constant<Idx, 100>;
+
+    using DevAcc = alpaka::dev::Dev<TAcc>;
+    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
+    using QueueAcc = alpaka::test::queue::DefaultQueue<DevAcc>;
+
+
+    // Create the kernel function object.
+    SharedMemKernel<TnumUselessWork, Val> kernel;
+
+    // Select a device to execute on.
+    auto const devAcc(
+        alpaka::pltf::getDevByIdx<PltfAcc>(0u));
+
+    // Get a queue on this device.
+    QueueAcc queue(
+        devAcc);
+
+    // Set the grid blocks extent.
+    alpaka::workdiv::WorkDivMembers<Dim, Idx> const workDiv(
+        alpaka::workdiv::getValidWorkDiv<TAcc>(
+            devAcc,
+            numElements,
+            static_cast<Idx>(1u),
+            false,
+            alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted));
+
+    std::cout
+        << "SharedMemKernel("
+        << " accelerator: " << alpaka::acc::getAccName<TAcc>()
+        << ", kernel: " << typeid(kernel).name()
+        << ", workDiv: " << workDiv
+        << ")" << std::endl;
+
+    Idx const gridBlocksCount(
+        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(workDiv)[0u]);
+    Idx const blockThreadCount(
+        alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(workDiv)[0u]);
+
+    // An array for the return values calculated by the blocks.
+    std::vector<Val> blockRetVals(static_cast<std::size_t>(gridBlocksCount));
+
+    // Allocate accelerator buffers and copy.
+    Idx const resultElemCount(gridBlocksCount);
+    auto blockRetValsAcc(alpaka::mem::buf::alloc<Val, Idx>(devAcc, resultElemCount));
+    alpaka::mem::view::copy(queue, blockRetValsAcc, blockRetVals, resultElemCount);
+
+    // Create the executor task.
+    auto const exec(alpaka::kernel::createTaskExec<TAcc>(
+        workDiv,
+        kernel,
+        alpaka::mem::view::getPtrNative(blockRetValsAcc)));
+
+    // Profile the kernel execution.
+    std::cout << "Execution time: "
+        << alpaka::test::integ::measureTaskRunTimeMs(
+            queue,
+            exec)
+        << " ms"
+        << std::endl;
+
+    // Copy back the result.
+    alpaka::mem::view::copy(queue, blockRetVals, blockRetValsAcc, resultElemCount);
+
+    // Wait for the queue to finish the memory operation.
+    alpaka::wait::wait(queue);
+
+    // Assert that the results are correct.
+    Val const correctResult(
+        static_cast<Val>(blockThreadCount*blockThreadCount));
+
+    bool resultCorrect(true);
+    for(Idx i(0); i<gridBlocksCount; ++i)
     {
-        std::cout << std::endl;
-        std::cout << "################################################################################" << std::endl;
-
-        using DevAcc = alpaka::dev::Dev<TAcc>;
-        using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-        using StreamAcc = alpaka::test::stream::DefaultStream<DevAcc>;
-
-        // Create the kernel function object.
-        SharedMemKernel<TnumUselessWork, TVal> kernel;
-
-        // Select a device to execute on.
-        auto const devAcc(
-            alpaka::pltf::getDevByIdx<PltfAcc>(0u));
-
-        // Get a stream on this device.
-        StreamAcc stream(
-            devAcc);
-
-        // Set the grid blocks extent.
-        alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<1u>, TSize> const workDiv(
-            alpaka::workdiv::getValidWorkDiv<TAcc>(
-                devAcc,
-                numElements,
-                static_cast<TSize>(1u),
-                false,
-                alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted));
-
-        std::cout
-            << "SharedMemTester("
-            << " accelerator: " << alpaka::acc::getAccName<TAcc>()
-            << ", kernel: " << typeid(kernel).name()
-            << ", workDiv: " << workDiv
-            << ")" << std::endl;
-
-        TSize const gridBlocksCount(
-            alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(workDiv)[0u]);
-        TSize const blockThreadCount(
-            alpaka::workdiv::getWorkDiv<alpaka::Block, alpaka::Threads>(workDiv)[0u]);
-
-        // An array for the return values calculated by the blocks.
-        std::vector<TVal> blockRetVals(static_cast<std::size_t>(gridBlocksCount), static_cast<TVal>(0));
-
-        // Allocate accelerator buffers and copy.
-        TSize const resultElemCount(gridBlocksCount);
-        auto blockRetValsAcc(alpaka::mem::buf::alloc<TVal, TSize>(devAcc, resultElemCount));
-        alpaka::mem::view::copy(stream, blockRetValsAcc, blockRetVals, resultElemCount);
-
-        // Create the executor task.
-        auto const exec(alpaka::exec::create<TAcc>(
-            workDiv,
-            kernel,
-            alpaka::mem::view::getPtrNative(blockRetValsAcc)));
-
-        // Profile the kernel execution.
-        std::cout << "Execution time: "
-            << alpaka::test::integ::measureKernelRunTimeMs(
-                stream,
-                exec)
-            << " ms"
-            << std::endl;
-
-        // Copy back the result.
-        alpaka::mem::view::copy(stream, blockRetVals, blockRetValsAcc, resultElemCount);
-
-        // Wait for the stream to finish the memory operation.
-        alpaka::wait::wait(stream);
-
-        // Assert that the results are correct.
-        TVal const correctResult(
-            static_cast<TVal>(blockThreadCount*blockThreadCount));
-
-        bool resultCorrect(true);
-        for(TSize i(0); i<gridBlocksCount; ++i)
+        auto const val(blockRetVals[static_cast<std::size_t>(i)]);
+        if(val != correctResult)
         {
-            auto const val(blockRetVals[static_cast<std::size_t>(i)]);
-            if(val != correctResult)
-            {
-                std::cout << "blockRetVals[" << i << "] == " << val << " != " << correctResult << std::endl;
-                resultCorrect = false;
-            }
+            std::cerr << "blockRetVals[" << i << "] == " << val << " != " << correctResult << std::endl;
+            resultCorrect = false;
         }
-
-        if(resultCorrect)
-        {
-            std::cout << "Execution results correct!" << std::endl;
-        }
-
-        std::cout << "################################################################################" << std::endl;
-
-        allResultsCorrect = allResultsCorrect && resultCorrect;
     }
 
-public:
-    bool allResultsCorrect = true;
-};
-
-auto main()
--> int
-{
-    try
-    {
-        std::cout << std::endl;
-        std::cout << "################################################################################" << std::endl;
-        std::cout << "                            alpaka sharedMem test                               " << std::endl;
-        std::cout << "################################################################################" << std::endl;
-        std::cout << std::endl;
-
-        using Size = std::uint32_t;
-        using Val = std::int32_t;
-
-        // Logs the enabled accelerators.
-        alpaka::test::acc::writeEnabledAccs<alpaka::dim::DimInt<1u>, Size>(std::cout);
-
-        std::cout << std::endl;
-
-        using TnumUselessWork = std::integral_constant<Size, 100>;
-
-        SharedMemTester<TnumUselessWork, Val> sharedMemTester;
-
-        // Execute the kernel on all enabled accelerators.
-        alpaka::meta::forEachType<
-            alpaka::test::acc::EnabledAccs<alpaka::dim::DimInt<1u>, Size>>(
-                sharedMemTester,
-                static_cast<Size>(512));
-
-        return sharedMemTester.allResultsCorrect ? EXIT_SUCCESS : EXIT_FAILURE;
-    }
-    catch(std::exception const & e)
-    {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    catch(...)
-    {
-        std::cerr << "Unknown Exception" << std::endl;
-        return EXIT_FAILURE;
-    }
+    BOOST_REQUIRE_EQUAL(true, resultCorrect);
 }
+
+BOOST_AUTO_TEST_SUITE_END()

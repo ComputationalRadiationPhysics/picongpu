@@ -36,7 +36,7 @@ namespace alpaka
             //! The CPU device thread wait specialization.
             //!
             //! Blocks until the device has completed all preceding requested tasks.
-            //! Tasks that are enqueued or streams that are created after this call is made are not waited for.
+            //! Tasks that are enqueued or queues that are created after this call is made are not waited for.
             template<>
             struct CurrentThreadWaitFor<
                 dev::DevCpu>
@@ -48,19 +48,19 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                    // Get all the streams on the device at the time of invocation.
-                    // All streams added afterwards are ignored.
-                    auto vspStreams(
-                        dev.m_spDevCpuImpl->GetAllAsyncStreamImpls());
+                    // Get all the queues on the device at the time of invocation.
+                    // All queues added afterwards are ignored.
+                    auto vspQueues(
+                        dev.m_spDevCpuImpl->GetAllAsyncQueueImpls());
 
-                    // Enqueue an event in every asynchronous stream on the device.
-                    // \FIXME: This should be done atomically for all streams.
-                    // Furthermore there should not even be a chance to enqueue something between getting the streams and adding our wait events!
+                    // Enqueue an event in every asynchronous queue on the device.
+                    // \FIXME: This should be done atomically for all queues.
+                    // Furthermore there should not even be a chance to enqueue something between getting the queues and adding our wait events!
                     std::vector<event::EventCpu> vEvents;
-                    for(auto && spStream : vspStreams)
+                    for(auto && spQueue : vspQueues)
                     {
                         vEvents.emplace_back(dev);
-                        stream::enqueue(spStream, vEvents.back());
+                        queue::enqueue(spQueue, vEvents.back());
                     }
 
                     // Now wait for all the events.

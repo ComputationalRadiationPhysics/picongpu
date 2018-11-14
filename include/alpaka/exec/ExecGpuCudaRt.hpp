@@ -33,17 +33,16 @@
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dim/Traits.hpp>
-#include <alpaka/exec/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
-#include <alpaka/stream/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
+#include <alpaka/queue/Traits.hpp>
 
 // Implementation details.
 #include <alpaka/acc/AccGpuCudaRt.hpp>
 #include <alpaka/dev/DevCudaRt.hpp>
 #include <alpaka/kernel/Traits.hpp>
-#include <alpaka/stream/StreamCudaRtAsync.hpp>
-#include <alpaka/stream/StreamCudaRtSync.hpp>
+#include <alpaka/queue/QueueCudaRtAsync.hpp>
+#include <alpaka/queue/QueueCudaRtSync.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
@@ -56,8 +55,6 @@
 #include <alpaka/core/Cuda.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>
 #include <alpaka/meta/Metafunctions.hpp>
-
-#include <boost/assert.hpp>
 
 #include <stdexcept>
 #include <tuple>
@@ -79,22 +76,58 @@ namespace alpaka
                 // \NOTE: 'A __global__ function or function template cannot have a trailing return type.'
                 template<
                     typename TDim,
-                    typename TSize,
+                    typename TIdx,
                     typename TKernelFnObj,
                     typename... TArgs>
                 __global__ void cudaKernel(
-                    vec::Vec<TDim, TSize> const threadElemExtent,
+                    vec::Vec<TDim, TIdx> const threadElemExtent,
                     TKernelFnObj const kernelFnObj,
                     TArgs ... args)
                 {
-#if BOOST_ARCH_CUDA_DEVICE && (BOOST_ARCH_CUDA_DEVICE < BOOST_VERSION_NUMBER(2, 0, 0))
+#if BOOST_ARCH_PTX && (BOOST_ARCH_PTX < BOOST_VERSION_NUMBER(2, 0, 0))
     #error "Cuda device capability >= 2.0 is required!"
 #endif
-                    acc::AccGpuCudaRt<TDim, TSize> acc(threadElemExtent);
+                    acc::AccGpuCudaRt<TDim, TIdx> acc(threadElemExtent);
 
                     kernelFnObj(
-                        const_cast<acc::AccGpuCudaRt<TDim, TSize> const &>(acc),
+                        const_cast<acc::AccGpuCudaRt<TDim, TIdx> const &>(acc),
                         args...);
+                }
+
+                //-----------------------------------------------------------------------------
+                template<
+                    typename TDim,
+                    typename TIdx
+                >
+                ALPAKA_FN_HOST auto checkVecOnly3Dim(
+                    vec::Vec<TDim, TIdx> const & vec)
+                -> void
+                {
+                    for(auto i(std::min(static_cast<typename TDim::value_type>(3), TDim::value)); i<TDim::value; ++i)
+                    {
+                        if(vec[TDim::value-1u-i] != 1)
+                        {
+                            throw std::runtime_error("The CUDA accelerator supports a maximum of 3 dimensions. All work division extents of the dimensions higher 3 have to be 1!");
+                        }
+                    }
+                }
+
+                //-----------------------------------------------------------------------------
+                template<
+                    typename TDim,
+                    typename TIdx
+                >
+                ALPAKA_FN_HOST auto convertVecToCudaDim(
+                    vec::Vec<TDim, TIdx> const & vec)
+                -> dim3
+                {
+                    dim3 dim(1, 1, 1);
+                    for(auto i(static_cast<typename TDim::value_type>(0)); i<std::min(static_cast<typename TDim::value_type>(3), TDim::value); ++i)
+                    {
+                        reinterpret_cast<unsigned int *>(&dim)[i] = static_cast<unsigned int>(vec[TDim::value-1u-i]);
+                    }
+                    checkVecOnly3Dim(vec);
+                    return dim;
                 }
             }
         }
@@ -103,11 +136,11 @@ namespace alpaka
         //! The GPU CUDA accelerator executor.
         template<
             typename TDim,
-            typename TSize,
+            typename TIdx,
             typename TKernelFnObj,
             typename... TArgs>
         class ExecGpuCudaRt final :
-            public workdiv::WorkDivMembers<TDim, TSize>
+            public workdiv::WorkDivMembers<TDim, TIdx>
         {
         public:
 // gcc-4.9 libstdc++ does not support std::is_trivially_copyable.
@@ -130,7 +163,7 @@ namespace alpaka
                 TWorkDiv && workDiv,
                 TKernelFnObj const & kernelFnObj,
                 TArgs const & ... args) :
-                    workdiv::WorkDivMembers<TDim, TSize>(std::forward<TWorkDiv>(workDiv)),
+                    workdiv::WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv)),
                     m_kernelFnObj(kernelFnObj),
                     m_args(args...)
             {
@@ -162,13 +195,13 @@ namespace alpaka
             //! The GPU CUDA executor accelerator type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct AccType<
-                exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecGpuCudaRt<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = acc::AccGpuCudaRt<TDim, TSize>;
+                using type = acc::AccGpuCudaRt<TDim, TIdx>;
             };
         }
     }
@@ -180,11 +213,11 @@ namespace alpaka
             //! The GPU CUDA executor device type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DevType<
-                exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecGpuCudaRt<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = dev::DevCudaRt;
             };
@@ -198,33 +231,13 @@ namespace alpaka
             //! The GPU CUDA executor dimension getter trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DimType<
-                exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecGpuCudaRt<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = TDim;
-            };
-        }
-    }
-    namespace exec
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The GPU CUDA executor executor type trait specialization.
-            template<
-                typename TDim,
-                typename TSize,
-                typename TKernelFnObj,
-                typename... TArgs>
-            struct ExecType<
-                exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>,
-                TKernelFnObj,
-                TArgs...>
-            {
-                using type = exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>;
             };
         }
     }
@@ -236,35 +249,35 @@ namespace alpaka
             //! The CPU CUDA executor platform type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct PltfType<
-                exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecGpuCudaRt<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = pltf::PltfCudaRt;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The GPU CUDA executor size type trait specialization.
+            //! The GPU CUDA executor idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
-            struct SizeType<
-                exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>>
+            struct IdxType<
+                exec::ExecGpuCudaRt<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }
-    namespace stream
+    namespace queue
     {
         namespace traits
         {
@@ -272,21 +285,21 @@ namespace alpaka
             //! The CUDA asynchronous kernel enqueue trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct Enqueue<
-                stream::StreamCudaRtAsync,
-                exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>>
+                queue::QueueCudaRtAsync,
+                exec::ExecGpuCudaRt<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    stream::StreamCudaRtAsync & stream,
-                    exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...> const & task)
+                    queue::QueueCudaRtAsync & queue,
+                    exec::ExecGpuCudaRt<TDim, TIdx, TKernelFnObj, TArgs...> const & task)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                    // TODO: Check that (sizeof(TKernelFnObj) * m_3uiBlockThreadExtent.prod()) < available memory size
+                    // TODO: Check that (sizeof(TKernelFnObj) * m_3uiBlockThreadExtent.prod()) < available memory idx
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     //std::size_t printfFifoSize;
@@ -303,22 +316,9 @@ namespace alpaka
                     auto const threadElemExtent(
                         workdiv::getWorkDiv<Thread, Elems>(task));
 
-                    dim3 gridDim(1u, 1u, 1u);
-                    dim3 blockDim(1u, 1u, 1u);
-                    // \FIXME: CUDA currently supports a maximum of 3 dimensions!
-                    for(auto i(static_cast<typename TDim::value_type>(0)); i<std::min(static_cast<typename TDim::value_type>(3), TDim::value); ++i)
-                    {
-                        reinterpret_cast<unsigned int *>(&gridDim)[i] = static_cast<unsigned int>(gridBlockExtent[TDim::value-1u-i]);
-                        reinterpret_cast<unsigned int *>(&blockDim)[i] = static_cast<unsigned int>(blockThreadExtent[TDim::value-1u-i]);
-
-                    }
-                    // Assert that all extent of the higher dimensions are 1!
-                    for(auto i(std::min(static_cast<typename TDim::value_type>(3), TDim::value)); i<TDim::value; ++i)
-                    {
-                        BOOST_VERIFY(gridBlockExtent[TDim::value-1u-i] == 1);
-                        BOOST_VERIFY(blockThreadExtent[TDim::value-1u-i] == 1);
-                        BOOST_VERIFY(threadElemExtent[TDim::value-1u-i] == 1);
-                    }
+                    dim3 const gridDim(exec::cuda::detail::convertVecToCudaDim(gridBlockExtent));
+                    dim3 const blockDim(exec::cuda::detail::convertVecToCudaDim(blockThreadExtent));
+                    exec::cuda::detail::checkVecOnly3Dim(threadElemExtent);
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     std::cout << BOOST_CURRENT_FUNCTION
@@ -329,9 +329,9 @@ namespace alpaka
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                     // This checks for a valid work division that is also compliant with the maxima of the accelerator.
-                    if(!workdiv::isValidWorkDiv<acc::AccGpuCudaRt<TDim, TSize>>(dev::getDev(stream), task))
+                    if(!workdiv::isValidWorkDiv<acc::AccGpuCudaRt<TDim, TIdx>>(dev::getDev(queue), task))
                     {
-                        throw std::runtime_error("The given work division is not valid or not supported by the device of type " + acc::getAccName<acc::AccGpuCudaRt<TDim, TSize>>() + "!");
+                        throw std::runtime_error("The given work division is not valid or not supported by the device of type " + acc::getAccName<acc::AccGpuCudaRt<TDim, TIdx>>() + "!");
                     }
 #endif
 
@@ -342,7 +342,7 @@ namespace alpaka
                             {
                                 return
                                     kernel::getBlockSharedMemDynSizeBytes<
-                                        acc::AccGpuCudaRt<TDim, TSize>>(
+                                        acc::AccGpuCudaRt<TDim, TIdx>>(
                                             task.m_kernelFnObj,
                                             blockThreadExtent,
                                             threadElemExtent,
@@ -351,7 +351,7 @@ namespace alpaka
                             task.m_args));
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                    // Log the block shared memory size.
+                    // Log the block shared memory idx.
                     std::cout << BOOST_CURRENT_FUNCTION
                         << " BlockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B" << std::endl;
 #endif
@@ -359,7 +359,7 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     // Log the function attributes.
                     cudaFuncAttributes funcAttrs;
-                    cudaFuncGetAttributes(&funcAttrs, exec::cuda::detail::cudaKernel<TDim, TSize, TKernelFnObj, TArgs...>);
+                    cudaFuncGetAttributes(&funcAttrs, exec::cuda::detail::cudaKernel<TDim, TIdx, TKernelFnObj, TArgs...>);
                     std::cout << BOOST_CURRENT_FUNCTION
                         << " binaryVersion: " << funcAttrs.binaryVersion
                         << " constSizeBytes: " << funcAttrs.constSizeBytes << " B"
@@ -374,7 +374,7 @@ namespace alpaka
                     // Set the current device.
                     ALPAKA_CUDA_RT_CHECK(
                         cudaSetDevice(
-                            stream.m_spStreamImpl->m_dev.m_iDevice));
+                            queue.m_spQueueImpl->m_dev.m_iDevice));
                     // Enqueue the kernel execution.
                     // \NOTE: No const reference (const &) is allowed as the parameter type because the kernel launch language extension expects the arguments by value.
                     // This forces the type of a float argument given with std::forward to this function to be of type float instead of e.g. "float const & __ptr64" (MSVC).
@@ -382,11 +382,11 @@ namespace alpaka
                     meta::apply(
                         [&](TArgs ... args)
                         {
-                            exec::cuda::detail::cudaKernel<TDim, TSize, TKernelFnObj, TArgs...><<<
+                            exec::cuda::detail::cudaKernel<TDim, TIdx, TKernelFnObj, TArgs...><<<
                                 gridDim,
                                 blockDim,
                                 static_cast<std::size_t>(blockSharedMemDynSizeBytes),
-                                stream.m_spStreamImpl->m_CudaStream>>>(
+                                queue.m_spQueueImpl->m_CudaQueue>>>(
                                     threadElemExtent,
                                     task.m_kernelFnObj,
                                     args...);
@@ -397,7 +397,7 @@ namespace alpaka
                     // Wait for the kernel execution to finish but do not check error return of this call.
                     // Do not use the alpaka::wait method because it checks the error itself but we want to give a custom error message.
                     cudaStreamSynchronize(
-                        stream.m_spStreamImpl->m_CudaStream);
+                        queue.m_spQueueImpl->m_CudaQueue);
                     std::string const kernelName("'execution of kernel: '" + std::string(typeid(TKernelFnObj).name()) + "' failed with");
                     ::alpaka::cuda::detail::cudaRtCheckLastError(kernelName.c_str(), __FILE__, __LINE__);
 #endif
@@ -407,21 +407,21 @@ namespace alpaka
             //! The CUDA synchronous kernel enqueue trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct Enqueue<
-                stream::StreamCudaRtSync,
-                exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>>
+                queue::QueueCudaRtSync,
+                exec::ExecGpuCudaRt<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    stream::StreamCudaRtSync & stream,
-                    exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...> const & task)
+                    queue::QueueCudaRtSync & queue,
+                    exec::ExecGpuCudaRt<TDim, TIdx, TKernelFnObj, TArgs...> const & task)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                    // TODO: Check that (sizeof(TKernelFnObj) * m_3uiBlockThreadExtent.prod()) < available memory size
+                    // TODO: Check that (sizeof(TKernelFnObj) * m_3uiBlockThreadExtent.prod()) < available memory idx
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     //std::size_t printfFifoSize;
@@ -438,21 +438,9 @@ namespace alpaka
                     auto const threadElemExtent(
                         workdiv::getWorkDiv<Thread, Elems>(task));
 
-                    dim3 gridDim(1u, 1u, 1u);
-                    dim3 blockDim(1u, 1u, 1u);
-                    // \FIXME: CUDA currently supports a maximum of 3 dimensions!
-                    for(auto i(static_cast<typename TDim::value_type>(0)); i<std::min(static_cast<typename TDim::value_type>(3), TDim::value); ++i)
-                    {
-                        reinterpret_cast<unsigned int *>(&gridDim)[i] = static_cast<unsigned int>(gridBlockExtent[TDim::value-1u-i]);
-                        reinterpret_cast<unsigned int *>(&blockDim)[i] = static_cast<unsigned int>(blockThreadExtent[TDim::value-1u-i]);
-                    }
-                    // Assert that all extent of the higher dimensions are 1!
-                    for(auto i(std::min(static_cast<typename TDim::value_type>(3), TDim::value)); i<TDim::value; ++i)
-                    {
-                        BOOST_VERIFY(gridBlockExtent[TDim::value-1u-i] == 1);
-                        BOOST_VERIFY(blockThreadExtent[TDim::value-1u-i] == 1);
-                        BOOST_VERIFY(threadElemExtent[TDim::value-1u-i] == 1);
-                    }
+                    dim3 const gridDim(exec::cuda::detail::convertVecToCudaDim(gridBlockExtent));
+                    dim3 const blockDim(exec::cuda::detail::convertVecToCudaDim(blockThreadExtent));
+                    exec::cuda::detail::checkVecOnly3Dim(threadElemExtent);
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     std::cout << BOOST_CURRENT_FUNCTION << "gridDim: " <<  gridDim.z << " " <<  gridDim.y << " " <<  gridDim.x << std::endl;
@@ -461,9 +449,9 @@ namespace alpaka
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                     // This checks for a valid work division that is also compliant with the maxima of the accelerator.
-                    if(!workdiv::isValidWorkDiv<acc::AccGpuCudaRt<TDim, TSize>>(dev::getDev(stream), task))
+                    if(!workdiv::isValidWorkDiv<acc::AccGpuCudaRt<TDim, TIdx>>(dev::getDev(queue), task))
                     {
-                        throw std::runtime_error("The given work division is not valid or not supported by the device of type " + acc::getAccName<acc::AccGpuCudaRt<TDim, TSize>>() + "!");
+                        throw std::runtime_error("The given work division is not valid or not supported by the device of type " + acc::getAccName<acc::AccGpuCudaRt<TDim, TIdx>>() + "!");
                     }
 #endif
 
@@ -474,7 +462,7 @@ namespace alpaka
                             {
                                 return
                                     kernel::getBlockSharedMemDynSizeBytes<
-                                        acc::AccGpuCudaRt<TDim, TSize>>(
+                                        acc::AccGpuCudaRt<TDim, TIdx>>(
                                             task.m_kernelFnObj,
                                             blockThreadExtent,
                                             threadElemExtent,
@@ -483,7 +471,7 @@ namespace alpaka
                             task.m_args));
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                    // Log the block shared memory size.
+                    // Log the block shared memory idx.
                     std::cout << BOOST_CURRENT_FUNCTION
                         << " BlockSharedMemDynSizeBytes: " << blockSharedMemDynSizeBytes << " B" << std::endl;
 #endif
@@ -491,7 +479,7 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     // Log the function attributes.
                     cudaFuncAttributes funcAttrs;
-                    cudaFuncGetAttributes(&funcAttrs, exec::cuda::detail::cudaKernel<TDim, TSize, TKernelFnObj, TArgs...>);
+                    cudaFuncGetAttributes(&funcAttrs, exec::cuda::detail::cudaKernel<TDim, TIdx, TKernelFnObj, TArgs...>);
                     std::cout << BOOST_CURRENT_FUNCTION
                         << " binaryVersion: " << funcAttrs.binaryVersion
                         << " constSizeBytes: " << funcAttrs.constSizeBytes << " B"
@@ -506,7 +494,7 @@ namespace alpaka
                     // Set the current device.
                     ALPAKA_CUDA_RT_CHECK(
                         cudaSetDevice(
-                            stream.m_spStreamImpl->m_dev.m_iDevice));
+                            queue.m_spQueueImpl->m_dev.m_iDevice));
                     // Enqueue the kernel execution.
                     // \NOTE: No const reference (const &) is allowed as the parameter type because the kernel launch language extension expects the arguments by value.
                     // This forces the type of a float argument given with std::forward to this function to be of type float instead of e.g. "float const & __ptr64" (MSVC).
@@ -514,11 +502,11 @@ namespace alpaka
                     meta::apply(
                         [&](TArgs ... args)
                         {
-                            exec::cuda::detail::cudaKernel<TDim, TSize, TKernelFnObj, TArgs...><<<
+                            exec::cuda::detail::cudaKernel<TDim, TIdx, TKernelFnObj, TArgs...><<<
                                 gridDim,
                                 blockDim,
                                 static_cast<std::size_t>(blockSharedMemDynSizeBytes),
-                                stream.m_spStreamImpl->m_CudaStream>>>(
+                                queue.m_spQueueImpl->m_CudaQueue>>>(
                                     threadElemExtent,
                                     task.m_kernelFnObj,
                                     args...);
@@ -528,7 +516,7 @@ namespace alpaka
                     // Wait for the kernel execution to finish but do not check error return of this call.
                     // Do not use the alpaka::wait method because it checks the error itself but we want to give a custom error message.
                     cudaStreamSynchronize(
-                        stream.m_spStreamImpl->m_CudaStream);
+                        queue.m_spQueueImpl->m_CudaQueue);
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                     std::string const kernelName("'execution of kernel: '" + std::string(typeid(TKernelFnObj).name()) + "' failed with");
                     ::alpaka::cuda::detail::cudaRtCheckLastError(kernelName.c_str(), __FILE__, __LINE__);

@@ -49,13 +49,13 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     BlockSharedMemStNoSync() = default;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA BlockSharedMemStNoSync(BlockSharedMemStNoSync const &) = delete;
+                    BlockSharedMemStNoSync(BlockSharedMemStNoSync const &) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA BlockSharedMemStNoSync(BlockSharedMemStNoSync &&) = delete;
+                    BlockSharedMemStNoSync(BlockSharedMemStNoSync &&) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSharedMemStNoSync const &) -> BlockSharedMemStNoSync & = delete;
+                    auto operator=(BlockSharedMemStNoSync const &) -> BlockSharedMemStNoSync & = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSharedMemStNoSync &&) -> BlockSharedMemStNoSync & = delete;
+                    auto operator=(BlockSharedMemStNoSync &&) -> BlockSharedMemStNoSync & = delete;
                     //-----------------------------------------------------------------------------
                     /*virtual*/ ~BlockSharedMemStNoSync() = default;
 
@@ -85,7 +85,7 @@ namespace alpaka
                         BlockSharedMemStNoSync>
                     {
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_ACC_NO_CUDA static auto allocVar(
+                        ALPAKA_FN_HOST static auto allocVar(
                             block::shared::st::BlockSharedMemStNoSync const & blockSharedMemSt)
                         -> T &
                         {
@@ -111,7 +111,7 @@ namespace alpaka
                         BlockSharedMemStNoSync>
                     {
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_ACC_NO_CUDA static auto freeMem(
+                        ALPAKA_FN_HOST static auto freeMem(
                             block::shared::st::BlockSharedMemStNoSync const & blockSharedMemSt)
                         -> void
                         {

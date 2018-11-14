@@ -24,14 +24,13 @@
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
 #include <alpaka/math/round/Traits.hpp>
-
-//#include <boost/core/ignore_unused.hpp>
 
 #include <cuda_runtime.h>
 #include <type_traits>
@@ -61,12 +60,12 @@ namespace alpaka
                 typename std::enable_if<
                     std::is_floating_point<TArg>::value>::type>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto round(
-                    RoundCudaBuiltIn const & /*round*/,
+                __device__ static auto round(
+                    RoundCudaBuiltIn const & round,
                     TArg const & arg)
                 -> decltype(::round(arg))
                 {
-                    //boost::ignore_unused(round);
+                    alpaka::ignore_unused(round);
                     return ::round(arg);
                 }
             };
@@ -80,12 +79,12 @@ namespace alpaka
                 typename std::enable_if<
                     std::is_floating_point<TArg>::value>::type>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto lround(
-                    RoundCudaBuiltIn const & /*lround*/,
+                __device__ static auto lround(
+                    RoundCudaBuiltIn const & lround,
                     TArg const & arg)
                 -> long int
                 {
-                    //boost::ignore_unused(lround);
+                    alpaka::ignore_unused(lround);
                     return ::lround(arg);
                 }
             };
@@ -99,12 +98,12 @@ namespace alpaka
                 typename std::enable_if<
                     std::is_floating_point<TArg>::value>::type>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto llround(
-                    RoundCudaBuiltIn const & /*llround*/,
+                __device__ static auto llround(
+                    RoundCudaBuiltIn const & llround,
                     TArg const & arg)
                 -> long int
                 {
-                    //boost::ignore_unused(llround);
+                    alpaka::ignore_unused(llround);
                     return ::llround(arg);
                 }
             };

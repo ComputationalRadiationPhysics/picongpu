@@ -26,8 +26,7 @@
 #include <alpaka/time/Traits.hpp>
 
 #include <alpaka/core/Common.hpp>
-
-#include <boost/core/ignore_unused.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <omp.h>
 
@@ -45,13 +44,13 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             TimeOmp() = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA TimeOmp(TimeOmp const &) = delete;
+            ALPAKA_FN_HOST TimeOmp(TimeOmp const &) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA TimeOmp(TimeOmp &&) = delete;
+            ALPAKA_FN_HOST TimeOmp(TimeOmp &&) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA auto operator=(TimeOmp const &) -> TimeOmp & = delete;
+            ALPAKA_FN_HOST auto operator=(TimeOmp const &) -> TimeOmp & = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA auto operator=(TimeOmp &&) -> TimeOmp & = delete;
+            ALPAKA_FN_HOST auto operator=(TimeOmp &&) -> TimeOmp & = delete;
             //-----------------------------------------------------------------------------
             /*virtual*/ ~TimeOmp() = default;
         };
@@ -65,11 +64,11 @@ namespace alpaka
                 time::TimeOmp>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA static auto clock(
+                ALPAKA_FN_HOST static auto clock(
                     time::TimeOmp const & time)
                 -> std::uint64_t
                 {
-                    boost::ignore_unused(time);
+                    alpaka::ignore_unused(time);
                     // NOTE: We compute the number of clock ticks by dividing the following durations:
                     // - omp_get_wtime returns the elapsed wall clock time in seconds.
                     // - omp_get_wtick gets the timer precision, i.e., the number of seconds between two successive clock ticks. 

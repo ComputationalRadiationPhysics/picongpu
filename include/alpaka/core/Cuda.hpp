@@ -32,7 +32,7 @@
 #include <alpaka/elem/Traits.hpp>
 #include <alpaka/offset/Traits.hpp>
 #include <alpaka/extent/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
 #include <alpaka/meta/IntegerSequence.hpp>
 #include <alpaka/meta/Metafunctions.hpp>
@@ -55,12 +55,12 @@
 #include <stdexcept>
 #include <cstddef>
 
-#if (!defined(CUDART_VERSION) || (CUDART_VERSION < 7000))
-    #error "CUDA version 7.0 or greater required!"
+#if (!defined(CUDART_VERSION) || (CUDART_VERSION < 8000))
+    #error "CUDA version 8.0 or greater required!"
 #endif
 
-#if (!defined(CUDA_VERSION) || (CUDA_VERSION < 7000))
-    #error "CUDA version 7.0 or greater required!"
+#if (!defined(CUDA_VERSION) || (CUDA_VERSION < 8000))
+    #error "CUDA version 8.0 or greater required!"
 #endif
 
 namespace alpaka
@@ -756,18 +756,18 @@ namespace alpaka
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The CUDA vectors size type trait specialization.
+            //! The CUDA vectors idx type trait specialization.
             template<
-                typename TSize>
-            struct SizeType<
-                TSize,
+                typename TIdx>
+            struct IdxType<
+                TIdx,
                 typename std::enable_if<
-                    cuda::traits::IsCudaBuiltInType<TSize>::value>::type>
+                    cuda::traits::IsCudaBuiltInType<TIdx>::value>::type>
             {
                 using type = std::size_t;
             };

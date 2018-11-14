@@ -27,9 +27,8 @@
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dim/Traits.hpp>
-#include <alpaka/exec/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 // Implementation details.
 #include <alpaka/acc/AccCpuTbbBlocks.hpp>
@@ -40,8 +39,6 @@
 
 #include <alpaka/meta/NdLoop.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>
-
-#include <boost/assert.hpp>
 
 #include <stdexcept>
 #include <tuple>
@@ -62,11 +59,11 @@ namespace alpaka
         //! The CPU TBB block accelerator executor.
         template<
             typename TDim,
-            typename TSize,
+            typename TIdx,
             typename TKernelFnObj,
             typename... TArgs>
         class ExecCpuTbbBlocks final :
-            public workdiv::WorkDivMembers<TDim, TSize>
+            public workdiv::WorkDivMembers<TDim, TIdx>
         {
         public:
             //-----------------------------------------------------------------------------
@@ -76,7 +73,7 @@ namespace alpaka
                 TWorkDiv && workDiv,
                 TKernelFnObj const & kernelFnObj,
                 TArgs const & ... args) :
-                    workdiv::WorkDivMembers<TDim, TSize>(std::forward<TWorkDiv>(workDiv)),
+                    workdiv::WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv)),
                     m_kernelFnObj(kernelFnObj),
                     m_args(args...)
             {
@@ -116,7 +113,7 @@ namespace alpaka
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
-                                    acc::AccCpuTbbBlocks<TDim, TSize>>(
+                                    acc::AccCpuTbbBlocks<TDim, TIdx>>(
                                         m_kernelFnObj,
                                         blockThreadExtent,
                                         threadElemExtent,
@@ -143,23 +140,25 @@ namespace alpaka
                         m_args));
 
                 // The number of blocks in the grid.
-                TSize const numBlocksInGrid(gridBlockExtent.prod());
+                TIdx const numBlocksInGrid(gridBlockExtent.prod());
 
-                // There is only ever one thread in a block in the TBB accelerator.
-                BOOST_VERIFY(blockThreadExtent.prod() == static_cast<TSize>(1u));
+                if(blockThreadExtent.prod() != static_cast<TIdx>(1u))
+                {
+                    throw std::runtime_error("A block for the TBB accelerator can only ever have one single thread!");
+                }
 
                 tbb::parallel_for(
-                    static_cast<TSize>(0),
-                    static_cast<TSize>(numBlocksInGrid),
-                    [&](TSize i){
-                         acc::AccCpuTbbBlocks<TDim, TSize> acc(
-                             *static_cast<workdiv::WorkDivMembers<TDim, TSize> const *>(this),
+                    static_cast<TIdx>(0),
+                    static_cast<TIdx>(numBlocksInGrid),
+                    [&](TIdx i){
+                         acc::AccCpuTbbBlocks<TDim, TIdx> acc(
+                             *static_cast<workdiv::WorkDivMembers<TDim, TIdx> const *>(this),
                              blockSharedMemDynSizeBytes);
 
                          acc.m_gridBlockIdx =
                              idx::mapIdx<TDim::value>(
-                                 vec::Vec<dim::DimInt<1u>, TSize>(
-                                     static_cast<TSize>(i)
+                                 vec::Vec<dim::DimInt<1u>, TIdx>(
+                                     static_cast<TIdx>(i)
                                   ),
                                   gridBlockExtent
                              );
@@ -171,6 +170,7 @@ namespace alpaka
 
             }
 
+        private:
             TKernelFnObj m_kernelFnObj;
             std::tuple<TArgs...> m_args;
         };
@@ -184,13 +184,13 @@ namespace alpaka
             //! The CPU TBB block executor accelerator type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct AccType<
-                exec::ExecCpuTbbBlocks<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = acc::AccCpuTbbBlocks<TDim, TSize>;
+                using type = acc::AccCpuTbbBlocks<TDim, TIdx>;
             };
         }
     }
@@ -202,11 +202,11 @@ namespace alpaka
             //! The CPU TBB block executor device type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DevType<
-                exec::ExecCpuTbbBlocks<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = dev::DevCpu;
             };
@@ -220,33 +220,13 @@ namespace alpaka
             //! The CPU TBB block executor dimension getter trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DimType<
-                exec::ExecCpuTbbBlocks<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = TDim;
-            };
-        }
-    }
-    namespace exec
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The CPU TBB block executor executor type trait specialization.
-            template<
-                typename TDim,
-                typename TSize,
-                typename TKernelFnObj,
-                typename... TArgs>
-            struct ExecType<
-                exec::ExecCpuTbbBlocks<TDim, TSize, TKernelFnObj, TArgs...>,
-                TKernelFnObj,
-                TArgs...>
-            {
-                using type = exec::ExecCpuTbbBlocks<TDim, TSize, TKernelFnObj, TArgs...>;
             };
         }
     }
@@ -258,31 +238,31 @@ namespace alpaka
             //! The CPU TBB block executor platform type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct PltfType<
-                exec::ExecCpuTbbBlocks<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = pltf::PltfCpu;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The CPU TBB block executor size type trait specialization.
+            //! The CPU TBB block executor idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
-            struct SizeType<
-                exec::ExecCpuTbbBlocks<TDim, TSize, TKernelFnObj, TArgs...>>
+            struct IdxType<
+                exec::ExecCpuTbbBlocks<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }

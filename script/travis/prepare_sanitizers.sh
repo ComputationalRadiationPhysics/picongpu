@@ -66,7 +66,7 @@ then
     # ESan
     if [[ "${ALPAKA_CI_SANITIZERS}" == *"ESan"* ]]
     then
-        if ( [ "${CXX}" != "clang++" ] || ( (( ALPAKA_CI_CLANG_VER_MAJOR == 3 )) && (( ALPAKA_CI_CLANG_VER_MINOR <= 7 )) ) )
+        if [[ "${CXX}" != "clang++" ]]
         then
             echo ESan is not supported by the current compiler
             exit 1
@@ -101,7 +101,7 @@ then
 
         CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=address"
 
-        if ( [ "${CXX}" != "clang++" ] && ( (( ALPAKA_CI_CLANG_VER_MAJOR >= 4 )) || ( (( ALPAKA_CI_CLANG_VER_MAJOR == 3 )) && (( ALPAKA_CI_CLANG_VER_MINOR >= 9 )) ) ) )
+        if [[ "${CXX}" != "clang++" ]]
         then
             CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize-address-use-after-scope"
         fi

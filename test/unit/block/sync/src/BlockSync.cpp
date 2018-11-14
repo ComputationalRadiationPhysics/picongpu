@@ -31,7 +31,6 @@
 #include <alpaka/test/acc/Acc.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <boost/assert.hpp>
 #include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
@@ -53,10 +52,11 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
-        using Size = alpaka::size::Size<TAcc>;
+        using Idx = alpaka::idx::Idx<TAcc>;
 
         // Get the index of the current thread within the block and the block extent and map them to 1D.
         auto const blockThreadIdx = alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc);
@@ -65,7 +65,7 @@ public:
         auto const blockThreadExtent1D = blockThreadExtent.prod();
 
         // Allocate shared memory.
-        Size * const pBlockSharedArray = alpaka::block::shared::dyn::getMem<Size>(acc);
+        Idx * const pBlockSharedArray = alpaka::block::shared::dyn::getMem<Idx>(acc);
    
         // Write the thread index into the shared memory.
         pBlockSharedArray[blockThreadIdx1D] = blockThreadIdx1D;
@@ -74,9 +74,9 @@ public:
         alpaka::block::sync::syncBlockThreads(acc);
 
         // All other threads within the block should now have written their index into the shared memory.
-        for(auto i(static_cast<Size>(0u)); i < blockThreadExtent1D; ++i)
+        for(auto i(static_cast<Idx>(0u)); i < blockThreadExtent1D; ++i)
         {
-            BOOST_VERIFY(pBlockSharedArray[i] == i);
+            ALPAKA_CHECK(*success, pBlockSharedArray[i] == i);
         }
     }
 };
@@ -99,18 +99,20 @@ namespace alpaka
                 //! \return The size of the shared memory allocated for a block.
                 template<
                     typename TVec>
-                ALPAKA_FN_HOST static auto getBlockSharedMemDynSizeBytes(
+                ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
                     BlockSyncTestKernel const & blockSharedMemDyn,
                     TVec const & blockThreadExtent,
-                    TVec const & threadElemExtent)
-                -> size::Size<TAcc>
+                    TVec const & threadElemExtent,
+                    bool * success)
+                -> idx::Idx<TAcc>
                 {
-                    using Size = alpaka::size::Size<TAcc>;
+                    using Idx = alpaka::idx::Idx<TAcc>;
 
-                    boost::ignore_unused(blockSharedMemDyn);
-                    boost::ignore_unused(threadElemExtent);
+                    alpaka::ignore_unused(blockSharedMemDyn);
+                    alpaka::ignore_unused(threadElemExtent);
+                    alpaka::ignore_unused(success);
                     return
-                        static_cast<size::Size<TAcc>>(sizeof(Size)) * blockThreadExtent.prod();
+                        static_cast<idx::Idx<TAcc>>(sizeof(Idx)) * blockThreadExtent.prod();
                 }
             };
         }
@@ -126,10 +128,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::all(static_cast<Size>(BlockSyncTestKernel::gridThreadExtentPerDim)));
+        alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(BlockSyncTestKernel::gridThreadExtentPerDim)));
 
     BlockSyncTestKernel kernel;
 

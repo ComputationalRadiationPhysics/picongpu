@@ -24,14 +24,13 @@
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
 #include <alpaka/math/remainder/Traits.hpp>
-
-//#include <boost/core/ignore_unused.hpp>
 
 #include <cuda_runtime.h>
 #include <type_traits>
@@ -61,12 +60,12 @@ namespace alpaka
                 typename std::enable_if<
                     std::is_floating_point<TArg>::value>::type>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto remainder(
-                    RemainderCudaBuiltIn const & /*remainder*/,
+                __device__ static auto remainder(
+                    RemainderCudaBuiltIn const & remainder,
                     TArg const & arg)
                 -> decltype(::remainder(arg))
                 {
-                    //boost::ignore_unused(remainder);
+                    alpaka::ignore_unused(remainder);
                     return ::remainder(arg);
                 }
             };

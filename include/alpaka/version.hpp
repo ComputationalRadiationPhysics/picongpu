@@ -24,8 +24,8 @@
 #include <boost/predef/version_number.h>
 
 #define ALPAKA_VERSION_MAJOR 0
-#define ALPAKA_VERSION_MINOR 3
-#define ALPAKA_VERSION_PATCH 3
+#define ALPAKA_VERSION_MINOR 4
+#define ALPAKA_VERSION_PATCH 0
 
 //! The alpaka library version number
 #define ALPAKA_VERSION BOOST_VERSION_NUMBER(ALPAKA_VERSION_MAJOR, ALPAKA_VERSION_MINOR, ALPAKA_VERSION_PATCH)

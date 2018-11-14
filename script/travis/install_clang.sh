@@ -33,12 +33,7 @@ set -euo pipefail
 
 if [ -z "$(ls -A "${ALPAKA_CI_CLANG_DIR}")" ]
 then
-    if (( ALPAKA_CI_CLANG_VER_MAJOR == 5 ))
-    then
-        ALPAKA_CLANG_PKG_FILE_NAME=clang+llvm-${ALPAKA_CI_CLANG_VER}-linux-x86_64-ubuntu14.04.tar.xz
-    else
-        ALPAKA_CLANG_PKG_FILE_NAME=clang+llvm-${ALPAKA_CI_CLANG_VER}-x86_64-linux-gnu-ubuntu-14.04.tar.xz
-    fi
+    ALPAKA_CLANG_PKG_FILE_NAME=clang+llvm-${ALPAKA_CI_CLANG_VER}-x86_64-linux-gnu-ubuntu-14.04.tar.xz
     travis_retry wget --no-verbose "http://llvm.org/releases/${ALPAKA_CI_CLANG_VER}/${ALPAKA_CLANG_PKG_FILE_NAME}"
     mkdir -p "${ALPAKA_CI_CLANG_DIR}"
     xzcat "${ALPAKA_CLANG_PKG_FILE_NAME}" | tar -xf - --strip 1 -C "${ALPAKA_CI_CLANG_DIR}"

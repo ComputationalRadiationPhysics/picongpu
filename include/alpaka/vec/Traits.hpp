@@ -24,7 +24,7 @@
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/offset/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 #include <boost/config.hpp>
 
@@ -49,7 +49,7 @@ namespace alpaka
             //#############################################################################
             //! Trait for casting a vector.
             template<
-                typename TSize,
+                typename TVal,
                 typename TVec,
                 typename TSfinae = void>
             struct Cast;
@@ -173,14 +173,14 @@ namespace alpaka
         //! \return The casted vector.
         ALPAKA_NO_HOST_ACC_WARNING
         template<
-            typename TSize,
+            typename TVal,
             typename TVec>
         ALPAKA_FN_HOST_ACC auto cast(
             TVec const & vec)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Cast<
-                TSize,
+                TVal,
                 TVec>
             ::cast(
                 vec))
@@ -188,7 +188,7 @@ namespace alpaka
         {
             return
                 traits::Cast<
-                    TSize,
+                    TVal,
                     TVec>
                 ::cast(
                     vec);

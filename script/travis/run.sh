@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2017 Benjamin Worpitz
+# Copyright 2017-2018 Benjamin Worpitz
 #
 # This file is part of alpaka.
 #
@@ -37,11 +37,11 @@ fi
 export PATH=${ALPAKA_CI_CMAKE_DIR}/bin:${PATH}
 cmake --version
 
-if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ]
+if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ] || [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ] && [ "${ALPAKA_HIP_PLATFORM}" == "nvcc" ]
 then
     # CUDA
-    export PATH=/usr/local/cuda-${ALPAKA_CUDA_VER}/bin:$PATH
-    export LD_LIBRARY_PATH=/usr/local/cuda-${ALPAKA_CUDA_VER}/lib64:${LD_LIBRARY_PATH}
+    export PATH=/usr/local/cuda-${ALPAKA_CUDA_VERSION}/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/cuda-${ALPAKA_CUDA_VERSION}/lib64:${LD_LIBRARY_PATH}
     # We have to explicitly add the stub libcuda.so to CUDA_LIB_PATH because the real one would be installed by the driver (which we can not install).
     export CUDA_LIB_PATH=/usr/local/cuda/lib64/stubs/
 
@@ -50,6 +50,27 @@ then
         which nvcc
         nvcc -V
     fi
+fi
+
+if [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ]
+then
+    # && [ "${ALPAKA_HIP_PLATFORM}" == "nvcc" ]
+    # HIP
+    # HIP_PATH required by HIP tools
+    export HIP_PATH=${ALPAKA_CI_HIP_ROOT_DIR}
+    # CUDA_PATH required by HIP tools
+    export CUDA_PATH=/usr/local/cuda-${ALPAKA_CUDA_VERSION}
+    export PATH=${HIP_PATH}/bin:$PATH
+    export LD_LIBRARY_PATH=${HIP_PATH}/lib64:${HIP_PATH}/hiprand/lib:${LD_LIBRARY_PATH}
+    export CMAKE_PREFIX_PATH=${HIP_PATH}:${HIP_PATH}/hiprand:${CMAKE_PREFIX_PATH:-}
+
+    # calls nvcc or hcc
+    which hipcc
+    hipcc -V
+    which hipconfig
+    hipconfig -v
+    # print newline as previous command does not do this
+    echo
 fi
 
 if [ "${CXX}" == "clang++" ]
@@ -74,5 +95,5 @@ ${CXX} -v
 
 source ./script/travis/prepare_sanitizers.sh
 if [ "${ALPAKA_CI_ANALYSIS}" == "ON" ] ;then ./script/travis/run_analysis.sh ;fi
-if [ "${ALPAKA_CI_ANALYSIS}" == "ON" ] ;then ./script/travis/run_headerCheck.sh ;fi
+./script/travis/run_build.sh
 if [ "${ALPAKA_CI_ANALYSIS}" == "OFF" ] ;then ./script/travis/run_tests.sh ;fi

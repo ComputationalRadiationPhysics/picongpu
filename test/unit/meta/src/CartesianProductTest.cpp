@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(cartesianProduct)
             alpaka::dim::DimInt<2u>,
             alpaka::dim::DimInt<3u>>;
 
-    using TestSizes =
+    using TestIdxs =
         std::tuple<
             std::size_t,
             std::int64_t>;
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(cartesianProduct)
         alpaka::meta::CartesianProduct<
             std::tuple,
             TestDims,
-            TestSizes
+            TestIdxs
         >;
 
     using CartesianProductReference =

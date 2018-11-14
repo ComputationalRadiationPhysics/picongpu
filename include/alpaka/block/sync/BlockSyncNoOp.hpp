@@ -24,8 +24,7 @@
 #include <alpaka/block/sync/Traits.hpp>
 
 #include <alpaka/core/Common.hpp>
-
-#include <boost/core/ignore_unused.hpp>
+#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -41,7 +40,7 @@ namespace alpaka
                 using BlockSyncBase = BlockSyncNoOp;
 
                 //-----------------------------------------------------------------------------
-                BlockSyncNoOp() = default;
+                ALPAKA_FN_ACC BlockSyncNoOp() = default;
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC BlockSyncNoOp(BlockSyncNoOp const &) = delete;
                 //-----------------------------------------------------------------------------
@@ -51,7 +50,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC auto operator=(BlockSyncNoOp &&) -> BlockSyncNoOp & = delete;
                 //-----------------------------------------------------------------------------
-                /*virtual*/ ~BlockSyncNoOp() = default;
+                /*virtual*/ ALPAKA_FN_ACC ~BlockSyncNoOp() = default;
             };
 
             namespace traits
@@ -64,10 +63,10 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_ACC static auto syncBlockThreads(
-                        block::sync::BlockSyncNoOp const & /*blockSync*/)
+                        block::sync::BlockSyncNoOp const & blockSync)
                     -> void
                     {
-                        //boost::ignore_unused(blockSync);
+                        alpaka::ignore_unused(blockSync);
                         // Nothing to do.
                     }
                 };
@@ -82,11 +81,11 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(
-                        block::sync::BlockSyncNoOp const & /*blockSync*/,
+                        block::sync::BlockSyncNoOp const & blockSync,
                         int predicate)
                     -> int
                     {
-                        //boost::ignore_unused(blockSync);
+                        alpaka::ignore_unused(blockSync);
                         return predicate;
                     }
                 };

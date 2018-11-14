@@ -24,14 +24,13 @@
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
 #include <alpaka/math/max/Traits.hpp>
-
-//#include <boost/core/ignore_unused.hpp>
 
 #include <cuda_runtime.h>
 #include <type_traits>
@@ -64,13 +63,13 @@ namespace alpaka
                     std::is_integral<Tx>::value
                     && std::is_integral<Ty>::value>::type>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto max(
-                    MaxCudaBuiltIn const & /*max*/,
+                __device__ static auto max(
+                    MaxCudaBuiltIn const & max,
                     Tx const & x,
                     Ty const & y)
                 -> decltype(::max(x, y))
                 {
-                    //boost::ignore_unused(max);
+                    alpaka::ignore_unused(max);
                     return ::max(x, y);
                 }
             };
@@ -89,13 +88,13 @@ namespace alpaka
                     && !(std::is_integral<Tx>::value
                         && std::is_integral<Ty>::value)>::type>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto max(
-                    MaxCudaBuiltIn const & /*max*/,
+                __device__ static auto max(
+                    MaxCudaBuiltIn const & max,
                     Tx const & x,
                     Ty const & y)
                 -> decltype(::fmax(x, y))
                 {
-                    //boost::ignore_unused(max);
+                    alpaka::ignore_unused(max);
                     return ::fmax(x, y);
                 }
             };

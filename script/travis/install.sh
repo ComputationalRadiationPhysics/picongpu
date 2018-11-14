@@ -37,10 +37,15 @@ travis_retry sudo apt-get -y --quiet --allow-unauthenticated --no-install-recomm
 ./script/travis/install_cmake.sh
 if [ "${ALPAKA_CI_ANALYSIS}" == "ON" ] ;then ./script/travis/install_analysis.sh ;fi
 # Install CUDA before installing gcc as it installs gcc-4.8 and overwrites our selected compiler
-if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ] ;then ./script/travis/install_cuda.sh ;fi
+if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ] || [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ] && [ "${ALPAKA_HIP_PLATFORM}" == "nvcc" ]
+then
+    ./script/travis/install_cuda.sh
+fi
 if [ "${CXX}" == "g++" ] ;then ./script/travis/install_gcc.sh ;fi
 if [ "${CXX}" == "clang++" ] ;then source ./script/travis/install_clang.sh ;fi
-if [ "${ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE}" == "ON" ] ;then ./script/travis/install_tbb.sh ;fi
+# If the variable is not set, the backend will most probably be used by default so we install it.
+if [[ ! -v ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE || "${ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE}" == "ON" ]] ;then ./script/travis/install_tbb.sh ;fi
+if [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ] ;then ./script/travis/install_hip.sh ;fi
 ./script/travis/install_boost.sh
 
 # Minimize docker image size

@@ -31,9 +31,8 @@
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dim/Traits.hpp>
-#include <alpaka/exec/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 // Implementation details.
 #include <alpaka/acc/AccCpuOmp4.hpp>
@@ -61,11 +60,11 @@ namespace alpaka
         //! The CPU OpenMP 4.0 accelerator executor.
         template<
             typename TDim,
-            typename TSize,
+            typename TIdx,
             typename TKernelFnObj,
             typename... TArgs>
         class ExecCpuOmp4 final :
-            public workdiv::WorkDivMembers<TDim, TSize>
+            public workdiv::WorkDivMembers<TDim, TIdx>
         {
         public:
             //-----------------------------------------------------------------------------
@@ -75,7 +74,7 @@ namespace alpaka
                 TWorkDiv && workDiv,
                 TKernelFnObj const & kernelFnObj,
                 TArgs const & ... args) :
-                    workdiv::WorkDivMembers<TDim, TSize>(std::forward<TWorkDiv>(workDiv)),
+                    workdiv::WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv)),
                     m_kernelFnObj(kernelFnObj),
                     m_args(args...)
             {
@@ -115,7 +114,7 @@ namespace alpaka
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
-                                    acc::AccCpuOmp4<TDim, TSize>>(
+                                    acc::AccCpuOmp4<TDim, TIdx>>(
                                         m_kernelFnObj,
                                         blockThreadExtent,
                                         threadElemExtent,
@@ -142,9 +141,9 @@ namespace alpaka
                         m_args));
 
                 // The number of blocks in the grid.
-                TSize const gridBlockCount(gridBlockExtent.prod());
+                TIdx const gridBlockCount(gridBlockExtent.prod());
                 // The number of threads in a block.
-                TSize const blockThreadCount(blockThreadExtent.prod());
+                TIdx const blockThreadCount(blockThreadExtent.prod());
 
                 // We have to make sure, that the OpenMP runtime keeps enough threads for executing a block in parallel.
                 auto const maxOmpThreadCount(::omp_get_max_threads());
@@ -173,18 +172,18 @@ namespace alpaka
                             printf("%s omp_get_num_teams: %d\n", BOOST_CURRENT_FUNCTION, iNumTeams);
                         }
 #endif
-                        acc::AccCpuOmp4<TDim, TSize> acc(
-                            *static_cast<workdiv::WorkDivMembers<TDim, TSize> const *>(this),
+                        acc::AccCpuOmp4<TDim, TIdx> acc(
+                            *static_cast<workdiv::WorkDivMembers<TDim, TIdx> const *>(this),
                             blockSharedMemDynSizeBytes);
 
                         #pragma omp distribute
-                        for(TSize b = 0u; b<gridBlockCount; ++b)
+                        for(TIdx b = 0u; b<gridBlockCount; ++b)
                         {
-                            vec::Vec<dim::DimInt<1u>, TSize> const gridBlockIdx(b);
+                            vec::Vec<dim::DimInt<1u>, TIdx> const gridBlockIdx(b);
                             // When this is not repeated here:
                             // error: gridBlockExtent referenced in target region does not have a mappable type
                             auto const gridBlockExtent2(
-                                workdiv::getWorkDiv<Grid, Blocks>(*static_cast<workdiv::WorkDivMembers<TDim, TSize> const *>(this)));
+                                workdiv::getWorkDiv<Grid, Blocks>(*static_cast<workdiv::WorkDivMembers<TDim, TIdx> const *>(this)));
                             acc.m_gridBlockIdx = idx::mapIdx<TDim::value>(
                                 gridBlockIdx,
                                 gridBlockExtent2);
@@ -227,6 +226,7 @@ namespace alpaka
                 ::omp_set_dynamic(ompIsDynamic);
             }
 
+        private:
             TKernelFnObj m_kernelFnObj;
             std::tuple<TArgs...> m_args;
         };
@@ -240,13 +240,13 @@ namespace alpaka
             //! The CPU OpenMP 4.0 executor accelerator type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct AccType<
-                exec::ExecCpuOmp4<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuOmp4<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = acc::AccCpuOmp4<TDim, TSize>;
+                using type = acc::AccCpuOmp4<TDim, TIdx>;
             };
         }
     }
@@ -258,11 +258,11 @@ namespace alpaka
             //! The CPU OpenMP 4.0 executor device type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DevType<
-                exec::ExecCpuOmp4<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuOmp4<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = dev::DevCpu;
             };
@@ -276,33 +276,13 @@ namespace alpaka
             //! The CPU OpenMP 4.0 executor dimension getter trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DimType<
-                exec::ExecCpuOmp4<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuOmp4<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = TDim;
-            };
-        }
-    }
-    namespace exec
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The CPU OpenMP 4.0 executor executor type trait specialization.
-            template<
-                typename TDim,
-                typename TSize,
-                typename TKernelFnObj,
-                typename... TArgs>
-            struct ExecType<
-                exec::ExecCpuOmp4<TDim, TSize, TKernelFnObj, TArgs...>,
-                TKernelFnObj,
-                TArgs...>
-            {
-                using type = exec::ExecCpuOmp4<TDim, TSize, TKernelFnObj, TArgs...>;
             };
         }
     }
@@ -314,31 +294,31 @@ namespace alpaka
             //! The CPU OpenMP 4.0 executor platform type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct PltfType<
-                exec::ExecCpuOmp4<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuOmp4<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = pltf::PltfCpu;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The CPU OpenMP 4.0 executor size type trait specialization.
+            //! The CPU OpenMP 4.0 executor idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
-            struct SizeType<
-                exec::ExecCpuOmp4<TDim, TSize, TKernelFnObj, TArgs...>>
+            struct IdxType<
+                exec::ExecCpuOmp4<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }

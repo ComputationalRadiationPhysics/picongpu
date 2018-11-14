@@ -45,13 +45,13 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             TimeCudaBuiltIn() = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY TimeCudaBuiltIn(TimeCudaBuiltIn const &) = delete;
+            __device__ TimeCudaBuiltIn(TimeCudaBuiltIn const &) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY TimeCudaBuiltIn(TimeCudaBuiltIn &&) = delete;
+            __device__ TimeCudaBuiltIn(TimeCudaBuiltIn &&) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY auto operator=(TimeCudaBuiltIn const &) -> TimeCudaBuiltIn & = delete;
+            __device__ auto operator=(TimeCudaBuiltIn const &) -> TimeCudaBuiltIn & = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY auto operator=(TimeCudaBuiltIn &&) -> TimeCudaBuiltIn & = delete;
+            __device__ auto operator=(TimeCudaBuiltIn &&) -> TimeCudaBuiltIn & = delete;
             //-----------------------------------------------------------------------------
             /*virtual*/ ~TimeCudaBuiltIn() = default;
         };
@@ -65,7 +65,7 @@ namespace alpaka
                 time::TimeCudaBuiltIn>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto clock(
+                __device__ static auto clock(
                     time::TimeCudaBuiltIn const &)
                 -> std::uint64_t
                 {

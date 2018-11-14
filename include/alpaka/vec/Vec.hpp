@@ -26,19 +26,17 @@
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/offset/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
-#include <alpaka/meta/IntegerSequence.hpp>
-#include <alpaka/meta/Fold.hpp>
 #include <alpaka/core/Align.hpp>
 #include <alpaka/core/Assert.hpp>
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Unused.hpp>
+#include <alpaka/meta/IntegerSequence.hpp>
+#include <alpaka/meta/Fold.hpp>
 
 #include <boost/config.hpp>
-#if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp>
-#endif
 
 #include <cstdint>
 #include <ostream>
@@ -46,9 +44,9 @@
 #include <algorithm>
 
 // Some compilers do not support the out of class versions:
-// - the nvcc CUDA compiler (at least 7.0, 7.5 and 8.0)
+// - the nvcc CUDA compiler (at least 8.0)
 // - the intel compiler
-#if BOOST_COMP_NVCC || BOOST_COMP_INTEL || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 0, 0))
+#if BOOST_COMP_HCC || BOOST_COMP_NVCC || BOOST_COMP_INTEL || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 0, 0))
     #define ALPAKA_CREATE_VEC_IN_CLASS
 #endif
 
@@ -58,7 +56,7 @@ namespace alpaka
     {
         template<
             typename TDim,
-            typename TSize>
+            typename TVal>
         class Vec;
 
 #ifndef ALPAKA_CREATE_VEC_IN_CLASS
@@ -72,19 +70,14 @@ namespace alpaka
             typename TIdxSize,
             TIdxSize... TIndices>
         ALPAKA_FN_HOST_ACC auto createVecFromIndexedFnArbitrary(
-#if BOOST_ARCH_CUDA_DEVICE
-            meta::IntegerSequence<TIdxSize, TIndices...> const &,
-#else
             meta::IntegerSequence<TIdxSize, TIndices...> const & indices,
-#endif
             TArgs && ... args)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> Vec<TDim, decltype(TTFnObj<0>::create(std::forward<TArgs>(args)...))>
 #endif
         {
-#if !BOOST_ARCH_CUDA_DEVICE
-            boost::ignore_unused(indices);
-#endif
+            alpaka::ignore_unused(indices);
+
             return Vec<TDim, decltype(TTFnObj<0>::create(std::forward<TArgs>(args)...))>(
                 (TTFnObj<TIndices>::create(std::forward<TArgs>(args)...))...);
         }
@@ -150,7 +143,7 @@ namespace alpaka
         //! A n-dimensional vector.
         template<
             typename TDim,
-            typename TSize>
+            typename TVal>
         class Vec final
         {
         public:
@@ -158,7 +151,7 @@ namespace alpaka
 
             using Dim = TDim;
             static constexpr auto s_uiDim = TDim::value;
-            using Val = TSize;
+            using Val = TVal;
 
         private:
             //! A sequence of integers from 0 to dim-1.
@@ -173,13 +166,13 @@ namespace alpaka
                 bool B = (TDim::value == 0u),
                 typename = typename std::enable_if<B>::type>
             ALPAKA_FN_HOST_ACC Vec() :
-                m_data{static_cast<TSize>(0u)}
+                m_data{static_cast<TVal>(0u)}
             {}
 
 
             //-----------------------------------------------------------------------------
             //! Value constructor.
-            //! This constructor is only available if the number of parameters matches the vector size.
+            //! This constructor is only available if the number of parameters matches the vector idx.
             ALPAKA_NO_HOST_ACC_WARNING
             template<
                 typename TArg0,
@@ -188,7 +181,7 @@ namespace alpaka
                     // There have to be dim arguments.
                     (sizeof...(TArgs)+1 == TDim::value)
                     &&
-                    (std::is_same<TSize, typename std::decay<TArg0>::type>::value)
+                    (std::is_same<TVal, typename std::decay<TArg0>::type>::value)
                     >::type>
             ALPAKA_FN_HOST_ACC Vec(
                 TArg0 && arg0,
@@ -206,18 +199,13 @@ namespace alpaka
                 typename TIdxSize,
                 TIdxSize... TIndices>
             ALPAKA_FN_HOST_ACC static auto createVecFromIndexedFnArbitrary(
-#if BOOST_ARCH_CUDA_DEVICE
-                meta::IntegerSequence<TIdxSize, TIndices...> const &,
-#else
                 meta::IntegerSequence<TIdxSize, TIndices...> const & indices,
-#endif
                 TArgs && ... args)
-            -> Vec<TDim, TSize>
+            -> Vec<TDim, TVal>
             {
-#if !BOOST_ARCH_CUDA_DEVICE
-                boost::ignore_unused(indices);
-#endif
-                return Vec<TDim, TSize>(
+                alpaka::ignore_unused(indices);
+
+                return Vec<TDim, TVal>(
                     (TTFnObj<TIndices>::create(std::forward<TArgs>(args)...))...);
             }
             //-----------------------------------------------------------------------------
@@ -229,7 +217,7 @@ namespace alpaka
                 typename... TArgs>
             ALPAKA_FN_HOST_ACC static auto createVecFromIndexedFn(
                 TArgs && ... args)
-            -> Vec<TDim, TSize>
+            -> Vec<TDim, TVal>
             {
                 return
                     createVecFromIndexedFnArbitrary<
@@ -247,7 +235,7 @@ namespace alpaka
                 typename... TArgs>
             ALPAKA_FN_HOST_ACC static auto createVecFromIndexedFnOffset(
                 TArgs && ... args)
-            -> Vec<TDim, TSize>
+            -> Vec<TDim, TVal>
             {
                 using IdxSubSequenceSigned = meta::MakeIntegerSequenceOffset<std::intmax_t, TIdxOffset::value, TDim::value>;
                 using IdxSubSequence = meta::ConvertIntegerSequence<typename TDim::value_type, IdxSubSequenceSigned>;
@@ -260,15 +248,24 @@ namespace alpaka
 #endif
 
             //-----------------------------------------------------------------------------
+            ALPAKA_NO_HOST_ACC_WARNING
+            ALPAKA_FN_HOST_ACC
             Vec(Vec const &) = default;
             //-----------------------------------------------------------------------------
+            ALPAKA_NO_HOST_ACC_WARNING
+            ALPAKA_FN_HOST_ACC
             Vec(Vec &&) = default;
             //-----------------------------------------------------------------------------
+            ALPAKA_NO_HOST_ACC_WARNING
+            ALPAKA_FN_HOST_ACC
             auto operator=(Vec const &) -> Vec & = default;
             //-----------------------------------------------------------------------------
+            ALPAKA_NO_HOST_ACC_WARNING
+            ALPAKA_FN_HOST_ACC
             auto operator=(Vec &&) -> Vec & = default;
             //-----------------------------------------------------------------------------
-            ~Vec() = default;
+            ALPAKA_NO_HOST_ACC_WARNING
+            ALPAKA_FN_HOST_ACC ~Vec() = default;
 
         private:
             //#############################################################################
@@ -280,8 +277,8 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto create(
-                    TSize const & val)
-                -> TSize
+                    TVal const & val)
+                -> TVal
                 {
                     return val;
                 }
@@ -294,8 +291,8 @@ namespace alpaka
             //! \param val The initial value.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto all(
-                TSize const & val)
-            -> Vec<TDim, TSize>
+                TVal const & val)
+            -> Vec<TDim, TVal>
             {
                 return
                     createVecFromIndexedFn<
@@ -309,17 +306,17 @@ namespace alpaka
             //! Zero value constructor.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto zeros()
-            -> Vec<TDim, TSize>
+            -> Vec<TDim, TVal>
             {
-                return all(static_cast<TSize>(0));
+                return all(static_cast<TVal>(0));
             }
             //-----------------------------------------------------------------------------
             //! One value constructor.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto ones()
-            -> Vec<TDim, TSize>
+            -> Vec<TDim, TVal>
             {
-                return all(static_cast<TSize>(1));
+                return all(static_cast<TVal>(1));
             }
 
             //-----------------------------------------------------------------------------
@@ -332,7 +329,7 @@ namespace alpaka
                     std::is_integral<TIdx>::value>::type>
             ALPAKA_FN_HOST_ACC auto operator[](
                 TIdx const iIdx)
-            -> TSize &
+            -> TVal &
             {
                 core::assertValueUnsigned(iIdx);
                 auto const idx(static_cast<typename TDim::value_type>(iIdx));
@@ -350,7 +347,7 @@ namespace alpaka
                     std::is_integral<TIdx>::value>::type>
             ALPAKA_FN_HOST_ACC auto operator[](
                 TIdx const iIdx) const
-            -> TSize
+            -> TVal
             {
                 core::assertValueUnsigned(iIdx);
                 auto const idx(static_cast<typename TDim::value_type>(iIdx));
@@ -388,11 +385,7 @@ namespace alpaka
                 std::size_t... TIndices>
             ALPAKA_FN_HOST_ACC auto foldrByIndices(
                 TFnObj const & f,
-#if BOOST_ARCH_CUDA_DEVICE
-                meta::IntegerSequence<std::size_t, TIndices...> const &) const
-#else
                 meta::IntegerSequence<std::size_t, TIndices...> const & indices) const
-#endif
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
             -> decltype(
                 meta::foldr(
@@ -400,9 +393,8 @@ namespace alpaka
                     ((*this)[TIndices])...))
 #endif
             {
-#if !BOOST_ARCH_CUDA_DEVICE
-                boost::ignore_unused(indices);
-#endif
+                alpaka::ignore_unused(indices);
+
                 return
                     meta::foldr(
                         f,
@@ -434,34 +426,34 @@ namespace alpaka
             //! \return The product of all values.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC auto prod() const
-            -> TSize
+            -> TVal
             {
                 return foldrAll(
-                    [](TSize a, TSize b)
+                    [](TVal a, TVal b)
                     {
-                        return static_cast<TSize>(a * b);
+                        return static_cast<TVal>(a * b);
                     });
             }
             //-----------------------------------------------------------------------------
             //! \return The sum of all values.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC auto sum() const
-            -> TSize
+            -> TVal
             {
                 return foldrAll(
-                    [](TSize a, TSize b)
+                    [](TVal a, TVal b)
                     {
-                        return static_cast<TSize>(a + b);
+                        return static_cast<TVal>(a + b);
                     });
             }
             //-----------------------------------------------------------------------------
             //! \return The min of all values.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC auto min() const
-            -> TSize
+            -> TVal
             {
                 return foldrAll(
-                    [](TSize a, TSize b)
+                    [](TVal a, TVal b)
                     {
                         return (b < a) ? b : a;
                     });
@@ -470,10 +462,10 @@ namespace alpaka
             //! \return The max of all values.
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC auto max() const
-            -> TSize
+            -> TVal
             {
                 return foldrAll(
-                    [](TSize a, TSize b)
+                    [](TVal a, TVal b)
                     {
                         return (b > a) ? b : a;
                     });
@@ -507,29 +499,29 @@ namespace alpaka
 
         private:
             // Zero sized arrays are not allowed, therefore zero-dimensional vectors have one member.
-            TSize m_data[TDim::value == 0u ? 1u : TDim::value];
+            TVal m_data[TDim::value == 0u ? 1u : TDim::value];
         };
 
         //-----------------------------------------------------------------------------
         //! This is a conveniance method to have a out-of-class factory method even though the out-of-class version is not supported by all compilers.
         //! Depending of the compiler conformance, the internal or external factory function is called.
-        //! This has the draw-back, that it requires the TSize parameter even though it should not be necessary.
+        //! This has the draw-back, that it requires the TVal parameter even though it should not be necessary.
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TDim,
-            typename TSize,
+            typename TVal,
             template<std::size_t> class TTFnObj,
             typename... TArgs>
         ALPAKA_FN_HOST_ACC auto createVecFromIndexedFnWorkaround(
             TArgs && ... args)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> alpaka::vec::Vec<TDim, TSize>
+        -> alpaka::vec::Vec<TDim, TVal>
 #endif
         {
             return
                 alpaka::vec::
 #ifdef ALPAKA_CREATE_VEC_IN_CLASS
-                Vec<TDim, TSize>::template
+                Vec<TDim, TVal>::template
 #endif
                 createVecFromIndexedFn<
 #ifndef ALPAKA_CREATE_VEC_IN_CLASS
@@ -542,24 +534,24 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! This is a conveniance method to have a out-of-class factory method even though the out-of-class version is not supported by all compilers.
         //! Depending of the compiler conformance, the internal or external factory function is called.
-        //! This has the draw-back, that it requires the TSize parameter even though it should not be necessary.
+        //! This has the draw-back, that it requires the TVal parameter even though it should not be necessary.
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TDim,
-            typename TSize,
+            typename TVal,
             template<std::size_t> class TTFnObj,
             typename TIdxOffset,
             typename... TArgs>
         ALPAKA_FN_HOST_ACC auto createVecFromIndexedFnOffsetWorkaround(
             TArgs && ... args)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> alpaka::vec::Vec<TDim, TSize>
+        -> alpaka::vec::Vec<TDim, TVal>
 #endif
         {
             return
                 alpaka::vec::
 #ifdef ALPAKA_CREATE_VEC_IN_CLASS
-                Vec<TDim, TSize>::template
+                Vec<TDim, TVal>::template
 #endif
                 createVecFromIndexedFnOffset<
 #ifndef ALPAKA_CREATE_VEC_IN_CLASS
@@ -582,31 +574,31 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
                     typename TDim,
-                    typename TSize>
+                    typename TVal>
                 ALPAKA_FN_HOST_ACC static auto create(
-                    Vec<TDim, TSize> const & p,
-                    Vec<TDim, TSize> const & q)
-                -> TSize
+                    Vec<TDim, TVal> const & p,
+                    Vec<TDim, TVal> const & q)
+                -> TVal
                 {
                     return p[Tidx] + q[Tidx];
                 }
             };
         }
         //-----------------------------------------------------------------------------
-        //! \return The element wise sum of two vectors.
+        //! \return The element-wise sum of two vectors.
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TDim,
-            typename TSize>
+            typename TVal>
         ALPAKA_FN_HOST_ACC auto operator+(
-            Vec<TDim, TSize> const & p,
-            Vec<TDim, TSize> const & q)
-        -> Vec<TDim, TSize>
+            Vec<TDim, TVal> const & p,
+            Vec<TDim, TVal> const & q)
+        -> Vec<TDim, TVal>
         {
             return
                 createVecFromIndexedFnWorkaround<
                     TDim,
-                    TSize,
+                    TVal,
                     detail::CreateAdd>(
                         p,
                         q);
@@ -624,11 +616,11 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
                     typename TDim,
-                    typename TSize>
+                    typename TVal>
                 ALPAKA_FN_HOST_ACC static auto create(
-                    Vec<TDim, TSize> const & p,
-                    Vec<TDim, TSize> const & q)
-                -> TSize
+                    Vec<TDim, TVal> const & p,
+                    Vec<TDim, TVal> const & q)
+                -> TVal
                 {
                     return p[Tidx] - q[Tidx];
                 }
@@ -636,20 +628,20 @@ namespace alpaka
         }
 
         //-----------------------------------------------------------------------------
-        //! \return The element wise difference of two vectors.
+        //! \return The element-wise difference of two vectors.
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TDim,
-            typename TSize>
+            typename TVal>
         ALPAKA_FN_HOST_ACC auto operator-(
-            Vec<TDim, TSize> const & p,
-            Vec<TDim, TSize> const & q)
-        -> Vec<TDim, TSize>
+            Vec<TDim, TVal> const & p,
+            Vec<TDim, TVal> const & q)
+        -> Vec<TDim, TVal>
         {
             return
                 createVecFromIndexedFnWorkaround<
                     TDim,
-                    TSize,
+                    TVal,
                     detail::CreateSub>(
                         p,
                         q);
@@ -667,11 +659,11 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
                     typename TDim,
-                    typename TSize>
+                    typename TVal>
                 ALPAKA_FN_HOST_ACC static auto create(
-                    Vec<TDim, TSize> const & p,
-                    Vec<TDim, TSize> const & q)
-                -> TSize
+                    Vec<TDim, TVal> const & p,
+                    Vec<TDim, TVal> const & q)
+                -> TVal
                 {
                     return p[Tidx] * q[Tidx];
                 }
@@ -679,20 +671,20 @@ namespace alpaka
         }
 
         //-----------------------------------------------------------------------------
-        //! \return The element wise product of two vectors.
+        //! \return The element-wise product of two vectors.
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TDim,
-            typename TSize>
+            typename TVal>
         ALPAKA_FN_HOST_ACC auto operator*(
-            Vec<TDim, TSize> const & p,
-            Vec<TDim, TSize> const & q)
-        -> Vec<TDim, TSize>
+            Vec<TDim, TVal> const & p,
+            Vec<TDim, TVal> const & q)
+        -> Vec<TDim, TVal>
         {
             return
                 createVecFromIndexedFnWorkaround<
                     TDim,
-                    TSize,
+                    TVal,
                     detail::CreateMul>(
                         p,
                         q);
@@ -701,7 +693,50 @@ namespace alpaka
         namespace detail
         {
             //#############################################################################
-            //! A function object that returns the element wise less than relation of two vectors.
+            //! A function object that returns the element-wise less than relation of two vectors.
+            template<
+                std::size_t Tidx>
+            struct CreateLess
+            {
+                //-----------------------------------------------------------------------------
+                ALPAKA_NO_HOST_ACC_WARNING
+                template<
+                    typename TDim,
+                    typename TVal>
+                ALPAKA_FN_HOST_ACC static auto create(
+                    Vec<TDim, TVal> const & p,
+                    Vec<TDim, TVal> const & q)
+                -> bool
+                {
+                    return p[Tidx] < q[Tidx];
+                }
+            };
+        }
+
+        //-----------------------------------------------------------------------------
+        //! \return The element-wise less than relation of two vectors.
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<
+            typename TDim,
+            typename TVal>
+        ALPAKA_FN_HOST_ACC auto operator<(
+            Vec<TDim, TVal> const & p,
+            Vec<TDim, TVal> const & q)
+        -> Vec<TDim, bool>
+        {
+            return
+                createVecFromIndexedFnWorkaround<
+                    TDim,
+                    bool,
+                    detail::CreateLess>(
+                        p,
+                        q);
+        }
+
+        namespace detail
+        {
+            //#############################################################################
+            //! A function object that returns the element-wise less than or equal relation of two vectors.
             template<
                 std::size_t Tidx>
             struct CreateLessEqual
@@ -710,10 +745,10 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
                     typename TDim,
-                    typename TSize>
+                    typename TVal>
                 ALPAKA_FN_HOST_ACC static auto create(
-                    Vec<TDim, TSize> const & p,
-                    Vec<TDim, TSize> const & q)
+                    Vec<TDim, TVal> const & p,
+                    Vec<TDim, TVal> const & q)
                 -> bool
                 {
                     return p[Tidx] <= q[Tidx];
@@ -722,14 +757,14 @@ namespace alpaka
         }
 
         //-----------------------------------------------------------------------------
-        //! \return The element wise less than relation of two vectors.
+        //! \return The element-wise less than or equal relation of two vectors.
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TDim,
-            typename TSize>
+            typename TVal>
         ALPAKA_FN_HOST_ACC auto operator<=(
-            Vec<TDim, TSize> const & p,
-            Vec<TDim, TSize> const & q)
+            Vec<TDim, TVal> const & p,
+            Vec<TDim, TVal> const & q)
         -> Vec<TDim, bool>
         {
             return
@@ -741,14 +776,100 @@ namespace alpaka
                         q);
         }
 
+        namespace detail
+        {
+            //#############################################################################
+            //! A function object that returns the element-wise greater than or equal relation of two vectors.
+            template<
+                std::size_t Tidx>
+            struct CreateGreaterEqual
+            {
+                //-----------------------------------------------------------------------------
+                ALPAKA_NO_HOST_ACC_WARNING
+                template<
+                    typename TDim,
+                    typename TVal>
+                ALPAKA_FN_HOST_ACC static auto create(
+                    Vec<TDim, TVal> const & p,
+                    Vec<TDim, TVal> const & q)
+                -> bool
+                {
+                    return p[Tidx] >= q[Tidx];
+                }
+            };
+        }
+
+        //-----------------------------------------------------------------------------
+        //! \return The element-wise greater than or equal relation of two vectors.
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<
+            typename TDim,
+            typename TVal>
+        ALPAKA_FN_HOST_ACC auto operator>=(
+            Vec<TDim, TVal> const & p,
+            Vec<TDim, TVal> const & q)
+        -> Vec<TDim, bool>
+        {
+            return
+                createVecFromIndexedFnWorkaround<
+                    TDim,
+                    bool,
+                    detail::CreateGreaterEqual>(
+                        p,
+                        q);
+        }
+
+        namespace detail
+        {
+            //#############################################################################
+            //! A function object that returns the element-wise greater than relation of two vectors.
+            template<
+                std::size_t Tidx>
+            struct CreateGreater
+            {
+                //-----------------------------------------------------------------------------
+                ALPAKA_NO_HOST_ACC_WARNING
+                template<
+                    typename TDim,
+                    typename TVal>
+                ALPAKA_FN_HOST_ACC static auto create(
+                    Vec<TDim, TVal> const & p,
+                    Vec<TDim, TVal> const & q)
+                -> bool
+                {
+                    return p[Tidx] > q[Tidx];
+                }
+            };
+        }
+
+        //-----------------------------------------------------------------------------
+        //! \return The element-wise greater than relation of two vectors.
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<
+            typename TDim,
+            typename TVal>
+        ALPAKA_FN_HOST_ACC auto operator>(
+            Vec<TDim, TVal> const & p,
+            Vec<TDim, TVal> const & q)
+        -> Vec<TDim, bool>
+        {
+            return
+                createVecFromIndexedFnWorkaround<
+                    TDim,
+                    bool,
+                    detail::CreateGreater>(
+                        p,
+                        q);
+        }
+
         //-----------------------------------------------------------------------------
         //! Stream out operator.
         template<
             typename TDim,
-            typename TSize>
+            typename TVal>
         ALPAKA_FN_HOST auto operator<<(
             std::ostream & os,
-            Vec<TDim, TSize> const & v)
+            Vec<TDim, TVal> const & v)
         -> std::ostream &
         {
             os << "(";
@@ -774,27 +895,27 @@ namespace alpaka
             //! The Vec dimension get trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TVal>
             struct DimType<
-                vec::Vec<TDim, TSize>>
+                vec::Vec<TDim, TVal>>
             {
                 using type = TDim;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The GPU CUDA accelerator work division size type trait specialization.
+            //! The Vec idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
-            struct SizeType<
-                vec::Vec<TDim, TSize>>
+                typename TVal>
+            struct IdxType<
+                vec::Vec<TDim, TVal>>
             {
-                using type = TSize;
+                using type = TVal;
             };
         }
     }
@@ -806,10 +927,10 @@ namespace alpaka
             //! Specialization for selecting a sub-vector.
             template<
                 typename TDim,
-                typename TSize,
+                typename TVal,
                 std::size_t... TIndices>
             struct SubVecFromIndices<
-                Vec<TDim, TSize>,
+                Vec<TDim, TVal>,
                 meta::IntegerSequence<std::size_t, TIndices...>,
                 typename std::enable_if<
                     !std::is_same<
@@ -820,32 +941,30 @@ namespace alpaka
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto subVecFromIndices(
-                    Vec<TDim, TSize> const & vec)
-                -> Vec<dim::DimInt<sizeof...(TIndices)>, TSize>
+                    Vec<TDim, TVal> const & vec)
+                -> Vec<dim::DimInt<sizeof...(TIndices)>, TVal>
                 {
-#if !BOOST_ARCH_CUDA_DEVICE
                     // In the case of a zero dimensional vector, vec is unused.
-                    boost::ignore_unused(vec);
-#endif
+                    alpaka::ignore_unused(vec);
 
-                    static_assert(sizeof...(TIndices) <= TDim::value, "The sub-vector has to be smaller (or same size) then the origin vector.");
+                    static_assert(sizeof...(TIndices) <= TDim::value, "The sub-vector has to be smaller (or same idx) then the origin vector.");
 
-                    return Vec<dim::DimInt<sizeof...(TIndices)>, TSize>(vec[TIndices]...);
+                    return Vec<dim::DimInt<sizeof...(TIndices)>, TVal>(vec[TIndices]...);
                 }
             };
             //#############################################################################
             //! Specialization for selecting the whole vector.
             template<
                 typename TDim,
-                typename TSize>
+                typename TVal>
             struct SubVecFromIndices<
-                Vec<TDim, TSize>,
+                Vec<TDim, TVal>,
                 meta::MakeIntegerSequence<std::size_t, TDim::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto subVecFromIndices(
-                    Vec<TDim, TSize> const & vec)
-                -> Vec<TDim, TSize>
+                    Vec<TDim, TVal> const & vec)
+                -> Vec<TDim, TVal>
                 {
                     return vec;
                 }
@@ -865,10 +984,10 @@ namespace alpaka
                 template<
                     typename TSizeNew,
                     typename TDim,
-                    typename TSize>
+                    typename TVal>
                 ALPAKA_FN_HOST_ACC static auto create(
                     TSizeNew const &/* valNew*/,
-                    Vec<TDim, TSize> const & vec)
+                    Vec<TDim, TVal> const & vec)
                 -> TSizeNew
                 {
                     return
@@ -884,15 +1003,15 @@ namespace alpaka
             template<
                 typename TSizeNew,
                 typename TDim,
-                typename TSize>
+                typename TVal>
             struct Cast<
                 TSizeNew,
-                Vec<TDim, TSize>>
+                Vec<TDim, TVal>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto cast(
-                    Vec<TDim, TSize> const & vec)
+                    Vec<TDim, TVal> const & vec)
                 -> Vec<TDim, TSizeNew>
                 {
                     return
@@ -910,16 +1029,16 @@ namespace alpaka
             //#############################################################################
             template<
                 typename TDim,
-                typename TSize>
+                typename TVal>
             struct Cast<
-                TSize,
-                Vec<TDim, TSize>>
+                TVal,
+                Vec<TDim, TVal>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto cast(
-                    Vec<TDim, TSize> const & vec)
-                -> Vec<TDim, TSize>
+                    Vec<TDim, TVal> const & vec)
+                -> Vec<TDim, TVal>
                 {
                     return vec;
                 }
@@ -938,10 +1057,10 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 template<
                     typename TDim,
-                    typename TSize>
+                    typename TVal>
                 ALPAKA_FN_HOST_ACC static auto create(
-                    Vec<TDim, TSize> const & vec)
-                -> TSize
+                    Vec<TDim, TVal> const & vec)
+                -> TVal
                 {
                     return vec[TDim::value - 1u - Tidx];
                 }
@@ -953,19 +1072,19 @@ namespace alpaka
             //! Reverse specialization for Vec.
             template<
                 typename TDim,
-                typename TSize>
+                typename TVal>
             struct Reverse<
-                Vec<TDim, TSize>>
+                Vec<TDim, TVal>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto reverse(
-                    Vec<TDim, TSize> const & vec)
-                -> Vec<TDim, TSize>
+                    Vec<TDim, TVal> const & vec)
+                -> Vec<TDim, TVal>
                 {
                     return
                         createVecFromIndexedFnWorkaround<
                             TDim,
-                            TSize,
+                            TVal,
                             vec::detail::CreateReverse>(
                                 vec);
                 }
@@ -974,14 +1093,14 @@ namespace alpaka
             //#############################################################################
             //! (Non-)Reverse specialization for 1D Vec.
             template<
-                typename TSize>
+                typename TVal>
             struct Reverse<
-                Vec<dim::DimInt<1u>, TSize>>
+                Vec<dim::DimInt<1u>, TVal>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto reverse(
-                    Vec<dim::DimInt<1u>, TSize> const & vec)
-                -> Vec<dim::DimInt<1u>, TSize>
+                    Vec<dim::DimInt<1u>, TVal> const & vec)
+                -> Vec<dim::DimInt<1u>, TVal>
                 {
                     return vec;
                 }
@@ -1001,11 +1120,11 @@ namespace alpaka
                 template<
                     typename TDimL,
                     typename TDimR,
-                    typename TSize>
+                    typename TVal>
                 ALPAKA_FN_HOST_ACC static auto create(
-                    Vec<TDimL, TSize> const & vecL,
-                    Vec<TDimR, TSize> const & vecR)
-                -> TSize
+                    Vec<TDimL, TVal> const & vecL,
+                    Vec<TDimR, TVal> const & vecR)
+                -> TVal
                 {
                     return Tidx < TDimL::value ? vecL[Tidx] : vecR[Tidx - TDimL::value];
                 }
@@ -1018,21 +1137,21 @@ namespace alpaka
             template<
                 typename TDimL,
                 typename TDimR,
-                typename TSize>
+                typename TVal>
             struct Concat<
-                Vec<TDimL, TSize>,
-                Vec<TDimR, TSize>>
+                Vec<TDimL, TVal>,
+                Vec<TDimR, TVal>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto concat(
-                    Vec<TDimL, TSize> const & vecL,
-                    Vec<TDimR, TSize> const & vecR)
-                -> Vec<dim::DimInt<TDimL::value + TDimR::value>, TSize>
+                    Vec<TDimL, TVal> const & vecL,
+                    Vec<TDimR, TVal> const & vecR)
+                -> Vec<dim::DimInt<TDimL::value + TDimR::value>, TVal>
                 {
                     return
                         createVecFromIndexedFnWorkaround<
                             dim::DimInt<TDimL::value + TDimR::value>,
-                            TSize,
+                            TVal,
                             vec::detail::CreateConcat>(
                                 vecL,
                                 vecR);
@@ -1057,7 +1176,7 @@ namespace alpaka
                     typename TExtent>
                 ALPAKA_FN_HOST_ACC static auto create(
                     TExtent const & extent)
-                -> size::Size<TExtent>
+                -> idx::Idx<TExtent>
                 {
                     return extent::getExtent<Tidx>(extent);
                 }
@@ -1071,12 +1190,12 @@ namespace alpaka
             typename TExtent>
         ALPAKA_FN_HOST_ACC auto getExtentVec(
             TExtent const & extent = TExtent())
-        -> vec::Vec<dim::Dim<TExtent>, size::Size<TExtent>>
+        -> vec::Vec<dim::Dim<TExtent>, idx::Idx<TExtent>>
         {
             return
                 vec::createVecFromIndexedFnWorkaround<
                     dim::Dim<TExtent>,
-                    size::Size<TExtent>,
+                    idx::Idx<TExtent>,
                     detail::CreateExtent>(
                         extent);
         }
@@ -1089,13 +1208,13 @@ namespace alpaka
             typename TExtent>
         ALPAKA_FN_HOST_ACC auto getExtentVecEnd(
             TExtent const & extent = TExtent())
-        -> vec::Vec<TDim, size::Size<TExtent>>
+        -> vec::Vec<TDim, idx::Idx<TExtent>>
         {
             using IdxOffset = std::integral_constant<std::intmax_t, static_cast<std::intmax_t>(dim::Dim<TExtent>::value) - static_cast<std::intmax_t>(TDim::value)>;
             return
                 vec::createVecFromIndexedFnOffsetWorkaround<
                     TDim,
-                    size::Size<TExtent>,
+                    idx::Idx<TExtent>,
                     detail::CreateExtent,
                     IdxOffset>(
                         extent);
@@ -1118,7 +1237,7 @@ namespace alpaka
                     typename TOffsets>
                 ALPAKA_FN_HOST_ACC static auto create(
                     TOffsets const & offsets)
-                -> size::Size<TOffsets>
+                -> idx::Idx<TOffsets>
                 {
                     return offset::getOffset<Tidx>(offsets);
                 }
@@ -1132,12 +1251,12 @@ namespace alpaka
             typename TOffsets>
         ALPAKA_FN_HOST_ACC auto getOffsetVec(
             TOffsets const & offsets = TOffsets())
-        -> vec::Vec<dim::Dim<TOffsets>, size::Size<TOffsets>>
+        -> vec::Vec<dim::Dim<TOffsets>, idx::Idx<TOffsets>>
         {
             return
                 vec::createVecFromIndexedFnWorkaround<
                     dim::Dim<TOffsets>,
-                    size::Size<TOffsets>,
+                    idx::Idx<TOffsets>,
                     detail::CreateOffset>(
                         offsets);
         }
@@ -1150,13 +1269,13 @@ namespace alpaka
             typename TOffsets>
         ALPAKA_FN_HOST_ACC auto getOffsetVecEnd(
             TOffsets const & offsets = TOffsets())
-        -> vec::Vec<TDim, size::Size<TOffsets>>
+        -> vec::Vec<TDim, idx::Idx<TOffsets>>
         {
             using IdxOffset = std::integral_constant<std::size_t, static_cast<std::size_t>(static_cast<std::intmax_t>(dim::Dim<TOffsets>::value) - static_cast<std::intmax_t>(TDim::value))>;
             return
                 vec::createVecFromIndexedFnOffsetWorkaround<
                     TDim,
-                    size::Size<TOffsets>,
+                    idx::Idx<TOffsets>,
                     detail::CreateOffset,
                     IdxOffset>(
                         offsets);
@@ -1169,42 +1288,42 @@ namespace alpaka
             //#############################################################################
             //! The Vec extent get trait specialization.
             template<
-                typename TIdx,
+                typename TIdxIntegralConst,
                 typename TDim,
-                typename TSize>
+                typename TVal>
             struct GetExtent<
-                TIdx,
-                vec::Vec<TDim, TSize>,
-                typename std::enable_if<(TDim::value > TIdx::value)>::type>
+                TIdxIntegralConst,
+                vec::Vec<TDim, TVal>,
+                typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
-                    vec::Vec<TDim, TSize> const & extent)
-                -> TSize
+                    vec::Vec<TDim, TVal> const & extent)
+                -> TVal
                 {
-                    return extent[TIdx::value];
+                    return extent[TIdxIntegralConst::value];
                 }
             };
             //#############################################################################
             //! The Vec extent set trait specialization.
             template<
-                typename TIdx,
+                typename TIdxIntegralConst,
                 typename TDim,
-                typename TSize,
+                typename TVal,
                 typename TExtentVal>
             struct SetExtent<
-                TIdx,
-                vec::Vec<TDim, TSize>,
+                TIdxIntegralConst,
+                vec::Vec<TDim, TVal>,
                 TExtentVal,
-                typename std::enable_if<(TDim::value > TIdx::value)>::type>
+                typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setExtent(
-                    vec::Vec<TDim, TSize> & extent,
+                    vec::Vec<TDim, TVal> & extent,
                     TExtentVal const & extentVal)
                 -> void
                 {
-                    extent[TIdx::value] = extentVal;
+                    extent[TIdxIntegralConst::value] = extentVal;
                 }
             };
         }
@@ -1216,42 +1335,42 @@ namespace alpaka
             //#############################################################################
             //! The Vec offset get trait specialization.
             template<
-                typename TIdx,
+                typename TIdxIntegralConst,
                 typename TDim,
-                typename TSize>
+                typename TVal>
             struct GetOffset<
-                TIdx,
-                vec::Vec<TDim, TSize>,
-                typename std::enable_if<(TDim::value > TIdx::value)>::type>
+                TIdxIntegralConst,
+                vec::Vec<TDim, TVal>,
+                typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getOffset(
-                    vec::Vec<TDim, TSize> const & offsets)
-                -> TSize
+                    vec::Vec<TDim, TVal> const & offsets)
+                -> TVal
                 {
-                    return offsets[TIdx::value];
+                    return offsets[TIdxIntegralConst::value];
                 }
             };
             //#############################################################################
             //! The Vec offset set trait specialization.
             template<
-                typename TIdx,
+                typename TIdxIntegralConst,
                 typename TDim,
-                typename TSize,
+                typename TVal,
                 typename TOffset>
             struct SetOffset<
-                TIdx,
-                vec::Vec<TDim, TSize>,
+                TIdxIntegralConst,
+                vec::Vec<TDim, TVal>,
                 TOffset,
-                typename std::enable_if<(TDim::value > TIdx::value)>::type>
+                typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setOffset(
-                    vec::Vec<TDim, TSize> & offsets,
+                    vec::Vec<TDim, TVal> & offsets,
                     TOffset const & offset)
                 -> void
                 {
-                    offsets[TIdx::value] = offset;
+                    offsets[TIdxIntegralConst::value] = offset;
                 }
             };
         }

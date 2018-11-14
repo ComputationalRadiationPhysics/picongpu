@@ -30,13 +30,13 @@ namespace alpaka
             //#############################################################################
             template<
                 typename Ts,
-                template<typename> class TOp>
+                template<typename...> class TOp>
             struct TransformImpl;
             //#############################################################################
             template<
                 template<typename...> class TList,
                 typename... Ts,
-                template<typename> class TOp>
+                template<typename...> class TOp>
             struct TransformImpl<
                 TList<Ts...>,
                 TOp>
@@ -49,7 +49,7 @@ namespace alpaka
         //#############################################################################
         template<
             typename Ts,
-            template<typename> class TOp>
+            template<typename...> class TOp>
         using Transform = typename detail::TransformImpl<Ts, TOp>::type;
     }
 }

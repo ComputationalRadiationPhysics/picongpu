@@ -26,10 +26,10 @@ The interaction of the main user facing concepts can be seen in the following fi
 ![user / alpaka code interaction](structure_assoc.png)
 
 For each type of `Device` there is a `Platform` for enumerating the available `Device`s.
-A `Device` is the requirement for creating `Streams` and `Events` as it is for allocating `Buffers` on the respective `Device`. `Buffers` can be copied, their memory be set and they can be pinned or mapped.
-Copying and setting a buffer requires the corresponding `Copy` and `Set` tasks to be enqueued into the `Stream`.
-An `Event` can be enqueued into a `Stream` and its completion state can be queried by the user.
-It is possible to wait for (synchronize with) a single `Event`, a `Stream` or a whole `Device`.
-An `Executor` can be enqueued into a `Stream` and will execute the `Kernel` (after all previous tasks in the stream have been completed). 
+A `Device` is the requirement for creating `Queues` and `Events` as it is for allocating `Buffers` on the respective `Device`. `Buffers` can be copied, their memory be set and they can be pinned or mapped.
+Copying and setting a buffer requires the corresponding `Copy` and `Set` tasks to be enqueued into the `Queue`.
+An `Event` can be enqueued into a `Queue` and its completion state can be queried by the user.
+It is possible to wait for (synchronize with) a single `Event`, a `Queue` or a whole `Device`.
+An `Executor` can be enqueued into a `Queue` and will execute the `Kernel` (after all previous tasks in the queue have been completed).
 The `Kernel` in turn has access to the `Accelerator` it is running on.
 The `Accelerator` provides the `Kernel` with its current index in the block or grid, their extents or other data as well as it allows to allocate shared memory, execute atomic operations and many more.
