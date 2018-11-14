@@ -123,7 +123,7 @@ namespace cupla {
     >;
 
     using AccHost = ::alpaka::dev::DevCpu;
-    using AccHostStream = ::alpaka::stream::StreamCpuSync;
+    using AccHostStream = ::alpaka::queue::QueueCpuSync;
 
 #if defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED) ||                            \
     defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED) ||                         \
@@ -133,9 +133,9 @@ namespace cupla {
 
     using AccDev = ::alpaka::dev::DevCpu;
 #   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
-        using AccStream = ::alpaka::stream::StreamCpuAsync;
+        using AccStream = ::alpaka::queue::QueueCpuAsync;
 #   else
-        using AccStream = ::alpaka::stream::StreamCpuSync;
+        using AccStream = ::alpaka::queue::QueueCpuSync;
 #   endif
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
@@ -200,9 +200,9 @@ namespace cupla {
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
     using AccDev = ::alpaka::dev::DevCudaRt;
 #   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
-        using AccStream = ::alpaka::stream::StreamCudaRtAsync;
+        using AccStream = ::alpaka::queue::QueueCudaRtAsync;
 #   else
-        using AccStream = ::alpaka::stream::StreamCudaRtSync;
+        using AccStream = ::alpaka::queue::QueueCudaRtSync;
 #   endif
     using Acc = ::alpaka::acc::AccGpuCudaRt<
         KernelDim,

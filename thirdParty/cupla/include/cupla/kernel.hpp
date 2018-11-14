@@ -119,8 +119,8 @@ namespace cupla{
             static_cast<IdxVec3>(blockSize),
             static_cast<IdxVec3>(elemPerThread)
         );
-        auto const exec(::alpaka::exec::create<T_Acc>(workDiv, kernel, args...));
-        ::alpaka::stream::enqueue(stream, exec);
+        auto const exec(::alpaka::kernel::createTaskExec<T_Acc>(workDiv, kernel, args...));
+        ::alpaka::queue::enqueue(stream, exec);
     }
 
 } // namespace cupla
@@ -150,7 +150,7 @@ namespace traits
         getBlockSharedMemDynSizeBytes(
             ::cupla::CuplaKernel< T_UserKernel > const & userKernel,
             TArgs const & ...)
-        -> ::alpaka::size::Size<T_Acc>
+        -> ::alpaka::idx::Idx<T_Acc>
         {
             return userKernel.m_dynSharedMemBytes;
         }

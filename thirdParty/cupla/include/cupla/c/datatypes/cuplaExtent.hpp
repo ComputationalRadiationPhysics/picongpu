@@ -213,19 +213,19 @@ namespace traits
 } // namespace traits
 } // namespace offset
 
-namespace size
+namespace idx
 {
 namespace traits
 {
 
-    //! size type trait specialization.
+    //! idx type trait specialization.
     template<>
-    struct SizeType<
+    struct IdxType<
         cuplaExtent
     >{
         using type = cupla::MemSizeType;
     };
 
 } // namespace traits
-} // namespace size
+} // namespace idx
 } // namespave alpaka

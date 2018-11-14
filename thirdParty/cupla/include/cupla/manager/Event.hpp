@@ -40,7 +40,7 @@ namespace detail
 {
     template<
         typename T_DeviceType,
-        typename T_StreamType
+        typename T_QueueType
     >
     class EmulatedEvent
     {
@@ -54,7 +54,7 @@ namespace detail
         TimePoint time;
 
     public:
-        using AlpakaEvent = ::alpaka::event::Event< T_StreamType >;
+        using AlpakaEvent = ::alpaka::event::Event< T_QueueType >;
         std::unique_ptr< AlpakaEvent > event;
 
         EmulatedEvent( uint32_t flags ) :
@@ -74,9 +74,9 @@ namespace detail
             return *event;
         }
 
-        void record( T_StreamType & stream )
+        void record( T_QueueType & queue )
         {
-            ::alpaka::stream::enqueue( stream, *event );
+            ::alpaka::queue::enqueue( queue, *event );
             if( hasTimer )
             {
                 ::alpaka::wait::wait( *event );
@@ -102,16 +102,16 @@ namespace detail
 }
     template<
         typename T_DeviceType,
-        typename T_StreamType
+        typename T_QueueType
     >
     struct Event
     {
         using DeviceType = T_DeviceType;
-        using StreamType = T_StreamType;
+        using QueueType = T_QueueType;
 
         using EventType = detail::EmulatedEvent<
             DeviceType,
-            StreamType
+            QueueType
         >;
 
         using EventMap = std::map<
