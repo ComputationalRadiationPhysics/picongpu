@@ -23,7 +23,7 @@
 
 #include <alpaka/meta/IsStrictBase.hpp>
 
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 #include <alpaka/vec/Vec.hpp>
 #include <alpaka/core/Positioning.hpp>
@@ -63,7 +63,7 @@ namespace alpaka
             typename TWorkDiv>
         ALPAKA_FN_HOST_ACC auto getWorkDiv(
             TWorkDiv const & workDiv)
-        -> vec::Vec<dim::Dim<TWorkDiv>, size::Size<TWorkDiv>>
+        -> vec::Vec<dim::Dim<TWorkDiv>, idx::Idx<TWorkDiv>>
         {
             return
                 traits::GetWorkDiv<
@@ -95,7 +95,7 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
                     TWorkDiv const & workDiv)
-                -> vec::Vec<dim::Dim<typename TWorkDiv::WorkDivBase>, size::Size<typename TWorkDiv::WorkDivBase>>
+                -> vec::Vec<dim::Dim<typename TWorkDiv::WorkDivBase>, idx::Idx<typename TWorkDiv::WorkDivBase>>
                 {
                     // Delegate the call to the base class.
                     return
@@ -124,7 +124,7 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
                     TWorkDiv const & workDiv)
-                -> vec::Vec<dim::Dim<typename TWorkDiv::WorkDivBase>, size::Size<typename TWorkDiv::WorkDivBase>>
+                -> vec::Vec<dim::Dim<typename TWorkDiv::WorkDivBase>, idx::Idx<typename TWorkDiv::WorkDivBase>>
                 {
                     // Delegate the call to the base class.
                     return
@@ -153,7 +153,7 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getWorkDiv(
                     TWorkDiv const & workDiv)
-                -> vec::Vec<dim::Dim<typename TWorkDiv::WorkDivBase>, size::Size<typename TWorkDiv::WorkDivBase>>
+                -> vec::Vec<dim::Dim<typename TWorkDiv::WorkDivBase>, idx::Idx<typename TWorkDiv::WorkDivBase>>
                 {
                     // Delegate the call to the base class.
                     return

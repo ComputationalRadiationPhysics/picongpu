@@ -82,7 +82,7 @@ namespace alpaka
             typename TDev>
         ALPAKA_FN_HOST auto getAccDevProps(
             TDev const & dev)
-        -> AccDevProps<dim::Dim<TAcc>, size::Size<TAcc>>
+        -> AccDevProps<dim::Dim<TAcc>, idx::Idx<TAcc>>
         {
             return
                 traits::GetAccDevProps<
@@ -92,9 +92,9 @@ namespace alpaka
         }
 
         //-----------------------------------------------------------------------------
-        //! Writes the accelerator name to the given stream.
+        //! \return The accelerator name
         //!
-        //! \tparam TAcc The accelerator type to write the name of.
+        //! \tparam TAcc The accelerator type.
         template<
             typename TAcc>
         ALPAKA_FN_HOST auto getAccName()

@@ -152,6 +152,7 @@ namespace alpaka
                         >::type>
                     {
                         //-----------------------------------------------------------------------------
+                        ALPAKA_NO_HOST_ACC_WARNING
                         ALPAKA_FN_ACC static auto freeMem(
                             TBlockSharedMemSt & blockSharedMemSt)
                         -> void

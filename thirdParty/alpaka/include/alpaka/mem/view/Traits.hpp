@@ -26,14 +26,14 @@
 #include <alpaka/elem/Traits.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/offset/Traits.hpp>
-#include <alpaka/stream/Traits.hpp>
+#include <alpaka/queue/Traits.hpp>
 
-#include <alpaka/vec/Vec.hpp>
-#include <alpaka/meta/Fold.hpp>
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Unused.hpp>
+#include <alpaka/meta/Fold.hpp>
+#include <alpaka/vec/Vec.hpp>
 
 #include <boost/config.hpp>
-#include <boost/core/ignore_unused.hpp>
 
 #include <iosfwd>
 
@@ -88,7 +88,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPitchBytes(
                         TView const & view)
-                    -> size::Size<TView>
+                    -> idx::Idx<TView>
                     {
                         return detail::GetPitchBytesDefault<TIdx, TView>::getPitchBytesDefault(view);
                     }
@@ -108,7 +108,7 @@ namespace alpaka
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST static auto getPitchBytesDefault(
                             TView const & view)
-                        -> size::Size<TView>
+                        -> idx::Idx<TView>
                         {
                             return
                                 extent::getExtent<TIdx::value>(view)
@@ -125,7 +125,7 @@ namespace alpaka
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST static auto getPitchBytesDefault(
                             TView const & view)
-                        -> size::Size<TView>
+                        -> idx::Idx<TView>
                         {
                             return
                                 extent::getExtent<dim::Dim<TView>::value - 1u>(view)
@@ -142,7 +142,7 @@ namespace alpaka
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST static auto getPitchBytesDefault(
                             TView const &)
-                        -> size::Size<TView>
+                        -> idx::Idx<TView>
                         {
                             return
                                 sizeof(elem::Elem<TView>);
@@ -151,17 +151,17 @@ namespace alpaka
                 }
 
                 //#############################################################################
-                //! The memory set trait.
+                //! The memory set task trait.
                 //!
                 //! Fills the view with data.
                 template<
                     typename TDim,
                     typename TDev,
                     typename TSfinae = void>
-                struct TaskSet;
+                struct CreateTaskSet;
 
                 //#############################################################################
-                //! The memory copy trait.
+                //! The memory copy task trait.
                 //!
                 //! Copies memory from one view into another view possibly on a different device.
                 template<
@@ -169,7 +169,7 @@ namespace alpaka
                     typename TDevDst,
                     typename TDevSrc,
                     typename TSfinae = void>
-                struct TaskCopy;
+                struct CreateTaskCopy;
 
                 //#############################################################################
                 //! The static device memory view creation trait.
@@ -261,12 +261,13 @@ namespace alpaka
 
             //-----------------------------------------------------------------------------
             //! \return The pitch in bytes. This is the distance in bytes between two consecutive elements in the given dimension.
+            ALPAKA_NO_HOST_ACC_WARNING
             template<
                 std::size_t Tidx,
                 typename TView>
-            ALPAKA_FN_HOST auto getPitchBytes(
+            ALPAKA_FN_HOST_ACC auto getPitchBytes(
                 TView const & view)
-            -> size::Size<TView>
+            -> idx::Idx<TView>
             {
                 return
                     traits::GetPitchBytes<
@@ -285,16 +286,16 @@ namespace alpaka
             template<
                 typename TExtent,
                 typename TView>
-            ALPAKA_FN_HOST auto taskSet(
+            ALPAKA_FN_HOST auto createTaskSet(
                 TView & view,
                 std::uint8_t const & byte,
                 TExtent const & extent)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
             -> decltype(
-                traits::TaskSet<
+                traits::CreateTaskSet<
                     dim::Dim<TView>,
                     dev::Dev<TView>>
-                ::taskSet(
+                ::createTaskSet(
                     view,
                     byte,
                     extent))
@@ -305,10 +306,10 @@ namespace alpaka
                     "The view and the extent are required to have the same dimensionality!");
 
                 return
-                    traits::TaskSet<
+                    traits::CreateTaskSet<
                         dim::Dim<TView>,
                         dev::Dev<TView>>
-                    ::taskSet(
+                    ::createTaskSet(
                         view,
                         byte,
                         extent);
@@ -317,24 +318,24 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! Sets the memory to the given value asynchronously.
             //!
+            //! \param queue The queue to enqueue the view fill task into.
             //! \param view The memory view to fill.
             //! \param byte Value to set for each element of the specified view.
             //! \param extent The extent of the view to fill.
-            //! \param stream The stream to enqueue the view fill task into.
             template<
                 typename TExtent,
                 typename TView,
-                typename TStream>
+                typename TQueue>
             ALPAKA_FN_HOST auto set(
-                TStream & stream,
+                TQueue & queue,
                 TView & view,
                 std::uint8_t const & byte,
                 TExtent const & extent)
             -> void
             {
-                stream::enqueue(
-                    stream,
-                    mem::view::taskSet(
+                queue::enqueue(
+                    queue,
+                    mem::view::createTaskSet(
                         view,
                         byte,
                         extent));
@@ -350,17 +351,17 @@ namespace alpaka
                 typename TExtent,
                 typename TViewSrc,
                 typename TViewDst>
-            ALPAKA_FN_HOST auto taskCopy(
+            ALPAKA_FN_HOST auto createTaskCopy(
                 TViewDst & viewDst,
                 TViewSrc const & viewSrc,
                 TExtent const & extent)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
             -> decltype(
-                traits::TaskCopy<
+                traits::CreateTaskCopy<
                     dim::Dim<TViewDst>,
                     dev::Dev<TViewDst>,
                     dev::Dev<TViewSrc>>
-                ::taskCopy(
+                ::createTaskCopy(
                     viewDst,
                     viewSrc,
                     extent))
@@ -377,38 +378,38 @@ namespace alpaka
                     "The source and the destination view are required to have the same element type!");
 
                 return
-                    traits::TaskCopy<
+                    traits::CreateTaskCopy<
                         dim::Dim<TViewDst>,
                         dev::Dev<TViewDst>,
                         dev::Dev<TViewSrc>>
-                    ::taskCopy(
+                    ::createTaskCopy(
                         viewDst,
                         viewSrc,
                         extent);
             }
 
             //-----------------------------------------------------------------------------
-            //! Copies memory possibly between different memory spaces asynchronously.
+            //! Copies memory possibly between different memory spaces.
             //!
+            //! \param queue The queue to enqueue the view copy task into.
             //! \param viewDst The destination memory view.
             //! \param viewSrc The source memory view.
             //! \param extent The extent of the view to copy.
-            //! \param stream The stream to enqueue the view copy task into.
             template<
                 typename TExtent,
                 typename TViewSrc,
                 typename TViewDst,
-                typename TStream>
+                typename TQueue>
             ALPAKA_FN_HOST auto copy(
-                TStream & stream,
+                TQueue & queue,
                 TViewDst & viewDst,
                 TViewSrc const & viewSrc,
                 TExtent const & extent)
             -> void
             {
-                stream::enqueue(
-                    stream,
-                    mem::view::taskCopy(
+                queue::enqueue(
+                    queue,
+                    mem::view::createTaskCopy(
                         viewDst,
                         viewSrc,
                         extent));
@@ -425,7 +426,7 @@ namespace alpaka
                     ALPAKA_FN_HOST static auto print(
                         TView const & view,
                         elem::Elem<TView> const * const ptr,
-                        vec::Vec<dim::Dim<TView>, size::Size<TView>> const & extent,
+                        vec::Vec<dim::Dim<TView>, idx::Idx<TView>> const & extent,
                         std::ostream & os,
                         std::string const & elementSeparator,
                         std::string const & rowSeparator,
@@ -472,7 +473,7 @@ namespace alpaka
                     ALPAKA_FN_HOST static auto print(
                         TView const & view,
                         elem::Elem<TView> const * const ptr,
-                        vec::Vec<dim::Dim<TView>, size::Size<TView>> const & extent,
+                        vec::Vec<dim::Dim<TView>, idx::Idx<TView>> const & extent,
                         std::ostream & os,
                         std::string const & elementSeparator,
                         std::string const & rowSeparator,
@@ -480,8 +481,8 @@ namespace alpaka
                         std::string const & rowSuffix)
                     -> void
                     {
-                        boost::ignore_unused(view);
-                        boost::ignore_unused(rowSeparator);
+                        alpaka::ignore_unused(view);
+                        alpaka::ignore_unused(rowSeparator);
 
                         os << rowPrefix;
 
@@ -503,7 +504,7 @@ namespace alpaka
                 };
             }
             //-----------------------------------------------------------------------------
-            //! Prints the content of the view to the given stream.
+            //! Prints the content of the view to the given queue.
             // \TODO: Add precision flag.
             // \TODO: Add column alignment flag.
             template<
@@ -542,9 +543,9 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     template<
                         typename TPitch>
-                    ALPAKA_FN_HOST static auto create(
+                    ALPAKA_FN_HOST_ACC static auto create(
                         TPitch const & pitch)
-                    -> size::Size<TPitch>
+                    -> idx::Idx<TPitch>
                     {
                         return mem::view::getPitchBytes<Tidx>(pitch);
                     }
@@ -554,14 +555,14 @@ namespace alpaka
             //! \return The pitch vector.
             template<
                 typename TPitch>
-            ALPAKA_FN_HOST auto getPitchBytesVec(
+            ALPAKA_FN_HOST_ACC auto getPitchBytesVec(
                 TPitch const & pitch = TPitch())
-            -> vec::Vec<dim::Dim<TPitch>, size::Size<TPitch>>
+            -> vec::Vec<dim::Dim<TPitch>, idx::Idx<TPitch>>
             {
                 return
                     vec::createVecFromIndexedFnWorkaround<
                         dim::Dim<TPitch>,
-                        size::Size<TPitch>,
+                        idx::Idx<TPitch>,
                         detail::CreatePitchBytes>(
                             pitch);
             }
@@ -572,13 +573,13 @@ namespace alpaka
                 typename TPitch>
             ALPAKA_FN_HOST auto getPitchBytesVecEnd(
                 TPitch const & pitch = TPitch())
-            -> vec::Vec<TDim, size::Size<TPitch>>
+            -> vec::Vec<TDim, idx::Idx<TPitch>>
             {
                 using IdxOffset = std::integral_constant<std::intmax_t, static_cast<std::intmax_t>(dim::Dim<TPitch>::value) - static_cast<std::intmax_t>(TDim::value)>;
                 return
                     vec::createVecFromIndexedFnOffsetWorkaround<
                         TDim,
-                        size::Size<TPitch>,
+                        idx::Idx<TPitch>,
                         detail::CreatePitchBytes,
                         IdxOffset>(
                             pitch);

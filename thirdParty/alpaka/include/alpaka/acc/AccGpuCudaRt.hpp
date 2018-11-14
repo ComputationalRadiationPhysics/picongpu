@@ -45,9 +45,9 @@
 // Specialized traits.
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/exec/Traits.hpp>
+#include <alpaka/kernel/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 // Implementation details.
 #include <alpaka/core/BoostPredef.hpp>
@@ -63,7 +63,7 @@ namespace alpaka
     {
         template<
             typename TDim,
-            typename TSize,
+            typename TIdx,
             typename TKernelFnObj,
             typename... TArgs>
         class ExecGpuCudaRt;
@@ -76,11 +76,11 @@ namespace alpaka
         //! This accelerator allows parallel kernel execution on devices supporting CUDA.
         template<
             typename TDim,
-            typename TSize>
+            typename TIdx>
         class AccGpuCudaRt final :
-            public workdiv::WorkDivCudaBuiltIn<TDim, TSize>,
-            public idx::gb::IdxGbCudaBuiltIn<TDim, TSize>,
-            public idx::bt::IdxBtCudaBuiltIn<TDim, TSize>,
+            public workdiv::WorkDivCudaBuiltIn<TDim, TIdx>,
+            public idx::gb::IdxGbCudaBuiltIn<TDim, TIdx>,
+            public idx::bt::IdxBtCudaBuiltIn<TDim, TIdx>,
             public atomic::AtomicHierarchy<
                 atomic::AtomicCudaBuiltIn, // grid atomics
                 atomic::AtomicCudaBuiltIn, // block atomics
@@ -95,11 +95,11 @@ namespace alpaka
         {
         public:
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY AccGpuCudaRt(
-                vec::Vec<TDim, TSize> const & threadElemExtent) :
-                    workdiv::WorkDivCudaBuiltIn<TDim, TSize>(threadElemExtent),
-                    idx::gb::IdxGbCudaBuiltIn<TDim, TSize>(),
-                    idx::bt::IdxBtCudaBuiltIn<TDim, TSize>(),
+            __device__ AccGpuCudaRt(
+                vec::Vec<TDim, TIdx> const & threadElemExtent) :
+                    workdiv::WorkDivCudaBuiltIn<TDim, TIdx>(threadElemExtent),
+                    idx::gb::IdxGbCudaBuiltIn<TDim, TIdx>(),
+                    idx::bt::IdxBtCudaBuiltIn<TDim, TIdx>(),
                     atomic::AtomicHierarchy<
                         atomic::AtomicCudaBuiltIn, // atomics between grids
                         atomic::AtomicCudaBuiltIn, // atomics between blocks
@@ -115,13 +115,13 @@ namespace alpaka
 
         public:
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY AccGpuCudaRt(AccGpuCudaRt const &) = delete;
+            __device__ AccGpuCudaRt(AccGpuCudaRt const &) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY AccGpuCudaRt(AccGpuCudaRt &&) = delete;
+            __device__ AccGpuCudaRt(AccGpuCudaRt &&) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY auto operator=(AccGpuCudaRt const &) -> AccGpuCudaRt & = delete;
+            __device__ auto operator=(AccGpuCudaRt const &) -> AccGpuCudaRt & = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY auto operator=(AccGpuCudaRt &&) -> AccGpuCudaRt & = delete;
+            __device__ auto operator=(AccGpuCudaRt &&) -> AccGpuCudaRt & = delete;
             //-----------------------------------------------------------------------------
             ~AccGpuCudaRt() = default;
         };
@@ -135,24 +135,24 @@ namespace alpaka
             //! The GPU CUDA accelerator accelerator type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct AccType<
-                acc::AccGpuCudaRt<TDim, TSize>>
+                acc::AccGpuCudaRt<TDim, TIdx>>
             {
-                using type = acc::AccGpuCudaRt<TDim, TSize>;
+                using type = acc::AccGpuCudaRt<TDim, TIdx>;
             };
             //#############################################################################
             //! The GPU CUDA accelerator device properties get trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetAccDevProps<
-                acc::AccGpuCudaRt<TDim, TSize>>
+                acc::AccGpuCudaRt<TDim, TIdx>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccDevProps(
                     dev::DevCudaRt const & dev)
-                -> acc::AccDevProps<TDim, TSize>
+                -> acc::AccDevProps<TDim, TIdx>
                 {
                     cudaDeviceProp cudaDevProp;
                     ALPAKA_CUDA_RT_CHECK(cudaGetDeviceProperties(
@@ -161,42 +161,42 @@ namespace alpaka
 
                     return {
                         // m_multiProcessorCount
-                        alpaka::core::clipCast<TSize>(cudaDevProp.multiProcessorCount),
+                        alpaka::core::clipCast<TIdx>(cudaDevProp.multiProcessorCount),
                         // m_gridBlockExtentMax
                         extent::getExtentVecEnd<TDim>(
-                            vec::Vec<dim::DimInt<3u>, TSize>(
-                                alpaka::core::clipCast<TSize>(cudaDevProp.maxGridSize[2u]),
-                                alpaka::core::clipCast<TSize>(cudaDevProp.maxGridSize[1u]),
-                                alpaka::core::clipCast<TSize>(cudaDevProp.maxGridSize[0u]))),
+                            vec::Vec<dim::DimInt<3u>, TIdx>(
+                                alpaka::core::clipCast<TIdx>(cudaDevProp.maxGridSize[2u]),
+                                alpaka::core::clipCast<TIdx>(cudaDevProp.maxGridSize[1u]),
+                                alpaka::core::clipCast<TIdx>(cudaDevProp.maxGridSize[0u]))),
                         // m_gridBlockCountMax
-                        std::numeric_limits<TSize>::max(),
+                        std::numeric_limits<TIdx>::max(),
                         // m_blockThreadExtentMax
                         extent::getExtentVecEnd<TDim>(
-                            vec::Vec<dim::DimInt<3u>, TSize>(
-                                alpaka::core::clipCast<TSize>(cudaDevProp.maxThreadsDim[2u]),
-                                alpaka::core::clipCast<TSize>(cudaDevProp.maxThreadsDim[1u]),
-                                alpaka::core::clipCast<TSize>(cudaDevProp.maxThreadsDim[0u]))),
+                            vec::Vec<dim::DimInt<3u>, TIdx>(
+                                alpaka::core::clipCast<TIdx>(cudaDevProp.maxThreadsDim[2u]),
+                                alpaka::core::clipCast<TIdx>(cudaDevProp.maxThreadsDim[1u]),
+                                alpaka::core::clipCast<TIdx>(cudaDevProp.maxThreadsDim[0u]))),
                         // m_blockThreadCountMax
-                        alpaka::core::clipCast<TSize>(cudaDevProp.maxThreadsPerBlock),
+                        alpaka::core::clipCast<TIdx>(cudaDevProp.maxThreadsPerBlock),
                         // m_threadElemExtentMax
-                        vec::Vec<TDim, TSize>::all(std::numeric_limits<TSize>::max()),
+                        vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_threadElemCountMax
-                        std::numeric_limits<TSize>::max()};
+                        std::numeric_limits<TIdx>::max()};
                 }
             };
             //#############################################################################
             //! The GPU CUDA accelerator name trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetAccName<
-                acc::AccGpuCudaRt<TDim, TSize>>
+                acc::AccGpuCudaRt<TDim, TIdx>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccName()
                 -> std::string
                 {
-                    return "AccGpuCudaRt<" + std::to_string(TDim::value) + "," + typeid(TSize).name() + ">";
+                    return "AccGpuCudaRt<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
                 }
             };
         }
@@ -209,9 +209,9 @@ namespace alpaka
             //! The GPU CUDA accelerator device type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct DevType<
-                acc::AccGpuCudaRt<TDim, TSize>>
+                acc::AccGpuCudaRt<TDim, TIdx>>
             {
                 using type = dev::DevCudaRt;
             };
@@ -225,15 +225,15 @@ namespace alpaka
             //! The GPU CUDA accelerator dimension getter trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct DimType<
-                acc::AccGpuCudaRt<TDim, TSize>>
+                acc::AccGpuCudaRt<TDim, TIdx>>
             {
                 using type = TDim;
             };
         }
     }
-    namespace exec
+    namespace kernel
     {
         namespace traits
         {
@@ -241,15 +241,39 @@ namespace alpaka
             //! The GPU CUDA accelerator executor type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
+                typename TWorkDiv,
                 typename TKernelFnObj,
                 typename... TArgs>
-            struct ExecType<
-                acc::AccGpuCudaRt<TDim, TSize>,
+            struct CreateTaskExec<
+                acc::AccGpuCudaRt<TDim, TIdx>,
+                TWorkDiv,
                 TKernelFnObj,
                 TArgs...>
             {
-                using type = exec::ExecGpuCudaRt<TDim, TSize, TKernelFnObj, TArgs...>;
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto createTaskExec(
+                    TWorkDiv const & workDiv,
+                    TKernelFnObj const & kernelFnObj,
+                    TArgs const & ... args)
+#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+                -> exec::ExecGpuCudaRt<
+                    TDim,
+                    TIdx,
+                    TKernelFnObj,
+                    TArgs...>
+#endif
+                {
+                    return
+                        exec::ExecGpuCudaRt<
+                            TDim,
+                            TIdx,
+                            TKernelFnObj,
+                            TArgs...>(
+                                workDiv,
+                                kernelFnObj,
+                                args...);
+                }
             };
         }
     }
@@ -261,27 +285,27 @@ namespace alpaka
             //! The CPU CUDA executor platform type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct PltfType<
-                acc::AccGpuCudaRt<TDim, TSize>>
+                acc::AccGpuCudaRt<TDim, TIdx>>
             {
                 using type = pltf::PltfCudaRt;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The GPU CUDA accelerator size type trait specialization.
+            //! The GPU CUDA accelerator idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
-            struct SizeType<
-                acc::AccGpuCudaRt<TDim, TSize>>
+                typename TIdx>
+            struct IdxType<
+                acc::AccGpuCudaRt<TDim, TIdx>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }

@@ -24,8 +24,7 @@
 #include <alpaka/mem/alloc/Traits.hpp>
 
 #include <alpaka/core/Common.hpp>
-
-#include <boost/core/ignore_unused.hpp>
+#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -59,7 +58,7 @@ namespace alpaka
                         std::size_t const & sizeElems)
                     -> T *
                     {
-                        boost::ignore_unused(alloc);
+                        alpaka::ignore_unused(alloc);
                         return new T[sizeElems];
                     }
                 };
@@ -78,7 +77,7 @@ namespace alpaka
                         T const * const ptr)
                     -> void
                     {
-                        boost::ignore_unused(alloc);
+                        alpaka::ignore_unused(alloc);
                         return delete[] ptr;
                     }
                 };

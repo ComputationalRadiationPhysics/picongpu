@@ -1,5 +1,5 @@
 #
-# Copyright 2015 Benjamin Worpitz
+# Copyright 2015-2018 Benjamin Worpitz
 #
 # This file is part of alpaka.
 #
@@ -18,17 +18,25 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 
-################################################################################
-# Required CMake version.
-################################################################################
-
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
 
-PROJECT("alpakaTest")
+SET(ALPAKA_ROOT "${CMAKE_CURRENT_LIST_DIR}/../" CACHE STRING "The location of the alpaka library")
+LIST(APPEND CMAKE_MODULE_PATH "${ALPAKA_ROOT}")
+FIND_PACKAGE(alpaka REQUIRED)
 
-################################################################################
-# Add subdirectories.
-################################################################################
+ADD_SUBDIRECTORY("common/")
+
+FIND_PACKAGE(Boost QUIET COMPONENTS unit_test_framework)
+IF(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
+    MESSAGE(FATAL_ERROR "Required alpaka dependency Boost.Test could not be found!")
+ENDIF()
+
+# NVCC does not incorporate the COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
+IF(ALPAKA_ACC_GPU_CUDA_ENABLE AND NOT ALPAKA_CUDA_COMPILER MATCHES "clang")
+    GET_TARGET_PROPERTY(_COMMON_COMPILE_OPTIONS common COMPILE_OPTIONS)
+    STRING(REPLACE ";" " " _COMMON_COMPILE_OPTIONS_STRING "${_COMMON_COMPILE_OPTIONS}")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_COMMON_COMPILE_OPTIONS_STRING}")
+ENDIF()
 
 ADD_SUBDIRECTORY("analysis/")
 ADD_SUBDIRECTORY("integ/")

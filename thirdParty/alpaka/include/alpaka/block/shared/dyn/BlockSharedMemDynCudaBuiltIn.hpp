@@ -51,13 +51,13 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     BlockSharedMemDynCudaBuiltIn() = default;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn const &) = delete;
+                    __device__ BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn const &) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn &&) = delete;
+                    __device__ BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn &&) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSharedMemDynCudaBuiltIn const &) -> BlockSharedMemDynCudaBuiltIn & = delete;
+                    __device__ auto operator=(BlockSharedMemDynCudaBuiltIn const &) -> BlockSharedMemDynCudaBuiltIn & = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSharedMemDynCudaBuiltIn &&) -> BlockSharedMemDynCudaBuiltIn & = delete;
+                    __device__ auto operator=(BlockSharedMemDynCudaBuiltIn &&) -> BlockSharedMemDynCudaBuiltIn & = delete;
                     //-----------------------------------------------------------------------------
                     /*virtual*/ ~BlockSharedMemDynCudaBuiltIn() = default;
                 };
@@ -72,7 +72,7 @@ namespace alpaka
                         BlockSharedMemDynCudaBuiltIn>
                     {
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_ACC_CUDA_ONLY static auto getMem(
+                        __device__ static auto getMem(
                             block::shared::dyn::BlockSharedMemDynCudaBuiltIn const &)
                         -> T *
                         {

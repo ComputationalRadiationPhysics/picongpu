@@ -31,7 +31,6 @@
 #include <alpaka/test/acc/Acc.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <boost/assert.hpp>
 #include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
@@ -42,8 +41,6 @@
     #pragma clang diagnostic pop
 #endif
 
-#if !((BOOST_COMP_CLANG >= BOOST_VERSION_NUMBER(3, 7, 0)) && (BOOST_COMP_CLANG < BOOST_VERSION_NUMBER(3, 8, 0)))
-
 //#############################################################################
 class BlockSyncPredicateTestKernel
 {
@@ -53,10 +50,11 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
-        using Size = alpaka::size::Size<TAcc>;
+        using Idx = alpaka::idx::Idx<TAcc>;
 
         // Get the index of the current thread within the block and the block extent and map them to 1D.
         auto const blockThreadIdx(alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc));
@@ -66,52 +64,52 @@ public:
 
         // syncBlockThreadsPredicate<alpaka::block::sync::op::Count>
         {
-            Size const modulus(2u);
+            Idx const modulus(2u);
             int const predicate(static_cast<int>(blockThreadIdx1D % modulus));
             auto const result(alpaka::block::sync::syncBlockThreadsPredicate<alpaka::block::sync::op::Count>(acc, predicate));
             auto const expectedResult(static_cast<int>(blockThreadExtent1D / modulus));
-            BOOST_VERIFY(expectedResult == result);
+            ALPAKA_CHECK(*success, expectedResult == result);
         }
         {
-            Size const modulus(3u);
+            Idx const modulus(3u);
             int const predicate(static_cast<int>(blockThreadIdx1D % modulus));
             auto const result(alpaka::block::sync::syncBlockThreadsPredicate<alpaka::block::sync::op::Count>(acc, predicate));
-            auto const expectedResult(static_cast<int>(blockThreadExtent1D - ((blockThreadExtent1D + modulus - static_cast<Size>(1u)) / modulus)));
-            BOOST_VERIFY(expectedResult == result);
+            auto const expectedResult(static_cast<int>(blockThreadExtent1D - ((blockThreadExtent1D + modulus - static_cast<Idx>(1u)) / modulus)));
+            ALPAKA_CHECK(*success, expectedResult == result);
         }
 
         // syncBlockThreadsPredicate<alpaka::block::sync::op::LogicalAnd>
         {
             int const predicate(1);
             auto const result(alpaka::block::sync::syncBlockThreadsPredicate<alpaka::block::sync::op::LogicalAnd>(acc, predicate));
-            BOOST_VERIFY(result == 1);
+            ALPAKA_CHECK(*success, result == 1);
         }
         {
             int const predicate(0);
             auto const result(alpaka::block::sync::syncBlockThreadsPredicate<alpaka::block::sync::op::LogicalAnd>(acc, predicate));
-            BOOST_VERIFY(result == 0);
+            ALPAKA_CHECK(*success, result == 0);
         }
         {
             int const predicate(blockThreadIdx1D != 0);
             auto const result(alpaka::block::sync::syncBlockThreadsPredicate<alpaka::block::sync::op::LogicalAnd>(acc, predicate));
-            BOOST_VERIFY(result == 0);
+            ALPAKA_CHECK(*success, result == 0);
         }
 
         // syncBlockThreadsPredicate<alpaka::block::sync::op::LogicalOr>
         {
             int const predicate(1);
             auto const result(alpaka::block::sync::syncBlockThreadsPredicate<alpaka::block::sync::op::LogicalOr>(acc, predicate));
-            BOOST_VERIFY(result == 1);
+            ALPAKA_CHECK(*success, result == 1);
         }
         {
             int const predicate(0);
             auto const result(alpaka::block::sync::syncBlockThreadsPredicate<alpaka::block::sync::op::LogicalOr>(acc, predicate));
-            BOOST_VERIFY(result == 0);
+            ALPAKA_CHECK(*success, result == 0);
         }
         {
             int const predicate(static_cast<int>(blockThreadIdx1D != 1));
             auto const result(alpaka::block::sync::syncBlockThreadsPredicate<alpaka::block::sync::op::LogicalOr>(acc, predicate));
-            BOOST_VERIFY(result == 1);
+            ALPAKA_CHECK(*success, result == 1);
         }
     }
 };
@@ -125,14 +123,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     BlockSyncPredicateTestKernel kernel;
 
     // 4^Dim
     {
         alpaka::test::KernelExecutionFixture<TAcc> fixture(
-            alpaka::vec::Vec<Dim, Size>::all(static_cast<Size>(4u)));
+            alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(4u)));
 
         BOOST_REQUIRE_EQUAL(
             true,
@@ -143,7 +141,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     // 1^Dim
     {
         alpaka::test::KernelExecutionFixture<TAcc> fixture(
-            alpaka::vec::Vec<Dim, Size>::ones());
+            alpaka::vec::Vec<Dim, Idx>::ones());
 
         BOOST_REQUIRE_EQUAL(
             true,
@@ -153,5 +151,3 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-#endif

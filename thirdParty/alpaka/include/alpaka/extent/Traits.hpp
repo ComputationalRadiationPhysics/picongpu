@@ -21,15 +21,12 @@
 
 #pragma once
 
-#include <alpaka/meta/IntegerSequence.hpp>
 #include <alpaka/core/Common.hpp>
-#include <alpaka/meta/Fold.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
-
-#if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp>
-#endif
+#include <alpaka/meta/Fold.hpp>
+#include <alpaka/idx/Traits.hpp>
+#include <alpaka/meta/IntegerSequence.hpp>
 
 #include <type_traits>
 #include <functional>
@@ -49,7 +46,7 @@ namespace alpaka
             //!
             //! If not specialized explicitly it returns 1.
             template<
-                typename TIdx,
+                typename TIdxIntegralConst,
                 typename TExtent,
                 typename TSfinae = void>
             struct GetExtent
@@ -57,16 +54,16 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
                     TExtent const &)
-                -> size::Size<TExtent>
+                -> idx::Idx<TExtent>
                 {
-                    return static_cast<size::Size<TExtent>>(1);
+                    return static_cast<idx::Idx<TExtent>>(1);
                 }
             };
 
             //#############################################################################
             //! The extent set trait.
             template<
-                typename TIdx,
+                typename TIdxIntegralConst,
                 typename TExtent,
                 typename TExtentVal,
                 typename TSfinae = void>
@@ -81,7 +78,7 @@ namespace alpaka
             typename TExtent>
         ALPAKA_FN_HOST_ACC auto getExtent(
             TExtent const & extent = TExtent())
-        -> size::Size<TExtent>
+        -> idx::Idx<TExtent>
         {
             return
                 traits::GetExtent<
@@ -97,7 +94,7 @@ namespace alpaka
             typename TExtent>
         ALPAKA_FN_HOST_ACC auto getWidth(
             TExtent const & extent = TExtent())
-        -> size::Size<TExtent>
+        -> idx::Idx<TExtent>
         {
             return getExtent<dim::Dim<TExtent>::value - 1u>(extent);
         }
@@ -108,7 +105,7 @@ namespace alpaka
             typename TExtent>
         ALPAKA_FN_HOST_ACC auto getHeight(
             TExtent const & extent = TExtent())
-        -> size::Size<TExtent>
+        -> idx::Idx<TExtent>
         {
             return getExtent<dim::Dim<TExtent>::value - 2u>(extent);
         }
@@ -119,7 +116,7 @@ namespace alpaka
             typename TExtent>
         ALPAKA_FN_HOST_ACC auto getDepth(
             TExtent const & extent = TExtent())
-        -> size::Size<TExtent>
+        -> idx::Idx<TExtent>
         {
             return getExtent<dim::Dim<TExtent>::value - 3u>(extent);
         }
@@ -131,21 +128,16 @@ namespace alpaka
             template<
                 typename TExtent,
                 size_t... TIndices>
-            ALPAKA_FN_HOST_ACC auto getProductOfExtentInternal(
+            ALPAKA_FN_HOST_ACC auto getExtentProductInternal(
                 TExtent const & extent,
-#if BOOST_ARCH_CUDA_DEVICE
-                alpaka::meta::IndexSequence<TIndices...> const &)
-#else
                 alpaka::meta::IndexSequence<TIndices...> const & indices)
-#endif
-            -> size::Size<TExtent>
+            -> idx::Idx<TExtent>
             {
-#if !BOOST_ARCH_CUDA_DEVICE
-                boost::ignore_unused(indices);
-#endif
+                alpaka::ignore_unused(indices);
+
                 return
                     meta::foldr(
-                        std::multiplies<size::Size<TExtent>>(),
+                        std::multiplies<idx::Idx<TExtent>>(),
                         getExtent<TIndices>(extent)...);
             }
         }
@@ -155,13 +147,13 @@ namespace alpaka
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename TExtent>
-        ALPAKA_FN_HOST_ACC auto getProductOfExtent(
+        ALPAKA_FN_HOST_ACC auto getExtentProduct(
             TExtent const & extent = TExtent())
-        -> size::Size<TExtent>
+        -> idx::Idx<TExtent>
         {
             using IdxSequence = alpaka::meta::MakeIndexSequence<dim::Dim<TExtent>::value>;
             return
-                detail::getProductOfExtentInternal(
+                detail::getExtentProductInternal(
                     extent,
                     IdxSequence());
         }
@@ -243,7 +235,7 @@ namespace alpaka
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
                     TExtent const & extent)
-                -> size::Size<TExtent>
+                -> idx::Idx<TExtent>
                 {
                     return extent;
                 }

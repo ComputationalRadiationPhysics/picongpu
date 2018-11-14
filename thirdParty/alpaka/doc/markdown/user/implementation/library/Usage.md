@@ -12,13 +12,13 @@ Therefore the accelerator has to be passed in as a constant template reference v
 
 ```C++
 template<
-	typename TAcc>
+    typename TAcc>
 ALPAKA_FN_ACC auto doSomethingOnAccelerator(
-	TAcc const & acc/*,
-	...*/)
+    TAcc const & acc/*,
+    ...*/)
 -> void
 {
-	//...
+    //...
 }
 ```
 
@@ -33,16 +33,16 @@ The following code snippet shows a basic example kernel function object.
 ```C++
 struct MyKernel
 {
-	template<
-		typename TAcc>    // Templated on the accelerator type.
-	ALPAKA_FN_ACC       // Macro marking the function to be executable on all accelerators.
+    template<
+        typename TAcc>    // Templated on the accelerator type.
+    ALPAKA_FN_ACC       // Macro marking the function to be executable on all accelerators.
   auto operator()(    // The function / kernel to execute.
-		TAcc & acc/*,     // The specific accelerator implementation.
-		...*/) const      // Must be 'const'.
-	-> void
-	{
-		//...
-	}
+        TAcc & acc/*,     // The specific accelerator implementation.
+        ...*/) const      // Must be 'const'.
+    -> void
+    {
+        //...
+    }
                       // Class can have members but has to be std::is_trivially_copyable.
                       // Classes must not have pointers or references to host memory!
 };
@@ -72,38 +72,36 @@ This allows buffers that possibly reside on different devices with different pit
 Kernel Execution
 ----------------
 
-The following source code listing shows the execution of a kernel by enqueuing the execution task into a stream.
+The following source code listing shows the execution of a kernel by enqueuing the execution task into a queue.
 
 ```C++
 // Define the dimensionality of the task.
 using Dim = alpaka::dim::DimInt<1u>;
-// Define the type of the sizes.
-using Size = std::size_t;
+// Define the type of the indexes.
+using Idx = std::size_t;
 // Define the accelerator to use.
-using Acc = alpaka::acc::AccCpuSerial<Dim, Size>;
-// Select the stream type.
-using Stream = a::stream::StreamCpuAsync;
+using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+// Select the queue type.
+using Queue = a::queue::QueueCpuAsync;
 
 // Select a device to execute on.
 auto devAcc(a::dev::DevManT<Acc>::getDevByIdx(0));
-// Create a stream to enqueue the execution into.
-Stream stream(devAcc);
+// Create a queue to enqueue the execution into.
+Queue queue(devAcc);
 
 // Create a 1-dimensional work division with 256 blocks a 16 threads.
-auto const workDiv(alpaka::workdiv::WorkDivMembers<Dim, Size>(256u, 16u);
+auto const workDiv(alpaka::workdiv::WorkDivMembers<Dim, Idx>(256u, 16u);
 // Create an instance of the kernel function object.
 MyKernel kernel;
-// Create the execution task.
-auto const exec(alpaka::exec::create<Acc>(workDiv, kernel/*, arguments ...*/);
-// Enqueue the task into the stream.
-alpaka::stream::enqueue(stream, exec);
+// Enqueue the execution task into the queue.
+alpaka::kernel::exec<Acc>(queue, workDiv, kernel/*, arguments ...*/);
 ```
 
-The dimensionality of the task as well as the type for index and extent sizes have to be defined explicitly.
-Following this, the type of accelerator to execute on, as well as the type of the stream have to be defined.
+The dimensionality of the task as well as the type for index and extent have to be defined explicitly.
+Following this, the type of accelerator to execute on, as well as the type of the queue have to be defined.
 For both of these types instances have to be created.
-For the accelerator this has to be done indirectly by enumerating the required device via the device manager, whereas the stream can be created directly.
+For the accelerator this has to be done indirectly by enumerating the required device via the device manager, whereas the queue can be created directly.
 
 To execute the kernel, an instance of the kernel function object has to be constructed.
 Following this, an execution task combining the work division (grid and block sizes) with the kernel function object and the bound invocation arguments has to be created.
-After that this task can be enqueued into a stream for immediate or later execution (depending on the stream used).
+After that this task can be enqueued into a queue for immediate or later execution (depending on the queue used).

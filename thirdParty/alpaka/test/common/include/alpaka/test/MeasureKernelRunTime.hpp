@@ -35,31 +35,31 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! \return The run time of the given kernel.
             template<
-                typename TStream,
-                typename TExec>
-            auto measureKernelRunTimeMs(
-                TStream & stream,
-                TExec && exec)
+                typename TQueue,
+                typename TTask>
+            auto measureTaskRunTimeMs(
+                TQueue & queue,
+                TTask && task)
             -> std::chrono::milliseconds::rep
             {
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                 std::cout
                     << "measureKernelRunTime("
-                    << " exec: " << typeid(typename std::decay<TExec>::type).name()
-                    << " stream: " << typeid(TStream).name()
+                    << " queue: " << typeid(TQueue).name()
+                    << " task: " << typeid(typename std::decay<TTask>::type).name()
                     << ")" << std::endl;
 #endif
-                // Wait for the stream to finish all tasks enqueued prior to the kernel.
-                alpaka::wait::wait(stream);
+                // Wait for the queue to finish all tasks enqueued prior to the giventask.
+                alpaka::wait::wait(queue);
 
                 // Take the time prior to the execution.
                 auto const tpStart(std::chrono::high_resolution_clock::now());
 
-                // Execute the kernel functor.
-                alpaka::stream::enqueue(stream, std::forward<TExec>(exec));
+                // Enqueue the task.
+                alpaka::queue::enqueue(queue, std::forward<TTask>(task));
 
-                // Wait for the stream to finish the kernel execution to measure its run time.
-                alpaka::wait::wait(stream);
+                // Wait for the queue to finish the task execution to measure its run time.
+                alpaka::wait::wait(queue);
 
                 // Take the time after the execution.
                 auto const tpEnd(std::chrono::high_resolution_clock::now());

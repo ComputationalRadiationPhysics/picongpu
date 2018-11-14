@@ -1,6 +1,6 @@
 /**
  * \file
- * Copyright 2014-2017 Erik Zenker, Benjamin Worpitz
+ * Copyright 2014-2018 Erik Zenker, Benjamin Worpitz
  *
  * This file is part of alpaka.
  *
@@ -24,12 +24,8 @@
 
 #include <iostream>
 #include <cstdint>
-#include <cassert>
 
-#define DIMENSION 3
-
-//#############################################################################
-
+//-----------------------------------------------------------------------------
 template <size_t width>
 ALPAKA_FN_ACC size_t linIdxToPitchedIdx(size_t const globalIdx, size_t const pitch)
 {
@@ -38,6 +34,7 @@ ALPAKA_FN_ACC size_t linIdxToPitchedIdx(size_t const globalIdx, size_t const pit
     return idx_x + idx_y * pitch;
 }
 
+//#############################################################################
 //! Prints all elements of the buffer.
 struct PrintBufferKernel
 {
@@ -102,37 +99,7 @@ struct TestBufferKernel
 
         for(size_t i(linearizedGlobalThreadIdx[0]); i < extents.prod(); i += globalThreadExtent.prod())
         {
-            assert(data[linIdxToPitchedIdx<2>(i,pitch)] == i);
-        }
-    }
-};
-
-//#############################################################################
-//! Inits all values of a buffer with initValue.
-struct InitBufferKernel
-{
-    //-----------------------------------------------------------------------------
-    template<
-        typename TAcc,
-        typename TData,
-        typename TExtent>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc,
-        TData * const data,
-        TExtent const & extents,
-        TData const & initValue) const
-    -> void
-    {
-        auto const globalThreadIdx = alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        auto const globalThreadExtent = alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-
-        auto const linearizedGlobalThreadIdx = alpaka::idx::mapIdx<1u>(
-            globalThreadIdx,
-            globalThreadExtent);
-
-        for(size_t i(linearizedGlobalThreadIdx[0]); i < extents.prod(); i += globalThreadExtent.prod())
-        {
-            data[i] = initValue;
+            ALPAKA_ASSERT(data[linIdxToPitchedIdx<2>(i,pitch)] == i);
         }
     }
 };
@@ -168,60 +135,43 @@ struct FillBufferKernel
 auto main()
 -> int
 {
-    // Configure types
-    using Dim = alpaka::dim::DimInt<DIMENSION>;
-    using Size = std::size_t;
-    using Extents = Size;
-    using Host = alpaka::acc::AccCpuSerial<Dim, Size>;
-    using Acc = alpaka::acc::AccCpuSerial<Dim, Size>;
-//    using Acc = alpaka::acc::AccCpuOmp2Blocks<Dim, Size>;
-//    using Acc = alpaka::acc::AccGpuCudaRt<Dim, Size>;
-    using DevHost = alpaka::dev::Dev<Host>;
-    using DevAcc = alpaka::dev::Dev<Acc>;
-    using PltfHost = alpaka::pltf::Pltf<DevHost>;
-    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using WorkDiv = alpaka::workdiv::WorkDivMembers<Dim, Size>;
-    using DevStream = alpaka::stream::StreamCpuSync;
-//    using DevStream = alpaka::stream::StreamCudaRtSync;
-    using HostStream = alpaka::stream::StreamCpuSync;
+// This example is hard-coded to use the sequential executor.
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
 
-    // Get the first device
+    // Define the index domain
+    using Dim = alpaka::dim::DimInt<3u>;
+    using Idx = std::size_t;
+
+    // Define the accelerator
+    using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+    using DevQueue = alpaka::queue::QueueCpuSync;
+    using DevAcc = alpaka::dev::Dev<Acc>;
+    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
+
+    using Host = alpaka::acc::AccCpuSerial<Dim, Idx>;
+    using HostQueue = alpaka::queue::QueueCpuSync;
+    using DevHost = alpaka::dev::Dev<Host>;
+    using PltfHost = alpaka::pltf::Pltf<DevHost>;
+
+    // Select devices
     DevAcc const devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u));
     DevHost const devHost(alpaka::pltf::getDevByIdx<PltfHost>(0u));
 
-    // Create sync stream
-    DevStream devStream(devAcc);
-    HostStream hostStream(devHost);
+    // Create queues
+    DevQueue devQueue(devAcc);
+    HostQueue hostQueue(devHost);
 
+    // Define the work division
+    using Vec = alpaka::vec::Vec<Dim, Idx>;
+    Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
+    Vec const threadsPerBlock(Vec::all(static_cast<Idx>(1)));
 
-    // Init workdiv
-    alpaka::vec::Vec<Dim, Size> const elementsPerThread(
-#if DIMENSION > 2
-        static_cast<Size>(1),
-#endif
-#if DIMENSION > 1
-        static_cast<Size>(1),
-#endif
-        static_cast<Size>(1));
+    Vec const blocksPerGrid(
+        static_cast<Idx>(4),
+        static_cast<Idx>(8),
+        static_cast<Idx>(16));
 
-    alpaka::vec::Vec<Dim, Size> const threadsPerBlock(
-#if DIMENSION > 2
-        static_cast<Size>(1),
-#endif
-#if DIMENSION > 1
-        static_cast<Size>(1),
-#endif
-        static_cast<Size>(1));
-
-    alpaka::vec::Vec<Dim, Size> const blocksPerGrid(
-#if DIMENSION > 2
-        static_cast<Size>(4),
-#endif
-#if DIMENSION > 1
-        static_cast<Size>(8),
-#endif
-        static_cast<Size>(16));
-
+    using WorkDiv = alpaka::workdiv::WorkDivMembers<Dim, Idx>;
     WorkDiv const workdiv(
         blocksPerGrid,
         threadsPerBlock,
@@ -237,131 +187,106 @@ auto main()
     // already existing allocations e.g. std::array,
     // std::vector or a simple call to new.
     using Data = std::uint32_t;
-    constexpr Extents nElementsPerDim = 2;
+    constexpr Idx nElementsPerDim = 2;
 
-    const alpaka::vec::Vec<Dim, Size> extents(
-#if DIMENSION > 2
-        static_cast<Size>(nElementsPerDim),
-#endif
-#if DIMENSION > 1
-        static_cast<Size>(nElementsPerDim),
-#endif
-        static_cast<Size>(nElementsPerDim));
+    const Vec extents(Vec::all(static_cast<Idx>(nElementsPerDim)));
 
+    // Allocate host memory buffers
+    //
+    // The `alloc` method returns a reference counted buffer handle.
+    // When the last such handle is destroyed, the memory is freed automatically.
+    using BufHost = alpaka::mem::buf::Buf<DevHost, Data, Dim, Idx>;
+    BufHost hostBuffer(alpaka::mem::buf::alloc<Data, Idx>(devHost, extents));
+    // You can also use already allocated memory and wrap it within a view (irrespective of the device type).
+    // The view does not own the underlying memory. So you have to make sure that
+    // the view does not outlive its underlying memory.
     std::array<Data, nElementsPerDim * nElementsPerDim * nElementsPerDim> plainBuffer;
-    alpaka::mem::view::ViewPlainPtr<DevHost, Data, Dim, Size> hostBufferPlain(plainBuffer.data(), devHost, extents);
-    alpaka::mem::buf::Buf<DevHost, Data, Dim, Size> hostBuffer(alpaka::mem::buf::alloc<Data, Size>(devHost, extents));
-    alpaka::mem::buf::Buf<DevAcc, Data, Dim, Size> deviceBuffer1(alpaka::mem::buf::alloc<Data, Size>(devAcc, extents));
-    alpaka::mem::buf::Buf<DevAcc, Data, Dim, Size> deviceBuffer2(alpaka::mem::buf::alloc<Data, Size>(devAcc, extents));
+    using ViewHost = alpaka::mem::view::ViewPlainPtr<DevHost, Data, Dim, Idx>;
+    ViewHost hostViewPlainPtr(plainBuffer.data(), devHost, extents);
 
-
-    // Init plain host buffer
+    // Allocate accelerator memory buffers
     //
-    // The buffer obtained from a plain pointer
-    // of the host is initialized here with the
-    // value zero. It is recommended to use a
-    // kernel for such a task, since a kernel
-    // can speed up the initialization process.
-    // The buffer can be provided to a kernel
-    // by passing the native pointer of the memory
-    // within the buffer (getPtrNative).
-    InitBufferKernel initBufferKernel;
-    Data const initValue = 0u;
-
-    auto const init(
-        alpaka::exec::create<Host>(
-            workdiv,
-            initBufferKernel,
-            alpaka::mem::view::getPtrNative(hostBuffer), // 1st kernel argument
-            extents,                                     // 2nd kernel argument
-            initValue));                                 // 3rd kernel argument
-
-    alpaka::stream::enqueue(hostStream, init);
+    // The interface to allocate a buffer is the same on the host and on the device.
+    using BufAcc = alpaka::mem::buf::Buf<DevAcc, Data, Dim, Idx>;
+    BufAcc deviceBuffer1(alpaka::mem::buf::alloc<Data, Idx>(devAcc, extents));
+    BufAcc deviceBuffer2(alpaka::mem::buf::alloc<Data, Idx>(devAcc, extents));
 
 
-    // Write some data to the host buffer
+    // Init host buffer
     //
-    // The buffer can not access the inner
-    // elements by some access operator
-    // directly, but it can return the
-    // pointer to the memory within the
-    // buffer (getPtrNative). This pointer
-    // can be used to write some values into
-    // the buffer memory. Mind, that only a host
-    // can write on host memory. The same holds
-    // for device memory.
-    for(size_t i(0); i < extents.prod(); ++i)
+    // You can not access the inner
+    // elements of a buffer directly, but
+    // you can get the pointer to the memory
+    // (getPtrNative).
+    Data * const pHostBuffer = alpaka::mem::view::getPtrNative(hostBuffer);
+
+    // This pointer can be used to directly write
+    // some values into the buffer memory.
+    // Mind, that only a host can write on host memory.
+    // The same holds true for device memory.
+    for(Idx i(0); i < extents.prod(); ++i)
     {
-        alpaka::mem::view::getPtrNative(hostBuffer)[i] = static_cast<Data>(i);
+        pHostBuffer[i] = static_cast<Data>(i);
     }
 
+    // Memory views and buffers can also be initialized by executing a kernel.
+    // To pass a buffer into a kernel, you can pass the
+    // native pointer into the kernel invocation.
+    Data * const pHostViewPlainPtr = alpaka::mem::view::getPtrNative(hostViewPlainPtr);
 
-
-    // Fill plain host with increasing data
-    //
-    // A buffer can also be filled by a special
-    // buffer fill kernel. This has the advantage,
-    // that the kernel can be performed on any
-    // buffer (device or host) and can be
-    // run in parallel.
     FillBufferKernel fillBufferKernel;
-    auto const fill(
-        alpaka::exec::create<Host>(
-            workdiv,
-            fillBufferKernel,
-            alpaka::mem::view::getPtrNative(hostBufferPlain), // 1st kernel argument
-            extents));                                        // 2nd kernel argument
 
-    alpaka::stream::enqueue(hostStream, fill);
+    alpaka::kernel::exec<Host>(
+        hostQueue,
+        workdiv,
+        fillBufferKernel,
+        pHostViewPlainPtr, // 1st kernel argument
+        extents);          // 2nd kernel argument
 
 
     // Copy host to device Buffer
     //
     // A copy operation of one buffer into
-    // another buffer is enqueued into a stream
-    // like it is done for kernel execution, but
-    // more automatically. Copy is only possible
-    // from host to host, host to device and
-    // device to host. Some devices also support
-    // device to device copy, but this is not true
-    // in general. However, currently all
-    // (both CPU and GPU) devices support it.
+    // another buffer is enqueued into a queue
+    // like it is done for kernel execution.
     // As always within alpaka, you will get a compile
     // time error if the desired copy coperation
     // (e.g. between various accelerator devices) is
     // not currently supported.
     // In this example both host buffers are copied
     // into device buffers.
-    alpaka::mem::view::copy(devStream, deviceBuffer1, hostBufferPlain, extents);
-    alpaka::mem::view::copy(devStream, deviceBuffer2, hostBuffer, extents);
+    alpaka::mem::view::copy(devQueue, deviceBuffer1, hostViewPlainPtr, extents);
+    alpaka::mem::view::copy(devQueue, deviceBuffer2, hostBuffer, extents);
 
-    auto devicePitch(alpaka::mem::view::getPitchBytes<DIMENSION-1>(deviceBuffer1) / sizeof(Data));
-    auto hostPitch(alpaka::mem::view::getPitchBytes<DIMENSION-1>(hostBuffer) / sizeof(Data));
+    Idx const deviceBuffer1Pitch(alpaka::mem::view::getPitchBytes<2u>(deviceBuffer1) / sizeof(Data));
+    Idx const deviceBuffer2Pitch(alpaka::mem::view::getPitchBytes<2u>(deviceBuffer2) / sizeof(Data));
+    Idx const hostBuffer1Pitch(alpaka::mem::view::getPitchBytes<2u>(hostBuffer) / sizeof(Data));
+    Idx const hostViewPlainPtrPitch(alpaka::mem::view::getPitchBytes<2u>(hostViewPlainPtr) / sizeof(Data));
 
     // Test device Buffer
     //
     // This kernel tests if the copy operations
     // were successful. In the case something
     // went wrong an assert will fail.
+    Data const * const pDeviceBuffer1 = alpaka::mem::view::getPtrNative(deviceBuffer1);
+    Data const * const pDeviceBuffer2 = alpaka::mem::view::getPtrNative(deviceBuffer2);
+
     TestBufferKernel testBufferKernel;
-    auto const test1(
-        alpaka::exec::create<Acc>(
-            workdiv,
-            testBufferKernel,
-            alpaka::mem::view::getPtrNative(deviceBuffer1), // 1st kernel argument
-            extents,                                        // 2nd kernel argument
-            devicePitch));                                  // 3rd kernel argument
+    alpaka::kernel::exec<Acc>(
+        devQueue,
+        workdiv,
+        testBufferKernel,
+        pDeviceBuffer1,                                 // 1st kernel argument
+        extents,                                        // 2nd kernel argument
+        deviceBuffer1Pitch);                            // 3rd kernel argument
 
-    auto const test2(
-        alpaka::exec::create<Acc>(
-            workdiv,
-            testBufferKernel,
-            alpaka::mem::view::getPtrNative(deviceBuffer1), // 1st kernel argument
-            extents,                                        // 2nd kernel argument
-            devicePitch));                                  // 3rd kernel argument
-
-    alpaka::stream::enqueue(devStream, test1);
-    alpaka::stream::enqueue(devStream, test2);
+    alpaka::kernel::exec<Acc>(
+        devQueue,
+        workdiv,
+        testBufferKernel,
+        pDeviceBuffer2,                                 // 1st kernel argument
+        extents,                                        // 2nd kernel argument
+        deviceBuffer2Pitch);                            // 3rd kernel argument
 
 
     // Print device Buffer
@@ -375,47 +300,45 @@ auto main()
     // completely distorted.
 
     PrintBufferKernel printBufferKernel;
-    auto const printDeviceBuffer1(
-        alpaka::exec::create<Acc>(
-            workdiv,
-            printBufferKernel,
-            alpaka::mem::view::getPtrNative(deviceBuffer1),    // 1st kernel argument
-            extents,                                           // 2nd kernel argument
-            devicePitch));                                     // 3rd kernel argument
-    auto const printDeviceBuffer2(
-        alpaka::exec::create<Acc>(
-            workdiv,
-            printBufferKernel,
-            alpaka::mem::view::getPtrNative(deviceBuffer2), // 1st kernel argument
-            extents,                                        // 2nd kernel argument
-            devicePitch));                                  // 3rd kernel argument
-
-    auto const printHostBuffer(
-        alpaka::exec::create<Host>(
-            workdiv,
-            printBufferKernel,
-            alpaka::mem::view::getPtrNative(hostBuffer), // 1st kernel argument
-            extents,                                     // 2nd kernel argument
-            hostPitch));                                 // 3rd kernel argument
-
-    auto const printHostBufferPlain(
-        alpaka::exec::create<Host>(
-            workdiv,
-            printBufferKernel,
-            alpaka::mem::view::getPtrNative(hostBufferPlain), // 1st kernel argument
-            extents,                                          // 2nd kernel argument
-            hostPitch));                                      // 3rd kernel argument
-
-    alpaka::stream::enqueue(devStream, printDeviceBuffer1);
-    std::cout << std::endl;
-    alpaka::stream::enqueue(devStream, printDeviceBuffer2);
-    std::cout << std::endl;
-    alpaka::stream::enqueue(hostStream, printHostBuffer);
-    std::cout << std::endl;
-    alpaka::stream::enqueue(hostStream, printHostBufferPlain);
+    alpaka::kernel::exec<Acc>(
+        devQueue,
+        workdiv,
+        printBufferKernel,
+        pDeviceBuffer1,                                 // 1st kernel argument
+        extents,                                        // 2nd kernel argument
+        deviceBuffer1Pitch);                            // 3rd kernel argument
     std::cout << std::endl;
 
+    alpaka::kernel::exec<Acc>(
+        devQueue,
+        workdiv,
+        printBufferKernel,
+        pDeviceBuffer2,                                 // 1st kernel argument
+        extents,                                        // 2nd kernel argument
+        deviceBuffer2Pitch);                            // 3rd kernel argument
+    std::cout << std::endl;
 
-    // No copy failure, so lets return :)
+    alpaka::kernel::exec<Host>(
+        hostQueue,
+        workdiv,
+        printBufferKernel,
+        pHostBuffer,                                    // 1st kernel argument
+        extents,                                        // 2nd kernel argument
+        hostBuffer1Pitch);                              // 3rd kernel argument
+    std::cout << std::endl;
+
+    alpaka::kernel::exec<Host>(
+        hostQueue,
+        workdiv,
+        printBufferKernel,
+        pHostViewPlainPtr,                              // 1st kernel argument
+        extents,                                        // 2nd kernel argument
+        hostViewPlainPtrPitch);                         // 3rd kernel argument
+    std::cout << std::endl;
+
     return EXIT_SUCCESS;
+
+#else
+    return EXIT_SUCCESS;
+#endif
 }

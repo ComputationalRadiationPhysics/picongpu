@@ -69,4 +69,33 @@ BOOST_AUTO_TEST_CASE(transform)
         "alpaka::meta::Transform failed!");
 }
 
+//-----------------------------------------------------------------------------
+BOOST_AUTO_TEST_CASE(transformVariadic)
+{
+    using TransformInput =
+        std::tuple<
+            int,
+            float,
+            long>;
+
+    using TransformResult =
+        alpaka::meta::Transform<
+            TransformInput,
+            std::tuple
+        >;
+
+    using TransformReference =
+        std::tuple<
+            std::tuple<int>,
+            std::tuple<float>,
+            std::tuple<long>>;
+
+    static_assert(
+        std::is_same<
+            TransformReference,
+            TransformResult
+        >::value,
+        "alpaka::meta::Transform failed!");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

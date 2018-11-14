@@ -21,14 +21,11 @@
 
 #pragma once
 
-#include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Common.hpp>
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/meta/IntegerSequence.hpp>
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp>
-#endif
+#include <alpaka/vec/Vec.hpp>
 
 namespace alpaka
 {
@@ -54,22 +51,14 @@ namespace alpaka
                     typename TExtentVec,
                     typename TFnObj>
                 ALPAKA_FN_HOST_ACC static auto ndLoop(
-#if !BOOST_ARCH_CUDA_DEVICE
                     TIndex & idx,
                     TExtentVec const & extent,
                     TFnObj const & f)
-#else
-                    TIndex &,
-                    TExtentVec const &,
-                    TFnObj const &)
-#endif
                 -> void
                 {
-#if !BOOST_ARCH_CUDA_DEVICE
-                    boost::ignore_unused(idx);
-                    boost::ignore_unused(extent);
-                    boost::ignore_unused(f);
-#endif
+                    alpaka::ignore_unused(idx);
+                    alpaka::ignore_unused(extent);
+                    alpaka::ignore_unused(f);
                 }
             };
             //#############################################################################
@@ -153,9 +142,7 @@ namespace alpaka
         //! Loops over an n-dimensional iteration index variable calling f(idx, args...) for each iteration.
         //! The loops are nested in the order given by the IndexSequence with the first element being the outermost and the last index the innermost loop.
         //!
-#if !BOOST_ARCH_CUDA_DEVICE
         //! \param indexSequence A sequence of indices being a permutation of the values [0, dim-1], where every values occurs at most once.
-#endif
         //! \param extent N-dimensional loop extent.
         //! \param f The function called at each iteration.
         ALPAKA_NO_HOST_ACC_WARNING
@@ -164,18 +151,12 @@ namespace alpaka
             typename TFnObj,
             std::size_t... Tdims>
         ALPAKA_FN_HOST_ACC auto ndLoop(
-#if !BOOST_ARCH_CUDA_DEVICE
             meta::IndexSequence<Tdims...> const & indexSequence,
-#else
-            meta::IndexSequence<Tdims...> const &,
-#endif
             TExtentVec const & extent,
             TFnObj const & f)
         -> void
         {
-#if !BOOST_ARCH_CUDA_DEVICE
-            boost::ignore_unused(indexSequence);
-#endif
+            alpaka::ignore_unused(indexSequence);
 
             static_assert(
                 dim::Dim<TExtentVec>::value > 0u,
@@ -188,7 +169,7 @@ namespace alpaka
                 "The values in the IndexSequence have to be unique!");
 
             auto idx(
-                vec::Vec<dim::Dim<TExtentVec>, size::Size<TExtentVec>>::zeros());
+                vec::Vec<dim::Dim<TExtentVec>, idx::Idx<TExtentVec>>::zeros());
 
             detail::NdLoop<
                 meta::IndexSequence<Tdims...>>

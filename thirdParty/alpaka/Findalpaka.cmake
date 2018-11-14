@@ -28,7 +28,7 @@
 # ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE will require Boost.Fiber to be built.
 # ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE and ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE will require a OpenMP 2.0+ capable compiler.
 # ALPAKA_ACC_CPU_BT_OMP4_ENABLE will require a OpenMP 4.0+ capable compiler.
-# ALPAKA_ACC_GPU_CUDA_ENABLE will require CUDA 7.0+ to be installed.
+# ALPAKA_ACC_GPU_CUDA_ENABLE will require CUDA 8.0+ to be installed.
 # ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE will require TBB 2.2+ to be installed
 #
 # Set the following CMake variables BEFORE calling find_packages to
@@ -42,7 +42,7 @@
 # - ``ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE`` {ON, OFF}
 # - ``ALPAKA_ACC_CPU_BT_OMP4_ENABLE`` {ON, OFF}
 # - ``ALPAKA_ACC_GPU_CUDA_ENABLE`` {ON, OFF}
-# - ``ALPAKA_CUDA_VERSION`` {7.0, ...}
+# - ``ALPAKA_CUDA_VERSION`` {8.0, ...}
 # - ``ALPAKA_CUDA_ARCH`` {sm_20, sm...}
 # - ``ALPAKA_CUDA_FAST_MATH`` {ON, OFF}
 # - ``ALPAKA_CUDA_FTZ`` {ON, OFF}

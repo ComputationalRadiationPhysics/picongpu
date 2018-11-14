@@ -19,6 +19,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+// NVCC needs --expt-relaxed-constexpr
+#if !defined(__NVCC__) || \
+    ( defined(__NVCC__) && defined(__CUDACC_RELAXED_CONSTEXPR__) )
+
 // \Hack: Boost.MPL defines BOOST_MPL_CFG_GPU_ENABLED to __host__ __device__ if nvcc is used.
 // BOOST_AUTO_TEST_CASE_TEMPLATE and its internals are not GPU enabled but is using boost::mpl::for_each internally.
 // For each template parameter this leads to:
@@ -28,8 +32,8 @@
 #define BOOST_MPL_CFG_GPU_ENABLED
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>                  // alpaka::test::acc::TestAccs
-#include <alpaka/test/KernelExecutionFixture.hpp>   // alpaka::test::KernelExecutionFixture
+#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/KernelExecutionFixture.hpp>
 
 #include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
@@ -57,21 +61,28 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool* success) const
     -> void
     {
-        // Do something useless on the accelerator.
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
-        
-        constexpr double epsilon = std::numeric_limits< double >::epsilon();
-        this->ignoreUnused(epsilon);
+        alpaka::ignore_unused(acc);
+
+#if BOOST_COMP_MSVC
+    #pragma warning(push)
+    #pragma warning(disable: 4127)  // warning C4127: conditional expression is constant
+#endif
+        // FIXME: workaround for HIP(HCC) where numeric_limits::* do not provide
+        // matching host-device restriction requirements
+#if defined(BOOST_COMP_HCC) && BOOST_COMP_HCC
+        constexpr auto max = static_cast<std::uint32_t>(-1);
+#else
+        constexpr auto max = std::numeric_limits< std::uint32_t >::max();
+#endif
+        ALPAKA_CHECK(*success, 0 != max);
+#if BOOST_COMP_MSVC
+    #pragma warning(pop)
+#endif
     }
-private:
-    //! ignore unused variables
-    template<typename T>
-    ALPAKA_FN_ACC auto ignoreUnused(T const &) const
-    -> void
-    {}
 };
 
 //-----------------------------------------------------------------------------
@@ -83,10 +94,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelWithHostConstexpr kernel;
 
@@ -97,3 +108,5 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+#endif

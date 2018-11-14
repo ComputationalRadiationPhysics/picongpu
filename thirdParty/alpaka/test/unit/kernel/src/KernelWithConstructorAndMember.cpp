@@ -59,13 +59,13 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
-        // Do something useless on the accelerator.
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+        alpaka::ignore_unused(acc);
 
-        BOOST_VERIFY(42 == m_val);
+        ALPAKA_CHECK(*success, 42 == m_val);
     }
 
 private:
@@ -79,10 +79,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelWithConstructorAndMember kernel(42);
 
@@ -99,10 +99,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelWithConstructorAndMember kernel;
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2017 Benjamin Worpitz
+# Copyright 2017-2018 Benjamin Worpitz
 #
 # This file is part of alpaka.
 #
@@ -52,36 +52,6 @@ then
     echo ALPAKA_CI_CLANG_VER_MAJOR: "${ALPAKA_CI_CLANG_VER_MAJOR}"
     export ALPAKA_CI_CLANG_VER_MINOR="${ALPAKA_CI_CLANG_VER_SEMANTIC[1]}"
     echo ALPAKA_CI_CLANG_VER_MINOR: "${ALPAKA_CI_CLANG_VER_MINOR}"
-
-    # clang versions lower than 3.7 do not support OpenMP 2.0.
-    if (( (( ALPAKA_CI_CLANG_VER_MAJOR < 3 )) || ( (( ALPAKA_CI_CLANG_VER_MAJOR == 3 )) && (( ALPAKA_CI_CLANG_VER_MINOR < 7 )) ) ))
-    then
-        if [ "${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE} because the clang version does not support it!
-        fi
-        if [ "${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE} because the clang version does not support it!
-        fi
-        if [ "${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE} because the clang version does not support it!
-        fi
-    fi
-
-    # clang versions lower than 3.9 do not support OpenMP 4.0
-    if (( (( ALPAKA_CI_CLANG_VER_MAJOR < 3 )) || ( (( ALPAKA_CI_CLANG_VER_MAJOR == 3 )) && (( ALPAKA_CI_CLANG_VER_MINOR < 9 )) ) ))
-    then
-        if [ "${ALPAKA_ACC_CPU_BT_OMP4_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_BT_OMP4_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_BT_OMP4_ENABLE=${ALPAKA_ACC_CPU_BT_OMP4_ENABLE} because the clang version does not support it!
-        fi
-    fi
 fi
 
 #-------------------------------------------------------------------------------
@@ -93,14 +63,8 @@ echo ALPAKA_CI_BOOST_BRANCH_MINOR: "${ALPAKA_CI_BOOST_BRANCH_MINOR}"
 
 #-------------------------------------------------------------------------------
 # CUDA
-if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ]
+if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ] || [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ] && [ "${ALPAKA_HIP_PLATFORM}" == "nvcc" ]
 then
-    ALPAKA_CI_CUDA_VER_SEMANTIC=( ${ALPAKA_CUDA_VER//./ } )
-    export ALPAKA_CUDA_VER_MAJOR="${ALPAKA_CI_CUDA_VER_SEMANTIC[0]}"
-    echo ALPAKA_CUDA_VER_MAJOR: "${ALPAKA_CUDA_VER_MAJOR}"
-    export ALPAKA_CUDA_VER_MINOR="${ALPAKA_CI_CUDA_VER_SEMANTIC[1]}"
-    echo ALPAKA_CUDA_VER_MINOR: "${ALPAKA_CUDA_VER_MINOR}"
-
     if [ "${ALPAKA_CUDA_COMPILER}" == "nvcc" ]
     then
         # FIXME: BOOST_AUTO_TEST_CASE_TEMPLATE is not compilable with nvcc in Release mode.
@@ -108,42 +72,18 @@ then
         then
             export CMAKE_BUILD_TYPE=Debug
         fi
-
-        # nvcc <= 9.2 does not support boost correctly so fibers have to be disabled.
-        if (( (( ALPAKA_CUDA_VER_MAJOR < 9 )) || ( (( ALPAKA_CUDA_VER_MAJOR == 9 )) && (( ALPAKA_CUDA_VER_MINOR <= 2 )) ) ))
-        then
-            if [ "${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" == "ON" ]
-            then
-                export ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=OFF
-                echo ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE} because nvcc does not support boost fibers correctly!
-            fi
-        fi
     fi
+fi
 
-    if [ "${ALPAKA_CUDA_COMPILER}" == "clang" ]
+#-------------------------------------------------------------------------------
+# HIP
+if [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ]
+then
+    # if platform is nvcc, CUDA part is already processed in this file.
+
+    if [ "${ALPAKA_HIP_PLATFORM}" == "hcc" ]
     then
-        # clang as native CUDA compiler does not support boost fibers
-        if [ ${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE} == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE} because clang as native CUDA compiler does not support boost fibers correctly!
-        fi
-
-        # clang as native CUDA compiler does not support OpenMP
-        if [ "${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE} because the clang as native CUDA compiler does not support OpenMP!
-        fi
-        if [ "${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE} because the clang as native CUDA compiler does not support OpenMP!
-        fi
-        if [ "${ALPAKA_ACC_CPU_BT_OMP4_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_BT_OMP4_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_BT_OMP4_ENABLE=${ALPAKA_ACC_CPU_BT_OMP4_ENABLE} because the clang as native CUDA compiler does not support OpenMP!
-        fi
+        echo "HIP(hcc) not supported yet."
+        exit 1
     fi
 fi

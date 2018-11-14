@@ -29,11 +29,10 @@
 
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/acc/Acc.hpp>
-#include <alpaka/test/stream/Stream.hpp>
+#include <alpaka/test/queue/Queue.hpp>
 #include <alpaka/test/Array.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <boost/assert.hpp>
 #include <alpaka/core/BoostPredef.hpp>
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
@@ -55,37 +54,42 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
 #if BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(6, 0, 0)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Waddress"  // warning: the compiler can assume that the address of ‘a’ will never be NULL [-Waddress]
 #endif
-        auto && a = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
-        BOOST_VERIFY(static_cast<std::uint32_t *>(nullptr) != &a);
+        // Multiple runs to make sure it really works.
+        for(std::size_t i=0u; i<10; ++i)
+        {
+            auto && a = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != &a);
 
-        auto && b = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
-        BOOST_VERIFY(static_cast<std::uint32_t *>(nullptr) != &b);
+            auto && b = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != &b);
 
-        auto && c = alpaka::block::shared::st::allocVar<float, __COUNTER__>(acc);
-        BOOST_VERIFY(static_cast<float *>(nullptr) != &c);
+            auto && c = alpaka::block::shared::st::allocVar<float, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, static_cast<float *>(nullptr) != &c);
 
-        auto && d = alpaka::block::shared::st::allocVar<double, __COUNTER__>(acc);
-        BOOST_VERIFY(static_cast<double *>(nullptr) != &d);
+            auto && d = alpaka::block::shared::st::allocVar<double, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, static_cast<double *>(nullptr) != &d);
 
-        auto && e = alpaka::block::shared::st::allocVar<std::uint64_t, __COUNTER__>(acc);
-        BOOST_VERIFY(static_cast<std::uint64_t *>(nullptr) != &e);
+            auto && e = alpaka::block::shared::st::allocVar<std::uint64_t, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, static_cast<std::uint64_t *>(nullptr) != &e);
 
 
-        auto && f = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
-        BOOST_VERIFY(static_cast<std::uint32_t *>(nullptr) != &f[0]);
+            auto && f = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != &f[0]);
 
-        auto && g = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
-        BOOST_VERIFY(static_cast<std::uint32_t *>(nullptr) != &g[0]);
+            auto && g = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != &g[0]);
 
-        auto && h = alpaka::block::shared::st::allocVar<alpaka::test::Array<double, 16>, __COUNTER__>(acc);
-        BOOST_VERIFY(static_cast<double *>(nullptr) != &h[0]);
+            auto && h = alpaka::block::shared::st::allocVar<alpaka::test::Array<double, 16>, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, static_cast<double *>(nullptr) != &h[0]);
+        }
 #if BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(6, 0, 0)
     #pragma GCC diagnostic pop
 #endif
@@ -99,10 +103,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
+    // Use multiple threads to make sure the synchronization really works.
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(3u)));
 
     BlockSharedMemStNonNullTestKernel kernel;
 
@@ -121,40 +126,46 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
-        auto && a = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
-        auto && b = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
-        BOOST_VERIFY(&a != &b);
-        auto && c = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
-        BOOST_VERIFY(&b != &c);
-        BOOST_VERIFY(&a != &c);
-        BOOST_VERIFY(&b != &c);
+        // Multiple runs to make sure it really works.
+        for(std::size_t i=0u; i<10; ++i)
+        {
+            auto && a = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            auto && b = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, &a != &b);
+            auto && c = alpaka::block::shared::st::allocVar<std::uint32_t, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, &b != &c);
+            ALPAKA_CHECK(*success, &a != &c);
+            ALPAKA_CHECK(*success, &b != &c);
 
-        auto && d = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
-        BOOST_VERIFY(&a != &d[0]);
-        BOOST_VERIFY(&b != &d[0]);
-        BOOST_VERIFY(&c != &d[0]);
-        auto && e = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
-        BOOST_VERIFY(&a != &e[0]);
-        BOOST_VERIFY(&b != &e[0]);
-        BOOST_VERIFY(&c != &e[0]);
-        BOOST_VERIFY(&d[0] != &e[0]);
+            auto && d = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, &a != &d[0]);
+            ALPAKA_CHECK(*success, &b != &d[0]);
+            ALPAKA_CHECK(*success, &c != &d[0]);
+            auto && e = alpaka::block::shared::st::allocVar<alpaka::test::Array<std::uint32_t, 32>, __COUNTER__>(acc);
+            ALPAKA_CHECK(*success, &a != &e[0]);
+            ALPAKA_CHECK(*success, &b != &e[0]);
+            ALPAKA_CHECK(*success, &c != &e[0]);
+            ALPAKA_CHECK(*success, &d[0] != &e[0]);
+        }
     }
 };
 
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
-    sameTypeDifferentAdress,
+    sameTypeDifferentAddress,
     TAcc,
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
+    // Use multiple threads to make sure the synchronization really works.
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(3u)));
 
     BlockSharedMemStSameTypeDifferentAdressTestKernel kernel;
 

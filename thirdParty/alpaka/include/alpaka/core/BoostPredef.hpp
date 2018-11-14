@@ -30,6 +30,47 @@
     #define BOOST_PREDEF_MAKE_10_VVRRP(V) BOOST_VERSION_NUMBER(((V)/1000)%100,((V)/10)%100,(V)%10)
 #endif
 
+//---------------------------------------HIP-----------------------------------
+// __HIPCC__ is defined by hipcc (if either __HCC__ or __CUDACC__ is defined)
+#if !defined(BOOST_LANG_HIP)
+  #if defined(__HIPCC__) && ( defined(__CUDACC__) || defined(__HCC__) )
+    #include <hip/hip_runtime.h>
+    //HIP defines "abort()" as "{asm("trap;");}", which breaks some kernels
+    #undef abort
+    // there is no HIP_VERSION macro
+    #define BOOST_LANG_HIP BOOST_VERSION_NUMBER_AVAILABLE
+    #if defined(BOOST_LANG_CUDA) && BOOST_LANG_CUDA
+        #undef BOOST_LANG_CUDA
+        #define BOOST_LANG_CUDA BOOST_VERSION_NUMBER_NOT_AVAILABLE
+    #endif
+  #else
+    #define BOOST_LANG_HIP BOOST_VERSION_NUMBER_NOT_AVAILABLE
+  #endif
+#endif
+
+//-----------------------------------------------------------------------------
+// HSA device architecture detection (HSA generated via HIP(HCC) or HCC directly)
+#if !defined(BOOST_ARCH_HSA)
+    #if defined(__HIP_DEVICE_COMPILE__) && __HIP_DEVICE_COMPILE__==1 && defined(__HCC__) \
+        || (defined(__HCC_ACCELERATOR__) && __HCC_ACCELERATOR__!=0)
+        // __HIP_DEVICE_COMPILE__ does not represent feature capability of target device like CUDA_ARCH.
+        // For feature detection there are special macros, see ROCm's HIP porting guide.
+        #define BOOST_ARCH_HSA BOOST_VERSION_NUMBER_AVAILABLE
+    #else
+        #define BOOST_ARCH_HSA BOOST_VERSION_NUMBER_NOT_AVAILABLE
+    #endif
+#endif
+
+//-----------------------------------------------------------------------------
+// hcc HSA compiler detection
+#if !defined(BOOST_COMP_HCC)
+    #if defined(__HCC__)
+        #define BOOST_COMP_HCC BOOST_VERSION_NUMBER_AVAILABLE
+    #else
+        #define BOOST_COMP_HCC BOOST_VERSION_NUMBER_NOT_AVAILABLE
+    #endif
+#endif
+
 //-----------------------------------------------------------------------------
 // In boost since 1.68.0
 // CUDA language detection
@@ -53,12 +94,6 @@
     #else
         #define BOOST_ARCH_PTX BOOST_VERSION_NUMBER_NOT_AVAILABLE
     #endif
-#endif
-
-//-----------------------------------------------------------------------------
-// keep BOOST_ARCH_CUDA_DEVICE for backward compatibility to alpaka 0.3.X
-#if !defined(BOOST_ARCH_CUDA_DEVICE)
-    #define BOOST_ARCH_CUDA_DEVICE BOOST_ARCH_PTX
 #endif
 
 //-----------------------------------------------------------------------------

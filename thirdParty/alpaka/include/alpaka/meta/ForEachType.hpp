@@ -23,10 +23,8 @@
 
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Unused.hpp>
 
-#if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp>
-#endif
 #include <utility>
 
 namespace alpaka
@@ -51,19 +49,12 @@ namespace alpaka
                     typename TFnObj,
                     typename... TArgs>
                 ALPAKA_FN_HOST_ACC static auto forEachTypeHelper(
-#if !BOOST_ARCH_CUDA_DEVICE
                     TFnObj && f,
                     TArgs && ... args)
-#else
-                    TFnObj &&,
-                    TArgs && ...)
-#endif
                 -> void
                 {
-#if !BOOST_ARCH_CUDA_DEVICE
-                    boost::ignore_unused(f);
-                    boost::ignore_unused(args...);
-#endif
+                    alpaka::ignore_unused(f);
+                    alpaka::ignore_unused(args...);
                 }
             };
             //#############################################################################

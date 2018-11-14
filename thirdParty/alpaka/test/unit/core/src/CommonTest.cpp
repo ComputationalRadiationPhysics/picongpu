@@ -42,11 +42,20 @@ BOOST_AUTO_TEST_CASE(
 #if BOOST_LANG_CUDA
     std::cout << "BOOST_LANG_CUDA" << std::endl;
 #endif
+#if BOOST_LANG_HIP
+    std::cout << "BOOST_LANG_HIP" << std::endl;
+#endif
 #if BOOST_ARCH_PTX
     std::cout << "BOOST_ARCH_PTX" << std::endl;
 #endif
+#if BOOST_ARCH_HSA
+    std::cout << "BOOST_ARCH_HSA" << std::endl;
+#endif
 #if BOOST_COMP_NVCC
     std::cout << "BOOST_COMP_NVCC" << std::endl;
+#endif
+#if BOOST_COMP_HCC
+    std::cout << "BOOST_COMP_HCC" << std::endl;
 #endif
 #if BOOST_COMP_CLANG
     std::cout << "BOOST_COMP_CLANG" << std::endl;

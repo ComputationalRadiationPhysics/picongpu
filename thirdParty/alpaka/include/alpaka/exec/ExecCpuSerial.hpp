@@ -27,21 +27,17 @@
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dim/Traits.hpp>
-#include <alpaka/exec/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 // Implementation details.
 #include <alpaka/acc/AccCpuSerial.hpp>
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/kernel/Traits.hpp>
-#include <alpaka/workdiv/WorkDivMembers.hpp>
-
 #include <alpaka/meta/NdLoop.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>
-
-#include <boost/core/ignore_unused.hpp>
-#include <boost/assert.hpp>
+#include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #include <tuple>
 #include <type_traits>
@@ -57,11 +53,11 @@ namespace alpaka
         //! The CPU serial executor implementation.
         template<
             typename TDim,
-            typename TSize,
+            typename TIdx,
             typename TKernelFnObj,
             typename... TArgs>
         class ExecCpuSerial final :
-            public workdiv::WorkDivMembers<TDim, TSize>
+            public workdiv::WorkDivMembers<TDim, TIdx>
         {
         public:
             //-----------------------------------------------------------------------------
@@ -71,7 +67,7 @@ namespace alpaka
                 TWorkDiv && workDiv,
                 TKernelFnObj const & kernelFnObj,
                 TArgs const & ... args) :
-                    workdiv::WorkDivMembers<TDim, TSize>(std::forward<TWorkDiv>(workDiv)),
+                    workdiv::WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv)),
                     m_kernelFnObj(kernelFnObj),
                     m_args(args...)
             {
@@ -111,7 +107,7 @@ namespace alpaka
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
-                                    acc::AccCpuSerial<TDim, TSize>>(
+                                    acc::AccCpuSerial<TDim, TIdx>>(
                                         m_kernelFnObj,
                                         blockThreadExtent,
                                         threadElemExtent,
@@ -137,17 +133,19 @@ namespace alpaka
                         },
                         m_args));
 
-                acc::AccCpuSerial<TDim, TSize> acc(
-                    *static_cast<workdiv::WorkDivMembers<TDim, TSize> const *>(this),
+                acc::AccCpuSerial<TDim, TIdx> acc(
+                    *static_cast<workdiv::WorkDivMembers<TDim, TIdx> const *>(this),
                     blockSharedMemDynSizeBytes);
 
-                // There is only ever one thread in a block in the serial accelerator.
-                BOOST_VERIFY(blockThreadExtent.prod() == static_cast<TSize>(1u));
+                if(blockThreadExtent.prod() != static_cast<TIdx>(1u))
+                {
+                    throw std::runtime_error("A block for the serial accelerator can only ever have one single thread!");
+                }
 
                 // Execute the blocks serially.
                 meta::ndLoopIncIdx(
                     gridBlockExtent,
-                    [&](vec::Vec<TDim, TSize> const & blockThreadIdx)
+                    [&](vec::Vec<TDim, TIdx> const & blockThreadIdx)
                     {
                         acc.m_gridBlockIdx = blockThreadIdx;
 
@@ -159,6 +157,7 @@ namespace alpaka
                     });
             }
 
+        private:
             TKernelFnObj m_kernelFnObj;
             std::tuple<TArgs...> m_args;
         };
@@ -172,13 +171,13 @@ namespace alpaka
             //! The CPU serial executor accelerator type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct AccType<
-                exec::ExecCpuSerial<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = acc::AccCpuSerial<TDim, TSize>;
+                using type = acc::AccCpuSerial<TDim, TIdx>;
             };
         }
     }
@@ -190,11 +189,11 @@ namespace alpaka
             //! The CPU serial executor device type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DevType<
-                exec::ExecCpuSerial<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = dev::DevCpu;
             };
@@ -208,33 +207,13 @@ namespace alpaka
             //! The CPU serial executor dimension getter trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct DimType<
-                exec::ExecCpuSerial<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = TDim;
-            };
-        }
-    }
-    namespace exec
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The CPU serial executor executor type trait specialization.
-            template<
-                typename TDim,
-                typename TSize,
-                typename TKernelFnObj,
-                typename... TArgs>
-            struct ExecType<
-                exec::ExecCpuSerial<TDim, TSize, TKernelFnObj, TArgs...>,
-                TKernelFnObj,
-                TArgs...>
-            {
-                using type = exec::ExecCpuSerial<TDim, TSize, TKernelFnObj, TArgs...>;
             };
         }
     }
@@ -246,31 +225,31 @@ namespace alpaka
             //! The CPU serial executor platform type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct PltfType<
-                exec::ExecCpuSerial<TDim, TSize, TKernelFnObj, TArgs...>>
+                exec::ExecCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 using type = pltf::PltfCpu;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The CPU serial executor size type trait specialization.
+            //! The CPU serial executor idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
-            struct SizeType<
-                exec::ExecCpuSerial<TDim, TSize, TKernelFnObj, TArgs...>>
+            struct IdxType<
+                exec::ExecCpuSerial<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }

@@ -56,7 +56,7 @@ append_recursive_files_add_to_src_group("${_SOURCE_DIR}" "${_SOURCE_DIR}" "cpp" 
 SET(_COMPILE_OPTIONS_PRIVATE ${ALPAKA_DEV_COMPILE_OPTIONS})
 
 IF(MSVC)
-    LIST(APPEND _COMPILE_DEFINITIONS_PRIVATE "/wd4996")   # This function or variable may be unsafe. Consider using <safe_version> instead.
+    LIST(APPEND _COMPILE_OPTIONS_PRIVATE "/wd4996")   # This function or variable may be unsafe. Consider using <safe_version> instead.
 ENDIF()
 
 # NVCC does not incorporate the COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
@@ -77,3 +77,7 @@ TARGET_LINK_LIBRARIES(
     PUBLIC "alpaka")
 
 SET_TARGET_PROPERTIES(${_TARGET_NAME} PROPERTIES FOLDER "example")
+
+IF(NOT ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
+    ADD_TEST(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME})
+ENDIF()

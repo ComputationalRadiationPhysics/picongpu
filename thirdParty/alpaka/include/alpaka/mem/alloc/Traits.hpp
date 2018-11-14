@@ -108,8 +108,14 @@ namespace alpaka
                         && (!std::is_same<typename TAlloc::AllocBase, typename std::decay<TAlloc>::type>::value)>::type>
                 {
                     //-----------------------------------------------------------------------------
+                    // FIXME: compiler switch for the host-device signatures
+#if defined( BOOST_COMP_HCC ) && BOOST_COMP_HCC
+                    ALPAKA_FN_HOST
+#else
                     ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto alloc(
+                    ALPAKA_FN_HOST_ACC
+#endif
+                    static auto alloc(
                         TAlloc const & alloc,
                         std::size_t const & sizeElems)
                     -> T *
@@ -136,8 +142,14 @@ namespace alpaka
                         && (!std::is_same<typename TAlloc::AllocBase, typename std::decay<TAlloc>::type>::value)>::type>
                 {
                     //-----------------------------------------------------------------------------
+                    // FIXME: compiler switch for the host-device signatures
+#if defined( BOOST_COMP_HCC ) && BOOST_COMP_HCC
+                    ALPAKA_FN_HOST
+#else
                     ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto free(
+                    ALPAKA_FN_HOST_ACC
+#endif
+                    static auto free(
                         TAlloc const & alloc,
                         T const * const ptr)
                     -> void

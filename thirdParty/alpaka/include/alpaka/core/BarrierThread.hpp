@@ -43,34 +43,34 @@ namespace alpaka
             //#############################################################################
             //! A self-resetting barrier.
             template<
-                typename TSize>
+                typename TIdx>
             class BarrierThread final
             {
             public:
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA explicit BarrierThread(
-                    TSize const & threadCount) :
+                explicit BarrierThread(
+                    TIdx const & threadCount) :
                     m_threadCount(threadCount),
                     m_curThreadCount(threadCount),
                     m_generation(0)
                 {}
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BarrierThread(BarrierThread const &) = delete;
+                BarrierThread(BarrierThread const &) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BarrierThread(BarrierThread &&) = delete;
+                BarrierThread(BarrierThread &&) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BarrierThread const &) -> BarrierThread & = delete;
+                auto operator=(BarrierThread const &) -> BarrierThread & = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BarrierThread &&) -> BarrierThread & = delete;
+                auto operator=(BarrierThread &&) -> BarrierThread & = delete;
                 //-----------------------------------------------------------------------------
                 ~BarrierThread() = default;
 
                 //-----------------------------------------------------------------------------
                 //! Waits for all the other threads to reach the barrier.
-                ALPAKA_FN_ACC_NO_CUDA auto wait()
+                auto wait()
                 -> void
                 {
-                    TSize const generationWhenEnteredTheWait = m_generation;
+                    TIdx const generationWhenEnteredTheWait = m_generation;
 #ifdef ALPAKA_THREAD_BARRIER_DISABLE_SPINLOCK
                     std::unique_lock<std::mutex> lock(m_mtxBarrier);
 #endif
@@ -100,13 +100,13 @@ namespace alpaka
                 std::mutex m_mtxBarrier;
                 std::condition_variable m_cvAllThreadsReachedBarrier;
 #endif
-                const TSize m_threadCount;
+                const TIdx m_threadCount;
 #ifdef ALPAKA_THREAD_BARRIER_DISABLE_SPINLOCK
-                TSize m_curThreadCount;
-                TSize m_generation;
+                TIdx m_curThreadCount;
+                TIdx m_generation;
 #else
-                std::atomic<TSize> m_curThreadCount;
-                std::atomic<TSize> m_generation;
+                std::atomic<TIdx> m_curThreadCount;
+                std::atomic<TIdx> m_generation;
 #endif
             };
 
@@ -151,25 +151,25 @@ namespace alpaka
             //#############################################################################
             //! A self-resetting barrier with barrier.
             template<
-                typename TSize>
+                typename TIdx>
             class BarrierThreadWithPredicate final
             {
             public:
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA explicit BarrierThreadWithPredicate(
-                    TSize const & threadCount) :
+                explicit BarrierThreadWithPredicate(
+                    TIdx const & threadCount) :
                     m_threadCount(threadCount),
                     m_curThreadCount(threadCount),
                     m_generation(0)
                 {}
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BarrierThreadWithPredicate(BarrierThreadWithPredicate const & other) = delete;
+                BarrierThreadWithPredicate(BarrierThreadWithPredicate const & other) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BarrierThreadWithPredicate(BarrierThreadWithPredicate &&) = delete;
+                BarrierThreadWithPredicate(BarrierThreadWithPredicate &&) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BarrierThreadWithPredicate const &) -> BarrierThreadWithPredicate & = delete;
+                auto operator=(BarrierThreadWithPredicate const &) -> BarrierThreadWithPredicate & = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BarrierThreadWithPredicate &&) -> BarrierThreadWithPredicate & = delete;
+                auto operator=(BarrierThreadWithPredicate &&) -> BarrierThreadWithPredicate & = delete;
                 //-----------------------------------------------------------------------------
                 ~BarrierThreadWithPredicate() = default;
 
@@ -177,13 +177,13 @@ namespace alpaka
                 //! Waits for all the other threads to reach the barrier.
                 template<
                     typename TOp>
-                ALPAKA_FN_ACC_NO_CUDA auto wait(int predicate)
+                ALPAKA_FN_HOST auto wait(int predicate)
                 -> int
                 {
-                    TSize const generationWhenEnteredTheWait = m_generation;
+                    TIdx const generationWhenEnteredTheWait = m_generation;
                     std::unique_lock<std::mutex> lock(m_mtxBarrier);
 
-                    auto const generationMod2(m_generation % static_cast<TSize>(2u));
+                    auto const generationMod2(m_generation % static_cast<TIdx>(2u));
                     if(m_curThreadCount == m_threadCount)
                     {
                         m_result[generationMod2] = TOp::InitialValue;
@@ -210,9 +210,9 @@ namespace alpaka
             private:
                 std::mutex m_mtxBarrier;
                 std::condition_variable m_cvAllThreadsReachedBarrier;
-                const TSize m_threadCount;
-                TSize m_curThreadCount;
-                TSize m_generation;
+                const TIdx m_threadCount;
+                TIdx m_curThreadCount;
+                TIdx m_generation;
                 std::atomic<int> m_result[2];
             };
         }

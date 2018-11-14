@@ -283,7 +283,7 @@ The subsequent enumeration will summarize the purpose of the library:
 
 * **optimizable**. Everything in *alpaka* can be replaced by user code to optimize for special use-cases.
 
-* **extensible**. Every concept described by the *alpaka* abstraction can be implemented by users. Therefore it is possible to non-intrusively define new devices, streams, buffer types or even whole accelerator back-ends.
+* **extensible**. Every concept described by the *alpaka* abstraction can be implemented by users. Therefore it is possible to non-intrusively define new devices, queues, buffer types or even whole accelerator back-ends.
 
 * **data structure agnostic**. The user can use and define arbitrary data structures.
 

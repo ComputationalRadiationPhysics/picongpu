@@ -19,6 +19,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+// NVCC needs --expt-extended-lambda
+#if !defined(__NVCC__) || \
+    ( defined(__NVCC__) && defined(__CUDACC_EXTENDED_LAMBDA__) )
+
 // \Hack: Boost.MPL defines BOOST_MPL_CFG_GPU_ENABLED to __host__ __device__ if nvcc is used.
 // BOOST_AUTO_TEST_CASE_TEMPLATE and its internals are not GPU enabled but is using boost::mpl::for_each internally.
 // For each template parameter this leads to:
@@ -43,17 +47,6 @@
 
 BOOST_AUTO_TEST_SUITE(kernel)
 
-// nvcc < 7.5 does not support lambdas as kernels.
-#if !BOOST_COMP_NVCC || BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(7, 5, 0)
-// nvcc 7.5 does not support heterogeneous lambdas (__host__ __device__) as kernels but only __device__ lambdas.
-// So with nvcc 7.5 this only works in CUDA only mode or by using ALPAKA_FN_ACC_CUDA_ONLY instead of ALPAKA_FN_ACC
-#if !BOOST_COMP_NVCC || BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(8, 0, 0) || defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
-
-// clang prior to 4.0.0 did not support the __host__ __device__ attributes at the nonstandard position between [] and () but only after ().
-// See: https://llvm.org/bugs/show_bug.cgi?id=26341
-#if !BOOST_COMP_CLANG_CUDA || BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)
-
-#if !defined(ALPAKA_CI)
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
     lambdaKernelIsWorking,
@@ -61,17 +54,20 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     auto kernel =
-        [] ALPAKA_FN_ACC (TAcc const & acc)
+        [] ALPAKA_FN_ACC (
+            TAcc const & acc,
+            bool * success)
         -> void
         {
-            // Do something useless on the accelerator.
-            alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+            ALPAKA_CHECK(
+                *success,
+                static_cast<alpaka::idx::Idx<TAcc>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
         };
 
     BOOST_REQUIRE_EQUAL(
@@ -79,7 +75,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
         fixture(
             kernel));
 }
-#endif
 
 //-----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE_TEMPLATE(
@@ -88,20 +83,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     std::uint32_t const arg = 42u;
     auto kernel =
-        [] ALPAKA_FN_ACC (TAcc const & acc, std::uint32_t const & arg1)
+        [] ALPAKA_FN_ACC (
+            TAcc const & acc,
+            bool * success,
+            std::uint32_t const & arg1)
         -> void
         {
-            // Do something useless on the accelerator.
-            alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+            alpaka::ignore_unused(acc);
 
-            BOOST_VERIFY(42u == arg1);
+            ALPAKA_CHECK(*success, 42u == arg1);
         };
 
     BOOST_REQUIRE_EQUAL(
@@ -118,98 +115,37 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(
     alpaka::test::acc::TestAccs)
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     std::uint32_t const arg = 42u;
+
+#if BOOST_COMP_CLANG >= BOOST_VERSION_NUMBER(5,0,0)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wunused-lambda-capture"
+#endif
     auto kernel =
-        [arg] ALPAKA_FN_ACC (TAcc const & acc)
+        [arg] ALPAKA_FN_ACC (
+            TAcc const & acc,
+            bool * success)
         -> void
         {
-            // Do something useless on the accelerator.
-            alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+            alpaka::ignore_unused(acc);
 
-            (void)arg;
-            BOOST_VERIFY(42u == arg);
+            ALPAKA_CHECK(*success, 42u == arg);
         };
+#if BOOST_COMP_CLANG >= BOOST_VERSION_NUMBER(5,0,0)
+    #pragma clang diagnostic pop
+#endif
 
     BOOST_REQUIRE_EQUAL(
         true,
         fixture(
             kernel));
 }
-
-// Generic lambdas are a C++14 feature.
-#if !defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
-// CUDA C Programming guide says: "__host__ __device__ extended lambdas cannot be generic lambdas"
-// However, it seems to work on all compilers except MSVC even though it is documented differently.
-#if !(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_COMP_MSVC)
-//-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE_TEMPLATE(
-    genericLambdaKernelIsWorking,
-    TAcc,
-    alpaka::test::acc::TestAccs)
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
-
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
-
-    auto kernel =
-        [] ALPAKA_FN_ACC (auto const & acc)
-        -> void
-        {
-            // Do something useless on the accelerator.
-            alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
-        };
-
-    BOOST_REQUIRE_EQUAL(
-        true,
-        fixture(
-            kernel));
-}
-
-//-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE_TEMPLATE(
-    variadicGenericLambdaKernelIsWorking,
-    TAcc,
-    alpaka::test::acc::TestAccs)
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
-
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
-
-    std::uint32_t const arg1 = 42u;
-    std::uint32_t const arg2 = 43u;
-    auto kernel =
-        [] ALPAKA_FN_ACC (TAcc const & acc, auto ... args)
-        -> void
-        {
-            // Do something useless on the accelerator.
-            alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
-
-            BOOST_VERIFY(alpaka::meta::foldr([](auto a, auto b){return a + b;}, args...) == (42u + 43u));
-        };
-
-    BOOST_REQUIRE_EQUAL(
-        true,
-        fixture(
-            kernel,
-            arg1,
-            arg2));
-}
-#endif
-#endif
-
-#endif
-
-#endif
-
-#endif
 
 BOOST_AUTO_TEST_SUITE_END()
+
+#endif

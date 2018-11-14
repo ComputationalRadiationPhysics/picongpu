@@ -52,13 +52,13 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     BlockSharedMemStCudaBuiltIn() = default;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY BlockSharedMemStCudaBuiltIn(BlockSharedMemStCudaBuiltIn const &) = delete;
+                    __device__ BlockSharedMemStCudaBuiltIn(BlockSharedMemStCudaBuiltIn const &) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY BlockSharedMemStCudaBuiltIn(BlockSharedMemStCudaBuiltIn &&) = delete;
+                    __device__ BlockSharedMemStCudaBuiltIn(BlockSharedMemStCudaBuiltIn &&) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSharedMemStCudaBuiltIn const &) -> BlockSharedMemStCudaBuiltIn & = delete;
+                    __device__ auto operator=(BlockSharedMemStCudaBuiltIn const &) -> BlockSharedMemStCudaBuiltIn & = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSharedMemStCudaBuiltIn &&) -> BlockSharedMemStCudaBuiltIn & = delete;
+                    __device__ auto operator=(BlockSharedMemStCudaBuiltIn &&) -> BlockSharedMemStCudaBuiltIn & = delete;
                     //-----------------------------------------------------------------------------
                     /*virtual*/ ~BlockSharedMemStCudaBuiltIn() = default;
                 };
@@ -75,7 +75,7 @@ namespace alpaka
                         BlockSharedMemStCudaBuiltIn>
                     {
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_ACC_CUDA_ONLY static auto allocVar(
+                        __device__ static auto allocVar(
                             block::shared::st::BlockSharedMemStCudaBuiltIn const &)
                         -> T &
                         {
@@ -90,7 +90,7 @@ namespace alpaka
                         BlockSharedMemStCudaBuiltIn>
                     {
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_ACC_CUDA_ONLY static auto freeMem(
+                        __device__ static auto freeMem(
                             block::shared::st::BlockSharedMemStCudaBuiltIn const &)
                         -> void
                         {
