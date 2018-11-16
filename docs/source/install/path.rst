@@ -6,15 +6,15 @@ Introduction
 .. sectionauthor:: Axel Huebl
 
 Installing PIConGPU means :ref:`installing C++ libraries <install-dependencies>` that PIConGPU depends on and :ref:`setting environment variables <install-profile>` to find those dependencies.
-The first part is usually the job of a system administrator while the second part needs to be configured on the user-side.
+The first part is usually the job of a system administrator while the second part needs to be configured on the user side.
 
 Depending on your experience, role, computing environment and expectations for optimal hardware utilization, you have several ways to install and select PIConGPU's dependencies.
-Choose your favorite *install and environment management method* below, young padavan, and follow the corresponding sections of the next chapters.
+Choose your favorite *install and environment management method* below, young padawan, and follow the corresponding sections of the next chapters.
 
 Ways to Install
 ---------------
 
-Choose *one* of the install methods below to get started:
+Choose *one* of the installation methods below to get started.
 
 Load Modules
 ^^^^^^^^^^^^
@@ -25,13 +25,13 @@ It loads according modules and sets :ref:`helper environment variables <install-
 
 .. important::
 
-   For many HPC systems we already prepared and maintain an environment for you which will run out-of-the-box.
-   See if yours is :ref:`in the list <install-profile>` so you can skip the installation completely!
+   For many HPC systems we have already prepared and maintain an environment which will run out of the box.
+   See if your system is :ref:`in the list <install-profile>` so you can skip the installation completely!
 
 Spack
 ^^^^^
 
-[Spack]_ is a flexible package manager that can build and organize software dependencies for you.
+[Spack]_ is a flexible package manager that can build and organize software dependencies.
 It can be configured once for your hardware architecture to create optimally tuned binaries and provides modulefile support (e.g. [modules]_, [Lmod]_).
 Those auto-build modules manage your environment variables and allow easy switching between versions, configurations and compilers.
 
@@ -40,21 +40,21 @@ Build from Source
 
 You choose a supported C++ compiler and configure, compile and install all missing dependencies from source.
 You are responsible to manage the right versions and configurations.
-Performance will be ideal if architecture is chosen correctly (and/or if build directly on your hardware).
+Performance will be ideal if architecture is chosen correctly (and/or if built directly on your hardware).
 You then set environment variables to find those installs.
 
 Conda
 ^^^^^
 
 We currently do not have an official conda install (yet).
-Due to pre-build binaries, performance will be sub-ideal and HPC cluster support (e.g. MPI) might be very limited.
+Due to pre-build binaries, performance could be not ideal and HPC cluster support (e.g. MPI) might be very limited.
 Useful for small desktop or single-node runs.
 
 Nvidia-Docker
 ^^^^^^^^^^^^^
 
-Not yet officially supported but we already provide a ``Dockerfile`` to get started.
-Performance might be sub-ideal if the image is not build for the specific local hardware again.
+Not yet officially supported, but we already provide a ``Dockerfile`` to get started.
+Performance might be not ideal if the image is not built for the specific local hardware again.
 Useful for small desktop or single-node runs.
 We are also working on `Singularity <http://singularity.lbl.gov/>`_ images.
 
