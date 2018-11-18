@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017 Benjamin Worpitz, Erik Zenker
+# Copyright 2015-2018 Benjamin Worpitz, Erik Zenker
 #
 # This file is part of alpaka.
 #
@@ -20,7 +20,6 @@
 
 language: generic
 os: linux
-sudo: required
 dist: trusty
 services:
   - docker
@@ -34,8 +33,8 @@ services:
 #   [clang++] ALPAKA_CI_CLANG_VER               : {3.5.2, 3.6.2, 3.7.1, 3.8.1, 3.9.1, 4.0.0, 5.0.0}
 # CMAKE_BUILD_TYPE                              : {Debug, Release}
 # ALPAKA_CI                                     : {TRAVIS}
-# ALPAKA_CI_BOOST_BRANCH                        : {boost-1.62.0, boost-1.63.0, boost-1.64.0, boost-1.65.1, boost-1.66.0, boost-1.67.0}
-# ALPAKA_CI_CMAKE_VER                           : {3.7.2, 3.8.2, 3.9.6, 3.10.3, 3.11.1}
+# ALPAKA_CI_BOOST_BRANCH                        : {boost-1.62.0, boost-1.63.0, boost-1.64.0, boost-1.65.1, boost-1.66.0, boost-1.67.0, boost-1.68.0}
+# ALPAKA_CI_CMAKE_VER                           : {3.7.2, 3.8.2, 3.9.6, 3.10.3, 3.11.4, 3.12.3}
 # ALPAKA_CI_SANITIZERS                          : {ASan, UBsan, TSan, ESan}
 #    TSan is not currently used because it produces many unexpected errors
 # ALPAKA_CI_ANALYSIS                            : {ON, OFF}
