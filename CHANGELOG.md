@@ -16,7 +16,7 @@ moving window simulations.
 Thanks to Axel Huebl, René Widera, Richard Pausch and Andrei Berceanu for
 contributions to this release!
 
-### Changes to "0.4.1"
+### Changes to "0.4.0"
 
 **Bug Fixes:**
 - PIConGPU:
