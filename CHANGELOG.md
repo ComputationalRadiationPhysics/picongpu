@@ -1,6 +1,38 @@
 Changelog
 =========
 
+0.4.2
+-----
+**Date:** 2018-11-TBA
+
+CPU Plugin Performance
+
+This release fixes a performance regression for energy histograms and phase
+space plugins on CPU with our OpenMP backend on CPU. At least OpenMP 3.1 is
+needed to benefit from this. Additionally, several small documentation issues
+have been fixed and the energy histogram python tool forgot to return the first
+iteration.
+
+Thanks to Axel Huebl, René Widera, Sebastian Starke, and Marco Garten for
+contributions to this release!
+
+### Changes to "0.4.1"
+
+**Bug Fixes:**
+- Plugin performance regression:
+  - Speed of plugins `EnergyHistogram` and `PhaseSpace` on CPU (`omp2b`) #2802
+- Tools:
+  - Python `EnergyHistogramData`: skip of first iteration #2799
+
+**Misc:**
+- update Alpaka to 0.3.5 to fix #2802
+- Docs:
+  - CFL Static Assert: new grid.param #2804
+  - missing exponent in fieldIonization.rst #2790
+  - remove grep file redirect #2788
+  - Calorimeter Plugin: Document File Suffix #2800
+
+
 0.4.1
 -----
 **Date:** 2018-11-06
@@ -16,7 +48,7 @@ moving window simulations.
 Thanks to Axel Huebl, René Widera, Richard Pausch and Andrei Berceanu for
 contributions to this release!
 
-### Changes to "0.4.1"
+### Changes to "0.4.0"
 
 **Bug Fixes:**
 - PIConGPU:
