@@ -14,7 +14,7 @@ License: GPLv3+
 import numpy as np
 
 
-class PicongpuMemoryCalculator:
+class MemoryCalculator:
     """
     Memory requirement calculation tool for PIConGPU
 
@@ -134,14 +134,13 @@ class PicongpuMemoryCalculator:
                 sim_dim,
                 " =/= {2, 3}")
 
-        # size of a data entry in bytes
-        data_size = np.float32().itemsize
         # number of fields: 3 * 3 = x,y,z for E,B,J
         num_fields = 3 * 3 + field_tmp_slots
         # double buffer memory
-        double_buffer_mem = double_buffer_cells * num_fields * data_size
+        double_buffer_mem = double_buffer_cells * num_fields * self.value_size
 
-        req_mem = data_size * num_fields * local_cells + double_buffer_mem
+        req_mem = self.value_size * num_fields * local_cells \
+            + double_buffer_mem
         return req_mem
 
     def mem_req_by_particles(
@@ -150,7 +149,8 @@ class PicongpuMemoryCalculator:
             target_n_y=None,
             target_n_z=None,
             num_additional_attributes=0,
-            particles_per_cell=2
+            particles_per_cell=2,
+            sim_dim=3
     ):
         """
         Memory reserved for all particles of a species on a GPU.
@@ -169,6 +169,8 @@ class PicongpuMemoryCalculator:
             number of additional attributes like e.g. ``boundElectrons``
         particles_per_cell : int
             number of particles of the species per cell
+        sim_dim : int
+            simulation dimension (available for PIConGPU: 2 and 3)
 
         Returns
         -------
@@ -186,16 +188,16 @@ class PicongpuMemoryCalculator:
 
         # memory required by the standard particle attributes
         standard_attribute_mem = np.array([
-            3 * 4,  # momentum
-            3 * 4,  # position
-            1 * 8,  # multimask
-            1 * 8,  # cell index in supercell (``lcellId_t``)
-            1 * 8  # weighting
+            3 * self.value_size,  # momentum
+            sim_dim * self.value_size,  # position
+            1,  # multimask (``uint8_t``)
+            2,  # cell index in supercell (``typedef uint16_t lcellId_t``)
+            1 * self.value_size  # weighting
         ])
 
         # memory per particle for additional attributes {unit: byte}
-        additional_mem = num_additional_attributes * 4
-        # \TODO we assume 4 bytes here - check if that's really the case
+        additional_mem = num_additional_attributes * self.value_size
+        # \TODO we assume value_size here - that could be different
         # cells filled by the target species
         local_cells = target_n_x * target_n_y * target_n_z
 
@@ -211,7 +213,7 @@ class PicongpuMemoryCalculator:
     ):
         """
         Memory reserved for the random number generator state on each GPU.
-        The RNG we use is: MRG32ka
+        The RNG we use is: MRG32k3a
 
         Parameters
         ----------
@@ -278,6 +280,9 @@ class PicongpuMemoryCalculator:
 
         req_mem_per_bin = value_size
         num_bins = n_energy * n_yaw * n_pitch
+        # one calorimeter instance for particles in the box
+        # another calorimeter instance for particles leaving the box
+        # makes a factor of 2 for the required memory
         req_mem = req_mem_per_bin * num_bins * 2
 
         return req_mem
@@ -305,7 +310,7 @@ if __name__ == "__main__":
     Ny = 1136
     Nz = 76
 
-    pmc = PicongpuMemoryCalculator(Nx, Ny, Nz)
+    pmc = MemoryCalculator(Nx, Ny, Nz)
 
     target_x = Nx
     target_y = np.int(target_thickness / cell_size)
