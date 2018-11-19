@@ -61,6 +61,16 @@ Examples
 * ``42,30:50:10``: at steps 30 40 42 50 84 126 168 ...
 * ``5,10``: at steps 0 5 10 15 20 25 ... (only executed once per step in overlapping intervals)
 
+Python Preprocessing
+====================
+
+To aid you in the planning and setup of your simulation PIConGPU provides python tools for educated guesses on simulation parameters.
+They can be found under ``lib/python/picongpu/utils``.
+
+It is our hope that this list will grow alongside with our user base to make using PIConGPU easier for everyone.
+
+1. Calculate the memory requirement per accelerator with ``memory_calculator.py <usage-workflows-memoryPerAccelerator>``
+
 Python Postprocessing
 =====================
 
