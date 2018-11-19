@@ -31,7 +31,7 @@ First `install spack <http://spack.readthedocs.io/en/latest/getting_started.html
    source $HOME/src/spack/share/spack/setup-env.sh
 
    # install a supported compiler
-   spack compiler list | grep gcc@7.3.0 1>/dev/null && spack install gcc@7.3.0 && spack load gcc@7.3.0 && spack compiler add
+   spack compiler list | grep -q gcc@7.3.0 && spack install gcc@7.3.0 && spack load gcc@7.3.0 && spack compiler add
 
    # add the PIConGPU repository
    git clone https://github.com/ComputationalRadiationPhysics/spack-repo.git $HOME/src/spack-repo
