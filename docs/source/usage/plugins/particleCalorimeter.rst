@@ -23,7 +23,7 @@ Therein, a species can be also be marked for detecting particles leaving the sim
 .cfg file
 ^^^^^^^^^
 
-All options are denoted for the photon (``ph``) particle species here.
+All options are denoted exemplarily for the photon (``ph``) particle species here.
 
 
 ================================== =========================================================================================
@@ -31,7 +31,7 @@ PIConGPU command line option       Description
 ================================== =========================================================================================
 ``--ph_calorimeter.period``        The ouput periodicity of the plugin.
                                    A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
-``--ph_calorimeter.file``          Output file prefix. Files will be stored in the folder ``ph_calorimeter``
+``--ph_calorimeter.file``          Output file suffix. Put unique name if same ``species + filter`` is used multiple times.
 ``--ph_calorimeter.filter``        Use filtered particles. All available filters will be shown with ``picongpu --help``
 ``--ph_calorimeter.numBinsYaw``    Specifies the number of bins used for the yaw axis of the calorimeter.
                                    Defaults to ``64``.
@@ -93,6 +93,8 @@ Output
 ^^^^^^
 
 The calorimeters are stored in hdf5-files in the ``simOutput/<species>_calorimeter/<filter>/`` directory.
+The file names are ``<species>_calorimeter_<file>_<sfilter>_<timestep>_0_0_0.h5``.
+
 The dataset within the hdf5-file is located at ``/data/<timestep>/calorimeter``.
 Depending on whether energy binning is enabled the dataset is two or three dimensional.
 The dataset has the following attributes:
@@ -128,6 +130,13 @@ Attribute          Description
  
    #. calorimeter for species ph each 128th time step **with** logarithmic energy binning.
    #. calorimeter for species ph each 1000th time step **without** (this is the default) logarithmic energy binning.
+
+.. attention::
+
+   When using the plugin multiple times for the same combination of ``species`` and ``filter``, you *must* provide a unique ``file`` suffix.
+   Otherwise output files will overwrite each other, since only ``species``, ``filter`` and ``file`` suffix are encoded in it.
+
+   An example use case would be two (or more) calorimeters for the same species and filter but with differing position in space or different binning, range, linear and log scaling, etc.
 
 Analysis Tools
 ^^^^^^^^^^^^^^

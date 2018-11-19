@@ -51,7 +51,7 @@ namespace none
     >
     {
         /* Courant-Friedrichs-Levy-Condition for Yee Field Solver: */
-        PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_gridConfig_param_file,
+        PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
             (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0);
     };
 } // namespace none
