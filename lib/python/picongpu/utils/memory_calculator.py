@@ -4,7 +4,7 @@
 This file is part of PIConGPU.
 
 It is supposed to give an estimate for the memory requirement of a PIConGPU
-simulation per accelerator.
+simulation per device.
 
 Copyright 2018 PIConGPU contributors
 Authors: Marco Garten
@@ -20,7 +20,7 @@ class MemoryCalculator:
 
     Contains calculation for fields, particles, random number generator
     and the calorimeter plugin. In-situ methods other than the calorimeter
-    so far use up negligible amounts of memory on the accelerator.
+    so far use up negligible amounts of memory on the device.
     """
 
     def __init__(
@@ -33,16 +33,19 @@ class MemoryCalculator:
         """
         Class constructor
 
-        :param n_x: int
-            number of cells in x direction (per accelerator)
-        :param n_y: int
-            number of cells in y direction (per accelerator)
-        :param n_z: int
-            number of cells in z direction (per accelerator)
-        :param precision_bits:
+        Parameters
+        ----------
+
+        n_x : int
+            number of cells in x direction (per device)
+        n_y : int
+            number of cells in y direction (per device)
+        n_z : int
+            number of cells in z direction (per device)
+        precision_bits : int
             floating point precision for PIConGPU run
         """
-        # local accelerator domain size
+        # local device domain size
         self.n_x = n_x
         self.n_y = n_y
         self.n_z = n_z
@@ -55,6 +58,10 @@ class MemoryCalculator:
         elif self.precision_bits == 64:
             # value size in bytes
             self.value_size = np.float64().itemsize
+        else:
+            raise ValueError(
+                "PIConGPU only supports either 32 or 64 bits precision."
+            )
 
     def mem_req_by_fields(
             self,
@@ -66,17 +73,17 @@ class MemoryCalculator:
             sim_dim=3
     ):
         """
-        Memory reserved for fields on each accelerator
+        Memory reserved for fields on each device
 
         Parameters
         ----------
 
         n_x : int
-            number of cells in x direction (per accelerator)
+            number of cells in x direction (per device)
         n_y : int
-            number of cells in y direction (per accelerator)
+            number of cells in y direction (per device)
         n_z : int
-            number of cells in z direction (per accelerator)
+            number of cells in z direction (per device)
         field_tmp_slots : int
             number of slots for temporary fields
             (see PIConGPU ``memory.param`` : ``fieldTmpNumSlots``)
@@ -90,7 +97,7 @@ class MemoryCalculator:
         -------
 
         req_mem : int
-            required memory {unit: bytes} per accelerator
+            required memory {unit: bytes} per device
         """
         if n_x is None:
             n_x = self.n_x
@@ -153,7 +160,7 @@ class MemoryCalculator:
             sim_dim=3
     ):
         """
-        Memory reserved for all particles of a species on a GPU.
+        Memory reserved for all particles of a species on a device.
         We currently neglect the constant species memory.
 
         Parameters
@@ -176,7 +183,7 @@ class MemoryCalculator:
         -------
 
         req_mem : int
-            required memory {unit: bytes} per GPU and species
+            required memory {unit: bytes} per device and species
         """
 
         if target_n_x is None:
@@ -210,25 +217,35 @@ class MemoryCalculator:
             n_x=None,
             n_y=None,
             n_z=None,
+            generator_method="XorMin"
     ):
         """
-        Memory reserved for the random number generator state on each GPU.
-        The RNG we use is: MRG32k3a
+        Memory reserved for the random number generator state on each device.
+
+        Check ``random.param`` for a choice of random number generators.
+        If you find that your required RNG state is large (> 300 MB) please see
+        ``memory.param`` for a possible adjustment of the
+        ``reservedGpuMemorySize``.
 
         Parameters
         ----------
         n_x : int
-            number of cells in x direction (per accelerator)
+            number of cells in x direction (per device)
         n_y : int
-            number of cells in y direction (per accelerator)
+            number of cells in y direction (per device)
         n_z : int
-            number of cells in z direction (per accelerator)
+            number of cells in z direction (per device)
+        generator_method : str
+            random number generator method - influences the state size per cell
+            possible options: "XorMin", "MRG32k3aMin", "AlpakaRand"
+            - (GPU default: "XorMin")
+            - (CPU default: "AlpakaRand")
 
         Returns
         -------
 
         req_mem : int
-            required memory {unit: bytes} per accelerator
+            required memory {unit: bytes} per device
         """
         if n_x is None:
             n_x = self.n_x
@@ -237,10 +254,24 @@ class MemoryCalculator:
         if n_z is None:
             n_z = self.n_z
 
-        req_mem_per_cell = 6 * 8  # bytes
+        if generator_method == "XorMin":
+            state_size_per_cell = 6 * 4  # bytes
+        elif generator_method == "MRG32k3aMin":
+            state_size_per_cell = 6 * 8  # bytes
+        elif generator_method == "AlpakaRand":
+            state_size_per_cell = 7 * 4  # bytes
+        else:
+            raise ValueError(
+                "{} is not an available RNG for PIConGPU.".format(
+                    generator_method
+                ), "Please choose one of the following: ",
+                "'XorMin', 'MRG32k3aMin', 'AlpakaRand'"
+            )
+
+        # CORE + BORDER region of the device, GUARD currently has no RNG state
         local_cells = n_x * n_y * n_z
 
-        req_mem = req_mem_per_cell * local_cells
+        req_mem = state_size_per_cell * local_cells
         return req_mem
 
     def mem_req_by_calorimeter(
@@ -254,7 +285,7 @@ class MemoryCalculator:
         Memory required by the particle calorimeter plugin.
         Each of the (``n_energy`` x ``n_yaw`` x ``n_pitch``) bins requires
         a value (32/64 bits). The whole calorimeter is represented twice on
-        each accelerator, once for particles in the simulation and once
+        each device, once for particles in the simulation and once
         for the particles that leave the box.
 
         Parameters
@@ -273,7 +304,7 @@ class MemoryCalculator:
         -------
 
         req_mem : int
-            required memory {unit: bytes} per accelerator
+            required memory {unit: bytes} per device
         """
         if value_size is None:
             value_size = self.value_size
@@ -289,80 +320,102 @@ class MemoryCalculator:
 
 
 if __name__ == "__main__":
-    # THIS IS A USAGE EXAMPLE FOR AN NVIDIA P100 GPU with 16 GB MEMORY
-    #
-    # The target is a plastic foil.
-    #
-    # This is an estimate for how much memory is used per GPU if the whole
-    # target would be fully ionized but does not move much. Of course the real
-    # usage fluctuates and depends on the case. We use just one GPU out of the
-    # whole group that simulates the full box and we take one that contains a
-    # representative amount of the target.
-    #
+    """
+    This is a usage example of the ``MemoryCalculator`` class
+    for our :ref:`FoilLCT example <usage-examples-foilLCT>` and its ``4.cfg``.
 
-    cell_size = 4.402e-9  # m
-    time_step = 8.474e-18  # s
+    This is an estimate for how much memory is used per GPU if the whole
+    target would be fully ionized but does not move much. Of course the real
+    memory usage depends on the case and the dynamics inside the simulation.
+    We calculate the memory just one GPU out of the whole group that simulates
+    the full box and we take one that we expect to experience the maximum
+    memory load due to hosting a large part of the target.
+    """
 
-    target_thickness = 1.852e-6  # m
+    print("This is a usage example of the 'MemoryCalculator' class \n",
+        "using our 'FoilLCT' example and its '4.cfg' configuration file. \n")
+
+    cell_size = 0.8e-6 / 384. # 2.083e-9 m
+
+    y0 = 0.5e-6 # position of foil surface (m)
+    y1 = 1.0e-6 # target thickness (m)
+    L = 10.e-9 # pre-plasma scale length (m)
+    L_cutoff = 4.0 * L # pre-plasma length (m)
 
     # number of cells per GPU
-    Nx = 120
-    Ny = 1136
-    Nz = 76
+    Nx = 128
+    Ny = 640
+    Nz = 1
+
+    vacuum_cells = (y0 - L_cutoff) / cell_size # with pre-plasma: 221 cells
+    target_cells = (y1 - y0 + 2 * L_cutoff) / cell_size # 398 cells
 
     pmc = MemoryCalculator(Nx, Ny, Nz)
 
-    target_x = Nx
-    target_y = np.int(target_thickness / cell_size)
+    target_x = Nx # full transversal dimension of the GPU
+    target_y = target_cells # only the first row of GPUs holds the target
     target_z = Nz
 
     # typical number of particles per cell which is multiplied later for
     # each species and its relative number of particles
-    N_PPC = 4
+    N_PPC = 6
 
     print("Memory requirement per GPU:")
     # field memory per GPU
     field_gpu = pmc.mem_req_by_fields(Nx, Ny, Nz, field_tmp_slots=2,
-                                      particle_shape_order=3)
+                                      particle_shape_order=2)
     print("+ fields: {:.2f} MB".format(
         field_gpu / (1024 * 1024)))
+
+    # electron macroparticles per supercell
+    e_PPC = N_PPC * (
+        # H,C,N pre-ionization - higher weighting electrons
+        3 \
+        # electrons created from C ionization
+        + (6 - 2) \
+        # electrons created from N ionization
+        + (7 - 2)
+    )
     # particle memory per GPU - only the target area contributes here
     e_gpu = pmc.mem_req_by_particles(
-        target_x, target_y, target_z, num_additional_attributes=0,
-        # H,C,O preionization, 4 ppc
-        particles_per_cell=3 * N_PPC) \
-        + pmc.mem_req_by_particles(
-            target_x, target_y, target_z, num_additional_attributes=0,
-            # C and O are twice preionized
-            particles_per_cell=N_PPC * ((6 - 2) + (8 - 2)))
-    H_gpu = pmc.mem_req_by_particles(
         target_x, target_y, target_z,
         num_additional_attributes=0,
+        particles_per_cell=e_PPC
+        )
+    H_gpu = pmc.mem_req_by_particles(
+        target_x, target_y, target_z,
         # no bound electrons since H is preionized
-        particles_per_cell=N_PPC)
-    C_gpu = pmc.mem_req_by_particles(target_x, target_y, target_z,
-                                     num_additional_attributes=1,
-                                     particles_per_cell=N_PPC)
-    O_gpu = pmc.mem_req_by_particles(
+        num_additional_attributes=0,
+        particles_per_cell=N_PPC
+        )
+    C_gpu = pmc.mem_req_by_particles(
         target_x, target_y, target_z,
         num_additional_attributes=1,
-        particles_per_cell=N_PPC)
+        particles_per_cell=N_PPC
+        )
+    N_gpu = pmc.mem_req_by_particles(
+        target_x, target_y, target_z,
+        num_additional_attributes=1,
+        particles_per_cell=N_PPC
+        )
     # memory for calorimeters
-    cal_gpu = pmc.mem_req_by_calorimeter(n_energy=1024, n_yaw=180, n_pitch=90
-                                         ) * 2  # electrons and protons
+    cal_gpu = pmc.mem_req_by_calorimeter(
+        n_energy=1024, n_yaw=360, n_pitch=1
+    ) * 2  # electrons and protons
+    # memory for random number generator states
+    rng_gpu = pmc.mem_req_by_rng(Nx, Ny, Nz)
 
     print("+ species:")
     print("- e: {:.2f} MB".format(e_gpu / (1024 * 1024)))
     print("- H: {:.2f} MB".format(H_gpu / (1024 * 1024)))
     print("- C: {:.2f} MB".format(C_gpu / (1024 * 1024)))
-    print("- O: {:.2f} MB".format(O_gpu / (1024 * 1024)))
-    rng_gpu = pmc.mem_req_by_rng(Nx, Ny, Nz)
+    print("- N: {:.2f} MB".format(N_gpu / (1024 * 1024)))
     print("+ RNG states: {:.2f} MB".format(
         rng_gpu / (1024 * 1024)))
     print(
         "+ particle calorimeters: {:.2f} MB".format(
             cal_gpu / (1024 * 1024)))
 
-    mem_sum = field_gpu + e_gpu + H_gpu + C_gpu + O_gpu + rng_gpu + cal_gpu
+    mem_sum = field_gpu + e_gpu + H_gpu + C_gpu + N_gpu + rng_gpu + cal_gpu
     print("Sum of required GPU memory: {:.2f} MB".format(
         mem_sum / (1024 * 1024)))

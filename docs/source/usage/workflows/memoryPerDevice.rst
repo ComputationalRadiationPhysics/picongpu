@@ -1,7 +1,7 @@
-.. _usage-workflows-memoryPerAccelerator:
+.. _usage-workflows-memoryPerDevice:
 
-Calculating the memory requirement per accelerator
---------------------------------------------------
+Calculating the memory requirement per device
+---------------------------------------------
 
 .. sectionauthor:: Marco Garten
 
