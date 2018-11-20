@@ -73,7 +73,7 @@ PIConGPU was one of the **finalists** of the 2013
 [Gordon Bell Prize](http://sc13.supercomputing.org/content/acm-gordon-bell-prize).
 
 PIConGPU is developed and maintained by the
-[Computational Radiation Physics Group](http://www.hzdr.de/db/Cms?pNid=132&pOid=30354)
+[Computational Radiation Physics Group](https://www.hzdr.de/db/Cms?pNid=2097)
 at the [Institute for Radiation Physics](http://www.hzdr.de/db/Cms?pNid=132)
 at [HZDR](http://www.hzdr.de/) in close collaboration with the Center
 for Information Services and High Performance Computing
