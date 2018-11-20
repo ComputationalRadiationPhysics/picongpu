@@ -333,27 +333,27 @@ if __name__ == "__main__":
     """
 
     print("This is a usage example of the 'MemoryCalculator' class \n",
-        "using our 'FoilLCT' example and its '4.cfg' configuration file. \n")
+          "using our 'FoilLCT' example and its '4.cfg' configuration file. \n")
 
-    cell_size = 0.8e-6 / 384. # 2.083e-9 m
+    cell_size = 0.8e-6 / 384.  # 2.083e-9 m
 
-    y0 = 0.5e-6 # position of foil surface (m)
-    y1 = 1.0e-6 # target thickness (m)
-    L = 10.e-9 # pre-plasma scale length (m)
-    L_cutoff = 4.0 * L # pre-plasma length (m)
+    y0 = 0.5e-6  # position of foil surface (m)
+    y1 = 1.0e-6  # target thickness (m)
+    L = 10.e-9  # pre-plasma scale length (m)
+    L_cutoff = 4.0 * L  # pre-plasma length (m)
 
     # number of cells per GPU
     Nx = 128
     Ny = 640
     Nz = 1
 
-    vacuum_cells = (y0 - L_cutoff) / cell_size # with pre-plasma: 221 cells
-    target_cells = (y1 - y0 + 2 * L_cutoff) / cell_size # 398 cells
+    vacuum_cells = (y0 - L_cutoff) / cell_size  # with pre-plasma: 221 cells
+    target_cells = (y1 - y0 + 2 * L_cutoff) / cell_size  # 398 cells
 
     pmc = MemoryCalculator(Nx, Ny, Nz)
 
-    target_x = Nx # full transversal dimension of the GPU
-    target_y = target_cells # only the first row of GPUs holds the target
+    target_x = Nx  # full transversal dimension of the GPU
+    target_y = target_cells  # only the first row of GPUs holds the target
     target_z = Nz
 
     # typical number of particles per cell which is multiplied later for
@@ -381,23 +381,23 @@ if __name__ == "__main__":
         target_x, target_y, target_z,
         num_additional_attributes=0,
         particles_per_cell=e_PPC
-        )
+    )
     H_gpu = pmc.mem_req_by_particles(
         target_x, target_y, target_z,
         # no bound electrons since H is preionized
         num_additional_attributes=0,
         particles_per_cell=N_PPC
-        )
+    )
     C_gpu = pmc.mem_req_by_particles(
         target_x, target_y, target_z,
         num_additional_attributes=1,
         particles_per_cell=N_PPC
-        )
+    )
     N_gpu = pmc.mem_req_by_particles(
         target_x, target_y, target_z,
         num_additional_attributes=1,
         particles_per_cell=N_PPC
-        )
+    )
     # memory for calorimeters
     cal_gpu = pmc.mem_req_by_calorimeter(
         n_energy=1024, n_yaw=360, n_pitch=1
