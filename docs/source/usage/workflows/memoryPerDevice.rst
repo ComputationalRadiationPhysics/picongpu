@@ -12,7 +12,7 @@ The following paragraph shows the use of the ``MemoryCalculator`` for the ``4.cf
 
 .. literalinclude:: ./memoryPerDevice.py
     :language: python3
-    :lines: 26-
+    :lines: 11,26-
 
 This will give the following output:
 
