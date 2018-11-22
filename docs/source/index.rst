@@ -67,8 +67,8 @@ Usage
    usage/param
    usage/particles
    usage/plugins
-   usage/python
    usage/tbg
+   usage/python
    usage/examples
    usage/workflows
 
