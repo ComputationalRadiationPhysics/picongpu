@@ -210,7 +210,7 @@ public:
             typedef typename FilterFactory<usedFilters>::FilterType MyParticleFilter;
             MyParticleFilter filter;
             /* activate filter pipeline if moving window is activated */
-            filter.setStatus(MovingWindow::getInstance().isSlidingWindowActive());
+            filter.setStatus(MovingWindow::getInstance().isEnabled());
             filter.setWindowPosition(params->localWindowToDomainOffset,
                                      params->window.localDimensions.size);
 

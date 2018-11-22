@@ -117,6 +117,7 @@ public:
     cellDescription(nullptr),
     initialiserController(nullptr),
     slidingWindow(false),
+    endSlidingOnStep(-1),
     showVersionOnce(false)
     {
     }
@@ -143,7 +144,10 @@ public:
             ("periodic", po::value<std::vector<uint32_t> > (&periodic)->multitoken(),
              "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no periodic dimensions")
 
-            ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window");
+            ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window")
+            ("stopWindow", po::value<int32_t>(&endSlidingOnStep)->default_value(-1),
+                "stops the window at stimulation step, "
+                "-1 means that window is never stopping");
     }
 
     std::string pluginGetName() const
@@ -224,7 +228,10 @@ public:
 
         Environment<simDim>::get().initGrids(global_grid_size, gridSizeLocal, gridOffset);
 
-        MovingWindow::getInstance().setSlidingWindow(slidingWindow);
+        if (slidingWindow)
+            MovingWindow::getInstance().setEndSlideOnStep(endSlidingOnStep);
+        else
+            MovingWindow::getInstance().setEndSlideOnStep(0);
 
         log<picLog::DOMAINS > ("rank %1%; localsize %2%; localoffset %3%;") %
             myGPUpos.toString() % gridSizeLocal.toString() % gridOffset.toString();
@@ -238,7 +245,7 @@ public:
 
         if (gc.getGlobalRank() == 0)
         {
-            if (slidingWindow)
+            if (MovingWindow::getInstance().isEnabled())
                 log<picLog::PHYSICS > ("Sliding Window is ON");
             else
                 log<picLog::PHYSICS > ("Sliding Window is OFF");
@@ -807,6 +814,7 @@ protected:
     std::vector<std::string> gridDistribution;
 
     bool slidingWindow;
+    int32_t endSlidingOnStep;
     bool showVersionOnce;
 };
 } /* namespace picongpu */

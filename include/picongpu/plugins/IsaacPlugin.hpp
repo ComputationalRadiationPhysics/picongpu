@@ -374,7 +374,7 @@ private:
         {
             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
             MPI_Comm_size(MPI_COMM_WORLD, &numProc);
-            if ( MovingWindow::getInstance().isSlidingWindowActive() )
+            if ( MovingWindow::getInstance().isEnabled() )
                 movingWindow = true;
             float_X minCellSize = math::min( cellSize[0], math::min( cellSize[1], cellSize[2] ) );
             float3_X cellSizeFactor = cellSize / minCellSize;

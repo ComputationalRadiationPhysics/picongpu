@@ -83,7 +83,7 @@ public:
                 }
 
                 /* if sliding window is active we disable absorber on bottom side*/
-                if (MovingWindow::getInstance().isSlidingWindowActive() && i == BOTTOM) continue;
+                if (MovingWindow::getInstance().isSlidingWindowActive(currentStep) && i == BOTTOM) continue;
 
                 ExchangeMapping<GUARD, MappingDesc> mapper(cellDescription, i);
                 constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
