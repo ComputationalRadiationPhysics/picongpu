@@ -65,7 +65,6 @@ Usage
    usage/reference
    usage/basics
    usage/param
-   usage/particles
    usage/plugins
    usage/tbg
    usage/examples
