@@ -1,4 +1,4 @@
-.. _usage-particles:
+.. _usage-params-core-particles:
 
 Particles
 """""""""
@@ -9,7 +9,7 @@ Second, species are initialized with particles in :ref:`speciesInitialization.pa
 
 The following operations can be applied in the ``picongpu::particles::InitPipeline`` of the latter:
 
-.. _usage-particles-init:
+.. _usage-params-core-particles-init:
 
 Initialization
 ''''''''''''''
@@ -44,7 +44,7 @@ FillAllGaps
 .. doxygenstruct:: picongpu::particles::FillAllGaps
    :project: PIConGPU
 
-.. _usage-particles-manipulation:
+.. _usage-params-core-particles-manipulation:
 
 Manipulation Functors
 '''''''''''''''''''''
@@ -112,7 +112,7 @@ ProtonTimesWeighting
 .. doxygentypedef:: picongpu::particles::manipulators::binary::ProtonTimesWeighting
    :project: PIConGPU
 
-.. _usage-particles-filters:
+.. _usage-params-core-particles-filters:
 
 Manipulation Filters
 ''''''''''''''''''''

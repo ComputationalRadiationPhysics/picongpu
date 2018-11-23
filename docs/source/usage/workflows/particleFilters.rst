@@ -72,7 +72,7 @@ and add ``ParticlesForwardPinhole`` to the ``AllParticleFilters`` list:
 Limiting Filters to Eligible Species
 """"""""""""""""""""""""""""""""""""
 
-Besides :ref:`the list of pre-defined filters <usage-particles-filters>` with parametrization, users can also define generic, "free" implementations as shown above.
+Besides :ref:`the list of pre-defined filters <usage-params-core-particles-filters>` with parametrization, users can also define generic, "free" implementations as shown above.
 All filters are added to ``AllParticleFilters`` and then *combined with all available species* from ``VectorAllSpecies`` (see :ref:`speciesDefinition.param <usage-params-core>`).
 
 In the case of user-defined free filters we can now check if each species in ``VectorAllSpecies`` fulfills the requirements of the filter.

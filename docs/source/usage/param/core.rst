@@ -114,9 +114,9 @@ particle.param
    :path: include/picongpu/param/particle.param
    :no-link:
 
-More details on the order of initialization of particles inside a particle species :ref:`can be found here <usage-particles>`.
+More details on the order of initialization of particles inside a particle species :ref:`can be found here <usage-params-core-particles>`.
 
-:ref:`List of all pre-defined particle manipulators <usage-particles-manipulation>`.
+:ref:`List of all pre-defined particle manipulators <usage-params-core-particles-manipulation>`.
 
 unit.param
 ^^^^^^^^^^
@@ -134,7 +134,7 @@ particleFilters.param
    :path: include/picongpu/simulation_defines/param/particleFilters.param
    :no-link:
 
-:ref:`List of all pre-defined particle filters <usage-particles-filters>`.
+:ref:`List of all pre-defined particle filters <usage-params-core-particles-filters>`.
 
 speciesInitialization.param
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -144,7 +144,7 @@ speciesInitialization.param
    :path: include/picongpu/param/speciesInitialization.param
    :no-link:
 
-:ref:`List of all initialization methods for particle species <usage-particles-init>`.
+:ref:`List of all initialization methods for particle species <usage-params-core-particles-init>`.
 
 .. toctree::
    :maxdepth: 1
