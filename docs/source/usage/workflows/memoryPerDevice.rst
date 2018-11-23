@@ -16,6 +16,6 @@ The following paragraph shows the use of the ``MemoryCalculator`` for the ``4.cf
 
 This will give the following output:
 
-.. program-output:: ./usage/workflows/memoryPerDevice.py
+.. program-output:: bash -c "PYTHONPATH=$(pwd)/../../lib/python:$PYTHONPATH ./usage/workflows/memoryPerDevice.py"
 
 If you have a machine or cluster node with NVIDIA GPUs you can find out the available memory size by typing ``nvidia-smi`` on a shell.
