@@ -53,7 +53,7 @@ namespace generic
      *       )
      *       {
      *           bool result = false;
-     *           if( rng >= float_X( 0.5 ) )
+     *           if( rng() >= float_X( 0.5 ) )
      *               result = true;
      *           return result;
      *       }
