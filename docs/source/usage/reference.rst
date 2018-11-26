@@ -46,3 +46,7 @@ We therefore *rely on you* to show our community, diversity and usefulness, e.g.
     Please consider adding yourself to our `community map <https://github.com/ComputationalRadiationPhysics/picongpu-communitymap>`_!
 
 Thank you and enjoy PIConGPU and our community!
+
+.. raw:: html
+
+   <iframe src="https://computationalradiationphysics.github.io/picongpu-communitymap/" style="width:100%; height: 650px;" frameborder="0"></iframe>

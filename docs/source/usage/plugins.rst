@@ -36,7 +36,7 @@ Plugin name                                                                     
    plugins/*
 
 Period Syntax
-=============
+-------------
 
 Most plugins allow to define a period on how often a plugin shall be executed (notified).
 Its simple syntax is: ``<period>`` with a simple number.
@@ -52,7 +52,7 @@ Additionally, the following syntax allows to define intervals for periods:
 Multiple intervals can be combined via a comma separated list.
 
 Examples
---------
+^^^^^^^^
 
 * ``42`` every 42th time step
 * ``::`` equal to just writing ``1``, every time step from start (0) to the end of the simulation
@@ -62,7 +62,7 @@ Examples
 * ``5,10``: at steps 0 5 10 15 20 25 ... (only executed once per step in overlapping intervals)
 
 Python Postprocessing
-=====================
+---------------------
 
 In order to further work with the data produced by a plugin during a simulation run, PIConGPU provides python tools that can be used for reading data and visualization.
 They can be found under ``lib/python/picongpu/plugins``.

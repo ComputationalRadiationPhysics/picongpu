@@ -10,7 +10,7 @@ The acceptance of particles for counting in the energy histogram can be adjusted
 ^^^^^^^^^^^
 
 The :ref:`particleFilters.param <usage-params-core>` file allows to define accepted particles for the energy histogram.
-A typical :ref:`filter <usage-particles-filters>` could select particles within a specified :ref:`opening angle in forward direction <usage-workflows-particleFilters>`.
+A typical :ref:`filter <usage-params-core-particles-filters>` could select particles within a specified :ref:`opening angle in forward direction <usage-workflows-particleFilters>`.
 
 .cfg files
 ^^^^^^^^^^
