@@ -9,9 +9,6 @@ License: GPLv3+
 from picongpu.plugins.data import EnergyHistogramData
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
     BaseVisualizer
-from picongpu.plugins.plot_mpl.utils import get_different_colors
-
-import matplotlib.pyplot as plt
 
 
 class Visualizer(BaseVisualizer):
@@ -58,19 +55,6 @@ class Visualizer(BaseVisualizer):
         counts, bins = self.data[idx]
         self.plt_obj[idx].set_data(bins, counts)
 
-    def _legend(self):
-        # draw the legend only for those lines for which there is data.
-        # colors will not change in between simulations since they are
-        # tied to the data readers index directly.
-        handles = []
-        labels = []
-        for plt_obj, lab in zip(self.plt_obj, self.sim_labels):
-            if plt_obj is not None:
-                handles.append(plt_obj)
-                labels.append(lab)
-
-        self.ax.legend(handles, labels)
-
     def visualize(self, **kwargs):
         """
         Creates a semilogy plot on the provided axes object for
@@ -94,6 +78,7 @@ class Visualizer(BaseVisualizer):
         """
         super().visualize(**kwargs)
 
+    def adjust_plot(self, **kwargs):
         species = kwargs['species']
         species_filter = kwargs.get('species_filter', 'all')
 
@@ -104,6 +89,19 @@ class Visualizer(BaseVisualizer):
         self.ax.set_ylabel('Counts')
         self.ax.set_title('Energy Histogram for species ' +
                           species + ', filter = ' + species_filter)
+
+    def _legend(self):
+        # draw the legend only for those lines for which there is data.
+        # colors will not change in between simulations since they are
+        # tied to the data readers index directly.
+        handles = []
+        labels = []
+        for plt_obj, lab in zip(self.plt_obj, self.sim_labels):
+            if plt_obj is not None:
+                handles.append(plt_obj)
+                labels.append(lab)
+
+        self.ax.legend(handles, labels)
 
 
 if __name__ == '__main__':

@@ -67,12 +67,8 @@ class Visualizer(object):
         if run_directories is not None:
             self.set_run_directories(run_directories)
 
-    def set_run_directories(self, run_directories):
-        """
-        Prepare everything for a fresh start with new run_directories
-        """
-        run_directories = self._check_and_fix_run_dirs(run_directories)
-        # 0) clean the ax from previous data
+    def _init_members(self, run_directories):
+        # 0) clean the ax from previous data (own or other objects)
         self._clean_ax()
 
         # 1) get new labels
@@ -90,6 +86,14 @@ class Visualizer(object):
         # 5) set all colors or colormaps
         self._init_colors(run_directories)
 
+    def set_run_directories(self, run_directories):
+        """
+        Prepare everything for a fresh start with new run_directories
+        """
+        run_directories = self._check_and_fix_run_dirs(run_directories)
+
+        self._init_members(run_directories)
+
     def _clean_ax(self):
         """
         clear the ax and if available also clear possible colorbars
@@ -97,6 +101,8 @@ class Visualizer(object):
         """
         for idx in range(len(self.ax.images)):
             if self.ax.images[idx].colorbar is not None:
+                # this also removes the ax that the colorbar
+                # was plotted in from the figure!
                 self.ax.images[idx].colorbar.remove()
         self.ax.clear()
 
@@ -168,9 +174,12 @@ class Visualizer(object):
 
     def visualize(self, **kwargs):
         """
-        1. Creates the 'plt_obj' if it does not exist
-        2. Fills the 'data' parameter by using the reader
-        3. Updates the 'plt_obj' with the new data.
+        1. gathers the data for the selected kwargs
+        2. removes plot elements for sources which have no data
+        3. plot the data
+        3.a Creates the 'plt_obj' if it does not exist
+        3.b Updates the 'plt_obj' with the new data.
+        4. adjusts the plot
         """
         if self.data_reader is None:
             raise RuntimeError(
@@ -193,6 +202,17 @@ class Visualizer(object):
                 raise ValueError(
                     "This class only supports single iteration visualization!")
 
+        self.collect_data(**kwargs)
+
+        # first remove the stuff for which we don't have data from the ax
+        self.remove_plots_without_data()
+
+        # second plot everything for which we have data
+        self.draw_data()
+
+        self.adjust_plot(**kwargs)
+
+    def collect_data(self, **kwargs):
         # get the data for the given args from all the readers
         # and catch errors when iteration is not there
         for i, reader in enumerate(self.data_reader):
@@ -204,27 +224,36 @@ class Visualizer(object):
                 # is going to be None
                 self.data[i] = None
 
+    def remove_plots_without_data(self):
         for i, (plt_obj, data) in enumerate(zip(self.plt_obj, self.data)):
             if data is None:
                 # no data for the current combination of kwargs
                 # so we should just omit the data from this input file
                 warn("Data from {} is None! Will omit!".format(
-                    self.data_reader[i].run_directory))
+                    self.sim_labels[i]))
                 if plt_obj is not None:
                     self._remove_plt_obj(i)
-            else:
+
+    def draw_data(self):
+        for i, (plt_obj, data) in enumerate(zip(self.plt_obj, self.data)):
+            if data is not None:
                 # we have data and only decide about creating/updating
                 if plt_obj is None:
                     # create a new plot object for data from file i
                     self._create_plt_obj(i)
-
                 else:
                     # update the plot object i by updating its data
                     self._update_plt_obj(i)
+
+    def adjust_plot(self, **kwargs):
+        """
+        Executed after the plotting is done for adjusting legends etc...
+        """
+        pass
 
     def clear_cbar(self):
         """
         Clear colorbars if present. Should be implemented
         in derived classes that use colorbars.
         """
-        raise NotImplementedError
+        pass
