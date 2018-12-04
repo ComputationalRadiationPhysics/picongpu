@@ -27,7 +27,7 @@ class FindTime(object):
             raise ValueError('The run_directory parameter can not be None!')
 
         self.run_directory = run_directory
-        self.data_file = "output"
+        self.data_file = "stdout"
 
         self.dt = self.get_dt()
 
@@ -47,7 +47,7 @@ class FindTime(object):
                           'Did the simulation already run?'
                           .format(self.run_directory))
 
-        data_file_path = os.path.join(sim_output_dir, self.data_file)
+        data_file_path = os.path.join(self.run_directory, self.data_file)
         if not os.path.isfile(data_file_path):
             raise IOError('The file {} does not exist.\n'
                           'Did the simulation already run?'
