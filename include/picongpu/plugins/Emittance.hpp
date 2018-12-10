@@ -808,12 +808,9 @@ namespace picongpu
 
             // gather y offsets, so we can store our gathered data in the right order
             int gatherSize = -1;
-            int gatherRank = -1;
-            MPI_CHECK( MPI_Comm_rank( commGather, &gatherRank ) );
             MPI_CHECK( MPI_Comm_size( commGather, &gatherSize ) );
             std::vector< int > y_offsets( gatherSize );
             std::vector< int > y_sizes( gatherSize );
-            std::vector< int > gatherRanks( gatherSize );
             long int const y_off = subGrid.getLocalDomain( ).offset.y( );
             int const y_siz = subGrid.getLocalDomain( ).size.y( );
 
@@ -837,22 +834,12 @@ namespace picongpu
                 0,
                 commGather
             ) );
-            MPI_CHECK( MPI_Gather(
-                &gatherRank,
-                1,
-                MPI_INT,
-                gatherRanks.data( ),
-                1,
-                MPI_INT,
-                0,
-                commGather
-            ) );
 
 
             std::vector< int > recvcounts( gatherSize, 1 );
 
             MPI_CHECK( MPI_Gatherv(
-                gSumMom2->getHostBuffer( ).getBasePointer( ),
+                reducedSumMom2.getDataPointer( ),
                 subGrid.getLocalDomain( ).size.y( ),
                 MPI_DOUBLE,
                 globalSumMom2.getDataPointer( ),
@@ -863,7 +850,7 @@ namespace picongpu
                 commGather
             ) );
             MPI_CHECK( MPI_Gatherv(
-                gSumPos2->getHostBuffer( ).getBasePointer( ),
+                reducedSumPos2.getDataPointer( ),
                 subGrid.getLocalDomain( ).size.y( ),
                 MPI_DOUBLE,
                 globalSumPos2.getDataPointer( ),
@@ -874,7 +861,7 @@ namespace picongpu
                 commGather
             ) );
             MPI_CHECK( MPI_Gatherv(
-                gSumMomPos->getHostBuffer( ).getBasePointer( ),
+                reducedSumMomPos.getDataPointer( ),
                 subGrid.getLocalDomain( ).size.y( ),
                 MPI_DOUBLE,
                 globalSumMomPos.getDataPointer( ),
@@ -885,7 +872,7 @@ namespace picongpu
                 commGather
             ) );
             MPI_CHECK( MPI_Gatherv(
-                gCount_e->getHostBuffer( ).getBasePointer( ),
+                reducedCount_e.getDataPointer( ),
                 subGrid.getLocalDomain( ).size.y( ),
                 MPI_DOUBLE,
                 globalCount_e.getDataPointer( ),
