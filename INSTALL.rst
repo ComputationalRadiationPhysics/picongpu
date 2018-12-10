@@ -171,29 +171,44 @@ CUDA
 If you do not install the following libraries, you will not have the full amount of PIConGPU plugins.
 We recommend to install at least **pngwriter** and either **libSplash** (+ **HDF5**) or **ADIOS**.
 
+libpng
+""""""
+- 1.2.9+ (requires *zlib*)
+- *Debian/Ubuntu dependencies:* ``sudo apt-get install libpng-dev``
+- *Arch Linux dependencies:* ``sudo pacman --sync libpng``
+- *Spack:* ``spack install libpng``
+- *from source:*
+
+  - ``mkdir -p ~/src ~/lib``
+  - ``cd ~/src``
+  - ``curl -Lo libpng-1.6.34.tar.gz ftp://ftp-osl.osuosl.org/pub/libpng/src/libpng16/libpng-1.6.34.tar.gz``
+  - ``tar -xf libpng-1.6.34.tar.gz``
+  - ``cd libpng-1.6.34``
+  - ``CPPFLAGS=-I$HOME/lib/zlib/include LDFLAGS=-L$HOME/lib/zlib/lib ./configure --enable-static --enable-shared --prefix=$HOME/lib/libpng``
+  - ``make``
+  - ``make install``
+- *environment:* (assumes install from source in ``$HOME/lib/libpng``)
+
+  - ``export PNG_ROOT=$HOME/lib/libpng``
+  - ``export CMAKE_PREFIX_PATH=$PNG_ROOT:$CMAKE_PREFIX_PATH``
+  - ``export LD_LIBRARY_PATH=$PNG_ROOT/lib:$LD_LIBRARY_PATH``
+
 pngwriter
 """""""""
-- 0.7.0+
+- 0.7.0+ (requires *libpng*, *zlib*, and optional *freetype*)
 - *Spack:* ``spack install pngwriter``
 - *from source:*
 
-  - download from `github.com/pngwriter/pngwriter <https://github.com/pngwriter/pngwriter>`_
-  - Requires `libpng <http://www.libpng.org>`_
+  - ``mkdir -p ~/src ~/build ~/lib``
+  - ``git clone https://github.com/pngwriter/pngwriter.git ~/src/pngwriter/``
+  - ``cd ~/build``
+  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/pngwriter ~/src/pngwriter``
+  - ``make install``
 
-    - *Debian/Ubuntu:* ``sudo apt-get install libpng-dev``
-    - *Arch Linux:* ``sudo pacman --sync libpng``
-  - example:
+- *environment:* (assumes install from source in ``$HOME/lib/pngwriter``)
 
-    - ``mkdir -p ~/src ~/build ~/lib``
-    - ``git clone https://github.com/pngwriter/pngwriter.git ~/src/pngwriter/``
-    - ``cd ~/build``
-    - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/pngwriter ~/src/pngwriter``
-    - ``make install``
-
-  - *environment:* (assumes install from source in ``$HOME/lib/pngwriter``)
-
-    - ``export CMAKE_PREFIX_PATH=$HOME/lib/pngwriter:$CMAKE_PREFIX_PATH``
-    - ``export LD_LIBRARY_PATH=$HOME/lib/pngwriter/lib:$LD_LIBRARY_PATH``
+  - ``export CMAKE_PREFIX_PATH=$HOME/lib/pngwriter:$CMAKE_PREFIX_PATH``
+  - ``export LD_LIBRARY_PATH=$HOME/lib/pngwriter/lib:$LD_LIBRARY_PATH``
 
 libSplash
 """""""""
@@ -205,7 +220,7 @@ libSplash
 
   - ``mkdir -p ~/src ~/build ~/lib``
   - ``git clone https://github.com/ComputationalRadiationPhysics/libSplash.git ~/src/splash/``
-  - ``cd ~/build``
+  - ``cd ~/build && rm -rf ../build/*``
   - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/splash -DSplash_USE_MPI=ON -DSplash_USE_PARALLEL=ON ~/src/splash``
   - ``make install``
 
@@ -223,7 +238,7 @@ HDF5
 - *Spack:* ``spack install hdf5~fortran``
 - *from source:*
 
-  - ``mkdir -p ~/src ~/build ~/lib``
+  - ``mkdir -p ~/src ~/lib``
   - ``cd ~/src``
   - download hdf5 source code from `release list of the HDF5 group <https://www.hdfgroup.org/ftp/HDF5/releases/>`_, for example:
 
@@ -263,9 +278,31 @@ png2gas
 - converts png files to hdf5 files that can be used as an input for species initial density profiles
 - compile and install exactly as *splash2txt* above
 
+c-blosc
+"""""""
+- general purpose compressor, used in ADIOS for in situ data reduction
+- *Debian/Ubuntu:* ``sudo apt-get install libblosc-dev``
+- *Arch Linux:* ``sudo pacman --sync blosc``
+- *Spack:* ``spack install c-blosc``
+- *from source:*
+
+  - ``mkdir -p ~/src ~/build ~/lib``
+  - ``cd ~/src``
+  - ``curl -Lo c-blosc-1.15.0.tar.gz https://github.com/Blosc/c-blosc/archive/v1.15.0.tar.gz``
+  - ``tar -xzf c-blosc-1.15.0.tar.gz``
+  - ``cd ~/build && rm -rf ../build/*``
+  - ``cmake -DCMAKE_INSTALL_PREFIX=$HOME/lib/c-blosc -DPREFER_EXTERNAL_ZLIB=ON ~/src/c-blosc-1.15.0/``
+  - ``make``
+  - ``make install``
+- *environment:* (assumes install from source in ``$HOME/lib/c-blosc``)
+
+  - ``export BLOSC_ROOT=$HOME/lib/c-blosc``
+  - ``export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH``
+  - ``export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH``
+
 ADIOS
 """""
-- 1.13.1+ (requires *MPI* and *zlib*)
+- 1.13.1+ (requires *MPI*, *zlib* and *c-blosc*)
 - *Debian/Ubuntu:* ``sudo apt-get install libadios-dev libadios-bin``
 - *Arch Linux* using an `AUR helper <https://wiki.archlinux.org/index.php/AUR_helpers>`_: ``pacaur --sync libadios``
 - *Arch Linux* using the `AUR <https://wiki.archlinux.org/index.php/Arch_User_Repository>`_ manually:
@@ -277,12 +314,12 @@ ADIOS
 - *Spack:* ``spack install adios``
 - *from source:*
 
-  - ``mkdir -p ~/src ~/build ~/lib``
+  - ``mkdir -p ~/src ~/lib``
   - ``cd ~/src``
   - ``curl -Lo adios-1.13.1.tar.gz http://users.nccs.gov/~pnorbert/adios-1.13.1.tar.gz``
   - ``tar -xzf adios-1.13.1.tar.gz``
   - ``cd adios-1.13.1``
-  - ``CFLAGS="-fPIC" ./configure --enable-static --enable-shared --prefix=$HOME/lib/adios --with-mpi=$MPI_ROOT --with-zlib=/usr``
+  - ``CFLAGS="-fPIC" ./configure --enable-static --enable-shared --prefix=$HOME/lib/adios --with-mpi=$MPI_ROOT --with-zlib=$HOME/lib/zlib --with-blosc=$HOME/lib/c-blosc``
   - ``make``
   - ``make install``
 - *environment:* (assumes install from source in ``$HOME/lib/adios``)
