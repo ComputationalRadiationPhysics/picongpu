@@ -90,6 +90,7 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 # test if cuda_memtest binary is available and we have the node exclusive
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
@@ -101,5 +102,5 @@ fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  mpiexec !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+  mpiexec !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi

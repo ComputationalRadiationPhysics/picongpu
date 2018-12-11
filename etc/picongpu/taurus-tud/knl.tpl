@@ -80,6 +80,7 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 # Run PIConGPU
-NUMA_HW_THREADS_PER_PHYSICAL_CORE=!TBG_hardwareThreadsPerCore mpiexec !TBG_dstPath/input/etc/picongpu/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+NUMA_HW_THREADS_PER_PHYSICAL_CORE=!TBG_hardwareThreadsPerCore mpiexec !TBG_dstPath/input/etc/picongpu/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
