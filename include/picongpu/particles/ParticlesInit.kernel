@@ -229,7 +229,10 @@ namespace picongpu
                         totalCellOffset
                     );
 
-                    float_X const realParticlesPerCell = realDensity * CELL_VOLUME;
+                    /** @bug volatile is required for CUDA 9.2 and sm_60 else the compiler will
+                     * optimize out `if(realParticlesPerCell > 0.0_X)` later on.
+                     */
+                    volatile float_X const realParticlesPerCell = realDensity * CELL_VOLUME;
 
                     // create an independent position functor for each cell in the supercell
                     positionFunctorCtx[ idx ] = positionFunctor(
@@ -238,8 +241,9 @@ namespace picongpu
                         WorkerCfg< cellsPerSupercell >{ linearIdx }
                     );
 
-                    numParsPerCellCtx[ idx ] =
-                        positionFunctorCtx[ idx ].template numberOfMacroParticles< ParticleType >( realParticlesPerCell );
+                    if(realParticlesPerCell > 0.0_X)
+                        numParsPerCellCtx[ idx ] =
+                            positionFunctorCtx[ idx ].template numberOfMacroParticles< ParticleType >( realParticlesPerCell );
 
                     if( numParsPerCellCtx[ idx ] > 0 )
                         nvidia::atomicAllExch(
