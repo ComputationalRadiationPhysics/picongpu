@@ -90,6 +90,7 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 # openmpi/1.6.5 is not GPU aware and handles pinned memory correctly incorrectly
 #   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
@@ -105,5 +106,5 @@ fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  mpirun !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+  mpirun !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi
