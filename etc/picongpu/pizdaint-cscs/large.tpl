@@ -76,6 +76,7 @@ unset MODULES_NO_OUTPUT
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 # test if cuda_memtest binary is available
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then

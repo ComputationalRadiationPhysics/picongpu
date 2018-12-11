@@ -80,6 +80,7 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 # we are not sure if the current bullxmpi/1.2.4.3 catches pinned memory correctly
 #   support ticket [Ticket:2014052241001186] srun: mpi mca flags
@@ -96,6 +97,6 @@ fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  srun -K1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+  srun -K1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi
 

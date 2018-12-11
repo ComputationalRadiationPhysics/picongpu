@@ -79,11 +79,12 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 #wait that all nodes see ouput folder
 sleep 1
 
 # Run PIConGPU
-srun -K1 !TBG_dstPath/tbg/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+srun -K1 !TBG_dstPath/tbg/cpuNumaStarter.sh !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 
 
