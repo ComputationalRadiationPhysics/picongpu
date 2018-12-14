@@ -1,9 +1,9 @@
-.. _usage-plugins-particleCalorimeter:
+.. _usage-plugins-sliceEmittance:
 
 Slice Emittance
---------------------
+---------------
 
-The plug-in computes the total emittance and the slice emittance (for ten combined cells in the longitudinal direction).
+The plugin computes the total emittance and the slice emittance (for ten combined cells in the longitudinal direction).
 
 Currently, it outputs only the emittance of the transverse momentum space x-px.
 
@@ -16,19 +16,19 @@ None
 .param file
 ^^^^^^^^^^^
 
-None for now - update concerning setting the ten cells stride might come in the future
+None for now. In the future, adding more compile-time configurations might become necessary  (e.g., striding of data output). 
 
 
 .cfg file
 ^^^^^^^^^
 
-All options are denoted for the photon (``e``) particle species here.
+All options are denoted for the electron (``e``) particle species here.
 
 
 ================================== =========================================================================================
 PIConGPU command line option       Description
 ================================== =========================================================================================
-``--e_emittance.period arg``       compute slice emittance[for each n-th step] enable plugin by setting a non-zero value
+``--e_emittance.period arg``       compute slice emittance [for each n-th step], enable plugin by setting a non-zero value
                                    A value of ``100`` would mean an output at simulation time step *0, 100, 200, ...*.
 ``--e_emittance.filter arg``       Use filtered particles. All available filters will be shown with ``picongpu --help``
 ================================== =========================================================================================
@@ -41,7 +41,7 @@ Memory Complexity
 Accelerator
 """""""""""
 
-Each `x^2`, `p_x^2` and `x * p_x` summation value needs to be stored as `float_X` for each y-cell.
+Each ``x^2``, ``p_x^2`` and ``x * p_x`` summation value needs to be stored as ``float_X`` for each y-cell.
 
 Host
 """"
