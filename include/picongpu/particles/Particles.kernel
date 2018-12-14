@@ -27,6 +27,7 @@
 
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
