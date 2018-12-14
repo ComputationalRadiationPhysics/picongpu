@@ -63,13 +63,13 @@
 namespace picongpu
 {
 
-    /** calculates the emittance in x direction
+    /** calculates the emittance in x direction along the y axis
      */
     template< uint32_t T_numWorkers >
     struct KernelCalcEmittance
     {
 
-        /** calculates the sum of x^2, ux^2 and (x*ux) and counts electrons
+        /** calculates the sum of x^2, ux^2 and x*ux and counts electrons
          *
          * @tparam T_ParBox pmacc::ParticlesBox, particle box type
          * @tparam T_DBox pmacc::DataBox, type of the memory box for the reduced values
@@ -114,7 +114,7 @@ namespace picongpu
 
             using FramePtr = typename T_ParBox::FramePtr;
 
-            // shared sums of x^2, ux^2, (x*ux), particle counter
+            // shared sums of x^2, ux^2, x*ux, particle counter
             PMACC_SMEM(
                 acc,
                 shSumMom2,
@@ -165,7 +165,7 @@ namespace picongpu
                     uint32_t const
                 )
                 {
-                    // set shared sums of x^2, ux^2, (x*ux), particle counter to zero
+                    // set shared sums of x^2, ux^2, x*ux, particle counter to zero
                     shSumMom2[ linearIdx ] = 0.0_X;
                     shSumPos2[ linearIdx ] = 0.0_X;
                     shSumMomPos[ linearIdx ] = 0.0_X;
@@ -219,7 +219,7 @@ namespace picongpu
 
                 forEachParticle(
                     [ & ](
-                        uint32_t const linearIdx,
+                        uint32_t const,
                         uint32_t const idx
                     )
                     {
@@ -545,7 +545,7 @@ namespace picongpu
                 std::vector< int > planeReduceRootRanks( gc.getGlobalSize( ), -1 );
                 /* Am I one of the planeReduce root ranks? my global rank : -1 */
                 int myRootRank = gc.getGlobalRank( ) * isPlaneReduceRoot
-                    - ( ! isPlaneReduceRoot );
+                    - ( !isPlaneReduceRoot );
 
                 MPI_Group world_group, new_group;
                 MPI_CHECK(
@@ -556,7 +556,7 @@ namespace picongpu
                         planeReduceRootRanks.data( ),
                         1,
                         MPI_INT,
-                        MPI_COMM_WORLD
+                        gc.getCommunicator().getMPIComm()
                     )
                 );
 
@@ -571,9 +571,9 @@ namespace picongpu
                     planeReduceRootRanks.end( )
                 );
 
-                MPI_CHECK( MPI_Comm_group( MPI_COMM_WORLD, &world_group ) );
+                MPI_CHECK( MPI_Comm_group( gc.getCommunicator().getMPIComm(), &world_group ) );
                 MPI_CHECK( MPI_Group_incl( world_group, ranks.size( ), ranks.data( ), &new_group ) );
-                MPI_CHECK( MPI_Comm_create( MPI_COMM_WORLD, new_group, &commGather ) );
+                MPI_CHECK( MPI_Comm_create( gc.getCommunicator().getMPIComm(), new_group, &commGather ) );
                 MPI_CHECK( MPI_Group_free( &new_group ) );
                 MPI_CHECK( MPI_Group_free( &world_group ) );
             }
@@ -703,7 +703,6 @@ namespace picongpu
                 true
             );
 
-            // initialize global gSum... with zero
             gSumMom2->getDeviceBuffer( ).setValue( 0.0 );
             gSumPos2->getDeviceBuffer( ).setValue( 0.0 );
             gSumMomPos->getDeviceBuffer( ).setValue( 0.0 );

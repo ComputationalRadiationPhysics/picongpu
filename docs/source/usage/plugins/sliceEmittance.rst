@@ -41,7 +41,8 @@ Memory Complexity
 Accelerator
 """""""""""
 
-Each ``x^2``, ``p_x^2`` and ``x * p_x`` summation value needs to be stored as ``float_X`` for each y-cell.
+Each ``x^2``, ``p_x^2`` and ``x * p_x`` summation value as well as the number of real electrons ``gCount_e`` needs to be stored 
+as ``float_64`` for each y-cell.
 
 Host
 """"
