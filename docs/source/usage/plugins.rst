@@ -24,6 +24,7 @@ Plugin name                                                                     
 :ref:`positions particles <usage-plugins-positionsParticles>` [#f1]_ [#f5]_ [#f6]_   save trajectory, momentum, ... of a *single* particle
 :ref:`radiation <usage-plugins-radiation>` [#f3]_                                    compute emitted electromagnetic spectra
 :ref:`resource log <usage-plugins-resourceLog>`                                      monitor used hardware resources & memory
+:ref:`slice emittance <usage-plugins-sliceEmittance>`                                compute emittance and slice emittance of particles
 :ref:`slice field printer <usage-plugins-sliceFieldPrinter>` [#f5]_                  print out a slice of the electric and/or magnetic and/or current field
 :ref:`sum currents <usage-plugins-sumCurrents>`                                      compute the total current summed over all cells
 ==================================================================================== =======================================================================
