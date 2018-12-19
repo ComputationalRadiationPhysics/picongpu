@@ -190,6 +190,8 @@ class Visualizer(BaseVisualizer):
 
         """
         self.cur_iteration = kwargs.get('iteration')
+        # passing iteration=None to your DataReader requests all iterations,
+        # which is what we want here.
         kwargs['iteration'] = None
         # this already throws error if no species or iteration in kwargs
         super().visualize(**kwargs)

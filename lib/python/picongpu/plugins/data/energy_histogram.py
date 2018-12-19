@@ -177,4 +177,4 @@ class EnergyHistogramData(DataReader):
         if len(iteration) > 1:
             return data.loc[iteration].values, bins, iteration, dt
         else:
-            return data.loc[iteration].values[0, :], bins
+            return data.loc[iteration].values[0, :], bins, iteration, dt
