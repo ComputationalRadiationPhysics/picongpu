@@ -203,7 +203,7 @@ class Visualizer(BaseVisualizer):
             i for i, cbar in enumerate(self.colorbars) if cbar is not None][0]
         self.colorbars[idx].ax.text(
             -1.2, 0.5,
-            r'emittance [Counts]',
+            r'Counts',
             ha='center', va='center',
             transform=self.colorbar_axes[idx].transAxes,
             rotation=270)
