@@ -148,7 +148,9 @@ public:
             ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window")
             ("stopWindow", po::value<int32_t>(&endSlidingOnStep)->default_value(-1),
                 "stops the window at stimulation step, "
-                "-1 means that window is never stopping");
+                "-1 means that window is never stopping")
+            ("autoAdjustGrid", po::value<bool>(&autoAdjustGrid)->default_value(true),
+                "auto adjust the grid size if PIConGPU conditions are not fulfilled");
     }
 
     std::string pluginGetName() const
@@ -233,6 +235,10 @@ public:
             isPeriodic,
             slidingWindow
         );
+
+        if(!autoAdjustGrid)
+            domainAdjuster.validateOnly();
+
         domainAdjuster(gridSizeGlobal, gridSizeLocal, gridOffset);
 
         Environment<simDim>::get().initGrids(gridSizeGlobal, gridSizeLocal, gridOffset);
@@ -787,6 +793,7 @@ protected:
     bool slidingWindow;
     int32_t endSlidingOnStep;
     bool showVersionOnce;
+    bool autoAdjustGrid = true;
 };
 } /* namespace picongpu */
 

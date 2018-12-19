@@ -30,6 +30,7 @@
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/mpi/GetMPI_StructAsArray.hpp>
 
+#include <stdexcept>
 #include <array>
 
 
@@ -106,6 +107,16 @@ namespace picongpu
             localDomainOffset = m_localDomainOffset;
         }
 
+        /** only validate conditions
+         *
+         * Disable domain sizes auto adjustment.
+         * The domain condition will be still checked.
+         */
+        void validateOnly()
+        {
+            m_validateOnly = true;
+        }
+
     private:
 
         /** update local domain offset
@@ -177,9 +188,12 @@ namespace picongpu
 
             if( validLocalSize != m_localDomainSize[ dim ] )
             {
-                std::cout << "Dimension " << dimNames[ dim ] <<
-                    ": local grid size is not a multiple of supercell size. Adjust from " <<
-                    m_localDomainSize[ dim ] << " to " <<  validLocalSize << std::endl;
+                showMessage(
+                    dim,
+                    "Local grid size is not a multiple of supercell size.",
+                    m_localDomainSize[ dim ],
+                    validLocalSize
+                );
 
                 m_localDomainSize[ dim ] = validLocalSize;
             }
@@ -198,9 +212,12 @@ namespace picongpu
             if( numSuperCells < 3 )
             {
                 int newLocalDomainSize = 3 * SuperCellSize::toRT()[ dim ];
-                std::cout << "Dimension " << dimNames[ dim ] <<
-                    ": local grid size is not containing at least 3 supercells. Adjust from " <<
-                    m_localDomainSize[ dim ] << " to " <<  newLocalDomainSize << std::endl;
+                showMessage(
+                    dim,
+                    "Local grid size is not containing at least 3 supercells.",
+                    m_localDomainSize[ dim ],
+                    newLocalDomainSize
+                );
 
                 m_localDomainSize[ dim ] = newLocalDomainSize;
             }
@@ -248,10 +265,13 @@ namespace picongpu
 
                 if( validLocalSize != m_localDomainSize[ dim ] )
                 {
-                    std::cout << "Dimension " << dimNames[ dim ] <<
-                        ": local grid size must be greater or equal than the largest absorber. Adjust from " <<
-                        m_localDomainSize[ dim ] << " to " <<  validLocalSize << std::endl;
-                    
+                    showMessage(
+                        dim,
+                        "Local grid size must be greater or equal than the largest absorber.",
+                        m_localDomainSize[ dim ],
+                        validLocalSize
+                    );
+
                     m_localDomainSize[ dim ] = validLocalSize;
                 }
             }
@@ -293,9 +313,12 @@ namespace picongpu
                 // local size must be equal for all devices in y direction
                 if( m_isMaster && globalMax != globalMin )
                 {
-                    std::cout << "Dimension " << dimNames[ dim ] <<
-                        ": local grid size must be equal for all devices because moving window is enabled. Adjust from " <<
-                        m_localDomainSize[ dim ] << " to " <<  globalMax << std::endl;
+                    showMessage(
+                        dim,
+                        "Local grid size must be equal for all devices because moving window is enabled.",
+                        m_localDomainSize[ dim ],
+                        globalMax
+                    );
                 }
 
                 m_localDomainSize[ dim ] = globalMax;
@@ -342,12 +365,50 @@ namespace picongpu
 
             if( m_isMaster && validGlobalGridSize != static_cast< uint64_t >( m_globalDomainSize[ dim ] ) )
             {
-                    std::cout << "Dimension " << dimNames[ dim ] <<
-                        ": global grid size adjusted from " <<
-                        m_globalDomainSize[ dim ] << " to " <<  validGlobalGridSize << std::endl;
+                showMessage(
+                    dim,
+                    "Invalid global grid size.",
+                    m_globalDomainSize[ dim ],
+                    validGlobalGridSize
+                );
             }
 
             m_globalDomainSize[ dim ] = static_cast< int >( validGlobalGridSize );
+        }
+
+        /** print a message to the user
+         *
+         * Throw an error with the message if is validateOnly was called.
+         *
+         * @param dim dimension index which was checked
+         * @param msg problem description
+         * @param currentSize current domain size in the given direction
+         * @param updatedSize updated/corrected domain size for the given dimension
+         */
+        void showMessage(
+            size_t const dim,
+            std::string const & msg,
+            int const currentSize,
+            int const updatedSize
+        ) const
+        {
+            /**! lookup table to translate a dimension index into a name
+             *
+             * \warning `= { { ... } }` is not required by the c++11 standard but
+             * is necessary for g++ 4.9
+             */
+            std::array< char, 3 > const dimNames = { { 'x', 'y', 'z' } };
+
+            if( m_validateOnly )
+                throw std::runtime_error(
+                    std::string( "Dimension " ) + dimNames[ dim ] + ": " +
+                    msg + " Suggestion: set " + std::to_string( currentSize ) +
+                    " to " + std::to_string( updatedSize )
+                );
+            else
+                std::cout << "Dimension " << dimNames[ dim ] << ": " <<
+                    msg << " Auto adjust from " <<
+                    currentSize << " to " << updatedSize << std::endl;
         }
 
         DataSpace< simDim > m_globalDomainSize;
@@ -358,12 +419,9 @@ namespace picongpu
         DataSpace< simDim > const m_isPeriodic;
         bool const m_movingWindowEnabled;
         bool const m_isMaster;
-        /**! lookup table to translate a dimension index into a name
-         *
-         * \warning `= { { ... } }` is not required by the c++11 standard but
-         * is necessary for g++ 4.9
-         */
-        std::array< char, 3 > dimNames = { { 'x', 'y', 'z' } };
+
+        //! if true it will only validate the conditions
+        bool m_validateOnly = false;
     };
 
 } // namespace picongpu
