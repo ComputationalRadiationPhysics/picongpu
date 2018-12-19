@@ -2,13 +2,15 @@
 This file is part of the PIConGPU.
 
 Copyright 2017-2018 PIConGPU contributors
-Authors: Sebastian Starke
+Authors: Sophie Rudat, Sebastian Starke
 License: GPLv3+
 """
 
-from picongpu.plugins.data import EnergyHistogramData
+from picongpu.plugins.data import EmittanceData
 from picongpu.plugins.plot_mpl.base_visualizer import Visualizer as\
     BaseVisualizer
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Visualizer(BaseVisualizer):
@@ -20,7 +22,7 @@ class Visualizer(BaseVisualizer):
         """
         Parameters
         ----------
-        run_directories: list of tuples of length 2
+        run_directory : list of tuples of length 2
             or single tuple of length 2.
             Each tuple is of the following form (sim_name, sim_path)
             and consists of strings.
@@ -31,29 +33,46 @@ class Visualizer(BaseVisualizer):
             later on via set_run_directories() before calling visualize().
         ax: matplotlib.axes
         """
-        super().__init__(EnergyHistogramData, run_directories, ax)
+        super().__init__(EmittanceData, run_directories, ax)
+        self.plt_lin = None  # plots line at current itteration
+        self.cur_iteration = None
 
     def _create_plt_obj(self, idx):
         """
         Implementation of base class function.
         Turns 'self.plt_obj' into a matplotlib.pyplot.plot object.
         """
-        # NOTE: for ax.semilogy one can also provide matrices Bins, Counts
-        # where columns are the separate data to be plotted.
-        # Returned would then be a list of plt_objects
-
-        counts, bins, iteration, dt = self.data[idx]
+        emit, y_slices, all_iterations, dt = self.data[idx]
         label = self.sim_labels[idx]
-        self.plt_obj[idx] = self.ax.semilogy(
-            bins, counts, nonposy='clip', label=label,
-            color=self.colors[idx])[0]
+        np_data = np.zeros(len(all_iterations))
+        for index, ts in enumerate(all_iterations):
+            np_data[index] = emit[index][0]
+        ps = 1.e12  # for conversion from s to ps
+        # np_data * 1.e6 converts emittance to pi mm mrad
+        self.plt_obj[idx], = self.ax.plot(all_iterations * dt * ps,
+                                          np_data * 1.e6, scalex=True,
+                                          scaley=True, label=label,
+                                          color=self.colors[idx])
+        if self.cur_iteration:
+            self.plt_lin = self.ax.axvline(self.cur_iteration * dt * ps,
+                                           color='#FF6600')
 
     def _update_plt_obj(self, idx):
         """
         Implementation of base class function.
         """
-        counts, bins, iteration, dt = self.data[idx]
-        self.plt_obj[idx].set_data(bins, counts)
+        emit, y_slices, all_iterations, dt = self.data[idx]
+        np_data = np.zeros(len(all_iterations))
+        for index, ts in enumerate(all_iterations):
+            np_data[index] = emit[index][0]
+        if self.plt_lin:
+            self.plt_lin.remove()
+        ps = 1.e12  # for conversion from s to ps
+        # np_data * 1.e6 converts emittance to pi mm mrad
+        self.plt_obj[idx].set_data(all_iterations * dt * ps, np_data * 1.e6)
+        if self.cur_iteration:
+            self.plt_lin = self.ax.axvline(self.cur_iteration * dt * ps,
+                                           color='#FF6600')
 
     def visualize(self, **kwargs):
         """
@@ -68,26 +87,26 @@ class Visualizer(BaseVisualizer):
                 (defined in ``speciesDefinition.param``)
             iteration: int
                 number of the iteration
-            time: float
-                simulation time.
-                Only one of 'iteration' or 'time' should be passed!
             species_filter: string
                 name of the particle species filter, default is 'all'
                 (defined in ``particleFilters.param``)
 
         """
+        self.cur_iteration = kwargs.get('iteration')
+        # passing iteration=None to your DataReader requests all iterations,
+        # which is what we want here.
+        kwargs['iteration'] = None
         super().visualize(**kwargs)
 
     def adjust_plot(self, **kwargs):
         species = kwargs['species']
         species_filter = kwargs.get('species_filter', 'all')
-
         self._legend()
         self.ax.relim()
         self.ax.autoscale_view(True, True, True)
-        self.ax.set_xlabel('Energy [keV]')
-        self.ax.set_ylabel('Counts')
-        self.ax.set_title('Energy Histogram for species ' +
+        self.ax.set_xlabel('time [ps]')
+        self.ax.set_ylabel(r'emittance [$\mathrm{\pi mm mrad}$]')
+        self.ax.set_title('emittance for species ' +
                           species + ', filter = ' + species_filter)
 
     def _legend(self):
@@ -100,7 +119,6 @@ class Visualizer(BaseVisualizer):
             if plt_obj is not None:
                 handles.append(plt_obj)
                 labels.append(lab)
-
         self.ax.legend(handles, labels)
 
 
@@ -109,14 +127,13 @@ if __name__ == '__main__':
     def main():
         import sys
         import getopt
-        import matplotlib.pyplot as plt
 
         def usage():
             print("usage:")
             print(
                 "python", sys.argv[0],
-                "-p <path to run_directory> -i <iteration>"
-                " -s <particle species> -f <species_filter>")
+                "-p <path to run_directory>"
+                " -s <particle species> -f <species_filter> -i <iteration>")
 
         path = None
         iteration = None
@@ -145,8 +162,8 @@ if __name__ == '__main__':
                 filtr = arg
 
         # check that we got all args that we need
-        if path is None or iteration is None:
-            print("Path to 'run' directory and iteration have to be provided!")
+        if path is None:
+            print("Path to 'run' directory has to be provided!")
             usage()
             sys.exit(2)
         if species is None:
@@ -156,7 +173,7 @@ if __name__ == '__main__':
             filtr = 'all'
             print("Species filter was not given, will use", filtr)
 
-        _, ax = plt.subplots(1, 1)
+        fig, ax = plt.subplots(1, 1)
         Visualizer(path, ax).visualize(iteration=iteration, species=species,
                                        species_filter=filtr)
         plt.show()

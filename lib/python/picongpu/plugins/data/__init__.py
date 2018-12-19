@@ -3,7 +3,7 @@ from .phase_space import PhaseSpaceData
 from .png import PNGData
 from .radiation import RadiationData
 from .sliceFieldReader import FieldSliceData
-
+from .emittance import EmittanceData
 
 __all__ = [
     "EnergyHistogramData",
@@ -11,4 +11,5 @@ __all__ = [
     "PNGData",
     "RadiationData",
     "FieldSliceData",
+    "EmittanceData",
 ]
