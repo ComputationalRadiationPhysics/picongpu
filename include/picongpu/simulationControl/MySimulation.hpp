@@ -56,6 +56,7 @@
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
+#include "picongpu/simulationControl/DomainAdjuster.hpp"
 #include <pmacc/random/methods/methods.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
@@ -147,7 +148,9 @@ public:
             ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window")
             ("stopWindow", po::value<int32_t>(&endSlidingOnStep)->default_value(-1),
                 "stops the window at stimulation step, "
-                "-1 means that window is never stopping");
+                "-1 means that window is never stopping")
+            ("autoAdjustGrid", po::value<bool>(&autoAdjustGrid)->default_value(true),
+                "auto adjust the grid size if PIConGPU conditions are not fulfilled");
     }
 
     std::string pluginGetName() const
@@ -184,13 +187,13 @@ public:
             std::cerr << "Invalid configuration. Can't use moving window with one device in Y direction" << std::endl;
         }
 
-        DataSpace<simDim> global_grid_size;
+        DataSpace<simDim> gridSizeGlobal;
         DataSpace<simDim> gpus;
         DataSpace<simDim> isPeriodic;
 
         for (uint32_t i = 0; i < simDim; ++i)
         {
-            global_grid_size[i] = gridSize[i];
+            gridSizeGlobal[i] = gridSize[i];
             gpus[i] = devices[i];
             isPeriodic[i] = periodic[i];
         }
@@ -217,16 +220,28 @@ public:
 
             // calculate local grid points & offset
             gridSizeLocal[dim] = parserGD.getLocalSize(myGPUpos[dim]);
-            gridOffset[dim] = parserGD.getOffset(myGPUpos[dim], global_grid_size[dim]);
         }
         // by default: use an equal distributed box for all omitted params
         for (uint32_t dim = gridDistribution.size(); dim < simDim; ++dim)
         {
-            gridSizeLocal[dim] = global_grid_size[dim] / gpus[dim];
-            gridOffset[dim] = gridSizeLocal[dim] * myGPUpos[dim];
+            gridSizeLocal[dim] = gridSizeGlobal[dim] / gpus[dim];
         }
 
-        Environment<simDim>::get().initGrids(global_grid_size, gridSizeLocal, gridOffset);
+        DataSpace<simDim> gridOffset;
+
+        DomainAdjuster domainAdjuster(
+            gpus,
+            myGPUpos,
+            isPeriodic,
+            slidingWindow
+        );
+
+        if(!autoAdjustGrid)
+            domainAdjuster.validateOnly();
+
+        domainAdjuster(gridSizeGlobal, gridSizeLocal, gridOffset);
+
+        Environment<simDim>::get().initGrids(gridSizeGlobal, gridSizeLocal, gridOffset);
 
         if (slidingWindow)
             MovingWindow::getInstance().setEndSlideOnStep(endSlidingOnStep);
@@ -241,30 +256,12 @@ public:
         GridLayout<simDim> layout(gridSizeLocal, GuardSize::toRT() * SuperCellSize::toRT());
         cellDescription = new MappingDesc(layout.getDataSpace(), DataSpace<simDim>(GuardSize::toRT()));
 
-        checkGridConfiguration(global_grid_size, cellDescription->getGridLayout());
-
         if (gc.getGlobalRank() == 0)
         {
             if (MovingWindow::getInstance().isEnabled())
                 log<picLog::PHYSICS > ("Sliding Window is ON");
             else
                 log<picLog::PHYSICS > ("Sliding Window is OFF");
-        }
-
-        for (uint32_t i = 0; i < simDim; ++i)
-        {
-
-            /*
-             * absorber must be smaller than local gridsize if direction is periodic.
-             * absorber can't go over more than one device.
-             */
-            if (isPeriodic[i] == 0)
-            {
-                /*negativ direction*/
-                PMACC_VERIFY((int) ABSORBER_CELLS[i][0] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
-                /*positiv direction*/
-                PMACC_VERIFY((int) ABSORBER_CELLS[i][1] <= (int) cellDescription->getGridLayout().getDataSpaceWithoutGuarding()[i]);
-            }
         }
     }
 
@@ -757,25 +754,6 @@ public:
         return cellDescription;
     }
 
-private:
-
-    template<uint32_t DIM>
-    void checkGridConfiguration(DataSpace<DIM> globalGridSize, GridLayout<DIM>)
-    {
-
-        for(uint32_t i=0;i<simDim;++i)
-        {
-            // global size must be a devisor of supercell size
-            // note: this is redundant, while using the local condition below
-            PMACC_VERIFY(globalGridSize[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
-            // local size must be a devisor of supercell size
-            PMACC_VERIFY(gridSizeLocal[i] % MappingDesc::SuperCellSize::toRT()[i] == 0);
-            // local size must be at least 2 supercells (1x core + 2x border)
-            // note: size of border = guard_size (in supercells)
-            PMACC_VERIFY(gridSizeLocal[i] / MappingDesc::SuperCellSize::toRT()[i] >= 2 * GuardSize::toRT()[i] + 1);
-        }
-    }
-
 protected:
     std::shared_ptr<DeviceHeap> deviceHeap;
 
@@ -808,7 +786,6 @@ protected:
     std::vector<uint32_t> gridSize;
     /** Without guards */
     DataSpace<simDim> gridSizeLocal;
-    DataSpace<simDim> gridOffset;
     std::vector<uint32_t> periodic;
 
     std::vector<std::string> gridDistribution;
@@ -816,6 +793,7 @@ protected:
     bool slidingWindow;
     int32_t endSlidingOnStep;
     bool showVersionOnce;
+    bool autoAdjustGrid = true;
 };
 } /* namespace picongpu */
 
