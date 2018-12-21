@@ -65,7 +65,7 @@ namespace                     Description
 Observation directions
 """"""""""""""""""""""
 
-The number of observation directions `N_theta` is defined in :ref:`radiation.param <usage-params-plugins>`, but the distribution of observation directions is given in :ref:`radiationObserver.param.param <usage-params-plugins>`)
+The number of observation directions `N_theta` is defined in :ref:`radiation.param <usage-params-plugins>`, but the distribution of observation directions is given in :ref:`radiationObserver.param <usage-params-plugins>`)
 There, the function ``observation_direction`` defines the observation directions.
 
 This function returns the x,y and z component of a **unit vector** pointing in the observation direction. 
@@ -204,7 +204,7 @@ Window function filter
 A window function can be added to the simulation area to reduce `ringing artifacts <https://en.wikipedia.org/wiki/Ringing_artifacts>`_ due to sharp transition from radiating regions to non-radiating regions at the boundaries of the simulation box.
 This should be applied to simulation setups where the entire volume simulated is radiating (e.g. Kelvin-Helmholtz Instability).
 
-In ``radiationConfig.param`` the precompiler variable ``PIC_RADWINDOWFUNCTION`` defines if the window function filter should be used or not.
+In ``radiation.param`` the precompiler variable ``PIC_RADWINDOWFUNCTION`` defines if the window function filter should be used or not.
 
 .. code:: cpp
 
@@ -295,7 +295,7 @@ Command line flag                        Output description
 ======================================== ========================================================================================================================
 ``--<species>_radiation.totalRadiation`` Contains *ASCII* files that have the total spectral intensity until the timestep specified by the filename.
                                          Each row gives data for one observation direction (same order as specified in the ``observer.py``).
-                                         The values for each frequency are separated by *tabs* and have the same order as specified in ``radiationConfig.param``.
+                                         The values for each frequency are separated by *tabs* and have the same order as specified in ``radiation.param``.
                                          The spectral intensity is stored in the units **[J s]**.
 ``--<species>_radiation.lastRadiation``  has the same format as the output of *totalRadiation*.
                                          The spectral intensity is only summed over the last radiation `dump` period.
