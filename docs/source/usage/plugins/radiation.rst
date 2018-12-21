@@ -246,30 +246,30 @@ For a specific (charged) species ``<species>`` e.g. ``e``, the radiation can be 
 ========================================= ==============================================================================================================================
 Command line option                       Description
 ========================================= ==============================================================================================================================
-``--radiation_<species>.period``          Gives the number of time steps between which the radiation should be calculated.
+``--<species>_radiation.period``          Gives the number of time steps between which the radiation should be calculated.
                                           Default is ``0``, which means that the radiation in never calculated and therefor off.
                                           Using `1` calculates the radiation constantly. Any value ``>=2`` is currently producing nonsense.
-``--radiation_<species>.dump``            Period, after which the calculated radiation data should be dumped to the file system.
+``--<species>_radiation.dump``            Period, after which the calculated radiation data should be dumped to the file system.
                                           Default is ``0``, therefor never.
                                           In order to store the radiation data, a value `>=1` should be used.
-``--radiation_<species>.lastRadiation``   If set, the radiation spectra summed between the last and the current dump-time-step are stored.
+``--<species>_radiation.lastRadiation``   If set, the radiation spectra summed between the last and the current dump-time-step are stored.
                                           Used for a better evaluation of the temporal evolution of the emitted radiation.
-``--radiation_<species>.folderLastRad``   Name of the folder, in which the summed spectra for the simulation time between the last dump and the current dump are stored.
+``--<species>_radiation.folderLastRad``   Name of the folder, in which the summed spectra for the simulation time between the last dump and the current dump are stored.
                                           Default is ``lastRad``.
-``--radiation_<species>.totalRadiation``  If set the spectra summed from simulation start till current time step are stored.
-``--radiation_<species>.folderTotalRad``  Folder name in which the total radiation spectra, integrated from the beginning of the simulation, are stored.
+``--<species>_radiation.totalRadiation``  If set the spectra summed from simulation start till current time step are stored.
+``--<species>_radiation.folderTotalRad``  Folder name in which the total radiation spectra, integrated from the beginning of the simulation, are stored.
                                           Default ``totalRad``.
-``--radiation_<species>.start``           Time step, at which PIConGPU starts calculating the radiation.
+``--<species>_radiation.start``           Time step, at which PIConGPU starts calculating the radiation.
                                           Default is ``2`` in order to get enough history of the particles.
-``--radiation_<species>.end``             Time step, at which the radiation calculation should end.
+``--<species>_radiation.end``             Time step, at which the radiation calculation should end.
                                           Default: `0`(stops at end of simulation).
-``--radiation_<species>.omegaList``       In case the frequencies for the spectrum are coming from a list stored in a file, this gives the path to this list.
+``--<species>_radiation.omegaList``       In case the frequencies for the spectrum are coming from a list stored in a file, this gives the path to this list.
                                           Default: `_noPath_` throws an error. *This does not switch on the frequency calculation via list.*
-``--radiation_<species>.radPerGPU``       If set, each GPU additionally stores its own spectra without summing over the entire simulation area.
+``--<species>_radiation.radPerGPU``       If set, each GPU additionally stores its own spectra without summing over the entire simulation area.
                                           This allows for a localization of specific spectral features.
-``--radiation_<species>.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
+``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
                                           Default: ``radPerGPU``
-``--radiation_<species>.compression``     If set, the hdf5 output is compressed.
+``--<species>_radiation.compression``     If set, the hdf5 output is compressed.
 ========================================= ==============================================================================================================================
 
 Memory Complexity
@@ -293,13 +293,13 @@ Depending on the command line options used, there are different output files.
 ======================================== ========================================================================================================================
 Command line flag                        Output description
 ======================================== ========================================================================================================================
-``--radiation_<species>.totalRadiation`` Contains *ASCII* files that have the total spectral intensity until the timestep specified by the filename.
+``--<species>_radiation.totalRadiation`` Contains *ASCII* files that have the total spectral intensity until the timestep specified by the filename.
                                          Each row gives data for one observation direction (same order as specified in the ``observer.py``).
                                          The values for each frequency are separated by *tabs* and have the same order as specified in ``radiationConfig.param``.
                                          The spectral intensity is stored in the units **[J s]**.
-``--radiation_<species>.lastRadiation``  has the same format as the output of *totalRadiation*.
+``--<species>_radiation.lastRadiation``  has the same format as the output of *totalRadiation*.
                                          The spectral intensity is only summed over the last radiation `dump` period.
-``--radiation_<species>.radPerGPU``      Same output as *totalRadiation* but only summed over each GPU. 
+``--<species>_radiation.radPerGPU``      Same output as *totalRadiation* but only summed over each GPU. 
                                          Because each GPU specifies a spatial region, the origin of radiation signatures can be distinguished.
 *radiationHDF5*                          In the folder  ``radiationHDF5``, hdf5 files for each radiation dump and species are stored.
                                          These are complex amplitudes in units used by *PIConGPU*.
