@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Richard Pausch
+/* Copyright 2013-2019 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *

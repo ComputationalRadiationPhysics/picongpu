@@ -1,4 +1,4 @@
-/* Copyright 2003-2018 Alexander Debus, C. Bond
+/* Copyright 2003-2019 Alexander Debus, C. Bond
  *
  * This file is part of PMacc.
  *

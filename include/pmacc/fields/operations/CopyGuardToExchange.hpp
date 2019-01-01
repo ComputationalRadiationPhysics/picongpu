@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.

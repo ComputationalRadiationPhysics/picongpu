@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2019 Heiko Burau, Rene Widera, Richard Pausch,
  *                     Alexander Grund
  *
  * This file is part of PMacc.

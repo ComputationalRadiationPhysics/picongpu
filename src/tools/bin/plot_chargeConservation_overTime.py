@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2015-2018 Richard Pausch, Axel Huebl
+# Copyright 2015-2019 Richard Pausch, Axel Huebl
 #
 # This file is part of PIConGPU.
 #

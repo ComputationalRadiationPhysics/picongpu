@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Felix Rene Widera
+/* Copyright 2016-2019 Felix Rene Widera
  *
  * This file is part of PMacc.
  *
