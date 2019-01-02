@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Erik Zenker
+/* Copyright 2013-2019 Rene Widera, Erik Zenker
  *
  * This file is part of PMacc.
  *

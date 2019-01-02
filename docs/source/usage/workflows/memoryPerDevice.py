@@ -3,7 +3,7 @@
 """
 This file is part of PIConGPU.
 
-Copyright 2018 PIConGPU contributors
+Copyright 2018-2019 PIConGPU contributors
 Authors: Marco Garten
 License: GPLv3+
 """

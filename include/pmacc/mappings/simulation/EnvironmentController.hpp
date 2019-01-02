@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Wolfgang Hoenig, Benjamin Worpitz
+/* Copyright 2013-2019 Rene Widera, Wolfgang Hoenig, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *

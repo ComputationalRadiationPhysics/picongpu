@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Alexander Debus, Axel Huebl
+/* Copyright 2014-2019 Alexander Debus, Axel Huebl
  *
  * This file is part of PIConGPU.
  *

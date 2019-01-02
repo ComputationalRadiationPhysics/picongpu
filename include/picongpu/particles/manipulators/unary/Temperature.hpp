@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera,
  *                     Alexander Grund
  *
  * This file is part of PIConGPU.

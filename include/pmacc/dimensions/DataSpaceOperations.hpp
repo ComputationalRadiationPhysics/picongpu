@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2019 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Benjamin Worpitz
  *
  * This file is part of PMacc.
