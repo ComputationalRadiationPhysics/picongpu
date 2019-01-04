@@ -2,25 +2,18 @@ modules:
   enable::
     - tcl
   tcl:
-    # Note on OpenMPI in Docker
-    # We should be able to use the latest MPI with
-    # `OMPI_MCA_btl_vader_single_copy_mechanism=none`
-    # to avoid disabling vader alltogether:
-    # https://github.com/open-mpi/ompi/issues/4948#issuecomment-377341406
+    # vader in docker: https://github.com/open-mpi/ompi/issues/4948
+    # ompio bugs: https://github.com/open-mpi/ompi/issues/6285
     openmpi:
       environment:
         set:
-          OMPI_MCA_mpi_leave_pinned: '0'
-          OMPI_MCA_btl: '^vader'
+          OMPI_MCA_btl_vader_single_copy_mechanism: 'none'
+          OMPI_MCA_io: '^ompio'
     # This anonymous spec selects any package that
     # depends on openmpi. The double colon at the
     # end clears the set of rules that matched so far.
     ^openmpi::
       environment:
         set:
-          OMPI_MCA_mpi_leave_pinned: '0'
-          OMPI_MCA_btl: '^vader'
-    icet:
-      environment:
-        prepend_path:
-          CMAKE_PREFIX_PATH: '${PREFIX}/lib'
+          OMPI_MCA_btl_vader_single_copy_mechanism: 'none'
+          OMPI_MCA_io: '^ompio'

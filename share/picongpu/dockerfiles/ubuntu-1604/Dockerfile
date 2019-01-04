@@ -89,6 +89,10 @@ RUN        /bin/bash -l -c ' \
                pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
                rm -rf .build'
 
+# make input directories readable and files executable for all users
+RUN        chmod a+x /opt/picInputs/*/bin/* && \
+           chmod a+r -R /opt/picInputs/* && \
+           find /opt/picInputs -type d -exec chmod a+rx {} \;
 
 COPY       start_lwfa.sh /usr/bin/lwfa
 COPY       start_lwfa_4.sh /usr/bin/lwfa4
