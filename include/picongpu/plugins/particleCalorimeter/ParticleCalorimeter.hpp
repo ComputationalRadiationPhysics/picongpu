@@ -334,7 +334,7 @@ private:
                            "calorimeter",
                            &(*this->hBufTotalCalorimeter->origin()));
 
-        const float_64 unitSI = particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE * UNIT_ENERGY;
+        const float_64 unitSI = particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE;
 
         hdf5DataFile.writeAttribute(currentStep,
                                     SplashType64,
