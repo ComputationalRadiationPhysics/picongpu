@@ -17,21 +17,36 @@ import json
 
 class CompareData(DataReader):
     """
-    Data Reader for the Energy Histogram Plugin.
+    Data Reader for showing the variation.
     """
 
     def __init__(self, run_directory):
         """
         Parameters
         ----------
-        simulation_directory : string
-            path to the run directory of PIConGPU
-            (the path before ``simOutput/``)
+        run_directory : string
+            path to a scan directory which contains a 'scan_ranges.json'
+            file and one or more picongpu simulation directories.
         """
         super().__init__(run_directory)
         self.json_suffix = "scan_ranges.json"
 
-    def get_data_path(self, species, variation, observable,
+    def _get_all_sim_paths(self):
+        """
+        List all simulation directories within the scan directory
+        """
+        sim_dirs = [d for d in os.listdir(self.run_directory)
+                    if os.path.isdir(d)]
+
+        sims_rundir = []
+        for dir_name in sim_dirs:
+            sim_path = os.path.join(self.run_directory, dir_name, "run")
+            if os.path.isdir(sim_path):
+                sims_rundir.append(sim_path)
+
+        return sims_rundir
+
+    def get_data_path(self, species, variation,
                       species_filter="all"):
         """
         Return the path to the underlying data file.
@@ -41,6 +56,8 @@ class CompareData(DataReader):
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
+        variation: str
+            name of the varied input parameter
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
@@ -50,13 +67,6 @@ class CompareData(DataReader):
         A list of strings with path to all sims in scan and a
         list with the values for the choosen variation.
         """
-        self.path_to_scan = os.path.split(os.path.split(
-                                          self.run_directory)[0])[0]
-        self.path_to_json = os.path.join(self.path_to_scan, self.json_suffix)
-        if not os.path.isfile(self.path_to_json):
-            raise IOError('The file {} does not exist.\n'
-                          'Did the simulation already run?'
-                          .format(self.path_to_json))
         # get species, filter
         if species is None:
             raise ValueError('The species parameter can not be None!')
@@ -64,22 +74,23 @@ class CompareData(DataReader):
             raise ValueError('The species_filter parameter can not be None!')
         if variation is None:
             raise ValueError('The variation parameter can not be None!')
-        if observable is None:
-            raise ValueError('The observable parameter can not be None!')
 
-        # take first value of other variable parameters
-        with open(self.path_to_json) as f:
+        path_to_json = os.path.join(self.run_directory, self.json_suffix)
+        if not os.path.isfile(path_to_json):
+            raise IOError('The file {} does not exist.\n'
+                          'Did the simulation already run?'
+                          .format(path_to_json))
+
+        with open(path_to_json) as f:
             range_dict = json.load(f)
             filtered_range_dict = dict()
             for name, attrs in range_dict.items():
-                filtered_range_dict[name] = attrs['values']
 
-        # list relevant sims in scan
-        sims_rundir = []
-        for dir_name in os.listdir(self.path_to_scan):
-            sim_path = os.path.join(self.path_to_scan, dir_name, "run")
-            if os.path.isdir(sim_path):
-                sims_rundir.append(sim_path)
+                filtered_range_dict[name] = attrs['values']
+                # TODO: this could be a list of discrete options or a list of
+                # triples for range based parameters which we have to discern
+
+        sims_rundir = self._get_all_sim_paths()
 
         return sims_rundir, filtered_range_dict[variation]
 
@@ -100,6 +111,14 @@ class CompareData(DataReader):
         -------
         An array with unsigned integers.
         """
+
+        # TODO: why EnergyHistogram?
+        #       run_directory points to a scan and not a specific simulation
+        #       so where do we get the information from? Intersection of all
+        #       simulations of the scan? But maybe different plugins have
+        #       different iterations present so we can't rely on the
+        #       EnergyHistogram.
+        #       Should we just leave it unimplemented?
         iteration = EnergyHistogramData(
                     self.run_directory).get_iterations(species=species)
         return iteration
@@ -110,23 +129,30 @@ class CompareData(DataReader):
 
         Parameters
         ----------
+        iteration : (unsigned) int [unitless]
+            The iteration at which to read the data.
+            A list of iterations is allowed as well.
+            ``None`` refers to the list of all available iterations.
         species : string
             short name of the particle species, e.g. 'e' for electrons
             (defined in ``speciesDefinition.param``)
         variation : string
             name of the variated input parameter
         observable: string
-            name of the calculated and compared quantity
+            name of the calculated and compared quantity.
+            One of ["emittance", "bunchEnergy",
+                    "energySpread", "energySpread/bunchEnergy",
+                    "maxEnergy", "charge"]
         species_filter: string
             name of the particle species filter, default is 'all'
             (defined in ``particleFilters.param``)
-        iteration : (unsigned) int [unitless]
-            The iteration at which to read the data.
-            A list of iterations is allowed as well.
-            ``None`` refers to the list of all available iterations.
 
         Returns
-        -------params,values,other_params
+        -------
+        params: ??
+            ...
+        values: ??
+            ...
         variation : np.array
             values of the variated input parameter
         observables : np.array
@@ -138,24 +164,31 @@ class CompareData(DataReader):
         if iteration is not None:
             if not isinstance(iteration, collections.Iterable):
                 iteration = np.array([iteration])
+
         sims_rundir, params = self.get_data_path(species, variation,
                                                  observable,
                                                  species_filter)
         values = []
         params = []
         for sim in (sims_rundir):
-            sim_json = os.path.join(os.path.split(sim)[0], 'params.json')
+            # was path to 'run' subdir, but json is one directory above
+            sim_json = os.path.join(os.path.dirname(sim), 'params.json')
             if not os.path.isfile(sim_json):
-                raise IOError('The file {} does not exist.\n'
-                              'Did the simulation already run?'
-                              .format(self.path_to_json))
+                raise IOError('The file {} does not exist.'.format(sim_json))
             with open(sim_json) as f:
                 range_dict = json.load(f)
                 param = range_dict[variation]['values'][0]
             try:
-                if observable is not "emittance":
-                    counts, bins = EnergyHistogramData(sim).get(
+                if observable == "emittance":
+                    counts, bins, _ = EmittanceData(sim).get(
+                        species, species_filter)
+                    emit = counts[iteration[0]][0] * 1.e6
+                    value = emit  # unit: pi mm mrad
+
+                else:
+                    counts, bins, _, _ = EnergyHistogramData(sim).get(
                                    iteration=iteration, species=species)
+                    # TODO: comment on magic numbers
                     start = 80
                     limitE = 500
                     data = counts[start:]
@@ -202,14 +235,18 @@ class CompareData(DataReader):
                         charge = (data[cmin:cmax].sum() *
                                   1.6021766209e-19 * 1.e12)
                         value = charge
-                else:
-                    counts, bins, ts = EmittanceData(sim).get(
-                                       species, species_filter)
-                    emit = counts[iteration[0]][0] * 1.e6
-                    value = emit  # unit: pi mm mrad
-            except (ValueError, IOError, IndexError):
-                print("Error in sim ", sim)
+                    else:
+                        raise ValueError("Unknown observable {}".format(
+                            observable))
+
+            except (ValueError, IOError, IndexError) as e:
+                print("Error in sim ", sim, ":", e)
                 value = np.nan
+
             values.append(value)
             params.append(param)
-        return(params, values)
+<<<<<<< Updated upstream
+
+=======
+>>>>>>> Stashed changes
+        return params, values
