@@ -17,7 +17,7 @@ import json
 
 class CompareData(DataReader):
     """
-    Data Reader for showing the variation.
+    Data Reader for showing the variation of ?? (TODO).
     """
 
     def __init__(self, run_directory):
@@ -245,8 +245,4 @@ class CompareData(DataReader):
 
             values.append(value)
             params.append(param)
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
         return params, values
