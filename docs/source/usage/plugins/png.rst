@@ -265,10 +265,14 @@ You can quickly load and interact with the data in Python with:
    # get the available iterations for which output exists
    iters = png_data.get_iterations(species="e", axis="yx")
 
-   # pngs as numpy arrays
+   # get the available simulation times for which output exists
+   times = png_data.get_times(species="e", axis="yx")
+
+   # pngs as numpy arrays for multiple iterations (times would also work)
    pngs = png_data.get(species="e", axis="yx", iteration=iters[:3])
 
-   pngs[iters[0]].shape
+   for png in pngs:
+       print(png.shape)
 
 Matplotlib Visualizer
 """""""""""""""""""""
@@ -318,26 +322,25 @@ Jupyter Widget
 If you want more interactive visualization, then start a jupyter notebook and make
 sure that ``ipywidgets`` and ``ìpympl`` are installed.
 
-Since this widget makes most sense in cases where many simulations were run and
-ordered in so called 'scans' it is assumed that there exists an output directory
-which contains directories ``scan_1``, ..., ``scan_N`` and each such directory
-contains one or many simulation directories ``sim_1`` to ``sim_M``.
-Of course visualizing iterations of a single simulation is also possible, but please
-adhere to the directory structure explained above.
-
 After starting the notebook server write the following
 
 .. code:: python
 
+   # this is required!
    %matplotlib widget
    import matplotlib.pyplot as plt
    # deactivate interactive mode
    plt.ioff()
 
    from IPython.display import display
-   from picongpu.plugins.jupyter_widgets import PNGVisualizer
+   from picongpu.plugins.jupyter_widgets import PNGWidget
 
-   v = PNGVisualizer(experiment_path="path/to/scan/outputs")
-   display(v)
+   # provide the paths to the simulations you want to be able to choose from
+   # together with labels that will be used in the plot legends so you still know
+   # which data belongs to which simulation
+   w = PNGWidget(run_dir_options=[
+           ("scan1/sim4", scan1_sim4),
+           ("scan1/sim5", scan1_sim5)])
+   display(w)
 
 and then interact with the displayed widgets.

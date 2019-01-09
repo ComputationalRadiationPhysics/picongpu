@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2018 PIConGPU contributors
+Copyright 2017-2019 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
@@ -42,8 +42,6 @@ class EnergyHistogramWidget(BaseWidget):
         a dict mapping keyword argument names of the PIC visualizer
         to the jupyter widgets responsible for adjusting those values.
         """
-        # widgets for the input parameters
-        # widgets for the input parameters
         self.species = widgets.Dropdown(description="Species",
                                         options=["e"],
                                         value='e')

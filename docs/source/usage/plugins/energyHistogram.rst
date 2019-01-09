@@ -95,10 +95,23 @@ You can quickly load and interact with the data in Python with:
 
    from picongpu.plugins.data import EnergyHistogramData
 
-
-   # load data
    eh_data = EnergyHistogramData('/home/axel/runs/lwfa_001')
+
+   # show available iterations
+   eh_data.get_iterations(species='e')
+
+   # show available simulation times
+   eh_data.get_times(species='e')
+
+   # load data for a given iteration
    counts, bins_keV = eh_data.get('e', species_filter='all', iteration=2000)
+
+   # load data for a given time
+   counts, bins_keV = eh_data.get('e', species_filter='all', time=1.3900e-14)
+
+   # get data for multiple iterations
+   d, bins, iteration, dt = eh_data.get(species='e', iteration=[200, 400, 8000])
+
 
 Matplotlib Visualizer
 """""""""""""""""""""
@@ -121,7 +134,22 @@ You can quickly plot the data in Python with:
 
    plt.show()
 
-The visualizer can also be used from the command line by writing
+   # specifying simulation time is also possible (granted there is a matching iteration for that time)
+   eh_vis.visualize(time=2.6410e-13, species='e')
+
+   plt.show()
+
+   # plotting histogram data for multiple simulations simultaneously also works:
+   eh_vis = EnergyHistogramMPL([
+        ("sim1", "path/to/sim1"),
+        ("sim2", "path/to/sim2"),
+        ("sim3", "path/to/sim3")], ax)
+    eh_vis.visualize(species="e", iteration=10000)
+
+    plt.show()
+
+
+The visualizer can also be used from the command line (for a single simulation only) by writing
 
  .. code:: bash
 
@@ -162,25 +190,24 @@ Jupyter Widget
 If you want more interactive visualization, then start a jupyter notebook and make
 sure that ``ipywidgets`` and ``ìpympl`` are installed.
 
-Since this widget makes most sense in cases where many simulations were run and
-ordered in so called 'scans' it is assumed that there exists an output directory
-which contains directories ``scan_1``, ..., ``scan_N`` and each such directory
-contains one or many simulation directories ``sim_1`` to ``sim_M``.
-Of course visualizing iterations of a single simulation is also possible, but please
-adhere to the directory structure explained above.
-
 After starting the notebook server write the following
 
 .. code:: python
 
+   # this is required!
    %matplotlib widget
    import matplotlib.pyplot as plt
    plt.ioff()
 
    from IPython.display import display
-   from picongpu.plugins.jupyter_widgets import EnergyHistogramVisualizer
+   from picongpu.plugins.jupyter_widgets import EnergyHistogramWidget
 
-   v = EnergyHistogramVisualizer(experiment_path="path/to/scan/outputs")
-   display(v)
+   # provide the paths to the simulations you want to be able to choose from
+   # together with labels that will be used in the plot legends so you still know
+   # which data belongs to which simulation
+   w = EnergyHistogramWidget(run_dir_options=[
+           ("scan1/sim4", scan1_sim4),
+           ("scan1/sim5", scan1_sim5)])
+   display(w)
 
 and then interact with the displayed widgets.
