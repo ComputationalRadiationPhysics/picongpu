@@ -4,7 +4,7 @@ from .png import PNGData
 from .radiation import RadiationData
 from .sliceFieldReader import FieldSliceData
 from .emittance import EmittanceData
-from .compare.py import CompareData
+from .compare import CompareData
 
 __all__ = [
     "EnergyHistogramData",
