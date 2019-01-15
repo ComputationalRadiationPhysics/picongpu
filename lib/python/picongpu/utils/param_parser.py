@@ -95,7 +95,7 @@ def parse(file, ptype):
         return "-DPARAM_OVERWRITES:LIST='" + cxx_defines + "'"
 
     elif ptype == "run":
-        ostr = [str(name) + "=" + str(value)
+        ostr = [str(name).upper() + "=" + str(value)
                 for name, value in filtered_dict.items()]
         if not ostr:
             return ""
