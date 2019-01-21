@@ -31,7 +31,7 @@ module load zlib/1.2.11-GCCcore-6.4.0
 # Self-Build Software #########################################################
 #
 # needs to be compiled by the user
-export PIC_LIBS="/scratch/p_electron/debus/power9/lib"
+export PIC_LIBS="$HOME/lib"
 export BOOST_ROOT=$PIC_LIBS/boost-1.69.0-Power9
 export PNG_ROOT=$PIC_LIBS/libpng-1.6.34-Power9
 export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0-Power9
