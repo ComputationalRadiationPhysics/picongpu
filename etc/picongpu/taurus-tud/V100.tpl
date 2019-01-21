@@ -83,12 +83,10 @@ umask 0027
 # Due to missing SLURM integration of the current MPI libraries
 # we have to create a suitable machinefile.
 rm -f machinefile.txt
-scontrol show hostnames $SLURM_JOB_NODELIST >> machinefile.txt
-scontrol show hostnames $SLURM_JOB_NODELIST >> machinefile.txt
-scontrol show hostnames $SLURM_JOB_NODELIST >> machinefile.txt
-scontrol show hostnames $SLURM_JOB_NODELIST >> machinefile.txt
-scontrol show hostnames $SLURM_JOB_NODELIST >> machinefile.txt
-scontrol show hostnames $SLURM_JOB_NODELIST >> machinefile.txt
+for i in `seq !TBG_gpusPerNode`
+do
+    scontrol show hostnames $SLURM_JOB_NODELIST >> machinefile.txt
+done
 
 mkdir simOutput 2> /dev/null
 cd simOutput
@@ -97,6 +95,9 @@ cd simOutput
 #   support ticket [Ticket:2014052241001186] srun: mpi mca flags
 #   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
 export OMPI_MCA_mpi_leave_pinned=0
+# Use ROMIO for IO
+# according to ComputationalRadiationPhysics/picongpu#2857
+export OMPI_MCA_io=^ompio
 
 # test if cuda_memtest binary is available
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
