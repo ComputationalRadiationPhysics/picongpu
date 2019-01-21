@@ -36,7 +36,7 @@ namespace picongpu
 class ParserGridDistribution
 {
 private:
-    typedef std::vector<std::pair<uint32_t, uint32_t> > value_type;
+    using value_type = std::vector<std::pair<uint32_t, uint32_t> >;
 
 public:
     ParserGridDistribution( const std::string s )
