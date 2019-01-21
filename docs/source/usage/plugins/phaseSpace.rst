@@ -71,9 +71,14 @@ You can quickly load and interact with the data in Python with:
    import numpy as np
 
 
-   # load data
    ps_data = PhaseSpaceData('/home/axel/runs/lwfa_001')
-   # a list of iterations is also possible
+   # show available iterations
+   ps_data.get_iterations(ps="xpx", species="e", species_filter='all')
+
+   # show available simulation times
+   ps_data.get_times(ps="xpx", species="e", species_filter='all')
+
+   # load data for a given iteration
    ps, meta = ps_data.get(ps='ypy', species='e', species_filter='all', iteration=2000)
 
    # unit conversion from SI
@@ -82,6 +87,17 @@ You can quickly load and interact with the data in Python with:
 
    Q_dr_dp = np.abs(ps) * meta.dV  # C s kg^-1 m^-2
    extent = meta.extent * [mu, mu, e_mc_r, e_mc_r]  # spatial: microns, momentum: beta*gamma
+
+   # load data for a given time
+   ps, ps_meta = ps_data.get(ps="xpx", species="e", species_filter='all', time=1.3900e-14)
+
+   # load data for multiple iterations
+   ret = ps_data.get(ps="xpx", species="e", species_filter='all', iteration=[2000, 4000])
+
+   # data and metadata for iteration 2000
+   # (data is in same order as the value passed to the 'iteration' parameter)
+   ps, meta = ret[0]
+
 
 Note that the spatial extent of the output over time might change when running a moving window simulation.
 
@@ -107,7 +123,22 @@ You can quickly plot the data in Python with:
 
    plt.show()
 
-The visualizer can also be used from the command line by writing
+   # specifying simulation time is also possible (granted there is a matching iteration for that time)
+   ps_vis.visualize(time=2.6410e-13, species='e')
+
+   plt.show()
+
+   # plotting data for multiple simulations simultaneously also works:
+   ps_vis = PhaseSpaceMPL([
+        ("sim1", "path/to/sim1"),
+        ("sim2", "path/to/sim2"),
+        ("sim3", "path/to/sim3")], ax)
+    ps_vis.visualize(species="e", iteration=10000)
+
+    plt.show()
+
+
+The visualizer can also be used from the command line (for a single simulation only) by writing
 
  .. code:: bash
 
@@ -124,6 +155,35 @@ Options                              Value
 -f (optional, defaults to 'all')     Species filter string
 -m (optional, defaults to 'ypy')     Momentum string to specify the phase space
 ================================     =======================================================
+
+Jupyter Widget
+""""""""""""""
+
+If you want more interactive visualization, then start a jupyter notebook and make
+sure that ``ipywidgets`` and ``ìpympl`` are installed.
+
+After starting the notebook server write the following
+
+.. code:: python
+   # this is required!
+   %matplotlib widget
+   import matplotlib.pyplot as plt
+   plt.ioff()
+
+   from IPython.display import display
+   from picongpu.plugins.jupyter_widgets import PhaseSpaceWidget
+
+   # provide the paths to the simulations you want to be able to choose from
+   # together with labels that will be used in the plot legends so you still know
+   # which data belongs to which simulation
+   w = PhaseSpaceWidget(run_dir_options=[
+           ("scan1/sim4", scan1_sim4),
+           ("scan1/sim5", scan1_sim5)])
+   display(w)
+
+
+and then interact with the displayed widgets.
+
 
 Out-of-Range Behavior
 ^^^^^^^^^^^^^^^^^^^^^
