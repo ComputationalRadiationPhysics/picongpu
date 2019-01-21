@@ -168,18 +168,19 @@ Queue: ml (NVIDIA V100 GPUs on Power9 nodes)
 For this profile, you additionally need to compile and install everything for the power9-architecture including your own :ref:`boost <install-dependencies>`, :ref:`HDF5 <install-dependencies>`, c-blosc and :ref:`ADIOS <install-dependencies>`.
 
 Install script for `c-blosc`
-```
-cd $SOURCE_DIR
-git clone -b v1.12.1 https://github.com/Blosc/c-blosc.git \
-    $SOURCE_DIR/c-blosc
-mkdir c-blosc-build
-cd c-blosc-build
-cmake -DCMAKE_INSTALL_PREFIX=$BLOSC_ROOT \
-    -DPREFER_EXTERNAL_ZLIB=ON \
-    $SOURCE_DIR/c-blosc
-make -j4
-make install
-```
+
+.. code-block:: bash
+
+   cd $SOURCE_DIR
+   git clone -b v1.12.1 https://github.com/Blosc/c-blosc.git \
+       $SOURCE_DIR/c-blosc
+   mkdir c-blosc-build
+   cd c-blosc-build
+   cmake -DCMAKE_INSTALL_PREFIX=$BLOSC_ROOT \
+       -DPREFER_EXTERNAL_ZLIB=ON \
+       $SOURCE_DIR/c-blosc
+   make -j4
+   make install
 
 .. literalinclude:: profiles/taurus-tud/V100_picongpu.profile.example
    :language: bash
