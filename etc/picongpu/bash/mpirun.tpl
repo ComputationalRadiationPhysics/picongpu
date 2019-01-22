@@ -44,6 +44,11 @@ umask 0027
 mkdir simOutput 2> /dev/null
 cd simOutput
 
+# The OMPIO backend in OpenMPI up to 3.1.3 and 4.0.0 is broken, use the
+# fallback ROMIO backend instead.
+#   see bug https://github.com/open-mpi/ompi/issues/6285
+export OMPI_MCA_io=^ompio
+
 # test if cuda_memtest binary is available
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
   mpirun -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
