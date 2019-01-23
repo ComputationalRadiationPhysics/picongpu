@@ -31,9 +31,9 @@ namespace traits
 template<typename T_Species>
 struct GetInterpolation
 {
-    typedef typename pmacc::traits::Resolve<
+    using type = typename pmacc::traits::Resolve<
         typename GetFlagType<typename T_Species::FrameType, interpolation<> >::type
-    >::type type;
+    >::type;
 };
 } //namespace traits
 

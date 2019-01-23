@@ -32,7 +32,7 @@ struct HomogenousImpl
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef HomogenousImpl type;
+        using type = HomogenousImpl;
     };
 
     HINLINE HomogenousImpl(uint32_t currentStep)

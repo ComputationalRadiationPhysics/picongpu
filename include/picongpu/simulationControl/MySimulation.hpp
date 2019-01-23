@@ -317,10 +317,14 @@ public:
         currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER > (*cellDescription);
 
         // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
-        typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies,
-                                                                synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
-        typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies,
-                                                                bremsstrahlungPhotons<> >::type AllBremsstrahlungPhotonsSpecies;
+        using AllSynchrotronPhotonsSpecies = typename pmacc::particles::traits::FilterByFlag<
+            VectorAllSpecies,
+            synchrotronPhotons<>
+        >::type;
+        using AllBremsstrahlungPhotonsSpecies = typename pmacc::particles::traits::FilterByFlag<
+            VectorAllSpecies,
+            bremsstrahlungPhotons<>
+        >::type;
 
         // create factory for the random number generator
         const uint32_t userSeed = random::seed::ISeed< random::SeedGenerator >{}();
@@ -523,11 +527,11 @@ public:
     {
         namespace nvfct = pmacc::nvidia::functors;
 
-        typedef typename pmacc::particles::traits::FilterByIdentifier
+        using VectorSpeciesWithMementumPrev1 = typename pmacc::particles::traits::FilterByIdentifier
         <
             VectorAllSpecies,
             momentumPrev1
-        >::type VectorSpeciesWithMementumPrev1;
+        >::type;
 
         /* copy attribute momentum to momentumPrev1 */
         ForEach<
@@ -566,8 +570,10 @@ public:
         populationKinetics( currentStep );
 
         /* call the synchrotron radiation module for each radiating species (normally electrons) */
-        typedef typename pmacc::particles::traits::FilterByFlag<VectorAllSpecies,
-                                                                synchrotronPhotons<> >::type AllSynchrotronPhotonsSpecies;
+        using AllSynchrotronPhotonsSpecies = typename pmacc::particles::traits::FilterByFlag<
+            VectorAllSpecies,
+            synchrotronPhotons<>
+        >::type;
 
         ForEach<
             AllSynchrotronPhotonsSpecies,
@@ -577,11 +583,11 @@ public:
 
 #if( PMACC_CUDA_ENABLED == 1 )
         /* Bremsstrahlung */
-        typedef typename pmacc::particles::traits::FilterByFlag
+        using VectorSpeciesWithBremsstrahlung = typename pmacc::particles::traits::FilterByFlag
         <
             VectorAllSpecies,
             bremsstrahlungIons<>
-        >::type VectorSpeciesWithBremsstrahlung;
+        >::type;
         ForEach<
             VectorSpeciesWithBremsstrahlung,
             particles::CallBremsstrahlung< bmpl::_1 >
@@ -621,11 +627,11 @@ public:
         (*currentBGField)(fieldJ, nvfct::Add(), FieldBackgroundJ(fieldJ->getUnit()),
                           currentStep, FieldBackgroundJ::activated);
 
-        typedef typename pmacc::particles::traits::FilterByFlag
+        using VectorSpeciesWithCurrentSolver = typename pmacc::particles::traits::FilterByFlag
         <
             VectorAllSpecies,
             current<>
-        >::type VectorSpeciesWithCurrentSolver;
+        >::type;
         ForEach<
             VectorSpeciesWithCurrentSolver,
             ComputeCurrent<

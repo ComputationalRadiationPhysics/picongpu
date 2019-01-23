@@ -48,7 +48,7 @@ namespace boundary
             int32_t const direction
         ) const
         {
-            typedef std::list<pmacc::IPlugin*> Plugins;
+            using Plugins = std::list<pmacc::IPlugin*>;
             Plugins plugins = Environment<>::get().PluginConnector().getAllPlugins();
 
             for( Plugins::iterator iter = plugins.begin(); iter != plugins.end(); iter++ )

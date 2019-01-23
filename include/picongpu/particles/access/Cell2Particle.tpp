@@ -51,8 +51,8 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
     constexpr lcellId_t maxParticlesInFrame = pmacc::math::CT::volume< typename TParticlesBox::FrameType::SuperCellSize >::type::value; \
     CellIndex superCellIdx = cellIndex / (CellIndex)SuperCellSize::toRT(); \
     \
-    typedef typename TParticlesBox::FramePtr FramePtr; \
-    typedef typename TParticlesBox::FrameType Frame; \
+    using FramePtr = typename TParticlesBox::FramePtr; \
+    using Frame = typename TParticlesBox::FrameType; \
     PMACC_SMEM( acc, frame, FramePtr ); \
     PMACC_SMEM( acc, particlesInSuperCell, uint16_t ); \
     ForEachIdx< \

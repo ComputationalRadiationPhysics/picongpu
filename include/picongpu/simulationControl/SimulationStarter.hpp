@@ -41,7 +41,7 @@ namespace picongpu
     class SimulationStarter : public ISimulationStarter
     {
     private:
-        typedef std::list<boost::program_options::options_description> BoostOptionsList;
+        using BoostOptionsList = std::list<boost::program_options::options_description>;
 
         SimulationClass* simulationClass;
         InitClass* initClass;
