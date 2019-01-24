@@ -63,7 +63,7 @@
 
 # number of cores to block per GPU - we got 6 cpus per gpu
 #   and we will be accounted 6 CPUs per GPU anyway
-.TBG_coresPerGPU=6
+.TBG_coresPerGPU=3
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
