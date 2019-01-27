@@ -233,7 +233,7 @@ namespace effectiveNuclearCharge
     );
 
     /* Example: aluminium */
-    PMACC_CONST_VECTOR(float_X, 13, Aluminum,
+    PMACC_CONST_VECTOR(float_X, 13, Aluminium,
         /* 3p^1 */
         4.066,
         /* 3s^2 */
