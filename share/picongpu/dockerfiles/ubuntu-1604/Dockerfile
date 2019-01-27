@@ -62,13 +62,19 @@ RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
                         "spack load $PIC_PACKAGE\n" \
                         'if [ $(id -u) -eq 0 ]; then\n' \
                         '   function mpirun { $(which mpirun) --allow-run-as-root $@; }\n' \
+                        '   export -f mpirun\n' \
                         'fi\n' \
-                        'export -f mpirun\n' \
                         'if [ $(id -u) -eq 0 ]; then\n' \
                         '   function mpiexec { $(which mpiexec) --allow-run-as-root $@; }\n' \
+                        '   export -f mpiexec\n' \
                         'fi\n' \
-                        'export -f mpiexec\n' \
                > /etc/profile.d/picongpu.sh
+
+# force the use of a login shell
+RUN        /bin/echo -e '#!/bin/bash -l\n' \
+                        'exec "$@"\n' \
+               > /etc/entrypoint.sh
+RUN        chmod a+x /etc/entrypoint.sh
 
 # build example for out-of-the-box usage: LWFA
 RUN        /bin/bash -l -c ' \
@@ -105,4 +111,6 @@ COPY       start_khi_4.sh /usr/bin/bench4
 COPY       start_khi_8.sh /usr/bin/bench8
 COPY       start_foil_4.sh /usr/bin/foil4
 COPY       start_foil_8.sh /usr/bin/foil8
-CMD        /bin/bash -l
+
+ENTRYPOINT ["/etc/entrypoint.sh"]
+CMD ["/bin/bash"]
