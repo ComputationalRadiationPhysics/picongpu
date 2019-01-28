@@ -338,7 +338,7 @@ class BaseWidget(widgets.VBox):
         time = self.sim_time_slider.value
 
         # the case where no valid iteration is provided
-        if time is None or time is "":
+        if time is None or time == "":
             return
 
         # print("{} called visualize for time {} and run_dirs {}".format(
