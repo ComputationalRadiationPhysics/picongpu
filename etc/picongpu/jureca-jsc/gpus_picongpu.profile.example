@@ -1,0 +1,111 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ######################################### (edit those lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Project Information ######################################## (edit this line)
+#   - project account for computing time
+export proj=$(groups | awk '{print $5}')
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
+# Set up environment, including $SCRATCH and $PROJECT
+jutil env activate -p $proj
+
+# General modules #############################################################
+#
+module purge
+module load GCC/7.3.0
+module load CUDA/9.2.88
+module load CMake/3.13.0
+module load MVAPICH2/2.3-GDR
+module load Python/3.6.6
+
+# Other Software ##############################################################
+#
+module load zlib/.1.2.11
+module load libpng/.1.6.35
+export CMAKE_PREFIX_PATH=$EBROOTZLIB:$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
+
+PARTITION_LIB=$PROJECT/lib_gpus
+BOOST_ROOT=$PARTITION_LIB/boost
+export CMAKE_PREFIX_PATH=$BOOST_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+
+HDF5_ROOT=$PARTITION_LIB/hdf5
+export PATH=$HDF5_ROOT/bin:$PATH
+export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
+
+LIBSPLASH_ROOT=$PARTITION_LIB/libSplash
+PNGWRITER_ROOT=$PARTITION_LIB/pngwriter
+export CMAKE_PREFIX_PATH=$LIBSPLASH_ROOT:$PNGWRITER_ROOT:$CMAKE_PREFIX_PATH
+
+BLOSC_ROOT=$PARTITION_LIB/c-blosc
+export CMAKE_PREFIX_PATH=$BLOSC_ROOT:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
+
+ADIOS_ROOT=$PARTITION_LIB/adios
+export PATH=$ADIOS_ROOT/bin:$PATH
+export CMAKE_PREFIX_PATH=$ADIOS_ROOT:$CMAKE_PREFIX_PATH
+
+# Environment #################################################################
+#
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$BOOST_LIB
+
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:37" # Nvidia K80 architecture
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "gpus" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/jureca-jsc/gpus.tpl"
+
+# allocate an interactive shell for one hour
+#   getNode 2  # allocates 2 interactive nodes (default: 1)
+function getNode() {
+    if [ -z "$1" ] ; then
+        numNodes=1
+    else
+        numNodes=$1
+    fi
+    if [ $numNodes -gt 8 ] ; then
+        echo "The maximal number of interactive nodes is 8." 1>&2
+        return 1
+    fi
+    echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
+    salloc --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --gres=gpu:4 --mem=126000 -A $proj -p develgpus bash
+}
+
+# allocate an interactive shell for one hour
+#   getDevice 2  # allocates 2 interactive devices (default: 1)
+function getDevice() {
+    if [ -z "$1" ] ; then
+        numDevices=1
+    else
+        if [ "$1" -gt 4 ] ; then
+            echo "The maximal number of devices per node is 4." 1>&2
+            return 1
+        else
+            numDevices=$1
+        fi
+    fi
+    echo "Hint: please use 'srun --cpu_bind=sockets <COMMAND>' for launching multiple processes in the interactive mode"
+    salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --gres=gpu:4 --mem=126000 -A $proj -p develgpus bash
+}
