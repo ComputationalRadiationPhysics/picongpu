@@ -52,7 +52,7 @@
 .TBG_numHostedDevicesPerNode=4
 
 # required devices per node for the current job
-.TBG_devicesPerNode=`if [ $TBG_tasks -gt $TBG_numHostedDevicesPerNode ] ; then echo $TBG_numHostedDevicesPerNode; else echo $TBG_tasks; fi`
+.TBG_devicesPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedDevicesPerNode ] ; then echo $TBG_numHostedDevicesPerNode; else echo $TBG_tasks; fi)
 
 # host memory per device
 .TBG_memPerCPU="$((94000 / $TBG_devicesPerNode))"
@@ -60,7 +60,7 @@
 .TBG_memPerNode="$((TBG_memPerCPU * TBG_devicesPerNode))"
 
 # We only start 1 MPI task per device
-.TBG_mpiTasksPerNode="$(( TBG_devicesPerNode * 1 ))"
+.TBG_mpiTasksPerNode="$((TBG_devicesPerNode))"
 
 # use ceil to caculate nodes
 .TBG_nodes="$((( TBG_tasks + TBG_devicesPerNode - 1 ) / TBG_devicesPerNode))"
