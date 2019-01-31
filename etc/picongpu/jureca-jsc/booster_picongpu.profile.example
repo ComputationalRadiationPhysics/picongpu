@@ -17,6 +17,9 @@ export proj=$(groups | awk '{print $5}')
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
 
+# Set up environment, including $SCRATCH and $PROJECT
+jutil env activate -p $proj
+
 # General modules #############################################################
 #
 module purge
@@ -34,7 +37,7 @@ module load HDF5/1.10.1
 module load libpng/.1.6.35
 export CMAKE_PREFIX_PATH=$EBROOTZLIB:$EBROOTLIBPNG:$CMAKE_PREFIX_PATH
 
-PARTITION_LIB=/p/project/$proj/lib_booster
+PARTITION_LIB=$PROJECT/lib_booster
 LIBSPLASH_ROOT=$PARTITION_LIB/libSplash
 PNGWRITER_ROOT=$PARTITION_LIB/pngwriter
 export CMAKE_PREFIX_PATH=$LIBSPLASH_ROOT:$PNGWRITER_ROOT:$CMAKE_PREFIX_PATH
@@ -63,10 +66,6 @@ export CC=$(which icc)
 export CXX=$(which icpc)
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
-
-# Location for simulation results, purged after 90 days
-PROJECT_SCRATCH=SCRATCH_$proj
-export SCRATCH=${!PROJECT_SCRATCH}
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)

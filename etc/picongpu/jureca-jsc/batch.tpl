@@ -52,7 +52,7 @@
 .TBG_numHostedDevicesPerNode=2
 
 # required devices per node for the current job
-.TBG_devicesPerNode=`if [ $TBG_tasks -gt $TBG_numHostedDevicesPerNode ] ; then echo $TBG_numHostedDevicesPerNode; else echo $TBG_tasks; fi`
+.TBG_devicesPerNode=$(if [ $TBG_tasks -gt $TBG_numHostedDevicesPerNode ] ; then echo $TBG_numHostedDevicesPerNode; else echo $TBG_tasks; fi)
 
 # host memory per device
 .TBG_memPerCPU="$((126000 / $TBG_devicesPerNode))"
