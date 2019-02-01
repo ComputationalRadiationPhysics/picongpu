@@ -29,7 +29,7 @@ cell_size = 0.8e-6 / 384.  # 2.083e-9 m
 
 y0 = 0.5e-6  # position of foil front surface (m)
 delta_y = 1.0e-6  # target thickness (m)
-y1 = y0 + delta_y # position of the foil rear surface (m)
+y1 = y0 + delta_y  # position of foil rear surface (m)
 L = 10.e-9  # pre-plasma scale length (m)
 L_cutoff = 4.0 * L  # pre-plasma length (m)
 
