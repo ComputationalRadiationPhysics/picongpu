@@ -297,7 +297,7 @@ namespace picongpu
         /** \todo communicate GUARD and add it to the two neighbors BORDER */
 
         /* write to file */
-        const float_64 UNIT_VOLUME = math::pow( UNIT_LENGTH, (int)simDim );
+        const float_64 UNIT_VOLUME = UNIT_LENGTH * UNIT_LENGTH * UNIT_LENGTH;
         const float_64 unit = UNIT_CHARGE / UNIT_VOLUME;
 
         /* (momentum) p range: unit is m_species * c
