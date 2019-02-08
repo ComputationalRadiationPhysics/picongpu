@@ -38,7 +38,7 @@ install:
       echo -e "config:""\n  build_jobs:"" 2" > $SPACK_ROOT/etc/spack/config.yaml;
     fi
   - spack compiler add
-  - travis_wait spack install
+  - travis_wait 40 spack install
       cmake@3.10.0~openssl~ncurses
       $COMPILERSPEC
   - travis_wait spack install
