@@ -124,6 +124,10 @@ class EnergyHistogramData(DataReader):
             If iteration is a list, returns a list of counts.
         bins : np.array of dtype float [keV]
             upper ranges of each energy bin
+        iteration: np.array of dtype int
+            the iteration numbers that data is retrieved for
+        dt: float
+            the timestep between consecutive iterations
         """
         if iteration is not None:
             if not isinstance(iteration, collections.Iterable):
