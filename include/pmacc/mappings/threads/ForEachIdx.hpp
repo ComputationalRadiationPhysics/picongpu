@@ -24,6 +24,8 @@
 #include "pmacc/mappings/threads/IdxConfig.hpp"
 #include "pmacc/types.hpp"
 
+#include <utility>
+
 
 namespace pmacc
 {
@@ -86,44 +88,7 @@ namespace threads
         >
         HDINLINE void
         operator()(
-            T_Functor const & functor,
-            T_Args && ... args
-        ) const
-        {
-            for( uint32_t i = 0u; i < numCollIter; ++i )
-            {
-                uint32_t const beginWorker = i * simdSize;
-                uint32_t const beginIdx = beginWorker * workerSize + simdSize * m_workerIdx;
-                if(
-                    outerLoopCondition ||
-                    !innerLoopCondition ||
-                    beginIdx < domainSize
-                )
-                {
-                    for( uint32_t j = 0u; j < simdSize; ++j )
-                    {
-                        uint32_t const localIdx = beginIdx + j;
-                        if(
-                            innerLoopCondition ||
-                            localIdx < domainSize
-                        )
-                            functor(
-                                localIdx,
-                                beginWorker + j,
-                                std::forward(args) ...
-                            );
-                    }
-                }
-            }
-        }
-
-        template<
-            typename T_Functor,
-            typename ... T_Args
-        >
-        HDINLINE void
-        operator()(
-            T_Functor & functor,
+            T_Functor && functor,
             T_Args && ... args
         ) const
         {
