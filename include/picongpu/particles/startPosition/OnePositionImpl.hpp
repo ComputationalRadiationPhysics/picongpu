@@ -122,6 +122,8 @@ namespace detail
                     m_weighting
                 );
 
+            result = realParticlesPerCell > 0.0_X ? result : 0.0_X;
+
             return result;
         }
 
