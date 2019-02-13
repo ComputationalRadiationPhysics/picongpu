@@ -259,3 +259,26 @@ Queue: booster (Intel Xeon Phi 7250-F, 68 cores + Hyperthreads)
 
 .. literalinclude:: profiles/jureca-jsc/booster_picongpu.profile.example
    :language: bash
+
+JUWELS (JSC)
+------------
+
+**System overview:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/JUWELS_node.html>`_
+
+**User guide:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/UserInfo/UserInfo_node.html>`_
+
+**Production directory:** ``$SCRATCH`` (`link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/FAQ/juwels_FAQ_node.html#faq1495160>`_)
+
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter, c-blosc, adios and libSplash <install-dependencies>`, for the gpus partition also :ref:`Boost and HDF5 <install-dependencies>`, manually.
+
+Queue: batch (2 x Intel Xeon Platinum 8168 CPUs, 24 Cores + 24 Hyperthreads/CPU)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/juwels-jsc/batch_picongpu.profile.example
+   :language: bash
+
+Queue: gpus (4 x Nvidia V100 GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/juwels-jsc/gpus_picongpu.profile.example
+   :language: bash
