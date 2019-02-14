@@ -46,6 +46,17 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 
 include_directories(include)
 
+################################################################################
+# CMake policies
+#
+# Search in <PackageName>_ROOT:
+#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
+################################################################################
+
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
+
 
 ###############################################################################
 # Language Flags
