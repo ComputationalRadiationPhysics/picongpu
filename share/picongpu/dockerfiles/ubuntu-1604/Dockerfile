@@ -6,7 +6,7 @@ ENV        DEBIAN_FRONTEND=noninteractive \
            FORCE_UNSAFE_CONFIGURE=1 \
            SPACK_ROOT=/usr/local \
            SPACK_EXTRA_REPO=/usr/local/share/spack-repo \
-           PIC_PACKAGE='picongpu@0.4.0+isaac backend=cuda'
+           PIC_PACKAGE='picongpu@0.4.3+isaac backend=cuda'
 
 # install minimal spack dependencies
 #   - adds gfortran for spack's openmpi package
@@ -62,13 +62,19 @@ RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
                         "spack load $PIC_PACKAGE\n" \
                         'if [ $(id -u) -eq 0 ]; then\n' \
                         '   function mpirun { $(which mpirun) --allow-run-as-root $@; }\n' \
+                        '   export -f mpirun\n' \
                         'fi\n' \
-                        'export -f mpirun\n' \
                         'if [ $(id -u) -eq 0 ]; then\n' \
                         '   function mpiexec { $(which mpiexec) --allow-run-as-root $@; }\n' \
+                        '   export -f mpiexec\n' \
                         'fi\n' \
-                        'export -f mpiexec\n' \
                > /etc/profile.d/picongpu.sh
+
+# force the use of a login shell
+RUN        /bin/echo -e '#!/bin/bash -l\n' \
+                        'exec "$@"\n' \
+               > /etc/entrypoint.sh
+RUN        chmod a+x /etc/entrypoint.sh
 
 # build example for out-of-the-box usage: LWFA
 RUN        /bin/bash -l -c ' \
@@ -89,6 +95,10 @@ RUN        /bin/bash -l -c ' \
                pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
                rm -rf .build'
 
+# make input directories readable and files executable for all users
+RUN        chmod a+x /opt/picInputs/*/bin/* && \
+           chmod a+r -R /opt/picInputs/* && \
+           find /opt/picInputs -type d -exec chmod a+rx {} \;
 
 COPY       start_lwfa.sh /usr/bin/lwfa
 COPY       start_lwfa_4.sh /usr/bin/lwfa4
@@ -101,4 +111,6 @@ COPY       start_khi_4.sh /usr/bin/bench4
 COPY       start_khi_8.sh /usr/bin/bench8
 COPY       start_foil_4.sh /usr/bin/foil4
 COPY       start_foil_8.sh /usr/bin/foil8
-CMD        /bin/bash -l
+
+ENTRYPOINT ["/etc/entrypoint.sh"]
+CMD ["/bin/bash"]

@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Axel Huebl, Benjamin Worpitz
+/* Copyright 2015-2019 Axel Huebl, Benjamin Worpitz, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *
@@ -29,10 +29,18 @@ namespace picongpu
 {
 namespace currentInterpolation
 {
+namespace detail
+{
 
-    struct Binomial
+    template< uint32_t T_dim >
+    struct Binomial;
+
+
+    //! Specialization for 3D
+    template< >
+    struct Binomial< DIM3 >
     {
-        static constexpr uint32_t dim = simDim;
+        static constexpr uint32_t dim = DIM3;
 
         using LowerMargin = typename pmacc::math::CT::make_Int<
             dim,
@@ -51,35 +59,139 @@ namespace currentInterpolation
             T_DataBoxJ const fieldJ
         )
         {
-            DataSpace< dim > const self;
             using TypeJ = typename T_DataBoxJ::ValueType;
+            using DS = DataSpace< dim >;
 
-            /* 1 2 1 weighting for "left"(1x) "center"(2x) "right"(1x),
-             * see Pascal's triangle level N=2 */
-            TypeJ dirSum( TypeJ::create( 0.0 ) );
-            for( uint32_t d = 0; d < dim; ++d )
-            {
-                DataSpace< dim > dw;
-                dw[d] = -1;
-                DataSpace< dim > up;
-                up[d] =  1;
-                TypeJ const dirDw = fieldJ( dw ) + fieldJ( self );
-                TypeJ const dirUp = fieldJ( up ) + fieldJ( self );
+            // weighting for original value, i.e. center element of a cell
+            constexpr float_X M = 8.0;
+            // weighting for nearest neighbours, i.e. cells sharing a face with the center cell
+            constexpr float_X S = 4.0;
+            // weighting for next to nearest neighbours, i.e. cells sharing an edge with the center cell
+            constexpr float_X D = 2.0;
+            // weighting for farthest neighbours, i.e. cells sharing a corner with the center cell
+            constexpr float_X T = 1.0;
 
-                /* each fieldJ component is added individually */
-                dirSum += dirDw + dirUp;
-            }
+            TypeJ averagedJ =
+                // sum far neighbours, i.e. corner elements, weighting T
+                T * (
+                    fieldJ( DS( -1, -1, -1 ) ) + fieldJ( DS( +1, -1, -1 ) ) + fieldJ( DS( -1, +1, -1 ) ) + fieldJ( DS( +1, +1, -1 ) ) +
+                    fieldJ( DS( -1, -1, +1 ) ) + fieldJ( DS( +1, -1, +1 ) ) + fieldJ( DS( -1, +1, +1 ) ) + fieldJ( DS( +1, +1, +1 ) )
+                ) +
+                // sum next to nearest neighbours, i.e. edge elements, weighting D
+                D * (
+                    fieldJ( DS( -1, -1, 0 ) ) + fieldJ( DS( +1, -1, 0 ) ) + fieldJ( DS( -1, +1, 0 ) ) + fieldJ( DS( +1, +1, 0 ) ) +
+                    fieldJ( DS( -1, 0, -1 ) ) + fieldJ( DS( +1, 0, -1 ) ) + fieldJ( DS( -1, 0, +1 ) ) + fieldJ( DS( +1, 0, +1 ) ) +
+                    fieldJ( DS( 0, -1, -1 ) ) + fieldJ( DS( 0, +1, -1 ) ) + fieldJ( DS( 0, -1, +1 ) ) + fieldJ( DS( 0, +1, +1 ) )
+                ) +
+                // sum next neighbours, i.e. face elements, weighting S
+                S * (
+                    fieldJ( DS( -1, 0, 0 ) ) + fieldJ( DS( +1, 0, 0 ) ) +
+                    fieldJ( DS( 0, -1, 0 ) ) + fieldJ( DS( 0, +1, 0 ) ) +
+                    fieldJ( DS( 0, 0, -1 ) ) + fieldJ( DS( 0, 0, +1 ) )
+                ) +
+                // add original value, i.e. center element, weighting M
+                M * (
+                    fieldJ( DS( 0, 0, 0 ) )
+                );
 
-            /* component-wise division by sum of all weightings,
-             * in the second order binomial filter these are 4 values per direction
-             * (1D: 4 values; 2D: 8 values; 3D: 12 values)
+            /* calc average by normalizing weighted sum In 3D there are:
+             *   - original value with weighting M
+             *   - 6 nearest neighbours with weighting S
+             *   - 12 next to nearest neighbours with weighting D
+             *   - 8 farthest neighbours with weighting T
              */
-            TypeJ const filteredJ = dirSum / TypeJ::create( float_X( 4.0 ) * dim );
+            constexpr float_X inverseDivisor = 1._X / ( M + 6._X * S + 12._X * D + 8._X * T );
+            averagedJ *= inverseDivisor;
 
             constexpr float_X deltaT = DELTA_T;
-            fieldE( self ) -= filteredJ * ( float_X( 1.0 ) / EPS0 ) * deltaT;
+            *fieldE -= averagedJ * ( 1._X / EPS0 ) * deltaT;
         }
+    };
 
+
+    //! Specialization for 2D
+    template< >
+    struct Binomial< DIM2 >
+    {
+        static constexpr uint32_t dim = DIM2;
+
+        using LowerMargin = typename pmacc::math::CT::make_Int<
+            dim,
+            1
+        >::type ;
+        using UpperMargin = LowerMargin;
+
+        template<
+            typename T_DataBoxE,
+            typename T_DataBoxB,
+            typename T_DataBoxJ
+        >
+        HDINLINE void operator()(
+            T_DataBoxE fieldE,
+            T_DataBoxB const,
+            T_DataBoxJ const fieldJ
+        )
+        {
+            using TypeJ = typename T_DataBoxJ::ValueType;
+            using DS = DataSpace< dim >;
+
+            // weighting for original value, i.e. center element of a cell
+            constexpr float_X M = 4.0;
+            // weighting for nearest neighbours, i.e. cells sharing an edge with the center cell
+            constexpr float_X S = 2.0;
+            // weighting for next to nearest neighbours, i.e. cells sharing a corner with the center cell
+            constexpr float_X D = 1.0;
+
+            TypeJ averagedJ =
+                // sum next to nearest neighbours, i.e. corner neighbors, weighting D
+                D * (
+                    fieldJ( DS( -1, -1 ) ) + fieldJ( DS( +1, -1 ) ) +
+                    fieldJ( DS( -1, +1 ) ) + fieldJ( DS( +1, +1 ) )
+                ) +
+                // sum next neighbours, i.e. edge neighbors, weighting S
+                S * (
+                    fieldJ( DS( -1, 0 ) ) + fieldJ( DS( +1, 0 ) ) +
+                    fieldJ( DS( 0, -1 ) ) + fieldJ( DS( 0, +1 ) )
+                ) +
+                // add original value, i.e. center cell, weighting M
+                M * (
+                    fieldJ( DS( 0, 0 ) )
+                );
+
+            /* calc average by normalizing weighted sum
+             * In 2D there are:
+             *    - original value with weighting M
+             *    - 4 nearest neighbours with weighting S
+             *    - 4 next to nearest neighbours with weighting D
+             */
+            constexpr float_X inverseDivisor = 1._X / ( M + 4._X * S + 4._X * D );
+            averagedJ *= inverseDivisor;
+
+            constexpr float_X deltaT = DELTA_T;
+            *fieldE -= averagedJ * ( 1._X / EPS0 ) * deltaT;
+        }
+    };
+
+} // namespace detail
+
+
+    /** Smoothing the current density before passing it to the field solver
+     *
+     * This technique mitigates numerical Cherenkov effects and short wavelength
+     * instabilities as it effectively implements a low pass filter which
+     * damps high frequency noise (near the Nyquist frequency) in the
+     * current distribution.
+     *
+     * A description and a two-dimensional implementation of this filter
+     * is given in
+     * CK Birdsall, AB Langdon. Plasma Physics via Computer Simulation. Appendix C. Taylor & Francis, 2004.
+     * It is a 2D version of the commonly used one-dimensional three points filter with binomial coefficients
+     *
+     * The three-dimensional extension of the above two-dimensional smoothing scheme
+     * uses all 26 neighbors of a cell.
+     */
+    struct Binomial : public detail::Binomial< simDim >
+    {
         static pmacc::traits::StringProperty getStringProperties()
         {
             pmacc::traits::StringProperty propList(

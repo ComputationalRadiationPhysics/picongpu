@@ -17,18 +17,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
 #include <pmacc/verify.hpp>
 #include <vector>   // std::vector
 #include <string>   // std::string
-#include <utility>  // std::pair
 #include <iterator> // std::distance
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
+
 
 namespace picongpu
 {
@@ -36,39 +34,54 @@ namespace picongpu
 class ParserGridDistribution
 {
 private:
-    typedef std::vector<std::pair<uint32_t, uint32_t> > value_type;
+    /** 1D sudomain extents
+     *
+     * Pair of extent and count entry in our grid distribution.
+     *
+     * For example, a single entry of the grid distribution a,b,c{n},d{m},e,f
+     * is stored as entry (a,1) in SubdomainPair. Another as (b,1), another
+     * n equally spaced subdomains as (c,n), another m subdomains of extent d
+     * as (d,m), and so on.
+     */
+    struct SubdomainPair {
+        // extent of the current subdomain
+        uint32_t extent;
+        // count of how often the subdomain shall be repeated
+        uint32_t count;
+    };
+    using value_type = std::vector< SubdomainPair >;
 
 public:
-    ParserGridDistribution( const std::string s )
+    ParserGridDistribution( std::string const s )
     {
-        parseString( s );
+        parsedInput = parse( s );
     }
 
     uint32_t
-    getOffset( const int gpuPos, const uint32_t maxCells ) const
+    getOffset( uint32_t const devicePos, uint32_t const maxCells ) const
     {
         value_type::const_iterator iter = parsedInput.begin();
-        // go to last gpu of this block b{n}
-        int i = iter->second - 1;
-        int sum = 0;
+        // go to last device of these n subdomains extent{n}
+        uint32_t i = iter->count - 1u;
+        uint32_t sum = 0u;
 
-        while( i < gpuPos )
+        while( i < devicePos )
         {
-            // add last block
-            sum += iter->first * iter->second;
+            // add last subdomain
+            sum += iter->extent * iter->count;
 
             ++iter;
-            // go to last gpu of this block b{n}
-            i += iter->second;
+            // go to last device of these n subdomains extent{n}
+            i += iter->count;
         }
 
-        // add part of this block that is before me
-        sum += iter->first * ( gpuPos + iter->second - i - 1 );
+        // add part of this subdomain that is before me
+        sum += iter->extent * ( devicePos + iter->count - i - 1u );
 
         // check total number of cells
-        uint32_t sumTotal = 0;
+        uint32_t sumTotal = 0u;
         for( iter = parsedInput.begin(); iter != parsedInput.end(); ++iter )
-            sumTotal += iter->first * iter->second;
+            sumTotal += iter->extent * iter->count;
 
         PMACC_VERIFY( sumTotal == maxCells );
 
@@ -77,40 +90,57 @@ public:
 
     /** Get local Size of this dimension
      *
-     *  \param[in] gpuPos as integer in the range [0, n-1] for this dimension
+     *  \param[in] devicePos as unsigned integer in the range [0, n-1] for this dimension
      *  \return uint32_t with local number of cells
      */
     uint32_t
-    getLocalSize( const int gpuPos ) const
+    getLocalSize( uint32_t const devicePos ) const
     {
         value_type::const_iterator iter = parsedInput.begin();
-        // go to last gpu of this block b{n}
-        int i = iter->second - 1;
+        // go to last device of these n subdomains extent{n}
+        uint32_t i = iter->count - 1u;
 
-        while( i < gpuPos )
+        while( i < devicePos )
         {
             ++iter;
-            // go to last gpu of this block b{n}
-            i += iter->second;
+            // go to last device of these n subdomains extent{n}
+            i += iter->count;
         }
 
-        return iter->first;
+        return iter->extent;
+    }
+
+    /** Verify the number of subdomains matches the devices
+     *
+     * Check that the number of subdomains in a dimension, after we
+     * expanded all regexes, matches the number of devices for it.
+     *
+     * \param[in] numDevices number of devices for this dimension
+     */
+    void
+    verifyDevices( uint32_t const numDevices ) const
+    {
+        uint32_t numSubdomains = 0u;
+        for( SubdomainPair const & p : parsedInput )
+            numSubdomains += p.count;
+
+        PMACC_VERIFY( numSubdomains == numDevices );
     }
 
 private:
     value_type parsedInput;
 
-    /** Parses the input string to a vector of pairs
+    /** Parses the input string to a vector of SubdomainPair(s)
      *
-     *  Parses the input string in the form a,b,c{n},d{m},e,f
-     *  to a vector of pairs with base number (a,b,c,d,e,f) and multipliers
-     *  (1,1,n,m,e,f)
+     * Parses the input string in the form a,b,c{n},d{m},e,f
+     * to a vector of SubdomainPair with extent number (a,b,c,d,e,f) and
+     * counts (1,1,n,m,e,f)
      *
-     *  \param[in] s as const std::string in the form a,b{n}
-     *  \return std::vector<pair> with uint32_t (base, multiplier)
+     * \param[in] s as string in the form a,b{n}
+     * \return std::vector<SubdomainPair> with 2x uint32_t (extent, count)
      */
-    void
-    parseString( const std::string s )
+    value_type
+    parse( std::string const s ) const
     {
         boost::regex regFind( "[0-9]+(\\{[0-9]+\\})*",
                               boost::regex_constants::perl );
@@ -119,30 +149,38 @@ private:
                                            regFind, 0 );
         boost::sregex_token_iterator end;
 
-        parsedInput.clear();
-        parsedInput.reserve( std::distance( iter, end ) );
+        value_type newInput;
+        newInput.reserve( std::distance( iter, end ) );
 
         for(; iter != end; ++iter )
         {
             std::string pM = *iter;
 
-            // find multiplier n and base b of b{n}
-            boost::regex regMultipl( "(.*\\{)|(\\})",
-                                     boost::regex_constants::perl );
-            std::string multipl = boost::regex_replace( pM, regMultipl, "" );
-            boost::regex regBase( "\\{.*\\}",
-                                  boost::regex_constants::perl );
-            std::string base = boost::regex_replace( pM, regBase, "" );
+            // find count n and extent b of b{n}
+            boost::regex regCount(
+                "(.*\\{)|(\\})",
+                boost::regex_constants::perl
+            );
+            std::string count = boost::regex_replace( pM, regCount, "" );
 
-            // no Multiplier {n} given
-            if( multipl == *iter )
-                multipl = "1";
+            boost::regex regExtent(
+                "\\{.*\\}",
+                boost::regex_constants::perl
+            );
+            std::string extent = boost::regex_replace( pM, regExtent, "" );
 
-            const std::pair<uint32_t, uint32_t> g(
-                      boost::lexical_cast<uint32_t > ( base ),
-                      boost::lexical_cast<uint32_t > ( multipl ) );
-            parsedInput.push_back( g );
+            // no count {n} given (implies one)
+            if( count == *iter )
+                count = "1";
+
+            const SubdomainPair g = {
+                boost::lexical_cast< uint32_t > ( extent ),
+                boost::lexical_cast< uint32_t > ( count )
+            };
+            newInput.emplace_back( g );
         }
+
+        return newInput;
     }
 
 };

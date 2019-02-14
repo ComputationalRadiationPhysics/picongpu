@@ -80,11 +80,17 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 # we are not sure if the current bullxmpi/1.2.4.3 catches pinned memory correctly
 #   support ticket [Ticket:2014052241001186] srun: mpi mca flags
 #   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
 export OMPI_MCA_mpi_leave_pinned=0
+
+# The OMPIO backend in OpenMPI up to 3.1.3 and 4.0.0 is broken, use the
+# fallback ROMIO backend instead.
+#   see bug https://github.com/open-mpi/ompi/issues/6285
+export OMPI_MCA_io=^ompio
 
 # test if cuda_memtest binary is available
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
@@ -96,6 +102,6 @@ fi
 
 if [ $? -eq 0 ] ; then
   # Run PIConGPU
-  srun -K1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+  srun -K1 !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi
 

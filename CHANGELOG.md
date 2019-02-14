@@ -1,9 +1,66 @@
 Changelog
 =========
 
+0.4.3
+-----
+
+**Date:** 2019-02-14
+
+System Updates and Bug Fixes
+
+This release adds updates and new HPC system templates. Important bug
+fixes include I/O work-arounds for issues in OpenMPI 2.0-4.0 (mainly
+with HDF5), guards for particle creation with user-defined
+profiles, a fixed binomial current smoothing, checks for the number
+of devices in grid distributions and container (Docker & Singularity)
+modernizations.
+
+Thanks to Axel Huebl, Alexander Debus, Igor Andriyash, Marco Garten,
+Sergei Bastrakov, Adam Simpson, Richard Pausch, Juncheng E,
+Klaus Steiniger, and René Widera for contributions to this release!
+
+### Changes to "0.4.2"
+
+**Bug Fixes:**
+- fix particle creation if density `<=` zero #2831
+- fix binomial current interpolation #2838
+- Docker & Singularity updates #2847
+- OpenMPI: use ROMIO for IO #2841 #2857
+- `--gridDist`: verify devices and blocks #2876
+- Phase space plugin: unit of colorbar in 2D3V #2878
+
+**Misc:**
+- `ionizer.param`: fix typo in "Aluminium" #2865
+- System Template Updates:
+  - Add system links #2818
+  - Taurus:
+    - add project #2819
+    - add Power9 V100 nodes #2856 
+  - add D.A.V.I.D.E (CINECA) #2821
+  - add JURECA (JSC) #2869
+  - add JUWELS (JSC) #2874
+  - Hypnos (HZDR): CMake update #2887
+  - Slurm systems: link `stdout` to `simOutput/output` #2839
+- Docs:
+  - Change link to CRP group @ HZDR #2814
+  - `FreeRng.def`: typo in example usage #2825
+  - More details on source builds #2828
+  - Dependencies: Blosc install #2829
+  - Ionization plot title linebreak #2867
+- plugins:
+  - ADIOS & phase space `-Wterminate` #2817
+  - Radiation: update documented options #2842
+- Update versions script: containers #2846
+- pyflakes: `str`/`bytes`/`int` compares #2866
+- Travis CI: Fix Spack CMake Install #2879
+- Contributor name typo in `LICENSE.md` #2880
+- Update mallocMC to 2.3.1crp #2893
+- CMake: Honor `_ROOT` Env Hints #2891 #2892 #2893
+
+
 0.4.2
 -----
-**Date:** 2018-11-TBA
+**Date:** 2018-11-19
 
 CPU Plugin Performance
 

@@ -211,6 +211,9 @@ public:
             // parse string
             ParserGridDistribution parserGD(gridDistribution.at(dim));
 
+            // verify number of blocks and devices in dimension match
+            parserGD.verifyDevices(gpus[dim]);
+
             // calculate local grid points & offset
             gridSizeLocal[dim] = parserGD.getLocalSize(myGPUpos[dim]);
             gridOffset[dim] = parserGD.getOffset(myGPUpos[dim], global_grid_size[dim]);

@@ -9,6 +9,10 @@ export MY_MAILNOTIFY="NONE"
 export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
+# Project Information ######################################## (edit this line)
+#   - project account for computing time
+export proj=$(groups | awk '{print $1}')
+
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
