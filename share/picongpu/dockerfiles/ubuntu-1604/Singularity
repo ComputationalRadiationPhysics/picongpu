@@ -1,10 +1,10 @@
 Bootstrap: docker
-From: ax3l/picongpu:0.4.3
+From: ax3l/picongpu:0.5.0
 
 
 %labels
 Maintainer Axel Huebl <a.huebl@hzdr.de>
-Version 0.4.3
+Version 0.5.0
 
 
 %runscript
