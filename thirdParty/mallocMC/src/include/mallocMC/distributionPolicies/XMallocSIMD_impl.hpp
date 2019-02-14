@@ -60,6 +60,11 @@ namespace DistributionPolicies{
     public:
       typedef T_Config Properties;
 
+      MAMC_ACCELERATOR
+      XMallocSIMD() : can_use_coalescing(false), warpid(warpid_withinblock()),
+        myoffset(0), threadcount(0), req_size(0)
+      {}
+
     private:
 /** Allow for a hierarchical validation of parameters:
  *
@@ -89,12 +94,11 @@ namespace DistributionPolicies{
       uint32 collect(uint32 bytes){
 
         can_use_coalescing = false;
-        warpid = mallocMC::warpid();
         myoffset = 0;
         threadcount = 0;
 
         //init with initial counter
-        __shared__ uint32 warp_sizecounter[32];
+        __shared__ uint32 warp_sizecounter[MaxThreadsPerBlock::value / WarpSize::value];
         warp_sizecounter[warpid] = 16;
 
         //second half: make sure that all coalesced allocations can fit within one page
@@ -121,7 +125,7 @@ namespace DistributionPolicies{
 
       MAMC_ACCELERATOR
       void* distribute(void* allocatedMem){
-        __shared__ char* warp_res[32];
+        __shared__ char* warp_res[MaxThreadsPerBlock::value / WarpSize::value];
 
         char* myalloc = (char*) allocatedMem;
         if (req_size && can_use_coalescing)
