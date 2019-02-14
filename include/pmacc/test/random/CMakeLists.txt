@@ -24,6 +24,17 @@ project("TestRandomGenerators")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 
+
+################################################################################
+# CMake policies
+#
+# Search in <PackageName>_ROOT:
+#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
+################################################################################
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
+
 ################################################################################
 # PMacc
 ################################################################################
