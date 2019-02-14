@@ -840,7 +840,7 @@ public:
         {
             // avoid deadlock between not finished pmacc tasks and mpi blocking collectives
             __getTransactionEvent().waitForFinished();
-            MPI_CHECK(MPI_Comm_free(&(mThreadParams.adiosComm)));
+            MPI_CHECK_NO_EXCEPT(MPI_Comm_free(&(mThreadParams.adiosComm)));
         }
     }
 

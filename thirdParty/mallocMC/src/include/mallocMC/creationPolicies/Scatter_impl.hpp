@@ -933,15 +933,15 @@ namespace ScatterKernelDetail{
        */
       __device__ unsigned getAvailableSlotsAccelerator(size_t slotSize){
         int linearId;
-        int wId = threadIdx.x >> 5; //do not use warpid-function, since this value is not guaranteed to be stable across warp lifetime
+        int wId = warpid_withinblock(); //do not use warpid-function, since this value is not guaranteed to be stable across warp lifetime
 
 #if(__CUDACC_VER_MAJOR__ >= 9)
         uint32 activeThreads  = __popc(__activemask());
 #else
         uint32 activeThreads  = __popc(__ballot(true));
 #endif
-        __shared__ uint32 activePerWarp[32]; //32 is the maximum number of warps in a block
-        __shared__ unsigned warpResults[32];
+        __shared__ uint32 activePerWarp[MaxThreadsPerBlock::value / WarpSize::value]; //maximum number of warps in a block
+        __shared__ unsigned warpResults[MaxThreadsPerBlock::value / WarpSize::value];
         warpResults[wId]   = 0;
         activePerWarp[wId] = 0;
 
