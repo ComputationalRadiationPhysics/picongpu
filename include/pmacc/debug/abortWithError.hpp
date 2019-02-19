@@ -28,6 +28,7 @@
 
 namespace pmacc
 {
+namespace{
     /** abort program with an exception
      *
      * This function always throws a `runtime_error`.
@@ -55,4 +56,5 @@ namespace pmacc
             msg
         );
     }
+}
 }
