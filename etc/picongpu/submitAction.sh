@@ -27,6 +27,7 @@ then
   (>&2 echo "WARNING: $numNewerFiles input file(s) in include/")
   (>&2 echo "         have been modified since the last compile!")
   (>&2 echo "         Did you forget to recompile?")
+  (>&2 echo "         Run 'pic-build -f' to recompile with the modified files.")
   (>&2 echo "List of modified files:")
   (>&2 echo -e "$newerFiles")
 fi
