@@ -106,7 +106,7 @@ namespace memory
             { workerIdx }(
                 [&,this]( uint32_t const linearIdx, uint32_t const idx )
                 {
-                    (*this)[idx] = functor( linearIdx, idx, std::forward(args) ... );
+                    (*this)[idx] = functor( linearIdx, idx, std::forward< T_Args >( args ) ... );
                 }
             );
         }

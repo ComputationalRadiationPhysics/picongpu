@@ -112,7 +112,7 @@ namespace threads
                             functor(
                                 localIdx,
                                 beginWorker + j,
-                                std::forward(args) ...
+                                std::forward< T_Args >( args ) ...
                             );
                     }
                 }
