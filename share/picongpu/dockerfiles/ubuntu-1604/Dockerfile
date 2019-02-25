@@ -59,7 +59,7 @@ RUN        spack install $PIC_PACKAGE && \
 
 # load spack & picongpu environment on login
 RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
-                        "spack load $PIC_PACKAGE\n" \
+                        "spack load -r $PIC_PACKAGE\n" \
                         'if [ $(id -u) -eq 0 ]; then\n' \
                         '   function mpirun { $(which mpirun) --allow-run-as-root $@; }\n' \
                         '   export -f mpirun\n' \
