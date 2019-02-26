@@ -25,8 +25,7 @@
 #include <string>   // std::string
 #include <iterator> // std::distance
 
-#include <boost/regex.hpp>
-#include <boost/lexical_cast.hpp>
+#include <regex>
 
 
 namespace picongpu
@@ -98,12 +97,14 @@ namespace picongpu
     ParserGridDistribution::value_type
     ParserGridDistribution::parse( std::string const s ) const
     {
-        boost::regex regFind( "[0-9]+(\\{[0-9]+\\})*",
-                              boost::regex_constants::perl );
+        std::regex regFind(
+            R"([0-9]+(\{[0-9]+})*)",
+            std::regex::egrep
+        );
 
-        boost::sregex_token_iterator iter( s.begin( ), s.end( ),
+        std::sregex_token_iterator iter( s.begin( ), s.end( ),
                                            regFind, 0 );
-        boost::sregex_token_iterator end;
+        std::sregex_token_iterator end;
 
         value_type newInput;
         newInput.reserve( std::distance( iter, end ) );
@@ -113,25 +114,25 @@ namespace picongpu
             std::string pM = *iter;
 
             // find count n and extent b of b{n}
-            boost::regex regCount(
-                "(.*\\{)|(\\})",
-                boost::regex_constants::perl
+            std::regex regCount(
+                R"((.*\{)|(}))",
+                std::regex::egrep
             );
-            std::string count = boost::regex_replace( pM, regCount, "" );
+            std::string count = std::regex_replace( pM, regCount, "" );
 
-            boost::regex regExtent(
-                "\\{.*\\}",
-                boost::regex_constants::perl
+            std::regex regExtent(
+                R"(\{.*})",
+                std::regex::egrep
             );
-            std::string extent = boost::regex_replace( pM, regExtent, "" );
+            std::string extent = std::regex_replace( pM, regExtent, "" );
 
             // no count {n} given (implies one)
             if( count == *iter )
                 count = "1";
 
             const SubdomainPair g = {
-                boost::lexical_cast< uint32_t > ( extent ),
-                boost::lexical_cast< uint32_t > ( count )
+                static_cast< uint32_t > ( std::stoul(extent) ),
+                static_cast< uint32_t > ( std::stoul(count) )
             };
             newInput.emplace_back( g );
         }
