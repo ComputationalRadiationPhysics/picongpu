@@ -165,10 +165,10 @@ endif()
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex filesystem
+find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options filesystem
                                               system math_tr1 serialization)
 if(TARGET Boost::program_options)
-    set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex
+    set(LIBS ${LIBS} Boost::boost Boost::program_options
                      Boost::filesystem Boost::system Boost::math_tr1
                      Boost::serialization)
 else()
