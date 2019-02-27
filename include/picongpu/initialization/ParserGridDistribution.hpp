@@ -19,13 +19,9 @@
 
 #pragma once
 
-#include <pmacc/verify.hpp>
 #include <vector>   // std::vector
 #include <string>   // std::string
-#include <iterator> // std::distance
-
-#include <boost/regex.hpp>
-#include <boost/lexical_cast.hpp>
+#include <cstdint>
 
 
 namespace picongpu
@@ -52,41 +48,10 @@ private:
     using value_type = std::vector< SubdomainPair >;
 
 public:
-    ParserGridDistribution( std::string const s )
-    {
-        parsedInput = parse( s );
-    }
+    ParserGridDistribution( std::string const s );
 
     uint32_t
-    getOffset( uint32_t const devicePos, uint32_t const maxCells ) const
-    {
-        value_type::const_iterator iter = parsedInput.begin();
-        // go to last device of these n subdomains extent{n}
-        uint32_t i = iter->count - 1u;
-        uint32_t sum = 0u;
-
-        while( i < devicePos )
-        {
-            // add last subdomain
-            sum += iter->extent * iter->count;
-
-            ++iter;
-            // go to last device of these n subdomains extent{n}
-            i += iter->count;
-        }
-
-        // add part of this subdomain that is before me
-        sum += iter->extent * ( devicePos + iter->count - i - 1u );
-
-        // check total number of cells
-        uint32_t sumTotal = 0u;
-        for( iter = parsedInput.begin(); iter != parsedInput.end(); ++iter )
-            sumTotal += iter->extent * iter->count;
-
-        PMACC_VERIFY( sumTotal == maxCells );
-
-        return sum;
-    }
+    getOffset( uint32_t const devicePos, uint32_t const maxCells ) const;
 
     /** Get local Size of this dimension
      *
@@ -94,21 +59,7 @@ public:
      *  \return uint32_t with local number of cells
      */
     uint32_t
-    getLocalSize( uint32_t const devicePos ) const
-    {
-        value_type::const_iterator iter = parsedInput.begin();
-        // go to last device of these n subdomains extent{n}
-        uint32_t i = iter->count - 1u;
-
-        while( i < devicePos )
-        {
-            ++iter;
-            // go to last device of these n subdomains extent{n}
-            i += iter->count;
-        }
-
-        return iter->extent;
-    }
+    getLocalSize( uint32_t const devicePos ) const;
 
     /** Verify the number of subdomains matches the devices
      *
@@ -118,14 +69,7 @@ public:
      * \param[in] numDevices number of devices for this dimension
      */
     void
-    verifyDevices( uint32_t const numDevices ) const
-    {
-        uint32_t numSubdomains = 0u;
-        for( SubdomainPair const & p : parsedInput )
-            numSubdomains += p.count;
-
-        PMACC_VERIFY( numSubdomains == numDevices );
-    }
+    verifyDevices( uint32_t const numDevices ) const;
 
 private:
     value_type parsedInput;
@@ -140,48 +84,7 @@ private:
      * \return std::vector<SubdomainPair> with 2x uint32_t (extent, count)
      */
     value_type
-    parse( std::string const s ) const
-    {
-        boost::regex regFind( "[0-9]+(\\{[0-9]+\\})*",
-                              boost::regex_constants::perl );
-
-        boost::sregex_token_iterator iter( s.begin( ), s.end( ),
-                                           regFind, 0 );
-        boost::sregex_token_iterator end;
-
-        value_type newInput;
-        newInput.reserve( std::distance( iter, end ) );
-
-        for(; iter != end; ++iter )
-        {
-            std::string pM = *iter;
-
-            // find count n and extent b of b{n}
-            boost::regex regCount(
-                "(.*\\{)|(\\})",
-                boost::regex_constants::perl
-            );
-            std::string count = boost::regex_replace( pM, regCount, "" );
-
-            boost::regex regExtent(
-                "\\{.*\\}",
-                boost::regex_constants::perl
-            );
-            std::string extent = boost::regex_replace( pM, regExtent, "" );
-
-            // no count {n} given (implies one)
-            if( count == *iter )
-                count = "1";
-
-            const SubdomainPair g = {
-                boost::lexical_cast< uint32_t > ( extent ),
-                boost::lexical_cast< uint32_t > ( count )
-            };
-            newInput.emplace_back( g );
-        }
-
-        return newInput;
-    }
+    parse( std::string const s ) const;
 
 };
 
