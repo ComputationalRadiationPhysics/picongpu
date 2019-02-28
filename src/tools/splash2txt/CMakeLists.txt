@@ -104,6 +104,11 @@ if(MPI_CXX_FOUND)
     set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
 endif(MPI_CXX_FOUND)
 
+################################################################################
+# Find zlib
+################################################################################
+
+find_package(ZLIB REQUIRED)
 
 ################################################################################
 # libSplash (+ hdf5 due to required headers)
@@ -160,6 +165,8 @@ add_executable(splash2txt
      ${SRCFILES}
      )
 
+target_link_libraries(splash2txt Splash::Splash)
+target_link_libraries(splash2txt ZLIB::ZLIB)
 target_link_libraries(splash2txt m ${LIBS})
 
 
