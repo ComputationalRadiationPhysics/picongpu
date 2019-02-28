@@ -1,0 +1,381 @@
+/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Klaus Steiniger, Felix Schmitt, Benjamin Worpitz
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#pragma once
+
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+
+#include "picongpu/simulation_defines.hpp"
+
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/mappings/kernel/AreaMapping.hpp>
+
+
+#include "picongpu/plugins/radiation/parameters.hpp"
+#include "picongpu/plugins/radiation/check_consistency.hpp"
+#include "picongpu/plugins/radiation/particle.hpp"
+#include "picongpu/plugins/radiation/amplitude.hpp"
+#include "picongpu/plugins/radiation/calc_amplitude.hpp"
+#include "picongpu/plugins/radiation/windowFunctions.hpp"
+#include "picongpu/plugins/radiation/GetRadiationMask.hpp"
+
+#include <pmacc/mpi/reduceMethods/Reduce.hpp>
+#include <pmacc/mpi/MPIReduce.hpp>
+#include <pmacc/nvidia/functors/Add.hpp>
+#include <pmacc/nvidia/atomic.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+#include <pmacc/memory/Array.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
+
+
+#include "picongpu/plugins/radiation/nyquist_low_pass.hpp"
+
+#include "picongpu/plugins/radiation/radFormFactor.hpp"
+#include "sys/stat.h"
+
+
+namespace picongpu
+{
+
+    /** calculate the scattering of a species
+     *
+     * If \p T_dependenciesFulfilled is false a dummy kernel without functionality is created
+     *
+     * @tparam T_numWorkers number of workers
+     * @tparam T_dependenciesFulfilled true if all dependencies (species attributes) are full filled
+     *                                  else false
+     */
+    template<
+        uint32_t T_numWorkers,
+        bool T_dependenciesFulfilled
+    >
+    struct KernelSaxs
+    {
+        /**
+         * The radiation kernel calculates for all particles on the device the
+         * emitted radiation for every direction and every frequency.
+         * The parallelization is as follows:
+         *  - There are as many Blocks of threads as there are directions for which
+         *    radiation needs to be calculated. (A block of threads shares
+         *    shared memory)
+         *  - The number of threads per block is equal to the number of cells per
+         *    super cells which is also equal to the number of particles per frame
+         *
+         * The procedure starts with calculating unique ids for the threads and
+         * initializing the shared memory.
+         * Then a loop over all super cells starts.
+         * Every thread loads a particle from that super cell and calculates its
+         * retarded time and its real amplitude (both is dependent of the direction).
+         * For every Particle
+         * exists therefor a unique space within the shared memory.
+         * After that, a thread calculates for a specific frequency the emitted
+         * radiation of all particles.
+         * @param pb
+         * @param radiation
+         * @param globalOffset
+         * @param currentStep
+         * @param mapper
+         * @param freqFkt
+         * @param simBoxSize
+         */
+        template<
+            typename ParBox,
+            typename DBox,
+            typename Mapping,
+            typename T_Acc
+        >
+        DINLINE
+        /*__launch_bounds__(256, 4)*/
+        void operator()(
+            T_Acc const & acc,
+            ParBox pb,
+            DBox sumfcoskr,
+            DBox sumfsinkr,
+            DataSpace<simDim> globalOffset,
+            uint32_t currentStep,
+            Mapping mapper,
+            DataSpace<simDim> simBoxSize,
+            float3_X q_min,
+            float3_X q_max, 
+            unsigned int n_qx,
+            unsigned int n_qy,
+            unsigned int n_qz,
+            unsigned int n_q
+        ) const
+        {
+            using namespace mappings::threads;
+            namespace po = boost::program_options;
+
+            constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
+            constexpr uint32_t numWorker = T_numWorkers;
+
+            using FrameType = typename ParBox::FrameType ;
+            using FramePtr = typename ParBox::FramePtr;
+
+            uint32_t const workerIdx = threadIdx.x;
+
+            /// calculate radiated Amplitude
+            /* parallelized in 1 dimensions:
+             * looking direction (theta)
+             * (not anymore data handling)
+             * create shared memory for particle data to reduce global memory calls
+             * every thread in a block loads one particle and every thread runs
+             * through all particles and calculates the radiation for one direction
+             * for all frequencies
+             */
+            constexpr int blockSize = pmacc::math::CT::volume<SuperCellSize>::type::value;
+
+            // vectorial part of the integrand in the Jackson formula
+            PMACC_SMEM( acc, r_s, memory::Array< picongpu::float3_64, blockSize > );
+
+
+            // storage for macro particle weighting needed if
+            // the coherent and incoherent radiation of a single
+            // macro-particle needs to be considered
+            PMACC_SMEM( acc, saxsWeighting_s, memory::Array< float_X, blockSize > );
+
+
+
+            int const theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
+
+            // simulation time (needed for retarded time)
+            picongpu::float_64 const t(
+                picongpu::float_64( currentStep ) * picongpu::float_64( DELTA_T)
+            );
+
+
+            // get extent of guarding super cells (needed to ignore them)
+            DataSpace< simDim > const guardingSuperCells = mapper.getGuardingSuperCells();
+
+            /* number of super cells on GPU per dimension (still including guard cells)
+             * remove both guards from count [later one sided guard needs to be added again]
+             */
+            DataSpace< simDim > const superCellsCount( mapper.getGridSuperCells( ) - 2 * guardingSuperCells );
+
+            // get absolute number of relevant super cells
+            int const numSuperCells = superCellsCount.productOfComponents();
+
+
+            /* go over all super cells on GPU
+             * but ignore all guarding supercells
+             */
+            for( int super_cell_index = 0; super_cell_index <= numSuperCells; ++super_cell_index )
+            {
+                // select SuperCell and add one sided guard again
+                DataSpace< simDim > const superCell =
+                    DataSpaceOperations<simDim>::map(
+                        superCellsCount,
+                        super_cell_index
+                    ) +
+                    guardingSuperCells;
+
+                // -guardingSuperCells remove guarding block
+                DataSpace< simDim > const superCellOffset(
+                    globalOffset +
+                    (
+                        ( superCell - guardingSuperCells ) *
+                        SuperCellSize::toRT()
+                    )
+                );
+
+                // pointer to  frame storing particles
+                FramePtr frame = pb.getLastFrame( superCell );
+
+                // number  of particles in current frame
+                lcellId_t particlesInFrame = pb.getSuperCell( superCell ).getSizeLastFrame();
+
+                /* go to next supercell
+                 *
+                 * if "isValid" is false then there is no frame
+                 * inside the superCell (anymore)
+                 */
+                while( frame.isValid() )
+                {
+                    /* since a race condition can occur if "continue loop" is called,
+                     *  all threads must wait for the selection of a new frame
+                     *  until all threads have evaluated "isValid"
+                     */
+                    __syncthreads();
+
+            
+
+                    using ParticleDomCfg = IdxConfig<
+                        frameSize,
+                        numWorker
+                    >;
+
+                    // loop over all particles in the frame
+                    ForEachIdx< ParticleDomCfg > forEachParticle{ workerIdx };
+
+                    forEachParticle(
+                        [&](
+                            uint32_t const linearIdx,
+                            uint32_t const
+                        )
+                        {
+                            // only threads with particles are running
+                            if( linearIdx < particlesInFrame )
+                            {
+
+                                auto par = frame[ linearIdx ];
+                              
+
+                                        // calculate global position
+                                        lcellId_t const cellIdx = par[ localCellIdx_ ];
+
+                                        // position inside of the cell
+                                        floatD_X const pos = par[ position_ ];
+
+                                        // calculate global position of cell
+                                        DataSpace< simDim > const globalPos(
+                                            superCellOffset +
+                                            DataSpaceOperations< simDim >::
+                                                template map< SuperCellSize >( cellIdx )
+                                        );
+
+                                        // add global position of cell with local position of particle in cell
+                                        // set z component to zero in case of simDim==DIM2
+                                        r_s[linearIdx][ 2 ] = 0.0;
+                                        // run over all components and compute gobal position
+                                        for( int i = 0; i < simDim; ++i )
+                                          r_s[linearIdx][ i ] =
+                                              ( float_X( globalPos[ i ] ) + pos[ i ] ) *
+                                              cellSize[ i ];
+
+                                        /* get macro-particle weighting
+                                         *
+                                         * Info:
+                                         * the weighting is the number of real particles described
+                                         * by a macro-particle
+                                         */
+                                        saxsWeighting_s[linearIdx] = par[ weighting_ ];
+
+                                        /****************************************************
+                                         **** Here happens the true physical calculation ****
+                                         ****************************************************/
+
+                                        // set up particle using the radiation's own particle class
+                                        /*!\todo please add a namespace for Particle class*/
+
+                            } // END: only threads with particles are running
+                        }
+                    );
+
+                    __syncthreads(); // wait till every thread has loaded its particle data
+
+
+                    // run over all q for this thread
+                    for( int idx = workerIdx; idx < n_q; idx += T_numWorkers )
+                    {
+
+                        // Initialize in register memory
+                        float1_64 sumfcoskr_r = 0;
+                        float1_64 sumfsinkr_r = 0;
+                        float3_64 q_r;
+                        float_64 dotkr;
+
+                        i_z = idx % n_qz ;
+                        i_y = (idx / n_qz) % n_qy ;
+                        i_x = idx / (n_qz * n_qy) ;
+
+                        q_r[0] = q_min[0] + q_step[0] * i_x;
+                        q_r[1] = q_min[1] + q_step[1] * i_y;
+                        q_r[2] = q_min[2] + q_step[2] * i_z;
+
+                        /* Particle loop: thread runs through loaded particle data
+                         */
+                        for( int j = 0; j < particlesInFrame; ++j )
+                        {
+                            dotkr = q_r[0] * r_s[j][0] + q_r[1] * r_s[j][1] + q_r[2] * r_s[j][2];
+                            sumfcoskr_r += math::cos(dotkr) * saxsWeighting_s[j];
+                            sumfsinkr_r += math::sin(dotkr) * saxsWeighting_s[j];
+                        }// END: Particle loop
+
+                        sumfcoskr[idx] += sumfcoskr_r;
+                        sumfsinkr[idx] += sumfsinkr_r;
+
+                    } // end q (frequency) loop
+
+
+                    // wait till all  for this super cell are done
+                    __syncthreads();
+                    // TODO: get the total particle numbers
+                    // np_s += particlesInFrame;
+
+                    /* First threads starts loading next frame of the super-cell:
+                     *
+                     * Info:
+                     *   The calculation starts with the last SuperCell (must not be full filled)
+                     *   all previous SuperCells are full with particles
+                     */
+                    particlesInFrame = frameSize;
+                    frame = pb.getPreviousFrame( frame );
+
+                  } // end while(frame.isValid())
+
+             } // end loop over all super cells
+
+
+         } // end SAXS kernel
+    };
+
+    /** specialization if a dependency is missing
+     *
+     * this functor is empty.
+     */
+    template< uint32_t T_numWorkers >
+    struct KernelSaxs<
+        T_numWorkers,
+        false
+    >
+    {
+        template <
+            typename ParBox,
+            typename DBox,
+            typename Mapping,
+            typename T_Acc
+            >
+        DINLINE
+        void operator()(
+            T_Acc const &acc,
+            ParBox pb,
+            DBox sumfcoskr,
+            DBox sumfsinkr,
+            DataSpace<simDim> globalOffset,
+            uint32_t currentStep,
+            Mapping mapper,
+            DataSpace<simDim> simBoxSize,
+            float3_X q_min,
+            float3_X q_max,
+            unsigned int n_qx,
+            unsigned int n_qy,
+            unsigned int n_qz,
+            unsigned int n_q
+         ) const
+        {
+        }
+    };
+
+}

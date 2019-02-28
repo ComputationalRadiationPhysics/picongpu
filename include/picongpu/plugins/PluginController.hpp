@@ -24,6 +24,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/assert.hpp>
 
+#include "picongpu/plugins/saxs/Saxs.hpp"
 #include "picongpu/plugins/CountParticles.hpp"
 #include "picongpu/plugins/EnergyParticles.hpp"
 #include "picongpu/plugins/multi/Master.hpp"
@@ -214,7 +215,8 @@ private:
         plugins::multi::Master< CalcEmittance<bmpl::_1> >,
         plugins::multi::Master< BinEnergyParticles<bmpl::_1> >,
         CountParticles<bmpl::_1>,
-        PngPlugin< Visualisation<bmpl::_1, PngCreator> >
+        PngPlugin< Visualisation<bmpl::_1, PngCreator> >,
+        Saxs<bmpl::_1>
 #if(ENABLE_HDF5 == 1)
         , Radiation<bmpl::_1>
         , plugins::multi::Master< ParticleCalorimeter<bmpl::_1> >
