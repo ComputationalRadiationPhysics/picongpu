@@ -232,6 +232,16 @@ class BaseWidget(widgets.VBox):
         #    (without triggering the callback)
         self._update_available_sim_times()
 
+        # TODO: update the widgets that allow choosing of parameter
+        # vaues for plotting with the options that are common to
+        # a) the selected simulations and
+        # b) to the selected simulation time
+        # BUT: is this enough to update the options only on choice of
+        # simulations? shouldn't this also be updated when
+        # a) some other option changes
+        # and
+        # b) the simulation time changes?
+
     def _handle_run_dir_selection_callback(self, change):
         """
         Callback function when user selects a subset of the

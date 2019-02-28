@@ -182,3 +182,9 @@ class EnergyHistogramData(DataReader):
             return data.loc[iteration].values, bins, iteration, dt
         else:
             return data.loc[iteration].values[0, :], bins, iteration, dt
+
+    def get_species(self, iteration=None, species_filter=None):
+        raise NotImplementedError
+
+    def get_species_filters(self):
+        raise NotImplementedError

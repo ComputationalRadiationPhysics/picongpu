@@ -121,3 +121,38 @@ class DataReader(object):
         dependent format and type.
         """
         raise NotImplementedError
+
+    # NOTE: this can be hard to define abstractly since we should make each
+    # parameter query dependent on all other possible choices of parameters
+    # thus requiring kwargs?!
+
+    # e.g. get all species strings for defined values of filter, iteration
+    # and other parameters
+    def get_species(self, iteration=None, species_filter=None):
+        """
+        Get the available species abbreviations for which data exists.
+        Optionally specific iterations and/or filters can be given.
+
+
+        Returns
+        -------
+        A list of species abbreviation strings for which data exists.
+        In case iteration or species_filter are not None, only species
+        are returned that match iteration and species_filter.
+        """
+        raise NotImplementedError
+
+    def get_species_filters(self, iteration=None, species=None):
+        raise NotImplementedError
+
+    def get_options(self, iteration=None, species=None, species_filter=None):
+        """
+        Returns
+        -------
+        a dictionary mapping keywords that a visualizer might use
+        to the values for which data is present.
+        """
+        return {
+            'species': self.get_species(iteration, species_filter),
+            'species_filter': self.get_species_filters(iteration, species)
+        }

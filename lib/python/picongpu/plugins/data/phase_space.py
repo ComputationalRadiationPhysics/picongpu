@@ -288,3 +288,22 @@ class PhaseSpaceData(DataReader):
             return ret[0]
         else:
             return ret
+
+    def get_species(self, iteration=None, species_filter=None):
+        raise NotImplementedError
+
+    def get_species_filters(self, iteration=None, species=None):
+        raise NotImplementedError
+
+    def get_ps(self, iteration=None, species=None, species_filter=None):
+        raise NotImplementedError
+
+    def get_options(self, iteration=None, species=None, species_filter=None):
+
+        # the options for species and species_filter
+        d = super().get_options()
+
+        # also append options for ps
+        d['ps'] = self.get_ps()
+
+        return d
