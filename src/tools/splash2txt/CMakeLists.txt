@@ -136,9 +136,9 @@ endif(ADIOS_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex)
+find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options)
 if(TARGET Boost::program_options)
-    set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex)
+    set(LIBS ${LIBS} Boost::boost Boost::program_options)
 else()
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
     set(LIBS ${LIBS} ${Boost_LIBRARIES})

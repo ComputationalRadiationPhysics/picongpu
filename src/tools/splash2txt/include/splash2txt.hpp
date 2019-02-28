@@ -35,7 +35,6 @@
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
-#include <boost/regex.hpp>
 #include <iomanip>
 
 class Dims
