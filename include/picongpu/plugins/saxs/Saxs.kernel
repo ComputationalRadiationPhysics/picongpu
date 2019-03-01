@@ -68,8 +68,7 @@ namespace picongpu
      *                                  else false
      */
     template<
-        uint32_t T_numWorkers,
-        bool T_dependenciesFulfilled
+        uint32_t T_numWorkers
     >
     struct KernelSaxs
     {
@@ -103,6 +102,7 @@ namespace picongpu
         template<
             typename ParBox,
             typename DBox,
+            typename DBox_np,
             typename Mapping,
             typename T_Acc
         >
@@ -113,12 +113,14 @@ namespace picongpu
             ParBox pb,
             DBox sumfcoskr,
             DBox sumfsinkr,
+            DBox_np np,
             DataSpace<simDim> globalOffset,
             uint32_t currentStep,
             Mapping mapper,
             DataSpace<simDim> simBoxSize,
-            float3_X q_min,
-            float3_X q_max, 
+            float3_64 q_min,
+            float3_64 q_max,
+            float3_64 q_step,
             unsigned int n_qx,
             unsigned int n_qy,
             unsigned int n_qz,
@@ -156,15 +158,12 @@ namespace picongpu
             // macro-particle needs to be considered
             PMACC_SMEM( acc, saxsWeighting_s, memory::Array< float_X, blockSize > );
 
-
-
-            int const theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
+            PMACC_SMEM( acc, np_s, float_X);
 
             // simulation time (needed for retarded time)
-            picongpu::float_64 const t(
-                picongpu::float_64( currentStep ) * picongpu::float_64( DELTA_T)
-            );
-
+            // picongpu::float_64 const t(
+            //     picongpu::float_64( currentStep ) * picongpu::float_64( DELTA_T)
+            // );  
 
             // get extent of guarding super cells (needed to ignore them)
             DataSpace< simDim > const guardingSuperCells = mapper.getGuardingSuperCells();
@@ -217,6 +216,30 @@ namespace picongpu
                      *  all threads must wait for the selection of a new frame
                      *  until all threads have evaluated "isValid"
                      */
+                    __syncthreads();
+
+                    ForEachIdx<
+                        IdxConfig<
+                            1,
+                            numWorker
+                        >
+                    > onlyMaster{ workerIdx };
+
+                    /* The Master process (thread 0) in every thread block is in
+                     * charge of loading a frame from
+                     * the current super cell and evaluate the total number of
+                     * particles in this frame.
+                     */
+                    onlyMaster(
+                        [&](
+                            uint32_t const,
+                            uint32_t const
+                        )
+                        {
+                            np_s = 0;
+                        }
+                    );
+
                     __syncthreads();
 
             
@@ -296,9 +319,10 @@ namespace picongpu
                         float3_64 q_r;
                         float_64 dotkr;
 
-                        i_z = idx % n_qz ;
-                        i_y = (idx / n_qz) % n_qy ;
-                        i_x = idx / (n_qz * n_qy) ;
+                        int i_z = idx % n_qz ;
+                        int i_y = (idx / n_qz) % n_qy ;
+                        int i_x = idx / (n_qz * n_qy) ;
+
 
                         q_r[0] = q_min[0] + q_step[0] * i_x;
                         q_r[1] = q_min[1] + q_step[1] * i_y;
@@ -311,6 +335,8 @@ namespace picongpu
                             dotkr = q_r[0] * r_s[j][0] + q_r[1] * r_s[j][1] + q_r[2] * r_s[j][2];
                             sumfcoskr_r += math::cos(dotkr) * saxsWeighting_s[j];
                             sumfsinkr_r += math::sin(dotkr) * saxsWeighting_s[j];
+                            if (idx == 0)
+                                np_s += saxsWeighting_s[j];
                         }// END: Particle loop
 
                         sumfcoskr[idx] += sumfcoskr_r;
@@ -318,11 +344,8 @@ namespace picongpu
 
                     } // end q (frequency) loop
 
-
                     // wait till all  for this super cell are done
                     __syncthreads();
-                    // TODO: get the total particle numbers
-                    // np_s += particlesInFrame;
 
                     /* First threads starts loading next frame of the super-cell:
                      *
@@ -332,50 +355,14 @@ namespace picongpu
                      */
                     particlesInFrame = frameSize;
                     frame = pb.getPreviousFrame( frame );
-
+                    if (workerIdx == 0)
+                        np[0] += np_s;
                   } // end while(frame.isValid())
 
              } // end loop over all super cells
 
 
          } // end SAXS kernel
-    };
-
-    /** specialization if a dependency is missing
-     *
-     * this functor is empty.
-     */
-    template< uint32_t T_numWorkers >
-    struct KernelSaxs<
-        T_numWorkers,
-        false
-    >
-    {
-        template <
-            typename ParBox,
-            typename DBox,
-            typename Mapping,
-            typename T_Acc
-            >
-        DINLINE
-        void operator()(
-            T_Acc const &acc,
-            ParBox pb,
-            DBox sumfcoskr,
-            DBox sumfsinkr,
-            DataSpace<simDim> globalOffset,
-            uint32_t currentStep,
-            Mapping mapper,
-            DataSpace<simDim> simBoxSize,
-            float3_X q_min,
-            float3_X q_max,
-            unsigned int n_qx,
-            unsigned int n_qy,
-            unsigned int n_qz,
-            unsigned int n_q
-         ) const
-        {
-        }
     };
 
 }

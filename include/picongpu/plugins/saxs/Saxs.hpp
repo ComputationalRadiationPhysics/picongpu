@@ -65,6 +65,7 @@ private:
 
     GridBuffer<float1_64, DIM1> *sumfcoskr;
     GridBuffer<float1_64, DIM1> *sumfsinkr;
+    GridBuffer<float1_X, DIM1> *np;
 
     MappingDesc *cellDescription;
     std::string notifyPeriod;
@@ -72,12 +73,12 @@ private:
     std::string pluginName;
     std::string pluginPrefix;
     std::string filename_prefix;
-    float3_64 q_min, q_max;
+    float3_64 q_min, q_max, q_step;
     unsigned int n_qx, n_qy, n_qz, n_q;
     float1_64 *sumfcoskr_master;
     float1_64 *sumfsinkr_master;
     float1_64 *intensity_master;
-    float1_64 np_master; // Number of particles
+    float1_X np_master; // Number of particles
 
     bool isMaster;
 
@@ -94,6 +95,7 @@ public:
     filename_prefix(pluginPrefix),
     sumfcoskr(nullptr),
     sumfsinkr(nullptr),
+    np(nullptr),
     cellDescription(nullptr),
     isMaster(false),
     currentStep(0)
@@ -126,15 +128,15 @@ public:
     {
             desc.add_options()
                 ((pluginPrefix + ".period").c_str(), po::value<std::string> (&notifyPeriod), "enable plugin [for each n-th step]")
-                ((pluginPrefix + ".qx_max").c_str(), po::value<float_X > (&q_max[0])->default_value(5.3), "reciprocal space range qx_max")
-                ((pluginPrefix + ".qy_max").c_str(), po::value<float_X > (&q_max[1])->default_value(5.3), "reciprocal space range qy_max")
-                ((pluginPrefix + ".qz_max").c_str(), po::value<float_X > (&q_max[2])->default_value(5.3), "reciprocal space range qz_max")
-                ((pluginPrefix + ".qx_min").c_str(), po::value<float_X > (&q_min[0])->default_value(-5.3), "reciprocal space range qx_min")
-                ((pluginPrefix + ".qy_min").c_str(), po::value<float_X > (&q_min[1])->default_value(-5.3), "reciprocal space range qy_min")
-                ((pluginPrefix + ".qz_min").c_str(), po::value<float_X > (&q_min[2])->default_value(-5.3), "reciprocal space range qz_min")
-                ((pluginPrefix + ".n_qx").c_str(), po::value<int> (&n_qx)->default_value(100), "Number of qx")
-                ((pluginPrefix + ".n_qy").c_str(), po::value<int> (&n_qy)->default_value(100), "Number of qy")
-                ((pluginPrefix + ".n_qz").c_str(), po::value<int> (&n_qz)->default_value(1  ), "Number of qz");
+                ((pluginPrefix + ".qx_max").c_str(), po::value<float_64 > (&q_max[0])->default_value(5.3), "reciprocal space range qx_max")
+                ((pluginPrefix + ".qy_max").c_str(), po::value<float_64 > (&q_max[1])->default_value(5.3), "reciprocal space range qy_max")
+                ((pluginPrefix + ".qz_max").c_str(), po::value<float_64 > (&q_max[2])->default_value(5.3), "reciprocal space range qz_max")
+                ((pluginPrefix + ".qx_min").c_str(), po::value<float_64 > (&q_min[0])->default_value(-5.3), "reciprocal space range qx_min")
+                ((pluginPrefix + ".qy_min").c_str(), po::value<float_64 > (&q_min[1])->default_value(-5.3), "reciprocal space range qy_min")
+                ((pluginPrefix + ".qz_min").c_str(), po::value<float_64 > (&q_min[2])->default_value(-5.3), "reciprocal space range qz_min")
+                ((pluginPrefix + ".n_qx").c_str(), po::value<unsigned int> (&n_qx)->default_value(100), "Number of qx")
+                ((pluginPrefix + ".n_qy").c_str(), po::value<unsigned int> (&n_qy)->default_value(100), "Number of qy")
+                ((pluginPrefix + ".n_qz").c_str(), po::value<unsigned int> (&n_qz)->default_value(1), "Number of qz");
 
     }
 
@@ -205,11 +207,12 @@ private:
             // createQ(qy, qy_min, qy_step);
             // createQ(qz, qz_min, qz_step);
             n_q = n_qx * n_qy * n_qz;
-            sumfcoskr = GridBuffer<float_64, DIM1 > (DataSpace<DIM1> (n_q)); //create one int on GPU and host
-            sumfsinkr = GridBuffer<float_64, DIM1 > (DataSpace<DIM1> (n_q)); //create one int on GPU and host
-            sumfcoskr_master = new float_64[n_q];
-            sumfsinkr_master = new float_64[n_q];
-            intensity_master = new float_64[n_q];
+            sumfcoskr = new GridBuffer<float1_64, DIM1 > (DataSpace<DIM1> (n_q)); //create one int on GPU and host
+            sumfsinkr = new GridBuffer<float1_64, DIM1 > (DataSpace<DIM1> (n_q)); //create one int on GPU and host
+            np = new GridBuffer<float1_X, DIM1 > (DataSpace<DIM1> (1)); //create one int on GPU and host
+            sumfcoskr_master = new float1_64[n_q];
+            sumfsinkr_master = new float1_64[n_q];
+            intensity_master = new float1_64[n_q];
             Environment<>::get().PluginConnector().setNotificationPeriod(this, notifyPeriod);
             pmacc::Filesystem<simDim>& fs = Environment<simDim>::get().Filesystem();
 
@@ -222,12 +225,50 @@ private:
     }
 
 
+    void writeQintensity(float1_64* intensity, std::string name)
+    {
+        std::ofstream ofile;
+        ofile.open(name.c_str(), std::ofstream::out | std::ostream::trunc);
+        if (!ofile)
+        {
+            std::cerr << "Can't open file [" << name << "] for output, disable plugin output.\n";
+            isMaster = false; // no Master anymore -> no process is able to write
+        }
+        else
+        {
+            int i_x, i_y, i_z;
+            float3_64 q;
+
+            ofile << n_q << "\n";
+            ofile << "# qx qy qz intensity \n";
+            for (unsigned int i = 0; i < n_q ; i++)
+            {
+                i_z = i % n_qz ;
+                i_y = (i / n_qz) % n_qy ;
+                i_x = i / (n_qz * n_qy) ;
+                q[0] = q_min[0] + q_step[0] * i_x;
+                q[1] = q_min[1] + q_step[1] * i_y;
+                q[2] = q_min[2] + q_step[2] * i_z;
+                ofile << q[0] << " " << q[1] << " " << q[2] << " " << intensity[i] << "\n";
+            }
+            ofile.flush();
+            ofile << std::endl; //now all data are written to file
+
+            if (ofile.fail())
+                std::cerr << "Error on flushing file [" << name << "]. " << std::endl;
+
+            ofile.close();
+        }
+    }
+
+
     void pluginUnload()
     {
         if(!notifyPeriod.empty())
         {
             __delete(sumfcoskr);
             __delete(sumfsinkr);
+            __delete(np);
             __deleteArray(intensity_master);
             CUDA_CHECK(cudaGetLastError());
         }
@@ -239,6 +280,7 @@ private:
   {
     sumfcoskr->deviceToHost();
     sumfsinkr->deviceToHost();
+    np->deviceToHost();
     __getTransactionEvent().waitForFinished();
   }
 
@@ -261,14 +303,22 @@ private:
              n_q,
              mpi::reduceMethods::Reduce()
              );
+      reduce(nvidia::functors::Add(),
+             &np_master,
+             np->getHostBuffer().getBasePointer(),
+             1,
+             mpi::reduceMethods::Reduce()
+             );
         
       // Calculate intensity on master
       if (isMaster)
       {
-          for ( int i = 0; i < n_q; i++)
-            // TODO: Where is number of particles
-			// intensity_master[i] = (sumfcoskr_master[i]*sumfcoskrMaster[i]+sumfsinkr_master[i]*sumfsinkrMaster[i])/np_master;
-			intensity_master[i] = (sumfcoskr_master[i]*sumfcoskrMaster[i]+sumfsinkr_master[i]*sumfsinkrMaster[i]);
+        printf("np_master = %f\n", np_master.x());
+        for ( unsigned int i = 0; i < n_q; i++)
+            intensity_master[i] = (sumfcoskr_master[i]*sumfcoskr_master[i]+sumfsinkr_master[i]*sumfsinkr_master[i])/np_master.x();
+        std::stringstream o_step;
+              o_step << currentStep;
+        writeQintensity(intensity_master, "saxsOutput/" + filename_prefix + "_" + o_step.str() + ".dat");
       }  
         
   }
@@ -338,25 +388,37 @@ private:
           pmacc::math::CT::volume< SuperCellSize >::type::value
       >::value;
 
+    // initialize variables with zero
+    sumfcoskr->getDeviceBuffer( ).setValue( 0.0 );
+    sumfsinkr->getDeviceBuffer( ).setValue( 0.0 );
+    np->getDeviceBuffer( ).setValue( 0.0 );
+    
+    // calculate q_step
+    q_step[0] = (q_max[0]-q_min[0])/n_qx;
+    q_step[1] = (q_max[1]-q_min[1])/n_qy;
+    q_step[2] = (q_max[2]-q_min[2])/n_qz;
+
 
     //   PIC-like kernel call of the saxs kernel
-      PMACC_KERNEL( KernelSaxs<
-          numWorkers
-                        >{} )(
-          gridDim_rad,
-          numWorkers
+      PMACC_KERNEL( 
+          KernelSaxs< numWorkers >{} 
+      )(
+            1,
+            numWorkers
       )(
          /*Pointer to particles memory on the device*/
          particles->getDeviceParticlesBox(),
          /*Pointer to memory of sumfcoskr & sumfsinkr on the device*/
          sumfcoskr->getDeviceBuffer().getDataBox(),
          sumfsinkr->getDeviceBuffer().getDataBox(),
+         np->getDeviceBuffer().getDataBox(),
          globalOffset,
          currentStep,
          *cellDescription,
          subGrid.getGlobalDomain().size,
          q_min,
-         q_max, 
+         q_max,
+         q_step,
          n_qx,
          n_qy,
          n_qz,
@@ -371,6 +433,7 @@ private:
       // reset amplitudes on GPU back to zero
       sumfcoskr->getDeviceBuffer().reset(false);
       sumfsinkr->getDeviceBuffer().reset(false);
+      np->getDeviceBuffer().reset(false);
 
   }
 
