@@ -77,5 +77,5 @@ function getDevice() {
             numDevices=$1
         fi
     fi
-    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --cpus-per-task=$((20 * $numDevices)) --mem=$((1800000 * numDevices)) -p defq --pty bash
+    srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --cpus-per-task=$((20 * $numDevices)) --mem=$((180000 * numDevices)) -p defq --pty bash
 }
