@@ -104,11 +104,6 @@ if(MPI_CXX_FOUND)
     set(LIBS ${LIBS} ${MPI_CXX_LIBRARIES})
 endif(MPI_CXX_FOUND)
 
-################################################################################
-# Find zlib
-################################################################################
-
-find_package(ZLIB REQUIRED)
 
 ################################################################################
 # libSplash (+ hdf5 due to required headers)
@@ -119,6 +114,15 @@ find_package(Splash 1.7.0 REQUIRED CONFIG COMPONENTS PARALLEL)
 
 add_definitions(-DENABLE_HDF5=1)
 message(STATUS "Found Splash: ${Splash_DIR}")
+set(LIBS ${LIBS} Splash::Splash)
+
+
+################################################################################
+# Find zlib
+################################################################################
+
+# not directly needed, yet weirdly injected without target by Splash 1.7.0
+find_package(ZLIB REQUIRED)
 
 
 ################################################################################
@@ -151,6 +155,17 @@ endif()
 
 
 ################################################################################
+# Find math from stdlib
+################################################################################
+
+if(NOT WIN32 AND NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    # automatically added on windows
+    # should not be added for Intel compiler as it has an optimized lib included
+    set(LIBS ${LIBS} m)
+endif()
+
+
+################################################################################
 # Compile & Link splash2txt
 ################################################################################
 
@@ -165,9 +180,7 @@ add_executable(splash2txt
      ${SRCFILES}
      )
 
-target_link_libraries(splash2txt Splash::Splash)
-target_link_libraries(splash2txt ZLIB::ZLIB)
-target_link_libraries(splash2txt m ${LIBS})
+target_link_libraries(splash2txt PRIVATE ${LIBS})
 
 
 ################################################################################
