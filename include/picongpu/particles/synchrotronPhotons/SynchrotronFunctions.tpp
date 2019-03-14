@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Heiko Burau
+/* Copyright 2015-2019 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -77,7 +77,7 @@ float_64 SynchrotronFunctions::F_1(const float_64 x) const
         return float_64(0.0);
 
     using namespace boost::numeric::odeint;
-    typedef boost::array<float_64, 1> state_type;
+    using state_type = boost::array<float_64, 1>;
 
     state_type integral_result = {0.0};
     const float_64 upper_bound(SYNC_FUNCS_F1_INTEGRAL_BOUND);

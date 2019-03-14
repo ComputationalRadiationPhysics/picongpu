@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Marco Garten
+/* Copyright 2013-2019 Rene Widera, Marco Garten
  *
  * This file is part of PMacc.
  *

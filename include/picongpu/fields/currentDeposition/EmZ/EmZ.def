@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -43,7 +43,21 @@ namespace emz
  *
  * Deposit the particle current with a mixed algorithm based on Esirkepov and
  * the ZigZag way splitting.
- * EmZ support arbitrary symmetric shapes and 2D/3D cartesian grids.
+ * EmZ supports arbitrary symmetric shapes and 2D/3D cartesian grids.
+ *
+ * ZigZag publications:
+ * 1. order paper: "A new charge conservation method in electromagnetic
+ *                  particle-in-cell simulations", Comput. Phys. Commun. (2003)
+ *                  T. Umeda, Y. Omura, T. Tominaga, H. Matsumoto
+ *                  DOI: 10.1016/S0010-4655(03)00437-5
+ * 2. order paper: "Charge conservation methods for computing current densities
+ *                  in electromagnetic particle-in-cell simulations",
+ *                  Proceedings of ISSS. Vol. 7. 2005
+ *                  T. Umeda, Y. Omura, H. Matsumoto
+ * 3. order paper: "High-Order Interpolation Algorithms for Charge Conservation
+ *                  in Particle-in-Cell Simulation", Commun. Comput. Phys 13 (2013)
+ *                  Jinqing Yu, Xiaolin Jin, Weimin Zhou, Bin Li, Yuqiu Gu
+ *                  DOI:10.1109/ICCIS.2012.159
  *
  * \tparam T_ParticleShape the particle shape for the species, \see picongpu::particles::shapes
  *

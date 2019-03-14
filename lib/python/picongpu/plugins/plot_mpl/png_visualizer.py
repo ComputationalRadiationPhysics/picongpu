@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2018 PIConGPU contributors
+Copyright 2017-2019 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
@@ -16,36 +16,51 @@ class Visualizer(BaseVisualizer):
     Class for providing a plot of a PNG file using matplotlib.
     """
 
-    def __init__(self, run_directory, ax=None):
+    def __init__(self, run_directories=None, ax=None):
         """
         Parameters
         ----------
-        run_directory: string
-            path to the run directory of PIConGPU
-            (the path before ``simOutput/``)
+        run_directories: list of tuples of length 2
+            or single tuple of length 2.
+            Each tuple is of the following form (sim_name, sim_path)
+            and consists of strings.
+            sim_name is a short string used e.g. in plot legends.
+            sim_path leads to the run directory of PIConGPU
+            (the path before ``simOutput/``).
+            If None, the user is responsible for providing run_directories
+            later on via set_run_directories() before calling visualize().
         ax: matplotlib.axes
         """
-        super().__init__(run_directory, ax)
+        super().__init__(PNGData, run_directories, ax)
 
-    def _create_data_reader(self, run_directory):
+    def _check_and_fix_run_dirs(self, run_directories):
         """
-        Implementation of base class function.
+        Overridden from base class. Makes sure to only accept
+        a single simulation's run_directory.
         """
+        base_checked = super()._check_and_fix_run_dirs(run_directories)
 
-        return PNGData(run_directory)
+        # Fail if more than one run_directory since plotting
+        # several PNGs at the same time does not make sense!
+        if len(base_checked) > 1:
+            raise ValueError("This visualizer only supports plotting a single"
+                             " simulation! Parameter 'run_directory' can"
+                             " contain only a single element!")
 
-    def _create_plt_obj(self):
+        return base_checked
+
+    def _create_plt_obj(self, idx):
         """
         Implementation of base class function.
         Turns 'self.plt_obj' into a matplotlib.image.AxesImage object.
         """
-        self.plt_obj = self.ax.imshow(self.data)
+        self.plt_obj[idx] = self.ax.imshow(self.data[idx])
 
-    def _update_plt_obj(self):
+    def _update_plt_obj(self, idx):
         """
         Implementation of base class function.
         """
-        self.plt_obj.set_data(self.data)
+        self.plt_obj[idx].set_data(self.data[idx])
 
     def visualize(self, **kwargs):
         """

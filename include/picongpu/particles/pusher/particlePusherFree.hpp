@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera,
  *                     Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -34,8 +34,8 @@ namespace picongpu
             /* this is an optional extension for sub-sampling pushes that enables grid to particle interpolation
              * for particle positions outside the super cell in one push
              */
-            typedef typename pmacc::math::CT::make_Int<simDim,0>::type LowerMargin;
-            typedef typename pmacc::math::CT::make_Int<simDim,0>::type UpperMargin;
+            using LowerMargin = typename pmacc::math::CT::make_Int<simDim,0>::type;
+            using UpperMargin = typename pmacc::math::CT::make_Int<simDim,0>::type;
 
             template< typename T_FunctorFieldE, typename T_FunctorFieldB, typename T_Particle, typename T_Pos >
             HDINLINE void operator()(

@@ -15,10 +15,10 @@ From Source
 
 Don't be afraid, young physicist, self-compiling C/C++ projects is easy, fun and profitable!
 
-Compiling a project from source essentially requires three steps:
+Building a project from source essentially requires three steps:
 
     #. configure the project and find its dependencies
-    #. build the project
+    #. compile the project
     #. install the project
 
 All of the above steps can be performed without administrative rights ("root" or "superuser") as long as the install is not targeted at a system directory (such as ``/usr``) but inside a user-writable directory (such as ``$HOME`` or a project directory).
@@ -40,11 +40,19 @@ In order to compile projects from source, we assume you have individual director
 Note that on some supercomputing systems, you might need to install the final software outside of your home to make dependencies available during run-time (when the simulation runs).
 Use a different path for the last directory then.
 
-Step-by-Step
-^^^^^^^^^^^^
+What is Compiling?
+^^^^^^^^^^^^^^^^^^
+
+.. note::
+
+   This section is **not** yet the installation of PIConGPU from source.
+   It just introduces in general how one compiles projects.
+
+   If you like to skip this introduction, :ref:`jump straight to the dependency install section <install-dependencies>`.
 
 Compling can differ in two principle ways: building *inside* the source directory ("in-source") and in a *temporary directory* ("out-of-source").
 Modern projects prefer the latter and use a build system such as [CMake]_.
+
 An example could look like this
 
 .. code-block:: bash
@@ -62,7 +70,7 @@ Often, you want to pass further options to CMake with ``-DOPTION=VALUE`` or modi
 The second step which compiles the project can in many cases be parallelized by ``make -j``.
 In the final install step, you might need to prefix it with ``sudo`` in case ``CMAKE_INSTALL_PREFIX`` is pointing to a system directory.
 
-Some older projects still build *in-source* and use a build system called *autotools*.
+Some older projects often build *in-source* and use a build system called *autotools*.
 The syntax is still very similar:
 
 .. code-block:: bash
@@ -75,8 +83,16 @@ The syntax is still very similar:
    make
    make install
 
-That's all!
-Continue with the following section to build our dependencies.
+One can usually pass further options with ``--with-something=VALUE`` or ``--enable-thing`` to ``configure``.
+See ``configure --help`` when installing an *autotools* project.
+
+That is all on the theory of building projects from source!
+
+Now Start
+^^^^^^^^^
+
+You now know all the basics to install from source.
+Continue with the following section to :ref:`build our dependencies <install-dependencies>`.
 
 References
 ^^^^^^^^^^

@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2018 Richard Pausch
+# Copyright 2013-2019 Richard Pausch
 #
 # This file is part of PIConGPU.
 #
@@ -64,10 +64,10 @@ def makeOddNumber(number, larger=True):
     returns next odd number
 
     """
-    if number % 2 is 1:
+    if number % 2 == 1:
         # in case number is odd
         return number
-    elif number % 2 is 0:
+    elif number % 2 == 0:
         # in case number is even
         if larger:
             return number + 1

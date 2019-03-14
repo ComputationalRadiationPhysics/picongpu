@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2018 Axel Huebl, Rene Widera
+# Copyright 2013-2019 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -46,6 +46,7 @@ help()
     echo "-c | --cmake         - overwrite options for cmake"
     echo "                       (e.g.: \"-DPIC_VERBOSE=21 -DCMAKE_BUILD_TYPE=Debug\")"
     echo "-t <presetNumber>    - configure this preset from cmakeFlags"
+    echo "-f | --force         - clear the cmake file cache and scan for new param files"
     echo "-h | --help          - show this help message"
 }
 
@@ -92,7 +93,7 @@ get_backend_flags()
 }
 
 # options may be followed by one colon to indicate they have a required argument
-OPTS=`getopt -o i:b:c:p:t:h -l install:,backend:,cmake:,params:,help -- "$@"`
+OPTS=`getopt -o i:b:c:p:t:hf -l install:,backend:,cmake:,params:,help,force -- "$@"`
 if [ $? != 0 ] ; then
     # something went wrong, getopt will put out an error message for us
     exit 1
@@ -128,6 +129,9 @@ while true ; do
         -h|--help)
             echo -e "$(help)"
             exit 0
+            ;;
+       -f|--force)
+            force="true"
             ;;
         -c|--cmake)
             cmake_options="$2"
@@ -177,6 +181,11 @@ if [ -z "$alpaka_backend" ] ; then
     echo "(Use -b|--backend or export PIC_BACKEND)" >&2
 fi
 
+if [ "$force" == "true" ] && [ -f "CMakeCache.txt" ] ; then
+    clean_cmd="cmake --build . --target clean"
+    echo -e "\033[32mforce clean the build directory:\033[0m $clean_cmd"
+    eval $clean_cmd
+fi
 own_command="cmake $cmake_flags $install_path $cmake_extension_param $cmake_options $alpaka_backend $picongpu_prefix/include/picongpu"
 echo -e "\033[32mcmake command:\033[0m $own_command"
 eval $own_command

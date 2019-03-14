@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Marco Garten, Axel Huebl
+/* Copyright 2014-2019 Marco Garten, Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -233,7 +233,7 @@ namespace effectiveNuclearCharge
     );
 
     /* Example: aluminium */
-    PMACC_CONST_VECTOR(float_X, 13, Aluminum,
+    PMACC_CONST_VECTOR(float_X, 13, Aluminium,
         /* 3p^1 */
         4.066,
         /* 3s^2 */

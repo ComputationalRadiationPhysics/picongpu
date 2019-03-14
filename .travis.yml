@@ -6,6 +6,7 @@ cache:
   apt: true
   directories:
     - $HOME/.cache/spack
+    - $HOME/.cache/cmake-3.10.0
   pip: true
 
 addons:
@@ -35,19 +36,37 @@ install:
   - if [ $SPACK_FOUND -ne 0 ]; then
       mkdir -p $SPACK_ROOT &&
       git clone --depth 50 https://github.com/spack/spack.git $SPACK_ROOT &&
-      echo -e "config:""\n  build_jobs:"" 2" > $SPACK_ROOT/etc/spack/config.yaml;
+      echo -e "config:""\n  build_jobs:"" 2" > $SPACK_ROOT/etc/spack/config.yaml &&
+      echo -e "packages:""\n  cmake:""\n    version:"" [3.10.0]""\n    paths:""\n      cmake@3.10.0:"" /home/travis/.cache/cmake-3.10.0""\n    buildable:"" False" > $SPACK_ROOT/etc/spack/packages.yaml;
     fi
   - spack compiler add
+  # required dependencies - CMake 3.10.0
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      if [ ! -f $HOME/.cache/cmake-3.10.0/bin/cmake ]; then
+        wget -O cmake.sh https://cmake.org/files/v3.10/cmake-3.10.0-Linux-x86_64.sh &&
+        sh cmake.sh --skip-license --exclude-subdir --prefix=$HOME/.cache/cmake-3.10.0 &&
+        rm cmake.sh;
+      fi;
+    elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      if [ ! -d /Applications/CMake.app/Contents/ ]; then
+        curl -L -s -o cmake.dmg https://cmake.org/files/v3.10/cmake-3.10.0-Darwin-x86_64.dmg &&
+        yes | hdiutil mount cmake.dmg &&
+        sudo cp -R "/Volumes/cmake-3.10.0-Darwin-x86_64/CMake.app" /Applications &&
+        hdiutil detach /dev/disk1s1 &&
+        rm cmake.dmg;
+      fi;
+    fi
   - travis_wait spack install
-      cmake@3.10.0~openssl~ncurses
+      cmake
       $COMPILERSPEC
+  # required dependencies - Boost 1.62.0
   - travis_wait spack install
       boost@1.62.0~date_time~graph~iostreams~locale~log~random~thread~timer~wave
       $COMPILERSPEC
   - spack clean -a
   - source /etc/profile &&
     source $SPACK_ROOT/share/spack/setup-env.sh
-  - spack load cmake $COMPILERSPEC
+  - spack load cmake
   - spack load boost $COMPILERSPEC
 
 jobs:

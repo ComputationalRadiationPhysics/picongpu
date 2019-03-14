@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Marco Garten, Rene Widera
+/* Copyright 2015-2019 Marco Garten, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -34,12 +34,12 @@ struct GetAtomicNumbers
 {
     using FrameType = typename T_Species::FrameType;
 
-    typedef typename HasFlag<FrameType, atomicNumbers<> >::type hasAtomicNumbers;
+    using hasAtomicNumbers = typename HasFlag<FrameType, atomicNumbers<> >::type;
     /* throw static assert if species has no protons or neutrons */
     PMACC_CASSERT_MSG(This_species_has_no_atomic_numbers,hasAtomicNumbers::value==true);
 
-    typedef typename GetFlagType<FrameType,atomicNumbers<> >::type FoundAtomicNumbersAlias;
-    typedef typename pmacc::traits::Resolve<FoundAtomicNumbersAlias >::type type;
+    using FoundAtomicNumbersAlias = typename GetFlagType<FrameType,atomicNumbers<> >::type;
+    using type = typename pmacc::traits::Resolve<FoundAtomicNumbersAlias >::type;
 };
 } //namespace traits
 

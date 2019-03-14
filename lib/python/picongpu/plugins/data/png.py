@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2018 PIConGPU contributors
+Copyright 2017-2019 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
@@ -176,10 +176,10 @@ class PNGData(DataReader):
 
         Returns
         -------
-        A list of numpy array representations of
-        the corresponding png files if multiple iterations were requested.
-        Otherwise a single nump array representation for the requested\
-        iteration.
+        A 4d numpy array representations of
+        the corresponding png files of shape n x height x width x 3
+        if multiple iterations were requested, otherwise a 3d array
+        of shape height x width x 3.
         """
         available_iterations = self.get_iterations(
             species, species_filter, axis, slice_point)
@@ -199,7 +199,5 @@ class PNGData(DataReader):
         imgs = [misc.imread(
             self.get_data_path(species, species_filter, axis,
                                slice_point, it)) for it in iteration]
-        if len(iteration) == 1:
-            return imgs[0]
-        else:
-            return imgs
+
+        return np.array(imgs).squeeze()

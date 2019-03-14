@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera
+/* Copyright 2014-2019 Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -101,13 +101,13 @@ struct CreateDensity
     using FrameType = typename SpeciesType::FrameType;
 
 
-    typedef typename bmpl::apply1<T_DensityFunctor, SpeciesType>::type UserDensityFunctor;
+    using UserDensityFunctor = typename bmpl::apply1<T_DensityFunctor, SpeciesType>::type;
     /* add interface for compile time interface validation*/
     using DensityFunctor = densityProfiles::IProfile<UserDensityFunctor>;
 
-    typedef typename bmpl::apply1<T_PositionFunctor, SpeciesType>::type UserPositionFunctor;
+    using UserPositionFunctor = typename bmpl::apply1<T_PositionFunctor, SpeciesType>::type;
     /* add interface for compile time interface validation*/
-    typedef manipulators::IUnary<UserPositionFunctor> PositionFunctor;
+    using PositionFunctor = manipulators::IUnary<UserPositionFunctor>;
 
     HINLINE void operator()( const uint32_t currentStep )
     {

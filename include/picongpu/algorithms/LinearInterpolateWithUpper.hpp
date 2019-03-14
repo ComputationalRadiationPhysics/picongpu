@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Heiko Burau, Rene Widera
+/* Copyright 2015-2019 Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -39,8 +39,8 @@ struct LinearInterpolateWithUpper
 {
     static constexpr uint32_t dim = T_Dim;
 
-    typedef typename pmacc::math::CT::make_Int<dim, 0>::type OffsetOrigin;
-    typedef typename pmacc::math::CT::make_Int<dim, 1>::type OffsetEnd;
+    using OffsetOrigin = typename pmacc::math::CT::make_Int<dim, 0>::type;
+    using OffsetEnd = typename pmacc::math::CT::make_Int<dim, 1>::type;
 
     /** calculate the linear interpolation for a given direction
      *

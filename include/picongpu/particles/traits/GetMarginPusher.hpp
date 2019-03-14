@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Richard Pausch
+/* Copyright 2015-2019 Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -33,17 +33,17 @@ namespace traits
 template<typename T_Species>
 struct GetMarginPusher
 {
-    typedef pmacc::math::CT::add<
+    using AddLowerMargins = pmacc::math::CT::add<
         GetLowerMargin< GetInterpolation< bmpl::_1 > >,
         GetLowerMargin< GetPusher< bmpl::_1 > >
-    > AddLowerMargins;
-    typedef typename bmpl::apply<AddLowerMargins, T_Species>::type LowerMargin;
+    >;
+    using LowerMargin = typename bmpl::apply<AddLowerMargins, T_Species>::type;
 
-    typedef pmacc::math::CT::add<
+    using AddUpperMargins = pmacc::math::CT::add<
         GetUpperMargin< GetInterpolation< bmpl::_1 > >,
         GetUpperMargin< GetPusher< bmpl::_1 > >
-    > AddUpperMargins;
-    typedef typename bmpl::apply<AddUpperMargins, T_Species>::type UpperMargin;
+    >;
+    using UpperMargin = typename bmpl::apply<AddUpperMargins, T_Species>::type;
 };
 
 template<typename T_Species>

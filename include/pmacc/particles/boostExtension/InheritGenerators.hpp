@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2019 Rene Widera, Benjamin Worpitz
  *
  * This file is part of PMacc.
  *
@@ -21,7 +21,9 @@
 
 #pragma once
 
+#include "pmacc/types.hpp"
 #include "pmacc/particles/memory/frames/NullFrame.hpp"
+
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/deref.hpp>
 #include <boost/mpl/pop_front.hpp>
@@ -32,7 +34,6 @@
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/empty.hpp>
 
-#define BOOST_MPL_LIMIT_VECTOR_SIZE 20
 
 namespace pmacc
 {

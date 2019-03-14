@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2018 PIConGPU contributors
+Copyright 2017-2019 PIConGPU contributors
 Authors: Axel Huebl
 License: GPLv3+
 """
@@ -98,7 +98,7 @@ class PhaseSpaceData(DataReader):
         -------
         A string with a file path and a string with a in-file HDF5 path if
         iteration is a single value or a list of length one.
-        If iteration is a list of length > 1, a dictionary is returned.
+        If iteration is a list of length > 1, a list of paths is returned.
         If iteration is None, only the first string is returned and contains a
         regex-* for the position iteration.
         """
@@ -127,7 +127,7 @@ class PhaseSpaceData(DataReader):
             if not isinstance(iteration, collections.Iterable):
                 iteration = [iteration]
 
-            ret = {}
+            ret = []
             for it in iteration:
                 data_file_name = self.data_file_prefix.format(
                     species,
@@ -145,9 +145,9 @@ class PhaseSpaceData(DataReader):
                     it,
                     ps)
 
-                ret[it] = (data_file_path, data_hdf5_name)
+                ret.append((data_file_path, data_hdf5_name))
             if len(iteration) == 1:
-                return ret[iteration[0]]
+                return ret[0]
             else:
                 return ret
         else:
@@ -181,6 +181,7 @@ class PhaseSpaceData(DataReader):
         -------
         An array with unsigned integers.
         """
+        # get the regular expression matching all available files
         data_file_path = self.get_data_path(ps, species, species_filter)
 
         matching_files = glob.glob(data_file_path)

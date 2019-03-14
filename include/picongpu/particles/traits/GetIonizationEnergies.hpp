@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Marco Garten, Rene Widera
+/* Copyright 2015-2019 Marco Garten, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -35,13 +35,13 @@ struct GetIonizationEnergies
     using SpeciesType = T_Species;
     using FrameType = typename SpeciesType::FrameType;
 
-    typedef typename HasFlag<FrameType, ionizationEnergies<> >::type hasIonizationEnergies;
+    using hasIonizationEnergies = typename HasFlag<FrameType, ionizationEnergies<> >::type;
     /* throw static assert if species has no protons or neutrons */
     PMACC_CASSERT_MSG(No_ionization_energies_are_defined_for_this_species,hasIonizationEnergies::value==true);
 
-    typedef typename GetFlagType<FrameType,ionizationEnergies<> >::type FoundIonizationEnergiesAlias;
+    using FoundIonizationEnergiesAlias = typename GetFlagType<FrameType,ionizationEnergies<> >::type;
     /* Extract ionization energy vector from AU namespace */
-    typedef typename pmacc::traits::Resolve<FoundIonizationEnergiesAlias >::type type;
+    using type = typename pmacc::traits::Resolve<FoundIonizationEnergiesAlias >::type;
 
     static constexpr int protonNumber = static_cast<int>(GetAtomicNumbers<SpeciesType>::type::numberOfProtons);
     /* length of the ionization energy vector */

@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera, Richard Pausch
+/* Copyright 2014-2019 Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -56,7 +56,6 @@ using UsedField2Particle = FieldToParticleInterpolation< UsedParticleShape, Assi
  * For development purposes: ---------------------------------------------------
  * - currentSolver::EsirkepovNative<SHAPE> : generic version of currentSolverEsirkepov
  *   without optimization (~4x slower and needs more shared memory)
- * - currentSolver::ZigZag<SHAPE>     : particle shapes - CIC, TSC, PCS, P4S (1st to 4th order)
  */
 #ifndef PARAM_CURRENTSOLVER
 #define PARAM_CURRENTSOLVER Esirkepov

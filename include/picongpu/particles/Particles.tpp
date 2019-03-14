@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch, Felix Schmitt,
  *                     Alexander Grund
  *
  * This file is part of PIConGPU.
@@ -368,7 +368,7 @@ Particles<
 {
     log< picLog::SIMULATION_STATE > ( "clone species %1%" ) % FrameType::getName( );
 
-    AreaMapping<CORE + BORDER, MappingDesc> mapper(this->cellDescription);
+    AreaMapping<CORE + BORDER, picongpu::MappingDesc> mapper(this->cellDescription);
 
     constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
            pmacc::math::CT::volume< SuperCellSize >::type::value
@@ -405,7 +405,7 @@ Particles<
 {
     AreaMapping<
         CORE + BORDER,
-        MappingDesc
+        picongpu::MappingDesc
     > mapper( this->cellDescription );
 
     constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<

@@ -161,6 +161,29 @@ For this profile, you additionally need to install your own :ref:`boost <install
 
 .. literalinclude:: profiles/taurus-tud/knl_picongpu.profile.example
    :language: bash
+   
+Queue: ml (NVIDIA V100 GPUs on Power9 nodes)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For this profile, you additionally need to compile and install everything for the power9-architecture including your own :ref:`boost <install-dependencies>`, :ref:`HDF5 <install-dependencies>`, c-blosc and :ref:`ADIOS <install-dependencies>`.
+
+Install script for `c-blosc`
+
+.. code-block:: bash
+
+   cd $SOURCE_DIR
+   git clone -b v1.12.1 https://github.com/Blosc/c-blosc.git \
+       $SOURCE_DIR/c-blosc
+   mkdir c-blosc-build
+   cd c-blosc-build
+   cmake -DCMAKE_INSTALL_PREFIX=$BLOSC_ROOT \
+       -DPREFER_EXTERNAL_ZLIB=ON \
+       $SOURCE_DIR/c-blosc
+   make -j4
+   make install
+
+.. literalinclude:: profiles/taurus-tud/V100_picongpu.profile.example
+   :language: bash
 
 Lawrencium (LBNL)
 -----------------
@@ -189,4 +212,73 @@ Draco (MPCDF)
 For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libpng, PNGwriter and libSplash <install-dependencies>` manually.
 
 .. literalinclude:: profiles/draco-mpcdf/picongpu.profile.example
+   :language: bash
+
+D.A.V.I.D.E (CINECA)
+--------------------
+
+**System overview:** `link <http://www.hpc.cineca.it/content/davide>`_
+
+**User guide:** `link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG3.2%3A+D.A.V.I.D.E.+UserGuide>`_
+
+**Production directory:** ``$CINECA_SCRATCH/`` (`link <https://wiki.u-gov.it/confluence/display/SCAIUS/UG2.4%3A+Data+storage+and+FileSystems>`_)
+
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` manually.
+
+Queue: dvd_usr_prod (Nvidia P100 GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/davide-cineca/gpu_picongpu.profile.example
+   :language: bash
+
+JURECA (JSC)
+------------
+
+**System overview:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/JURECA_node.html>`_
+
+**User guide:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JURECA/UserInfo/UserInfo_node.html>`_
+
+**Production directory:** ``$SCRATCH`` (`link <http://www.fz-juelich.de/SharedDocs/FAQs/IAS/JSC/EN/JUST/FAQ_00_File_systems.html?nn=1297148>`_)
+
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter, c-blosc, adios and libSplash <install-dependencies>`, for the gpus partition also :ref:`Boost and HDF5 <install-dependencies>`, manually.
+
+Queue: batch (2 x Intel Xeon E5-2680 v3 CPUs, 12 Cores + 12 Hyperthreads/CPU)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/jureca-jsc/batch_picongpu.profile.example
+   :language: bash
+
+Queue: gpus (2 x Nvidia Tesla K80 GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/jureca-jsc/gpus_picongpu.profile.example
+   :language: bash
+
+Queue: booster (Intel Xeon Phi 7250-F, 68 cores + Hyperthreads)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/jureca-jsc/booster_picongpu.profile.example
+   :language: bash
+
+JUWELS (JSC)
+------------
+
+**System overview:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/JUWELS_node.html>`_
+
+**User guide:** `link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/UserInfo/UserInfo_node.html>`_
+
+**Production directory:** ``$SCRATCH`` (`link <http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUWELS/FAQ/juwels_FAQ_node.html#faq1495160>`_)
+
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter, c-blosc, adios and libSplash <install-dependencies>`, for the gpus partition also :ref:`Boost and HDF5 <install-dependencies>`, manually.
+
+Queue: batch (2 x Intel Xeon Platinum 8168 CPUs, 24 Cores + 24 Hyperthreads/CPU)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/juwels-jsc/batch_picongpu.profile.example
+   :language: bash
+
+Queue: gpus (4 x Nvidia V100 GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/juwels-jsc/gpus_picongpu.profile.example
    :language: bash

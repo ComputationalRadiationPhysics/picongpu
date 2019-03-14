@@ -1,5 +1,5 @@
 #!/bin/bash -l
-# Copyright 2013-2018 Axel Huebl, Richard Pausch, Rene Widera
+# Copyright 2013-2019 Axel Huebl, Richard Pausch, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -76,6 +76,7 @@ unset MODULES_NO_OUTPUT
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 # the next three lines were recommended by Cray to avoid warnings
 export PMI_MMAP_SYNC_WAIT_TIME=300

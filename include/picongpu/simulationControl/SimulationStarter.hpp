@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera
+/* Copyright 2013-2019 Axel Huebl, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -41,7 +41,7 @@ namespace picongpu
     class SimulationStarter : public ISimulationStarter
     {
     private:
-        typedef std::list<boost::program_options::options_description> BoostOptionsList;
+        using BoostOptionsList = std::list<boost::program_options::options_description>;
 
         SimulationClass* simulationClass;
         InitClass* initClass;

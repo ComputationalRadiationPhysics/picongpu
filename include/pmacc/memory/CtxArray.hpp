@@ -1,4 +1,4 @@
-/* Copyright 2017-2018 Rene Widera
+/* Copyright 2017-2019 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -106,7 +106,7 @@ namespace memory
             { workerIdx }(
                 [&,this]( uint32_t const linearIdx, uint32_t const idx )
                 {
-                    (*this)[idx] = functor( linearIdx, idx, std::forward(args) ... );
+                    (*this)[idx] = functor( linearIdx, idx, std::forward< T_Args >( args ) ... );
                 }
             );
         }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018 Axel Huebl
+# Copyright 2017-2019 Axel Huebl
 #
 # This file is part of PIConGPU.
 #
@@ -142,6 +142,9 @@ do
         defaults_path="$picongpu_prefix/$file_prefix/$file_name"
         if [ -f "$defaults_path" ]
         then
+            if [ -f ".build/CMakeCache.txt" ] ; then
+                cmake --build .build --target clean
+            fi
             cp $defaults_path $file_path
         else
             echo "ERROR: input '$input' does not exist!" >&2

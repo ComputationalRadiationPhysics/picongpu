@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Axel Huebl
+/* Copyright 2016-2019 Axel Huebl
  *
  * This file is part of PIConGPU.
  *
@@ -47,12 +47,12 @@ namespace traits
     struct
     GetSpeciesFlagName
     {
-        typedef typename pmacc::traits::Resolve<
+        using SpeciesFlag = typename pmacc::traits::Resolve<
             typename GetFlagType<
                 typename T_Species::FrameType,
                 T_Flag
             >::type
-        >::type SpeciesFlag;
+        >::type;
 
         std::string operator()() const
         {

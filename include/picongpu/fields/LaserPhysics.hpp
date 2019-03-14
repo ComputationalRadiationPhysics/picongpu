@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -66,7 +66,7 @@ namespace fields
             );
 
             constexpr uint32_t planeSize = pmacc::math::CT::volume< LaserPlaneSizeInSuperCell >::type::value;
-            constexpr uint32_t numWorkers = T_numWorkers;
+            PMACC_CONSTEXPR_CAPTURE uint32_t numWorkers = T_numWorkers;
 
             const uint32_t workerIdx = threadIdx.x;
 

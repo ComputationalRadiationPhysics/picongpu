@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Remi Lehe
  *
  * This file is part of PIConGPU.
  *
@@ -21,6 +21,7 @@
 
 #include "picongpu/fields/MaxwellSolver/Lehe/Curl.def"
 
+#include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/types.hpp>
 #include <pmacc/math/Vector.hpp>
 
@@ -45,8 +46,8 @@ namespace lehe
         {
             mySin = float_X(
                 math::sin(
-                    float_64( 0.5 ) *
-                    float_64( M_PI ) *  float_64( SPEED_OF_LIGHT ) *
+                    pmacc::algorithms::math::Pi< float_64 >::halfValue *
+                    float_64( SPEED_OF_LIGHT ) *
                     float_64( DELTA_T ) / float_64( CELL_WIDTH )
                 )
             );
@@ -188,8 +189,8 @@ namespace lehe
         {
             mySin = float_X(
                 math::sin(
-                    float_64( 0.5 ) *
-                    float_64( M_PI ) *  float_64( SPEED_OF_LIGHT ) *
+                    pmacc::algorithms::math::Pi< float_64 >::halfValue *
+                    float_64( SPEED_OF_LIGHT ) *
                     float_64( DELTA_T ) / float_64( CELL_HEIGHT )
                 )
             );
