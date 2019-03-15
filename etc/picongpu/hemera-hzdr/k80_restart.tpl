@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copyright 2013-2019 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch, Bifeng Lei
+# Copyright 2013-2019 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch,
+#                     Bifeng Lei, Marco Garten
 #
 # This file is part of PIConGPU.
 #
@@ -42,17 +43,27 @@ fi`
 .TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 ## end calculations ##
 
-# PIConGPU batch script for hypnos PBS batch system
+# PIConGPU batch script for hemera's SLURM batch system
 
-#PBS -q !TBG_queue
-#PBS -l walltime=!TBG_wallTime
+#SBATCH --partition=!TBG_queue
+# necessary to set the account also to the queue name because otherwise access is not allowed at the moment
+#SBATCH --account=$proj
+#SBATCH --time=!TBG_wallTime
 # Sets batch job's name
-#PBS -N !TBG_jobName
-#PBS -l nodes=!TBG_nodes:ppn=!TBG_coresPerNode
-#PBS -m !TBG_mailSettings -M !TBG_mailAddress
-#PBS -d !TBG_dstPath
-#PBS -o stdout
-#PBS -e stderr
+#SBATCH --job-name=!TBG_jobName
+#SBATCH --nodes=!TBG_nodes
+#SBATCH --ntasks=!TBG_tasks
+#SBATCH --ntasks-per-node=!TBG_gpusPerNode
+#SBATCH --mincpus=!TBG_mpiTasksPerNode
+#SBATCH --cpus-per-task=!TBG_coresPerGPU
+#SBATCH --mem=!TBG_memPerNode
+#SBATCH --gres=gpu:!TBG_gpusPerNode
+#SBATCH --mail-type=!TBG_mailSettings
+#SBATCH --mail-user=!TBG_mailAddress
+#SBATCH --workdir=!TBG_dstPath
+
+#SBATCH -o stdout
+#SBATCH -e stderr
 
 echo 'Running program...' | tee -a output
 
@@ -71,6 +82,7 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
+ln -s ../stdout output
 
 
 sleep 1
@@ -150,7 +162,7 @@ mpiexec --prefix $MPIHOME -x LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tas
 
 if [ $nextStep -lt $finalStep ]
 then
-    ssh hypnos4 "/opt/torque/bin/qsub !TBG_dstPath/tbg/submit.start"
+    ssh hemera4 "/usr/bin/sbatch !TBG_dstPath/tbg/submit.start"
     if [ $? -ne 0 ] ; then
         echo "error during job submission" | tee -a output
     else

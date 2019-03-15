@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copyright 2013-2019 Axel Huebl, Anton Helm, Rene Widera
+# Copyright 2013-2019 Axel Huebl, Anton Helm, Richard Pausch, Rene Widera,
+#                     Marco Garten
 #
 # This file is part of PIConGPU.
 #
@@ -19,25 +20,34 @@
 #
 
 
-# PIConGPU batch script for hypnos PBS batch system
+# PIConGPU batch script for hemera's SLURM batch system
 
-#PBS -q !TBG_queue
-#PBS -l walltime=!TBG_wallTime
+#SBATCH --partition=!TBG_queue
+# necessary to set the account also to the queue name because otherwise access is not allowed at the moment
+#SBATCH --account=$proj
+#SBATCH --time=!TBG_wallTime
 # Sets batch job's name
-#PBS -N !TBG_jobName
-#PBS -l nodes=!TBG_nodes:ppn=!TBG_coresPerNode
-#PBS -m !TBG_mailSettings -M !TBG_mailAddress
-#PBS -d !TBG_dstPath
+#SBATCH --job-name=!TBG_jobName
+#SBATCH --nodes=!TBG_nodes
+#SBATCH --ntasks=!TBG_tasks
+#SBATCH --ntasks-per-node=!TBG_gpusPerNode
+#SBATCH --mincpus=!TBG_mpiTasksPerNode
+#SBATCH --cpus-per-task=!TBG_coresPerGPU
+#SBATCH --mem=!TBG_memPerNode
+#SBATCH --gres=gpu:!TBG_gpusPerNode
+#SBATCH --mail-type=!TBG_mailSettings
+#SBATCH --mail-user=!TBG_mailAddress
+#SBATCH --workdir=!TBG_dstPath
 
-#PBS -o stdout
-#PBS -e stderr
+#SBATCH -o stdout
+#SBATCH -e stderr
 
 
-## calculation are done by tbg ##
+## calculations will be performed by tbg ##
 .TBG_queue="k80"
 
 # settings that can be controlled by environment variables before submit
-.TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
+.TBG_mailSettings=${MY_MAILNOTIFY:-"NONE"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
@@ -48,11 +58,21 @@
 # required GPUs per node for the current job
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
 
-#number of cores per parallel node / default is 2 cores per gpu on k20 queue
-.TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
+# host memory per gpu
+.TBG_memPerGPU="$((238000 / $TBG_gpusPerNode))"
+# host memory per node
+.TBG_memPerNode="$((TBG_memPerGPU * TBG_gpusPerNode))"
+
+# number of cores to block per GPU - we got 2 cpus per gpu
+#   and we will be accounted 2 CPUs per GPU anyway
+.TBG_coresPerGPU=2
+
+# We only start 1 MPI task per GPU
+.TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
 
 # use ceil to caculate nodes
-.TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+.TBG_nodes="$((( TBG_tasks + TBG_gpusPerNode - 1 ) / TBG_gpusPerNode))"
+
 ## end calculations ##
 
 echo 'Running program...'
@@ -72,9 +92,7 @@ umask 0027
 
 mkdir simOutput 2> /dev/null
 cd simOutput
-
-#wait that all nodes see ouput folder
-sleep 1
+ln -s ../stdout output
 
 # The OMPIO backend in OpenMPI up to 3.1.3 and 4.0.0 is broken, use the
 # fallback ROMIO backend instead.
@@ -83,13 +101,13 @@ export OMPI_MCA_io=^ompio
 
 # test if cuda_memtest binary is available and we have the node exclusive
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
-  mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
+  # Run CUDA memtest to check GPU's health
+  mpiexec !TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "no binary 'cuda_memtest' available or compute node is not exclusively allocated, skip GPU memory test" >&2
 fi
 
 if [ $? -eq 0 ] ; then
-  mpiexec --prefix $MPIHOME -x LIBRARY_PATH -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams | tee output
+  # Run PIConGPU
+  mpiexec !TBG_dstPath/input/bin/picongpu !TBG_author !TBG_programParams
 fi
-
-mpiexec --prefix $MPIHOME -x LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks /usr/bin/env bash -c "killall -9 picongpu 2>/dev/null || true"
