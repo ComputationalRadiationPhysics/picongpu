@@ -23,7 +23,7 @@
 
 #SBATCH --partition=!TBG_queue
 # necessary to set the account also to the queue name because otherwise access is not allowed at the moment
-#SBATCH --account=!TBG_queue
+#SBATCH --account=$proj
 #SBATCH --time=!TBG_wallTime
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
@@ -59,7 +59,7 @@
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
 
 # host memory per gpu
-.TBG_memPerGPU="$((220000 / $TBG_gpusPerNode))"
+.TBG_memPerGPU="$((238000 / $TBG_gpusPerNode))"
 # host memory per node
 .TBG_memPerNode="$((TBG_memPerGPU * TBG_gpusPerNode))"
 

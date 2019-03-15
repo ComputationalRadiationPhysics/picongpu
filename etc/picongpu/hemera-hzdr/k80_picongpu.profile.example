@@ -9,6 +9,10 @@ export MY_MAILNOTIFY="NONE"
 export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
+# Project Information ######################################## (edit this line)
+#   - project account for computing time
+export proj="k80"
+
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
@@ -31,9 +35,6 @@ module load adios/1.13.1-cuda100
 module load hdf5-parallel/1.8.20-cuda100
 module load libsplash/1.7.0-cuda100
 
-export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$SPLASH_ROOT:$HDF5_ROOT
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HDF5_ROOT/lib
-
 module load libpng/1.6.35
 module load pngwriter/0.7.0
 
@@ -53,7 +54,7 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
-#   - "gpu" queue
+#   - "k80" queue
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/hemera-hzdr/k80.tpl"
 
@@ -65,7 +66,7 @@ function getNode() {
     else
         numNodes=$1
     fi
-    srun  --time=2:00:00 --nodes=$numNodes --ntasks-per-node=8 --cpus-per-task=2 --gres=gpu:8 --mem=220000 -p gpu --pty bash
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=8 --cpus-per-task=2 --gres=gpu:8 -A $proj --mem=238000 -p k80 --pty bash
 }
 
 # allocate an interactive shell for one hour
@@ -81,5 +82,5 @@ function getDevice() {
             numGPUs=$1
         fi
     fi
-    srun  --time=8:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=$((2 * $numGPUs)) --gres=gpu:$numGPUs --mem=$((27500 * numGPUs)) -p gpu --pty bash
+    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=2 --gres=gpu:$numGPUs -A $proj --mem=$((29750 * numGPUs)) -p k80 --pty bash
 }
