@@ -18,8 +18,8 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 module purge
 module load gcc/7.3.0
 module load cmake/3.11.3
-module load cuda/9.2
-module load openmpi/2.1.2-cuda92
+module load cuda/10.0
+module load openmpi/2.1.2-cuda100
 module load boost/1.68.0
 
 # Other Software ##############################################################
@@ -27,9 +27,9 @@ module load boost/1.68.0
 module load zlib/1.2.11
 module load c-blosc/1.14.4
 
-module load adios/1.13.1-cuda92
-module load hdf5-parallel/1.8.20-cuda92
-module load libsplash/1.7.0-cuda92
+module load adios/1.13.1-cuda100
+module load hdf5-parallel/1.8.20-cuda100
+module load libsplash/1.7.0-cuda100
 
 module load libpng/1.6.35
 module load pngwriter/0.7.0
@@ -62,7 +62,7 @@ function getNode() {
     else
         numNodes=$1
     fi
-    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=6 --gres=gpu:4 --mem=360000 -p gpu --pty bash
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=6 --gres=gpu:4 --mem=378000 -p gpu --pty bash
 }
 
 # allocate an interactive shell for one hour
@@ -78,5 +78,5 @@ function getDevice() {
             numGPUs=$1
         fi
     fi
-    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=$((6 * $numGPUs)) --gres=gpu:$numGPUs --mem=$((90000 * numGPUs)) -p gpu --pty bash
+    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=6 --gres=gpu:$numGPUs --mem=$((94500 * numGPUs)) -p gpu --pty bash
 }
