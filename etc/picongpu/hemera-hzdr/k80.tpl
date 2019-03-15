@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copyright 2013-2019 Axel Huebl, Richard Pausch, Rene Widera, Marco Garten
+# Copyright 2013-2019 Axel Huebl, Anton Helm, Richard Pausch, Rene Widera,
+#                     Marco Garten
 #
 # This file is part of PIConGPU.
 #
@@ -19,7 +20,7 @@
 #
 
 
-# PIConGPU batch script for hemera' SLURM batch system
+# PIConGPU batch script for hemera's SLURM batch system
 
 #SBATCH --partition=!TBG_queue
 # necessary to set the account also to the queue name because otherwise access is not allowed at the moment
@@ -36,7 +37,6 @@
 #SBATCH --gres=gpu:!TBG_gpusPerNode
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
 #SBATCH --workdir=!TBG_dstPath
 
 #SBATCH -o stdout
