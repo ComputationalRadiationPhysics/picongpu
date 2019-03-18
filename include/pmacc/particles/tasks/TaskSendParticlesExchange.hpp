@@ -117,7 +117,7 @@ namespace pmacc
             {
                 std::cerr << "Send/receive buffer for species " <<
                     ParBase::FrameType::getName() <<
-                    " is to small (max: " << maxSize <<
+                    " is too small (max: " << maxSize <<
                     ", direction: " << exchange <<
                     ", retries: " << retryCounter <<
                     ")" << std::endl;
