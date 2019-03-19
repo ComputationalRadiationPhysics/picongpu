@@ -75,6 +75,7 @@
 
 #include <stdint.h>
 #include <stdexcept>
+#include <string>
 
 
 namespace pmacc
@@ -149,6 +150,9 @@ struct ExchangeTypeNames
 {
     std::string operator[]( const uint32_t exchange ) const
     {
+        if( exchange >= 27 )
+            return std::string("unknown exchange type: ") + std::to_string(exchange);
+
         const char* names[27] = {
             "none",
             "right", "left", "bottom",
