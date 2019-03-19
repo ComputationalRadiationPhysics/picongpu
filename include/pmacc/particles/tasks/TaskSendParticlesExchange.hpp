@@ -24,6 +24,7 @@
 
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/assert.hpp"
+#include "pmacc/type/Exchange.hpp"
 
 namespace pmacc
 {
@@ -118,7 +119,7 @@ namespace pmacc
                 std::cerr << "Send/receive buffer for species " <<
                     ParBase::FrameType::getName() <<
                     " is too small (max: " << maxSize <<
-                    ", direction: " << exchange <<
+                    ", direction: " << exchange << " '" << ExchangeTypeNames{}[exchange] << "'" <<
                     ", retries: " << retryCounter <<
                     ")" << std::endl;
             }
