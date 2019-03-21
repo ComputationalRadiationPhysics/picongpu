@@ -120,7 +120,7 @@ public:
         /* CORE + BORDER is PIC black magic, currently not needed
             *
             */
-        std::cout << "Hello SAXS!!! From Juncheng!!!" << std::endl;
+        std::cout << "SAXS plugin enabled" << std::endl;
         calculateSAXS < CORE + BORDER > (currentStep);
     }
 
@@ -128,12 +128,12 @@ public:
     {
             desc.add_options()
                 ((pluginPrefix + ".period").c_str(), po::value<std::string> (&notifyPeriod), "enable plugin [for each n-th step]")
-                ((pluginPrefix + ".qx_max").c_str(), po::value<float_64 > (&q_max[0])->default_value(5.3), "reciprocal space range qx_max")
-                ((pluginPrefix + ".qy_max").c_str(), po::value<float_64 > (&q_max[1])->default_value(5.3), "reciprocal space range qy_max")
-                ((pluginPrefix + ".qz_max").c_str(), po::value<float_64 > (&q_max[2])->default_value(5.3), "reciprocal space range qz_max")
-                ((pluginPrefix + ".qx_min").c_str(), po::value<float_64 > (&q_min[0])->default_value(-5.3), "reciprocal space range qx_min")
-                ((pluginPrefix + ".qy_min").c_str(), po::value<float_64 > (&q_min[1])->default_value(-5.3), "reciprocal space range qy_min")
-                ((pluginPrefix + ".qz_min").c_str(), po::value<float_64 > (&q_min[2])->default_value(-5.3), "reciprocal space range qz_min")
+                ((pluginPrefix + ".qx_max").c_str(), po::value<float_64 > (&q_max[0])->default_value(5), "reciprocal space range qx_max")
+                ((pluginPrefix + ".qy_max").c_str(), po::value<float_64 > (&q_max[1])->default_value(5), "reciprocal space range qy_max")
+                ((pluginPrefix + ".qz_max").c_str(), po::value<float_64 > (&q_max[2])->default_value(5), "reciprocal space range qz_max")
+                ((pluginPrefix + ".qx_min").c_str(), po::value<float_64 > (&q_min[0])->default_value(-5), "reciprocal space range qx_min")
+                ((pluginPrefix + ".qy_min").c_str(), po::value<float_64 > (&q_min[1])->default_value(-5), "reciprocal space range qy_min")
+                ((pluginPrefix + ".qz_min").c_str(), po::value<float_64 > (&q_min[2])->default_value(-5), "reciprocal space range qz_min")
                 ((pluginPrefix + ".n_qx").c_str(), po::value<unsigned int> (&n_qx)->default_value(100), "Number of qx")
                 ((pluginPrefix + ".n_qy").c_str(), po::value<unsigned int> (&n_qy)->default_value(100), "Number of qy")
                 ((pluginPrefix + ".n_qz").c_str(), po::value<unsigned int> (&n_qz)->default_value(1), "Number of qz");
