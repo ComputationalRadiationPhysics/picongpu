@@ -332,7 +332,7 @@ namespace picongpu
                          */
                         for( int j = 0; j < particlesInFrame; ++j )
                         {
-                            dotkr = q_r[0] * r_s[j][0] + q_r[1] * r_s[j][1] + q_r[2] * r_s[j][2];
+                            dotkr = (q_r[0] * r_s[j][0] + q_r[1] * r_s[j][1] + q_r[2] * r_s[j][2])*1e10 // convert to angstrom;
                             sumfcoskr_r += math::cos(dotkr) * saxsWeighting_s[j];
                             sumfsinkr_r += math::sin(dotkr) * saxsWeighting_s[j];
                             if (idx == 0)
