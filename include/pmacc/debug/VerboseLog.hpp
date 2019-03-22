@@ -22,14 +22,13 @@
 #pragma once
 
 #include "pmacc/debug/VerboseLogMakros.hpp"
-#include "pmacc/types.hpp"
 
 #include <boost/format.hpp>
 
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {

@@ -1,4 +1,6 @@
-/* Copyright 2013-2019 Rene Widera
+/* Copyright 2013-2019 Felix Schmitt, Heiko Burau, Rene Widera,
+ *                     Wolfgang Hoenig, Benjamin Worpitz,
+ *                     Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -21,38 +23,23 @@
 
 #pragma once
 
-#include "pmacc/debug/VerboseLog.hpp"
+// compatibility macros (compiler or C++ standard version specific)
+#include <boost/config.hpp>
+// work-around for Boost 1.68.0
+//   fixed in https://github.com/boostorg/predef/pull/84
+//   see https://github.com/ComputationalRadiationPhysics/alpaka/pull/606
+// include <boost/predef.h>
+#include <alpaka/core/BoostPredef.hpp>
 
-#include <stdint.h>
 
-#ifndef PMACC_VERBOSE_LVL
-#define PMACC_VERBOSE_LVL 0
+/** C++11 and C++14 explicit fallthrough in switch cases
+ *
+ * Use [[fallthrough]] in C++17
+ */
+#if (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(7,0,0))
+#   define PMACC_FALLTHROUGH [[gnu::fallthrough]]
+#elif BOOST_COMP_CLANG
+#   define PMACC_FALLTHROUGH [[clang::fallthrough]]
+#else
+#   define PMACC_FALLTHROUGH ( (void)0 )
 #endif
-
-namespace pmacc
-{
-
-    /*create verbose class*/
-    DEFINE_VERBOSE_CLASS(PMaccVerbose)
-    (
-        /* define log lvl for later use
-         * e.g. log<pmaccLogLvl::NOTHING>("TEXT");*/
-        DEFINE_LOGLVL(0,NOTHING);
-        DEFINE_LOGLVL(1,MEMORY);
-        DEFINE_LOGLVL(2,INFO);
-        DEFINE_LOGLVL(4,CRITICAL);
-        DEFINE_LOGLVL(8,MPI);
-        DEFINE_LOGLVL(16,CUDA_RT);
-        DEFINE_LOGLVL(32,COMMUNICATION);
-        DEFINE_LOGLVL(64,EVENT);
-    )
-    /*set default verbose lvl (integer number)*/
-    (NOTHING::lvl|PMACC_VERBOSE_LVL);
-
-    //short name for access verbose types of PMacc
-    using ggLog = PMaccVerbose;
-
-}
-
-
-
