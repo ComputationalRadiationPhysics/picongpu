@@ -1,11 +1,11 @@
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
-# User Information ######################################### (edit those lines)
+# User Information ######################################### (edit the following lines)
 #   - automatically add your name and contact to output file meta data
-#   - send me a mail on batch system jobs: BEGIN, END, FAIL, REQUEUE, ALL,
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
 #     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
-export MY_MAILNOTIFY="ALL"
+export MY_MAILNOTIFY="NONE"
 export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
@@ -17,43 +17,45 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 #
 module purge
 module load modenv/ml
-# similar to foss/2018a, but also includes SpectrumMPI which basically is just a OpenMPI-fork of IBM
-module load gsolf/2018a
-module load GCC/6.4.0-2.28
-module load CMake/3.10.2-GCCcore-6.4.0
-# CUDA is no module in the current enviroment!
-#module load CUDA/9.2.88  # gcc <= 7, intel 15-17
-# OpenMPI is already loaded
-#module load OpenMPI/2.1.2-GCC-6.4.0-2.28
+
+# load CUDA/9.2.88-GCC-7.3.0-2.30, also loads GCC/7.3.0-2.30, zlib, OpenMPI and others
+module load fosscuda/2018b
+module load CMake/3.11.4-GCCcore-7.3.0
 module load git/2.18.0-GCCcore-6.4.0
-module load zlib/1.2.11-GCCcore-6.4.0
+module load libpng/1.6.34-GCCcore-7.3.0
+
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+printf "@ Note: You need to compile picongpu on a node. @\n"
+printf "@       Likewise for building the libraries.    @\n"
+printf "@       Get a node with the getNode command.    @\n"
+printf "@       Then source %s again.@\n" "$(basename $PIC_PROFILE)"
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
 
 # Self-Build Software #########################################################
 #
 # needs to be compiled by the user
-export PIC_LIBS="$HOME/lib"
-export BOOST_ROOT=$PIC_LIBS/boost-1.69.0-Power9
-export PNG_ROOT=$PIC_LIBS/libpng-1.6.34-Power9
+# Check the install script at
+# https://gist.github.com/steindev/cc02eae81f465833afa27fc8880f3473#file-picongpu_0-4-3_taurus-tud-sh
+#
+export PIC_LIBS=$HOME/lib/power9
+export BOOST_ROOT=$PIC_LIBS/boost-1.68.0-Power9
 export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0-Power9
 export ADIOS_ROOT=$PIC_LIBS/adios-1.13.1-Power9
+export HDF5_ROOT=$PIC_LIBS/hdf5-1.8.20-Power9
 export Splash_DIR=$PIC_LIBS/splash-Power9
-export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
-export HDF5_ROOT=$PIC_LIBS/hdf5-Power9
-export BLOSC_ROOT=$PIC_LIBS/blosc-1.12.1-Power9
+export BLOSC_ROOT=$PIC_LIBS/blosc-1.16.2-Power9
 
 export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
-export LIBRARY_PATH=$BOOST_ROOT/lib:$LIBRARY_PATH
-export LD_LIBRARY_PATH=$PNG_ROOT/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$Splash_DIR/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$Splash_DIR/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
 
-export PATH=$PNG_ROOT/bin:$PATH
 export PATH=$ADIOS_ROOT/bin:$PATH
 
-export CMAKE_PREFIX_PATH=$PNG_ROOT:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
 
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
@@ -64,7 +66,7 @@ export PATH=$PATH:$PICSRC/bin
 export PATH=$PATH:$PICSRC/src/tools/bin
 
 # python not included yet
-#export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
 # This is necessary in order to make alpaka compile.
 # The workaround is from Axel Huebl according to alpaka PR #702.
@@ -72,7 +74,7 @@ export CXXFLAGS="-Dlinux"
 
 # "tbg" default options #######################################################
 #   - SLURM (sbatch)
-#   - "gpu2" queue
+#   - "ml" queue
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/taurus-tud/V100.tpl"
 
