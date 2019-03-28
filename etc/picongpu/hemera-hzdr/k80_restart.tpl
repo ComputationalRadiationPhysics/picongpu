@@ -47,7 +47,7 @@ fi`
 
 #SBATCH --partition=!TBG_queue
 # necessary to set the account also to the queue name because otherwise access is not allowed at the moment
-#SBATCH --account=$proj
+#SBATCH --account=!proj
 #SBATCH --time=!TBG_wallTime
 # Sets batch job's name
 #SBATCH --job-name=!TBG_jobName
