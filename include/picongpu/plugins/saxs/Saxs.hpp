@@ -223,7 +223,7 @@ private:
             if (isMaster)
             {
                 fs.createDirectory("saxsOutput");
-                fs.setDirectoryPermissions("saxsOutput");
+                fs.setDirectoryPermissions("saxsPermissions");
             }
         }
     }
@@ -253,31 +253,10 @@ private:
                 q[0] = q_min[0] + q_step[0] * i_x;
                 q[1] = q_min[1] + q_step[1] * i_y;
                 q[2] = q_min[2] + q_step[2] * i_z;
-                ofile << q[0] << " " << q[1] << " " << q[2] << " " << intensity[i][0] << "\n";
+                ofile << q[0] << " " << q[1] << " " << q[2] << " " << intensity[i] << "\n";
             }
             ofile.flush();
-
-            if (ofile.fail())
-                std::cerr << "Error on flushing file [" << name << "]. " << std::endl;
-
-            ofile.close();
-        }
-    }
-
-    void writeLog(float1_X np_master,int64_t nmp_master, std::string name)
-    {
-        std::ofstream ofile;
-        ofile.open(name.c_str(), std::ofstream::out | std::ostream::trunc);
-        if (!ofile)
-        {
-            std::cerr << "Can't open file [" << name << "] for output, disable plugin output.\n";
-            isMaster = false; // no Master anymore -> no process is able to write
-        }
-        else
-        {
-            ofile <<  "Number of particles:"  << " " << np_master.x() << "\n";
-            ofile <<  "Number of macro particles:"  << " " << nmp_master << "\n";
-            ofile.flush();
+            ofile << std::endl; //now all data are written to file
 
             if (ofile.fail())
                 std::cerr << "Error on flushing file [" << name << "]. " << std::endl;
