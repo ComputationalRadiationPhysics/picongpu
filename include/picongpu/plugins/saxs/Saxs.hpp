@@ -219,7 +219,7 @@ private:
             if (isMaster)
             {
                 fs.createDirectory("saxsOutput");
-                fs.setDirectoryPermissions("saxsPermissions");
+                fs.setDirectoryPermissions("saxsOutput");
             }
         }
     }
@@ -249,10 +249,10 @@ private:
                 q[0] = q_min[0] + q_step[0] * i_x;
                 q[1] = q_min[1] + q_step[1] * i_y;
                 q[2] = q_min[2] + q_step[2] * i_z;
-                ofile << q[0] << " " << q[1] << " " << q[2] << " " << intensity[i] << "\n";
+                ofile << q[0] << " " << q[1] << " " << q[2] << " " << intensity[i][0] << "\n";
             }
             ofile.flush();
-            ofile << std::endl; //now all data are written to file
+            //TODO: ofile << std::endl; //now all data are written to file
 
             if (ofile.fail())
                 std::cerr << "Error on flushing file [" << name << "]. " << std::endl;
