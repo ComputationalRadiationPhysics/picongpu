@@ -42,7 +42,7 @@ Queue: gpu (4x NVIDIA P100 16GB)
    :language: bash
 
 Queue: k80 (8x NVIDIA K80 12GB)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/hemera-hzdr/k80_picongpu.profile.example
    :language: bash
