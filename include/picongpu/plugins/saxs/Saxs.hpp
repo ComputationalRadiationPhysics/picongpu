@@ -66,7 +66,7 @@ private:
     GridBuffer<float1_64, DIM1> *sumfcoskr;
     GridBuffer<float1_64, DIM1> *sumfsinkr;
     GridBuffer<float1_X, DIM1> *np;
-    // GridBuffer<int64_t, DIM1> *nmp;
+    GridBuffer<int64_t, DIM1> *nmp;
 
     MappingDesc *cellDescription;
     std::string notifyPeriod;
@@ -80,7 +80,7 @@ private:
     float1_64 *sumfsinkr_master;
     float1_64 *intensity_master;
     float1_X np_master; // Number of particles
-    // int64_t nmp_master; // Number of macro particles
+    int64_t nmp_master; // Number of macro particles
 
     bool isMaster;
 
@@ -98,7 +98,7 @@ public:
     sumfcoskr(nullptr),
     sumfsinkr(nullptr),
     np(nullptr),
-    // nmp(nullptr),
+    nmp(nullptr),
     cellDescription(nullptr),
     isMaster(false),
     currentStep(0)
@@ -210,10 +210,10 @@ private:
             // createQ(qy, qy_min, qy_step);
             // createQ(qz, qz_min, qz_step);
             n_q = n_qx * n_qy * n_qz;
-            sumfcoskr = new GridBuffer<float1_64, DIM1 > (DataSpace<DIM1> (n_q)); //create one int on GPU and host
-            sumfsinkr = new GridBuffer<float1_64, DIM1 > (DataSpace<DIM1> (n_q)); //create one int on GPU and host
-            np = new GridBuffer<float1_X, DIM1 > (DataSpace<DIM1> (1)); //create one int on GPU and host
-            // nmp = new GridBuffer<int64_t, DIM1 > (DataSpace<DIM1> (1)); //create one int on GPU and host
+            sumfcoskr = new GridBuffer<float1_64, DIM1 > (DataSpace<DIM1> (n_q)); 
+            sumfsinkr = new GridBuffer<float1_64, DIM1 > (DataSpace<DIM1> (n_q));
+            np = new GridBuffer<float1_X, DIM1 > (DataSpace<DIM1> (1)); //create one float on GPU and host
+            nmp = new GridBuffer<int64_t, DIM1 > (DataSpace<DIM1> (1)); //create one int on GPU and host
             sumfcoskr_master = new float1_64[n_q];
             sumfsinkr_master = new float1_64[n_q];
             intensity_master = new float1_64[n_q];
@@ -223,7 +223,7 @@ private:
             if (isMaster)
             {
                 fs.createDirectory("saxsOutput");
-                fs.setDirectoryPermissions("saxsPermissions");
+                fs.setDirectoryPermissions("saxsOutput");
             }
         }
     }
@@ -253,13 +253,34 @@ private:
                 q[0] = q_min[0] + q_step[0] * i_x;
                 q[1] = q_min[1] + q_step[1] * i_y;
                 q[2] = q_min[2] + q_step[2] * i_z;
-                ofile << q[0] << " " << q[1] << " " << q[2] << " " << intensity[i] << "\n";
+                ofile << q[0] << " " << q[1] << " " << q[2] << " " << intensity[i][0] << "\n";
             }
-            ofile.flush();
-            ofile << std::endl; //now all data are written to file
 
-            if (ofile.fail())
-                std::cerr << "Error on flushing file [" << name << "]. " << std::endl;
+            // if (ofile.fail())
+            //     std::cerr << "Error on flushing file [" << name << "]. " << std::endl;
+
+            ofile.close();
+        }
+    }
+
+
+
+    void writeLog(float1_X np_master,int64_t nmp_master, std::string name)
+    {
+        std::ofstream ofile;
+        ofile.open(name.c_str(), std::ofstream::out | std::ostream::trunc);
+        if (!ofile)
+        {
+            std::cerr << "Can't open file [" << name << "] for output, disable plugin output.\n";
+            isMaster = false; // no Master anymore -> no process is able to write
+        }
+        else
+        {
+            ofile <<  "Number of particles:"  << " " << np_master.x() << "\n";
+            ofile <<  "Number of macro particles:"  << " " << nmp_master << "\n";
+
+            /* if (ofile.fail())
+                std::cerr << "Error on flushing file [" << name << "]. " << std::endl; */
 
             ofile.close();
         }
@@ -273,7 +294,7 @@ private:
             __delete(sumfcoskr);
             __delete(sumfsinkr);
             __delete(np);
-            // __delete(nmp);
+            __delete(nmp);
             __deleteArray(intensity_master);
             CUDA_CHECK(cudaGetLastError());
         }
@@ -286,7 +307,7 @@ private:
     sumfcoskr->deviceToHost();
     sumfsinkr->deviceToHost();
     np->deviceToHost();
-    // nmp->deviceToHost();
+    nmp->deviceToHost();
     __getTransactionEvent().waitForFinished();
   }
 
@@ -315,12 +336,12 @@ private:
              1,
              mpi::reduceMethods::Reduce()
              );
-/*       reduce(nvidia::functors::add(),
+      reduce(nvidia::functors::Add(),
              &nmp_master,
-             nmp->gethostbuffer().getbasepointer(),
+             nmp->getHostBuffer().getBasePointer(),
              1,
-             mpi::reducemethods::reduce()
-             ); */
+             mpi::reduceMethods::Reduce()
+             );
         
       // Calculate intensity on master
       if (isMaster)
@@ -426,7 +447,7 @@ private:
          sumfcoskr->getDeviceBuffer().getDataBox(),
          sumfsinkr->getDeviceBuffer().getDataBox(),
          np->getDeviceBuffer().getDataBox(),
-        //  nmp->getDeviceBuffer().getDataBox(),
+         nmp->getDeviceBuffer().getDataBox(),
          globalOffset,
          currentStep,
          *cellDescription,
@@ -449,6 +470,7 @@ private:
       sumfcoskr->getDeviceBuffer().reset(false);
       sumfsinkr->getDeviceBuffer().reset(false);
       np->getDeviceBuffer().reset(false);
+      nmp->getDeviceBuffer().reset(false);
 
   }
 
