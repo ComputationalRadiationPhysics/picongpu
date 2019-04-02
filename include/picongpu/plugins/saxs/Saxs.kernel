@@ -98,7 +98,7 @@ struct KernelSaxs
         typename ParBox,
         typename DBox,
         typename DBox_np,
-        // typename DBox_nmp,
+        typename DBox_nmp,
         typename Mapping,
         typename T_Acc>
     DINLINE
@@ -110,7 +110,7 @@ struct KernelSaxs
             DBox sumfcoskr,
             DBox sumfsinkr,
             DBox_np np,
-            // DBox_nmp nmp,
+            DBox_nmp nmp,
             DataSpace<simDim> globalOffset,
             uint32_t currentStep,
             Mapping mapper,
@@ -224,7 +224,7 @@ struct KernelSaxs
                         uint32_t const,
                         uint32_t const) {
                         np_s = 0;
-                        // nmp[0] += particlesInFrame;
+                        nmp[0] += particlesInFrame;
                     });
 
                 __syncthreads();
@@ -301,16 +301,15 @@ struct KernelSaxs
                     int i_y = (idx / n_qz) % n_qy;
                     int i_x = idx / (n_qz * n_qy);
 
-                    // in PIConGPU unit
-                    q_r[0] = (q_min[0] + q_step[0] * i_x)*1e10*UNIT_LENGTH; 
-                    q_r[1] = (q_min[1] + q_step[1] * i_y)*1e10*UNIT_LENGTH;
-                    q_r[2] = (q_min[2] + q_step[2] * i_z)*1e10*UNIT_LENGTH;
+                    q_r[0] = (q_min[0] + q_step[0] * i_x); 
+                    q_r[1] = (q_min[1] + q_step[1] * i_y);
+                    q_r[2] = (q_min[2] + q_step[2] * i_z);
 
                     /* Particle loop: thread runs through loaded particle data
                          */
                     for (int j = 0; j < particlesInFrame; ++j)
                     {
-                        dotkr = (q_r[0] * r_s[j][0] + q_r[1] * r_s[j][1] + q_r[2] * r_s[j][2]);
+                        dotkr = (q_r[0] * r_s[j][0] + q_r[1] * r_s[j][1] + q_r[2] * r_s[j][2])*1e10*UNIT_LENGTH; //in PIConGPU unit
                         sumfcoskr_r += math::cos(dotkr) * saxsWeighting_s[j];
                         sumfsinkr_r += math::sin(dotkr) * saxsWeighting_s[j];
                         if (idx == 0)
