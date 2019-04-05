@@ -4,7 +4,7 @@
 This file is part of PIConGPU.
 
 Copyright 2018-2019 PIConGPU contributors
-Authors: Marco Garten
+Authors: Marco Garten, Paweł Ordyna
 License: GPLv3+
 """
 
@@ -20,9 +20,9 @@ for our :ref:`FoilLCT example <usage-examples-foilLCT>` and its ``4.cfg``.
 It is an estimate for how much memory is used per device if the whole
 target would be fully ionized but does not move much. Of course the real
 memory usage depends on the case and the dynamics inside the simulation.
-We calculate the memory of just one device out of the whole group that
-simulates the full box and we take one that we expect to experience the
-maximum memory load due to hosting a large part of the target.
+We calculate the memory of just one device per row of GPUs in laser 
+propagation direction. We hereby assume that particles are distributed
+equally in transverse direction, like it is set up in the FoilLCT example.
 """
 
 
@@ -37,7 +37,7 @@ sim_dim = 2
 Nx_all, Ny_all, Nz_all = 256, 1280, 1
 # number of GPU rows in each direction
 x_rows, y_rows, z_rows = 2, 2, 1
-# number of cells pro GPU
+# number of cells per GPU
 Nx, Ny, Nz = Nx_all / x_rows, Ny_all / y_rows, Nz_all / z_rows
 
 vacuum_cells = ceil((y0 - L_cutoff) / cell_size)  # in front of the target
@@ -75,7 +75,12 @@ megabyte = 1.0 / (1024 * 1024)
 target_x = Nx  # full transverse dimension of the GPU
 target_z = Nz
 
-sx = lambda n: {1: "st", 2: "nd", 3: "rd"}.get(n if n < 20 else int(str(n)[-1]), "th")
+
+def sx(n):
+    return {1: "st", 2: "nd", 3: "rd"}.get(n if n < 20
+                                           else int(str(n)[-1]), "th")
+
+
 for row, target_y in enumerate(GPU_rows):
     print("{}{} row of GPUs:".format(row + 1, sx(row + 1)))
     print("* Memory requirement per GPU:")
@@ -102,7 +107,7 @@ for row, target_y in enumerate(GPU_rows):
     )
     H_gpu = pmc.mem_req_by_particles(
         target_x, target_y, target_z,
-        # no bound electrons since H is preionized
+        # no bound electrons since H is pre-ionized
         num_additional_attributes=0,
         particles_per_cell=N_PPC
     )
