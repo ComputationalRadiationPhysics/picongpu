@@ -20,7 +20,7 @@ for our :ref:`FoilLCT example <usage-examples-foilLCT>` and its ``4.cfg``.
 It is an estimate for how much memory is used per device if the whole
 target would be fully ionized but does not move much. Of course the real
 memory usage depends on the case and the dynamics inside the simulation.
-We calculate the memory of just one device per row of GPUs in laser 
+We calculate the memory of just one device per row of GPUs in laser
 propagation direction. We hereby assume that particles are distributed
 equally in transverse direction, like it is set up in the FoilLCT example.
 """
