@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2017-2020 Rene Widera, Franz Poeschel
  *
  * This file is part of PIConGPU.
  *
@@ -30,6 +30,9 @@
 #if(ENABLE_HDF5 == 1)
 #   include "picongpu/plugins/hdf5/HDF5Writer.hpp"
 #endif
+#if (ENABLE_OPENPMD == 1)
+#   include "picongpu/plugins/openPMD/openPMDWriter.hpp"
+#endif
 #include <pmacc/pluginSystem/PluginConnector.hpp>
 
 #include <string>
@@ -52,6 +55,9 @@ namespace picongpu
             checkpointFilename( "checkpoint" ),
             restartChunkSize( 0u )
         {
+#if(ENABLE_OPENPMD == 1)
+            ioBackendsHelp[ "openPMD" ] = std::shared_ptr< plugins::multi::IHelp >( openPMD::openPMDWriter::getHelp( ) );
+#endif
 #if(ENABLE_ADIOS == 1)
             ioBackendsHelp[ "adios" ] = std::shared_ptr< plugins::multi::IHelp >( adios::ADIOSWriter::getHelp() );
 #endif
@@ -255,7 +261,7 @@ namespace picongpu
          */
         uint32_t restartChunkSize;
 
-        // can be "adios" and "hdf5"
+        // can be "adios", "hdf5" and "openPMD"
         std::map<
             std::string,
             std::shared_ptr< IIOBackend >

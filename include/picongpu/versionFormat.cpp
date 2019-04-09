@@ -1,4 +1,4 @@
-/* Copyright 2015-2020 Axel Huebl
+/* Copyright 2015-2020 Axel Huebl, Franz Poeschel
  *
  * This file is part of PIConGPU.
  *
@@ -37,6 +37,9 @@
 #endif
 #if( PIC_ENABLE_PNG == 1 )
 #   include <pngwriter.h>
+#endif
+#if( ENABLE_OPENPMD == 1 )
+#   include <openPMD/openPMD.hpp>
 #endif
 
 #include <sstream>
@@ -138,6 +141,13 @@ namespace picongpu
         adios << versionNotFound;
 #endif
 
+        std::stringstream openPMD;
+#if( ENABLE_OPENPMD == 1 )
+        openPMD << openPMD::getVersion( );
+#else
+        openPMD << versionNotFound;
+#endif
+
         // CLI Formatting
         cliText << "PIConGPU: " << picongpu.str() << std::endl;
         cliText << "  Build-Type: " << buildType.str() << std::endl
@@ -181,6 +191,8 @@ namespace picongpu
             software.push_back( std::string( "libSplash/" ) + splash.str() );
         if( adios.str().compare( versionNotFound ) != 0 )
             software.push_back( std::string( "ADIOS/" ) + adios.str() );
+        if( openPMD.str().compare( versionNotFound ) != 0 )
+            software.push_back( std::string( "openPMD/" ) + openPMD.str() );
 
         return software;
     }
