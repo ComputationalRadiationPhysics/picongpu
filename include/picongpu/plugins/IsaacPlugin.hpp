@@ -37,6 +37,7 @@
 #include <boost/fusion/include/as_list.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/transform.hpp>
+#include <limits>
 
 namespace picongpu
 {
@@ -73,27 +74,30 @@ class TFieldSource
 
         void update(bool enabled, void* pointer)
         {
-            const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
-            DataConnector &dc = Environment< simDim >::get().DataConnector();
-            auto pField = dc.get< FieldType >( FieldType::getName(), true );
-            DataSpace< simDim > guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
-            if (movingWindow)
+            if(enabled)
             {
-                GridController<simDim> &gc = Environment<simDim>::get().GridController();
-                if (gc.getPosition()[1] == 0) //first gpu
+                const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
+                DataConnector &dc = Environment< simDim >::get().DataConnector();
+                auto pField = dc.get< FieldType >( FieldType::getName(), true );
+                DataSpace< simDim > guarding = SuperCellSize::toRT() * cellDescription->getGuardingSuperCells();
+                if (movingWindow)
                 {
-                    uint32_t* currentStep = (uint32_t*)pointer;
-                    Window window( MovingWindow::getInstance().getWindow( *currentStep ) );
-                    guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
+                    GridController<simDim> &gc = Environment<simDim>::get().GridController();
+                    if (gc.getPosition()[1] == 0) //first gpu
+                    {
+                        uint32_t* currentStep = (uint32_t*)pointer;
+                        Window window( MovingWindow::getInstance().getWindow( *currentStep ) );
+                        guarding += subGrid.getLocalDomain().size - window.localDimensions.size;
+                    }
                 }
+                typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
+                shifted = dataBox.shift( guarding );
+                dc.releaseData( FieldType::getName() );
+                /* avoid deadlock between not finished pmacc tasks and potential blocking operations
+                * within ISAAC
+                */
+                __getTransactionEvent().waitForFinished();
             }
-            typename FieldType::DataBoxType dataBox = pField->getDeviceDataBox();
-            shifted = dataBox.shift( guarding );
-            dc.releaseData( FieldType::getName() );
-            /* avoid deadlock between not finished pmacc tasks and potential blocking operations
-             * within ISAAC
-             */
-            __getTransactionEvent().waitForFinished();
 
         }
 
@@ -185,10 +189,162 @@ class TFieldSource< FieldTmpOperation< FrameSolver, ParticleType > >
         }
 };
 
+
+template<size_t feature_dim, typename ParticlesBoxType>
+class ParticleIterator
+{
+    public:
+        using FramePtr = typename ParticlesBoxType::FramePtr;
+        // size of the particle list
+        size_t size;
+
+        ISAAC_NO_HOST_DEVICE_WARNING
+        ISAAC_HOST_DEVICE_INLINE ParticleIterator(size_t size, ParticlesBoxType pb, FramePtr firstFrame, int frameSize) :
+            size(size),
+            pb(pb),
+            frame(firstFrame),
+            frameSize(frameSize),
+            i(0)
+            {}
+
+        ISAAC_HOST_DEVICE_INLINE void next()
+        {
+            // iterate particles look for next frame
+            i++;
+            if(i >= frameSize)
+            {
+                frame = pb.getNextFrame(frame);
+                i = 0;
+            }
+        }
+
+        // returns current particle position
+        ISAAC_HOST_DEVICE_INLINE isaac_float3 getPosition() const
+        {
+            auto const particle = frame[ i ];
+
+            // storage number in the actual frame
+            const auto frameCellNr = particle[ localCellIdx_];
+
+            // offset in the actual superCell = cell offset in the supercell
+            const DataSpace<simDim> frameCellOffset(DataSpaceOperations<simDim>::template map<MappingDesc::SuperCellSize > (frameCellNr));
+
+            // added offsets
+            float3_X const absoluteOffset(particle[ position_ ] + float3_X(frameCellOffset));
+
+            // calculate scaled position
+            float3_X const pos(
+            absoluteOffset.x() * (1._X / float_X(MappingDesc::SuperCellSize::x::value)),
+            absoluteOffset.y() * (1._X / float_X(MappingDesc::SuperCellSize::y::value)),
+            absoluteOffset.z() * (1._X / float_X(MappingDesc::SuperCellSize::z::value))
+
+            );
+
+            return {pos[0], pos[1], pos[2]};
+        }
+
+        // returns particle momentum as color attribute
+        ISAAC_HOST_DEVICE_INLINE isaac_float_dim<feature_dim> getAttribute() const
+        {
+            auto const particle = frame[ i ];
+            float3_X const mom = particle[ momentum_ ];
+            return {mom[0], mom[1], mom[2]};
+        }
+
+
+        // returns constant radius
+        ISAAC_HOST_DEVICE_INLINE isaac_float getRadius() const
+        {
+            return 0.2f;
+        }
+
+
+    private:
+        ParticlesBoxType pb;
+        FramePtr frame;
+        int i;
+        int frameSize;
+};
+
+
+
+ISAAC_NO_HOST_DEVICE_WARNING
+template< typename ParticlesType >
+class ParticleSource
+{
+
+    using ParticlesBoxType = typename ParticlesType::ParticlesBoxType;
+    using FramePtr = typename ParticlesBoxType::FramePtr;
+    using FrameType = typename ParticlesBoxType::FrameType;
+
+    public:
+        static const size_t feature_dim = 3;
+        bool movingWindow;
+        DataSpace< simDim > guarding;
+        ISAAC_NO_HOST_DEVICE_WARNING
+        ParticleSource ()
+        {}
+
+        ISAAC_HOST_INLINE static std::string getName()
+        {
+            return ParticlesType::FrameType::getName() + std::string(" particle");
+        }
+
+        pmacc::memory::Array<ParticlesBoxType,1> pb;
+
+        void init(bool movingWindow)
+        {
+            this->movingWindow = movingWindow;
+        }
+
+        void update(bool enabled, void* pointer)
+        {
+            // update movingWindow cells
+            if (enabled)
+            {
+                uint32_t* currentStep = (uint32_t*)pointer;
+                DataConnector &dc = Environment<>::get().DataConnector();
+                auto particles = dc.get< ParticlesType >( ParticlesType::FrameType::getName(), true );
+                pb[0] = particles->getDeviceParticlesBox();
+
+                const SubGrid<simDim>& subGrid = Environment< simDim >::get().SubGrid();
+                guarding = GuardSize::toRT();
+                if (movingWindow)
+                {
+                    GridController<simDim> &gc = Environment<simDim>::get().GridController();
+                    if (gc.getPosition()[1] == 0) //first gpu
+                    {
+                        Window window(MovingWindow::getInstance().getWindow( *currentStep ));
+                        for(uint i = 0; i < simDim; i++)
+                            guarding[i] += int(math::ceil((subGrid.getLocalDomain().size[i] - window.localDimensions.size[i]) / (float)MappingDesc::SuperCellSize::toRT()[i]));
+                    }
+                }
+                dc.releaseData( ParticlesType::FrameType::getName() );
+            }
+        }
+
+        // returns particleIterator with correct feature_dim and cell specific particlebox
+        ISAAC_NO_HOST_DEVICE_WARNING
+        ISAAC_HOST_DEVICE_INLINE ParticleIterator<feature_dim, ParticlesBoxType> getIterator(const isaac_uint3& local_grid_coord) const
+        {
+            constexpr uint32_t frameSize = pmacc::math::CT::volume< typename FrameType::SuperCellSize >::type::value;
+            DataSpace< simDim > const superCellIdx( local_grid_coord.x + guarding[0], local_grid_coord.y + guarding[1], local_grid_coord.z + guarding[2] );
+            const auto & superCell = pb[0].getSuperCell( superCellIdx );
+            size_t size = superCell.getNumParticles();
+            FramePtr currentFrame = pb[0].getFirstFrame( superCellIdx );
+            return ParticleIterator<feature_dim, ParticlesBoxType>( size, pb[0], currentFrame, frameSize );
+        }
+};
+
 template< typename T >
 struct Transformoperator
 {
     typedef TFieldSource< T > type;
+};
+template< typename T >
+struct ParticleTransformoperator
+{
+    typedef ParticleSource< T > type;
 };
 
 struct SourceInitIterator
@@ -205,6 +361,19 @@ struct SourceInitIterator
     }
 };
 
+struct ParticleSourceInitIterator
+{
+    template
+    <
+        typename TParticleSource,
+        typename TMovingWindow
+    >
+    void operator()( const int I, TParticleSource& s, TMovingWindow& w) const
+    {
+        s.init(w);
+    }
+};
+
 
 class IsaacPlugin : public ILightweightPlugin
 {
@@ -212,6 +381,8 @@ public:
     typedef boost::mpl::int_< simDim > SimDim;
     static const size_t textureDim = 1024;
     using SourceList = bmpl::transform<boost::fusion::result_of::as_list< Fields_Seq >::type,Transformoperator<bmpl::_1>>::type;
+    // create compile time particle list
+    using ParticleList = bmpl::transform<boost::fusion::result_of::as_list< Particle_Seq >::type,ParticleTransformoperator<bmpl::_1>>::type;
     using VisualizationType = IsaacVisualization
     <
         cupla::AccHost,
@@ -219,6 +390,7 @@ public:
         cupla::AccStream,
         cupla::KernelDim,
         SimDim,
+        ParticleList,
         SourceList,
         DataSpace< simDim >,
         textureDim,
@@ -272,6 +444,7 @@ public:
                     Window window(MovingWindow::getInstance().getWindow( currentStep ));
                     visualization->updatePosition( window.localDimensions.offset );
                     visualization->updateLocalSize( window.localDimensions.size );
+                    visualization->updateLocalParticleSize( window.localDimensions.size / MappingDesc::SuperCellSize::toRT());
                     visualization->updateBounding();
                 }
                 if (rank == 0 && visualization->kernel_time)
@@ -354,6 +527,7 @@ private:
     int rank;
     int numProc;
     bool movingWindow;
+    ParticleList particleSources;
     SourceList sources;
     /** render interval within the notify period
      *
@@ -388,6 +562,7 @@ private:
             };
 
             isaac_for_each_params( sources, SourceInitIterator(), cellDescription, movingWindow );
+            isaac_for_each_params( particleSources, ParticleSourceInitIterator(), movingWindow);
 
             visualization = new VisualizationType (
                 cupla::manager::Device< cupla::AccHost >::get().current( ),
@@ -398,9 +573,11 @@ private:
                 url,
                 port,
                 framebuffer_size,
-                subGrid.getGlobalDomain().size,
+                MovingWindow::getInstance().getWindow( 0 ).globalDimensions.size,
                 subGrid.getLocalDomain().size,
+                subGrid.getLocalDomain().size / SuperCellSize::toRT(),
                 subGrid.getLocalDomain().offset,
+                particleSources,
                 sources,
                 cellSizeFactor
             );
