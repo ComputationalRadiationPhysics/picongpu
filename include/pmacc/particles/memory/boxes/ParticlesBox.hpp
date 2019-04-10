@@ -141,7 +141,7 @@ public:
     }
 
     HDINLINE
-    FramePtr mapPtr( const FramePtr& devPtr )
+    FramePtr mapPtr( const FramePtr& devPtr ) const
     {
 #ifndef __CUDA_ARCH__
         int64_t useOffset = hostMemoryOffset * static_cast<int64_t> (devPtr.ptr != 0);
@@ -160,7 +160,7 @@ public:
      * @param frame the active frame
      * @return the next frame in the list
      */
-    HDINLINE FramePtr getNextFrame( const FramePtr& frame )
+    HDINLINE FramePtr getNextFrame( const FramePtr& frame ) const
     {
         return mapPtr( frame->nextFrame.ptr );
     }
@@ -171,7 +171,7 @@ public:
      * @param frame the active frame
      * @return the previous frame in the list
      */
-    HDINLINE FramePtr getPreviousFrame( const FramePtr& frame )
+    HDINLINE FramePtr getPreviousFrame( const FramePtr& frame ) const
     {
         return mapPtr( frame->previousFrame.ptr );
     }
@@ -182,7 +182,7 @@ public:
      * @param idx position of supercell
      * @return the last frame of the linked list from supercell
      */
-    HDINLINE FramePtr getLastFrame( const DataSpace<DIM> &idx )
+    HDINLINE FramePtr getLastFrame( const DataSpace<DIM> &idx ) const
     {
         return mapPtr( getSuperCell( idx ).LastFramePtr( ) );
     }
@@ -193,7 +193,7 @@ public:
      * @param idx position of supercell
      * @return the first frame of the linked list from supercell
      */
-    HDINLINE FramePtr getFirstFrame( const DataSpace<DIM> &idx )
+    HDINLINE FramePtr getFirstFrame( const DataSpace<DIM> &idx ) const
     {
         return mapPtr( getSuperCell( idx ).FirstFramePtr( ) );
     }
@@ -330,11 +330,10 @@ public:
         return false;
     }
 
-    HDINLINE SuperCellType& getSuperCell( DataSpace<DIM> idx )
+    HDINLINE SuperCellType& getSuperCell( DataSpace<DIM> idx ) const
     {
         return BaseType::operator()(idx);
     }
-
 };
 
 }
