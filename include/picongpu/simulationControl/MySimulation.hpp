@@ -611,6 +611,7 @@ public:
 
         __setTransactionEvent(updateEvent);
         /** remove background field for particle pusher */
+        /*
         auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
         auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
         (*pushBGField)(fieldE, nvfct::Sub(), FieldBackgroundE(fieldE->getUnit()),
@@ -619,6 +620,7 @@ public:
                        currentStep, FieldBackgroundB::InfluenceParticlePusher);
         dc.releaseData( FieldE::getName() );
         dc.releaseData( FieldB::getName() );
+         */
 
         this->myFieldSolver->update_beforeCurrent(currentStep);
 
