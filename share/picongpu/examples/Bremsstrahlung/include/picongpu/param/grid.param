@@ -59,8 +59,6 @@ namespace picongpu
         {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
     }; //unit: none
 
-    constexpr uint32_t ABSORBER_FADE_IN_STEPS = 16;
-
     /** When to move the co-moving window.
      *  An initial pseudo particle, flying with the speed of light,
      *  is fired at the begin of the simulation.
