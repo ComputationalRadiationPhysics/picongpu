@@ -251,12 +251,6 @@ FieldJ::getName( )
     return "J";
 }
 
-uint32_t
-FieldJ::getCommTag( )
-{
-    return FIELD_J;
-}
-
 template<uint32_t AREA, class ParticlesClass>
 void FieldJ::computeCurrent( ParticlesClass &parClass, uint32_t )
 {

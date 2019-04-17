@@ -207,10 +207,4 @@ FieldE::getName( )
     return "E";
 }
 
-uint32_t
-FieldE::getCommTag( )
-{
-    return FIELD_E;
-}
-
 }

@@ -98,8 +98,6 @@ public:
 
     static std::string getName();
 
-    static uint32_t getCommTag();
-
     template<uint32_t AREA, class ParticlesClass>
     void computeCurrent(ParticlesClass &parClass, uint32_t currentStep);
 
