@@ -28,6 +28,7 @@
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 
 #include <pmacc/memory/buffers/GridBuffer.hpp>
+#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
@@ -63,13 +64,13 @@ namespace picongpu
         m_commTagGather = ++pmacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
             SPECIES_FIRSTTAG;
 
-        fieldTmp.reset(
-            new GridBuffer <ValueType, simDim >( cellDescription.getGridLayout( ) )
-        );
+        using Buffer = GridBuffer< ValueType, simDim >;
+        fieldTmp = memory::makeUnique< Buffer >( cellDescription.getGridLayout( ) );
 
         if( fieldTmpSupportGatherCommunication )
-            fieldTmpRecv.reset(
-                new GridBuffer< ValueType, simDim >( fieldTmp->getDeviceBuffer(), cellDescription.getGridLayout( ) )
+            fieldTmpRecv = memory::makeUnique< Buffer >(
+                fieldTmp->getDeviceBuffer(),
+                cellDescription.getGridLayout( )
             );
 
         /** \todo The exchange has to be resetted and set again regarding the
