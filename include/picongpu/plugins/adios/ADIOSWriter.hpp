@@ -111,11 +111,17 @@ int64_t defineAdiosVar(int64_t group_id,
 {
     int64_t var_id = 0;
 
+    std::string const revertedDimensions =
+        dimensions.revert().toString(",", "");
+    std::string const revertedGlobalDimensions =
+        globalDimensions.revert().toString(",", "");
+    std::string const revertedOffset =
+        offset.revert().toString(",", "");
     var_id = adios_define_var(
         group_id, name, path, type,
-        dimensions.revert().toString(",", "").c_str(),
-        globalDimensions.revert().toString(",", "").c_str(),
-        offset.revert().toString(",", "").c_str()
+        revertedDimensions.c_str(),
+        revertedGlobalDimensions.c_str(),
+        revertedOffset.c_str()
     );
 
     if(compression)
@@ -534,16 +540,15 @@ private:
 
         for( uint32_t c = 0; c < nComponents; c++ )
         {
-            std::stringstream datasetName;
-            datasetName << recordName;
+            std::string datasetName = recordName;
             if (nComponents > 1)
-                datasetName << "/" << name_lookup_tpl[c];
+                datasetName +=  "/" + name_lookup_tpl[c];
 
             /* define adios var for field, e.g. field_FieldE_y */
             const char* path = nullptr;
             int64_t adiosFieldVarId = defineAdiosVar<simDim>(
                     params->adiosGroupHandle,
-                    datasetName.str().c_str(),
+                    datasetName.c_str(),
                     path,
                     adiosType,
                     params->fieldsSizeDims,
@@ -557,11 +562,11 @@ private:
             /* already add the unitSI and further attribute so `adios_group_size`
              * calculates the reservation for the buffer correctly */
             ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
-                      "position", datasetName.str().c_str(),
+                      "position", datasetName.c_str(),
                       adiosFloatXType.type, simDim, &(*inCellPosition.at(c).begin()) ));
 
             ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
-                      "unitSI", datasetName.str().c_str(),
+                      "unitSI", datasetName.c_str(),
                       adiosDoubleType.type, 1, &unit.at(c) ));
         }
 
@@ -945,8 +950,10 @@ public:
         std::stringstream strFname;
         strFname << restartFilename << "_" << mThreadParams.currentStep << ".bp";
 
+        const std::string filename = strFname.str( );
+
         // adios_read_open( fname, method, comm, lock_mode, timeout_sec )
-        log<picLog::INPUT_OUTPUT > ("ADIOS: open file: %1%") % strFname.str();
+        log< picLog::INPUT_OUTPUT > ("ADIOS: open file: %1%") % filename;
 
         // when reading in BG_AGGREGATE mode, adios can not distinguish between
         // "file does not exist" and "stream is not (yet) available, so we
@@ -957,7 +964,7 @@ public:
         /* <0 sec: wait forever
          * >=0 sec: return immediately if stream is not available */
         float_32 timeout = 0.0f;
-        mThreadParams.fp = adios_read_open(strFname.str().c_str(),
+        mThreadParams.fp = adios_read_open(filename.c_str(),
                         ADIOS_READ_METHOD_BP, mThreadParams.adiosComm,
                         ADIOS_LOCKMODE_CURRENT, timeout);
 
@@ -969,7 +976,7 @@ public:
             /* give the file system 1s of peace and quiet */
             usleep(1e6);
 #endif
-            mThreadParams.fp = adios_read_open(strFname.str().c_str(),
+            mThreadParams.fp = adios_read_open(filename.c_str(),
                         ADIOS_READ_METHOD_BP, mThreadParams.adiosComm,
                         ADIOS_LOCKMODE_CURRENT, timeout);
         }
@@ -990,8 +997,10 @@ public:
         void* slidesPtr = nullptr;
         int slideSize;
         enum ADIOS_DATATYPES slidesType;
+        const std::string simSlidesPath =
+            mThreadParams.adiosBasePath + std::string("sim_slides");
         ADIOS_CMD(adios_get_attr( mThreadParams.fp,
-                                  (mThreadParams.adiosBasePath + std::string("sim_slides")).c_str(),
+                                  simSlidesPath.c_str(),
                                   &slidesType,
                                   &slideSize,
                                   &slidesPtr ));
@@ -1006,8 +1015,10 @@ public:
         void* lastStepPtr = nullptr;
         int lastStepSize;
         enum ADIOS_DATATYPES lastStepType;
+        const std::string iterationPath =
+            mThreadParams.adiosBasePath + std::string("iteration");
         ADIOS_CMD(adios_get_attr( mThreadParams.fp,
-                                  (mThreadParams.adiosBasePath + std::string("iteration")).c_str(),
+                                  iterationPath.c_str(),
                                   &lastStepType,
                                   &lastStepSize,
                                   &lastStepPtr ));
@@ -1323,9 +1334,11 @@ private:
         ADIOS_STATISTICS_FLAG noStatistics = adios_stat_no;
 
         /* create adios group for fields without statistics */
+        const std::string iterationPath =
+            threadParams->adiosBasePath + std::string("iteration");
         ADIOS_CMD(adios_declare_group(&(threadParams->adiosGroupHandle),
                 ADIOS_GROUP_NAME,
-                (threadParams->adiosBasePath + std::string("iteration")).c_str(),
+                iterationPath.c_str(),
                 noStatistics));
 
         /* select MPI method, #OSTs and #aggregators */
