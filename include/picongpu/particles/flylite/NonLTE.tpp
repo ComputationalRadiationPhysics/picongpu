@@ -31,6 +31,7 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
+#include <pmacc/memory/MakeUnique.hpp>
 
 #include <memory>
 
@@ -63,55 +64,46 @@ namespace flylite
 
         DataConnector &dc = Environment<>::get().DataConnector();
 
+        using pmacc::memory::makeUnique;
         // once allocated for all ion species to share
         if( ! dc.hasId( helperFields::LocalEnergyHistogram::getName( "electrons" ) ) )
-            dc.share(
-                std::shared_ptr< ISimulationData >(
-                    new helperFields::LocalEnergyHistogram(
-                        "electrons",
-                        m_avgGridSizeLocal
-                    )
+            dc.consume(
+                makeUnique< helperFields::LocalEnergyHistogram >(
+                    "electrons",
+                    m_avgGridSizeLocal
                 )
             );
 
         if( ! dc.hasId( helperFields::LocalEnergyHistogram::getName( "photons" ) ) )
-            dc.share(
-                std::shared_ptr< ISimulationData >(
-                    new helperFields::LocalEnergyHistogram(
-                        "photons",
-                        m_avgGridSizeLocal
-                    )
+            dc.consume(
+                makeUnique< helperFields::LocalEnergyHistogram >(
+                    "photons",
+                    m_avgGridSizeLocal
                 )
             );
 
         if( ! dc.hasId( helperFields::LocalDensity::getName( "electrons" ) ) )
-            dc.share(
-                std::shared_ptr< ISimulationData >(
-                    new helperFields::LocalDensity(
-                        "electrons",
-                        m_avgGridSizeLocal
-                    )
+            dc.consume(
+                makeUnique< helperFields::LocalDensity >(
+                    "electrons",
+                    m_avgGridSizeLocal
                 )
             );
 
         // for each ion species
         if( ! dc.hasId( helperFields::LocalRateMatrix::getName( ionSpeciesName ) ) )
-            dc.share(
-                std::shared_ptr< ISimulationData >(
-                    new helperFields::LocalRateMatrix(
-                        ionSpeciesName,
-                        m_avgGridSizeLocal
-                    )
+            dc.consume(
+                makeUnique< helperFields::LocalRateMatrix >(
+                    ionSpeciesName,
+                    m_avgGridSizeLocal
                 )
             );
 
         if( ! dc.hasId( helperFields::LocalDensity::getName( ionSpeciesName ) ) )
-            dc.share(
-                std::shared_ptr< ISimulationData >(
-                    new helperFields::LocalDensity(
-                        ionSpeciesName,
-                        m_avgGridSizeLocal
-                    )
+            dc.consume(
+                makeUnique< helperFields::LocalDensity >(
+                    ionSpeciesName,
+                    m_avgGridSizeLocal
                 )
             );
     }

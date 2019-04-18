@@ -300,22 +300,8 @@ public:
         namespace nvmem = pmacc::nvidia::memory;
 
         DataConnector &dc = Environment<>::get().DataConnector();
+        initFields(dc);
 
-        // create simulation data such as fields and particles
-        auto fieldB = new FieldB( *cellDescription );
-        dc.share( std::shared_ptr< ISimulationData >( fieldB ) );
-        auto fieldE = new FieldE( *cellDescription );
-        dc.share( std::shared_ptr< ISimulationData >( fieldE ) );
-        auto fieldJ = new FieldJ( *cellDescription );
-        dc.share( std::shared_ptr< ISimulationData >( fieldJ ) );
-
-        std::vector< FieldTmp * > fieldTmp;
-        for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
-        {
-            auto newFld = new FieldTmp( *cellDescription, slot );
-            fieldTmp.push_back( newFld );
-            dc.share( std::shared_ptr< ISimulationData >( newFld ) );
-        }
         pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
         currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER > (*cellDescription);
 
@@ -336,7 +322,9 @@ public:
         );
 
         using RNGFactory = pmacc::random::RNGProvider< simDim, random::Generator >;
-        auto rngFactory = new RNGFactory( Environment<simDim>::get().SubGrid().getLocalDomain().size );
+        auto rngFactory = pmacc::memory::makeUnique< RNGFactory >(
+            Environment<simDim>::get().SubGrid().getLocalDomain().size
+        );
         if (Environment<simDim>::get().GridController().getGlobalRank() == 0)
         {
             log<picLog::PHYSICS >("used Random Number Generator: %1% seed: %2%") %
@@ -347,7 +335,7 @@ public:
         // init and share random number generator
         pmacc::GridController<simDim>& gridCon = pmacc::Environment<simDim>::get().GridController();
         rngFactory->init( gridCon.getScalarPosition() ^ seed );
-        dc.share( std::shared_ptr< ISimulationData >( rngFactory ) );
+        dc.consume( std::move( rngFactory ) );
 
         // Initialize synchrotron functions, if there are synchrotron photon species
         if(!bmpl::empty<AllSynchrotronPhotonsSpecies>::value)
@@ -419,8 +407,8 @@ public:
 
         // initializing the heap for particles
         deviceHeap->destructiveResize(heapSize);
-        MallocMCBuffer<DeviceHeap>* mallocMCBuffer = new MallocMCBuffer<DeviceHeap>(deviceHeap);
-        dc.share( std::shared_ptr< ISimulationData >( mallocMCBuffer ) );
+        auto mallocMCBuffer = pmacc::memory::makeUnique< MallocMCBuffer<DeviceHeap> >( deviceHeap );
+        dc.consume( std::move( mallocMCBuffer ) );
 #endif
         ForEach< VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<bmpl::_1> > logMemoryStatisticsForSpecies;
         logMemoryStatisticsForSpecies( deviceHeap );
@@ -803,6 +791,25 @@ protected:
     int32_t endSlidingOnStep;
     bool showVersionOnce;
     bool autoAdjustGrid = true;
+
+private:
+
+    void initFields( DataConnector& dataConnector )
+    {
+        using pmacc::memory::makeUnique;
+        auto fieldB = makeUnique< FieldB >( *cellDescription );
+        dataConnector.consume( std::move( fieldB ) );
+        auto fieldE = makeUnique< FieldE >( *cellDescription );
+        dataConnector.consume( std::move( fieldE ) );
+        auto fieldJ = makeUnique< FieldJ >( *cellDescription );
+        dataConnector.consume( std::move( fieldJ ) );
+        for( uint32_t slot = 0; slot < fieldTmpNumSlots; ++slot)
+        {
+            auto fieldTmp = makeUnique< FieldTmp >( *cellDescription, slot );
+            dataConnector.consume( std::move( fieldTmp ) );
+        }
+    }
+
 };
 } /* namespace picongpu */
 

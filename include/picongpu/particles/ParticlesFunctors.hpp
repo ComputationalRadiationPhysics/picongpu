@@ -28,6 +28,7 @@
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
 #include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/memory/MakeUnique.hpp>
 
 #include "picongpu/particles/traits/GetIonizerList.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -97,13 +98,11 @@ struct CreateSpecies
     ) const
     {
         DataConnector &dc = Environment<>::get().DataConnector();
-        dc.share(
-            std::shared_ptr< ISimulationData >(
-                new SpeciesType(
-                    deviceHeap,
-                    *cellDesc,
-                    FrameType::getName()
-                )
+        dc.consume(
+            pmacc::memory::makeUnique<SpeciesType>(
+                deviceHeap,
+                *cellDesc,
+                FrameType::getName()
             )
         );
     }
