@@ -27,6 +27,7 @@
 #include "pmacc/memory/dataTypes/Mask.hpp"
 #include "pmacc/memory/buffers/DeviceBufferIntern.hpp"
 #include "pmacc/memory/buffers/HostBufferIntern.hpp"
+#include "pmacc/memory/MakeUnique.hpp"
 
 #include "pmacc/eventSystem/tasks/Factory.hpp"
 #include "pmacc/eventSystem/tasks/TaskReceive.hpp"
@@ -69,41 +70,54 @@ namespace pmacc
 
             /*This is only a pointer to other device data
              */
-            deviceBuffer.reset(
-                new DeviceBufferIntern<TYPE, DIM >(
-                    source,
-                    tmp_size,
-                    exchangeTypeToOffset(
-                        exchange,
-                        memoryLayout,
-                        guardingCells,
-                        area
-                    ),
-                    sizeOnDevice
-                )
+            using DeviceBuffer = DeviceBufferIntern<TYPE, DIM>;
+            deviceBuffer = memory::makeUnique<DeviceBuffer>(
+                source,
+                tmp_size,
+                exchangeTypeToOffset(
+                    exchange,
+                    memoryLayout,
+                    guardingCells,
+                    area
+                ),
+                sizeOnDevice
             );
             if (DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-                deviceDoubleBuffer.reset( new DeviceBufferIntern<TYPE, DIM > (tmp_size, false, true) );
+                deviceDoubleBuffer = memory::makeUnique<DeviceBuffer>(
+                    tmp_size,
+                    false,
+                    true
+                );
             }
 
-            hostBuffer.reset( new HostBufferIntern<TYPE, DIM > (tmp_size) );
+            using HostBuffer = HostBufferIntern<TYPE, DIM>;
+            hostBuffer = memory::makeUnique<HostBuffer>(tmp_size);
         }
 
         ExchangeIntern(DataSpace<DIM> exchangeDataSpace, uint32_t exchange,
                        uint32_t communicationTag, bool sizeOnDevice = false) :
         Exchange<TYPE, DIM>(exchange, communicationTag)
         {
-            deviceBuffer.reset( new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice) );
-           //  this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice,true);
+            using DeviceBuffer = DeviceBufferIntern<TYPE, DIM >;
+            deviceBuffer = memory::makeUnique<DeviceBuffer>(
+                exchangeDataSpace,
+                sizeOnDevice
+            );
+            //  this->deviceBuffer = new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, sizeOnDevice,true);
             if (DIM > DIM1)
             {
                 /*create double buffer on gpu for faster memory transfers*/
-               deviceDoubleBuffer.reset( new DeviceBufferIntern<TYPE, DIM > (exchangeDataSpace, false, true) );
+                deviceDoubleBuffer = memory::makeUnique<DeviceBuffer>(
+                    exchangeDataSpace,
+                    false,
+                    true
+                );
             }
 
-            hostBuffer.reset( new HostBufferIntern<TYPE, DIM > (exchangeDataSpace) );
+            using HostBuffer = HostBufferIntern<TYPE, DIM >;
+            hostBuffer = memory::makeUnique<HostBuffer>(exchangeDataSpace);
         }
 
         /**
