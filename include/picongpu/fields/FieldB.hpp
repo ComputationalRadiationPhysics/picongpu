@@ -74,8 +74,6 @@ namespace picongpu
 
         static std::string getName();
 
-        static uint32_t getCommTag();
-
         virtual EventTask asyncCommunication(EventTask serialEvent);
 
         DataBoxType getHostDataBox();

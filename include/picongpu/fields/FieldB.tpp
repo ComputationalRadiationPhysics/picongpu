@@ -219,10 +219,4 @@ FieldB::getName( )
     return "B";
 }
 
-uint32_t
-FieldB::getCommTag( )
-{
-    return FIELD_B;
-}
-
 } //namespace picongpu
