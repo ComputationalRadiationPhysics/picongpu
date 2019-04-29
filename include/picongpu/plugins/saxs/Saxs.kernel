@@ -73,11 +73,10 @@ struct KernelSaxs
      * initializing the shared memory.
      * Then a loop over all super cells starts.
      * Every thread loads a particle from that super cell and calculates its
-     * retarded time and its real amplitude (both is dependent of the direction).
+     * scattering structure factor.
      * For every Particle
      * exists therefor a unique space within the shared memory.
-     * After that, a thread calculates for a specific frequency the emitted
-     * radiation of all particles.
+     * After that, a thread calculates for a specific scattering vector of all particles.
      */
     template <
         typename ParBox,
