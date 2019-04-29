@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -49,8 +49,8 @@ struct FieldToParticleInterpolationNative
 
     static constexpr int lowerMargin = supp / 2;
     static constexpr int upperMargin = (supp + 1) / 2;
-    typedef typename pmacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
+    using LowerMargin = typename pmacc::math::CT::make_Int<simDim,lowerMargin>::type;
+    using UpperMargin = typename pmacc::math::CT::make_Int<simDim,upperMargin>::type;
 
     template<class Cursor, class VecVector_ >
     HDINLINE float3_X operator()(Cursor field, const floatD_X& particlePos,
@@ -92,10 +92,10 @@ template<class AssignMethod, class InterpolationMethod>
 struct GetMargin<picongpu::FieldToParticleInterpolationNative<AssignMethod, InterpolationMethod> >
 {
 private:
-    typedef picongpu::FieldToParticleInterpolationNative< AssignMethod, InterpolationMethod> Interpolation;
+    using Interpolation = picongpu::FieldToParticleInterpolationNative< AssignMethod, InterpolationMethod>;
 public:
-    typedef typename Interpolation::LowerMargin LowerMargin;
-    typedef typename Interpolation::UpperMargin UpperMargin;
+    using LowerMargin = typename Interpolation::LowerMargin;
+    using UpperMargin = typename Interpolation::UpperMargin;
 };
 
 } //namespace traits

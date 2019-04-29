@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch
  *
  * This file is part of PIConGPU.
  *
@@ -47,8 +47,8 @@ struct Push
   /* this is an optional extention for sub-sampling pushes that enables grid to particle interpolation
    * for particle positions outside the super cell in one push
    */
-  typedef typename pmacc::math::CT::make_Int<simDim,1>::type LowerMargin;
-  typedef typename pmacc::math::CT::make_Int<simDim,1>::type UpperMargin;
+  using LowerMargin = typename pmacc::math::CT::make_Int<simDim,1>::type;
+  using UpperMargin = typename pmacc::math::CT::make_Int<simDim,1>::type;
 
   template<
     typename T_FunctorFieldE,
@@ -81,7 +81,7 @@ struct Push
     const float_X deltaT = DELTA_T;
     const uint32_t dimMomentum = GetNComponents<TypeMomentum>::value;
     // the transver data type adjust to 3D3V, 2D3V, 2D2V, ...
-    typedef pmacc::math::Vector< picongpu::float_X, simDim + dimMomentum > VariableType;
+    using VariableType = pmacc::math::Vector< picongpu::float_X, simDim + dimMomentum >;
     VariableType var;
 
     // transfer position
@@ -92,7 +92,7 @@ struct Push
     for(uint32_t i=0; i<dimMomentum; ++i)
       var[simDim + i] = mom[i];
 
-    typedef DiffEquation<VariableType, float_X, TypeEFieldFunctor, TypeBFieldFunctor, TypePosition, TypeMomentum, TypeMass, TypeCharge, TypeWeighting, Velocity, Gamma> DiffEqType;
+    using DiffEqType = DiffEquation<VariableType, float_X, TypeEFieldFunctor, TypeBFieldFunctor, TypePosition, TypeMomentum, TypeMass, TypeCharge, TypeWeighting, Velocity, Gamma>;
     DiffEqType diffEq(functorEField, functorBField, mass, charge, weighting);
 
     VariableType varNew = pmacc::math::RungeKutta4()(diffEq, var, float_X(0.0), deltaT);

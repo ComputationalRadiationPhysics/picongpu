@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Anton Helm, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2019 Anton Helm, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Axel Huebl, Alexander Debus
  *
  * This file is part of PIConGPU.
@@ -136,8 +136,8 @@ namespace acc
             // rayleigh length (in y-direction)
             float_X const y_R = float_X( PI ) * Unitless::W0 * Unitless::W0 / Unitless::WAVE_LENGTH;
 
-            // the radius of curvature of the beam's  wavefronts
-            float_X const R_y = -focusPos * ( 1.0_X + ( y_R / focusPos )*( y_R / focusPos ) );
+            // inverse radius of curvature of the beam's  wavefronts
+            float_X const R_y_inv = -focusPos / ( y_R * y_R  + focusPos * focusPos);
 
             // beam waist in the near field: w_y(y=0) == W0
             float_X const w_y = Unitless::W0 * algorithms::math::sqrt( 1.0_X + ( focusPos / y_R )*( focusPos / y_R ) );
@@ -146,21 +146,21 @@ namespace acc
 
             if( Unitless::Polarisation == Unitless::LINEAR_X || Unitless::Polarisation == Unitless::LINEAR_Z )
             {
-                m_elong *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + xi_y + m_phase )
-                    * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
-                          *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                m_elong *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + xi_y + m_phase )
+                    * math::exp( -( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                          *( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
             }
             else if( Unitless::Polarisation == Unitless::CIRCULAR )
             {
-                m_elong.x() *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + xi_y + m_phase )
-                    * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
-                          *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                m_elong.x() *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + xi_y + m_phase )
+                    * math::exp( -( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                          *( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 m_phase += float_X( PI ) / 2.0_X;
-                m_elong.z() *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + xi_y + m_phase )
-                    * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
-                          *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::Unitless::WAVE_LENGTH )
+                m_elong.z() *= math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + xi_y + m_phase )
+                    * math::exp( -( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                          *( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::Unitless::WAVE_LENGTH )
                           / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 // reminder: if you want to use phase below, substract pi/2
                 // m_phase -= float_X( PI ) / 2.0_X;

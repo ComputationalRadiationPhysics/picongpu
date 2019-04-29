@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Marco Garten
+/* Copyright 2015-2019 Marco Garten
  *
  * This file is part of PIConGPU.
  *
@@ -71,20 +71,20 @@ namespace ionization
         using FrameType = typename SrcSpecies::FrameType;
 
         /* specify field to particle interpolation scheme */
-        typedef typename pmacc::traits::Resolve<
+        using Field2ParticleInterpolation = typename pmacc::traits::Resolve<
             typename GetFlagType<FrameType,interpolation<> >::type
-        >::type Field2ParticleInterpolation;
+        >::type;
 
         /* margins around the supercell for the interpolation of the field on the cells */
-        typedef typename GetMargin<Field2ParticleInterpolation>::LowerMargin LowerMargin;
-        typedef typename GetMargin<Field2ParticleInterpolation>::UpperMargin UpperMargin;
+        using LowerMargin = typename GetMargin<Field2ParticleInterpolation>::LowerMargin;
+        using UpperMargin = typename GetMargin<Field2ParticleInterpolation>::UpperMargin;
 
         /* relevant area of a block */
-        typedef SuperCellDescription<
+        using BlockArea = SuperCellDescription<
             typename MappingDesc::SuperCellSize,
             LowerMargin,
             UpperMargin
-            > BlockArea;
+        >;
 
         BlockArea BlockDescription;
 
@@ -93,7 +93,7 @@ namespace ionization
             /* define ionization ALGORITHM (calculation) for ionization MODEL */
             using IonizationAlgorithm = T_IonizationAlgorithm;
 
-            typedef MappingDesc::SuperCellSize TVec;
+            using TVec = MappingDesc::SuperCellSize;
 
             using ValueType_E = FieldE::ValueType;
             /* global memory EM-field device databoxes */

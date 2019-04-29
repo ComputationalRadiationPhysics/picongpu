@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Benjamin Schneider, Felix Schmitt,
+/* Copyright 2013-2019 Axel Huebl, Benjamin Schneider, Felix Schmitt,
  *                     Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz, Erik Zenker
  *
@@ -31,6 +31,7 @@
 #include "picongpu/plugins/EnergyFields.hpp"
 #include "picongpu/plugins/SumCurrents.hpp"
 #include "picongpu/plugins/BinEnergyParticles.hpp"
+#include "picongpu/plugins/Emittance.hpp"
 #include "picongpu/plugins/output/images/PngCreator.hpp"
 #include "picongpu/plugins/output/images/Visualisation.hpp"
 /* That's an abstract plugin for image output with the possibility
@@ -211,6 +212,7 @@ private:
     /* define species plugins */
     using UnspecializedSpeciesPlugins = bmpl::vector <
         plugins::multi::Master< EnergyParticles<bmpl::_1> >,
+        plugins::multi::Master< CalcEmittance<bmpl::_1> >,
         plugins::multi::Master< BinEnergyParticles<bmpl::_1> >,
         CountParticles<bmpl::_1>,
         PngPlugin< Visualisation<bmpl::_1, PngCreator> >,

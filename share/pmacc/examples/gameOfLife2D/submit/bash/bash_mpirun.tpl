@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2018 Rene Widera, Axel Huebl
+# Copyright 2013-2019 Rene Widera, Axel Huebl
 #
 # This file is part of PMacc.
 #

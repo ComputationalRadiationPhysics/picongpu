@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -48,8 +48,8 @@ struct FieldToParticleInterpolation
 
     static constexpr int lowerMargin = supp / 2 ;
     static constexpr int upperMargin = (supp + 1) / 2;
-    typedef typename pmacc::math::CT::make_Int<simDim,lowerMargin>::type LowerMargin;
-    typedef typename pmacc::math::CT::make_Int<simDim,upperMargin>::type UpperMargin;
+    using LowerMargin = typename pmacc::math::CT::make_Int<simDim,lowerMargin>::type;
+    using UpperMargin = typename pmacc::math::CT::make_Int<simDim,upperMargin>::type;
 
     PMACC_CASSERT_MSG(
         __FieldToParticleInterpolation_supercell_is_too_small_for_stencil,
@@ -81,7 +81,7 @@ struct FieldToParticleInterpolation
          * The following calls seperate the vector interpolation into
          * independent scalar interpolations.
          */
-        typedef typename pmacc::math::CT::make_Int<simDim,supp>::type Supports;
+        using Supports = typename pmacc::math::CT::make_Int<simDim,supp>::type;
 
         typename Cursor::ValueType result;
         for(uint32_t i = 0; i < Cursor::ValueType::dim; i++)
@@ -116,10 +116,10 @@ template<class AssignMethod, class InterpolationMethod>
 struct GetMargin<picongpu::FieldToParticleInterpolation<AssignMethod, InterpolationMethod> >
 {
 private:
-    typedef picongpu::FieldToParticleInterpolation<AssignMethod, InterpolationMethod> Interpolation;
+    using Interpolation = picongpu::FieldToParticleInterpolation<AssignMethod, InterpolationMethod>;
 public:
-    typedef typename Interpolation::LowerMargin LowerMargin;
-    typedef typename Interpolation::UpperMargin UpperMargin;
+    using LowerMargin = typename Interpolation::LowerMargin;
+    using UpperMargin = typename Interpolation::UpperMargin;
 };
 
 } //namespace traits

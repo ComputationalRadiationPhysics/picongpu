@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2018 PIConGPU contributors
+Copyright 2017-2019 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
@@ -42,7 +42,7 @@ class Visualizer(BaseVisualizer):
         # where columns are the separate data to be plotted.
         # Returned would then be a list of plt_objects
 
-        counts, bins = self.data[idx]
+        counts, bins, iteration, dt = self.data[idx]
         label = self.sim_labels[idx]
         self.plt_obj[idx] = self.ax.semilogy(
             bins, counts, nonposy='clip', label=label,
@@ -52,7 +52,7 @@ class Visualizer(BaseVisualizer):
         """
         Implementation of base class function.
         """
-        counts, bins = self.data[idx]
+        counts, bins, iteration, dt = self.data[idx]
         self.plt_obj[idx].set_data(bins, counts)
 
     def visualize(self, **kwargs):

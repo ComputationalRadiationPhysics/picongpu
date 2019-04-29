@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Heiko Burau
+/* Copyright 2016-2019 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -145,7 +145,7 @@ void ScaledSpectrum::init(const float_64 targetZ)
     const float_64 lnEMin = math::log(electron::MIN_ENERGY);
     const float_64 lnEMax = math::log(electron::MAX_ENERGY);
 
-    typedef boost::array<float_64, 1> state_type;
+    using state_type = boost::array<float_64, 1>;
 
     for(uint32_t EkinIdx = 0; EkinIdx < electron::NUM_SAMPLES_EKIN; EkinIdx++)
     {

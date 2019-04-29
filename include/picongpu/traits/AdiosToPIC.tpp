@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt
+/* Copyright 2013-2019 Axel Huebl, Felix Schmitt, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -29,6 +29,18 @@ namespace picongpu
 
 namespace traits
 {
+
+    template<>
+    struct AdiosToPIC<adios_short>
+    {
+        typedef int16_t type;
+    };
+
+    template<>
+    struct AdiosToPIC<adios_unsigned_short>
+    {
+        typedef uint16_t type;
+    };
 
     template<>
     struct AdiosToPIC<adios_integer>

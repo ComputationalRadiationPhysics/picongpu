@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Felix Schmitt, Axel Huebl, Rene Widera,
+/* Copyright 2013-2019 Felix Schmitt, Axel Huebl, Rene Widera,
  *                     Alexander Grund
  *
  * This file is part of splash2txt.
@@ -26,6 +26,8 @@
 #if (ENABLE_ADIOS==1)
 #include "tools_adios_parallel.hpp"
 #endif
+
+#include <regex>
 
 namespace po = boost::program_options;
 
@@ -101,10 +103,9 @@ bool parseOptions( int argc, char** argv, ProgramOptions &options )
 #endif
         // re-parse wrong typed input files to valid format, if possible
         //   find _X.h5 with syntax at the end and delete it
-        boost::regex filePattern( "_.*\\.h5",
-                                  boost::regex_constants::icase |
-                                  boost::regex_constants::perl );
-        options.inputFile = boost::regex_replace( options.inputFile, filePattern, "" );
+        std::regex filePattern( "\\(_[[:digit:]]\\)*\\.h5",
+                                  std::regex::egrep );
+        options.inputFile = std::regex_replace( options.inputFile, filePattern, "" );
 
         // set various flags
         options.verbose = vm.count( "verbose" ) != 0;

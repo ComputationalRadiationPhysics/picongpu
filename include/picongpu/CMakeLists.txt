@@ -1,4 +1,4 @@
-# Copyright 2013-2018 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
+# Copyright 2013-2019 Axel Huebl, Benjamin Schneider, Felix Schmitt, Heiko Burau,
 #                     Rene Widera, Alexander Grund, Alexander Matthes
 #
 # This file is part of PIConGPU.
@@ -44,6 +44,18 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{HDF5_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{ADIOS_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+
+
+################################################################################
+# CMake policies
+#
+# Search in <PackageName>_ROOT:
+#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
+################################################################################
+
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
 
 
 ###############################################################################
@@ -153,10 +165,10 @@ endif()
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options regex filesystem
+find_package(Boost 1.62.0 REQUIRED COMPONENTS program_options filesystem
                                               system math_tr1 serialization)
 if(TARGET Boost::program_options)
-    set(LIBS ${LIBS} Boost::boost Boost::program_options Boost::regex
+    set(LIBS ${LIBS} Boost::boost Boost::program_options
                      Boost::filesystem Boost::system Boost::math_tr1
                      Boost::serialization)
 else()

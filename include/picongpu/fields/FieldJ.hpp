@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -97,8 +97,6 @@ public:
     HINLINE static std::vector<float_64> getUnitDimension();
 
     static std::string getName();
-
-    static uint32_t getCommTag();
 
     template<uint32_t AREA, class ParticlesClass>
     void computeCurrent(ParticlesClass &parClass, uint32_t currentStep);

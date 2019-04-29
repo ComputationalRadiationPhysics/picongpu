@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Felix Schmitt, Rene Widera
+/* Copyright 2013-2019 Felix Schmitt, Rene Widera
  *
  * This file is part of PIConGPU.
  *
@@ -39,12 +39,12 @@ namespace densityProfiles
 template<typename T_ParamClass>
 struct FromHDF5Impl : public T_ParamClass
 {
-    typedef T_ParamClass ParamClass;
+    using ParamClass = T_ParamClass;
 
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef FromHDF5Impl<ParamClass> type;
+        using type = FromHDF5Impl<ParamClass>;
     };
 
     HINLINE FromHDF5Impl(uint32_t currentStep)
@@ -181,7 +181,7 @@ private:
             }
 
             /* allocate temporary buffer for hdf5 data */
-            typedef typename FieldTmp::ValueType::type ValueType;
+            using ValueType = typename FieldTmp::ValueType::type;
             ValueType *tmpBfr = nullptr;
 
             size_t accessSize = accessSpace.productOfComponents();
@@ -207,7 +207,7 @@ private:
                 /* get the databox of the host buffer */
                 auto dataBox = fieldBuffer.getHostBuffer().getDataBox();
                 /* get a 1D access object to the databox */
-                typedef DataBoxDim1Access< typename FieldTmp::DataBoxType > D1Box;
+                using D1Box = DataBoxDim1Access< typename FieldTmp::DataBoxType >;
                 DataSpace<simDim> guards = fieldBuffer.getGridLayout().getGuard();
                 D1Box d1RAccess(dataBox.shift(guards + accessOffset), accessSpace);
 

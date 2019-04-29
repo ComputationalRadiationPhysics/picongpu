@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Felix Schmitt
+/* Copyright 2013-2019 Axel Huebl, Felix Schmitt, Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -43,6 +43,24 @@ namespace traits
             sizeof(bool) == 1,
             ADIOS_Plugin__Can_not_find_a_one_byte_representation_of_bool
         );
+    };
+
+    template<>
+    struct PICToAdios<int16_t>
+    {
+        ADIOS_DATATYPES type;
+
+        PICToAdios() :
+        type(adios_short) {}
+    };
+
+    template<>
+    struct PICToAdios<uint16_t>
+    {
+        ADIOS_DATATYPES type;
+
+        PICToAdios() :
+        type(adios_unsigned_short) {}
     };
 
     template<>

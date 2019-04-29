@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Wen Fu,
  *                     Marco Garten, Alexander Grund, Richard Pausch
  *
  * This file is part of PIConGPU.
@@ -27,6 +27,7 @@
 
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Marco Garten, Alexander Grund
  *
  * This file is part of PIConGPU.
@@ -110,7 +110,7 @@ class Particles : public ParticlesBase<
 {
 public:
 
-    typedef pmacc::ParticleDescription<
+    using SpeciesParticleDescription = pmacc::ParticleDescription<
         T_Name,
         SuperCellSize,
         T_Attributes,
@@ -137,11 +137,11 @@ public:
                 particles::boundary::CallPluginsAndDeleteParticles
             >
         >::type
-    > SpeciesParticleDescription;
-    typedef ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap> ParticlesBaseType;
-    typedef typename ParticlesBaseType::FrameType FrameType;
-    typedef typename ParticlesBaseType::FrameTypeBorder FrameTypeBorder;
-    typedef typename ParticlesBaseType::ParticlesBoxType ParticlesBoxType;
+    >;
+    using ParticlesBaseType = ParticlesBase<SpeciesParticleDescription, picongpu::MappingDesc, DeviceHeap>;
+    using FrameType = typename ParticlesBaseType::FrameType;
+    using FrameTypeBorder = typename ParticlesBaseType::FrameTypeBorder;
+    using ParticlesBoxType = typename ParticlesBaseType::ParticlesBoxType;
 
 
     Particles(const std::shared_ptr<DeviceHeap>& heap, picongpu::MappingDesc cellDescription, SimulationDataId datasetID);
@@ -243,11 +243,11 @@ namespace traits
        >
     >
     {
-        typedef typename picongpu::Particles<
+        using type = typename picongpu::Particles<
             T_Name,
             T_Attributes,
             T_Flags
-        >::ParticlesBoxType type;
+        >::ParticlesBoxType;
     };
 } //namespace traits
 } //namespace picongpu

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Anton Helm, Rene Widera,
  *                     Richard Pausch, Alexander Debus
  *
  * This file is part of PIConGPU.
@@ -152,8 +152,8 @@ namespace acc
             // rayleigh length (in y-direction)
             float_X const y_R = float_X( PI ) * Unitless::W0 * Unitless::W0 / Unitless::WAVE_LENGTH;
 
-            // the radius of curvature of the beam's  wavefronts
-            float_X const R_y = -focusPos * ( 1.0_X + ( y_R / focusPos )*( y_R / focusPos ) );
+            // inverse radius of curvature of the beam's  wavefronts
+            float_X const R_y_inv = -focusPos / ( y_R * y_R + focusPos * focusPos );
 
             // initialize temporary variables
             float_X etrans( 0.0_X );
@@ -175,9 +175,9 @@ namespace acc
                 for( uint32_t m = 0 ; m <= Unitless::MODENUMBER ; ++m )
                 {
                     etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre( m, 2.0_X * r2 / w_y / w_y )
-                        * math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + ( 2._X * float_X( m ) + 1._X ) * xi_y + m_phase )
-                        * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
-                              *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + ( 2._X * float_X( m ) + 1._X ) * xi_y + m_phase )
+                        * math::exp( -( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                              *( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                               / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 }
                 m_elong *= etrans / etrans_norm;
@@ -187,9 +187,9 @@ namespace acc
                 for( uint32_t m = 0 ; m <= Unitless::MODENUMBER ; ++m )
                 {
                     etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre( m, 2.0_X * r2 / w_y / w_y )
-                        * math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + ( 2._X * float_X( m ) + 1._X ) * xi_y + m_phase )
-                        * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
-                              *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + ( 2._X * float_X( m ) + 1._X ) * xi_y + m_phase )
+                        * math::exp( -( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                              *( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                               / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 }
                 m_elong.x() *= etrans / etrans_norm;
@@ -198,9 +198,9 @@ namespace acc
                 for( uint32_t m = 0 ; m <= Unitless::MODENUMBER ; ++m )
                 {
                     etrans += typename Unitless::LAGUERREMODES_t{}[m] * simpleLaguerre( m, 2.0_X * r2 / w_y / w_y )
-                        * math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X / R_y + ( 2._X * float_X( m ) + 1._X ) * xi_y + m_phase )
-                        * math::exp( -( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
-                              *( r2 / 2.0_X / R_y - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                        * math::exp( -r2 / w_y / w_y ) * math::cos( 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * focusPos - 2.0_X * float_X( PI ) / Unitless::WAVE_LENGTH * r2 / 2.0_X * R_y_inv + ( 2._X * float_X( m ) + 1._X ) * xi_y + m_phase )
+                        * math::exp( -( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
+                              *( r2 / 2.0_X * R_y_inv - focusPos - m_phase / 2.0_X / float_X( PI ) * Unitless::WAVE_LENGTH )
                               / SPEED_OF_LIGHT / SPEED_OF_LIGHT / ( 2.0_X * Unitless::PULSE_LENGTH ) / ( 2.0_X * Unitless::PULSE_LENGTH ) );
                 }
                 m_elong.z() *= etrans / etrans_norm;

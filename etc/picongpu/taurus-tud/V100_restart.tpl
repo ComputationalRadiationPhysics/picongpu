@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2018 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch, Bifeng Lei
+# Copyright 2013-2019 Axel Huebl, Richard Pausch, Alexander Debus
 #
 # This file is part of PIConGPU.
 #
@@ -19,42 +19,54 @@
 #
 
 
-## calculation are done by tbg ##
-.TBG_queue="k80"
+# PIConGPU batch script for taurus' SLURM batch system
+
+#SBATCH --partition=!TBG_queue
+#SBATCH --time=!TBG_wallTime
+# Sets batch job's name
+#SBATCH --job-name=!TBG_jobName
+#SBATCH --nodes=!TBG_nodes
+#SBATCH --ntasks=!TBG_tasks
+#SBATCH --mincpus=!TBG_mpiTasksPerNode
+#SBATCH --cpus-per-task=!TBG_coresPerGPU
+# Maximum memory setting the SLURM queue "ml" accepts.
+#SBATCH --mem-per-cpu=1511
+#SBATCH --gres=gpu:!TBG_gpusPerNode
+# send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
+# TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+#SBATCH --mail-type=!TBG_mailSettings
+#SBATCH --mail-user=!TBG_mailAddress
+#SBATCH --workdir=!TBG_dstPath
+
+#SBATCH -o stdout
+#SBATCH -e stderr
+
+
+## calculations will be performed by tbg ##
+.TBG_queue="ml"
 
 # settings that can be controlled by environment variables before submit
-.TBG_mailSettings=${MY_MAILNOTIFY:-"n"}
+.TBG_mailSettings=${MY_MAILNOTIFY:-"ALL"}
 .TBG_mailAddress=${MY_MAIL:-"someone@example.com"}
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
-# number of available/hosted GPUs per node in the system
-.TBG_numHostedGPUPerNode=8
+# 6 gpus per node
+.TBG_gpusPerNode=`if [ $TBG_tasks -gt 6 ] ; then echo 6; else echo $TBG_tasks; fi`
 
-# required GPUs per node for the current job
-.TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
-fi`
+# number of cores to block per GPU - we got 6 cpus per gpu
+#   and we will be accounted 6 CPUs per GPU anyway
+.TBG_coresPerGPU=28
 
-#number of cores per parallel node / default is 2 cores (4 HT threads) per gpu on k80 queue
-.TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
+# We only start 1 MPI task per GPU
+.TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
 
-# use ceil to caculate nodes
-.TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+# use ceil to calculate nodes
+.TBG_nodes="$((( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
+
 ## end calculations ##
 
-# PIConGPU batch script for hypnos PBS batch system
-
-#PBS -q !TBG_queue
-#PBS -l walltime=!TBG_wallTime
-# Sets batch job's name
-#PBS -N !TBG_jobName
-#PBS -l nodes=!TBG_nodes:ppn=!TBG_coresPerNode
-#PBS -m !TBG_mailSettings -M !TBG_mailAddress
-#PBS -d !TBG_dstPath
-#PBS -o stdout
-#PBS -e stderr
-
-echo 'Running program...' | tee -a output
+echo 'Running program...'
 
 cd !TBG_dstPath
 
@@ -66,12 +78,27 @@ if [ $? -ne 0 ] ; then
 fi
 unset MODULES_NO_OUTPUT
 
-#set user rights to u=rwx;g=r-x;o=---
+# set user rights to u=rwx;g=r-x;o=---
 umask 0027
+
+# Due to missing SLURM integration of the current MPI libraries
+# we have to create a suitable machinefile.
+rm -f machinefile.txt
+for i in `seq !TBG_gpusPerNode`
+do
+    scontrol show hostnames $SLURM_JOB_NODELIST >> machinefile.txt
+done
 
 mkdir simOutput 2> /dev/null
 cd simOutput
 
+# we are not sure if the current bullxmpi/1.2.4.3 catches pinned memory correctly
+#   support ticket [Ticket:2014052241001186] srun: mpi mca flags
+#   see bug https://github.com/ComputationalRadiationPhysics/picongpu/pull/438
+export OMPI_MCA_mpi_leave_pinned=0
+# Use ROMIO for IO
+# according to ComputationalRadiationPhysics/picongpu#2857
+export OMPI_MCA_io=^ompio
 
 sleep 1
 
@@ -127,28 +154,31 @@ fi
 
 echo "--- end automated restart routine ---" | tee -a output
 
-#wait that all nodes see ouput folder
+#wait that all nodes see output folder
 sleep 1
 
-# test if cuda_memtest binary is available and we have the node exclusive
-if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
-  mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
+# test if cuda_memtest binary is available
+if [ -f !TBG_dstPath/input/bin/cuda_memtest ] ; then
+  # Run CUDA memtest to check GPU's health
+  mpiexec -hostfile ../machinefile.txt !TBG_dstPath/input/bin/cuda_memtest.sh
 else
-  echo "no binary 'cuda_memtest' available or compute node is not exclusively allocated, skip GPU memory test" >&2
+  echo "no binary 'cuda_memtest' available, skip GPU memory test" >&2
 fi
 
 if [ $? -eq 0 ] ; then
-  mpiexec --prefix $MPIHOME -x LIBRARY_PATH -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/picongpu $stepSetup !TBG_author $programParams | tee -a output
+  # Run PIConGPU
+  mpiexec -hostfile ../machinefile.txt !TBG_dstPath/input/bin/picongpu $stepSetup !TBG_author !TBG_programParams | tee output
 fi
 
-mpiexec --prefix $MPIHOME -x LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks /usr/bin/env bash -c "killall -9 picongpu 2>/dev/null || true"
+mpiexec -hostfile ../machinefile.txt /usr/bin/env bash -c "killall -9 picongpu 2>/dev/null || true"
 
 if [ $nextStep -lt $finalStep ]
 then
-    ssh hypnos4 "/opt/torque/bin/qsub !TBG_dstPath/tbg/submit.start"
+    ssh tauruslogin6 "/usr/bin/sbatch !TBG_dstPath/tbg/submit.start"
     if [ $? -ne 0 ] ; then
         echo "error during job submission" | tee -a output
     else
         echo "job submitted" | tee -a output
     fi
 fi
+

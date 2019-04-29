@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Felix Schmitt, Axel Huebl, Rene Widera
+/* Copyright 2013-2019 Felix Schmitt, Axel Huebl, Rene Widera
  *
  * This file is part of splash2txt.
  *
@@ -309,7 +309,7 @@ void ToolsSplashParallel::convertToText()
         {
             try
             {
-                dc.readAttribute(m_options.step, iter->c_str(), "unitSI").read(&(excontainer.unit), sizeof(excontainer.unit));
+                dc.readAttributeInfo(m_options.step, iter->c_str(), "unitSI").read(&(excontainer.unit), sizeof(excontainer.unit));
             } catch (const DCException&)
             {
                 if (m_options.verbose)

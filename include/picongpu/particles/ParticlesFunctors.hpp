@@ -1,4 +1,4 @@
-/* Copyright 2014-2018 Rene Widera, Marco Garten, Alexander Grund,
+/* Copyright 2014-2019 Rene Widera, Marco Garten, Alexander Grund,
  *                     Heiko Burau, Axel Huebl
  *
  * This file is part of PIConGPU.
@@ -307,11 +307,11 @@ struct PushAllSpecies
         EventList commEventList;
 
         /* push all species */
-        typedef typename pmacc::particles::traits::FilterByFlag
+        using VectorSpeciesWithPusher = typename pmacc::particles::traits::FilterByFlag
         <
             VectorAllSpecies,
             particlePusher<>
-        >::type VectorSpeciesWithPusher;
+        >::type;
         ForEach< VectorSpeciesWithPusher, particles::PushSpecies< bmpl::_1 > > pushSpecies;
         pushSpecies( currentStep, eventInt, forward(updateEventList) );
 

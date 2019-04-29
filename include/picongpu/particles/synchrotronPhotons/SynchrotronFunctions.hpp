@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Heiko Burau
+/* Copyright 2015-2019 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -45,9 +45,10 @@ namespace detail
  */
 struct MapToLookupTable
 {
-    typedef typename ::pmacc::result_of::Functor<
+    using LinInterpCursor = typename ::pmacc::result_of::Functor<
         ::pmacc::cursor::tools::LinearInterp<float_X>,
-        ::pmacc::cursor::BufferCursor<float_X, DIM1> >::type LinInterpCursor;
+        ::pmacc::cursor::BufferCursor<float_X, DIM1>
+    >::type;
 
     using type = float_X;
 
@@ -68,10 +69,11 @@ struct MapToLookupTable
     HDINLINE float_X operator()(const float_X x) const;
 };
 
-typedef ::pmacc::cursor::Cursor<
+using SyncFuncCursor = ::pmacc::cursor::Cursor<
     MapToLookupTable,
     ::pmacc::cursor::PlusNavigator,
-    float_X> SyncFuncCursor;
+    float_X
+>;
 
 } // namespace detail
 
@@ -86,7 +88,7 @@ public:
     using SyncFuncCursor = detail::SyncFuncCursor;
 private:
 
-    typedef boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM1> > MyBuf;
+    using MyBuf = boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM1> >;
     MyBuf dBuf_SyncFuncs[2]; // two synchrotron functions
 
     struct BesselK

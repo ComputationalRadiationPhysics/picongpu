@@ -1,7 +1,7 @@
 """
 This file is part of the PIConGPU.
 
-Copyright 2017-2018 PIConGPU contributors
+Copyright 2017-2019 PIConGPU contributors
 Authors: Sebastian Starke
 License: GPLv3+
 """
@@ -23,12 +23,16 @@ class Visualizer(BaseVisualizer):
     Class for creating a matplotlib plot of phase space diagrams.
     """
 
-    def __init__(self, run_directory=None, ax=None):
+    def __init__(self, run_directories=None, ax=None):
         """
         Parameters
         ----------
-        run_directory : string
-            path to the run directory of PIConGPU
+        run_directories: list of tuples of length 2
+            or single tuple of length 2.
+            Each tuple is of the following form (sim_name, sim_path)
+            and consists of strings.
+            sim_name is a short string used e.g. in plot legends.
+            sim_path leads to the run directory of PIConGPU
             (the path before ``simOutput/``).
             If None, the user is responsible for providing run_directories
             later on via set_run_directories() before calling visualize().
@@ -43,7 +47,7 @@ class Visualizer(BaseVisualizer):
         # the separate colorbar axes
         self.colorbar_axes = None
 
-        super().__init__(PhaseSpaceData, run_directory, ax)
+        super().__init__(PhaseSpaceData, run_directories, ax)
 
     def _init_members(self, run_directories):
         """

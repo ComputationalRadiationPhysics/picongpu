@@ -1,0 +1,82 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ################################# (edit the following lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on batch system jobs: NONE, BEGIN, END, FAIL, REQUEUE, ALL,
+#     TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
+export MY_MAILNOTIFY="NONE"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
+# Modules #####################################################################
+#
+module purge
+module load modenv/ml
+
+# load CUDA/9.2.88-GCC-7.3.0-2.30, also loads GCC/7.3.0-2.30, zlib, OpenMPI and others
+module load fosscuda/2018b
+module load CMake/3.11.4-GCCcore-7.3.0
+module load git/2.18.0-GCCcore-6.4.0
+module load libpng/1.6.34-GCCcore-7.3.0
+
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+printf "@ Note: You need to compile picongpu on a node. @\n"
+printf "@       Likewise for building the libraries.    @\n"
+printf "@       Get a node with the getNode command.    @\n"
+printf "@       Then source %s again.@\n" "$(basename $PIC_PROFILE)"
+printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+
+# Self-Build Software #########################################################
+#
+# needs to be compiled by the user
+# Check the install script at
+# https://gist.github.com/steindev/cc02eae81f465833afa27fc8880f3473#file-picongpu_0-4-3_taurus-tud-sh
+#
+export PIC_LIBS=$HOME/lib/power9
+export BOOST_ROOT=$PIC_LIBS/boost-1.68.0-Power9
+export PNGwriter_DIR=$PIC_LIBS/pngwriter-0.7.0-Power9
+export ADIOS_ROOT=$PIC_LIBS/adios-1.13.1-Power9
+export HDF5_ROOT=$PIC_LIBS/hdf5-1.8.20-Power9
+export Splash_DIR=$PIC_LIBS/splash-Power9
+export BLOSC_ROOT=$PIC_LIBS/blosc-1.16.2-Power9
+
+export LD_LIBRARY_PATH=$BOOST_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PNGwriter_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$ADIOS_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$HDF5_ROOT/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$Splash_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$BLOSC_ROOT/lib:$LD_LIBRARY_PATH
+
+export PATH=$ADIOS_ROOT/bin:$PATH
+
+export CMAKE_PREFIX_PATH=$HDF5_ROOT:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
+
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="cuda:60"
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+# python not included yet
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+# This is necessary in order to make alpaka compile.
+# The workaround is from Axel Huebl according to alpaka PR #702.
+export CXXFLAGS="-Dlinux"
+
+# "tbg" default options #######################################################
+#   - SLURM (sbatch)
+#   - "ml" queue
+export TBG_SUBMIT="sbatch"
+export TBG_TPLFILE="etc/picongpu/taurus-tud/V100.tpl"
+
+alias getNode='srun -p ml --gres=gpu:6 -n 6 --pty --mem-per-cpu=10000 -t 2:00:00 bash'
+

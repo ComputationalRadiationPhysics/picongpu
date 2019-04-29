@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Rene Widera
+/* Copyright 2016-2019 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -28,6 +28,7 @@
 
 namespace pmacc
 {
+namespace{
     /** abort program with an exception
      *
      * This function always throws a `runtime_error`.
@@ -55,4 +56,5 @@ namespace pmacc
             msg
         );
     }
+}
 }

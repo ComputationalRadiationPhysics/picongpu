@@ -265,10 +265,14 @@ You can quickly load and interact with the data in Python with:
    # get the available iterations for which output exists
    iters = png_data.get_iterations(species="e", axis="yx")
 
-   # pngs as numpy arrays
+   # get the available simulation times for which output exists
+   times = png_data.get_times(species="e", axis="yx")
+
+   # pngs as numpy arrays for multiple iterations (times would also work)
    pngs = png_data.get(species="e", axis="yx", iteration=iters[:3])
 
-   pngs[iters[0]].shape
+   for png in pngs:
+       print(png.shape)
 
 Matplotlib Visualizer
 """""""""""""""""""""
@@ -311,3 +315,32 @@ Options                            Value
 -a (optional, defaults to 'yx')    Axis string (e.g. 'yx' or 'xy')
 -o (optional, defaults to 'None')  A float between 0 and 1 for slice offset along the third dimension
 =================================  ==================================================================
+
+Jupyter Widget
+""""""""""""""
+
+If you want more interactive visualization, then start a jupyter notebook and make
+sure that ``ipywidgets`` and ``ìpympl`` are installed.
+
+After starting the notebook server write the following
+
+.. code:: python
+
+   # this is required!
+   %matplotlib widget
+   import matplotlib.pyplot as plt
+   # deactivate interactive mode
+   plt.ioff()
+
+   from IPython.display import display
+   from picongpu.plugins.jupyter_widgets import PNGWidget
+
+   # provide the paths to the simulations you want to be able to choose from
+   # together with labels that will be used in the plot legends so you still know
+   # which data belongs to which simulation
+   w = PNGWidget(run_dir_options=[
+           ("scan1/sim4", scan1_sim4),
+           ("scan1/sim5", scan1_sim5)])
+   display(w)
+
+and then interact with the displayed widgets.

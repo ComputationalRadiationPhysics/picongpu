@@ -100,10 +100,10 @@ Depending on whether energy binning is enabled the dataset is two or three dimen
 The dataset has the following attributes:
 
 
-================== ==================================================
+================== =============================================
 Attribute          Description
-================== ==================================================
-``unitSI``         conversion factor from calorimeter value to Joule.
+================== =============================================
+``unitSI``         scaling factor for energy in calorimeter bins
 ``maxYaw[deg]``    half of the opening angle yaw.
 ``maxPitch[deg]``  half of the opening angle pitch.
 ``posYaw[deg]``    yaw coordinate of the calorimeter.
@@ -112,7 +112,10 @@ Attribute          Description
 ``minEnergy[keV]`` minimal detectable energy.
 ``maxEnergy[keV]`` maximal detectable energy.
 ``logScale``       boolean indicating logarithmic scale.
-================== ==================================================
+================== =============================================
+
+The output in each bin is given in Joule.
+Divide by energy value of the bin for a unitless count per bin.
 
 .. note::
 

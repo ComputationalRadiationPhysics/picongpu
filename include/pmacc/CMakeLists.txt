@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018 Erik Zenker, Alexander Grund
+# Copyright 2015-2019 Erik Zenker, Alexander Grund
 #
 # This file is part of PMacc.
 #
@@ -35,6 +35,18 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{VT_ROOT}")
 # Add from environment after specific env vars
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
+
+
+################################################################################
+# CMake policies
+#
+# Search in <PackageName>_ROOT:
+#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
+################################################################################
+
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
 
 
 ###############################################################################

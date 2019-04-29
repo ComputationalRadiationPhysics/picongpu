@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2018 Axel Huebl, Rene Widera, Felix Schmitt
+# Copyright 2013-2019 Axel Huebl, Rene Widera, Felix Schmitt
 #
 # This file is part of mpiInfo.
 #
@@ -43,6 +43,18 @@ list(APPEND CMAKE_PREFIX_PATH "$ENV{BOOST_ROOT}")
 list(APPEND CMAKE_PREFIX_PATH "$ENV{CMAKE_PREFIX_PATH}")
 # Last add generic system path to the end (as last fallback)
 list(APPEND "/usr/lib/x86_64-linux-gnu/")
+
+
+################################################################################
+# CMake policies
+#
+# Search in <PackageName>_ROOT:
+#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
+################################################################################
+
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
 
 
 ###############################################################################

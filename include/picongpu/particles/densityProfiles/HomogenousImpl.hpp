@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt
  *
  * This file is part of PIConGPU.
  *
@@ -32,7 +32,7 @@ struct HomogenousImpl
     template<typename T_SpeciesType>
     struct apply
     {
-        typedef HomogenousImpl type;
+        using type = HomogenousImpl;
     };
 
     HINLINE HomogenousImpl(uint32_t currentStep)

@@ -1,4 +1,4 @@
-/* Copyright 2015-2018 Axel Huebl, Richard Pausch
+/* Copyright 2015-2019 Axel Huebl, Richard Pausch
  *
  * This file is part of PIConGPU.
  *

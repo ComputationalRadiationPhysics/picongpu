@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -205,12 +205,6 @@ std::string
 FieldE::getName( )
 {
     return "E";
-}
-
-uint32_t
-FieldE::getCommTag( )
-{
-    return FIELD_E;
 }
 
 }

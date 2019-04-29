@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
  *                     Richard Pausch, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -249,12 +249,6 @@ std::string
 FieldJ::getName( )
 {
     return "J";
-}
-
-uint32_t
-FieldJ::getCommTag( )
-{
-    return FIELD_J;
 }
 
 template<uint32_t AREA, class ParticlesClass>

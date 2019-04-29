@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2019 Axel Huebl, Rene Widera, Benjamin Worpitz
  *
  * This file is part of PIConGPU.
  *
@@ -67,8 +67,6 @@ namespace picongpu
         {1.0e-3, 1.0e-3}, /*y direction [negative,positive]*/
         {1.0e-3, 1.0e-3}  /*z direction [negative,positive]*/
     }; //unit: none
-
-    constexpr uint32_t ABSORBER_FADE_IN_STEPS = 16;
 
     /** When to move the co-moving window.
      *  An initial pseudo particle, flying with the speed of light,

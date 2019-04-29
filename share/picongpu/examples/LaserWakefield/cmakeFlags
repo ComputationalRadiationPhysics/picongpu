@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2013-2018 Axel Huebl, Rene Widera
+# Copyright 2013-2019 Axel Huebl, Rene Widera
 #
 # This file is part of PIConGPU.
 #
@@ -39,9 +39,6 @@ flags[6]="-DPARAM_OVERWRITES:LIST='-DPARAM_CURRENTSOLVER=Esirkepov;-DPARAM_PARTI
 flags[7]="-DPARAM_OVERWRITES:LIST='-DPARAM_PRECISION=precision64Bit;-DPARAM_DIMENSION=DIM2'"
 flags[8]="-DPARAM_OVERWRITES:LIST='-DPARAM_DIMENSION=DIM2'"
 flags[9]="-DPARAM_OVERWRITES:LIST='-DPARAM_IONS=1;-DPARAM_IONIZATION=1'"
-flags[10]="-DPARAM_OVERWRITES:LIST='-DPARAM_CURRENTSOLVER=EmZ'"
-flags[11]="-DPARAM_OVERWRITES:LIST='-DPARAM_CURRENTSOLVER=EmZ;-DPARAM_DIMENSION=DIM2'"
-
 
 ################################################################################
 # execution

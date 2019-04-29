@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Felix Schmitt, Axel Huebl, Rene Widera
+/* Copyright 2013-2019 Felix Schmitt, Axel Huebl, Rene Widera
  *
  * This file is part of splash2txt.
  *
@@ -35,7 +35,6 @@
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/variables_map.hpp>
-#include <boost/regex.hpp>
 #include <iomanip>
 
 class Dims

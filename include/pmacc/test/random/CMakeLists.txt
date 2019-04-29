@@ -1,4 +1,4 @@
-# Copyright 2016-2018 Alexander Grund
+# Copyright 2016-2019 Alexander Grund
 #
 # This file is part of PMacc.
 #
@@ -23,6 +23,17 @@ cmake_minimum_required(VERSION 3.10.0)
 project("TestRandomGenerators")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+
+
+################################################################################
+# CMake policies
+#
+# Search in <PackageName>_ROOT:
+#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
+################################################################################
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
 
 ################################################################################
 # PMacc

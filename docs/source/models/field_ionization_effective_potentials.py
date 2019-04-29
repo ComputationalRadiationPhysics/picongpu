@@ -78,7 +78,7 @@ if __name__ == "__main__":
     plt.hlines(-E_CII, xmin, xmax)
 
     # add the legend and format the plot
-    plt.title(r"Effective atomic potentials of Carbon-II and Hydrogen in\n"
+    plt.title("Effective atomic potentials of Carbon-II and Hydrogen in\n"
               r"homogeneous electric field $F_\mathrm{BSI}$ (C-II)")
     plt.legend(loc="best")
     plt.text(xmin+1, -E_H+.05, r"$E_\mathrm{i}$ H")

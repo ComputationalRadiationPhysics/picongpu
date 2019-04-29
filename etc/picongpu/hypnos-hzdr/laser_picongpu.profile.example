@@ -1,7 +1,7 @@
 # Name and Path of this Script ############################### (DO NOT change!)
 export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
 
-# User Information ######################################### (edit those lines)
+# User Information ################################# (edit the following lines)
 #   - automatically add your name and contact to output file meta data
 #   - send me mails on batch system job (b)egin, (e)nd, (a)bortion or (n)o mail
 export MY_MAILNOTIFY="n"
@@ -22,7 +22,7 @@ then
 
         # Core Dependencies
         module load gcc/5.3.0
-        module load cmake/3.10.1
+        module load cmake/3.13.4
         module load boost/1.62.0
         module load openmpi/1.8.6
         module load numactl

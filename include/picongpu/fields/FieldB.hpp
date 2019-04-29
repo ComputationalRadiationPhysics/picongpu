@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.
@@ -73,8 +73,6 @@ namespace picongpu
         HINLINE static std::vector<float_64> getUnitDimension();
 
         static std::string getName();
-
-        static uint32_t getCommTag();
 
         virtual EventTask asyncCommunication(EventTask serialEvent);
 

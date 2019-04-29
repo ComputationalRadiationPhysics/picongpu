@@ -89,9 +89,9 @@ zlib
 
 boost
 """""
-- 1.62.0 - 1.68.0 (``program_options``, ``regex`` , ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
+- 1.62.0 - 1.68.0 (``program_options``, ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
 - *note:* for CUDA 9+ support, use boost 1.65.1 or newer
-- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-regex-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
+- *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
 - *from source:*
@@ -99,7 +99,7 @@ boost
   - ``curl -Lo boost_1_65_1.tar.gz https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz``
   - ``tar -xzf boost_1_65_1.tar.gz``
   - ``cd boost_1_65_1``
-  - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,regex,serialization,system,thread --prefix=$HOME/lib/boost``
+  - ``./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,fiber,filesystem,math,program_options,serialization,system,thread --prefix=$HOME/lib/boost``
   - ``./b2 cxxflags="-std=c++11" -j4 && ./b2 install``
 - *environment:* (assumes install from source in ``$HOME/lib/boost``)
 
@@ -257,7 +257,7 @@ HDF5
 
 splash2txt
 """"""""""
-- requires *libSplash* and *boost* ``program_options``, ``regex``
+- requires *libSplash* and *boost* ``program_options``
 - converts slices in dumped hdf5 files to plain txt matrices
 - assume you [downloaded](#requirements) PIConGPU to `PICSRC=$HOME/src/picongpu`
 - ``mkdir -p ~/build && cd ~/build``

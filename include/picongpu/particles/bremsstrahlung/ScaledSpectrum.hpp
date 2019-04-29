@@ -1,4 +1,4 @@
-/* Copyright 2016-2018 Heiko Burau
+/* Copyright 2016-2019 Heiko Burau
  *
  * This file is part of PIConGPU.
  *
@@ -58,9 +58,10 @@ namespace detail
  */
 struct LookupTableFunctor
 {
-    typedef typename ::pmacc::result_of::Functor<
+    using LinInterpCursor = typename ::pmacc::result_of::Functor<
         ::pmacc::cursor::tools::LinearInterp<float_X>,
-        ::pmacc::cursor::BufferCursor<float_X, DIM2> >::type LinInterpCursor;
+        ::pmacc::cursor::BufferCursor<float_X, DIM2>
+    >::type;
 
     using type = float_X;
 
@@ -101,7 +102,7 @@ public:
     using LookupTableFunctor = detail::LookupTableFunctor;
 private:
 
-    typedef boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2> > MyBuf;
+    using MyBuf = boost::shared_ptr<pmacc::container::DeviceBuffer<float_X, DIM2> >;
     MyBuf dBufScaledSpectrum;
     MyBuf dBufStoppingPower;
 

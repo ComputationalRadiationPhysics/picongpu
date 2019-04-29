@@ -1,6 +1,21 @@
 Change Log / Release Log for mallocMC
 ================================================================
 
+2.3.1crp
+--------
+**Date:** 2019-02-14
+
+A critical bug was fixed which can result in an illegal memory access.
+
+### Changes to mallocMC 2.3.0crp
+
+**Bug fixes**
+ - fix illegal memory access in `XMallocSIMD` #150
+
+**Misc:**
+ - CMake: Honor `<packageName>_ROOT` Env Hints #154
+
+
 2.3.0crp
 --------
 **Date:** 2018-06-11

@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera, Benjamin Worpitz, Alexander Grund
+/* Copyright 2013-2019 Rene Widera, Benjamin Worpitz, Alexander Grund
  *
  * This file is part of PMacc.
  *
@@ -22,14 +22,13 @@
 #pragma once
 
 #include "pmacc/debug/VerboseLogMakros.hpp"
-#include "pmacc/types.hpp"
 
 #include <boost/format.hpp>
 
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <stdint.h>
+#include <cstdint>
 
 namespace pmacc
 {

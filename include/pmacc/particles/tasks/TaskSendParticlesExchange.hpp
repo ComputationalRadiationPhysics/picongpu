@@ -1,4 +1,4 @@
-/* Copyright 2013-2018 Rene Widera
+/* Copyright 2013-2019 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -24,6 +24,7 @@
 
 #include "pmacc/eventSystem/EventSystem.hpp"
 #include "pmacc/assert.hpp"
+#include "pmacc/type/Exchange.hpp"
 
 namespace pmacc
 {
@@ -117,8 +118,8 @@ namespace pmacc
             {
                 std::cerr << "Send/receive buffer for species " <<
                     ParBase::FrameType::getName() <<
-                    " is to small (max: " << maxSize <<
-                    ", direction: " << exchange <<
+                    " is too small (max: " << maxSize <<
+                    ", direction: " << exchange << " '" << ExchangeTypeNames{}[exchange] << "'" <<
                     ", retries: " << retryCounter <<
                     ")" << std::endl;
             }
