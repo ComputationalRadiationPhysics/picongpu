@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copyright 2013-2019 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch, Bifeng Lei
+# Copyright 2013-2019 Axel Huebl, Anton Helm, Rene Widera, Richard Pausch,
+#                     Bifeng Lei, Marco Garten
 #
 # This file is part of PIConGPU.
 #
@@ -28,30 +29,51 @@
 .TBG_author=${MY_NAME:+--author \"${MY_NAME}\"}
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
-# 4 gpus per node if we need more than 4 gpus else same count as TBG_tasks
-.TBG_gpusPerNode=`if [ $TBG_tasks -gt 4 ] ; then echo 4; else echo $TBG_tasks; fi`
+# number of available/hosted GPUs per node in the system
+.TBG_numHostedGPUPerNode=4
 
-#number of cores per parallel node / default is 2 cores (4 HT threads) per gpu on k20 queue
-.TBG_coresPerNode="$(( TBG_gpusPerNode * 2 ))"
+# required GPUs per node for the current job
+.TBG_gpusPerNode=`if [ $TBG_tasks -gt $TBG_numHostedGPUPerNode ] ; then echo $TBG_numHostedGPUPerNode; else echo $TBG_tasks; fi`
+
+# host memory per gpu
+.TBG_memPerGPU="$((62000 / $TBG_gpusPerNode))"
+# host memory per node
+.TBG_memPerNode="$((TBG_memPerGPU * TBG_gpusPerNode))"
+
+# number of cores to block per GPU - we got 2 cpus per gpu
+#   and we will be accounted 2 CPUs per GPU anyway
+.TBG_coresPerGPU=2
+
+# We only start 1 MPI task per GPU
+.TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
 
 # use ceil to caculate nodes
 .TBG_nodes="$(( ( TBG_tasks + TBG_gpusPerNode -1 ) / TBG_gpusPerNode))"
 ## end calculations ##
 
-# PIConGPU batch script for hypnos PBS batch system
+# PIConGPU batch script for hemera's SLURM batch system
 
-#PBS -q !TBG_queue
-#PBS -l walltime=!TBG_wallTime
+#SBATCH --partition=!TBG_queue
+# necessary to set the account also to the queue name because otherwise access is not allowed at the moment
+#SBATCH --account=!proj
+#SBATCH --time=!TBG_wallTime
 # Sets batch job's name
-#PBS -N !TBG_jobName
-#PBS -l nodes=!TBG_nodes:ppn=!TBG_coresPerNode
-#PBS -m !TBG_mailSettings -M !TBG_mailAddress
-#PBS -d !TBG_dstPath
+#SBATCH --job-name=!TBG_jobName
+#SBATCH --nodes=!TBG_nodes
+#SBATCH --ntasks=!TBG_tasks
+#SBATCH --ntasks-per-node=!TBG_gpusPerNode
+#SBATCH --mincpus=!TBG_mpiTasksPerNode
+#SBATCH --cpus-per-task=!TBG_coresPerGPU
+#SBATCH --mem=!TBG_memPerNode
+#SBATCH --gres=gpu:!TBG_gpusPerNode
+#SBATCH --mail-type=!TBG_mailSettings
+#SBATCH --mail-user=!TBG_mailAddress
+#SBATCH --workdir=!TBG_dstPath
 
-#PBS -o stdout
-#PBS -e stderr
-
-echo 'Running program...' | tee -a output
+# do not overwrite existing stderr and stdout files
+#SBATCH --open-mode=append
+#SBATCH -o stdout
+#SBATCH -e stderr
 
 cd !TBG_dstPath
 
@@ -67,12 +89,16 @@ unset MODULES_NO_OUTPUT
 umask 0027
 
 mkdir simOutput 2> /dev/null
+sleep 1
 cd simOutput
 
+if [ ! -f output ]
+then
+    ln -s ../stdout output 2> /dev/null
+fi
 
-sleep 1
-
-echo "----- automated restart routine -----" | tee -a output
+echo 'Running program...'
+echo "----- automated restart routine -----"
 
 #check whether last checkpoint is valid
 file=""
@@ -84,33 +110,39 @@ then
     fileEnding="bp"
 fi
 
-for file in `ls -t ./checkpoints/checkpoint_*.$fileEnding`
+for file in $(ls -t ./checkpoints/checkpoint_*.$fileEnding 2>/dev/null)
 do
-    echo -n "validate checkpoint $file: " | tee -a output
+    echo -n "validate checkpoint $file: "
     $fileEnding"ls" $file &> /dev/null
     if [ $? -eq 0 ]
     then
-        echo "OK" | tee -a output
+        echo "OK"
         break
     else
-        echo "FAILED" | tee -a output
+        echo "FAILED $?"
         file=""
     fi
 done
 
 #this sed call extracts the final simulation step from the cfg (assuming a standard cfg)
 finalStep=`echo !TBG_programParams | sed 's/.*-s[[:blank:]]\+\([0-9]\+[^\s]\).*/\1/'`
-echo "final step      = " $finalStep | tee -a output
+echo "final step      = " $finalStep
 #this sed call extracts the -s and --checkpoint flags
 programParams=`echo !TBG_programParams | sed 's/-s[[:blank:]]\+[0-9]\+[^\s]//g' | sed 's/--checkpoint\.period[[:blank:]]\+[0-9,:,\,]\+[^\s]//g'`
 #extract restart period
 restartPeriod=`echo !TBG_programParams | sed 's/.*--checkpoint\.period[[:blank:]]\+\([0-9,:,\,]\+[^\s]\).*/\1/'`
-echo  "restart period = " $restartPeriod | tee -a output
+echo  "restart period = " $restartPeriod
+
 
 # ******************************************* #
 # need some magic, if the restart period is in new notation with the ':' and ','
 
-currentStep=`basename $file | sed 's/checkpoint_//g' | sed 's/.'$fileEnding'//g'`
+if [ -z "$file" ]; then
+    currentStep=0
+else
+    currentStep=`basename $file | sed 's/checkpoint_//g' | sed 's/.'$fileEnding'//g'`
+fi
+
 nextStep=$(nextstep_from_period.sh $restartPeriod $finalStep $currentStep)
 
 if [ -z "$file" ]; then
@@ -121,7 +153,7 @@ fi
 
 # ******************************************* #
 
-echo "--- end automated restart routine ---" | tee -a output
+echo "--- end automated restart routine ---"
 
 #wait that all nodes see ouput folder
 sleep 1
@@ -133,23 +165,21 @@ export OMPI_MCA_io=^ompio
 
 # test if cuda_memtest binary is available and we have the node exclusive
 if [ -f !TBG_dstPath/input/bin/cuda_memtest ] && [ !TBG_numHostedGPUPerNode -eq !TBG_gpusPerNode ] ; then
-  mpiexec --prefix $MPIHOME -tag-output --display-map -x LIBRARY_PATH -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/cuda_memtest.sh
+  mpiexec !TBG_dstPath/input/bin/cuda_memtest.sh
 else
   echo "no binary 'cuda_memtest' available or compute node is not exclusively allocated, skip GPU memory test" >&2
 fi
 
 if [ $? -eq 0 ] ; then
-  mpiexec --prefix $MPIHOME -x LIBRARY_PATH -tag-output --display-map -am !TBG_dstPath/tbg/openib.conf --mca mpi_leave_pinned 0 -npernode !TBG_gpusPerNode -n !TBG_tasks !TBG_dstPath/input/bin/picongpu $stepSetup !TBG_author $programParams | tee -a output
+  mpiexec -tag-output --display-map !TBG_dstPath/input/bin/picongpu $stepSetup !TBG_author $programParams
 fi
-
-mpiexec --prefix $MPIHOME -x LIBRARY_PATH -npernode !TBG_gpusPerNode -n !TBG_tasks /usr/bin/env bash -c "killall -9 picongpu 2>/dev/null || true"
 
 if [ $nextStep -lt $finalStep ]
 then
-    ssh hypnos4 "/opt/torque/bin/qsub !TBG_dstPath/tbg/submit.start"
+    /usr/bin/sbatch "!TBG_dstPath/tbg/submit.start"
     if [ $? -ne 0 ] ; then
-        echo "error during job submission" | tee -a output
+        echo "error during job submission"
     else
-        echo "job submitted" | tee -a output
+        echo "job submitted"
     fi
 fi

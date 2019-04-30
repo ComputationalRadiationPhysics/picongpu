@@ -41,6 +41,12 @@ Queue: gpu (4x NVIDIA P100 16GB)
 .. literalinclude:: profiles/hemera-hzdr/gpu_picongpu.profile.example
    :language: bash
 
+Queue: k20 (4x Nvidia K20m GPUs 4.7GB)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/hemera-hzdr/k20_picongpu.profile.example
+   :language: bash
+
 Queue: k80 (8x NVIDIA K80 12GB)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -62,12 +68,6 @@ Queue: laser (AMD Opteron 6276 CPUs)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/hypnos-hzdr/laser_picongpu.profile.example
-   :language: bash
-
-Queue: k20 (Nvidia K20 GPUs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/hypnos-hzdr/k20_picongpu.profile.example
    :language: bash
 
 Hydra (HZDR)
