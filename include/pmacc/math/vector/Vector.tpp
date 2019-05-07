@@ -1,4 +1,5 @@
-/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Benjamin Worpitz,
+ *                     Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -164,6 +165,30 @@ struct Dot< ::pmacc::math::Vector<Type, dim>, ::pmacc::math::Vector<Type, dim> >
         result tmp = a.x( ) * b.x( );
         for ( int i = 1; i < dim; i++ )
             tmp += a[i] * b[i];
+        return tmp;
+    }
+};
+
+/*#### exp ###################################################################*/
+
+/*! Specialization of exp where power is a vector
+ *
+ * Compute exp separately for every component of the vector.
+ *
+ * @param power vector with power values
+ */
+template<typename T1, int dim>
+struct Exp< ::pmacc::math::Vector<T1, dim> >
+{
+    typedef ::pmacc::math::Vector<T1, dim> Vector1;
+    typedef Vector1 result;
+
+    HDINLINE result operator( )(const Vector1& power )
+    {
+        BOOST_STATIC_ASSERT( dim > 0 );
+        result tmp;
+        for ( int i = 0; i < dim; ++i )
+            tmp[i] = pmacc::algorithms::math::exp( power[i] );
         return tmp;
     }
 };
