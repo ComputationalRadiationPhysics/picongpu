@@ -33,7 +33,7 @@ namespace math_functor
 
 struct Sqrtf
 {
-    typedef float result_type;
+    using result_type = float;
 
     HDINLINE result_type operator()(const result_type& value) const
     {

@@ -50,9 +50,8 @@ namespace result_of
 template<typename Type>
 struct Functor<pmacc::math::math_functor::Abs, Type>
 {
-    typedef Type type;
+    using type = Type;
 };
 
 } // result_of
-
 } // pmacc
