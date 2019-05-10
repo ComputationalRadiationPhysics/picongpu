@@ -31,7 +31,7 @@ namespace math
 template<int dim>
 struct UInt32 : public Vector<uint32_t, dim>
 {
-    typedef Vector<uint32_t, dim> BaseType;
+    using BaseType = Vector<uint32_t, dim>;
 
     HDINLINE UInt32()
     {

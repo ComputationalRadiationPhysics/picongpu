@@ -33,7 +33,7 @@ namespace math_functor
 
 struct Cosf
 {
-    typedef float result_type;
+    using result_type = float;
 
     DINLINE result_type operator()(const result_type& value) const
     {

@@ -51,7 +51,7 @@ namespace result_of
 template<typename Type>
 struct Functor<math::math_functor::Min, Type, Type>
 {
-    typedef Type type;
+    using type = Type;
 };
 
 }

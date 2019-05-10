@@ -34,7 +34,7 @@ namespace math_functor
 template<typename T_Type>
 struct Sin
 {
-    typedef T_Type result_type;
+    using result_type = T_Type;
 
     DINLINE result_type operator()(const result_type& value) const
     {

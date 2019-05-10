@@ -38,9 +38,9 @@ template<typename X = mpl::void_,
          typename Z = mpl::void_>
 struct Float
 {
-    typedef X x;
-    typedef Y y;
-    typedef Z z;
+    using x = X;
+    using y = Y;
+    using z = Z;
 
     static constexpr int dim = 3;
 };
@@ -51,7 +51,7 @@ struct Float<> {};
 template<typename X>
 struct Float<X>
 {
-    typedef X x;
+    using x = X;
 
     static constexpr int dim = 1;
 };
@@ -59,8 +59,8 @@ struct Float<X>
 template<typename X, typename Y>
 struct Float<X, Y>
 {
-    typedef X x;
-    typedef Y y;
+    using x = X;
+    using y = Y;
 
     static constexpr int dim = 2u;
 };

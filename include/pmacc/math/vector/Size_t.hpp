@@ -31,7 +31,7 @@ namespace math
 template<int dim>
 struct Size_t : public Vector<size_t, dim>
 {
-    typedef Vector<size_t, dim> BaseType;
+    using BaseType = Vector<size_t, dim>;
 
     HDINLINE Size_t()
     {

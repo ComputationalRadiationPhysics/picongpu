@@ -31,7 +31,7 @@ namespace math
 template<int dim>
 struct Float : public Vector<float, dim>
 {
-    typedef Vector<float, dim> BaseType;
+    using BaseType = Vector<float, dim>;
 
     HDINLINE Float()
     {
