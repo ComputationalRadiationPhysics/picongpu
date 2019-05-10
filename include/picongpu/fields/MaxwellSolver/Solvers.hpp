@@ -23,6 +23,7 @@
 
 #include "picongpu/fields/MaxwellSolver/None/None.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.hpp"
+#include "picongpu/fields/MaxwellSolver/YeePML/YeePML.hpp"
 #if (SIMDIM==3)
 #include "picongpu/fields/MaxwellSolver/Lehe/Lehe.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
