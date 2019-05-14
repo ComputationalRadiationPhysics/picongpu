@@ -51,6 +51,14 @@ laser.param
 
    laser/profiles.rst
 
+pml.param
+^^^^^^^^^
+
+.. doxygenfile:: pml.param
+   :project: PIConGPU
+   :path: include/picongpu/param/pml.param
+   :no-link:
+
 pusher.param
 ^^^^^^^^^^^^
 
