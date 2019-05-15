@@ -268,13 +268,13 @@ public:
                 AllEligibleSpeciesSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleDataSourceNames;
-            getEligibleDataSourceNames( forward( allowedDataSources ) );
+            getEligibleDataSourceNames( allowedDataSources );
 
             ForEach<
                 AllFieldSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > appendFieldSourceNames;
-            appendFieldSourceNames( forward( allowedDataSources ) );
+            appendFieldSourceNames( allowedDataSources );
 
             // string list with all possible particle sources
             std::string concatenatedSourceNames = plugins::misc::concatenateToString(
@@ -1407,7 +1407,7 @@ private:
                 CallCollectFieldsSizes<
                     bmpl::_1
                 >
-            >{}(vectorOfDataSourceNames, forward(threadParams));
+            >{}(vectorOfDataSourceNames, threadParams);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) collecting fields.");
 
@@ -1431,7 +1431,7 @@ private:
                     plugins::misc::UnfilteredSpecies< bmpl::_1 >
                 >
             > adiosCountParticles;
-            adiosCountParticles( forward(threadParams) );
+            adiosCountParticles( threadParams );
         }
         else
         {
@@ -1454,7 +1454,7 @@ private:
                 CallCountParticles<
                     bmpl::_1
                 >
-            >{}(vectorOfDataSourceNames, forward(threadParams));
+            >{}(vectorOfDataSourceNames, threadParams);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) counting particles.");
 
@@ -1515,7 +1515,7 @@ private:
                 CallGetFields<
                     bmpl::_1
                 >
-            >{}(vectorOfDataSourceNames, forward(threadParams));
+            >{}(vectorOfDataSourceNames, threadParams);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing fields.");
 
@@ -1543,7 +1543,7 @@ private:
                         plugins::misc::UnfilteredSpecies< bmpl::_1 >
                     >
                 > writeSpecies;
-                writeSpecies( forward(threadParams), particleOffset );
+                writeSpecies( threadParams, particleOffset );
             }
 
             // move over all species data sources
@@ -1552,7 +1552,7 @@ private:
                 CallWriteSpecies<
                     bmpl::_1
                 >
-            >{}(vectorOfDataSourceNames, forward(threadParams), particleOffset);
+            >{}(vectorOfDataSourceNames, threadParams, particleOffset);
         }
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing particle species.");
 

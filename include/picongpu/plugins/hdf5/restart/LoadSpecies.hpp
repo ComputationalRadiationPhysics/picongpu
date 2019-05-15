@@ -178,16 +178,16 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5:  malloc mapped memory: %1%") % speciesName;
         /*malloc mapped memory*/
         ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
-        mallocMem(forward(hostFrame), totalNumParticles);
+        mallocMem(hostFrame, totalNumParticles);
 
         log<picLog::INPUT_OUTPUT > ("HDF5:  get mapped memory device pointer: %1%") % speciesName;
         /*load device pointer of mapped memory*/
         Hdf5FrameType deviceFrame;
         ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
-        getDevicePtr(forward(deviceFrame), forward(hostFrame));
+        getDevicePtr(deviceFrame, hostFrame);
 
         ForEach<typename Hdf5FrameType::ValueTypeSeq, LoadParticleAttributesFromHDF5<bmpl::_1> > loadAttributes;
-        loadAttributes(forward(params), forward(hostFrame), speciesSubGroup, particleOffset, totalNumParticles);
+        loadAttributes(params, hostFrame, speciesSubGroup, particleOffset, totalNumParticles);
 
         if (totalNumParticles != 0)
         {
@@ -204,7 +204,7 @@ public:
 
             /*free host memory*/
             ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
-            freeMem(forward(hostFrame));
+            freeMem(hostFrame);
             log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) load species: %1%") % speciesName;
         }
     }

@@ -101,7 +101,7 @@ struct ShiftCoordinateSystem
         using CombiTypes = typename AllCombinations<Size>::type;
 
         ForEach<CombiTypes, AssignToDim<bmpl::_1, T_supports> > shift;
-        shift(forward(cursor), forward(vector), fieldPos);
+        shift(cursor, vector, fieldPos);
 
     }
 };

@@ -27,7 +27,6 @@
 #include <pmacc/static_assert.hpp>
 #include <pmacc/Environment.hpp>
 #include <pmacc/algorithms/ForEach.hpp>
-#include <pmacc/forward.hpp>
 
 #include <string>
 #include <memory>
@@ -152,7 +151,7 @@ namespace detail
 
             // add local energy histogram of each species in list
             ForEach< SpeciesList, detail::AddSingleEnergyHistogram< bmpl::_1 > > addSingleEnergyHistogram;
-            addSingleEnergyHistogram( currentStep, forward( eneHistLocal ), minEnergy, maxEnergy );
+            addSingleEnergyHistogram( currentStep, eneHistLocal, minEnergy, maxEnergy );
 
             /* note: for average != supercell the BORDER region would need to be
              *       build up via communication accordingly

@@ -245,7 +245,7 @@ void ChargeConservation::notify(uint32_t currentStep)
         >,
         bmpl::_1
     > computeChargeDensity;
-    computeChargeDensity(forward(fieldTmp.get()), currentStep);
+    computeChargeDensity(fieldTmp.get(), currentStep);
 
     /* add results of all species that are still in GUARD to next GPUs BORDER */
     EventTask fieldTmpEvent = fieldTmp->asyncCommunication(__getTransactionEvent());

@@ -31,7 +31,6 @@
 #include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
 #include "pmacc/particles/operations/CopyIdentifier.hpp"
 #include "pmacc/algorithms/ForEach.hpp"
-#include "pmacc/RefWrapper.hpp"
 #include "pmacc/static_assert.hpp"
 
 #include "pmacc/particles/operations/Assign.hpp"
@@ -289,12 +288,12 @@ pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>
         /* assign attributes from src to dest*/
         algorithms::forEach::ForEach<CommonTypeSeq,
             CopyIdentifier<bmpl::_1> > copy;
-        copy(forward(dest), src);
+        copy(dest, src);
 
         /* set all attributes which are not in src to their default value*/
         algorithms::forEach::ForEach<UniqueInDestTypeSeq,
             SetAttributeToDefault<bmpl::_1> > setAttributeToDefault;
-        setAttributeToDefault(forward(dest));
+        setAttributeToDefault(dest);
 
     };
 };

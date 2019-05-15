@@ -23,7 +23,6 @@
 #include "pmacc/Environment.hpp"
 #include "pmacc/particles/operations/CountParticles.hpp"
 #include "pmacc/types.hpp"
-#include "pmacc/forward.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
 #include "pmacc/algorithms/ForEach.hpp"
 #include "pmacc/dataManagement/DataConnector.hpp"
@@ -73,7 +72,7 @@ namespace pmacc
         typedef bmpl::integral_c<unsigned, T_DIM> dim;
         std::vector<size_t> particleCounts;
         algorithms::forEach::ForEach<T_Species, MyCountParticles<dim, bmpl::_1> > countParticles;
-        countParticles(forward(particleCounts), forward(cellDescription), forward(parFilter));
+        countParticles(particleCounts, cellDescription, parFilter);
         return particleCounts;
     }
 

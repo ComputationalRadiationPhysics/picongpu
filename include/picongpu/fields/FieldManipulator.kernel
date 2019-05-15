@@ -217,10 +217,10 @@ namespace detail
             // call absorber for each axis dimension
             absorbeInOneDirection(
                 acc,
-                forward(field),
+                field,
                 thickness,
                 absorberStrength,
-                forward(mapper),
+                mapper,
                 relExchangeDir
             );
         }

@@ -374,7 +374,7 @@ private:
                 EligibleFilters,
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleFilterNames;
-            getEligibleFilterNames( forward( allowedFilters ) );
+            getEligibleFilterNames( allowedFilters );
 
             concatenatedFilterNames = plugins::misc::concatenateToString(
                 allowedFilters,
