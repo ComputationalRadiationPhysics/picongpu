@@ -120,9 +120,9 @@ namespace yeePML
          * @param cellIdx cell index including the guard, can be fractional,
          * e.g. for halves of cells
          * @param parameters parameters of PML in the local domain
-         * @param normalizedSigma value of normalized sigma at the cell, output
-         * @param kappa value of normalized kappa at the cell, output
-         * @param normalizedAlpha value of normalized alpha at the cell, output
+         * @param[out] normalizedSigma value of normalized sigma at the cell
+         * @param[out] kappa value of normalized kappa at the cell
+         * @param[out] normalizedAlpha value of normalized alpha at the cell
          */
         DINLINE void getAbsorptionParameters(
             floatD_X const cellIdx,
@@ -398,11 +398,11 @@ namespace yeePML
                          * components. Coefficients Ca, Cb as given in (7.107a,b)
                          * are general to account for materials, in addition to
                          * artificial PML absorbing medium. We do not have any
-                         * real material, so in (7.107a,b) have to use
+                         * real material, so in (7.107a,b) we have to use
                          * sigma(i + 1/2, j, k) = 0 (it is another sigma,
                          * unrelated to PML), eps(i + 1/2, j, k) = EPS0. Also,
-                         * same as the Yee scheme in PIC, adjust to use B,
-                         * not H, in the right-hand side.
+                         * same as the Yee scheme in PIC, adjusted to use B,
+                         * not H, on the right-hand side.
                          */
                         fieldE( idx ).x( ) += c2 * dt * (dBzDy / coeffs.kappa.y( ) -
                             dByDz / coeffs.kappa.z( ) + psiE.xy - psiE.xz );
@@ -435,8 +435,8 @@ namespace yeePML
          * @tparam T_Acc alpaka accelerator type
          * @tparam T_Mapping mapper functor type
          * @tparam T_Curl curl functor type
-         * @tparam T_EBox pmacc::DataBox, electric field box type
-         * @tparam T_BBox pmacc::DataBox, magnetic field box type
+         * @tparam T_EBox pmacc::DataBox electric field box type
+         * @tparam T_BBox pmacc::DataBox magnetic field box type
          * @tparam T_PsiBBox PML convolutional magnetic field box type
          *
          * @param acc alpaka accelerator
@@ -517,7 +517,7 @@ namespace yeePML
                         DataSpaceOperations< simDim >::template map< SuperCellSize >( linearIdx );
                     // grid index to process with the current thread
                     auto const idx = blockBeginIdx + idxInSuperCell;
-                    // with the current Yee grid, a half cell shift needed here
+                    // with the current Yee grid, a half cell shift is needed here
                     auto const pmlIdx = floatD_X::create( 0.5_X ) +
                         precisionCast< float_X >( idx );
                     auto const coeffs = detail::getCoefficients(
@@ -560,11 +560,11 @@ namespace yeePML
                          * components. Coefficients Da, Db as given in (7.109a,b)
                          * are general to account for materials, in addition to
                          * artificial PML absorbing medium. We do not have any
-                         * real material, so in (7.107a,b) have to use
+                         * real material, so in (7.109a,b) we have to use
                          * sigma*(i + 1/2, j, k) = 0 (it is another sigma*,
                          * unrelated to PML), mue(i + 1/2, j, k) = MUE0. Also,
-                         * same as the Yee scheme in PIC, adjust to use B,
-                         * not H, in the left-hand side.
+                         * same as the Yee scheme in PIC, adjusted to use B,
+                         * not H, on the left-hand side.
                         */
                         fieldB( idx ).x( ) += halfDt * ( dEyDz / coeffs.kappa.z( ) -
                             dEzDy / coeffs.kappa.y( ) + psiB.xz - psiB.xy );

@@ -21,35 +21,28 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-
+#include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/particles/traits/GetInterpolation.hpp"
+#include "picongpu/particles/traits/GetMarginPusher.hpp"
+#include "picongpu/traits/GetMargin.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 
+#include <pmacc/dimensions/SuperCellDescription.hpp>
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/ExchangeMapping.hpp>
-#include <pmacc/memory/buffers/GridBuffer.hpp>
-
-#include "picongpu/fields/FieldManipulator.hpp"
-
-#include <pmacc/dimensions/SuperCellDescription.hpp>
-
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
-
 #include <pmacc/math/Vector.hpp>
-
-#include "picongpu/particles/traits/GetInterpolation.hpp"
+#include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-
-#include "picongpu/traits/GetMargin.hpp"
-#include "picongpu/traits/SIBaseUnits.hpp"
-#include "picongpu/particles/traits/GetMarginPusher.hpp"
 
 #include <boost/mpl/accumulate.hpp>
 
-#include <list>
 #include <iostream>
+#include <list>
 #include <memory>
 
 
@@ -63,10 +56,10 @@ namespace yeePML
 {
 
     Field::Field( MappingDesc cellDescription ) :
-    SimulationFieldHelper<MappingDesc>( cellDescription )
+    SimulationFieldHelper< MappingDesc >( cellDescription )
     {
         data.reset(
-            new GridBuffer<ValueType, simDim > ( cellDescription.getGridLayout( ) )
+            new GridBuffer< ValueType, simDim > ( cellDescription.getGridLayout( ) )
         );
     }
 
@@ -86,7 +79,7 @@ namespace yeePML
         return eB;
     }
 
-    GridLayout<simDim> Field::getGridLayout( )
+    GridLayout< simDim > Field::getGridLayout( )
     {
         return cellDescription.getGridLayout( );
     }
@@ -101,9 +94,8 @@ namespace yeePML
         return data->getDeviceBuffer( ).getDataBox( );
     }
 
-    GridBuffer<Field::ValueType, simDim> &Field::getGridBuffer( )
+    GridBuffer< Field::ValueType, simDim > & Field::getGridBuffer( )
     {
-
         return *data;
     }
 
@@ -122,10 +114,10 @@ namespace yeePML
     }
 
     HINLINE
-    std::vector<float_64>
+    std::vector< float_64 >
     Field::getUnitDimension( )
     {
-        std::vector<float_64> unitDimension( 7, 0.0 );
+        std::vector< float_64 > unitDimension( 7, 0.0 );
         return unitDimension;
     }
 

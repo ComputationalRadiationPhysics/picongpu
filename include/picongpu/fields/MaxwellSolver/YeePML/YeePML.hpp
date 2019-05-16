@@ -54,7 +54,7 @@ namespace maxwellSolver
          * CFS - PML for arbitrary media. Microwave and optical technology
          * letters. 27 (5), 334-339 (2000).
          * https://doi.org/10.1002/1098-2760(20001205)27:5%3C334::AID-MOP14%3E3.0.CO;2-A
-         * Our implementation based on a more detailed description in section
+         * Our implementation is based on a more detailed description in section
          * 7.9 of the book A. Taflove, S.C. Hagness. Computational
          * Electrodynamics. The Finite-Difference Time-Domain Method. Third
          * Edition. Artech house, Boston (2005), referred to as
@@ -112,7 +112,8 @@ namespace maxwellSolver
                 /* Note: here it is possible to first check if PML is enabled
                  * in the local domain at all, and otherwise optimize by calling
                  * the normal Yee update kernel. We do not do that, as this
-                 * would be fragile wrt future separation of PML into a plugin.
+                 * would be fragile with respect to future separation of PML
+                 * into a plugin.
                  */
                 PMACC_KERNEL( Kernel{ } )
                     ( mapper.getGridDim( ), numWorkers )(
@@ -182,11 +183,12 @@ namespace maxwellSolver
             /** Thickness in terms of the global domain.
              *
              * We store only global thickness, as the local one can change
-             * during the simulation and so has to be recomputed each time step.
-             * There are no limitations on the size, as long as it fits a single
-             * layer of external local domains (near the global simulation area
-             * boundary) on each time step. In particular, PML is not required
-             * to be aligned with the BORDER area.
+             * during the simulation and so has to be recomputed for each time
+             * step. PML must be fully contained in a single layer of local
+             * domains near the global simulation area boundary. (Note that
+             * the domains of this layer might be changing, e.g. due to moving
+             * window.) There are no other limitations on PML thickness. In
+             * particular, it is independent of the BORDER area size.
              */
             Thickness globalSize;
             Parameters parameters;
@@ -261,7 +263,11 @@ namespace maxwellSolver
                 Thickness localThickness = globalSize;
                 for( uint32_t exchange = 1u; exchange < numExchanges; ++exchange )
                 {
-                    // Skip directions except left, right, top, bottom, back, front
+                    /* Here we are only interested in the positive and negative
+                     * directions for x, y, z axes and not the "diagonal" ones.
+                     * So skip other directions except left, right, top, bottom,
+                     * back, front
+                     */
                     if( FRONT % exchange != 0 )
                         continue;
 

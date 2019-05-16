@@ -36,14 +36,15 @@ namespace maxwellSolver
 namespace yeePML
 {
 
-    /* The parameters in this file are only used if field solver is YeePML.
+    /* The parameters in this file are only used if the field solver selected is
+     * YeePML.
      * The original paper on this approach is J.A. Roden, S.D. Gedney.
      * Convolution PML (CPML): An efficient FDTD implementation of the CFS - PML
      * for arbitrary media. Microwave and optical technology letters. 27 (5),
      * 334-339 (2000).
      * https://doi.org/10.1002/1098-2760(20001205)27:5%3C334::AID-MOP14%3E3.0.CO;2-A
-     * Our implementation based on a more detailed description in section 7.9 of
-     * the book A. Taflove, S.C. Hagness. Computational Electrodynamics.
+     * Our implementation is based on a more detailed description in section
+     * 7.9 of the book A. Taflove, S.C. Hagness. Computational Electrodynamics.
      * The Finite-Difference Time-Domain Method. Third Edition. Artech house,
      * Boston (2005), referred to as [Taflove, Hagness].
      */
@@ -58,8 +59,10 @@ namespace yeePML
      * values providing less reflections.
      * 8 cells should be good enough for most simulations. There are no
      * requirements on thickness being a multiple of the supercell size.
-     * It is only required that PML is small enough to fit near-boundary local
-     * domains at all time steps.
+     * It is only required that PML is small enough to be fully contained in
+     * a single layer of local domains near the global simulation area boundary
+     * (Note that the domains of this layer might be changing, e.g. due to
+     * moving window.)
      * Unit: number of cells.
      */
     constexpr uint32_t NUM_CELLS[ 3 ][ 2 ] = {

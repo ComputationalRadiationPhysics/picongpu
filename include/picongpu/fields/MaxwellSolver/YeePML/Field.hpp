@@ -18,29 +18,22 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
-#include <string>
-#include <vector>
-
-/*pic default*/
 #include "picongpu/simulation_defines.hpp"
-
 #include "picongpu/fields/Fields.def"
-#include <pmacc/fields/SimulationFieldHelper.hpp>
-#include <pmacc/dataManagement/ISimulationData.hpp>
 
-/*PMacc*/
+#include <pmacc/dataManagement/ISimulationData.hpp>
+#include <pmacc/fields/SimulationFieldHelper.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/PitchedBox.hpp>
-
 #include <pmacc/math/Vector.hpp>
 
 #include <memory>
+#include <string>
+#include <vector>
 
 
 namespace picongpu
@@ -59,44 +52,44 @@ namespace yeePML
     };
 
     //! Base class for field in PML
-    class Field : public SimulationFieldHelper<MappingDesc>, public ISimulationData
+    class Field : public SimulationFieldHelper< MappingDesc >, public ISimulationData
     {
     public:
 
         using ValueType = NodeValues;
         using UnitValueType = float_X ;
 
-        typedef DataBox<PitchedBox<ValueType, simDim> > DataBoxType;
+        typedef DataBox< PitchedBox< ValueType, simDim > > DataBoxType;
 
         typedef MappingDesc::SuperCellSize SuperCellSize;
 
         Field( MappingDesc cellDescription);
 
-        virtual void reset(uint32_t currentStep);
+        virtual void reset( uint32_t currentStep );
 
-        HDINLINE static UnitValueType getUnit();
+        HDINLINE static UnitValueType getUnit( );
 
         /** powers of the 7 base measures
          *
          * characterizing the record's unit in SI
          * (length L, mass M, time T, electric current I,
-         *  thermodynamic temperature theta, amount of substance N,
-         *  luminous intensity J) */
-        HINLINE static std::vector<float_64> getUnitDimension();
+         * thermodynamic temperature theta, amount of substance N,
+         * luminous intensity J) */
+        HINLINE static std::vector< float_64 > getUnitDimension( );
 
-        virtual EventTask asyncCommunication(EventTask serialEvent);
+        virtual EventTask asyncCommunication( EventTask serialEvent );
 
-        DataBoxType getHostDataBox();
+        DataBoxType getHostDataBox( );
 
-        GridLayout<simDim> getGridLayout();
+        GridLayout< simDim > getGridLayout( );
 
-        DataBoxType getDeviceDataBox();
+        DataBoxType getDeviceDataBox( );
 
-        GridBuffer<ValueType, simDim> &getGridBuffer();
+        GridBuffer< ValueType, simDim > & getGridBuffer( );
 
-        void synchronize();
+        void synchronize( );
 
-        void syncToDevice();
+        void syncToDevice( );
 
     private:
 
@@ -119,7 +112,7 @@ namespace yeePML
 
         SimulationDataId getUniqueId( )
         {
-            return getName();
+            return getName( );
         }
 
         static std::string getName( )
@@ -141,7 +134,7 @@ namespace yeePML
 
         SimulationDataId getUniqueId( )
         {
-            return getName();
+            return getName( );
         }
 
         static std::string getName( )
