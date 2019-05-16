@@ -116,7 +116,7 @@ public:
         /* malloc host memory */
         log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) malloc host memory: %1%") % T_SpeciesFilter::getName();
         ForEach<typename AdiosFrameType::ValueTypeSeq, MallocHostMemory<bmpl::_1> > mallocMem;
-        mallocMem(forward(hostFrame), totalNumParticles);
+        mallocMem(hostFrame, totalNumParticles);
         log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) malloc host memory: %1%") % T_SpeciesFilter::getName();
 
         if (totalNumParticles > 0)
@@ -174,11 +174,11 @@ public:
         }
         /* dump to adios file */
         ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
-        writeToAdios(params, forward(hostFrame), totalNumParticles);
+        writeToAdios(params, hostFrame, totalNumParticles);
 
         /* free host memory */
         ForEach<typename AdiosFrameType::ValueTypeSeq, FreeHostMemory<bmpl::_1> > freeMem;
-        freeMem(forward(hostFrame));
+        freeMem(hostFrame);
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
 
         /* write species counter table to adios file */

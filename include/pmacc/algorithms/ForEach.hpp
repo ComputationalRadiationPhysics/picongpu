@@ -19,17 +19,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "pmacc/compileTime/accessors/Identity.hpp"
-#include "pmacc/forward.hpp"
 
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/deref.hpp>
 #include <boost/type_traits.hpp>
+
+#include <utility>
 
 
 namespace pmacc
@@ -66,18 +66,18 @@ namespace detail
         PMACC_NO_NVCC_HDWARNING
         template< typename ... T_Types >
         HDINLINE void
-        operator( )( T_Types const & ... ts ) const
+        operator( )( T_Types && ... ts ) const
         {
-            Functor( )( getForwardedValue( ts ) ... );
+            Functor( )( std::forward< T_Types >( ts ) ... );
             NextCall( )( ts ... );
         }
 
         PMACC_NO_NVCC_HDWARNING
         template< typename... T_Types >
         HDINLINE void
-        operator( )( T_Types const & ... ts )
+        operator( )( T_Types && ... ts )
         {
-            Functor( )( getForwardedValue( ts ) ... );
+            Functor( )( std::forward< T_Types >( ts ) ... );
             NextCall( )( ts ... );
         }
     };
@@ -95,7 +95,7 @@ namespace detail
         PMACC_NO_NVCC_HDWARNING
         template< typename ... T_Types >
         HDINLINE void
-        operator()( T_Types const & ... ) const
+        operator()( T_Types && ... ) const
         {
 
         }
@@ -103,7 +103,7 @@ namespace detail
         PMACC_NO_NVCC_HDWARNING
         template< typename ... T_Types >
         HDINLINE void
-        operator()( T_Types const & ... )
+        operator()( T_Types && ... )
         {
 
         }
@@ -173,18 +173,18 @@ namespace detail
         PMACC_NO_NVCC_HDWARNING
         template< typename ... T_Types >
         HDINLINE void
-        operator( )( const T_Types& ... ts ) const
+        operator( )( T_Types && ... ts ) const
         {
-            Functor()( getForwardedValue( ts )... );
+            Functor()( std::forward< T_Types >( ts ) ... );
             NextCall()( ts ... );
         }
 
         PMACC_NO_NVCC_HDWARNING
         template< typename ... T_Types >
         HDINLINE void
-        operator( )( const T_Types& ... ts )
+        operator( )( T_Types && ... ts )
         {
-            Functor( )( getForwardedValue( ts ) ... );
+            Functor( )( std::forward< T_Types >( ts ) ... );
             NextCall( )( ts ... );
         }
     };

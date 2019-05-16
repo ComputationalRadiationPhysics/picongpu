@@ -27,7 +27,6 @@
 #include "detail/SphericMapper.hpp"
 #include "detail/ForeachKernel.hpp"
 #include "pmacc/cuSTL/zone/SphericZone.hpp"
-#include "pmacc/forward.hpp"
 
 #include <boost/preprocessor/repetition/enum.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>

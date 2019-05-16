@@ -313,7 +313,7 @@ struct PushAllSpecies
             particlePusher<>
         >::type;
         ForEach< VectorSpeciesWithPusher, particles::PushSpecies< bmpl::_1 > > pushSpecies;
-        pushSpecies( currentStep, eventInt, forward(updateEventList) );
+        pushSpecies( currentStep, eventInt, updateEventList );
 
         /* join all push events */
         for (typename EventList::iterator iter = updateEventList.begin();
@@ -325,7 +325,7 @@ struct PushAllSpecies
 
         /* call communication for all species */
         ForEach< VectorSpeciesWithPusher, particles::CommunicateSpecies< bmpl::_1> > communicateSpecies;
-        communicateSpecies( forward(updateEventList), forward(commEventList) );
+        communicateSpecies( updateEventList, commEventList );
 
         /* join all communication events */
         for (typename EventList::iterator iter = commEventList.begin();

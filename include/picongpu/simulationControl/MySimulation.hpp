@@ -362,7 +362,7 @@ public:
                 AllBremsstrahlungPhotonsSpecies,
                 particles::bremsstrahlung::FillScaledSpectrumMap< bmpl::_1 >
             > fillScaledSpectrumMap;
-            fillScaledSpectrumMap(forward(this->scaledBremsstrahlungSpectrumMap));
+            fillScaledSpectrumMap(this->scaledBremsstrahlungSpectrumMap);
 
             this->bremsstrahlungPhotonAngle.init();
         }

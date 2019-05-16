@@ -193,13 +193,13 @@ public:
                 AllEligibleSpeciesSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleDataSourceNames;
-            getEligibleDataSourceNames( forward( allowedDataSources ) );
+            getEligibleDataSourceNames( allowedDataSources );
 
             ForEach<
                 AllFieldSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > appendFieldSourceNames;
-            appendFieldSourceNames( forward( allowedDataSources ) );
+            appendFieldSourceNames( allowedDataSources );
 
             // string list with all possible data sources
             std::string concatenatedSourceNames = plugins::misc::concatenateToString(

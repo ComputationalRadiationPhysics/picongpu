@@ -327,7 +327,7 @@ namespace picongpu
                                     ParticleCleanedAttrList,
                                     SetAttributeToDefault< bmpl::_1 >
                                 > setToDefault;
-                                setToDefault( forward( particle ) );
+                                setToDefault( particle );
                             }
                             particle[ multiMask_ ] = 1;
                             particle[ localCellIdx_ ] = linearIdx;

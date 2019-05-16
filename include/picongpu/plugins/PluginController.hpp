@@ -259,7 +259,7 @@ private:
     virtual void init()
     {
         ForEach<AllPlugins, PushBack<bmpl::_1> > pushBack;
-        pushBack(forward(plugins));
+        pushBack(plugins);
     }
 
 public:
