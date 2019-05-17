@@ -23,8 +23,8 @@ then
         # Core Dependencies
         module load gcc
         module load cuda
-        echo "WARNING: Boost version is too old! (Need: 1.62.0+)" >&2
-        # module load boost/1.62.0-gcc
+        echo "WARNING: Boost version is too old! (Need: 1.65.1+)" >&2
+        # module load boost/1.65.1-gcc
         module load openmpi/1.6.5-gcc
 
         # Core tools

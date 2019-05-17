@@ -59,9 +59,9 @@ install:
   - travis_wait spack install
       cmake
       $COMPILERSPEC
-  # required dependencies - Boost 1.62.0
+  # required dependencies - Boost 1.65.1
   - travis_wait spack install
-      boost@1.62.0~date_time~graph~iostreams~locale~log~random~thread~timer~wave
+      boost@1.65.1~date_time~graph~iostreams~locale~log~random~thread~timer~wave
       $COMPILERSPEC
   - spack clean -a
   - source /etc/profile &&

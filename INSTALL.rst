@@ -33,22 +33,21 @@ gcc
 """
 - 4.9 - 7 (if you want to build for Nvidia GPUs, supported compilers depend on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
 
-  - CUDA 8.0: Use gcc 4.9 - 5.3
   - CUDA 9.0 - 9.1: Use gcc 4.9 - 5.5
   - CUDA 9.2 - 10.0: Use gcc 4.9 - 7
-- *note:* be sure to build all libraries/dependencies with the *same* gcc version
+- *note:* be sure to build all libraries/dependencies with the *same* gcc version; GCC 5 or newer is recommended
 - *Debian/Ubuntu:*
   
-  - ``sudo apt-get install gcc-4.9 g++-4.9 build-essential``
-  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9``
+  - ``sudo apt-get install gcc-5.3 g++-5.3 build-essential``
+  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5.3 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5.3``
 - *Arch Linux:*
   
   - ``sudo pacman --sync base-devel``
   - if the installed version of **gcc** is too new, `compile an older gcc <https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53>`_
 - *Spack:*
   
-  - ``spack install gcc@4.9.4``
-  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@4.9.4``
+  - ``spack install gcc@5.3.0``
+  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@5.3.0``
 
 CMake
 """""
@@ -89,8 +88,7 @@ zlib
 
 boost
 """""
-- 1.62.0 - 1.68.0 (``program_options``, ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
-- *note:* for CUDA 9+ support, use boost 1.65.1 or newer
+- 1.65.1 - 1.68.0 (``program_options``, ``filesystem``, ``system``, ``math``, ``serialization`` and header-only libs, optional: ``fiber`` with ``context``, ``thread``, ``chrono``, ``atomic``, ``date_time``)
 - *Debian/Ubuntu:* ``sudo apt-get install libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev libboost-chrono-dev libboost-atomic-dev libboost-date-time-dev libboost-math-dev libboost-serialization-dev libboost-fiber-dev libboost-context-dev``
 - *Arch Linux:* ``sudo pacman --sync boost``
 - *Spack:* ``spack install boost``
@@ -155,13 +153,13 @@ Optional Libraries
 
 CUDA
 """"
-- `8.0 - 10.0 <https://developer.nvidia.com/cuda-downloads>`_
+- `9.0 - 10.0 <https://developer.nvidia.com/cuda-downloads>`_
 - required if you want to run on Nvidia GPUs
 - *Debian/Ubuntu:* ``sudo apt-get install nvidia-cuda-toolkit``
 - *Arch Linux:* ``sudo pacman --sync cuda``
 - *Spack:* ``spack install cuda``
 - at least one **CUDA** capable **GPU**
-- *compute capability*: ``sm_20`` or higher (for CUDA 9+: ``sm_30`` or higher)
+- *compute capability*: ``sm_30`` or higher
 - `full list <https://developer.nvidia.com/cuda-gpus>`_ of CUDA GPUs and their *compute capability*
 - `More <http://www.olcf.ornl.gov/summit/>`_ is always `better <http://www.cscs.ch/computers/piz_daint/index.html>`_. Especially, if we are talking GPUs :-)
 - *environment:*
@@ -231,7 +229,7 @@ libSplash
 
 HDF5
 """"
-- 1.8.6+
+- 1.8.13+
 - standard shared version (no C++, enable parallel)
 - *Debian/Ubuntu:* ``sudo apt-get install libhdf5-openmpi-dev``
 - *Arch Linux:* ``sudo pacman --sync hdf5-openmpi``

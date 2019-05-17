@@ -305,7 +305,7 @@ endif(MPI_CXX_FOUND)
 # Find Boost
 ################################################################################
 
-find_package(Boost 1.62.0 REQUIRED COMPONENTS filesystem system math_tr1)
+find_package(Boost 1.65.1 REQUIRED COMPONENTS filesystem system math_tr1)
 if(TARGET Boost::filesystem)
     set(PMacc_LIBRARIES ${PMacc_LIBRARIES} Boost::boost Boost::filesystem
                                            Boost::system Boost::math_tr1)
@@ -319,18 +319,6 @@ endif()
 # great for the transition from the "wrong" usage to the "correct" one as
 message(STATUS "Boost: result_of with TR1 style and decltype fallback")
 set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
-
-# Boost >= 1.60.0 and CUDA 8.0 fail to compile on mp_defer
-# seen with Boost 1.60.0 - 1.63.0 (latter got config work-around below)
-# CUDA 9.0+ fixed
-if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
-    if( (Boost_VERSION GREATER 105999) AND
-        (CUDA_VERSION VERSION_EQUAL 8.0) )
-        # Boost Bug https://svn.boost.org/trac/boost/ticket/11897
-        message(STATUS "Boost: Disable variadic templates")
-        set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_NO_CXX11_VARIADIC_TEMPLATES)
-    endif()
-endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     message(STATUS "Boost: Disable variadic templates")
@@ -346,25 +334,10 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_SMART_PTR")
 endif()
 
-# Boost 1.64.0 is broken with CUDA 8.0 (nvcc) and C++11
-#   https://github.com/ComputationalRadiationPhysics/picongpu/issues/2048
-#   fixed in CUDA 9.0 (ticket 1928813)
-if( ("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc") AND
-    (Boost_VERSION EQUAL 106400) AND
-    (CUDA_VERSION VERSION_EQUAL 8.0) )
-    message(STATUS "Boost: Disable C++11 noexcept")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_NOEXCEPT")
-endif()
-
 # GCC's C++11 tuples are broken in "supported" NVCC versions
 if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        if(CUDA_VERSION VERSION_EQUAL 8.0)
-            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 5.4)
-                message(FATAL_ERROR "NVCC 8.0 does not support the std::tuple "
-                        "implementation in GCC 5.4+. Please use GCC 4.9 - 5.3!")
-            endif()
-        elseif(CUDA_VERSION VERSION_EQUAL 9.0 OR
+        if(CUDA_VERSION VERSION_EQUAL 9.0 OR
                CUDA_VERSION VERSION_EQUAL 9.1)
             if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 6.0)
                 message(FATAL_ERROR "NVCC 9.0 - 9.1 do not support the std::tuple "
