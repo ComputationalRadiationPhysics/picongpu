@@ -1,0 +1,93 @@
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera,
+ *                     Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/fields/MaxwellSolver/Yee/Curl.def"
+#include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
+#include "picongpu/fields/currentInterpolation/CurrentInterpolation.def"
+
+
+namespace picongpu
+{
+namespace fields
+{
+namespace maxwellSolver
+{
+
+    template<
+        typename T_CurrentInterpolation = currentInterpolation::None,
+        typename T_CurlE = yee::CurlRight,
+        typename T_CurlB = yee::CurlLeft
+    >
+    class YeePML;
+
+} // namespace maxwellSolver
+} // namespace fields
+
+namespace traits
+{
+
+    template<
+        typename T_CurrentInterpolation,
+        typename T_CurlE,
+        typename T_CurlB
+    >
+    struct GetMargin<
+        picongpu::fields::maxwellSolver::YeePML<
+            T_CurrentInterpolation,
+            T_CurlE,
+            T_CurlB
+        >, FIELD_B
+    > : public GetMargin<
+        picongpu::fields::maxwellSolver::Yee<
+            T_CurrentInterpolation,
+            T_CurlE,
+            T_CurlB
+        >,
+        FIELD_B
+    >
+    {
+    };
+
+    template<
+        typename T_CurrentInterpolation,
+        typename T_CurlE,
+        typename T_CurlB
+    >
+    struct GetMargin<
+        picongpu::fields::maxwellSolver::YeePML<
+            T_CurrentInterpolation,
+            T_CurlE,
+            T_CurlB
+        >, FIELD_E
+    > : public GetMargin<
+        picongpu::fields::maxwellSolver::Yee<
+            T_CurrentInterpolation,
+            T_CurlE,
+            T_CurlB
+        >,
+        FIELD_E
+    >
+    {
+    };
+
+} //namespace traits
+} // namespace picongpu

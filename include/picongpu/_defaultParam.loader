@@ -43,6 +43,7 @@
 #include "picongpu/param/ionizationEnergies.param"
 #include "picongpu/param/density.param"
 #include "picongpu/param/particle.param"
+#include "picongpu/param/pml.param"
 #include "picongpu/param/unit.param"
 #include "picongpu/param/particleFilters.param"
 #if( PMACC_CUDA_ENABLED == 1 )
