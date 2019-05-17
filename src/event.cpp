@@ -19,6 +19,7 @@
  */
 
 
+#include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
 #include "cupla/manager/Memory.hpp"
 #include "cupla/manager/Device.hpp"
@@ -26,6 +27,8 @@
 #include "cupla/manager/Event.hpp"
 #include "cupla/api/event.hpp"
 
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 cuplaError_t
 cuplaEventCreateWithFlags(
@@ -136,3 +139,5 @@ cuplaEventQuery( cuplaEvent_t event )
         return cuplaErrorNotReady;
     }
 }
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

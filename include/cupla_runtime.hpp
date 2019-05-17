@@ -23,6 +23,7 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include "cupla/namespace.hpp"
 #include "cupla/kernel.hpp"
 
 #include "cupla/c/datatypes/cuplaArray.hpp"
@@ -45,5 +46,9 @@
 
 namespace cupla
 {
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
     const auto driver = manager::Driver::get();
-}
+
+} //namespace cupla
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

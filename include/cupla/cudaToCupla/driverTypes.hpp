@@ -47,6 +47,14 @@
 
 #define cudaMemcpy3DParms cuplaMemcpy3DParms
 
+#ifdef cudaEventBlockingSync
+#undef cudaEventBlockingSync
+#endif
+/* cudaEventBlockingSync is a define in CUDA, hence we must remove
+ * the old definition with the cupla enum
+ */
+#define cudaEventBlockingSync cuplaEventBlockingSync 
+
 #ifdef cudaEventDisableTiming
 #undef cudaEventDisableTiming
 #endif
@@ -100,7 +108,10 @@
 #define uint3 ::cupla::uint3
 
 // recast functions
-namespace cupla {
+namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
     template< typename A, typename B >
     ALPAKA_FN_HOST_ACC
@@ -110,7 +121,9 @@ namespace cupla {
         return reinterpret_cast< B const & >( x );
     }
 
+} // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla
+
 #ifndef ALPAKA_ACC_GPU_CUDA_ENABLED
 #   define __int_as_float(...) cupla::A_as_B< int, float >( __VA_ARGS__ )
 #   define __float_as_int(...) cupla::A_as_B< float, int >( __VA_ARGS__ )

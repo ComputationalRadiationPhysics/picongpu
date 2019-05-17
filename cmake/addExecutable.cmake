@@ -22,7 +22,7 @@
 cmake_minimum_required(VERSION 3.3.0)
 
 
-function(CUPLA_ADD_EXECUTABLE BinaryName)
+macro(CUPLA_ADD_EXECUTABLE BinaryName)
 
     include_directories(${cupla_INCLUDE_DIRS})
     add_definitions(${cupla_DEFINITIONS})
@@ -32,4 +32,4 @@ function(CUPLA_ADD_EXECUTABLE BinaryName)
         ${ARGN}
         ${cupla_SOURCE_FILES}
     )
-endfunction()
+endmacro()

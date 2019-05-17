@@ -19,6 +19,7 @@
  */
 
 
+#include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
 #include "cupla/manager/Memory.hpp"
 #include "cupla/manager/Device.hpp"
@@ -26,25 +27,38 @@
 #include "cupla/manager/Event.hpp"
 #include "cupla/api/common.hpp"
 
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 const char *
-cuplaGetErrorString(cuplaError_t)
+cuplaGetErrorString(cuplaError_t e)
 {
-    return "cuplaGetErrorString is currently not supported\n";
+    return CuplaErrorCode::message_cstr(e);
 }
 
 cuplaError_t
 cuplaGetLastError()
 {
-#if (ALPAKA_ACC_GPU_CUDA_ENABLED == 1)
+#if( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
     // reset the last cuda error
-    cudaGetLastError();
-#endif
+    return (cuplaError_t)cudaGetLastError();
+#elif( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
+    return (cuplaError_t)hipGetLastError();
+#else
     return cuplaSuccess;
+#endif
 }
 
 cuplaError_t
 cuplaPeekAtLastError()
 {
+#if( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
+    return (cuplaError_t)cudaPeekAtLastError();
+#elif( ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
+    return (cuplaError_t)hipPeekAtLastError();
+#else
     return cuplaSuccess;
+#endif
 }
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

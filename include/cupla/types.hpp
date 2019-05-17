@@ -18,84 +18,18 @@
  *
  */
 
-
 #pragma once
 
 #include <alpaka/alpaka.hpp>
 #include <cstdint>
 
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
-#   undef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
-#   define ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED 1
-#endif
+#include "cupla/defines.hpp"
+#include "cupla/namespace.hpp"
 
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
-#   undef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
-#   define ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED 1
-#endif
-
-#ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
-#   undef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
-#   define ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED 1
-#endif
-
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-#   undef ALPAKA_ACC_GPU_CUDA_ENABLED
-#   define ALPAKA_ACC_GPU_CUDA_ENABLED 1
-#endif
-
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-#   undef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-#   define ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED 1
-#endif
-
-#ifdef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE
-#   undef ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE
-#   define ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE 1
-#endif
-
-#define CUPLA_NUM_SELECTED_DEVICES (                                           \
-        ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED +                                  \
-        ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED +                               \
-        ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED  +                                 \
-        ALPAKA_ACC_GPU_CUDA_ENABLED +                                          \
-        ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED +                                   \
-        ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE                                      \
-)
-
-
-#if( CUPLA_NUM_SELECTED_DEVICES == 0 )
-    #error "there is no accelerator selected, please run `ccmake .` and select one"
-#endif
-
-#if( CUPLA_NUM_SELECTED_DEVICES > 2  )
-    #error "please select at most two accelerators"
-#endif
-
-// count accelerators where the thread count must be one
-#define CUPLA_NUM_SELECTED_THREAD_SEQ_DEVICES (                                \
-        ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED +                                  \
-        ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED +                                   \
-        ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE                                      \
-)
-
-#define CUPLA_NUM_SELECTED_THREAD_PARALLEL_DEVICES (                           \
-        ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED +                                  \
-        ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED +                               \
-        ALPAKA_ACC_GPU_CUDA_ENABLED                                            \
-)
-
-#if( CUPLA_NUM_SELECTED_THREAD_SEQ_DEVICES > 1 )
-    #error "it is only alowed to select one thread sequential Alpaka accelerator"
-#endif
-
-#if( CUPLA_NUM_SELECTED_THREAD_PARALLEL_DEVICES > 1 )
-    #error "it is only alowed to select one thread parallelized Alpaka accelerator"
-#endif
-
-
-namespace cupla {
-
+namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
     using MemSizeType = size_t;
     using IdxType = unsigned int;
@@ -123,19 +57,19 @@ namespace cupla {
     >;
 
     using AccHost = ::alpaka::dev::DevCpu;
-    using AccHostStream = ::alpaka::stream::StreamCpuSync;
+    using AccHostStream = ::alpaka::queue::QueueCpuSync;
 
 #if defined(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED) ||                            \
     defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED) ||                         \
     defined(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED) ||                            \
     defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED) ||                             \
-    defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE)
+    defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
 
     using AccDev = ::alpaka::dev::DevCpu;
 #   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
-        using AccStream = ::alpaka::stream::StreamCpuAsync;
+        using AccStream = ::alpaka::queue::QueueCpuAsync;
 #   else
-        using AccStream = ::alpaka::stream::StreamCpuSync;
+        using AccStream = ::alpaka::queue::QueueCpuSync;
 #   endif
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
@@ -180,7 +114,7 @@ namespace cupla {
     #endif
 #endif
 
-#if (ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE == 1)
+#if (ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED == 1)
     #if (CUPLA_NUM_SELECTED_DEVICES == 1)
         using Acc = ::alpaka::acc::AccCpuTbbBlocks<
             KernelDim,
@@ -200,11 +134,24 @@ namespace cupla {
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
     using AccDev = ::alpaka::dev::DevCudaRt;
 #   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
-        using AccStream = ::alpaka::stream::StreamCudaRtAsync;
+        using AccStream = ::alpaka::queue::QueueCudaRtAsync;
 #   else
-        using AccStream = ::alpaka::stream::StreamCudaRtSync;
+        using AccStream = ::alpaka::queue::QueueCudaRtSync;
 #   endif
     using Acc = ::alpaka::acc::AccGpuCudaRt<
+        KernelDim,
+        IdxType
+    >;
+#endif
+
+#ifdef ALPAKA_ACC_GPU_HIP_ENABLED
+    using AccDev = ::alpaka::dev::DevHipRt;
+#   if (CUPLA_STREAM_ASYNC_ENABLED == 1)
+        using AccStream = ::alpaka::queue::QueueHipRtAsync;
+#   else
+        using AccStream = ::alpaka::queue::QueueHipRtSync;
+#   endif
+    using Acc = ::alpaka::acc::AccGpuHipRt<
         KernelDim,
         IdxType
     >;
@@ -282,5 +229,6 @@ namespace cupla {
             AlpakaDim< T_dim >,
             MemSizeType
         >;
-} // namepsace cupla
 
+} // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namepsace cupla

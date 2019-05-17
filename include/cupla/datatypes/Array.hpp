@@ -21,9 +21,13 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 
-namespace cupla{
+namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
     template<
         typename T_Type,
@@ -55,4 +59,5 @@ namespace cupla{
         }
     };
 
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
 } //namespace cupla

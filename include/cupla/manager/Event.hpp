@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla/manager/Device.hpp"
 #include "cupla_driver_types.hpp"
@@ -33,6 +34,8 @@
 
 namespace cupla
 {
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 namespace manager
 {
 
@@ -40,7 +43,7 @@ namespace detail
 {
     template<
         typename T_DeviceType,
-        typename T_StreamType
+        typename T_QueueType
     >
     class EmulatedEvent
     {
@@ -54,7 +57,7 @@ namespace detail
         TimePoint time;
 
     public:
-        using AlpakaEvent = ::alpaka::event::Event< T_StreamType >;
+        using AlpakaEvent = ::alpaka::event::Event< T_QueueType >;
         std::unique_ptr< AlpakaEvent > event;
 
         EmulatedEvent( uint32_t flags ) :
@@ -62,6 +65,10 @@ namespace detail
             event(
                 new AlpakaEvent(
                     Device< T_DeviceType >::get().current()
+                    // The alpaka interfaces for this constructor are different depending on the backend.
+#if( ALPAKA_ACC_GPU_HIP_ENABLED == 1 || ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
+                    ,!(flags & cuplaEventBlockingSync)
+#endif
                 )
             )
         {
@@ -74,9 +81,9 @@ namespace detail
             return *event;
         }
 
-        void record( T_StreamType & stream )
+        void record( T_QueueType & stream )
         {
-            ::alpaka::stream::enqueue( stream, *event );
+            ::alpaka::queue::enqueue( stream, *event );
             if( hasTimer )
             {
                 ::alpaka::wait::wait( *event );
@@ -102,16 +109,16 @@ namespace detail
 }
     template<
         typename T_DeviceType,
-        typename T_StreamType
+        typename T_QueueType
     >
     struct Event
     {
         using DeviceType = T_DeviceType;
-        using StreamType = T_StreamType;
+        using QueueType = T_QueueType;
 
         using EventType = detail::EmulatedEvent<
             DeviceType,
-            StreamType
+            QueueType
         >;
 
         using EventMap = std::map<
@@ -232,4 +239,5 @@ namespace detail
     };
 
 } //namespace manager
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
 } //namespace cupla

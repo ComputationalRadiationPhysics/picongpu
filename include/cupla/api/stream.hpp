@@ -23,9 +23,12 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
 
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 cuplaError_t
 cuplaStreamCreate(
@@ -46,3 +49,8 @@ cuplaStreamWaitEvent(
     cuplaEvent_t event,
     unsigned int flags
 );
+
+cuplaError_t
+cuplaStreamQuery( cuplaStream_t stream );
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
