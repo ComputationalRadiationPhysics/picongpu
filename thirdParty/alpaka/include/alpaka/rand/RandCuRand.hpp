@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2015-2016 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz, René Widera
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -67,7 +56,7 @@ namespace alpaka
                     Xor() = default;
 
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY Xor(
+                    __device__ Xor(
                         std::uint32_t const & seed,
                         std::uint32_t const & subsequence = 0,
                         std::uint32_t const & offset = 0)
@@ -107,7 +96,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator()(
+                    __device__ auto operator()(
                         TGenerator & generator)
                     -> float
                     {
@@ -127,7 +116,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator()(
+                    __device__ auto operator()(
                         TGenerator & generator)
                     -> double
                     {
@@ -154,7 +143,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator()(
+                    __device__ auto operator()(
                         TGenerator & generator)
                     -> float
                     {
@@ -178,7 +167,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator()(
+                    __device__ auto operator()(
                         TGenerator & generator)
                     -> double
                     {
@@ -209,7 +198,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     template<
                         typename TGenerator>
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator()(
+                    __device__ auto operator()(
                         TGenerator & generator)
                     -> unsigned int
                     {
@@ -234,7 +223,7 @@ namespace alpaka
                         std::is_floating_point<T>::value>::type>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto createNormalReal(
+                    __device__ static auto createNormalReal(
                         RandCuRand const & /*rand*/)
                     -> rand::distribution::cuda::NormalReal<T>
                     {
@@ -252,7 +241,7 @@ namespace alpaka
                         std::is_floating_point<T>::value>::type>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto createUniformReal(
+                    __device__ static auto createUniformReal(
                         RandCuRand const & /*rand*/)
                     -> rand::distribution::cuda::UniformReal<T>
                     {
@@ -270,7 +259,7 @@ namespace alpaka
                         std::is_integral<T>::value>::type>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto createUniformUint(
+                    __device__ static auto createUniformUint(
                         RandCuRand const & /*rand*/)
                     -> rand::distribution::cuda::UniformUint<T>
                     {
@@ -290,7 +279,7 @@ namespace alpaka
                     RandCuRand>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto createDefault(
+                    __device__ static auto createDefault(
                         RandCuRand const & /*rand*/,
                         std::uint32_t const & seed,
                         std::uint32_t const & subsequence)

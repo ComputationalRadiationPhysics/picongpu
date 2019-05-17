@@ -1,33 +1,22 @@
-/**
- * \file
- * Copyright 2014-2017 Benjamin Worpitz
+/* Copyright 2019 Benjamin Worpitz, Erik Zenker, Matthias Werner
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 
 #pragma once
 
+#include <alpaka/core/Assert.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/meta/NdLoop.hpp>
 #include <alpaka/meta/Integral.hpp>
 
-#include <cassert>
 #include <cstring>
 
 namespace alpaka
@@ -57,12 +46,16 @@ namespace alpaka
                         typename TViewDst,
                         typename TViewSrc,
                         typename TExtent>
-                    struct TaskCopyBase
+                    struct TaskCopyCpuBase
                     {
-                        using ExtentSize = size::Size<TExtent>;
-                        using DstSize = size::Size<TViewDst>;
-                        using SrcSize = size::Size<TViewSrc>;
+                        using ExtentSize = idx::Idx<TExtent>;
+                        using DstSize = idx::Idx<TViewDst>;
+                        using SrcSize = idx::Idx<TViewSrc>;
                         using Elem = elem::Elem<TViewSrc>;
+
+                        static_assert(
+                            !std::is_const<TViewDst>::value,
+                            "The destination view can not be const!");
 
                         static_assert(
                             dim::Dim<TViewDst>::value == dim::Dim<TViewSrc>::value,
@@ -76,17 +69,17 @@ namespace alpaka
 
                         static_assert(
                             meta::IsIntegralSuperset<DstSize, ExtentSize>::value,
-                            "The destination view and the extent are required to have compatible size type!");
+                            "The destination view and the extent are required to have compatible idx type!");
                         static_assert(
                             meta::IsIntegralSuperset<SrcSize, ExtentSize>::value,
-                            "The source view and the extent are required to have compatible size type!");
+                            "The source view and the extent are required to have compatible idx type!");
 
                         static_assert(
                             std::is_same<elem::Elem<TViewDst>, typename std::remove_const<elem::Elem<TViewSrc>>::type>::value,
                             "The source and the destination view are required to have the same element type!");
 
                         //-----------------------------------------------------------------------------
-                        TaskCopyBase(
+                        TaskCopyCpuBase(
                             TViewDst & viewDst,
                             TViewSrc const & viewSrc,
                             TExtent const & extent) :
@@ -102,10 +95,10 @@ namespace alpaka
                                 m_dstMemNative(reinterpret_cast<std::uint8_t *>(mem::view::getPtrNative(viewDst))),
                                 m_srcMemNative(reinterpret_cast<std::uint8_t const *>(mem::view::getPtrNative(viewSrc)))
                         {
-                            assert((vec::cast<DstSize>(m_extent) <= m_dstExtent).foldrAll(std::logical_or<bool>()));
-                            assert((vec::cast<SrcSize>(m_extent) <= m_srcExtent).foldrAll(std::logical_or<bool>()));
-                            assert(static_cast<DstSize>(m_extentWidthBytes) <= m_dstPitchBytes[TDim::value - 1u]);
-                            assert(static_cast<SrcSize>(m_extentWidthBytes) <= m_srcPitchBytes[TDim::value - 1u]);
+                            ALPAKA_ASSERT((vec::cast<DstSize>(m_extent) <= m_dstExtent).foldrAll(std::logical_or<bool>()));
+                            ALPAKA_ASSERT((vec::cast<SrcSize>(m_extent) <= m_srcExtent).foldrAll(std::logical_or<bool>()));
+                            ALPAKA_ASSERT(static_cast<DstSize>(m_extentWidthBytes) <= m_dstPitchBytes[TDim::value - 1u]);
+                            ALPAKA_ASSERT(static_cast<SrcSize>(m_extentWidthBytes) <= m_srcPitchBytes[TDim::value - 1u]);
                         }
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -113,7 +106,7 @@ namespace alpaka
                         ALPAKA_FN_HOST auto printDebug() const
                         -> void
                         {
-                            std::cout << BOOST_CURRENT_FUNCTION
+                            std::cout << __func__
                                 << " e: " << m_extent
                                 << " ewb: " << this->m_extentWidthBytes
                                 << " de: " << m_dstExtent
@@ -148,15 +141,15 @@ namespace alpaka
                         typename TViewDst,
                         typename TViewSrc,
                         typename TExtent>
-                    struct TaskCopy : public TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>
+                    struct TaskCopyCpu : public TaskCopyCpuBase<TDim, TViewDst, TViewSrc, TExtent>
                     {
                         using DimMin1 = dim::DimInt<TDim::value - 1u>;
-                        using typename TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::ExtentSize;
-                        using typename TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::DstSize;
-                        using typename TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::SrcSize;
+                        using typename TaskCopyCpuBase<TDim, TViewDst, TViewSrc, TExtent>::ExtentSize;
+                        using typename TaskCopyCpuBase<TDim, TViewDst, TViewSrc, TExtent>::DstSize;
+                        using typename TaskCopyCpuBase<TDim, TViewDst, TViewSrc, TExtent>::SrcSize;
 
                         //-----------------------------------------------------------------------------
-                        using TaskCopyBase<TDim, TViewDst, TViewSrc, TExtent>::TaskCopyBase;
+                        using TaskCopyCpuBase<TDim, TViewDst, TViewSrc, TExtent>::TaskCopyCpuBase;
 
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto operator()() const
@@ -194,14 +187,14 @@ namespace alpaka
                         typename TViewDst,
                         typename TViewSrc,
                         typename TExtent>
-                    struct TaskCopy<
+                    struct TaskCopyCpu<
                         dim::DimInt<1u>,
                         TViewDst,
                         TViewSrc,
-                        TExtent> : public TaskCopyBase<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>
+                        TExtent> : public TaskCopyCpuBase<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>
                     {
                         //-----------------------------------------------------------------------------
-                        using TaskCopyBase<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>::TaskCopyBase;
+                        using TaskCopyCpuBase<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>::TaskCopyCpuBase;
 
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST auto operator()() const
@@ -232,7 +225,7 @@ namespace alpaka
                 //! Copies from CPU memory into CPU memory.
                 template<
                     typename TDim>
-                struct TaskCopy<
+                struct CreateTaskCopy<
                     TDim,
                     dev::DevCpu,
                     dev::DevCpu>
@@ -242,18 +235,18 @@ namespace alpaka
                         typename TExtent,
                         typename TViewSrc,
                         typename TViewDst>
-                    ALPAKA_FN_HOST static auto taskCopy(
+                    ALPAKA_FN_HOST static auto createTaskCopy(
                         TViewDst & viewDst,
                         TViewSrc const & viewSrc,
                         TExtent const & extent)
-                    -> cpu::detail::TaskCopy<
+                    -> cpu::detail::TaskCopyCpu<
                         TDim,
                         TViewDst,
                         TViewSrc,
                         TExtent>
                     {
                         return
-                            cpu::detail::TaskCopy<
+                            cpu::detail::TaskCopyCpu<
                                 TDim,
                                 TViewDst,
                                 TViewSrc,

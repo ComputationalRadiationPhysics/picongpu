@@ -1,37 +1,16 @@
-/**
- * \file
- * Copyright 2017 Benjamin Worpitz
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 
 #include <alpaka/alpaka.hpp>
 
-#include <alpaka/core/BoostPredef.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/test/unit_test.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
-
-BOOST_AUTO_TEST_SUITE(meta)
+#include <catch2/catch.hpp>
 
 //#############################################################################
 struct Foo {
@@ -56,23 +35,23 @@ struct AbsNum {
 };
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(invoke)
+TEST_CASE("invoke", "[meta]")
 {
     // invoke a free function
-    BOOST_REQUIRE_EQUAL(9, alpaka::meta::invoke(abs_num, -9));
+    REQUIRE(9 == alpaka::meta::invoke(abs_num, -9));
 
     // invoke a lambda
-    BOOST_REQUIRE_EQUAL(42, alpaka::meta::invoke([]() { return abs_num(-42); }));
+    REQUIRE(42 == alpaka::meta::invoke([]() { return abs_num(-42); }));
 
     // invoke a member function
     const Foo foo(-314159);
-    BOOST_REQUIRE_EQUAL(-314158, alpaka::meta::invoke(&Foo::add, foo, 1));
+    REQUIRE(-314158 == alpaka::meta::invoke(&Foo::add, foo, 1));
 
     // invoke (access) a data member
-    BOOST_REQUIRE_EQUAL(-314159, alpaka::meta::invoke(&Foo::num_, foo));
+    REQUIRE(-314159 == alpaka::meta::invoke(&Foo::num_, foo));
 
     // invoke a function object
-    BOOST_REQUIRE_EQUAL(18, alpaka::meta::invoke(AbsNum(), -18));
+    REQUIRE(18 == alpaka::meta::invoke(AbsNum(), -18));
 }
 
 //-----------------------------------------------------------------------------
@@ -90,12 +69,10 @@ T add_generic(T first, T second)
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(applyTuple)
+TEST_CASE("applyTuple", "[meta]")
 {
-    BOOST_REQUIRE_EQUAL(3, alpaka::meta::apply(add, std::make_tuple(1, 2)));
+    REQUIRE(3 == alpaka::meta::apply(add, std::make_tuple(1, 2)));
 
     // intended compilation error: template argument deduction/substitution fails
-    // BOOST_REQUIRE_EQUAL(5.0, alpaka::meta::apply(add_generic, std::make_tuple(2.0f,3.0f)));
+    // REQUIRE(5.0 == alpaka::meta::apply(add_generic, std::make_tuple(2.0f, 3.0f)));
 }
-
-BOOST_AUTO_TEST_SUITE_END()

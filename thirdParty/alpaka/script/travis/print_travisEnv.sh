@@ -1,28 +1,16 @@
 #!/bin/bash
 
 #
-# Copyright 2017 Benjamin Worpitz
+# Copyright 2017-2019 Benjamin Worpitz
 #
-# This file is part of alpaka.
+# This file is part of Alpaka.
 #
-# alpaka is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# alpaka is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with alpaka.
-# If not, see <http://www.gnu.org/licenses/>.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-#-------------------------------------------------------------------------------
-# e: exit as soon as one command returns a non-zero exit code.
-set -euo pipefail
+source ./script/travis/set.sh
 
 #-------------------------------------------------------------------------------
 # Print the travis environment variables: http://docs.travis-ci.com/user/ci-environment/
@@ -39,3 +27,18 @@ echo TRAVIS_SECURE_ENV_VARS: "${TRAVIS_SECURE_ENV_VARS}"
 echo TRAVIS_REPO_SLUG: "${TRAVIS_REPO_SLUG}"
 echo TRAVIS_OS_NAME: "${TRAVIS_OS_NAME}"
 echo TRAVIS_TAG: "${TRAVIS_TAG}"
+
+if [ "$TRAVIS_OS_NAME" = "linux" ]
+then
+    # Show all running services
+    sudo service --status-all
+
+    # Stop some unnecessary services to save memory
+    sudo /etc/init.d/mysql stop
+    sudo /etc/init.d/postgresql stop
+    sudo /etc/init.d/redis-server stop
+
+    # Show memory stats
+    sudo smem
+    sudo free -m -t
+fi

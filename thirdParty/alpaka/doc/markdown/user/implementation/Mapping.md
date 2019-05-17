@@ -15,7 +15,7 @@ A major point of the *redundant hierarchical parallelism* abstraction is to igno
 This allows a mapping to various current and future accelerators in a variety of ways enabling optimal usage of the underlying compute and memory capabilities.
 
 The grid level is always mapped to the whole device being in consideration.
-The scheduler can always execute multiple kernel grids from multiple streams in parallel by statically or dynamically subdividing the available resources.
+The scheduler can always execute multiple kernel grids from multiple queues in parallel by statically or dynamically subdividing the available resources.
 However, this will only ever simplify the mapping due to less available processing units.
 Furthermore, being restricted to less resources automatically improves the locality of data due to spatial and temporal locality properties of the caching hierarchy.
 

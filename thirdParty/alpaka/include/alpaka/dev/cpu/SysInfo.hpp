@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz, Daniel Vollmer, Erik Zenker, René Widera
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -32,12 +21,12 @@
     #endif
     // We could use some more macros to reduce the number of sub-headers included, but this would restrict user code.
     #include <windows.h>
-#elif BOOST_OS_UNIX
+#elif BOOST_OS_UNIX || BOOST_OS_MACOS
     #include <cstdint>
     #include <unistd.h>
     #include <sys/types.h>
     #include <sys/param.h>
-    #if BOOST_OS_BSD
+    #if BOOST_OS_BSD || BOOST_OS_MACOS
         #include <sys/sysctl.h>
     #endif
 #endif
@@ -141,10 +130,10 @@ namespace alpaka
                     GlobalMemoryStatus(&status);
                     return static_cast<std::size_t>(status.dwTotalPhys);
 
-#elif BOOST_OS_UNIX
+#elif BOOST_OS_UNIX || BOOST_OS_MACOS
                     // Unix : Prefer sysctl() over sysconf() except sysctl() with HW_REALMEM and HW_PHYSMEM which are not always reliable
     #if defined(CTL_HW) && (defined(HW_MEMSIZE) || defined(HW_PHYSMEM64))
-                    int const mib[2] = {CTL_HW,
+                    int mib[2] = {CTL_HW,
         #if defined(HW_MEMSIZE)                                                 // OSX
                         HW_MEMSIZE
         #elif defined(HW_PHYSMEM64)                                             // NetBSD, OpenBSD.
@@ -152,7 +141,7 @@ namespace alpaka
         #endif
                     };
                     std::uint64_t size(0);
-                    std::size_t const sizeLen{sizeof(size)};
+                    std::size_t sizeLen{sizeof(size)};
                     if(sysctl(mib, 2, &size, &sizeLen, nullptr, 0) < 0)
                     {
                         throw std::logic_error("getTotalGlobalMemSizeBytes failed calling sysctl!");
@@ -228,7 +217,19 @@ namespace alpaka
                         throw std::runtime_error("Unable to open '/proc/meminfo'!");
                     }
 #elif BOOST_OS_MACOS
-    #error "getFreeGlobalMemSizeBytes not implemented for __APPLE__!"
+                    int free_pages = 0;
+                    std::size_t len = sizeof(free_pages);
+                    if(sysctlbyname("vm.page_free_count", &free_pages, &len, nullptr, 0) < 0)
+                    {
+                        throw std::logic_error("getFreeGlobalMemSizeBytes failed calling sysctl(vm.page_free_count)!");
+                    }
+                    int page_size = 0;
+                    len = sizeof(page_size);
+                    if(sysctlbyname("vm.pagesize", &page_size, &len, nullptr, 0) < 0)
+                    {
+                        throw std::logic_error("getFreeGlobalMemSizeBytes failed calling sysctl(vm.pagesize)!");
+                    }
+                    return static_cast<std::size_t>(free_pages) * static_cast<std::size_t>(page_size);
 #else
     #error "getFreeGlobalMemSizeBytes not implemented for this system!"
 #endif

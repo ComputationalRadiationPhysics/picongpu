@@ -1,49 +1,25 @@
-/**
- * \file
- * Copyright 2017 Rene Widera, Benjamin Worpitz
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// \Hack: Boost.MPL defines BOOST_MPL_CFG_GPU_ENABLED to __host__ __device__ if nvcc is used.
-// BOOST_AUTO_TEST_CASE_TEMPLATE and its internals are not GPU enabled but is using boost::mpl::for_each internally.
-// For each template parameter this leads to:
-// /home/travis/build/boost/boost/mpl/for_each.hpp(78): warning: calling a __host__ function from a __host__ __device__ function is not allowed
-// because boost::mpl::for_each has the BOOST_MPL_CFG_GPU_ENABLED attribute but the test internals are pure host methods.
-// Because we do not use MPL within GPU code here, we can disable the MPL GPU support.
-#define BOOST_MPL_CFG_GPU_ENABLED
+
+// NVCC needs --expt-relaxed-constexpr
+#if !defined(__NVCC__) || \
+    ( defined(__NVCC__) && defined(__CUDACC_RELAXED_CONSTEXPR__) )
 
 #include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>                  // alpaka::test::acc::TestAccs
-#include <alpaka/test/KernelExecutionFixture.hpp>   // alpaka::test::KernelExecutionFixture
+#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/KernelExecutionFixture.hpp>
+#include <alpaka/meta/ForEachType.hpp>
 
-#include <alpaka/core/BoostPredef.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/test/unit_test.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
+#include <catch2/catch.hpp>
 
 #include <limits>
-
-BOOST_AUTO_TEST_SUITE(kernel)
 
 //#############################################################################
 //!
@@ -57,43 +33,53 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool* success) const
     -> void
     {
-        // Do something useless on the accelerator.
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
-        
-        constexpr double epsilon = std::numeric_limits< double >::epsilon();
-        this->ignoreUnused(epsilon);
+        alpaka::ignore_unused(acc);
+
+#if BOOST_COMP_MSVC
+    #pragma warning(push)
+    #pragma warning(disable: 4127)  // warning C4127: conditional expression is constant
+#endif
+        // FIXME: workaround for HIP(HCC) where numeric_limits::* do not provide
+        // matching host-device restriction requirements
+#if defined(BOOST_COMP_HCC) && BOOST_COMP_HCC
+        constexpr auto max = static_cast<std::uint32_t>(-1);
+#else
+        constexpr auto max = std::numeric_limits< std::uint32_t >::max();
+#endif
+        ALPAKA_CHECK(*success, 0 != max);
+#if BOOST_COMP_MSVC
+    #pragma warning(pop)
+#endif
     }
-private:
-    //! ignore unused variables
-    template<typename T>
-    ALPAKA_FN_ACC auto ignoreUnused(T const &) const
-    -> void
-    {}
 };
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE_TEMPLATE(
-    kernelWithHostConstexpr,
-    TAcc,
-    alpaka::test::acc::TestAccs)
+struct TestTemplate
+{
+template< typename TAcc >
+void operator()()
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelWithHostConstexpr kernel;
 
-    BOOST_REQUIRE_EQUAL(
-        true,
-        fixture(
-            kernel));
+    REQUIRE(fixture(kernel));
+}
+};
+
+TEST_CASE( "kernelWithHostConstexpr", "[kernel]")
+{
+    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+#endif

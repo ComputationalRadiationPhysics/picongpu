@@ -1,29 +1,19 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Alexander Matthes, Axel Huebl, Benjamin Worpitz, Bert Wesarg
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -31,9 +21,8 @@
 
 #include <alpaka/math/min/Traits.hpp>
 
-//#include <boost/core/ignore_unused.hpp>
-
 #include <cuda_runtime.h>
+
 #include <type_traits>
 #include <algorithm>
 
@@ -64,13 +53,13 @@ namespace alpaka
                     std::is_integral<Tx>::value
                     && std::is_integral<Ty>::value>::type>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto min(
-                    MinCudaBuiltIn const & /*min*/,
+                __device__ static auto min(
+                    MinCudaBuiltIn const & min_ctx,
                     Tx const & x,
                     Ty const & y)
                 -> decltype(::min(x, y))
                 {
-                    //boost::ignore_unused(min);
+                    alpaka::ignore_unused(min_ctx);
                     return ::min(x, y);
                 }
             };
@@ -89,13 +78,13 @@ namespace alpaka
                     && !(std::is_integral<Tx>::value
                         && std::is_integral<Ty>::value)>::type>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto min(
-                    MinCudaBuiltIn const & /*min*/,
+                __device__ static auto min(
+                    MinCudaBuiltIn const & min_ctx,
                     Tx const & x,
                     Ty const & y)
                 -> decltype(::fmin(x, y))
                 {
-                    //boost::ignore_unused(min);
+                    alpaka::ignore_unused(min_ctx);
                     return ::fmin(x, y);
                 }
             };

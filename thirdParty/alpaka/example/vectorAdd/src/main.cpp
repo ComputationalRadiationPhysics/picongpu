@@ -1,26 +1,24 @@
-/**
- * \file
- * Copyright 2014-2015 Benjamin Worpitz
+/* Copyright 2019 Benjamin Worpitz, Matthias Werner
  *
- * This file is part of alpaka.
+ * This file exemplifies usage of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
+ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+ * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
 
 #include <alpaka/alpaka.hpp>
 
+#include <random>
 #include <iostream>
 #include <typeinfo>
 
@@ -43,31 +41,31 @@ public:
     template<
         typename TAcc,
         typename TElem,
-        typename TSize>
+        typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const & acc,
         TElem const * const A,
         TElem const * const B,
         TElem * const C,
-        TSize const & numElements) const
+        TIdx const & numElements) const
     -> void
     {
         static_assert(
             alpaka::dim::Dim<TAcc>::value == 1,
             "The VectorAddKernel expects 1-dimensional indices!");
 
-        auto const gridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
-        auto const threadElemExtent(alpaka::workdiv::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
-        auto const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
+        TIdx const gridThreadIdx(alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
+        TIdx const threadElemExtent(alpaka::workdiv::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
+        TIdx const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
 
         if(threadFirstElemIdx < numElements)
         {
             // Calculate the number of elements to compute in this thread.
             // The result is uniform for all but the last thread.
-            auto const threadLastElemIdx(threadFirstElemIdx+threadElemExtent);
-            auto const threadLastElemIdxClipped((numElements > threadLastElemIdx) ? threadLastElemIdx : numElements);
+            TIdx const threadLastElemIdx(threadFirstElemIdx+threadElemExtent);
+            TIdx const threadLastElemIdxClipped((numElements > threadLastElemIdx) ? threadLastElemIdx : numElements);
 
-            for(TSize i(threadFirstElemIdx); i<threadLastElemIdxClipped; ++i)
+            for(TIdx i(threadFirstElemIdx); i<threadLastElemIdxClipped; ++i)
             {
                 C[i] = A[i] + B[i];
             }
@@ -78,112 +76,109 @@ public:
 auto main()
 -> int
 {
-    using Val = float;
-    using Size = std::size_t;
+// This example is hard-coded to use the sequential backend.
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
 
-    using Acc = alpaka::acc::AccCpuSerial<alpaka::dim::DimInt<1u>, Size>;
+    // Define the index domain
+    using Dim = alpaka::dim::DimInt<1u>;
+    using Idx = std::size_t;
+
+    // Define the accelerator
+    using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
     using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using StreamAcc = alpaka::stream::StreamCpuSync;
+    using QueueAcc = alpaka::queue::QueueCpuSync;
 
-    using PltfHost = alpaka::pltf::PltfCpu;
+    // Select a device
+    DevAcc const devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u));
 
-    Size const numElements(123456);
+    // Create a queue on the device
+    QueueAcc queue(devAcc);
 
-    // Create the kernel function object.
-    VectorAddKernel kernel;
+    // Define the work division
+    Idx const numElements(123456);
+    Idx const elementsPerThread(3u);
+    alpaka::vec::Vec<Dim, Idx> const extent(numElements);
 
-    // Get the host device.
-    auto const devHost(
-        alpaka::pltf::getDevByIdx<PltfHost>(0u));
-
-    // Select a device to execute on.
-    auto const devAcc(
-        alpaka::pltf::getDevByIdx<PltfAcc>(0));
-
-    // Get a stream on this device.
-    StreamAcc stream(devAcc);
-
-    // The data extent.
-    alpaka::vec::Vec<alpaka::dim::DimInt<1u>, Size> const extent(
-        numElements);
-
-    // Let alpaka calculate good block and grid sizes given our full problem extent.
-    alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<1u>, Size> const workDiv(
+    // Let alpaka calculate good block and grid sizes given our full problem extent
+    alpaka::workdiv::WorkDivMembers<Dim, Idx> const workDiv(
         alpaka::workdiv::getValidWorkDiv<Acc>(
             devAcc,
             extent,
-            static_cast<Size>(3u),
+            elementsPerThread,
             false,
             alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted));
 
-    std::cout
-        << "VectorAddKernelTester("
-        << " numElements:" << numElements
-        << ", accelerator: " << alpaka::acc::getAccName<Acc>()
-        << ", kernel: " << typeid(kernel).name()
-        << ", workDiv: " << workDiv
-        << ")" << std::endl;
+    // Define the buffer element type
+    using Data = std::uint32_t;
 
-    // Allocate host memory buffers.
-    auto memBufHostA(alpaka::mem::buf::alloc<Val, Size>(devHost, extent));
-    auto memBufHostB(alpaka::mem::buf::alloc<Val, Size>(devHost, extent));
-    auto memBufHostC(alpaka::mem::buf::alloc<Val, Size>(devHost, extent));
+    // Get the host device for allocating memory on the host.
+    using DevHost = alpaka::dev::DevCpu;
+    using PltfHost = alpaka::pltf::Pltf<DevHost>;
+    DevHost const devHost(alpaka::pltf::getDevByIdx<PltfHost>(0u));
 
-    // Initialize the host input vectors
-    for (Size i(0); i < numElements; ++i)
+    // Allocate 3 host memory buffers
+    using BufHost = alpaka::mem::buf::Buf<DevHost, Data, Dim, Idx>;
+    BufHost bufHostA(alpaka::mem::buf::alloc<Data, Idx>(devHost, extent));
+    BufHost bufHostB(alpaka::mem::buf::alloc<Data, Idx>(devHost, extent));
+    BufHost bufHostC(alpaka::mem::buf::alloc<Data, Idx>(devHost, extent));
+
+    // Initialize the host input vectors A and B
+    Data * const pBufHostA(alpaka::mem::view::getPtrNative(bufHostA));
+    Data * const pBufHostB(alpaka::mem::view::getPtrNative(bufHostB));
+    Data * const pBufHostC(alpaka::mem::view::getPtrNative(bufHostC));
+
+    // C++11 random generator for uniformly distributed numbers in {1,..,42}
+    std::random_device rd{};
+    std::default_random_engine eng{ rd() };
+    std::uniform_int_distribution<Data> dist(1, 42);
+
+    for (Idx i(0); i < numElements; ++i)
     {
-        alpaka::mem::view::getPtrNative(memBufHostA)[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
-        alpaka::mem::view::getPtrNative(memBufHostB)[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
+        pBufHostA[i] = dist(eng);
+        pBufHostB[i] = dist(eng);
+        pBufHostC[i] = 0;
     }
 
-    // Allocate the buffers on the accelerator.
-    auto memBufAccA(alpaka::mem::buf::alloc<Val, Size>(devAcc, extent));
-    auto memBufAccB(alpaka::mem::buf::alloc<Val, Size>(devAcc, extent));
-    auto memBufAccC(alpaka::mem::buf::alloc<Val, Size>(devAcc, extent));
+    // Allocate 3 buffers on the accelerator
+    using BufAcc = alpaka::mem::buf::Buf<DevAcc, Data, Dim, Idx>;
+    BufAcc bufAccA(alpaka::mem::buf::alloc<Data, Idx>(devAcc, extent));
+    BufAcc bufAccB(alpaka::mem::buf::alloc<Data, Idx>(devAcc, extent));
+    BufAcc bufAccC(alpaka::mem::buf::alloc<Data, Idx>(devAcc, extent));
 
-    // Copy Host -> Acc.
-    alpaka::mem::view::copy(stream, memBufAccA, memBufHostA, extent);
-    alpaka::mem::view::copy(stream, memBufAccB, memBufHostB, extent);
+    // Copy Host -> Acc
+    alpaka::mem::view::copy(queue, bufAccA, bufHostA, extent);
+    alpaka::mem::view::copy(queue, bufAccB, bufHostB, extent);
+    alpaka::mem::view::copy(queue, bufAccC, bufHostC, extent);
 
-    // Create the executor task.
-    auto const exec(alpaka::exec::create<Acc>(
+    // Instantiate the kernel function object
+    VectorAddKernel kernel;
+
+    // Create the kernel execution task.
+    auto const taskKernel(alpaka::kernel::createTaskKernel<Acc>(
         workDiv,
         kernel,
-        alpaka::mem::view::getPtrNative(memBufAccA),
-        alpaka::mem::view::getPtrNative(memBufAccB),
-        alpaka::mem::view::getPtrNative(memBufAccC),
+        alpaka::mem::view::getPtrNative(bufAccA),
+        alpaka::mem::view::getPtrNative(bufAccB),
+        alpaka::mem::view::getPtrNative(bufAccC),
         numElements));
 
-    // Profile the kernel execution.
-    alpaka::stream::enqueue(stream, exec);
+    // Enqueue the kernel execution task
+    alpaka::queue::enqueue(queue, taskKernel);
 
-    // Copy back the result.
-    alpaka::mem::view::copy(stream, memBufHostC, memBufAccC, extent);
+    // Copy back the result
+    alpaka::mem::view::copy(queue, bufHostC, bufAccC, extent);
 
     bool resultCorrect(true);
-    auto const pHostData(alpaka::mem::view::getPtrNative(memBufHostC));
-    for(Size i(0u);
+    for(Idx i(0u);
         i < numElements;
         ++i)
     {
-        auto const & val(pHostData[i]);
-        auto const correctResult(alpaka::mem::view::getPtrNative(memBufHostA)[i]+alpaka::mem::view::getPtrNative(memBufHostB)[i]);
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wfloat-equal" // "comparing floating point with == or != is unsafe"
-#elif BOOST_COMP_GNUC
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wfloat-equal"  // "comparing floating point with == or != is unsafe"
-#endif
+        Data const & val(pBufHostC[i]);
+        Data const correctResult(pBufHostA[i] + pBufHostB[i]);
         if(val != correctResult)
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#elif BOOST_COMP_GNUC
-    #pragma GCC diagnostic pop
-#endif
         {
-            std::cout << "C[" << i << "] == " << val << " != " << correctResult << std::endl;
+            std::cerr << "C[" << i << "] == " << val << " != " << correctResult << std::endl;
             resultCorrect = false;
         }
     }
@@ -191,7 +186,15 @@ auto main()
     if(resultCorrect)
     {
         std::cout << "Execution results correct!" << std::endl;
+        return EXIT_SUCCESS;
+    }
+    else
+    {
+        std::cout << "Execution results incorrect!" << std::endl;
+        return EXIT_FAILURE;
     }
 
+#else
     return EXIT_SUCCESS;
+#endif
 }

@@ -1,26 +1,17 @@
-/**
- * \file
- * Copyright 2015 Benjamin Worpitz
+/* Copyright 2019 Benjamin Worpitz
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+
 #include <alpaka/alpaka.hpp>
-#include <alpaka/test/stream/Stream.hpp>
+
+#include <alpaka/test/Check.hpp>
+#include <alpaka/test/queue/Queue.hpp>
 
 namespace alpaka
 {
@@ -35,10 +26,10 @@ namespace alpaka
         public:
             using Acc = TAcc;
             using Dim = alpaka::dim::Dim<Acc>;
-            using Size = alpaka::size::Size<Acc>;
+            using Idx = alpaka::idx::Idx<Acc>;
             using DevAcc = alpaka::dev::Dev<Acc>;
             using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-            using StreamAcc = alpaka::test::stream::DefaultStream<DevAcc>;
+            using QueueAcc = alpaka::test::queue::DefaultQueue<DevAcc>;
 
         public:
             //-----------------------------------------------------------------------------
@@ -48,12 +39,12 @@ namespace alpaka
                 TExtent const & extent) :
                     m_devHost(alpaka::pltf::getDevByIdx<pltf::PltfCpu>(0u)),
                     m_devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u)),
-                    m_stream(m_devAcc),
+                    m_queue(m_devAcc),
                     m_workDiv(
                         alpaka::workdiv::getValidWorkDiv<Acc>(
                             m_devAcc,
                             extent,
-                            alpaka::vec::Vec<Dim, Size>::ones(),
+                            alpaka::vec::Vec<Dim, Idx>::ones(),
                             false,
                             alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted))
             {}
@@ -66,24 +57,36 @@ namespace alpaka
                 TArgs const & ... args)
             -> bool
             {
-                auto const exec(
-                    alpaka::exec::create<Acc>(
-                        m_workDiv,
-                        kernelFnObj,
-                        args...));
+                // Allocate the result value
+                auto bufAccResult(alpaka::mem::buf::alloc<bool, Idx>(m_devAcc, static_cast<Idx>(1u)));
+                alpaka::mem::view::set(
+                    m_queue,
+                    bufAccResult,
+                    static_cast<std::uint8_t>(true),
+                    bufAccResult);
 
-                alpaka::stream::enqueue(m_stream, exec);
+                alpaka::kernel::exec<Acc>(
+                    m_queue,
+                    m_workDiv,
+                    kernelFnObj,
+                    alpaka::mem::view::getPtrNative(bufAccResult),
+                    args...);
 
-                alpaka::wait::wait(m_stream);
+                // Copy the result value to the host
+                auto bufHostResult(alpaka::mem::buf::alloc<bool, Idx>(m_devHost, static_cast<Idx>(1u)));
+                alpaka::mem::view::copy(m_queue, bufHostResult, bufAccResult, bufAccResult);
+                alpaka::wait::wait(m_queue);
 
-                return true;
+                auto const result(*alpaka::mem::view::getPtrNative(bufHostResult));
+
+                return result;
             }
 
         private:
             alpaka::dev::DevCpu m_devHost;
             DevAcc m_devAcc;
-            StreamAcc m_stream;
-            alpaka::workdiv::WorkDivMembers<Dim, Size> m_workDiv;
+            QueueAcc m_queue;
+            alpaka::workdiv::WorkDivMembers<Dim, Idx> m_workDiv;
         };
     }
 }

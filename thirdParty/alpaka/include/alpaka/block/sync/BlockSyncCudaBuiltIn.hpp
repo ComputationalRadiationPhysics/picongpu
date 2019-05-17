@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -47,13 +36,13 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 BlockSyncCudaBuiltIn() = default;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn const &) = delete;
+                __device__ BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn const &) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn &&) = delete;
+                __device__ BlockSyncCudaBuiltIn(BlockSyncCudaBuiltIn &&) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSyncCudaBuiltIn const &) -> BlockSyncCudaBuiltIn & = delete;
+                __device__ auto operator=(BlockSyncCudaBuiltIn const &) -> BlockSyncCudaBuiltIn & = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSyncCudaBuiltIn &&) -> BlockSyncCudaBuiltIn & = delete;
+                __device__ auto operator=(BlockSyncCudaBuiltIn &&) -> BlockSyncCudaBuiltIn & = delete;
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~BlockSyncCudaBuiltIn() = default;
             };
@@ -66,7 +55,7 @@ namespace alpaka
                     BlockSyncCudaBuiltIn>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreads(
+                    __device__ static auto syncBlockThreads(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/)
                     -> void
                     {
@@ -81,7 +70,7 @@ namespace alpaka
                     BlockSyncCudaBuiltIn>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreadsPredicate(
+                    __device__ static auto syncBlockThreadsPredicate(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/,
                         int predicate)
                     -> int
@@ -97,7 +86,7 @@ namespace alpaka
                     BlockSyncCudaBuiltIn>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreadsPredicate(
+                    __device__ static auto syncBlockThreadsPredicate(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/,
                         int predicate)
                     -> int
@@ -113,7 +102,7 @@ namespace alpaka
                     BlockSyncCudaBuiltIn>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY static auto syncBlockThreadsPredicate(
+                    __device__ static auto syncBlockThreadsPredicate(
                         block::sync::BlockSyncCudaBuiltIn const & /*blockSync*/,
                         int predicate)
                     -> int

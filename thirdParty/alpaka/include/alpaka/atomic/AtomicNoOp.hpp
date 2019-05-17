@@ -1,29 +1,18 @@
-/**
-* \file
-* Copyright 2014-2016 Benjamin Worpitz, Rene Widera
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
 #include <alpaka/atomic/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp>
+#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -38,13 +27,13 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             AtomicNoOp() = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA AtomicNoOp(AtomicNoOp const &) = delete;
+            AtomicNoOp(AtomicNoOp const &) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA AtomicNoOp(AtomicNoOp &&) = delete;
+            AtomicNoOp(AtomicNoOp &&) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA auto operator=(AtomicNoOp const &) -> AtomicNoOp & = delete;
+            auto operator=(AtomicNoOp const &) -> AtomicNoOp & = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA auto operator=(AtomicNoOp &&) -> AtomicNoOp & = delete;
+            auto operator=(AtomicNoOp &&) -> AtomicNoOp & = delete;
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AtomicNoOp() = default;
         };
@@ -64,24 +53,24 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA static auto atomicOp(
+                ALPAKA_FN_HOST static auto atomicOp(
                     atomic::AtomicNoOp const & atomic,
                     T * const addr,
                     T const & value)
                 -> T
                 {
-                    boost::ignore_unused(atomic);
+                    alpaka::ignore_unused(atomic);
                     return TOp()(addr, value);
                 }
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA static auto atomicOp(
+                ALPAKA_FN_HOST static auto atomicOp(
                     atomic::AtomicNoOp const & atomic,
                     T * const addr,
                     T const & compare,
                     T const & value)
                 -> T
                 {
-                    boost::ignore_unused(atomic);
+                    alpaka::ignore_unused(atomic);
                     return TOp()(addr, compare, value);
                 }
             };

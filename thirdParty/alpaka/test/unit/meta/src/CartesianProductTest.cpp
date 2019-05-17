@@ -1,43 +1,23 @@
-/**
- * \file
- * Copyright 2015 Benjamin Worpitz
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 
 #include <alpaka/alpaka.hpp>
 
-#include <alpaka/core/BoostPredef.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/test/unit_test.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
+#include <catch2/catch.hpp>
 
 #include <tuple>
 #include <type_traits>
 
-BOOST_AUTO_TEST_SUITE(meta)
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(cartesianProduct)
+TEST_CASE("cartesianProduct", "[meta]")
 {
     using TestDims =
         std::tuple<
@@ -45,7 +25,7 @@ BOOST_AUTO_TEST_CASE(cartesianProduct)
             alpaka::dim::DimInt<2u>,
             alpaka::dim::DimInt<3u>>;
 
-    using TestSizes =
+    using TestIdxs =
         std::tuple<
             std::size_t,
             std::int64_t>;
@@ -54,7 +34,7 @@ BOOST_AUTO_TEST_CASE(cartesianProduct)
         alpaka::meta::CartesianProduct<
             std::tuple,
             TestDims,
-            TestSizes
+            TestIdxs
         >;
 
     using CartesianProductReference =
@@ -73,5 +53,3 @@ BOOST_AUTO_TEST_CASE(cartesianProduct)
         >::value,
         "alpaka::meta::CartesianProduct failed!");
 }
-
-BOOST_AUTO_TEST_SUITE_END()

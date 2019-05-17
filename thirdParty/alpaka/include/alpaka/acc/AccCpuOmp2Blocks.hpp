@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2016 Benjamin Worpitz, Rene Widera
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -32,41 +21,40 @@
 #include <alpaka/idx/gb/IdxGbRef.hpp>
 #include <alpaka/idx/bt/IdxBtZero.hpp>
 #include <alpaka/atomic/AtomicNoOp.hpp>
-#include <alpaka/atomic/AtomicStlLock.hpp>
-#include <alpaka/atomic/AtomicOmpCritSec.hpp>
+#include <alpaka/atomic/AtomicStdLibLock.hpp>
+#include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
 #include <alpaka/atomic/AtomicHierarchy.hpp>
-#include <alpaka/math/MathStl.hpp>
+#include <alpaka/math/MathStdLib.hpp>
 #include <alpaka/block/shared/dyn/BlockSharedMemDynBoostAlignedAlloc.hpp>
 #include <alpaka/block/shared/st/BlockSharedMemStNoSync.hpp>
 #include <alpaka/block/sync/BlockSyncNoOp.hpp>
-#include <alpaka/rand/RandStl.hpp>
+#include <alpaka/rand/RandStdLib.hpp>
 #include <alpaka/time/TimeOmp.hpp>
 
 // Specialized traits.
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/exec/Traits.hpp>
+#include <alpaka/kernel/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 // Implementation details.
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/DevCpu.hpp>
-
-#include <boost/core/ignore_unused.hpp>
 
 #include <limits>
 #include <typeinfo>
 
 namespace alpaka
 {
-    namespace exec
+    namespace kernel
     {
         template<
             typename TDim,
-            typename TSize,
+            typename TIdx,
             typename TKernelFnObj,
             typename... TArgs>
-        class ExecCpuOmp2Blocks;
+        class TaskKernelCpuOmp2Blocks;
     }
     namespace acc
     {
@@ -75,74 +63,74 @@ namespace alpaka
         //!
         //! This accelerator allows parallel kernel execution on a CPU device.
         //! It uses OpenMP 2.0 to implement the grid block parallelism.
-        //! The block size is restricted to 1x1x1.
+        //! The block idx is restricted to 1x1x1.
         template<
             typename TDim,
-            typename TSize>
+            typename TIdx>
         class AccCpuOmp2Blocks final :
-            public workdiv::WorkDivMembers<TDim, TSize>,
-            public idx::gb::IdxGbRef<TDim, TSize>,
-            public idx::bt::IdxBtZero<TDim, TSize>,
+            public workdiv::WorkDivMembers<TDim, TIdx>,
+            public idx::gb::IdxGbRef<TDim, TIdx>,
+            public idx::bt::IdxBtZero<TDim, TIdx>,
             public atomic::AtomicHierarchy<
-                atomic::AtomicStlLock<16>,   // grid atomics
-                atomic::AtomicOmpCritSec,    // block atomics
+                atomic::AtomicStdLibLock<16>,   // grid atomics
+                atomic::AtomicOmpBuiltIn,    // block atomics
                 atomic::AtomicNoOp           // thread atomics
             >,
-            public math::MathStl,
+            public math::MathStdLib,
             public block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc,
             public block::shared::st::BlockSharedMemStNoSync,
             public block::sync::BlockSyncNoOp,
-            public rand::RandStl,
+            public rand::RandStdLib,
             public time::TimeOmp
         {
         public:
-            // Partial specialization with the correct TDim and TSize is not allowed.
+            // Partial specialization with the correct TDim and TIdx is not allowed.
             template<
                 typename TDim2,
-                typename TSize2,
+                typename TIdx2,
                 typename TKernelFnObj,
                 typename... TArgs>
-            friend class ::alpaka::exec::ExecCpuOmp2Blocks;
+            friend class ::alpaka::kernel::TaskKernelCpuOmp2Blocks;
 
         private:
             //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
-            ALPAKA_FN_ACC_NO_CUDA AccCpuOmp2Blocks(
+            ALPAKA_FN_HOST AccCpuOmp2Blocks(
                 TWorkDiv const & workDiv,
-                TSize const & blockSharedMemDynSizeBytes) :
-                    workdiv::WorkDivMembers<TDim, TSize>(workDiv),
-                    idx::gb::IdxGbRef<TDim, TSize>(m_gridBlockIdx),
-                    idx::bt::IdxBtZero<TDim, TSize>(),
+                TIdx const & blockSharedMemDynSizeBytes) :
+                    workdiv::WorkDivMembers<TDim, TIdx>(workDiv),
+                    idx::gb::IdxGbRef<TDim, TIdx>(m_gridBlockIdx),
+                    idx::bt::IdxBtZero<TDim, TIdx>(),
                     atomic::AtomicHierarchy<
-                        atomic::AtomicStlLock<16>,// atomics between grids
-                        atomic::AtomicOmpCritSec, // atomics between blocks
+                        atomic::AtomicStdLibLock<16>,// atomics between grids
+                        atomic::AtomicOmpBuiltIn, // atomics between blocks
                         atomic::AtomicNoOp        // atomics between threads
                     >(),
-                    math::MathStl(),
+                    math::MathStdLib(),
                     block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc(static_cast<std::size_t>(blockSharedMemDynSizeBytes)),
                     block::shared::st::BlockSharedMemStNoSync(),
                     block::sync::BlockSyncNoOp(),
-                    rand::RandStl(),
+                    rand::RandStdLib(),
                     time::TimeOmp(),
-                    m_gridBlockIdx(vec::Vec<TDim, TSize>::zeros())
+                    m_gridBlockIdx(vec::Vec<TDim, TIdx>::zeros())
             {}
 
         public:
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA AccCpuOmp2Blocks(AccCpuOmp2Blocks const &) = delete;
+            ALPAKA_FN_HOST AccCpuOmp2Blocks(AccCpuOmp2Blocks const &) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA AccCpuOmp2Blocks(AccCpuOmp2Blocks &&) = delete;
+            ALPAKA_FN_HOST AccCpuOmp2Blocks(AccCpuOmp2Blocks &&) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuOmp2Blocks const &) -> AccCpuOmp2Blocks & = delete;
+            ALPAKA_FN_HOST auto operator=(AccCpuOmp2Blocks const &) -> AccCpuOmp2Blocks & = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuOmp2Blocks &&) -> AccCpuOmp2Blocks & = delete;
+            ALPAKA_FN_HOST auto operator=(AccCpuOmp2Blocks &&) -> AccCpuOmp2Blocks & = delete;
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AccCpuOmp2Blocks() = default;
 
         private:
             // getIdx
-            vec::Vec<TDim, TSize> mutable m_gridBlockIdx;   //!< The index of the currently executed block.
+            vec::Vec<TDim, TIdx> mutable m_gridBlockIdx;   //!< The index of the currently executed block.
         };
     }
 
@@ -154,57 +142,57 @@ namespace alpaka
             //! The CPU OpenMP 2.0 block accelerator accelerator type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct AccType<
-                acc::AccCpuOmp2Blocks<TDim, TSize>>
+                acc::AccCpuOmp2Blocks<TDim, TIdx>>
             {
-                using type = acc::AccCpuOmp2Blocks<TDim, TSize>;
+                using type = acc::AccCpuOmp2Blocks<TDim, TIdx>;
             };
             //#############################################################################
             //! The CPU OpenMP 2.0 block accelerator device properties get trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetAccDevProps<
-                acc::AccCpuOmp2Blocks<TDim, TSize>>
+                acc::AccCpuOmp2Blocks<TDim, TIdx>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccDevProps(
                     dev::DevCpu const & dev)
-                -> alpaka::acc::AccDevProps<TDim, TSize>
+                -> alpaka::acc::AccDevProps<TDim, TIdx>
                 {
-                    boost::ignore_unused(dev);
+                    alpaka::ignore_unused(dev);
 
                     return {
                         // m_multiProcessorCount
-                        static_cast<TSize>(1),
+                        static_cast<TIdx>(1),
                         // m_gridBlockExtentMax
-                        vec::Vec<TDim, TSize>::all(std::numeric_limits<TSize>::max()),
+                        vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_gridBlockCountMax
-                        std::numeric_limits<TSize>::max(),
+                        std::numeric_limits<TIdx>::max(),
                         // m_blockThreadExtentMax
-                        vec::Vec<TDim, TSize>::ones(),
+                        vec::Vec<TDim, TIdx>::ones(),
                         // m_blockThreadCountMax
-                        static_cast<TSize>(1),
+                        static_cast<TIdx>(1),
                         // m_threadElemExtentMax
-                        vec::Vec<TDim, TSize>::all(std::numeric_limits<TSize>::max()),
+                        vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_threadElemCountMax
-                        std::numeric_limits<TSize>::max()};
+                        std::numeric_limits<TIdx>::max()};
                 }
             };
             //#############################################################################
             //! The CPU OpenMP 2.0 block accelerator name trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetAccName<
-                acc::AccCpuOmp2Blocks<TDim, TSize>>
+                acc::AccCpuOmp2Blocks<TDim, TIdx>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccName()
                 -> std::string
                 {
-                    return "AccCpuOmp2Blocks<" + std::to_string(TDim::value) + "," + typeid(TSize).name() + ">";
+                    return "AccCpuOmp2Blocks<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
                 }
             };
         }
@@ -217,9 +205,9 @@ namespace alpaka
             //! The CPU OpenMP 2.0 block accelerator device type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct DevType<
-                acc::AccCpuOmp2Blocks<TDim, TSize>>
+                acc::AccCpuOmp2Blocks<TDim, TIdx>>
             {
                 using type = dev::DevCpu;
             };
@@ -233,31 +221,55 @@ namespace alpaka
             //! The CPU OpenMP 2.0 block accelerator dimension getter trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct DimType<
-                acc::AccCpuOmp2Blocks<TDim, TSize>>
+                acc::AccCpuOmp2Blocks<TDim, TIdx>>
             {
                 using type = TDim;
             };
         }
     }
-    namespace exec
+    namespace kernel
     {
         namespace traits
         {
             //#############################################################################
-            //! The CPU OpenMP 2.0 block accelerator executor type trait specialization.
+            //! The CPU OpenMP 2.0 block accelerator execution task type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
+                typename TWorkDiv,
                 typename TKernelFnObj,
                 typename... TArgs>
-            struct ExecType<
-                acc::AccCpuOmp2Blocks<TDim, TSize>,
+            struct CreateTaskKernel<
+                acc::AccCpuOmp2Blocks<TDim, TIdx>,
+                TWorkDiv,
                 TKernelFnObj,
                 TArgs...>
             {
-                using type = exec::ExecCpuOmp2Blocks<TDim, TSize, TKernelFnObj, TArgs...>;
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto createTaskKernel(
+                    TWorkDiv const & workDiv,
+                    TKernelFnObj const & kernelFnObj,
+                    TArgs const & ... args)
+#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+                -> kernel::TaskKernelCpuOmp2Blocks<
+                    TDim,
+                    TIdx,
+                    TKernelFnObj,
+                    TArgs...>
+#endif
+                {
+                    return
+                        kernel::TaskKernelCpuOmp2Blocks<
+                            TDim,
+                            TIdx,
+                            TKernelFnObj,
+                            TArgs...>(
+                                workDiv,
+                                kernelFnObj,
+                                args...);
+                }
             };
         }
     }
@@ -266,30 +278,30 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CPU OpenMP 2.0 block executor platform type trait specialization.
+            //! The CPU OpenMP 2.0 block execution task platform type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct PltfType<
-                acc::AccCpuOmp2Blocks<TDim, TSize>>
+                acc::AccCpuOmp2Blocks<TDim, TIdx>>
             {
                 using type = pltf::PltfCpu;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The CPU OpenMP 2.0 block accelerator size type trait specialization.
+            //! The CPU OpenMP 2.0 block accelerator idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
-            struct SizeType<
-                acc::AccCpuOmp2Blocks<TDim, TSize>>
+                typename TIdx>
+            struct IdxType<
+                acc::AccCpuOmp2Blocks<TDim, TIdx>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }

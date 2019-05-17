@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -25,9 +14,8 @@
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
 
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/cpu/SysInfo.hpp>
-
-#include <boost/core/ignore_unused.hpp>
 
 #include <map>
 #include <mutex>
@@ -37,15 +25,15 @@
 
 namespace alpaka
 {
-    namespace stream
+    namespace queue
     {
-        class StreamCpuAsync;
+        class QueueCpuAsync;
 
         namespace cpu
         {
             namespace detail
             {
-                class StreamCpuAsyncImpl;
+                class QueueCpuAsyncImpl;
             }
         }
     }
@@ -72,64 +60,63 @@ namespace alpaka
                 //! The CPU device implementation.
                 class DevCpuImpl
                 {
-                    friend stream::StreamCpuAsync;                   // stream::StreamCpuAsync::StreamCpuAsync calls RegisterAsyncStream.
+                    friend queue::QueueCpuAsync;                   // queue::QueueCpuAsync::QueueCpuAsync calls RegisterAsyncQueue.
                 public:
                     //-----------------------------------------------------------------------------
                     DevCpuImpl() = default;
                     //-----------------------------------------------------------------------------
-                    DevCpuImpl(DevCpuImpl const &) = default;
+                    DevCpuImpl(DevCpuImpl const &) = delete;
                     //-----------------------------------------------------------------------------
-                    DevCpuImpl(DevCpuImpl &&) = default;
+                    DevCpuImpl(DevCpuImpl &&) = delete;
                     //-----------------------------------------------------------------------------
-                    auto operator=(DevCpuImpl const &) -> DevCpuImpl & = default;
+                    auto operator=(DevCpuImpl const &) -> DevCpuImpl & = delete;
                     //-----------------------------------------------------------------------------
-                    auto operator=(DevCpuImpl &&) -> DevCpuImpl & = default;
+                    auto operator=(DevCpuImpl &&) -> DevCpuImpl & = delete;
                     //-----------------------------------------------------------------------------
                     ~DevCpuImpl() = default;
 
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST auto GetAllAsyncStreamImpls() const
-                    -> std::vector<std::shared_ptr<stream::cpu::detail::StreamCpuAsyncImpl>>
+                    ALPAKA_FN_HOST auto GetAllAsyncQueueImpls() const
+                    -> std::vector<std::shared_ptr<queue::cpu::detail::QueueCpuAsyncImpl>>
                     {
-                        std::vector<std::shared_ptr<stream::cpu::detail::StreamCpuAsyncImpl>> vspStreams;
+                        std::vector<std::shared_ptr<queue::cpu::detail::QueueCpuAsyncImpl>> vspQueues;
 
                         std::lock_guard<std::mutex> lk(m_Mutex);
 
-                        for(auto it = m_streams.begin(); it != m_streams.end();)
+                        for(auto it = m_queues.begin(); it != m_queues.end();)
                         {
-                            auto spStream(it->lock());
-                            if(spStream)
+                            auto spQueue(it->lock());
+                            if(spQueue)
                             {
-                                vspStreams.emplace_back(std::move(spStream));
+                                vspQueues.emplace_back(std::move(spQueue));
                                 ++it;
                             }
                             else
                             {
-                                it = m_streams.erase(it);
+                                it = m_queues.erase(it);
                             }
                         }
-                        return vspStreams;
+                        return vspQueues;
                     }
 
                 private:
                     //-----------------------------------------------------------------------------
-                    //! Registers the given stream on this device.
-                    //! NOTE: Every stream has to be registered for correct functionality of device wait operations!
-                    ALPAKA_FN_HOST auto RegisterAsyncStream(std::shared_ptr<stream::cpu::detail::StreamCpuAsyncImpl> spStreamImpl)
+                    //! Registers the given queue on this device.
+                    //! NOTE: Every queue has to be registered for correct functionality of device wait operations!
+                    ALPAKA_FN_HOST auto RegisterAsyncQueue(std::shared_ptr<queue::cpu::detail::QueueCpuAsyncImpl> spQueueImpl)
                     -> void
                     {
                         std::lock_guard<std::mutex> lk(m_Mutex);
 
-                        // Register this stream on the device.
+                        // Register this queue on the device.
                         // NOTE: We have to store the plain pointer next to the weak pointer.
                         // This is necessary to find the entry on unregistering because the weak pointer will already be invalid at that point.
-                        m_streams.push_back(spStreamImpl);
+                        m_queues.push_back(spQueueImpl);
                     }
-
 
                 private:
                     std::mutex mutable m_Mutex;
-                    std::vector<std::weak_ptr<stream::cpu::detail::StreamCpuAsyncImpl>> mutable m_streams;
+                    std::vector<std::weak_ptr<queue::cpu::detail::QueueCpuAsyncImpl>> mutable m_queues;
                 };
             }
         }
@@ -141,7 +128,7 @@ namespace alpaka
             friend struct pltf::traits::GetDevByIdx<pltf::PltfCpu>;
         protected:
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST DevCpu() :
+            DevCpu() :
                 m_spDevCpuImpl(std::make_shared<cpu::detail::DevCpuImpl>())
             {}
         public:
@@ -154,13 +141,13 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             auto operator=(DevCpu &&) -> DevCpu & = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator==(DevCpu const &) const
+            auto operator==(DevCpu const &) const
             -> bool
             {
                 return true;
             }
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator!=(DevCpu const & rhs) const
+            auto operator!=(DevCpu const & rhs) const
             -> bool
             {
                 return !((*this) == rhs);
@@ -188,7 +175,7 @@ namespace alpaka
                     dev::DevCpu const & dev)
                 -> std::string
                 {
-                    boost::ignore_unused(dev);
+                    alpaka::ignore_unused(dev);
 
                     return dev::cpu::detail::getCpuName();
                 }
@@ -205,7 +192,7 @@ namespace alpaka
                     dev::DevCpu const & dev)
                 -> std::size_t
                 {
-                    boost::ignore_unused(dev);
+                    alpaka::ignore_unused(dev);
 
                     return dev::cpu::detail::getTotalGlobalMemSizeBytes();
                 }
@@ -222,7 +209,7 @@ namespace alpaka
                     dev::DevCpu const & dev)
                 -> std::size_t
                 {
-                    boost::ignore_unused(dev);
+                    alpaka::ignore_unused(dev);
 
                     return dev::cpu::detail::getFreeGlobalMemSizeBytes();
                 }
@@ -241,7 +228,7 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                    boost::ignore_unused(dev);
+                    alpaka::ignore_unused(dev);
 
                     // The CPU does nothing on reset.
                 }
@@ -255,7 +242,7 @@ namespace alpaka
             template<
                 typename TElem,
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             class BufCpu;
 
             namespace traits
@@ -265,14 +252,14 @@ namespace alpaka
                 template<
                     typename TElem,
                     typename TDim,
-                    typename TSize>
+                    typename TIdx>
                 struct BufType<
                     dev::DevCpu,
                     TElem,
                     TDim,
-                    TSize>
+                    TIdx>
                 {
-                    using type = mem::buf::BufCpu<TElem, TDim, TSize>;
+                    using type = mem::buf::BufCpu<TElem, TDim, TIdx>;
                 };
             }
         }

@@ -1,27 +1,25 @@
 #
-# Copyright 2014-2017 Erik Zenker, Benjamin Worpitz
+# Copyright 2014-2019 Erik Zenker, Benjamin Worpitz
 #
-# This file is part of alpaka.
+# This file exemplifies usage of Alpaka.
 #
-# alpaka is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
 #
-# alpaka is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with alpaka.
-# If not, see <http://www.gnu.org/licenses/>.
+# THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
+# SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+# IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
 ################################################################################
 # Required CMake version.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0)
 
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -31,6 +29,16 @@ SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 SET(_TARGET_NAME "helloWorldLambda")
 
 PROJECT(${_TARGET_NAME})
+
+################################################################################
+# CMake policies
+#
+# Search in <PackageName>_ROOT:
+#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
+
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
 
 #-------------------------------------------------------------------------------
 # Find alpaka.
@@ -56,7 +64,7 @@ append_recursive_files_add_to_src_group("${_SOURCE_DIR}" "${_SOURCE_DIR}" "cpp" 
 SET(_COMPILE_OPTIONS_PRIVATE ${ALPAKA_DEV_COMPILE_OPTIONS})
 
 IF(MSVC)
-    LIST(APPEND _COMPILE_DEFINITIONS_PRIVATE "/wd4996")   # This function or variable may be unsafe. Consider using <safe_version> instead.
+    LIST(APPEND _COMPILE_OPTIONS_PRIVATE "/wd4996")   # This function or variable may be unsafe. Consider using <safe_version> instead.
 ENDIF()
 
 # NVCC does not incorporate the COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
@@ -77,3 +85,5 @@ TARGET_LINK_LIBRARIES(
     PUBLIC "alpaka")
 
 SET_TARGET_PROPERTIES(${_TARGET_NAME} PROPERTIES FOLDER "example")
+
+ADD_TEST(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME})

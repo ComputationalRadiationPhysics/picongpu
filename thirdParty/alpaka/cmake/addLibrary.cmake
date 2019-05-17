@@ -1,24 +1,14 @@
 #
-# Copyright 2015-2016 Benjamin Worpitz, Maximilian Knespel
+# Copyright 2015-2019 Benjamin Worpitz, Maximilian Knespel
 #
-# This file is part of alpaka.
+# This file is part of Alpaka.
 #
-# alpaka is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# alpaka is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with alpaka.
-# If not, see <http://www.gnu.org/licenses/>.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0)
 
 #------------------------------------------------------------------------------
 # Calls CUDA_ADD_LIBRARY or ADD_LIBRARY depending on the enabled alpaka
@@ -36,7 +26,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
 # code filenames!
 # OPTIONS and the arguments thereafter are ignored if not using CUDA, they
 # won't throw an error in that case.
-FUNCTION(ALPAKA_ADD_LIBRARY libraryName)
+MACRO(ALPAKA_ADD_LIBRARY libraryName)
     # CUDA_ADD_LIBRARY( cuda_target file0 file1 ...
     #                   [STATIC | SHARED | MODULE]
     #                   [EXCLUDE_FROM_ALL] [OPTIONS <nvcc-flags> ... ] )
@@ -130,6 +120,23 @@ FUNCTION(ALPAKA_ADD_LIBRARY libraryName)
                 ${optionArguments}
             )
         ENDIF()
+    ELSEIF( ALPAKA_ACC_GPU_HIP_ENABLE )
+            FOREACH( _file ${ARGN} )
+                IF( ( ${_file} MATCHES "\\.cpp$" ) OR
+                    ( ${_file} MATCHES "\\.cxx$" )
+                )
+                    SET_SOURCE_FILES_PROPERTIES( ${_file} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT OBJ )
+                ENDIF()
+            ENDFOREACH()
+            CMAKE_POLICY(SET CMP0023 OLD)   # CUDA_ADD_LIBRARY calls TARGET_LINK_LIBRARIES without keywords.
+            HIP_ADD_LIBRARY(
+                ${libraryName}
+                ${sourceFileNames}
+                ${libraryType}
+                ${excludeFromAll}
+                ${optionArguments}
+            )
+
     ELSE()
         #message( "add_library( ${libraryName} ${libraryType} ${excludeFromAll} ${sourceFileNames} )" )
         ADD_LIBRARY(
@@ -145,4 +152,4 @@ FUNCTION(ALPAKA_ADD_LIBRARY libraryName)
     UNSET( sourceFileNames )
     UNSET( excludeFromAll )
     UNSET( optionArguments )
-ENDFUNCTION()
+ENDMACRO()
