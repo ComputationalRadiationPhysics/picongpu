@@ -1,31 +1,19 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
 #include <alpaka/mem/alloc/Traits.hpp>
 
 #include <alpaka/core/Common.hpp>
-
-#include <boost/core/ignore_unused.hpp>
+#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -59,7 +47,7 @@ namespace alpaka
                         std::size_t const & sizeElems)
                     -> T *
                     {
-                        boost::ignore_unused(alloc);
+                        alpaka::ignore_unused(alloc);
                         return new T[sizeElems];
                     }
                 };
@@ -78,7 +66,7 @@ namespace alpaka
                         T const * const ptr)
                     -> void
                     {
-                        boost::ignore_unused(alloc);
+                        alpaka::ignore_unused(alloc);
                         return delete[] ptr;
                     }
                 };

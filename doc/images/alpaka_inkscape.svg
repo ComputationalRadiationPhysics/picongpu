@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="50.465511mm"
+   height="16.971249mm"
+   viewBox="0 0 50.465511 16.971249"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="alpaka_v8.svg"
+   inkscape:export-filename="/tmp/v3.png"
+   inkscape:export-xdpi="299.54395"
+   inkscape:export-ydpi="299.54395">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="4"
+     inkscape:cx="108.61066"
+     inkscape:cy="25.197543"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:snap-global="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1028"
+     inkscape:window-x="0"
+     inkscape:window-y="28"
+     inkscape:window-maximized="1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-41.516563,-12.22615)">
+    <rect
+       style="opacity:0.98000004;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.48980072;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect922"
+       width="50.465511"
+       height="16.971249"
+       x="41.516563"
+       y="12.22615" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#f17017;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 53.85481,28.688884 c -0.08662,-2.429007 0.267461,-4.599064 1.570208,-9.582376 1.242451,-3.406375 4.452056,-2.817966 5.626379,-2.190151 1.235735,0.722107 2.545425,1.449922 2.292465,3.162361 0.201527,0.2565 1.733718,0.441462 1.748763,0.967881 0.01554,0.543585 -0.162828,0.449077 -0.135802,0.618137 0.058,0.362822 0.153237,0.360409 0.131151,0.600773 -0.04148,0.451381 -0.46527,0.487867 -0.849939,0.599423 -0.187513,0.05438 -0.07581,0.443721 -0.251826,0.515903 l -2.917528,0.401617"
+       id="path819"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccsssscc" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.29166651px;line-height:5.66208363px;font-family:'Latin Modern Sans';-inkscape-font-specification:'Latin Modern Sans';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="40.224064"
+       y="24.518715"
+       id="text856"><tspan
+         sodipodi:role="line"
+         id="tspan854"
+         x="40.224064"
+         y="24.518715"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.63888931px;font-family:'Latin Modern Sans Quotation';-inkscape-font-specification:'Latin Modern Sans Quotation';letter-spacing:-1.32291663px;fill:#00599d;stroke-width:0.26458332px">al  aka</tspan></text>
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#f17017;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 57.419525,18.935009 c -0.532206,-2.625818 -0.388375,-3.813045 1.214407,-4.303875 1.400036,-0.295267 0.872802,2.314188 0.917903,2.566623"
+       id="path821"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccc" />
+  </g>
+</svg>

@@ -1,56 +1,32 @@
-/**
- * \file
- * Copyright 2015 Benjamin Worpitz
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// \Hack: Boost.MPL defines BOOST_MPL_CFG_GPU_ENABLED to __host__ __device__ if nvcc is used.
-// BOOST_AUTO_TEST_CASE_TEMPLATE and its internals are not GPU enabled but is using boost::mpl::for_each internally.
-// For each template parameter this leads to:
-// /home/travis/build/boost/boost/mpl/for_each.hpp(78): warning: calling a __host__ function from a __host__ __device__ function is not allowed
-// because boost::mpl::for_each has the BOOST_MPL_CFG_GPU_ENABLED attribute but the test internals are pure host methods.
-// Because we do not use MPL within GPU code here, we can disable the MPL GPU support.
-#define BOOST_MPL_CFG_GPU_ENABLED
 
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/acc/Acc.hpp>
 
-#include <alpaka/core/BoostPredef.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/test/unit_test.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
+#include <catch2/catch.hpp>
 
 #include <iostream>
 
-BOOST_AUTO_TEST_SUITE(acc)
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE_TEMPLATE(
-    getAccName,
-    TAcc,
-    alpaka::test::acc::TestAccs)
+struct TestTemplate
 {
-    std::cout << alpaka::acc::getAccName<TAcc>() << std::endl;
-}
+    template< typename TAcc >
+    void operator()()
+    {
+        std::cout << alpaka::acc::getAccName<TAcc>() << std::endl;
+    }
+};
 
-BOOST_AUTO_TEST_SUITE_END()
+TEST_CASE( "getAccName", "[acc]")
+{
+    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
+}

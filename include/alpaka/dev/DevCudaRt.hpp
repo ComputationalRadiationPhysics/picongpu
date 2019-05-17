@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz, Rene Widera
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -202,7 +191,7 @@ namespace alpaka
             template<
                 typename TElem,
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             class BufCudaRt;
 
             namespace traits
@@ -212,14 +201,14 @@ namespace alpaka
                 template<
                     typename TElem,
                     typename TDim,
-                    typename TSize>
+                    typename TIdx>
                 struct BufType<
                     dev::DevCudaRt,
                     TElem,
                     TDim,
-                    TSize>
+                    TIdx>
                 {
-                    using type = mem::buf::BufCudaRt<TElem, TDim, TSize>;
+                    using type = mem::buf::BufCudaRt<TElem, TDim, TIdx>;
                 };
             }
         }
@@ -246,7 +235,7 @@ namespace alpaka
             //! The thread CUDA device wait specialization.
             //!
             //! Blocks until the device has completed all preceding requested tasks.
-            //! Tasks that are enqueued or streams that are created after this call is made are not waited for.
+            //! Tasks that are enqueued or queues that are created after this call is made are not waited for.
             template<>
             struct CurrentThreadWaitFor<
                 dev::DevCudaRt>

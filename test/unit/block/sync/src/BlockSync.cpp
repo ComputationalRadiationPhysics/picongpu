@@ -1,46 +1,19 @@
-/**
- * \file
- * Copyright 2017 Benjamin Worpitz
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// \Hack: Boost.MPL defines BOOST_MPL_CFG_GPU_ENABLED to __host__ __device__ if nvcc is used.
-// BOOST_AUTO_TEST_CASE_TEMPLATE and its internals are not GPU enabled but is using boost::mpl::for_each internally.
-// For each template parameter this leads to:
-// /home/travis/build/boost/boost/mpl/for_each.hpp(78): warning: calling a __host__ function from a __host__ __device__ function is not allowed
-// because boost::mpl::for_each has the BOOST_MPL_CFG_GPU_ENABLED attribute but the test internals are pure host methods.
-// Because we do not use MPL within GPU code here, we can disable the MPL GPU support.
-#define BOOST_MPL_CFG_GPU_ENABLED
+
+#include <catch2/catch.hpp>
 
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/acc/Acc.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <boost/assert.hpp>
-#include <alpaka/core/BoostPredef.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/test/unit_test.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
 
 //#############################################################################
 class BlockSyncTestKernel
@@ -53,10 +26,11 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
-        using Size = alpaka::size::Size<TAcc>;
+        using Idx = alpaka::idx::Idx<TAcc>;
 
         // Get the index of the current thread within the block and the block extent and map them to 1D.
         auto const blockThreadIdx = alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc);
@@ -65,7 +39,7 @@ public:
         auto const blockThreadExtent1D = blockThreadExtent.prod();
 
         // Allocate shared memory.
-        Size * const pBlockSharedArray = alpaka::block::shared::dyn::getMem<Size>(acc);
+        Idx * const pBlockSharedArray = alpaka::block::shared::dyn::getMem<Idx>(acc);
    
         // Write the thread index into the shared memory.
         pBlockSharedArray[blockThreadIdx1D] = blockThreadIdx1D;
@@ -74,9 +48,9 @@ public:
         alpaka::block::sync::syncBlockThreads(acc);
 
         // All other threads within the block should now have written their index into the shared memory.
-        for(auto i(static_cast<Size>(0u)); i < blockThreadExtent1D; ++i)
+        for(auto i(static_cast<Idx>(0u)); i < blockThreadExtent1D; ++i)
         {
-            BOOST_VERIFY(pBlockSharedArray[i] == i);
+            ALPAKA_CHECK(*success, pBlockSharedArray[i] == i);
         }
     }
 };
@@ -99,44 +73,47 @@ namespace alpaka
                 //! \return The size of the shared memory allocated for a block.
                 template<
                     typename TVec>
-                ALPAKA_FN_HOST static auto getBlockSharedMemDynSizeBytes(
+                ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
                     BlockSyncTestKernel const & blockSharedMemDyn,
                     TVec const & blockThreadExtent,
-                    TVec const & threadElemExtent)
-                -> size::Size<TAcc>
+                    TVec const & threadElemExtent,
+                    bool * success)
+                -> idx::Idx<TAcc>
                 {
-                    using Size = alpaka::size::Size<TAcc>;
+                    using Idx = alpaka::idx::Idx<TAcc>;
 
-                    boost::ignore_unused(blockSharedMemDyn);
-                    boost::ignore_unused(threadElemExtent);
+                    alpaka::ignore_unused(blockSharedMemDyn);
+                    alpaka::ignore_unused(threadElemExtent);
+                    alpaka::ignore_unused(success);
                     return
-                        static_cast<size::Size<TAcc>>(sizeof(Size)) * blockThreadExtent.prod();
+                        static_cast<idx::Idx<TAcc>>(sizeof(Idx)) * blockThreadExtent.prod();
                 }
             };
         }
     }
 }
 
-BOOST_AUTO_TEST_SUITE(blockSync)
-
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE_TEMPLATE(
-    synchronize,
-    TAcc,
-    alpaka::test::acc::TestAccs)
+struct TestTemplate
+{
+template< typename TAcc >
+void operator()()
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::all(static_cast<Size>(BlockSyncTestKernel::gridThreadExtentPerDim)));
+        alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(BlockSyncTestKernel::gridThreadExtentPerDim)));
 
     BlockSyncTestKernel kernel;
 
-    BOOST_REQUIRE_EQUAL(
-        true,
+    REQUIRE(
         fixture(
             kernel));
 }
+};
 
-BOOST_AUTO_TEST_SUITE_END()
+TEST_CASE( "synchronize", "[blockSync]")
+{
+    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
+}

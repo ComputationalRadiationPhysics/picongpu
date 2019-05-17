@@ -1,135 +1,112 @@
-/**
- * \file
- * Copyright 2018 Benjamin Worpitz
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 
 #include <alpaka/alpaka.hpp>
 
-#include <alpaka/core/BoostPredef.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/test/unit_test.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
-
-BOOST_AUTO_TEST_SUITE(core)
+#include <catch2/catch.hpp>
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(
-    clipCastNoCastShouldNotChangeTheValue)
+TEST_CASE(
+    "clipCastNoCastShouldNotChangeTheValue", "[core]")
 {
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::int8_t>::max(),
+    CHECK(
+        std::numeric_limits<std::int8_t>::max() ==
         alpaka::core::clipCast<std::int8_t>(std::numeric_limits<std::int8_t>::max()));
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::uint16_t>::min(),
+    CHECK(
+        std::numeric_limits<std::uint16_t>::min() ==
         alpaka::core::clipCast<std::uint16_t>(std::numeric_limits<std::uint16_t>::min()));
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::int32_t>::min(),
+    CHECK(
+        std::numeric_limits<std::int32_t>::min() ==
         alpaka::core::clipCast<std::int32_t>(std::numeric_limits<std::int32_t>::min()));
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::uint64_t>::max(),
+    CHECK(
+        std::numeric_limits<std::uint64_t>::max() ==
         alpaka::core::clipCast<std::uint64_t>(std::numeric_limits<std::uint64_t>::max()));
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(
-    clipCastUpCastEqualSigndnessShouldNotChangeTheValue)
+TEST_CASE(
+    "clipCastUpCastEqualSigndnessShouldNotChangeTheValue", "[core]")
 {
-    BOOST_CHECK_EQUAL(
-        static_cast<std::int16_t>(std::numeric_limits<std::int8_t>::max()),
+    CHECK(
+        static_cast<std::int16_t>(std::numeric_limits<std::int8_t>::max()) ==
         alpaka::core::clipCast<std::int16_t>(std::numeric_limits<std::int8_t>::max()));
-    BOOST_CHECK_EQUAL(
-        static_cast<std::uint32_t>(std::numeric_limits<std::uint16_t>::min()),
+    CHECK(
+        static_cast<std::uint32_t>(std::numeric_limits<std::uint16_t>::min()) ==
         alpaka::core::clipCast<std::uint32_t>(std::numeric_limits<std::uint16_t>::min()));
-    BOOST_CHECK_EQUAL(
-        static_cast<std::int64_t>(std::numeric_limits<std::int32_t>::min()),
+    CHECK(
+        static_cast<std::int64_t>(std::numeric_limits<std::int32_t>::min()) ==
         alpaka::core::clipCast<std::int64_t>(std::numeric_limits<std::int32_t>::min()));
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(
-    clipCastUpCastDifferentSigndnessShouldNotChangeTheValueForPositives)
+TEST_CASE(
+    "clipCastUpCastDifferentSigndnessShouldNotChangeTheValueForPositives", "[core]")
 {
-    BOOST_CHECK_EQUAL(
-        static_cast<std::uint16_t>(std::numeric_limits<std::int8_t>::max()),
+    CHECK(
+        static_cast<std::uint16_t>(std::numeric_limits<std::int8_t>::max()) ==
         alpaka::core::clipCast<std::uint16_t>(std::numeric_limits<std::int8_t>::max()));
-    BOOST_CHECK_EQUAL(
-        static_cast<std::int32_t>(std::numeric_limits<std::uint16_t>::max()),
+    CHECK(
+        static_cast<std::int32_t>(std::numeric_limits<std::uint16_t>::max()) ==
         alpaka::core::clipCast<std::int32_t>(std::numeric_limits<std::uint16_t>::max()));
-    BOOST_CHECK_EQUAL(
-        static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max()),
+    CHECK(
+        static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max()) ==
         alpaka::core::clipCast<std::uint64_t>(std::numeric_limits<std::int32_t>::max()));
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(
-    clipCastUpCastDifferentSigndnessCanChangeTheValueForNegatives)
+TEST_CASE(
+    "clipCastUpCastDifferentSigndnessCanChangeTheValueForNegatives", "[core]")
 {
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::uint16_t>::min(),
+    CHECK(
+        std::numeric_limits<std::uint16_t>::min() ==
         alpaka::core::clipCast<std::uint16_t>(std::numeric_limits<std::int8_t>::min()));
-    BOOST_CHECK_EQUAL(
-        static_cast<std::int32_t>(std::numeric_limits<std::uint16_t>::min()),
+    CHECK(
+        static_cast<std::int32_t>(std::numeric_limits<std::uint16_t>::min()) ==
         alpaka::core::clipCast<std::int32_t>(std::numeric_limits<std::uint16_t>::min()));
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<uint64_t>::min(),
+    CHECK(
+        std::numeric_limits<uint64_t>::min() ==
         alpaka::core::clipCast<std::uint64_t>(std::numeric_limits<std::int32_t>::min()));
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(
-    clipCastDownCastEqualSigndnessCanChangeTheValue)
+TEST_CASE(
+    "clipCastDownCastEqualSigndnessCanChangeTheValue", "[core]")
 {
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::uint8_t>::max(),
+    CHECK(
+        std::numeric_limits<std::uint8_t>::max() ==
         alpaka::core::clipCast<std::uint8_t>(std::numeric_limits<std::uint16_t>::max()));
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::int16_t>::min(),
+    CHECK(
+        std::numeric_limits<std::int16_t>::min() ==
         alpaka::core::clipCast<std::int16_t>(std::numeric_limits<std::int32_t>::min()));
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::uint16_t>::max(),
+    CHECK(
+        std::numeric_limits<std::uint16_t>::max() ==
         alpaka::core::clipCast<std::uint16_t>(std::numeric_limits<std::uint64_t>::max()));
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::int8_t>::min(),
+    CHECK(
+        std::numeric_limits<std::int8_t>::min() ==
         alpaka::core::clipCast<std::int8_t>(std::numeric_limits<std::int64_t>::min()));
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(
-    clipCastDownCastDifferentSigndnessCanChangeTheValue)
+TEST_CASE(
+    "clipCastDownCastDifferentSigndnessCanChangeTheValue", "[core]")
 {
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::int8_t>::max(),
+    CHECK(
+        std::numeric_limits<std::int8_t>::max() ==
         alpaka::core::clipCast<std::int8_t>(std::numeric_limits<std::uint16_t>::max()));
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::uint16_t>::min(),
+    CHECK(
+        std::numeric_limits<std::uint16_t>::min() ==
         alpaka::core::clipCast<std::uint16_t>(std::numeric_limits<std::int32_t>::min()));
-    BOOST_CHECK_EQUAL(
-        static_cast<std::int16_t>(std::numeric_limits<std::uint64_t>::min()),
+    CHECK(
+        static_cast<std::int16_t>(std::numeric_limits<std::uint64_t>::min()) ==
         alpaka::core::clipCast<std::int16_t>(std::numeric_limits<std::uint64_t>::min()));
-    BOOST_CHECK_EQUAL(
-        std::numeric_limits<std::uint8_t>::max(),
+    CHECK(
+        std::numeric_limits<std::uint8_t>::max() ==
         alpaka::core::clipCast<std::uint8_t>(std::numeric_limits<std::int64_t>::max()));
 }
-
-BOOST_AUTO_TEST_SUITE_END()

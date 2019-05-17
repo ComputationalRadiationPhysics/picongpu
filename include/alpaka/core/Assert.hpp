@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -26,6 +15,41 @@
 
 #include <cassert>
 #include <type_traits>
+
+
+#if !(defined(BOOST_LANG_HIP) && BOOST_LANG_HIP && BOOST_COMP_HCC)
+  #define ALPAKA_ASSERT(EXPRESSION) assert(EXPRESSION)
+#else
+
+  // Including assert.h would interfere with HIP's host-device implementation
+  // see: https://github.com/ROCm-Developer-Tools/HIP/issues/599
+  // However, cassert is still in some header, so we have to do a workaround for HIP.
+  #ifdef NDEBUG
+    #define ALPAKA_ASSERT(EXPRESSION) static_cast<void>(0)
+  #else
+    #define ALPAKA_ASSERT(EXPRESSION) assert_workaround(EXPRESSION)
+
+    #pragma push_macro("__DEVICE__")
+    #define __DEVICE__ extern "C" __device__ __attribute__((always_inline)) \
+            __attribute__((weak))
+
+     __DEVICE__ void __device_trap() __asm("llvm.trap");
+
+     __host__ __device__
+     __attribute__((always_inline))             \
+     __attribute__((weak))
+     void assert_workaround(bool expr) {
+       if(!expr) {
+         printf("assert failed.\n");
+         #if __HIP_DEVICE_COMPILE__==1
+           __device_trap();
+         #else
+           exit(1);
+         #endif
+       }
+     }
+  #endif //NDEBUG
+#endif
 
 namespace alpaka
 {
@@ -53,7 +77,7 @@ namespace alpaka
 #ifdef NDEBUG
                     alpaka::ignore_unused(arg);
 #else
-                    assert(arg >= 0);
+                    ALPAKA_ASSERT(arg >= 0);
 #endif
                 }
             };
@@ -115,7 +139,7 @@ namespace alpaka
 #ifdef NDEBUG
                     alpaka::ignore_unused(lhs);
 #else
-                    assert(TLhs::value > lhs);
+                    ALPAKA_ASSERT(TLhs::value > lhs);
 #endif
                 }
             };

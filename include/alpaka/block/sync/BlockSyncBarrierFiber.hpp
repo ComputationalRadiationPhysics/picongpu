@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -41,36 +30,36 @@ namespace alpaka
             //#############################################################################
             //! The thread id map barrier block synchronization.
             template<
-                typename TSize>
+                typename TIdx>
             class BlockSyncBarrierFiber
             {
             public:
                 using BlockSyncBase = BlockSyncBarrierFiber;
 
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierFiber(
-                    TSize const & blockThreadCount) :
+                ALPAKA_FN_HOST BlockSyncBarrierFiber(
+                    TIdx const & blockThreadCount) :
                         m_barrier(static_cast<std::size_t>(blockThreadCount)),
                         m_threadCount(blockThreadCount),
-                        m_curThreadCount(static_cast<TSize>(0u)),
-                        m_generation(static_cast<TSize>(0u))
+                        m_curThreadCount(static_cast<TIdx>(0u)),
+                        m_generation(static_cast<TIdx>(0u))
                 {}
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierFiber(BlockSyncBarrierFiber const &) = delete;
+                ALPAKA_FN_HOST BlockSyncBarrierFiber(BlockSyncBarrierFiber const &) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierFiber(BlockSyncBarrierFiber &&) = delete;
+                ALPAKA_FN_HOST BlockSyncBarrierFiber(BlockSyncBarrierFiber &&) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSyncBarrierFiber const &) -> BlockSyncBarrierFiber & = delete;
+                ALPAKA_FN_HOST auto operator=(BlockSyncBarrierFiber const &) -> BlockSyncBarrierFiber & = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSyncBarrierFiber &&) -> BlockSyncBarrierFiber & = delete;
+                ALPAKA_FN_HOST auto operator=(BlockSyncBarrierFiber &&) -> BlockSyncBarrierFiber & = delete;
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~BlockSyncBarrierFiber() = default;
 
                 boost::fibers::barrier mutable m_barrier;
 
-                TSize mutable m_threadCount;
-                TSize mutable m_curThreadCount;
-                TSize mutable m_generation;
+                TIdx mutable m_threadCount;
+                TIdx mutable m_curThreadCount;
+                TIdx mutable m_generation;
                 int mutable m_result[2u];
             };
 
@@ -78,13 +67,13 @@ namespace alpaka
             {
                 //#############################################################################
                 template<
-                    typename TSize>
+                    typename TIdx>
                 struct SyncBlockThreads<
-                    BlockSyncBarrierFiber<TSize>>
+                    BlockSyncBarrierFiber<TIdx>>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA static auto syncBlockThreads(
-                        block::sync::BlockSyncBarrierFiber<TSize> const & blockSync)
+                    ALPAKA_FN_HOST static auto syncBlockThreads(
+                        block::sync::BlockSyncBarrierFiber<TIdx> const & blockSync)
                     -> void
                     {
                         blockSync.m_barrier.wait();
@@ -94,28 +83,28 @@ namespace alpaka
                 //#############################################################################
                 template<
                     typename TOp,
-                    typename TSize>
+                    typename TIdx>
                 struct SyncBlockThreadsPredicate<
                     TOp,
-                    BlockSyncBarrierFiber<TSize>>
+                    BlockSyncBarrierFiber<TIdx>>
                 {
                     //-----------------------------------------------------------------------------
                     ALPAKA_NO_HOST_ACC_WARNING
                     ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(
-                        block::sync::BlockSyncBarrierFiber<TSize> const & blockSync,
+                        block::sync::BlockSyncBarrierFiber<TIdx> const & blockSync,
                         int predicate)
                     -> int
                     {
                         if(blockSync.m_curThreadCount == blockSync.m_threadCount)
                         {
-                            blockSync.m_curThreadCount = static_cast<TSize>(0u);
+                            blockSync.m_curThreadCount = static_cast<TIdx>(0u);
                             ++blockSync.m_generation;
                         }
 
-                        auto const generationMod2(blockSync.m_generation % static_cast<TSize>(2u));
+                        auto const generationMod2(blockSync.m_generation % static_cast<TIdx>(2u));
 
                         // The first fiber will reset the value to the initial value.
-                        if(blockSync.m_curThreadCount == static_cast<TSize>(0u))
+                        if(blockSync.m_curThreadCount == static_cast<TIdx>(0u))
                         {
                             blockSync.m_result[generationMod2] = TOp::InitialValue;
                         }

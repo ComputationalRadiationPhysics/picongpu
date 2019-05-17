@@ -60,16 +60,16 @@ The `CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE` property of a command queue is an o
 Therefore, it can not be assumed to be available on all systems.
 
 *CUDA* on the other hand does currently (version 7.5) not support such out-of-order queues in any way.
-The user has to define dependencies explicitly through the order the tasks are enqueued into the queues (called streams in *CUDA*).
-Within a stream, tasks are always executed in sequential order, while multiple streams are executed in parallel.
-Streams can wait for events enqueued into other streams.
+The user has to define dependencies explicitly through the order the tasks are enqueued into the queues (called queues in *CUDA*).
+Within a queue, tasks are always executed in sequential order, while multiple queues are executed in parallel.
+Queues can wait for events enqueued into other queues.
 
-In both APIs, *OpenCL* and *CUDA*, a task graph can be emulated by creating one stream per task and enqueuing a unique event after each task, which can be used to wait for the preceding task.
-However, this is not feasible due to the large stream and event creation costs as well as other overheads within this process.
+In both APIs, *OpenCL* and *CUDA*, a task graph can be emulated by creating one queue per task and enqueuing a unique event after each task, which can be used to wait for the preceding task.
+However, this is not feasible due to the large queue and event creation costs as well as other overheads within this process.
 
 Therefore, to be compatible with a wide range of APIs, the interface for task parallelism has to be constrained.
 Instead of a general DAG, multiple queues of sequentially executed tasks will be used to describe task parallelism.
-Events that can be enqueued into the queues enhance the basic task parallelism by enabling synchronization between different streams, devices or the host threads.
+Events that can be enqueued into the queues enhance the basic task parallelism by enabling synchronization between different queues, devices or the host threads.
 
 Data Parallelism
 ----------------
@@ -123,7 +123,7 @@ By emulating unsupported or ignoring redundant levels of parallelism, algorithms
 | thread | parallel / lock-step| :white_check_mark: |
 | element | sequential | :x: |
 
-Depending on the stream a task is enqueued into, grids will either run in sequential order within the same stream or in parallel in different streams.
+Depending on the queue a task is enqueued into, grids will either run in sequential order within the same queue or in parallel in different queues.
 They can be synchronized by using events.
 Blocks can not be synchronized and therefore can use the whole spectrum of parallelism ranging from fully parallel up to fully sequential execution depending on the device.
 Warps combine the execution of multiple threads in lock-step and can be synchronized implicitly by synchronizing the threads they contain.

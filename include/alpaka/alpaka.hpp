@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2016 Benjamin Worpitz, Erik Zenker
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Erik Zenker, Matthias Werner, René Widera
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -38,14 +27,16 @@
 #include <alpaka/acc/AccCpuOmp2Threads.hpp>
 #include <alpaka/acc/AccCpuOmp4.hpp>
 #include <alpaka/acc/AccGpuCudaRt.hpp>
+#include <alpaka/acc/AccGpuHipRt.hpp>
 #include <alpaka/acc/AccDevProps.hpp>
 #include <alpaka/acc/Traits.hpp>
 //-----------------------------------------------------------------------------
 // atomic
 #include <alpaka/atomic/AtomicCudaBuiltIn.hpp>
+#include <alpaka/atomic/AtomicHipBuiltIn.hpp>
 #include <alpaka/atomic/AtomicNoOp.hpp>
 #include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
-#include <alpaka/atomic/AtomicStlLock.hpp>
+#include <alpaka/atomic/AtomicStdLibLock.hpp>
 #include <alpaka/atomic/Op.hpp>
 #include <alpaka/atomic/Traits.hpp>
 //-----------------------------------------------------------------------------
@@ -56,10 +47,12 @@
         // dynamic
         #include <alpaka/block/shared/dyn/BlockSharedMemDynBoostAlignedAlloc.hpp>
         #include <alpaka/block/shared/dyn/BlockSharedMemDynCudaBuiltIn.hpp>
+        #include <alpaka/block/shared/dyn/BlockSharedMemDynHipBuiltIn.hpp>
         #include <alpaka/block/shared/dyn/Traits.hpp>
         //-----------------------------------------------------------------------------
         // static
         #include <alpaka/block/shared/st/BlockSharedMemStCudaBuiltIn.hpp>
+        #include <alpaka/block/shared/st/BlockSharedMemStHipBuiltIn.hpp>
         #include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>
         #include <alpaka/block/shared/st/BlockSharedMemStNoSync.hpp>
         #include <alpaka/block/shared/st/Traits.hpp>
@@ -69,6 +62,7 @@
     #include <alpaka/block/sync/BlockSyncBarrierOmp.hpp>
     #include <alpaka/block/sync/BlockSyncBarrierThread.hpp>
     #include <alpaka/block/sync/BlockSyncCudaBuiltIn.hpp>
+    #include <alpaka/block/sync/BlockSyncHipBuiltIn.hpp>
     #include <alpaka/block/sync/BlockSyncNoOp.hpp>
     #include <alpaka/block/sync/Traits.hpp>
 //-----------------------------------------------------------------------------
@@ -83,14 +77,17 @@
 #include <alpaka/core/Cuda.hpp>
 #include <alpaka/core/Debug.hpp>
 #include <alpaka/core/Fibers.hpp>
+#include <alpaka/core/Hip.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unroll.hpp>
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/core/Utility.hpp>
 #include <alpaka/core/Vectorize.hpp>
 //-----------------------------------------------------------------------------
 // dev
 #include <alpaka/dev/DevCudaRt.hpp>
 #include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/dev/DevHipRt.hpp>
 #include <alpaka/dev/cpu/Wait.hpp>
 #include <alpaka/dev/Traits.hpp>
 //-----------------------------------------------------------------------------
@@ -101,52 +98,57 @@
 //-----------------------------------------------------------------------------
 // event
 #include <alpaka/event/EventCudaRt.hpp>
+#include <alpaka/event/EventHipRt.hpp>
 #include <alpaka/event/EventCpu.hpp>
 #include <alpaka/event/Traits.hpp>
-//-----------------------------------------------------------------------------
-// exec
-#include <alpaka/exec/ExecCpuSerial.hpp>
-#include <alpaka/exec/ExecCpuThreads.hpp>
-#include <alpaka/exec/ExecCpuFibers.hpp>
-#include <alpaka/exec/ExecCpuTbbBlocks.hpp>
-#include <alpaka/exec/ExecCpuOmp2Blocks.hpp>
-#include <alpaka/exec/ExecCpuOmp2Threads.hpp>
-#include <alpaka/exec/ExecCpuOmp4.hpp>
-#include <alpaka/exec/ExecGpuCudaRt.hpp>
-#include <alpaka/exec/Traits.hpp>
 //-----------------------------------------------------------------------------
 // extent
 #include <alpaka/extent/Traits.hpp>
 //-----------------------------------------------------------------------------
 // idx
 #include <alpaka/idx/bt/IdxBtCudaBuiltIn.hpp>
+#include <alpaka/idx/bt/IdxBtHipBuiltIn.hpp>
 #include <alpaka/idx/bt/IdxBtOmp.hpp>
 #include <alpaka/idx/bt/IdxBtRefFiberIdMap.hpp>
 #include <alpaka/idx/bt/IdxBtRefThreadIdMap.hpp>
 #include <alpaka/idx/bt/IdxBtZero.hpp>
 #include <alpaka/idx/gb/IdxGbCudaBuiltIn.hpp>
 #include <alpaka/idx/gb/IdxGbRef.hpp>
+#include <alpaka/idx/Accessors.hpp>
 #include <alpaka/idx/Traits.hpp>
 #include <alpaka/idx/MapIdx.hpp>
 //-----------------------------------------------------------------------------
 // kernel
+#include <alpaka/kernel/TaskKernelCpuSerial.hpp>
+#include <alpaka/kernel/TaskKernelCpuThreads.hpp>
+#include <alpaka/kernel/TaskKernelCpuFibers.hpp>
+#include <alpaka/kernel/TaskKernelCpuTbbBlocks.hpp>
+#include <alpaka/kernel/TaskKernelCpuOmp2Blocks.hpp>
+#include <alpaka/kernel/TaskKernelCpuOmp2Threads.hpp>
+#include <alpaka/kernel/TaskKernelCpuOmp4.hpp>
+#include <alpaka/kernel/TaskKernelGpuCudaRt.hpp>
+#include <alpaka/kernel/TaskKernelGpuHipRt.hpp>
 #include <alpaka/kernel/Traits.hpp>
 //-----------------------------------------------------------------------------
 // math
 #include <alpaka/math/MathCudaBuiltIn.hpp>
-#include <alpaka/math/MathStl.hpp>
+#include <alpaka/math/MathHipBuiltIn.hpp>
+#include <alpaka/math/MathStdLib.hpp>
 //-----------------------------------------------------------------------------
 // mem
 #include <alpaka/mem/alloc/AllocCpuBoostAligned.hpp>
 #include <alpaka/mem/alloc/AllocCpuNew.hpp>
 #include <alpaka/mem/alloc/Traits.hpp>
 
-#include <alpaka/mem/buf/BufCudaRt.hpp>
 #include <alpaka/mem/buf/BufCpu.hpp>
+#include <alpaka/mem/buf/BufCudaRt.hpp>
+#include <alpaka/mem/buf/BufHipRt.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
 
+#include <alpaka/mem/view/ViewCompileTimeArray.hpp>
 #include <alpaka/mem/view/ViewPlainPtr.hpp>
-#include <alpaka/mem/view/ViewStdContainers.hpp>
+#include <alpaka/mem/view/ViewStdArray.hpp>
+#include <alpaka/mem/view/ViewStdVector.hpp>
 #include <alpaka/mem/view/ViewSubView.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 //-----------------------------------------------------------------------------
@@ -165,7 +167,6 @@
 #include <alpaka/meta/Metafunctions.hpp>
 #include <alpaka/meta/NdLoop.hpp>
 #include <alpaka/meta/Set.hpp>
-#include <alpaka/meta/StdTupleAsMplSequence.hpp>
 #include <alpaka/meta/Transform.hpp>
 //-----------------------------------------------------------------------------
 // offset
@@ -174,22 +175,24 @@
 // platform
 #include <alpaka/pltf/PltfCpu.hpp>
 #include <alpaka/pltf/PltfCudaRt.hpp>
+#include <alpaka/pltf/PltfHipRt.hpp>
 #include <alpaka/pltf/Traits.hpp>
 //-----------------------------------------------------------------------------
 // rand
 #include <alpaka/rand/RandCuRand.hpp>
-#include <alpaka/rand/RandStl.hpp>
+#include <alpaka/rand/RandHipRand.hpp>
+#include <alpaka/rand/RandStdLib.hpp>
 #include <alpaka/rand/Traits.hpp>
 //-----------------------------------------------------------------------------
-// size
-#include <alpaka/size/Traits.hpp>
+// idx
+#include <alpaka/idx/Traits.hpp>
 //-----------------------------------------------------------------------------
-// stream
-#include <alpaka/stream/StreamCudaRtAsync.hpp>
-#include <alpaka/stream/StreamCudaRtSync.hpp>
-#include <alpaka/stream/StreamCpuAsync.hpp>
-#include <alpaka/stream/StreamCpuSync.hpp>
-#include <alpaka/stream/Traits.hpp>
+// queue
+#include <alpaka/queue/QueueCudaRtAsync.hpp>
+#include <alpaka/queue/QueueCudaRtSync.hpp>
+#include <alpaka/queue/QueueCpuAsync.hpp>
+#include <alpaka/queue/QueueCpuSync.hpp>
+#include <alpaka/queue/Traits.hpp>
 //-----------------------------------------------------------------------------
 // time
 #include <alpaka/time/Traits.hpp>

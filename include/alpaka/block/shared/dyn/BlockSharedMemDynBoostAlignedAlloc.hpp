@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz, Rene Widera
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz, Matthias Werner, René Widera
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -47,7 +36,7 @@ namespace alpaka
                     using BlockSharedMemDynBase = BlockSharedMemDynBoostAlignedAlloc;
 
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA BlockSharedMemDynBoostAlignedAlloc(
+                    BlockSharedMemDynBoostAlignedAlloc(
                         std::size_t const & blockSharedMemDynSizeBytes)
                     {
                         if(blockSharedMemDynSizeBytes > 0u)
@@ -58,13 +47,13 @@ namespace alpaka
                         }
                     }
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA BlockSharedMemDynBoostAlignedAlloc(BlockSharedMemDynBoostAlignedAlloc const &) = delete;
+                    BlockSharedMemDynBoostAlignedAlloc(BlockSharedMemDynBoostAlignedAlloc const &) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA BlockSharedMemDynBoostAlignedAlloc(BlockSharedMemDynBoostAlignedAlloc &&) = delete;
+                    BlockSharedMemDynBoostAlignedAlloc(BlockSharedMemDynBoostAlignedAlloc &&) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSharedMemDynBoostAlignedAlloc const &) -> BlockSharedMemDynBoostAlignedAlloc & = delete;
+                    auto operator=(BlockSharedMemDynBoostAlignedAlloc const &) -> BlockSharedMemDynBoostAlignedAlloc & = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSharedMemDynBoostAlignedAlloc &&) -> BlockSharedMemDynBoostAlignedAlloc & = delete;
+                    auto operator=(BlockSharedMemDynBoostAlignedAlloc &&) -> BlockSharedMemDynBoostAlignedAlloc & = delete;
                     //-----------------------------------------------------------------------------
                     /*virtual*/ ~BlockSharedMemDynBoostAlignedAlloc() = default;
 
@@ -89,7 +78,7 @@ namespace alpaka
                         BlockSharedMemDynBoostAlignedAlloc>
                     {
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_ACC_NO_CUDA static auto getMem(
+                        ALPAKA_FN_HOST static auto getMem(
                             block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc const & blockSharedMemDyn)
                         -> T *
                         {

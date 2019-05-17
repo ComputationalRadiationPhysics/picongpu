@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -51,7 +40,7 @@ namespace alpaka
         //! \tparam T The type of the object specializing Pow.
         //! \tparam TBase The base type.
         //! \tparam TExp The exponent type.
-        //! \param pow The object specializing Pow.
+        //! \param pow_ctx The object specializing Pow.
         //! \param base The base.
         //! \param exp The exponent.
         ALPAKA_NO_HOST_ACC_WARNING
@@ -60,7 +49,7 @@ namespace alpaka
             typename TBase,
             typename TExp>
         ALPAKA_FN_HOST_ACC auto pow(
-            T const & pow,
+            T const & pow_ctx,
             TBase const & base,
             TExp const & exp)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
@@ -70,7 +59,7 @@ namespace alpaka
                 TBase,
                 TExp>
             ::pow(
-                pow,
+                pow_ctx,
                 base,
                 exp))
 #endif
@@ -81,7 +70,7 @@ namespace alpaka
                     TBase,
                     TExp>
                 ::pow(
-                    pow,
+                    pow_ctx,
                     base,
                     exp);
         }
@@ -108,13 +97,13 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto pow(
-                    T const & pow,
+                    T const & pow_ctx,
                     TBase const & base,
                     TExp const & exp)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
                 -> decltype(
                     math::pow(
-                        static_cast<typename T::PowBase const &>(pow),
+                        static_cast<typename T::PowBase const &>(pow_ctx),
                         base,
                         exp))
 #endif
@@ -122,7 +111,7 @@ namespace alpaka
                     // Delegate the call to the base class.
                     return
                         math::pow(
-                            static_cast<typename T::PowBase const &>(pow),
+                            static_cast<typename T::PowBase const &>(pow_ctx),
                             base,
                             exp);
                 }

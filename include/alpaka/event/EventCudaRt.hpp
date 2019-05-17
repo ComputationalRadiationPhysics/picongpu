@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -34,8 +23,8 @@
 #include <alpaka/event/Traits.hpp>
 #include <alpaka/wait/Traits.hpp>
 
-#include <alpaka/stream/StreamCudaRtAsync.hpp>
-#include <alpaka/stream/StreamCudaRtSync.hpp>
+#include <alpaka/queue/QueueCudaRtAsync.hpp>
+#include <alpaka/queue/QueueCudaRtSync.hpp>
 #include <alpaka/core/Cuda.hpp>
 
 #include <stdexcept>
@@ -86,7 +75,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     auto operator=(EventCudaImpl const &) -> EventCudaImpl & = delete;
                     //-----------------------------------------------------------------------------
-                    auto operator=(EventCudaImpl &&) -> EventCudaImpl & = default;
+                    auto operator=(EventCudaImpl &&) -> EventCudaImpl & = delete;
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST ~EventCudaImpl()
                     {
@@ -198,20 +187,20 @@ namespace alpaka
             };
         }
     }
-    namespace stream
+    namespace queue
     {
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT stream enqueue trait specialization.
+            //! The CUDA RT queue enqueue trait specialization.
             template<>
             struct Enqueue<
-                stream::StreamCudaRtAsync,
+                queue::QueueCudaRtAsync,
                 event::EventCudaRt>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    stream::StreamCudaRtAsync & stream,
+                    queue::QueueCudaRtAsync & queue,
                     event::EventCudaRt & event)
                 -> void
                 {
@@ -219,19 +208,19 @@ namespace alpaka
 
                     ALPAKA_CUDA_RT_CHECK(cudaEventRecord(
                         event.m_spEventImpl->m_CudaEvent,
-                        stream.m_spStreamImpl->m_CudaStream));
+                        queue.m_spQueueImpl->m_CudaQueue));
                 }
             };
             //#############################################################################
-            //! The CUDA RT stream enqueue trait specialization.
+            //! The CUDA RT queue enqueue trait specialization.
             template<>
             struct Enqueue<
-                stream::StreamCudaRtSync,
+                queue::QueueCudaRtSync,
                 event::EventCudaRt>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    stream::StreamCudaRtSync & stream,
+                    queue::QueueCudaRtSync & queue,
                     event::EventCudaRt & event)
                 -> void
                 {
@@ -239,7 +228,7 @@ namespace alpaka
 
                     ALPAKA_CUDA_RT_CHECK(cudaEventRecord(
                         event.m_spEventImpl->m_CudaEvent,
-                        stream.m_spStreamImpl->m_CudaStream));
+                        queue.m_spQueueImpl->m_CudaQueue));
                 }
             };
         }
@@ -251,8 +240,8 @@ namespace alpaka
             //#############################################################################
             //! The CUDA RT device event thread wait trait specialization.
             //!
-            //! Waits until the event itself and therefore all tasks preceding it in the stream it is enqueued to have been completed.
-            //! If the event is not enqueued to a stream the method returns immediately.
+            //! Waits until the event itself and therefore all tasks preceding it in the queue it is enqueued to have been completed.
+            //! If the event is not enqueued to a queue the method returns immediately.
             template<>
             struct CurrentThreadWaitFor<
                 event::EventCudaRt>
@@ -270,43 +259,43 @@ namespace alpaka
                 }
             };
             //#############################################################################
-            //! The CUDA RT stream event wait trait specialization.
+            //! The CUDA RT queue event wait trait specialization.
             template<>
             struct WaiterWaitFor<
-                stream::StreamCudaRtAsync,
+                queue::QueueCudaRtAsync,
                 event::EventCudaRt>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
-                    stream::StreamCudaRtAsync & stream,
+                    queue::QueueCudaRtAsync & queue,
                     event::EventCudaRt const & event)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                     ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
-                        stream.m_spStreamImpl->m_CudaStream,
+                        queue.m_spQueueImpl->m_CudaQueue,
                         event.m_spEventImpl->m_CudaEvent,
                         0));
                 }
             };
             //#############################################################################
-            //! The CUDA RT stream event wait trait specialization.
+            //! The CUDA RT queue event wait trait specialization.
             template<>
             struct WaiterWaitFor<
-                stream::StreamCudaRtSync,
+                queue::QueueCudaRtSync,
                 event::EventCudaRt>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
-                    stream::StreamCudaRtSync & stream,
+                    queue::QueueCudaRtSync & queue,
                     event::EventCudaRt const & event)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                     ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
-                        stream.m_spStreamImpl->m_CudaStream,
+                        queue.m_spQueueImpl->m_CudaQueue,
                         event.m_spEventImpl->m_CudaEvent,
                         0));
                 }
@@ -314,7 +303,7 @@ namespace alpaka
             //#############################################################################
             //! The CUDA RT device event wait trait specialization.
             //!
-            //! Any future work submitted in any stream of this device will wait for event to complete before beginning execution.
+            //! Any future work submitted in any queue of this device will wait for event to complete before beginning execution.
             template<>
             struct WaiterWaitFor<
                 dev::DevCudaRt,
