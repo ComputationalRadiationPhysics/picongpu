@@ -35,7 +35,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -87,7 +86,9 @@ namespace yeePML
         /** Element access for compatibility with pmacc vectors
          *
          * This is a utility for checkpointing and does not need a device
-         * version.Throws for indices out of range.
+         * version. For performance considerations does not check that the index
+         * is valid and relies on the components being stored in order, without
+         * padding.
          *
          * @param idx index less than 6
          */
@@ -101,25 +102,15 @@ namespace yeePML
         /** Const element access for compatibility with pmacc vectors
          *
          * This is a utility for checkpointing and does not need a device
-         * version.Throws for indices out of range.
+         * version. For performance considerations does not check that the index
+         * is valid and relies on the components being stored in order, without
+         * padding.
          *
          * @param idx index less than 6
          */
         float_X const & operator[ ]( uint32_t const idx ) const
         {
-            switch( idx )
-            {
-                case 0: return xy;
-                case 1: return xz;
-                case 2: return yx;
-                case 3: return yz;
-                case 4: return zx;
-                case 5: return zy;
-            }
-            throw std::out_of_range(
-                "In NodeValues::operator() the index = " +
-                std::to_string( idx ) + " is invalid"
-            );
+            return *( &xy + idx );
         }
 
     };
