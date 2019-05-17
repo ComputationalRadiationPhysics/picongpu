@@ -4,13 +4,14 @@ cupla Install Guide
 Requirements
 ------------
 
-- **cmake**  3.7.0 or higher
+- **cmake**  3.11.0 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
 
 - **cupla**
   - https://github.com/ComputationalRadiationPhysics/cupla
   - `export CUPLA_ROOT=<cupla_SRC_CODE_DIR>`
+  - `export CMAKE_PREFIX_PATH=$CUPLA_ROOT:$CMAKE_PREFIX_PATH`
   - example:
     - `mkdir -p $HOME/src`
     - `git clone git://github.com/ComputationalRadiationPhysics/cupla.git $HOME/src/cupla`

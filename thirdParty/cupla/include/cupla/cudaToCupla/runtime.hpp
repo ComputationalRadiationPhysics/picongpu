@@ -44,6 +44,7 @@
 #define cudaStreamDestroy(...) cuplaStreamDestroy(__VA_ARGS__)
 #define cudaStreamSynchronize(...) cuplaStreamSynchronize(__VA_ARGS__)
 #define cudaStreamWaitEvent(...) cuplaStreamWaitEvent(__VA_ARGS__)
+#define cudaStreamQuery(...) cuplaStreamQuery(__VA_ARGS__)
 
 #define cudaEventRecord(...) cuplaEventRecord(__VA_ARGS__)
 

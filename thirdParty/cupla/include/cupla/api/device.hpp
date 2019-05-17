@@ -23,14 +23,15 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
 
-
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 cuplaError_t
 cuplaGetDeviceCount( int * count);
-
 
 cuplaError_t
 cuplaSetDevice( int idx);
@@ -49,3 +50,5 @@ cuplaMemGetInfo(
     size_t * free,
     size_t * total
 );
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

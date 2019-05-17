@@ -23,15 +23,17 @@
 
 #include <alpaka/alpaka.hpp>
 
-
 #include "cupla/datatypes/dim3.hpp"
 #include "cupla/datatypes/uint.hpp"
 #include "cupla/c/datatypes/cuplaExtent.hpp"
 #include "cupla/c/datatypes/cuplaPitchedPtr.hpp"
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla_driver_types.hpp"
 
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 cuplaError_t
 cuplaMalloc(
@@ -154,3 +156,5 @@ cuplaError_t
 cuplaMemcpy3D(
     const cuplaMemcpy3DParms * const p
 );
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

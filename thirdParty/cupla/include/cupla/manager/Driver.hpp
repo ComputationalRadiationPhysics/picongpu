@@ -21,7 +21,11 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
+
 namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
 namespace manager
 {
@@ -45,4 +49,5 @@ private:
 };
 
 } //namespace manager
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
 } //namespace cupla

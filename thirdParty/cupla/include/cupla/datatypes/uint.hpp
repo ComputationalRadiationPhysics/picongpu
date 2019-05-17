@@ -21,9 +21,12 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 
 namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
 
     struct uint3{
@@ -51,7 +54,7 @@ namespace cupla
             }
         }
 
-#if( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 )
+#if( ALPAKA_ACC_GPU_CUDA_ENABLED == 1 || ALPAKA_ACC_GPU_HIP_ENABLED == 1 )
         ALPAKA_FN_HOST_ACC
         uint3(
           ::uint3 const & vec
@@ -76,7 +79,8 @@ namespace cupla
         }
     };
 
-} //namespace cupla
+} // namespace CUPLA_ACCELERATOR_NAMESPACE
+} // namespace cupla
 
 
 namespace alpaka
@@ -215,19 +219,19 @@ namespace traits
 } // namespace traits
 } // namespace offset
 
-namespace size
+namespace idx
 {
 namespace traits
 {
 
     //! size type trait specialization.
     template<>
-    struct SizeType<
+    struct IdxType<
         cupla::uint3
     >{
         using type = cupla::IdxType;
     };
 
 } // namespace traits
-} // namespace size
+} // namespace idx
 } // namespave alpaka

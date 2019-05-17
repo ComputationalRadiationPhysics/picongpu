@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 
 #include "cupla/datatypes/dim3.hpp"
@@ -31,8 +32,10 @@
 
 #include <utility>
 
-
-namespace cupla{
+namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
     /** get block and elements extents
      *
@@ -119,10 +122,11 @@ namespace cupla{
             static_cast<IdxVec3>(blockSize),
             static_cast<IdxVec3>(elemPerThread)
         );
-        auto const exec(::alpaka::exec::create<T_Acc>(workDiv, kernel, args...));
-        ::alpaka::stream::enqueue(stream, exec);
+        auto const exec(::alpaka::kernel::createTaskKernel<T_Acc>(workDiv, kernel, args...));
+        ::alpaka::queue::enqueue(stream, exec);
     }
 
+} // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla
 
 
@@ -145,12 +149,12 @@ namespace traits
         template<
             typename... TArgs
         >
-        ALPAKA_FN_HOST
+        ALPAKA_FN_HOST_ACC
         static auto
         getBlockSharedMemDynSizeBytes(
             ::cupla::CuplaKernel< T_UserKernel > const & userKernel,
             TArgs const & ...)
-        -> ::alpaka::size::Size<T_Acc>
+        -> ::alpaka::idx::Idx<T_Acc>
         {
             return userKernel.m_dynSharedMemBytes;
         }
