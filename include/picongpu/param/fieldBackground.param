@@ -19,7 +19,9 @@
 
 /** @file fieldBackground.param
  *
- * Load external background fields
+ * Load external background fields.
+ * There are pre-made templates for zero background and traveling-wave Thomson
+ * scattering laser one in picongpu::fields::background::templates.
  */
 
 #pragma once

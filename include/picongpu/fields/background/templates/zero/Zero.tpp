@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Axel Huebl
+/* Copyright 2019 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -17,9 +17,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-/** Load pre-defined templates (implementation) */
-#include "picongpu/fields/background/templates/TWTS/TWTS.tpp"
-#include "picongpu/fields/background/templates/zero/Zero.tpp"
+
+#include "picongpu/fields/background/templates/zero/FieldB.tpp"
+#include "picongpu/fields/background/templates/zero/FieldE.tpp"
+#include "picongpu/fields/background/templates/zero/FieldJ.tpp"
