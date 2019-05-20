@@ -357,9 +357,16 @@ if(Boost_VERSION GREATER 106800)
     message(WARNING "Untested Boost release! Maybe use a newer PIConGPU?")
 endif()
 
-# Newer CUDA releases: probably troublesome, warn at least
-if(CUDA_VERSION VERSION_GREATER 10.0)
-    message(WARNING "Untested CUDA release! Maybe use a newer PIConGPU?")
+if(ALPAKA_ACC_GPU_CUDA_ENABLE)
+    if(CUDA_VERSION VERSION_LESS 9.0)
+        message(FATAL_ERROR "CUDA 9.0 or newer required! "
+                            "(Found ${CUDA_VERSION})")
+    endif()
+    # Newer CUDA releases: probably troublesome, warn at least
+    if(CUDA_VERSION VERSION_GREATER 10.0)
+        message(WARNING "Untested CUDA release >10.0 (Found ${CUDA_VERSION})! "
+                        "Maybe use a newer PIConGPU?")
+    endif()
 endif()
 
 
