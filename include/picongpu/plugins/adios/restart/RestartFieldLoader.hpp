@@ -61,7 +61,8 @@ public:
 
         const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
 
-        field.getHostBuffer().setValue(float3_X::create(0.0));
+        using ValueType = typename Data::ValueType;
+        field.getHostBuffer().setValue(ValueType::create(0.0));
 
         DataSpace<simDim> domain_offset = localDomain.offset;
 
