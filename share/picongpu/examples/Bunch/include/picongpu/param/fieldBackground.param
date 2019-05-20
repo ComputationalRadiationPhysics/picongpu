@@ -21,6 +21,8 @@
 
 /** Load pre-defined templates */
 #include "picongpu/fields/background/templates/TWTS/TWTS.hpp"
+#include "picongpu/fields/background/templates/zero/Zero.hpp"
+
 
 #ifndef PARAM_INCLUDE_FIELDBACKGROUND
 #define PARAM_INCLUDE_FIELDBACKGROUND false
@@ -195,28 +197,7 @@ namespace picongpu
         }
     };
 
-    class FieldBackgroundJ
-    {
-    public:
-        /* Add this additional field? */
-        static constexpr bool activated = false;
+    // No background for J
+    using FieldBackgroundJ = fields::background::templates::zero::FieldJ;
 
-        /* We use this to calculate your SI input back to our unit system */
-        PMACC_ALIGN(m_unitField, const float3_64);
-
-        HDINLINE FieldBackgroundJ( const float3_64 unitField ) : m_unitField(unitField)
-        {}
-
-        /** Specify your background field J(r,t) here
-         *
-         * \param cellIdx The total cell id counted from the start at t=0
-         * \param currentStep The current time step */
-        HDINLINE float3_X
-        operator()( const DataSpace<simDim>& cellIdx,
-                    const uint32_t currentStep ) const
-        {
-            return float3_X(0.0, 0.0, 0.0);
-        }
-    };
-
-} /* namespace picongpu */
+} // namespace picongpu
