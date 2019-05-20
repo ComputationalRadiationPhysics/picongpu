@@ -105,22 +105,6 @@ namespace yeePML
         data->getDeviceBuffer( ).reset( false );
     }
 
-
-    HDINLINE
-    Field::UnitValueType
-    Field::getUnit( )
-    {
-        return UnitValueType( 1.0_X );
-    }
-
-    HINLINE
-    std::vector< float_64 >
-    Field::getUnitDimension( )
-    {
-        std::vector< float_64 > unitDimension( 7, 0.0 );
-        return unitDimension;
-    }
-
 } // namespace yeePML
 } // namespace maxwellSolver
 } // namespace fields
