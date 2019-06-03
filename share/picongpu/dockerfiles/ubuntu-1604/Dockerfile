@@ -34,7 +34,7 @@ RUN        apt-get update && \
               gfortran \
               git \
               nano \
-              openssh-server \
+              openssh-client \
               pkg-config \
               python \
               rsync \

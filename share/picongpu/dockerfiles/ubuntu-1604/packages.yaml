@@ -16,6 +16,10 @@ packages:
     variants: +cuda fabrics=verbs,ucx,libfabric
   hwloc:
     variants: +cuda
+  # install issue with gettext
+  # https://github.com/spack/spack/issues/11551
+  flex:
+    version: [2.6.3]
   all:
     providers:
       mpi: [openmpi]
