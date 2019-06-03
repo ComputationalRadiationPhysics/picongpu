@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "FieldManipulator.kernel"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
 
 #include <pmacc/traits/GetNumWorkers.hpp>

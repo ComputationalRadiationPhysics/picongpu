@@ -28,7 +28,7 @@
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 #include "picongpu/particles/traits/GenerateSolversIfSpeciesEligible.hpp"
 #include "picongpu/plugins/misc/misc.hpp"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>

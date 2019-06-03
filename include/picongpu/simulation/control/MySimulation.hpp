@@ -39,7 +39,7 @@
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/nvidia/memory/MemoryInfo.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/mappings/simulation/GridController.hpp>
 
@@ -55,7 +55,7 @@
 #include "picongpu/particles/manipulators/manipulators.hpp"
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
-#include "picongpu/simulationControl/DomainAdjuster.hpp"
+#include "picongpu/simulation/control/DomainAdjuster.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
 #include "picongpu/simulation/stage/CurrentInterpolationAndAdditionToEMF.hpp"

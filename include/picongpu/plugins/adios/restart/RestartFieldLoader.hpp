@@ -28,7 +28,7 @@
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <adios.h>
 #include <adios_read.h>

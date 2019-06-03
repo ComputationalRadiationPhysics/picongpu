@@ -31,7 +31,7 @@
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/mappings/kernel/MappingDescription.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
-#include "picongpu/simulationControl/ISimulationStarter.hpp"
+#include "picongpu/simulation/control/ISimulationStarter.hpp"
 
 namespace picongpu
 {

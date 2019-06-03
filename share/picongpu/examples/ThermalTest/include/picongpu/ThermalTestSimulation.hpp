@@ -22,7 +22,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/Environment.hpp>
 
-#include "picongpu/simulationControl/MySimulation.hpp"
+#include "picongpu/simulation/control/MySimulation.hpp"
 
 #include <pmacc/simulationControl/SimulationHelper.hpp>
 

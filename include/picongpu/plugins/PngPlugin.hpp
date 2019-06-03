@@ -23,7 +23,7 @@
 #include "picongpu/simulation_defines.hpp"
 
 #include "picongpu/plugins/ILightweightPlugin.hpp"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/particles/traits/SpeciesEligibleForSolver.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>

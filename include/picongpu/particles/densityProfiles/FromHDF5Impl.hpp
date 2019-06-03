@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.hpp"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/static_assert.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
