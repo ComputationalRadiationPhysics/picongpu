@@ -144,23 +144,4 @@ private:
     FieldB *fieldB;
 };
 
-template<typename T_SpeciesType, typename T_Area>
-struct ComputeCurrent
-{
-    using SpeciesType = T_SpeciesType;
-    using FrameType = typename SpeciesType::FrameType;
-
-    HINLINE void operator()( const uint32_t currentStep ) const
-    {
-        DataConnector &dc = Environment<>::get().DataConnector();
-        auto species = dc.get< SpeciesType >( FrameType::getName(), true );
-        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
-
-        fieldJ->computeCurrent< T_Area::value, SpeciesType >( *species, currentStep );
-
-        dc.releaseData( FrameType::getName() );
-        dc.releaseData( FieldJ::getName() );
-    }
-};
-
 } // namespace picongpu

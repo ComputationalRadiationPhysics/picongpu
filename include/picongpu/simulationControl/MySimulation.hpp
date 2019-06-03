@@ -48,7 +48,6 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/fields/currentInterpolation/CurrentInterpolation.hpp"
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
@@ -57,6 +56,10 @@
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
 #include "picongpu/simulationControl/DomainAdjuster.hpp"
+#include "picongpu/simulation/stage/CurrentBackground.hpp"
+#include "picongpu/simulation/stage/CurrentDeposition.hpp"
+#include "picongpu/simulation/stage/CurrentInterpolationAndAdditionToEMF.hpp"
+#include "picongpu/simulation/stage/CurrentReset.hpp"
 #include <pmacc/random/methods/methods.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
@@ -112,9 +115,7 @@ public:
      */
     MySimulation() :
     myFieldSolver(nullptr),
-    myCurrentInterpolation(nullptr),
     pushBGField(nullptr),
-    currentBGField(nullptr),
     cellDescription(nullptr),
     initialiserController(nullptr),
     slidingWindow(false),
@@ -276,8 +277,6 @@ public:
 
         __delete(myFieldSolver);
 
-        __delete(myCurrentInterpolation);
-
         /** unshare all registered ISimulationData sets
          *
          * @todo can be removed as soon as our Environment learns to shutdown in
@@ -286,7 +285,6 @@ public:
         dc.clean();
 
         __delete(pushBGField);
-        __delete(currentBGField);
         __delete(cellDescription);
     }
 
@@ -317,7 +315,6 @@ public:
             dc.share( std::shared_ptr< ISimulationData >( newFld ) );
         }
         pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
-        currentBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER > (*cellDescription);
 
         // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
         using AllSynchrotronPhotonsSpecies = typename pmacc::particles::traits::FilterByFlag<
@@ -433,8 +430,6 @@ public:
         // create field solver
         this->myFieldSolver = new fields::Solver(*cellDescription);
 
-        // create current interpolation
-        this->myCurrentInterpolation = new typename fields::Solver::CurrentInterpolation;
 #if( PMACC_CUDA_ENABLED == 1 )
         /* add CUDA streams to the StreamController for concurrent execution */
         Environment<>::get().StreamController().addStreams(6);
@@ -620,62 +615,16 @@ public:
         dc.releaseData( FieldE::getName() );
         dc.releaseData( FieldB::getName() );
 
-        this->myFieldSolver->update_beforeCurrent(currentStep);
+        myFieldSolver->update_beforeCurrent( currentStep );
 
-        auto fieldJ = dc.get< FieldJ >( FieldJ::getName(), true );
-        FieldJ::ValueType zeroJ( FieldJ::ValueType::create(0.) );
-        fieldJ->assign( zeroJ );
+        using namespace simulation;
+        stage::CurrentReset{ }( currentStep );
+        __setTransactionEvent( commEvent );
+        stage::CurrentBackground{ *cellDescription }( currentStep );
+        stage::CurrentDeposition{ }( currentStep );
+        stage::CurrentInterpolationAndAdditionToEMF{ }( currentStep );
 
-        __setTransactionEvent(commEvent);
-        (*currentBGField)(fieldJ, nvfct::Add(), FieldBackgroundJ(fieldJ->getUnit()),
-                          currentStep, FieldBackgroundJ::activated);
-
-        using VectorSpeciesWithCurrentSolver = typename pmacc::particles::traits::FilterByFlag
-        <
-            VectorAllSpecies,
-            current<>
-        >::type;
-        ForEach<
-            VectorSpeciesWithCurrentSolver,
-            ComputeCurrent<
-                bmpl::_1,
-                bmpl::int_<CORE + BORDER>
-            >
-        > computeCurrent;
-        computeCurrent( currentStep );
-
-        if(bmpl::size<VectorSpeciesWithCurrentSolver>::type::value > 0)
-        {
-            EventTask eRecvCurrent = fieldJ->asyncCommunication(__getTransactionEvent());
-
-            const DataSpace<simDim> currentRecvLower( GetMargin<typename fields::Solver::CurrentInterpolation>::LowerMargin( ).toRT( ) );
-            const DataSpace<simDim> currentRecvUpper( GetMargin<typename fields::Solver::CurrentInterpolation>::UpperMargin( ).toRT( ) );
-
-            /* without interpolation, we do not need to access the FieldJ GUARD
-             * and can therefor overlap communication of GUARD->(ADD)BORDER & computation of CORE */
-            if( currentRecvLower == DataSpace<simDim>::create(0) &&
-                currentRecvUpper == DataSpace<simDim>::create(0) )
-            {
-                fieldJ->addCurrentToEMF<CORE >(*myCurrentInterpolation);
-                __setTransactionEvent(eRecvCurrent);
-                fieldJ->addCurrentToEMF<BORDER >(*myCurrentInterpolation);
-            } else
-            {
-                /* in case we perform a current interpolation/filter, we need
-                 * to access the BORDER area from the CORE (and the GUARD area
-                 * from the BORDER)
-                 * `fieldJ->asyncCommunication` first adds the neighbors' values
-                 * to BORDER (send) and then updates the GUARD (receive)
-                 * \todo split the last `receive` part in a separate method to
-                 *       allow already a computation of CORE */
-                __setTransactionEvent(eRecvCurrent);
-                fieldJ->addCurrentToEMF<CORE + BORDER>(*myCurrentInterpolation);
-            }
-        }
-
-        dc.releaseData( FieldJ::getName() );
-
-        this->myFieldSolver->update_afterCurrent(currentStep);
+        myFieldSolver->update_afterCurrent( currentStep );
     }
 
     virtual void movingWindowCheck(uint32_t currentStep)
@@ -759,7 +708,6 @@ public:
 
     MappingDesc* getMappingDescription()
     {
-
         return cellDescription;
     }
 
@@ -768,10 +716,8 @@ protected:
 
     // field solver
     fields::Solver* myFieldSolver;
-    typename fields::Solver::CurrentInterpolation* myCurrentInterpolation;
 
     cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
-    cellwiseOperation::CellwiseOperation< CORE + BORDER >* currentBGField;
 
 #if( PMACC_CUDA_ENABLED == 1 )
     // creates lookup tables for the bremsstrahlung effect
@@ -788,7 +734,6 @@ protected:
     IInitPlugin* initialiserController;
 
     MappingDesc* cellDescription;
-
 
     // layout parameter
     std::vector<uint32_t> devices;
