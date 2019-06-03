@@ -224,8 +224,8 @@ namespace maxwellSolver
                 fieldE = dc.get< picongpu::FieldE >( picongpu::FieldE::getName( ), true );
                 fieldB = dc.get< picongpu::FieldB >( picongpu::FieldB::getName( ), true );
                 using pmacc::memory::makeUnique;
-                dc.share( makeUnique< yeePML::FieldE >( cellDescription ) );
-                dc.share( makeUnique< yeePML::FieldB >( cellDescription ) );
+                dc.consume( makeUnique< yeePML::FieldE >( cellDescription ) );
+                dc.consume( makeUnique< yeePML::FieldB >( cellDescription ) );
                 psiE = dc.get< yeePML::FieldE >( yeePML::FieldE::getName( ), true );
                 psiB = dc.get< yeePML::FieldB >( yeePML::FieldB::getName( ), true );
             }
