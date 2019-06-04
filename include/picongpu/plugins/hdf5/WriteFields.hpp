@@ -22,6 +22,7 @@
 
 #include <pmacc/static_assert.hpp>
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/plugins/hdf5/writer/Field.hpp"
 
@@ -85,7 +86,7 @@ public:
         params->gridLayout = field->getGridLayout();
 
         // convert in a std::vector of std::vector format for writeField API
-        const traits::FieldPosition<typename fields::Solver::NummericalCellType, T> fieldPos;
+        const traits::FieldPosition<fields::CellType, T> fieldPos;
 
         std::vector<std::vector<float_X> > inCellPosition;
         for( uint32_t n = 0; n < T::numComponents; ++n )
@@ -188,7 +189,7 @@ private:
         /*## finish update field ##*/
 
         /*wrap in a one-component vector for writeField API*/
-        const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldTmp>
+        const traits::FieldPosition<fields::CellType, FieldTmp>
             fieldPos;
 
         std::vector<std::vector<float_X> > inCellPosition;

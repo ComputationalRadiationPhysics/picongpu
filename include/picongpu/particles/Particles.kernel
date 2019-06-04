@@ -25,9 +25,9 @@
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
 #include <pmacc/particles/memory/boxes/TileDataBox.hpp>
 
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/memory/boxes/CachedBox.hpp>
@@ -601,8 +601,8 @@ struct PushParticlePerFrame
 
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
 
-        const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE> fieldPosE;
-        const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldB> fieldPosB;
+        const traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
+        const traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
 
         auto functorEfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()( eBox.shift(localCell).toCursor(), fieldPosE() );
         auto functorBfield = CreateInterpolationForPusher<Field2ParticleInterpolation>()( bBox.shift(localCell).toCursor(), fieldPosB() );

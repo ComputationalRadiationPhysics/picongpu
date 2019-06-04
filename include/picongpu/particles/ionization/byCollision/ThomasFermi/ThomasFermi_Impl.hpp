@@ -24,6 +24,7 @@
 #include <pmacc/particles/compileTime/FindByNameOrType.hpp>
 #include "picongpu/traits/UsesRNG.hpp"
 
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 
 #include "picongpu/particles/ionization/byCollision/ThomasFermi/ThomasFermi.def"
@@ -321,11 +322,11 @@ namespace ionization
                 /* multi-dim coordinate of the local cell inside the super cell */
                 DataSpace<SuperCellSize::dim> localCell(DataSpaceOperations<SuperCellSize::dim>::template map<SuperCellSize > (particleCellIdx));
                 /* interpolation of density */
-                const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldTmp> fieldPosRho;
+                const picongpu::traits::FieldPosition<fields::CellType, FieldTmp> fieldPosRho;
                 ValueType_Rho densityV = Field2ParticleInterpolation()
                     (cachedRho.shift(localCell).toCursor(), pos, fieldPosRho());
                 /*                          and energy density field on the particle position */
-                const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldTmp> fieldPosEne;
+                const picongpu::traits::FieldPosition<fields::CellType, FieldTmp> fieldPosEne;
                 ValueType_Ene kinEnergyV = Field2ParticleInterpolation()
                     (cachedEne.shift(localCell).toCursor(), pos, fieldPosEne());
 

@@ -33,6 +33,7 @@
 #include <pmacc/particles/IdProvider.def>
 #include <pmacc/assert.hpp>
 
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
@@ -675,7 +676,7 @@ private:
             params->adiosGroupSize += localGroupSize;
 
             // convert in a std::vector of std::vector format for writeField API
-            const traits::FieldPosition<typename fields::Solver::NummericalCellType, T> fieldPos;
+            const traits::FieldPosition<fields::CellType, T> fieldPos;
 
             std::vector<std::vector<float_X> > inCellPosition;
             for( uint32_t n = 0; n < T::numComponents; ++n )
@@ -746,7 +747,7 @@ private:
             params->adiosGroupSize += localGroupSize;
 
             /*wrap in a one-component vector for writeField API*/
-            const traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldTmp>
+            const traits::FieldPosition<fields::CellType, FieldTmp>
                 fieldPos;
 
             std::vector<std::vector<float_X> > inCellPosition;

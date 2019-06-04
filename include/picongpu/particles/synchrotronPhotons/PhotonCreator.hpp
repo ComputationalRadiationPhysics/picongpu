@@ -31,9 +31,9 @@
 #include <pmacc/particles/operations/Assign.hpp>
 #include <pmacc/particles/operations/Deselect.hpp>
 #include <pmacc/particles/traits/ResolveAliasFromSpecies.hpp>
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 
 #include <pmacc/random/methods/methods.hpp>
@@ -301,11 +301,11 @@ public:
         /* multi-dim coordinate of the local cell inside the super cell */
         DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
         /* interpolation of E-field on the particle position */
-        const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE> fieldPosE;
+        const picongpu::traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
         ValueType_E fieldE = Field2ParticleInterpolation()
             (cachedE.shift(localCell).toCursor(), pos, fieldPosE());
         /* interpolation of B-field on the particle position */
-        const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldB> fieldPosB;
+        const picongpu::traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
         ValueType_B fieldB = Field2ParticleInterpolation()
             (cachedB.shift(localCell).toCursor(), pos, fieldPosB());
 
