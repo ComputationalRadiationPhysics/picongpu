@@ -112,7 +112,7 @@ namespace maxwellSolver
 
     public:
 
-        using NummericalCellType = cellType::Yee;
+        using CellType = cellType::Yee;
         using CurrentInterpolation = T_CurrentInterpolation;
 
         Yee(MappingDesc cellDescription) : m_cellDescription(cellDescription)

@@ -29,7 +29,7 @@ namespace fields
 {
 
     //! Alias for a cell type used by the field solver
-    using CellType = Solver::NummericalCellType;
+    using CellType = Solver::CellType;
 
 } // namespace fields
 } // namespace picongpu

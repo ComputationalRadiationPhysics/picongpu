@@ -360,7 +360,7 @@ namespace maxwellSolver
     public:
 
         // Types required by field solver interface
-        using NummericalCellType = cellType::Yee;
+        using CellType = cellType::Yee;
         using CurrentInterpolation = T_CurrentInterpolation;
         using CurlE = T_CurlE;
         using CurlB = T_CurlB;

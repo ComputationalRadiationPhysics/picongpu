@@ -63,7 +63,7 @@ namespace none
         typedef MappingDesc::SuperCellSize SuperCellSize;
 
     public:
-        using NummericalCellType = cellType::Yee;
+        using CellType = cellType::Yee;
         using CurrentInterpolation = T_CurrentInterpolation;
 
         None(MappingDesc)

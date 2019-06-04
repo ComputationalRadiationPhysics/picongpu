@@ -106,7 +106,7 @@ namespace dirSplitting
         }
     public:
 
-        using NummericalCellType = cellType::Centered;
+        using CellType = cellType::Centered;
         using CurrentInterpolation = T_CurrentInterpolation;
 
         DirSplitting(MappingDesc) {}
