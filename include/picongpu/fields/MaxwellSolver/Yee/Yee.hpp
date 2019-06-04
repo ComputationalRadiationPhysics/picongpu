@@ -27,7 +27,7 @@
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.kernel"
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
 
 #include <pmacc/nvidia/functors/Assign.hpp>
@@ -112,7 +112,7 @@ namespace maxwellSolver
 
     public:
 
-        using NummericalCellType = picongpu::numericalCellTypes::YeeCell;
+        using NummericalCellType = cellType::Yee;
         using CurrentInterpolation = T_CurrentInterpolation;
 
         Yee(MappingDesc cellDescription) : m_cellDescription(cellDescription)
