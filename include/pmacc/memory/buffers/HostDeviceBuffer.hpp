@@ -38,6 +38,7 @@ namespace pmacc{
         typedef HostBufferIntern<T_Type, T_dim> HostBufferType;
         typedef DeviceBufferIntern<T_Type, T_dim> DeviceBufferType;
     public:
+        using ValueType = T_Type;
         typedef HostBuffer<T_Type, T_dim> HBuffer;
         typedef DeviceBuffer<T_Type, T_dim> DBuffer;
         typedef typename HostBufferType::DataBoxType DataBoxType;

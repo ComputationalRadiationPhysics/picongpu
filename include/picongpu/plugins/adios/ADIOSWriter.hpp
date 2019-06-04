@@ -37,6 +37,7 @@
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
+#include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 #include <pmacc/particles/operations/CountParticles.hpp>
 
 #include <pmacc/dataManagement/DataConnector.hpp>
