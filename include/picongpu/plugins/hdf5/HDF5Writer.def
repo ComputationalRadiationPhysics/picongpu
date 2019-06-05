@@ -23,7 +23,7 @@
 
 #include "picongpu/simulation_types.hpp"
 #include <pmacc/particles/frame_types.hpp>
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include <splash/splash.h>
 
 

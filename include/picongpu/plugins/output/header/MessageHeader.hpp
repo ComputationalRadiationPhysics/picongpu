@@ -27,7 +27,7 @@
 #include "picongpu/plugins/output/header/SimHeader.hpp"
 #include "picongpu/plugins/output/header/WindowHeader.hpp"
 
-#include "picongpu/simulationControl/Window.hpp"
+#include "picongpu/simulation/control/Window.hpp"
 
 #include <iostream>
 #include <cstdlib>

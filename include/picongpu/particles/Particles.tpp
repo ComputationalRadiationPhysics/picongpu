@@ -36,7 +36,7 @@
 #include "picongpu/particles/ParticlesInit.kernel"
 #include <pmacc/mappings/simulation/GridController.hpp>
 
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include "picongpu/fields/numericalCellTypes/YeeCell.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"

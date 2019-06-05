@@ -33,7 +33,7 @@
 #include <pmacc/math/Vector.hpp>
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/particles/frame_types.hpp>
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/traits/PICToAdios.hpp"
 
 namespace picongpu

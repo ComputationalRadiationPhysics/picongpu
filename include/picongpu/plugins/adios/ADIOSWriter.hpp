@@ -45,7 +45,7 @@
 #include <pmacc/mappings/simulation/SubGrid.hpp>
 #include <pmacc/dimensions/GridLayout.hpp>
 #include <pmacc/pluginSystem/PluginConnector.hpp>
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 #include <pmacc/math/Vector.hpp>
 #if( PMACC_CUDA_ENABLED == 1 )
 #   include <pmacc/particles/memory/buffers/MallocMCBuffer.hpp>

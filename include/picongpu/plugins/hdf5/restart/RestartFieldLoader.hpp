@@ -24,7 +24,7 @@
 #include <pmacc/particles/frame_types.hpp>
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>

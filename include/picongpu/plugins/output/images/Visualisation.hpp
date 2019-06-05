@@ -29,7 +29,7 @@
 #include "picongpu/plugins/ILightweightPlugin.hpp"
 #include "picongpu/plugins/output/header/MessageHeader.hpp"
 #include "picongpu/plugins/output/GatherSlice.hpp"
-#include "picongpu/simulationControl/MovingWindow.hpp"
+#include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/algorithms/GlobalReduce.hpp>
 #include <pmacc/algorithms/math/defines/pi.hpp>
