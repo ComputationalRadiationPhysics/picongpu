@@ -334,37 +334,20 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_CXX11_SMART_PTR")
 endif()
 
-# GCC's C++11 tuples are broken in "supported" NVCC versions
-if("${ALPAKA_CUDA_COMPILER}" STREQUAL "nvcc")
-    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        if(CUDA_VERSION VERSION_EQUAL 9.0 OR
-               CUDA_VERSION VERSION_EQUAL 9.1)
-            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 6.0)
-                message(FATAL_ERROR "NVCC 9.0 - 9.1 do not support the std::tuple "
-                        "implementation in GCC 6+. Please use GCC 4.9 - 5.5!")
-            endif()
-        elseif(CUDA_VERSION VERSION_EQUAL 9.2)
-            if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 8.0)
-                message(FATAL_ERROR "NVCC 9.2 does not support GCC 8+. "
-                        "Please use GCC 4.9 - 7.3!")
-            endif()
-        endif()
-    endif()
-endif()
-
 # Newer Boost releases: probably troublesome, warn at least
-if(Boost_VERSION GREATER 106800)
-    message(WARNING "Untested Boost release! Maybe use a newer PIConGPU?")
+if(Boost_VERSION GREATER 107000)
+    message(WARNING "Untested Boost release > 1.70.0 (Found ${Boost_VERSION})! "
+                    "Maybe use a newer PIConGPU?")
 endif()
 
 if(ALPAKA_ACC_GPU_CUDA_ENABLE)
-    if(CUDA_VERSION VERSION_LESS 9.0)
-        message(FATAL_ERROR "CUDA 9.0 or newer required! "
+    if(CUDA_VERSION VERSION_LESS 9.2)
+        message(FATAL_ERROR "CUDA 9.2 or newer required! "
                             "(Found ${CUDA_VERSION})")
     endif()
     # Newer CUDA releases: probably troublesome, warn at least
-    if(CUDA_VERSION VERSION_GREATER 10.0)
-        message(WARNING "Untested CUDA release >10.0 (Found ${CUDA_VERSION})! "
+    if(CUDA_VERSION VERSION_GREATER 10.1)
+        message(WARNING "Untested CUDA release >10.1 (Found ${CUDA_VERSION})! "
                         "Maybe use a newer PIConGPU?")
     endif()
 endif()

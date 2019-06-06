@@ -76,4 +76,4 @@ Recipes
 
 Currently, the following build recipes exist:
 
-* ``ubuntu-1604/``: Ubuntu 16.04, CUDA 9.0.176 (nvcc), GCC 5.4.0
+* ``ubuntu-1604/``: Ubuntu 16.04, CUDA 9.2.148 (nvcc), GCC 5.4.0

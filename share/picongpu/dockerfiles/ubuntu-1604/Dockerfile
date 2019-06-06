@@ -1,4 +1,4 @@
-FROM       nvidia/cuda:9.0-base
+FROM       nvidia/cuda:9.2-base
 MAINTAINER Axel Huebl <a.huebl@hzdr.de>
 
 # docker and image environment
