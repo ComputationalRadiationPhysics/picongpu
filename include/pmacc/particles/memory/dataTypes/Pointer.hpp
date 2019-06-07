@@ -21,7 +21,6 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/traits/GetEmptyDefaultConstructibleType.hpp"
 #include "pmacc/expressions/DoNothing.hpp"
 #include "pmacc/expressions/SetToNull.hpp"
 
@@ -117,15 +116,5 @@ public:
 
     PMACC_ALIGN( ptr, PtrType );
 };
-
-namespace traits
-{
-
-template<typename T_Type, typename T_InitMethod>
-struct GetEmptyDefaultConstructibleType<Pointer<T_Type, T_InitMethod> >
-{
-    typedef Pointer<T_Type, expressions::DoNothing> type;
-};
-} //namespace traits
 
 } //namespace pmacc

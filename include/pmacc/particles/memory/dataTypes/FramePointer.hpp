@@ -22,7 +22,6 @@
 
 #include "pmacc/types.hpp"
 #include "pmacc/particles/memory/dataTypes/Pointer.hpp"
-#include "pmacc/traits/GetEmptyDefaultConstructibleType.hpp"
 #include "pmacc/expressions/DoNothing.hpp"
 #include "pmacc/expressions/SetToNull.hpp"
 
@@ -99,15 +98,5 @@ public:
     }
 
 };
-
-namespace traits
-{
-
-template<typename T_Type, typename T_InitMethod>
-struct GetEmptyDefaultConstructibleType<FramePointer<T_Type, T_InitMethod> >
-{
-    typedef FramePointer<T_Type, expressions::DoNothing> type;
-};
-} //namespace traits
 
 } //namespace pmacc
