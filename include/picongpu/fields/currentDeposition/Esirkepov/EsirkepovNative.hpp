@@ -77,7 +77,7 @@ struct EsirkepovNative
 
     float_X charge;
 
-    /* At the moment Esirkepov only support YeeCell were W is defined at origin (0,0,0)
+    /* At the moment Esirkepov only supports Yee cells where W is defined at origin (0,0,0)
      *
      * \todo: please fix me that we can use CenteredCell
      */

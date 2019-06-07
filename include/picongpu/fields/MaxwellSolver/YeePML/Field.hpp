@@ -22,7 +22,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.def"
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
@@ -245,11 +245,11 @@ namespace traits
      */
     template< uint32_t T_dim >
     struct FieldPosition<
-        numericalCellTypes::YeeCell,
+        fields::cellType::Yee,
         fields::maxwellSolver::yeePML::FieldE,
         T_dim
     > : FieldPosition<
-        numericalCellTypes::YeeCell,
+        fields::cellType::Yee,
         FieldE,
         T_dim
     >
@@ -263,11 +263,11 @@ namespace traits
      */
     template< uint32_t T_dim >
     struct FieldPosition<
-        numericalCellTypes::YeeCell,
+        fields::cellType::Yee,
         fields::maxwellSolver::yeePML::FieldB,
         T_dim
     > : FieldPosition<
-        numericalCellTypes::YeeCell,
+        fields::cellType::Yee,
         FieldB,
         T_dim
     >

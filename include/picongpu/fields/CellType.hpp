@@ -1,4 +1,4 @@
-/* Copyright 2013-2019 Heiko Burau, Rene Widera, Axel Huebl
+/* Copyright 2013-2019 Heiko Burau, Rene Widera, Axel Huebl, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -17,9 +17,19 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #pragma once
 
-#include "YeeCell.hpp"
-#include "EMFCenteredCell.hpp"
+#include "picongpu/simulation_defines.hpp"
+#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+
+
+namespace picongpu
+{
+namespace fields
+{
+
+    //! Alias for a cell type used by the field solver
+    using CellType = Solver::CellType;
+
+} // namespace fields
+} // namespace picongpu

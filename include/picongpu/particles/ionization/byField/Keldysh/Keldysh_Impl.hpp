@@ -22,9 +22,9 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/traits/UsesRNG.hpp"
 
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/particles/ionization/byField/Keldysh/Keldysh.def"
 #include "picongpu/particles/ionization/byField/Keldysh/AlgorithmKeldysh.hpp"
@@ -241,11 +241,11 @@ namespace ionization
                 /* multi-dim coordinate of the local cell inside the super cell */
                 DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
                 /* interpolation of E- */
-                const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldE> fieldPosE;
+                const picongpu::traits::FieldPosition<fields::CellType, FieldE> fieldPosE;
                 ValueType_E eField = Field2ParticleInterpolation()
                     (cachedE.shift(localCell).toCursor(), pos, fieldPosE());
                 /*                     and B-field on the particle position */
-                const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldB> fieldPosB;
+                const picongpu::traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
                 ValueType_B bField = Field2ParticleInterpolation()
                     (cachedB.shift(localCell).toCursor(), pos, fieldPosB());
 

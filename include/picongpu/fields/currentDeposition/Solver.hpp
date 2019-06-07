@@ -25,5 +25,3 @@
 #if(SIMDIM==DIM3)
 #include "picongpu/fields/currentDeposition/VillaBune/CurrentVillaBune.hpp"
 #endif
-
-#include "picongpu/fields/numericalCellTypes/YeeCell.hpp"

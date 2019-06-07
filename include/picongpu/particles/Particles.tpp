@@ -38,7 +38,6 @@
 
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
-#include "picongpu/fields/numericalCellTypes/YeeCell.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"
 
 #include <pmacc/traits/GetUniqueTypeId.hpp>

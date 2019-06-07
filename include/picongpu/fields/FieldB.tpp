@@ -35,7 +35,6 @@
 #include <pmacc/dimensions/SuperCellDescription.hpp>
 
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 
 #include <pmacc/math/Vector.hpp>
 

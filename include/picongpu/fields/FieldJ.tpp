@@ -31,9 +31,6 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/StrideMapping.hpp>
 #include <pmacc/fields/tasks/FieldFactory.hpp>
-
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
-
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/fields/operations/CopyGuardToExchange.hpp>
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>

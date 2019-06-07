@@ -24,9 +24,9 @@
 #include <pmacc/particles/compileTime/FindByNameOrType.hpp>
 #include "picongpu/traits/UsesRNG.hpp"
 
+#include "picongpu/fields/CellType.hpp"
 #include "picongpu/fields/FieldB.hpp"
 #include "picongpu/fields/FieldE.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
 #include "picongpu/particles/ionization/byField/ADK/ADK.def"
 #include "picongpu/particles/ionization/byField/ADK/AlgorithmADK.hpp"
@@ -241,13 +241,13 @@ namespace ionization
                 DataSpace<TVec::dim> localCell(DataSpaceOperations<TVec::dim>::template map<TVec > (particleCellIdx));
                 /* interpolation of E- */
                 const picongpu::traits::FieldPosition<
-                    typename fields::Solver::NummericalCellType,
+                    fields::CellType,
                     FieldE
                 > fieldPosE;
                 ValueType_E eField = Field2ParticleInterpolation()
                     (cachedE.shift(localCell).toCursor(), pos, fieldPosE());
                 /*                     and B-field on the particle position */
-                const picongpu::traits::FieldPosition<typename fields::Solver::NummericalCellType, FieldB> fieldPosB;
+                const picongpu::traits::FieldPosition<fields::CellType, FieldB> fieldPosB;
                 ValueType_B bField = Field2ParticleInterpolation()
                     (cachedB.shift(localCell).toCursor(), pos, fieldPosB());
 

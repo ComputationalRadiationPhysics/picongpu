@@ -24,7 +24,6 @@
 #include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
 #include "picongpu/particles/traits/GetMarginPusher.hpp"
 #include "picongpu/traits/GetMargin.hpp"

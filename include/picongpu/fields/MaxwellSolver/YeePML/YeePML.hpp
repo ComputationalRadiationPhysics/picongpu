@@ -24,7 +24,7 @@
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Parameters.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.kernel"
-#include "picongpu/fields/numericalCellTypes/NumericalCellTypes.hpp"
+#include "picongpu/fields/cellType/Yee.hpp"
 
 #include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
@@ -360,7 +360,7 @@ namespace maxwellSolver
     public:
 
         // Types required by field solver interface
-        using NummericalCellType = picongpu::numericalCellTypes::YeeCell;
+        using CellType = cellType::Yee;
         using CurrentInterpolation = T_CurrentInterpolation;
         using CurlE = T_CurlE;
         using CurlB = T_CurlB;
