@@ -23,7 +23,6 @@
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/math/Vector.hpp>
-#include <pmacc/traits/IsSameType.hpp>
 #include <pmacc/nvidia/atomic.hpp>
 
 #include "picongpu/particles/shapes/CIC.hpp"
