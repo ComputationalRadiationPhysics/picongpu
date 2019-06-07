@@ -1,6 +1,6 @@
 /* Copyright 2013-2019 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
- *                     Benjamin Worpitz, Alexander Grund
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -56,10 +56,17 @@
 #include "picongpu/particles/filter/filter.hpp"
 #include "picongpu/particles/flylite/NonLTE.tpp"
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
+#include "picongpu/simulation/stage/Bremsstrahlung.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
 #include "picongpu/simulation/stage/CurrentInterpolationAndAdditionToEMF.hpp"
 #include "picongpu/simulation/stage/CurrentReset.hpp"
+#include "picongpu/simulation/stage/FieldBackground.hpp"
+#include "picongpu/simulation/stage/MomentumBackup.hpp"
+#include "picongpu/simulation/stage/ParticleIonization.hpp"
+#include "picongpu/simulation/stage/ParticlePush.hpp"
+#include "picongpu/simulation/stage/PopulationKinetics.hpp"
+#include "picongpu/simulation/stage/SynchrotronRadiation.hpp"
 #include <pmacc/random/methods/methods.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
@@ -115,7 +122,6 @@ public:
      */
     MySimulation() :
     myFieldSolver(nullptr),
-    pushBGField(nullptr),
     cellDescription(nullptr),
     initialiserController(nullptr),
     slidingWindow(false),
@@ -284,7 +290,6 @@ public:
          */
         dc.clean();
 
-        __delete(pushBGField);
         __delete(cellDescription);
     }
 
@@ -299,8 +304,6 @@ public:
 
         DataConnector &dc = Environment<>::get().DataConnector();
         initFields(dc);
-
-        pushBGField = new cellwiseOperation::CellwiseOperation < CORE + BORDER + GUARD > (*cellDescription);
 
         // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
         using AllSynchrotronPhotonsSpecies = typename pmacc::particles::traits::FilterByFlag<
@@ -511,107 +514,30 @@ public:
      */
     virtual void runOneStep(uint32_t currentStep)
     {
-        namespace nvfct = pmacc::nvidia::functors;
-
-        using VectorSpeciesWithMementumPrev1 = typename pmacc::particles::traits::FilterByIdentifier
-        <
-            VectorAllSpecies,
-            momentumPrev1
-        >::type;
-
-        /* copy attribute momentum to momentumPrev1 */
-        ForEach<
-            VectorSpeciesWithMementumPrev1,
-            particles::Manipulate<
-                particles::manipulators::unary::CopyAttribute<
-                    momentumPrev1,
-                    momentum
-                >,
-                bmpl::_1
-            >
-        > copyMomentumPrev1;
-        copyMomentumPrev1( currentStep );
-
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        /* Initialize ionization routine for each species with the flag `ionizers<>` */
-        using VectorSpeciesWithIonizers = typename pmacc::particles::traits::FilterByFlag<
-            VectorAllSpecies,
-            ionizers<>
-        >::type;
-        ForEach< VectorSpeciesWithIonizers, particles::CallIonization< bmpl::_1 > > particleIonization;
-        particleIonization( cellDescription, currentStep );
-
-        /* FLYlite population kinetics for atomic physics */
-        using AllFlyLiteIons = typename pmacc::particles::traits::FilterByFlag<
-            VectorAllSpecies,
-            populationKinetics<>
-        >::type;
-
-        ForEach<
-            AllFlyLiteIons,
-            particles::CallPopulationKinetics< bmpl::_1 >,
-            bmpl::_1
-        > populationKinetics;
-        populationKinetics( currentStep );
-
-        /* call the synchrotron radiation module for each radiating species (normally electrons) */
-        using AllSynchrotronPhotonsSpecies = typename pmacc::particles::traits::FilterByFlag<
-            VectorAllSpecies,
-            synchrotronPhotons<>
-        >::type;
-
-        ForEach<
-            AllSynchrotronPhotonsSpecies,
-            particles::CallSynchrotronPhotons< bmpl::_1 >
-        > synchrotronRadiation;
-        synchrotronRadiation( cellDescription, currentStep, this->synchrotronFunctions );
-
+        using namespace simulation::stage;
+        MomentumBackup{ }( currentStep );
+        ParticleIonization{ *cellDescription }( currentStep );
+        PopulationKinetics{ }( currentStep );
+        SynchrotronRadiation{
+            *cellDescription,
+            synchrotronFunctions
+        }( currentStep );
 #if( PMACC_CUDA_ENABLED == 1 )
-        /* Bremsstrahlung */
-        using VectorSpeciesWithBremsstrahlung = typename pmacc::particles::traits::FilterByFlag
-        <
-            VectorAllSpecies,
-            bremsstrahlungIons<>
-        >::type;
-        ForEach<
-            VectorSpeciesWithBremsstrahlung,
-            particles::CallBremsstrahlung< bmpl::_1 >
-        > particleBremsstrahlung;
-        particleBremsstrahlung(
-            cellDescription,
-            currentStep,
-            this->scaledBremsstrahlungSpectrumMap,
-            this->bremsstrahlungPhotonAngle);
+        Bremsstrahlung{
+            *cellDescription,
+            scaledBremsstrahlungSpectrumMap,
+            bremsstrahlungPhotonAngle
+        }( currentStep );
 #endif
-        EventTask initEvent = __getTransactionEvent();
-        EventTask updateEvent;
         EventTask commEvent;
-
-        /* push all species */
-        particles::PushAllSpecies pushAllSpecies;
-        pushAllSpecies( currentStep, initEvent, updateEvent, commEvent );
-
-        __setTransactionEvent(updateEvent);
-        /** remove background field for particle pusher */
-        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
-        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
-        (*pushBGField)(fieldE, nvfct::Sub(), FieldBackgroundE(fieldE->getUnit()),
-                       currentStep, FieldBackgroundE::InfluenceParticlePusher);
-        (*pushBGField)(fieldB, nvfct::Sub(), FieldBackgroundB(fieldB->getUnit()),
-                       currentStep, FieldBackgroundB::InfluenceParticlePusher);
-        dc.releaseData( FieldE::getName() );
-        dc.releaseData( FieldB::getName() );
-
+        ParticlePush{ }( currentStep, commEvent );
+        FieldBackground{ *cellDescription }( currentStep, nvidia::functors::Sub( ) );
         myFieldSolver->update_beforeCurrent( currentStep );
-
-        using namespace simulation;
-        stage::CurrentReset{ }( currentStep );
+        CurrentReset{ }( currentStep );
         __setTransactionEvent( commEvent );
-        stage::CurrentBackground{ *cellDescription }( currentStep );
-        stage::CurrentDeposition{ }( currentStep );
-        stage::CurrentInterpolationAndAdditionToEMF{ }( currentStep );
-
+        CurrentBackground{ *cellDescription }( currentStep );
+        CurrentDeposition{ }( currentStep );
+        CurrentInterpolationAndAdditionToEMF{ }( currentStep );
         myFieldSolver->update_afterCurrent( currentStep );
     }
 
@@ -640,20 +566,9 @@ public:
              * Hence the background field is visible for all plugins
              * in between the time steps.
              */
-            namespace nvfct = pmacc::nvidia::functors;
-
-            DataConnector &dc = Environment<>::get().DataConnector();
-
-            auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
-            auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
-
-            (*pushBGField)( fieldE, nvfct::Add(), FieldBackgroundE(fieldE->getUnit()),
-                            currentStep, FieldBackgroundE::InfluenceParticlePusher );
-            (*pushBGField)( fieldB, nvfct::Add(), FieldBackgroundB(fieldB->getUnit()),
-                            currentStep, FieldBackgroundB::InfluenceParticlePusher );
-
-            dc.releaseData( FieldE::getName() );
-            dc.releaseData( FieldB::getName() );
+            simulation::stage::FieldBackground{ *cellDescription }(
+                currentStep, nvidia::functors::Add( )
+            );
         }
     }
 
@@ -700,12 +615,10 @@ public:
     }
 
 protected:
+
     std::shared_ptr<DeviceHeap> deviceHeap;
 
-    // field solver
     fields::Solver* myFieldSolver;
-
-    cellwiseOperation::CellwiseOperation< CORE + BORDER + GUARD >* pushBGField;
 
 #if( PMACC_CUDA_ENABLED == 1 )
     // creates lookup tables for the bremsstrahlung effect
