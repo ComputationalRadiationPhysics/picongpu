@@ -129,8 +129,7 @@ public:
      *
      * @param frame frame to remove
      */
-    template<typename T_InitMethod>
-    DINLINE void removeFrame( FramePointer<FrameType, T_InitMethod>& frame )
+    DINLINE void removeFrame( FramePtr& frame )
     {
 #if( PMACC_CUDA_ENABLED == 1 )
         m_deviceHeapHandle.free( (void*) frame.ptr );
@@ -205,15 +204,11 @@ public:
      * @param idx position of supercell
      */
     template<
-        typename T_InitMethod,
         typename T_Acc
     >
     DINLINE void setAsFirstFrame(
         T_Acc const & acc,
-        FramePointer<
-            FrameType,
-            T_InitMethod
-        >& frame,
+        FramePtr & frame,
         DataSpace< DIM > const &idx
     )
     {
@@ -255,14 +250,12 @@ public:
      * @param idx position of supercell
      */
     template<
-        typename T_InitMethod,
         typename T_Acc
     >
     DINLINE void setAsLastFrame(
         T_Acc const & acc,
         FramePointer<
-            FrameType,
-            T_InitMethod
+            FrameType
         >& frame,
         DataSpace< DIM > const &idx
     )
