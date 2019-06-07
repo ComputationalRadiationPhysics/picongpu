@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz, René Widera
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -350,7 +339,7 @@ namespace alpaka
 
                     joinAllConcurrentExecs();
 
-                    auto currentTaskPackage(std::shared_ptr<ITaskPkg>{nullptr});
+                    auto currentTaskPackage = std::shared_ptr<ITaskPkg>{nullptr};
 
                     // Signal to each incomplete task that it will not complete due to pool destruction.
                     while(popTask(currentTaskPackage))
@@ -437,7 +426,7 @@ namespace alpaka
                     // Checks whether pool is being destroyed, if so, stop running.
                     while(!m_bShutdownFlag.load(std::memory_order_relaxed))
                     {
-                        auto currentTaskPackage(std::shared_ptr<ITaskPkg>{nullptr});
+                        auto currentTaskPackage = std::shared_ptr<ITaskPkg>{nullptr};
 
                         // Use popTask so we only ever have one reference to the ITaskPkg
                         if(popTask(currentTaskPackage))
@@ -506,7 +495,7 @@ namespace alpaka
             {
             public:
                 //-----------------------------------------------------------------------------
-                //! Creates a concurrent executor pool with a specific number of concurrent executors and a maximum number of queued tasks.
+                //! Creates a concurrent executors pool with a specific number of concurrent executors and a maximum number of queued tasks.
                 //!
                 //! \param concurrentExecutionCount
                 //!    The guaranteed number of concurrent executors used in the pool.
@@ -558,7 +547,7 @@ namespace alpaka
 
                     joinAllConcurrentExecs();
 
-                    auto currentTaskPackage(std::shared_ptr<ITaskPkg>{nullptr});
+                    auto currentTaskPackage = std::shared_ptr<ITaskPkg>{nullptr};
 
                     // Signal to each incomplete task that it will not complete due to pool destruction.
                     while(popTask(currentTaskPackage))
@@ -650,7 +639,7 @@ namespace alpaka
                     // Checks whether pool is being destroyed, if so, stop running (lazy check without mutex).
                     while(!m_bShutdownFlag)
                     {
-                        auto currentTaskPackage(std::shared_ptr<ITaskPkg>{nullptr});
+                        auto currentTaskPackage = std::shared_ptr<ITaskPkg>{nullptr};
 
                         // Use popTask so we only ever have one reference to the ITaskPkg
                         if(popTask(currentTaskPackage))

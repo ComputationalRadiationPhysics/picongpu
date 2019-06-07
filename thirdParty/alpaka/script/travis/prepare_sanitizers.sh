@@ -1,35 +1,35 @@
 #!/bin/bash
 
 #
-# Copyright 2017 Benjamin Worpitz
+# Copyright 2017-2019 Benjamin Worpitz
 #
-# This file is part of alpaka.
+# This file is part of Alpaka.
 #
-# alpaka is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# alpaka is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with alpaka.
-# If not, see <http://www.gnu.org/licenses/>.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-#-------------------------------------------------------------------------------
-# e: exit as soon as one command returns a non-zero exit code.
-set -euo pipefail
+source ./script/travis/set.sh
 
 #-------------------------------------------------------------------------------
 # Exports the CMAKE_CXX_FLAGS and CMAKE_EXE_LINKER_FLAGS to enable the sanitizers listed in ALPAKA_CI_SANITIZERS.
-export CMAKE_CXX_FLAGS=
-export CMAKE_EXE_LINKER_FLAGS=
-export ASAN_OPTIONS
-export LSAN_OPTIONS
+if [ -z ${CMAKE_CXX_FLAGS+x} ]
+then
+    export CMAKE_CXX_FLAGS=
+fi
+if [ -z ${CMAKE_EXE_LINKER_FLAGS+x} ]
+then
+    export CMAKE_EXE_LINKER_FLAGS=
+fi
+if [ -z ${ASAN_OPTIONS+x} ]
+then
+    export ASAN_OPTIONS=
+fi
+if [ -z ${LSAN_OPTIONS+x} ]
+then
+    export LSAN_OPTIONS=
+fi
 
 #-------------------------------------------------------------------------------
 # sanitizers
@@ -66,7 +66,7 @@ then
     # ESan
     if [[ "${ALPAKA_CI_SANITIZERS}" == *"ESan"* ]]
     then
-        if ( [ "${CXX}" != "clang++" ] || ( (( ALPAKA_CI_CLANG_VER_MAJOR == 3 )) && (( ALPAKA_CI_CLANG_VER_MINOR <= 7 )) ) )
+        if [[ "${CXX}" != "clang++" ]]
         then
             echo ESan is not supported by the current compiler
             exit 1
@@ -101,7 +101,7 @@ then
 
         CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize=address"
 
-        if ( [ "${CXX}" != "clang++" ] && ( (( ALPAKA_CI_CLANG_VER_MAJOR >= 4 )) || ( (( ALPAKA_CI_CLANG_VER_MAJOR == 3 )) && (( ALPAKA_CI_CLANG_VER_MINOR >= 9 )) ) ) )
+        if [[ "${CXX}" != "clang++" ]]
         then
             CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -fsanitize-address-use-after-scope"
         fi
@@ -134,7 +134,7 @@ then
     # NOTE: Currently we can not enable this for CI as this finds some 'use-of-uninitialized-value' inside:
     #   - boost`s smart pointers used by the unit test framework
     #   - alpaka/test/integ/mandelbrot/src/main.cpp:450:9 std::replace
-    #   - alpaka/include/alpaka/exec/ExecCpuThreads.hpp:307:21 used alpaka/include/alpaka/idx/bt/IdxBtRefThreadIdMap.hpp:130:44
+    #   - alpaka/include/alpaka/kernel/TaskKernelCpuThreads.hpp:307:21 used alpaka/include/alpaka/idx/bt/IdxBtRefThreadIdMap.hpp:130:44
     if [[ "${ALPAKA_CI_SANITIZERS}" == *"MSan"* ]]
     then
         if ( [[ "${ALPAKA_CI_SANITIZERS}" == *"ASan"* ]] || [[ "${ALPAKA_CI_SANITIZERS}" == *"TSan"* ]] )

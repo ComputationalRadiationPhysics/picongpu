@@ -1,23 +1,12 @@
-/**
- * \file
- * Copyright 2014-2016 Benjamin Worpitz, Rene Widera
+/* Copyright 2019 Benjamin Worpitz, René Widera
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 
 #pragma once
 
@@ -29,8 +18,12 @@
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
 
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/atomic/Op.hpp>
 #include <alpaka/atomic/Traits.hpp>
+#include <alpaka/meta/DependentFalseType.hpp>
+
+#include <climits>
 
 namespace alpaka
 {
@@ -48,13 +41,13 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             AtomicCudaBuiltIn() = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY AtomicCudaBuiltIn(AtomicCudaBuiltIn const &) = delete;
+            __device__ AtomicCudaBuiltIn(AtomicCudaBuiltIn const &) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY AtomicCudaBuiltIn(AtomicCudaBuiltIn &&) = delete;
+            __device__ AtomicCudaBuiltIn(AtomicCudaBuiltIn &&) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY auto operator=(AtomicCudaBuiltIn const &) -> AtomicCudaBuiltIn & = delete;
+            __device__ auto operator=(AtomicCudaBuiltIn const &) -> AtomicCudaBuiltIn & = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_CUDA_ONLY auto operator=(AtomicCudaBuiltIn &&) -> AtomicCudaBuiltIn & = delete;
+            __device__ auto operator=(AtomicCudaBuiltIn &&) -> AtomicCudaBuiltIn & = delete;
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AtomicCudaBuiltIn() = default;
         };
@@ -79,7 +72,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     int * const addr,
                     int const & value)
@@ -99,7 +92,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
@@ -115,12 +108,41 @@ namespace alpaka
             struct AtomicOp<
                 op::Add,
                 atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicAdd(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+                    return atomicAdd(
+                        reinterpret_cast<unsigned long long int *>(addr),
+                        static_cast<unsigned long long int>(value));
+#endif
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Add,
+                atomic::AtomicCudaBuiltIn,
                 unsigned long long int,
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
                 //
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned long long int * const addr,
                     unsigned long long int const & value)
@@ -141,7 +163,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 //
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     float * const addr,
                     float const & value)
@@ -161,13 +183,13 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     double * const addr,
                     double const & value)
                 -> double
                 {
-#if BOOST_ARCH_CUDA_DEVICE >= BOOST_VERSION_NUMBER(6, 0, 0)
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(6, 0, 0)
                     return atomicAdd(addr, value);
 #else
                     // Code from: http://docs.nvidia.com/cuda/cuda-c-programming-guide/#atomic-functions
@@ -204,7 +226,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     int * const addr,
                     int const & value)
@@ -224,13 +246,44 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
                 -> unsigned int
                 {
                     return atomicSub(addr, value);
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Sub,
+                atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicSub(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Sub, atomic::AtomicCudaBuiltIn, unsigned long int> is only supported when sizeof(unsigned long int) == 4");
+#endif
                 }
             };
 
@@ -248,7 +301,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     int * const addr,
                     int const & value)
@@ -268,7 +321,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
@@ -279,7 +332,44 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            /*template<
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Min,
+                atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicMin(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
+                    return atomicMin(
+                        reinterpret_cast<unsigned long long int *>(addr),
+                        static_cast<unsigned long long int>(value));
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Min, atomic::AtomicCudaBuiltIn, unsigned long int> is only supported on sm >= 3.5");
+#endif
+#endif
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
                typename THierarchy>
             struct AtomicOp<
                 op::Min,
@@ -288,15 +378,23 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned long long int * const addr,
                     unsigned long long int const & value)
                 -> unsigned long long int
                 {
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
                     return atomicMin(addr, value);
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Min, atomic::AtomicCudaBuiltIn, unsigned long long int> is only supported on sm >= 3.5");
+#endif
                 }
-            };*/
+            };
 
             //-----------------------------------------------------------------------------
             // Max.
@@ -312,7 +410,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     int * const addr,
                     int const & value)
@@ -331,7 +429,7 @@ namespace alpaka
                 unsigned int,
                 THierarchy>
             {
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
@@ -342,7 +440,44 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            /*template<
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Max,
+                atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicMax(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
+                    return atomicMax(
+                        reinterpret_cast<unsigned long long int *>(addr),
+                        static_cast<unsigned long long int>(value));
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Max, atomic::AtomicCudaBuiltIn, unsigned long int> is only supported on sm >= 3.5");
+#endif
+#endif
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
                typename THierarchy>
             struct AtomicOp<
                 op::Max,
@@ -351,15 +486,23 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned long long int * const addr,
                     unsigned long long int const & value)
                 -> unsigned long long int
                 {
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
                     return atomicMax(addr, value);
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Max, atomic::AtomicCudaBuiltIn, unsigned long long int> is only supported on sm >= 3.5");
+#endif
                 }
-            };*/
+            };
 
             //-----------------------------------------------------------------------------
             // Exch.
@@ -375,7 +518,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     int * const addr,
                     int const & value)
@@ -395,7 +538,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
@@ -411,11 +554,40 @@ namespace alpaka
             struct AtomicOp<
                 op::Exch,
                 atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicExch(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+                    return atomicExch(
+                        reinterpret_cast<unsigned long long int *>(addr),
+                        static_cast<unsigned long long int>(value));
+#endif
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Exch,
+                atomic::AtomicCudaBuiltIn,
                 unsigned long long int,
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned long long int * const addr,
                     unsigned long long int const & value)
@@ -435,7 +607,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     float * const addr,
                     float const & value)
@@ -459,13 +631,44 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
                 -> unsigned int
                 {
                     return atomicInc(addr, value);
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Inc,
+                atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicInc(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Inc, atomic::AtomicCudaBuiltIn, unsigned long int> is only supported when sizeof(unsigned long int) == 4");
+#endif
                 }
             };
 
@@ -483,13 +686,44 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
                 -> unsigned int
                 {
                     return atomicDec(addr, value);
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Dec,
+                atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicDec(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Dec, atomic::AtomicCudaBuiltIn, unsigned long int> is only supported when sizeof(unsigned long int) == 4");
+#endif
                 }
             };
 
@@ -507,7 +741,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     int * const addr,
                     int const & value)
@@ -527,7 +761,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
@@ -538,7 +772,44 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            /*template<
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::And,
+                atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicAnd(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
+                    return atomicAnd(
+                        reinterpret_cast<unsigned long long int *>(addr),
+                        static_cast<unsigned long long int>(value));
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::And, atomic::AtomicCudaBuiltIn, unsigned long int> is only supported on sm >= 3.5");
+#endif
+#endif
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
                 typename THierarchy>
             struct AtomicOp<
                 op::And,
@@ -547,15 +818,23 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned long long int * const addr,
                     unsigned long long int const & value)
                 -> unsigned long long int
                 {
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
                     return atomicAnd(addr, value);
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::And, atomic::AtomicCudaBuiltIn, unsigned long long int> is only supported on sm >= 3.5");
+#endif
                 }
-            };*/
+            };
 
             //-----------------------------------------------------------------------------
             // Or.
@@ -571,7 +850,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     int * const addr,
                     int const & value)
@@ -591,7 +870,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
@@ -602,7 +881,44 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            /*template<
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Or,
+                atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicOr(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
+                    return atomicOr(
+                        reinterpret_cast<unsigned long long int *>(addr),
+                        static_cast<unsigned long long int>(value));
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Or, atomic::AtomicCudaBuiltIn, unsigned long int> is only supported on sm >= 3.5");
+#endif
+#endif
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
                typename THierarchy>
             struct AtomicOp<
                 op::Or,
@@ -611,15 +927,23 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned long long int * const addr,
                     unsigned long long int const & value)
                 -> unsigned long long int
                 {
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
                     return atomicOr(addr, value);
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Or, atomic::AtomicCudaBuiltIn, unsigned long long int> is only supported on sm >= 3.5");
+#endif
                 }
-            };*/
+            };
 
             //-----------------------------------------------------------------------------
             // Xor.
@@ -635,7 +959,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     int * const addr,
                     int const & value)
@@ -655,7 +979,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & value)
@@ -666,7 +990,44 @@ namespace alpaka
             };
             //-----------------------------------------------------------------------------
             //! The GPU CUDA accelerator atomic operation.
-            /*template<
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Xor,
+                atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicXor(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
+                    return atomicXor(
+                        reinterpret_cast<unsigned long long int *>(addr),
+                        static_cast<unsigned long long int>(value));
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Xor, atomic::AtomicCudaBuiltIn, unsigned long int> is only supported on sm >= 3.5");
+#endif
+#endif
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
                typename THierarchy>
             struct AtomicOp<
                 op::Xor,
@@ -675,15 +1036,23 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned long long int * const addr,
                     unsigned long long int const & value)
                 -> unsigned long long int
                 {
+#if BOOST_ARCH_PTX >= BOOST_VERSION_NUMBER(3, 5, 0)
                     return atomicXor(addr, value);
+#else
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<op::Xor, atomic::AtomicCudaBuiltIn, unsigned long long int> is only supported on sm >= 3.5");
+#endif
                 }
-            };*/
+            };
 
             //-----------------------------------------------------------------------------
             // Cas.
@@ -699,7 +1068,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     int * const addr,
                     int const & compare,
@@ -720,7 +1089,7 @@ namespace alpaka
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned int * const addr,
                     unsigned int const & compare,
@@ -737,11 +1106,43 @@ namespace alpaka
             struct AtomicOp<
                 op::Cas,
                 atomic::AtomicCudaBuiltIn,
+                unsigned long int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                //
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const &,
+                    unsigned long int * const addr,
+                    unsigned long int const & compare,
+                    unsigned long int const & value)
+                -> unsigned long int
+                {
+#if UINT_MAX == ULONG_MAX // LLP64
+                    return atomicCAS(
+                        reinterpret_cast<unsigned int *>(addr),
+                        static_cast<unsigned int>(compare),
+                        static_cast<unsigned int>(value));
+#else // ULONG_MAX == ULLONG_MAX LP64
+                    return atomicCAS(
+                        reinterpret_cast<unsigned long long int *>(addr),
+                        static_cast<unsigned long long int>(compare),
+                        static_cast<unsigned long long int>(value));
+#endif
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The GPU CUDA accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Cas,
+                atomic::AtomicCudaBuiltIn,
                 unsigned long long int,
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_CUDA_ONLY static auto atomicOp(
+                __device__ static auto atomicOp(
                     atomic::AtomicCudaBuiltIn const &,
                     unsigned long long int * const addr,
                     unsigned long long int const & compare,
@@ -749,6 +1150,54 @@ namespace alpaka
                 -> unsigned long long int
                 {
                     return atomicCAS(addr, compare, value);
+                }
+            };
+
+            //#############################################################################
+            //! The GPU CUDA accelerator atomic operation.
+            template<
+                typename TOp,
+                typename T,
+                typename THierarchy>
+            struct AtomicOp<
+                TOp,
+                atomic::AtomicCudaBuiltIn,
+                T,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const & atomic,
+                    T * const addr,
+                    T const & value)
+                -> T
+                {
+                    alpaka::ignore_unused(atomic);
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<TOp, atomic::AtomicCudaBuiltIn, T>(atomic, addr, value) is not supported!");
+
+                    return T();
+                }
+                //-----------------------------------------------------------------------------
+                __device__ static auto atomicOp(
+                    atomic::AtomicCudaBuiltIn const & atomic,
+                    T * const addr,
+                    T const & compare,
+                    T const & value)
+                -> T
+                {
+                    alpaka::ignore_unused(atomic);
+                    alpaka::ignore_unused(addr);
+                    alpaka::ignore_unused(compare);
+                    alpaka::ignore_unused(value);
+                    static_assert(
+                        meta::DependentFalseType<THierarchy>::value,
+                        "atomicOp<TOp, atomic::AtomicCudaBuiltIn, T>(atomic, addr, compare, value) is not supported!");
+
+                    return T();
                 }
             };
         }

@@ -92,54 +92,54 @@ This allows to extend and fine-tune the implementation non-intrusively.
 For example, the corresponding pitch and memory pinning template types can be specialized for `std::vector`.
 After doing this, the `std::vector` can be used everywhere a buffer is accepted as argument throughout the whole *alpaka* library without ever touching its definition.
 
-A simple function allowing arbitrary tasks to be enqueued into a stream can be implemented in the way shown in the following code.
+A simple function allowing arbitrary tasks to be enqueued into a queue can be implemented in the way shown in the following code.
 The `TSfinae` template parameter will be explained in a [following section](#Template-Specialization-Selection-on-Arbitrary-Conditions).
 
 ```C++
-namespace stream
+namespace queue
 {
 	template<
-		typename TStream,
+		typename TQueue,
 		typename TTask,
 		typename TSfinae = void>
 	struct Enqueue;
 		
 	template<
-		typename TStream,
+		typename TQueue,
 		typename TTask>
 	ALPAKA_FN_HOST auto enqueue(
-		TStream & stream,
+		TQueue & queue,
 		TTask & task)
 	-> void
 	{
 		Enqueue<
-			TStream,
+			TQueue,
 			TTask>
 		::enqueue(
-			stream,
+			queue,
 			task);
 	}
 }
 ```
 
-A user who wants his stream type to be used with this `enqueue` function has to specialize the `Enqueue` template struct.
-This can be either done partially by only replacing the `TStream` template parameter and accepting arbitrary tasks or by fully specializing and replacing both `TStream` and `TTask`. This gives the user complete freedom of choice.
-The example given in the following code shows this by specializing the `Enqueue` type for a user stream type `UserStream` and arbitrary tasks.
+A user who wants his queue type to be used with this `enqueue` function has to specialize the `Enqueue` template struct.
+This can be either done partially by only replacing the `TQueue` template parameter and accepting arbitrary tasks or by fully specializing and replacing both `TQueue` and `TTask`. This gives the user complete freedom of choice.
+The example given in the following code shows this by specializing the `Enqueue` type for a user queue type `UserQueue` and arbitrary tasks.
 
 ```C++
-struct UserStream{};
+struct UserQueue{};
 
-namespace stream
+namespace queue
 {
 	// partial specialization
 	template<
 		typename TTask>
 	struct Enqueue<
-		UserStream
+		UserQueue
 		TTask>
 	{
 		ALPAKA_FN_HOST static auto enqueue(
-			UserStream & stream,
+			UserQueue & queue,
 			TTask & task)
 		-> void
 		{
@@ -149,22 +149,22 @@ namespace stream
 }
 ```
 
-In addition the subsequent code shows a full specialization of the `Enqueue` type for a given `UserStream` and a `UserTask`.
+In addition the subsequent code shows a full specialization of the `Enqueue` type for a given `UserQueue` and a `UserTask`.
 
 ```C++
-struct UserStream{};
+struct UserQueue{};
 struct UserTask{};
 
-namespace stream
+namespace queue
 {
 	// full specialization
 	template<>
 	struct Enqueue<
-		UserStream
+		UserQueue
 		UserTask>
 	{
 		ALPAKA_FN_HOST static auto enqueue(
-			UserStream & stream,
+			UserQueue & queue,
 			UserTask & task)
 		-> void
 		{
@@ -174,10 +174,10 @@ namespace stream
 }
 ```
 
-When the `enqueue` function template is called with an instance of `UserStream`, the most specialized version of the `Enqueue` template is selected depending on the type of the task `TTask` it is called with.
+When the `enqueue` function template is called with an instance of `UserQueue`, the most specialized version of the `Enqueue` template is selected depending on the type of the task `TTask` it is called with.
 
-A type can model the stream concept completely by defining specializations for `alpaka::stream::Enqueue` and `alpaka::stream::Empty`.
-This functionality can be accessed by the corresponding `alpaka::stream::enqueue` and `alpaka::stream::empty` template functions.
+A type can model the queue concept completely by defining specializations for `alpaka::queue::Enqueue` and `alpaka::queue::Empty`.
+This functionality can be accessed by the corresponding `alpaka::queue::enqueue` and `alpaka::queue::empty` template functions.
 
 Currently there is no native language support for describing and checking concepts in C++ at compile time.
 A study group (SG8) is working on the ISO [specification for conecpts](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4377.pdf) and compiler forks implementing them do exist.
@@ -206,23 +206,23 @@ Specializations where the substitution of the parameter types by the deduced typ
 An example in the context of the `Enqueue` template type is shown in the following code.
 
 ```C++
-struct UserStream{};
+struct UserQueue{};
 
-namespace stream
+namespace queue
 {
 	template<
-		typename TStream,
+		typename TQueue,
 		typename TTask>
 	struct Enqueue<
-		TStream
+		TQueue
 		TTask,
 		typename std::enable_if<
-			std::is_base_of<UserStream, TStream>::value
+			std::is_base_of<UserQueue, TQueue>::value
 			&& (TTask::TaskId == 1u)
 		>::type>
 	{
 		ALPAKA_FN_HOST static auto enqueue(
-			TStream & stream,
+			TQueue & queue,
 			TTask & task)
 		-> void
 		{
@@ -232,11 +232,11 @@ namespace stream
 }
 ```
 
-The `Enqueue` specialization shown here does not require any direct type match for the `TStream` or the `TTask` template parameter.
-It will be used in all contexts where `TStream` has inherited from `UserStream` and where the `TTask` has a static const integral member value `TaskId` that equals one.
+The `Enqueue` specialization shown here does not require any direct type match for the `TQueue` or the `TTask` template parameter.
+It will be used in all contexts where `TQueue` has inherited from `UserQueue` and where the `TTask` has a static const integral member value `TaskId` that equals one.
 If the `TTask` type does not have a `TaskId` member, this code would be invalid and the substitution would fail.
 However, due to SFINAE, this would not result in a compiler error but rather only in omitting this specialization.
 The `std::enable_if` template results in a valid expression, if the condition it contains evaluates to true, and an invalid expression if it is false.
 Therefore it can be used to disable specializations depending on arbitrary boolean conditions.
-It is utilized in the case where the `TaskId` member is unequal one or the `TStream` does not inherit from `UserStream`.
+It is utilized in the case where the `TaskId` member is unequal one or the `TQueue` does not inherit from `UserQueue`.
 In this cirumstances, the condition itself results in valid code but because it evaluates to false, the `std::enable_if` specialization results in invalid code and the whole `Enqueue` template specialization gets omitted.

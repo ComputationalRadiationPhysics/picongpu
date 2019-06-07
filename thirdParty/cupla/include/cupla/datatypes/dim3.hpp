@@ -21,10 +21,13 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla/datatypes/uint.hpp"
 
 namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
 
     struct dim3
@@ -62,4 +65,5 @@ namespace cupla
         }
     };
 
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
 } //namespace cupla

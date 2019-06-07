@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla/manager/Device.hpp"
 
@@ -30,6 +31,8 @@
 #include <utility>
 
 namespace cupla
+{
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
 namespace manager
 {
@@ -148,4 +151,5 @@ namespace manager
     };
 
 } //namespace manager
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
 } //namespace cupla

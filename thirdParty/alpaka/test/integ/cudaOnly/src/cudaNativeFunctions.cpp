@@ -1,36 +1,17 @@
-/**
- * \file
- * Copyright 2016 Benjamin Worpitz
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
-#include <alpaka/core/BoostPredef.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/test/unit_test.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
+#include <catch2/catch.hpp>
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
 
@@ -57,36 +38,35 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const &) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
+        alpaka::ignore_unused(acc);
+
         // We should be able to call some native CUDA functions when ALPAKA_ACC_GPU_CUDA_ONLY_MODE is enabled.
         __threadfence_block();
         userDefinedThreadFence();
         __threadfence_system();
+
+        *success = true;
     }
 };
 
-BOOST_AUTO_TEST_SUITE(cudaOnly)
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(cudaOnlyModeWorking)
+TEST_CASE("cudaOnlyModeWorking", "[cudaOnly]")
 {
     using TAcc = alpaka::acc::AccGpuCudaRt<alpaka::dim::DimInt<1u>, std::uint32_t>;
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     CudaOnlyTestKernel kernel;
 
-    BOOST_REQUIRE_EQUAL(
-        true,
-        fixture(
-            kernel));
+    REQUIRE(fixture(kernel));
 }
-
-BOOST_AUTO_TEST_SUITE_END()
 
 #endif

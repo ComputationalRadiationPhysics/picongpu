@@ -19,6 +19,7 @@
  */
 
 
+#include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
 #include "cupla/manager/Memory.hpp"
 #include "cupla/manager/Device.hpp"
@@ -26,6 +27,9 @@
 #include "cupla/manager/Event.hpp"
 #include "cupla/api/device.hpp"
 #include <stdexcept>
+
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 cuplaError_t
 cuplaGetDeviceCount( int * count)
@@ -117,3 +121,5 @@ cuplaMemGetInfo(
     *free = ::alpaka::dev::getFreeMemBytes( device );
     return cuplaSuccess;
 }
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

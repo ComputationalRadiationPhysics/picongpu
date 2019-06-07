@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.1.1 "Colonel Worf"
+--------------------
+**Date:** 2019-01-23
+
+- update Alpaka submodule to 0.3.5 #81
+- add `cuplaGetErrorString` #84
+- add `cuplaStreamQuerry` #85
+- add `cuplaPeekAtLastError` #86
+- fix TBB backend activation #90
+
 0.1.0 "Worf"
 ------------
 **Date:** 2018-06-10

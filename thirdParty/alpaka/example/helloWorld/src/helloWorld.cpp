@@ -1,24 +1,20 @@
-/**
- * \file
- * Copyright 2014-2015 Erik Zenker
+/* Copyright 2019 Benjamin Worpitz, Erik Zenker
  *
- * This file is part of alpaka.
+ * This file exemplifies usage of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
  *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
- *
+ * THE SOFTWARE IS PROVIDED “AS IS” AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY
+ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+ * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
 
 #include <alpaka/alpaka.hpp>
 
@@ -37,18 +33,23 @@ struct HelloWorldKernel
         TAcc const & acc) const
     -> void
     {
+        using Dim = alpaka::dim::Dim<TAcc>;
+        using Idx = alpaka::idx::Idx<TAcc>;
+        using Vec = alpaka::vec::Vec<Dim, Idx>;
+        using Vec1 = alpaka::vec::Vec<alpaka::dim::DimInt<1u>, Idx>;
+
         // In the most cases the parallel work distibution depends
         // on the current index of a thread and how many threads
         // exist overall. These information can be obtained by
         // getIdx() and getWorkDiv(). In this example these
         // values are obtained for a global scope.
-        auto const globalThreadIdx = alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        auto const globalThreadExtent = alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+        Vec const globalThreadIdx = alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+        Vec const globalThreadExtent = alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
         // Map the three dimensional thread index into a
         // one dimensional thread index space. We call it
         // linearize the thread index.
-        auto const linearizedGlobalThreadIdx = alpaka::idx::mapIdx<1u>(
+        Vec1 const linearizedGlobalThreadIdx = alpaka::idx::mapIdx<1u>(
             globalThreadIdx,
             globalThreadExtent);
 
@@ -69,7 +70,19 @@ struct HelloWorldKernel
 auto main()
 -> int
 {
-    // Define accelerator types
+// This example is hard-coded to use the sequential backend.
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+
+    // Define the index domain
+    //
+    // Depending on your type of problem, you have to define
+    // the dimensionality as well as the type used for indices.
+    // For small index domains 16 or 32 bit indices may be enough
+    // and may be faster to calculate depending on the accelerator.
+    using Dim = alpaka::dim::DimInt<3>;
+    using Idx = std::size_t;
+
+    // Define the accelerator
     //
     // It is possible to choose from a set of accelerators
     // that are defined in the alpaka::acc namespace e.g.:
@@ -86,19 +99,20 @@ auto main()
     // use case. Furthermore, some accelerators only support a
     // particular workdiv, but workdiv can also be generated
     // automatically.
-    using Dim = alpaka::dim::DimInt<3>;
-    using Size = std::size_t;
-    using Host = alpaka::acc::AccCpuSerial<Dim, Size>;
-    using Acc = alpaka::acc::AccCpuSerial<Dim, Size>;
-    using Stream = alpaka::stream::StreamCpuSync;
-    using DevAcc = alpaka::dev::Dev<Acc>;
-    using DevHost = alpaka::dev::Dev<Host>;
-    using PltfHost = alpaka::pltf::Pltf<DevHost>;
-    using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using WorkDiv = alpaka::workdiv::WorkDivMembers<Dim, Size>;
+
+    // By exchanging the Acc and Queue types you can select where to execute the kernel.
+#if 1
+    using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+    using Queue = alpaka::queue::QueueCpuSync;
+#else
+    using Acc = alpaka::acc::AccGpuCudaRt<Dim, Idx>;
+    using Queue = alpaka::queue::QueueCudaRtSync;
+#endif
+    using Dev = alpaka::dev::Dev<Acc>;
+    using Pltf = alpaka::pltf::Pltf<Dev>;
 
 
-    // Get the first devices
+    // Select a device
     //
     // The accelerator only defines how something should be
     // parallized, but a device is the real entity which will
@@ -106,27 +120,26 @@ auto main()
     // by id (0 to the number of devices minus 1) or you
     // can also retrieve all devices in a vector (getDevs()).
     // In this example the first devices is choosen.
-    DevAcc const devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u));
-    DevHost const devHost(alpaka::pltf::getDevByIdx<PltfHost>(0u));
+    Dev const devAcc(alpaka::pltf::getDevByIdx<Pltf>(0u));
 
-    // Create a stream to the accelerator device
+    // Create a queue on the device
     //
-    // A stream can be interpreted as the work queue
-    // of a particular device. Streams are filled with
-    // executors and alpaka takes care that these
-    // executors will be executed. Streams are provided in
+    // A queue can be interpreted as the work queue
+    // of a particular device. Queues are filled with
+    // tasks and alpaka takes care that these
+    // tasks will be executed. Queues are provided in
     // async and sync variants.
-    // The example stream is a sync stream to a cpu device,
-    // but it also exists an async stream for this
-    // device (StreamCpuAsync).
-    Stream stream(devAcc);
+    // The example queue is a sync queue to a cpu device,
+    // but it also exists an async queue for this
+    // device (QueueCpuAsync).
+    Queue queue(devAcc);
 
-    // Init workdiv
+    // Define the work division
     //
     // A kernel is executed for each element of a
     // n-dimensional grid distinguished by the element indices.
     // The work division defines the number of kernel instantiations as
-    // well as the type of parallelism used by the executor.
+    // well as the type of parallelism used by the kernel execution task.
     // Different accelerators have different requirements on the work
     // division. For example, the sequential accelerator can not
     // provide any thread level parallelism (synchronizable as well as non synchronizable),
@@ -149,45 +162,46 @@ auto main()
     // memory. Elements are supposed to be used for vectorization.
     // Thus, a thread can process data element size wise with its
     // vector processing unit.
-    alpaka::vec::Vec<Dim, Size> const elementsPerThread(
-        static_cast<Size>(1),
-        static_cast<Size>(1),
-        static_cast<Size>(1));
+    using Vec = alpaka::vec::Vec<Dim, Idx>;
+    Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
+    Vec const threadsPerBlock(Vec::all(static_cast<Idx>(1)));
+    Vec const blocksPerGrid(
+        static_cast<Idx>(4),
+        static_cast<Idx>(8),
+        static_cast<Idx>(16));
 
-    alpaka::vec::Vec<Dim, Size> const threadsPerBlock(
-        static_cast<Size>(1),
-        static_cast<Size>(1),
-        static_cast<Size>(1));
-
-    alpaka::vec::Vec<Dim, Size> const blocksPerGrid(
-        static_cast<Size>(4),
-        static_cast<Size>(8),
-        static_cast<Size>(16));
-
-    WorkDiv const workdiv(
+    using WorkDiv = alpaka::workdiv::WorkDivMembers<Dim, Idx>;
+    WorkDiv const workDiv(
         blocksPerGrid,
         threadsPerBlock,
         elementsPerThread);
 
 
-    // Run kernel
+    // Instantiate the kernel function object
     //
-    // Kernels need to be provided as classes or structs
-    // which provide a public operator(). This operator is
-    // the actual method that should be accelerated. An
-    // object of the kernel is used to create an execution
-    // unit and this unit is finally enqueued into an
-    // accelerator stream. The enqueuing can be done
-    // synchronously or asynchronously depending on the choosen
-    // stream (see type definitions above).
+    // Kernels can be everything that has a callable operator()
+    // and which takes the accelerator as first argument.
+    // So a kernel can be a class or struct, a lambda, a std::function, etc.
     HelloWorldKernel helloWorldKernel;
 
-    auto const helloWorld(alpaka::exec::create<Acc>(
-        workdiv,
+    // Run the kernel
+    //
+    // To execute the kernel, you have to provide the
+    // work division as well as the additional kernel function
+    // parameters.
+    // The kernel execution task is enqueued into an accelerator queue.
+    // The queue can be synchronously or asynchronously
+    // depending on the choosen queue type (see type definitions above).
+    // Here it is synchronous which means that the kernel is directly executed.
+    alpaka::kernel::exec<Acc>(
+        queue,
+        workDiv,
         helloWorldKernel
-        /* put kernel arguments here */));
-
-    alpaka::stream::enqueue(stream, helloWorld);
+        /* put kernel arguments here */);
 
     return EXIT_SUCCESS;
+
+#else
+    return EXIT_SUCCESS;
+#endif
 }

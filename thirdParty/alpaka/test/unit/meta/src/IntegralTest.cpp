@@ -1,42 +1,21 @@
-/**
- * \file
- * Copyright 2017 Benjamin Worpitz
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 
 #include <alpaka/alpaka.hpp>
 
-#include <alpaka/core/BoostPredef.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/test/unit_test.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
+#include <catch2/catch.hpp>
 
 #include <type_traits>
 
-BOOST_AUTO_TEST_SUITE(meta)
-
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(isIntegralSupersetTrue)
+TEST_CASE("isIntegralSupersetTrue", "[meta]")
 {
     // unsigned - unsigned
     static_assert(
@@ -154,7 +133,7 @@ BOOST_AUTO_TEST_CASE(isIntegralSupersetTrue)
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(isIntegralSupersetNoIntegral)
+TEST_CASE("isIntegralSupersetNoIntegral", "[meta]")
 {
     static_assert(
         !alpaka::meta::IsIntegralSuperset<float, std::uint8_t>::value,
@@ -165,7 +144,7 @@ BOOST_AUTO_TEST_CASE(isIntegralSupersetNoIntegral)
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(isIntegralSupersetFalse)
+TEST_CASE("isIntegralSupersetFalse", "[meta]")
 {
     // unsigned - unsigned
     static_assert(
@@ -283,7 +262,7 @@ BOOST_AUTO_TEST_CASE(isIntegralSupersetFalse)
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(higherMax)
+TEST_CASE("higherMax", "[meta]")
 {
     static_assert(
         std::is_same<alpaka::meta::HigherMax<std::int8_t, std::int8_t>, std::int8_t>::value,
@@ -487,7 +466,7 @@ BOOST_AUTO_TEST_CASE(higherMax)
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(lowerMax)
+TEST_CASE("lowerMax", "[meta]")
 {
     static_assert(
         std::is_same<alpaka::meta::LowerMax<std::int8_t, std::int8_t>, std::int8_t>::value,
@@ -691,7 +670,7 @@ BOOST_AUTO_TEST_CASE(lowerMax)
 }
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(higherMin)
+TEST_CASE("higherMin", "[meta]")
 {
     static_assert(
         std::is_same<alpaka::meta::HigherMin<std::int8_t, std::int8_t>, std::int8_t>::value,
@@ -894,7 +873,7 @@ BOOST_AUTO_TEST_CASE(higherMin)
         "alpaka::meta::HigherMin failed!");
 }
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(lowerMin)
+TEST_CASE("lowerMin", "[meta]")
 {
     static_assert(
         std::is_same<alpaka::meta::LowerMin<std::int8_t, std::int8_t>, std::int8_t>::value,
@@ -1096,6 +1075,3 @@ BOOST_AUTO_TEST_CASE(lowerMin)
         std::is_same<alpaka::meta::LowerMin<std::uint64_t, std::uint64_t>, std::uint64_t>::value,
         "alpaka::meta::LowerMin failed!");
 }
-
-
-BOOST_AUTO_TEST_SUITE_END()

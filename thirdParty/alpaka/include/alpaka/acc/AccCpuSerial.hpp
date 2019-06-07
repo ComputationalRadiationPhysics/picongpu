@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2016 Benjamin Worpitz, Rene Widera
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -28,40 +17,39 @@
 #include <alpaka/idx/gb/IdxGbRef.hpp>
 #include <alpaka/idx/bt/IdxBtZero.hpp>
 #include <alpaka/atomic/AtomicNoOp.hpp>
-#include <alpaka/atomic/AtomicStlLock.hpp>
+#include <alpaka/atomic/AtomicStdLibLock.hpp>
 #include <alpaka/atomic/AtomicHierarchy.hpp>
-#include <alpaka/math/MathStl.hpp>
+#include <alpaka/math/MathStdLib.hpp>
 #include <alpaka/block/shared/dyn/BlockSharedMemDynBoostAlignedAlloc.hpp>
 #include <alpaka/block/shared/st/BlockSharedMemStNoSync.hpp>
 #include <alpaka/block/sync/BlockSyncNoOp.hpp>
-#include <alpaka/rand/RandStl.hpp>
-#include <alpaka/time/TimeStl.hpp>
+#include <alpaka/rand/RandStdLib.hpp>
+#include <alpaka/time/TimeStdLib.hpp>
 
 // Specialized traits.
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/exec/Traits.hpp>
+#include <alpaka/kernel/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 // Implementation details.
+#include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/DevCpu.hpp>
-
-#include <boost/core/ignore_unused.hpp>
 
 #include <memory>
 #include <typeinfo>
 
 namespace alpaka
 {
-    namespace exec
+    namespace kernel
     {
         template<
             typename TDim,
-            typename TSize,
+            typename TIdx,
             typename TKernelFnObj,
             typename... TArgs>
-        class ExecCpuSerial;
+        class TaskKernelCpuSerial;
     }
     namespace acc
     {
@@ -69,74 +57,74 @@ namespace alpaka
         //! The CPU serial accelerator.
         //!
         //! This accelerator allows serial kernel execution on a CPU device.
-        //! The block size is restricted to 1x1x1 and all blocks are executed serially so there is no parallelism at all.
+        //! The block idx is restricted to 1x1x1 and all blocks are executed serially so there is no parallelism at all.
         template<
             typename TDim,
-            typename TSize>
+            typename TIdx>
         class AccCpuSerial final :
-            public workdiv::WorkDivMembers<TDim, TSize>,
-            public idx::gb::IdxGbRef<TDim, TSize>,
-            public idx::bt::IdxBtZero<TDim, TSize>,
+            public workdiv::WorkDivMembers<TDim, TIdx>,
+            public idx::gb::IdxGbRef<TDim, TIdx>,
+            public idx::bt::IdxBtZero<TDim, TIdx>,
             public atomic::AtomicHierarchy<
-                atomic::AtomicStlLock<16>, // grid atomics
+                atomic::AtomicStdLibLock<16>, // grid atomics
                 atomic::AtomicNoOp,        // block atomics
                 atomic::AtomicNoOp         // thread atomics
             >,
-            public math::MathStl,
+            public math::MathStdLib,
             public block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc,
             public block::shared::st::BlockSharedMemStNoSync,
             public block::sync::BlockSyncNoOp,
-            public rand::RandStl,
-            public time::TimeStl
+            public rand::RandStdLib,
+            public time::TimeStdLib
         {
         public:
-            // Partial specialization with the correct TDim and TSize is not allowed.
+            // Partial specialization with the correct TDim and TIdx is not allowed.
             template<
                 typename TDim2,
-                typename TSize2,
+                typename TIdx2,
                 typename TKernelFnObj,
                 typename... TArgs>
-            friend class ::alpaka::exec::ExecCpuSerial;
+            friend class ::alpaka::kernel::TaskKernelCpuSerial;
 
         private:
             //-----------------------------------------------------------------------------
             template<
                 typename TWorkDiv>
-            ALPAKA_FN_ACC_NO_CUDA AccCpuSerial(
+            ALPAKA_FN_HOST AccCpuSerial(
                 TWorkDiv const & workDiv,
-                TSize const & blockSharedMemDynSizeBytes) :
-                    workdiv::WorkDivMembers<TDim, TSize>(workDiv),
-                    idx::gb::IdxGbRef<TDim, TSize>(m_gridBlockIdx),
-                    idx::bt::IdxBtZero<TDim, TSize>(),
+                TIdx const & blockSharedMemDynSizeBytes) :
+                    workdiv::WorkDivMembers<TDim, TIdx>(workDiv),
+                    idx::gb::IdxGbRef<TDim, TIdx>(m_gridBlockIdx),
+                    idx::bt::IdxBtZero<TDim, TIdx>(),
                     atomic::AtomicHierarchy<
-                        atomic::AtomicStlLock<16>, // atomics between grids
+                        atomic::AtomicStdLibLock<16>, // atomics between grids
                         atomic::AtomicNoOp,        // atomics between blocks
                         atomic::AtomicNoOp         // atomics between threads
                     >(),
-                    math::MathStl(),
+                    math::MathStdLib(),
                     block::shared::dyn::BlockSharedMemDynBoostAlignedAlloc(static_cast<std::size_t>(blockSharedMemDynSizeBytes)),
                     block::shared::st::BlockSharedMemStNoSync(),
                     block::sync::BlockSyncNoOp(),
-                    rand::RandStl(),
-                    time::TimeStl(),
-                    m_gridBlockIdx(vec::Vec<TDim, TSize>::zeros())
+                    rand::RandStdLib(),
+                    time::TimeStdLib(),
+                    m_gridBlockIdx(vec::Vec<TDim, TIdx>::zeros())
             {}
 
         public:
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA AccCpuSerial(AccCpuSerial const &) = delete;
+            ALPAKA_FN_HOST AccCpuSerial(AccCpuSerial const &) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA AccCpuSerial(AccCpuSerial &&) = delete;
+            ALPAKA_FN_HOST AccCpuSerial(AccCpuSerial &&) = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuSerial const &) -> AccCpuSerial & = delete;
+            ALPAKA_FN_HOST auto operator=(AccCpuSerial const &) -> AccCpuSerial & = delete;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_ACC_NO_CUDA auto operator=(AccCpuSerial &&) -> AccCpuSerial & = delete;
+            ALPAKA_FN_HOST auto operator=(AccCpuSerial &&) -> AccCpuSerial & = delete;
             //-----------------------------------------------------------------------------
             /*virtual*/ ~AccCpuSerial() = default;
 
         private:
             // getIdx
-            vec::Vec<TDim, TSize> mutable m_gridBlockIdx;    //!< The index of the currently executed block.
+            vec::Vec<TDim, TIdx> mutable m_gridBlockIdx;    //!< The index of the currently executed block.
         };
     }
 
@@ -148,57 +136,57 @@ namespace alpaka
             //! The CPU serial accelerator accelerator type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct AccType<
-                acc::AccCpuSerial<TDim, TSize>>
+                acc::AccCpuSerial<TDim, TIdx>>
             {
-                using type = acc::AccCpuSerial<TDim, TSize>;
+                using type = acc::AccCpuSerial<TDim, TIdx>;
             };
             //#############################################################################
             //! The CPU serial accelerator device properties get trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetAccDevProps<
-                acc::AccCpuSerial<TDim, TSize>>
+                acc::AccCpuSerial<TDim, TIdx>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccDevProps(
                     dev::DevCpu const & dev)
-                -> acc::AccDevProps<TDim, TSize>
+                -> acc::AccDevProps<TDim, TIdx>
                 {
-                    boost::ignore_unused(dev);
+                    alpaka::ignore_unused(dev);
 
                     return {
                         // m_multiProcessorCount
-                        static_cast<TSize>(1),
+                        static_cast<TIdx>(1),
                         // m_gridBlockExtentMax
-                        vec::Vec<TDim, TSize>::all(std::numeric_limits<TSize>::max()),
+                        vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_gridBlockCountMax
-                        std::numeric_limits<TSize>::max(),
+                        std::numeric_limits<TIdx>::max(),
                         // m_blockThreadExtentMax
-                        vec::Vec<TDim, TSize>::ones(),
+                        vec::Vec<TDim, TIdx>::ones(),
                         // m_blockThreadCountMax
-                        static_cast<TSize>(1),
+                        static_cast<TIdx>(1),
                         // m_threadElemExtentMax
-                        vec::Vec<TDim, TSize>::all(std::numeric_limits<TSize>::max()),
+                        vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_threadElemCountMax
-                        std::numeric_limits<TSize>::max()};
+                        std::numeric_limits<TIdx>::max()};
                 }
             };
             //#############################################################################
             //! The CPU serial accelerator name trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetAccName<
-                acc::AccCpuSerial<TDim, TSize>>
+                acc::AccCpuSerial<TDim, TIdx>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getAccName()
                 -> std::string
                 {
-                    return "AccCpuSerial<" + std::to_string(TDim::value) + "," + typeid(TSize).name() + ">";
+                    return "AccCpuSerial<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
                 }
             };
         }
@@ -211,9 +199,9 @@ namespace alpaka
             //! The CPU serial accelerator device type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct DevType<
-                acc::AccCpuSerial<TDim, TSize>>
+                acc::AccCpuSerial<TDim, TIdx>>
             {
                 using type = dev::DevCpu;
             };
@@ -227,31 +215,55 @@ namespace alpaka
             //! The CPU serial accelerator dimension getter trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct DimType<
-                acc::AccCpuSerial<TDim, TSize>>
+                acc::AccCpuSerial<TDim, TIdx>>
             {
                 using type = TDim;
             };
         }
     }
-    namespace exec
+    namespace kernel
     {
         namespace traits
         {
             //#############################################################################
-            //! The CPU serial accelerator executor type trait specialization.
+            //! The CPU serial accelerator execution task type trait specialization.
             template<
                 typename TDim,
-                typename TSize,
+                typename TIdx,
+                typename TWorkDiv,
                 typename TKernelFnObj,
                 typename... TArgs>
-            struct ExecType<
-                acc::AccCpuSerial<TDim, TSize>,
+            struct CreateTaskKernel<
+                acc::AccCpuSerial<TDim, TIdx>,
+                TWorkDiv,
                 TKernelFnObj,
                 TArgs...>
             {
-                using type = exec::ExecCpuSerial<TDim, TSize, TKernelFnObj, TArgs...>;
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto createTaskKernel(
+                    TWorkDiv const & workDiv,
+                    TKernelFnObj const & kernelFnObj,
+                    TArgs const & ... args)
+#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
+                -> kernel::TaskKernelCpuSerial<
+                    TDim,
+                    TIdx,
+                    TKernelFnObj,
+                    TArgs...>
+#endif
+                {
+                    return
+                        kernel::TaskKernelCpuSerial<
+                            TDim,
+                            TIdx,
+                            TKernelFnObj,
+                            TArgs...>(
+                                workDiv,
+                                kernelFnObj,
+                                args...);
+                }
             };
         }
     }
@@ -260,30 +272,30 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CPU serial executor platform type trait specialization.
+            //! The CPU serial execution task platform type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct PltfType<
-                acc::AccCpuSerial<TDim, TSize>>
+                acc::AccCpuSerial<TDim, TIdx>>
             {
                 using type = pltf::PltfCpu;
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The CPU serial accelerator size type trait specialization.
+            //! The CPU serial accelerator idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
-            struct SizeType<
-                acc::AccCpuSerial<TDim, TSize>>
+                typename TIdx>
+            struct IdxType<
+                acc::AccCpuSerial<TDim, TIdx>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }

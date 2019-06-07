@@ -1,30 +1,19 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/offset/Traits.hpp>
-#include <alpaka/size/Traits.hpp>
+#include <alpaka/idx/Traits.hpp>
 
 #include <boost/config.hpp>
 
@@ -49,7 +38,7 @@ namespace alpaka
             //#############################################################################
             //! Trait for casting a vector.
             template<
-                typename TSize,
+                typename TVal,
                 typename TVec,
                 typename TSfinae = void>
             struct Cast;
@@ -173,14 +162,14 @@ namespace alpaka
         //! \return The casted vector.
         ALPAKA_NO_HOST_ACC_WARNING
         template<
-            typename TSize,
+            typename TVal,
             typename TVec>
         ALPAKA_FN_HOST_ACC auto cast(
             TVec const & vec)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Cast<
-                TSize,
+                TVal,
                 TVec>
             ::cast(
                 vec))
@@ -188,7 +177,7 @@ namespace alpaka
         {
             return
                 traits::Cast<
-                    TSize,
+                    TVal,
                     TVec>
                 ::cast(
                     vec);

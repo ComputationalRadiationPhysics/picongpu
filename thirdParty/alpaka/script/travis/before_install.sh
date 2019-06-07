@@ -1,149 +1,168 @@
 #!/bin/bash
 
 #
-# Copyright 2017 Benjamin Worpitz
+# Copyright 2017-2019 Benjamin Worpitz
 #
-# This file is part of alpaka.
+# This file is part of Alpaka.
 #
-# alpaka is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# alpaka is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with alpaka.
-# If not, see <http://www.gnu.org/licenses/>.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-#-------------------------------------------------------------------------------
-# e: exit as soon as one command returns a non-zero exit code.
-set -eo pipefail
+source ./script/travis/set.sh
 
 #-------------------------------------------------------------------------------
-# CMake
-ALPAKA_CI_CMAKE_VER_SEMANTIC=( ${ALPAKA_CI_CMAKE_VER//./ } )
-export ALPAKA_CI_CMAKE_VER_MAJOR="${ALPAKA_CI_CMAKE_VER_SEMANTIC[0]}"
-echo ALPAKA_CI_CMAKE_VER_MAJOR: "${ALPAKA_CI_CMAKE_VER_MAJOR}"
-export ALPAKA_CI_CMAKE_VER_MINOR="${ALPAKA_CI_CMAKE_VER_SEMANTIC[1]}"
-echo ALPAKA_CI_CMAKE_VER_MINOR: "${ALPAKA_CI_CMAKE_VER_MINOR}"
+# Those are set to g++/gcc within the git bash even though they are overwritten in the .travis.yml file.
+if [ "$TRAVIS_OS_NAME" = "windows" ]
+then
+    CXX=cl.exe
+    CC=cl.exe
+fi
 
 #-------------------------------------------------------------------------------
 # gcc
-if [ "${CXX}" == "g++" ]
+if [ ! -z ${ALPAKA_CI_GCC_VER+x} ]
 then
     ALPAKA_CI_GCC_VER_SEMANTIC=( ${ALPAKA_CI_GCC_VER//./ } )
     export ALPAKA_CI_GCC_VER_MAJOR="${ALPAKA_CI_GCC_VER_SEMANTIC[0]}"
     echo ALPAKA_CI_GCC_VER_MAJOR: "${ALPAKA_CI_GCC_VER_MAJOR}"
-    export ALPAKA_CI_GCC_VER_MINOR="${ALPAKA_CI_GCC_VER_SEMANTIC[1]}"
-    echo ALPAKA_CI_GCC_VER_MINOR: "${ALPAKA_CI_GCC_VER_MINOR}"
-fi
-
-#-------------------------------------------------------------------------------
-# clang
-if [ "${CXX}" == "clang++" ]
-then
-    ALPAKA_CI_CLANG_VER_SEMANTIC=( ${ALPAKA_CI_CLANG_VER//./ } )
-    export ALPAKA_CI_CLANG_VER_MAJOR="${ALPAKA_CI_CLANG_VER_SEMANTIC[0]}"
-    echo ALPAKA_CI_CLANG_VER_MAJOR: "${ALPAKA_CI_CLANG_VER_MAJOR}"
-    export ALPAKA_CI_CLANG_VER_MINOR="${ALPAKA_CI_CLANG_VER_SEMANTIC[1]}"
-    echo ALPAKA_CI_CLANG_VER_MINOR: "${ALPAKA_CI_CLANG_VER_MINOR}"
-
-    # clang versions lower than 3.7 do not support OpenMP 2.0.
-    if (( (( ALPAKA_CI_CLANG_VER_MAJOR < 3 )) || ( (( ALPAKA_CI_CLANG_VER_MAJOR == 3 )) && (( ALPAKA_CI_CLANG_VER_MINOR < 7 )) ) ))
-    then
-        if [ "${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE} because the clang version does not support it!
-        fi
-        if [ "${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE} because the clang version does not support it!
-        fi
-        if [ "${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE} because the clang version does not support it!
-        fi
-    fi
-
-    # clang versions lower than 3.9 do not support OpenMP 4.0
-    if (( (( ALPAKA_CI_CLANG_VER_MAJOR < 3 )) || ( (( ALPAKA_CI_CLANG_VER_MAJOR == 3 )) && (( ALPAKA_CI_CLANG_VER_MINOR < 9 )) ) ))
-    then
-        if [ "${ALPAKA_ACC_CPU_BT_OMP4_ENABLE}" == "ON" ]
-        then
-            export ALPAKA_ACC_CPU_BT_OMP4_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_BT_OMP4_ENABLE=${ALPAKA_ACC_CPU_BT_OMP4_ENABLE} because the clang version does not support it!
-        fi
-    fi
 fi
 
 #-------------------------------------------------------------------------------
 # Boost.
-export ALPAKA_CI_BOOST_BRANCH_MAJOR=${ALPAKA_CI_BOOST_BRANCH:6:1}
+ALPAKA_CI_BOOST_BRANCH_MAJOR=${ALPAKA_CI_BOOST_BRANCH:6:1}
 echo ALPAKA_CI_BOOST_BRANCH_MAJOR: "${ALPAKA_CI_BOOST_BRANCH_MAJOR}"
-export ALPAKA_CI_BOOST_BRANCH_MINOR=${ALPAKA_CI_BOOST_BRANCH:8:2}
+ALPAKA_CI_BOOST_BRANCH_MINOR=${ALPAKA_CI_BOOST_BRANCH:8:2}
 echo ALPAKA_CI_BOOST_BRANCH_MINOR: "${ALPAKA_CI_BOOST_BRANCH_MINOR}"
 
 #-------------------------------------------------------------------------------
 # CUDA
+export ALPAKA_CI_INSTALL_CUDA="OFF"
 if [ "${ALPAKA_ACC_GPU_CUDA_ENABLE}" == "ON" ]
 then
-    ALPAKA_CI_CUDA_VER_SEMANTIC=( ${ALPAKA_CUDA_VER//./ } )
-    export ALPAKA_CUDA_VER_MAJOR="${ALPAKA_CI_CUDA_VER_SEMANTIC[0]}"
-    echo ALPAKA_CUDA_VER_MAJOR: "${ALPAKA_CUDA_VER_MAJOR}"
-    export ALPAKA_CUDA_VER_MINOR="${ALPAKA_CI_CUDA_VER_SEMANTIC[1]}"
-    echo ALPAKA_CUDA_VER_MINOR: "${ALPAKA_CUDA_VER_MINOR}"
-
-    if [ "${ALPAKA_CUDA_COMPILER}" == "nvcc" ]
+    export ALPAKA_CI_INSTALL_CUDA="ON"
+fi
+if [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ]
+then
+    if [ "${ALPAKA_HIP_PLATFORM}" == "nvcc" ]
     then
-        # FIXME: BOOST_AUTO_TEST_CASE_TEMPLATE is not compilable with nvcc in Release mode.
-        if [ "${CMAKE_BUILD_TYPE}" == "Release" ]
-        then
-            export CMAKE_BUILD_TYPE=Debug
-        fi
+        export ALPAKA_CI_INSTALL_CUDA="ON"
+    fi
+fi
 
-        # nvcc <= 9.2 does not support boost correctly so fibers have to be disabled.
-        if (( (( ALPAKA_CUDA_VER_MAJOR < 9 )) || ( (( ALPAKA_CUDA_VER_MAJOR == 9 )) && (( ALPAKA_CUDA_VER_MINOR <= 2 )) ) ))
+#-------------------------------------------------------------------------------
+# HIP
+export ALPAKA_CI_INSTALL_HIP="OFF"
+if [ "${ALPAKA_ACC_GPU_HIP_ENABLE}" == "ON" ]
+then
+    export ALPAKA_CI_INSTALL_HIP="ON"
+
+    # if platform is nvcc, CUDA part is already processed in this file.
+    if [ "${ALPAKA_HIP_PLATFORM}" == "hcc" ]
+    then
+        echo "HIP(hcc) not supported yet."
+        exit 1
+    fi
+fi
+
+#-------------------------------------------------------------------------------
+# TBB
+export ALPAKA_CI_INSTALL_TBB="OFF"
+if [ ! -z ${ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE+x} ]
+then
+    if [ "${ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE}" = "ON" ]
+    then
+        export ALPAKA_CI_INSTALL_TBB="ON"
+    fi
+else
+    # If the variable is not set, the backend will most probably be used by default so we install it.
+    export ALPAKA_CI_INSTALL_TBB="ON"
+fi
+
+#-------------------------------------------------------------------------------
+# Fibers
+export ALPAKA_CI_INSTALL_FIBERS="OFF"
+if [ ! -z ${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE+x} ]
+then
+    if [ "${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" = "ON" ]
+    then
+        export ALPAKA_CI_INSTALL_FIBERS="ON"
+    fi
+else
+    # If the variable is not set, the backend will most probably be used by default so we install it.
+    export ALPAKA_CI_INSTALL_FIBERS="ON"
+fi
+
+
+# GCC-5.5 has broken avx512vlintrin.h in Release mode with NVCC 9.X
+#   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=76731
+#   https://github.com/tensorflow/tensorflow/issues/10220
+if [ "${ALPAKA_CI_INSTALL_CUDA}" == "ON" ]
+then
+    if [ "${CXX}" == "g++" ]
+    then
+        if (( "${ALPAKA_CI_GCC_VER_MAJOR}" == 5 ))
         then
-            if [ "${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE}" == "ON" ]
+            if [ "${ALPAKA_CUDA_COMPILER}" == "nvcc" ]
             then
-                export ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=OFF
-                echo ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE} because nvcc does not support boost fibers correctly!
+                if [ "${CMAKE_BUILD_TYPE}" == "Release" ]
+                then
+                    export CMAKE_BUILD_TYPE=Debug
+                fi
             fi
         fi
     fi
+fi
 
-    if [ "${ALPAKA_CUDA_COMPILER}" == "clang" ]
+#-------------------------------------------------------------------------------
+if [ "$TRAVIS_OS_NAME" = "linux" ]
+then
+    if [ "${ALPAKA_CI_STDLIB}" == "libc++" ]
     then
-        # clang as native CUDA compiler does not support boost fibers
-        if [ ${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE} == "ON" ]
+        if [ "${CXX}" == "g++" ]
         then
-            export ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE} because clang as native CUDA compiler does not support boost fibers correctly!
+            echo "using libc++ with g++ not yet supported."
+            exit 1
         fi
 
-        # clang as native CUDA compiler does not support OpenMP
-        if [ "${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE}" == "ON" ]
+        if [ "${ALPAKA_CI_DOCKER_BASE_IMAGE_NAME}" == "ubuntu:14.04" ]
         then
-            export ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=${ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE} because the clang as native CUDA compiler does not support OpenMP!
+            echo "using libc++ with ubuntu:14.04 not supported."
+            exit 1
         fi
-        if [ "${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE}" == "ON" ]
+
+        if (( ( ( "${ALPAKA_CI_BOOST_BRANCH_MAJOR}" == 1 ) && ( "${ALPAKA_CI_BOOST_BRANCH_MINOR}" < 65 ) ) || ( "${ALPAKA_CI_BOOST_BRANCH_MAJOR}" < 1 ) ))
         then
-            export ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=${ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE} because the clang as native CUDA compiler does not support OpenMP!
+            echo "using libc++ with boost < 1.65 is not supported."
+            exit 1
         fi
-        if [ "${ALPAKA_ACC_CPU_BT_OMP4_ENABLE}" == "ON" ]
+    fi
+
+    if [ "${ALPAKA_CI_STDLIB}" == "libstdc++" ]
+    then
+        if [ "${CXX}" == "clang++" ]
         then
-            export ALPAKA_ACC_CPU_BT_OMP4_ENABLE=OFF
-            echo ALPAKA_ACC_CPU_BT_OMP4_ENABLE=${ALPAKA_ACC_CPU_BT_OMP4_ENABLE} because the clang as native CUDA compiler does not support OpenMP!
+            if [ ! -z ${ALPAKA_CXX_STANDARD+x} ]
+            then
+                if (( "${ALPAKA_CXX_STANDARD}" >= 17 ))
+                then
+                    if (( "${ALPAKA_CI_CLANG_LIBSTDCPP_VERSION}" < 7 ))
+                    then
+                        echo "Clang used in c++17 mode requires libstdc++-7 or newer."
+                        exit 1
+                    fi
+                    if [ "${ALPAKA_CI_INSTALL_FIBERS}" == "ON" ]
+                    then
+                        if (( ( ( "${ALPAKA_CI_BOOST_BRANCH_MAJOR}" == 1 ) && ( "${ALPAKA_CI_BOOST_BRANCH_MINOR}" < 67 ) ) || ( "${ALPAKA_CI_BOOST_BRANCH_MAJOR}" < 1 ) ))
+                        then
+                            # https://github.com/boostorg/coroutine2/issues/26
+                            echo "Clang used in c++17 mode with libstdc++ is not compatible with boost.fibers in boost-1.66 and below."
+                            exit 1
+                        fi
+                    fi
+                fi
+            fi
         fi
     fi
 fi

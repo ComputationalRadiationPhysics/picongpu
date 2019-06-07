@@ -12,8 +12,8 @@ This and other interface design decisions will be explained int the following pa
 ### No Current Device:
 The *CUDA* runtime API for example supplies a current device for each user code kernel-thread.
 Working with multiple devices requires to call `cudaSetDevice` to change the current device whenever an operation should be executed on a non-current device.
-Even the functions for creating a stream (`cudaStreamCreate`) or an event (`cudaEventCreate`) use the current device without any way to create them on a non current device.
-In the case of an event this dependency is not obvious, since at the same time streams can wait for events from multiple devices allowing cross-device synchronization without any additional work.
+Even the functions for creating a queue (`cudaStreamCreate`) or an event (`cudaEventCreate`) use the current device without any way to create them on a non current device.
+In the case of an event this dependency is not obvious, since at the same time queues can wait for events from multiple devices allowing cross-device synchronization without any additional work.
 So conceptually an event could also have been implemented device independently.
 This can lead to hard to track down bugs due to the non-explicit dependencies, especially in multi-threaded code using multiple devices.
 
@@ -40,14 +40,14 @@ The *alpaka* *CUDA* back-end checks before forwarding the calls to the *CUDA* ru
 The *alpaka* *CUDA* back-end does not reset the current device to the one prior to the method invocation out of performance considerations.
 This has to be considered when native *CUDA* code is combined with *alpaka* code.
 
-### No Default Stream:
-*CUDA* allows to execute commands without specifying a stream.
-The default stream that is used synchronizes implicitly with all other streams on the device.
-If a command stream is issued to the default, all other asynchronous streams have to wait before executing any new commands, even when they have been enqueued much earlier.
+### No Default Queue:
+*CUDA* allows to execute commands without specifying a queue.
+The default queue that is used synchronizes implicitly with all other queues on the device.
+If a command queue is issued to the default, all other asynchronous queues have to wait before executing any new commands, even when they have been enqueued much earlier.
 This can introduce hard to track down performance issues.
-As of *CUDA* 7.0 the default stream can be converted to a non synchronizing stream with a compiler option.
-Because concurrency is crucial for performance and users should think about the dependencies between their commands from begin on, *alpaka* does not provide such a default stream.
-All asynchronous operations (kernel launches, memory copies and memory sets) require a stream to be executed in.
+As of *CUDA* 7.0 the default queue can be converted to a non synchronizing queue with a compiler option.
+Because concurrency is crucial for performance and users should think about the dependencies between their commands from begin on, *alpaka* does not provide such a default queue.
+All asynchronous operations (kernel launches, memory copies and memory sets) require a queue to be executed in.
 
 ### No Implicit Built-in Variables and Functions:
 Within *CUDA* device functions (functions annotated with `__global__` or `__device__`) built-in functions (`__syncthreads`, `__threadfence`, `atomicAdd`, ... ) and variables (`gridDim`, `blockIdx`, `blockDim`, `threadIdx`, `warpSize`, ...) are provided.
@@ -91,15 +91,15 @@ This can be a huge performance penalty when the sizes of buffers, offsets, indic
 
 ### No synchronous and asynchronous function versions:
 *CUDA* provides two versions of many of the runtime functions, for example, `cudaMemcpyAsync` and `cudaMemcpy`.
-The asynchronous version requires a stream while the synchronous version does not need a stream parameter.
-The asynchronous version immediately returns control back to the caller while the task is enqueued into the given stream and executed later in parallel to the host code.
+The asynchronous version requires a queue while the synchronous version does not need a queue parameter.
+The asynchronous version immediately returns control back to the caller while the task is enqueued into the given queue and executed later in parallel to the host code.
 The synchronous version waits for the task to finish before the function call returns control to the caller.
 Inconsistently, all kernels in a *CUDA* program can only be started either asynchronously by default or synchronously if `CUDA_LAUNCH_BLOCKING` is defined.
 There is no way to specify this on a per kernel basis.
 To switch a whole application from asynchronous to synchronous calls, for example for debugging reasons, it is necessary to change the names of all the runtime functions being called as well as their parameters.
-In *alpaka* this is solved by always enqueuing all tasks into a stream and not defining a default stream.
-Asynchronous streams as well as synchronous streams are provided for all devices.
-Changes to the synchronicity of multiple tasks can be made on a per stream basis by changing the stream type at the place of creation.
+In *alpaka* this is solved by always enqueuing all tasks into a queue and not defining a default queue.
+Asynchronous queues as well as synchronous queues are provided for all devices.
+Changes to the synchronicity of multiple tasks can be made on a per queue basis by changing the queue type at the place of creation.
 There is no need to change any line of calling code.
 
 ### Memory Management
@@ -120,19 +120,19 @@ This can be seen in the source listing showing a simple AXPY computation with Op
 
 ```C++
 template<
-	typename TSize,
-	typename TElem>
+    typename TIdx,
+    typename TElem>
 void axpyOpenMP(
-	TSize const n,
-	TElem const alpha,
-	TElem const * const X,
-	TElem * const Y)
+    TIdx const n,
+    TElem const alpha,
+    TElem const * const X,
+    TElem * const Y)
 {
-	#pragma omp parallel for
-	for (i=0; i<n; i++)
-	{
-		Y[i] = alpha * X[i] + Y[i];
-	}
+    #pragma omp parallel for
+    for (i=0; i<n; i++)
+    {
+        Y[i] = alpha * X[i] + Y[i];
+    }
 }
 ```
 
@@ -145,19 +145,19 @@ The AXPY *CUDA* kernel source code shown in figure consists only of the code of 
 
 ```C++
 template<
-	typename TSize,
-	typename TElem>
+    typename TIdx,
+    typename TElem>
 __global__ void axpyCUDA(
-	TSize const n,
-	TElem const alpha,
-	TElem const * const X,
-	TElem * const Y)
+    TIdx const n,
+    TElem const alpha,
+    TElem const * const X,
+    TElem * const Y)
 {
-	TSize const i(blockIdx.x*blockDim.x + threadIdx.x)
-	if(i < n)
-	{
-		Y[i] = alpha * X[i] + Y[i];
-	}
+    TIdx const i(blockIdx.x*blockDim.x + threadIdx.x)
+    if(i < n)
+    {
+        Y[i] = alpha * X[i] + Y[i];
+    }
 }
 ```
 

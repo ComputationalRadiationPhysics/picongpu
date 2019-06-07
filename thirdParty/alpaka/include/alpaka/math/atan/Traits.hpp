@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -48,14 +37,14 @@ namespace alpaka
         //! Computes the principal value of the arc tangent.
         //!
         //! \tparam TArg The arg type.
-        //! \param atan The object specializing Atan.
+        //! \param atan_ctx The object specializing Atan.
         //! \param arg The arg.
         ALPAKA_NO_HOST_ACC_WARNING
         template<
             typename T,
             typename TArg>
         ALPAKA_FN_HOST_ACC auto atan(
-            T const & atan,
+            T const & atan_ctx,
             TArg const & arg)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
@@ -63,7 +52,7 @@ namespace alpaka
                 T,
                 TArg>
             ::atan(
-                atan,
+                atan_ctx,
                 arg))
 #endif
         {
@@ -72,7 +61,7 @@ namespace alpaka
                     T,
                     TArg>
                 ::atan(
-                    atan,
+                    atan_ctx,
                     arg);
         }
 
@@ -96,19 +85,19 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto atan(
-                    T const & atan,
+                    T const & atan_ctx,
                     TArg const & arg)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
                 -> decltype(
                     math::atan(
-                        static_cast<typename T::AtanBase const &>(atan),
+                        static_cast<typename T::AtanBase const &>(atan_ctx),
                         arg))
 #endif
                 {
                     // Delegate the call to the base class.
                     return
                         math::atan(
-                            static_cast<typename T::AtanBase const &>(atan),
+                            static_cast<typename T::AtanBase const &>(atan_ctx),
                             arg);
                 }
             };

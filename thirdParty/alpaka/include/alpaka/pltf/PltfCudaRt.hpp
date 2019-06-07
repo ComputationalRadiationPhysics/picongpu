@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz, Rene Widera
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz, René Widera
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -126,7 +115,7 @@ namespace alpaka
     #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                         printDeviceProperties(devProp);
     #elif ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-                        std::cout << BOOST_CURRENT_FUNCTION << devProp.name << std::endl;
+                        std::cout << __func__ << devProp.name << std::endl;
     #endif
                     }
                     else
@@ -148,21 +137,21 @@ namespace alpaka
                 {
                     cudaError rc(cudaSetDevice(static_cast<int>(iDevice)));
 
-                    cudaStream_t stream = {};
-                    // Create a dummy stream to check if the device is already used by an other process.
+                    cudaStream_t queue = {};
+                    // Create a dummy queue to check if the device is already used by an other process.
                     // cudaSetDevice never returns an error if another process already uses the selected device and gpu compute mode is set "process exclusive".
                     // \TODO: Check if this workaround is needed!
                     if(rc == cudaSuccess)
                     {
-                        rc = cudaStreamCreate(&stream);
+                        rc = cudaStreamCreate(&queue);
                     }
 
                     if(rc == cudaSuccess)
                     {
-                        // Destroy the dummy stream.
+                        // Destroy the dummy queue.
                         ALPAKA_CUDA_RT_CHECK(
                             cudaStreamDestroy(
-                                stream));
+                                queue));
                         return true;
                     }
                     else

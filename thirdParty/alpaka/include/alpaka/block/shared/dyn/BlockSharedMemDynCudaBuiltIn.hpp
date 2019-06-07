@@ -1,23 +1,12 @@
-/**
- * \file
- * Copyright 2014-2015 Benjamin Worpitz, Rene Widera
+/* Copyright 2019 Benjamin Worpitz, René Widera
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 
 #pragma once
 
@@ -51,13 +40,13 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     BlockSharedMemDynCudaBuiltIn() = default;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn const &) = delete;
+                    __device__ BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn const &) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn &&) = delete;
+                    __device__ BlockSharedMemDynCudaBuiltIn(BlockSharedMemDynCudaBuiltIn &&) = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSharedMemDynCudaBuiltIn const &) -> BlockSharedMemDynCudaBuiltIn & = delete;
+                    __device__ auto operator=(BlockSharedMemDynCudaBuiltIn const &) -> BlockSharedMemDynCudaBuiltIn & = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_CUDA_ONLY auto operator=(BlockSharedMemDynCudaBuiltIn &&) -> BlockSharedMemDynCudaBuiltIn & = delete;
+                    __device__ auto operator=(BlockSharedMemDynCudaBuiltIn &&) -> BlockSharedMemDynCudaBuiltIn & = delete;
                     //-----------------------------------------------------------------------------
                     /*virtual*/ ~BlockSharedMemDynCudaBuiltIn() = default;
                 };
@@ -72,7 +61,7 @@ namespace alpaka
                         BlockSharedMemDynCudaBuiltIn>
                     {
                         //-----------------------------------------------------------------------------
-                        ALPAKA_FN_ACC_CUDA_ONLY static auto getMem(
+                        __device__ static auto getMem(
                             block::shared::dyn::BlockSharedMemDynCudaBuiltIn const &)
                         -> T *
                         {

@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -26,8 +15,7 @@
 #include <alpaka/block/sync/Traits.hpp>
 
 #include <alpaka/core/Common.hpp>
-
-#include <boost/core/ignore_unused.hpp>
+#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -43,17 +31,17 @@ namespace alpaka
                 using BlockSyncBase = BlockSyncBarrierOmp;
 
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierOmp() :
+                ALPAKA_FN_HOST BlockSyncBarrierOmp() :
                     m_generation(0u)
                 {}
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierOmp(BlockSyncBarrierOmp const &) = delete;
+                ALPAKA_FN_HOST BlockSyncBarrierOmp(BlockSyncBarrierOmp const &) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA BlockSyncBarrierOmp(BlockSyncBarrierOmp &&) = delete;
+                ALPAKA_FN_HOST BlockSyncBarrierOmp(BlockSyncBarrierOmp &&) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSyncBarrierOmp const &) -> BlockSyncBarrierOmp & = delete;
+                ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOmp const &) -> BlockSyncBarrierOmp & = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(BlockSyncBarrierOmp &&) -> BlockSyncBarrierOmp & = delete;
+                ALPAKA_FN_HOST auto operator=(BlockSyncBarrierOmp &&) -> BlockSyncBarrierOmp & = delete;
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~BlockSyncBarrierOmp() = default;
 
@@ -69,11 +57,11 @@ namespace alpaka
                     BlockSyncBarrierOmp>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_ACC_NO_CUDA static auto syncBlockThreads(
+                    ALPAKA_FN_HOST static auto syncBlockThreads(
                         block::sync::BlockSyncBarrierOmp const & blockSync)
                     -> void
                     {
-                        boost::ignore_unused(blockSync);
+                        alpaka::ignore_unused(blockSync);
 
                         // NOTE: This waits for all threads in all blocks.
                         // If multiple blocks are executed in parallel this is not optimal.

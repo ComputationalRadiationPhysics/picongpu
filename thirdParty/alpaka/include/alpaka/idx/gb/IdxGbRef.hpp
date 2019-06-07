@@ -1,31 +1,21 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
 #include <alpaka/idx/Traits.hpp>
-
 #include <alpaka/dim/Traits.hpp>
 
-#include <boost/core/ignore_unused.hpp>
+#include <alpaka/core/Positioning.hpp>
+#include <alpaka/core/Unused.hpp>
+#include <alpaka/vec/Vec.hpp>
 
 namespace alpaka
 {
@@ -37,30 +27,30 @@ namespace alpaka
             //! A IdxGbRef grid block index.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             class IdxGbRef
             {
             public:
                 using IdxGbBase = IdxGbRef;
 
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA IdxGbRef(
-                    vec::Vec<TDim, TSize> const & gridBlockIdx) :
+                IdxGbRef(
+                    vec::Vec<TDim, TIdx> const & gridBlockIdx) :
                         m_gridBlockIdx(gridBlockIdx)
                 {}
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA IdxGbRef(IdxGbRef const &) = delete;
+                IdxGbRef(IdxGbRef const &) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA IdxGbRef(IdxGbRef &&) = delete;
+                IdxGbRef(IdxGbRef &&) = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(IdxGbRef const &) -> IdxGbRef & = delete;
+                auto operator=(IdxGbRef const &) -> IdxGbRef & = delete;
                 //-----------------------------------------------------------------------------
-                ALPAKA_FN_ACC_NO_CUDA auto operator=(IdxGbRef &&) -> IdxGbRef & = delete;
+                auto operator=(IdxGbRef &&) -> IdxGbRef & = delete;
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~IdxGbRef() = default;
 
             public:
-                vec::Vec<TDim, TSize> const & m_gridBlockIdx;
+                vec::Vec<TDim, TIdx> const & m_gridBlockIdx;
             };
         }
     }
@@ -73,9 +63,9 @@ namespace alpaka
             //! The IdxGbRef grid block index dimension get trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct DimType<
-                idx::gb::IdxGbRef<TDim, TSize>>
+                idx::gb::IdxGbRef<TDim, TIdx>>
             {
                 using type = TDim;
             };
@@ -89,9 +79,9 @@ namespace alpaka
             //! The IdxGbRef grid block index grid block index get trait specialization.
             template<
                 typename TDim,
-                typename TSize>
+                typename TIdx>
             struct GetIdx<
-                idx::gb::IdxGbRef<TDim, TSize>,
+                idx::gb::IdxGbRef<TDim, TIdx>,
                 origin::Grid,
                 unit::Blocks>
             {
@@ -99,30 +89,30 @@ namespace alpaka
                 //! \return The index of the current block in the grid.
                 template<
                     typename TWorkDiv>
-                ALPAKA_FN_ACC_NO_CUDA static auto getIdx(
-                    idx::gb::IdxGbRef<TDim, TSize> const & idx,
+                ALPAKA_FN_HOST static auto getIdx(
+                    idx::gb::IdxGbRef<TDim, TIdx> const & idx,
                     TWorkDiv const & workDiv)
-                -> vec::Vec<TDim, TSize>
+                -> vec::Vec<TDim, TIdx>
                 {
-                    boost::ignore_unused(workDiv);
+                    alpaka::ignore_unused(workDiv);
                     return idx.m_gridBlockIdx;
                 }
             };
         }
     }
-    namespace size
+    namespace idx
     {
         namespace traits
         {
             //#############################################################################
-            //! The IdxGbRef grid block index size type trait specialization.
+            //! The IdxGbRef grid block index idx type trait specialization.
             template<
                 typename TDim,
-                typename TSize>
-            struct SizeType<
-                idx::gb::IdxGbRef<TDim, TSize>>
+                typename TIdx>
+            struct IdxType<
+                idx::gb::IdxGbRef<TDim, TIdx>>
             {
-                using type = TSize;
+                using type = TIdx;
             };
         }
     }

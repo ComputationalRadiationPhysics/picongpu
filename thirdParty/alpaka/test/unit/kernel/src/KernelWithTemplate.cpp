@@ -1,49 +1,22 @@
-/**
- * \file
- * Copyright 2017 Benjamin Worpitz
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, René Widera
  *
- * This file is part of alpaka.
+ * This file is part of Alpaka.
  *
- * alpaka is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * alpaka is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with alpaka.
- * If not, see <http://www.gnu.org/licenses/>.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// \Hack: Boost.MPL defines BOOST_MPL_CFG_GPU_ENABLED to __host__ __device__ if nvcc is used.
-// BOOST_AUTO_TEST_CASE_TEMPLATE and its internals are not GPU enabled but is using boost::mpl::for_each internally.
-// For each template parameter this leads to:
-// /home/travis/build/boost/boost/mpl/for_each.hpp(78): warning: calling a __host__ function from a __host__ __device__ function is not allowed
-// because boost::mpl::for_each has the BOOST_MPL_CFG_GPU_ENABLED attribute but the test internals are pure host methods.
-// Because we do not use MPL within GPU code here, we can disable the MPL GPU support.
-#define BOOST_MPL_CFG_GPU_ENABLED
 
 #include <alpaka/alpaka.hpp>
 #include <alpaka/test/acc/Acc.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
+#include <alpaka/meta/ForEachType.hpp>
 
-#include <alpaka/core/BoostPredef.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/test/unit_test.hpp>
-#if BOOST_COMP_CLANG
-    #pragma clang diagnostic pop
-#endif
+#include <catch2/catch.hpp>
 
 #include <type_traits>
 
-BOOST_AUTO_TEST_SUITE(kernel)
 
 //#############################################################################
 template<
@@ -56,35 +29,37 @@ public:
     template<
         typename TAcc>
     ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc) const
+        TAcc const & acc,
+        bool * success) const
     -> void
     {
-        // Do something useless on the accelerator.
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+        ALPAKA_CHECK(
+            *success,
+            static_cast<alpaka::idx::Idx<TAcc>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
-        BOOST_VERIFY((std::is_same<std::int32_t, T>::value));
+        static_assert(
+            std::is_same<std::int32_t, T>::value,
+            "Incorrect additional kernel template parameter type!");
     }
 };
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE_TEMPLATE(
-    kernelFuntionObjectTemplate,
-    TAcc,
-    alpaka::test::acc::TestAccs)
+struct TestTemplate
+{
+template< typename TAcc >
+void operator()()
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelFuntionObjectTemplate<std::int32_t> kernel;
 
-    BOOST_REQUIRE_EQUAL(
-        true,
-        fixture(
-            kernel));
+    REQUIRE(fixture(kernel));
 }
+};
 
 //#############################################################################
 class KernelInvocationWithAdditionalTemplate
@@ -97,35 +72,44 @@ public:
         typename T>
     ALPAKA_FN_ACC auto operator()(
         TAcc const & acc,
+        bool * success,
         T const &) const
     -> void
     {
-        // Do something useless on the accelerator.
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
+        ALPAKA_CHECK(
+            *success,
+            static_cast<alpaka::idx::Idx<TAcc>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
-        BOOST_VERIFY((std::is_same<std::int32_t, T>::value));
+        static_assert(
+            std::is_same<std::int32_t, T>::value,
+            "Incorrect additional kernel template parameter type!");
     }
 };
 
 //-----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE_TEMPLATE(
-    kernelInvocationWithAdditionalTemplate,
-    TAcc,
-    alpaka::test::acc::TestAccs)
+struct TestTemplateExtra
+{
+template< typename TAcc >
+void operator()()
 {
     using Dim = alpaka::dim::Dim<TAcc>;
-    using Size = alpaka::size::Size<TAcc>;
+    using Idx = alpaka::idx::Idx<TAcc>;
 
     alpaka::test::KernelExecutionFixture<TAcc> fixture(
-        alpaka::vec::Vec<Dim, Size>::ones());
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelInvocationWithAdditionalTemplate kernel;
 
-    BOOST_REQUIRE_EQUAL(
-        true,
-        fixture(
-            kernel,
-            std::int32_t()));
+    REQUIRE(fixture(kernel, std::int32_t()));
+}
+};
+
+TEST_CASE( "kernelFuntionObjectTemplate", "[kernel]")
+{
+    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+TEST_CASE( "kernelFuntionObjectExtraTemplate", "[kernel]")
+{
+    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateExtra() );
+}

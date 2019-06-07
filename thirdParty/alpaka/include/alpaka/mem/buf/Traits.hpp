@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2018 Benjamin Worpitz, Alexander Matthes
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Alexander Matthes, Benjamin Worpitz
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -47,7 +36,7 @@ namespace alpaka
                     typename TDev,
                     typename TElem,
                     typename TDim,
-                    typename TSize,
+                    typename TIdx,
                     typename TSfinae = void>
                 struct BufType;
 
@@ -56,7 +45,7 @@ namespace alpaka
                 template<
                     typename TElem,
                     typename TDim,
-                    typename TSize,
+                    typename TIdx,
                     typename TDev,
                     typename TSfinae = void>
                 struct Alloc;
@@ -112,8 +101,8 @@ namespace alpaka
                 typename TDev,
                 typename TElem,
                 typename TDim,
-                typename TSize>
-            using Buf = typename traits::BufType<TDev, TElem, TDim, TSize>::type;
+                typename TIdx>
+            using Buf = typename traits::BufType<TDev, TElem, TDim, TIdx>::type;
 
             //-----------------------------------------------------------------------------
             //! Allocates memory on the given device.
@@ -126,7 +115,7 @@ namespace alpaka
             //! \return The newly allocated buffer.
             template<
                 typename TElem,
-                typename TSize,
+                typename TIdx,
                 typename TExtent,
                 typename TDev>
             ALPAKA_FN_HOST auto alloc(
@@ -137,7 +126,7 @@ namespace alpaka
                 traits::Alloc<
                     TElem,
                     dim::Dim<TExtent>,
-                    TSize,
+                    TIdx,
                     TDev>
                 ::alloc(
                     dev,
@@ -148,7 +137,7 @@ namespace alpaka
                     traits::Alloc<
                         TElem,
                         dim::Dim<TExtent>,
-                        TSize,
+                        TIdx,
                         TDev>
                     ::alloc(
                         dev,

@@ -22,7 +22,18 @@
 # Required cmake version.
 ################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.7.0)
+cmake_minimum_required(VERSION 3.11.0)
+
+################################################################################
+# CMake policies
+#
+# Search in <PackageName>_ROOT:
+#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
+################################################################################
+
+if(POLICY CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
 
 ################################################################################
 # cupla
@@ -96,6 +107,7 @@ OPTION(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE "Enable the OpenMP 2.0 CPU grid block 
 OPTION(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE "Enable the OpenMP 2.0 CPU block thread accelerator" OFF)
 OPTION(ALPAKA_ACC_CPU_BT_OMP4_ENABLE "Enable the OpenMP 4.0 CPU block and block thread accelerator" OFF)
 OPTION(ALPAKA_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU accelerator" OFF)
+OPTION(ALPAKA_ACC_GPU_HIP_ENABLE "Enable the HIP back-end (all other back-ends must be disabled)" OFF)
 
 
 set(cupla_ALPAKA_PROVIDER "intern" CACHE STRING "Select which alpaka is used")
@@ -260,7 +272,7 @@ endif()
 # Find cupla version.
 ################################################################################
 # FIXME: Add a version.hpp
-set(_cupla_VERSION "0.1.0")
+set(_cupla_VERSION "0.1.1")
 
 ################################################################################
 # Set return values.

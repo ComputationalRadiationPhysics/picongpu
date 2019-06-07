@@ -8,17 +8,17 @@ Accelerator Executable Functions
 
 Functions that should be executable on an accelerator have to be annotated with the execution domain (one of `ALPAKA_FN_HOST`, `ALPAKA_FN_ACC` and `ALPAKA_FN_HOST_ACC`).
 They most probably also require access to the accelerator data and methods, such as indices and extents as well as functions to allocate shared memory and to synchronize all threads within a block. 
-Therefore the accelerator has to be passed in as a constant template reference variable as can be seen in the following code snippet.
+Therefore the accelerator has to be passed in as a templated constant reference parameter as can be seen in the following code snippet.
 
 ```C++
 template<
-	typename TAcc>
+    typename TAcc>
 ALPAKA_FN_ACC auto doSomethingOnAccelerator(
-	TAcc const & acc/*,
-	...*/)
--> void
+    TAcc const & acc/*,
+    ...*/)                  // Arbitrary number of parameters
+-> int                      // Arbitrary return type
 {
-	//...
+    //...
 }
 ```
 
@@ -26,23 +26,28 @@ ALPAKA_FN_ACC auto doSomethingOnAccelerator(
 Kernel Definition
 -----------------
 
-There is no difference between the kernel entry point function and any other accelerator function in *alpaka* except that the kernel entry point is required to be a function object which has to have the accelerator as first argument.
-This means, the kernel is an object that has implemented the `operator()` member function and can be called like any other function.
-The following code snippet shows a basic example kernel function object.
+A kernel is a special function object which has to conform to the following requirements:
+* it has to fulfill the `std::is_trivially_copyable` trait (has to be copyable via memcpy)
+* the `operator()` is the kernel entry point
+  * it has to be an accelerator executable function
+  * it has to return `void`.
+  * its first argument has to be the accelerator (templated for arbitrary accelerator backends).
+
+The following code snippet shows a basic example of a kernel function object.
 
 ```C++
 struct MyKernel
 {
-	template<
-		typename TAcc>    // Templated on the accelerator type.
-	ALPAKA_FN_ACC       // Macro marking the function to be executable on all accelerators.
-  auto operator()(    // The function / kernel to execute.
-		TAcc & acc/*,     // The specific accelerator implementation.
-		...*/) const      // Must be 'const'.
-	-> void
-	{
-		//...
-	}
+    template<
+        typename TAcc>       // Templated on the accelerator type.
+    ALPAKA_FN_ACC            // Macro marking the function to be executable on all accelerators.
+    auto operator()(         // The function / kernel to execute.
+        TAcc const & acc/*,  // The specific accelerator implementation.
+        ...*/) const         // Must be 'const'.
+    -> void
+    {
+        //...
+    }
                       // Class can have members but has to be std::is_trivially_copyable.
                       // Classes must not have pointers or references to host memory!
 };
@@ -72,38 +77,36 @@ This allows buffers that possibly reside on different devices with different pit
 Kernel Execution
 ----------------
 
-The following source code listing shows the execution of a kernel by enqueuing the execution task into a stream.
+The following source code listing shows the execution of a kernel by enqueuing the execution task into a queue.
 
 ```C++
 // Define the dimensionality of the task.
 using Dim = alpaka::dim::DimInt<1u>;
-// Define the type of the sizes.
-using Size = std::size_t;
+// Define the type of the indexes.
+using Idx = std::size_t;
 // Define the accelerator to use.
-using Acc = alpaka::acc::AccCpuSerial<Dim, Size>;
-// Select the stream type.
-using Stream = a::stream::StreamCpuAsync;
+using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
+// Select the queue type.
+using Queue = alpaka::queue::QueueCpuAsync;
 
 // Select a device to execute on.
-auto devAcc(a::dev::DevManT<Acc>::getDevByIdx(0));
-// Create a stream to enqueue the execution into.
-Stream stream(devAcc);
+auto devAcc(alpaka::pltf::getDevByIdx<alpaka::pltf::PltfCpu>(0));
+// Create a queue to enqueue the execution into.
+Queue queue(devAcc);
 
 // Create a 1-dimensional work division with 256 blocks a 16 threads.
-auto const workDiv(alpaka::workdiv::WorkDivMembers<Dim, Size>(256u, 16u);
+auto const workDiv(alpaka::workdiv::WorkDivMembers<Dim, Idx>(256u, 16u);
 // Create an instance of the kernel function object.
 MyKernel kernel;
-// Create the execution task.
-auto const exec(alpaka::exec::create<Acc>(workDiv, kernel/*, arguments ...*/);
-// Enqueue the task into the stream.
-alpaka::stream::enqueue(stream, exec);
+// Enqueue the execution task into the queue.
+alpaka::kernel::exec<Acc>(queue, workDiv, kernel/*, arguments ...*/);
 ```
 
-The dimensionality of the task as well as the type for index and extent sizes have to be defined explicitly.
-Following this, the type of accelerator to execute on, as well as the type of the stream have to be defined.
+The dimensionality of the task as well as the type for index and extent have to be defined explicitly.
+Following this, the type of accelerator to execute on, as well as the type of the queue have to be defined.
 For both of these types instances have to be created.
-For the accelerator this has to be done indirectly by enumerating the required device via the device manager, whereas the stream can be created directly.
+For the accelerator this has to be done indirectly by enumerating the required device via the device manager, whereas the queue can be created directly.
 
 To execute the kernel, an instance of the kernel function object has to be constructed.
 Following this, an execution task combining the work division (grid and block sizes) with the kernel function object and the bound invocation arguments has to be created.
-After that this task can be enqueued into a stream for immediate or later execution (depending on the stream used).
+After that this task can be enqueued into a queue for immediate or later execution (depending on the queue used).

@@ -1,32 +1,18 @@
-/**
-* \file
-* Copyright 2014-2017 Benjamin Worpitz, Axel Huebl
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Erik Zenker
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
 #include <alpaka/vec/Vec.hpp>
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_ARCH_CUDA_DEVICE
-    #include <boost/core/ignore_unused.hpp>
-#endif
+#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -59,16 +45,11 @@ namespace alpaka
                     typename TElem>
                 ALPAKA_FN_HOST_ACC static auto mapIdx(
                     vec::Vec<dim::DimInt<TidxDim>, TElem> const & idx,
-#if !BOOST_ARCH_CUDA_DEVICE
                     vec::Vec<dim::DimInt<TidxDim>, TElem> const & extent)
-#else
-                    vec::Vec<dim::DimInt<TidxDim>, TElem> const &)
-#endif
                 -> vec::Vec<dim::DimInt<TidxDim>, TElem>
                 {
-#if !BOOST_ARCH_CUDA_DEVICE
-                    boost::ignore_unused(extent);
-#endif
+                    alpaka::ignore_unused(extent);
+
                     return idx;
                 }
             };

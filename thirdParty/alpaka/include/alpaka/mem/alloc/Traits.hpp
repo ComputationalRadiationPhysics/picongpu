@@ -1,23 +1,12 @@
-/**
-* \file
-* Copyright 2014-2015 Benjamin Worpitz
-*
-* This file is part of alpaka.
-*
-* alpaka is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* alpaka is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with alpaka.
-* If not, see <http://www.gnu.org/licenses/>.
-*/
+/* Copyright 2019 Benjamin Worpitz, Matthias Werner
+ *
+ * This file is part of Alpaka.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 
 #pragma once
 
@@ -108,8 +97,14 @@ namespace alpaka
                         && (!std::is_same<typename TAlloc::AllocBase, typename std::decay<TAlloc>::type>::value)>::type>
                 {
                     //-----------------------------------------------------------------------------
+                    // FIXME: compiler switch for the host-device signatures
+#if defined( BOOST_COMP_HCC ) && BOOST_COMP_HCC
+                    ALPAKA_FN_HOST
+#else
                     ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto alloc(
+                    ALPAKA_FN_HOST_ACC
+#endif
+                    static auto alloc(
                         TAlloc const & alloc,
                         std::size_t const & sizeElems)
                     -> T *
@@ -136,8 +131,14 @@ namespace alpaka
                         && (!std::is_same<typename TAlloc::AllocBase, typename std::decay<TAlloc>::type>::value)>::type>
                 {
                     //-----------------------------------------------------------------------------
+                    // FIXME: compiler switch for the host-device signatures
+#if defined( BOOST_COMP_HCC ) && BOOST_COMP_HCC
+                    ALPAKA_FN_HOST
+#else
                     ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto free(
+                    ALPAKA_FN_HOST_ACC
+#endif
+                    static auto free(
                         TAlloc const & alloc,
                         T const * const ptr)
                     -> void

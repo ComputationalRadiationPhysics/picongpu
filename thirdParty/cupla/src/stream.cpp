@@ -19,6 +19,7 @@
  */
 
 
+#include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
 #include "cupla/manager/Memory.hpp"
 #include "cupla/manager/Device.hpp"
@@ -26,6 +27,9 @@
 #include "cupla/manager/Event.hpp"
 
 #include "cupla/api/stream.hpp"
+
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 
 cuplaError_t
@@ -87,3 +91,19 @@ cuplaStreamWaitEvent(
     ::alpaka::wait::wait(streamObject,eventObject);
     return cuplaSuccess;
 }
+
+cuplaError_t
+cuplaStreamQuery( cuplaStream_t stream )
+{
+    auto& streamObject = cupla::manager::Stream<
+        cupla::AccDev,
+        cupla::AccStream
+    >::get().stream( stream );
+
+    if( alpaka::queue::empty( streamObject ) )
+        return cuplaSuccess;
+    else
+        return cuplaErrorNotReady;
+};
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE

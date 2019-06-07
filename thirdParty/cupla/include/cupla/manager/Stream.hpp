@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "cupla/namespace.hpp"
 #include "cupla/types.hpp"
 #include "cupla/manager/Device.hpp"
 #include "cupla_driver_types.hpp"
@@ -31,23 +32,25 @@
 
 namespace cupla
 {
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 namespace manager
 {
 
     template<
         typename T_DeviceType,
-        typename T_StreamType
+        typename T_QueueType
     >
     struct Stream
     {
         using DeviceType = T_DeviceType;
-        using StreamType = T_StreamType;
+        using QueueType = T_QueueType;
 
 
         using StreamMap = std::map<
             cuplaStream_t,
             std::unique_ptr<
-                StreamType
+                QueueType
             >
         >;
         using MapVector = std::vector< StreamMap >;
@@ -70,9 +73,9 @@ namespace manager
             auto& device = Device< DeviceType >::get();
 
             std::unique_ptr<
-                StreamType
+                QueueType
             > streamPtr(
-                new StreamType(
+                new QueueType(
                     device.current()
                 )
             );
@@ -87,7 +90,7 @@ namespace manager
 
         auto
         stream( cuplaStream_t streamId = 0 )
-        -> StreamType &
+        -> QueueType &
         {
             auto& device = Device< DeviceType >::get();
             const auto deviceId = device.id();
@@ -168,4 +171,5 @@ namespace manager
     };
 
 } //namespace manager
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
 } //namespace cupla

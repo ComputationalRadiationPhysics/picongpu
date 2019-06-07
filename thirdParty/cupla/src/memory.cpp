@@ -19,6 +19,7 @@
  */
 
 
+#include "cupla/namespace.hpp"
 #include "cupla_runtime.hpp"
 #include "cupla/manager/Memory.hpp"
 #include "cupla/manager/Device.hpp"
@@ -26,6 +27,8 @@
 #include "cupla/manager/Event.hpp"
 #include "cupla/api/memory.hpp"
 
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 
 cuplaError_t
 cuplaMalloc(
@@ -948,3 +951,5 @@ cuplaMemcpy3D(
 
     return cuplaSuccess;
 }
+
+} //namespace CUPLA_ACCELERATOR_NAMESPACE
