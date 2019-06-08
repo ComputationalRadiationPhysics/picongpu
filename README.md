@@ -195,6 +195,9 @@ Developers
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)
 
+If you like to jump in right away, see  
+[![open "good first issue" issues](https://img.shields.io/github/issues-raw/ComputationalRadiationPhysics/picongpu/good%20first%20issue.svg?color=56cbef)](https://github.com/ComputationalRadiationPhysics/picongpu/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+
 Active Team
 -----------
 
