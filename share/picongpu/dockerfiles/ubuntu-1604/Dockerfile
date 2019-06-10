@@ -44,7 +44,7 @@ RUN        apt-get update && \
            rm -rf /var/lib/apt/lists/*
 
 # spack settings
-COPY       packages.yaml modules.yaml $SPACK_ROOT/etc/spack/
+COPY       compilers.yaml packages.yaml modules.yaml $SPACK_ROOT/etc/spack/
 
 # install spack && PIConGPU dependencies
 # TODO: fix to a specific spack SHA or tag
@@ -53,7 +53,7 @@ RUN        curl -s -L https://github.com/spack/spack/archive/develop.tar.gz \
            mkdir -p $SPACK_EXTRA_REPO && \
            curl -s -L https://api.github.com/repos/ComputationalRadiationPhysics/spack-repo/tarball \
                 | tar xzC $SPACK_EXTRA_REPO --strip 1 && \
-           spack repo add $SPACK_EXTRA_REPO
+           spack repo add --scope=system $SPACK_EXTRA_REPO
 RUN        spack install $PIC_PACKAGE && \
            spack clean -a
 
