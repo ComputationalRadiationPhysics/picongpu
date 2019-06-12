@@ -1,0 +1,19 @@
+# Long documentation, see:
+#   https://gist.github.com/ax3l/7d1fa52bb7f39a657920
+#
+. ~/picongpu.profile
+
+module load python
+
+# --user writes there
+export PYTHONUSERBASE=$PROJWORK/$proj
+
+# a weird cache that usually sits in $HOME
+export PYTHON_EGG_CACHE=$PYTHONUSERBASE/.python-eggs
+# were the actual binaries (and some messy pre-installed libs) sit
+#export PYTHONHOME=$(dirname $(which python))/..
+export PYTHONHOME=/lustre/atlas/sw/xk6/python/2.7.9/sles11.3_gnu4.3.4/
+# were our packages reside
+export PYTHONPATH=$PYTHONUSERBASE/lib/python2.7/site-packages:$PYTHONPATH
+
+export PATH=$PYTHONUSERBASE/bin:$PATH

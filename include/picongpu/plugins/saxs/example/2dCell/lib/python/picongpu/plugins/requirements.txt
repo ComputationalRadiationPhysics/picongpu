@@ -1,0 +1,2 @@
+-r plot_mpl/requirements.txt
+-r data/requirements.txt

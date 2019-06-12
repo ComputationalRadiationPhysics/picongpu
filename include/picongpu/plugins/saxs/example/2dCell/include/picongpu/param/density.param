@@ -1,0 +1,83 @@
+/* Copyright 2013-2018 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/densityProfiles/profiles.def"
+
+
+namespace picongpu
+{
+namespace SI
+{
+    /** Base density in particles per m^3 in the density profiles.
+     *
+     * This is often taken as reference maximum density in normalized profiles.
+     * Individual particle species can define a `densityRatio` flag relative
+     * to this value.
+     *
+     * unit: ELEMENTS/m^3
+     */
+    constexpr float_64 BASE_DENSITY_SI = 1.e25 * 2.4e11;
+}
+
+namespace densityProfiles
+{
+	struct FlatFoilFunctor
+    {
+        /** This formula uses SI quantities only.
+         *  The profile will be multiplied by BASE_DENSITY_SI.
+         *
+         * @param position_SI total offset including all slides [meter]
+         * @param cellSize_SI cell sizes [meter]
+         *
+         * @return float_X density [normalized to 1.0]
+         */
+        HDINLINE float_X
+        operator()(
+            const floatD_64& position_SI,
+            const float3_64& cellSize_SI
+        )
+        {
+            // m -> angstrom
+            const float_64 y( position_SI.y() * 1.e10 );
+            const float_64 x( position_SI.x() * 1.e10 );
+
+            // target begin & end (plateau)
+			float_64 T = 3.615;
+            float_64 myValY = sin(2*PI/T * y);
+            float_64 myValX = sin(2*PI/T * x);
+
+            float_64 dens = 0.0;
+
+            // plateau
+            if( myValY > 0 | myValX >0 )
+                dens = 1.0;
+
+            // safety check: all parts of the function MUST be > 0
+            dens *= float_64( dens >= 0.0 );
+            return dens;
+        }
+    };
+
+	// definition of free formula profile
+	using FlatFoil = FreeFormulaImpl< FlatFoilFunctor>;
+}
+}

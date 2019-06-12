@@ -1,0 +1,107 @@
+# Name and Path of this Script ############################### (DO NOT change!)
+export PIC_PROFILE=$(cd $(dirname $BASH_SOURCE) && pwd)"/"$(basename $BASH_SOURCE)
+
+# User Information ######################################### (edit those lines)
+#   - automatically add your name and contact to output file meta data
+#   - send me a mail on job (b)egin, (e)nd, (a)bortion or (n)o mail
+export MY_MAILNOTIFY="n"
+export MY_MAIL="someone@example.com"
+export MY_NAME="$(whoami) <$MY_MAIL>"
+
+# Project Information ######################################## (edit this line)
+#   - project account for computing time
+export proj=<yourProject>
+
+# Text Editor for Tools ###################################### (edit this line)
+#   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
+#export EDITOR="nano"
+
+# basic environment ###########################################################
+source /opt/modules/3.2.6.7/init/bash
+module swap PrgEnv-pgi PrgEnv-gnu
+module swap gcc gcc/7.3.0
+
+# Compile for CLE nodes
+#   (CMake likes to unwrap the Cray wrappers)
+export CC=$(which cc)
+export CXX=$(which CC)
+export FC=$(which ftn)
+#export LD="/sw/xk6/altd/bin/ld"
+
+# symbol bug work around (should not be required)
+#MY_CRAY_LIBS=/opt/gcc/7.3.0/snos/lib64
+#export LD_PRELOAD=$MY_CRAY_LIBS/libstdc++.so.6:$LD_PRELOAD
+#export LD_PRELOAD=$MY_CRAY_LIBS/libgomp.so.1:$LD_PRELOAD
+#export LD_PRELOAD=$MY_CRAY_LIBS/libgfortran.so.3:$LD_PRELOAD
+
+# required tools and libs
+module load git
+module load cmake3/3.11.3
+# might fail to link with missing symbols:
+#   C++11 module rebuild pending [CCS #389072]
+module load boost/1.67.0
+export BOOST_ROOT=$BOOST_DIR
+export MPI_ROOT=$MPICH_DIR
+
+# vampirtrace (optional) ######################################################
+#   pic-configure with -c "-DVAMPIR_ENABLE=ON"
+#   e.g.:
+#     pic-configure -c "-DVAMPIR_ENABLE=ON" ~/picInputs/case001
+#module load vampir/9.5.0
+#export VT_ROOT=$VAMPIRTRACE_DIR
+
+# scorep (optional) ###########################################################
+#   pic-configure with -c "-DCMAKE_CXX_COMPILER=$(which scorep-CC) \
+#                          -DCUDA_NVCC_EXECUTABLE=$(which scorep-nvcc)"
+#   e.g.:
+#     SCOREP_WRAPPER=OFF pic-configure -b "omp2b:bdver1" \
+#         -c "-DCMAKE_CXX_COMPILER=$(which scorep-CC) \
+#         -DCUDA_NVCC_EXECUTABLE=$(which scorep-nvcc)" \
+#         ~/picInputs/case001
+#     export SCOREP_WRAPPER_INSTRUMENTER_FLAGS="--cuda --mpp=mpi"
+#     make -j
+#     make install
+#module load scorep
+
+# plugins (optional) ##########################################################
+module load cray-hdf5-parallel/1.10.2.0
+module load adios/1.13.1
+export HDF5_ROOT=$HDF5_DIR
+#export ADIOS_ROOT=$ADIOS_DIR
+#export DATASPACES_ROOT=$DATASPACES_DIR
+
+# download libSplash and compile it yourself from
+#   https://github.com/ComputationalRadiationPhysics/libSplash/
+export SPLASH_ROOT=$PROJWORK/$proj/lib/splash
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SPLASH_ROOT/lib
+
+#export T3PIO_ROOT=$PROJWORK/$proj/lib/t3pio
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$T3PIO_ROOT/lib
+
+# download libpng.h and compile yourself with
+#   http://www.libpng.org/pub/png/libpng.html
+#   tar -xvf libpng-1.6.9.tar.gz
+#   ./configure --host=x86 --prefix=$PROJWORK/$proj/lib/libpng
+# afterwards install pngwriter yourself:
+#   https://github.com/pngwriter/pngwriter#installation
+export LIBPNG_ROOT=$PROJWORK/$proj/lib/libpng
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBPNG_ROOT/lib
+export PNGWRITER_ROOT=$PROJWORK/$proj/lib/pngwriter
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGWRITER_ROOT/lib
+
+# helper variables and tools ##################################################
+export PICSRC=$HOME/src/picongpu
+export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
+export PIC_BACKEND="omp2b:bdver1"
+
+export PATH=$PATH:$PICSRC
+export PATH=$PATH:$PICSRC/bin
+export PATH=$PATH:$PICSRC/src/tools/bin
+
+export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
+
+alias getNode="qsub -I -A $proj -q debug -l nodes=1,walltime=30:00"
+
+# "tbg" default options #######################################################
+export TBG_SUBMIT="qsub"
+export TBG_TPLFILE="etc/picongpu/titan-ornl/cpu_batch.tpl"
