@@ -5,6 +5,7 @@ PIConGPU - Particle-in-Cell Simulations for the Exascale Era
 [![Code Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/picongpu/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/picongpu/branches)
 [![Documentation Status](https://readthedocs.org/projects/picongpu/badge/?version=latest)](http://picongpu.readthedocs.io)
 [![Doxygen](https://img.shields.io/badge/API-Doxygen-blue.svg)](http://computationalradiationphysics.github.io/picongpu)
+[![GitHub commits since last release](https://img.shields.io/github/commits-since/ComputationalRadiationPhysics/picongpu/latest/dev.svg)](https://github.com/ComputationalRadiationPhysics/picongpu/compare/master...dev)
 [![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)](https://isocpp.org/)
 [![License PIConGPU](https://img.shields.io/badge/license-GPLv3-blue.svg?label=PIConGPU)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![License PMacc](https://img.shields.io/badge/license-LGPLv3-blue.svg?label=PMacc)](https://www.gnu.org/licenses/lgpl-3.0.html)
@@ -193,6 +194,9 @@ Developers
 ### How to participate
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+If you like to jump in right away, see  
+[![open "good first issue" issues](https://img.shields.io/github/issues-raw/ComputationalRadiationPhysics/picongpu/good%20first%20issue.svg?color=56cbef)](https://github.com/ComputationalRadiationPhysics/picongpu/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
 
 Active Team
 -----------
