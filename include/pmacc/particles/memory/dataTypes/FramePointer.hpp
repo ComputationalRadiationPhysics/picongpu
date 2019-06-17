@@ -22,26 +22,23 @@
 
 #include "pmacc/types.hpp"
 #include "pmacc/particles/memory/dataTypes/Pointer.hpp"
-#include "pmacc/expressions/DoNothing.hpp"
-#include "pmacc/expressions/SetToNull.hpp"
 
 
 namespace pmacc
 {
 
-/** wrapper for native C pointer to a PMacc frame
+/** Wrapper for a raw pointer a PMacc frame
  *
  * @tparam T_Type type of the pointed object
- * @tparam T_InitMethod empty constructor method for object initilization
  */
-template <typename T_Type, typename T_InitMethod = expressions::SetToNull>
-class FramePointer : public Pointer<T_Type, T_InitMethod>
+template< typename T_Type >
+class FramePointer : public Pointer< T_Type >
 {
 private:
-    typedef Pointer<T_Type, T_InitMethod> Base;
+    using Base = Pointer< T_Type >;
 public:
-    typedef typename Base::type type;
-    typedef typename Base::PtrType PtrType;
+    using type = typename Base::type;
+    using PtrType = typename Base::PtrType;
 
     /** default constructor
      *
@@ -59,17 +56,11 @@ public:
     {
     }
 
-    HDINLINE FramePointer( const FramePointer<type>& other ) : Base( other )
+    HDINLINE FramePointer( const FramePointer& other ) : Base( other )
     {
     }
 
-    template<typename T_OtherInitMethod>
-    HDINLINE FramePointer( const FramePointer<type, T_OtherInitMethod>& other ) : Base( other )
-    {
-    }
-
-    template<typename T_OtherInitMethod>
-    HDINLINE FramePointer& operator=(const FramePointer<type, T_OtherInitMethod>& other)
+    HDINLINE FramePointer& operator=(const FramePointer& other)
     {
         Base::operator=(other);
         return *this;
