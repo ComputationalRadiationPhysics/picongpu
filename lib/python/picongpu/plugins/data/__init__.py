@@ -4,6 +4,7 @@ from .png import PNGData
 from .radiation import RadiationData
 from .sliceFieldReader import FieldSliceData
 from .emittance import EmittanceData
+from .saxs import SaxsData
 
 __all__ = [
     "EnergyHistogramData",
@@ -12,4 +13,5 @@ __all__ = [
     "RadiationData",
     "FieldSliceData",
     "EmittanceData",
+    "SaxsData"
 ]
