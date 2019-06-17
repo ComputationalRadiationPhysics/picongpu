@@ -71,7 +71,7 @@ namespace pmacc
     {
         typedef bmpl::integral_c<unsigned, T_DIM> dim;
         std::vector<size_t> particleCounts;
-        algorithms::forEach::ForEach<T_Species, MyCountParticles<dim, bmpl::_1> > countParticles;
+        meta::ForEach<T_Species, MyCountParticles<dim, bmpl::_1> > countParticles;
         countParticles(particleCounts, cellDescription, parFilter);
         return particleCounts;
     }

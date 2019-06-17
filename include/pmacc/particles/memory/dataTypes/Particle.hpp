@@ -286,12 +286,12 @@ pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>
     void operator()(Dest& dest, const Src& src)
     {
         /* assign attributes from src to dest*/
-        algorithms::forEach::ForEach<CommonTypeSeq,
+        meta::ForEach<CommonTypeSeq,
             CopyIdentifier<bmpl::_1> > copy;
         copy(dest, src);
 
         /* set all attributes which are not in src to their default value*/
-        algorithms::forEach::ForEach<UniqueInDestTypeSeq,
+        meta::ForEach<UniqueInDestTypeSeq,
             SetAttributeToDefault<bmpl::_1> > setAttributeToDefault;
         setAttributeToDefault(dest);
 

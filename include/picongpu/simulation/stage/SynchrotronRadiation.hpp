@@ -67,12 +67,11 @@ namespace stage
         void operator( )( uint32_t const step ) const
         {
             using pmacc::particles::traits::FilterByFlag;
-            using pmacc::algorithms::forEach::ForEach;
             using SynchrotronPhotonsSpecies = typename FilterByFlag<
                 VectorAllSpecies,
                 synchrotronPhotons< >
             >::type;
-            ForEach<
+            pmacc::meta::ForEach<
                 SynchrotronPhotonsSpecies,
                 particles::CallSynchrotronPhotons< bmpl::_1 >
             > synchrotronRadiation;

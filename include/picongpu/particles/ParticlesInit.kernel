@@ -323,7 +323,7 @@ namespace picongpu
                                     AttrToIgnore
                                 >::type;
 
-                                algorithms::forEach::ForEach<
+                                meta::ForEach<
                                     ParticleCleanedAttrList,
                                     SetAttributeToDefault< bmpl::_1 >
                                 > setToDefault;

@@ -311,7 +311,7 @@ struct PushAllSpecies
             VectorAllSpecies,
             particlePusher<>
         >::type;
-        ForEach< VectorSpeciesWithPusher, particles::PushSpecies< bmpl::_1 > > pushSpecies;
+        meta::ForEach< VectorSpeciesWithPusher, particles::PushSpecies< bmpl::_1 > > pushSpecies;
         pushSpecies( currentStep, eventInt, updateEventList );
 
         /* join all push events */
@@ -323,7 +323,7 @@ struct PushAllSpecies
         }
 
         /* call communication for all species */
-        ForEach< VectorSpeciesWithPusher, particles::CommunicateSpecies< bmpl::_1> > communicateSpecies;
+        meta::ForEach< VectorSpeciesWithPusher, particles::CommunicateSpecies< bmpl::_1> > communicateSpecies;
         communicateSpecies( updateEventList, commEventList );
 
         /* join all communication events */
@@ -430,7 +430,7 @@ struct CallIonization
         using hasIonizers = typename HasFlag< FrameType, ionizers<> >::type;
         if (hasIonizers::value)
         {
-            ForEach< SelectIonizerList, CallIonizationScheme< SpeciesType, bmpl::_1 > > particleIonization;
+            meta::ForEach< SelectIonizerList, CallIonizationScheme< SpeciesType, bmpl::_1 > > particleIonization;
             particleIonization( cellDesc, currentStep );
         }
     }

@@ -41,6 +41,7 @@
 #include <pmacc/algorithms/ForEach.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/meta/ForEach.hpp>
 
 #include "common/txtFileHandling.hpp"
 
@@ -237,7 +238,7 @@ void ChargeConservation::notify(uint32_t currentStep)
     // todo: log species that are used / ignored in this plugin with INFO
 
     /* calculate and add the charge density values from all species in FieldTmp */
-    ForEach<
+    meta::ForEach<
         EligibleSpecies,
         picongpu::detail::ComputeChargeDensity<
             bmpl::_1,

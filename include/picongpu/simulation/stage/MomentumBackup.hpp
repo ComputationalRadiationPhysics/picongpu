@@ -48,12 +48,11 @@ namespace stage
         void operator( )( uint32_t const step ) const
         {
             using pmacc::particles::traits::FilterByIdentifier;
-            using pmacc::algorithms::forEach::ForEach;
             using SpeciesWithMomentumPrev1 = typename FilterByIdentifier<
                 VectorAllSpecies,
                 momentumPrev1
             >::type;
-            ForEach<
+            pmacc::meta::ForEach<
                 SpeciesWithMomentumPrev1,
                 particles::Manipulate<
                     particles::manipulators::unary::CopyAttribute<

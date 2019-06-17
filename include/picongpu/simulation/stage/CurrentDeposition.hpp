@@ -82,7 +82,7 @@ namespace detail
                 VectorAllSpecies,
                 current< >
             >::type;
-            algorithms::forEach::ForEach<
+            meta::ForEach<
                 SpeciesWithCurrentSolver,
                 detail::CurrentDeposition<
                     bmpl::_1,

@@ -149,7 +149,7 @@ namespace ionization
 
             /** Solver for energy density of the electron species with maximum energy cutoff
              *
-             *  @todo Include all electron species with a ForEach<VectorallSpecies,...>
+             *  @todo Include all electron species with a meta::ForEach<VectorallSpecies,...>
              * instead of just the destination species
              */
             using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<

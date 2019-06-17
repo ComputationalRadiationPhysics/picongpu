@@ -134,7 +134,7 @@ public:
         }
 
         /* iterate over all attributes of this species */
-        ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttributeSize<bmpl::_1> > attributeSize;
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttributeSize<bmpl::_1> > attributeSize;
         attributeSize(params, speciesGroup, myNumParticles, globalNumParticles, myParticleOffset);
 
         /* TODO: constant particle records */

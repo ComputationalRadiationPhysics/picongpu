@@ -258,7 +258,7 @@ private:
      */
     virtual void init()
     {
-        ForEach<AllPlugins, PushBack<bmpl::_1> > pushBack;
+        meta::ForEach<AllPlugins, PushBack<bmpl::_1> > pushBack;
         pushBack(plugins);
     }
 

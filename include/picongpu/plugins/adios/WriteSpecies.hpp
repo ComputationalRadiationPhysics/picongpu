@@ -115,7 +115,7 @@ public:
 
         /* malloc host memory */
         log<picLog::INPUT_OUTPUT > ("ADIOS:   (begin) malloc host memory: %1%") % T_SpeciesFilter::getName();
-        ForEach<typename AdiosFrameType::ValueTypeSeq, MallocHostMemory<bmpl::_1> > mallocMem;
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, MallocHostMemory<bmpl::_1> > mallocMem;
         mallocMem(hostFrame, totalNumParticles);
         log<picLog::INPUT_OUTPUT > ("ADIOS:   ( end ) malloc host memory: %1%") % T_SpeciesFilter::getName();
 
@@ -173,11 +173,11 @@ public:
             PMACC_ASSERT((uint64_cu) globalParticleOffset == totalNumParticles);
         }
         /* dump to adios file */
-        ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, adios::ParticleAttribute<bmpl::_1> > writeToAdios;
         writeToAdios(params, hostFrame, totalNumParticles);
 
         /* free host memory */
-        ForEach<typename AdiosFrameType::ValueTypeSeq, FreeHostMemory<bmpl::_1> > freeMem;
+        meta::ForEach<typename AdiosFrameType::ValueTypeSeq, FreeHostMemory<bmpl::_1> > freeMem;
         freeMem(hostFrame);
         log<picLog::INPUT_OUTPUT > ("ADIOS: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
 

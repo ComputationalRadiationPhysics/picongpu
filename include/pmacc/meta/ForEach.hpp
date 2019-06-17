@@ -34,9 +34,7 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace forEach
+namespace meta
 {
 namespace detail
 {
@@ -116,7 +114,9 @@ namespace detail
      *  \tparam T_MPLSeq A mpl sequence that can be accessed by mpl::begin, mpl::end, mpl::next
      *  \tparam T_Functor An unary lambda functor with a HDINLINE void operator()(...) method
      *          _1 is substituted by Accessor's result using boost::mpl::apply with elements from T_MPLSeq.
-     *          The maximum number of parameters for the operator() is limited by
+     *          The maximu{
+namespace forEach
+{m number of parameters for the operator() is limited by
      *          PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
      *  \tparam T_Accessor An unary lambda operation
      *
@@ -189,6 +189,5 @@ namespace detail
         }
     };
 
-} // namespace forEach
-} // namespace algorithms
+} // namespace meta
 } // namespace pmacc

@@ -506,7 +506,7 @@ public:
             std::string const & masterPrefix = std::string{ }
         )
         {
-            ForEach<
+            meta::ForEach<
                 EligibleFilters,
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleFilterNames;
@@ -709,7 +709,7 @@ public:
             std::placeholders::_1
         );
 
-        ForEach<
+        meta::ForEach<
             typename Help::EligibleFilters,
             plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
         >{ }(
@@ -763,7 +763,7 @@ public:
             std::placeholders::_1
         );
 
-        ForEach<
+        meta::ForEach<
             typename Help::EligibleFilters,
             plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
         >{ }(

@@ -27,6 +27,7 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/vector.hpp>
 #include <pmacc/compileTime/AllCombinations.hpp>
+#include <pmacc/meta/ForEach.hpp>
 
 namespace picongpu
 {
@@ -100,7 +101,7 @@ struct ShiftCoordinateSystem
         using Size = boost::mpl::vector1 < boost::mpl::range_c<uint32_t, 0, dim > >;
         using CombiTypes = typename AllCombinations<Size>::type;
 
-        ForEach<CombiTypes, AssignToDim<bmpl::_1, T_supports> > shift;
+        meta::ForEach<CombiTypes, AssignToDim<bmpl::_1, T_supports> > shift;
         shift(cursor, vector, fieldPos);
 
     }

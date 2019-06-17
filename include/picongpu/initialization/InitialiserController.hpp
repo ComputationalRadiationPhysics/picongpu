@@ -136,7 +136,7 @@ public:
                 SpeciesWithMass,
                 chargeRatio<>
             >::type;
-            ForEach< SpeciesWithMassCharge, LogOmegaP<> > logOmegaP;
+            meta::ForEach< SpeciesWithMassCharge, LogOmegaP<> > logOmegaP;
             logOmegaP();
 
             if (fields::laserProfiles::Selected::INIT_TIME > float_X(0.0))

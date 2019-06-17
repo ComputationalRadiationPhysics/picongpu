@@ -150,7 +150,7 @@ namespace detail
             eneHistLocal->getGridBuffer().getDeviceBuffer().setValue( float_X( 0.0 ) );
 
             // add local energy histogram of each species in list
-            ForEach< SpeciesList, detail::AddSingleEnergyHistogram< bmpl::_1 > > addSingleEnergyHistogram;
+            meta::ForEach< SpeciesList, detail::AddSingleEnergyHistogram< bmpl::_1 > > addSingleEnergyHistogram;
             addSingleEnergyHistogram( currentStep, eneHistLocal, minEnergy, maxEnergy );
 
             /* note: for average != supercell the BORDER region would need to be

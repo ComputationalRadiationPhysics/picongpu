@@ -67,7 +67,6 @@ using precisionType = double;
 namespace math = pmacc::algorithms::math;
 using namespace pmacc::algorithms::precisionCast;
 using namespace pmacc::algorithms::promoteType;
-using namespace pmacc::algorithms::forEach;
 using namespace pmacc::traits;
 using namespace picongpu::traits;
 

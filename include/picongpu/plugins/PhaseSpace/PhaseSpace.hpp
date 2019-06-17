@@ -135,7 +135,7 @@ namespace picongpu
             )
             {
 
-                ForEach<
+                meta::ForEach<
                     EligibleFilters,
                     plugins::misc::AppendName< bmpl::_1 >
                 > getEligibleFilterNames;

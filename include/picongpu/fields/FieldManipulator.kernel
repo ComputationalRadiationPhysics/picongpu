@@ -203,7 +203,7 @@ namespace detail
                 >
             >;
 
-            pmacc::algorithms::forEach::ForEach<
+            meta::ForEach<
                 SimulationDimensions,
                 picongpu::detail::AbsorbInOneDirection<
                     boost::mpl::integral_c<

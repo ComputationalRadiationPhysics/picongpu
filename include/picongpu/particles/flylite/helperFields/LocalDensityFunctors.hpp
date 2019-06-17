@@ -125,7 +125,7 @@ namespace detail
             fieldTmp->getGridBuffer().getDeviceBuffer().setValue( DensityValueType::create(0.0) );
 
             // add density of each species in list to FieldTmp
-            ForEach< SpeciesList, detail::AddSingleDensity< bmpl::_1 > > addSingleDensity;
+            meta::ForEach< SpeciesList, detail::AddSingleDensity< bmpl::_1 > > addSingleDensity;
             addSingleDensity( currentStep, fieldTmp );
 
             /* create valid density in the BORDER region
