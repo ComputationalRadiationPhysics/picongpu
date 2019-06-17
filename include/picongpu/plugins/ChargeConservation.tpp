@@ -38,9 +38,10 @@
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
 #include <pmacc/cuSTL/algorithm/mpi/Gather.hpp>
 #include <pmacc/cuSTL/algorithm/kernel/Reduce.hpp>
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
+#include <pmacc/meta/ForEach.hpp>
 
 #include "common/txtFileHandling.hpp"
 
@@ -168,7 +169,7 @@ struct Div<DIM2, ValueType>
 template<typename T_SpeciesType, typename T_Area>
 struct ComputeChargeDensity
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -237,7 +238,7 @@ void ChargeConservation::notify(uint32_t currentStep)
     // todo: log species that are used / ignored in this plugin with INFO
 
     /* calculate and add the charge density values from all species in FieldTmp */
-    ForEach<
+    meta::ForEach<
         EligibleSpecies,
         picongpu::detail::ComputeChargeDensity<
             bmpl::_1,

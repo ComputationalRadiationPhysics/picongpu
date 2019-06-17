@@ -33,13 +33,13 @@
 #include "pmacc/particles/boostExtension/InheritLinearly.hpp"
 #include "pmacc/particles/memory/dataTypes/Particle.hpp"
 #include "pmacc/particles/frame_types.hpp"
-#include "pmacc/compileTime/conversion/SeqToMap.hpp"
-#include "pmacc/compileTime/conversion/OperateOnSeq.hpp"
+#include "pmacc/meta/conversion/SeqToMap.hpp"
+#include "pmacc/meta/conversion/OperateOnSeq.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/mpl/find.hpp>
 #include <boost/type_traits/is_same.hpp>
 
-#include "pmacc/compileTime/GetKeyFromAlias.hpp"
+#include "pmacc/meta/GetKeyFromAlias.hpp"
 
 #include "pmacc/traits/HasIdentifier.hpp"
 #include "pmacc/traits/HasFlag.hpp"

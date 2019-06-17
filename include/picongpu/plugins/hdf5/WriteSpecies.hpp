@@ -29,8 +29,8 @@
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/plugins/hdf5/writer/ParticleAttribute.hpp"
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>
@@ -191,7 +191,7 @@ public:
         Hdf5FrameType hostFrame;
         log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) malloc mapped memory: %1%") % T_SpeciesFilter::getName();
         /*malloc mapped memory*/
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
+        meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, MallocMemory<bmpl::_1> > mallocMem;
         mallocMem(hostFrame, numParticles);
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) malloc mapped memory: %1%") % T_SpeciesFilter::getName();
 
@@ -201,7 +201,7 @@ public:
             log<picLog::INPUT_OUTPUT > ("HDF5:  (begin) get mapped memory device pointer: %1%") % T_SpeciesFilter::getName();
             /*load device pointer of mapped memory*/
             Hdf5FrameType deviceFrame;
-            ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
+            meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, GetDevicePtr<bmpl::_1> > getDevicePtr;
             getDevicePtr(deviceFrame, hostFrame);
             log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) get mapped memory device pointer: %1%") % T_SpeciesFilter::getName();
 
@@ -299,7 +299,7 @@ public:
 
         const std::string speciesPath( std::string("particles/") + T_SpeciesFilter::getName() );
 
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<bmpl::_1> > writeToHdf5;
+        meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, hdf5::ParticleAttribute<bmpl::_1> > writeToHdf5;
         writeToHdf5(
             params,
             hostFrame,
@@ -508,7 +508,7 @@ public:
         log<picLog::INPUT_OUTPUT > ("HDF5:  ( end ) writing particlePatches for %1%") % T_SpeciesFilter::getName();
 
         /*free host memory*/
-        ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
+        meta::ForEach<typename Hdf5FrameType::ValueTypeSeq, FreeMemory<bmpl::_1> > freeMem;
         freeMem(hostFrame);
         log<picLog::INPUT_OUTPUT > ("HDF5: ( end ) writing species: %1%") % T_SpeciesFilter::getName();
     }

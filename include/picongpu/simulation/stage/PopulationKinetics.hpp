@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
 
 #include <cstdint>
@@ -48,12 +48,11 @@ namespace stage
         void operator( )( uint32_t const step ) const
         {
             using pmacc::particles::traits::FilterByFlag;
-            using pmacc::algorithms::forEach::ForEach;
             using FlyLiteIons = typename FilterByFlag<
                 VectorAllSpecies,
                 populationKinetics< >
             >::type;
-            ForEach<
+            pmacc::meta::ForEach<
                 FlyLiteIons,
                 particles::CallPopulationKinetics< bmpl::_1 >,
                 bmpl::_1

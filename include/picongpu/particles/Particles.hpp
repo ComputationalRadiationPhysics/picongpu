@@ -33,7 +33,7 @@
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/ParticlesBase.hpp>
 #include <pmacc/particles/memory/buffers/ParticlesBuffer.hpp>
-#include <pmacc/compileTime/GetKeyFromAlias.hpp>
+#include <pmacc/meta/GetKeyFromAlias.hpp>
 #include <pmacc/HandleGuardRegion.hpp>
 #include <pmacc/traits/Resolve.hpp>
 #include <pmacc/traits/GetCTName.hpp>

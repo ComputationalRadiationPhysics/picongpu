@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/Fields.def"
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include "picongpu/particles/manipulators/manipulators.def"
 #include "picongpu/particles/densityProfiles/IProfile.def"
 #include "picongpu/particles/Manipulate.hpp"
@@ -33,7 +33,7 @@
 #include <pmacc/traits/HasFlag.hpp>
 #include <pmacc/traits/GetFlagType.hpp>
 #include <pmacc/math/MapTuple.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/plus.hpp>
@@ -94,7 +94,7 @@ template<
 >
 struct CreateDensity
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -153,12 +153,12 @@ template<
 >
 struct ManipulateDerive
 {
-    using DestSpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using DestSpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_DestSpeciesType
     >;
     using DestFrameType = typename DestSpeciesType::FrameType;
-    using SrcSpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SrcSpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SrcSpeciesType
     >;
@@ -244,7 +244,7 @@ struct Derive : ManipulateDerive<
 template< typename T_SpeciesType = bmpl::_1 >
 struct FillAllGaps
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;

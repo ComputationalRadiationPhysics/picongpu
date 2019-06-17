@@ -136,7 +136,7 @@ SimulationHelper
 ForEach
 -------
 
-.. doxygenstruct:: pmacc::algorithms::forEach::ForEach
+.. doxygenstruct:: meta::ForEach
    :project: PIConGPU
    :members:
    :protected-members:

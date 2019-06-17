@@ -28,7 +28,7 @@
 #include "picongpu/particles/bremsstrahlung/ScaledSpectrum.hpp"
 #include "picongpu/particles/ParticlesFunctors.hpp"
 
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 
 #include <cstdint>
@@ -81,13 +81,12 @@ namespace stage
         void operator( )( uint32_t const step ) const
         {
             using pmacc::particles::traits::FilterByFlag;
-            using pmacc::algorithms::forEach::ForEach;
             using SpeciesWithBremsstrahlung = typename FilterByFlag
             <
                 VectorAllSpecies,
                 bremsstrahlungIons< >
             >::type;
-            ForEach<
+            pmacc::meta::ForEach<
                 SpeciesWithBremsstrahlung,
                 particles::CallBremsstrahlung< bmpl::_1 >
             > particleBremsstrahlung;

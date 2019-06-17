@@ -37,7 +37,7 @@
 
 // pmacc
 #include <pmacc/particles/Identifier.hpp>
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/dimensions/DataSpace.hpp>
 #include <pmacc/identifier/identifier.hpp>
 #include <pmacc/identifier/alias.hpp>

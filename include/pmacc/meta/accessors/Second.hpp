@@ -19,40 +19,33 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
 #include "pmacc/types.hpp"
 
-#include <boost/mpl/pair.hpp>
-#include "pmacc/compileTime/conversion/TypeToPair.hpp"
-
 namespace pmacc
 {
+namespace meta
+{
 
-/** create boost mpl pair
+namespace accessors
+{
+
+/** Get second type of the given type
  *
- * If T_Type is a pmacc alias than first is set to anonym alias name
- * and second is set to T_Type.
- * If T_Type is no alias than TypeToPair is used.
+ * \tparam T type from which we return the second held type
  *
- * @tparam T_Type any type
- * @resturn ::type
+ * T must have defined ::second
  */
-template<typename T_Type>
-struct TypeToAliasPair
+template<typename T>
+struct Second
 {
-    typedef typename TypeToPair<T_Type>::type type;
+    typedef typename T::second type;
 };
 
-/** specialisation if T_Type is a pmacc alias*/
-template<template<typename,typename> class T_Alias,typename T_Type>
-struct TypeToAliasPair< T_Alias<T_Type,pmacc::pmacc_isAlias> >
-{
-    typedef
-    bmpl::pair< T_Alias<pmacc_void,pmacc::pmacc_isAlias> ,
-            T_Alias<T_Type,pmacc::pmacc_isAlias> >
-            type;
-};
+}//namespace accessors
 
+}//namespace meta
 
-}//namespace pmacc
+}//namespace  pmacc

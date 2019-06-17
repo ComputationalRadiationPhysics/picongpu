@@ -33,12 +33,12 @@
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/traits/Resolve.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 #include <boost/type_traits/integral_constant.hpp>
@@ -75,11 +75,11 @@ namespace ionization
     struct Keldysh_Impl
     {
 
-        using DestSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using DestSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_DestSpecies
         >;
-        using SrcSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using SrcSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_SrcSpecies
         >;

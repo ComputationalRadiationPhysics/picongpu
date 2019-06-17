@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 
 #include <cstdint>
@@ -60,12 +60,11 @@ namespace stage
         void operator( )( uint32_t const step ) const
         {
             using pmacc::particles::traits::FilterByFlag;
-            using pmacc::algorithms::forEach::ForEach;
             using SpeciesWithIonizers = typename FilterByFlag<
                 VectorAllSpecies,
                 ionizers< >
             >::type;
-            ForEach<
+            pmacc::meta::ForEach<
                 SpeciesWithIonizers,
                 particles::CallIonization< bmpl::_1 >
             > particleIonization;

@@ -1,4 +1,4 @@
-/* Copyright 2017-2019 Axel Huebl
+/* Copyright 2013-2019 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -19,30 +19,35 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #pragma once
 
-#include "pmacc/types.hpp"
-#include <boost/mpl/placeholders.hpp>
-
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/copy.hpp>
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/front_inserter.hpp>
+#include "pmacc/meta/conversion/ToSeq.hpp"
 
 namespace pmacc
 {
-namespace compileTime
-{
-namespace accessors
-{
-    /** Get ::type member of the given type
-     *
-     * @tparam T type from which we return the type held in ::type
-     *
-     * T must have defined ::type
-     */
-    template< typename T = bmpl::_1 >
-    struct Type
-    {
-        using type = typename T::type;
-    };
 
-} // namespace accessors
-} // namespace compileTime
-} // namespace pmacc
+/** Join both input types to one boost mpl sequence
+ *
+ * @tparam T_1 a boost mpl sequence or single type
+ * @tparam T_2 a boost mpl sequence or single type
+ */
+
+template<typename T_1, typename T_2 = bmpl::vector0<> >
+struct JoinToSeq
+{
+private:
+    typedef typename ToSeq<T_1 >::type Seq1;
+    typedef typename ToSeq<T_2 >::type Seq2;
+public:
+    typedef typename bmpl::copy<
+    Seq2,
+    bmpl::back_inserter< Seq1>
+    >::type type;
+};
+
+} //namespace pmacc

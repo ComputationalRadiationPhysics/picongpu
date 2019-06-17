@@ -27,7 +27,7 @@
 #include <pmacc/cuSTL/cursor/tools/LinearInterp.hpp>
 #include <pmacc/cuSTL/cursor/BufferCursor.hpp>
 #include <pmacc/algorithms/math.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <boost/array.hpp>
 #if( BOOST_VERSION == 106400 )
@@ -168,12 +168,12 @@ public:
 template<typename T_ElectronSpecies>
 struct FillScaledSpectrumMap
 {
-    using ElectronSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_ElectronSpecies
     >;
 
-    using IonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         typename pmacc::particles::traits::ResolveAliasFromSpecies<
             ElectronSpecies,

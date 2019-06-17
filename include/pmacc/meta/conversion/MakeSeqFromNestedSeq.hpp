@@ -22,36 +22,33 @@
 
 #pragma once
 
-
 #include <boost/mpl/vector.hpp>
-#include "pmacc/compileTime/conversion/MakeSeqFromNestedSeq.hpp"
+#include "pmacc/meta/conversion/ToSeq.hpp"
+#include "pmacc/meta/conversion/JoinToSeq.hpp"
+#include <boost/mpl/fold.hpp>
 
 namespace pmacc
 {
 
-/** combine all input types to one sequence
+/** combine all elements of the input type to a single vector
  *
- * Note: if the input type is a sequence itself, its elements will be unfolded
- *       and added separately
+ * If elements of the input sequence are a sequence themself, all of their
+ * elements will be added to the resulting sequence
  *
- * @tparam T_Args a boost mpl sequence or single type
- *
- * @code
- * using MyType = typename MakeSeq< A, B >::type
- * using MyType2 = typename MakeSeq< boost::mpl::vector<A, B>, C >::type
- * @endcode
- *
+ * @tparam T_In a boost mpl sequence or single type
  */
-template< typename... T_Args >
-struct MakeSeq
+template<typename T_In>
+struct MakeSeqFromNestedSeq
 {
-    typedef typename MakeSeqFromNestedSeq<
-        bmpl::vector< T_Args... >
+private:
+    typedef typename ToSeq<T_In >::type Seq;
+
+public:
+    typedef typename bmpl::fold<
+      Seq,
+      bmpl::vector0<>,
+      JoinToSeq<bmpl::_1,bmpl::_2>
     >::type type;
 };
-
-/** short hand definition for @see MakeSeq<> */
-template< typename... T_Args >
-using MakeSeq_t = typename MakeSeq< T_Args... >::type;
 
 } //namespace pmacc

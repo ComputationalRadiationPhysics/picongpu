@@ -24,7 +24,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
@@ -82,7 +82,7 @@ namespace detail
                 VectorAllSpecies,
                 current< >
             >::type;
-            algorithms::forEach::ForEach<
+            meta::ForEach<
                 SpeciesWithCurrentSolver,
                 detail::CurrentDeposition<
                     bmpl::_1,

@@ -22,7 +22,7 @@
 #pragma once
 
 #include "pmacc/traits/GetCTName.hpp"
-#include "pmacc/compileTime/errorHandlerPolicies/ThrowValueNotFound.hpp"
+#include "pmacc/meta/errorHandlerPolicies/ThrowValueNotFound.hpp"
 
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/copy_if.hpp>
@@ -37,7 +37,7 @@ namespace pmacc
 {
 namespace particles
 {
-namespace compileTime
+namespace meta
 {
 
     /* find a type within a sequence by name or the type itself
@@ -99,6 +99,6 @@ namespace compileTime
         T_KeyNotFoundPolicy
     >::type;
 
-} // namespace compileTime
+} // namespace meta
 } // namespace particles
 } // namespace pmacc

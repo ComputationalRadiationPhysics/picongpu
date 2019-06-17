@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 
 /* some forward declarations we need */
 #include "picongpu/fields/Fields.def"

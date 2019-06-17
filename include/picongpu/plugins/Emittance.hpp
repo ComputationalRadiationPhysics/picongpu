@@ -45,7 +45,7 @@
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/math/Vector.hpp>
 
 #include <boost/mpl/and.hpp>
@@ -392,7 +392,7 @@ namespace picongpu
                 std::string const & masterPrefix = std::string{ }
             )
             {
-                ForEach<
+                meta::ForEach<
                     EligibleFilters,
                     plugins::misc::AppendName< bmpl::_1 >
                 > getEligibleFilterNames;
@@ -743,7 +743,7 @@ namespace picongpu
                 std::placeholders::_1
             );
 
-            ForEach<
+            meta::ForEach<
                 typename Help::EligibleFilters,
                 plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
             >{ }(

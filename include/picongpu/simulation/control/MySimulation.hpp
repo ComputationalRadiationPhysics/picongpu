@@ -82,10 +82,10 @@
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/nvidia/functors/Sub.hpp>
 
-#include <pmacc/compileTime/conversion/SeqToMap.hpp>
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/SeqToMap.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/InitFunctors.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -346,7 +346,7 @@ public:
         // Initialize bremsstrahlung lookup tables, if there are species containing bremsstrahlung photons
         if(!bmpl::empty<AllBremsstrahlungPhotonsSpecies>::value)
         {
-            ForEach<
+            meta::ForEach<
                 AllBremsstrahlungPhotonsSpecies,
                 particles::bremsstrahlung::FillScaledSpectrumMap< bmpl::_1 >
             > fillScaledSpectrumMap;
@@ -368,7 +368,7 @@ public:
             populationKinetics<>
         >::type;
 
-        ForEach<
+        meta::ForEach<
             AllFlyLiteIons,
             particles::CallPopulationKineticsInit< bmpl::_1 >,
             bmpl::_1
@@ -378,7 +378,7 @@ public:
         );
 
         // Allocate and initialize particle species with all left-over memory below
-        ForEach< VectorAllSpecies, particles::CreateSpecies<bmpl::_1> > createSpeciesMemory;
+        meta::ForEach< VectorAllSpecies, particles::CreateSpecies<bmpl::_1> > createSpeciesMemory;
         createSpeciesMemory( deviceHeap, cellDescription );
 
         size_t freeGpuMem(0);
@@ -410,7 +410,7 @@ public:
         auto mallocMCBuffer = pmacc::memory::makeUnique< MallocMCBuffer<DeviceHeap> >( deviceHeap );
         dc.consume( std::move( mallocMCBuffer ) );
 #endif
-        ForEach< VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<bmpl::_1> > logMemoryStatisticsForSpecies;
+        meta::ForEach< VectorAllSpecies, particles::LogMemoryStatisticsForSpecies<bmpl::_1> > logMemoryStatisticsForSpecies;
         logMemoryStatisticsForSpecies( deviceHeap );
 
         Environment<>::get().MemoryInfo().getMemoryInfo(&freeGpuMem);
@@ -486,7 +486,7 @@ public:
             else
             {
                 initialiserController->init();
-                ForEach< particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
+                meta::ForEach< particles::InitPipeline, particles::CallFunctor<bmpl::_1> > initSpecies;
                 initSpecies( step );
             }
         }
@@ -581,7 +581,7 @@ public:
 
         fieldB->reset(currentStep);
         fieldE->reset(currentStep);
-        ForEach< VectorAllSpecies, particles::CallReset< bmpl::_1 > > callReset;
+        meta::ForEach< VectorAllSpecies, particles::CallReset< bmpl::_1 > > callReset;
         callReset( currentStep );
 
         dc.releaseData( FieldE::getName() );
@@ -597,7 +597,7 @@ public:
             log<picLog::SIMULATION_STATE > ("slide in step %1%") % currentStep;
             resetAll(currentStep);
             initialiserController->slide(currentStep);
-            ForEach< particles::InitPipeline, particles::CallFunctor< bmpl::_1 > > initSpecies;
+            meta::ForEach< particles::InitPipeline, particles::CallFunctor< bmpl::_1 > > initSpecies;
             initSpecies( currentStep );
         }
     }

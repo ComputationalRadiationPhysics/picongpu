@@ -190,13 +190,13 @@ public:
             std::string const & masterPrefix = std::string{ }
         )
         {
-            ForEach<
+            meta::ForEach<
                 AllEligibleSpeciesSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > getEligibleDataSourceNames;
             getEligibleDataSourceNames( allowedDataSources );
 
-            ForEach<
+            meta::ForEach<
                 AllFieldSources,
                 plugins::misc::AppendName< bmpl::_1 >
             > appendFieldSourceNames;
@@ -473,11 +473,11 @@ public:
         ThreadParams *params = &mThreadParams;
 
         /* load all fields */
-        ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
+        meta::ForEach<FileCheckpointFields, LoadFields<bmpl::_1> > forEachLoadFields;
         forEachLoadFields(params);
 
         /* load all particles */
-        ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
+        meta::ForEach<FileCheckpointParticles, LoadSpecies<bmpl::_1> > forEachLoadSpecies;
         forEachLoadSpecies(params, restartChunkSize);
 
         IdProvider<simDim>::State idProvState;
@@ -669,7 +669,7 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing fields.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
+            meta::ForEach<FileCheckpointFields, WriteFields<bmpl::_1> > forEachWriteFields;
             forEachWriteFields(threadParams);
         }
         else
@@ -680,14 +680,14 @@ private:
             );
             if( dumpFields )
             {
-                ForEach<
+                meta::ForEach<
                     FileOutputFields,
                     WriteFields< bmpl::_1 >
                 > forEachWriteFields;
                 forEachWriteFields(threadParams);
             }
 
-            ForEach<
+            meta::ForEach<
                 typename Help::AllFieldSources,
                 CallWriteFields<
                     bmpl::_1
@@ -703,7 +703,7 @@ private:
         log<picLog::INPUT_OUTPUT > ("HDF5: (begin) writing particle species.");
         if (threadParams->isCheckpoint)
         {
-            ForEach<
+            meta::ForEach<
                 FileCheckpointParticles,
                 WriteSpecies<
                     plugins::misc::UnfilteredSpecies< bmpl::_1 >
@@ -720,7 +720,7 @@ private:
 
             if( dumpAllParticles )
             {
-                ForEach<
+                meta::ForEach<
                     FileOutputParticles,
                     WriteSpecies<
                         plugins::misc::UnfilteredSpecies< bmpl::_1 >
@@ -729,7 +729,7 @@ private:
                 writeSpecies(threadParams, domainOffset);
             }
 
-            ForEach<
+            meta::ForEach<
                 typename Help::AllEligibleSpeciesSources,
                 CallWriteSpecies<
                     bmpl::_1

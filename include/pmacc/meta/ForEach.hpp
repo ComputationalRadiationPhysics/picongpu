@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc/compileTime/accessors/Identity.hpp"
+#include "pmacc/meta/accessors/Identity.hpp"
 
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/transform.hpp>
@@ -34,9 +34,7 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-namespace forEach
+namespace meta
 {
 namespace detail
 {
@@ -134,7 +132,7 @@ namespace detail
     template<
         typename T_MPLSeq,
         typename T_Functor,
-        typename T_Accessor = compileTime::accessors::Identity< >
+        typename T_Accessor = meta::accessors::Identity< >
     >
     struct ForEach
     {
@@ -189,6 +187,5 @@ namespace detail
         }
     };
 
-} // namespace forEach
-} // namespace algorithms
+} // namespace meta
 } // namespace pmacc

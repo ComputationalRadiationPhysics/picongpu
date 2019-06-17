@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include <pmacc/traits/Resolve.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include "picongpu/traits/UsesRNG.hpp"
 
 #include "picongpu/fields/CellType.hpp"
@@ -34,7 +34,7 @@
 #include <pmacc/random/distributions/Uniform.hpp>
 #include <pmacc/random/RNGProvider.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
@@ -73,11 +73,11 @@ namespace ionization
     struct ThomasFermi_Impl
     {
 
-        using DestSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using DestSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_DestSpecies
         >;
-        using SrcSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using SrcSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_SrcSpecies
         >;
@@ -149,7 +149,7 @@ namespace ionization
 
             /** Solver for energy density of the electron species with maximum energy cutoff
              *
-             *  @todo Include all electron species with a ForEach<VectorallSpecies,...>
+             *  @todo Include all electron species with a meta::ForEach<VectorallSpecies,...>
              * instead of just the destination species
              */
             using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<

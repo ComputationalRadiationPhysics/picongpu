@@ -23,7 +23,7 @@
 #include "version.hpp"
 #include <pmacc/algorithms/TypeCast.hpp>
 #include <pmacc/algorithms/PromoteType.hpp>
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/algorithms/math.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 #include "picongpu/traits/GetMargin.hpp"
@@ -67,7 +67,6 @@ using precisionType = double;
 namespace math = pmacc::algorithms::math;
 using namespace pmacc::algorithms::precisionCast;
 using namespace pmacc::algorithms::promoteType;
-using namespace pmacc::algorithms::forEach;
 using namespace pmacc::traits;
 using namespace picongpu::traits;
 

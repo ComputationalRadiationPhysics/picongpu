@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Rene Widera, Alexander Grund
+/* Copyright 2013-2019 Rene Widera
  *
  * This file is part of PMacc.
  *
@@ -23,28 +23,36 @@
 
 #include "pmacc/types.hpp"
 
-#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
-#include "pmacc/compileTime/conversion/ResolveAliases.hpp"
-#include "pmacc/compileTime/errorHandlerPolicies/ReturnValue.hpp"
+#include <boost/mpl/pair.hpp>
+#include "pmacc/meta/conversion/TypeToPair.hpp"
 
 namespace pmacc
 {
 
-/** Resolve and remove types from a sequence
+/** create boost mpl pair
  *
- * @tparam T_MPLSeqSrc source sequence from were we delete types
- * @tparam T_MPLSeqObjectsToRemove sequence with types which should be deleted (pmacc aliases are allowed)
+ * If T_Type is a pmacc alias than first is set to anonym alias name
+ * and second is set to T_Type.
+ * If T_Type is no alias than TypeToPair is used.
+ *
+ * @tparam T_Type any type
+ * @resturn ::type
  */
-template<
-typename T_MPLSeqSrc,
-typename T_MPLSeqObjectsToRemove
->
-struct ResolveAndRemoveFromSeq
+template<typename T_Type>
+struct TypeToAliasPair
 {
-    typedef T_MPLSeqSrc MPLSeqSrc;
-    typedef T_MPLSeqObjectsToRemove MPLSeqObjectsToRemove;
-    typedef typename ResolveAliases<MPLSeqObjectsToRemove, MPLSeqSrc, errorHandlerPolicies::ReturnValue>::type ResolvedSeqWithObjectsToRemove;
-    typedef typename RemoveFromSeq<MPLSeqSrc, ResolvedSeqWithObjectsToRemove>::type type;
+    typedef typename TypeToPair<T_Type>::type type;
 };
+
+/** specialisation if T_Type is a pmacc alias*/
+template<template<typename,typename> class T_Alias,typename T_Type>
+struct TypeToAliasPair< T_Alias<T_Type,pmacc::pmacc_isAlias> >
+{
+    typedef
+    bmpl::pair< T_Alias<pmacc_void,pmacc::pmacc_isAlias> ,
+            T_Alias<T_Type,pmacc::pmacc_isAlias> >
+            type;
+};
+
 
 }//namespace pmacc

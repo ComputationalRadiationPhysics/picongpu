@@ -23,7 +23,7 @@
 #pragma once
 
 
-#include "pmacc/compileTime/accessors/Identity.hpp"
+#include "pmacc/meta/accessors/Identity.hpp"
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/inherit.hpp>
 #include <boost/mpl/inherit_linearly.hpp>
@@ -41,7 +41,7 @@ namespace detail
      */
     template<
         typename T_Sequence,
-        template< typename > class T_Accessor = compileTime::accessors::Identity
+        template< typename > class T_Accessor = meta::accessors::Identity
     >
     using InheritLinearly =
         typename bmpl::inherit_linearly<
@@ -61,7 +61,7 @@ namespace detail
      */
     template<
         typename T_Sequence,
-        template< typename > class T_Accessor = compileTime::accessors::Identity
+        template< typename > class T_Accessor = meta::accessors::Identity
     >
     struct InheritLinearly : detail::InheritLinearly<
         T_Sequence,

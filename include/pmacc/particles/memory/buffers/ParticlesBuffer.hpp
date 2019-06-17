@@ -33,7 +33,7 @@
 #include "pmacc/math/Vector.hpp"
 
 #include "pmacc/particles/boostExtension/InheritGenerators.hpp"
-#include "pmacc/compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/meta/conversion/MakeSeq.hpp"
 
 
 #include <boost/mpl/vector.hpp>

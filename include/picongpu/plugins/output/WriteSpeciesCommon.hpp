@@ -25,8 +25,8 @@
 
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/traits/Resolve.hpp>
 

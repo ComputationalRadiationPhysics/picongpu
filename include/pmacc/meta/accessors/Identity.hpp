@@ -27,7 +27,7 @@
 
 namespace pmacc
 {
-namespace compileTime
+namespace meta
 {
 
 namespace accessors
@@ -46,6 +46,6 @@ struct Identity : bmpl::identity<T>
 
 }//namespace accessors
 
-}//namespace compileTime
+}//namespace meta
 
 }//namespace  pmacc

@@ -26,17 +26,17 @@
 #include "pmacc/traits/HasIdentifier.hpp"
 #include "pmacc/traits/HasFlag.hpp"
 #include "pmacc/traits/GetFlagType.hpp"
-#include "pmacc/compileTime/GetKeyFromAlias.hpp"
-#include "pmacc/compileTime/conversion/ResolveAliases.hpp"
-#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
+#include "pmacc/meta/GetKeyFromAlias.hpp"
+#include "pmacc/meta/conversion/ResolveAliases.hpp"
+#include "pmacc/meta/conversion/RemoveFromSeq.hpp"
 #include "pmacc/particles/operations/CopyIdentifier.hpp"
-#include "pmacc/algorithms/ForEach.hpp"
+#include "pmacc/meta/ForEach.hpp"
 #include "pmacc/static_assert.hpp"
 
 #include "pmacc/particles/operations/Assign.hpp"
 #include "pmacc/particles/operations/Deselect.hpp"
 #include "pmacc/particles/operations/SetAttributeToDefault.hpp"
-#include "pmacc/compileTime/errorHandlerPolicies/ReturnValue.hpp"
+#include "pmacc/meta/errorHandlerPolicies/ReturnValue.hpp"
 #include <boost/utility/result_of.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/mpl/if.hpp>
@@ -286,12 +286,12 @@ pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>
     void operator()(Dest& dest, const Src& src)
     {
         /* assign attributes from src to dest*/
-        algorithms::forEach::ForEach<CommonTypeSeq,
+        meta::ForEach<CommonTypeSeq,
             CopyIdentifier<bmpl::_1> > copy;
         copy(dest, src);
 
         /* set all attributes which are not in src to their default value*/
-        algorithms::forEach::ForEach<UniqueInDestTypeSeq,
+        meta::ForEach<UniqueInDestTypeSeq,
             SetAttributeToDefault<bmpl::_1> > setAttributeToDefault;
         setAttributeToDefault(dest);
 

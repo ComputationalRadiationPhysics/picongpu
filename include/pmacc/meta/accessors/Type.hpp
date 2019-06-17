@@ -1,4 +1,4 @@
-/* Copyright 2013-2019 Rene Widera
+/* Copyright 2017-2019 Axel Huebl
  *
  * This file is part of PMacc.
  *
@@ -19,33 +19,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include "pmacc/types.hpp"
+#include <boost/mpl/placeholders.hpp>
+
 
 namespace pmacc
 {
-namespace compileTime
+namespace meta
 {
-
 namespace accessors
 {
+    /** Get ::type member of the given type
+     *
+     * @tparam T type from which we return the type held in ::type
+     *
+     * T must have defined ::type
+     */
+    template< typename T = bmpl::_1 >
+    struct Type
+    {
+        using type = typename T::type;
+    };
 
-/** Get second type of the given type
- *
- * \tparam T type from which we return the second held type
- *
- * T must have defined ::second
- */
-template<typename T>
-struct Second
-{
-    typedef typename T::second type;
-};
-
-}//namespace accessors
-
-}//namespace compileTime
-
-}//namespace  pmacc
+} // namespace accessors
+} // namespace meta
+} // namespace pmacc

@@ -26,7 +26,7 @@
 
 namespace pmacc
 {
-namespace compileTime
+namespace meta
 {
     /** get character of an C-string
      *
@@ -75,7 +75,7 @@ namespace compileTime
     };
 
 
-#define PMACC_CHAR_AT_N(z, n, name ) pmacc::compileTime::elem_at< sizeof(name) >( name, n ),
+#define PMACC_CHAR_AT_N(z, n, name ) pmacc::meta::elem_at< sizeof(name) >( name, n ),
 
 /** create a compile time string type
  *
@@ -93,15 +93,15 @@ namespace compileTime
 
 #define PMACC_CSTRING( str )                                                   \
     /* // PMACC_CSTRING("example") is transformed in                           \
-     * pmacc::compileTime::String<                                             \
-     *     pmacc::compileTime::elem_at< sizeof("example") >( sizeof("example", 0 ), \
-     *     pmacc::compileTime::elem_at< sizeof("example") >( sizeof("example", 1 ), \
+     * pmacc::meta::String<                                             \
+     *     pmacc::meta::elem_at< sizeof("example") >( sizeof("example", 0 ), \
+     *     pmacc::meta::elem_at< sizeof("example") >( sizeof("example", 1 ), \
      *     ...                                                                 \
-     *     pmacc::compileTime::elem_at< sizeof("example") >( sizeof("example", 63 ), \
+     *     pmacc::meta::elem_at< sizeof("example") >( sizeof("example", 63 ), \
      *     0                                                                   \
      * >                                                                       \
      */                                                                        \
-    pmacc::compileTime::String<                                                \
+    pmacc::meta::String<                                                \
         BOOST_PP_REPEAT_FROM_TO(                                               \
             0,                                                                 \
             /* support up to 64 charactres */                                  \
@@ -113,5 +113,5 @@ namespace compileTime
         0                                                                      \
     >
 
-} // namespace compileTime
+} // namespace meta
 } // namespace pmacc

@@ -243,7 +243,7 @@ namespace picongpu
             cursor::make_MultiIndexCursor<simDim>()
         );
 
-        ForEach<
+        meta::ForEach<
             typename Help::EligibleFilters,
             plugins::misc::ExecuteIfNameIsEqual< bmpl::_1 >
         >{ }(

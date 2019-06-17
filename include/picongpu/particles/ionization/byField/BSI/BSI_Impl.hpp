@@ -32,12 +32,12 @@
 
 #include "picongpu/particles/ParticlesFunctors.hpp"
 
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/traits/Resolve.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/mappings/threads/WorkerCfg.hpp>
 
 
@@ -59,11 +59,11 @@ namespace ionization
     struct BSI_Impl
     {
 
-        using DestSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using DestSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_DestSpecies
         >;
-        using SrcSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+        using SrcSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_SrcSpecies
         >;
