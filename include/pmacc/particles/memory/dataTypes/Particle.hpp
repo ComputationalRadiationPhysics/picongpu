@@ -285,13 +285,14 @@ pmacc::Particle<T_FrameType2, T_ValueTypeSeq2>
     HDINLINE
     void operator()(Dest& dest, const Src& src)
     {
+        using pmacc::meta::ForEach;
         /* assign attributes from src to dest*/
-        meta::ForEach<CommonTypeSeq,
+        ForEach<CommonTypeSeq,
             CopyIdentifier<bmpl::_1> > copy;
         copy(dest, src);
 
         /* set all attributes which are not in src to their default value*/
-        meta::ForEach<UniqueInDestTypeSeq,
+        ForEach<UniqueInDestTypeSeq,
             SetAttributeToDefault<bmpl::_1> > setAttributeToDefault;
         setAttributeToDefault(dest);
 
