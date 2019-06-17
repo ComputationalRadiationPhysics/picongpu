@@ -27,7 +27,7 @@
 
 namespace pmacc
 {
-namespace compileTime
+namespace meta
 {
 namespace accessors
 {
@@ -44,5 +44,5 @@ namespace accessors
     };
 
 } // namespace accessors
-} // namespace compileTime
+} // namespace meta
 } // namespace pmacc

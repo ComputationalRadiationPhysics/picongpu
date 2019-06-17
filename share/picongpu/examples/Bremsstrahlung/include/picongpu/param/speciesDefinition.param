@@ -23,10 +23,10 @@
 #include "picongpu/particles/Particles.hpp"
 
 #include <pmacc/particles/Identifier.hpp>
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
 #include <pmacc/identifier/value_identifier.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
-#include <pmacc/compileTime/String.hpp>
+#include <pmacc/meta/String.hpp>
 
 
 namespace picongpu

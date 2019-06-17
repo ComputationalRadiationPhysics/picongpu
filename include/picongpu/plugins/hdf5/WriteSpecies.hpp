@@ -29,8 +29,8 @@
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
 #include "picongpu/plugins/hdf5/writer/ParticleAttribute.hpp"
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/traits/GetNumWorkers.hpp>

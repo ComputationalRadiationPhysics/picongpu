@@ -23,7 +23,7 @@
 #include "version.hpp"
 #include <pmacc/algorithms/TypeCast.hpp>
 #include <pmacc/algorithms/PromoteType.hpp>
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/algorithms/math.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 #include "picongpu/traits/GetMargin.hpp"

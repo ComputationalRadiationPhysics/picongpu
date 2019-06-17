@@ -29,8 +29,8 @@
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "picongpu/plugins/adios/writer/ParticleAttribute.hpp"
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>

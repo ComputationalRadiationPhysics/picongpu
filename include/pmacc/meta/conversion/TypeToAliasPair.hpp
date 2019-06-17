@@ -24,7 +24,7 @@
 #include "pmacc/types.hpp"
 
 #include <boost/mpl/pair.hpp>
-#include "pmacc/compileTime/conversion/TypeToPair.hpp"
+#include "pmacc/meta/conversion/TypeToPair.hpp"
 
 namespace pmacc
 {

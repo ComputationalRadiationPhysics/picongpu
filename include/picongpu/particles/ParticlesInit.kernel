@@ -26,7 +26,7 @@
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 
 #include <pmacc/particles/operations/SetAttributeToDefault.hpp>
-#include <pmacc/compileTime/conversion/ResolveAndRemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/ResolveAndRemoveFromSeq.hpp>
 #include "picongpu/particles/traits/GetDensityRatio.hpp"
 #include <pmacc/nvidia/atomic.hpp>
 #include <pmacc/memory/shared/Allocate.hpp>

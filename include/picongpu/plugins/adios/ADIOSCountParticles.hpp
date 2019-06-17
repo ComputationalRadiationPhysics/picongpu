@@ -33,8 +33,8 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/math/Vector.hpp>
 #include "picongpu/plugins/adios/writer/ParticleAttributeSize.hpp"
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 
 #include <boost/mpl/vector.hpp>

@@ -24,7 +24,7 @@
 #include "pmacc/particles/operations/CountParticles.hpp"
 #include "pmacc/types.hpp"
 #include "pmacc/dimensions/DataSpace.hpp"
-#include "pmacc/algorithms/ForEach.hpp"
+#include "pmacc/meta/ForEach.hpp"
 #include "pmacc/dataManagement/DataConnector.hpp"
 #include "pmacc/mappings/simulation/ResourceMonitor.hpp"
 

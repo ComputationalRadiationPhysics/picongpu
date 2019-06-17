@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/traits/FilterByFlag.hpp>
 
 #include <cstdint>

@@ -26,7 +26,7 @@
 
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/vector.hpp>
-#include <pmacc/compileTime/AllCombinations.hpp>
+#include <pmacc/meta/AllCombinations.hpp>
 #include <pmacc/meta/ForEach.hpp>
 
 namespace picongpu

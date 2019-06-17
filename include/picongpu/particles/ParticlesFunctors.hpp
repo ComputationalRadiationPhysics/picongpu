@@ -27,7 +27,7 @@
 
 #include <pmacc/Environment.hpp>
 #include <pmacc/communication/AsyncCommunication.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 #include <pmacc/memory/MakeUnique.hpp>
 
 #include "picongpu/particles/traits/GetIonizerList.hpp"
@@ -60,7 +60,7 @@ namespace particles
 template<typename T_SpeciesType>
 struct AssignNull
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -82,7 +82,7 @@ struct AssignNull
 template< typename T_SpeciesType >
 struct CreateSpecies
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -115,7 +115,7 @@ struct CreateSpecies
 template< typename T_SpeciesType >
 struct LogMemoryStatisticsForSpecies
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -142,7 +142,7 @@ struct LogMemoryStatisticsForSpecies
 template< typename T_SpeciesType >
 struct CallReset
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -166,7 +166,7 @@ struct CallReset
 template< typename T_SpeciesType >
 struct CallPopulationKineticsInit
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -195,7 +195,7 @@ struct CallPopulationKineticsInit
 template< typename T_SpeciesType >
 struct CallPopulationKinetics
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -228,7 +228,7 @@ struct CallPopulationKinetics
 template<typename T_SpeciesType>
 struct PushSpecies
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -261,7 +261,7 @@ struct PushSpecies
 template<typename T_SpeciesType>
 struct CommunicateSpecies
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -344,7 +344,7 @@ struct PushAllSpecies
 template< typename T_SpeciesType, typename T_SelectIonizer >
 struct CallIonizationScheme
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -402,7 +402,7 @@ struct CallIonizationScheme
 template< typename T_SpeciesType >
 struct CallIonization
 {
-    using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+    using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_SpeciesType
     >;
@@ -446,20 +446,20 @@ struct CallIonization
 template<typename T_ElectronSpecies>
 struct CallBremsstrahlung
 {
-    using ElectronSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_ElectronSpecies
     >;
     using ElectronFrameType = typename ElectronSpecies::FrameType;
 
-    using IonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         typename pmacc::particles::traits::ResolveAliasFromSpecies<
             ElectronSpecies,
             bremsstrahlungIons<>
         >::type
     >;
-    using PhotonSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using PhotonSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         typename pmacc::particles::traits::ResolveAliasFromSpecies<
             ElectronSpecies,
@@ -520,7 +520,7 @@ struct CallBremsstrahlung
 template<typename T_ElectronSpecies>
 struct CallSynchrotronPhotons
 {
-    using ElectronSpecies = pmacc::particles::compileTime::FindByNameOrType_t<
+    using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
         VectorAllSpecies,
         T_ElectronSpecies
     >;

@@ -41,7 +41,7 @@
 #include <pmacc/traits/GetNumWorkers.hpp>
 #include <pmacc/traits/HasIdentifiers.hpp>
 #include <pmacc/traits/HasFlag.hpp>
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 
 #include <boost/mpl/and.hpp>
 

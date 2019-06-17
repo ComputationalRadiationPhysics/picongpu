@@ -82,10 +82,10 @@
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/nvidia/functors/Sub.hpp>
 
-#include <pmacc/compileTime/conversion/SeqToMap.hpp>
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/SeqToMap.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 
-#include <pmacc/algorithms/ForEach.hpp>
+#include <pmacc/meta/ForEach.hpp>
 #include "picongpu/particles/ParticlesFunctors.hpp"
 #include "picongpu/particles/InitFunctors.hpp"
 #if( PMACC_CUDA_ENABLED == 1 )

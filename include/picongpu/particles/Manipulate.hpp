@@ -24,7 +24,7 @@
 #include "picongpu/particles/manipulators/manipulators.def"
 
 #include <pmacc/Environment.hpp>
-#include <pmacc/particles/compileTime/FindByNameOrType.hpp>
+#include <pmacc/particles/meta/FindByNameOrType.hpp>
 
 #include <boost/mpl/apply.hpp>
 
@@ -59,7 +59,7 @@ namespace particles
     >
     struct Manipulate
     {
-        using SpeciesType = pmacc::particles::compileTime::FindByNameOrType_t<
+        using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_SpeciesType
         >;

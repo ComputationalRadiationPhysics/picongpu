@@ -23,9 +23,9 @@
 
 #include "pmacc/types.hpp"
 
-#include "pmacc/compileTime/conversion/RemoveFromSeq.hpp"
-#include "pmacc/compileTime/conversion/ResolveAliases.hpp"
-#include "pmacc/compileTime/errorHandlerPolicies/ReturnValue.hpp"
+#include "pmacc/meta/conversion/RemoveFromSeq.hpp"
+#include "pmacc/meta/conversion/ResolveAliases.hpp"
+#include "pmacc/meta/errorHandlerPolicies/ReturnValue.hpp"
 
 namespace pmacc
 {

@@ -24,8 +24,8 @@
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
 
-#include <pmacc/compileTime/conversion/MakeSeq.hpp>
-#include <pmacc/compileTime/conversion/RemoveFromSeq.hpp>
+#include <pmacc/meta/conversion/MakeSeq.hpp>
+#include <pmacc/meta/conversion/RemoveFromSeq.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/particles/ParticleDescription.hpp>
 #include <pmacc/particles/operations/splitIntoListOfFrames.kernel>

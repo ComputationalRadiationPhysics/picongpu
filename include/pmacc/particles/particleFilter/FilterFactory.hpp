@@ -23,7 +23,7 @@
 #pragma once
 
 #include "pmacc/particles/boostExtension/InheritGenerators.hpp"
-#include "pmacc/compileTime/conversion/MakeSeq.hpp"
+#include "pmacc/meta/conversion/MakeSeq.hpp"
 #include "pmacc/particles/particleFilter/system/TrueFilter.hpp"
 #include "pmacc/particles/particleFilter/system/DefaultFilter.hpp"
 

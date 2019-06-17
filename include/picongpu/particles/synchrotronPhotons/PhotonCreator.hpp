@@ -44,7 +44,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 
-#include <pmacc/compileTime/conversion/TypeToPointerPair.hpp>
+#include <pmacc/meta/conversion/TypeToPointerPair.hpp>
 #include <pmacc/memory/boxes/DataBox.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 

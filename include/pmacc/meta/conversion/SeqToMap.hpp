@@ -33,7 +33,7 @@
 #include <boost/type_traits.hpp>
 
 
-#include "pmacc/compileTime/accessors/Identity.hpp"
+#include "pmacc/meta/accessors/Identity.hpp"
 
 namespace pmacc
 {
@@ -49,7 +49,7 @@ namespace pmacc
  */
 template<typename T_MPLSeq,
 typename T_UnaryOperator,
-typename T_Accessor = compileTime::accessors::Identity<>
+typename T_Accessor = meta::accessors::Identity<>
 >
 struct SeqToMap
 {

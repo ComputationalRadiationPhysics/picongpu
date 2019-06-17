@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pmacc/compileTime/accessors/Identity.hpp"
+#include "pmacc/meta/accessors/Identity.hpp"
 
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/transform.hpp>
@@ -114,9 +114,7 @@ namespace detail
      *  \tparam T_MPLSeq A mpl sequence that can be accessed by mpl::begin, mpl::end, mpl::next
      *  \tparam T_Functor An unary lambda functor with a HDINLINE void operator()(...) method
      *          _1 is substituted by Accessor's result using boost::mpl::apply with elements from T_MPLSeq.
-     *          The maximu{
-namespace forEach
-{m number of parameters for the operator() is limited by
+     *          The maximum number of parameters for the operator() is limited by
      *          PMACC_MAX_FUNCTOR_OPERATOR_PARAMS
      *  \tparam T_Accessor An unary lambda operation
      *
@@ -134,7 +132,7 @@ namespace forEach
     template<
         typename T_MPLSeq,
         typename T_Functor,
-        typename T_Accessor = compileTime::accessors::Identity< >
+        typename T_Accessor = meta::accessors::Identity< >
     >
     struct ForEach
     {

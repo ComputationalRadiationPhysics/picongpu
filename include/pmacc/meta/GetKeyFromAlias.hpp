@@ -22,10 +22,10 @@
 #pragma once
 
 #include "pmacc/types.hpp"
-#include "pmacc/compileTime/conversion/SeqToMap.hpp"
-#include "pmacc/compileTime/conversion/TypeToAliasPair.hpp"
-#include "pmacc/compileTime/conversion/TypeToPair.hpp"
-#include "pmacc/compileTime/errorHandlerPolicies/ReturnType.hpp"
+#include "pmacc/meta/conversion/SeqToMap.hpp"
+#include "pmacc/meta/conversion/TypeToAliasPair.hpp"
+#include "pmacc/meta/conversion/TypeToPair.hpp"
+#include "pmacc/meta/errorHandlerPolicies/ReturnType.hpp"
 
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/copy.hpp>
