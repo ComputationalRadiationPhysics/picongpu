@@ -52,6 +52,11 @@ public:
      */
     virtual void syncToDevice() = 0;
 
+    CellDescription getCellDescription() const
+    {
+        return cellDescription;
+    }
+
 protected:
     CellDescription cellDescription;
 };
