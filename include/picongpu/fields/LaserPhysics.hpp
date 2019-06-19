@@ -144,11 +144,14 @@ namespace fields
                     "initPlaneY must be located in the top GPU"
                 );
 
+                // laser is disabled e.g. laserNone
+                constexpr bool isLaserDisabled = laserProfiles::Selected::Unitless::INIT_TIME == 0.0_X;
+                constexpr bool isLaserInitInFirstCell = laserProfiles::Selected::Unitless::initPlaneY == 0;
+                // X + 1 is a workaround to avoid warning: pointless comparison of unsigned integer with zero
+                constexpr bool isInitPlaneYOutsideOfAbsorber = laserProfiles::Selected::Unitless::initPlaneY + 1 > ABSORBER_CELLS[1][0] + 1;
                 PMACC_CASSERT_MSG(
-                    __initPlaneY_needs_to_be_greate_than_the_top_absorber_cells_or_zero,
-                    laserProfiles::Selected::Unitless::initPlaneY > ABSORBER_CELLS[1][0] ||
-                    laserProfiles::Selected::Unitless::initPlaneY == 0 ||
-                    laserProfiles::Selected::Unitless::INIT_TIME == float_X(0.0) /* laser is disabled e.g. laserNone */
+                    __initPlaneY_needs_to_be_greater_than_the_top_absorber_cells_or_zero,
+                    isLaserDisabled || isLaserInitInFirstCell || isInitPlaneYOutsideOfAbsorber
                 );
 
                 /* Calculate how many neighbors to the left we have
