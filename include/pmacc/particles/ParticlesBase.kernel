@@ -618,7 +618,7 @@ struct KernelShiftParticles
         >;
 
         memory::CtxArray<
-            int,
+            int32_t,
             ExchangeDomCfg
         > newParticleInFrame( 0 );
 
@@ -656,7 +656,7 @@ struct KernelShiftParticles
 
                 if ( tmpFrame.isValid() )
                 {
-                    uint32_t particlesInFrame = pb.getSuperCell( relativeCtx[ idx ] ).getSizeLastFrame( );
+                    int32_t const particlesInFrame = pb.getSuperCell( relativeCtx[ idx ] ).getSizeLastFrame( );
                     // do not use the neighbor's last frame if it is full
                     if ( particlesInFrame < frameSize )
                     {
