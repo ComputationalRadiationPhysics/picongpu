@@ -29,7 +29,7 @@
 #SBATCH --ntasks=!TBG_tasks
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
-#SBATCH --mem-per-cpu=1511
+#SBATCH --mem=0
 #SBATCH --gres=gpu:!TBG_gpusPerNode
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
@@ -49,6 +49,10 @@
 .TBG_profile=${PIC_PROFILE:-"~/picongpu.profile"}
 
 # 6 gpus per node
+# Taurus does not have enough node memory to hold data off all GPUs in node memory during ADIOS output.
+# If you experience random crashes or get killed by the batch systems resource watch dog,
+# reduce the number of GPUs used per node to three here.
+# That is, replace in the following line the two appearances of 6 with 3.
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 6 ] ; then echo 6; else echo $TBG_tasks; fi`
 
 # number of cores to block per GPU - we got 28 cpus per gpu

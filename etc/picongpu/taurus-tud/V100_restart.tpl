@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2013-2019 Axel Huebl, Richard Pausch, Alexander Debus
+# Copyright 2013-2019 Axel Huebl, Richard Pausch, Alexander Debus, Klaus Steiniger
 #
 # This file is part of PIConGPU.
 #
@@ -20,6 +20,13 @@
 
 
 # PIConGPU batch script for taurus' SLURM batch system
+# This tpl for automated restarts is older than the actual
+# V100.tpl. 
+# It uses a machine file for parallel job execution,
+# which is not necessary anymore. 
+# (See comment below, MPI has been fixed)
+# However, it still works and therefore is left unchanged.
+# Klaus, June 2019
 
 #SBATCH --partition=!TBG_queue
 #SBATCH --time=!TBG_wallTime

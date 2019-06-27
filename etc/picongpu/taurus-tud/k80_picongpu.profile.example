@@ -75,3 +75,5 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 #   - "gpu2" queue
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/taurus-tud/k80.tpl"
+
+alias getNode='srun -p gpu2-interactive --gres=gpu:4 -n 1 --pty --mem=0 -t 2:00:00 bash'
