@@ -21,9 +21,9 @@
 
 # PIConGPU batch script for taurus' SLURM batch system
 # This tpl for automated restarts is older than the actual
-# V100.tpl. 
+# V100.tpl.
 # It uses a machine file for parallel job execution,
-# which is not necessary anymore. 
+# which is not necessary anymore.
 # (See comment below, MPI has been fixed)
 # However, it still works and therefore is left unchanged.
 # Klaus, June 2019
