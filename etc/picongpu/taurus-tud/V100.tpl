@@ -50,7 +50,7 @@
 
 # 6 gpus per node
 # Taurus does not have enough node memory to hold data of all GPUs in node memory during ADIOS output.
-# If you experience crashes with memory allocation errors or get killed by the batch systems' 
+# If you experience crashes with memory allocation errors or get killed by the batch system's
 # resource watch dog, reduce the number of GPUs used per node to three here for debugging.
 # That is, replace in the following line the two appearances of 6 with 3.
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 6 ] ; then echo 6; else echo $TBG_tasks; fi`
