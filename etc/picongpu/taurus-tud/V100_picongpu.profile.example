@@ -15,13 +15,11 @@ export MY_NAME="$(whoami) <$MY_MAIL>"
 
 # Modules #####################################################################
 #
-module purge
-module load modenv/ml
+module switch modenv/ml
 
 # load CUDA/9.2.88-GCC-7.3.0-2.30, also loads GCC/7.3.0-2.30, zlib, OpenMPI and others
 module load fosscuda/2018b
 module load CMake/3.11.4-GCCcore-7.3.0
-module load git/2.18.0-GCCcore-6.4.0
 module load libpng/1.6.34-GCCcore-7.3.0
 
 printf "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
@@ -59,7 +57,7 @@ export CMAKE_PREFIX_PATH=$Splash_DIR:$CMAKE_PREFIX_PATH
 
 export PICSRC=$HOME/src/picongpu
 export PIC_EXAMPLES=$PICSRC/share/picongpu/examples
-export PIC_BACKEND="cuda:60"
+export PIC_BACKEND="cuda:70"
 
 export PATH=$PATH:$PICSRC
 export PATH=$PATH:$PICSRC/bin
@@ -78,5 +76,5 @@ export CXXFLAGS="-Dlinux"
 export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/taurus-tud/V100.tpl"
 
-alias getNode='srun -p ml --gres=gpu:6 -n 6 --pty --mem-per-cpu=10000 -t 2:00:00 bash'
+alias getNode='srun -p ml --gres=gpu:6 -n 1 --mem=0 --cpus-per-task=28 --pty -t 2:00:00 bash'
 
