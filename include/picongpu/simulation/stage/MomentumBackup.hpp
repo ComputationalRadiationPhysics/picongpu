@@ -21,7 +21,8 @@
 
 #pragma once
 
-#include <pmacc/meta/ForEach.hpp>
+#include "picongpu/particles/Manipulate.hpp"
+
 #include <pmacc/particles/traits/FilterByIdentifier.hpp>
 
 #include <cstdint>
@@ -52,17 +53,14 @@ namespace stage
                 VectorAllSpecies,
                 momentumPrev1
             >::type;
-            pmacc::meta::ForEach<
-                SpeciesWithMomentumPrev1,
-                particles::Manipulate<
-                    particles::manipulators::unary::CopyAttribute<
-                        momentumPrev1,
-                        momentum
-                    >,
-                    bmpl::_1
-                >
-            > copyMomentumPrev1;
-            copyMomentumPrev1( step );
+            using CopyMomentum = particles::manipulators::unary::CopyAttribute<
+                momentumPrev1,
+                momentum
+            >;
+            particles::manipulate<
+                CopyMomentum,
+                SpeciesWithMomentumPrev1
+            >( step );
         }
     };
 
