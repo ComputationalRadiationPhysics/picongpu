@@ -29,9 +29,6 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/mappings/kernel/ExchangeMapping.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
-
-#include "picongpu/fields/FieldManipulator.hpp"
-
 #include <pmacc/dimensions/SuperCellDescription.hpp>
 
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"

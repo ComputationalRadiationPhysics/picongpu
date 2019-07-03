@@ -22,10 +22,9 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.def"
 #include "picongpu/fields/MaxwellSolver/Yee/Curl.hpp"
-#include "picongpu/fields/FieldManipulator.hpp"
+#include "picongpu/fields/absorber/ExponentialDamping.hpp"
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
-#include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/MaxwellSolver/Yee/Yee.kernel"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/fields/LaserPhysics.hpp"
@@ -135,7 +134,12 @@ namespace maxwellSolver
 
         void update_afterCurrent(uint32_t currentStep)
         {
-            FieldManipulator::absorbBorder(currentStep,this->m_cellDescription, this->fieldE->getDeviceDataBox());
+            using Absorber = absorber::ExponentialDamping;
+            Absorber::run(
+                currentStep,
+                this->m_cellDescription,
+                this->fieldE->getDeviceDataBox()
+            );
             if (laserProfiles::Selected::INIT_TIME > float_X(0.0))
                 LaserPhysics{}(currentStep);
 
@@ -145,7 +149,11 @@ namespace maxwellSolver
             __setTransactionEvent(eRfieldE);
             updateBHalf < BORDER > ();
 
-            FieldManipulator::absorbBorder(currentStep,this->m_cellDescription, fieldB->getDeviceDataBox());
+            Absorber::run(
+                currentStep,
+                this->m_cellDescription,
+                fieldB->getDeviceDataBox()
+            );
 
             EventTask eRfieldB = fieldB->asyncCommunication(__getTransactionEvent());
             __setTransactionEvent(eRfieldB);

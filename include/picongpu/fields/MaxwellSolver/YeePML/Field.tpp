@@ -21,7 +21,6 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/FieldManipulator.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
 #include "picongpu/particles/traits/GetInterpolation.hpp"
