@@ -22,6 +22,7 @@
 #pragma once
 
 #include "picongpu/fields/FieldJ.hpp"
+#include "picongpu/fields/Manipulate.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
@@ -39,17 +40,30 @@ namespace stage
     //! Functor for the stage of the PIC loop setting the current values to zero
     struct CurrentReset
     {
+
+        struct Functor{
+            template< class T>
+            HDINLINE void operator()(T & value)
+            {
+                value = T();
+            }
+        };
+
         /** Set all current density values to zero
          *
          * @param step index of time iteration
          */
-        void operator( )( uint32_t const ) const
+        void operator( )( uint32_t const step ) const
         {
             using namespace pmacc;
             DataConnector & dc = Environment< >::get( ).DataConnector( );
             auto & fieldJ = *dc.get< FieldJ >( FieldJ::getName( ), true );
-            FieldJ::ValueType zeroJ( FieldJ::ValueType::create( 0._X ) );
-            fieldJ.assign( zeroJ );
+            //FieldJ::ValueType zeroJ( FieldJ::ValueType::create( 0._X ) );
+            //fieldJ.assign( zeroJ );
+
+            using Manipulator = particles::manipulators::generic::Free< Functor >;
+            fields::manipulate< Manipulator, FieldJ >( step );
+
             dc.releaseData( FieldJ::getName( ) );
         }
     };
