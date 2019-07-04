@@ -33,6 +33,10 @@
 
 namespace picongpu
 {
+namespace fields
+{
+namespace absorber
+{
 namespace detail
 {
 
@@ -205,17 +209,16 @@ namespace detail
 
             meta::ForEach<
                 SimulationDimensions,
-                picongpu::detail::AbsorbInOneDirection<
+                detail::AbsorbInOneDirection<
                     boost::mpl::integral_c<
                         uint32_t,
                         T_numWorkers
                     >,
                     boost::mpl::_1
                 >
-            > absorbeInOneDirection;
+            > absorbInAllDirections;
 
-            // call absorber for each axis dimension
-            absorbeInOneDirection(
+            absorbInAllDirections(
                 acc,
                 field,
                 thickness,
@@ -226,4 +229,6 @@ namespace detail
         }
     };
 
+} // namespace absorber
+} // namespace fields
 } // namespace picongpu

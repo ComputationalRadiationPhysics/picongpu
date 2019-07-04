@@ -28,8 +28,6 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 #include <pmacc/eventSystem/EventSystem.hpp>
 #include <pmacc/mappings/kernel/ExchangeMapping.hpp>
-
-#include "picongpu/fields/FieldManipulator.hpp"
 #include <pmacc/dimensions/SuperCellDescription.hpp>
 
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"

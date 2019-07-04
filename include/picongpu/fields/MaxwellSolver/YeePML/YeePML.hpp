@@ -253,7 +253,7 @@ namespace maxwellSolver
             Thickness getLocalThickness( uint32_t const currentStep ) const
             {
                 /* The logic of the following checks is the same as in
-                 * FieldManipulator::absorbBorder( ), to disable the absorber
+                 * absorber::ExponentialDamping::run( ), to disable the absorber
                  * at a border we set the corresponding thickness to 0.
                  */
                 auto & movingWindow = MovingWindow::getInstance( );
@@ -400,7 +400,7 @@ namespace maxwellSolver
         void update_afterCurrent( uint32_t const currentStep )
         {
             /* These steps are the same as in the Yee solver,
-             * except the FieldManipulator::absorbBorder( ) is not called,
+             * except the Fabsorber::ExponentialDamping::run( ) is not called,
              * PML updates are done as part of solver.updateBHalf( ).
              */
             if( laserProfiles::Selected::INIT_TIME > 0.0_X )

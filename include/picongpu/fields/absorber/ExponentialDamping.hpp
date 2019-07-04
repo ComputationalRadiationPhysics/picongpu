@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "FieldManipulator.kernel"
+#include "picongpu/fields/absorber/ExponentialDamping.kernel"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
 
@@ -33,15 +33,17 @@
 
 namespace picongpu
 {
+namespace fields
+{
+namespace absorber
+{
 
-using namespace pmacc;
-
-class FieldManipulator
+class ExponentialDamping
 {
 public:
 
     template<class BoxedMemory>
-    static void absorbBorder(uint32_t currentStep, MappingDesc &cellDescription, BoxedMemory deviceBox)
+    static void run(uint32_t currentStep, MappingDesc &cellDescription, BoxedMemory deviceBox)
     {
         const uint32_t numSlides = MovingWindow::getInstance().getSlideCounter(currentStep);
         for (uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i)
@@ -152,5 +154,8 @@ public:
         return propList;
     }
 };
-} //namespace
+
+} // namespace absorber
+} // namespace fields
+} // namespace picongpu
 
