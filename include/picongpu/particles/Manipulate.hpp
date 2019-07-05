@@ -20,21 +20,51 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/particles/filter/filter.def"
 #include "picongpu/particles/manipulators/manipulators.def"
+#include "picongpu/particles/filter/filter.def"
 
-#include <pmacc/Environment.hpp>
+#include <pmacc/particles/algorithm/CallForEach.hpp>
 #include <pmacc/meta/conversion/ToSeq.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/particles/meta/FindByNameOrType.hpp>
-
-#include <boost/mpl/apply.hpp>
+#include <boost/mpl/placeholders.hpp>
 
 
 namespace picongpu
 {
 namespace particles
 {
+namespace detail
+{
+    /** Operator to create a filtered functor
+     */
+    template<
+        typename T_Manipulator,
+        typename T_Species,
+        typename T_Filter
+    >
+    struct MakeUnaryFilteredFunctor
+    {
+    private:
+        using Species = pmacc::particles::meta::FindByNameOrType_t<
+            VectorAllSpecies,
+            T_Species
+        >;
+        using SpeciesFunctor = typename bmpl::apply1<
+            T_Manipulator,
+            Species
+        >::type;
+        using ParticleFilter = typename bmpl::apply1<
+            T_Filter,
+            Species
+        >::type;
+    public:
+        using type = manipulators::IUnary<
+            SpeciesFunctor,
+            ParticleFilter
+        >;
+    };
+} // namespace detail
 
     /** Run a user defined manipulation for each particle of a species
      *
@@ -44,62 +74,34 @@ namespace particles
      * @warning Does NOT call FillAllGaps after manipulation! If the
      *          manipulation deactivates particles or creates "gaps" in any
      *          other way, FillAllGaps needs to be called for the
-     *          `T_SpeciesType` manually in the next step!
+     *          `T_Species` manually in the next step!
      *
      * @tparam T_Manipulator unary lambda functor accepting one particle
      *                       species,
      *                       @see picongpu::particles::manipulators
-     * @tparam T_SpeciesType type or name as boost::mpl::string of the used species
+     * @tparam T_Species type or name as boost::mpl::string of the used species
      * @tparam T_Filter picongpu::particles::filter, particle filter type to
-     *                  select particles in `T_SpeciesType` to manipulate via
-     *                  `T_DestSpeciesType`
+     *                  select particles in `T_Species` to manipulate
      */
     template<
         typename T_Manipulator,
-        typename T_SpeciesType = bmpl::_1,
+        typename T_Species = bmpl::_1,
         typename T_Filter = filter::All
     >
-    struct Manipulate
-    {
-        using SpeciesType = pmacc::particles::meta::FindByNameOrType_t<
+    struct Manipulate : public pmacc::particles::algorithm::CallForEach<
+        pmacc::particles::meta::FindByNameOrType<
             VectorAllSpecies,
-            T_SpeciesType
-        >;
-        using FrameType = typename SpeciesType::FrameType;
-
-        using SpeciesFunctor = typename bmpl::apply1<
+            T_Species
+        >,
+        detail::MakeUnaryFilteredFunctor<
             T_Manipulator,
-            SpeciesType
-        >::type;
-
-        using SpeciesFilter = typename bmpl::apply1<
-            T_Filter,
-            SpeciesType
-        >::type;
-
-        using FilteredManipulator = manipulators::IUnary<
-            SpeciesFunctor,
-            SpeciesFilter
-        >;
-
-        HINLINE void
-        operator()( const uint32_t currentStep )
-        {
-            DataConnector &dc = Environment<>::get().DataConnector();
-            auto speciesPtr = dc.get< SpeciesType >(
-                FrameType::getName(),
-                true
-            );
-
-            FilteredManipulator filteredManipulator( currentStep );
-            speciesPtr->manipulateAllParticles(
-                currentStep,
-                filteredManipulator
-            );
-
-            dc.releaseData( FrameType::getName() );
-        }
+            T_Species,
+            T_Filter
+        >
+    >
+    {
     };
+
 
     /** Apply a manipulation for each particle of a species or a sequence of
      *  species
@@ -122,7 +124,7 @@ namespace particles
      * @tparam T_Species a single species or a sequence of species; in both
      *                   cases each species is defined by a type or a name
      * @tparam T_Filter picongpu::particles::filter, particle filter type to
-     *                  select particles in `T_SpeciesType` to manipulate via
+     *                  select particles in `T_Species` to manipulate via
      *                  `T_DestSpeciesType`
      *
      * @param currentStep index of the current time iteration
@@ -146,6 +148,5 @@ namespace particles
         > forEach;
         forEach( currentStep );
     }
-
 } //namespace particles
 } //namespace picongpu

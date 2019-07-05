@@ -386,39 +386,4 @@ Particles<
     this->fillAllGaps( );
 }
 
-template<
-    typename T_Name,
-    typename T_Flags,
-    typename T_Attributes
->
-template< typename T_Functor >
-void
-Particles<
-    T_Name,
-    T_Flags,
-    T_Attributes
->::manipulateAllParticles(
-    uint32_t currentStep,
-    T_Functor & functor
-)
-{
-    AreaMapping<
-        CORE + BORDER,
-        picongpu::MappingDesc
-    > mapper( this->cellDescription );
-
-    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-        pmacc::math::CT::volume< SuperCellSize >::type::value
-    >::value;
-
-    PMACC_KERNEL( KernelManipulateAllParticles< numWorkers >{ } )(
-        mapper.getGridDim( ),
-        numWorkers
-    )(
-        this->particlesBuffer->getDeviceParticleBox( ),
-        functor,
-        mapper
-    );
-}
-
 } // namespace picongpu
