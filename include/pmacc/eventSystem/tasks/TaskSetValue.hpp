@@ -23,6 +23,7 @@
 #pragma once
 
 #include "pmacc/dimensions/DataSpace.hpp"
+#include "pmacc/algorithms/ForEach.hpp"
 #include "pmacc/mappings/simulation/EnvironmentController.hpp"
 #include "pmacc/mappings/threads/ForEachIdx.hpp"
 #include "pmacc/mappings/threads/IdxConfig.hpp"
@@ -33,10 +34,7 @@
 #include "pmacc/nvidia/gpuEntryFunction.hpp"
 #include "pmacc/traits/GetNumWorkers.hpp"
 
-#include <boost/type_traits/remove_pointer.hpp>
-#include <boost/type_traits.hpp>
-
-
+#include <type_traits>
 
 
 namespace pmacc
@@ -65,7 +63,7 @@ template<typename T_Type>
 struct Value<T_Type, true>
 {
     typedef const T_Type PtrType;
-    typedef const typename boost::remove_pointer<PtrType>::type type;
+    typedef const typename std::remove_pointer<PtrType>::type type;
 
     HDINLINE type& operator()(PtrType v) const
     {
@@ -76,10 +74,10 @@ struct Value<T_Type, true>
 /** Get access to a value from a pointer or reference with the same method
  */
 template<typename T_Type>
-HDINLINE typename Value<T_Type, boost::is_pointer<T_Type>::value >::type&
+HDINLINE typename Value<T_Type, std::is_pointer<T_Type>::value >::type&
 getValue(T_Type& value)
 {
-    typedef Value<T_Type, boost::is_pointer<T_Type>::value > Functor;
+    typedef Value<T_Type, std::is_pointer<T_Type>::value > Functor;
     return Functor()(value);
 }
 
@@ -228,6 +226,23 @@ public:
 
     virtual void init()
     {
+        class ValueSetter
+        {
+        public:
+            ValueSetter( ValueType value ):
+                value( value )
+            {}
+
+            DINLINE void operator( )( ValueType & dst )
+            {
+                dst = taskSetValueHelper::getValue( value );
+            }
+
+        private:
+            ValueType value;
+        };
+
+
         // number of elements in destination
         size_t const current_size = this->destination->getCurrentSize( );
         // n-dimensional size of destination based on `current_size`
