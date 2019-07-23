@@ -27,6 +27,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 
@@ -139,6 +141,7 @@ private:
 
 };
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu
 
 namespace pmacc
@@ -148,10 +151,10 @@ namespace mpi
 
   /** implementation of MPI transaction on Amplitude class */
   template<>
-  MPI_StructAsArray getMPI_StructAsArray< picongpu::radiation::Amplitude >()
+  MPI_StructAsArray getMPI_StructAsArray< picongpu::plugins::radiation::Amplitude >()
   {
-      MPI_StructAsArray result = getMPI_StructAsArray< picongpu::radiation::Amplitude::complex_64::type > ();
-      result.sizeMultiplier *= picongpu::radiation::Amplitude::numComponents;
+      MPI_StructAsArray result = getMPI_StructAsArray< picongpu::plugins::radiation::Amplitude::complex_64::type > ();
+      result.sizeMultiplier *= picongpu::plugins::radiation::Amplitude::numComponents;
       return result;
   };
 

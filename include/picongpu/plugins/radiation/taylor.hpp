@@ -23,6 +23,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 struct Taylor
@@ -40,4 +42,5 @@ struct Taylor
 };
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu

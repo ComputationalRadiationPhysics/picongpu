@@ -25,6 +25,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 
@@ -175,5 +177,6 @@ namespace radWindowFunctionNone
 
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu
 

@@ -26,6 +26,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 
@@ -44,7 +46,6 @@ DEFINE_VERBOSE_CLASS(PIConGPUVerboseRadiation)
 (NOTHING::lvl|PIC_VERBOSE_RADIATION);
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu
-
-
 

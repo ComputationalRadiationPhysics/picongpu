@@ -36,6 +36,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 namespace linear_frequencies
@@ -174,4 +176,5 @@ constexpr unsigned int N_observer = 128; // number of looking directions
   namespace radWindowFunction = PARAM_RADWINDOW;
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu

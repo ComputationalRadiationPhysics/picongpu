@@ -22,6 +22,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 namespace radiation_observer
@@ -75,4 +77,5 @@ namespace radiation_observer
 
 } // namespace radiation_observer
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu

@@ -58,6 +58,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 
@@ -539,5 +541,7 @@ namespace radiation
     };
 
 } // namespace radiation
+
+} // namespace plugins
 
 } // namespace picongpu

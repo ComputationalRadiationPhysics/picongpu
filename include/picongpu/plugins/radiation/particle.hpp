@@ -28,6 +28,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 
@@ -172,4 +174,5 @@ HDINLINE vector_64 Particle::get_momentum<When::old>(void) const
 } // get momentum at time when
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu

@@ -24,6 +24,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 namespace log_frequencies
@@ -69,4 +71,5 @@ namespace log_frequencies
 
 } // namespace log_frequencies
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu

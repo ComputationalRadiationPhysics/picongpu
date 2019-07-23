@@ -36,6 +36,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 namespace linear_frequencies
@@ -173,4 +175,5 @@ namespace radWindowFunctionNone { }
 namespace radWindowFunction = radWindowFunctionTriangle;
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu

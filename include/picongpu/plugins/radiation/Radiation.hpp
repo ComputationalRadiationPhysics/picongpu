@@ -55,6 +55,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 
@@ -1249,7 +1251,7 @@ private:
 };
 
 } // namespace radiation
-
+} // namespace plugins
 } // namespace picongpu
 
 

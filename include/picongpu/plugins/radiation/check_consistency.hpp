@@ -25,6 +25,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 
@@ -40,4 +42,5 @@ void check_consistency(void)
 }
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu

@@ -44,6 +44,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 namespace linear_frequencies
@@ -200,4 +202,5 @@ namespace parameters
 
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu

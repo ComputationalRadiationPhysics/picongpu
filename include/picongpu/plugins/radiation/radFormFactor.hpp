@@ -22,6 +22,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 
@@ -208,5 +210,5 @@ namespace radFormFactor_coherent
 } // namespace radFormFactor_coherent
 
 } // namespace radiation
-
+} // namespace plugins
 } // namespace picongpu

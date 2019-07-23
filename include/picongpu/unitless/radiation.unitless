@@ -22,9 +22,11 @@
 #include <pmacc/static_assert.hpp>
 
 
-PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_below_one, ( picongpu::radiation::radiationNyquist::NyquistFactor < 1.0 ) );
-PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_larger_than_zero, ( picongpu::radiation::radiationNyquist::NyquistFactor > 0.0 ) );
+PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_below_one, ( picongpu::plugins::radiation::radiationNyquist::NyquistFactor < 1.0 ) );
+PMACC_CASSERT_MSG( The_Nyquist_limit_needs_to_be_larger_than_zero, ( picongpu::plugins::radiation::radiationNyquist::NyquistFactor > 0.0 ) );
 namespace picongpu
+{
+namespace plugins
 {
 namespace radiation
 {
@@ -59,6 +61,7 @@ namespace parameters
 } // namespace parameters
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu
 
 #include "picongpu/plugins/radiation/frequencies/radiation_lin_freq.hpp"
