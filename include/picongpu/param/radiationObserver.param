@@ -108,7 +108,7 @@ namespace radiation_observer
         /** step width angle phi */
         const picongpu::float_64 delta_angle_phi   =  (angle_phi_end -
                                                        angle_phi_start)   / (N_angle_split-1.0);
-        
+
         /** compute observation angles theta */
         const picongpu::float_64 theta( my_index_theta * delta_angle_theta + angle_theta_start );
         /** compute observation angles theta */

@@ -49,16 +49,16 @@ The frequency range is set up by choosing a specific namespace that defines the 
 .. code:: cpp
 
    /* choose linear frequency range */
-   namespace radiation_frequencies = rad_linear_frequencies;
+   namespace radiation_frequencies = linear_frequencies;
 
 Currently you can choose from the following setups for the frequency range:
 
 ============================= ==============================================================================================
 namespace                     Description
 ============================= ==============================================================================================
-``rad_linear_frequencies``    linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``rad_log_frequencies``       logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``rad_frequencies_from_list`` ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
+``linear_frequencies``    linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``log_frequencies``       logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``frequencies_from_list`` ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
 ============================= ==============================================================================================
 
 

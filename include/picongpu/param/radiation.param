@@ -46,7 +46,7 @@ namespace picongpu
 {
 namespace radiation
 {
-namespace rad_linear_frequencies
+namespace linear_frequencies
 {
 namespace SI
 {
@@ -58,9 +58,9 @@ namespace SI
 
     /** number of frequency values to compute in the linear frequency [unitless] */
     constexpr unsigned int N_omega = 2048;
-} // namespace rad_linear_frequencies
+} // namespace linear_frequencies
 
-namespace rad_log_frequencies
+namespace log_frequencies
 {
 namespace SI
 {
@@ -72,25 +72,25 @@ namespace SI
 
     /** number of frequency values to compute in the logarithmic frequency [unitless] */
     constexpr unsigned int N_omega = 2048;
-} // namespace rad_log_frequencies
+} // namespace log_frequencies
 
 
-namespace rad_frequencies_from_list
+namespace frequencies_from_list
 {
     /** path to text file with frequencies */
     constexpr char listLocation[] = "/path/to/frequency_list";
     /** number of frequency values to compute if frequencies are given in a file [unitless] */
     constexpr unsigned int N_omega = 2048;
-} // namespace rad_frequencies_from_list
+} // namespace frequencies_from_list
 
     /** selected mode of frequency scaling:
      *
      * options:
-     * - rad_linear_frequencies
-     * - rad_log_frequencies
-     * - rad_frequencies_from_list
+     * - linear_frequencies
+     * - log_frequencies
+     * - frequencies_from_list
      */
-    namespace radiation_frequencies = rad_linear_frequencies;
+    namespace radiation_frequencies = linear_frequencies;
 
 namespace radiationNyquist
 {
@@ -146,7 +146,7 @@ namespace parameters
     {
         /** Gamma value above which the radiation is calculated */
         static constexpr float_X radiationGamma = 5.0;
-      
+
         template< typename T_Particle >
         HDINLINE void operator()( T_Particle& particle )
         {

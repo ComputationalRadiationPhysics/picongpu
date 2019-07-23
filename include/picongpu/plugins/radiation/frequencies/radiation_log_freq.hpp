@@ -26,7 +26,7 @@ namespace picongpu
 {
 namespace radiation
 {
-namespace rad_log_frequencies
+namespace log_frequencies
 {
 
 
@@ -67,6 +67,6 @@ namespace rad_log_frequencies
     };
 
 
-} // namespace rad_log_frequencies
+} // namespace log_frequencies
 } // namespace radiation
 } // namespace picongpu

@@ -27,7 +27,7 @@ namespace picongpu
 namespace radiation
 {
 
-namespace rad_linear_frequencies
+namespace linear_frequencies
 {
 
 
@@ -60,6 +60,6 @@ namespace rad_linear_frequencies
       }
     };
 
-} // namespace rad_linear_frequencies
+} // namespace linear_frequencies
 } // namespace radiation
 } // namespace picongpu

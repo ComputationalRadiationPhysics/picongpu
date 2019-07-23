@@ -38,7 +38,7 @@ namespace picongpu
 {
 namespace radiation
 {
-namespace rad_linear_frequencies
+namespace linear_frequencies
 {
 namespace SI
 {
@@ -49,7 +49,7 @@ constexpr float_64 omega_max = 5.8869e17;
 constexpr unsigned int N_omega = 1024; // number of frequencies
 }
 
-namespace rad_log_frequencies
+namespace log_frequencies
 {
 namespace SI
 {
@@ -61,14 +61,14 @@ constexpr unsigned int N_omega = 2048; // number of frequencies
 }
 
 
-namespace rad_frequencies_from_list
+namespace frequencies_from_list
 {
 //const char listLocation[] = "/scratch/s5960712/list001.freq";
 constexpr unsigned int N_omega = 2048; // number of frequencies
 }
 
 
-namespace radiation_frequencies = rad_linear_frequencies;
+namespace radiation_frequencies = linear_frequencies;
 
 
 namespace radiationNyquist

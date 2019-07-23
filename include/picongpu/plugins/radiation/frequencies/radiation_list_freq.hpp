@@ -29,7 +29,7 @@ namespace picongpu
 {
 namespace radiation
 {
-namespace rad_frequencies_from_list
+namespace frequencies_from_list
 {
 
 
@@ -117,6 +117,6 @@ namespace rad_frequencies_from_list
     };
 
 
-} // namespace rad_frequencies_from_list
+} // namespace frequencies_from_list
 } // namespace radiation
 } // namespace picongpu

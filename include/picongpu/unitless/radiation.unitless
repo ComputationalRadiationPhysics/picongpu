@@ -28,7 +28,7 @@ namespace picongpu
 {
 namespace radiation
 {
-namespace rad_linear_frequencies
+namespace linear_frequencies
 {
     constexpr float_X omega_min = SI::omega_min*UNIT_TIME;
     constexpr float_X omega_max = SI::omega_max*UNIT_TIME;
@@ -36,22 +36,22 @@ namespace rad_linear_frequencies
 
     constexpr unsigned int blocksize_omega = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
     constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
-} // namespace rad_linear_frequencies
+} // namespace linear_frequencies
 
-namespace rad_log_frequencies
+namespace log_frequencies
 {
     constexpr float_X omega_min = (SI::omega_min*UNIT_TIME);
     constexpr float_X omega_max = (SI::omega_max*UNIT_TIME);
 
     constexpr unsigned int blocksize_omega = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
     constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
-} // namespace rad_log_frequencies
+} // namespace log_frequencies
 
-namespace rad_frequencies_from_list
+namespace frequencies_from_list
 {
     constexpr unsigned int blocksize_omega = pmacc::math::CT::volume<typename MappingDesc::SuperCellSize>::type::value;
     constexpr unsigned int gridsize_omega = N_omega / blocksize_omega; // size of grid (dim: x); radiation
-} // namespace rad_frequencies_from_list
+} // namespace frequencies_from_list
 
 namespace parameters
 {
