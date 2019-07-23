@@ -216,7 +216,7 @@ private:
         CountParticles<bmpl::_1>,
         PngPlugin< Visualisation<bmpl::_1, PngCreator> >
 #if(ENABLE_HDF5 == 1)
-        , Radiation<bmpl::_1>
+        , radiation::Radiation<bmpl::_1>
         , plugins::multi::Master< ParticleCalorimeter<bmpl::_1> >
         , plugins::multi::Master< PhaseSpace<particles::shapes::Counter::ChargeAssignment, bmpl::_1> >
 #endif

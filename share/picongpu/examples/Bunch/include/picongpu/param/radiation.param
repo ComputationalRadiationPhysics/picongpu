@@ -36,6 +36,8 @@
 
 namespace picongpu
 {
+namespace radiation
+{
 namespace rad_linear_frequencies
 {
 namespace SI
@@ -114,41 +116,39 @@ constexpr unsigned int N_observer = 128; // number of looking directions
 
 } /* end namespace parameters */
 
-namespace radiation
-{
-    /** activate particles for radiation */
-    struct GammaFilterFunctor
-    {
-        static constexpr float_X radiationGamma = 3.0;
+  /** activate particles for radiation */
+  struct GammaFilterFunctor
+  {
+      static constexpr float_X radiationGamma = 3.0;
 
-        template< typename T_Particle >
-        HDINLINE void operator()( T_Particle& particle )
-        {
-            if(
-                picongpu::gamma<float_X>(
-                    particle[ picongpu::momentum_ ],
-                    picongpu::traits::attribute::getMass(
-                        particle[ picongpu::weighting_ ],
-                        particle
-                    )
-                ) >= radiationGamma
-            )
-                particle[ picongpu::radiationMask_ ] = true;
-        }
-    };
+      template< typename T_Particle >
+      HDINLINE void operator()( T_Particle& particle )
+      {
+          if(
+             picongpu::gamma<float_X>(
+                                      particle[ picongpu::momentum_ ],
+                                      picongpu::traits::attribute::getMass(
+                                                                           particle[ picongpu::weighting_ ],
+                                                                           particle
+                                                                           )
+                                      ) >= radiationGamma
+             )
+            particle[ picongpu::radiationMask_ ] = true;
+      }
+  };
 
 
-    /* filter to enable radiation for electrons
-     *
-     * to enable the filter:
-     *   - goto file `speciesDefinition.param`
-     *   - add the attribute `radiationMask` to the electron species
-     */
-    using RadiationParticleFilter = picongpu::particles::manipulators::generic::Free<
-        GammaFilterFunctor
+  /* filter to enable radiation for electrons
+   *
+   * to enable the filter:
+   *   - goto file `speciesDefinition.param`
+   *   - add the attribute `radiationMask` to the electron species
+   */
+  using RadiationParticleFilter = picongpu::particles::manipulators::generic::Free<
+    GammaFilterFunctor
     >;
 
-} // namespace radiation
+
 
 // add a window function weighting to the radiation in order
 // to avoid ringing effects from sharpe boundaries
@@ -173,5 +173,5 @@ namespace radiation
 
   namespace radWindowFunction = PARAM_RADWINDOW;
 
-
-}//namespace picongpu
+} // namespace radiation
+} // namespace picongpu

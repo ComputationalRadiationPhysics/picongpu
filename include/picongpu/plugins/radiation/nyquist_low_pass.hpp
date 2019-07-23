@@ -26,6 +26,8 @@
 
 namespace picongpu
 {
+namespace radiation
+{
 
 class NyquistLowPass : public One_minus_beta_times_n
 {
@@ -61,4 +63,5 @@ private:
     float_32 omegaNyquist; // Nyquist frequency for a particle (at a certain time step) for one direction
 };
 
+} // namespace radiation
 } // namespace picongpu

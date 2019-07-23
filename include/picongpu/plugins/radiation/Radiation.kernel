@@ -58,6 +58,8 @@
 
 namespace picongpu
 {
+namespace radiation
+{
 
     /** calculate the radiation of a species
      *
@@ -536,4 +538,6 @@ namespace picongpu
         }
     };
 
-}
+} // namespace radiation
+
+} // namespace picongpu

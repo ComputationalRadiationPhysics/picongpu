@@ -21,6 +21,8 @@
 
 namespace picongpu
 {
+namespace radiation
+{
 
 namespace util
 {
@@ -108,5 +110,7 @@ namespace details
   }
 
 } // namespace util
+
+} // namespace radiation
 
 } // namespace picongpu

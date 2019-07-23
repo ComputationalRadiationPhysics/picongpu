@@ -27,8 +27,10 @@
 
 namespace picongpu
 {
-  namespace rad_frequencies_from_list
-  {
+namespace radiation
+{
+namespace rad_frequencies_from_list
+{
 
 
     class FreqFunctor
@@ -115,5 +117,6 @@ namespace picongpu
     };
 
 
-  }
-}
+} // namespace rad_frequencies_from_list
+} // namespace radiation
+} // namespace picongpu

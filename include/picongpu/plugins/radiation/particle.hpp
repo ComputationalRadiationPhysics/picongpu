@@ -28,6 +28,8 @@
 
 namespace picongpu
 {
+namespace radiation
+{
 
 class When
 {
@@ -169,4 +171,5 @@ HDINLINE vector_64 Particle::get_momentum<When::old>(void) const
     return momentum_old;
 } // get momentum at time when
 
+} // namespace radiation
 } // namespace picongpu

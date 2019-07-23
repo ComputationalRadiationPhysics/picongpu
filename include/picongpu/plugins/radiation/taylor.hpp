@@ -23,6 +23,8 @@
 
 namespace picongpu
 {
+namespace radiation
+{
 struct Taylor
 {
     // a Taylor development for 1-sqrt(1-x)
@@ -37,4 +39,5 @@ struct Taylor
 
 };
 
+} // namespace radiation
 } // namespace picongpu

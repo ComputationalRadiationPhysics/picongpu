@@ -25,12 +25,14 @@
 
 namespace picongpu
 {
+namespace radiation
+{
 
   /* several window functions behind namespaces: */
 
 
-  namespace radWindowFunctionTriangle
-  {
+namespace radWindowFunctionTriangle
+{
     struct radWindowFunction
     {
       /** 1D Window function according to the triangle window:
@@ -54,12 +56,12 @@ namespace picongpu
           * (float_X(1.0) - float_X(2.0)/L_x * math::abs(x) );
       }
     };
-  } /* namespace radWindowFunctionTriangle */
+} // namespace radWindowFunctionTriangle
 
 
 
-  namespace radWindowFunctionHamming
-  {
+namespace radWindowFunctionHamming
+{
     struct radWindowFunction
     {
       /** 1D Window function according to the Hamming window:
@@ -85,12 +87,12 @@ namespace picongpu
           * (a + (float_X(1.0)-a)*cosinusValue*cosinusValue);
       }
     };
-  } /* namespace radWindowFunctionHamming */
+} // namespace radWindowFunctionHamming
 
 
 
-  namespace radWindowFunctionTriplett
-  {
+namespace radWindowFunctionTriplett
+{
     struct radWindowFunction
     {
       /** 1D Window function according to the Triplett window:
@@ -116,12 +118,12 @@ namespace picongpu
           * (math::exp(float_X(-1.0)*lambda*math::abs(x))*cosinusValue*cosinusValue);
       }
     };
-  } /* namespace radWindowFunctionTriplett */
+} // namespace radWindowFunctionTriplett
 
 
 
-  namespace radWindowFunctionGauss
-  {
+namespace radWindowFunctionGauss
+{
     struct radWindowFunction
     {
       /** 1D Window function according to the Gauss window:
@@ -147,11 +149,11 @@ namespace picongpu
           * (math::exp(float_X(-0.5)*relativePosition*relativePosition));
       }
     };
-  } /* namespace radWindowFunctionGauss */
+} // namespace radWindowFunctionGauss
 
 
-  namespace radWindowFunctionNone
-  {
+namespace radWindowFunctionNone
+{
     struct radWindowFunction
     {
       /** 1D Window function according to the no window:
@@ -169,8 +171,9 @@ namespace picongpu
         return float_X(1.0);
       }
     };
-  } /* namespace radWindowFunctionRectangle */
+} // namespace radWindowFunctionNone
 
 
-}  /* namespace picongpu */
+} // namespace radiation
+} // namespace picongpu
 

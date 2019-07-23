@@ -22,8 +22,10 @@
 
 namespace picongpu
 {
-  namespace radiation_observer
-  {
+namespace radiation
+{
+namespace radiation_observer
+{
     /** Compute observation angles
      *
      * This function is used in the Radiation plug-in kernel to compute
@@ -71,5 +73,6 @@ namespace picongpu
 
     }
 
-  } // end namespace radiation_observer
-} // end namespace picongpu
+} // namespace radiation_observer
+} // namespace radiation
+} // namespace picongpu
