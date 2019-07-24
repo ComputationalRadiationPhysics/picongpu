@@ -29,6 +29,8 @@
 
 namespace picongpu
 {
+namespace plugins
+{
 namespace radiation
 {
 
@@ -46,7 +48,7 @@ namespace radiation
         void operator()( std::shared_ptr<T_Species> const &, const uint32_t currentStep )
         {
             particles::Manipulate<
-                picongpu::radiation::RadiationParticleFilter,
+            picongpu::plugins::radiation::RadiationParticleFilter,
                 T_Species
             >{}( currentStep );
         }
@@ -92,4 +94,5 @@ namespace radiation
     }
 
 } // namespace radiation
+} // namespace plugins
 } // namespace picongpu

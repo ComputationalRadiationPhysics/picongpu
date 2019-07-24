@@ -26,6 +26,10 @@
 
 namespace picongpu
 {
+namespace plugins
+{
+namespace radiation
+{
     /** read the `radiationMask` of a species */
     template< bool hasRadiationMask >
     struct GetRadiationMask
@@ -38,7 +42,7 @@ namespace picongpu
         template< typename T_Particle >
         HDINLINE bool operator()( const T_Particle& particle ) const
         {
-            return particle[ radiationMask_ ];
+          return particle[ picongpu::radiationMask_ ];
         }
     };
 
@@ -80,4 +84,6 @@ namespace picongpu
         >::type::value;
         return GetRadiationMask< hasRadiationMask >{}( particle );
     }
+} // namespace radiation
+} // namespace plugins
 } // namespace picongpu

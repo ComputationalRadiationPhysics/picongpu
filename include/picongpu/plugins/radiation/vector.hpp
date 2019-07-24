@@ -25,6 +25,10 @@
 
 namespace picongpu
 {
+namespace plugins
+{
+namespace radiation
+{
 
 template<typename V, typename T>
 struct cuda_vec : public V
@@ -167,12 +171,14 @@ struct cuda_vec : public V
 
 };
 
+} // namespace radiation
+} // namespace plugins
 } // namespace picongpu
 
 // print
 
 template<typename V, typename T>
-HINLINE std::ostream & operator <<(std::ostream & os, const picongpu::cuda_vec<V, T> & v)
+HINLINE std::ostream & operator <<(std::ostream & os, const picongpu::plugins::radiation::cuda_vec<V, T> & v)
 {
     os << " ( " << v.x() << " , " << v.y() << " , " << v.z() << " ) ";
     return os;

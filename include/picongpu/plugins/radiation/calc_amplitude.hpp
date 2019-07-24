@@ -26,6 +26,11 @@
 
 namespace picongpu
 {
+namespace plugins
+{
+namespace radiation
+{
+
 //protected:
 // error class for wrong time access
 
@@ -170,4 +175,6 @@ private:
 
 };
 
+} // namespace radiation
+} // namespace plugins
 } // namespace picongpu

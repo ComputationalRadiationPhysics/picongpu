@@ -55,6 +55,11 @@
 
 namespace picongpu
 {
+namespace plugins
+{
+namespace radiation
+{
+
 using namespace pmacc;
 
 namespace po = boost::program_options;
@@ -1245,7 +1250,9 @@ private:
 
 };
 
-}
+} // namespace radiation
+} // namespace plugins
+} // namespace picongpu
 
 
 

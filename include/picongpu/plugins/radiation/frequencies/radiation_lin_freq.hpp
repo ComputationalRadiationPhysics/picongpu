@@ -24,8 +24,13 @@
 
 namespace picongpu
 {
-  namespace rad_linear_frequencies
-  {
+namespace plugins
+{
+namespace radiation
+{
+
+namespace linear_frequencies
+{
 
 
     class FreqFunctor
@@ -57,5 +62,7 @@ namespace picongpu
       }
     };
 
-  }
-}
+} // namespace linear_frequencies
+} // namespace radiation
+} // namespace plugins
+} // namespace picongpu

@@ -25,6 +25,10 @@
 
 namespace picongpu
 {
+namespace plugins
+{
+namespace radiation
+{
 
 void check_consistency(void)
 {
@@ -37,4 +41,6 @@ void check_consistency(void)
   // is there a way to do this with  compile time asserts???
 }
 
-} //namespace picongpu
+} // namespace radiation
+} // namespace plugins
+} // namespace picongpu
