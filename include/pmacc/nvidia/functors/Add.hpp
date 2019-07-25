@@ -53,7 +53,7 @@ namespace pmacc
 namespace mpi
 {
     template<>
-    MPI_Op getMPI_Op<pmacc::nvidia::functors::Add>()
+    HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Add>()
     {
         return MPI_SUM;
     }

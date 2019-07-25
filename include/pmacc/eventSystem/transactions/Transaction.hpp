@@ -41,7 +41,7 @@ public:
      *
      * @param event initial EventTask for base event
      */
-    Transaction(EventTask event);
+    HINLINE Transaction(EventTask event);
 
     /**
      * Adds event to the base event of this transaction.
@@ -49,27 +49,27 @@ public:
      * @param event EventTask to add to base event
      * @return new base event
      */
-    EventTask setTransactionEvent(const EventTask& event);
+    HINLINE EventTask setTransactionEvent(const EventTask& event);
 
     /**
      * Returns the current base event.
      *
      * @return current base event
      */
-    EventTask getTransactionEvent();
+    HINLINE EventTask getTransactionEvent();
 
     /**
      * Performs an operation on the transaction which leads to synchronization.
      *
      * @param operation type of operation to perform, defines resulting synchronization.
      */
-    void operation(ITask::TaskType operation);
+    HINLINE void operation(ITask::TaskType operation);
 
     /* Get a EventStream which include all dependencies
      * @param operation type of operation to perform
      * @return EventStream with solved dependencies
      */
-    EventStream* getEventStream(ITask::TaskType operation);
+    HINLINE EventStream* getEventStream(ITask::TaskType operation);
 
 private:
     EventTask baseEvent;

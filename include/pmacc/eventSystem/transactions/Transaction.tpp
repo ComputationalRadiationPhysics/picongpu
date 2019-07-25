@@ -35,13 +35,13 @@ Transaction::Transaction( EventTask event ) : baseEvent( event )
 
 }
 
-inline EventTask Transaction::setTransactionEvent( const EventTask& event )
+EventTask Transaction::setTransactionEvent( const EventTask& event )
 {
     baseEvent += event;
     return baseEvent;
 }
 
-inline EventTask Transaction::getTransactionEvent( )
+EventTask Transaction::getTransactionEvent( )
 {
     return baseEvent;
 }

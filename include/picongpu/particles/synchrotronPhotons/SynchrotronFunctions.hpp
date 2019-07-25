@@ -102,10 +102,10 @@ private:
 
     /** First synchrotron function
      */
-    float_64 F_1(const float_64 x) const;
+    HINLINE float_64 F_1(const float_64 x) const;
     /** Second synchrotron function
      */
-    float_64 F_2(const float_64 x) const;
+    HINLINE float_64 F_2(const float_64 x) const;
 
 public:
     enum Select
@@ -113,13 +113,13 @@ public:
         first=0, second=1
     };
 
-    void init();
+    HINLINE void init();
     /** Return a cursor representing a synchrotron function
      *
      * @param syncFunction first or second synchrotron function
      * @see: SynchrotronFunctions::Select
      */
-    SyncFuncCursor getCursor(Select syncFunction) const;
+    HINLINE SyncFuncCursor getCursor(Select syncFunction) const;
 
 }; // class SynchrotronFunctions
 

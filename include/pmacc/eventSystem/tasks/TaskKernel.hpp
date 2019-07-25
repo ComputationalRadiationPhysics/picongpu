@@ -58,7 +58,7 @@ namespace pmacc
         {
         }
 
-        void activateChecks();
+        HINLINE void activateChecks();
 
         virtual std::string toString()
         {

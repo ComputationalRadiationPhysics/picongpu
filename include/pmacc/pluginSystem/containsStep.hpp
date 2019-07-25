@@ -36,7 +36,7 @@ namespace pluginSystem
      * @param timeStep simulation time step to check
      * @return true if step is included in the interval list else false
      */
-    bool containsStep(
+    HINLINE bool containsStep(
         std::vector< pluginSystem::TimeSlice > const & seqTimeSlices,
         uint32_t const timeStep
     )

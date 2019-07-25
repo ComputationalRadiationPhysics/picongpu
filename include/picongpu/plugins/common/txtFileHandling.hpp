@@ -43,7 +43,7 @@ using namespace boost::filesystem;
      *
      * \return operation was successful or not
      */
-    bool restoreTxtFile( std::ofstream& outFile, std::string filename,
+    HINLINE bool restoreTxtFile( std::ofstream& outFile, std::string filename,
                          uint32_t restartStep, const std::string restartDirectory )
     {
         /* get restart time step as string */
@@ -93,7 +93,7 @@ using namespace boost::filesystem;
      * \param currentStep the current time step
      * \param checkpointDirectory path to the checkpoint directory
      */
-    void checkpointTxtFile( std::ofstream& outFile, std::string filename,
+    HINLINE void checkpointTxtFile( std::ofstream& outFile, std::string filename,
                             uint32_t currentStep, const std::string checkpointDirectory )
     {
         outFile.flush();

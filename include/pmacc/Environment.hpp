@@ -117,10 +117,10 @@ namespace detail
          *
          * After this call it is allowed to use MPI.
          */
-        void init();
+        HINLINE void init();
 
         /** cleanup the environment */
-        void finalize();
+        HINLINE void finalize();
 
         /** select a computing device
          *
@@ -128,7 +128,7 @@ namespace detail
          *
          * @param deviceNumber number of the device
          */
-        void setDevice(int deviceNumber);
+        HINLINE void setDevice(int deviceNumber);
 
     };
 

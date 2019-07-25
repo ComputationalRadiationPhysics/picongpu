@@ -56,7 +56,7 @@ namespace pmacc
 namespace mpi
 {
     template<>
-    MPI_Op getMPI_Op<pmacc::nvidia::functors::Min>()
+    HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Min>()
     {
         return MPI_MIN;
     }
