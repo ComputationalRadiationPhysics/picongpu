@@ -3,3 +3,4 @@ pandas>=0.21.0
 h5py
 pillow
 imageio
+openPMD-api>=0.10.3gt

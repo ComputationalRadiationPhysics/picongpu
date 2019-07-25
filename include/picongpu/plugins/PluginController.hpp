@@ -48,6 +48,7 @@
 
 #if (ENABLE_OPENPMD == 1)
 #   include "picongpu/plugins/openPMD/openPMDWriter.hpp"
+#   include "picongpu/plugins/xrayScattering/XrayScattering.hpp"
 #endif
 
 #if( PMACC_CUDA_ENABLED == 1 )
@@ -227,6 +228,9 @@ private:
         CountParticles<bmpl::_1>,
         PngPlugin< Visualisation<bmpl::_1, PngCreator> >,
         plugins::transitionRadiation::TransitionRadiation<bmpl::_1>
+#if(ENABLE_OPENPMD == 1)
+        , plugins::xrayScattering::XrayScattering<bmpl::_1>
+#endif
 #if(ENABLE_HDF5 == 1)
         , plugins::radiation::Radiation<bmpl::_1>
         , plugins::multi::Master< ParticleCalorimeter<bmpl::_1> >
