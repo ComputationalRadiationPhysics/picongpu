@@ -164,10 +164,15 @@ namespace picongpu
         /** Bash field in a direction.
          *
          * Copy all particles from the guard of a direction to the device exchange buffer
+         *
+         * @param exchangeType exchange type
          */
         HINLINE void bashField(uint32_t exchangeType);
 
-        //! Insert all fields which are in device exchange buffer
+        /** Insert all fields which are in device exchange buffer
+         *
+         * @param exchangeType exchange type
+         */
         HINLINE void insertField(uint32_t exchangeType);
 
     private:
