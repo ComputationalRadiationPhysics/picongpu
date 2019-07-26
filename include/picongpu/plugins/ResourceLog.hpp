@@ -60,7 +60,7 @@
 namespace boost_swap_impl
 {
     BOOST_GPU_ENABLED
-    void swap(std::string& s1, std::string& s2)
+    inline void swap(std::string& s1, std::string& s2)
     {
 #ifndef __CUDA_ARCH__
         std::swap(s1, s2);

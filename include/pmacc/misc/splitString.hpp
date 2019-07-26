@@ -40,7 +40,7 @@ namespace misc
      * @param input string to split
      * @param regex separator between two elements
      */
-    std::vector< std::string > splitString(
+    HINLINE std::vector< std::string > splitString(
         std::string const & input,
         std::string const & delimiter = ","
     )

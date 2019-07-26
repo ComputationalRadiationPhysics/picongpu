@@ -62,16 +62,16 @@ public:
      *
      * if called before the cuda device is initialized the behavior is undefined
      */
-    CudaEvent( );
+    HINLINE CudaEvent( );
 
     /** Destructor */
-    ~CudaEvent( );
+    HINLINE ~CudaEvent( );
 
     /** register a existing handle to a event instance */
-    void registerHandle( );
+    HINLINE void registerHandle( );
 
     /** free a registered handle */
-    void releaseHandle( );
+    HINLINE void releaseHandle( );
 
     /** get native cudaEvent_t object
      *
@@ -96,13 +96,13 @@ public:
      *
      * @return true if event is finished else false
      */
-    bool isFinished( );
+    HINLINE bool isFinished( );
 
     /** record event in a device stream
      *
      * @param stream native cuda stream
      */
-    void recordEvent( cudaStream_t stream );
+    HINLINE void recordEvent( cudaStream_t stream );
 
 };
 }

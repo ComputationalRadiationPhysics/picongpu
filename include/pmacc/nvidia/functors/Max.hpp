@@ -55,7 +55,7 @@ namespace pmacc
 namespace mpi
 {
     template<>
-    MPI_Op getMPI_Op<pmacc::nvidia::functors::Max>()
+    HINLINE MPI_Op getMPI_Op<pmacc::nvidia::functors::Max>()
     {
         return MPI_MAX;
     }
