@@ -170,9 +170,6 @@ public:
         T_SrcFilterFunctor& srcFilterFunctor
     );
 
-    template<typename T_Functor>
-    void manipulateAllParticles(uint32_t currentStep, T_Functor& functor);
-
     SimulationDataId getUniqueId();
 
     /* sync device data to host
