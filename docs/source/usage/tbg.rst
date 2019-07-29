@@ -66,3 +66,12 @@ It is used, e.g. on Hypnos at HZDR.
 
 .. include:: ../install/profiles/hypnos-hzdr/PBS_Tutorial.rst
    :start-line: 3
+
+LSF
+"""
+
+LSF (for *Load Sharing Facility*) is an IBM batch system (``bsub``/BSUB).
+It is used, e.g. on Summit at ORNL.
+
+.. include:: ../install/profiles/summit-ornl/LSF_Tutorial.rst
+   :start-line: 3
