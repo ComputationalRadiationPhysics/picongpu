@@ -320,6 +320,12 @@ endif()
 message(STATUS "Boost: result_of with TR1 style and decltype fallback")
 set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_RESULT_OF_USE_TR1_WITH_DECLTYPE_FALLBACK)
 
+# We do not use std::auto_ptr and keeping this enabled in Boost causes a
+# warning with NVCC+GCC and is unnecessary time spend in compile time
+# (note that std::auto_ptr is deprecated in C++11 and removed in C++17)
+message(STATUS "Boost: deactivate std::auto_ptr")
+set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DBOOST_NO_AUTO_PTR)
+
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     message(STATUS "Boost: Disable variadic templates")
     message(STATUS "Boost: Do not use fenv.h from standard library")
