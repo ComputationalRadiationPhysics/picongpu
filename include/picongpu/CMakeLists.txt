@@ -374,7 +374,7 @@ find_path(PIC_EXTENSION_PATH
     )
 
 set(PIC_COPY_ON_INSTALL "include/picongpu;etc/picongpu;lib"
-    CACHE LIST
+    CACHE STRING
     "Folders that are copied to installation path during install" )
 
 # enforce that all picongpu includes must be prefixed with `picongpu/`
