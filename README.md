@@ -204,14 +204,14 @@ Active Team
 ### Scientific Supervision
 
 - Dr. Michael Bussmann
-- Axel Huebl
+- Dr. Axel Huebl
 
 ### Maintainers* and core developers
 
 - Dr. Sergei Bastrakov*
 - Dr. Alexander Debus
 - Marco Garten*
-- Axel Huebl*
+- Dr. Axel Huebl*
 - Alexander Matthes
 - Richard Pausch*
 - Sophie Rudat
