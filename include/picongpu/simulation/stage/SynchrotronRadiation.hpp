@@ -76,7 +76,7 @@ namespace stage
                 particles::CallSynchrotronPhotons< bmpl::_1 >
             > synchrotronRadiation;
             synchrotronRadiation(
-                &cellDescription,
+                cellDescription,
                 step,
                 functions
             );

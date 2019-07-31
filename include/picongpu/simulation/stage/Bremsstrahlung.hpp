@@ -91,7 +91,7 @@ namespace stage
                 particles::CallBremsstrahlung< bmpl::_1 >
             > particleBremsstrahlung;
             particleBremsstrahlung(
-                &cellDescription,
+                cellDescription,
                 step,
                 scaledSpectrumMap,
                 photonAngle

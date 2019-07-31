@@ -68,7 +68,7 @@ namespace stage
                 SpeciesWithIonizers,
                 particles::CallIonization< bmpl::_1 >
             > particleIonization;
-            particleIonization( &cellDescription, step );
+            particleIonization( cellDescription, step );
         }
 
     private:
