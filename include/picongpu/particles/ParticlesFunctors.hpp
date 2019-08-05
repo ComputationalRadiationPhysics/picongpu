@@ -361,12 +361,12 @@ struct CallIonizationScheme
      *
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param cellDesc logical block information like dimension and cell sizes
      * \param currentStep The current time step
      */
     template<typename T_CellDescription>
     HINLINE void operator()(
-        T_CellDescription* cellDesc,
+        T_CellDescription cellDesc,
         const uint32_t currentStep
     ) const
     {
@@ -415,12 +415,12 @@ struct CallIonization
      *
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param cellDesc logical block information like dimension and cell sizes
      * \param currentStep The current time step
      */
     template<typename T_CellDescription>
     HINLINE void operator()(
-        T_CellDescription* cellDesc,
+        T_CellDescription cellDesc,
         const uint32_t currentStep
     ) const
     {
@@ -477,12 +477,12 @@ struct CallBremsstrahlung
      *
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param cellDesc logical block information like dimension and cell sizes
      * \param currentStep the current time step
      */
     template<typename T_CellDescription, typename ScaledSpectrumMap>
     HINLINE void operator()(
-        T_CellDescription* cellDesc,
+        T_CellDescription cellDesc,
         const uint32_t currentStep,
         const ScaledSpectrumMap& scaledSpectrumMap,
         const bremsstrahlung::GetPhotonAngle& photonAngle
@@ -535,13 +535,13 @@ struct CallSynchrotronPhotons
      *
      * \tparam T_CellDescription contains the number of blocks and blocksize
      *                           that is later passed to the kernel
-     * \param cellDesc points to logical block information like dimension and cell sizes
+     * \param cellDesc logical block information like dimension and cell sizes
      * \param currentStep The current time step
      * \param synchrotronFunctions synchrotron functions wrapper object
      */
     template<typename T_CellDescription>
     HINLINE void operator()(
-        T_CellDescription* cellDesc,
+        T_CellDescription cellDesc,
         const uint32_t currentStep,
         const synchrotronPhotons::SynchrotronFunctions& synchrotronFunctions
     ) const
