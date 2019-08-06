@@ -9,10 +9,6 @@ export MY_MAILNOTIFY="NONE"
 export MY_MAIL="someone@example.com"
 export MY_NAME="$(whoami) <$MY_MAIL>"
 
-# Project Information ######################################## (edit this line)
-#   - project account for computing time
-export proj="k20"
-
 # Text Editor for Tools ###################################### (edit this line)
 #   - examples: "nano", "vim", "emacs -nw", "vi" or without terminal: "gedit"
 #export EDITOR="nano"
@@ -66,7 +62,7 @@ function getNode() {
     else
         numNodes=$1
     fi
-    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=2 --gres=gpu:4 -A $proj --mem=62000 -p k20 --pty bash
+    srun  --time=1:00:00 --nodes=$numNodes --ntasks-per-node=4 --cpus-per-task=2 --gres=gpu:4 -A k20 --mem=62000 -p k20 --pty bash
 }
 
 # allocate an interactive shell for one hour
@@ -82,5 +78,5 @@ function getDevice() {
             numGPUs=$1
         fi
     fi
-    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=2 --gres=gpu:$numGPUs -A $proj --mem=$((15500 * numGPUs)) -p k20 --pty bash
+    srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=2 --gres=gpu:$numGPUs -A k20 --mem=$((15500 * numGPUs)) -p k20 --pty bash
 }
