@@ -80,7 +80,7 @@ RUN        /bin/echo -e '#!/bin/bash -l\n' \
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/LaserWakefield /opt/picInputs/lwfa && \
                cd /opt/picInputs/lwfa && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
+               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
                rm -rf .build && \
                chmod a+x /opt/picInputs/*/bin/* && \
                chmod a+r -R /opt/picInputs/* && \
@@ -89,7 +89,7 @@ RUN        /bin/bash -l -c ' \
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/KelvinHelmholtz /opt/picInputs/khi && \
                cd /opt/picInputs/khi && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
+               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
                rm -rf .build && \
                chmod a+x /opt/picInputs/*/bin/* && \
                chmod a+r -R /opt/picInputs/* && \
@@ -98,7 +98,7 @@ RUN        /bin/bash -l -c ' \
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/FoilLCT /opt/picInputs/foil && \
                cd /opt/picInputs/foil && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
+               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
                rm -rf .build && \
                chmod a+x /opt/picInputs/*/bin/* && \
                chmod a+r -R /opt/picInputs/* && \
