@@ -57,10 +57,6 @@ namespace detail
         using SpeciesType = T_SpeciesType;
         using FrameType = typename SpeciesType::FrameType;
         using ShapeType = typename GetShape< SpeciesType >::type;
-        using Density = particleToGrid::ComputeGridValuePerFrame<
-            ShapeType,
-            particleToGrid::derivedAttributes::Density
-        >;
 
         /** Functor
          *
@@ -77,6 +73,10 @@ namespace detail
             // load particle without copy particle data to host
             auto speciesTmp = dc.get< SpeciesType >( FrameType::getName(), true );
 
+            using Density = particleToGrid::ComputeGridValuePerFrame<
+                ShapeType,
+                particleToGrid::derivedAttributes::Density
+            >;
             fieldTmp->template computeValue< CORE + BORDER, Density >( *speciesTmp, currentStep );
 
             dc.releaseData( FrameType::getName() );

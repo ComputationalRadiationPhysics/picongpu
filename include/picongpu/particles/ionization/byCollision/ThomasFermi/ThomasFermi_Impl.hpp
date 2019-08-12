@@ -137,28 +137,6 @@ namespace ionization
             PMACC_ALIGN(cachedRho, DataBox<SharedBox<ValueType_Rho, typename BlockArea::FullSuperCellSize,0> >);
             PMACC_ALIGN(cachedEne, DataBox<SharedBox<ValueType_Ene, typename BlockArea::FullSuperCellSize,1> >);
 
-            /** Solver for density of the ion species
-             *
-             *  @todo Include all ion species because the model requires the
-             *        density of ionic potential wells
-             */
-            using DensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
-                SrcSpecies,
-                particleToGrid::derivedAttributes::Density
-            >::Solver;
-
-            /** Solver for energy density of the electron species with maximum energy cutoff
-             *
-             *  @todo Include all electron species with a meta::ForEach<VectorallSpecies,...>
-             * instead of just the destination species
-             */
-            using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
-                DestSpecies,
-                particleToGrid::derivedAttributes::EnergyDensityCutoff< CutoffMaxEnergy >
-            >::Solver;
-
-
-
         public:
             /* host constructor initializing member : random number generator */
             ThomasFermi_Impl(const uint32_t currentStep) : randomGen(RNGFactory::createRandom<Distribution>())
@@ -189,7 +167,15 @@ namespace ionization
                 /* load species without copying the particle data to the host */
                 auto srcSpecies = dc.get< SrcSpecies >( SrcSpecies::FrameType::getName(), true );
 
-                /* kernel call for weighted ion density calculation */
+                /** Calculate weighted ion density
+                 *
+                 * @todo Include all ion species because the model requires the
+                 *       density of ionic potential wells
+                 */
+                using DensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
+                    SrcSpecies,
+                    particleToGrid::derivedAttributes::Density
+                >::Solver;
                 density->template computeValue< CORE + BORDER, DensitySolver >(*srcSpecies, currentStep);
                 dc.releaseData( SrcSpecies::FrameType::getName() );
                 EventTask densityEvent = density->asyncCommunication( __getTransactionEvent() );
@@ -198,7 +184,15 @@ namespace ionization
                 /* load species without copying the particle data to the host */
                 auto destSpecies = dc.get< DestSpecies >( DestSpecies::FrameType::getName(), true );
 
-                /* kernel call for weighted electron energy density calculation */
+                /** Calculate energy density of the electron species with maximum energy cutoff
+                 *
+                 *  @todo Include all electron species with a meta::ForEach<VectorallSpecies,...>
+                 * instead of just the destination species
+                 */
+                using EnergyDensitySolver = typename particleToGrid::CreateFieldTmpOperation_t<
+                    DestSpecies,
+                    particleToGrid::derivedAttributes::EnergyDensityCutoff< CutoffMaxEnergy >
+                >::Solver;
                 eneKinDens->template computeValue< CORE + BORDER, EnergyDensitySolver >(*destSpecies, currentStep);
                 dc.releaseData( DestSpecies::FrameType::getName() );
                 EventTask eneKinEvent = eneKinDens->asyncCommunication( __getTransactionEvent() );
