@@ -21,7 +21,7 @@
 
 #include <pmacc/algorithms/math/defines/pi.hpp>
 #include <pmacc/math/Complex.hpp>
-#include "parameters.hpp"
+#include "vectorTypes.hpp"
 #include <pmacc/mpi/GetMPI_StructAsArray.hpp>
 
 
