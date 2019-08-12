@@ -73,32 +73,37 @@ RUN        /bin/echo -e "source $SPACK_ROOT/share/spack/setup-env.sh\n" \
 # force the use of a login shell
 RUN        /bin/echo -e '#!/bin/bash -l\n' \
                         'exec "$@"\n' \
-               > /etc/entrypoint.sh
-RUN        chmod a+x /etc/entrypoint.sh
+               > /etc/entrypoint.sh && \
+           chmod a+x /etc/entrypoint.sh
 
 # build example for out-of-the-box usage: LWFA
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/LaserWakefield /opt/picInputs/lwfa && \
                cd /opt/picInputs/lwfa && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
-               rm -rf .build'
+               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
+               rm -rf .build && \
+               chmod a+x /opt/picInputs/*/bin/* && \
+               chmod a+r -R /opt/picInputs/* && \
+               find /opt/picInputs -type d -exec chmod a+rx {} \;'
 # KHI (Benchmark)
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/KelvinHelmholtz /opt/picInputs/khi && \
                cd /opt/picInputs/khi && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
-               rm -rf .build'
+               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
+               rm -rf .build && \
+               chmod a+x /opt/picInputs/*/bin/* && \
+               chmod a+r -R /opt/picInputs/* && \
+               find /opt/picInputs -type d -exec chmod a+rx {} \;'
 # Laser-Ion Acceleration
 RUN        /bin/bash -l -c ' \
                pic-create $PICSRC/share/picongpu/examples/FoilLCT /opt/picInputs/foil && \
                cd /opt/picInputs/foil && \
-               pic-build -b "cuda:30;35;37;50;60;70" -c'-DCUDAMEMTEST_ENABLE=OFF' && \
-               rm -rf .build'
-
-# make input directories readable and files executable for all users
-RUN        chmod a+x /opt/picInputs/*/bin/* && \
-           chmod a+r -R /opt/picInputs/* && \
-           find /opt/picInputs -type d -exec chmod a+rx {} \;
+               pic-build -b "cuda:30;35;37;50;60;70" -c"-DCUDAMEMTEST_ENABLE=OFF" && \
+               rm -rf .build && \
+               chmod a+x /opt/picInputs/*/bin/* && \
+               chmod a+r -R /opt/picInputs/* && \
+               find /opt/picInputs -type d -exec chmod a+rx {} \;'
+# ... also made input directories readable and files executable for all users
 
 COPY       start_lwfa.sh /usr/bin/lwfa
 COPY       start_lwfa_4.sh /usr/bin/lwfa4
