@@ -39,7 +39,7 @@ The plugin is available as soon as the :ref:`libSplash and HDF5 libraries <insta
 
 In order to setup the radiation analyzer plugin, both the :ref:`radiation.param <usage-params-plugins>` and the :ref:`radiationObserver.param <usage-params-plugins>` have to be configured **and** the radiating particles need to have the attribute ``momentumPrev1`` which can be added in :ref:`speciesDefinition.param <usage-params-core>`.
 
-In *radiationConfig.param*, the number of frequencies ``N_omega`` and observation directions ``N_theta`` is defined.
+In *radiation.param*, the number of frequencies ``N_omega`` and observation directions ``N_theta`` is defined.
 
 Frequency range
 """""""""""""""
