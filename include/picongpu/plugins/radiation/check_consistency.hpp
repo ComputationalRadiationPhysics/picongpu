@@ -21,7 +21,7 @@
 #pragma once
 
 #include <iostream>
-#include "parameters.hpp"
+#include "VectorTypes.hpp"
 
 namespace picongpu
 {

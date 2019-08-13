@@ -32,7 +32,7 @@
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 
 
-#include "picongpu/plugins/radiation/parameters.hpp"
+#include "picongpu/plugins/radiation/VectorTypes.hpp"
 #include "picongpu/plugins/radiation/check_consistency.hpp"
 #include "picongpu/plugins/radiation/particle.hpp"
 #include "picongpu/plugins/radiation/amplitude.hpp"

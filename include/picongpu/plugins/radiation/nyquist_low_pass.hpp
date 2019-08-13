@@ -20,7 +20,7 @@
 #pragma once
 
 #include "calc_amplitude.hpp"
-#include "parameters.hpp"
+#include "VectorTypes.hpp"
 #include "particle.hpp"
 
 

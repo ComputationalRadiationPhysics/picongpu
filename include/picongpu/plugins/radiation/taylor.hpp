@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "parameters.hpp"
+#include "VectorTypes.hpp"
 
 namespace picongpu
 {
