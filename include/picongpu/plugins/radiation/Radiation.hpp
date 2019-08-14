@@ -326,6 +326,8 @@ private:
                 if (isMaster)
                 {
                     timeSumArray = new Amplitude[elements_amplitude()];
+                    for (unsigned int i = 0; i < elements_amplitude(); ++i)
+                        timeSumArray[i] = Amplitude::zero();
 
                     /* save detector position / observation direction */
                     detectorPositions = new vector_64[parameters::N_observer];
@@ -343,7 +345,7 @@ private:
 
                 }
 
-                if (isMaster && totalRad)
+                if (isMaster)
                 {
                     fs.createDirectory("radiationHDF5");
                     fs.setDirectoryPermissions("radiationHDF5");
@@ -361,8 +363,6 @@ private:
                     //create folder for total output
                     fs.createDirectory(folderTotalRad);
                     fs.setDirectoryPermissions(folderTotalRad);
-                    for (unsigned int i = 0; i < elements_amplitude(); ++i)
-                        timeSumArray[i] = Amplitude::zero();
                 }
                 if (isMaster && lastRad)
                 {
