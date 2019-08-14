@@ -19,6 +19,7 @@
  */
 
 #include "picongpu/ArgsParser.hpp"
+#include "picongpu/debug/PIConGPUVerbose.hpp"
 #include "picongpu/versionFormat.hpp"
 
 #include <boost/program_options.hpp>
@@ -33,6 +34,45 @@
 
 namespace picongpu
 {
+
+namespace
+{
+
+    /** Report deprecated parameters
+     *
+     * This function is meant to handle cases when some parameters are changed
+     * but the old versions temporarily kept for backward compatibility and
+     * deprecated. Notably, this applies to compile-time parameters getting a
+     * run-time version. Hence it deliberately ignores incapsulation and code
+     * duplication and simply has a hardcoded set of cases.
+     */
+    void reportDeprecated( boost::program_options::variables_map const & vm )
+    {
+        using pmacc::log;
+        using Level = PIConGPUVerbose::PHYSICS;
+
+        /* Moving window: a new run-time parameter 'windowMovePoint' to replace
+         * compile-time 'movePoint' variable
+         */
+        bool isMovingWindowEnabled = vm[ "moving" ].as< bool >( );
+        if( isMovingWindowEnabled )
+        {
+            bool isWindowMovePointSet = !vm[ "windowMovePoint" ].defaulted( );
+            if( !isWindowMovePointSet )
+                log< Level >(
+                    "Warning: Compile-time variable 'movePoint' in grid.param "
+                    "is deprecated. It is currently still required for "
+                    "building purposes. Please keep the variable in your "
+                    "grid.param, but for future compatibility set this value "
+                    "using the 'windowMovePoint' parameter in your .cfg file. "
+                    "The value of movePoint is the default for windowMovePoint, "
+                    "setting the latter explicitly will override this."
+                );
+        }
+    }
+
+} // anonymous namespace
+
     ArgsParser::ArgsParser( )
     {
 
@@ -128,6 +168,8 @@ namespace picongpu
                 std::cerr << desc << "\n";
                 return ERROR;
             }
+
+            reportDeprecated( vm );
 
             if ( vm.count( "validate" ) )
             {
