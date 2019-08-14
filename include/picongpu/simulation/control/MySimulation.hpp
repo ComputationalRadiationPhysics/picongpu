@@ -125,6 +125,7 @@ public:
     cellDescription(nullptr),
     initialiserController(nullptr),
     slidingWindow(false),
+    windowMovePoint(0.0),
     endSlidingOnStep(-1),
     showVersionOnce(false)
     {
@@ -153,6 +154,15 @@ public:
              "specifying whether the grid is periodic (1) or not (0) in each dimension, default: no periodic dimensions")
 
             ("moving,m", po::value<bool>(&slidingWindow)->zero_tokens(), "enable sliding/moving window")
+            /* For now we still use the compile-time movePoint variable to set
+             * the default value and provide backward compatibility
+             */
+            ("windowMovePoint", po::value<float_64>(&windowMovePoint)->default_value(movePoint),
+                "ratio of the global window size in y which defines when to "
+                "start sliding the window. "
+                "The window starts sliding at the time required to pass the "
+                "distance of windowMovePoint * (global window size in y) "
+                "when moving with the speed of light")
             ("stopWindow", po::value<int32_t>(&endSlidingOnStep)->default_value(-1),
                 "stops the window at stimulation step, "
                 "-1 means that window is never stopping")
@@ -253,10 +263,13 @@ public:
 
         Environment<simDim>::get().initGrids(gridSizeGlobal, gridSizeLocal, gridOffset);
 
-        if (slidingWindow)
-            MovingWindow::getInstance().setEndSlideOnStep(endSlidingOnStep);
-        else
-            MovingWindow::getInstance().setEndSlideOnStep(0);
+        if( !slidingWindow )
+        {
+            windowMovePoint = 0.0;
+            endSlidingOnStep = 0;
+        }
+        MovingWindow::getInstance().setMovePoint(windowMovePoint);
+        MovingWindow::getInstance().setEndSlideOnStep(endSlidingOnStep);
 
         log<picLog::DOMAINS > ("rank %1%; localsize %2%; localoffset %3%;") %
             myGPUpos.toString() % gridSizeLocal.toString() % gridOffset.toString();
@@ -647,6 +660,7 @@ protected:
 
     bool slidingWindow;
     int32_t endSlidingOnStep;
+    float_64 windowMovePoint;
     bool showVersionOnce;
     bool autoAdjustGrid = true;
 

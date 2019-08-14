@@ -199,6 +199,32 @@ private:
      */
     bool slidingWindowEnabled = false;
 
+    /** Defines when to start sliding the window
+     *
+     * A virtual photon starts at t=0 at the lower end (min y) of the global
+     * simulation box in the positive y direction. The window sliding starts at
+     * the moment of time when the particle covers the movePoint ratio of the
+     * global moving window size in the y direction.
+     *
+     * Note that with the moving window enabled, there is an additional "hidden"
+     * row of local domains (and devices simulating them) at the y-front.
+     * Therefore, the global moving window size in the y direction is the global
+     * domain size minus a local domain size (which is required to be the same
+     * for all domains).
+     *
+     * So, in short, the window starts sliding in time required to pass the
+     * distance of movePoint * (global window size in y) when moving with
+     * the speed of light.
+     *
+     * Setting movePoint to 0.0 makes the window start sliding at the start
+     * of a simulation, and setting it to 1.0 makes it start sliding when the
+     * virtual photon reaches the start of the "hidden" row of local domains.
+     * It is permitted to use values outside of the [0.0, 1.0] interval to
+     * achieve the effects of "pre-movement" and "delayed movement", however
+     * this might complicate the setup and so not recommended unless essential.
+     */
+    float_64 movePoint;
+
     /** current number of slides since start of simulation */
     uint32_t slideCounter = 0u;
 
@@ -212,6 +238,17 @@ private:
     uint32_t endSlidingOnStep = 0u;
 
 public:
+
+    /** Set window move point which defines when to start sliding the window
+     *
+     * See declaration of movePoint for a detailed explanation.
+     *
+     * @param point ratio of the global window size
+     */
+    void setMovePoint(float_64 const point)
+    {
+        movePoint = point;
+    }
 
     /**
      * Set step where the simulation stops the moving window
