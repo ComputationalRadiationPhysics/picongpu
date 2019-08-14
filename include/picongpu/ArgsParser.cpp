@@ -61,7 +61,7 @@ namespace picongpu
         return instance;
     }
 
-    ArgsParser::ArgsErrorCode ArgsParser::parse( int argc, char** argv )
+    ArgsParser::Status ArgsParser::parse( int argc, char** argv )
     {
         namespace po = boost::program_options;
 
@@ -112,13 +112,13 @@ namespace picongpu
             if ( vm.count( "help" ) )
             {
                 std::cout << desc << "\n";
-                return SUCCESS_EXIT;
+                return Status::successExit;
             }
             // print versions of dependent software
             if ( vm.count( "version" ) )
             {
                 void( getSoftwareVersions( std::cout ) );
-                return SUCCESS_EXIT;
+                return Status::successExit;
             }
             // no parameters set: required parameters (e.g., -g) will be missing
             // -> obvious wrong usage
@@ -126,7 +126,7 @@ namespace picongpu
             if ( argc == 1 ) // argc[0] is always the program name
             {
                 std::cerr << desc << "\n";
-                return ERROR;
+                return Status::error;
             }
 
             if ( vm.count( "validate" ) )
@@ -134,16 +134,16 @@ namespace picongpu
                 /* if we reach this part of code the parameters are valid
                  * and the option `validate` is set.
                  */
-                return SUCCESS_EXIT;
+                return Status::successExit;
             }
         }
         catch ( const po::error& e )
         {
             std::cerr << e.what() << std::endl;
-            return ERROR;
+            return Status::error;
         }
 
-        return SUCCESS;
+        return Status::success;
     }
 
 }

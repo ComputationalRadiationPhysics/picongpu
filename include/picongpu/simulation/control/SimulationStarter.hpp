@@ -88,7 +88,7 @@ namespace picongpu
         {
         }
 
-        ArgsParser::ArgsErrorCode parseConfigs(int argc, char **argv)
+        ArgsParser::Status parseConfigs(int argc, char **argv)
         {
             ArgsParser& ap = ArgsParser::getInstance();
             PluginConnector& pluginConnector = Environment<>::get().PluginConnector();
