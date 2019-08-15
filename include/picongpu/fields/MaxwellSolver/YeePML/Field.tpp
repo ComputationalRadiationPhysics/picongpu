@@ -22,26 +22,10 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
-#include "picongpu/fields/MaxwellSolver/Solvers.hpp"
-#include "picongpu/particles/traits/GetInterpolation.hpp"
-#include "picongpu/particles/traits/GetMarginPusher.hpp"
-#include "picongpu/traits/GetMargin.hpp"
-#include "picongpu/traits/SIBaseUnits.hpp"
 
-#include <pmacc/dimensions/SuperCellDescription.hpp>
-#include <pmacc/eventSystem/EventSystem.hpp>
-#include <pmacc/dataManagement/DataConnector.hpp>
-#include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/mappings/kernel/ExchangeMapping.hpp>
-#include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/buffers/GridBuffer.hpp>
-#include <pmacc/particles/traits/FilterByFlag.hpp>
 
-#include <boost/mpl/accumulate.hpp>
-
-#include <iostream>
-#include <list>
-#include <memory>
+#include <cstdint>
 
 
 namespace picongpu
@@ -53,28 +37,17 @@ namespace maxwellSolver
 namespace yeePML
 {
 
-    Field::Field( MappingDesc cellDescription ) :
-    SimulationFieldHelper< MappingDesc >( cellDescription )
+    Field::Field( MappingDesc const & cellDescription ) :
+        SimulationFieldHelper< MappingDesc >( cellDescription )
     {
         data.reset(
             new GridBuffer< ValueType, simDim > ( cellDescription.getGridLayout( ) )
         );
     }
 
-    void Field::synchronize( )
+    GridBuffer< Field::ValueType, simDim > & Field::getGridBuffer( )
     {
-        data->deviceToHost( );
-    }
-
-    void Field::syncToDevice( )
-    {
-        data->hostToDevice( );
-    }
-
-    EventTask Field::asyncCommunication( EventTask serialEvent )
-    {
-        EventTask eB = data->asyncCommunication( serialEvent );
-        return eB;
+        return *data;
     }
 
     GridLayout< simDim > Field::getGridLayout( )
@@ -92,15 +65,25 @@ namespace yeePML
         return data->getDeviceBuffer( ).getDataBox( );
     }
 
-    GridBuffer< Field::ValueType, simDim > & Field::getGridBuffer( )
+    EventTask Field::asyncCommunication( EventTask serialEvent )
     {
-        return *data;
+        return data->asyncCommunication( serialEvent );
     }
 
     void Field::reset( uint32_t )
     {
         data->getHostBuffer( ).reset( true );
         data->getDeviceBuffer( ).reset( false );
+    }
+
+    void Field::syncToDevice( )
+    {
+        data->hostToDevice( );
+    }
+
+    void Field::synchronize( )
+    {
+        data->deviceToHost( );
     }
 
 } // namespace yeePML

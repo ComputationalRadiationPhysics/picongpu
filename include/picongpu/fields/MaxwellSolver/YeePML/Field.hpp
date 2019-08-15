@@ -115,116 +115,183 @@ namespace yeePML
 
     };
 
-    //! Base class for field in PML
+    /** Base class for implementation inheritance in classes for the
+     *  electromagnetic fields in PML
+     *
+     * Stores field values on host and device and provides data synchronization
+     * between them.
+     *
+     * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
+     * ISimulationData.
+     */
     class Field : public SimulationFieldHelper< MappingDesc >, public ISimulationData
     {
     public:
 
+        //! Type of each field value
         using ValueType = NodeValues;
+
+        //! Number of components of ValueType, for serialization
         static constexpr int numComponents = NodeValues::numComponents;
+
+        //! Unit type of field components
         using UnitValueType = pmacc::math::Vector< float_64, numComponents >;
 
-        typedef DataBox< PitchedBox< ValueType, simDim > > DataBoxType;
+        //! Type of data box for field values on host and device
+        using DataBoxType = DataBox< PitchedBox< ValueType, simDim > >;
 
-        typedef MappingDesc::SuperCellSize SuperCellSize;
+        //! Size of supercell
+        using SuperCellSize = MappingDesc::SuperCellSize ;
 
-        Field( MappingDesc cellDescription);
+        /** Create a field
+         *
+         * @param cellDescription mapping for kernels
+         */
+        HINLINE Field( MappingDesc const & cellDescription );
 
-        virtual void reset( uint32_t currentStep );
+        //! Get a reference to the host-device buffer for the field values
+        HINLINE GridBuffer< ValueType, simDim > & getGridBuffer( );
 
-        virtual EventTask asyncCommunication( EventTask serialEvent );
+        //! Get the grid layout
+        HINLINE GridLayout< simDim > getGridLayout( );
 
-        DataBoxType getHostDataBox( );
+        //! Get the host data box for the field values
+        HINLINE DataBoxType getHostDataBox( );
 
-        GridLayout< simDim > getGridLayout( );
+        //! Get the device data box for the field values
+        HINLINE DataBoxType getDeviceDataBox( );
 
-        DataBoxType getDeviceDataBox( );
+        /** Start asynchronous communication of field values
+         *
+         * @param serialEvent event to depend on
+         */
+        HINLINE virtual EventTask asyncCommunication( EventTask serialEvent );
 
-        GridBuffer< ValueType, simDim > & getGridBuffer( );
+        /** Reset the host-device buffer for field values
+         *
+         * @param currentStep index of time iteration
+         */
+        HINLINE void reset( uint32_t currentStep ) override;
 
-        void synchronize( );
+        //! Synchronize device data with host data
+        HINLINE void syncToDevice( ) override;
 
-        void syncToDevice( );
+        //! Synchronize host data with device data
+        HINLINE void synchronize( ) override;
 
     private:
 
+        //! Type of host-device buffer for field values
         using Buffer = pmacc::GridBuffer<
             ValueType,
             simDim
         >;
+
+        //! Host-device buffer for field values
         std::unique_ptr< Buffer > data;
+
     };
 
-    //! Additional electric field components in PML
+    /** Representation of the additinal electric field components in PML
+     *
+     * Stores field values on host and device and provides data synchronization
+     * between them.
+     *
+     * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
+     * ISimulationData.
+     */
     class FieldE : public Field
     {
     public:
 
-        FieldE( MappingDesc cellDescription):
+        /** Create a field
+         *
+         * @param cellDescription mapping for kernels
+         */
+        HINLINE FieldE( MappingDesc const & cellDescription ):
             Field( cellDescription )
         {
         }
 
-        SimulationDataId getUniqueId( )
+        //! Get id
+        HINLINE SimulationDataId getUniqueId( )
         {
             return getName( );
         }
 
+        //! Get units of field components
         HDINLINE static UnitValueType getUnit( )
         {
             return UnitValueType::create( UNIT_EFIELD );
         }
 
-        /** powers of the 7 base measures
+        /** Get unit representation as powers of the 7 base measures
          *
-         * characterizing the record's unit in SI
+         * Characterizing the record's unit in SI
          * (length L, mass M, time T, electric current I,
-         * thermodynamic temperature theta, amount of substance N,
-         * luminous intensity J) */
+         *  thermodynamic temperature theta, amount of substance N,
+         *  luminous intensity J)
+         */
         HINLINE static std::vector< float_64 > getUnitDimension( )
         {
             return picongpu::FieldE::getUnitDimension( );
         }
 
-        static std::string getName( )
+        //! Get text name
+        HINLINE static std::string getName( )
         {
             return "PML E components";
         }
 
     };
 
-    //! Additional magnetic field components in PML
+    /** Representation of the additinal magnetic field components in PML
+     *
+     * Stores field values on host and device and provides data synchronization
+     * between them.
+     *
+     * Implements interfaces defined by SimulationFieldHelper< MappingDesc > and
+     * ISimulationData.
+     */
     class FieldB : public Field
     {
     public:
 
-        FieldB( MappingDesc cellDescription):
+        /** Create a field
+         *
+         * @param cellDescription mapping for kernels
+         */
+        HINLINE FieldB( MappingDesc const & cellDescription ):
             Field( cellDescription )
         {
         }
 
-        SimulationDataId getUniqueId( )
+        //! Get id
+        HINLINE SimulationDataId getUniqueId( )
         {
             return getName( );
         }
 
+        //! Get units of field components
         HDINLINE static UnitValueType getUnit( )
         {
             return UnitValueType::create( UNIT_BFIELD );
         }
 
-        /** powers of the 7 base measures
+        /** Get unit representation as powers of the 7 base measures
          *
-         * characterizing the record's unit in SI
+         * Characterizing the record's unit in SI
          * (length L, mass M, time T, electric current I,
-         * thermodynamic temperature theta, amount of substance N,
-         * luminous intensity J) */
+         *  thermodynamic temperature theta, amount of substance N,
+         *  luminous intensity J)
+         */
         HINLINE static std::vector< float_64 > getUnitDimension( )
         {
             return picongpu::FieldB::getUnitDimension( );
         }
 
-        static std::string getName( )
+        //! Get text name
+        HINLINE static std::string getName( )
         {
             return "PML B components";
         }

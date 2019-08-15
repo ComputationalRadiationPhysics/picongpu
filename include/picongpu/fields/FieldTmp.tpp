@@ -51,7 +51,7 @@ namespace picongpu
     using namespace pmacc;
 
     FieldTmp::FieldTmp(
-        MappingDesc cellDescription,
+        MappingDesc const & cellDescription,
         uint32_t slotId
     ) :
         SimulationFieldHelper<MappingDesc>( cellDescription ),
@@ -183,10 +183,6 @@ namespace picongpu
             }
         }
 
-    }
-
-    FieldTmp::~FieldTmp( )
-    {
     }
 
     template<uint32_t AREA, class FrameSolver, class ParticlesClass>
