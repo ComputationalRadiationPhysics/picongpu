@@ -42,7 +42,14 @@ namespace picongpu
     {
     public:
 
-        enum ArgsErrorCode {SUCCESS=0,SUCCESS_EXIT=1,ERROR=42};
+        //! Parsing status
+        enum Status
+        {
+            success,
+            successExit,
+            error
+        };
+
         /**
          * Returns an instance of ArgsParser
          *
@@ -60,11 +67,9 @@ namespace picongpu
          *
          * @param argc number of command line arguments
          * @param argv command line arguments
-         * @return true if the simulation should proceed, false otherwise
+         * @return parsing status
          */
-        ArgsErrorCode parse(int argc, char **argv);
-
-
+        Status parse(int argc, char **argv);
 
     private:
         /**

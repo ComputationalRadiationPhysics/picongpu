@@ -43,7 +43,7 @@ namespace picongpu
          *
          * @return true if no error else false
          */
-        virtual ArgsParser::ArgsErrorCode parseConfigs(int argc, char **argv) = 0;
+        virtual ArgsParser::Status parseConfigs(int argc, char **argv) = 0;
 
         /*start simulation
          * is called after parsConfig and pluginLoad

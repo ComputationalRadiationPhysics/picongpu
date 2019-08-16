@@ -29,13 +29,6 @@
 #include <stdexcept>
 #include <string>
 
-/* Workaround for Visual Studio to avoid a collision between ERROR macro
- * defined in wingdi.h file (included from some standard library headers) and
- * enumerator ArgsParser::ArgsErrorCode::ERROR.
- */
-#ifdef _MSC_VER
-#   undef ERROR
-#endif
 
 namespace
 {
@@ -50,20 +43,20 @@ namespace
         using namespace picongpu;
 
         simulation_starter::SimStarter sim;
-        ArgsParser::ArgsErrorCode parserCode = sim.parseConfigs( argc, argv );
+        auto const parserStatus = sim.parseConfigs( argc, argv );
         int errorCode = EXIT_FAILURE;
 
-        switch( parserCode )
+        switch( parserStatus )
         {
-            case ArgsParser::ERROR:
+            case ArgsParser::Status::error:
                 errorCode = EXIT_FAILURE;
                 break;
-            case ArgsParser::SUCCESS:
+            case ArgsParser::Status::success:
                 sim.load( );
                 sim.start( );
                 sim.unload( );
                 PMACC_FALLTHROUGH;
-            case ArgsParser::SUCCESS_EXIT:
+            case ArgsParser::Status::successExit:
                 errorCode = 0;
                 break;
         };
