@@ -22,7 +22,7 @@
 #pragma once
 
 #include "pmacc/dataManagement/ISimulationData.hpp"
-#include "pmacc/dataManagement/IDataSorter.hpp"
+
 
 namespace pmacc
 {
