@@ -305,6 +305,9 @@ public:
         DataConnector &dc = Environment<>::get().DataConnector();
         initFields(dc);
 
+        // create field solver
+        this->myFieldSolver = new fields::Solver(*cellDescription);
+
         // Initialize random number generator and synchrotron functions, if there are synchrotron or bremsstrahlung Photons
         using AllSynchrotronPhotonsSpecies = typename pmacc::particles::traits::FilterByFlag<
             VectorAllSpecies,
@@ -417,9 +420,6 @@ public:
         log<picLog::MEMORY > ("free mem after all mem is allocated %1% MiB") % (freeGpuMem / 1024 / 1024);
 
         IdProvider<simDim>::init();
-
-        // create field solver
-        this->myFieldSolver = new fields::Solver(*cellDescription);
 
 #if( PMACC_CUDA_ENABLED == 1 )
         /* add CUDA streams to the StreamController for concurrent execution */
