@@ -7,7 +7,7 @@ It is supposed to give an estimate for the memory requirement of a PIConGPU
 simulation per device.
 
 Copyright 2018-2019 PIConGPU contributors
-Authors: Marco Garten
+Authors: Marco Garten, Sergei Bastrakov
 License: GPLv3+
 """
 
@@ -70,7 +70,8 @@ class MemoryCalculator:
             n_z=None,
             field_tmp_slots=1,
             particle_shape_order=2,
-            sim_dim=3
+            sim_dim=3,
+            pml_enabled=False
     ):
         """
         Memory reserved for fields on each device
@@ -92,6 +93,9 @@ class MemoryCalculator:
             ``species.param``: e.g. ``particles::shapes::PCS : 3rd order``)
         sim_dim : int
             simulation dimension (available for PIConGPU: 2 and 3)
+        pml_enabled : bool
+            whether the PML absorber is enabled
+            (see PIConGPU ``fieldSolver.param`` : ``Solver``)
 
         Returns
         -------
@@ -141,8 +145,11 @@ class MemoryCalculator:
                 sim_dim,
                 " =/= {2, 3}")
 
+        # number of additional PML field components: when enabled,
+        # 2 additional scalar fields for each of Ex, Ey, Ez, Bx, By, Bz
+        num_pml_fields = 12 if pml_enabled else 0
         # number of fields: 3 * 3 = x,y,z for E,B,J
-        num_fields = 3 * 3 + field_tmp_slots
+        num_fields = 3 * 3 + field_tmp_slots + num_pml_fields
         # double buffer memory
         double_buffer_mem = double_buffer_cells * num_fields * self.value_size
 
