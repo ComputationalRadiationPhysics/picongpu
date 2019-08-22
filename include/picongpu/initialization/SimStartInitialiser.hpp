@@ -32,7 +32,6 @@ namespace picongpu
  * Simulation startup initialiser.
  *
  * Initialises a new simulation from default values.
- * DataConnector has to be used with a FIFO compliant IDataSorter.
  *
  */
 class SimStartInitialiser : public AbstractInitialiser
