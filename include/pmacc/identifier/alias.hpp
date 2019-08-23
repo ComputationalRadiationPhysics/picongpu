@@ -38,8 +38,13 @@ identifier(pmacc_isAlias);
 
 #ifdef __CUDACC__
 #   define PMACC_alias_CUDA(name,id)                                          \
-        namespace PMACC_JOIN(device_placeholder,id){                           \
-            __constant__ PMACC_JOIN(placeholder_definition,id)::name<> PMACC_JOIN(name,_); \
+        namespace PMACC_JOIN(device_placeholder,id){                          \
+            /* This variable exists only for template parameter deduction, its
+             * value is never used. So in this case it is fine to have a
+             * separate version in each translation unit due to static.
+             */                                                               \
+            static __constant__ PMACC_JOIN(placeholder_definition,id)::name<> \
+                PMACC_JOIN(name,_);                                           \
         }
 #else
 #   define PMACC_alias_CUDA(name,id)
@@ -59,7 +64,12 @@ identifier(pmacc_isAlias);
     }                                                                          \
     using namespace PMACC_JOIN(placeholder_definition,id);                     \
     namespace PMACC_JOIN(host_placeholder,id){                                 \
-        PMACC_JOIN(placeholder_definition,id)::name<> PMACC_JOIN(name,_);      \
+        /* This variable exists only for template parameter deduction, its value
+         * is never used. So in this case it is fine to have a separate version
+         * in each translation unit due to static.
+         */                                                                    \
+        static PMACC_JOIN(placeholder_definition,id)::name<>                   \
+            PMACC_JOIN(name,_);                                                \
     }                                                                          \
     PMACC_alias_CUDA(name,id);                                                 \
     PMACC_PLACEHOLDER(id);
