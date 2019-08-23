@@ -54,7 +54,7 @@ namespace
         /* Moving window: a new run-time parameter 'windowMovePoint' to replace
          * compile-time 'movePoint' variable
          */
-        bool isMovingWindowEnabled = vm[ "moving" ].as< bool >( );
+        bool isMovingWindowEnabled = !vm[ "moving" ].empty();
         if( isMovingWindowEnabled )
         {
             bool isWindowMovePointSet = !vm[ "windowMovePoint" ].defaulted( );
