@@ -24,6 +24,8 @@
 #include <pmacc/verify.hpp>
 #include <pmacc/assert.hpp>
 
+#include <algorithm>
+#include <array>
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
@@ -48,6 +50,7 @@
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldTmp.hpp"
 #include "picongpu/fields/MaxwellSolver/Solvers.hpp"
+#include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 #include "picongpu/fields/background/cellwiseOperation.hpp"
 #include "picongpu/initialization/IInitPlugin.hpp"
 #include "picongpu/initialization/ParserGridDistribution.hpp"
@@ -587,18 +590,12 @@ public:
 
     virtual void resetAll(uint32_t currentStep)
     {
-        DataConnector &dc = Environment<>::get().DataConnector();
-
-        auto fieldE = dc.get< FieldE >( FieldE::getName(), true );
-        auto fieldB = dc.get< FieldB >( FieldB::getName(), true );
-
-        fieldB->reset(currentStep);
-        fieldE->reset(currentStep);
-        meta::ForEach< VectorAllSpecies, particles::CallReset< bmpl::_1 > > callReset;
-        callReset( currentStep );
-
-        dc.releaseData( FieldE::getName() );
-        dc.releaseData( FieldB::getName() );
+        resetFields( currentStep );
+        meta::ForEach<
+            VectorAllSpecies,
+            particles::CallReset< bmpl::_1 >
+        > resetParticles;
+        resetParticles( currentStep );
     }
 
     void slide(uint32_t currentStep)
@@ -680,6 +677,46 @@ private:
             auto fieldTmp = makeUnique< FieldTmp >( *cellDescription, slot );
             dataConnector.consume( std::move( fieldTmp ) );
         }
+    }
+
+    /** Reset all fields
+     *
+     * @param currentStep iteration number of the current step
+     */
+    void resetFields( uint32_t const currentStep )
+    {
+        auto resetField = [currentStep]( std::string const name )
+        {
+            DataConnector & dc = Environment<>::get().DataConnector();
+            auto const fieldExists = dc.hasId( name );
+            if( fieldExists )
+            {
+                using FieldHelper = SimulationFieldHelper< MappingDesc >;
+                auto field = std::dynamic_pointer_cast< FieldHelper >(
+                    dc.get< ISimulationData >( name, true )
+                );
+                if( field )
+                    field->reset( currentStep );
+                dc.releaseData( name );
+            }
+        };
+
+        /* @todo for now the list of fields is hardcoded here, a more generic
+         * solution would require changes to design of DataConnector.
+         * FieldJ and FieldTmp are effectively cleared each time iteration and
+         * so do not need a reset.
+         */
+        std::array< std::string, 4 > const fieldNames{ {
+            FieldE::getName(),
+            FieldB::getName(),
+            fields::maxwellSolver::yeePML::FieldE::getName(),
+            fields::maxwellSolver::yeePML::FieldB::getName()
+        } };
+        std::for_each(
+            fieldNames.cbegin(),
+            fieldNames.cend(),
+            resetField
+        );
     }
 
 };
