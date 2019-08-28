@@ -81,7 +81,6 @@
 #include <unistd.h>
 #endif
 
-#include <pthread.h>
 #include <sstream>
 #include <string>
 #include <list>
