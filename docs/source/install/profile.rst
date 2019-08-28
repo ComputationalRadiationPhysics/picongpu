@@ -276,3 +276,20 @@ Queue: gpus (4 x Nvidia V100 GPUs)
 
 .. literalinclude:: profiles/juwels-jsc/gpus_picongpu.profile.example
    :language: bash
+
+ARIS (GRNET)
+------------
+
+**System overview:** `link <http://doc.aris.grnet.gr/>`_
+
+**User guide:** `link <http://doc.aris.grnet.gr/environment/>`_
+
+**Production directory:** ``$WORKDIR`` (`link <http://doc.aris.grnet.gr/system/storage/>`_)
+
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>`.
+
+Queue: gpu (2 x NVIDIA Tesla k40m GPUs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/aris-grnet/gpu_picongpu.profile.example
+   :language: bash
