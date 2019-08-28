@@ -52,7 +52,7 @@ namespace picongpu
         /* E is in volts per meters: V / m = kg * m / (A * s^3)
          *   -> L * M * T^-3 * I^-1
          */
-        std::vector< float_64 > unitDimension{ 7, 0.0 };
+        std::vector< float_64 > unitDimension( 7, 0.0 );
         unitDimension.at( SIBaseUnits::length ) =  1.0;
         unitDimension.at( SIBaseUnits::mass )   =  1.0;
         unitDimension.at( SIBaseUnits::time )   = -3.0;
