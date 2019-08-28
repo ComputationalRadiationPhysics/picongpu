@@ -52,7 +52,7 @@ namespace picongpu
         /* B is in Tesla : kg / (A * s^2)
          *   -> M * T^-2 * I^-1
          */
-        std::vector< float_64 > unitDimension{ 7, 0.0 };
+        std::vector< float_64 > unitDimension( 7, 0.0 );
         unitDimension.at( SIBaseUnits::mass ) =  1.0;
         unitDimension.at( SIBaseUnits::time ) = -2.0;
         unitDimension.at( SIBaseUnits::electricCurrent ) = -1.0;
