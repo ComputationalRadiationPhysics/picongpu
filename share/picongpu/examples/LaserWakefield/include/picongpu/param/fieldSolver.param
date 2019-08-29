@@ -64,6 +64,9 @@ namespace fields
      *
      * Field Solver Selection:
      *  - Yee< CurrentInterpolation >: standard Yee solver
+     *  - YeePML< CurrentInterpolation >: standard Yee solver with PML absorber
+     *      warning: requires a substantial amount of additional memory,
+     *      equal to 12 scalar fields
      *  - Lehe< CurrentInterpolation >: Num. Cherenkov free field solver in a chosen direction
      *  - DirSplitting< CurrentInterpolation >: Sentoku's Directional Splitting Method
      *  - None< CurrentInterpolation >: disable the vacuum update of E and B
