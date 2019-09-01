@@ -194,6 +194,23 @@ Additionally, you need to make the ``rsync`` command available as written below.
 .. literalinclude:: profiles/lawrencium-lbnl/picongpu.profile.example
    :language: bash
 
+Cori (NERSC)
+------------
+
+**System overview:** `link <https://www.nersc.gov/users/computational-systems/cori/configuration/>`_
+
+**User guide:** `link <https://docs.nersc.gov/>`_
+
+**Production directory:** ``$SCRATCH`` (`link <https://www.nersc.gov/users/storage-and-file-systems/>`_).
+
+For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and libSplash <install-dependencies>` manually.
+
+Queue: regular (Intel  Intel Xeon Phi - Knights Landing)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/cori-nersc/knl_picongpu.profile.example
+   :language: bash
+
 Draco (MPCDF)
 -------------
 
