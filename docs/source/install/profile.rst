@@ -154,8 +154,8 @@ Queue: gpu2 (Nvidia K80 GPUs)
 .. literalinclude:: profiles/taurus-tud/k80_picongpu.profile.example
    :language: bash
 
-Queue: knl (Intel  Intel Xeon Phi - Knights Landing)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Queue: knl (Intel Xeon Phi - Knights Landing)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For this profile, you additionally need to install your own :ref:`boost <install-dependencies>`.
 
@@ -205,8 +205,8 @@ Cori (NERSC)
 
 For these profiles to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`PNGwriter and libSplash <install-dependencies>` manually.
 
-Queue: regular (Intel  Intel Xeon Phi - Knights Landing)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Queue: regular (Intel Xeon Phi - Knights Landing)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: profiles/cori-nersc/knl_picongpu.profile.example
    :language: bash
