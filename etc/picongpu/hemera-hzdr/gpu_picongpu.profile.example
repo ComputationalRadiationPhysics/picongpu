@@ -55,7 +55,7 @@ export TBG_SUBMIT="sbatch"
 export TBG_TPLFILE="etc/picongpu/hemera-hzdr/gpu.tpl"
 
 # allocate an interactive shell for one hour
-#   getNode 2  # allocates to interactive nodes (default: 1)
+#   getNode 2  # allocates two interactive nodes (default: 1)
 function getNode() {
     if [ -z "$1" ] ; then
         numNodes=1
@@ -66,7 +66,7 @@ function getNode() {
 }
 
 # allocate an interactive shell for one hour
-#   getDevice 2  # allocates to interactive devices (default: 1)
+#   getDevice 2  # allocates two interactive devices (default: 1)
 function getDevice() {
     if [ -z "$1" ] ; then
         numGPUs=1
