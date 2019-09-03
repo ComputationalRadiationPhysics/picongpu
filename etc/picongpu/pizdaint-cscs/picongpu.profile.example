@@ -95,7 +95,7 @@ export TBG_TPLFILE="etc/picongpu/pizdaint-cscs/normal.tpl"
 # helper tools ################################################################
 
 # allocate an interactive shell for one hour
-#   getNode 2  # allocates to interactive nodes (default: 1)
+#   getNode 2  # allocates two interactive nodes (default: 1)
 getNode() {
     if [ -z "$1" ] ; then
         numNodes=1
