@@ -116,7 +116,7 @@ private:
      * @param kappa energy loss normalized to Ekin
      * @param targetZ atomic number of the target material
      */
-    float_64 dcs(const float_64 Ekin, const float_64 kappa, const float_64 targetZ) const;
+    HINLINE float_64 dcs(const float_64 Ekin, const float_64 kappa, const float_64 targetZ) const;
 
     /** differential cross section times energy loss
      */
@@ -142,19 +142,19 @@ public:
      *
      * @param targetZ atomic number of the target material
      */
-    void init(const float_64 targetZ);
+    HINLINE void init(const float_64 targetZ);
 
     /** Return a functor representing the scaled differential cross section
      *
      * scaled differential cross section = electron energy loss times cross section per unit energy
      */
-    LookupTableFunctor getScaledSpectrumFunctor() const;
+    HINLINE LookupTableFunctor getScaledSpectrumFunctor() const;
 
     /** Return a functor representing the stopping power
      *
      * stopping power = energy loss per unit length
      */
-    LookupTableFunctor getStoppingPowerFunctor() const;
+    HINLINE LookupTableFunctor getStoppingPowerFunctor() const;
 };
 
 

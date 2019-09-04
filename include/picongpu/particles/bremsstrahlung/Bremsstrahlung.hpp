@@ -107,7 +107,7 @@ private:
 
 public:
     /* host constructor initializing member */
-    Bremsstrahlung(
+    HINLINE Bremsstrahlung(
         const ScaledSpectrum::LookupTableFunctor& scaledSpectrumFunctor,
         const ScaledSpectrum::LookupTableFunctor& stoppingPowerFunctor,
         const GetPhotonAngle::GetPhotonAngleFunctor& getPhotonAngleFunctor,
