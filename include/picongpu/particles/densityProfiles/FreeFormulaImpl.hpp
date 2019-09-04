@@ -28,10 +28,10 @@ namespace picongpu
 {
 namespace densityProfiles
 {
-    template< typename T_UserFuntor >
-    struct FreeFormulaImpl : public particles::functor::User< T_UserFuntor >
+    template< typename T_UserFunctor >
+    struct FreeFormulaImpl : public particles::functor::User< T_UserFunctor >
     {
-        using UserFunctor = particles::functor::User< T_UserFuntor >;
+        using UserFunctor = particles::functor::User< T_UserFunctor >;
 
         template< typename T_SpeciesType >
         struct apply
