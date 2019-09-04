@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Rene Widera
+/* Copyright 2015-2019 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *
@@ -33,41 +33,57 @@ namespace pmacc
 namespace traits
 {
 
+/** Get next available type id
+ *
+ * Warning: is not thread-safe.
+ */
+inline uint64_t getNextId( );
+
 namespace detail
 {
 
-/** create unique id
+/** Global counter for type ids
+ */
+inline uint64_t & counter()
+{
+    static uint64_t value = 0;
+    return value;
+}
+
+/** Unique id for a given type
  *
- * id is not beginning with zero
- *
- * This class is based on
- *  - http://stackoverflow.com/a/7562583
- *  - author: MSN (edited version from Sep 27th 2011 at 3:59)
- *  - license: CC-BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0/)
+ * @tparam T_Type type
  */
 template<typename T_Type>
-struct GetUniqueTypeId
+struct TypeId
 {
-    static uint64_t counter;
     static const uint64_t id;
 };
 
-template<>
-const uint64_t GetUniqueTypeId<uint8_t>::id = 0;
-template<>
-uint64_t GetUniqueTypeId<uint8_t>::counter = 0;
-
+/** These id values are generated during the startup for all types that cause
+ *  instantiation of GetUniqueTypeId<T_Type>::uid().
+ *
+ * The order of calls to GetUniqueTypeId<T_Type>::uid() does not affect the id
+ * generation, which guarantees the ids are matching for all processes even when
+ * the run-time access is not.
+ */
 template<typename T_Type>
-const uint64_t GetUniqueTypeId<T_Type>::id = ++GetUniqueTypeId<uint8_t>::counter;
-
-template<typename T_Type>
-uint64_t GetUniqueTypeId<T_Type>::counter = GetUniqueTypeId<T_Type>::id;
+const uint64_t TypeId<T_Type>::id = getNextId( );
 
 } //namespace detail
 
+/** Get next available type id
+ *
+ * Warning: is not thread-safe.
+ */
+uint64_t getNextId( )
+{
+    return ++detail::counter( );
+}
+
 /** Get a unique id of a type
  *
- * - generate a unique id of a type at *runtime*
+ * - get a unique id of a type at runtime
  * - the id of a type is equal on each instance of a process
  *
  * @tparam T_Type any object (class or typename)
@@ -86,7 +102,7 @@ struct GetUniqueTypeId
     static const ResultType uid(uint64_t maxValue = boost::numeric::bounds<ResultType>::highest())
     {
 
-        const uint64_t id = detail::GetUniqueTypeId<Type>::id;
+        const uint64_t id = detail::TypeId<Type>::id;
 
         /* if `id` is out of range than throw an error */
         if (id > maxValue)
