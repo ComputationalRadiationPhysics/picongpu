@@ -52,7 +52,7 @@ Batch System Examples
 Slurm
 """""
 
-Slurm is a modern batch system, e.g. installed on the Taurus cluster at TU Dresden.
+Slurm is a modern batch system, e.g. installed on the Taurus cluster at TU Dresden, Hemera at HZDR, Cori at NERSC, among others.
 
 .. include:: ../install/profiles/taurus-tud/Slurm_Tutorial.rst
    :start-line: 3
