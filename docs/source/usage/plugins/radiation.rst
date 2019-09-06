@@ -318,6 +318,60 @@ Command line flag                        Output description
                                          These are for restart purposes and for more complex data analysis.
 ======================================== ========================================================================================================================
 
+
+Text-based output
+"""""""""""""""""
+
+The text-based output of ``lastRadiation`` and ``totalRadiation`` contains the intensity values in SI-units :math:`[Js]`. Intensity-values for different frequencies are separated by spaces, while newlines separate values for different observation directions. 
+
+HDF5 output
+"""""""""""
+
+The hdf5 based data contains the following data structure in ``/data/{interation}/DetectorMesh/`` according to the openPMD standard:
+
+**Amplitude (Group):**
+
+======== ===================================================== ====================================
+Dataset  Description                                           Dimensions
+======== ===================================================== ====================================
+``x_Re`` real part, x-component of the complex amplitude       (``N_observer``, ``N_omega``, 1)
+``x_Im`` imaginary part, x-component of the complex amplitude  (``N_observer``, ``N_omega``, 1)
+``y_Re`` real part, y-component of the complex amplitude       (``N_observer``, ``N_omega``, 1)
+``y_Im`` imaginary part, y-component of the complex amplitude  (``N_observer``, ``N_omega``, 1)
+``z_Re`` real part, z-component of the complex amplitude       (``N_observer``, ``N_omega``, 1)
+``z_Im`` imaginary part, z-component of the complex amplitude  (``N_observer``, ``N_omega``, 1)
+======== ===================================================== ====================================
+
+**DetectorDirection (Group):**
+
+======== ======================================================= ===============================
+Dataset  Description                                             Dimensions
+======== ======================================================= ===============================
+``x``    x-component of the observation direction :math:`\vec n` (``N_observer``, 1, 1)
+``y``    y-component of the observation direction :math:`\vec n` (``N_observer``, 1, 1)
+``z``    z-component of the observation direction :math:`\vec n` (``N_observer``, 1, 1)
+======== ======================================================= ===============================
+
+**DetectorFrequency (Group):**
+
+========== ======================================================= ===============================
+Dataset    Description                                             Dimensions
+========== ======================================================= ===============================
+``omega``  frequency :math:`\omega` of virtual detector bin        (1, ``N_omega``, 1)
+========== ======================================================= ===============================
+
+
+Please be aware that all datasets in the hdf5 output are given in the PIConGPU-intrinsic unit system. In order to convert, for example, the frequencies :math:`\omega` to SI-units one has to multiply with the dataset-attribute `unitSI`. 
+
+.. code:: python
+
+   import h5py
+   f = h5py.File("e_radAmplitudes_2800_0_0_0.h5", "r")
+   omega_handler = f['/data/2800/DetectorMesh/DetectorFrequency/omega']
+   omega = omega_handler[0, :, 0] * omega_handler.attrs['unitSI'] 
+   f.close()
+
+
 Analysing tools
 ^^^^^^^^^^^^^^^^
 
