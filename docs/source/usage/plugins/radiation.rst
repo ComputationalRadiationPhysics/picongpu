@@ -421,6 +421,54 @@ Please be aware that all datasets in the hdf5 output are given in the PIConGPU-i
    omega = omega_handler[0, :, 0] * omega_handler.attrs['unitSI'] 
    f.close()
 
+In order to extract the radiation data from the HDF5 datasets, PIConGPU provides a python module to read the data and obtain the result in SI-units. An example python script is given below:
+
+.. code:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt 
+    from matplotlib.colors import LogNorm
+
+    from picongpu.plugins.data import RadiationData
+
+    # access HDF5 radiation file
+    radData = RadiationData("./simOutput/radiationHDF5/e_radAmplitudes_2820_0_0_0.h5")
+
+    # get frequencies
+    omega = radData.get_omega()
+
+    # get all observation vectors and convert to angle
+
+    vec_n = radData.get_vector_n()
+    gamma = 5.0
+    theta_norm = np.arctan(vec_n[:, 0]/vec_n[:, 1]) * gamma 
+
+    # get spectrum over observation angle
+    spectrum = radData.get_Spectra()
+
+    # plot radiation spectrum
+    plt.figure()
+    plt.pcolormesh(omega, theta_norm, spectrum, norm=LogNorm())
+
+    # add and configure colorbar
+    cb = plt.colorbar()
+    cb.set_label(r"$\frac{\mathrm{d}^2 I}{\mathrm{d} \omega \mathrm{d} \Omega} \, \mathrm{[Js]}$", fontsize=18)
+    for i in cb.ax.get_yticklabels():
+        i.set_fontsize(14)
+
+    # configure x-axis
+    plt.xlabel(r"$\omega \, \mathrm{[1/s]}$", fontsize=18)
+    plt.xticks(fontsize=14)
+
+    # configure y-axis
+    plt.ylabel(r"$\theta / \gamma$", fontsize=18)
+    plt.yticks(fontsize=14)
+
+    # make plot look nice
+    plt.tight_layout()
+    plt.show()
+
+
 
 Analysing tools
 ^^^^^^^^^^^^^^^^
