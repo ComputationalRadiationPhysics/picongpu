@@ -324,6 +324,56 @@ Text-based output
 
 The text-based output of ``lastRadiation`` and ``totalRadiation`` contains the intensity values in SI-units :math:`[Js]`. Intensity-values for different frequencies are separated by spaces, while newlines separate values for different observation directions. 
 
+
+In order to read and plot the text-based radiation data, a python script as follows could be used:
+
+.. code:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LogNorm
+
+    # frequency definition:
+    # as defined in the 'radiation.param' file:
+    N_omega = 1024
+    omega_min = 0.0 # [1/s]
+    omega_max = 5.8869e17 # [1/s]
+    omega = np.linspace(omega_min, omega_max, N_omega)
+
+    # observation angle definition:
+    # as defined in the 'radiation.param' file:
+    N_observer = 128
+    # as defined in the 'radiationObserver.param' file:
+    theta_min = -1.5 # [rad/gamma]
+    theta_max = +1.5 # [rad/gamma]
+    theta = np.linspace(theta_min, theta_max, N_observer)
+
+    # load radiation text-based data
+    rad_data = np.loadtxt('./simOutput/lastRad/e_radiation_2820.dat')
+
+    # plot radiation spectrum
+    plt.figure()
+    plt.pcolormesh(omega, theta, rad_data, norm=LogNorm())
+
+    # add and configure colorbar
+    cb = plt.colorbar()
+    cb.set_label(r"$\frac{\mathrm{d}^2 I}{\mathrm{d} \omega \mathrm{d} \Omega} \, \mathrm{[Js]}$", fontsize=18)
+    for i in cb.ax.get_yticklabels():
+        i.set_fontsize(14)
+
+    # configure x-axis
+    plt.xlabel(r"$\omega \, \mathrm{[1/s]}$", fontsize=18)
+    plt.xticks(fontsize=14)
+
+    # configure y-axis
+    plt.ylabel(r"$\theta / \gamma$", fontsize=18)
+    plt.yticks(fontsize=14)
+
+    # make plot look nice
+    plt.tight_layout()
+    plt.show()
+
+
 HDF5 output
 """""""""""
 
