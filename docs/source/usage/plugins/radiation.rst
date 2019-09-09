@@ -322,7 +322,7 @@ Command line flag                        Output description
 Text-based output
 """""""""""""""""
 
-The text-based output of ``lastRadiation`` and ``totalRadiation`` contains the intensity values in SI-units :math:`[Js]`. Intensity-values for different frequencies are separated by spaces, while newlines separate values for different observation directions. 
+The text-based output of ``lastRadiation`` and ``totalRadiation`` contains the intensity values in SI-units :math:`[Js]`. Intensity values for different frequencies are separated by spaces, while newlines separate values for different observation directions. 
 
 
 In order to read and plot the text-based radiation data, a python script as follows could be used:
@@ -488,7 +488,7 @@ Method                       Description
    Modules for visualizing radiation data and a widget interface to explore the data interactively will be developed in the future. 
 
 Analyzing tools
-^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 
 In ``picongp/src/tools/bin``, there are tools to analyze the radiation data after the simulation.
 
