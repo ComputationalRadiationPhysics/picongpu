@@ -56,9 +56,9 @@ Currently you can choose from the following setups for the frequency range:
 ============================= ==============================================================================================
 namespace                     Description
 ============================= ==============================================================================================
-``linear_frequencies``    linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``log_frequencies``       logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``frequencies_from_list`` ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
+``linear_frequencies``        linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``log_frequencies``           logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``frequencies_from_list``     ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
 ============================= ==============================================================================================
 
 
@@ -276,7 +276,7 @@ Command line option                       Description
 ``--<species>_radiation.start``           Time step, at which PIConGPU starts calculating the radiation.
                                           Default is ``2`` in order to get enough history of the particles.
 ``--<species>_radiation.end``             Time step, at which the radiation calculation should end.
-                                          Default: ``0``(stops at end of simulation).
+                                          Default: ``0`` (stops at end of simulation).
 ``--<species>_radiation.radPerGPU``       If set, each GPU additionally stores its own spectra without summing over the entire simulation area.
                                           This allows for a localization of specific spectral features.
 ``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
@@ -485,7 +485,7 @@ Method                       Description
 
 
 
-Analysing tools
+Analyzing tools
 ^^^^^^^^^^^^^^^^
 
 In ``picongp/src/tools/bin``, there are tools to analyze the radiation data after the simulation.
