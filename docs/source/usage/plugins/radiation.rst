@@ -483,7 +483,9 @@ Method                       Description
 ``.get_timestep()``          the iteration (timestep) at which the data was produced (unit: PIC-cycles)
 ============================ ==============================================================================================================
 
+.. note::
 
+   Modules for visualizing radiation data and a widget interface to explore the data interactively will be developed in the future. 
 
 Analyzing tools
 ^^^^^^^^^^^^^^^^
