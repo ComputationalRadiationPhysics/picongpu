@@ -263,8 +263,6 @@ Command line option                       Description
                                           Default is ``2`` in order to get enough history of the particles.
 ``--<species>_radiation.end``             Time step, at which the radiation calculation should end.
                                           Default: ``0``(stops at end of simulation).
-``--<species>_radiation.omegaList``       In case the frequencies for the spectrum are coming from a list stored in a file, this gives the path to this list.
-                                          Default: ``_noPath_`` throws an error. *This does not switch on the frequency calculation via list.*
 ``--<species>_radiation.radPerGPU``       If set, each GPU additionally stores its own spectra without summing over the entire simulation area.
                                           This allows for a localization of specific spectral features.
 ``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
