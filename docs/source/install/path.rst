@@ -53,7 +53,7 @@ Useful for small desktop or single-node runs.
 Nvidia-Docker
 ^^^^^^^^^^^^^
 
-Not yet officially supported, but we already provide a ``Dockerfile`` to get started.
+Not yet officially supported [nvidia-docker]_, but we already provide a ``Dockerfile`` to get started.
 Performance might be not ideal if the image is not built for the specific local hardware again.
 Useful for small desktop or single-node runs.
 We are also working on `Singularity <http://singularity.lbl.gov/>`_ images.

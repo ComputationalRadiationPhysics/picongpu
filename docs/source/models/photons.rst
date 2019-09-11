@@ -5,12 +5,12 @@ Photons
 .. moduleauthor:: Heiko Burau
 
 Radiation reaction and (hard) photons: why and when are they needed.
-Models we implemented and verified:
+Models we implemented ([Gonoskov]_ and [Furry]_) and verified:
 
 * :ref:`Landau-Lifschitz Model (semi-classical) <model-LL-RR>`
 * QED Models (Synchrotron & Bremsstrahlung)
 
-Would be great to add your Diploma Thesis talk with pictures and comments here.
+Would be great to add your Diploma Thesis [Burau2016]_ talk with pictures and comments here.
 
 Please add notes and warnings on the models' assumptions for an easy guiding on their usage :)
 
