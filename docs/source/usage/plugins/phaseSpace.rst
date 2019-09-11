@@ -165,6 +165,7 @@ sure that ``ipywidgets`` and ``ìpympl`` are installed.
 After starting the notebook server write the following
 
 .. code:: python
+
    # this is required!
    %matplotlib widget
    import matplotlib.pyplot as plt
