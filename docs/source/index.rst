@@ -106,6 +106,7 @@ Development
    :hidden:
 
    dev/CONTRIBUTING.md
+   dev/docs/COMMIT.md
    dev/repostructure
    dev/styleguide
    dev/sphinx
