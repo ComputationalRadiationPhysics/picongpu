@@ -77,7 +77,10 @@ In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum fre
 For the **file-based frequency** definition,  all definitions need to be in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace.
 The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values un units of :math:`[s^{-1}]` needs to be given as ``constexpr char listLocation[] = "/path/to/frequency_list";``. 
 
+.. note::
 
+   Currently, the variable ``listLocation`` is required to be defined in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace, even if ``frequencies_from_list`` is not used.
+   The string does not need to point to an existing file, as long as the file-based frequency definition is not used.
 
 
 Observation directions
