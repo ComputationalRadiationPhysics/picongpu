@@ -57,11 +57,13 @@ namespace picongpu
         SimulationFieldHelper<MappingDesc>( cellDescription ),
         m_slotId( slotId )
     {
-        m_commTagScatter =
-            ++pmacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
-            SPECIES_FIRSTTAG;
-        m_commTagGather = ++pmacc::traits::detail::GetUniqueTypeId< uint8_t >::counter +
-            SPECIES_FIRSTTAG;
+        /* Since this class is instantiated for each temporary field slot,
+         * use getNextId( ) directly to get unique tags for each instance.
+         * Add SPECIES_FIRSTTAG to avoid collisions with the tags for
+         * other fields.
+         */
+        m_commTagScatter = pmacc::traits::getNextId( ) + SPECIES_FIRSTTAG;
+        m_commTagGather = pmacc::traits::getNextId( ) + SPECIES_FIRSTTAG;
 
         using Buffer = GridBuffer< ValueType, simDim >;
         fieldTmp = memory::makeUnique< Buffer >( cellDescription.getGridLayout( ) );
