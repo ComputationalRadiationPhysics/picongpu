@@ -62,6 +62,24 @@ namespace                     Description
 ============================= ==============================================================================================
 
 
+
+All three options require variable definitions in the according namespaces as described below:
+
+For the **linear frequency** scale all definitions need to be in the ``picongpu::plugins::radiation::linear_frequencies`` namespace. 
+The number of total sample frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``.
+In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum frequency ``omega_max`` need to be defined as ``constexpr float_64``.
+
+For the **logarithmic frequency** scale all definitions need to be in the ``picongpu::plugins::radiation::log_frequencies`` namespace. 
+Equivalently to the linear case, three variables need to be defined: 
+The number of total sample frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``.
+In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum frequency ``omega_max`` need to be defined as ``constexpr float_64``.
+
+For the **file-based frequency** definition,  all definitions need to be in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace.
+The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values un units of :math:`[s^{-1}]` needs to be given as ``constexpr char listLocation[] = "/path/to/frequency_list";``. 
+
+
+
+
 Observation directions
 """"""""""""""""""""""
 
