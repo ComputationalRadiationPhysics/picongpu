@@ -71,7 +71,7 @@ namespace picongpu
          * @param cellDescription mapping for kernels
          * @param slotId index of the temporary field
          */
-        FieldTmp(
+        HINLINE FieldTmp(
             MappingDesc const & cellDescription,
             uint32_t slotId
         );
