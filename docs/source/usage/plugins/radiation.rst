@@ -344,6 +344,8 @@ In order to read and plot the text-based radiation data, a python script as foll
     # as defined in the 'radiation.param' file:
     N_observer = 128
     # as defined in the 'radiationObserver.param' file:
+    # this example assumes one used the default Bunch example
+    # there, the theta values are normalized to the Lorentz factor
     theta_min = -1.5 # [rad/gamma]
     theta_max = +1.5 # [rad/gamma]
     theta = np.linspace(theta_min, theta_max, N_observer)
