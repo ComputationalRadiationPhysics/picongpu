@@ -80,7 +80,7 @@ namespace SI
 namespace frequencies_from_list
 {
     /** path to text file with frequencies */
-    constexpr char listLocation[] = "/path/to/frequency_list";
+    constexpr const char * listLocation = "/path/to/frequency_list";
     /** number of frequency values to compute if frequencies are given in a file [unitless] */
     constexpr unsigned int N_omega = 2048;
 } // namespace frequencies_from_list

@@ -69,7 +69,7 @@ constexpr unsigned int N_omega = 1024; // number of frequencies
 namespace frequencies_from_list
 {
 /** path to text file with frequencies */
-const char listLocation[] = "/path/to/frequency.list";
+constexpr const char * listLocation = "/path/to/frequency.list";
 constexpr unsigned int N_omega = 2048; // number of frequencies
 }
 

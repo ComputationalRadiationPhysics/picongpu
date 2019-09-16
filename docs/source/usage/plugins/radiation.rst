@@ -75,7 +75,7 @@ The number of total sample frequencies ``N_omega`` need to be defined as ``const
 In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum frequency ``omega_max`` need to be defined as ``constexpr float_64``.
 
 For the **file-based frequency** definition,  all definitions need to be in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace.
-The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values un units of :math:`[s^{-1}]` needs to be given as ``constexpr char listLocation[] = "/path/to/frequency_list";``. 
+The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values un units of :math:`[s^{-1}]` needs to be given as ``constexpr const char * listLocation = "/path/to/frequency_list";``.
 
 .. note::
 
