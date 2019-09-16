@@ -338,7 +338,7 @@ private:
                     detectorFrequencies = new float_64[radiation_frequencies::N_omega];
                     for(uint32_t detectorIndex=0; detectorIndex < radiation_frequencies::N_omega; ++detectorIndex)
                     {
-                        detectorFrequencies[detectorIndex] = freqFkt(detectorIndex);
+                        detectorFrequencies[detectorIndex] = freqFkt.get(detectorIndex);
                     }
 
                 }

@@ -43,6 +43,11 @@ namespace linear_frequencies
       {
           return omega_min + float_X(ID) * delta_omega;
       }
+
+      HINLINE float_X get(const int ID)
+      {
+          return operator()(ID);
+      }
     };
 
 

@@ -46,6 +46,11 @@ namespace log_frequencies
           return  math::exp(omega_log_min + (float_X(ID)) * delta_omega_log) ;
       }
 
+      HINLINE float_X get(const int ID)
+      {
+          return operator()(ID);
+      }
+
     private:
       float_X omega_log_min;
       float_X delta_omega_log;

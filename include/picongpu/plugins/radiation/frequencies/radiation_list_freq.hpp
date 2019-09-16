@@ -44,17 +44,26 @@ namespace frequencies_from_list
       FreqFunctor(void)
       { }
 
-      FreqFunctor(DBoxType frequencies_handed)
-      : frequencies(frequencies_handed)
-      { }
-
-      HDINLINE float_X operator()(const unsigned int ID)
+      template< typename T >
+      FreqFunctor(T frequencies_handed)
       {
-          return (ID < radiation_frequencies::N_omega) ?  frequencies[ID] : 0.0  ;
+          this->frequencies_dev = frequencies_handed->getDeviceBuffer().getDataBox();
+          this->frequencies_host = frequencies_handed->getHostBuffer().getDataBox();
+      }
+
+      DINLINE float_X operator()(const unsigned int ID)
+      {
+          return (ID < radiation_frequencies::N_omega) ?  frequencies_dev[ID] : 0.0  ;
+      }
+
+      HINLINE float_X get(const unsigned int ID)
+      {
+          return (ID < radiation_frequencies::N_omega) ?  frequencies_host[ID] : 0.0  ;
       }
 
     private:
-      DBoxType frequencies;
+      DBoxType frequencies_dev;
+      DBoxType frequencies_host;
 
     };
 
@@ -111,7 +120,7 @@ namespace frequencies_from_list
 
       FreqFunctor getFunctor(void)
       {
-          return FreqFunctor(frequencyBuffer->getDeviceBuffer().getDataBox());
+          return FreqFunctor(frequencyBuffer);
       }
 
     private:
