@@ -62,6 +62,28 @@ namespace                     Description
 ============================= ==============================================================================================
 
 
+
+All three options require variable definitions in the according namespaces as described below:
+
+For the **linear frequency** scale all definitions need to be in the ``picongpu::plugins::radiation::linear_frequencies`` namespace. 
+The number of total sample frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``.
+In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum frequency ``omega_max`` need to be defined as ``constexpr float_64``.
+
+For the **logarithmic frequency** scale all definitions need to be in the ``picongpu::plugins::radiation::log_frequencies`` namespace. 
+Equivalently to the linear case, three variables need to be defined: 
+The number of total sample frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``.
+In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum frequency ``omega_max`` need to be defined as ``constexpr float_64``.
+
+For the **file-based frequency** definition,  all definitions need to be in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace.
+The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values in units of :math:`[s^{-1}]` needs to be given as ``constexpr const char * listLocation = "/path/to/frequency_list";``.
+The frequency values in the file can be separated by newlines, spaces, tabs, or any other whitespace. The numbers should be given in such a way, that c++ standard ``std::ifstream`` can interpret the number e.g., as ``2.5344e+16``. 
+
+.. note::
+
+   Currently, the variable ``listLocation`` is required to be defined in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace, even if ``frequencies_from_list`` is not used.
+   The string does not need to point to an existing file, as long as the file-based frequency definition is not used.
+
+
 Observation directions
 """"""""""""""""""""""
 
@@ -263,8 +285,6 @@ Command line option                       Description
                                           Default is ``2`` in order to get enough history of the particles.
 ``--<species>_radiation.end``             Time step, at which the radiation calculation should end.
                                           Default: ``0``(stops at end of simulation).
-``--<species>_radiation.omegaList``       In case the frequencies for the spectrum are coming from a list stored in a file, this gives the path to this list.
-                                          Default: ``_noPath_`` throws an error. *This does not switch on the frequency calculation via list.*
 ``--<species>_radiation.radPerGPU``       If set, each GPU additionally stores its own spectra without summing over the entire simulation area.
                                           This allows for a localization of specific spectral features.
 ``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.

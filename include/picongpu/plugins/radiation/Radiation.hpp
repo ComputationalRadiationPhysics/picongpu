@@ -116,7 +116,6 @@ private:
     bool lastRad;
     std::string folderLastRad;
     std::string folderTotalRad;
-    std::string pathOmegaList;
     bool radPerGPU;
     std::string folderRadPerGPU;
     DataSpace<simDim> lastGPUpos;
@@ -226,7 +225,6 @@ public:
                 ((pluginPrefix + ".folderTotalRad").c_str(), po::value<std::string > (&folderTotalRad)->default_value("totalRad"), "folder in which the integrated radiation from start of simulation is written")
                 ((pluginPrefix + ".start").c_str(), po::value<uint32_t > (&radStart)->default_value(2), "time index when radiation should start with calculation")
                 ((pluginPrefix + ".end").c_str(), po::value<uint32_t > (&radEnd)->default_value(0), "time index when radiation should end with calculation")
-                ((pluginPrefix + ".omegaList").c_str(), po::value<std::string > (&pathOmegaList)->default_value("_noPath_"), "path to file containing all frequencies to calculate")
                 ((pluginPrefix + ".radPerGPU").c_str(), po::bool_switch(&radPerGPU), "enable radiation output from each GPU individually")
                 ((pluginPrefix + ".folderRadPerGPU").c_str(), po::value<std::string > (&folderRadPerGPU)->default_value("radPerGPU"), "folder in which the radiation of each GPU is written")
                 ((pluginPrefix + ".compression").c_str(), po::bool_switch(&compressionOn), "enable compression of hdf5 output");
@@ -316,7 +314,7 @@ private:
 
                 radiation = new GridBuffer<Amplitude, DIM1 > (DataSpace<DIM1 > (elements_amplitude())); //create one int on GPU and host
 
-                freqInit.Init(pathOmegaList);
+                freqInit.Init(frequencies_from_list::listLocation);
                 freqFkt = freqInit.getFunctor();
 
 
@@ -340,7 +338,7 @@ private:
                     detectorFrequencies = new float_64[radiation_frequencies::N_omega];
                     for(uint32_t detectorIndex=0; detectorIndex < radiation_frequencies::N_omega; ++detectorIndex)
                     {
-                        detectorFrequencies[detectorIndex] = freqFkt(detectorIndex);
+                        detectorFrequencies[detectorIndex] = freqFkt.get(detectorIndex);
                     }
 
                 }
