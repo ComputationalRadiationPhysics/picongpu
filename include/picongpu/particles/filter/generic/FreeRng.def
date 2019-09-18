@@ -57,6 +57,7 @@ namespace generic
      *               result = true;
      *           return result;
      *       }
+     *       static constexpr char const * name = "eachSecondParticle";
      *   };
      *
      *   using EachSecondParticle = generic::FreeRng<

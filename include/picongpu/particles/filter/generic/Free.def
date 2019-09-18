@@ -48,6 +48,7 @@ namespace generic
      *               result = true;
      *           return result;
      *       }
+     *       static constexpr char const * name = "eachParticleAboveMiddleOfTheCell";
      *   };
      *
      *   using EachParticleAboveMiddleOfTheCell = generic::Free<

@@ -58,6 +58,7 @@ namespace generic
      *               result = true;
      *           return result;
      *       }
+     *       static constexpr char const * name = "eachParticleInXCell5";
      *   };
      *
      *   using EachParticleInXCell5 = generic::FreeTotalCellOffset<
