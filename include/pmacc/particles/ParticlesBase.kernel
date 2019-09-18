@@ -108,12 +108,12 @@ struct KernelFillGapsLastFrame
         );
         PMACC_SMEM(
             acc,
-            counterGaps,
+            numGaps,
             int
         );
         PMACC_SMEM(
             acc,
-            counterParticles,
+            numParticles,
             int
         );
         PMACC_SMEM(
@@ -136,8 +136,8 @@ struct KernelFillGapsLastFrame
             )
             {
                 lastFrame = pb.getLastFrame( superCellIdx );
-                counterGaps = 0;
-                counterParticles = 0;
+                numGaps = 0;
+                numParticles = 0;
                 srcGap = 0;
             }
         );
@@ -178,7 +178,7 @@ struct KernelFillGapsLastFrame
                 )
                 {
                     if( isParticleCtx[ idx ] )
-                        nvidia::atomicAllInc( acc, &counterParticles, ::alpaka::hierarchy::Threads{} );
+                        nvidia::atomicAllInc( acc, &numParticles, ::alpaka::hierarchy::Threads{} );
                 }
             );
 
@@ -190,9 +190,9 @@ struct KernelFillGapsLastFrame
                     uint32_t const idx
                 )
                 {
-                    if ( linearIdx < counterParticles && isParticleCtx[ idx ] == false )
+                    if ( linearIdx < numParticles && isParticleCtx[ idx ] == false )
                     {
-                        int const localGapIdx = nvidia::atomicAllInc( acc, &counterGaps, ::alpaka::hierarchy::Threads{} );
+                        int const localGapIdx = nvidia::atomicAllInc( acc, &numGaps, ::alpaka::hierarchy::Threads{} );
                         gapIndices_sh[ localGapIdx ] = linearIdx;
                     }
                 }
@@ -204,7 +204,7 @@ struct KernelFillGapsLastFrame
                     uint32_t const idx
                 )
                 {
-                    if ( linearIdx >= counterParticles && isParticleCtx[ idx ] )
+                    if ( linearIdx >= numParticles && isParticleCtx[ idx ] )
                     {
                         // any particle search a gap
                         int const srcGapIdx = nvidia::atomicAllInc( acc, &srcGap, ::alpaka::hierarchy::Threads{} );
@@ -230,11 +230,11 @@ struct KernelFillGapsLastFrame
             )
             {
                 // there is no need to add a zero to the global memory
-                if( counterParticles != 0 )
+                if( numParticles != 0 )
                 {
                     auto & superCell = pb.getSuperCell( superCellIdx );
                     superCell.setNumParticles(
-                        superCell.getNumParticles() + counterParticles
+                        superCell.getNumParticles() + numParticles
                     );
                 }
                 else
@@ -315,13 +315,13 @@ struct KernelFillGaps
         // number of gaps in firstFrame frame
         PMACC_SMEM(
             acc,
-            counterGaps,
+            numGaps,
             int
         );
         // number of particles in the lastFrame
         PMACC_SMEM(
             acc,
-            counterParticles,
+            numParticles,
             int
         );
 
@@ -355,8 +355,8 @@ struct KernelFillGaps
                     uint32_t const
                 )
                 {
-                    counterGaps = 0;
-                    counterParticles = 0;
+                    numGaps = 0;
+                    numParticles = 0;
                 }
             );
 
@@ -383,14 +383,14 @@ struct KernelFillGaps
                 {
                     if( firstFrame[ linearIdx ][ multiMask_ ] == 0 )
                     {
-                        localGapIdxCtx[ idx ] = nvidia::atomicAllInc( acc, &counterGaps, ::alpaka::hierarchy::Threads{} );
+                        localGapIdxCtx[ idx ] = nvidia::atomicAllInc( acc, &numGaps, ::alpaka::hierarchy::Threads{} );
                     }
                 }
             );
 
             __syncthreads( );
 
-            if( counterGaps != 0 )
+            if( numGaps != 0 )
             {
                 // count particles in lastFrame
                 forEachParticle(
@@ -402,7 +402,7 @@ struct KernelFillGaps
                         // search particles for gaps
                         if( lastFrame[ linearIdx ][ multiMask_ ] == 1 )
                         {
-                            int const localParticleIdx = nvidia::atomicAllInc( acc, &counterParticles, ::alpaka::hierarchy::Threads{} );
+                            int const localParticleIdx = nvidia::atomicAllInc( acc, &numParticles, ::alpaka::hierarchy::Threads{} );
                             particleIndices_sh[ localParticleIdx ] = linearIdx;
                         }
                     }
@@ -417,7 +417,7 @@ struct KernelFillGaps
                         uint32_t const idx
                     )
                     {
-                        if( localGapIdxCtx[ idx ] < counterParticles )
+                        if( localGapIdxCtx[ idx ] < numParticles )
                         {
                             int const parIdx = particleIndices_sh[ localGapIdxCtx[ idx ] ];
                             auto parDestFull = firstFrame[ linearIdx ];
@@ -442,13 +442,13 @@ struct KernelFillGaps
                         uint32_t const
                     )
                     {
-                        if( counterGaps < counterParticles )
+                        if( numGaps < numParticles )
                         {
                             numParticlesPerSuperCell += frameSize;
                             // any gap in the first frame is filled
                             firstFrame = pb.getNextFrame( firstFrame );
                         }
-                        else if( counterGaps > counterParticles )
+                        else if( numGaps > numParticles )
                         {
                             // we need more particles
                             lastFrame = getPreviousFrameAndRemoveLastFrame(
@@ -457,7 +457,7 @@ struct KernelFillGaps
                                 superCellIdx
                             );
                         }
-                        else if( counterGaps == counterParticles )
+                        else if( numGaps == numParticles )
                         {
                             // update lastFrame and firstFrame
                             lastFrame = getPreviousFrameAndRemoveLastFrame(
