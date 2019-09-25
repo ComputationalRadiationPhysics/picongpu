@@ -4,7 +4,7 @@ HDF5
 ----
 
 Stores simulation data such as fields and particles along with domain information,
-conversion units etc. as `HDF5 <http://www.hdfgroup.org/HDF5/>`_ files.
+conversion units etc. as `HDF5 <http://www.hdfgroup.org/HDF5/>`_ files [Huebl2017]_ .
 It uses `libSplash <https://github.com/ComputationalRadiationPhysics/libSplash>`_ for writing HDF5 data. 
 It is used for post-simulation analysis and for **restarts** of the simulation after a crash or an intended stop. 
 
@@ -91,3 +91,12 @@ Additional Tools
 ^^^^^^^^^^^^^^^^
 
 See our :ref:`openPMD <pp-openPMD>` chapter.
+
+References
+^^^^^^^^^^
+
+.. [Huebl2017]
+        A. Huebl, R. Widera, F. Schmitt, A. Matthes, N. Podhorszki, J.Y. Choi, S. Klasky, and M. Bussmann.
+        *On the Scalability of Data Reduction Techniques in Current and Upcoming HPC Systems from an Application Perspective.*
+        ISC High Performance Workshops 2017, LNCS 10524, pp. 15-29 (2017),
+        `arXiv:1706.00522 <https://arxiv.org/abs/1706.00522>`_, `DOI:10.1007/978-3-319-67630-2_2 <https://doi.org/10.1007/978-3-319-67630-2_2>`_
