@@ -11,7 +11,7 @@ The trivial solution to this equation is to start *field neutral* by microscopic
 Fully Ionized Ions
 """"""""""""""""""
 
-For fully ionized ions, just use ``ManipulateDeriveSpecies`` in :ref:`speciesInitialization.param <usage-params-core>` and derive macro-electrons :math:`1:1` from macro-ions but increase their weighting by :math:`1:Z` of the ion.
+For fully ionized ions, just use ``ManipulateDerive`` in :ref:`speciesInitialization.param <usage-params-core>` and derive macro-electrons :math:`1:1` from macro-ions but increase their weighting by :math:`1:Z` of the ion.
 
 .. code-block:: cpp
 
@@ -26,7 +26,7 @@ For fully ionized ions, just use ``ManipulateDeriveSpecies`` in :ref:`speciesIni
        /* create a macro electron for each macro carbon but increase its
         *     weighting by the ion's proton number so it represents all its
         *     electrons after an instantanous ionization */
-       ManipulateDeriveSpecies<
+       ManipulateDerive<
            manipulators::ProtonTimesWeighting,
            Carbon,
            Electrons
@@ -89,7 +89,7 @@ Then again in :ref:`speciesInitialization.param <usage-params-core>` set your in
        >,
        /* does also manipulate the weighting x2 while deriving the electrons
         *     ("twice pre-ionized") since we set carbon as C2+ */
-       ManipulateDeriveSpecies<
+       ManipulateDerive<
            manipulators::binary::UnboundElectronsTimesWeighting,
            Carbon,
            Electrons
