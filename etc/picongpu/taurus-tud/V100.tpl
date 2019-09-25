@@ -55,9 +55,12 @@
 # That is, replace in the following line the two appearances of 6 with 3.
 .TBG_gpusPerNode=`if [ $TBG_tasks -gt 6 ] ; then echo 6; else echo $TBG_tasks; fi`
 
-# number of cores to block per GPU - we got 28 cpus per gpu
-#   and we will be accounted 28 CPUs per GPU anyway
-.TBG_coresPerGPU=28
+# number of CPU cores to block per GPU
+# we got 7 CPU cores per GPU (44cores/6gpus ~ 7cores)
+.TBG_coresPerGPU=7
+# this does not yet include hyperthreading
+#SBATCH --hint=nomultithread
+# (this is currently also the default setting on taurus)
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
