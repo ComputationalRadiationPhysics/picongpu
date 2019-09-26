@@ -1,0 +1,20 @@
+# Create a separate conda environment which fulfills the package requirements
+# for building the documentation
+# E.g. run `conda create --file picongpu-docs-env.yml`
+#
+
+name: picongpu-docs-env
+channels:
+    - conda-forge
+dependencies:
+    - sphinx_rtd_theme>=0.3.1
+    - recommonmark
+    - sphinx==2.0.1
+    - breathe>=4.12.0
+    - sphinxcontrib-programoutput
+    - sphinxcontrib-napoleon>=0.7
+    - pygments
+    - matplotlib
+    - scipy
+    - numpy
+
