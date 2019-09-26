@@ -115,12 +115,12 @@
       "D. Bauer and P. Mulser (1999). Exact field ionization rates in the barrier-suppression regime from numerical time-dependent Schr\u00f6dinger-equation calculations. DOI:10.1103/PhysRevA.59.569",
       "R. Pausch et al. (2014). How to test and verify radiation diagnostics simulations within particle-in-cell frameworks. DOI:10.1016/j.nima.2013.10.073",
       "A. Huebl (2014). Injection Control for Electrons in Laser-Driven Plasma Wakes on the Femtosecond Time Scale. DOI:10.5281/zenodo.15924",
-      "M. Vranic et al. (2015). Classical radiation reaction in particle-in-cell simulations. DOI:10.1016/j.cpc.2016.04.002",
       "A. Gonoskov et al. (2015). Extended particle-in-cell schemes for physics in ultrastrong laser fields: Review and developments. DOI:10.1103/PhysRevE.92.023305",
-      "A. Huebl et al. (2015). openPMD 1.0.0 - A meta data standard for particle and mesh based data. DOI:10.5281/zenodo.33624",
+      "A. Huebl et al. (2015). openPMD: A meta data standard for particle and mesh based data. DOI:10.5281/zenodo.591699",
+      "M. Vranic et al. (2016). Classical radiation reaction in particle-in-cell simulations. DOI:10.1016/j.cpc.2016.04.002",
       "A. Matthes et al. (2016). In situ, steerable, hardware-independent and data-structure agnostic visualization with ISAAC. DOI:10.14529/jsfi160403",
       "A. Huebl et al. (2017). On the Scalability of Data Reduction Techniques in Current and Upcoming HPC Systems from an Application Perspective. DOI:10.1007/978-3-319-67630-2_2",
-      "R. Pausch et al. (2018). Quantitatively consistent computation of coherent and incoherent radiation inparticle-in-cell codes - a general form factor formalism for macro-particles. DOI:10.1016/j.nima.2018.02.020",
-      "A. Huebl (2019). PIConGPU: Predictive Simulations of Laser-Particle Accelerators with Manycore Hardware. DOI:10.5281/zenodo.3266820",
+      "R. Pausch et al. (2018). Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes - a general form factor formalism for macro-particles. DOI:10.1016/j.nima.2018.02.020",
+      "A. Huebl (2019). PIConGPU: Predictive Simulations of Laser-Particle Accelerators with Manycore Hardware. DOI:10.5281/zenodo.3266820"
     ]
 }

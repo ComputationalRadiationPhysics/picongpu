@@ -113,17 +113,17 @@ If you would like to help in developing those classes for a plugin of your choic
         R. Pausch.
         *Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics*,
         Diploma Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2012),
-        https://www.hzdr.de/db/Cms?pOid=38997
+        `DOI:10.5281/zenodo.843510 <https://doi.org/10.5281/zenodo.843510>`_
 
 .. [Pausch2014]
         R. Pausch, A. Debus, R. Widera, K. Steiniger, A.Huebl, H. Burau, M. Bussmann, and U. Schramm.
         *How to test and verify radiation diagnostics simulations within particle-in-cell frameworks*,
-        Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 740.11, pp. 250-256 (2014)
+        Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 740, pp. 250-256 (2014)
         `DOI:10.1016/j.nima.2013.10.073 <https://doi.org/10.1016/j.nima.2013.10.073>`_
 
 .. [Pausch2018]
         R. Pausch, A. Debus, A. Huebl, U. Schramma, K. Steiniger, R. Widera, and M. Bussmann.
-        *Quantitatively consistent computation of coherent and incoherent radiation inparticle-in-cell codes - a general form factor formalism for macro-particles*,
-        Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 909, 12, pp. 419-422 (2018)
+        *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes - a general form factor formalism for macro-particles*,
+        Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 909, pp. 419-422 (2018)
         `arXiv:1802.03972 <https://arxiv.org/abs/1802.03972>`_, `DOI:10.1016/j.nima.2018.02.020 <https://doi.org/10.1016/j.nima.2018.02.020>`_
 
