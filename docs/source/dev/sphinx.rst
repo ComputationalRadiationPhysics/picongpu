@@ -39,6 +39,18 @@ The following requirements need to be installed (once) to build our documentatio
     # python tools & style theme
     pip install -r requirements.txt # --user
 
+However, in order to not break any of your existing Python configurations you can also create a new environment that you only use for building the documentation.
+
+.. code-block:: bash
+
+    cd docs/
+
+    # create a bare conda environment containing just all the requirements
+    # for building the picongpu documentation
+    conda env create picongpu-docs-env.yml
+
+    # start up the environment
+    conda activate picongpu-docs-env
 
 With all documentation-related software successfully installed, just run the following commands to build your docs locally.
 Please check your documentation build is successful and renders as you expected before opening a pull request!
