@@ -39,7 +39,8 @@ The following requirements need to be installed (once) to build our documentatio
     # python tools & style theme
     pip install -r requirements.txt # --user
 
-However, in order to not break any of your existing Python configurations you can also create a new environment that you only use for building the documentation.
+In order to not break any of your existing Python configurations, you can also create a new environment that you only use for building the documentation.
+Since it is possible to install doxygen with conda, the following method employs this way.
 
 .. code-block:: bash
 
@@ -47,6 +48,7 @@ However, in order to not break any of your existing Python configurations you ca
 
     # create a bare conda environment containing just all the requirements
     # for building the picongpu documentation
+    # note: also installs doxygen inside this environment
     conda env create picongpu-docs-env.yml
 
     # start up the environment
