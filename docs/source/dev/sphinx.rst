@@ -51,8 +51,10 @@ Since it is possible to install doxygen with conda, the following demonstrates t
     # note: also installs doxygen inside this environment
     conda env create --file picongpu-docs-env.yml
 
-    # start up the environment
+    # start up the environment as suggested during its creation e.g.
     conda activate picongpu-docs-env
+    # or
+    source activate picongpu-docs-env
 
 With all documentation-related software successfully installed, just run the following commands to build your docs locally.
 Please check your documentation build is successful and renders as you expected before opening a pull request!
