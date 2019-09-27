@@ -49,7 +49,7 @@ Since it is possible to install doxygen with conda, the following demonstrates t
     # create a bare conda environment containing just all the requirements
     # for building the picongpu documentation
     # note: also installs doxygen inside this environment
-    conda env create picongpu-docs-env.yml
+    conda env create --file picongpu-docs-env.yml
 
     # start up the environment
     conda activate picongpu-docs-env
