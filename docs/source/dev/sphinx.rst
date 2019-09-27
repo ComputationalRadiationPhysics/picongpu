@@ -3,7 +3,7 @@
 Sphinx
 ======
 
-.. sectionauthor:: Axel Huebl
+.. sectionauthor:: Axel Huebl, Marco Garten
 
 In the following section we explain how to contribute to this documentation.
 
@@ -40,7 +40,7 @@ The following requirements need to be installed (once) to build our documentatio
     pip install -r requirements.txt # --user
 
 In order to not break any of your existing Python configurations, you can also create a new environment that you only use for building the documentation.
-Since it is possible to install doxygen with conda, the following method employs this way.
+Since it is possible to install doxygen with conda, the following demonstrates this.
 
 .. code-block:: bash
 
