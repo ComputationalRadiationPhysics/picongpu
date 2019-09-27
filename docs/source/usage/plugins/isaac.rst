@@ -3,7 +3,7 @@
 ISAAC
 -----
 
-This is a plugin for the in-situ library ISAAC for a live rendering and steering of PIConGPU simulations.
+This is a plugin for the in-situ library ISAAC [Matthes2016]_ for a live rendering and steering of PIConGPU simulations.
 
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
@@ -100,3 +100,11 @@ Example renderings
 .. image:: https://raw.githubusercontent.com/ComputationalRadiationPhysics/isaac/master/example_renderings/picongpu_weibel_1.png
    :alt: Weibel Instability
 
+References
+^^^^^^^^^^
+
+.. [Matthes2016]
+        A. Matthes, A. Huebl, R. Widera, S. Grottel, S. Gumhold, and M. Bussmann
+        *In situ, steerable, hardware-independent and data-structure agnostic visualization with ISAAC*,
+        Supercomputing Frontiers and Innovations 3.4, pp. 30-48, (2016),
+        `arXiv:1611.09048 <https://arxiv.org/abs/1611.09048>`_, `DOI:10.14529/jsfi160403 <https://doi.org/10.14529/jsfi160403>`_

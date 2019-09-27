@@ -3,10 +3,10 @@
 Plugins
 =======
 
-==================================================================================== =======================================================================
+==================================================================================== =================================================================================
 Plugin name                                                                          short description
-==================================================================================== =======================================================================
-:ref:`ADIOS <usage-plugins-ADIOS>` [#f2]_ [#f7]_                                     stores simulation data as openPMD flavoured ADIOS files
+==================================================================================== =================================================================================
+:ref:`ADIOS <usage-plugins-ADIOS>` [#f2]_ [#f7]_                                     stores simulation data as openPMD flavoured ADIOS files [Huebl2017]_
 :ref:`energy histogram <usage-plugins-energyHistogram>` [#f7]_                       energy histograms for electrons and ions
 :ref:`charge conservation <usage-plugins-chargeConservation>` [#f6]_                 maximum difference between electron charge density and div E
 :ref:`checkpoint <usage-plugins-checkpoint>` [#f2]_                                  stores the primary data of the simulation for restarts.
@@ -14,20 +14,20 @@ Plugin name                                                                     
 :ref:`count per supercell <usage-plugins-countPerSupercell>` [#f3]_                  count macro particles *per supercell*
 :ref:`energy fields <usage-plugins-energyFields>`                                    electromagnetic field energy per time step
 :ref:`energy particles <usage-plugins-energyParticles>` [#f7]_                       kinetic and total energies summed over all electrons and/or ions
-:ref:`HDF5 <usage-plugins-HDF5>` [#f2]_ [#f7]_                                       stores simulation data as openPMD flavoured HDF5 files
-:ref:`ISAAC <usage-plugins-ISAAC>`                                                   interactive 3D live visualization
+:ref:`HDF5 <usage-plugins-HDF5>` [#f2]_ [#f7]_                                       stores simulation data as openPMD flavoured HDF5 files [Huebl2017]_
+:ref:`ISAAC <usage-plugins-ISAAC>`                                                   interactive 3D live visualization [Matthes2016]_
 :ref:`intensity <usage-plugins-intensity>` [#f1]_ [#f5]_ [#f6]_                      maximum and integrated electric field along the y-direction
 :ref:`particle calorimeter <usage-plugins-particleCalorimeter>` [#f3]_ [#f4]_ [#f7]_ spatially resolved, particle energy detector in infinite distance
 :ref:`particle merger <usage-plugins-particleMerger>` [#f6]_                         macro particle merging
-:ref:`phase space <usage-plugins-phaseSpace>` [#f3]_ [#f6]_ [#f7]_                   calculate 2D phase space
+:ref:`phase space <usage-plugins-phaseSpace>` [#f3]_ [#f6]_ [#f7]_                   calculate 2D phase space [Huebl2014]_
 :ref:`PNG <usage-plugins-PNG>` [#f7]_                                                pictures of 2D slices
 :ref:`positions particles <usage-plugins-positionsParticles>` [#f1]_ [#f5]_ [#f6]_   save trajectory, momentum, ... of a *single* particle
-:ref:`radiation <usage-plugins-radiation>` [#f3]_                                    compute emitted electromagnetic spectra
+:ref:`radiation <usage-plugins-radiation>` [#f3]_                                    compute emitted electromagnetic spectra [Pausch2012]_ [Pausch2014]_ [Pausch2018]_
 :ref:`resource log <usage-plugins-resourceLog>`                                      monitor used hardware resources & memory
 :ref:`slice emittance <usage-plugins-sliceEmittance>`                                compute emittance and slice emittance of particles
 :ref:`slice field printer <usage-plugins-sliceFieldPrinter>` [#f5]_                  print out a slice of the electric and/or magnetic and/or current field
 :ref:`sum currents <usage-plugins-sumCurrents>`                                      compute the total current summed over all cells
-==================================================================================== =======================================================================
+==================================================================================== =================================================================================
 
 .. toctree::
    :glob:
@@ -88,3 +88,42 @@ If you would like to help in developing those classes for a plugin of your choic
 .. [#f5] Deprecated
 .. [#f6] Only runs on the *CUDA* backend (GPU).
 .. [#f7] Multi-Plugin: Can be configured to run multiple times with varying parameters.
+
+.. rubric:: References
+
+.. [Huebl2014]
+        A. Huebl.
+        *Injection Control for Electrons in Laser-Driven Plasma Wakes on the Femtosecond Time Scale*,
+        Diploma Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2014),
+        `DOI:10.5281/zenodo.15924 <https://doi.org/10.5281/zenodo.15924>`_
+
+.. [Matthes2016]
+        A. Matthes, A. Huebl, R. Widera, S. Grottel, S. Gumhold, and M. Bussmann
+        *In situ, steerable, hardware-independent and data-structure agnostic visualization with ISAAC*,
+        Supercomputing Frontiers and Innovations 3.4, pp. 30-48, (2016),
+        `arXiv:1611.09048 <https://arxiv.org/abs/1611.09048>`_, `DOI:10.14529/jsfi160403 <https://doi.org/10.14529/jsfi160403>`_
+
+.. [Huebl2017]
+        A. Huebl, R. Widera, F. Schmitt, A. Matthes, N. Podhorszki, J.Y. Choi, S. Klasky, and M. Bussmann.
+        *On the Scalability of Data Reduction Techniques in Current and Upcoming HPC Systems from an Application Perspective.*
+        ISC High Performance Workshops 2017, LNCS 10524, pp. 15-29 (2017),
+        `arXiv:1706.00522 <https://arxiv.org/abs/1706.00522>`_, `DOI:10.1007/978-3-319-67630-2_2 <https://doi.org/10.1007/978-3-319-67630-2_2>`_
+
+.. [Pausch2012]
+        R. Pausch.
+        *Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics*,
+        Diploma Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2012),
+        `DOI:10.5281/zenodo.843510 <https://doi.org/10.5281/zenodo.843510>`_
+
+.. [Pausch2014]
+        R. Pausch, A. Debus, R. Widera, K. Steiniger, A.Huebl, H. Burau, M. Bussmann, and U. Schramm.
+        *How to test and verify radiation diagnostics simulations within particle-in-cell frameworks*,
+        Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 740, pp. 250-256 (2014)
+        `DOI:10.1016/j.nima.2013.10.073 <https://doi.org/10.1016/j.nima.2013.10.073>`_
+
+.. [Pausch2018]
+        R. Pausch, A. Debus, A. Huebl, U. Schramma, K. Steiniger, R. Widera, and M. Bussmann.
+        *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes - a general form factor formalism for macro-particles*,
+        Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 909, pp. 419-422 (2018)
+        `arXiv:1802.03972 <https://arxiv.org/abs/1802.03972>`_, `DOI:10.1016/j.nima.2018.02.020 <https://doi.org/10.1016/j.nima.2018.02.020>`_
+
