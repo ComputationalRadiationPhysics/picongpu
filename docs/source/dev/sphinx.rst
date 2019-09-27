@@ -3,7 +3,7 @@
 Sphinx
 ======
 
-.. sectionauthor:: Axel Huebl
+.. sectionauthor:: Axel Huebl, Marco Garten
 
 In the following section we explain how to contribute to this documentation.
 
@@ -39,6 +39,22 @@ The following requirements need to be installed (once) to build our documentatio
     # python tools & style theme
     pip install -r requirements.txt # --user
 
+In order to not break any of your existing Python configurations, you can also create a new environment that you only use for building the documentation.
+Since it is possible to install doxygen with conda, the following demonstrates this.
+
+.. code-block:: bash
+
+    cd docs/
+
+    # create a bare conda environment containing just all the requirements
+    # for building the picongpu documentation
+    # note: also installs doxygen inside this environment
+    conda env create --file picongpu-docs-env.yml
+
+    # start up the environment as suggested during its creation e.g.
+    conda activate picongpu-docs-env
+    # or
+    source activate picongpu-docs-env
 
 With all documentation-related software successfully installed, just run the following commands to build your docs locally.
 Please check your documentation build is successful and renders as you expected before opening a pull request!
