@@ -129,6 +129,7 @@ namespace picongpu
      * - float_X instead of integer types are reasonable because effective charge
      *   numbers are possible
      * - required for ion species if ionization is enabled
+     * - setting it requires atomicNumbers to also be set
      *
      * @todo connect default to proton number
      */
@@ -191,6 +192,7 @@ namespace picongpu
 
     /** alias for particle flag: atomic numbers, see also ionizer.param
      * - only reasonable for atoms / ions / nuclei
+     * - is required when boundElectrons is set
      */
     alias( atomicNumbers );
 
