@@ -137,7 +137,7 @@ namespace AU
         2304.14 * UNITCONV_eV_to_AU
     );
 
-    /* ionization energy for aluminium in atomic units */
+    /* ionization energy for silicon in atomic units */
     PMACC_CONST_VECTOR(float_X, 14, Silicon,
         8.151683 * UNITCONV_eV_to_AU,
         16.345845 * UNITCONV_eV_to_AU,
