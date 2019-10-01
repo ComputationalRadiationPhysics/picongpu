@@ -39,17 +39,23 @@ PIConGPU command line option                  Description
 ============================================= ======================================================================================
 ``--checkpoint.period <N>``                   Create checkpoints every N steps.
 ``--checkpoint.backend <IO-backend>``         IO-backend used to create the checkpoint.
+``--checkpoint.directory <string>``           Directory inside ``simOutput`` for writing checkpoints.
+                                              Default is ``checkpoints``.
 ``--checkpoint.file <string>``                Relative or absolute fileset prefix for writing checkpoints.
                                               If relative, checkpoint files are stored under ``simOutput/<checkpoint-directory>``.
                                               Default depends on the selected IO-backend.
 ``--checkpoint.restart``                      Restart a simulation from the latest checkpoint.
 ``--checkpoint.restart.step <N>``             Select a specific restart checkpoint.
 ``--checkpoint.restart.backend <IO-backend>`` IO-backend used to load a existent checkpoint.
+``--checkpoint.restart.directory <string>``   Directory inside ``simOutput`` containing checkpoints for a restart.
+                                              Default is ``checkpoints``.
 ``--checkpoint.restart.file <string>``        Relative or absolute fileset prefix for reading checkpoints.
                                               If relative, checkpoint files are searched under ``simOutput/<checkpoint-directory>``.
                                               Default depends on the selected IO-backend``.
 ``--checkpoint.restart.chunkSize <N>``        Number of particles processed in one kernel call during restart to prevent frame count
                                               blowup.
+``--checkpoint.restart.loop <N>``             Number of times to restart the simulation after simulation has finished.
+                                              This mode is intended for visualization and not all plugins support it.
 ``--checkpoint.<IO-backend>.*``               Additional options to control the IO-backend
 ============================================= ======================================================================================
 
