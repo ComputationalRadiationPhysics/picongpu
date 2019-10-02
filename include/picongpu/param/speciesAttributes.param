@@ -123,6 +123,18 @@ namespace picongpu
         false
     );
 
+    /** masking a particle for transition radiation
+     *
+     * The mask is used by the user defined filter
+     * `TransitionRadiationParticleFilter` in transitionRadiation.param to (de)select
+     * particles for the transition radiation calculation.
+     */
+    value_identifier(
+        bool,
+        transitionRadiationMask,
+        false
+    );
+
     /** number of electrons bound to the atom / ion
      *
      * value type is float_X to avoid casts during the runtime
