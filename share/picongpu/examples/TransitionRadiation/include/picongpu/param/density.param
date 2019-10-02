@@ -1,0 +1,77 @@
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
+ *                     Richard Pausch, Finn-Ole Carstens
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/particles/densityProfiles/profiles.def"
+/* preprocessor struct generator */
+#include <pmacc/preprocessor/struct.hpp>
+
+
+namespace picongpu
+{
+    namespace SI
+    {
+        /** Base density in particles per m^3 in the density profiles.
+         *
+         * This is often taken as reference maximum density in normalized profiles.
+         * Individual particle species can define a `densityRatio` flag relative
+         * to this value.
+         *
+         * unit: ELEMENTS/m^3
+         *
+         */
+        constexpr float_64 BASE_DENSITY_SI = 1.0e22;
+
+    }
+
+    namespace densityProfiles
+    {
+
+        PMACC_STRUCT(GaussianCloudParam,
+            /** Profile Formula:
+             *     exponent = |globalCellPos - center| / sigma
+             *     density = e^[ gasFactor * exponent^gasPower ]
+             */
+            (PMACC_C_VALUE(float_X, gasFactor, -0.5))
+            (PMACC_C_VALUE(float_X, gasPower, 2.0))
+
+            /** height of vacuum area on top border
+             *
+             * this vacuum is important because of the laser initialization,
+             * which is done in the first cell of the simulation
+             * unit: cells
+             */
+            (PMACC_C_VALUE(uint32_t, vacuumCellsY, 0))
+
+            /** The central position of the density distribution
+             *  unit: meter
+             */
+            (PMACC_C_VECTOR_DIM(float_64, simDim, center_SI, 128 * 0.16e-6 / 2.0, 0.912e-5 , 128 * 0.16e-6 / 2.0))
+
+            /** the distance from gasCenter_SI until the density decreases to its 1/e-th part
+             *  unit: meter */
+            (PMACC_C_VECTOR_DIM(float_64, simDim, sigma_SI, 3.5e-6, 3.0e-6, 3.5e-6))
+        ); /* struct GaussianCloudParam */
+
+        /* definition of cloud profile */
+        using GaussianCloud = GaussianCloudImpl< GaussianCloudParam >;
+    }
+}

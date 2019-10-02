@@ -1,0 +1,58 @@
+/* Copyright 2013-2019 Axel Huebl, Rene Widera, Marco Garten, Heiko Burau
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *
+ * In this file we define typical scales for normalization of physical
+ * quantities aka "units". Usually, a user would not change this file
+ * but might use the defined constants in other input files.
+ */
+
+#pragma once
+
+
+namespace picongpu
+{
+    /** Unit of time */
+    constexpr float_64 UNIT_TIME = SI::DELTA_T_SI;
+    /** Unit of length */
+    constexpr float_64 UNIT_LENGTH = UNIT_TIME*UNIT_SPEED;
+
+    namespace particles
+    {
+        /** Number of particles per makro particle (= macro particle weighting)
+         *  unit: none */
+        constexpr float_X TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE =
+            float_64( SI::BASE_DENSITY_SI * SI::CELL_WIDTH_SI * SI::CELL_HEIGHT_SI * SI::CELL_DEPTH_SI ) /
+            float_64( particles::TYPICAL_PARTICLES_PER_CELL );
+    }
+
+
+    /** Unit of mass */
+    constexpr float_64 UNIT_MASS = SI::BASE_MASS_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+    /** Unit of charge */
+    constexpr float_64 UNIT_CHARGE = -1.0 * SI::BASE_CHARGE_SI * double(particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE);
+    /** Unit of energy */
+    constexpr float_64 UNIT_ENERGY = (UNIT_MASS * UNIT_LENGTH * UNIT_LENGTH / (UNIT_TIME * UNIT_TIME));
+    /** Unit of EField: V/m */
+    constexpr float_64 UNIT_EFIELD = 1.0 / (UNIT_TIME * UNIT_TIME / UNIT_MASS / UNIT_LENGTH * UNIT_CHARGE);
+    //** Unit of BField: Tesla [T] = Vs/m^2 */
+    constexpr float_64 UNIT_BFIELD = (UNIT_MASS / (UNIT_TIME * UNIT_CHARGE));
+
+}
