@@ -265,3 +265,7 @@ References
    American Physical Society(2018),
    https://link.aps.org/doi/10.1103/RevModPhys.90.035002
 
+- *Synthetic characterization of ultrashort electron bunches using transition radiation*
+   Carstens, F.-O.,
+   Bachelor thesis on the transition radiation plugin,
+   https://doi.org/10.5281/zenodo.3469663
