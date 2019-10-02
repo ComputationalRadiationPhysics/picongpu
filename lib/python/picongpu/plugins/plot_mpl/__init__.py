@@ -7,6 +7,8 @@ from .emittance_evolution_visualizer import Visualizer as EmitanceEvolutionMPL
 from .slice_emittance_visualizer import Visualizer as SliceEmitanceMPL
 from .slice_emittance_waterfall_visualizer import Visualizer as \
     SliceEmitanceWaterfallMPL
+from .transition_radiation_visualizer import \
+    Visualizer as TransitionRadiationMPL
 
 __all__ = ["EnergyHistogramMPL",
            "PhaseSpaceMPL",
@@ -14,4 +16,5 @@ __all__ = ["EnergyHistogramMPL",
            "EnergyWaterfallMPL",
            "EmitanceEvolutionMPL",
            "SliceEmitanceMPL",
-           "SliceEmitanceWaterfallMPL"]
+           "SliceEmitanceWaterfallMPL",
+           "TransitionRadiationMPL"]
