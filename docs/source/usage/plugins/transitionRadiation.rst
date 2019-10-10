@@ -36,7 +36,8 @@ Variable                       Meaning
 :math:`\theta`                 Azimuth angle of observation vector
 :math:`\phi`                   Polar angle between momentum vector from electrons and observation vector
 :math:`\omega`                 The circular frequency of the radiation that is observed.
-:math:`h(\vec{r}, \vec{p}`     Normalized phasespace distribution of electrons
+:math:`h(\vec{r}, \vec{p})`     Normalized phasespace distribution of electrons
+:math:`g(\vec{p})`             Normalized momentum distribution of electrons
 :math:`g(\vec{p})`             Normalized momentum distribution of electrons
 :math:`\vec{k}`                Wavevector of electrons
 :math:`\vec{v}`                Velocity vector of electrons
@@ -139,7 +140,7 @@ To contain the longitudinal information of the bunch, the simulation window is a
 
     namespace SI
     {
-        // z position of the foil to calculate transition radiation at
+        // y position of the foil to calculate transition radiation at
         // leave at 0 for no virtual particle propagation
         constexpr float_64 foilPosition = 0.0;
     }
@@ -180,7 +181,7 @@ Namespace                    Description
 ``radFormFactor_incoherent`` forces a completely incoherent emission by scaling the macro particle charge with the square root of the weighting
 ============================ ===================================================================================================================
 
-.. note:
+.. note::
 
    possibly more shapes (f.e. spaghetti shape) will be added
 
@@ -215,11 +216,11 @@ sets the flag to true if a particle fulfills the gamma condition.
 
 For a specific (charged) species ``<species>`` e.g. ``e``, the radiation can be computed by the following commands.  
 
-=========================================       ==============================================================================================================================
-Command line option                             Description
-=========================================       ==============================================================================================================================
-``--<species>_transitionRadiation.period``      Gives the number of time steps between which the radiation should be calculated.
-=========================================       ==============================================================================================================================
+========================================== ==============================================================================================================================
+Command line option                        Description
+========================================== ==============================================================================================================================
+``--<species>_transitionRadiation.period`` Gives the number of time steps between which the radiation should be calculated.
+========================================== ==============================================================================================================================
 
 Memory Complexity
 ^^^^^^^^^^^^^^^^^

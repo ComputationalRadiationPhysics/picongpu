@@ -35,9 +35,6 @@
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
 
-// #include "picongpu/plugins/transitionRadiation/frequencies/LogFrequencies.hpp"
-// #include "picongpu/plugins/transitionRadiation/frequencies/LinearFrequencies.hpp"
-// #include "picongpu/plugins/transitionRadiation/frequencies/ListFrequencies.hpp"
 
 
 namespace picongpu

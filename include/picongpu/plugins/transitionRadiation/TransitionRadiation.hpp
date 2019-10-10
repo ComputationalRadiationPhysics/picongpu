@@ -114,7 +114,6 @@ namespace transitionRadiation
         std::string pluginPrefix;
         std::string filenamePrefix;
         std::string folderTransRad;
-        std::string pathOmegaList;
 
         float3_X * detectorPositions = nullptr;
         float_X * detectorFrequencies = nullptr;
@@ -182,10 +181,6 @@ namespace transitionRadiation
                 ( pluginPrefix + ".period" ).c_str( ),
                 po::value< std::string >( &notifyPeriod ),
                 "enable plugin [for each n-th step]"
-            )(
-                ( pluginPrefix + ".omegaList").c_str(),
-                po::value< std::string >( &pathOmegaList )->default_value( "_noPath_" ),
-                "path to file containing all frequencies to calculate"
             );
         }
 
@@ -268,7 +263,7 @@ namespace transitionRadiation
                 numParticles = new GridBuffer< float_X, DIM1 >(
                     DataSpace< DIM1 > ( elementsTransitionRadiation( ) ) );
 
-                freqInit.Init( pathOmegaList );
+                freqInit.Init( listFrequencies::listLocation );
                 freqFkt = freqInit.getFunctor( );
 
                 if ( isMaster )

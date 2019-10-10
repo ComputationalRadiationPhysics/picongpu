@@ -147,7 +147,7 @@ namespace listFrequencies
 
         namespace SI
         {
-            // z position of the foil to calculate transition radiation at
+            // y position of the foil to calculate transition radiation at
             // leave at 0 for no virtual particle propagation
             constexpr float_64 foilPosition = 0.0;
         }

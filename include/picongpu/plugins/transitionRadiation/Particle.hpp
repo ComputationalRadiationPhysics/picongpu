@@ -108,7 +108,7 @@ namespace transitionRadiation
         {
             //because of floating point precision x^2+y^2+z^2<y^2 for x,z<<y
             float_X const momAbs = getMomAbs( );
-            if( momAbs <= momentum.y( ) )
+            if( momAbs * momAbs <= momentum.y( ) * momentum.y( ) )
                 return 0.0;
             else
                 return picongpu::math::acos( momentum.y( ) * ( 1.0 / momAbs ) );
