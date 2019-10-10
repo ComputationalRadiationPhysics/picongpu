@@ -1,5 +1,5 @@
 /* Copyright 2013-2019 Heiko Burau, Rene Widera, Richard Pausch,
- *                     Alexander Debus, Benjamin Worpitz
+ *                     Alexander Debus, Benjamin Worpitz, Finn-Ole Carstens
  *
  * This file is part of PMacc.
  *
@@ -25,6 +25,9 @@
 #include "pmacc/algorithms/math.hpp"
 #include "pmacc/algorithms/TypeCast.hpp"
 #include "pmacc/math/Complex.hpp"
+
+#include "pmacc/traits/GetComponentsType.hpp"
+#include "pmacc/traits/GetNComponents.hpp"
 
 #include <cmath>
 
@@ -264,4 +267,20 @@ struct TypeCast<T_CastToType, ::pmacc::math::Complex<T_OldType> >
 
 } //namespace typecast
 } //namespace algorithms
-} //pmacc
+
+namespace mpi
+{
+
+    using complex_X = pmacc::math::Complex< picongpu::float_X >;
+
+    // Specialize complex type grid buffer for MPI
+    template<>
+    MPI_StructAsArray getMPI_StructAsArray< pmacc::math::Complex<picongpu::float_X> >()
+    {
+        MPI_StructAsArray result = getMPI_StructAsArray< complex_X::type > ();
+        result.sizeMultiplier *= uint32_t(sizeof(complex_X) / sizeof(typename complex_X::type));
+        return result;
+    };
+
+} //namespace mpi
+} //namespace pmacc

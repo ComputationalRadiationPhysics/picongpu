@@ -20,6 +20,9 @@
 #pragma once
 
 
+#include "picongpu/plugins/radiation/utilities.hpp"
+
+
 namespace picongpu
 {
 namespace plugins

@@ -1,4 +1,4 @@
-/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten
+/* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Marco Garten, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -50,6 +50,7 @@
 #   include "picongpu/param/bremsstrahlung.param"
 #endif
 #include "picongpu/param/radiation.param"
+#include "picongpu/param/transitionRadiation.param"
 #include "picongpu/param/species.param"
 #include "picongpu/param/speciesDefinition.param"
 #include "picongpu/param/speciesInitialization.param"

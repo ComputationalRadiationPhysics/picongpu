@@ -1,5 +1,5 @@
 /* Copyright 2013-2019 Axel Huebl, Heiko Burau, Rene Widera, Felix Schmitt,
- *                      Marco Garten
+ *                      Marco Garten, Finn-Ole Carstens
  *
  * This file is part of PIConGPU.
  *
@@ -47,3 +47,4 @@
 #include "picongpu/unitless/checkpoints.unitless"
 #include "picongpu/unitless/png.unitless"
 #include "picongpu/unitless/radiation.unitless"
+#include "picongpu/unitless/transitionRadiation.unitless"
