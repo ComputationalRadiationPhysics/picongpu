@@ -149,41 +149,38 @@ To contain the longitudinal information of the bunch, the simulation window is a
 
     This is an experimental feature, which was not verified yet.
 
-Form factor
-"""""""""""
+Macro-particle form factor
+""""""""""""""""""""""""""
 
-The *form factor* is still an experimental method trying to consider the shape of the macro particles when computing the radiation.
-By default, it should be switched off by setting ``__COHERENTINCOHERENTWEIGHTING__`` to zero. 
+The *macro-particle form factor* is a method, which considers the shape of the macro particles when computing the radiation.
 
-.. code:: cpp
-
-   // correct treatment of coherent and incoherent radiation from macroparticles
-   // 1 = on (slower and more memory, but correct quantitative treatment)
-   // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
-   #define __COHERENTINCOHERENTWEIGHTING__ 0
-
-
-If switched on, one can select between different macro particle shapes. 
-Currently three shapes are implemented.
+One can select between different macro particle shapes.
+Currently eight shapes are implemented.
 A shape can be selected by choosing one of the available namespaces:
 
 .. code:: cpp
 
    /* choosing the 3D CIC-like macro particle shape */
-   namespace radFormFactor_selected = radFormFactor_CIC_3D;
+   namespace radFormFactor = radFormFactor_CIC_3D;
 
 
-============================ ===================================================================================================================
-Namespace                    Description
-============================ ===================================================================================================================
-``radFormFactor_CIC_3D``     3D Cloud-In-Cell shape
-``radFormFactor_CIC_1Dy``    Cloud-In-Cell shape in y-direction, dot like in the other directions
-``radFormFactor_incoherent`` forces a completely incoherent emission by scaling the macro particle charge with the square root of the weighting
-============================ ===================================================================================================================
+==================================== ===================================================================================================================
+Namespace                            Description
+==================================== ===================================================================================================================
+``radFormFactor_CIC_3D``             3D Cloud-In-Cell shape
+``radFormFactor_TSC_3D``             3D Triangular shaped density cloud
+``radFormFactor_PCS_3D``             3D Quadratic spline density shape (Piecewise Cubic Spline assignment function)
+``radFormFactor_CIC_1Dy``            Cloud-In-Cell shape in y-direction, dot like in the other directions
+``radFormFactor_Gauss_spherical``    symmetric Gauss charge distribution
+``radFormFactor_Gauss_cell``         Gauss charge distribution according to cell size
+``radFormFactor_incoherent``         forces a completely incoherent emission by scaling the macro particle charge with the square root of the weighting
+``radFormFactor_coherent``           forces a completely coherent emission by scaling the macro particle charge with the weighting
+==================================== ===================================================================================================================
 
 .. note::
-
-   possibly more shapes (f.e. spaghetti shape) will be added
+  One should not confuse this macro-particle form factor with the form factor :math:`F`, which was previously mentioned.
+  This form factor is equal to the macro-particle shape, while :math:`F` contains the phase information of the whole electron bunch.
+  Both are necessary for a physically correct transition radiation calculation.
 
 
 Gamma filter
@@ -270,3 +267,8 @@ References
    Carstens, F.-O.,
    Bachelor thesis on the transition radiation plugin,
    https://doi.org/10.5281/zenodo.3469663
+
+- *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes — A general form factor formalism for macro-particles*
+   Pausch, R.,
+   Description for the effect of macro-particle shapes in particle-in-cell codes,
+   https://doi.org/10.1016/j.nima.2018.02.020

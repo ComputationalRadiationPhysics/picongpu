@@ -142,38 +142,30 @@ By using ``NyquistFactor = 0.5`` for periodic boundary conditions, particles tha
 Form factor
 """""""""""
 
-The *form factor* is still an experimental method trying to consider the shape of the macro particles when computing the radiation.
-By default, it should be switched off by setting ``__COHERENTINCOHERENTWEIGHTING__`` to zero. 
+The *form factor* is a method, which considers the shape of the macro particles when computing the radiation.
 
-.. code:: cpp
-
-   // correct treatment of coherent and incoherent radiation from macroparticles
-   // 1 = on (slower and more memory, but correct quantitative treatment)
-   // 0 = off (faster but macroparticles are treated as highly charged, point-like particle)
-   #define __COHERENTINCOHERENTWEIGHTING__ 0
-
-
-If switched on, one can select between different macro particle shapes. 
-Currently three shapes are implemented.
+One can select between different macro particle shapes.
+Currently eight shapes are implemented.
 A shape can be selected by choosing one of the available namespaces:
 
 .. code:: cpp
 
    /* choosing the 3D CIC-like macro particle shape */
-   namespace radFormFactor_selected = radFormFactor_CIC_3D;
+   namespace radFormFactor = radFormFactor_CIC_3D;
 
 
-============================ ===================================================================================================================
-Namespace                    Description
-============================ ===================================================================================================================
-``radFormFactor_CIC_3D``     3D Cloud-In-Cell shape
-``radFormFactor_CIC_1Dy``    Cloud-In-Cell shape in y-direction, dot like in the other directions
-``radFormFactor_incoherent`` forces a completely incoherent emission by scaling the macro particle charge with the square root of the weighting
-============================ ===================================================================================================================
-
-.. note:
-
-   possibly more shapes (f.e. spaghetti shape) will be added
+==================================== ===================================================================================================================
+Namespace                            Description
+==================================== ===================================================================================================================
+``radFormFactor_CIC_3D``             3D Cloud-In-Cell shape
+``radFormFactor_TSC_3D``             3D Triangular shaped density cloud
+``radFormFactor_PCS_3D``             3D Quadratic spline density shape (Piecewise Cubic Spline assignment function)
+``radFormFactor_CIC_1Dy``            Cloud-In-Cell shape in y-direction, dot like in the other directions
+``radFormFactor_Gauss_spherical``    symmetric Gauss charge distribution
+``radFormFactor_Gauss_cell``         Gauss charge distribution according to cell size
+``radFormFactor_incoherent``         forces a completely incoherent emission by scaling the macro particle charge with the square root of the weighting
+``radFormFactor_coherent``           forces a completely coherent emission by scaling the macro particle charge with the weighting
+==================================== ===================================================================================================================
 
 
 Reducing the particle sample
@@ -356,3 +348,5 @@ References
   Diploma thesis on the radiation plugin
 - `How to test and verify radiation diagnostics simulations within particle-in-cell frameworks <http://dx.doi.org/10.1016/j.nima.2013.10.073>`_,
   Some tests that have been performed to validate the code
+- `Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes—A general form factor formalism for macro-particles <https://doi.org/10.1016/j.nima.2018.02.020>`_,
+  Description for the effect of macro-particle shapes in particle-in-cell codes
