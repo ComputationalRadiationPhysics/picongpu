@@ -68,12 +68,9 @@ namespace radiation
      * If \p T_dependenciesFulfilled is false a dummy kernel without functionality is created
      *
      * @tparam T_numWorkers number of workers
-     * @tparam T_dependenciesFulfilled true if all dependencies (species attributes) are full filled
-     *                                  else false
      */
     template<
-        uint32_t T_numWorkers,
-        bool T_dependenciesFulfilled
+        uint32_t T_numWorkers
     >
     struct KernelRadiationParticles
     {
@@ -507,37 +504,6 @@ namespace radiation
 
 
         } // end radiation kernel
-    };
-
-    /** specialization if a dependency is missing
-     *
-     * this functor is empty.
-     */
-    template< uint32_t T_numWorkers >
-    struct KernelRadiationParticles<
-        T_numWorkers,
-        false
-    >
-    {
-        template<
-            typename ParBox,
-            typename DBox,
-            typename Mapping,
-            typename T_Acc
-        >
-        DINLINE
-        void operator()(
-            T_Acc const & acc,
-            ParBox,
-            DBox,
-            DataSpace< simDim >,
-            uint32_t,
-            Mapping,
-            radiation_frequencies::FreqFunctor,
-            DataSpace< simDim >
-        ) const
-        {
-        }
     };
 
 } // namespace radiation
