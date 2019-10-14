@@ -379,7 +379,7 @@ In order to read and plot the text-based radiation data, a python script as foll
 HDF5 output
 """""""""""
 
-The hdf5 based data contains the following data structure in ``/data/{interation}/DetectorMesh/`` according to the openPMD standard:
+The hdf5 based data contains the following data structure in ``/data/{iteration}/DetectorMesh/`` according to the openPMD standard:
 
 **Amplitude (Group):**
 
