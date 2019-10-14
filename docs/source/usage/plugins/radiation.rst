@@ -56,9 +56,9 @@ Currently you can choose from the following setups for the frequency range:
 ============================= ==============================================================================================
 namespace                     Description
 ============================= ==============================================================================================
-``linear_frequencies``    linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``log_frequencies``       logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``frequencies_from_list`` ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
+``linear_frequencies``        linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``log_frequencies``           logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``frequencies_from_list``     ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
 ============================= ==============================================================================================
 
 
@@ -75,7 +75,7 @@ The number of total sample frequencies ``N_omega`` need to be defined as ``const
 In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum frequency ``omega_max`` need to be defined as ``constexpr float_64``.
 
 For the **file-based frequency** definition,  all definitions need to be in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace.
-The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values in units of :math:`[s^{-1}]` needs to be given as ``constexpr const char * listLocation = "/path/to/frequency_list";``.
+The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values in units of :math:`\mathrm{[s^{-1}]}` needs to be given as ``constexpr const char * listLocation = "/path/to/frequency_list";``.
 The frequency values in the file can be separated by newlines, spaces, tabs, or any other whitespace. The numbers should be given in such a way, that c++ standard ``std::ifstream`` can interpret the number e.g., as ``2.5344e+16``. 
 
 .. note::
@@ -276,7 +276,7 @@ Command line option                       Description
 ``--<species>_radiation.start``           Time step, at which PIConGPU starts calculating the radiation.
                                           Default is ``2`` in order to get enough history of the particles.
 ``--<species>_radiation.end``             Time step, at which the radiation calculation should end.
-                                          Default: ``0``(stops at end of simulation).
+                                          Default: ``0`` (stops at end of simulation).
 ``--<species>_radiation.radPerGPU``       If set, each GPU additionally stores its own spectra without summing over the entire simulation area.
                                           This allows for a localization of specific spectral features.
 ``--<species>_radiation.folderRadPerGPU`` Name of the folder, where the GPU specific spectra are stored.
@@ -308,7 +308,7 @@ Command line flag                        Output description
 ``--<species>_radiation.totalRadiation`` Contains *ASCII* files that have the total spectral intensity until the timestep specified by the filename.
                                          Each row gives data for one observation direction (same order as specified in the ``observer.py``).
                                          The values for each frequency are separated by *tabs* and have the same order as specified in ``radiation.param``.
-                                         The spectral intensity is stored in the units **[J s]**.
+                                         The spectral intensity is stored in the units :math:`\mathrm{[Js]}`.
 ``--<species>_radiation.lastRadiation``  has the same format as the output of *totalRadiation*.
                                          The spectral intensity is only summed over the last radiation ``dump`` period.
 ``--<species>_radiation.radPerGPU``      Same output as *totalRadiation* but only summed over each GPU. 
@@ -318,8 +318,179 @@ Command line flag                        Output description
                                          These are for restart purposes and for more complex data analysis.
 ======================================== ========================================================================================================================
 
-Analysing tools
-^^^^^^^^^^^^^^^^
+
+Text-based output
+"""""""""""""""""
+
+The text-based output of ``lastRadiation`` and ``totalRadiation`` contains the intensity values in SI-units :math:`\mathrm{[Js]}`. Intensity values for different frequencies are separated by spaces, while newlines separate values for different observation directions. 
+
+
+In order to read and plot the text-based radiation data, a python script as follows could be used:
+
+.. code:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LogNorm
+
+    # frequency definition:
+    # as defined in the 'radiation.param' file:
+    N_omega = 1024
+    omega_min = 0.0 # [1/s]
+    omega_max = 5.8869e17 # [1/s]
+    omega = np.linspace(omega_min, omega_max, N_omega)
+
+    # observation angle definition:
+    # as defined in the 'radiation.param' file:
+    N_observer = 128
+    # as defined in the 'radiationObserver.param' file:
+    # this example assumes one used the default Bunch example
+    # there, the theta values are normalized to the Lorentz factor
+    theta_min = -1.5 # [rad/gamma]
+    theta_max = +1.5 # [rad/gamma]
+    theta = np.linspace(theta_min, theta_max, N_observer)
+
+    # load radiation text-based data
+    rad_data = np.loadtxt('./simOutput/lastRad/e_radiation_2820.dat')
+
+    # plot radiation spectrum
+    plt.figure()
+    plt.pcolormesh(omega, theta, rad_data, norm=LogNorm())
+
+    # add and configure colorbar
+    cb = plt.colorbar()
+    cb.set_label(r"$\frac{\mathrm{d}^2 I}{\mathrm{d} \omega \mathrm{d} \Omega} \, \mathrm{[Js]}$", fontsize=18)
+    for i in cb.ax.get_yticklabels():
+        i.set_fontsize(14)
+
+    # configure x-axis
+    plt.xlabel(r"$\omega \, \mathrm{[1/s]}$", fontsize=18)
+    plt.xticks(fontsize=14)
+
+    # configure y-axis
+    plt.ylabel(r"$\theta / \gamma$", fontsize=18)
+    plt.yticks(fontsize=14)
+
+    # make plot look nice
+    plt.tight_layout()
+    plt.show()
+
+
+HDF5 output
+"""""""""""
+
+The hdf5 based data contains the following data structure in ``/data/{iteration}/DetectorMesh/`` according to the openPMD standard:
+
+**Amplitude (Group):**
+
+======== ===================================================== ====================================
+Dataset  Description                                           Dimensions
+======== ===================================================== ====================================
+``x_Re`` real part, x-component of the complex amplitude       (``N_observer``, ``N_omega``, 1)
+``x_Im`` imaginary part, x-component of the complex amplitude  (``N_observer``, ``N_omega``, 1)
+``y_Re`` real part, y-component of the complex amplitude       (``N_observer``, ``N_omega``, 1)
+``y_Im`` imaginary part, y-component of the complex amplitude  (``N_observer``, ``N_omega``, 1)
+``z_Re`` real part, z-component of the complex amplitude       (``N_observer``, ``N_omega``, 1)
+``z_Im`` imaginary part, z-component of the complex amplitude  (``N_observer``, ``N_omega``, 1)
+======== ===================================================== ====================================
+
+**DetectorDirection (Group):**
+
+======== ======================================================= ===============================
+Dataset  Description                                             Dimensions
+======== ======================================================= ===============================
+``x``    x-component of the observation direction :math:`\vec n` (``N_observer``, 1, 1)
+``y``    y-component of the observation direction :math:`\vec n` (``N_observer``, 1, 1)
+``z``    z-component of the observation direction :math:`\vec n` (``N_observer``, 1, 1)
+======== ======================================================= ===============================
+
+**DetectorFrequency (Group):**
+
+========== ======================================================= ===============================
+Dataset    Description                                             Dimensions
+========== ======================================================= ===============================
+``omega``  frequency :math:`\omega` of virtual detector bin        (1, ``N_omega``, 1)
+========== ======================================================= ===============================
+
+
+Please be aware that all datasets in the hdf5 output are given in the PIConGPU-intrinsic unit system. In order to convert, for example, the frequencies :math:`\omega` to SI-units one has to multiply with the dataset-attribute `unitSI`. 
+
+.. code:: python
+
+   import h5py
+   f = h5py.File("e_radAmplitudes_2800_0_0_0.h5", "r")
+   omega_handler = f['/data/2800/DetectorMesh/DetectorFrequency/omega']
+   omega = omega_handler[0, :, 0] * omega_handler.attrs['unitSI'] 
+   f.close()
+
+In order to extract the radiation data from the HDF5 datasets, PIConGPU provides a python module to read the data and obtain the result in SI-units. An example python script is given below:
+
+.. code:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt 
+    from matplotlib.colors import LogNorm
+
+    from picongpu.plugins.data import RadiationData
+
+    # access HDF5 radiation file
+    radData = RadiationData("./simOutput/radiationHDF5/e_radAmplitudes_2820_0_0_0.h5")
+
+    # get frequencies
+    omega = radData.get_omega()
+
+    # get all observation vectors and convert to angle
+
+    vec_n = radData.get_vector_n()
+    gamma = 5.0
+    theta_norm = np.arctan(vec_n[:, 0]/vec_n[:, 1]) * gamma 
+
+    # get spectrum over observation angle
+    spectrum = radData.get_Spectra()
+
+    # plot radiation spectrum
+    plt.figure()
+    plt.pcolormesh(omega, theta_norm, spectrum, norm=LogNorm())
+
+    # add and configure colorbar
+    cb = plt.colorbar()
+    cb.set_label(r"$\frac{\mathrm{d}^2 I}{\mathrm{d} \omega \mathrm{d} \Omega} \, \mathrm{[Js]}$", fontsize=18)
+    for i in cb.ax.get_yticklabels():
+        i.set_fontsize(14)
+
+    # configure x-axis
+    plt.xlabel(r"$\omega \, \mathrm{[1/s]}$", fontsize=18)
+    plt.xticks(fontsize=14)
+
+    # configure y-axis
+    plt.ylabel(r"$\theta / \gamma$", fontsize=18)
+    plt.yticks(fontsize=14)
+
+    # make plot look nice
+    plt.tight_layout()
+    plt.show()
+
+
+There are various methods besides ``get_Spectra()`` that are provided by the python module.
+If a method exists for ``_x`` (or ``_X``) it also exists for ``_y`` and ``_z`` (``_Y`` and ``_Z``) accordingly.
+
+============================ ==============================================================================================================
+Method                       Description
+============================ ==============================================================================================================
+``.get_omega()``             get frequency :math:`\omega` of virtual detector bin in units of :math:`\mathrm{[1/s]}`
+``.get_vector_n()``          get observation direction :math:`\vec{n}`
+``.get_Spectra()``           get spectrum :math:`\mathrm{d}^2 I / \mathrm{d} \omega \mathrm{d} \Omega` in units of :math:`\mathrm{[Js]}`
+``.get_Polarization_X()``    get spectrum but only for polarization in x-direction
+``.get_Amplitude_x()``       get x-component of complex amplitude (unit: :math:`\mathrm{[\sqrt{Js}]}`)
+``.get_timestep()``          the iteration (timestep) at which the data was produced (unit: PIC-cycles)
+============================ ==============================================================================================================
+
+.. note::
+
+   Modules for visualizing radiation data and a widget interface to explore the data interactively will be developed in the future. 
+
+Analyzing tools
+^^^^^^^^^^^^^^^
 
 In ``picongp/src/tools/bin``, there are tools to analyze the radiation data after the simulation.
 
