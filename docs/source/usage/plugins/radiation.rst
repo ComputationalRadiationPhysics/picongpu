@@ -75,7 +75,7 @@ The number of total sample frequencies ``N_omega`` need to be defined as ``const
 In the sub-namespace ``SI``, a minimal frequency ``omega_min`` and a maximum frequency ``omega_max`` need to be defined as ``constexpr float_64``.
 
 For the **file-based frequency** definition,  all definitions need to be in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace.
-The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values in units of :math:`[s^{-1}]` needs to be given as ``constexpr const char * listLocation = "/path/to/frequency_list";``.
+The number of total frequencies ``N_omega`` need to be defined as ``constexpr unsigned int``  and the path to the file containing the frequency values in units of :math:`\mathrm{[s^{-1}]}` needs to be given as ``constexpr const char * listLocation = "/path/to/frequency_list";``.
 The frequency values in the file can be separated by newlines, spaces, tabs, or any other whitespace. The numbers should be given in such a way, that c++ standard ``std::ifstream`` can interpret the number e.g., as ``2.5344e+16``. 
 
 .. note::
@@ -308,7 +308,7 @@ Command line flag                        Output description
 ``--<species>_radiation.totalRadiation`` Contains *ASCII* files that have the total spectral intensity until the timestep specified by the filename.
                                          Each row gives data for one observation direction (same order as specified in the ``observer.py``).
                                          The values for each frequency are separated by *tabs* and have the same order as specified in ``radiation.param``.
-                                         The spectral intensity is stored in the units **[J s]**.
+                                         The spectral intensity is stored in the units :math:`\mathrm{[Js]}`.
 ``--<species>_radiation.lastRadiation``  has the same format as the output of *totalRadiation*.
                                          The spectral intensity is only summed over the last radiation ``dump`` period.
 ``--<species>_radiation.radPerGPU``      Same output as *totalRadiation* but only summed over each GPU. 
@@ -322,7 +322,7 @@ Command line flag                        Output description
 Text-based output
 """""""""""""""""
 
-The text-based output of ``lastRadiation`` and ``totalRadiation`` contains the intensity values in SI-units :math:`[Js]`. Intensity values for different frequencies are separated by spaces, while newlines separate values for different observation directions. 
+The text-based output of ``lastRadiation`` and ``totalRadiation`` contains the intensity values in SI-units :math:`\mathrm{[Js]}`. Intensity values for different frequencies are separated by spaces, while newlines separate values for different observation directions. 
 
 
 In order to read and plot the text-based radiation data, a python script as follows could be used:
@@ -477,7 +477,7 @@ If a method exists for ``_x`` (or ``_X``) it also exists for ``_y`` and ``_z`` (
 ============================ ==============================================================================================================
 Method                       Description
 ============================ ==============================================================================================================
-``.get_omega()``             get frequency :math:`\omega` of virtual detector bin in units of :math:`[1/s]`
+``.get_omega()``             get frequency :math:`\omega` of virtual detector bin in units of :math:`\mathrm{[1/s]}`
 ``.get_vector_n()``          get observation direction :math:`\vec{n}`
 ``.get_Spectra()``           get spectrum :math:`\mathrm{d}^2 I / \mathrm{d} \omega \mathrm{d} \Omega` in units of :math:`\mathrm{[Js]}`
 ``.get_Polarization_X()``    get spectrum but only for polarization in x-direction
