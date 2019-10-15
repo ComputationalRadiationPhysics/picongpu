@@ -281,9 +281,6 @@ if(VAMPIR_ENABLE)
 
     # for manual instrumentation and hints that vampir is enabled in our code
     set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DVTRACE)
-
-    # titan work around: currently (5.14.4) the -D defines are not provided by -vt:showme-compile
-    set(PMacc_DEFINITIONS ${PMacc_DEFINITIONS} -DMPICH_IGNORE_CXX_SEEK)
 endif(VAMPIR_ENABLE)
 
 

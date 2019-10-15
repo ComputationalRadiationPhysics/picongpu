@@ -84,30 +84,6 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 .. literalinclude:: profiles/hydra-hzdr/default_picongpu.profile.example
    :language: bash
 
-Titan (ORNL)
-------------
-
-**System overview:** `link <https://www.olcf.ornl.gov/olcf-resources/compute-systems/titan/>`_
-
-**User guide:** `link <https://www.olcf.ornl.gov/for-users/system-user-guides/titan/>`_
-
-**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/titan/file-systems/>`_).
-Note that ``$HOME`` is not mounted on compute nodes, place your ``picongpu.profile`` and auxiliary software in your production directory.
-
-For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libSplash, libpng and PNGwriter <install-dependencies>` manually.
-
-K20x GPUs (recommended)
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/titan-ornl/gpu_picongpu.profile.example
-   :language: bash
-
-AMD Opteron 6274 (Interlagos) CPUs (for experiments)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. literalinclude:: profiles/titan-ornl/cpu_picongpu.profile.example
-   :language: bash
-
 Piz Daint (CSCS)
 ----------------
 
