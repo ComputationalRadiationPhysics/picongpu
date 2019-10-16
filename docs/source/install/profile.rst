@@ -84,6 +84,24 @@ For this profile to work, you need to download the :ref:`PIConGPU source code <i
 .. literalinclude:: profiles/hydra-hzdr/default_picongpu.profile.example
    :language: bash
 
+Summit (ORNL)
+-------------
+
+**System overview:** `link <https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/>`_
+
+**User guide:** `link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/>`_
+
+**Production directory:** usually ``$PROJWORK/$proj/`` (`link <https://www.olcf.ornl.gov/for-users/system-user-guides/summit/summit-user-guide/#file-systems>`_).
+Note that ``$HOME`` is mounted on compute nodes as read-only.
+
+For this profile to work, you need to download the :ref:`PIConGPU source code <install-dependencies-picongpu>` and install :ref:`libSplash and PNGwriter <install-dependencies>` manually.
+
+V100 GPUs (recommended)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: profiles/summit-ornl/gpu_picongpu.profile.example
+   :language: bash
+
 Piz Daint (CSCS)
 ----------------
 
