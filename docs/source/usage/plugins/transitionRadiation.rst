@@ -58,7 +58,7 @@ There are no external dependencies.
 .param files
 ^^^^^^^^^^^^
 
-In order to setup the transition radiation plugin, the :ref:`transitionRadiation.param <usage-params-plugins>` has to be configured **and** the radiating particles need to have the attributes ``weighting``, ``momentum``, ``location``, ``massRatio``, ``chargeRatio`` and ``transitionRadiationMask`` which can be added in :ref:`speciesDefinition.param <usage-params-core>`.
+In order to setup the transition radiation plugin, the :ref:`transitionRadiation.param <usage-params-plugins>` has to be configured **and** the radiating particles need to have the attributes ``weighting``, ``momentum``, and ``location``, as well as the flags ``massRatio``, ``chargeRatio``, and ``transitionRadiationMask`` which can be added in :ref:`speciesDefinition.param <usage-params-core>`.
 
 In *transitionRadiation.param*, the number of frequencies ``N_omega`` and observation directions ``N_theta`` and ``N_phi`` are defined.
 
@@ -187,7 +187,7 @@ Gamma filter
 """"""""""""
 
 In order to consider the radiation only of particles with a gamma higher than a specific threshold.
-In order to do that, the radiating particle species needs the attribute ``transitionRadiationMask`` (which is initialized as ``false``) which further needs to be manipulated, to set to true for specific (random) particles.
+In order to do that, the radiating particle species needs the flag ``transitionRadiationMask`` (which is initialized as ``false``) which further needs to be manipulated, to set to true for specific (random) particles.
 
 It can also avoid division by 0 errors in the transition radiation output, which are caused by slowly, but transversely moving electrons.
 
