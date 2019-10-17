@@ -216,7 +216,7 @@ For a specific (charged) species ``<species>`` e.g. ``e``, the radiation can be 
 ========================================== ==============================================================================================================================
 Command line option                        Description
 ========================================== ==============================================================================================================================
-``--<species>_transitionRadiation.period`` Gives the number of time steps between which the radiation should be calculated.
+``--<species>_transRad.period``            Gives the number of time steps between which the radiation should be calculated.
 ========================================== ==============================================================================================================================
 
 Memory Complexity
