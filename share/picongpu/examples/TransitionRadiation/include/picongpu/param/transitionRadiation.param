@@ -233,20 +233,23 @@ namespace listFrequencies
          */
         /** get index for computing angle theta: */
         const int indexTheta = observation_id_extern / parameters::nPhi;
+
+        /** step width angle theta, set it to 0 if nTheta = 1 */
+        const picongpu::float_64 deltaTheta = ( parameters::nTheta > 1 ) ?
+                ( parameters::thetaMax - parameters::thetaMin ) / ( parameters::nTheta - 1.0 ) : 0.0;
+
+        /** compute observation angles theta */
+        const picongpu::float_64 theta = indexTheta * deltaTheta + parameters::thetaMin;
+
         /** get index for computing angle phi: */
         const int indexPhi = observation_id_extern % parameters::nPhi;
 
-        /** step width angle theta */
-        const picongpu::float_64 deltaTheta = ( parameters::thetaMax -
-            parameters::thetaMin ) / ( parameters::nTheta - 1.0 );
-        /** step width angle phi */
-        const picongpu::float_64 deltaPhi = ( parameters::phiMax -
-            parameters::phiMin ) / ( parameters::nPhi - 1.0 );
+        /** step width angle phi, set it to 0 if nPhi = 1 */
+        const picongpu::float_64 deltaPhi = ( parameters::nPhi > 1 ) ?
+                ( parameters::phiMax - parameters::phiMin ) / ( parameters::nPhi - 1.0 ) : 0.0;
 
-        /** compute observation angles theta */
-        const picongpu::float_64 theta( indexTheta * deltaTheta + parameters::thetaMin );
         /** compute observation angles phi */
-        const picongpu::float_64 phi( indexPhi * deltaPhi - parameters::phiMin );
+        const picongpu::float_64 phi = indexPhi * deltaPhi - parameters::phiMin;
 
         /* helper functions for efficient trigonometric calculations */
         picongpu::float_32 sinPhi;
@@ -256,7 +259,7 @@ namespace listFrequencies
         math::sincos( precisionCast< picongpu::float_32 >( phi ), sinPhi, cosPhi );
         math::sincos( precisionCast< picongpu::float_32 >( theta ), sinTheta, cosTheta );
         /** compute observation unit vector */
-        return float3_X( sinTheta * cosPhi , cosTheta, sinTheta * sinPhi ) ;
+        return float3_X( sinTheta * cosPhi , cosTheta, sinTheta * sinPhi );
     }
 
 } // namespace transitionRadiation
