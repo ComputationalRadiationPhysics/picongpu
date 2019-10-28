@@ -189,8 +189,6 @@ Gamma filter
 In order to consider the radiation only of particles with a gamma higher than a specific threshold.
 In order to do that, the radiating particle species needs the flag ``transitionRadiationMask`` (which is initialized as ``false``) which further needs to be manipulated, to set to true for specific (random) particles.
 
-It can also avoid division by 0 errors in the transition radiation output, which are caused by slowly, but transversely moving electrons.
-
 Using a filter functor as:
 
 .. code:: cpp
