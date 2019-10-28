@@ -33,20 +33,20 @@ module load boost/1.66.0
 module load hdf5/1.10.3
 module load adios/1.13.1-py2 c-blosc zfp sz lz4
 
-# download libSplash and compile it yourself from
+# optionally download libSplash and compile it yourself from
 #   https://github.com/ComputationalRadiationPhysics/libSplash/
-export Splash_DIR=$PROJWORK/$proj/huebl/sw/splash-1.7.0
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_DIR/lib
+# export Splash_ROOT=<your libSplash install directory>  # e.g., ${HOME}/sw/libSplash-1.7.0
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$Splash_ROOT/lib
 
 #export T3PIO_ROOT=$PROJWORK/$proj/lib/t3pio
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$T3PIO_ROOT/lib
 
-# install pngwriter yourself:
-#   https://github.com/pngwriter/pngwriter#install
 module load zlib/1.2.11
 module load libpng/1.6.34 freetype/2.9.1
-export PNGwriter_DIR=$PROJWORK/$proj/huebl/sw/pngwriter-0.7.0
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGwriter_DIR/lib
+# optionally install pngwriter yourself:
+#   https://github.com/pngwriter/pngwriter#install
+# export PNGwriter_ROOT=<your pngwriter install directory>  # e.g., ${HOME}/sw/pngwriter
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PNGwriter_ROOT/lib
 
 # helper variables and tools ##################################################
 export PICSRC=$HOME/src/picongpu
