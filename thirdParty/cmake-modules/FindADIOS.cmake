@@ -1,5 +1,5 @@
 # - Find ADIOS library, routines for scientific, parallel IO
-#   https://www.olcf.ornl.gov/center-projects/adios/
+#   https://csmd.ornl.gov/adios/
 #
 # Use this module by invoking find_package with the form:
 #   find_package(ADIOS
