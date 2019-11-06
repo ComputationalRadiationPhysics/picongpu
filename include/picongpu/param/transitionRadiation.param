@@ -132,7 +132,11 @@ namespace listFrequencies
 
     namespace parameters
     {
-        // number of observation directions
+        /** Number of observation directions
+         *
+         * If nPhi or nTheta is equal to 1, the transition radiation will be calculated
+         * for phiMin or thetaMin respectively.
+         */
         constexpr unsigned int nPhi = 128;
         constexpr unsigned int nTheta = 128;
         constexpr unsigned int nObserver = nPhi * nTheta;
@@ -216,6 +220,9 @@ namespace listFrequencies
      * 128X128 detectors ranging from 0 to pi for the azimuth angle
      * theta and from 0 to 2 pi for the polar angle phi.
      *
+     * If the calculation is only supposed to be done for a single azimuth
+     * or polar angle, it will use the respective minimal angle.
+     *
      * @param    observation_id_extern
      *           int index that identifies each block on the GPU
      *           to compute the observation direction
@@ -233,20 +240,23 @@ namespace listFrequencies
          */
         /** get index for computing angle theta: */
         const int indexTheta = observation_id_extern / parameters::nPhi;
+
+        /** step width angle theta */
+        const picongpu::float_64 deltaTheta = ( parameters::nTheta > 1 ) ?
+                ( parameters::thetaMax - parameters::thetaMin ) / ( parameters::nTheta - 1.0 ) : 0.0;
+
+        /** compute observation angles theta */
+        const picongpu::float_64 theta = indexTheta * deltaTheta + parameters::thetaMin;
+
         /** get index for computing angle phi: */
         const int indexPhi = observation_id_extern % parameters::nPhi;
 
-        /** step width angle theta */
-        const picongpu::float_64 deltaTheta = ( parameters::thetaMax -
-            parameters::thetaMin ) / ( parameters::nTheta - 1.0 );
         /** step width angle phi */
-        const picongpu::float_64 deltaPhi = ( parameters::phiMax -
-            parameters::phiMin ) / ( parameters::nPhi - 1.0 );
+        const picongpu::float_64 deltaPhi = ( parameters::nPhi > 1 ) ?
+                ( parameters::phiMax - parameters::phiMin ) / ( parameters::nPhi - 1.0 ) : 0.0;
 
-        /** compute observation angles theta */
-        const picongpu::float_64 theta( indexTheta * deltaTheta + parameters::thetaMin );
         /** compute observation angles phi */
-        const picongpu::float_64 phi( indexPhi * deltaPhi - parameters::phiMin );
+        const picongpu::float_64 phi = indexPhi * deltaPhi - parameters::phiMin;
 
         /* helper functions for efficient trigonometric calculations */
         picongpu::float_32 sinPhi;
@@ -256,7 +266,7 @@ namespace listFrequencies
         math::sincos( precisionCast< picongpu::float_32 >( phi ), sinPhi, cosPhi );
         math::sincos( precisionCast< picongpu::float_32 >( theta ), sinTheta, cosTheta );
         /** compute observation unit vector */
-        return float3_X( sinTheta * cosPhi , cosTheta, sinTheta * sinPhi ) ;
+        return float3_X( sinTheta * cosPhi , cosTheta, sinTheta * sinPhi );
     }
 
 } // namespace transitionRadiation
