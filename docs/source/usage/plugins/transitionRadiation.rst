@@ -251,7 +251,7 @@ Known Issues
 The output is currently only physically correct for electron passing through a metal foil.
 
 References
-----------
+^^^^^^^^^^
 
 - *Theory of coherent transition radiation generated at a plasma-vacuum interface*
    Schroeder, C. B. and Esarey, E. and van Tilborg, J. and Leemans, W. P.,
