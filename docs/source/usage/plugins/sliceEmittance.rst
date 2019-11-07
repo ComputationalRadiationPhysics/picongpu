@@ -7,6 +7,7 @@ The plugin computes the total emittance and the slice emittance (for ten combine
 
 Currently, it outputs only the emittance of the transverse momentum space x-px.
 
+More details on the implementation and tests can be found in the master's thesis [Rudat2019]_. 
 
 External Dependencies
 ^^^^^^^^^^^^^^^^^^^^^
@@ -99,4 +100,17 @@ Each following column is the emittance if the slice at ten cells around the posi
    cb = plt.colorbar()
    cb.set_label("emittance")
    plt.show()
+
+
+
+
+References
+^^^^^^^^^^
+
+.. [Rudat2019]
+        S. Rudat.
+        *Laser Wakefield Acceleration Simulation as a Service*,
+        chapter 4.4,
+        Master's thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019),
+        https://doi.org/10.5281/zenodo.3529741
 
