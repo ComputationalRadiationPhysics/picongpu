@@ -28,7 +28,7 @@ Plugin name                                                                     
 :ref:`slice field printer <usage-plugins-sliceFieldPrinter>` [#f5]_                  print out a slice of the electric and/or magnetic and/or current field
 :ref:`sum currents <usage-plugins-sumCurrents>`                                      compute the total current summed over all cells
 :ref:`transitionRadiation <usage-plugins-radiation>`                                 compute emitted electromagnetic spectra
-==================================================================================== =======================================================================
+==================================================================================== =================================================================================
 
 .. toctree::
    :glob:
