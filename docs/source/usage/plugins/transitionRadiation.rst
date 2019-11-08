@@ -77,9 +77,9 @@ Currently you can choose from the following setups for the frequency range:
 ============================= ==============================================================================================
 namespace                     Description
 ============================= ==============================================================================================
-``linear_frequencies``    linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``log_frequencies``       logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``frequencies_from_list`` ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
+``linear_frequencies``        linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``log_frequencies``           logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``frequencies_from_list``     ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
 ============================= ==============================================================================================
 
 
