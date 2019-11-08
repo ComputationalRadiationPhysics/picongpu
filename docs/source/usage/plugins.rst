@@ -30,6 +30,18 @@ Plugin name                                                                     
 :ref:`transitionRadiation <usage-plugins-radiation>`                                 compute emitted electromagnetic spectra
 ==================================================================================== =================================================================================
 
+.. rubric:: Footnotes
+
+.. [#f1] On restart, plugins with that footnote overwrite their output of previous runs.
+         Manually *save* the created files of these plugins before restarting in the same directory.
+.. [#f2] Either *ADIOS* or *HDF5* is required for simulation restarts.
+         If both are available, writing checkpoints with ADIOS is automatically preferred by the simulation.
+.. [#f3] Requires *HDF5* for output.
+.. [#f4] Can remember particles that left the box at a certain time step.
+.. [#f5] Deprecated
+.. [#f6] Only runs on the *CUDA* backend (GPU).
+.. [#f7] Multi-Plugin: Can be configured to run multiple times with varying parameters.
+
 .. toctree::
    :glob:
    :maxdepth: 1
@@ -77,18 +89,6 @@ It is our goal to provide at least three modules for each plugin to make postpro
 Further information on how to use these tools can be found at each plugin page.
 
 If you would like to help in developing those classes for a plugin of your choice, please read :ref:`python postprocessing <development-pytools>`.
-
-.. rubric:: Footnotes
-
-.. [#f1] On restart, plugins with that footnote overwrite their output of previous runs.
-         Manually *save* the created files of these plugins before restarting in the same directory.
-.. [#f2] Either *ADIOS* or *HDF5* is required for simulation restarts.
-         If both are available, writing checkpoints with ADIOS is automatically preferred by the simulation.
-.. [#f3] Requires *HDF5* for output.
-.. [#f4] Can remember particles that left the box at a certain time step.
-.. [#f5] Deprecated
-.. [#f6] Only runs on the *CUDA* backend (GPU).
-.. [#f7] Multi-Plugin: Can be configured to run multiple times with varying parameters.
 
 .. rubric:: References
 
