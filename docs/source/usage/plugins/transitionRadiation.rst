@@ -101,7 +101,7 @@ The frequency values in the file can be separated by newlines, spaces, tabs, or 
 
 .. note::
 
-   Currently, the variable ``listLocation`` is required to be defined in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace, even if ``frequencies_from_list`` is not used.
+   Currently, the variable ``listLocation`` is required to be defined in the ``picongpu::plugins::transitionRadiation::frequencies_from_list`` namespace, even if ``frequencies_from_list`` is not used.
    The string does not need to point to an existing file, as long as the file-based frequency definition is not used.
 
 
