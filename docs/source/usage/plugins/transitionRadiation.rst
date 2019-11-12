@@ -77,9 +77,9 @@ Currently you can choose from the following setups for the frequency range:
 ============================= ==============================================================================================
 namespace                     Description
 ============================= ==============================================================================================
-``linear_frequencies``    linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``log_frequencies``       logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
-``frequencies_from_list`` ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
+``linear_frequencies``        linear frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``log_frequencies``           logarithmic frequency range from ``SI::omega_min`` to ``SI::omega_max`` with ``N_omega`` steps
+``frequencies_from_list``     ``N_omega`` frequencies taken from a text file with location ``listLocation[]``
 ============================= ==============================================================================================
 
 
@@ -101,7 +101,7 @@ The frequency values in the file can be separated by newlines, spaces, tabs, or 
 
 .. note::
 
-   Currently, the variable ``listLocation`` is required to be defined in the ``picongpu::plugins::radiation::frequencies_from_list`` namespace, even if ``frequencies_from_list`` is not used.
+   Currently, the variable ``listLocation`` is required to be defined in the ``picongpu::plugins::transitionRadiation::frequencies_from_list`` namespace, even if ``frequencies_from_list`` is not used.
    The string does not need to point to an existing file, as long as the file-based frequency definition is not used.
 
 
