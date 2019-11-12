@@ -57,3 +57,17 @@
                 return std::string(#name);                                     \
         }                                                                      \
     )
+
+/* same method as above but explicitly for constexpr values/flags */
+#define const_value_identifier(in_type,name,in_default)                        \
+        identifier(name,                                                       \
+        typedef in_type type;                                                  \
+        static HDINLINE constexpr type getValue()                              \
+        {                                                                      \
+                return in_default;                                             \
+        }                                                                      \
+        static std::string getName()                                           \
+        {                                                                      \
+                return std::string(#name);                                     \
+        }                                                                      \
+    )
