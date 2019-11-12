@@ -52,6 +52,9 @@ HDINLINE float_X getMass()
         >::type
     >::type;
 
+    /* check if massRatio is not negative */
+    PMACC_CASSERT_MSG( set_massRatio_greater_or_equal_0, MassRatioValue::getValue( ) >= float_X( 0.0 ) );
+
     return BASE_MASS * MassRatioValue::getValue();
 };
 
