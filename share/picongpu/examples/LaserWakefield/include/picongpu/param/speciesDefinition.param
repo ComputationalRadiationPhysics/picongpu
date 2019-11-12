@@ -58,8 +58,8 @@ using AttributeSeqIons = MakeSeq_t<
 /*--------------------------- electrons --------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioElectrons, 1.0 );
-value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+const_value_identifier( float_X, MassRatioElectrons, 1.0 );
+const_value_identifier( float_X, ChargeRatioElectrons, 1.0 );
 
 using ParticleFlagsElectrons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
@@ -80,8 +80,8 @@ using PIC_Electrons = Particles<
 /*--------------------------- ions -------------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioIons, 1836.152672 );
-value_identifier( float_X, ChargeRatioIons, -1.0 );
+const_value_identifier( float_X, MassRatioIons, 1836.152672 );
+const_value_identifier( float_X, ChargeRatioIons, -1.0 );
 
 using ParticleFlagsIons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,

@@ -67,8 +67,8 @@ using IonParticleAttributes = MakeSeq_t<
 /*--------------------------- electrons --------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioElectrons, 1.0 );
-value_identifier( float_X, ChargeRatioElectrons, 1.0 );
+const_value_identifier( float_X, MassRatioElectrons, 1.0 );
+const_value_identifier( float_X, ChargeRatioElectrons, 1.0 );
 
 using ParticleFlagsElectrons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
@@ -89,8 +89,8 @@ using Electrons = Particles<
 /*--------------------------- H+ --------------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioHydrogen, 1836.152672 );
-value_identifier( float_X, ChargeRatioHydrogen, -1.0 );
+const_value_identifier( float_X, MassRatioHydrogen, 1836.152672 );
+const_value_identifier( float_X, ChargeRatioHydrogen, -1.0 );
 
 /* ratio relative to BASE_DENSITY (n_e) */
 value_identifier( float_X, DensityRatioHydrogen, 25. / 158. );
@@ -125,8 +125,8 @@ using Hydrogen = Particles<
 /*--------------------------- C ---------------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioCarbon, 22032.0 );
-value_identifier( float_X, ChargeRatioCarbon, -6.0 );
+const_value_identifier( float_X, MassRatioCarbon, 22032.0 );
+const_value_identifier( float_X, ChargeRatioCarbon, -6.0 );
 
 /* ratio relative to BASE_DENSITY (n_e) */
 value_identifier( float_X, DensityRatioCarbon, 21. / 158. );
@@ -161,8 +161,8 @@ using Carbon = Particles<
 /*--------------------------- N ---------------------------------------------*/
 
 /* ratio relative to BASE_CHARGE and BASE_MASS */
-value_identifier( float_X, MassRatioNitrogen, 25716.852 );
-value_identifier( float_X, ChargeRatioNitrogen, -7.0 );
+const_value_identifier( float_X, MassRatioNitrogen, 25716.852 );
+const_value_identifier( float_X, ChargeRatioNitrogen, -7.0 );
 
 /* ratio relative to BASE_DENSITY (n_e) */
 value_identifier( float_X, DensityRatioNitrogen, 1. / 158. );
