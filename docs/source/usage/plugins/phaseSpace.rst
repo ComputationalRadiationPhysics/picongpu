@@ -119,12 +119,12 @@ You can quickly plot the data in Python with:
    ps_vis = PhaseSpaceMPL('path/to/run_dir', ax)
 
    # plot
-   ps_vis.visualize(iteration=200, species='e')
+   ps_vis.visualize(ps="xpx", iteration=200, species='e', species_filter='all')
 
    plt.show()
 
    # specifying simulation time is also possible (granted there is a matching iteration for that time)
-   ps_vis.visualize(time=2.6410e-13, species='e')
+   ps_vis.visualize(ps="xpx", time=2.6410e-13, species='e', species_filter='all')
 
    plt.show()
 
@@ -133,9 +133,9 @@ You can quickly plot the data in Python with:
         ("sim1", "path/to/sim1"),
         ("sim2", "path/to/sim2"),
         ("sim3", "path/to/sim3")], ax)
-    ps_vis.visualize(species="e", iteration=10000)
+   ps_vis.visualize(ps="xpx", iteration=10000, species="e", species_filter='all')
 
-    plt.show()
+   plt.show()
 
 
 The visualizer can also be used from the command line (for a single simulation only) by writing
