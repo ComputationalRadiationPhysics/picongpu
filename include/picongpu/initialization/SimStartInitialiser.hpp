@@ -38,7 +38,7 @@ class SimStartInitialiser : public AbstractInitialiser
 {
 public:
 
-    void init(ISimulationData& data, uint32_t currentStep)
+    void init(ISimulationData& data, uint32_t currentStep) 
     {
 
     }
