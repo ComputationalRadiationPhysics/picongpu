@@ -34,7 +34,7 @@ namespace picongpu
  * Initialises a new simulation from default values.
  *
  */
-class SimStartInitialiser : public AbstractInitialiser
+class 	SimStartInitialiser : public AbstractInitialiser
 {
 public:
 
