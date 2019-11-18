@@ -9,7 +9,7 @@ Our simulation computes the `Lienard Wiechert potentials <https://en.wikipedia.o
 
 .. math::
 
-   \frac{\operatorname{d}^2I}{\operatorname{d}{\Omega}\operatorname{d}\omega}\left(\omega,\vec{n}\right)=\left|\sum\limits_{k=1}^{N}\int\limits_{-\infty}^{+\infty}\frac{\vec{n}\times\left[\left(\vec{n}-\vec{\beta}_k(t)\right)\times\dot{\vec{\beta}}_k(t)\right]}{\left(1-\vec{\beta}_k(t)\cdot\vec{n}\right)^2}\cdot\operatorname{e}^{\operatorname{i}\omega\left(t-\vec{n}\cdot\vec{r}_k(t)/c\right)}\operatorname{d}t\right|^2
+   \frac{\operatorname{d}^2I}{\operatorname{d}{\Omega}\operatorname{d}\omega}\left(\omega,\vec{n}\right)= \frac{q^2}{16\pi^3\varepsilon_0 c} \left|\sum\limits_{k=1}^{N}\int\limits_{-\infty}^{+\infty}\frac{\vec{n}\times\left[\left(\vec{n}-\vec{\beta}_k(t)\right)\times\dot{\vec{\beta}}_k(t)\right]}{\left(1-\vec{\beta}_k(t)\cdot\vec{n}\right)^2}\cdot\operatorname{e}^{\operatorname{i}\omega\left(t-\vec{n}\cdot\vec{r}_k(t)/c\right)}\operatorname{d}t\right|^2
 
 ============================== ================================================================================
 Variable                       Meaning
