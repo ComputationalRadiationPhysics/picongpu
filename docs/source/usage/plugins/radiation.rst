@@ -398,6 +398,12 @@ Dataset  Description                                           Dimensions
 ``z_Im`` imaginary part, z-component of the complex amplitude  (``N_observer``, ``N_omega``, 1)
 ======== ===================================================== ====================================
 
+.. note::
+
+   Please be aware, that despite the fact, that the SI-unit of each amplitude entry is :math:`\mathrm{[\sqrt{Js}]}`, the stored ``unitSI`` attribute returns :math:`\mathrm{[Js]}`.
+   This inconsistency will be fixed in the future.
+
+
 **DetectorDirection (Group):**
 
 ======== ======================================================= ===============================
