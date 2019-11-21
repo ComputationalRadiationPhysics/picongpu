@@ -77,7 +77,7 @@ namespace particlePusherProbe
                 functorEField( pos )
             );
 
-            ActualPush actualPush();
+            ActualPush actualPush;
             actualPush(
                 functorBField,
                 functorEField,
