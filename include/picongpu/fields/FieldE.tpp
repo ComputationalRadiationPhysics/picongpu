@@ -42,7 +42,7 @@ namespace picongpu
     {
     }
 
-    FieldE::UnitValueType FieldE::getUnit( )
+    HDINLINE FieldE::UnitValueType FieldE::getUnit( )
     {
         return UnitValueType{ UNIT_EFIELD, UNIT_EFIELD, UNIT_EFIELD };
     }

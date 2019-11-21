@@ -48,7 +48,7 @@ namespace detail
 
  * @param x position of the synchrotron function to be evaluated
  */
-float_X MapToLookupTable::operator()(const float_X x) const
+HDINLINE float_X MapToLookupTable::operator()(const float_X x) const
 {
     /* This mapping increases the sample point density for small values of x
      * where the synchrotron functions have a divergent slope. Without this mapping
