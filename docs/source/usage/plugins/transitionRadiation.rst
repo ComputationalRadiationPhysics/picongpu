@@ -58,7 +58,7 @@ There are no external dependencies.
 .param files
 ^^^^^^^^^^^^
 
-In order to setup the transition radiation plugin, the :ref:`transitionRadiation.param <usage-params-plugins>` has to be configured **and** the radiating particles need to have the attributes ``weighting``, ``momentum``, and ``location``, as well as the flags ``massRatio``, ``chargeRatio``, and ``transitionRadiationMask`` which can be added in :ref:`speciesDefinition.param <usage-params-core>`.
+In order to setup the transition radiation plugin, the :ref:`transitionRadiation.param <usage-params-plugins>` has to be configured **and** the radiating particles need to have the attributes ``weighting``, ``momentum``, ``location``, and ``transitionRadiationMask`` (which can be added in :ref:`speciesDefinition.param <usage-params-core>`) as well as the flags ``massRatio`` and ``chargeRatio``.
 
 In *transitionRadiation.param*, the number of frequencies ``N_omega`` and observation directions ``N_theta`` and ``N_phi`` are defined.
 

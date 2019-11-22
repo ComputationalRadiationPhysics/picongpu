@@ -639,7 +639,7 @@ namespace traits
         >::type;
 
         // this plugin needs the transitionRadiationMask flag
-        using SpeciesHasMask = typename pmacc::traits::HasFlag<
+        using SpeciesHasMask = typename pmacc::traits::HasIdentifier<
             FrameType,
             transitionRadiationMask
         >::type;
