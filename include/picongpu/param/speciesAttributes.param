@@ -162,7 +162,6 @@ namespace picongpu
         flylite::Superconfig::create( 0. )
     );
 
-
     alias( atomicLevels );
     /** atomic levels
      * 
@@ -170,10 +169,14 @@ namespace picongpu
      * of moddeled atomic Levels  N and specializing the general representation of
      * atomicPhysics.param.
      */
+    
+    constexpr uint8_t numberLevels_hydrogen = 4u;  // 4u =^= unsigned int 4
+    
     value_identifier(
-        atomicPhysics::stateRepresentation< 4u >, // 4u =^= unsigned int 4 (=N)
-        hydrogen_levels,                          // name used in species Definition
-        atomicPhysics::stateRepresentation::create( 0. ) //initialization with zero
+        atomicPhysics::stateRepresentation< numberLevels_hydrogen >,
+        hydrogen_levels,        // name used in species Definition
+        atomicPhysics::stateRepresentation::create( 0. )
+                                //initialization with zero
     )
 
     /** Total cell index of a particle.
