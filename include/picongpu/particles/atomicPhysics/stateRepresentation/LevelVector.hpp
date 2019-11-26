@@ -28,7 +28,7 @@
 
 namespace picongpu
 {
-namespace particle
+namespace particles
 {
 namespace atomicPhysics
 {
@@ -43,7 +43,7 @@ namespace stateRepresentation
         T_Type,
         T_numberStates
     >;
-} // namespace
 } // namespace stateRepresentation
 } // namespace atomicPhysics
+} // namespace particles
 } // namespace picongpu
