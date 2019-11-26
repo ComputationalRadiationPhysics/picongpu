@@ -37,12 +37,12 @@ namespace stateRepresentation
 
     template<
         typename T_Type,
-	uint8_t T_numberStates
+        uint8_t T_numberStates
     >
     using LevelVector = flylite::types::Superconfiguration<
         T_Type,
         T_numberStates
-        >;
+    >;
 } // namespace
 } // namespace stateRepresentation
 } // namespace atomicPhysics

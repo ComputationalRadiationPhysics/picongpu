@@ -19,23 +19,24 @@
 
  /** @file
   * configuration file for atomicPhysics, see speciesDefinition.param for
-  * actual modelling of atomic Physics of ions.  
-  *
+  * actual modelling of atomic Physics of ions.
   */
 
 #pragma once
 
-#include <picongpu/particles/atomicPhysics/StateRepresentation/levelVector.hpp>
+#include <picongpu/particles/atomicPhysics/stateRepresentation/LevelVector.hpp>
 
 namespace picongpu
 {
 namespace atomicPhysics
 {
     //datatype/coding used in representation atomic state
+
     template< uint8_t T_numberStates >
     using stateRepresentation = particles::stateRepresentation::LevelVector<
         float_X,
         T_numberStates
     >;
+
 }//namespace atomicState
 }//namespace picongpu

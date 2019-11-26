@@ -56,7 +56,7 @@ using DefaultParticleAttributes = MakeSeq_t<
 
 /** describe default attributes of ions*/
 using DefaultIonAttributes = MakeSeq_t<
-    DefaultParticleAttributes, 
+    DefaultParticleAttributes,
     boundElectrons
 >;
 
@@ -95,9 +95,6 @@ value_identifier( float_X, ChargeRatioIons, -1.0 );
 /* ratio relative to BASE_DENSITY */
 value_identifier( float_X, DensityRatioIons, 1.0 );
 
-/* number of moddeled atomic Levels*/
-value_identifier( uint8_t, NumberLevels, 4u );
-
 using ParticleFlagsIons = MakeSeq_t<
     particlePusher< UsedParticlePusher >,
     shape< UsedParticleShape >,
@@ -108,12 +105,11 @@ using ParticleFlagsIons = MakeSeq_t<
     densityRatio< DensityRatioIons >,
     atomicNumbers< ionization::atomicNumbers::Hydrogen_t >,
     effectiveNuclearCharge< ionization::effectiveNuclearCharge::Hydrogen_t >
-    atomicState
 >;
 
 using HydrogenAttributes = MakeSeq_t<
     DefaultIonAttributes,
-    atomicLevels
+    atomicLevels< hydrogen_levels >
 >;
 
 /* define species ions */
