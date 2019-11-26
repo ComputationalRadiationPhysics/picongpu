@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <picongpu/particles/flylite/types/Superconfiguration.hpp>
+#include <picongpu/particles/flylite/types/Superconfig.hpp>
 
 namespace picongpu
 {
