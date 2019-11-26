@@ -175,7 +175,7 @@ namespace picongpu
     value_identifier(
         atomicPhysics::stateRepresentation< numberLevels_hydrogen >,
         hydrogen_levels,        // name used in species Definition
-        atomicPhysics::stateRepresentation::create( 0. )
+        atomicPhysics::stateRepresentation< numberLevels_hydrogen >::create( 0. )
                                 //initialization with zero
     );
 
