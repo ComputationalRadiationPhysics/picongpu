@@ -136,7 +136,7 @@ struct ParticleAttributeSize
         const float_X timeOffset = 0.0;
         ADIOS_CMD(adios_define_attribute_byvalue(params->adiosGroupHandle,
             "timeOffset", recordPath.c_str(),
-            adiosFloatXType.type, 7, (void*)&timeOffset ));
+            adiosFloatXType.type, 1, (void*)&timeOffset ));
 
     }
 
