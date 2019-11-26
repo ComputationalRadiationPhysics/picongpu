@@ -58,7 +58,7 @@ namespace picongpu
     //! unique identifier for a particle
     value_identifier(
         uint64_t,
-        particleID,
+        particleId,
         IdProvider< simDim >::getNewId()
     );
 

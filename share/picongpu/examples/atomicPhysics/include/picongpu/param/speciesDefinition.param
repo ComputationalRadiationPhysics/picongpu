@@ -51,7 +51,7 @@ using DefaultParticleAttributes = MakeSeq_t<
     position< position_pic >,
     momentum,
     weighting,
-    particleID
+    particleId
 >;
 
 /** describe default attributes of ions*/
