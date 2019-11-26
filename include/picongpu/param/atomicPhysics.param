@@ -33,7 +33,7 @@ namespace atomicPhysics
     //datatype/coding used in representation atomic state
 
     template< uint8_t T_numberStates >
-    using stateRepresentation = particles::stateRepresentation::LevelVector<
+    using stateRepresentation = particles::atomicPhysics::stateRepresentation::LevelVector<
         float_X,
         T_numberStates
     >;

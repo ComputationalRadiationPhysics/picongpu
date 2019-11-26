@@ -58,7 +58,7 @@ namespace picongpu
     //! unique identifier for a particle
     value_identifier(
         uint64_t,
-        particleId,
+        particleID,
         IdProvider< simDim >::getNewId()
     );
 
@@ -177,7 +177,7 @@ namespace picongpu
         hydrogen_levels,        // name used in species Definition
         atomicPhysics::stateRepresentation::create( 0. )
                                 //initialization with zero
-    )
+    );
 
     /** Total cell index of a particle.
      *
