@@ -128,7 +128,7 @@ using PIC_Hydrogen = Particles<
  */
 using VectorAllSpecies = MakeSeq_t<
     PIC_Electrons,
-    PIC_Hydrogen,
+    PIC_Hydrogen
 >;
 
 } // namespace picongpu
