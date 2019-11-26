@@ -34,6 +34,7 @@
 #include "picongpu/param/precision.param"
 #include "picongpu/param/physicalConstants.param"
 #include "picongpu/param/flylite.param"
+#include "picongpu/param/atomicPhysics.param"
 #include "picongpu/param/speciesConstants.param"
 #include "picongpu/param/speciesAttributes.param"
 #include "picongpu/param/synchrotronPhotons.param"
