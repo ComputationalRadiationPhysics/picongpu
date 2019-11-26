@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl,
+/* Copyright 2014-2020 Rene Widera, Marco Garten, Alexander Grund, Axel Huebl
  *                     Heiko Burau
  *
  * This file is part of PIConGPU.
@@ -161,6 +161,20 @@ namespace picongpu
         superconfig,
         flylite::Superconfig::create( 0. )
     );
+
+
+    alias( atomicLevels );
+    /** atomic levels
+     * 
+     * atomic levels must be defined for each ion seperatly by giving the number
+     * of moddeled atomic Levels  N and specializing the general representation of
+     * atomicPhysics.param.
+     */
+    value_identifier(
+        atomicPhysics::stateRepresentation< 4u >, // 4u =^= unsigned int 4 (=N)
+        hydrogen_levels,                          // name used in species Definition
+        atomicPhysics::stateRepresentation::create( 0. ) //initialization with zero
+    )
 
     /** Total cell index of a particle.
      *
