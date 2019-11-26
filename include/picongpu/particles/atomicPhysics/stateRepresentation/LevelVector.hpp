@@ -39,7 +39,7 @@ namespace stateRepresentation
         typename T_Type,
         uint8_t T_numberStates
     >
-    using LevelVector = flylite::types::Superconfiguration<
+    using LevelVector = flylite::types::Superconfig<
         T_Type,
         T_numberStates
     >;
