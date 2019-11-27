@@ -68,7 +68,7 @@
 #SBATCH --gres=gpu:!TBG_gpusPerNode
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
+#SBATCH --chdir=!TBG_dstPath
 
 # do not overwrite existing stderr and stdout files
 #SBATCH --open-mode=append
