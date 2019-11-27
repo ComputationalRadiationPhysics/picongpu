@@ -638,7 +638,7 @@ struct Unit<atomicLevels<T_Type> >
     static std::vector<double> get()
     {
         // dataType is actual Type of this Object
-        using DataType = typename T_Type::in_type;
+        using DataType = typename T_Type::type;
         constexpr int dim = DataType::dim;
         return std::vector<double>( dim, 1.0 );
     }
