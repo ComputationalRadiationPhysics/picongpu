@@ -282,6 +282,14 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 # PGI
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "PGI")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=inform")
+# MSVS
+elseif(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+    # Required for MSVS 15.8+ due to alignment change
+    # https://devblogs.microsoft.com/cppblog/stl-features-and-fixes-in-vs-2017-15-8/
+    if(MSVC_VERSION GREATER_EQUAL 1916)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _ENABLE_EXTENDED_ALIGNED_STORAGE")
+    endif()
 endif()
 
 
