@@ -29,20 +29,20 @@ namespace pmacc
 {
 
     /**
-     * A DIM-dimensional data space.
+     * A T_Dim-dimensional data space.
      *
-     * DataSpace describes a DIM-dimensional data space with a specific size for each dimension.
+     * DataSpace describes a T_Dim-dimensional data space with a specific size for each dimension.
      * It only describes the space and does not hold any actual data.
      *
-     * @tparam DIM dimension (1-3) of the dataspace
+     * @tparam T_Dim dimension (1-3) of the dataspace
      */
-    template <unsigned DIM>
-    class DataSpace : public math::Vector<int,DIM>
+    template <unsigned T_Dim>
+    class DataSpace : public math::Vector<int,T_Dim>
     {
     public:
 
-        static constexpr int Dim=DIM;
-        typedef math::Vector<int,DIM> BaseType;
+        static constexpr int Dim=T_Dim;
+        using BaseType = math::Vector<int, T_Dim>;
 
         /**
          * default constructor.
@@ -50,7 +50,7 @@ namespace pmacc
          */
         HDINLINE DataSpace()
         {
-            for (uint32_t i = 0; i < DIM; ++i)
+            for (uint32_t i = 0; i < T_Dim; ++i)
             {
                 (*this)[i] = 0;
             }
@@ -60,9 +60,9 @@ namespace pmacc
          * constructor.
          * Sets size of all dimensions from cuda dim3.
          */
-        HDINLINE DataSpace(dim3 value)
+        HDINLINE explicit DataSpace(dim3 value)
         {
-            for (uint32_t i = 0; i < DIM; ++i)
+            for (uint32_t i = 0; i < T_Dim; ++i)
             {
                 (*this)[i] = *(&(value.x) + i);
             }
@@ -72,15 +72,15 @@ namespace pmacc
          * constructor.
          * Sets size of all dimensions from cuda uint3 (e.g. threadIdx/blockIdx)
          */
-        HDINLINE DataSpace(uint3 value)
+        HDINLINE explicit DataSpace(uint3 value)
         {
-            for (uint32_t i = 0; i < DIM; ++i)
+            for (uint32_t i = 0; i < T_Dim; ++i)
             {
                 (*this)[i] = *(&(value.x) + i);
             }
         }
 
-        HDINLINE DataSpace(const DataSpace<DIM>& value) : BaseType(value)
+        HDINLINE DataSpace(const DataSpace<T_Dim>& value) : BaseType(value)
         {
         }
 
@@ -118,9 +118,9 @@ namespace pmacc
         {
         }
 
-        HDINLINE DataSpace(const math::Size_t<DIM>& vec)
+        HDINLINE DataSpace(const math::Size_t<T_Dim>& vec)
         {
-            for (uint32_t i = 0; i < DIM; ++i)
+            for (uint32_t i = 0; i < T_Dim; ++i)
             {
                 (*this)[i] = vec[i];
             }
@@ -132,10 +132,10 @@ namespace pmacc
          * @param value value which is setfor all dimensions
          * @return the new DataSpace
          */
-        HDINLINE static DataSpace<DIM> create(int value = 1)
+        HDINLINE static DataSpace<T_Dim> create(int value = 1)
         {
-            DataSpace<DIM> tmp;
-            for (uint32_t i = 0; i < DIM; ++i)
+            DataSpace<T_Dim> tmp;
+            for (uint32_t i = 0; i < T_Dim; ++i)
             {
                 tmp[i] = value;
             }
@@ -143,13 +143,13 @@ namespace pmacc
         }
 
         /**
-         * Returns number of dimensions (DIM) of this DataSpace.
+         * Returns number of dimensions (T_Dim) of this DataSpace.
          *
          * @return number of dimensions
          */
         HDINLINE int getDim() const
         {
-            return DIM;
+            return T_Dim;
         }
 
         /**
@@ -158,9 +158,9 @@ namespace pmacc
          * @param other DataSpace to compare with
          * @return true if one dimension is greater, false otherwise
          */
-        HINLINE bool isOneDimensionGreaterThan(const DataSpace<DIM>& other) const
+        HINLINE bool isOneDimensionGreaterThan(const DataSpace<T_Dim>& other) const
         {
-            for (uint32_t i = 0; i < DIM; ++i)
+            for (uint32_t i = 0; i < T_Dim; ++i)
             {
                 if ((*this)[i] > other[i])
                     return true;
@@ -168,15 +168,15 @@ namespace pmacc
             return false;
         }
 
-        HDINLINE operator math::Size_t<DIM>() const
+        HDINLINE operator math::Size_t<T_Dim>() const
         {
-            math::Size_t<DIM> result;
-            for (uint32_t i = 0; i < DIM; i++)
-                result[i] = (size_t) (*this)[i];
+            math::Size_t<T_Dim> result;
+            for (uint32_t i = 0; i < T_Dim; i++)
+                result[i] = static_cast<size_t>((*this)[i]);
             return result;
         }
 
-        HDINLINE operator dim3() const
+        HDINLINE explicit operator dim3() const
         {
             return this->toDim3();
         }
