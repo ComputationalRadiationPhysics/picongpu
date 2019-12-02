@@ -80,3 +80,6 @@ function getDevice() {
     fi
     srun  --time=1:00:00 --ntasks-per-node=$(($numGPUs)) --cpus-per-task=6 --gres=gpu:$numGPUs --mem=$((94500 * numGPUs)) -p gpu --pty bash
 }
+
+# Load autocompletion for PIConGPU commands
+source $PICSRC/bin/picongpu-completion.bash

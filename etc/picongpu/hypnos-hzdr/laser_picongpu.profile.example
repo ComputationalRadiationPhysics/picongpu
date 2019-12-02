@@ -62,3 +62,6 @@ export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 #   - "laser" queue
 export TBG_SUBMIT="qsub"
 export TBG_TPLFILE="etc/picongpu/hypnos-hzdr/laser.tpl"
+
+# Load autocompletion for PIConGPU commands
+source $PICSRC/bin/picongpu-completion.bash

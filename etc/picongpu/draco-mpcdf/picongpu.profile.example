@@ -63,3 +63,6 @@ export TBG_TPLFILE="etc/picongpu/draco-mpcdf/general.tpl"
 
 # allocate an interactive shell for one hour
 alias getNode='salloc --time=1:00:00 --nodes=1 --exclusive --ntasks-per-node=2 --cpus-per-task=32 --partition general'
+
+# Load autocompletion for PIConGPU commands
+source $PICSRC/bin/picongpu-completion.bash
