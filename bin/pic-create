@@ -36,6 +36,8 @@ help()
     echo ""
     echo "usage: pic-create [OPTION] [src_dir] dest_dir"
     echo "If no src_dir is set picongpu a default case is cloned"
+    echo "If src_dir is not in the currrent directory, pic-create will"
+    echo 'look for it in $PIC_EXAMPLES'
     echo ""
     echo "-f | --force         - merge data if destination already exists"
     echo "-h | --help          - show this help message"
@@ -79,6 +81,10 @@ if [ $# -eq 2 ] ; then
     src_path=$1
     dst_path=$2
     selected_default_folder_to_copy=$folder_to_clone
+    # Use example directory if no source directory available at current directory
+    if [[ -d $PIC_EXAMPLES/$src_path && ! -d ./$src_path ]]; then
+        src_path=$PIC_EXAMPLES/$src_path
+    fi
 else
     src_path=$this_dir/..
     dst_path=$1
@@ -121,6 +127,8 @@ else
         mkdir -p "$dst_path"
     fi
 fi
+
+echo "Cloning from $src_path to $dst_path"
 
 #first copy default parameter
 for d in $default_folder_to_copy

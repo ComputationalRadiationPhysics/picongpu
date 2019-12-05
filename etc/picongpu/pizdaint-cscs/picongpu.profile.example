@@ -105,3 +105,6 @@ getNode() {
     # --ntasks-per-core=2  # activates intel hyper threading
     salloc --time=1:00:00 --nodes="$numNodes" --ntasks-per-node=12 --ntasks-per-core=2 --partition normal --gres=gpu:1 --constraint=gpu
 }
+
+# Load autocompletion for PIConGPU commands
+source $PICSRC/bin/picongpu-completion.bash

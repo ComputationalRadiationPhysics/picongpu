@@ -65,3 +65,6 @@ function getNode() {
     fi
     srun --time=1:00:00 --nodes=$numNodes --ntasks-per-node=1 --cpus-per-task=64 -C "knl,quad,cache" -p regular --pty bash
 }
+
+# Load autocompletion for PIConGPU commands
+source $PICSRC/bin/picongpu-completion.bash

@@ -64,3 +64,6 @@ alias getNode="bsub -P $proj -W 2:00 -nnodes 1 -Is /bin/bash"
 # "tbg" default options #######################################################
 export TBG_SUBMIT="bsub"
 export TBG_TPLFILE="etc/picongpu/summit-ornl/gpu_batch.tpl"
+
+# Load autocompletion for PIConGPU commands
+source $PICSRC/bin/picongpu-completion.bash

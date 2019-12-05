@@ -106,3 +106,6 @@ function getDevice() {
     export OMP_NUM_THREADS=48
     salloc --time=1:00:00 --ntasks-per-node=$(($numDevices)) --mem=94000 -A $proj -p batch bash
 }
+
+# Load autocompletion for PIConGPU commands
+source $PICSRC/bin/picongpu-completion.bash

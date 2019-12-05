@@ -79,3 +79,6 @@ function getDevice() {
     fi
     srun --time=1:00:00 --ntasks-per-node=$(($numDevices)) --cpus-per-task=$((20 * $numDevices)) --mem=$((180000 * numDevices)) -p defq --pty bash
 }
+
+# Load autocompletion for PIConGPU commands
+source $PICSRC/bin/picongpu-completion.bash
