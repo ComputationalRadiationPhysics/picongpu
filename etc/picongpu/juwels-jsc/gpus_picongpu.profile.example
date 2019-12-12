@@ -118,4 +118,9 @@ function getDevice() {
 }
 
 # Load autocompletion for PIConGPU commands
-source $PICSRC/bin/picongpu-completion.bash
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $PICSRC/bin/picongpu-completion.bash
+else
+    echo "bash completion file '$PICSRC/bin/picongpu-completion.bash' not found." >&2
+fi
