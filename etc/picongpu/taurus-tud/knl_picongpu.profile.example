@@ -68,4 +68,9 @@ export TBG_TPLFILE="etc/picongpu/taurus-tud/knl.tpl"
 alias getNode='srun -p knl -N 1 -c 64 --mem=90000 --constraint="Quadrant&Cache" --pty bash'
 
 # Load autocompletion for PIConGPU commands
-source $PICSRC/bin/picongpu-completion.bash
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $PICSRC/bin/picongpu-completion.bash
+else
+    echo "bash completion file '$PICSRC/bin/picongpu-completion.bash' not found." >&2
+fi

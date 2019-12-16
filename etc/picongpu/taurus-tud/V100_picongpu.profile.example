@@ -79,4 +79,9 @@ export TBG_TPLFILE="etc/picongpu/taurus-tud/V100.tpl"
 alias getNode='srun -p ml --gres=gpu:6 -n 1 --mem=0 --cpus-per-task=44 --pty -t 2:00:00 bash'
 
 # Load autocompletion for PIConGPU commands
-source $PICSRC/bin/picongpu-completion.bash
+BASH_COMP_FILE=$PICSRC/bin/picongpu-completion.bash
+if [ -f $BASH_COMP_FILE ] ; then
+    source $PICSRC/bin/picongpu-completion.bash
+else
+    echo "bash completion file '$PICSRC/bin/picongpu-completion.bash' not found." >&2
+fi
