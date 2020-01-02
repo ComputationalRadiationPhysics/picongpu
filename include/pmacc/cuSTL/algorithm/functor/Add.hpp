@@ -1,4 +1,4 @@
-/* Copyright 2017-2019 Heiko Burau
+/* Copyright 2017-2020 Heiko Burau
  *
  * This file is part of PMacc.
  *

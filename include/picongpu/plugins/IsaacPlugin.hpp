@@ -1,5 +1,5 @@
 /*
-* Copyright 2013-2019 Alexander Matthes,
+* Copyright 2013-2020 Alexander Matthes,
 *
 * This file is part of PIConGPU.
 *

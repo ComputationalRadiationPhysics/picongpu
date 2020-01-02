@@ -1,4 +1,4 @@
-/* Copyright 2013-2019 Axel Huebl, Rene Widera, Richard Pausch,
+/* Copyright 2013-2020 Axel Huebl, Rene Widera, Richard Pausch,
  *                     Benjamin Worpitz
  *
  * This file is part of PIConGPU.

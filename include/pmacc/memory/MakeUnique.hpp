@@ -1,4 +1,4 @@
-/* Copyright 2019 Sergei Bastrakov
+/* Copyright 2019-2020 Sergei Bastrakov
  *
  * This file is part of PMacc.
  *

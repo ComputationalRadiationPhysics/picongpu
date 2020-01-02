@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Axel Huebl, Benjamin Worpitz, Klaus Steiniger
+/* Copyright 2015-2020 Axel Huebl, Benjamin Worpitz, Klaus Steiniger
  *
  * This file is part of PIConGPU.
  *

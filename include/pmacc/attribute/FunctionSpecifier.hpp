@@ -1,4 +1,4 @@
-/* Copyright 2013-2019 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Wolfgang Hoenig, Benjamin Worpitz,
  *                     Alexander Grund
  *

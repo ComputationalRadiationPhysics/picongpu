@@ -1,4 +1,4 @@
-/* Copyright 2013-2019 Felix Schmitt, Axel Huebl, Rene Widera
+/* Copyright 2013-2020 Felix Schmitt, Axel Huebl, Rene Widera
  *
  * This file is part of splash2txt.
  *

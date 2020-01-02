@@ -1,4 +1,4 @@
-/* Copyright 2018-2019 Ilja Goethel, Axel Huebl
+/* Copyright 2018-2020 Ilja Goethel, Axel Huebl
  *
  * This file is part of PIConGPU.
  *

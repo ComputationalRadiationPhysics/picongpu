@@ -1,4 +1,4 @@
-/* Copyright 2016-2019 Alexander Grund
+/* Copyright 2016-2020 Alexander Grund
  *
  * This file is part of PIConGPU.
  *

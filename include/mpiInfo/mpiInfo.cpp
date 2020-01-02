@@ -1,4 +1,4 @@
-/* Copyright 2013-2019  Rene Widera
+/* Copyright 2013-2020  Rene Widera
  *
  * This file is part of mpiInfo.
  *
