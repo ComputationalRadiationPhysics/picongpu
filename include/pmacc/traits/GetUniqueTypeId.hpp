@@ -1,4 +1,4 @@
-/* Copyright 2015-2019 Rene Widera, Sergei Bastrakov
+/* Copyright 2015-2020 Rene Widera, Sergei Bastrakov
  *
  * This file is part of PMacc.
  *

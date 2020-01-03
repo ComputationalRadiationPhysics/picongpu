@@ -1,4 +1,4 @@
-/* Copyright 2016-2019 Rene Widera
+/* Copyright 2016-2020 Rene Widera
  *
  * This file is part of PMacc.
  *

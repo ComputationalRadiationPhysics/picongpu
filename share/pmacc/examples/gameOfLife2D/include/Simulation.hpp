@@ -1,4 +1,4 @@
-/* Copyright 2013-2019 Rene Widera, Maximilian Knespel, Alexander Grund
+/* Copyright 2013-2020 Rene Widera, Maximilian Knespel, Alexander Grund
  *
  * This file is part of PMacc.
  *

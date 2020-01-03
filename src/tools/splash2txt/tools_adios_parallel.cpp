@@ -1,4 +1,4 @@
-/* Copyright 2014-2019 Felix Schmitt, Conrad Schumann, Axel Huebl
+/* Copyright 2014-2020 Felix Schmitt, Conrad Schumann, Axel Huebl
  *
  * This file is part of splash2txt.
  *

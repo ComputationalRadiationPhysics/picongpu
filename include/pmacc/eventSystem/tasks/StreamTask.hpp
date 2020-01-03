@@ -1,4 +1,4 @@
-/* Copyright 2013-2019 Felix Schmitt, Rene Widera
+/* Copyright 2013-2020 Felix Schmitt, Rene Widera
  *
  * This file is part of PMacc.
  *

@@ -1,4 +1,4 @@
-/* Copyright 2013-2019 Felix Schmitt, Heiko Burau, Rene Widera,
+/* Copyright 2013-2020 Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Alexander Grund
  *
  * This file is part of PMacc.
