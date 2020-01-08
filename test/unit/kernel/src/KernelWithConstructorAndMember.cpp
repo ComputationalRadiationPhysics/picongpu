@@ -7,14 +7,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/kernel/Traits.hpp>
 
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/meta/ForEachType.hpp>
 
 #include <catch2/catch.hpp>
-
 
 //#############################################################################
 class KernelWithConstructorAndMember
@@ -45,47 +44,31 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "kernelWithConstructorAndMember", "[kernel]", alpaka::test::acc::TestAccs)
 {
-    template< typename TAcc >
-    void operator()()
-    {
-        using Dim = alpaka::dim::Dim<TAcc>;
-        using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-        alpaka::test::KernelExecutionFixture<TAcc> fixture(
-            alpaka::vec::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
-        KernelWithConstructorAndMember kernel(42);
+    KernelWithConstructorAndMember kernel(42);
 
-        REQUIRE(fixture(kernel));
-    }
-};
-
-//-----------------------------------------------------------------------------
-struct TestTemplateDefault
-{
-    template< typename TAcc >
-    void operator()()
-    {
-        using Dim = alpaka::dim::Dim<TAcc>;
-        using Idx = alpaka::idx::Idx<TAcc>;
-
-        alpaka::test::KernelExecutionFixture<TAcc> fixture(
-            alpaka::vec::Vec<Dim, Idx>::ones());
-
-        KernelWithConstructorAndMember kernel;
-
-        REQUIRE(fixture(kernel));
-    }
-};
-
-TEST_CASE( "kernelWithConstructorAndMember", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
+    REQUIRE(fixture(kernel));
 }
 
-TEST_CASE( "kernelWithConstructorDefaultParamAndMember", "[kernel]")
+//-----------------------------------------------------------------------------
+TEMPLATE_LIST_TEST_CASE( "kernelWithConstructorDefaultParamAndMember", "[kernel]", alpaka::test::acc::TestAccs)
 {
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateDefault() );
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
+
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
+        alpaka::vec::Vec<Dim, Idx>::ones());
+
+    KernelWithConstructorAndMember kernel;
+
+    REQUIRE(fixture(kernel));
 }

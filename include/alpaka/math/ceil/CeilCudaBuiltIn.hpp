@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/ceil/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library ceil.
-        class CeilCudaBuiltIn
+        //! The CUDA built in ceil.
+        class CeilCudaBuiltIn : public concepts::Implements<ConceptMathCeil, CeilCudaBuiltIn>
         {
-        public:
-            using CeilBase = CeilCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library ceil trait specialization.
+            //! The CUDA ceil trait specialization.
             template<
                 typename TArg>
             struct Ceil<
@@ -56,6 +54,21 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(ceil_ctx);
                     return ::ceil(arg);
+                }
+            };
+            //
+            template<>
+            struct Ceil<
+                CeilCudaBuiltIn,
+                float>
+            {
+                __device__ static auto ceil(
+                    CeilCudaBuiltIn const & ceil_ctx,
+                    float const & arg)
+                ->float
+                {
+                    alpaka::ignore_unused(ceil_ctx);
+                    return ::ceilf(arg);
                 }
             };
         }

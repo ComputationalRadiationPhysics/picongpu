@@ -7,26 +7,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Debug.hpp>
 
-#include <boost/predef/version_number.h>
-
 // Boost.Uuid errors with VS2017 when intrin.h is not included
 #if defined(_MSC_VER) && _MSC_VER >= 1910
     #include <intrin.h>
-#endif
-
-//-----------------------------------------------------------------------------
-// clang CUDA compiler detection
-// Currently __CUDA__ is only defined by clang when compiling CUDA code.
-#if defined(__clang__) && defined(__CUDA__)
-    #define BOOST_COMP_CLANG_CUDA BOOST_COMP_CLANG
-#else
-    #define BOOST_COMP_CLANG_CUDA BOOST_VERSION_NUMBER_NOT_AVAILABLE
 #endif
 
 //-----------------------------------------------------------------------------

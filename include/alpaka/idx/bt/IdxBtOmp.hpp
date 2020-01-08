@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef _OPENMP
@@ -16,6 +15,7 @@
 #include <alpaka/workdiv/Traits.hpp>
 
 #include <alpaka/core/Assert.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unused.hpp>
 #include <alpaka/idx/MapIdx.hpp>
@@ -34,11 +34,9 @@ namespace alpaka
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxBtOmp
+            class IdxBtOmp : public concepts::Implements<ConceptIdxBt, IdxBtOmp<TDim, TIdx>>
             {
             public:
-                using IdxBtBase = IdxBtOmp;
-
                 //-----------------------------------------------------------------------------
                 IdxBtOmp() = default;
                 //-----------------------------------------------------------------------------

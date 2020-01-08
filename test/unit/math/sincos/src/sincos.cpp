@@ -7,13 +7,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/math/sincos/Traits.hpp>
 
-#include <catch2/catch.hpp>
-
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
+
+#include <catch2/catch.hpp>
 
 // https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
 template <typename TAcc, typename FP>
@@ -60,30 +60,22 @@ public:
     }
 };
 
+using TestAccs = alpaka::test::acc::EnabledAccs<
+    alpaka::dim::DimInt<1u>,
+    std::size_t>;
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "sincos", "[sincos]", TestAccs)
 {
-    template< typename TAcc >
-    void operator()() {
-        using Dim = alpaka::dim::Dim<TAcc>;
-        using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-        alpaka::test::KernelExecutionFixture<TAcc> fixture(
-            alpaka::vec::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
-        SinCosTestKernel kernel;
+    SinCosTestKernel kernel;
 
-        REQUIRE(fixture( kernel, 0.42f )); // float
-        REQUIRE(fixture( kernel, 0.42 ));  // double
-    }
-};
-
-TEST_CASE( "sincos", "[sincos]")
-{
-    using TestAccs = alpaka::test::acc::EnabledAccs<
-        alpaka::dim::DimInt<1u>,
-        std::size_t>;
-
-    alpaka::meta::forEachType< TestAccs >( TestTemplate() );
+    REQUIRE(fixture( kernel, 0.42f )); // float
+    REQUIRE(fixture( kernel, 0.42 ));  // double
 }

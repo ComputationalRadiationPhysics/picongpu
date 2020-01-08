@@ -7,49 +7,46 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #endif
 
-#include <alpaka/math/atan2/Traits.hpp> // Atan2
+#include <alpaka/math/atan2/Traits.hpp>
 
+#include <alpaka/core/Unused.hpp>
 
-
-#include <type_traits>
 #if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
     #include <cuda_runtime_api.h>
 #else
-    #if BOOST_COMP_HCC
+    #if BOOST_COMP_HCC || BOOST_COMP_HIP
         #include <math_functions.h>
     #else
         #include <math_functions.hpp>
     #endif
 #endif
 
+#include <type_traits>
+
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library atan2.
-        class Atan2HipBuiltIn
+        //! The HIP atan2.
+        class Atan2HipBuiltIn : public concepts::Implements<ConceptMathAtan2, Atan2HipBuiltIn>
         {
-        public:
-            using Atan2Base = Atan2HipBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library atan2 trait specialization.
+            //! The HIP atan2 trait specialization.
             template<
                 typename Ty,
                 typename Tx>
@@ -69,6 +66,23 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(atan2_ctx);
                     return ::atan2(y, x);
+                }
+            };
+            //! The HIP sin float specialization.
+            template<>
+            struct Atan2<
+                Atan2HipBuiltIn,
+                float,
+                float>
+            {
+                __device__ static auto atan2(
+                    Atan2HipBuiltIn const & atan2_ctx,
+                    float const & y,
+                    float const & x)
+                -> float
+                {
+                    alpaka::ignore_unused(atan2_ctx);
+                    return ::atan2f(y, x);
                 }
             };
         }

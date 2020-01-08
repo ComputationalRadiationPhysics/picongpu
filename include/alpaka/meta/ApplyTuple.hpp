@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/core/Common.hpp>
@@ -18,6 +17,7 @@
 #include <boost/config.hpp>
 
 #include <utility>
+#include <tuple>
 #include <type_traits>
 
 namespace alpaka

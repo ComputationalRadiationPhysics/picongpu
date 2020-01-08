@@ -7,12 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -22,6 +21,9 @@
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
 #include <alpaka/wait/Traits.hpp>
+
+#include <alpaka/queue/Traits.hpp>
+#include <alpaka/queue/Properties.hpp>
 
 #include <alpaka/core/Cuda.hpp>
 
@@ -39,11 +41,17 @@ namespace alpaka
         class PltfCudaRt;
     }
 
+    namespace queue
+    {
+        class QueueCudaRtBlocking;
+        class QueueCudaRtNonBlocking;
+    }
+
     namespace dev
     {
         //#############################################################################
         //! The CUDA RT device handle.
-        class DevCudaRt
+        class DevCudaRt : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, DevCudaRt>
         {
             friend struct pltf::traits::GetDevByIdx<pltf::PltfCudaRt>;
 
@@ -94,6 +102,7 @@ namespace alpaka
                     dev::DevCudaRt const & dev)
                 -> std::string
                 {
+                    // There is cudaDeviceGetAttribute as faster alternative to cudaGetDeviceProperties to get a single device property but it has no option to get the name
                     cudaDeviceProp cudaDevProp;
                     ALPAKA_CUDA_RT_CHECK(
                         cudaGetDeviceProperties(
@@ -123,7 +132,6 @@ namespace alpaka
                     std::size_t freeInternal(0u);
                     std::size_t totalInternal(0u);
 
-                    // \TODO: Check which is faster: cudaMemGetInfo().totalInternal vs cudaGetDeviceProperties().totalGlobalMem
                     ALPAKA_CUDA_RT_CHECK(
                         cudaMemGetInfo(
                             &freeInternal,
@@ -252,6 +260,29 @@ namespace alpaka
                         dev.m_iDevice));
                     ALPAKA_CUDA_RT_CHECK(cudaDeviceSynchronize());
                 }
+            };
+        }
+    }
+    namespace queue
+    {
+        namespace traits
+        {
+            template<>
+            struct QueueType<
+                dev::DevCudaRt,
+                queue::Blocking
+            >
+            {
+                using type = queue::QueueCudaRtBlocking;
+            };
+
+            template<>
+            struct QueueType<
+                dev::DevCudaRt,
+                queue::NonBlocking
+            >
+            {
+                using type = queue::QueueCudaRtNonBlocking;
             };
         }
     }

@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/cbrt/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library cbrt.
-        class CbrtStdLib
+        class CbrtStdLib : public concepts::Implements<ConceptMathCbrt, CbrtStdLib>
         {
-        public:
-            using CbrtBase = CbrtStdLib;
         };
 
         namespace traits

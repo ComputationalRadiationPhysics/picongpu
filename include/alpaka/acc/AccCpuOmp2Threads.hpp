@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED
@@ -39,6 +38,7 @@
 
 // Implementation details.
 #include <alpaka/core/ClipCast.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/DevCpu.hpp>
 
@@ -82,7 +82,8 @@ namespace alpaka
             public block::shared::st::BlockSharedMemStMasterSync,
             public block::sync::BlockSyncBarrierOmp,
             public rand::RandStdLib,
-            public time::TimeOmp
+            public time::TimeOmp,
+            public concepts::Implements<ConceptAcc, AccCpuOmp2Threads<TDim, TIdx>>
         {
         public:
             // Partial specialization with the correct TDim and TIdx is not allowed.
@@ -259,7 +260,7 @@ namespace alpaka
                 ALPAKA_FN_HOST static auto createTaskKernel(
                     TWorkDiv const & workDiv,
                     TKernelFnObj const & kernelFnObj,
-                    TArgs const & ... args)
+                    TArgs && ... args)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
                 -> kernel::TaskKernelCpuOmp2Threads<
                     TDim,
@@ -276,7 +277,7 @@ namespace alpaka
                             TArgs...>(
                                 workDiv,
                                 kernelFnObj,
-                                args...);
+                                std::forward<TArgs>(args)...);
                 }
             };
         }

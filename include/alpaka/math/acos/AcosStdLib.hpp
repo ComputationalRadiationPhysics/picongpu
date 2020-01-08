@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/acos/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library acos.
-        class AcosStdLib
+        class AcosStdLib : public concepts::Implements<ConceptMathAcos, AcosStdLib>
         {
-        public:
-            using AcosBase = AcosStdLib;
         };
 
         namespace traits

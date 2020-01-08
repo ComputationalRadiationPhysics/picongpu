@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/min/Traits.hpp>
@@ -24,10 +23,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library min.
-        class MinStdLib
+        class MinStdLib : public concepts::Implements<ConceptMathMin, MinStdLib>
         {
-        public:
-            using MinBase = MinStdLib;
         };
 
         namespace traits

@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/dev/Traits.hpp>
@@ -254,7 +253,8 @@ namespace alpaka
             template<
                 std::size_t Tidx,
                 typename TView>
-            ALPAKA_FN_HOST_ACC auto getPitchBytes(
+            ALPAKA_FN_HOST_ACC
+            auto getPitchBytes(
                 TView const & view)
             -> idx::Idx<TView>
             {
@@ -305,7 +305,7 @@ namespace alpaka
             }
 
             //-----------------------------------------------------------------------------
-            //! Sets the memory to the given value asynchronously.
+            //! Sets the memory to the given value.
             //!
             //! \param queue The queue to enqueue the view fill task into.
             //! \param view The memory view to fill.
@@ -530,9 +530,11 @@ namespace alpaka
                 struct CreatePitchBytes
                 {
                     //-----------------------------------------------------------------------------
+                    ALPAKA_NO_HOST_ACC_WARNING
                     template<
                         typename TPitch>
-                    ALPAKA_FN_HOST_ACC static auto create(
+                    ALPAKA_FN_HOST_ACC
+                    static auto create(
                         TPitch const & pitch)
                     -> idx::Idx<TPitch>
                     {
@@ -544,7 +546,7 @@ namespace alpaka
             //! \return The pitch vector.
             template<
                 typename TPitch>
-            ALPAKA_FN_HOST_ACC auto getPitchBytesVec(
+            auto getPitchBytesVec(
                 TPitch const & pitch = TPitch())
             -> vec::Vec<dim::Dim<TPitch>, idx::Idx<TPitch>>
             {
@@ -576,12 +578,11 @@ namespace alpaka
 
             //-----------------------------------------------------------------------------
             //! \return A view to static device memory.
-            ALPAKA_NO_HOST_ACC_WARNING
             template<
                 typename TElem,
                 typename TDev,
                 typename TExtent>
-            ALPAKA_FN_HOST_ACC auto createStaticDevMemView(
+            auto createStaticDevMemView(
                 TElem * pMem,
                 TDev const & dev,
                 TExtent const & extent)

@@ -7,14 +7,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
-#include <alpaka/alpaka.hpp>
+#include <alpaka/meta/Set.hpp>
 
 #include <catch2/catch.hpp>
 
 #include <tuple>
 #include <type_traits>
-
 
 //-----------------------------------------------------------------------------
 TEST_CASE("isSetTrue", "[meta]")

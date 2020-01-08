@@ -87,7 +87,7 @@ using Idx = std::size_t;
 // Define the accelerator to use.
 using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
 // Select the queue type.
-using Queue = alpaka::queue::QueueCpuAsync;
+using Queue = alpaka::queue::QueueCpuNonBlocking;
 
 // Select a device to execute on.
 auto devAcc(alpaka::pltf::getDevByIdx<alpaka::pltf::PltfCpu>(0));

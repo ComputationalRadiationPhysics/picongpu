@@ -109,7 +109,7 @@ The following tables list the functions available in the [CUDA Runtime API](http
 |---|---|
 |cudaStreamAddCallback|alpaka::queue::enqueue(queue, \[\](){do_something();})|
 |cudaStreamAttachMemAsync|-|
-|cudaStreamCreate|<ul><li>queue = alpaka::queue::QueueCudaRtAsync(device);</li><li>queue = alpaka::queue::QueueCudaRtSync(device);</li></ul>|
+|cudaStreamCreate|<ul><li>queue = alpaka::queue::QueueCudaRtNonBlocking(device);</li><li>queue = alpaka::queue::QueueCudaRtBlocking(device);</li></ul>|
 |cudaStreamCreateWithFlags|see cudaStreamCreate (cudaStreamNonBlocking hard coded)|
 |cudaStreamCreateWithPriority|-|
 |cudaStreamDestroy|n/a (Destructor)|

@@ -7,12 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -34,10 +33,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA rand implementation.
-        class RandCuRand
+        class RandCuRand : public concepts::Implements<ConceptRand, RandCuRand>
         {
-        public:
-            using RandBase = RandCuRand;
         };
 
         namespace generator
@@ -51,9 +48,12 @@ namespace alpaka
                 public:
 
                     //-----------------------------------------------------------------------------
-                    //! After calling this constructor the instance is not valid initialized and
-                    //! need to be overwritten with a valid object
-                    Xor() = default;
+                    // After calling this constructor the instance is not valid initialized and
+                    // need to be overwritten with a valid object
+                    //-----------------------------------------------------------------------------
+                    ALPAKA_FN_HOST_ACC Xor() : m_State(curandStateXORWOW_t{})
+                    {
+                    }
 
                     //-----------------------------------------------------------------------------
                     __device__ Xor(

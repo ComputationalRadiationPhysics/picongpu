@@ -7,11 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/pltf/Traits.hpp>
 #include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <sstream>
 #include <vector>
@@ -22,7 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CPU device platform.
-        class PltfCpu
+        class PltfCpu :
+            public concepts::Implements<ConceptPltf, PltfCpu>
         {
         public:
             //-----------------------------------------------------------------------------

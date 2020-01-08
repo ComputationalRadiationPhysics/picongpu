@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/fmod/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library fmod.
-        class FmodCudaBuiltIn
+        //! The CUDA built in fmod.
+        class FmodCudaBuiltIn : public concepts::Implements<ConceptMathFmod, FmodCudaBuiltIn>
         {
-        public:
-            using FmodBase = FmodCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library fmod trait specialization.
+            //! The CUDA fmod trait specialization.
             template<
                 typename Tx,
                 typename Ty>
@@ -59,7 +57,28 @@ namespace alpaka
                 -> decltype(::fmod(x, y))
                 {
                     alpaka::ignore_unused(fmod_ctx);
-                    return ::fmod(x, y);
+                    return ::fmod(
+                        x,
+                        y);
+                }
+            };
+            //! The CUDA fmod float specialization.
+            template<>
+            struct Fmod<
+                FmodCudaBuiltIn,
+                float,
+                float>
+            {
+                __device__ static auto fmod(
+                    FmodCudaBuiltIn const & fmod_ctx,
+                    float const & x,
+                    float const & y)
+                -> float
+                {
+                    alpaka::ignore_unused(fmod_ctx);
+                    return ::fmodf(
+                        x,
+                        y);
                 }
             };
         }

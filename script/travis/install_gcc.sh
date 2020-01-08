@@ -14,9 +14,9 @@ source ./script/travis/travis_retry.sh
 
 source ./script/travis/set.sh
 
-: ${ALPAKA_CI_GCC_VER?"ALPAKA_CI_GCC_VER must be specified"}
-: ${ALPAKA_CI_SANITIZERS?"ALPAKA_CI_SANITIZERS must be specified"}
-: ${CXX?"CXX must be specified"}
+: "${ALPAKA_CI_GCC_VER?'ALPAKA_CI_GCC_VER must be specified'}"
+: "${ALPAKA_CI_SANITIZERS?'ALPAKA_CI_SANITIZERS must be specified'}"
+: "${CXX?'CXX must be specified'}"
 
 travis_retry sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 travis_retry sudo apt-get -y --quiet update

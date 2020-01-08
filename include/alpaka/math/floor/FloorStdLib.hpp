@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/floor/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library floor.
-        class FloorStdLib
+        class FloorStdLib : public concepts::Implements<ConceptMathFloor, FloorStdLib>
         {
-        public:
-            using FloorBase = FloorStdLib;
         };
 
         namespace traits

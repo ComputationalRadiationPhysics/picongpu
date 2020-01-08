@@ -7,12 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
@@ -30,8 +29,8 @@
 #include <alpaka/acc/AccGpuHipRt.hpp>
 #include <alpaka/dev/DevHipRt.hpp>
 #include <alpaka/kernel/Traits.hpp>
-#include <alpaka/queue/QueueHipRtSync.hpp>
-#include <alpaka/queue/QueueHipRtAsync.hpp>
+#include <alpaka/queue/QueueHipRtBlocking.hpp>
+#include <alpaka/queue/QueueHipRtNonBlocking.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
@@ -42,6 +41,7 @@
 
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Hip.hpp>
+#include <alpaka/core/Utility.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>
 #include <alpaka/meta/Metafunctions.hpp>
 
@@ -77,11 +77,18 @@ namespace alpaka
 #if BOOST_ARCH_PTX && (BOOST_ARCH_PTX < BOOST_VERSION_NUMBER(2, 0, 0))
     #error "Cuda device capability >= 2.0 is required!"
 #endif
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wignored-attributes"
                     static_assert(
-                        std::is_same<typename std::result_of<
-                            TKernelFnObj(acc::AccGpuHipRt<TDim, TIdx> const &, TArgs const & ...)>::type, void>::value,
+                        std::is_same<
+                            decltype(kernelFnObj(
+                                alpaka::core::declval<acc::AccGpuHipRt<TDim, TIdx> const>(),
+                                args...)),
+                        void>::value,
                         "The TKernelFnObj is required to return void!");
-                    
+#pragma clang diagnostic pop
+
                     acc::AccGpuHipRt<TDim, TIdx> acc(threadElemExtent);
 
                     kernelFnObj(
@@ -158,10 +165,10 @@ namespace alpaka
             ALPAKA_FN_HOST TaskKernelGpuHipRt(
                 TWorkDiv && workDiv,
                 TKernelFnObj const & kernelFnObj,
-                TArgs const & ... args) :
+                TArgs && ... args) :
                     workdiv::WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv)),
                     m_kernelFnObj(kernelFnObj),
-                    m_args(args...)
+                    m_args(std::forward<TArgs>(args)...)
             {
                 static_assert(
                     dim::Dim<typename std::decay<TWorkDiv>::type>::value == TDim::value,
@@ -184,7 +191,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC ~TaskKernelGpuHipRt() = default;
 
             TKernelFnObj m_kernelFnObj;
-            std::tuple<TArgs...> m_args;
+            std::tuple<typename std::decay<TArgs>::type...> m_args;
         };
     }
 
@@ -283,20 +290,20 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The HIP asynchronous kernel enqueue trait specialization.
+            //! The HIP non-blocking kernel enqueue trait specialization.
             template<
                 typename TDim,
                 typename TIdx,
                 typename TKernelFnObj,
                 typename... TArgs>
             struct Enqueue<
-                queue::QueueHipRtAsync,
+                queue::QueueHipRtNonBlocking,
                 kernel::TaskKernelGpuHipRt<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 //-----------------------------------------------------------------------------
 
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtAsync & queue,
+                    queue::QueueHipRtNonBlocking & queue,
                     kernel::TaskKernelGpuHipRt<TDim, TIdx, TKernelFnObj, TArgs...> const & task)
                 -> void
                 {
@@ -346,7 +353,7 @@ namespace alpaka
                             #if defined(BOOST_COMP_HCC) && BOOST_COMP_HCC
                             ALPAKA_FN_HOST_ACC
                             #endif
-                            [&](TArgs const & ... args)
+                            [&](typename std::decay<TArgs>::type const & ... args)
                             {
                                 return
                                     kernel::getBlockSharedMemDynSizeBytes<
@@ -367,7 +374,7 @@ namespace alpaka
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                     // Log the function attributes.
                     /*hipFuncAttributes funcAttrs;
-                    hipFuncGetAttributes(&funcAttrs, kernel::hip::detail::hipKernel<TDim, TIdx, TKernelFnObj, TArgs...>);
+                    hipFuncGetAttributes(&funcAttrs, kernel::hip::detail::hipKernel<TDim, TIdx, TKernelFnObj, typename std::decay<TArgs>::type...>);
                     std::cout << __func__
                         << " binaryVersion: " << funcAttrs.binaryVersion
                         << " constSizeBytes: " << funcAttrs.constSizeBytes << " B"
@@ -383,19 +390,17 @@ namespace alpaka
                     ALPAKA_HIP_RT_CHECK(
                         hipSetDevice(
                             queue.m_spQueueImpl->m_dev.m_iDevice));
-                    // Enqueue the kernel execution.
-                    // \NOTE: No const reference (const &) is allowed as the parameter type because the kernel launch language extension expects the arguments by value.
-                    // This forces the type of a float argument given with std::forward to this function to be of type float instead of e.g. "float const & __ptr64" (MSVC).
-                    // If not given by value, the kernel launch code does not copy the value but the pointer to the value location.
+
                     meta::apply(
-                        [&](TArgs ... args)
+                        [&](typename std::decay<TArgs>::type const & ... args)
                         {
-                            hipLaunchKernel(
-                                HIP_KERNEL_NAME(kernel::hip::detail::hipKernel< TDim, TIdx, TKernelFnObj, TArgs... >),
+                            hipLaunchKernelGGL(
+                                HIP_KERNEL_NAME(kernel::hip::detail::hipKernel< TDim, TIdx, TKernelFnObj, typename std::decay<TArgs>::type... >),
                                 gridDim,
                                 blockDim,
-                                static_cast<std::size_t>(blockSharedMemDynSizeBytes),
+                                static_cast<std::uint32_t>(blockSharedMemDynSizeBytes),
                                 queue.m_spQueueImpl->m_HipQueue,
+                                hipLaunchParm{},
                                 threadElemExtent,
                                 task.m_kernelFnObj,
                                 args...
@@ -422,13 +427,13 @@ namespace alpaka
                 typename TKernelFnObj,
                 typename... TArgs>
             struct Enqueue<
-                queue::QueueHipRtSync,
+                queue::QueueHipRtBlocking,
                 kernel::TaskKernelGpuHipRt<TDim, TIdx, TKernelFnObj, TArgs...>>
             {
                 //-----------------------------------------------------------------------------
 
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtSync & queue,
+                    queue::QueueHipRtBlocking & queue,
                     kernel::TaskKernelGpuHipRt<TDim, TIdx, TKernelFnObj, TArgs...> const & task)
                 -> void
                 {
@@ -470,7 +475,7 @@ namespace alpaka
                     // Get the size of the block shared dynamic memory.
                     auto const blockSharedMemDynSizeBytes(
                         meta::apply(
-                            [&](TArgs const & ... args)
+                            [&](typename std::decay<TArgs>::type const & ... args)
                             {
                                 return
                                     kernel::getBlockSharedMemDynSizeBytes<
@@ -492,7 +497,7 @@ namespace alpaka
                     // hipFuncAttributes not ported from HIP to HIP.
                     // Log the function attributes.
                     /*hipFuncAttributes funcAttrs;
-                    hipFuncGetAttributes(&funcAttrs, kernel::hip::detail::hipKernel<TDim, TIdx, TKernelFnObj, TArgs...>);
+                    hipFuncGetAttributes(&funcAttrs, kernel::hip::detail::hipKernel<TDim, TIdx, TKernelFnObj, typename std::decay<TArgs>::type....>);
                     std::cout << __func__
                         << " binaryVersion: " << funcAttrs.binaryVersion
                         << " constSizeBytes: " << funcAttrs.constSizeBytes << " B"
@@ -508,19 +513,17 @@ namespace alpaka
                     ALPAKA_HIP_RT_CHECK(
                         hipSetDevice(
                             queue.m_spQueueImpl->m_dev.m_iDevice));
-                    // Enqueue the kernel execution.
-                    // \NOTE: No const reference (const &) is allowed as the parameter type because the kernel launch language extension expects the arguments by value.
-                    // This forces the type of a float argument given with std::forward to this function to be of type float instead of e.g. "float const & __ptr64" (MSVC).
-                    // If not given by value, the kernel launch code does not copy the value but the pointer to the value location.
+
                     meta::apply(
-                        [&](TArgs ... args)
+                        [&](typename std::decay<TArgs>::type const & ... args)
                         {
-                            hipLaunchKernel(
-                                HIP_KERNEL_NAME(kernel::hip::detail::hipKernel< TDim, TIdx, TKernelFnObj, TArgs... >),
+                            hipLaunchKernelGGL(
+                                HIP_KERNEL_NAME(kernel::hip::detail::hipKernel< TDim, TIdx, TKernelFnObj, typename std::decay<TArgs>::type... >),
                                 gridDim,
                                 blockDim,
-                                static_cast<std::size_t>(blockSharedMemDynSizeBytes),
+                                static_cast<std::uint32_t>(blockSharedMemDynSizeBytes),
                                 queue.m_spQueueImpl->m_HipQueue,
+                                hipLaunchParm{},
                                 threadElemExtent,
                                 task.m_kernelFnObj,
                                 args...

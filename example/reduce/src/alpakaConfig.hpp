@@ -15,7 +15,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 #pragma once
 
 #include "iterator.hpp"
@@ -69,7 +68,7 @@ struct CpuOmp2Blocks
     using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfHost = alpaka::pltf::Pltf<DevHost>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueCpuSync;
+    using Stream = alpaka::queue::QueueCpuBlocking;
     using Event = alpaka::event::Event<Stream>;
     using SmCount = alpaka::dim::DimInt<1u>;
     using MaxBlockSize = alpaka::dim::DimInt<1u>;
@@ -97,7 +96,7 @@ struct CpuOmp4
     using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfHost = alpaka::pltf::Pltf<DevHost>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueCpuSync;
+    using Stream = alpaka::queue::QueueCpuBlocking;
     using Event = alpaka::event::Event<Stream>;
     using MaxBlockSize = alpaka::dim::DimInt<1u>;
 };
@@ -123,7 +122,7 @@ struct CpuSerial
     using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfHost = alpaka::pltf::Pltf<DevHost>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueCpuSync;
+    using Stream = alpaka::queue::QueueCpuBlocking;
     using Event = alpaka::event::Event<Stream>;
     using MaxBlockSize = alpaka::dim::DimInt<1u>;
 };
@@ -148,7 +147,7 @@ struct CpuThreads
     using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfHost = alpaka::pltf::Pltf<DevHost>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueCpuSync;
+    using Stream = alpaka::queue::QueueCpuBlocking;
     using Event = alpaka::event::Event<Stream>;
     using MaxBlockSize = alpaka::dim::DimInt<1u>;
 };
@@ -174,7 +173,7 @@ struct GpuCudaRt
     using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfHost = alpaka::pltf::Pltf<DevHost>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using Stream = alpaka::queue::QueueCudaRtAsync;
+    using Stream = alpaka::queue::QueueCudaRtNonBlocking;
     using Event = alpaka::event::Event<Stream>;
     using MaxBlockSize = alpaka::dim::DimInt<1024u>;
 };

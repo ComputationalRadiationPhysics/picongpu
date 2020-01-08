@@ -7,12 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,6 +20,7 @@
 #include <alpaka/idx/Traits.hpp>
 
 #include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Cuda.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unused.hpp>
@@ -36,11 +36,9 @@ namespace alpaka
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxGbCudaBuiltIn
+            class IdxGbCudaBuiltIn : public concepts::Implements<ConceptIdxGb, IdxGbCudaBuiltIn<TDim, TIdx>>
             {
             public:
-                using IdxGbBase = IdxGbCudaBuiltIn;
-
                 //-----------------------------------------------------------------------------
                 IdxGbCudaBuiltIn() = default;
                 //-----------------------------------------------------------------------------

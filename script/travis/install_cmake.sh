@@ -14,13 +14,13 @@ source ./script/travis/travis_retry.sh
 
 source ./script/travis/set.sh
 
-: ${ALPAKA_CI_CMAKE_DIR?"ALPAKA_CI_CMAKE_DIR must be specified"}
-: ${ALPAKA_CI_CMAKE_VER?"ALPAKA_CI_CMAKE_VER must be specified"}
+: "${ALPAKA_CI_CMAKE_DIR?'ALPAKA_CI_CMAKE_DIR must be specified'}"
+: "${ALPAKA_CI_CMAKE_VER?'ALPAKA_CI_CMAKE_VER must be specified'}"
 
 if [ "$TRAVIS_OS_NAME" = "linux" ]
 then
     # Download the selected version.
-    if [ -z "$(ls -A "${ALPAKA_CI_CMAKE_DIR}")" ]
+    if [ -z "$(ls -A ${ALPAKA_CI_CMAKE_DIR})" ]
     then
         ALPAKA_CI_CMAKE_VER_SEMANTIC=( ${ALPAKA_CI_CMAKE_VER//./ } )
         ALPAKA_CI_CMAKE_VER_MAJOR="${ALPAKA_CI_CMAKE_VER_SEMANTIC[0]}"

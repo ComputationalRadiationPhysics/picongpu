@@ -14,11 +14,11 @@ source ./script/travis/travis_retry.sh
 
 source ./script/travis/set.sh
 
-: ${ALPAKA_CI_CLANG_DIR?"ALPAKA_CI_CLANG_DIR must be specified"}
-: ${ALPAKA_CI_CLANG_VER?"ALPAKA_CI_CLANG_VER must be specified"}
-: ${ALPAKA_CI_CLANG_LIBSTDCPP_VERSION?"ALPAKA_CI_CLANG_LIBSTDCPP_VERSION must be specified"}
-: ${ALPAKA_CI_STDLIB?"ALPAKA_CI_STDLIB must be specified"}
-: ${CXX?"CXX must be specified"}
+: "${ALPAKA_CI_CLANG_DIR?'ALPAKA_CI_CLANG_DIR must be specified'}"
+: "${ALPAKA_CI_CLANG_VER?'ALPAKA_CI_CLANG_VER must be specified'}"
+: "${ALPAKA_CI_CLANG_LIBSTDCPP_VERSION?'ALPAKA_CI_CLANG_LIBSTDCPP_VERSION must be specified'}"
+: "${ALPAKA_CI_STDLIB?'ALPAKA_CI_STDLIB must be specified'}"
+: "${CXX?'CXX must be specified'}"
 
 if [ -z "$(ls -A "${ALPAKA_CI_CLANG_DIR}")" ]
 then

@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED
@@ -85,10 +84,10 @@ namespace alpaka
             ALPAKA_FN_HOST TaskKernelCpuFibers(
                 TWorkDiv && workDiv,
                 TKernelFnObj const & kernelFnObj,
-                TArgs const & ... args) :
+                TArgs && ... args) :
                     workdiv::WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv)),
                     m_kernelFnObj(kernelFnObj),
-                    m_args(args...)
+                    m_args(std::forward<TArgs>(args)...)
             {
                 static_assert(
                     dim::Dim<typename std::decay<TWorkDiv>::type>::value == TDim::value,
@@ -122,7 +121,7 @@ namespace alpaka
                 // Get the size of the block shared dynamic memory.
                 auto const blockSharedMemDynSizeBytes(
                     meta::apply(
-                        [&](TArgs const & ... args)
+                        [&](typename std::decay<TArgs>::type const & ... args)
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
@@ -152,12 +151,12 @@ namespace alpaka
 
                 auto const boundGridBlockExecHost(
                     meta::apply(
-                        [this, &acc, &blockThreadExtent, &fiberPool](TArgs const & ... args)
+                        [this, &acc, &blockThreadExtent, &fiberPool](typename std::decay<TArgs>::type const & ... args)
                         {
                             // Bind the kernel and its arguments to the grid block function.
                             return
                                 std::bind(
-                                    &TaskKernelCpuFibers<TDim, TIdx, TKernelFnObj, TArgs...>::gridBlockExecHost,
+                                    &TaskKernelCpuFibers::gridBlockExecHost,
                                     std::ref(acc),
                                     std::placeholders::_1,
                                     std::ref(blockThreadExtent),
@@ -182,7 +181,7 @@ namespace alpaka
                 vec::Vec<TDim, TIdx> const & blockThreadExtent,
                 FiberPool & fiberPool,
                 TKernelFnObj const & kernelFnObj,
-                TArgs const & ... args)
+                typename std::decay<TArgs>::type const & ... args)
             -> void
             {
                     // The futures of the threads in the current block.
@@ -193,7 +192,7 @@ namespace alpaka
 
                 // Bind the kernel and its arguments to the host block thread execution function.
                 auto boundBlockThreadExecHost(std::bind(
-                    &TaskKernelCpuFibers<TDim, TIdx, TKernelFnObj, TArgs...>::blockThreadExecHost,
+                    &TaskKernelCpuFibers::blockThreadExecHost,
                     std::ref(acc),
                     std::ref(futuresInBlock),
                     std::placeholders::_1,
@@ -236,7 +235,7 @@ namespace alpaka
                 FiberPool &,
 #endif
                 TKernelFnObj const & kernelFnObj,
-                TArgs const & ... args)
+                typename std::decay<TArgs>::type const & ... args)
             -> void
             {
                 // Bind the arguments to the accelerator block thread execution function.
@@ -266,7 +265,7 @@ namespace alpaka
                 acc::AccCpuFibers<TDim, TIdx> & acc,
                 vec::Vec<TDim, TIdx> const & blockThreadIdx,
                 TKernelFnObj const & kernelFnObj,
-                TArgs const & ... args)
+                typename std::decay<TArgs>::type const & ... args)
             -> void
             {
                 // We have to store the fiber data before the kernel is calling any of the methods of this class depending on them.
@@ -294,7 +293,7 @@ namespace alpaka
             }
 
             TKernelFnObj m_kernelFnObj;
-            std::tuple<TArgs...> m_args;
+            std::tuple<typename std::decay<TArgs>::type...> m_args;
         };
     }
 

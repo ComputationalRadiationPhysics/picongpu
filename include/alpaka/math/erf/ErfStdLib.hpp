@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/erf/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library erf.
-        class ErfStdLib
+        class ErfStdLib : public concepts::Implements<ConceptMathErf, ErfStdLib>
         {
-        public:
-            using ErfBase = ErfStdLib;
         };
 
         namespace traits

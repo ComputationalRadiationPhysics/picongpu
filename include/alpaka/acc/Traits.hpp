@@ -7,14 +7,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/acc/AccDevProps.hpp>
 #include <alpaka/core/Common.hpp>
 
+#include <alpaka/core/Concepts.hpp>
+#include <alpaka/queue/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+
 #include <string>
 #include <typeinfo>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -22,6 +26,8 @@ namespace alpaka
     //! The accelerator specifics.
     namespace acc
     {
+        struct ConceptAcc;
+
         //-----------------------------------------------------------------------------
         //! The accelerator traits.
         namespace traits
@@ -93,6 +99,29 @@ namespace alpaka
                 traits::GetAccName<
                     TAcc>
                 ::getAccName();
+        }
+    }
+
+    namespace queue
+    {
+        namespace traits
+        {
+            template<
+                typename TAcc,
+                typename TProperty>
+            struct QueueType<
+                TAcc,
+                TProperty,
+                typename std::enable_if<
+                    concepts::ImplementsConcept<acc::ConceptAcc, TAcc>::value
+                >::type
+            >
+            {
+                using type = typename QueueType<
+                    typename pltf::traits::PltfType<TAcc>::type,
+                    TProperty
+                >::type;
+            };
         }
     }
 }

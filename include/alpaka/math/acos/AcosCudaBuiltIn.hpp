@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/acos/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library acos.
-        class AcosCudaBuiltIn
+        //! The CUDA built in acos.
+        class AcosCudaBuiltIn : public concepts::Implements<ConceptMathAcos, AcosCudaBuiltIn>
         {
-        public:
-            using AcosBase = AcosCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library acos trait specialization.
+            //! The CUDA acos trait specialization.
             template<
                 typename TArg>
             struct Acos<
@@ -49,7 +47,6 @@ namespace alpaka
                 typename std::enable_if<
                     std::is_floating_point<TArg>::value>::type>
             {
-                ALPAKA_NO_HOST_ACC_WARNING
                 __device__ static auto acos(
                     AcosCudaBuiltIn const & acos_ctx,
                     TArg const & arg)
@@ -57,6 +54,21 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(acos_ctx);
                     return ::acos(arg);
+                }
+            };
+
+            template<>
+            struct Acos<
+                AcosCudaBuiltIn,
+                float>
+            {
+                __device__ static auto acos(
+                    AcosCudaBuiltIn const & acos_ctx,
+                    float const & arg)
+                -> float
+                {
+                    alpaka::ignore_unused(acos_ctx);
+                    return ::acosf(arg);
                 }
             };
         }

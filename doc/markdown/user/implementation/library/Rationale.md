@@ -89,7 +89,7 @@ This is especially useful on current *NVIDIA* GPUs.
 Even though they support 64-bit integral operations, they are emulated with multiple 32-bit operations.
 This can be a huge performance penalty when the sizes of buffers, offsets, indices and other integral variables holding sizes are known to be limited.
 
-### No synchronous and asynchronous function versions:
+### No synchronous (blocking) and asynchronous (non-blocking) function versions:
 *CUDA* provides two versions of many of the runtime functions, for example, `cudaMemcpyAsync` and `cudaMemcpy`.
 The asynchronous version requires a queue while the synchronous version does not need a queue parameter.
 The asynchronous version immediately returns control back to the caller while the task is enqueued into the given queue and executed later in parallel to the host code.
@@ -98,7 +98,7 @@ Inconsistently, all kernels in a *CUDA* program can only be started either async
 There is no way to specify this on a per kernel basis.
 To switch a whole application from asynchronous to synchronous calls, for example for debugging reasons, it is necessary to change the names of all the runtime functions being called as well as their parameters.
 In *alpaka* this is solved by always enqueuing all tasks into a queue and not defining a default queue.
-Asynchronous queues as well as synchronous queues are provided for all devices.
+Non-blocking queues as well as blocking queues are provided for all devices.
 Changes to the synchronicity of multiple tasks can be made on a per queue basis by changing the queue type at the place of creation.
 There is no need to change any line of calling code.
 

@@ -7,9 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/kernel/Traits.hpp>
 
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
 #include <catch2/catch.hpp>
@@ -18,16 +18,15 @@
 #if !defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
 // CUDA C Programming guide says: "__host__ __device__ extended lambdas cannot be generic lambdas"
 #if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-//-----------------------------------------------------------------------------
-struct TestTemplateGeneric
-{
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+//-----------------------------------------------------------------------------
+TEMPLATE_LIST_TEST_CASE( "genericLambdaKernelIsWorking", "[kernel]", alpaka::test::acc::TestAccs)
+{
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
+
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
     auto kernel =
@@ -38,30 +37,27 @@ void operator()()
         {
             ALPAKA_CHECK(
                 *success,
-                static_cast<alpaka::idx::Idx<TAcc>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
+                static_cast<alpaka::idx::Idx<Acc>>(1) == (alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
         };
 
     REQUIRE(fixture(kernel));
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestTemplateVariadic
+TEMPLATE_LIST_TEST_CASE( "variadicGenericLambdaKernelIsWorking", "[kernel]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
     std::uint32_t const arg1 = 42u;
     std::uint32_t const arg2 = 43u;
     auto kernel =
         [] ALPAKA_FN_ACC (
-            TAcc const & acc,
+            Acc const & acc,
             bool * success,
             auto ... args)
         -> void
@@ -74,17 +70,6 @@ void operator()()
         };
 
     REQUIRE(fixture(kernel, arg1, arg2));
-}
-};
-
-TEST_CASE( "genericLambdaKernelIsWorking", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateGeneric() );
-}
-
-TEST_CASE( "variadicGenericLambdaKernelIsWorking", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateVariadic() );
 }
 
 #endif

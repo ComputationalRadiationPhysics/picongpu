@@ -7,12 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
@@ -37,11 +36,9 @@ namespace alpaka
         template<
             typename TDim,
             typename TIdx>
-        class WorkDivHipBuiltIn
+        class WorkDivHipBuiltIn : public concepts::Implements<ConceptWorkDiv, WorkDivHipBuiltIn<TDim, TIdx>>
         {
         public:
-            using WorkDivBase = WorkDivHipBuiltIn;
-
             //-----------------------------------------------------------------------------
             //! Default constructor.
             __device__ WorkDivHipBuiltIn(

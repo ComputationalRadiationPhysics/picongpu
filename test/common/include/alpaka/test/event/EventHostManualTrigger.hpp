@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/alpaka.hpp>
@@ -78,7 +77,7 @@ namespace alpaka
                         //! Constructor.
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST EventHostManualTriggerCpuImpl(
-                            dev::DevCpu const & dev) :
+                            dev::DevCpu const & dev) noexcept :
                                 m_dev(dev),
                                 m_mutex(),
                                 m_enqueueCount(0u),
@@ -269,7 +268,7 @@ namespace alpaka
             //#############################################################################
             template<>
             struct Enqueue<
-                queue::QueueCpuAsync,
+                queue::QueueCpuNonBlocking,
                 test::event::EventHostManualTriggerCpu>
             {
                 //-----------------------------------------------------------------------------
@@ -277,9 +276,9 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
-                    queue::QueueCpuAsync & queue,
+                    queue::QueueCpuNonBlocking & queue,
 #else
-                    queue::QueueCpuAsync &,
+                    queue::QueueCpuNonBlocking &,
 #endif
                     test::event::EventHostManualTriggerCpu & event)
                 -> void
@@ -325,14 +324,14 @@ namespace alpaka
             //#############################################################################
             template<>
             struct Enqueue<
-                queue::QueueCpuSync,
+                queue::QueueCpuBlocking,
                 test::event::EventHostManualTriggerCpu>
             {
                 //-----------------------------------------------------------------------------
                 //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCpuSync &,
+                    queue::QueueCpuBlocking &,
                     test::event::EventHostManualTriggerCpu & event)
                 -> void
                 {
@@ -371,7 +370,7 @@ namespace alpaka
 
 #include <cuda.h>
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -602,12 +601,12 @@ namespace alpaka
             //#############################################################################
             template<>
             struct Enqueue<
-                queue::QueueCudaRtAsync,
+                queue::QueueCudaRtNonBlocking,
                 test::event::EventHostManualTriggerCuda>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtAsync & queue,
+                    queue::QueueCudaRtNonBlocking & queue,
                     test::event::EventHostManualTriggerCuda & event)
                 -> void
                 {
@@ -642,12 +641,12 @@ namespace alpaka
             //#############################################################################
             template<>
             struct Enqueue<
-                queue::QueueCudaRtSync,
+                queue::QueueCudaRtBlocking,
                 test::event::EventHostManualTriggerCuda>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtSync & queue,
+                    queue::QueueCudaRtBlocking & queue,
                     test::event::EventHostManualTriggerCuda & event)
                 -> void
                 {
@@ -737,11 +736,11 @@ namespace alpaka
                         //-----------------------------------------------------------------------------
                         EventHostManualTriggerHipImpl(EventHostManualTriggerHipImpl const &) = delete;
                         //-----------------------------------------------------------------------------
-                        EventHostManualTriggerHipImpl(EventHostManualTriggerHipImpl &&) = default;
+                        EventHostManualTriggerHipImpl(EventHostManualTriggerHipImpl &&) = delete;
                         //-----------------------------------------------------------------------------
                         auto operator=(EventHostManualTriggerHipImpl const &) -> EventHostManualTriggerHipImpl & = delete;
                         //-----------------------------------------------------------------------------
-                        auto operator=(EventHostManualTriggerHipImpl &&) -> EventHostManualTriggerHipImpl & = default;
+                        auto operator=(EventHostManualTriggerHipImpl &&) -> EventHostManualTriggerHipImpl & = delete;
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST ~EventHostManualTriggerHipImpl()
                         {
@@ -906,12 +905,12 @@ namespace alpaka
             //#############################################################################
             template<>
             struct Enqueue<
-                queue::QueueHipRtAsync,
+                queue::QueueHipRtNonBlocking,
                 test::event::EventHostManualTriggerHip>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtAsync & queue,
+                    queue::QueueHipRtNonBlocking & queue,
                     test::event::EventHostManualTriggerHip & event)
                 -> void
                 {
@@ -951,12 +950,12 @@ namespace alpaka
             //#############################################################################
             template<>
             struct Enqueue<
-                queue::QueueHipRtSync,
+                queue::QueueHipRtBlocking,
                 test::event::EventHostManualTriggerHip>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtSync & queue,
+                    queue::QueueHipRtBlocking & queue,
                     test::event::EventHostManualTriggerHip & event)
                 -> void
                 {

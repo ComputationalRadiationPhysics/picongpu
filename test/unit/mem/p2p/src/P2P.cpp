@@ -7,9 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/mem/buf/Traits.hpp>
 
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 #include <alpaka/test/mem/view/ViewTest.hpp>
 #include <alpaka/test/Extent.hpp>
@@ -19,7 +19,6 @@
 
 #include <type_traits>
 #include <numeric>
-
 
 //-----------------------------------------------------------------------------
 template<
@@ -60,10 +59,7 @@ static auto testP2P(
 }
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
-{
-template< typename TAcc >
-void operator()()
+TEMPLATE_LIST_TEST_CASE( "memP2PTest", "[memP2P]", alpaka::test::acc::TestAccs)
 {
 #if defined(ALPAKA_CI) &&                             \
     BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(7,2,0) && \
@@ -72,17 +68,12 @@ void operator()()
     std::cerr << "Currently, memP2P is not working with gcc7.2 / gcc7.3 on Ubuntu14.04 on travis/CI." << std::endl;
     CHECK(true);
 #else
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     auto const extent(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, alpaka::test::CreateExtentBufVal>(Idx()));
 
-    testP2P<TAcc>( extent );
+    testP2P<Acc>( extent );
 #endif
-}
-};
-
-TEST_CASE( "memP2PTest", "[memP2P]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
 }

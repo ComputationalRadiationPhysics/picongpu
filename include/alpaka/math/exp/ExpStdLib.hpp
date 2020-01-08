@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/exp/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library exp.
-        class ExpStdLib
+        class ExpStdLib : public concepts::Implements<ConceptMathExp, ExpStdLib>
         {
-        public:
-            using ExpBase = ExpStdLib;
         };
 
         namespace traits

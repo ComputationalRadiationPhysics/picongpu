@@ -7,26 +7,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/acc/Traits.hpp>
 
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 
 #include <catch2/catch.hpp>
 
 #include <iostream>
 
-
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "getAccName", "[acc]", alpaka::test::acc::TestAccs)
 {
-    template< typename TAcc >
-    void operator()()
-    {
-        std::cout << alpaka::acc::getAccName<TAcc>() << std::endl;
-    }
-};
-
-TEST_CASE( "getAccName", "[acc]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
+    std::cout << alpaka::acc::getAccName<TestType>() << std::endl;
 }

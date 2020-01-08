@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/fmod/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library fmod.
-        class FmodStdLib
+        class FmodStdLib : public concepts::Implements<ConceptMathFmod, FmodStdLib>
         {
-        public:
-            using FmodBase = FmodStdLib;
         };
 
         namespace traits

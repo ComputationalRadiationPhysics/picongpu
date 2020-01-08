@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/exp/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library exp.
-        class ExpCudaBuiltIn
+        //! The CUDA built in exp.
+        class ExpCudaBuiltIn : public concepts::Implements<ConceptMathExp, ExpCudaBuiltIn>
         {
-        public:
-            using ExpBase = ExpCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library exp trait specialization.
+            //! The CUDA exp trait specialization.
             template<
                 typename TArg>
             struct Exp<
@@ -56,6 +54,21 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(exp_ctx);
                     return ::exp(arg);
+                }
+            };
+            //! The CUDA exp float specialization.
+            template<>
+            struct Exp<
+                ExpCudaBuiltIn,
+                float>
+            {
+                __device__ static auto exp(
+                    ExpCudaBuiltIn const & exp_ctx,
+                    float const & arg)
+                -> float
+                {
+                    alpaka::ignore_unused(exp_ctx);
+                    return ::expf(arg);
                 }
             };
         }

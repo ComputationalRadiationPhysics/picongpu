@@ -7,14 +7,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/mem/buf/Traits.hpp>
 
-#include <catch2/catch.hpp>
-
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 #include <alpaka/test/mem/view/ViewTest.hpp>
 #include <alpaka/test/Extent.hpp>
+
+#include <catch2/catch.hpp>
 
 #include <type_traits>
 #include <numeric>
@@ -58,38 +58,32 @@ static auto testBufferMutable(
 }
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "memBufBasicTest", "[memBuf]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     auto const extent(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, alpaka::test::CreateExtentBufVal>(Idx()));
 
     testBufferMutable<
-        TAcc>(
+        Acc>(
             extent);
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestTemplateZero
+TEMPLATE_LIST_TEST_CASE( "memBufZeroSizeTest", "[memBuf]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     auto const extent(alpaka::vec::Vec<Dim, Idx>::zeros());
 
     testBufferMutable<
-        TAcc>(
+        Acc>(
             extent);
 }
-};
 
 
 //-----------------------------------------------------------------------------
@@ -123,33 +117,15 @@ static auto testBufferImmutable(
 }
 
 //-----------------------------------------------------------------------------
-struct TestTemplateConst
+TEMPLATE_LIST_TEST_CASE( "memBufConstTest", "[memBuf]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     auto const extent(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, alpaka::test::CreateExtentBufVal>(Idx()));
 
     testBufferImmutable<
-        TAcc>(
+        Acc>(
             extent);
-}
-};
-
-TEST_CASE( "memBufBasicTest", "[memBuf]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
-}
-
-TEST_CASE( "memBufZeroSizeTest", "[memBuf]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateZero() );
-}
-
-TEST_CASE( "memBufConstTest", "[memBuf]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateConst() );
 }

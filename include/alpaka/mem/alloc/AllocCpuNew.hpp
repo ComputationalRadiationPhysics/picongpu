@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/mem/alloc/Traits.hpp>
@@ -25,10 +24,8 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU new allocator.
-            class AllocCpuNew
+            class AllocCpuNew : public concepts::Implements<ConceptMemAlloc, AllocCpuNew>
             {
-            public:
-                using AllocBase = AllocCpuNew;
             };
 
             namespace traits

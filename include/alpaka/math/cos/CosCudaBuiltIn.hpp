@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/cos/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library cos.
-        class CosCudaBuiltIn
+        //! The CUDA built in cos.
+        class CosCudaBuiltIn : public concepts::Implements<ConceptMathCos, CosCudaBuiltIn>
         {
-        public:
-            using CosBase = CosCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library cos trait specialization.
+            //! The CUDA cos trait specialization.
             template<
                 typename TArg>
             struct Cos<
@@ -56,6 +54,21 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(cos_ctx);
                     return ::cos(arg);
+                }
+            };
+
+            template<>
+            struct Cos<
+                CosCudaBuiltIn,
+                float>
+            {
+                __device__ static auto cos(
+                    CosCudaBuiltIn const & cos_ctx,
+                    float const & arg)
+                -> float
+                {
+                    alpaka::ignore_unused(cos_ctx);
+                    return ::cosf(arg);
                 }
             };
         }

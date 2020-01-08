@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef _OPENMP
@@ -25,11 +24,9 @@ namespace alpaka
         {
             //#############################################################################
             //! The OpenMP barrier block synchronization.
-            class BlockSyncBarrierOmp
+            class BlockSyncBarrierOmp : public concepts::Implements<ConceptBlockSync, BlockSyncBarrierOmp>
             {
             public:
-                using BlockSyncBase = BlockSyncBarrierOmp;
-
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST BlockSyncBarrierOmp() :
                     m_generation(0u)

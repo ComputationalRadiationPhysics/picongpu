@@ -7,12 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -51,12 +50,12 @@ namespace alpaka
             namespace detail
             {
                 //#############################################################################
-                //! The CUDA RT async queue implementation.
-                class QueueCudaRtAsyncImpl final
+                //! The CUDA RT non-blocking queue implementation.
+                class QueueCudaRtNonBlockingImpl final
                 {
                 public:
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST QueueCudaRtAsyncImpl(
+                    ALPAKA_FN_HOST QueueCudaRtNonBlockingImpl(
                         dev::DevCudaRt const & dev) :
                             m_dev(dev),
                             m_CudaQueue()
@@ -79,15 +78,15 @@ namespace alpaka
                                 cudaStreamNonBlocking));
                     }
                     //-----------------------------------------------------------------------------
-                    QueueCudaRtAsyncImpl(QueueCudaRtAsyncImpl const &) = delete;
+                    QueueCudaRtNonBlockingImpl(QueueCudaRtNonBlockingImpl const &) = delete;
                     //-----------------------------------------------------------------------------
-                    QueueCudaRtAsyncImpl(QueueCudaRtAsyncImpl &&) = default;
+                    QueueCudaRtNonBlockingImpl(QueueCudaRtNonBlockingImpl &&) = default;
                     //-----------------------------------------------------------------------------
-                    auto operator=(QueueCudaRtAsyncImpl const &) -> QueueCudaRtAsyncImpl & = delete;
+                    auto operator=(QueueCudaRtNonBlockingImpl const &) -> QueueCudaRtNonBlockingImpl & = delete;
                     //-----------------------------------------------------------------------------
-                    auto operator=(QueueCudaRtAsyncImpl &&) -> QueueCudaRtAsyncImpl & = delete;
+                    auto operator=(QueueCudaRtNonBlockingImpl &&) -> QueueCudaRtNonBlockingImpl & = delete;
                     //-----------------------------------------------------------------------------
-                    ALPAKA_FN_HOST ~QueueCudaRtAsyncImpl()
+                    ALPAKA_FN_HOST ~QueueCudaRtNonBlockingImpl()
                     {
                         ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -111,40 +110,40 @@ namespace alpaka
         }
 
         //#############################################################################
-        //! The CUDA RT async queue.
-        class QueueCudaRtAsync final
+        //! The CUDA RT non-blocking queue.
+        class QueueCudaRtNonBlocking final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, QueueCudaRtNonBlocking>
         {
         public:
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST QueueCudaRtAsync(
+            ALPAKA_FN_HOST QueueCudaRtNonBlocking(
                 dev::DevCudaRt const & dev) :
-                m_spQueueImpl(std::make_shared<cuda::detail::QueueCudaRtAsyncImpl>(dev))
+                m_spQueueImpl(std::make_shared<cuda::detail::QueueCudaRtNonBlockingImpl>(dev))
             {}
             //-----------------------------------------------------------------------------
-            QueueCudaRtAsync(QueueCudaRtAsync const &) = default;
+            QueueCudaRtNonBlocking(QueueCudaRtNonBlocking const &) = default;
             //-----------------------------------------------------------------------------
-            QueueCudaRtAsync(QueueCudaRtAsync &&) = default;
+            QueueCudaRtNonBlocking(QueueCudaRtNonBlocking &&) = default;
             //-----------------------------------------------------------------------------
-            auto operator=(QueueCudaRtAsync const &) -> QueueCudaRtAsync & = default;
+            auto operator=(QueueCudaRtNonBlocking const &) -> QueueCudaRtNonBlocking & = default;
             //-----------------------------------------------------------------------------
-            auto operator=(QueueCudaRtAsync &&) -> QueueCudaRtAsync & = default;
+            auto operator=(QueueCudaRtNonBlocking &&) -> QueueCudaRtNonBlocking & = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator==(QueueCudaRtAsync const & rhs) const
+            ALPAKA_FN_HOST auto operator==(QueueCudaRtNonBlocking const & rhs) const
             -> bool
             {
                 return (m_spQueueImpl == rhs.m_spQueueImpl);
             }
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator!=(QueueCudaRtAsync const & rhs) const
+            ALPAKA_FN_HOST auto operator!=(QueueCudaRtNonBlocking const & rhs) const
             -> bool
             {
                 return !((*this) == rhs);
             }
             //-----------------------------------------------------------------------------
-            ~QueueCudaRtAsync() = default;
+            ~QueueCudaRtNonBlocking() = default;
 
         public:
-            std::shared_ptr<cuda::detail::QueueCudaRtAsyncImpl> m_spQueueImpl;
+            std::shared_ptr<cuda::detail::QueueCudaRtNonBlockingImpl> m_spQueueImpl;
         };
     }
 
@@ -153,22 +152,22 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT async queue device type trait specialization.
+            //! The CUDA RT non-blocking queue device type trait specialization.
             template<>
             struct DevType<
-                queue::QueueCudaRtAsync>
+                queue::QueueCudaRtNonBlocking>
             {
                 using type = dev::DevCudaRt;
             };
             //#############################################################################
-            //! The CUDA RT async queue device get trait specialization.
+            //! The CUDA RT non-blocking queue device get trait specialization.
             template<>
             struct GetDev<
-                queue::QueueCudaRtAsync>
+                queue::QueueCudaRtNonBlocking>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
-                    queue::QueueCudaRtAsync const & queue)
+                    queue::QueueCudaRtNonBlocking const & queue)
                 -> dev::DevCudaRt
                 {
                     return queue.m_spQueueImpl->m_dev;
@@ -181,10 +180,10 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT async queue event type trait specialization.
+            //! The CUDA RT non-blocking queue event type trait specialization.
             template<>
             struct EventType<
-                queue::QueueCudaRtAsync>
+                queue::QueueCudaRtNonBlocking>
             {
                 using type = event::EventCudaRt;
             };
@@ -199,7 +198,7 @@ namespace alpaka
             template<
                 typename TTask>
             struct Enqueue<
-                queue::QueueCudaRtAsync,
+                queue::QueueCudaRtNonBlocking,
                 TTask>
             {
                 //#############################################################################
@@ -246,7 +245,7 @@ namespace alpaka
 
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtAsync & queue,
+                    queue::QueueCudaRtNonBlocking & queue,
                     TTask const & task)
                 -> void
                 {
@@ -292,14 +291,14 @@ namespace alpaka
                 }
             };
             //#############################################################################
-            //! The CUDA RT async queue test trait specialization.
+            //! The CUDA RT non-blocking queue test trait specialization.
             template<>
             struct Empty<
-                queue::QueueCudaRtAsync>
+                queue::QueueCudaRtNonBlocking>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto empty(
-                    queue::QueueCudaRtAsync const & queue)
+                    queue::QueueCudaRtNonBlocking const & queue)
                 -> bool
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -320,16 +319,16 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT async queue thread wait trait specialization.
+            //! The CUDA RT non-blocking queue thread wait trait specialization.
             //!
             //! Blocks execution of the calling thread until the queue has finished processing all previously requested tasks (kernels, data copies, ...)
             template<>
             struct CurrentThreadWaitFor<
-                queue::QueueCudaRtAsync>
+                queue::QueueCudaRtNonBlocking>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    queue::QueueCudaRtAsync const & queue)
+                    queue::QueueCudaRtNonBlocking const & queue)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;

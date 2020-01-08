@@ -7,27 +7,24 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #endif
 
-#include <alpaka/queue/QueueHipRtSync.hpp>
-#include <alpaka/queue/QueueHipRtAsync.hpp>
+#include <alpaka/queue/QueueHipRtBlocking.hpp>
+#include <alpaka/queue/QueueHipRtNonBlocking.hpp>
 
 #include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/dev/DevHipRt.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/queue/QueueHipRtAsync.hpp>
-#include <alpaka/queue/QueueHipRtSync.hpp>
 
 #include <alpaka/core/Assert.hpp>
 #include <alpaka/core/Hip.hpp>
@@ -637,18 +634,18 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The HIP async device queue 1D copy enqueue trait specialization.
+            //! The HIP non-blocking device queue 1D copy enqueue trait specialization.
             template<
                 typename TExtent,
                 typename TViewSrc,
                 typename TViewDst>
             struct Enqueue<
-                queue::QueueHipRtAsync,
+                queue::QueueHipRtNonBlocking,
                 mem::view::hip::detail::TaskCopyHip<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtAsync & queue,
+                    queue::QueueHipRtNonBlocking & queue,
                     mem::view::hip::detail::TaskCopyHip<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -702,18 +699,18 @@ namespace alpaka
                 }
             };
             //#############################################################################
-            //! The HIP sync device queue 1D copy enqueue trait specialization.
+            //! The HIP blocking device queue 1D copy enqueue trait specialization.
             template<
                 typename TExtent,
                 typename TViewSrc,
                 typename TViewDst>
             struct Enqueue<
-                queue::QueueHipRtSync,
+                queue::QueueHipRtBlocking,
                 mem::view::hip::detail::TaskCopyHip<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtSync &,
+                    queue::QueueHipRtBlocking & queue,
                     mem::view::hip::detail::TaskCopyHip<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -744,38 +741,43 @@ namespace alpaka
                                 iDstDev));
                         // Initiate the memory copy.
                         ALPAKA_HIP_RT_CHECK(
-                            hipMemcpy(
+                            hipMemcpyAsync(
                                 dstNativePtr,
                                 srcNativePtr,
                                 static_cast<std::size_t>(extentWidthBytes),
-                                hipMemCpyKind));
+                                hipMemCpyKind,
+                                queue.m_spQueueImpl->m_HipQueue));
                     }
                     else
                     {
                         // Initiate the memory copy.
                         ALPAKA_HIP_RT_CHECK(
-                            hipMemcpyPeer(
+                            hipMemcpyPeerAsync(
                                 dstNativePtr,
                                 iDstDev,
                                 srcNativePtr,
                                 iSrcDev,
-                                static_cast<std::size_t>(extentWidthBytes)));
+                                static_cast<std::size_t>(extentWidthBytes),
+                                queue.m_spQueueImpl->m_HipQueue));
                     }
+
+                    ALPAKA_HIP_RT_CHECK( hipStreamSynchronize(
+                        queue.m_spQueueImpl->m_HipQueue));
                 }
             };
             //#############################################################################
-            //! The HIP async device queue 2D copy enqueue trait specialization.
+            //! The HIP non-blocking device queue 2D copy enqueue trait specialization.
             template<
                 typename TExtent,
                 typename TViewSrc,
                 typename TViewDst>
             struct Enqueue<
-                queue::QueueHipRtAsync,
+                queue::QueueHipRtNonBlocking,
                 mem::view::hip::detail::TaskCopyHip<dim::DimInt<2u>, TViewDst, TViewSrc, TExtent>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtAsync & queue,
+                    queue::QueueHipRtNonBlocking & queue,
                     mem::view::hip::detail::TaskCopyHip<dim::DimInt<2u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -830,18 +832,18 @@ namespace alpaka
                 }
             };
             //#############################################################################
-            //! The HIP sync device queue 2D copy enqueue trait specialization.
+            //! The HIP blocking device queue 2D copy enqueue trait specialization.
             template<
                 typename TExtent,
                 typename TViewSrc,
                 typename TViewDst>
             struct Enqueue<
-                queue::QueueHipRtSync,
+                queue::QueueHipRtBlocking,
                 mem::view::hip::detail::TaskCopyHip<dim::DimInt<2u>, TViewDst, TViewSrc, TExtent>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtSync &,
+                    queue::QueueHipRtBlocking & queue,
                     mem::view::hip::detail::TaskCopyHip<dim::DimInt<2u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -883,82 +885,34 @@ namespace alpaka
                     }
 
                     ALPAKA_HIP_RT_CHECK(
-                        hipMemcpy2D(
+                        hipMemcpy2DAsync(
                             dstNativePtr,
                             static_cast<std::size_t>(dstPitchBytesX),
                             srcNativePtr,
                             static_cast<std::size_t>(srcPitchBytesX),
                             static_cast<std::size_t>(extentWidthBytes),
                             static_cast<std::size_t>(extentHeight),
-                            hipMemCpyKind));
+                            hipMemCpyKind,
+                            queue.m_spQueueImpl->m_HipQueue));
+
+                    ALPAKA_HIP_RT_CHECK( hipStreamSynchronize(
+                        queue.m_spQueueImpl->m_HipQueue));
 
                 }
             };
             //#############################################################################
-            //! The HIP async device queue 3D copy enqueue trait specialization.
+            //! The HIP non-blocking device queue 3D copy enqueue trait specialization.
             template<
                 typename TExtent,
                 typename TViewSrc,
                 typename TViewDst>
             struct Enqueue<
-                queue::QueueHipRtAsync,
+                queue::QueueHipRtNonBlocking,
                 mem::view::hip::detail::TaskCopyHip<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtAsync & queue,
-                    mem::view::hip::detail::TaskCopyHip<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent> const & task)
-                -> void
-                {
-                    ALPAKA_DEBUG_FULL_LOG_SCOPE;
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                    task.printDebug();
-#endif
-                    // This is not only an optimization but also prevents a division by zero.
-                    if(task.m_extentWidthBytes == 0 || task.m_extentHeight == 0 || task.m_extentDepth == 0)
-                    {
-                        return;
-                    }
-                    auto const & iDstDev(task.m_iDstDevice);
-                    auto const & iSrcDev(task.m_iSrcDevice);
-
-                    // Create the struct describing the copy.
-                    hipMemcpy3DParms const hipMemCpy3DParms(
-                        mem::view::hip::detail::buildHipMemcpy3DParms(
-                            task));
-                    // Set the current device.
-                    ALPAKA_HIP_RT_CHECK(
-                        hipSetDevice(
-                            iDstDev));
-
-                    if(iDstDev != iSrcDev)
-                    {
-                        // HIP relies on unified memory, so memcpy commands automatically do device-to-device transfers.
-                        // P2P access has to be enabled to avoid host transfer.
-                        // Checks if devices are connected via PCIe switch and enable P2P access then.
-                        alpaka::mem::view::hip::detail::enablePeerAccessIfPossible(iSrcDev, iDstDev);
-                    }
-
-                    // Initiate the memory copy.
-                    // FIXME: hipMemcpy3DAsync not implemented yet by HIP. Use hipMemcpy3D for now.
-                    ALPAKA_HIP_RT_CHECK(
-                        hipMemcpy3D(
-                            &hipMemCpy3DParms));
-                }
-            };
-            //#############################################################################
-            //! The HIP sync device queue 3D copy enqueue trait specialization.
-            template<
-                typename TExtent,
-                typename TViewSrc,
-                typename TViewDst>
-            struct Enqueue<
-                queue::QueueHipRtSync,
-                mem::view::hip::detail::TaskCopyHip<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent>>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtSync &,
+                    queue::QueueHipRtNonBlocking & queue,
                     mem::view::hip::detail::TaskCopyHip<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -993,8 +947,64 @@ namespace alpaka
 
                     // Initiate the memory copy.
                     ALPAKA_HIP_RT_CHECK(
-                        hipMemcpy3D(
-                            &hipMemCpy3DParms));
+                        hipMemcpy3DAsync(
+                            &hipMemCpy3DParms,
+                            queue.m_spQueueImpl->m_HipQueue));
+                }
+            };
+            //#############################################################################
+            //! The HIP blocking device queue 3D copy enqueue trait specialization.
+            template<
+                typename TExtent,
+                typename TViewSrc,
+                typename TViewDst>
+            struct Enqueue<
+                queue::QueueHipRtBlocking,
+                mem::view::hip::detail::TaskCopyHip<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent>>
+            {
+                //-----------------------------------------------------------------------------
+                ALPAKA_FN_HOST static auto enqueue(
+                    queue::QueueHipRtBlocking & queue,
+                    mem::view::hip::detail::TaskCopyHip<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent> const & task)
+                -> void
+                {
+                    ALPAKA_DEBUG_FULL_LOG_SCOPE;
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+                    task.printDebug();
+#endif
+                    // This is not only an optimization but also prevents a division by zero.
+                    if(task.m_extentWidthBytes == 0 || task.m_extentHeight == 0 || task.m_extentDepth == 0)
+                    {
+                        return;
+                    }
+                    auto const & iDstDev(task.m_iDstDevice);
+                    auto const & iSrcDev(task.m_iSrcDevice);
+
+                    // Create the struct describing the copy.
+                    hipMemcpy3DParms const hipMemCpy3DParms(
+                        mem::view::hip::detail::buildHipMemcpy3DParms(
+                            task));
+                    // Set the current device.
+                    ALPAKA_HIP_RT_CHECK(
+                        hipSetDevice(
+                            iDstDev));
+
+                    if(iDstDev != iSrcDev)
+                    {
+                        // HIP relies on unified memory, so memcpy commands automatically do device-to-device transfers.
+                        // P2P access has to be enabled to avoid host transfer.
+                        // Checks if devices are connected via PCIe switch and enable P2P access then.
+                        alpaka::mem::view::hip::detail::enablePeerAccessIfPossible(iSrcDev, iDstDev);
+                    }
+
+                    // Initiate the memory copy.
+                    ALPAKA_HIP_RT_CHECK(
+                        hipMemcpy3DAsync(
+                            &hipMemCpy3DParms,
+                            queue.m_spQueueImpl->m_HipQueue));
+
+                    ALPAKA_HIP_RT_CHECK( hipStreamSynchronize(
+                        queue.m_spQueueImpl->m_HipQueue));
                 }
             };
         }

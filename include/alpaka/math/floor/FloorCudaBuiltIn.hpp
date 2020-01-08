@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/floor/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library floor.
-        class FloorCudaBuiltIn
+        //! The CUDA built in floor.
+        class FloorCudaBuiltIn : public concepts::Implements<ConceptMathFloor, FloorCudaBuiltIn>
         {
-        public:
-            using FloorBase = FloorCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library floor trait specialization.
+            //! The CUDA floor trait specialization.
             template<
                 typename TArg>
             struct Floor<
@@ -56,6 +54,21 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(floor_ctx);
                     return ::floor(arg);
+                }
+            };
+            //! The CUDA floor float specialization.
+            template<>
+            struct Floor<
+                FloorCudaBuiltIn,
+                float>
+            {
+                __device__ static auto floor(
+                    FloorCudaBuiltIn const & floor_ctx,
+                    float const & arg)
+                -> float
+                {
+                    alpaka::ignore_unused(floor_ctx);
+                    return ::floorf(arg);
                 }
             };
         }
