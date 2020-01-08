@@ -39,6 +39,7 @@ before_install:
   - mkdir -p $HOME/asyncAPI
   - mkdir -p $HOME/asyncAPI_tuned
   - mkdir -p $HOME/vectorAdd
+  - mkdir -p $HOME/test/config
   - export CMAKE_FLAGS="-DALPAKA_ACC_"$STRATEGY"_ENABLE=ON"
   - if [ "$COMPILER" == "gcc" ]; then
         echo "Using g++-4.9 and sequential OpenMP2 threads ...";
@@ -66,15 +67,15 @@ install:
   # CMAKE                                                                     #
   #############################################################################
   - export PATH=$CMAKE_ROOT/bin:$PATH
-  - CMAKE_311_FOUND=$(cmake --version | grep " 3\.11\." >/dev/null && { echo 0; } || { echo 1; })
-  - if [ $CMAKE_311_FOUND -ne 0 ]; then
+  - CMAKE_315_FOUND=$(cmake --version | grep " 3\.15\." >/dev/null && { echo 0; } || { echo 1; })
+  - if [ $CMAKE_315_FOUND -ne 0 ]; then
       mkdir -p $CMAKE_ROOT &&
       cd $CMAKE_ROOT &&
       rm -rf $CMAKE_ROOT/* &&
-      travis_retry wget --no-check-certificate http://cmake.org/files/v3.11/cmake-3.11.0-Linux-x86_64.tar.gz &&
-      tar -xzf cmake-3.11.0-Linux-x86_64.tar.gz &&
-      mv cmake-3.11.0-Linux-x86_64/* . &&
-      rm -rf cmake-3.11.0-Linux-x86_64.tar.gz cmake-3.11.0-Linux-x86_64 &&
+      travis_retry wget --no-check-certificate http://cmake.org/files/v3.15/cmake-3.15.4-Linux-x86_64.tar.gz &&
+      tar -xzf cmake-3.15.4-Linux-x86_64.tar.gz &&
+      mv cmake-3.15.4-Linux-x86_64/* . &&
+      rm -rf cmake-3.15.4-Linux-x86_64.tar.gz cmake-3.15.4-Linux-x86_64 &&
       cd -;
     fi
   - cmake --version
@@ -155,5 +156,9 @@ script:
       ./vectorAdd 100000;
     fi
   #############################################################################
-  # Test: (To do: add tests in $TRAVIS_BUILD_DIR/test/                        #
+  # Test: additional tests                                                    #
   #############################################################################
+  - cd $HOME/test/config
+  - if [[ $CXX =~ "^g\+\+" ]] || [[ "$COMPILER" == "nvcc" ]] ; then
+      $TRAVIS_BUILD_DIR/test/system/config/test.sh $CXX;
+    fi

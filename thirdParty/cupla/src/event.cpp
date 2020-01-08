@@ -30,6 +30,7 @@
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaEventCreateWithFlags(
     cuplaEvent_t * event,
@@ -44,6 +45,8 @@ cuplaEventCreateWithFlags(
     return cuplaSuccess;
 };
 
+
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaEventCreate(
     cuplaEvent_t * event
@@ -57,6 +60,7 @@ cuplaEventCreate(
     return cuplaSuccess;
 };
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaEventDestroy( cuplaEvent_t event )
 {
@@ -71,6 +75,7 @@ cuplaEventDestroy( cuplaEvent_t event )
         return cuplaErrorInitializationError;
 };
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaEventRecord(
     cuplaEvent_t event,
@@ -90,6 +95,7 @@ cuplaEventRecord(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaEventElapsedTime(
     float * ms,
@@ -109,6 +115,7 @@ cuplaEventElapsedTime(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaEventSynchronize(
     cuplaEvent_t event
@@ -122,6 +129,7 @@ cuplaEventSynchronize(
     return cuplaSuccess;
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaEventQuery( cuplaEvent_t event )
 {

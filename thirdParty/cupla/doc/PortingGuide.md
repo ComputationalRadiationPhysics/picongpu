@@ -41,7 +41,9 @@ Porting Step by Step
   **cupla include**
   ```C++
   /* Do NOT include other headers that use CUDA runtime functions or variables
-   * (see above) before this include.
+   * (see above) after this include.
+   * In particular, this applies to third-party library headers pulling CUDA -
+   * they also have to be included before cupla.
    * The reason for this is that cupla renames CUDA host functions and device build in
    * variables by using macros and macro functions.
    * Do NOT include other specific includes such as `<cuda.h>` (driver functions,

@@ -1,0 +1,113 @@
+.base_job:
+  script:
+    # the default build type is Release
+    # if neccesary, you can rerun the pipeline with another build type-> https://docs.gitlab.com/ee/ci/pipelines.html#manually-executing-pipelines
+    # to change the build type, you must set the environment variable CUPLA_BUILD_TYPE
+    - if [[ ! -v CUPLA_BUILD_TYPE ]] ; then
+        CUPLA_BUILD_TYPE=Release ;
+      fi
+    - echo "number of processor threads $(nproc)"
+    - $CXX --version
+    - cmake --version
+    # print boost version
+    - echo -e "#include <boost/version.hpp>\n#include <iostream>\nint main() { std::cout << BOOST_VERSION << std::endl; return 0; }" | $CXX -x c++ - -o boost_version >/dev/null || { echo 0; }
+    - echo "Boost version $(./boost_version)"
+    - export cupla_DIR=$CI_PROJECT_DIR
+    # use one build directory for all build configurations
+    - mkdir build
+    - cd build
+    - echo "Build type-> $CUPLA_BUILD_TYPE"
+    # ALPAKA_ACCS contains the backends, which are used for each build
+    # the backends are set in the sepcialized base jobs .base_gcc,.base_clang and.base_cuda
+    - for CMAKE_FLAGS in $ALPAKA_ACCS ; do
+        echo "###################################################"
+        && echo "# Example Matrix Multiplication (adapted original)"
+        && echo "###################################################"
+        && echo "can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original SDK example"
+        && echo "CPU_B_SEQ_T_OMP2/THREADS too many threads necessary (256)"
+        && if [[ $CMAKE_FLAGS =~ -*DALPAKA_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
+          cmake $cupla_DIR/example/CUDASamples/matrixMul/ $CMAKE_FLAGS -DCMAKE_BUILD_TYPE=$CUPLA_BUILD_TYPE
+          && make -j
+          && time ./matrixMul -wA=64 -wB=64 -hA=64 -hB=64
+          && rm -r * ;
+        fi
+        && echo "###################################################"
+        && echo "# Example Async API (adapted original)"
+        && echo "###################################################"
+        && echo "can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original SDK example"
+        && echo "CPU_B_SEQ_T_OMP2/THREADS too many threads necessary (512)"
+        && if [[ $CMAKE_FLAGS =~ -*DALPAKA_ACC_GPU_CUDA_ENABLE=ON.* ]]; then
+          cmake $cupla_DIR/example/CUDASamples/asyncAPI/ $CMAKE_FLAGS -DCMAKE_BUILD_TYPE=$CUPLA_BUILD_TYPE
+          && make -j
+          && time ./asyncAPI
+          && rm -r * ;
+        fi
+        && echo "###################################################"
+        && echo "# Example Async API (added elements layer)"
+        && echo "###################################################"
+        && cmake $cupla_DIR/example/CUDASamples/asyncAPI_tuned/ $CMAKE_FLAGS -DCMAKE_BUILD_TYPE=$CUPLA_BUILD_TYPE
+        && make -j
+        && time ./asyncAPI_tuned
+        && rm -r *
+        && echo "###################################################"
+        && echo "Example vectorAdd (added elements layer)"
+        && echo "###################################################"
+        && cmake $cupla_DIR/example/CUDASamples/vectorAdd/ $CMAKE_FLAGS -DCMAKE_BUILD_TYPE=$CUPLA_BUILD_TYPE
+        && make -j
+        && time ./vectorAdd 100000
+        && rm -r * ;
+      done
+
+.base_gcc:
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+    CXX: g++
+    CC: gcc
+    ALPAKA_ACCS: "-DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON
+                  -DALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=ON
+                  -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
+                  # -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON
+  extends: .base_job
+  # x86_64 tag is used to get a multi-core CPU for the tests
+  tags:
+    - x86_64
+
+.base_clang:
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+    CXX: clang++
+    CC: clang
+    ALPAKA_ACCS: "-DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLE=ON
+                  -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON"
+                  # -DALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE=ON
+                  # -DALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE=ON
+  extends: .base_job
+  # x86_64 tag is used to get a multi-core CPU for the tests
+  tags:
+    - x86_64
+
+.base_cuda:
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+    CXX: g++
+    CC: gcc
+    ALPAKA_ACCS: "-DALPAKA_ACC_GPU_CUDA_ENABLE=ON"
+  before_script:
+    - nvidia-smi
+    - nvcc --version
+  extends: .base_job
+  tags:
+    - cuda
+    - intel
+
+gcc7:
+  image: registry.gitlab.com/hzdr/cupla-docker/gcc7:latest
+  extends: .base_gcc
+
+clang7:
+  image: registry.gitlab.com/hzdr/cupla-docker/clang7:latest
+  extends: .base_clang
+
+cuda9:
+  image: registry.gitlab.com/hzdr/cupla-docker/cuda9:latest
+  extends: .base_cuda

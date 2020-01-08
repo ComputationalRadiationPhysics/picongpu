@@ -37,9 +37,8 @@ Dependencies
 ------------
 
 - **cmake 3.11.0**
-- **alpaka** 
-  - is loaded as `git submodule` within **cupla** (see [INSTALL.md](INSTALL.md))
-  - for more information please read [README.md](https://github.com/ComputationalRadiationPhysics/alpaka/blob/master/README.md)
+- **[alpaka](https://github.com/ComputationalRadiationPhysics/alpaka/)**
+  - alpaka is loaded as `git subtree` within **cupla**, see [INSTALL.md](INSTALL.md)
 
 Usage
 -----
@@ -49,6 +48,7 @@ Usage
 - Checkout the [tuning guide](doc/TuningGuide.md) for a step further to performance
   portable code.
 
+[cupla can be used as a header-only library and without the CMake build system](doc/ConfigurationHeader.md)
 
 Authors
 -------
@@ -56,6 +56,7 @@ Authors
 ### Maintainers and core developers
 
 - Rene Widera
+- Matthias Werner
 
 ### Former Members, Contributions and Thanks
 
