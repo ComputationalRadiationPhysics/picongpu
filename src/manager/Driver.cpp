@@ -34,7 +34,7 @@ inline namespace CUPLA_ACCELERATOR_NAMESPACE
 namespace manager
 {
 
-Driver::Driver()
+CUPLA_HEADER_ONLY_FUNC_SPEC Driver::Driver()
 {
     cupla::manager::Device< cupla::AccDev >::get( );
 

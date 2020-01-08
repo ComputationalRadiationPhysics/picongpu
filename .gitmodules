@@ -1,4 +1,0 @@
-[submodule "alpaka"]
-	path = alpaka
-	url = git://github.com/ComputationalRadiationPhysics/alpaka.git
-	branch = develop
