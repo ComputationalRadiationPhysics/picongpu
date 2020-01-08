@@ -7,12 +7,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -22,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathMin;
+
         namespace traits
         {
             //#############################################################################
@@ -56,7 +56,7 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Min<
-                T,
+                concepts::ImplementationBase<ConceptMathMin, T>,
                 Tx,
                 Ty>
             ::min(
@@ -65,58 +65,16 @@ namespace alpaka
                 y))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathMin, T>;
             return
                 traits::Min<
-                    T,
+                    ImplementationBase,
                     Tx,
                     Ty>
                 ::min(
                     min_ctx,
                     x,
                     y);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Min specialization for classes with MinBase member type.
-            template<
-                typename T,
-                typename Tx,
-                typename Ty>
-            struct Min<
-                T,
-                Tx,
-                Ty,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::MinBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto min(
-                    T const & min_ctx,
-                    Tx const & x,
-                    Ty const & y)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::min(
-                        static_cast<typename T::MinBase const &>(min_ctx),
-                        x,
-                        y))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::min(
-                            static_cast<typename T::MinBase const &>(min_ctx),
-                            x,
-                            y);
-                }
-            };
         }
     }
 }

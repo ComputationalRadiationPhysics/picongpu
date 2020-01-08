@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/vec/Vec.hpp>
@@ -180,7 +179,7 @@ namespace alpaka
         ALPAKA_FN_HOST auto createTaskKernel(
             TWorkDiv const & workDiv,
             TKernelFnObj const & kernelFnObj,
-            TArgs const & ... args)
+            TArgs && ... args)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::CreateTaskKernel<
@@ -191,7 +190,7 @@ namespace alpaka
             ::createTaskKernel(
                 workDiv,
                 kernelFnObj,
-                args...))
+                std::forward<TArgs>(args)...))
 #endif
         {
             // check for void return type
@@ -206,8 +205,8 @@ namespace alpaka
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
             std::cout << __func__
-                << " gridBlockExtent: " << workdiv::getWorkDiv<Grid, Blocks>(workDiv)
-                << ", blockThreadExtent: " << workdiv::getWorkDiv<Block, Threads>(workDiv)
+                << " workDiv: " << workDiv
+                << ", kernelFnObj: " << typeid(kernelFnObj).name()
                 << std::endl;
 #endif
             return
@@ -218,7 +217,7 @@ namespace alpaka
                     TArgs...>::createTaskKernel(
                         workDiv,
                         kernelFnObj,
-                        args...);
+                        std::forward<TArgs>(args)...);
         }
 
 #if BOOST_COMP_CLANG
@@ -246,7 +245,7 @@ namespace alpaka
             TQueue & queue,
             TWorkDiv const & workDiv,
             TKernelFnObj const & kernelFnObj,
-            TArgs const & ... args)
+            TArgs && ... args)
         -> void
         {
             queue::enqueue(
@@ -255,7 +254,7 @@ namespace alpaka
                     TAcc>(
                     workDiv,
                     kernelFnObj,
-                    args...));
+                    std::forward<TArgs>(args)...));
         }
     }
 }

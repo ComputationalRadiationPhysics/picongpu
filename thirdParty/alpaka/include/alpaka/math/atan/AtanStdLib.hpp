@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/atan/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library atan.
-        class AtanStdLib
+        class AtanStdLib : public concepts::Implements<ConceptMathAtan, AtanStdLib>
         {
-        public:
-            using AtanBase = AtanStdLib;
         };
 
         namespace traits

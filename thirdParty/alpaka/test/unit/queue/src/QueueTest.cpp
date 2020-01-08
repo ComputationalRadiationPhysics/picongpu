@@ -7,39 +7,46 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/queue/Traits.hpp>
+#include <alpaka/meta/Concatenate.hpp>
 
-#include <catch2/catch.hpp>
+#include <alpaka/test/queue/QueueCpuOmp2Collective.hpp>
 
-#include <alpaka/alpaka.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 #include <alpaka/test/queue/QueueTestFixture.hpp>
+
+#include <catch2/catch.hpp>
 
 #include <future>
 #include <thread>
 
+using TestQueues = alpaka::meta::Concatenate<
+        alpaka::test::queue::TestQueues
+ #ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
+        ,
+        std::tuple<std::tuple<alpaka::dev::DevCpu, alpaka::queue::QueueCpuOmp2Collective>>
+#endif
+    >;
 
 //-----------------------------------------------------------------------------
-struct TestTemplateEmpty
+TEMPLATE_LIST_TEST_CASE( "queueIsInitiallyEmpty", "[queue]", TestQueues)
 {
-template< typename TDevQueue >
-void operator()()
-{
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     Fixture f;
 
     CHECK(alpaka::queue::empty(f.m_queue));
 }
-};
+
+#if !BOOST_COMP_HIP // HIP-clang is currently not supporting callbacks
 
 //-----------------------------------------------------------------------------
-struct TestTemplateCallback
-{
-template< typename TDevQueue >
-void operator()()
+TEMPLATE_LIST_TEST_CASE( "queueCallbackIsWorking", "[queue]", TestQueues)
 {
 // Workaround: Clang can not support this when natively compiling device code. See ConcurrentExecPool.hpp.
 #if !(BOOST_COMP_CLANG_CUDA && BOOST_ARCH_PTX)
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     Fixture f;
 
     std::promise<bool> promise;
@@ -54,15 +61,12 @@ void operator()()
     CHECK(promise.get_future().get());
 #endif
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestTemplateWait
+TEMPLATE_LIST_TEST_CASE( "queueWaitShouldWork", "[queue]", TestQueues)
 {
-template< typename TDevQueue >
-void operator()()
-{
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     Fixture f;
 
     bool CallbackFinished = false;
@@ -77,15 +81,12 @@ void operator()()
     alpaka::wait::wait(f.m_queue);
     CHECK(CallbackFinished);
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestTemplateExecNotEmpty
+TEMPLATE_LIST_TEST_CASE( "queueShouldNotBeEmptyWhenLastTaskIsStillExecutingAndIsEmptyAfterProcessingFinished", "[queue]", TestQueues)
 {
-template< typename TDevQueue >
-void operator()()
-{
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     Fixture f;
 
     bool CallbackFinished = false;
@@ -98,8 +99,8 @@ void operator()()
             CallbackFinished = true;
         });
 
-    // A synchronous queue will always stay empty because the task has been executed immediately.
-    if(!alpaka::test::queue::IsSyncQueue<typename Fixture::Queue>::value)
+    // A non-blocking queue will always stay empty because the task has been executed immediately.
+    if(!alpaka::test::queue::IsBlockingQueue<typename Fixture::Queue>::value)
     {
         alpaka::wait::wait(f.m_queue);
     }
@@ -107,15 +108,12 @@ void operator()()
     CHECK(alpaka::queue::empty(f.m_queue));
     CHECK(CallbackFinished);
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestQueueDoesNotExecuteTasksInParallel
+TEMPLATE_LIST_TEST_CASE( "queueShouldNotExecuteTasksInParallel", "[queue]", TestQueues)
 {
-template< typename TDevQueue >
-void operator()()
-{
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     Fixture f;
 
     std::atomic<bool> taskIsExecuting(false);
@@ -157,31 +155,5 @@ void operator()()
     firstTaskFinishedFuture.get();
     secondTaskFinishedFuture.get();
 }
-};
 
-using TestQueues = alpaka::test::queue::TestQueues;
-
-TEST_CASE( "queueIsInitiallyEmpty", "[queue]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestTemplateEmpty() );
-}
-
-TEST_CASE( "queueCallbackIsWorking", "[queue]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestTemplateCallback() );
-}
-
-TEST_CASE( "queueWaitShouldWork", "[queue]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestTemplateWait() );
-}
-
-TEST_CASE( "queueShouldNotBeEmptyWhenLastTaskIsStillExecutingAndIsEmptyAfterProcessingFinished", "[queue]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestTemplateExecNotEmpty() );
-}
-
-TEST_CASE( "queueShouldNotExecuteTasksInParallel", "[queue]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestQueueDoesNotExecuteTasksInParallel() );
-}
+#endif

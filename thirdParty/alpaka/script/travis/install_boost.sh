@@ -12,16 +12,16 @@
 
 source ./script/travis/set.sh
 
-: ${BOOST_ROOT?"BOOST_ROOT must be specified"}
-: ${ALPAKA_CI_BOOST_LIB_DIR?"ALPAKA_CI_BOOST_LIB_DIR must be specified"}
+: "${BOOST_ROOT?'BOOST_ROOT must be specified'}"
+: "${ALPAKA_CI_BOOST_LIB_DIR?'ALPAKA_CI_BOOST_LIB_DIR must be specified'}"
 if [ "$TRAVIS_OS_NAME" = "linux" ]
 then
-    : ${ALPAKA_CI_STDLIB?"ALPAKA_CI_STDLIB must be specified"}
+    : "${ALPAKA_CI_STDLIB?'ALPAKA_CI_STDLIB must be specified'}"
 fi
-: ${CMAKE_BUILD_TYPE?"CMAKE_BUILD_TYPE must be specified"}
-: ${CXX?"CXX must be specified"}
-: ${CC?"CC must be specified"}
-: ${ALPAKA_CI_INSTALL_FIBERS?"ALPAKA_CI_INSTALL_FIBERS must be specified"}
+: "${CMAKE_BUILD_TYPE?'CMAKE_BUILD_TYPE must be specified'}"
+: "${CXX?'CXX must be specified'}"
+: "${CC?'CC must be specified'}"
+: "${ALPAKA_CI_INSTALL_FIBERS?'ALPAKA_CI_INSTALL_FIBERS must be specified'}"
 
 git clone -b "${ALPAKA_CI_BOOST_BRANCH}" --quiet --recursive --single-branch --depth 1 https://github.com/boostorg/boost.git "${BOOST_ROOT}"
 

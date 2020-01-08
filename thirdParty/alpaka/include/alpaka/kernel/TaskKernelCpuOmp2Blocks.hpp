@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
@@ -62,10 +61,10 @@ namespace alpaka
             ALPAKA_FN_HOST TaskKernelCpuOmp2Blocks(
                 TWorkDiv && workDiv,
                 TKernelFnObj const & kernelFnObj,
-                TArgs const & ... args) :
+                TArgs && ... args) :
                     workdiv::WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv)),
                     m_kernelFnObj(kernelFnObj),
-                    m_args(args...)
+                    m_args(std::forward<TArgs>(args)...)
             {
 
                 static_assert(
@@ -100,7 +99,7 @@ namespace alpaka
                 // Get the size of the block shared dynamic memory.
                 auto const blockSharedMemDynSizeBytes(
                     meta::apply(
-                        [&](TArgs const & ... args)
+                        [&](typename std::decay<TArgs>::type const & ... args)
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
@@ -120,7 +119,7 @@ namespace alpaka
                 // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
                 auto const boundKernelFnObj(
                     meta::apply(
-                        [this](TArgs const & ... args)
+                        [this](typename std::decay<TArgs>::type const & ... args)
                         {
                             return
                                 std::bind(
@@ -201,14 +200,14 @@ namespace alpaka
                 for(TIdx i = 0; i < numBlocksInGrid; ++i)
 #endif
                 {
-                    acc.m_gridBlockIdx =
-                        idx::mapIdx<TDim::value>(
 #if _OPENMP < 200805
-                            vec::Vec<dim::DimInt<1u>, TIdx>(static_cast<TIdx>(i)),
+                    auto const i_tidx  = static_cast<TIdx>(i); // for issue #840
+                    auto const index   = vec::Vec<dim::DimInt<1u>, TIdx>( i_tidx ); // for issue #840
 #else
-                            vec::Vec<dim::DimInt<1u>, TIdx>(i),
+                    auto const index   = vec::Vec<dim::DimInt<1u>, TIdx>( i ); // for issue #840
 #endif
-                            gridBlockExtent);
+                    acc.m_gridBlockIdx = idx::mapIdx<TDim::value>(index,
+                                                                  gridBlockExtent);
 
                     boundKernelFnObj(
                         acc);
@@ -219,7 +218,7 @@ namespace alpaka
             }
 
             TKernelFnObj m_kernelFnObj;
-            std::tuple<TArgs...> m_args;
+            std::tuple<typename std::decay<TArgs>::type...> m_args;
         };
     }
 

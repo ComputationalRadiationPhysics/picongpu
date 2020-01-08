@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/mem/view/Traits.hpp>
@@ -146,8 +145,7 @@ namespace alpaka
             struct GetDev<
                 mem::view::ViewPlainPtr<TDev, TElem, TDim, TIdx>>
             {
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto getDev(
+                static auto getDev(
                     mem::view::ViewPlainPtr<TDev, TElem, TDim, TIdx> const & view)
                     -> TDev
                 {
@@ -210,7 +208,8 @@ namespace alpaka
                 typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto getExtent(
+                ALPAKA_FN_HOST_ACC
+                static auto getExtent(
                     mem::view::ViewPlainPtr<TDev, TElem, TDim, TIdx> const & extent)
                 -> TIdx
                 {
@@ -235,15 +234,13 @@ namespace alpaka
                 struct GetPtrNative<
                     mem::view::ViewPlainPtr<TDev, TElem, TDim, TIdx>>
                 {
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto getPtrNative(
+                    static auto getPtrNative(
                         mem::view::ViewPlainPtr<TDev, TElem, TDim, TIdx> const & view)
                     -> TElem const *
                     {
                         return view.m_pMem;
                     }
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto getPtrNative(
+                    static auto getPtrNative(
                         mem::view::ViewPlainPtr<TDev, TElem, TDim, TIdx> & view)
                     -> TElem *
                     {
@@ -282,7 +279,7 @@ namespace alpaka
                     template<
                         typename TElem,
                         typename TExtent>
-                    ALPAKA_FN_HOST_ACC static auto createStaticDevMemView(
+                    static auto createStaticDevMemView(
                         TElem * pMem,
                         dev::DevCpu const & dev,
                         TExtent const & extent)
@@ -310,11 +307,10 @@ namespace alpaka
                     dev::DevCudaRt>
                 {
                     //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
                     template<
                         typename TElem,
                         typename TExtent>
-                    ALPAKA_FN_HOST_ACC static auto createStaticDevMemView(
+                    static auto createStaticDevMemView(
                         TElem * pMem,
                         dev::DevCudaRt const & dev,
                         TExtent const & extent)
@@ -351,7 +347,7 @@ namespace alpaka
                     template<
                         typename TElem,
                         typename TExtent>
-                    ALPAKA_FN_HOST_ACC static auto createStaticDevMemView(
+                    static auto createStaticDevMemView(
                         TElem * pMem,
                         dev::DevHipRt const & dev,
                         TExtent const & extent)
@@ -366,10 +362,12 @@ namespace alpaka
                                 reinterpret_cast<void **>(&pMemAcc),
                                 *pMem)));
 #else
-                        // FIXME: it does not work, although with unified memory it
-                        // should work (hipGetSymbolAddress is not
-                        // implemented in HIP)
-                        pMemAcc = pMem;
+                        // FIXME: still does not work in HIP(HCC) (results in hipErrorNotFound)
+                        // HIP_SYMBOL(X) not useful because it only does #X on HIP(HCC), while &X on HIP(NVCC)
+                        ALPAKA_HIP_RT_CHECK(
+                            hipGetSymbolAddress(
+                                reinterpret_cast<void **>(&pMemAcc),
+                                pMem));
 #endif
 
                         return
@@ -406,7 +404,8 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto getOffset(
+                ALPAKA_FN_HOST_ACC
+                static auto getOffset(
                     mem::view::ViewPlainPtr<TDev, TElem, TDim, TIdx> const &)
                 -> TIdx
                 {

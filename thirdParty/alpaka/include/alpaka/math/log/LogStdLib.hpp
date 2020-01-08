@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/log/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library log.
-        class LogStdLib
+        class LogStdLib : public concepts::Implements<ConceptMathLog, LogStdLib>
         {
-        public:
-            using LogBase = LogStdLib;
         };
 
         namespace traits

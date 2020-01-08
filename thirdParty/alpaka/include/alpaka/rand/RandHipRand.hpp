@@ -7,12 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
@@ -24,7 +23,12 @@
 
 #include <alpaka/core/Hip.hpp>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wduplicate-decl-specifier"
+
 #include <hiprand_kernel.h>
+
+#pragma clang diagnostic pop
 
 #include <type_traits>
 
@@ -34,10 +38,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The HIP rand implementation.
-        class RandHipRand
+        class RandHipRand : public concepts::Implements<ConceptRand, RandHipRand>
         {
-        public:
-            using RandBase = RandHipRand;
         };
 
         namespace generator
@@ -51,12 +53,12 @@ namespace alpaka
                 public:
 
                     //-----------------------------------------------------------------------------
-                    //! Constructor.
-                    //
                     // After calling this constructor the instance is not valid initialized and
                     // need to be overwritten with a valid object
                     //-----------------------------------------------------------------------------
-                    Xor() = default;
+                    ALPAKA_FN_HOST_ACC Xor() : m_State(hiprandStateXORWOW_t{})
+                    {
+                    }
 
                     //-----------------------------------------------------------------------------
                     //! Constructor.

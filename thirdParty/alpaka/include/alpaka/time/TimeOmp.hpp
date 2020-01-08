@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef _OPENMP
@@ -25,11 +24,9 @@ namespace alpaka
     {
         //#############################################################################
         //! The OpenMP accelerator time implementation.
-        class TimeOmp
+        class TimeOmp : public concepts::Implements<ConceptTime, TimeOmp>
         {
         public:
-            using TimeBase = TimeOmp;
-
             //-----------------------------------------------------------------------------
             TimeOmp() = default;
             //-----------------------------------------------------------------------------

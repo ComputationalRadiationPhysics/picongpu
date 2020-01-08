@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/core/Common.hpp>
@@ -109,8 +108,7 @@ namespace alpaka
                     && (std::extent<TFixedSizeArray, TIdxIntegralConst::value>::value > 0u)>::type>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static constexpr auto getExtent(
+                static constexpr auto getExtent(
                     TFixedSizeArray const & //extent
                 )
                 -> idx::Idx<TFixedSizeArray>
@@ -140,16 +138,14 @@ namespace alpaka
                     using TElem = typename std::remove_all_extent<TFixedSizeArray>::type;
 
                     //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto getPtrNative(
+                    static auto getPtrNative(
                         TFixedSizeArray const & view)
                     -> TElem const *
                     {
                         return view;
                     }
                     //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto getPtrNative(
+                    static auto getPtrNative(
                         TFixedSizeArray & view)
                     -> TElem *
                     {
@@ -171,8 +167,7 @@ namespace alpaka
                     using TElem = typename std::remove_all_extent<TFixedSizeArray>::type;
 
                     //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static constexpr auto getPitchBytes(
+                    static constexpr auto getPitchBytes(
                         TFixedSizeArray const &)
                     -> idx::Idx<TFixedSizeArray>
                     {
@@ -197,8 +192,7 @@ namespace alpaka
                 typename std::enable_if<std::is_array<TFixedSizeArray>::value>::type>
             {
                 //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto getOffset(
+                static auto getOffset(
                     TFixedSizeArray const &)
                 -> idx::Idx<TFixedSizeArray>
                 {

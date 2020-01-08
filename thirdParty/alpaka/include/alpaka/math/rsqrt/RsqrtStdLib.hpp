@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/rsqrt/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library rsqrt.
-        class RsqrtStdLib
+        class RsqrtStdLib : public concepts::Implements<ConceptMathRsqrt, RsqrtStdLib>
         {
-        public:
-            using RsqrtBase = RsqrtStdLib;
         };
 
         namespace traits

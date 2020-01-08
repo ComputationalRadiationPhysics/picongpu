@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <boost/predef.h>
@@ -22,7 +21,7 @@
 //---------------------------------------HIP-----------------------------------
 // __HIPCC__ is defined by hipcc (if either __HCC__ or __CUDACC__ is defined)
 #if !defined(BOOST_LANG_HIP)
-  #if defined(__HIPCC__) && ( defined(__CUDACC__) || defined(__HCC__) )
+  #if defined(__HIPCC__) && ( defined(__CUDACC__) || defined(__HCC__) || defined(__HIP__))
     #include <hip/hip_runtime.h>
     //HIP defines "abort()" as "{asm("trap;");}", which breaks some kernels
     #undef abort
@@ -57,6 +56,16 @@
         #define BOOST_COMP_HCC BOOST_VERSION_NUMBER_AVAILABLE
     #else
         #define BOOST_COMP_HCC BOOST_VERSION_NUMBER_NOT_AVAILABLE
+    #endif
+#endif
+
+//-----------------------------------------------------------------------------
+// hip compiler detection
+#if !defined(BOOST_COMP_HIP)
+    #if defined(__HIP__)
+        #define BOOST_COMP_HIP BOOST_VERSION_NUMBER_AVAILABLE
+    #else
+        #define BOOST_COMP_HIP BOOST_VERSION_NUMBER_NOT_AVAILABLE
     #endif
 #endif
 
@@ -126,4 +135,13 @@
         #endif
         #define BOOST_COMP_INTEL BOOST_COMP_INTEL_DETECTION
     #endif
+#endif
+
+//-----------------------------------------------------------------------------
+// clang CUDA compiler detection
+// Currently __CUDA__ is only defined by clang when compiling CUDA code.
+#if defined(__clang__) && defined(__CUDA__)
+    #define BOOST_COMP_CLANG_CUDA BOOST_COMP_CLANG
+#else
+    #define BOOST_COMP_CLANG_CUDA BOOST_VERSION_NUMBER_NOT_AVAILABLE
 #endif

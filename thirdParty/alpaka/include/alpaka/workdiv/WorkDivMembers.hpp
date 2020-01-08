@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/workdiv/Traits.hpp>
@@ -27,11 +26,9 @@ namespace alpaka
         template<
             typename TDim,
             typename TIdx>
-        class WorkDivMembers
+        class WorkDivMembers : public concepts::Implements<ConceptWorkDiv, WorkDivMembers<TDim, TIdx>>
         {
         public:
-            using WorkDivBase = WorkDivMembers;
-
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST_ACC WorkDivMembers() = delete;
             //-----------------------------------------------------------------------------

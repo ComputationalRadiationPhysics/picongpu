@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/alpaka.hpp>
@@ -38,9 +37,9 @@ namespace alpaka
                     alpaka::dev::DevCpu>
                 {
 #if (ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-                    using type = alpaka::queue::QueueCpuSync;
+                    using type = alpaka::queue::QueueCpuBlocking;
 #else
-                    using type = alpaka::queue::QueueCpuAsync;
+                    using type = alpaka::queue::QueueCpuNonBlocking;
 #endif
                 };
 
@@ -56,9 +55,9 @@ namespace alpaka
                     alpaka::dev::DevCudaRt>
                 {
 #if (ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-                    using type = alpaka::queue::QueueCudaRtSync;
+                    using type = alpaka::queue::QueueCudaRtBlocking;
 #else
-                    using type = alpaka::queue::QueueCudaRtAsync;
+                    using type = alpaka::queue::QueueCudaRtNonBlocking;
 #endif
                 };
 #endif
@@ -75,9 +74,9 @@ namespace alpaka
                     alpaka::dev::DevHipRt>
                 {
 #if (ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-                    using type = alpaka::queue::QueueHipRtSync;
+                    using type = alpaka::queue::QueueHipRtBlocking;
 #else
-                    using type = alpaka::queue::QueueHipRtAsync;
+                    using type = alpaka::queue::QueueHipRtNonBlocking;
 #endif
                 };
 #endif
@@ -92,26 +91,26 @@ namespace alpaka
             namespace traits
             {
                 //#############################################################################
-                //! The sync queue trait.
+                //! The blocking queue trait.
                 template<
                     typename TQueue,
                     typename TSfinae = void>
-                struct IsSyncQueue;
+                struct IsBlockingQueue;
 
                 //#############################################################################
-                //! The sync queue trait specialization for a sync CPU queue.
+                //! The blocking queue trait specialization for a blocking CPU queue.
                 template<>
-                struct IsSyncQueue<
-                    alpaka::queue::QueueCpuSync>
+                struct IsBlockingQueue<
+                    alpaka::queue::QueueCpuBlocking>
                 {
                     static constexpr bool value = true;
                 };
 
                 //#############################################################################
-                //! The sync queue trait specialization for a async CPU queue.
+                //! The blocking queue trait specialization for a non-blocking CPU queue.
                 template<>
-                struct IsSyncQueue<
-                    alpaka::queue::QueueCpuAsync>
+                struct IsBlockingQueue<
+                    alpaka::queue::QueueCpuNonBlocking>
                 {
                     static constexpr bool value = false;
                 };
@@ -122,19 +121,19 @@ namespace alpaka
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
 #endif
                 //#############################################################################
-                //! The sync queue trait specialization for a sync CUDA RT queue.
+                //! The blocking queue trait specialization for a blocking CUDA RT queue.
                 template<>
-                struct IsSyncQueue<
-                    alpaka::queue::QueueCudaRtSync>
+                struct IsBlockingQueue<
+                    alpaka::queue::QueueCudaRtBlocking>
                 {
                     static constexpr bool value = true;
                 };
 
                 //#############################################################################
-                //! The sync queue trait specialization for a async CUDA RT queue.
+                //! The blocking queue trait specialization for a non-blocking CUDA RT queue.
                 template<>
-                struct IsSyncQueue<
-                    alpaka::queue::QueueCudaRtAsync>
+                struct IsBlockingQueue<
+                    alpaka::queue::QueueCudaRtNonBlocking>
                 {
                     static constexpr bool value = false;
                 };
@@ -146,19 +145,19 @@ namespace alpaka
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #endif
                 //#############################################################################
-                //! The sync queue trait specialization for a sync HIP RT queue.
+                //! The blocking queue trait specialization for a blocking HIP RT queue.
                 template<>
-                struct IsSyncQueue<
-                    alpaka::queue::QueueHipRtSync>
+                struct IsBlockingQueue<
+                    alpaka::queue::QueueHipRtBlocking>
                 {
                     static constexpr bool value = true;
                 };
 
                 //#############################################################################
-                //! The sync queue trait specialization for a async HIP RT queue.
+                //! The blocking queue trait specialization for a non-blocking HIP RT queue.
                 template<>
-                struct IsSyncQueue<
-                    alpaka::queue::QueueHipRtAsync>
+                struct IsBlockingQueue<
+                    alpaka::queue::QueueHipRtNonBlocking>
                 {
                     static constexpr bool value = false;
                 };
@@ -168,23 +167,23 @@ namespace alpaka
             //! The queue type that should be used for the given accelerator.
             template<
                 typename TQueue>
-            using IsSyncQueue = traits::IsSyncQueue<TQueue>;
+            using IsBlockingQueue = traits::IsBlockingQueue<TQueue>;
 
             //#############################################################################
             //! A std::tuple holding tuples of devices and corresponding queue types.
             using TestQueues =
                 std::tuple<
-                    std::tuple<alpaka::dev::DevCpu, alpaka::queue::QueueCpuSync>,
-                    std::tuple<alpaka::dev::DevCpu, alpaka::queue::QueueCpuAsync>
+                    std::tuple<alpaka::dev::DevCpu, alpaka::queue::QueueCpuBlocking>,
+                    std::tuple<alpaka::dev::DevCpu, alpaka::queue::QueueCpuNonBlocking>
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                     ,
-                    std::tuple<alpaka::dev::DevCudaRt, alpaka::queue::QueueCudaRtSync>,
-                    std::tuple<alpaka::dev::DevCudaRt, alpaka::queue::QueueCudaRtAsync>
+                    std::tuple<alpaka::dev::DevCudaRt, alpaka::queue::QueueCudaRtBlocking>,
+                    std::tuple<alpaka::dev::DevCudaRt, alpaka::queue::QueueCudaRtNonBlocking>
 #endif
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
                     ,
-                    std::tuple<alpaka::dev::DevHipRt, alpaka::queue::QueueHipRtSync>,
-                    std::tuple<alpaka::dev::DevHipRt, alpaka::queue::QueueHipRtAsync>
+                    std::tuple<alpaka::dev::DevHipRt, alpaka::queue::QueueHipRtBlocking>,
+                    std::tuple<alpaka::dev::DevHipRt, alpaka::queue::QueueHipRtNonBlocking>
 #endif
                 >;
         }

@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/mem/view/Traits.hpp>
@@ -241,8 +240,8 @@ namespace alpaka
                         buf);
             }
             //-----------------------------------------------------------------------------
-            //! Prepares the buffer for async copy operations, e.g. pinning if
-            //! async copy between a cpu and a cuda device is wanted
+            //! Prepares the buffer for non-blocking copy operations, e.g. pinning if
+            //! non-blocking copy between a cpu and a cuda device is wanted
             //!
             //! \tparam TBuf The buffer type.
             //! \param buf The buffer to prepare in the device memory.

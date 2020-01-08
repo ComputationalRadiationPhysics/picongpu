@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/tan/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library tan.
-        class TanStdLib
+        class TanStdLib : public concepts::Implements<ConceptMathTan, TanStdLib>
         {
-        public:
-            using TanBase = TanStdLib;
         };
 
         namespace traits

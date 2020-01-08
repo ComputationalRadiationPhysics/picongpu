@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/alpaka.hpp>
@@ -131,11 +130,11 @@ namespace alpaka
                         ALPAKA_FN_HOST_ACC auto operator*() const
                         -> Elem &
                         {
-                            using Dim1 = dim::DimInt<1>;
-                            using DimMin1 = dim::DimInt<Dim::value - 1u>;
+                            using Dim1 = alpaka::dim::DimInt<1>;
+                            using DimMin1 = alpaka::dim::DimInt<Dim::value - 1u>;
 
                             vec::Vec<Dim1, Idx> const currentIdxDim1{m_currentIdx};
-                            vec::Vec<Dim, Idx> const currentIdxDimx(idx::mapIdx<Dim::value>(currentIdxDim1, m_extents));
+                            vec::Vec<Dim, Idx> const currentIdxDimx(alpaka::idx::mapIdx<Dim::value>(currentIdxDim1, m_extents));
 
                             // [pz, py, px] -> [py, px]
                             auto const pitchWithoutOutermost(vec::subVecEnd<DimMin1>(m_pitchBytes));

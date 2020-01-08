@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/pow/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library pow.
-        class PowStdLib
+        class PowStdLib : public concepts::Implements<ConceptMathPow, PowStdLib>
         {
-        public:
-            using PowBase = PowStdLib;
         };
 
         namespace traits

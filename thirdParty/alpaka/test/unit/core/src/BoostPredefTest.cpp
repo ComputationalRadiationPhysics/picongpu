@@ -7,8 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
-#include <alpaka/alpaka.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -34,6 +33,9 @@ TEST_CASE("printDefines", "[core]")
 #endif
 #if BOOST_COMP_HCC
     std::cout << "BOOST_COMP_HCC:" << BOOST_COMP_HCC << std::endl;
+#endif
+#if BOOST_COMP_HIP
+    std::cout << "BOOST_COMP_HIP:" << BOOST_COMP_HIP << std::endl;
 #endif
 #if BOOST_COMP_CLANG
     std::cout << "BOOST_COMP_CLANG:" << BOOST_COMP_CLANG << std::endl;

@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/sqrt/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library sqrt.
-        class SqrtCudaBuiltIn
+        //! The CUDA sqrt.
+        class SqrtCudaBuiltIn : public concepts::Implements<ConceptMathSqrt, SqrtCudaBuiltIn>
         {
-        public:
-            using SqrtBase = SqrtCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library sqrt trait specialization.
+            //! The CUDA sqrt trait specialization.
             template<
                 typename TArg>
             struct Sqrt<
@@ -58,6 +56,22 @@ namespace alpaka
                     return ::sqrt(arg);
                 }
             };
+            //! The CUDA sqrt float specialization.
+            template<>
+            struct Sqrt<
+                SqrtCudaBuiltIn,
+                float>
+            {
+                __device__ static auto sqrt(
+                    SqrtCudaBuiltIn const & sqrt_ctx,
+                    float const & arg)
+                -> float
+                {
+                    alpaka::ignore_unused(sqrt_ctx);
+                    return ::sqrtf(arg);
+                }
+            };
+
         }
     }
 }

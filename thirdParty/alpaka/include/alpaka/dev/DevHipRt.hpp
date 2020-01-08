@@ -7,12 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
@@ -22,6 +21,9 @@
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
 #include <alpaka/wait/Traits.hpp>
+
+#include <alpaka/queue/Traits.hpp>
+#include <alpaka/queue/Properties.hpp>
 
 #include <alpaka/core/Hip.hpp>
 
@@ -39,11 +41,17 @@ namespace alpaka
         class PltfHipRt;
     }
 
+    namespace queue
+    {
+        class QueueHipRtBlocking;
+        class QueueHipRtNonBlocking;
+    }
+
     namespace dev
     {
         //#############################################################################
         //! The HIP RT device handle.
-        class DevHipRt
+        class DevHipRt : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, DevHipRt>
         {
             friend struct pltf::traits::GetDevByIdx<pltf::PltfHipRt>;
 
@@ -252,6 +260,29 @@ namespace alpaka
                         dev.m_iDevice));
                     ALPAKA_HIP_RT_CHECK(hipDeviceSynchronize());
                 }
+            };
+        }
+    }
+    namespace queue
+    {
+        namespace traits
+        {
+            template<>
+            struct QueueType<
+                dev::DevHipRt,
+                queue::Blocking
+            >
+            {
+                using type = queue::QueueHipRtBlocking;
+            };
+
+            template<>
+            struct QueueType<
+                dev::DevHipRt,
+                queue::NonBlocking
+            >
+            {
+                using type = queue::QueueHipRtNonBlocking;
             };
         }
     }

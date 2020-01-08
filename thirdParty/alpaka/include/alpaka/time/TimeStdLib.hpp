@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/time/Traits.hpp>
@@ -15,7 +14,6 @@
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
 
-//#include <ctime>
 #include <chrono>
 
 namespace alpaka
@@ -24,11 +22,9 @@ namespace alpaka
     {
         //#############################################################################
         //! The CPU fibers accelerator time implementation.
-        class TimeStdLib
+        class TimeStdLib : public concepts::Implements<ConceptTime, TimeStdLib>
         {
         public:
-            using TimeBase = TimeStdLib;
-
             //-----------------------------------------------------------------------------
             TimeStdLib() = default;
             //-----------------------------------------------------------------------------

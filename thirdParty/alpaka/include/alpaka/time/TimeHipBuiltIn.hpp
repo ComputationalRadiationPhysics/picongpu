@@ -7,18 +7,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
-#include <alpaka/core/Common.hpp>       // ALPAKA_FN_*, __HIPCC__
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
 #endif
 
-#include <alpaka/time/Traits.hpp>       // time::Clock
+#include <alpaka/time/Traits.hpp>
 
 namespace alpaka
 {
@@ -26,11 +25,9 @@ namespace alpaka
     {
         //#############################################################################
         //! The GPU HIP accelerator time implementation.
-        class TimeHipBuiltIn
+        class TimeHipBuiltIn : public concepts::Implements<ConceptTime, TimeHipBuiltIn>
         {
         public:
-            using TimeBase = TimeHipBuiltIn;
-
             //-----------------------------------------------------------------------------
             //! Default constructor.
             ALPAKA_FN_HOST_ACC TimeHipBuiltIn() = default;

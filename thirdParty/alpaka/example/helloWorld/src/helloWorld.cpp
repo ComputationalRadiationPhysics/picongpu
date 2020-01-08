@@ -15,7 +15,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 #include <alpaka/alpaka.hpp>
 
 #include <iostream>
@@ -70,9 +69,10 @@ struct HelloWorldKernel
 auto main()
 -> int
 {
-// This example is hard-coded to use the sequential backend.
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
-
+// Fallback for the CI with disabled sequential backend
+#if defined(ALPAKA_CI) && !defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+    return EXIT_SUCCESS;
+#else
     // Define the index domain
     //
     // Depending on your type of problem, you have to define
@@ -101,13 +101,13 @@ auto main()
     // automatically.
 
     // By exchanging the Acc and Queue types you can select where to execute the kernel.
-#if 1
     using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
-    using Queue = alpaka::queue::QueueCpuSync;
-#else
-    using Acc = alpaka::acc::AccGpuCudaRt<Dim, Idx>;
-    using Queue = alpaka::queue::QueueCudaRtSync;
-#endif
+
+    // Defines the synchronization behavior of a queue
+    //
+    // choose between Blocking and NonBlocking
+    using QueueProperty = alpaka::queue::Blocking;
+    using Queue = alpaka::queue::Queue<Acc, QueueProperty>;
     using Dev = alpaka::dev::Dev<Acc>;
     using Pltf = alpaka::pltf::Pltf<Dev>;
 
@@ -128,10 +128,10 @@ auto main()
     // of a particular device. Queues are filled with
     // tasks and alpaka takes care that these
     // tasks will be executed. Queues are provided in
-    // async and sync variants.
-    // The example queue is a sync queue to a cpu device,
-    // but it also exists an async queue for this
-    // device (QueueCpuAsync).
+    // non-blocking and blocking variants.
+    // The example queue is a blocking queue to a cpu device,
+    // but it also exists an non-blocking queue for this
+    // device (QueueCpuNonBlocking).
     Queue queue(devAcc);
 
     // Define the work division
@@ -190,7 +190,7 @@ auto main()
     // work division as well as the additional kernel function
     // parameters.
     // The kernel execution task is enqueued into an accelerator queue.
-    // The queue can be synchronously or asynchronously
+    // The queue can be blocking or non-blocking
     // depending on the choosen queue type (see type definitions above).
     // Here it is synchronous which means that the kernel is directly executed.
     alpaka::kernel::exec<Acc>(
@@ -198,10 +198,8 @@ auto main()
         workDiv,
         helloWorldKernel
         /* put kernel arguments here */);
+    alpaka::wait::wait(queue);
 
-    return EXIT_SUCCESS;
-
-#else
     return EXIT_SUCCESS;
 #endif
 }

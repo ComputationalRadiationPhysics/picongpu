@@ -7,12 +7,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -22,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathFmod;
+
         namespace traits
         {
             //#############################################################################
@@ -55,7 +55,7 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Fmod<
-                T,
+                concepts::ImplementationBase<ConceptMathFmod, T>,
                 Tx,
                 Ty>
             ::fmod(
@@ -64,53 +64,16 @@ namespace alpaka
                 y))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathFmod, T>;
             return
                 traits::Fmod<
-                    T,
+                    ImplementationBase,
                     Tx,
                     Ty>
                 ::fmod(
                     fmod_ctx,
                     x,
                     y);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Fmod specialization for classes with FmodBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Fmod<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::FmodBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto fmod(
-                    T const & fmod_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::fmod(
-                        static_cast<typename T::FmodBase const &>(fmod_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::fmod(
-                            static_cast<typename T::FmodBase const &>(fmod_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

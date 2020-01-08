@@ -29,38 +29,38 @@ source ./script/travis/set.sh
 # @endcode
 function env2cmake()
 {
-    if [ ! -z ${1+x} ] ; then
+    if [ ! -z "${1+x}" ] ; then
         echo -n "-D$1=${!1}"
     fi
 }
 
 #-------------------------------------------------------------------------------
 # Build and execute all tests.
-if [ ! -z ${CMAKE_CXX_FLAGS+x} ]
+if [ ! -z "${CMAKE_CXX_FLAGS+x}" ]
 then
     echo "CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"
 fi
-if [ ! -z ${CMAKE_EXE_LINKER_FLAGS+x} ]
+if [ ! -z "${CMAKE_EXE_LINKER_FLAGS+x}" ]
 then
     echo "CMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}"
 fi
-if [ ! -z ${KMP_DEVICE_THREAD_LIMIT+x} ]
+if [ ! -z "${KMP_DEVICE_THREAD_LIMIT+x}" ]
 then
     echo "KMP_DEVICE_THREAD_LIMIT=${KMP_DEVICE_THREAD_LIMIT}"
 fi
-if [ ! -z ${KMP_ALL_THREADS+x} ]
+if [ ! -z "${KMP_ALL_THREADS+x}" ]
 then
     echo "KMP_ALL_THREADS=${KMP_ALL_THREADS}"
 fi
-if [ ! -z ${KMP_TEAMS_THREAD_LIMIT+x} ]
+if [ ! -z "${KMP_TEAMS_THREAD_LIMIT+x}" ]
 then
     echo "KMP_TEAMS_THREAD_LIMIT=${KMP_TEAMS_THREAD_LIMIT}"
 fi
-if [ ! -z ${OMP_THREAD_LIMIT+x} ]
+if [ ! -z "${OMP_THREAD_LIMIT+x}" ]
 then
     echo "OMP_THREAD_LIMIT=${OMP_THREAD_LIMIT}"
 fi
-if [ ! -z ${OMP_NUM_THREADS+x} ]
+if [ ! -z "${OMP_NUM_THREADS+x}" ]
 then
     echo "OMP_NUM_THREADS=${OMP_NUM_THREADS}"
 fi
@@ -94,7 +94,7 @@ cmake -G "${ALPAKA_CI_CMAKE_GENERATOR}" \
     "$(env2cmake ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE)" "$(env2cmake ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE)" "$(env2cmake ALPAKA_ACC_CPU_BT_OMP4_ENABLE)" \
     "$(env2cmake TBB_ROOT_DIR)" \
     "$(env2cmake ALPAKA_ACC_GPU_CUDA_ENABLE)" "$(env2cmake ALPAKA_CUDA_VERSION)" "$(env2cmake ALPAKA_ACC_GPU_CUDA_ONLY_MODE)" "$(env2cmake ALPAKA_CUDA_ARCH)" "$(env2cmake ALPAKA_CUDA_COMPILER)" \
-    "$(env2cmake ALPAKA_CUDA_NVCC_EXPT_EXTENDED_LAMBDA)" "$(env2cmake ALPAKA_CUDA_NVCC_EXPT_RELAXED_CONSTEXPR)" \
+    "$(env2cmake ALPAKA_CUDA_FAST_MATH)" "$(env2cmake ALPAKA_CUDA_FTZ)" "$(env2cmake ALPAKA_CUDA_SHOW_REGISTER)" "$(env2cmake ALPAKA_CUDA_KEEP_FILES)" "$(env2cmake ALPAKA_CUDA_NVCC_EXPT_EXTENDED_LAMBDA)" "$(env2cmake ALPAKA_CUDA_NVCC_EXPT_RELAXED_CONSTEXPR)" "$(env2cmake ALPAKA_CUDA_NVCC_SEPARABLE_COMPILATION)" \
     "$(env2cmake ALPAKA_ACC_GPU_HIP_ENABLE)" "$(env2cmake ALPAKA_ACC_GPU_HIP_ONLY_MODE)" "$(env2cmake ALPAKA_HIP_PLATFORM)" \
     "$(env2cmake ALPAKA_DEBUG)" "$(env2cmake ALPAKA_CI)" "$(env2cmake ALPAKA_CI_ANALYSIS)" "$(env2cmake ALPAKA_CXX_STANDARD)" \
     ".."

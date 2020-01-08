@@ -7,8 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
-#include <alpaka/alpaka.hpp>
+#include <alpaka/meta/ApplyTuple.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -74,5 +73,5 @@ TEST_CASE("applyTuple", "[meta]")
     REQUIRE(3 == alpaka::meta::apply(add, std::make_tuple(1, 2)));
 
     // intended compilation error: template argument deduction/substitution fails
-    // REQUIRE(5.0 == alpaka::meta::apply(add_generic, std::make_tuple(2.0f, 3.0f)));
+    // REQUIRE(5.0f == alpaka::meta::apply(add_generic, std::make_tuple(2.0f, 3.0f)));
 }

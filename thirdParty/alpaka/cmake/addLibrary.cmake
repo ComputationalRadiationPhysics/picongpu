@@ -8,7 +8,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.11.4)
 
 #------------------------------------------------------------------------------
 # Calls CUDA_ADD_LIBRARY or ADD_LIBRARY depending on the enabled alpaka

@@ -7,6 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#pragma once
 
 #include <alpaka/alpaka.hpp>
 
@@ -54,7 +55,7 @@ namespace alpaka
                 typename... TArgs>
             auto operator()(
                 TKernelFnObj const & kernelFnObj,
-                TArgs const & ... args)
+                TArgs && ... args)
             -> bool
             {
                 // Allocate the result value
@@ -70,7 +71,7 @@ namespace alpaka
                     m_workDiv,
                     kernelFnObj,
                     alpaka::mem::view::getPtrNative(bufAccResult),
-                    args...);
+                    std::forward<TArgs>(args)...);
 
                 // Copy the result value to the host
                 auto bufHostResult(alpaka::mem::buf::alloc<bool, Idx>(m_devHost, static_cast<Idx>(1u)));

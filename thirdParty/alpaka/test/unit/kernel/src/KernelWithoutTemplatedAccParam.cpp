@@ -7,12 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/kernel/Traits.hpp>
 
-#include <alpaka/alpaka.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
 #include <catch2/catch.hpp>
-
 
 //#############################################################################
 //! It is not possible to use a alpaka kernel function object without a templated operator() when the CUDA accelerator is hard-coded.

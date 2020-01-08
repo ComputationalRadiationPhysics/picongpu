@@ -7,15 +7,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
-#include <alpaka/alpaka.hpp>
+#include <alpaka/meta/Concatenate.hpp>
 
 #include <catch2/catch.hpp>
 
 #include <string>
 #include <tuple>
 #include <type_traits>
-
 
 //-----------------------------------------------------------------------------
 TEST_CASE("concatenate", "[meta]")
