@@ -19,7 +19,7 @@ module purge
 
 module load git/2.14
 module load gcc/6.3
-module load cmake/3.11.0
+module load cmake/3.11.4
 module load boost/gcc/1.64
 module load impi/2017.3
 module load hdf5-mpi/gcc/1.8.18

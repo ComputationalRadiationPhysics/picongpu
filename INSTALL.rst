@@ -51,7 +51,7 @@ gcc
 
 CMake
 """""
-- 3.11.0 or higher
+- 3.11.4 or higher
 - *Debian/Ubuntu:* ``sudo apt-get install cmake file cmake-curses-gui``
 - *Arch Linux:* ``sudo pacman --sync cmake``
 - *Spack:* ``spack install cmake``
