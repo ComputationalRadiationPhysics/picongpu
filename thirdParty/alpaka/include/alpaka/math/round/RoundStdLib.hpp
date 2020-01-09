@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/round/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library round.
-        class RoundStdLib
+        class RoundStdLib : public concepts::Implements<ConceptMathRound, RoundStdLib>
         {
-        public:
-            using RoundBase = RoundStdLib;
         };
 
         namespace traits

@@ -104,6 +104,9 @@
 #define atomicDec(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Dec>(acc, __VA_ARGS__)
 #define atomicExch(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Exch>(acc, __VA_ARGS__)
 #define atomicCAS(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Cas>(acc, __VA_ARGS__)
+#define atomicAnd(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::And>(acc, __VA_ARGS__)
+#define atomicXor(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Xor>(acc, __VA_ARGS__)
+#define atomicOr(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Or>(acc, __VA_ARGS__)
 
 #define uint3 ::cupla::uint3
 

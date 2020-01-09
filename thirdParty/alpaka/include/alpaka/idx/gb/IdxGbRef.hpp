@@ -7,12 +7,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/idx/Traits.hpp>
 #include <alpaka/dim/Traits.hpp>
 
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unused.hpp>
 #include <alpaka/vec/Vec.hpp>
@@ -28,11 +28,9 @@ namespace alpaka
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxGbRef
+            class IdxGbRef : public concepts::Implements<ConceptIdxGb, IdxGbRef<TDim, TIdx>>
             {
             public:
-                using IdxGbBase = IdxGbRef;
-
                 //-----------------------------------------------------------------------------
                 IdxGbRef(
                     vec::Vec<TDim, TIdx> const & gridBlockIdx) :

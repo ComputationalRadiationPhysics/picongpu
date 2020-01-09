@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/wait/Traits.hpp>
@@ -41,6 +40,14 @@ namespace alpaka
                 typename TQueue,
                 typename TSfinae = void>
             struct Empty;
+
+            //#############################################################################
+            //! Queue for an accelerator
+            template<
+                typename TAcc,
+                typename TProperty,
+                typename TSfinae = void>
+            struct QueueType;
         }
 
         //-----------------------------------------------------------------------------
@@ -79,5 +86,16 @@ namespace alpaka
                 ::empty(
                     queue);
         }
+
+        //-----------------------------------------------------------------------------
+        //! Queue based on the environment and a property
+        //
+        // \tparam TEnv Environment type, e.g.  accelerator, device or a platform.
+        //              queue::traits::QueueType must be specialized for TEnv
+        // \tparam TProperty Property to define the behavior of TEnv.
+        template<
+            typename TEnv,
+            typename TProperty>
+        using Queue = typename traits::QueueType<TEnv, TProperty>::type;
     }
 }

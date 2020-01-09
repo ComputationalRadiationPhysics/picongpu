@@ -7,12 +7,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -22,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathFloor;
+
         namespace traits
         {
             //#############################################################################
@@ -50,58 +50,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Floor<
-                T,
+                concepts::ImplementationBase<ConceptMathFloor, T>,
                 TArg>
             ::floor(
                 floor_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathFloor, T>;
             return
                 traits::Floor<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::floor(
                     floor_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Floor specialization for classes with FloorBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Floor<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::FloorBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto floor(
-                    T const & floor_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::floor(
-                        static_cast<typename T::FloorBase const &>(floor_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::floor(
-                            static_cast<typename T::FloorBase const &>(floor_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

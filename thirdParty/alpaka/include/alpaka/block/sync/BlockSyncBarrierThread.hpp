@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
@@ -32,11 +31,9 @@ namespace alpaka
             //! The thread id map barrier block synchronization.
             template<
                 typename TIdx>
-            class BlockSyncBarrierThread
+            class BlockSyncBarrierThread : public concepts::Implements<ConceptBlockSync, BlockSyncBarrierThread<TIdx>>
             {
             public:
-                using BlockSyncBase = BlockSyncBarrierThread;
-
                 using Barrier = core::threads::BarrierThread<TIdx>;
                 using BarrierWithPredicate = core::threads::BarrierThreadWithPredicate<TIdx>;
 

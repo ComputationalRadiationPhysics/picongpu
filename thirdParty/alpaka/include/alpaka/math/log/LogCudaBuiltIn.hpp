@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/log/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library log.
-        class LogCudaBuiltIn
+        // ! The CUDA built in log.
+        class LogCudaBuiltIn : public concepts::Implements<ConceptMathLog, LogCudaBuiltIn>
         {
-        public:
-            using LogBase = LogCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library log trait specialization.
+            //! The CUDA log trait specialization.
             template<
                 typename TArg>
             struct Log<
@@ -58,6 +56,22 @@ namespace alpaka
                     return ::log(arg);
                 }
             };
+            //! The CUDA log float specialization.
+            template<>
+            struct Log<
+                LogCudaBuiltIn,
+                float>
+            {
+                __device__ static auto log(
+                    LogCudaBuiltIn const & log_ctx,
+                    float const & arg)
+                -> float
+                {
+                    alpaka::ignore_unused(log_ctx);
+                    return ::logf(arg);
+                }
+            };
+
         }
     }
 }

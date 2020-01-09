@@ -7,12 +7,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/idx/Accessors.hpp>
+#include <alpaka/idx/MapIdx.hpp>
+
+#include <alpaka/meta/ForEachType.hpp>
+#include <alpaka/test/dim/TestDims.hpp>
 
 #include <catch2/catch.hpp>
-
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
-
 
 //#############################################################################
 //! 1D: (17)
@@ -35,26 +36,18 @@ struct CreateExtentVal
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "mapIdx", "[idx]", alpaka::test::dim::TestDims)
 {
-template< typename TDim >
-void operator()()
-{
+    using Dim = TestType;
     using Idx = std::size_t;
-    using Vec = alpaka::vec::Vec<TDim, Idx>;
+    using Vec = alpaka::vec::Vec<Dim, Idx>;
 
-    auto const extentNd(alpaka::vec::createVecFromIndexedFnWorkaround<TDim, Idx, CreateExtentVal>(Idx()));
+    auto const extentNd(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, CreateExtentVal>(Idx()));
     auto const idxNd(extentNd - Vec::all(4u));
 
     auto const idx1d(alpaka::idx::mapIdx<1u>(idxNd, extentNd));
 
-    auto const idxNdResult(alpaka::idx::mapIdx<TDim::value>(idx1d, extentNd));
+    auto const idxNdResult(alpaka::idx::mapIdx<Dim::value>(idx1d, extentNd));
 
     REQUIRE(idxNd == idxNdResult);
-}
-};
-
-TEST_CASE( "mapIdx", "[idx]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestDims >( TestTemplate() );
 }

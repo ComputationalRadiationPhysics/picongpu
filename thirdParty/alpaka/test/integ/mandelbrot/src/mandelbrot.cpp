@@ -7,10 +7,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #include <alpaka/alpaka.hpp>
+
 #include <alpaka/test/MeasureKernelRunTime.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
 #include <catch2/catch.hpp>
@@ -39,7 +39,8 @@ public:
     {}
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
-    ALPAKA_FN_HOST_ACC auto absSq()
+    ALPAKA_FN_INLINE
+    ALPAKA_FN_HOST_ACC auto absSq() const
     -> T
     {
         return r*r + i*i;
@@ -301,13 +302,15 @@ auto writeTgaColorImage(
     }
 }
 
-struct TestTemplate
+using TestAccs = alpaka::test::acc::EnabledAccs<
+    alpaka::dim::DimInt<2u>,
+    std::uint32_t>;
+
+TEMPLATE_LIST_TEST_CASE( "mandelbrot", "[mandelbrot]", TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
 #ifdef ALPAKA_CI
     Idx const imageSize(1u<<5u);
@@ -323,7 +326,7 @@ void operator()()
     Idx const maxIterations(300u);
 
     using Val = std::uint32_t;
-    using DevAcc = alpaka::dev::Dev<TAcc>;
+    using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
     using QueueAcc = alpaka::test::queue::DefaultQueue<DevAcc>;
     using PltfHost = alpaka::pltf::PltfCpu;
@@ -349,7 +352,7 @@ void operator()()
 
     // Let alpaka calculate good block and grid sizes given our full problem extent.
     alpaka::workdiv::WorkDivMembers<Dim, Idx> const workDiv(
-        alpaka::workdiv::getValidWorkDiv<TAcc>(
+        alpaka::workdiv::getValidWorkDiv<Acc>(
             devAcc,
             extent,
             alpaka::vec::Vec<Dim, Idx>::ones(),
@@ -361,7 +364,7 @@ void operator()()
         << " numRows:" << numRows
         << ", numCols:" << numCols
         << ", maxIterations:" << maxIterations
-        << ", accelerator: " << alpaka::acc::getAccName<TAcc>()
+        << ", accelerator: " << alpaka::acc::getAccName<Acc>()
         << ", kernel: " << typeid(kernel).name()
         << ", workDiv: " << workDiv
         << ")" << std::endl;
@@ -378,7 +381,7 @@ void operator()()
     alpaka::mem::view::copy(queue, bufColorAcc, bufColorHost, extent);
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::kernel::createTaskKernel<TAcc>(
+    auto const taskKernel(alpaka::kernel::createTaskKernel<Acc>(
         workDiv,
         kernel,
         alpaka::mem::view::getPtrNative(bufColorAcc),
@@ -406,20 +409,10 @@ void operator()()
     alpaka::wait::wait(queue);
 
     // Write the image to a file.
-    std::string fileName("mandelbrot"+std::to_string(numCols)+"x"+std::to_string(numRows)+"_"+alpaka::acc::getAccName<TAcc>()+".tga");
+    std::string fileName("mandelbrot"+std::to_string(numCols)+"x"+std::to_string(numRows)+"_"+alpaka::acc::getAccName<Acc>()+".tga");
     std::replace(fileName.begin(), fileName.end(), '<', '_');
     std::replace(fileName.begin(), fileName.end(), '>', '_');
     writeTgaColorImage(
         fileName,
         bufColorHost);
-}
-};
-
-TEST_CASE( "mandelbrot", "[mandelbrot]")
-{
-    using TestAccs = alpaka::test::acc::EnabledAccs<
-        alpaka::dim::DimInt<2u>,
-        std::uint32_t>;
-
-    alpaka::meta::forEachType< TestAccs >( TestTemplate() );
 }

@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/erf/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library erf.
-        class ErfCudaBuiltIn
+        //! The CUDA built in erf.
+        class ErfCudaBuiltIn : public concepts::Implements<ConceptMathErf, ErfCudaBuiltIn>
         {
-        public:
-            using ErfBase = ErfCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library erf trait specialization.
+            //! The CUDA erf trait specialization.
             template<
                 typename TArg>
             struct Erf<
@@ -56,6 +54,21 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(erf_ctx);
                     return ::erf(arg);
+                }
+            };
+
+            template<>
+            struct Erf<
+                ErfCudaBuiltIn,
+                float>
+            {
+                __device__ static auto erf(
+                    ErfCudaBuiltIn const & erf_ctx,
+                    float const & arg)
+                -> float
+                {
+                    alpaka::ignore_unused(erf_ctx);
+                    return ::erff(arg);
                 }
             };
         }

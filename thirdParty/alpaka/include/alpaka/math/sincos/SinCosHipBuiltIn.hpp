@@ -11,8 +11,7 @@
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
@@ -20,18 +19,19 @@
 
 #include <alpaka/math/sincos/Traits.hpp>
 
+#include <alpaka/core/Unused.hpp>
 
-#include <type_traits>
 #if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
     #include <cuda_runtime_api.h>
 #else
-    #if BOOST_COMP_HCC
+    #if BOOST_COMP_HCC || BOOST_COMP_HIP
         #include <math_functions.h>
     #else
         #include <math_functions.hpp>
     #endif
 #endif
 
+#include <type_traits>
 
 namespace alpaka
 {
@@ -39,16 +39,13 @@ namespace alpaka
     {
         //#############################################################################
         //! sincos.
-        class SinCosHipBuiltIn
+        class SinCosHipBuiltIn : public concepts::Implements<ConceptMathSinCos, SinCosHipBuiltIn>
         {
-        public:
-            using SinCosBase = SinCosHipBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-
             //! sincos trait specialization.
             template<>
             struct SinCos<SinCosHipBuiltIn, double>
@@ -65,7 +62,7 @@ namespace alpaka
                 }
             };
 
-            //! sincos trait specialization.
+            //! The sincos float specialization.
             template<>
             struct SinCos<SinCosHipBuiltIn, float>
             {

@@ -7,14 +7,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/block/shared/dyn/Traits.hpp>
 
-#include <catch2/catch.hpp>
-
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
 
+#include <catch2/catch.hpp>
 
 //#############################################################################
 class BlockSharedMemDynTestKernel
@@ -79,15 +78,13 @@ namespace alpaka
 }
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "sameNonNullAdress", "[blockSharedMemDyn]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
     BlockSharedMemDynTestKernel kernel;
@@ -95,10 +92,4 @@ void operator()()
     REQUIRE(
         fixture(
             kernel));
-}
-};
-
-TEST_CASE( "sameNonNullAdress", "[blockSharedMemDyn]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
 }

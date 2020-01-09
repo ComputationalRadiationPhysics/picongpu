@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/abs/Traits.hpp>
@@ -24,10 +23,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library abs.
-        class AbsStdLib
+        class AbsStdLib : public concepts::Implements<ConceptMathAbs, AbsStdLib>
         {
-        public:
-            using AbsBase = AbsStdLib;
         };
 
         namespace traits

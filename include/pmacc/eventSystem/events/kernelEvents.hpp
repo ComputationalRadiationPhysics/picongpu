@@ -207,8 +207,8 @@ namespace exec
             > blockExtent( m_blockExtent );
 
             CUPLA_KERNEL( typename T_Kernel::KernelType )(
-                gridExtent,
-                blockExtent,
+                gridExtent.toDim3(),
+                blockExtent.toDim3(),
                 m_sharedMemByte,
                 taskKernel->getCudaStream()
             )(

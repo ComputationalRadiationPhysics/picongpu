@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/core/Vectorize.hpp>
@@ -30,11 +29,9 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The block shared dynamic memory allocator without synchronization.
-                class BlockSharedMemDynBoostAlignedAlloc
+                class BlockSharedMemDynBoostAlignedAlloc : public concepts::Implements<ConceptBlockSharedDyn, BlockSharedMemDynBoostAlignedAlloc>
                 {
                 public:
-                    using BlockSharedMemDynBase = BlockSharedMemDynBoostAlignedAlloc;
-
                     //-----------------------------------------------------------------------------
                     BlockSharedMemDynBoostAlignedAlloc(
                         std::size_t const & blockSharedMemDynSizeBytes)

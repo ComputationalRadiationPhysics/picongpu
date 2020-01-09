@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/sin/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library sin.
-        class SinStdLib
+        class SinStdLib : public concepts::Implements<ConceptMathSin, SinStdLib>
         {
-        public:
-            using SinBase = SinStdLib;
         };
 
         namespace traits

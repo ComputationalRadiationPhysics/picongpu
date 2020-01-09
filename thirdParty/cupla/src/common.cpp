@@ -30,12 +30,21 @@
 inline namespace CUPLA_ACCELERATOR_NAMESPACE
 {
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
+const char *
+cuplaGetErrorName(cuplaError_t e)
+{
+    return CuplaErrorCode::message_cstr(e);
+}
+
+CUPLA_HEADER_ONLY_FUNC_SPEC
 const char *
 cuplaGetErrorString(cuplaError_t e)
 {
     return CuplaErrorCode::message_cstr(e);
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaGetLastError()
 {
@@ -49,6 +58,7 @@ cuplaGetLastError()
 #endif
 }
 
+CUPLA_HEADER_ONLY_FUNC_SPEC
 cuplaError_t
 cuplaPeekAtLastError()
 {

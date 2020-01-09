@@ -7,22 +7,28 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/event/Traits.hpp>
 
-#include <catch2/catch.hpp>
-
-#include <alpaka/alpaka.hpp>
 #include <alpaka/test/event/EventHostManualTrigger.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 #include <alpaka/test/queue/QueueTestFixture.hpp>
+#include <alpaka/test/queue/QueueCpuOmp2Collective.hpp>
 
+#include <catch2/catch.hpp>
+
+using TestQueues = alpaka::meta::Concatenate<
+        alpaka::test::queue::TestQueues
+ #ifdef ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
+        ,
+        std::tuple<std::tuple<alpaka::dev::DevCpu, alpaka::queue::QueueCpuOmp2Collective>>
+#endif
+    >;
 
 //-----------------------------------------------------------------------------
-struct TestTemplateInitTrue
+TEMPLATE_LIST_TEST_CASE( "eventTestShouldInitiallyBeTrue", "[event]", TestQueues)
 {
-template< typename TDevQueue >
-void operator()()
-{
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     using Queue = typename Fixture::Queue;
 
     Fixture f;
@@ -30,15 +36,12 @@ void operator()()
 
     REQUIRE(alpaka::event::test(event));
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestTemplateInQueueAfterProc
+TEMPLATE_LIST_TEST_CASE( "eventTestShouldBeFalseWhileInQueueAndTrueAfterBeingProcessed", "[event]", TestQueues)
 {
-template< typename TDevQueue >
-void operator()()
-{
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     using Queue = typename Fixture::Queue;
     using Dev = typename Fixture::Dev;
 
@@ -49,14 +52,14 @@ void operator()()
         alpaka::event::Event<Queue> e1(f1.m_dev);
         alpaka::test::event::EventHostManualTrigger<Dev> k1(f1.m_dev);
 
-        if(!alpaka::test::queue::IsSyncQueue<Queue>::value)
+        if(!alpaka::test::queue::IsBlockingQueue<Queue>::value)
         {
             alpaka::queue::enqueue(q1, k1);
         }
 
         alpaka::queue::enqueue(q1, e1);
 
-        if(!alpaka::test::queue::IsSyncQueue<Queue>::value)
+        if(!alpaka::test::queue::IsBlockingQueue<Queue>::value)
         {
             REQUIRE(alpaka::event::test(e1) == false);
 
@@ -72,19 +75,16 @@ void operator()()
         std::cerr << "Can not execute test because CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_MEM_OPS is not supported!" << std::endl;
     }
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestTemplateNobodyWaitsFor
+TEMPLATE_LIST_TEST_CASE( "eventReEnqueueShouldBePossibleIfNobodyWaitsFor", "[event]", TestQueues)
 {
-template< typename TDevQueue >
-void operator()()
-{
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     using Queue = typename Fixture::Queue;
     using Dev = typename Fixture::Dev;
 
-    if(!alpaka::test::queue::IsSyncQueue<Queue>::value)
+    if(!alpaka::test::queue::IsBlockingQueue<Queue>::value)
     {
         Fixture f1;
         if(alpaka::test::event::isEventHostManualTriggerSupported(f1.m_dev))
@@ -134,19 +134,16 @@ void operator()()
         }
     }
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestTemplateSomeoneWaitsFor
+TEMPLATE_LIST_TEST_CASE( "eventReEnqueueShouldBePossibleIfSomeoneWaitsFor", "[event]", TestQueues)
 {
-template< typename TDevQueue >
-void operator()()
-{
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     using Queue = typename Fixture::Queue;
     using Dev = typename Fixture::Dev;
 
-    if(!alpaka::test::queue::IsSyncQueue<Queue>::value)
+    if(!alpaka::test::queue::IsBlockingQueue<Queue>::value)
     {
         Fixture f1;
         Fixture f2;
@@ -212,20 +209,18 @@ void operator()()
         }
     }
 }
-};
+
 
 //-----------------------------------------------------------------------------
 // github issue #388
-struct TestTemplateFinishedShouldBeSkipped
+TEMPLATE_LIST_TEST_CASE( "waitForEventThatAlreadyFinishedShouldBeSkipped", "[event]", TestQueues)
 {
-template< typename TDevQueue >
-void operator()()
-{
-    using Fixture = alpaka::test::queue::QueueTestFixture<TDevQueue>;
+    using DevQueue = TestType;
+    using Fixture = alpaka::test::queue::QueueTestFixture<DevQueue>;
     using Queue = typename Fixture::Queue;
     using Dev = typename Fixture::Dev;
 
-    if(!alpaka::test::queue::IsSyncQueue<Queue>::value)
+    if(!alpaka::test::queue::IsBlockingQueue<Queue>::value)
     {
         Fixture f1;
         Fixture f2;
@@ -283,32 +278,4 @@ void operator()()
             std::cerr << "Can not execute test because CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_MEM_OPS is not supported!" << std::endl;
         }
     }
-}
-};
-
-using TestQueues = alpaka::test::queue::TestQueues;
-
-TEST_CASE( "eventTestShouldInitiallyBeTrue", "[event]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestTemplateInitTrue() );
-}
-
-TEST_CASE( "eventTestShouldBeFalseWhileInQueueAndTrueAfterBeingProcessed", "[event]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestTemplateInQueueAfterProc() );
-}
-
-TEST_CASE( "eventReEnqueueShouldBePossibleIfNobodyWaitsFor", "[event]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestTemplateNobodyWaitsFor() );
-}
-
-TEST_CASE( "eventReEnqueueShouldBePossibleIfSomeoneWaitsFor", "[event]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestTemplateSomeoneWaitsFor() );
-}
-
-TEST_CASE( "waitForEventThatAlreadyFinishedShouldBeSkipped", "[event]")
-{
-    alpaka::meta::forEachType< TestQueues >( TestTemplateFinishedShouldBeSkipped() );
 }

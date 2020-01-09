@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/asin/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library asin.
-        class AsinCudaBuiltIn
+        //! The CUDA built in asin.
+        class AsinCudaBuiltIn : public concepts::Implements<ConceptMathAsin, AsinCudaBuiltIn>
         {
-        public:
-            using AsinBase = AsinCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library asin trait specialization.
+            //! The CUDA asin trait specialization.
             template<
                 typename TArg>
             struct Asin<
@@ -56,6 +54,21 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(asin_ctx);
                     return ::asin(arg);
+                }
+            };
+
+            template<>
+            struct Asin<
+                AsinCudaBuiltIn,
+                float>
+            {
+                __device__ static auto asin(
+                    AsinCudaBuiltIn const & asin_ctx,
+                    float const & arg)
+                -> float
+                {
+                    alpaka::ignore_unused(asin_ctx);
+                    return ::asinf(arg);
                 }
             };
         }

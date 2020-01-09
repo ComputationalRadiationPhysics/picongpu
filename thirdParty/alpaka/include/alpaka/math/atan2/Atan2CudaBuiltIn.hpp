@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/atan2/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library atan2.
-        class Atan2CudaBuiltIn
+        //! The CUDA built in atan2.
+        class Atan2CudaBuiltIn : public concepts::Implements<ConceptMathAtan2, Atan2CudaBuiltIn>
         {
-        public:
-            using Atan2Base = Atan2CudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library atan2 trait specialization.
+            //! The CUDA atan2 trait specialization.
             template<
                 typename Ty,
                 typename Tx>
@@ -60,6 +58,23 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(atan2_ctx);
                     return ::atan2(y, x);
+                }
+            };
+
+            template<>
+            struct Atan2<
+                Atan2CudaBuiltIn,
+                float,
+                float>
+            {
+                __device__ static auto atan2(
+                    Atan2CudaBuiltIn const & atan2_ctx,
+                    float const & y,
+                    float const & x)
+                -> float
+                {
+                    alpaka::ignore_unused(atan2_ctx);
+                    return ::atan2f(y, x);
                 }
             };
         }

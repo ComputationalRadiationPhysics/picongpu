@@ -258,7 +258,7 @@ public:
                     xChunkSize
                 >
             )(
-                gridSize,
+                gridSize.toDim3(),
                 numWorkers,
                 0,
                 this->getCudaStream( )
@@ -343,7 +343,7 @@ public:
                     xChunkSize
                 >
             )(
-                gridSize,
+                gridSize.toDim3(),
                 numWorkers,
                 0,
                 this->getCudaStream()

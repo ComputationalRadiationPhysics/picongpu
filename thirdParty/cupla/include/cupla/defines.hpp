@@ -60,6 +60,11 @@
 #   define ALPAKA_ACC_GPU_HIP_ENABLED 1
 #endif
 
+#ifdef ALPAKA_ACC_CPU_BT_OMP4_ENABLED
+#   undef ALPAKA_ACC_CPU_BT_OMP4_ENABLED
+#   define ALPAKA_ACC_CPU_BT_OMP4_ENABLED 1
+#endif
+
 #define CUPLA_NUM_SELECTED_DEVICES (                                           \
         ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED +                                  \
         ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED +                               \
@@ -67,7 +72,8 @@
         ALPAKA_ACC_GPU_CUDA_ENABLED +                                          \
         ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED +                                   \
         ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED +                                   \
-        ALPAKA_ACC_GPU_HIP_ENABLED                                             \
+        ALPAKA_ACC_GPU_HIP_ENABLED +                                           \
+        ALPAKA_ACC_CPU_BT_OMP4_ENABLED                                         \
 )
 
 
@@ -90,7 +96,8 @@
         ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLED +                                  \
         ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED +                               \
         ALPAKA_ACC_GPU_CUDA_ENABLED +                                          \
-        ALPAKA_ACC_GPU_HIP_ENABLED                                             \
+        ALPAKA_ACC_GPU_HIP_ENABLED +                                           \
+        ALPAKA_ACC_CPU_BT_OMP4_ENABLED                                         \
 )
 
 #if( CUPLA_NUM_SELECTED_THREAD_SEQ_DEVICES > 1 )
@@ -99,4 +106,8 @@
 
 #if( CUPLA_NUM_SELECTED_THREAD_PARALLEL_DEVICES > 1 )
     #error "it is only alowed to select one thread parallelized Alpaka accelerator"
+#endif
+
+#ifndef CUPLA_HEADER_ONLY_FUNC_SPEC
+#   define CUPLA_HEADER_ONLY_FUNC_SPEC
 #endif

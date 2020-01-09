@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/block/sync/Traits.hpp>
@@ -23,11 +22,9 @@ namespace alpaka
         {
             //#############################################################################
             //! The no op block synchronization.
-            class BlockSyncNoOp
+            class BlockSyncNoOp : public concepts::Implements<ConceptBlockSync, BlockSyncNoOp>
             {
             public:
-                using BlockSyncBase = BlockSyncNoOp;
-
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC BlockSyncNoOp() = default;
                 //-----------------------------------------------------------------------------

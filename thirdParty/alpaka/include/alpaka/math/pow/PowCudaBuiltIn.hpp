@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,26 +19,26 @@
 
 #include <alpaka/math/pow/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library pow.
-        class PowCudaBuiltIn
+        //! The CUDA built in pow.
+        class PowCudaBuiltIn : public concepts::Implements<ConceptMathPow, PowCudaBuiltIn>
         {
-        public:
-            using PowBase = PowCudaBuiltIn;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library pow trait specialization.
+            //! The CUDA pow trait specialization.
             template<
                 typename TBase,
                 typename TExp>
@@ -60,6 +58,23 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(pow_ctx);
                     return ::pow(base, exp);
+                }
+            };
+            //! The CUDA pow float specialization.
+            template<>
+            struct Pow<
+                PowCudaBuiltIn,
+                float,
+                float>
+            {
+                __device__ static auto pow(
+                    PowCudaBuiltIn const & pow_ctx,
+                    float const & base,
+                    float const & exp)
+                -> float
+                {
+                    alpaka::ignore_unused(pow_ctx);
+                    return ::powf(base, exp);
                 }
             };
         }

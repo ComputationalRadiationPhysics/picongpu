@@ -56,7 +56,6 @@
 #   undef gridDim
 #   undef blockDim
 #   undef uint3
-#   undef dim3
 
 #endif
 

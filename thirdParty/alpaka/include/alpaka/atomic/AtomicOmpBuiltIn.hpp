@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef _OPENMP
@@ -27,8 +26,6 @@ namespace alpaka
         class AtomicOmpBuiltIn
         {
         public:
-            using AtomicBase = AtomicOmpBuiltIn;
-
             //-----------------------------------------------------------------------------
             AtomicOmpBuiltIn() = default;
             //-----------------------------------------------------------------------------

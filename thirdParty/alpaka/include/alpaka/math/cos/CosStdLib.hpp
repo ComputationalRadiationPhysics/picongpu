@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/cos/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library cos.
-        class CosStdLib
+        class CosStdLib : public concepts::Implements<ConceptMathCos, CosStdLib>
         {
-        public:
-            using CosBase = CosStdLib;
         };
 
         namespace traits

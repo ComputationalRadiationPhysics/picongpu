@@ -7,13 +7,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
@@ -22,8 +20,10 @@
 #include <alpaka/idx/Traits.hpp>
 
 #include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Hip.hpp>
 #include <alpaka/core/Positioning.hpp>
+#include <alpaka/core/Unused.hpp>
 
 namespace alpaka
 {
@@ -36,11 +36,9 @@ namespace alpaka
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxBtHipBuiltIn
+            class IdxBtHipBuiltIn : public concepts::Implements<ConceptIdxBt, IdxBtHipBuiltIn<TDim, TIdx>>
             {
             public:
-                using IdxBtBase = IdxBtHipBuiltIn;
-
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST_ACC IdxBtHipBuiltIn() = default;
                 //-----------------------------------------------------------------------------

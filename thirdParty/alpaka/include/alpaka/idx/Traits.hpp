@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <utility>
@@ -18,6 +17,9 @@ namespace alpaka
     //! The index specifics.
     namespace idx
     {
+        struct ConceptIdxBt;
+        struct ConceptIdxGb;
+
         //-----------------------------------------------------------------------------
         //! The idx traits.
         namespace traits

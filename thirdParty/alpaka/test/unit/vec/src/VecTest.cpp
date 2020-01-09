@@ -7,12 +7,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/vec/Vec.hpp>
 
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/dim/TestDims.hpp>
+#include <alpaka/meta/ForEachType.hpp>
 
 #include <catch2/catch.hpp>
-
 
 //-----------------------------------------------------------------------------
 TEST_CASE("basicVecTraits", "[vec]")
@@ -338,24 +338,16 @@ struct NonAlpakaVec
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "vecNDConstructionFromNonAlpakaVec", "[vec]", alpaka::test::dim::TestDims)
 {
-template< typename TDim >
-void operator()()
-{
+    using Dim = TestType;
     using Idx = std::size_t;
 
-    NonAlpakaVec<TDim, Idx> nonAlpakaVec;
-    auto const alpakaVec(static_cast<alpaka::vec::Vec<TDim, Idx>>(nonAlpakaVec));
+    NonAlpakaVec<Dim, Idx> nonAlpakaVec;
+    auto const alpakaVec(static_cast<alpaka::vec::Vec<Dim, Idx>>(nonAlpakaVec));
 
-    for(Idx d(0); d < TDim::value; ++d)
+    for(Idx d(0); d < Dim::value; ++d)
     {
         REQUIRE(nonAlpakaVec[d] == alpakaVec[d]);
     }
-}
-};
-
-TEST_CASE( "vecNDConstructionFromNonAlpakaVec", "[vec]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestDims >( TestTemplate() );
 }

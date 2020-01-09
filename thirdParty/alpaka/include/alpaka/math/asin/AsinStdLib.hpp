@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/asin/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library asin.
-        class AsinStdLib
+        class AsinStdLib : public concepts::Implements<ConceptMathAsin, AsinStdLib>
         {
-        public:
-            using AsinBase = AsinStdLib;
         };
 
         namespace traits

@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/vec/Traits.hpp>
@@ -35,7 +34,7 @@
 // Some compilers do not support the out of class versions:
 // - the nvcc CUDA compiler (at least 8.0)
 // - the intel compiler
-#if BOOST_COMP_HCC || BOOST_COMP_NVCC || BOOST_COMP_INTEL || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 0, 0))
+#if BOOST_COMP_HCC || BOOST_COMP_HIP || BOOST_COMP_NVCC || BOOST_COMP_INTEL || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 0, 0))
     #define ALPAKA_CREATE_VEC_IN_CLASS
 #endif
 

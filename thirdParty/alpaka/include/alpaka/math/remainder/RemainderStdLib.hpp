@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/remainder/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library remainder.
-        class RemainderStdLib
+        class RemainderStdLib : public concepts::Implements<ConceptMathRemainder, RemainderStdLib>
         {
-        public:
-            using RemainderBase = RemainderStdLib;
         };
 
         namespace traits
@@ -41,8 +38,8 @@ namespace alpaka
                 Tx,
                 Ty,
                 typename std::enable_if<
-                    std::is_integral<Tx>::value
-                    && std::is_integral<Ty>::value>::type>
+                    std::is_floating_point<Tx>::value
+                    && std::is_floating_point<Ty>::value>::type>
             {
                 ALPAKA_FN_HOST static auto remainder(
                     RemainderStdLib const & remainder_ctx,

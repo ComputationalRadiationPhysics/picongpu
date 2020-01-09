@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/max/Traits.hpp>
@@ -24,10 +23,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library max.
-        class MaxStdLib
+        class MaxStdLib : public concepts::Implements<ConceptMathMax, MaxStdLib>
         {
-        public:
-            using MaxBase = MaxStdLib;
         };
 
         namespace traits

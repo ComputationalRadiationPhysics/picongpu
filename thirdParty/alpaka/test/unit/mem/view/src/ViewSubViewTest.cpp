@@ -7,20 +7,19 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <alpaka/mem/view/ViewSubView.hpp>
 
-#include <catch2/catch.hpp>
-
-#include <alpaka/alpaka.hpp>
-#include <alpaka/test/acc/Acc.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 #include <alpaka/test/mem/view/ViewTest.hpp>
 #include <alpaka/test/Extent.hpp>
 
 #include <alpaka/core/BoostPredef.hpp>
 
+#include <catch2/catch.hpp>
+
 #include <type_traits>
 #include <numeric>
-
 
 #if BOOST_COMP_GNUC
     #pragma GCC diagnostic push
@@ -213,46 +212,19 @@ namespace view
 #endif
 
 //-----------------------------------------------------------------------------
-struct TestTemplateNoOffset
+TEMPLATE_LIST_TEST_CASE( "viewSubViewNoOffsetTest", "[memView]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    alpaka::test::mem::view::testViewSubViewNoOffset<TAcc, float>();
+    alpaka::test::mem::view::testViewSubViewNoOffset<TestType, float>();
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestTemplateOffset
+TEMPLATE_LIST_TEST_CASE( "viewSubViewOffsetTest", "[memView]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    alpaka::test::mem::view::testViewSubViewOffset<TAcc, float>();
+    alpaka::test::mem::view::testViewSubViewOffset<TestType, float>();
 }
-};
 
 //-----------------------------------------------------------------------------
-struct TestTemplateConst
+TEMPLATE_LIST_TEST_CASE( "viewSubViewOffsetConstTest", "[memView]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    alpaka::test::mem::view::testViewSubViewOffsetConst<TAcc, float>();
-}
-};
-
-TEST_CASE( "viewSubViewNoOffsetTest", "[memView]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateNoOffset() );
-}
-
-TEST_CASE( "viewSubViewOffsetTest", "[memView]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateOffset() );
-}
-
-TEST_CASE( "viewSubViewOffsetConstTest", "[memView]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateConst() );
+    alpaka::test::mem::view::testViewSubViewOffsetConst<TestType, float>();
 }

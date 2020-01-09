@@ -6,14 +6,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/BoostPredef.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -21,20 +18,20 @@
 
 #include <alpaka/math/max/Traits.hpp>
 
-#include <cuda_runtime.h>
-#include <type_traits>
+#include <alpaka/core/Unused.hpp>
 
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library max.
-        class MaxCudaBuiltIn
+        //! The CUDA built in max.
+        class MaxCudaBuiltIn : public concepts::Implements<ConceptMathMax, MaxCudaBuiltIn>
         {
-        public:
-            using MaxBase = MaxCudaBuiltIn;
         };
 
         namespace traits
@@ -63,7 +60,7 @@ namespace alpaka
                 }
             };
             //#############################################################################
-            //! The standard library mixed integral floating point max trait specialization.
+            //! The CUDA mixed integral floating point max trait specialization.
             template<
                 typename Tx,
                 typename Ty>

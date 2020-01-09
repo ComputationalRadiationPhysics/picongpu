@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #include <alpaka/math/trunc/Traits.hpp>
@@ -23,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library trunc.
-        class TruncStdLib
+        class TruncStdLib : public concepts::Implements<ConceptMathTrunc, TruncStdLib>
         {
-        public:
-            using TruncBase = TruncStdLib;
         };
 
         namespace traits

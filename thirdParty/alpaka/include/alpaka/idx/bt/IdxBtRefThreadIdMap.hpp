@@ -7,7 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
@@ -15,6 +14,7 @@
 #include <alpaka/idx/Traits.hpp>
 
 #include <alpaka/core/Assert.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unused.hpp>
 #include <alpaka/vec/Vec.hpp>
@@ -33,11 +33,9 @@ namespace alpaka
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxBtRefThreadIdMap
+            class IdxBtRefThreadIdMap : public concepts::Implements<ConceptIdxBt, IdxBtRefThreadIdMap<TDim, TIdx>>
             {
             public:
-                using IdxBtBase = IdxBtRefThreadIdMap;
-
                 using ThreadIdToIdxMap = std::map<std::thread::id, vec::Vec<TDim, TIdx>>;
 
                 //-----------------------------------------------------------------------------

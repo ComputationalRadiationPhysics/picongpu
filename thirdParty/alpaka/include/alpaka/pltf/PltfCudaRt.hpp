@@ -7,12 +7,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-
 #pragma once
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
-#include <alpaka/core/Common.hpp>
+#include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -33,7 +33,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA RT device manager.
-        class PltfCudaRt
+        class PltfCudaRt :
+            public concepts::Implements<ConceptPltf, PltfCudaRt>
         {
         public:
             //-----------------------------------------------------------------------------
@@ -228,6 +229,21 @@ namespace alpaka
                     std::cout << "memoryBusWidth: " << devProp.memoryBusWidth << " b" << std::endl;
                     std::cout << "l2CacheSize: " << devProp.l2CacheSize << " B" << std::endl;
                     std::cout << "maxThreadsPerMultiProcessor: " << devProp.maxThreadsPerMultiProcessor << std::endl;
+                    std::cout << "streamPrioritiesSupported: " << devProp.streamPrioritiesSupported << std::endl;
+                    std::cout << "globalL1CacheSupported: " << devProp.globalL1CacheSupported << std::endl;
+                    std::cout << "localL1CacheSupported: " << devProp.localL1CacheSupported << std::endl;
+                    std::cout << "sharedMemPerMultiprocessor: " << devProp.sharedMemPerMultiprocessor << std::endl;
+                    std::cout << "regsPerMultiprocessor: " << devProp.regsPerMultiprocessor << std::endl;
+                    std::cout << "managedMemory: " << devProp.managedMemory << std::endl;
+                    std::cout << "isMultiGpuBoard: " << devProp.isMultiGpuBoard << std::endl;
+                    std::cout << "multiGpuBoardGroupID: " << devProp.multiGpuBoardGroupID << std::endl;
+                    std::cout << "singleToDoublePrecisionPerfRatio: " << devProp.singleToDoublePrecisionPerfRatio << std::endl;
+                    std::cout << "pageableMemoryAccess: " << devProp.pageableMemoryAccess << std::endl;
+                    std::cout << "concurrentManagedAccess: " << devProp.concurrentManagedAccess << std::endl;
+                    std::cout << "computePreemptionSupported: " << devProp.computePreemptionSupported << std::endl;
+                    std::cout << "canUseHostPointerForRegisteredMem: " << devProp.canUseHostPointerForRegisteredMem << std::endl;
+                    std::cout << "cooperativeLaunch: " << devProp.cooperativeLaunch << std::endl;
+                    std::cout << "cooperativeMultiDeviceLaunch: " << devProp.cooperativeMultiDeviceLaunch << std::endl;
                 }
 #endif
             };
