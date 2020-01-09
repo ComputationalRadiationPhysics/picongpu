@@ -218,7 +218,7 @@ public:
                 {
                     std::stringstream message;
                     message << "unique exchange communication tag ("
-                        << uniqCommunicationTag << ") witch is created from communicationTag ("
+                        << uniqCommunicationTag << ") which is created from communicationTag ("
                         << communicationTag << ") already used for other GridBuffer exchange";
                     throw std::runtime_error(message.str());
                 }
@@ -311,7 +311,7 @@ public:
                     {
                         std::stringstream message;
                         message << "unique exchange communication tag ("
-                            << uniqCommunicationTag << ") witch is created from communicationTag ("
+                            << uniqCommunicationTag << ") which is created from communicationTag ("
                             << communicationTag << ") already used for other GridBuffer exchange";
                         throw std::runtime_error(message.str());
                     }
