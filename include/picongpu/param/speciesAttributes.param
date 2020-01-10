@@ -181,7 +181,7 @@ namespace picongpu
         atomicPhysics::stateRepresentation::ConfigNumber<
             float_x,
             numberLevels_Hydrogen
-            >( 1u ), //initialisierung im Grundzustand
+            >( 1u ) //initialisierung im Grundzustand
     )
 
     alias( atomicLevels );
