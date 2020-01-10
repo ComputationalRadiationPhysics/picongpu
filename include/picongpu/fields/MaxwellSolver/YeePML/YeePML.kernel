@@ -251,7 +251,7 @@ namespace yeePML
              * along this direction and == 1 otherwise.
              * So a product is 1 in the internal area and < 1 in PML
              */
-            return coeffs.b.x( ) * coeffs.b.y( ) * coeffs.b.z( ) != 1.0_X;
+            return coeffs.b.productOfComponents( ) != 1.0_X;
         }
 
     } // namespace detail
@@ -274,7 +274,6 @@ namespace yeePML
          * @tparam T_Curl curl functor type
          * @tparam T_BBox pmacc::DataBox, magnetic field box type
          * @tparam T_EBox pmacc::DataBox, electric field box type
-         * @tparam T_PsiEBox PML convolutional electric field box type
          *
          * @param acc alpaka accelerator
          * @param mapper functor to map a block to a supercell
@@ -290,8 +289,7 @@ namespace yeePML
             typename T_Mapping,
             typename T_Curl,
             typename T_BBox,
-            typename T_EBox,
-            typename T_PsiEBox
+            typename T_EBox
         >
         DINLINE void operator( )(
             T_Acc const & acc,
@@ -300,7 +298,7 @@ namespace yeePML
             T_Curl const curl,
             T_BBox const fieldB,
             T_EBox fieldE,
-            T_PsiEBox fieldPsiE
+            FieldBox fieldPsiE
         ) const
         {
             /* Each block processes grid values in a supercell,
@@ -437,7 +435,6 @@ namespace yeePML
          * @tparam T_Curl curl functor type
          * @tparam T_EBox pmacc::DataBox electric field box type
          * @tparam T_BBox pmacc::DataBox magnetic field box type
-         * @tparam T_PsiBBox PML convolutional magnetic field box type
          *
          * @param acc alpaka accelerator
          * @param mapper functor to map a block to a supercell
@@ -453,8 +450,7 @@ namespace yeePML
             typename T_Mapping,
             typename T_Curl,
             typename T_EBox,
-            typename T_BBox,
-            typename T_PsiBBox
+            typename T_BBox
         >
         DINLINE void operator( )(
             T_Acc const & acc,
@@ -463,7 +459,7 @@ namespace yeePML
             T_Curl const curl,
             T_EBox const fieldE,
             T_BBox fieldB,
-            T_PsiBBox fieldPsiB
+            FieldBox fieldPsiB
         ) const
         {
             /* Each block processes grid values in a supercell,
@@ -473,7 +469,7 @@ namespace yeePML
                 DataSpace< simDim >( blockIdx )
             ) * MappingDesc::SuperCellSize::toRT( );
 
-            // Cache B values for the block
+            // Cache E values for the block
             using namespace mappings::threads;
             constexpr auto numWorkers = T_numWorkers;
             auto const workerIdx = threadIdx.x;

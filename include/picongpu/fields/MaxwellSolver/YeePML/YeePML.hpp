@@ -26,9 +26,9 @@
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.kernel"
 #include "picongpu/fields/cellType/Yee.hpp"
 
-#include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 
+#include <memory>
 #include <stdexcept>
 
 
@@ -122,7 +122,7 @@ namespace maxwellSolver
                         CurlE( ),
                         fieldE->getDeviceDataBox( ),
                         fieldB->getDeviceDataBox( ),
-                        psiB->getDeviceDataBox( )
+                        psiB->getDeviceOuterLayerBox( )
                     );
             }
 
@@ -150,7 +150,7 @@ namespace maxwellSolver
                         CurlB( ),
                         fieldB->getDeviceDataBox( ),
                         fieldE->getDeviceDataBox( ),
-                        psiE->getDeviceDataBox( )
+                        psiE->getDeviceOuterLayerBox( )
                     );
             }
 
@@ -218,16 +218,27 @@ namespace maxwellSolver
             void initFields( )
             {
                 /* Split fields are created here (and not with normal E and B)
-                * in order to not waste memory in case PML is not used.
-                */
+                 * in order to not waste memory in case PML is not used.
+                 */
                 DataConnector & dc = Environment<>::get( ).DataConnector( );
-                fieldE = dc.get< picongpu::FieldE >( picongpu::FieldE::getName( ), true );
-                fieldB = dc.get< picongpu::FieldB >( picongpu::FieldB::getName( ), true );
-                using pmacc::memory::makeUnique;
-                dc.consume( makeUnique< yeePML::FieldE >( cellDescription ) );
-                dc.consume( makeUnique< yeePML::FieldB >( cellDescription ) );
-                psiE = dc.get< yeePML::FieldE >( yeePML::FieldE::getName( ), true );
-                psiB = dc.get< yeePML::FieldB >( yeePML::FieldB::getName( ), true );
+                fieldE = dc.get< picongpu::FieldE >(
+                    picongpu::FieldE::getName( ),
+                    true
+                );
+                fieldB = dc.get< picongpu::FieldB >(
+                    picongpu::FieldB::getName( ),
+                    true
+                );
+                psiE = std::make_shared< yeePML::FieldE >(
+                    cellDescription,
+                    globalSize
+                );
+                psiB = std::make_shared< yeePML::FieldB >(
+                    cellDescription,
+                    globalSize
+                );
+                dc.share( psiE );
+                dc.share( psiB );
             }
 
             template< uint32_t T_Area >
