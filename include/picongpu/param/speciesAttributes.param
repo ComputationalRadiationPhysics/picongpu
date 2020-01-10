@@ -162,19 +162,39 @@ namespace picongpu
         flylite::Superconfig::create( 0. )
     );
 
+    //atomic State Example
+    constexpr uint8_t numberLevels_hydrogen = 4u;  // 4u =^= unsigned int 4
+
+    alias( atomicConfigNumber );
+    /** atomicConfigNumber
+     *
+     * must be defined for each ion seperatly by giving the number of moddeled
+     * atomic Levels N and the dataformat to be used, eg. float_x, uint32_t, ...
+     */
+
+    value_identifier(
+        atomicPhysics::stateRepresentation::ConfigNumber<
+            float_x,
+            numberLevels_Hydrogen
+            >,
+        ConfigNumber_Hydrogen,
+        atomicPhysics::stateRepresentation::ConfigNumber<
+            float_x,
+            numberLevels_Hydrogen
+            >( 1u ), //initialisierung im Grundzustand
+    )
+
     alias( atomicLevels );
     /** atomic levels
      * 
      * atomic levels must be defined for each ion seperatly by giving the number
-     * of moddeled atomic Levels  N and specializing the general representation of
-     * atomicPhysics.param.
+     * of moddeled atomic Levels  N and specializing the general representation
+     * of atomicPhysics.param.
      */
-    
-    constexpr uint8_t numberLevels_hydrogen = 4u;  // 4u =^= unsigned int 4
-    
+
     value_identifier(
-        atomicPhysics::stateRepresentation< numberLevels_hydrogen >,
-        hydrogen_levels,        // name used in species Definition
+        atomicPhysics::stateRepresentation::LevelVector< numberLevels_hydrogen >,
+        levelVector_Hydrogen,        // name used in species Definition
         atomicPhysics::stateRepresentation< numberLevels_hydrogen >::create( 0. )
                                 //initialization with zero
     );

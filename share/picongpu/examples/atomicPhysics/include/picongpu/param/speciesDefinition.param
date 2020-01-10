@@ -109,7 +109,8 @@ using ParticleFlagsIons = MakeSeq_t<
 
 using HydrogenAttributes = MakeSeq_t<
     DefaultIonAttributes,
-    atomicLevels< hydrogen_levels >
+    atomicLevels< levelVector_Hydrogen >,
+    atomicConfigNumber< configNumber_Hydrogen >
 >;
 
 /* define species ions */

@@ -25,6 +25,7 @@
 #pragma once
 
 #include <picongpu/particles/atomicPhysics/stateRepresentation/LevelVector.hpp>
+#include <picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.hpp>
 
 namespace picongpu
 {
@@ -32,10 +33,10 @@ namespace atomicPhysics
 {
     //datatype/coding used in representation atomic state
 
-    template< uint8_t T_numberStates >
+    template< uint8_t T_NumberStates >
     using stateRepresentation = particles::atomicPhysics::stateRepresentation::LevelVector<
         float_X,
-        T_numberStates
+        T_NumberStates
     >;
 
 }//namespace atomicState
