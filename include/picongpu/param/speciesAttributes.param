@@ -175,7 +175,7 @@ namespace picongpu
     value_identifier(
         atomicPhysics::stateRepresentation::ConfigNumber<float_x, numberLevels_Hydrogen>,
         ConfigNumber_Hydrogen,
-        atomicPhysics::stateRepresentation::ConfigNumber< float_x, numberLevels_Hydrogen >( 1u ) //initialisierung im Grundzustand
+        atomicPhysics::stateRepresentation::ConfigNumber<float_x, numberLevels_Hydrogen>( 1u )
     );
 
     alias( atomicLevels );
@@ -189,7 +189,7 @@ namespace picongpu
     value_identifier(
         atomicPhysics::stateRepresentation::LevelVector< numberLevels_hydrogen >,
         levelVector_Hydrogen,        // name used in species Definition
-        atomicPhysics::stateRepresentation< numberLevels_hydrogen >::create( 0. )
+        atomicPhysics::stateRepresentation::LevelVector< numberLevels_hydrogen >::create( 0. )
                                 //initialization with zero
     );
 
