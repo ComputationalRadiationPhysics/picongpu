@@ -24,6 +24,7 @@
 #include "picongpu/traits/SIBaseUnits.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
 #include "picongpu/plugins/ISimulationPlugin.hpp"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/plugins/output/WriteSpeciesCommon.hpp"
 #include "picongpu/plugins/kernel/CopySpecies.kernel"
 #include "picongpu/particles/traits/GetSpeciesFlagName.hpp"
@@ -435,7 +436,7 @@ public:
          * extent: size of this particle patch, upper bound is excluded
          */
         const pmacc::Selection<simDim>& globalDomain = Environment<simDim>::get().SubGrid().getGlobalDomain();
-        const std::string name_lookup[] = {"x", "y", "z"};
+        const auto componentNames = plugins::misc::getComponentNames( simDim );
         for (uint32_t d = 0; d < simDim; ++d)
         {
             const uint64_t patchOffset =
@@ -452,7 +453,7 @@ public:
                 ctUInt64, 1,
                 myPatchEntries,
                 (particlePatchesPath + std::string("/offset/") +
-                 name_lookup[d]).c_str(),
+                 componentNames[d]).c_str(),
                 &patchOffset);
             params->dataCollector->write(
                 params->currentStep,
@@ -461,7 +462,7 @@ public:
                 ctUInt64, 1,
                 myPatchEntries,
                 (particlePatchesPath + std::string("/extent/") +
-                 name_lookup[d]).c_str(),
+                 componentNames[d]).c_str(),
                 &patchExtent);
 
             /* offsets and extent of the patch are positions (lengths)
@@ -474,14 +475,14 @@ public:
                 params->currentStep,
                 ctDouble,
                 (particlePatchesPath + std::string("/offset/") +
-                 name_lookup[d]).c_str(),
+                 componentNames[d]).c_str(),
                 "unitSI",
                 &(unitCellIdx.at(d)));
             params->dataCollector->writeAttribute(
                 params->currentStep,
                 ctDouble,
                 (particlePatchesPath + std::string("/extent/") +
-                 name_lookup[d]).c_str(),
+                 componentNames[d]).c_str(),
                 "unitSI",
                 &(unitCellIdx.at(d)));
         }

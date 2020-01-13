@@ -61,6 +61,7 @@
 #include "picongpu/plugins/adios/restart/LoadSpecies.hpp"
 #include "picongpu/plugins/adios/restart/RestartFieldLoader.hpp"
 #include "picongpu/plugins/adios/NDScalars.hpp"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/plugins/misc/SpeciesFilter.hpp"
 
 #include <adios.h>
@@ -527,7 +528,7 @@ private:
         PICToAdios<float_64> adiosDoubleType;
         PICToAdios<float_X> adiosFloatXType;
 
-        const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
+        auto const componentNames = plugins::misc::getComponentNames( nComponents );
 
         /* parameter checking */
         PMACC_ASSERT( unit.size() == nComponents );
@@ -543,7 +544,7 @@ private:
         {
             std::string datasetName = recordName;
             if (nComponents > 1)
-                datasetName +=  "/" + name_lookup_tpl[c];
+                datasetName +=  "/" + componentNames[c];
 
             /* define adios var for field, e.g. field_FieldE_y */
             const char* path = nullptr;

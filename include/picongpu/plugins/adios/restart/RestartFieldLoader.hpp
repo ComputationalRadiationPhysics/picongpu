@@ -23,6 +23,7 @@
 #include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -56,7 +57,7 @@ public:
     {
         log<picLog::INPUT_OUTPUT > ("Begin loading field '%1%'") % objectName;
 
-        const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
+        const auto componentNames = plugins::misc::getComponentNames( numComponents );
         const DataSpace<simDim> field_guard = field.getGridLayout().getGuard();
 
         const pmacc::Selection<simDim>& localDomain = Environment<simDim>::get().SubGrid().getLocalDomain();
@@ -79,7 +80,7 @@ public:
             std::stringstream datasetName;
             datasetName << params->adiosBasePath << ADIOS_PATH_FIELDS << objectName;
             if (numComponents > 1)
-                datasetName << "/" << name_lookup_tpl[n];
+                datasetName << "/" << componentNames[n];
 
             log<picLog::INPUT_OUTPUT > ("ADIOS: Read from field '%1%'") %
                 datasetName.str();

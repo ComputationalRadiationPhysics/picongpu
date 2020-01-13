@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Rene Widera
+/* Copyright 2020 Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -19,10 +19,28 @@
 
 #pragma once
 
-#include "picongpu/plugins/misc/ExecuteIfNameIsEqual.hpp"
-#include "picongpu/plugins/misc/AppendName.hpp"
-#include "picongpu/plugins/misc/ComponentNames.hpp"
-#include "picongpu/plugins/misc/concatenateToString.hpp"
-#include "picongpu/plugins/misc/splitString.hpp"
-#include "picongpu/plugins/misc/containsObject.hpp"
-#include "picongpu/plugins/misc/removeSpaces.hpp"
+#include <string>
+#include <vector>
+
+
+namespace picongpu
+{
+namespace plugins
+{
+namespace misc
+{
+
+    /** Get text names of vector components
+     *
+     * For 1-4 and 6 components use predefined names,
+     * for other amounts use generic different names
+     *
+     * @param numComponents number of components
+     */
+    std::vector< std::string > getComponentNames(
+        uint32_t numComponents
+    );
+
+} // namespace misc
+} // namespace plugins
+} // namespace picongpu
