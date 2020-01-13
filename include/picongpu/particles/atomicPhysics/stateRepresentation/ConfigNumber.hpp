@@ -81,7 +81,7 @@ class ConfigNumber
 
 public:
     ConfigNumber(
-        T_Datatype N
+        T_DataType N
         )
     {
         assertm( N >= 0, "negative configurationNumbers are not defined" );
@@ -96,10 +96,10 @@ public:
 
         for(uint8_t n=0u; n < T_NumberLevels; n++) {
             assertm( this.g(n) >= *levelVector[n], "occuationNumber to large for");
-            assertm( *levelVector[n]> = 0, "ocupationNumber should not be negative");
+            assertm( *levelVector[n] >= 0, "ocupationNumber should not be negative");
 
             stepLength *= this.g(n) + 1;
-            this.configNumber += *levelVector[n] * steplength;
+            this.configNumber += *levelVector[n] * stepLength;
         }
     }
 
@@ -111,7 +111,7 @@ public:
     operator pmacc::math::Vector< uint8_t, T_NumberLevels >()
     {
         pmacc::math::Vector< uint8_t, T_NumberLevels > result =
-            pmacc::math::Vector<uint8_t, T_Numberlevels>::create( 0 );
+            pmacc::math::Vector<uint8_t, T_NumberLevels>::create( 0 );
 
         unsigned short int product;
         T_DataType N;

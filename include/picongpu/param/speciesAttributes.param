@@ -172,10 +172,13 @@ namespace picongpu
      * atomic Levels N and the dataformat to be used, eg. float_x, uint32_t, ...
      */
 
+    using ConfigNumber_H = particles::atomicPhysics::stateRepresentation::ConfigNumber<float_X, numberLevels_Hydrogen>;
+    //necessary since all "," are interpreted as seperating macro arguments
+
     value_identifier(
-        atomicPhysics::stateRepresentation::ConfigNumber<float_x, numberLevels_Hydrogen>,
-        ConfigNumber_Hydrogen,
-        atomicPhysics::stateRepresentation::ConfigNumber<float_x, numberLevels_Hydrogen>( 1u )
+        ConfigNumber_H,
+        configNumber_Hydrogen,
+        ConfigNumber_H( 1u )
     );
 
     alias( atomicLevels );
@@ -187,9 +190,9 @@ namespace picongpu
      */
 
     value_identifier(
-        atomicPhysics::stateRepresentation::LevelVector< numberLevels_hydrogen >,
+        atomicPhysics::LevelVector< numberLevels_Hydrogen >,
         levelVector_Hydrogen,        // name used in species Definition
-        atomicPhysics::stateRepresentation::LevelVector< numberLevels_hydrogen >::create( 0. )
+        atomicPhysics::LevelVector< numberLevels_Hydrogen >::create( 0. )
                                 //initialization with zero
     );
 
