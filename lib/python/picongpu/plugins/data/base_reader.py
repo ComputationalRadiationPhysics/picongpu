@@ -74,6 +74,10 @@ class DataReader(object):
         If both are given, the 'time' argument is converted to
         an iteration and data for the iteration matching the time
         is returned.
+        For other valid args and kwargs, please look at the
+        documentation of the '_get_for_iteration' methods
+        of the derived classes since the parameters are passed
+        on to that function.
 
         time: float or np.array of float or None.
             If None, data for all available times is returned.
