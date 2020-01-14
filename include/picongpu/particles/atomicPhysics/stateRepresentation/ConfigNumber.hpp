@@ -171,7 +171,7 @@ struct GetComponentsType<
     false
 >
 {
-    using type = typename T_DataType;
+    using type = T_DataType;
 };
 
 //defines how many independent components are saved in the object
