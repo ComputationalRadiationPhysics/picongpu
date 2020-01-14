@@ -1,4 +1,4 @@
-/* Copyright 2019 Brian Marre
+/* Copyright 2019-2020 Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -50,7 +50,7 @@
 #pragma once
 
 #include <pmacc/math/Vector.hpp>
-
+#include <picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.tpp>
 
 namespace picongpu
 {
@@ -81,10 +81,14 @@ class ConfigNumber
 
 public:
     ConfigNumber(
-        T_DataType N
+        T_DataType N = 0u
         )
     {
-        assertm( N >= 0, "negative configurationNumbers are not defined" );
+        PMACC_ASSERT_MSG(
+            N >= 0,
+            "negative configurationNumbers are not defined"
+        );
+        
         configNumber = N;
     }
     ConfigNumber(
@@ -95,8 +99,14 @@ public:
         this.configNumber = 0;
 
         for(uint8_t n=0u; n < T_NumberLevels; n++) {
-            assertm( this.g(n) >= *levelVector[n], "occuationNumber to large for");
-            assertm( *levelVector[n] >= 0, "ocupationNumber should not be negative");
+            PMACC_ASSERT_MSG(
+                this.g(n) >= *levelVector[n],
+                "occuationNumber too large"
+            );
+            PMACC_ASSERT_MSG(
+                *levelVector[n] >= 0,
+                "ocupationNumber should not be negative"
+            );
 
             stepLength *= this.g(n) + 1;
             this.configNumber += *levelVector[n] * stepLength;
@@ -140,4 +150,4 @@ public:
 } // namespace stateRepresentation
 } // namespace atomicPhysics
 } // namespace particles
-} // namespace picongpu
+} // namespace picongpuless 
