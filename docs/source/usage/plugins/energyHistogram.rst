@@ -107,12 +107,10 @@ You can quickly load and interact with the data in Python with:
    counts, bins_keV, _, _ = eh_data.get(species='e', species_filter='all', iteration=2000)
 
    # get data for multiple iterations
-   d, bins, iteration, dt = eh_data.get(species='e', iteration=[200, 400, 8000])
+   counts, bins_keV, iteration, dt = eh_data.get(species='e', iteration=[200, 400, 8000])
 
    # load data for a given time
    counts, bins_keV, iteration, dt = eh_data.get(species='e', species_filter='all', time=1.3900e-14)
-
-
 
 
 Matplotlib Visualizer
