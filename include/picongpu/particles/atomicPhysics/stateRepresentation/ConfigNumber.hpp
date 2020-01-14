@@ -49,8 +49,8 @@
 
 #pragma once
 
+
 #include <pmacc/math/Vector.hpp>
-#include <picongpu/particles/atomicPhysics/stateRepresentation/ConfigNumber.tpp>
 
 namespace picongpu
 {
@@ -150,4 +150,42 @@ public:
 } // namespace stateRepresentation
 } // namespace atomicPhysics
 } // namespace particles
-} // namespace picongpuless 
+} // namespace picongpuless
+
+/** this specfies how an object of the ConfigNumber class can be written to an
+ * external file for storage.
+*/
+
+namespace pmacc
+{
+namespace  traits
+{
+
+//defines what datatype is to be used to save the data in this object
+template< typename T_DataType, uint8_t T_NumberLevels >
+struct GetComponentsType<
+    picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
+        T_DataType,
+        T_NumberLevels
+    >,
+    false
+>
+{
+    using type = typename T_DataType;
+};
+
+//defines how many independent components are saved in the object
+template< typename T_DataType, uint8_t T_NumberLevels >
+struct GetNComponents<
+    picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
+        T_DataType,
+        T_NumberLevels
+    >,
+    false
+>
+{
+    static constexpr uint32_t value = 1u;
+};
+
+}//namespace traits
+}//namespace pmacc
