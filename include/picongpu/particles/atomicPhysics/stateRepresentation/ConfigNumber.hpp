@@ -39,7 +39,7 @@
  *
  * #...config Number assigned,
  * g(n)= 2 * n^2 ...maximum number of electrons in a given level n
- * # = N_1 *(0 + 1)+ N_2 * (g(1)+1) + N_3 * (g(2)+1) * (g(1) + 1)) + ... 
+ * # = N_1 *(0 + 1)+ N_2 * (g(1)+1) + N_3 * (g(2)+1) * (g(1) + 1)) + ...
  *
  * # = Sum_n=1^n_max( N_n * Produkt_i=1^n (g(i-1) +1) )
  *
@@ -74,7 +74,7 @@ class ConfigNumber
  */
     T_DataType configNumber;    //storage of actual ConfigNumber
 
-    unsigned short int g(uint8_t n) 
+    unsigned short int g(uint8_t n)
     {
         return static_cast<unsigned short int>(n) * n * 2;
     }
@@ -88,28 +88,24 @@ public:
             N >= 0,
             "negative configurationNumbers are not defined"
         );
-        
-        configNumber = N;
+
+        this->configNumber = N;
     }
     ConfigNumber(
         pmacc::math::Vector< uint8_t, T_NumberLevels > levelVector
         )
     {
         T_DataType stepLength = 1;
-        this.configNumber = 0;
+        this->configNumber = 0;
 
         for(uint8_t n=0u; n < T_NumberLevels; n++) {
             PMACC_ASSERT_MSG(
-                this.g(n) >= *levelVector[n],
+                this->g(n) >= *levelVector[n],
                 "occuationNumber too large"
             );
-            PMACC_ASSERT_MSG(
-                *levelVector[n] >= 0,
-                "ocupationNumber should not be negative"
-            );
 
-            stepLength *= this.g(n) + 1;
-            this.configNumber += *levelVector[n] * stepLength;
+            stepLength *= this->g(n) + 1;
+            this->configNumber += *levelVector[n] * stepLength;
         }
     }
 
@@ -123,24 +119,22 @@ public:
         pmacc::math::Vector< uint8_t, T_NumberLevels > result =
             pmacc::math::Vector<uint8_t, T_NumberLevels>::create( 0 );
 
-        unsigned short int product;
+        T_DataType product;
         T_DataType N;
 
-        N = this.configNumber;
+        N = this->configNumber;
 
-        for (uint8_t n = T_NumberLevels - 1; n >= 0; n--)
+        for (uint8_t n = T_NumberLevels; n >= 1; n--)
         {
             product = 1;
-            for (uint8_t i = 1u; i < n+1; i++)
+            for (uint8_t i = 1u; i < n; i++)
             {
-                product *= g(i) + 1;
+                product *= ( this->g(i) + 1 );
             }
 
-            *result[n] = static_cast<T_DataType>(
-                static_cast<uint8_t>( N / product)
-                );
+            *result[n-1] = static_cast<uint8_t>( N / product );
 
-            N -= product * (*result[n]);
+            N -= product * (*result[n-1]);
         }
 
         return result;
@@ -150,7 +144,7 @@ public:
 } // namespace stateRepresentation
 } // namespace atomicPhysics
 } // namespace particles
-} // namespace picongpuless
+} // namespace picongpu
 
 /** this specfies how an object of the ConfigNumber class can be written to an
  * external file for storage.
