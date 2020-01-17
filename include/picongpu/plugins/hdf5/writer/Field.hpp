@@ -21,6 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/traits/PICToSplash.hpp"
 #include <pmacc/traits/GetComponentsType.hpp>
 #include <pmacc/traits/GetNComponents.hpp>
@@ -80,12 +81,7 @@ struct Field
         /* component names */
         const std::string recordName = std::string("fields/") + name;
 
-        std::vector<std::string> name_lookup;
-        {
-            const std::string name_lookup_tpl[] = {"x", "y", "z", "w"};
-            for (uint32_t n = 0; n < nComponents; n++)
-                name_lookup.push_back(name_lookup_tpl[n]);
-        }
+        const auto componentNames = plugins::misc::getComponentNames( nComponents );
 
         /*data to describe source buffer*/
         GridLayout<simDim> field_layout = params->gridLayout;
@@ -133,7 +129,7 @@ struct Field
             std::stringstream datasetName;
             datasetName << recordName;
             if (nComponents > 1)
-                datasetName << "/" << name_lookup.at(n);
+                datasetName << "/" << componentNames.at(n);
 
             Dimensions sizeSrcData(1, 1, 1);
 

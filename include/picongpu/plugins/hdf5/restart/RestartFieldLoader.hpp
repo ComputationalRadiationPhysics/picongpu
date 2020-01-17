@@ -24,6 +24,7 @@
 #include <pmacc/particles/frame_types.hpp>
 #include "picongpu/fields/FieldE.hpp"
 #include "picongpu/fields/FieldB.hpp"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -60,7 +61,7 @@ public:
         using ValueType = typename Data::ValueType;
         field.getHostBuffer().setValue(ValueType::create(0.0));
 
-        const std::string name_lookup[] = {"x", "y", "z"};
+        const auto componentNames = plugins::misc::getComponentNames( numComponents );
 
         /* globalSlideOffset due to gpu slides between origin at time step 0
          * and origin at current time step
@@ -94,7 +95,7 @@ public:
             DataContainer *field_container =
                 params->dataCollector->readDomain(params->currentStep,
                                            (std::string("fields/") + objectName +
-                                            std::string("/") + name_lookup[i]).c_str(),
+                                            std::string("/") + componentNames[i]).c_str(),
                                            Domain(domain_offset, local_domain_size),
                                            &data_class);
 

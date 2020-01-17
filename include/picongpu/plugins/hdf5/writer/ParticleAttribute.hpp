@@ -24,6 +24,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 #include "picongpu/traits/PICToSplash.hpp"
 #include "picongpu/traits/PICToOpenPMD.hpp"
 #include <pmacc/traits/GetComponentsType.hpp>
@@ -87,7 +88,7 @@ struct ParticleAttribute
         OpenPMDName<T_Identifier> openPMDName;
         const std::string recordPath( speciesPath + std::string("/") + openPMDName() );
 
-        const std::string name_lookup[] = {"x", "y", "z"};
+        const auto componentNames = plugins::misc::getComponentNames( components );
 
         // get the SI scaling, dimensionality and weighting of the attribute
         OpenPMDUnit<T_Identifier> openPMDUnit;
@@ -133,7 +134,7 @@ struct ParticleAttribute
             std::stringstream datasetName;
             datasetName << recordPath;
             if (components > 1)
-                datasetName << "/" << name_lookup[d];
+                datasetName << "/" << componentNames[d];
 
             ValueType* dataPtr = frame.getIdentifier(Identifier()).getPointer();
             #pragma omp parallel for

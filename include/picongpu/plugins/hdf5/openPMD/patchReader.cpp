@@ -20,6 +20,7 @@
 #if( ENABLE_HDF5 == 1 )
 
 #  include "picongpu/plugins/hdf5/openPMD/patchReader.hpp"
+#include "picongpu/plugins/misc/ComponentNames.hpp"
 
 
 namespace picongpu
@@ -93,17 +94,17 @@ namespace openPMD
     {
         // allocate memory for patches
         picongpu::openPMD::ParticlePatches particlePatches( availableRanks );
-        const std::string name_lookup[] = {"x", "y", "z"};
+        const auto componentNames = plugins::misc::getComponentNames( dimensionality );
         for( uint32_t d = 0; d < dimensionality; ++d )
         {
             readPatchAttribute(
                 dc, availableRanks, id,
-                particlePatchPath + std::string("offset/") + name_lookup[d],
+                particlePatchPath + std::string("offset/") + componentNames[d],
                 particlePatches.getOffsetComp( d )
             );
             readPatchAttribute(
                 dc, availableRanks, id,
-                particlePatchPath + std::string("extent/") + name_lookup[d],
+                particlePatchPath + std::string("extent/") + componentNames[d],
                 particlePatches.getExtentComp( d )
             );
         }
