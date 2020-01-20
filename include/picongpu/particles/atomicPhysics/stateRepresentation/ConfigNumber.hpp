@@ -74,7 +74,7 @@ class ConfigNumber
  */
     T_DataType configNumber;    //storage of actual ConfigNumber
 
-    unsigned uint16_t g(uint8_t n)
+    uint16_t g(uint8_t n)
     {
         return static_cast<unsigned short int>(n) * n * 2;
     }
