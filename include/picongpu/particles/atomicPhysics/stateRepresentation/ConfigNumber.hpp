@@ -74,7 +74,7 @@ class ConfigNumber
  */
     T_DataType configNumber;    //storage of actual ConfigNumber
 
-    unsigned short int g(uint8_t n)
+    unsigned uint16_t g(uint8_t n)
     {
         return static_cast<unsigned short int>(n) * n * 2;
     }
@@ -101,7 +101,7 @@ public:
         for(uint8_t n=0u; n < T_NumberLevels; n++) {
             PMACC_ASSERT_MSG(
                 this->g(n) >= *levelVector[n],
-                "occuationNumber too large"
+                "occuation number too large"
             );
 
             stepLength *= this->g(n) + 1;
@@ -152,7 +152,7 @@ public:
 
 namespace pmacc
 {
-namespace  traits
+namespace traits
 {
 
 //defines what datatype is to be used to save the data in this object
@@ -181,5 +181,5 @@ struct GetNComponents<
     static constexpr uint32_t value = 1u;
 };
 
-}//namespace traits
-}//namespace pmacc
+} // namespace traits
+} // namespace pmacc
