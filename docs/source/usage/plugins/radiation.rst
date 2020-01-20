@@ -9,7 +9,10 @@ Our simulation computes the `Lienard Wiechert potentials <https://en.wikipedia.o
 
 .. math::
 
-   \frac{\operatorname{d}^2I}{\operatorname{d}{\Omega}\operatorname{d}\omega}\left(\omega,\vec{n}\right)=\left|\sum\limits_{k=1}^{N}\int\limits_{-\infty}^{+\infty}\frac{\vec{n}\times\left[\left(\vec{n}-\vec{\beta}_k(t)\right)\times\dot{\vec{\beta}}_k(t)\right]}{\left(1-\vec{\beta}_k(t)\cdot\vec{n}\right)^2}\cdot\operatorname{e}^{\operatorname{i}\omega\left(t-\vec{n}\cdot\vec{r}_k(t)/c\right)}\operatorname{d}t\right|^2
+   \frac{\operatorname{d}^2I}{\operatorname{d}{\Omega}\operatorname{d}\omega}\left(\omega,\vec{n}\right)= \frac{q^2}{16\pi^3\varepsilon_0 c} \left|\sum\limits_{k=1}^{N}\int\limits_{-\infty}^{+\infty}\frac{\vec{n}\times\left[\left(\vec{n}-\vec{\beta}_k(t)\right)\times\dot{\vec{\beta}}_k(t)\right]}{\left(1-\vec{\beta}_k(t)\cdot\vec{n}\right)^2}\cdot\operatorname{e}^{\operatorname{i}\omega\left(t-\vec{n}\cdot\vec{r}_k(t)/c\right)}\operatorname{d}t\right|^2
+
+Details on how radiation is computed with this plugin and how the plugin works can be found in [Pausch2012]_.
+A list of tests can be found in [Pausch2014]_.
 
 ============================== ================================================================================
 Variable                       Meaning
@@ -143,6 +146,7 @@ Form factor
 """""""""""
 
 The *form factor* is a method, which considers the shape of the macro particles when computing the radiation.
+More details can be found in [Pausch2018]_.
 
 One can select between different macro particle shapes.
 Currently eight shapes are implemented.
@@ -394,6 +398,13 @@ Dataset  Description                                           Dimensions
 ``z_Im`` imaginary part, z-component of the complex amplitude  (``N_observer``, ``N_omega``, 1)
 ======== ===================================================== ====================================
 
+.. note::
+
+   Please be aware, that despite the fact, that the SI-unit of each amplitude entry is :math:`\mathrm{[\sqrt{Js}]}`, the stored ``unitSI`` attribute returns :math:`\mathrm{[Js]}`.
+   This inconsistency will be fixed in the future.
+   Until this inconstincy is resolved, please multiply the datasets with the square root of the ``unitSI`` attribute to convert the amplitudes to SI units. 
+   
+
 **DetectorDirection (Group):**
 
 ======== ======================================================= ===============================
@@ -515,9 +526,21 @@ The plugin supports multiple radiation species but spectra (frequencies and obse
 References
 ^^^^^^^^^^
 
-- `Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics <https://www.hzdr.de/db/Cms?pOid=38997>`_,
-  Diploma thesis on the radiation plugin
-- `How to test and verify radiation diagnostics simulations within particle-in-cell frameworks <http://dx.doi.org/10.1016/j.nima.2013.10.073>`_,
-  Some tests that have been performed to validate the code
-- `Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes—A general form factor formalism for macro-particles <https://doi.org/10.1016/j.nima.2018.02.020>`_,
-  Description for the effect of macro-particle shapes in particle-in-cell codes
+.. [Pausch2012]
+       Pausch, R.
+       *Electromagnetic Radiation from Relativistic Electrons as Characteristic Signature of their Dynamics*
+       Diploma Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf for the German Degree "Diplom-Physiker" (2012)
+       https://doi.org/10.5281/zenodo.843510
+
+.. [Pausch2014]
+       Pausch, R., Debus, A., Widera, R. et al.
+       *How to test and verify radiation diagnostics simulations within particle-in-cell frameworks*
+       Nuclear Instruments and Methods in Physics Research, Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 740, 250–256 (2014)
+       https://doi.org/10.1016/j.nima.2013.10.073
+
+.. [Pausch2018]
+       Pausch, R., Debus, A., Huebl, A. at al.
+       *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes — A general form factor formalism for macro-particles*
+       Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 909, 419–422 (2018)
+       https://doi.org/10.1016/j.nima.2018.02.020
+
