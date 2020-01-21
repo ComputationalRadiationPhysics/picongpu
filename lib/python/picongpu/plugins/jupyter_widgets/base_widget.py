@@ -118,9 +118,6 @@ class BaseWidget(widgets.VBox):
             top = widgets.HBox(children=[
                 vis_widgets, self.fig.canvas])
         else:
-            # it is not our responsibility to display
-            # the figure but we have to display the
-            # output widget somewhere
             top = vis_widgets
 
         if add_out_to_children:

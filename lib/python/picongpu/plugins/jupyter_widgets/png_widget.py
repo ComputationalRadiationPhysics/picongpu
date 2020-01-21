@@ -24,12 +24,14 @@ class PNGWidget(BaseWidget):
 
         display(PNGWidget(run_dir_options="path/to/outputs"))
     """
-    def __init__(self, run_dir_options, fig=None, **kwargs):
+    def __init__(self, run_dir_options, fig=None,
+                 output_widget, **kwargs):
 
         BaseWidget.__init__(self,
                             PNGMPL,
                             run_dir_options,
                             fig,
+                            output_widget,
                             **kwargs)
 
     def _create_sim_dropdown(self, options):
