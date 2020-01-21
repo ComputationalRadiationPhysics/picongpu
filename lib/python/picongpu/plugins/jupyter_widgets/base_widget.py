@@ -24,7 +24,17 @@ class BaseWidget(widgets.VBox):
     Note: In order to work, those objects should be used in %matplotlib widget
     mode and interactive plotting should be switched off (by using plt.ioff()).
     """
-    def __init__(self, plot_mpl_cls, run_dir_options=None, fig=None, **kwargs):
+    def capture_output(fun):
+        """Used as decorator for capturing output of member functions."""
+        def decorated_member_fun(self, *args, **kwargs):
+            self.output_widget.clear_output()
+            with self.output_widget:
+                return fun(self, *args, **kwargs)
+
+        return decorated_member_fun
+
+    def __init__(self, plot_mpl_cls, run_dir_options=None, fig=None,
+                 output_widget=None, **kwargs):
         """
         Parameters
         ----------
@@ -36,9 +46,28 @@ class BaseWidget(widgets.VBox):
             If no figure is provided, the widget will create its own figure.
             Otherwise the widget will draw into the provided figure and will
             not create its own.
+        output_widget: None or instance of ipywidgets.Output
+            used for capturing messages from the visualizers.
+            If None, a new output widget is created and displayed
+            as a child. If not None, it is not displayed but only
+            used for capturing output and the owner of the output
+            is responsible for displaying it.
         kwargs: options for plotting, passed on to matplotlib commands.
         """
         widgets.VBox.__init__(self)
+
+        if output_widget is not None:
+            # for a given output widget we don't add
+            # it to the children but rely on the owner
+            # of the widget to display it somewhere
+            assert isinstance(output_widget, widgets.Output)
+            add_out_to_children = False
+        else:
+            output_widget = widgets.Output(
+                layout={'border': '1px solid black'})
+            add_out_to_children = True
+        self.output_widget = output_widget
+
         # if no figure is given, we create one and add it to children
         # if one is given, we don't add it as part of children
         add_fig_to_children = fig is None
@@ -86,12 +115,23 @@ class BaseWidget(widgets.VBox):
                 widgets.VBox(
                     children=list(self.widgets_for_vis_args.values()))])
         if add_fig_to_children:
-            top = widgets.HBox(children=[vis_widgets, self.fig.canvas])
+            top = widgets.HBox(children=[
+                vis_widgets, self.fig.canvas])
         else:
+            # it is not our responsibility to display
+            # the figure but we have to display the
+            # output widget somewhere
             top = vis_widgets
-        bottom = self.sim_time_slider
+
+        if add_out_to_children:
+            bottom = widgets.VBox(children=[
+                self.sim_time_slider, self.output_widget])
+        else:
+            bottom = self.sim_time_slider
+
         self.children = [top, bottom]
 
+    @capture_output
     def _create_label_path_lookup(self, run_dir_options):
         """
         Creates the lookup table from simulation labels to their paths.
@@ -133,6 +173,7 @@ class BaseWidget(widgets.VBox):
         self.sim_drop.observe(
             self._handle_run_dir_selection_callback, names='value')
 
+    @capture_output
     def set_run_dir_options(self, run_dir_options):
         """
         Re-set the selectable simulations and everything that is affected
@@ -220,6 +261,7 @@ class BaseWidget(widgets.VBox):
                 for arg, widg in self.widgets_for_vis_args.items()}
 
 # functions that should NOT be overridden
+    @capture_output
     def _handle_run_dir_selection(self, run_dir_selection):
         """
         Update the run_directories and the common simulation times.
@@ -325,6 +367,7 @@ class BaseWidget(widgets.VBox):
         changes or the iteration changes."""
         self.visualize()
 
+    @capture_output
     def visualize(self, **kwargs):
         """
         Draw the plot by getting all necessary parameter values from the
@@ -383,6 +426,7 @@ class BaseWidget(widgets.VBox):
 
         return val
 
+    @capture_output
     def _use_options_from_other(self, other):
         """
         Uses the options from another instance derived from this class
@@ -438,5 +482,6 @@ class BaseWidget(widgets.VBox):
                 own_widget.value = other_value
                 own_widget.observe(self._visualize_callback, names='value')
 
+    @capture_output
     def _clean_ax(self):
         self.plot_mpl._clean_ax()
