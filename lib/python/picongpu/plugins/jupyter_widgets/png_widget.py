@@ -25,7 +25,7 @@ class PNGWidget(BaseWidget):
         display(PNGWidget(run_dir_options="path/to/outputs"))
     """
     def __init__(self, run_dir_options, fig=None,
-                 output_widget, **kwargs):
+                 output_widget=None, **kwargs):
 
         BaseWidget.__init__(self,
                             PNGMPL,
