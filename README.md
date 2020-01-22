@@ -213,7 +213,7 @@ Active Team
 - Marco Garten*
 - Dr. Axel Huebl*
 - Alexander Matthes
-- Richard Pausch*
+- Dr. Richard Pausch*
 - Sophie Rudat
 - Sebastian Starke
 - Dr. Klaus Steiniger

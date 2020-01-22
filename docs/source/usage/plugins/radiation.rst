@@ -12,7 +12,7 @@ Our simulation computes the `Lienard Wiechert potentials <https://en.wikipedia.o
    \frac{\operatorname{d}^2I}{\operatorname{d}{\Omega}\operatorname{d}\omega}\left(\omega,\vec{n}\right)= \frac{q^2}{16\pi^3\varepsilon_0 c} \left|\sum\limits_{k=1}^{N}\int\limits_{-\infty}^{+\infty}\frac{\vec{n}\times\left[\left(\vec{n}-\vec{\beta}_k(t)\right)\times\dot{\vec{\beta}}_k(t)\right]}{\left(1-\vec{\beta}_k(t)\cdot\vec{n}\right)^2}\cdot\operatorname{e}^{\operatorname{i}\omega\left(t-\vec{n}\cdot\vec{r}_k(t)/c\right)}\operatorname{d}t\right|^2
 
 Details on how radiation is computed with this plugin and how the plugin works can be found in [Pausch2012]_.
-A list of tests can be found in [Pausch2014]_.
+A list of tests can be found in [Pausch2014]_ and [Pausch2019]_.
 
 ============================== ================================================================================
 Variable                       Meaning
@@ -146,7 +146,7 @@ Form factor
 """""""""""
 
 The *form factor* is a method, which considers the shape of the macro particles when computing the radiation.
-More details can be found in [Pausch2018]_.
+More details can be found in [Pausch2018]_ and [Pausch2019]_.
 
 One can select between different macro particle shapes.
 Currently eight shapes are implemented.
@@ -255,6 +255,7 @@ There are several different window function available:
  
 By setting ``radWindowFunction`` a specific window function is selected.
 
+More details can be found in [Pausch2019]_.
 
 .cfg file
 ^^^^^^^^^
@@ -543,4 +544,12 @@ References
        *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes — A general form factor formalism for macro-particles*
        Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment, 909, 419–422 (2018)
        https://doi.org/10.1016/j.nima.2018.02.020
+
+.. [Pausch2019]
+       Pausch, R.
+       *Synthetic radiation diagnostics as a pathway for studying plasma dynamics from advanced accelerators to astrophysical observations*
+       PhD Thesis at TU Dresden & Helmholtz-Zentrum Dresden - Rossendorf (2019)
+       https://doi.org/10.5281/zenodo.3616045
+
+
 
