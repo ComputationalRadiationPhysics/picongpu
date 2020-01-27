@@ -27,10 +27,16 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks=!TBG_tasks
+#SBATCH --ntasks-per-node=!TBG_gpusPerNode
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 #SBATCH --mem=0
 #SBATCH --gres=gpu:!TBG_gpusPerNode
+#SBATCH --exclusive
+
+# disable hyperthreading (default on taurus)
+#SBATCH --hint=nomultithread
+
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
 #SBATCH --workdir=!TBG_dstPath
@@ -58,9 +64,6 @@
 # number of CPU cores to block per GPU
 # we got 7 CPU cores per GPU (44cores/6gpus ~ 7cores)
 .TBG_coresPerGPU=7
-# this does not yet include hyperthreading
-#SBATCH --hint=nomultithread
-# (this is currently also the default setting on taurus)
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"

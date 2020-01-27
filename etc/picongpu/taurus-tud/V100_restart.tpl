@@ -34,11 +34,17 @@
 #SBATCH --job-name=!TBG_jobName
 #SBATCH --nodes=!TBG_nodes
 #SBATCH --ntasks=!TBG_tasks
+#SBATCH --ntasks-per-node=!TBG_gpusPerNode
 #SBATCH --mincpus=!TBG_mpiTasksPerNode
 #SBATCH --cpus-per-task=!TBG_coresPerGPU
 # Maximum memory setting the SLURM queue "ml" accepts.
-#SBATCH --mem-per-cpu=1511
+#SBATCH --mem=0
 #SBATCH --gres=gpu:!TBG_gpusPerNode
+#SBATCH --exclusive
+
+# disable hyperthreading (default on taurus)
+#SBATCH --hint=nomultithread
+
 # send me mails on BEGIN, END, FAIL, REQUEUE, ALL,
 # TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 #SBATCH --mail-type=!TBG_mailSettings
@@ -64,9 +70,6 @@
 # number of CPU cores to block per GPU
 # we got 7 CPU cores per GPU (44cores/6gpus ~ 7cores)
 .TBG_coresPerGPU=7
-# this does not yet include hyperthreading
-#SBATCH --hint=nomultithread
-# (this is currently also the default setting on taurus)
 
 # We only start 1 MPI task per GPU
 .TBG_mpiTasksPerNode="$(( TBG_gpusPerNode * 1 ))"
