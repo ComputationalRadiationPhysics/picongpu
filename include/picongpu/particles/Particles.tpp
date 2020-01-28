@@ -82,57 +82,69 @@ Particles<
 {
     using ExchangeMemCfg = GetExchangeMemCfg_t< Particles >;
 
+    /* SPEC species exchange memory scaling
+     *
+     * The scaling factors are strongly coupled to the SPECBenchmark example
+     * and a grid size of 128^3 cells per MPI rank.
+     * By scaling required exchange memory size with the number of cells per MPI rank
+     * we can avoid performance decreases due to double send of particles.
+     */
+    double numBaseCells = 128.0 * 128.0 * 128.0;
+    double numGlobalCells = Environment<simDim>::get().SubGrid().getLocalDomain().size.productOfComponents();
+    size_t memScalingFactorZ = static_cast< size_t >( std::ceil( numGlobalCells / numBaseCells / 2.0 ) );
+    size_t memScalingFactorOther = static_cast< size_t >( std::ceil( numGlobalCells / numBaseCells / 4.0 ) );
+
     size_t sizeOfExchanges = 0u;
 
     const uint32_t commTag = pmacc::traits::GetUniqueTypeId<FrameType, uint32_t>::uid() + SPECIES_FIRSTTAG;
     log<picLog::MEMORY > ( "communication tag for species %1%: %2%" ) % FrameType::getName( ) % commTag;
 
     this->particlesBuffer->addExchange( Mask( LEFT ) + Mask( RIGHT ),
-                                        ExchangeMemCfg::BYTES_EXCHANGE_X,
+                                        ExchangeMemCfg::BYTES_EXCHANGE_X * memScalingFactorOther,
                                         commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_X * 2u;
+    sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_X * 2u * memScalingFactorOther;
 
     this->particlesBuffer->addExchange( Mask( TOP ) + Mask( BOTTOM ),
-                                        ExchangeMemCfg::BYTES_EXCHANGE_Y,
+                                        ExchangeMemCfg::BYTES_EXCHANGE_Y * memScalingFactorOther,
                                         commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_Y * 2u;
+    sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_Y * 2u * memScalingFactorOther;
 
     //edges of the simulation area
     this->particlesBuffer->addExchange( Mask( RIGHT + TOP ) + Mask( LEFT + TOP ) +
-                                        Mask( LEFT + BOTTOM ) + Mask( RIGHT + BOTTOM ), ExchangeMemCfg::BYTES_EDGES,
+                                        Mask( LEFT + BOTTOM ) + Mask( RIGHT + BOTTOM ), ExchangeMemCfg::BYTES_EDGES * memScalingFactorOther,
                                         commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u;
+    sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u * memScalingFactorOther;
 
 #if(SIMDIM==DIM3)
-    this->particlesBuffer->addExchange( Mask( FRONT ) + Mask( BACK ), ExchangeMemCfg::BYTES_EXCHANGE_Z,
+    this->particlesBuffer->addExchange( Mask( FRONT ) + Mask( BACK ), ExchangeMemCfg::BYTES_EXCHANGE_Z * memScalingFactorZ,
                                         commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_Z * 2u;
+    sizeOfExchanges += ExchangeMemCfg::BYTES_EXCHANGE_Z * 2u * memScalingFactorZ;
 
     //edges of the simulation area
     this->particlesBuffer->addExchange( Mask( FRONT + TOP ) + Mask( BACK + TOP ) +
                                         Mask( FRONT + BOTTOM ) + Mask( BACK + BOTTOM ),
-                                        ExchangeMemCfg::BYTES_EDGES,
+                                        ExchangeMemCfg::BYTES_EDGES * memScalingFactorOther,
                                         commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u;
+    sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u * memScalingFactorOther;
 
     this->particlesBuffer->addExchange( Mask( FRONT + RIGHT ) + Mask( BACK + RIGHT ) +
                                         Mask( FRONT + LEFT ) + Mask( BACK + LEFT ),
-                                        ExchangeMemCfg::BYTES_EDGES,
+                                        ExchangeMemCfg::BYTES_EDGES * memScalingFactorOther,
                                         commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u;
+    sizeOfExchanges += ExchangeMemCfg::BYTES_EDGES * 4u * memScalingFactorOther;
 
     //corner of the simulation area
     this->particlesBuffer->addExchange( Mask( TOP + FRONT + RIGHT ) + Mask( TOP + BACK + RIGHT ) +
                                         Mask( BOTTOM + FRONT + RIGHT ) + Mask( BOTTOM + BACK + RIGHT ),
-                                        ExchangeMemCfg::BYTES_CORNER,
+                                        ExchangeMemCfg::BYTES_CORNER * memScalingFactorOther,
                                         commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_CORNER * 4u;
+    sizeOfExchanges += ExchangeMemCfg::BYTES_CORNER * 4u * memScalingFactorOther;
 
     this->particlesBuffer->addExchange( Mask( TOP + FRONT + LEFT ) + Mask( TOP + BACK + LEFT ) +
                                         Mask( BOTTOM + FRONT + LEFT ) + Mask( BOTTOM + BACK + LEFT ),
                                         ExchangeMemCfg::BYTES_CORNER,
                                         commTag);
-    sizeOfExchanges += ExchangeMemCfg::BYTES_CORNER * 4u;
+    sizeOfExchanges += ExchangeMemCfg::BYTES_CORNER * 4u * memScalingFactorOther;
 #endif
 
     /* The buffer size must be multiplied by two because PMacc generates a send
