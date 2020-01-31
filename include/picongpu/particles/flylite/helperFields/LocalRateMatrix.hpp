@@ -99,13 +99,13 @@ namespace helperFields
 
         /* implement ISimulationData members */
         void
-        synchronize()
+        synchronize() override
         {
             m_rateMatrix->deviceToHost( );
         }
 
         SimulationDataId
-        getUniqueId()
+        getUniqueId() override
         {
             return getName();
         }

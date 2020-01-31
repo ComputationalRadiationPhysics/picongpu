@@ -92,13 +92,13 @@ namespace helperFields
 
         /* implement ISimulationData members */
         void
-        synchronize()
+        synchronize() override
         {
             m_density->deviceToHost( );
         }
 
         SimulationDataId
-        getUniqueId()
+        getUniqueId() override
         {
             return getName();
         }

@@ -111,7 +111,7 @@ namespace picongpu
         HINLINE void syncToDevice( ) override;
 
         //! Synchronize host data with device data
-        HINLINE void synchronize( );
+        HINLINE void synchronize( ) override;
 
         /** Get id
          *
@@ -120,7 +120,7 @@ namespace picongpu
         HINLINE static SimulationDataId getUniqueId( uint32_t slotId );
 
         //! Get id
-        HINLINE SimulationDataId getUniqueId();
+        HINLINE SimulationDataId getUniqueId() override;
 
         //! Get unit of field components
         template< class FrameSolver >
