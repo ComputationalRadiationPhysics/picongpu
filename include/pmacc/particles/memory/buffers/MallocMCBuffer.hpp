@@ -42,7 +42,7 @@ namespace pmacc
 
         virtual ~MallocMCBuffer();
 
-        SimulationDataId getUniqueId()
+        SimulationDataId getUniqueId() override
         {
             return getName();
         }
@@ -57,7 +57,7 @@ namespace pmacc
             return hostBufferOffset;
         }
 
-        void synchronize();
+        void synchronize() override;
 
     private:
 

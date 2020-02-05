@@ -114,10 +114,10 @@ namespace picongpu
         }
 
         //! Synchronize host data with device data
-        HINLINE void synchronize();
+        HINLINE void synchronize() override;
 
         //! Get id
-        HINLINE SimulationDataId getUniqueId();
+        HINLINE SimulationDataId getUniqueId() override;
 
         //! Get units of field components
         HDINLINE static UnitValueType getUnit();

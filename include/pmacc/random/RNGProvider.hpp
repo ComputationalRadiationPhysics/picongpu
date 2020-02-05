@@ -104,8 +104,8 @@ namespace random
          * Returns the default id for this type
          */
         static std::string getName();
-        SimulationDataId getUniqueId();
-        void synchronize();
+        SimulationDataId getUniqueId() override;
+        void synchronize() override;
 
         /**
          * Return a reference to the buffer containing the states
