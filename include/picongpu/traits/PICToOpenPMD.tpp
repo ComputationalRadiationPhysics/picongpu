@@ -46,6 +46,18 @@ namespace traits
         }
     };
 
+    /** Translate the particleId (unitless, global) into the openPMD
+     *  id (unitless, global)
+     */
+    template<>
+    struct OpenPMDName<particleId>
+    {
+        std::string operator()() const
+        {
+            return std::string("id");
+        }
+    };
+
     /** Forward units that are identical in PIConGPU & openPMD
      */
     template<typename T_Identifier>
