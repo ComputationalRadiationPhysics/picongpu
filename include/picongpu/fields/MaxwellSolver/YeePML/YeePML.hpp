@@ -21,6 +21,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/fields/absorber/NumCells.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Parameters.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.kernel"
@@ -211,7 +212,7 @@ namespace maxwellSolver
                 Thickness globalThickness;
                 for( uint32_t axis = 0u; axis < simDim; axis++ )
                     for( auto direction = 0; direction < 2; direction++ )
-                        globalThickness( axis, direction ) = NUM_CELLS[ axis ][ direction ];
+                        globalThickness( axis, direction ) = absorber::numCells[ axis ][ direction ];
                 return globalThickness;
             }
 
