@@ -25,6 +25,7 @@
 #include "picongpu/fields/MaxwellSolver/YeePML/Parameters.hpp"
 #include "picongpu/fields/cellType/Yee.hpp"
 #include "picongpu/traits/FieldPosition.hpp"
+#include "picongpu/traits/IsFieldDomainBound.hpp"
 
 #include <pmacc/dataManagement/ISimulationData.hpp>
 #include <pmacc/fields/SimulationFieldHelper.hpp>
@@ -495,6 +496,24 @@ namespace traits
         FieldB,
         T_dim
     >
+    {
+    };
+
+    /** Field domain boundness trait for output and checkpointing:
+     *  PML fields are not domain-bound
+     */
+    template< >
+    struct IsFieldDomainBound< fields::maxwellSolver::yeePML::FieldE > :
+        std::false_type
+    {
+    };
+
+    /** Field domain boundness trait for output and checkpointing:
+     *  PML fields are not domain-bound
+     */
+    template< >
+    struct IsFieldDomainBound< fields::maxwellSolver::yeePML::FieldB > :
+        std::false_type
     {
     };
 
