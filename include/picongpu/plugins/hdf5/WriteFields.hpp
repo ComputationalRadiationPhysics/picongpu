@@ -1,5 +1,5 @@
 /* Copyright 2014-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -25,6 +25,7 @@
 #include "picongpu/fields/CellType.hpp"
 #include "picongpu/plugins/hdf5/HDF5Writer.def"
 #include "picongpu/plugins/hdf5/writer/Field.hpp"
+#include "picongpu/traits/IsFieldDomainBound.hpp"
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 
@@ -60,19 +61,20 @@ public:
 /**
  * Write calculated fields to HDF5 file.
  *
- * @tparam T field class
+ * @tparam T_Field field class
  */
-template< typename T >
+template< typename T_Field >
 class WriteFields
 {
 private:
-    typedef typename T::ValueType ValueType;
+
+    using ValueType = typename T_Field::ValueType;
 
     static std::vector<float_64> getUnit()
     {
-        typedef typename T::UnitValueType UnitType;
-        UnitType unit = T::getUnit();
-        return CreateUnit::createUnit(unit, T::numComponents);
+        using UnitType = typename T_Field::UnitValueType ;
+        UnitType unit = T_Field::getUnit();
+        return CreateUnit::createUnit(unit, T_Field::numComponents);
     }
 
 public:
@@ -82,14 +84,14 @@ public:
 #ifndef __CUDA_ARCH__
         DataConnector &dc = Environment<>::get().DataConnector();
 
-        auto field = dc.get< T >( T::getName() );
+        auto field = dc.get< T_Field >( T_Field::getName() );
         params->gridLayout = field->getGridLayout();
 
         // convert in a std::vector of std::vector format for writeField API
-        const traits::FieldPosition<fields::CellType, T> fieldPos;
+        const traits::FieldPosition<fields::CellType, T_Field> fieldPos;
 
         std::vector<std::vector<float_X> > inCellPosition;
-        for( uint32_t n = 0; n < T::numComponents; ++n )
+        for( uint32_t n = 0; n < T_Field::numComponents; ++n )
         {
             std::vector<float_X> inCellPositonComponent;
             for( uint32_t d = 0; d < simDim; ++d )
@@ -101,16 +103,20 @@ public:
          *        implementation */
         const float_X timeOffset = 0.0;
 
-        Field::writeField(params,
-                          T::getName(),
-                          getUnit(),
-                          T::getUnitDimension(),
-                          inCellPosition,
-                          timeOffset,
-                          field->getHostDataBox(),
-                          ValueType());
+        const bool isDomainBound = traits::IsFieldDomainBound< T_Field >::value;
+        Field::writeField(
+            params,
+            T_Field::getName(),
+            getUnit(),
+            T_Field::getUnitDimension(),
+            inCellPosition,
+            timeOffset,
+            field->getHostDataBox(),
+            ValueType(),
+            isDomainBound
+        );
 
-        dc.releaseData( T::getName() );
+        dc.releaseData( T_Field::getName() );
 #endif
     }
 
@@ -203,15 +209,19 @@ private:
         const float_X timeOffset = 0.0;
 
         params->gridLayout = fieldTmp->getGridLayout();
+        const bool isDomainBound = traits::IsFieldDomainBound< FieldTmp >::value;
         /*write data to HDF5 file*/
-        Field::writeField(params,
-                          getName(),
-                          getUnit(),
-                          FieldTmp::getUnitDimension<Solver>(),
-                          inCellPosition,
-                          timeOffset,
-                          fieldTmp->getHostDataBox(),
-                          ValueType());
+        Field::writeField(
+            params,
+            getName(),
+            getUnit(),
+            FieldTmp::getUnitDimension<Solver>(),
+            inCellPosition,
+            timeOffset,
+            fieldTmp->getHostDataBox(),
+            ValueType(),
+            isDomainBound
+        );
 
         dc.releaseData( FieldTmp::getUniqueId( 0 ) );
 
