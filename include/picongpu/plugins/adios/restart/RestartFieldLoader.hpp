@@ -1,5 +1,5 @@
 /* Copyright 2014-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera
- *                     Benjamin Worpitz
+ *                     Benjamin Worpitz, Sergei Bastrakov
  *
  * This file is part of PIConGPU.
  *
@@ -24,6 +24,7 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/plugins/adios/ADIOSWriter.def"
 #include "picongpu/plugins/misc/ComponentNames.hpp"
+#include "picongpu/traits/IsFieldDomainBound.hpp"
 
 #include <pmacc/particles/frame_types.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
@@ -53,7 +54,13 @@ class RestartFieldLoader
 {
 public:
     template<class Data>
-    static void loadField(Data& field, const uint32_t numComponents, std::string objectName, ThreadParams *params)
+    static void loadField(
+        Data& field,
+        const uint32_t numComponents,
+        std::string objectName,
+        ThreadParams *params,
+        const bool isDomainBound
+    )
     {
         log<picLog::INPUT_OUTPUT > ("Begin loading field '%1%'") % objectName;
 
@@ -66,8 +73,27 @@ public:
         field.getHostBuffer().setValue(ValueType::create(0.0));
 
         DataSpace<simDim> domain_offset = localDomain.offset;
-
         DataSpace<simDim> local_domain_size = params->window.localDimensions.size;
+        bool useLinearIdxAsDestination = false;
+
+        /* Patch for non-domain-bound fields
+        * This is an ugly fix to allow output of reduced 1d PML buffers,
+        * that are the same size on each domain.
+        * This code is to be replaced with the openPMD output plugin soon.
+        */
+        if( !isDomainBound )
+        {
+            auto const field_layout = params->gridLayout;
+            auto const field_no_guard = field_layout.getDataSpaceWithoutGuarding();
+            auto const elementCount = field_no_guard.productOfComponents();
+            auto const & gridController = Environment<simDim>::get().GridController();
+            auto const rank = gridController.getGlobalRank();
+            domain_offset = DataSpace<simDim>::create( 0 );
+            domain_offset[ 0 ] = rank * elementCount;
+            local_domain_size = DataSpace<simDim>::create( 1 );
+            local_domain_size[ 0 ] = elementCount;
+            useLinearIdxAsDestination = true;
+        }
 
         auto destBox = field.getHostBuffer().getDataBox();
         for (uint32_t n = 0; n < numComponents; ++n)
@@ -125,16 +151,23 @@ public:
             /* start a blocking read of all scheduled variables */
             ADIOS_CMD(adios_perform_reads( params->fp, 1 ));
 
-            int elementCount = params->window.localDimensions.size.productOfComponents();
+            int const elementCount = local_domain_size.productOfComponents();
 
             #pragma omp parallel for
             for (int linearId = 0; linearId < elementCount; ++linearId)
             {
-                /* calculate index inside the moving window domain which is located on the local grid*/
-                DataSpace<simDim> destIdx = DataSpaceOperations<simDim>::map(params->window.localDimensions.size, linearId);
-                /* jump over guard and local sliding window offset*/
-                destIdx += field_guard + params->localWindowToDomainOffset;
-
+                DataSpace<simDim> destIdx;
+                if( useLinearIdxAsDestination )
+                {
+                    destIdx[ 0 ] = linearId;
+                }
+                else
+                {
+                    /* calculate index inside the moving window domain which is located on the local grid*/
+                    destIdx = DataSpaceOperations<simDim>::map(params->window.localDimensions.size, linearId);
+                    /* jump over guard and local sliding window offset*/
+                    destIdx += field_guard + params->localWindowToDomainOffset;
+                }
                 destBox(destIdx)[n] = field_container[linearId];
             }
 
@@ -157,9 +190,9 @@ public:
 /**
  * Helper class for ADIOSWriter (forEach operator) to load a field from ADIOS
  *
- * @tparam FieldType field class to load
+ * @tparam T_Field field class to load
  */
-template< typename FieldType >
+template< typename T_Field >
 struct LoadFields
 {
 public:
@@ -171,16 +204,20 @@ public:
         ThreadParams *tp = params;
 
         /* load field without copying data to host */
-        auto field = dc.get< FieldType >( FieldType::getName(), true );
+        auto field = dc.get< T_Field >( T_Field::getName(), true );
+        tp->gridLayout = field->getGridLayout();
 
         /* load from ADIOS */
+        bool const isDomainBound = traits::IsFieldDomainBound< T_Field >::value;
         RestartFieldLoader::loadField(
-                field->getGridBuffer(),
-                (uint32_t)FieldType::numComponents,
-                FieldType::getName(),
-                tp);
+            field->getGridBuffer(),
+            (uint32_t)T_Field::numComponents,
+            T_Field::getName(),
+            tp,
+            isDomainBound
+        );
 
-        dc.releaseData(FieldType::getName());
+        dc.releaseData(T_Field::getName());
 #endif
     }
 
