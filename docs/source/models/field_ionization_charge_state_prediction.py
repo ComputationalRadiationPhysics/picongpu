@@ -6,10 +6,20 @@ Authors: Marco Garten
 License: GPLv3+
 """
 
+import sys
+import os
 import matplotlib as mpl
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as sc
+from importlib import import_module
+
+sys.path.insert(0, os.path.abspath('../../../lib/python/'))
+
+
+# import my own modules without having to write a 'noqa' comment because PEP8
+# requires all imports to be at the top of the file
+FI_module = import_module(name='.utils.field_ionization', package='picongpu')
 
 
 params = {
@@ -20,87 +30,30 @@ params = {
     'xtick.labelsize': 20,
     'ytick.labelsize': 20,
     # RTD default textwidth: 800px
-    'figure.figsize': [10, 16]
+    'figure.figsize': [10, 16],
+    'legend.title_fontsize': 10
 }
 mpl.rcParams.update(params)
 
-# dictionary of atomic units (AU) - values in SI units
-atomic_unit = {
-    'electric field': sc.m_e**2 * sc.e**5 / (
-        sc.hbar**4 * (4 * sc.pi * sc.epsilon_0)**3
-        ),
-    'intensity': sc.m_e**4 / (
-        8 * sc.pi * sc.alpha * sc.hbar**9
-        ) * sc.e**12 / (4 * sc.pi * sc.epsilon_0)**6,
-    'energy': sc.m_e * sc.e**4 / (
-        sc.hbar**2 * (4 * sc.pi * sc.epsilon_0)**2
-        ),
-    'time': sc.hbar**3 * (
-        4 * sc.pi * sc.epsilon_0
-        )**2 / sc.m_e / sc.e**4
-}
 
+def time_AU_to_SI(t_AU) -> float:
+    """Convert time from AU to SI.
 
-def F_crit(Z, E_Ip):
-    """Classical barrier suppression field strength.
+    :param t_AU: time in atomic units
 
-    :param Z: charge state of the resulting ion
-    :param E_Ip: ionization potential [unit: AU]
-
-    :returns: critical field strength [unit: AU]
+    :returns: time in SI units
     """
-    return E_Ip**2. / (4. * Z)
+    return t_AU * AU_T
 
 
-def n_eff(Z, E_Ip):
-    """Effective principal quantum number.
+def time_SI_to_AU(t_SI) -> float:
+    """Convert time from SI to AU.
 
-    :param Z: charge state of the resulting ion
-    :param E_Ip: ionization potential [unit: AU]
+    :param t_SI: time in SI units
 
-    :returns: effective principal quantum number
+    :returns: time in atomic units
     """
-    return Z / np.sqrt(2. * E_Ip)
-
-
-def ADKRate(Z, E_Ip, F):
-    """Ammosov-Delone-Krainov ionization rate.
-
-    A rate model, simplified by Stirling's approximation and setting the
-    magnetic quantum number m=0 like in publication [DeloneKrainov1998].
-
-    :param Z: charge state of the resulting ion
-    :param E_Ip: ionization potential [unit: AU]
-    :param F: field strength [unit: AU]
-    """
-    nEff = np.float64(n_eff(Z, E_Ip))
-    D = ((4. * Z**3.) / (F * nEff**4.))**nEff
-
-    rate = (np.sqrt((3. * nEff**3. * F) / (np.pi * Z**3.))
-            * (F * D**2.) / (8. * np.pi * Z)
-            * np.exp(-(2. * Z**3.) / (3. * nEff**3. * F)))
-
-    # set nan values due to near-zero field strengths to zero
-    rate = np.nan_to_num(rate)
-
-    return rate
-
-
-def convert_a0_to_Intensity(E_in_a0, lambda_laser=800.e-9):
-    """Convert electric field in a0 to intensity in SI.
-
-    :param E_in_a0: electric field [unit: a0]
-    :param lambda_laser: laser wavelength [unit: m]
-
-    :returns: intensity [unit: W/m²]
-    """
-    E_in_SI = E_in_a0 \
-        * sc.m_e * sc.c * 2. * sc.pi * sc.c \
-        / (lambda_laser * sc.e)
-
-    intensity = 0.5 * sc.c * sc.epsilon_0 * E_in_SI**2.
-
-    return intensity
+    return t_SI / AU_T
 
 
 if __name__ == "__main__":
@@ -109,12 +62,15 @@ if __name__ == "__main__":
     `field_ionization_charge_state_prediction.svg`
     for the PIConGPU documentation.
     """
+    # instantiate FieldIonization classobject
+    FI = FI_module.FieldIonization()
+    AU = FI.atomic_unit
 
     # atomic units
-    AU_E_eV = atomic_unit['energy'] / sc.electron_volt  # eV
-    AU_F = atomic_unit['electric field']  # V/m
-    AU_I = atomic_unit['intensity']  # W/m^2
-    AU_T = atomic_unit['time']  # s
+    AU_E_eV = AU['energy'] / sc.electron_volt  # eV
+    AU_F = AU['electric field']  # V/m
+    AU_I = AU['intensity']  # W/m^2
+    AU_T = AU['time']  # s
 
     # proton number: Neon
     Z_max = 10
@@ -138,6 +94,13 @@ if __name__ == "__main__":
     # convert ionization energies to atomic units
     i_pot_AU = ionization_energies_eV / AU_E_eV
 
+    # for population conversion
+    percent = 1e-2
+    # femtosecond: for time conversion
+    fs = 1e-15
+    # cm² in m²
+    cm2 = 1e-4
+
 # ============================================================================
 #   Create the electric field distribution for our example.
 # ============================================================================
@@ -146,11 +109,13 @@ if __name__ == "__main__":
     # maximum electric field in a0
     E_max_a0 = 10
     # maximum intensity
-    I_max = convert_a0_to_Intensity(E_in_a0=E_max_a0)  # W/m²
+    I_max = FI.convert_a0_to_Intensity(E_in_a0=E_max_a0)  # W/m²
 
     intensity_fwhm = 30.e-15  # s
     intensity_sigma = intensity_fwhm / (2. * np.sqrt(2. * np.log(2)))  # s
 
+    # the sampling resolution here determines how smooth the transitions
+    # in the Markov chain are
     t_res = 10000
     time = np.linspace(-200e-15, 200e-15, t_res)  # s
     intensity_envelope_SI = I_max * np.exp(- .5 * time**2 / intensity_sigma**2)
@@ -165,7 +130,7 @@ if __name__ == "__main__":
     rate_matrix = np.zeros([len(i_pot_AU), t_res])
 
     for i, cs in enumerate(Z):
-        rate_matrix[i, :] = ADKRate(cs, i_pot_AU[i], e_field_envelope_AU)
+        rate_matrix[i, :] = FI.ADKRate(cs, i_pot_AU[i], e_field_envelope_AU)
 
 
 # =============================================================================
@@ -208,7 +173,7 @@ if __name__ == "__main__":
 # =============================================================================
 #   Barrier suppression field strength calculation
 # =============================================================================
-    electric_field_BSI = F_crit(Z, i_pot_AU)
+    electric_field_BSI = FI.F_crit(Z, i_pot_AU)
 
     # find times when BSI fields are exceeded
     time_BSI = np.zeros([Z_max])
@@ -222,10 +187,11 @@ if __name__ == "__main__":
 #   population over time.
 # =============================================================================
     xlim = [-75, -0]
-    ylim_ax1 = [1e-10, 1e2]  # 1 / AU of time
-    ylim_ax2 = [0, 1]
-    ylim_ax3 = [1e13, 1e21]  # W/cm²
-    yfill_range = np.linspace(ylim_ax3[0], ylim_ax3[1], 100)
+    ylim_ax_rate = [1e-10, 1e3]  # 1 / AU of time
+    ylim_ax_pop = [0, 100]
+    ylim_ax_bsi = [0, 100]
+    ylim_ax_bsi_twin = [1e13, 1e21]  # W/cm²
+    yfill_range = np.linspace(ylim_ax_bsi[0], ylim_ax_bsi[1], 100)
 
     # customize the color scale
     color = plt.cm.rainbow(np.linspace(0, 1, Z_max + 1))[::-1]
@@ -233,79 +199,112 @@ if __name__ == "__main__":
     # creation of figure and axes
     fig = plt.figure()
 
-    ax1 = fig.add_subplot(311)
-    ax2 = fig.add_subplot(312, sharex=ax1)
-    ax3 = fig.add_subplot(313, sharex=ax1)
-
-    # plotting
-    ax1.axhline(y=1, ls="--", lw=1, c="k")
-    # plot intensity in W/cm²
-    ax3.plot(time * 1e15, intensity_envelope_SI / 1e4, c="k")
+    ax_rate = fig.add_subplot(312)
+    ax_pop = fig.add_subplot(311, sharex=ax_rate)
+    ax_bsi = fig.add_subplot(313, sharex=ax_rate)
 
     for i in np.arange(Z_max + 1):
         if i < Z_max:
-            ax1.plot(
-                time * 1e15, rate_matrix[i, :],
-                label="{}+ to {}+".format(
-                   Z[i] - 1, Z[i]), color=color[i]
-                )
-            ax3.axvline(
-                time_BSI[i] * 1e15,
+            ax_rate.plot(
+                time / fs, rate_matrix[i, :],
                 label="{}+ to {}+".format(
                     Z[i] - 1, Z[i]), color=color[i]
-                )
+            )
+            ax_bsi.axvline(
+                time_BSI[i] / fs,
+                label="{}+ to {}+".format(
+                    Z[i] - 1, Z[i]), color=color[i]
+            )
 
-        ax2.plot(
-            time * 1e15, charge_dist[i, :-1],
+        ax_pop.plot(
+            time / fs, charge_dist[i, :-1] / percent,
             label="{}+".format(i), color=color[i]
-            )
-        ax2.fill_between(
-            x=time * 1e15,
-            y1=0, y2=charge_dist[i, :-1],
+        )
+        ax_pop.fill_between(
+            x=time / fs,
+            y1=0, y2=charge_dist[i, :-1] / percent,
             color=color[i], alpha=.3
-            )
+        )
         # color the regions between charge state transitions in the BSI model
         if (i > 0 and i < Z_max):
-            ax3.fill_betweenx(y=yfill_range,
-                              x1=time_BSI[i - 1] * 1e15,
-                              x2=time_BSI[i] * 1e15,
-                              color=color[i],
-                              alpha=.3)
+            ax_bsi.fill_betweenx(
+                y=yfill_range,
+                x1=time_BSI[i - 1] / fs,
+                x2=time_BSI[i] / fs,
+                color=color[i],
+                alpha=.3
+            )
         # color the range between the earliest time and the first charge state
         # transition
         if (i == 0):
-            ax3.fill_betweenx(
+            ax_bsi.fill_betweenx(
                 y=yfill_range,
-                x1=time[0] * 1e15,
-                x2=time_BSI[i] * 1e15,
+                x1=time[0] / fs,
+                x2=time_BSI[i] / fs,
                 color=color[i],
-                alpha=.3)
+                alpha=.3
+            )
         # color the range between the last charge state transition and the
         # latest time
         if (i == Z_max):
-            ax3.fill_betweenx(y=yfill_range,
-                              x1=time_BSI[i - 1] * 1e15,
-                              x2=time[-1] * 1e15,
-                              color=color[i],
-                              alpha=.3)
+            ax_bsi.fill_betweenx(
+                y=yfill_range,
+                x1=time_BSI[i - 1] / fs,
+                x2=time[-1] / fs,
+                color=color[i],
+                alpha=.3
+            )
+
+    ax_bsi_twin = ax_bsi.twinx()
+    # plot intensity in W/cm²
+    ax_bsi_twin.plot(time / fs, intensity_envelope_SI / 1e4, c="k")
+
+    locs = np.array([0, 100])
+    labels = ["none", "all"]
+    ax_bsi.set_yticks(locs)
+    ax_bsi.set_yticklabels(labels)
+
+    # secondy y-axis for rate plot
+    secaxy_rate = ax_rate.secondary_yaxis(
+        'right',
+        functions=(time_SI_to_AU, time_AU_to_SI)
+    )
+    secaxy_rate.set_ylabel(r'ionizations per second')
 
     # set plot limits
-    ax1.set_xlim(xlim)
-    ax1.set_yscale("log")
-    ax1.set_ylim(ylim_ax1)
-    ax2.set_ylim(ylim_ax2)
-    ax3.set_yscale("log")
-    ax3.set_ylim(ylim_ax3)
+    ax_rate.set_xlim(xlim)
+    ax_rate.set_yscale("log")
+    ax_rate.set_ylim(ylim_ax_rate)
+    ax_pop.set_ylim(ylim_ax_pop)
+    ax_bsi.set_ylim(ylim_ax_bsi)
+    ax_bsi_twin.set_yscale("log")
+    ax_bsi_twin.set_ylim(ylim_ax_bsi_twin)
+
+    # note string for ADK rate plot note
+    note_string = "Note: ADK rates were calculated from the " \
+        + "intensity envelope below"
+    # note in ADK rate plot
+    ax_rate.text(
+        x=0.05,
+        y=0.9,
+        s=note_string,
+        fontsize=12,
+        transform=ax_rate.transAxes
+    )
 
     # labels
-    ax1.set_ylabel(r"Ionization Rate $\Gamma\,\mathrm{(AU^{-1})}$")
-    ax2.set_ylabel(r"Rel. Population")
-    ax3.set_ylabel(r"Intensity $I\,\mathrm{(W/cm^2)}$")
-    ax3.set_xlabel(r"Time $t-t_\mathrm{max}\,\mathrm{(fs)}$")
+    ax_rate.set_ylabel(r"ADK: Ionization Rate $\Gamma\,\mathrm{(AU^{-1})}$")
+    ax_pop.set_ylabel(r"ADK: Relative Population (%)")
+    ax_bsi_twin.set_ylabel(r"Laser Intensity $I\,\mathrm{(W/cm^2)}$")
+    ax_bsi.set_xlabel(r"Time $t-t_\mathrm{max}\,\mathrm{(fs)}$")
+    ax_bsi.set_ylabel(r"BSI: Relative Population (%)")
 
-    ax1.legend(loc="lower right", fancybox=True, borderpad=1)
-    ax2.legend(loc="lower right", fancybox=True, borderpad=1)
-    ax3.legend(loc="lower right", fancybox=True, borderpad=1)
+    ax_rate.legend(loc="lower right", fancybox=True, borderpad=1,
+                   title="charge state"+"\n"+"transition")
+    ax_pop.legend(loc="lower right", fancybox=True, borderpad=1,
+                  title="charge state")
+    ax_bsi.legend(loc="lower right", fancybox=True, borderpad=1,
+                  title="charge state"+"\n"+"transition")
 
     fig.align_labels()
     plt.tight_layout(pad=0.4)
