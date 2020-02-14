@@ -13,7 +13,7 @@ PIConGPU features an adaptable ionization framework for arbitrary and combinable
 .. note::
 
     Most of the calculations and formulae in this section of the docs are done in the **Atomic Units (AU)** system.
-    
+
 .. math::
 
     \hbar = \mathrm{e} = m_\mathrm{e} = 1
@@ -124,9 +124,10 @@ One would expect much earlier ionization of Hydrogen due to lower ionization ene
 Predicting Charge State Distributions
 -------------------------------------
 
-Especially for underdense targets it is possible to already give an estimate for how the laser pulse ionizes a certain target.
-Starting from an initially unionized state, calculating ionization rates for each charge state for a given electric field a Markovian approach of transition matrices yields the charge state population for each time.
+Especially for underdense targets, it is possible to already give an estimate for how the laser pulse ionizes a specific target.
+Starting from an initially unionized state, calculating ionization rates for each charge state for a given electric field a Markovian_ approach of transition matrices yields the charge state population for each time.
 
+.. _Markovian: https://en.wikipedia.org/wiki/Markov_chain
 .. plot:: models/field_ionization_charge_state_prediction.py
 
 References
@@ -154,7 +155,7 @@ References
         *Ionization in the field of a strong electromagnetic wave*,
         Soviet Physics JETP 20, 1307-1314 (1965),
         http://jetp.ac.ru/cgi-bin/dn/e_020_05_1307.pdf
-        
+
 .. [ClementiRaimondi1963]
         E. Clementi and D. Raimondi.
         *Atomic Screening Constant from SCF Functions*,
