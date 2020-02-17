@@ -176,7 +176,7 @@ if __name__ == "__main__":
 # =============================================================================
 #   Barrier suppression field strength calculation
 # =============================================================================
-    electric_field_BSI = FI.F_crit(Z, i_pot_AU)
+    electric_field_BSI = FI.F_crit_BSI(Z, i_pot_AU)
 
     # find times when BSI fields are exceeded
     time_BSI = np.zeros([Z_max])

@@ -34,8 +34,8 @@ class FieldIonization:
         )**2 / sc.m_e / sc.e**4
     }
 
-    def F_crit(self,
-               Z, E_Ip):
+    def F_crit_BSI(self,
+                   Z, E_Ip):
         """Classical barrier suppression field strength.
 
         :param Z: charge state of the resulting ion
@@ -45,9 +45,22 @@ class FieldIonization:
         """
         return E_Ip**2. / (4. * Z)
 
+    def F_crit_BSIStarkShifted(self,
+                               E_Ip):
+        """Barrier suppression field strength according to
+        Bauer 2010 - High Power Laser Matter Interaction, p. 276, Eq. (7.45).
+
+        :param E_Ip: ionization potential [unit: AU]
+
+        :returns: critical field strength [unit: AU]
+        """
+        return (np.sqrt(2.) - 1.) * E_Ip**(3./2.)
+
     def n_eff(self,
               Z, E_Ip):
         """Effective principal quantum number.
+
+        Belongs to the ADK rate model.
 
         :param Z: charge state of the resulting ion
         :param E_Ip: ionization potential [unit: AU]
@@ -68,6 +81,8 @@ class FieldIonization:
         :param F: field strength [unit: AU]
         :param polarization: laser polarization
                              ['linear' (default), 'circular']
+
+        :returns: ionization rate [unit: 1/AU(time)]
         """
         pol = polarization
         if pol not in ["linear", "circular"]:
@@ -89,6 +104,27 @@ class FieldIonization:
 
         # set nan values due to near-zero field strengths to zero
         rate = np.nan_to_num(rate)
+
+        return rate
+
+    def KeldyshRate(self,
+                    E_Ip, F):
+        """Keldysh model ionization rate.
+
+        :param E_Ip: ionization potential [unit: AU]
+        :param F: field strength [unit: AU]
+
+        :returns: ionization rate [unit: 1/AU(time)]
+        """
+
+
+        # characteristic exponential function argument
+        charExpArg = np.sqrt((2.*E_Ip)**3) / F
+
+        # ionization rate
+        rate = np.sqrt(6.*np.pi) / 2**(5./4.) \
+            * E_Ip * np.sqrt(1./charExpArg) \
+            * np.exp(-2./3. * charExpArg)
 
         return rate
 
