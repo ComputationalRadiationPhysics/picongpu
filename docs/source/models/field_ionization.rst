@@ -47,7 +47,7 @@ Overview: Implemented Models
     |                     | * ``ADKCircPol``            | * [DeloneKrainov]_        |
     +---------------------+-----------------------------+---------------------------+
     | Barrier Suppression | * ``BSI``                   | * [MulserBauer2010]_      |
-    |                     | * ``BSIEffectiveZ``         | * [ClementiRaimondi1963]_ |
+    |                     | * ``BSIEffectiveZ`` (R&D)   | * [ClementiRaimondi1963]_ |
     |                     |                             |   [ClementiRaimondi1967]_ |
     |                     | * ``BSIStarkShifted`` (R&D) | * [BauerMulser1999]_      |
     +---------------------+-----------------------------+---------------------------+
@@ -125,9 +125,13 @@ Predicting Charge State Distributions
 -------------------------------------
 
 Especially for underdense targets, it is possible to already give an estimate for how the laser pulse ionizes a specific target.
-Starting from an initially unionized state, calculating ionization rates for each charge state for a given electric field a Markovian_ approach of transition matrices yields the charge state population for each time.
+Starting from an initially unionized state, calculating ionization rates for each charge state for a given electric field via a Markovian_ approach of transition matrices yields the charge state population for each time.
 
 .. _Markovian: https://en.wikipedia.org/wiki/Markov_chain
+
+Here, we show an example of Neon gas ionized by a Gaussian laser pulse with maximum amplitude :math:`a_0 = 10` and pulse duration (FWHM intensity) of :math:`30\,\mathrm{fs}`.
+The figure shows the ionization rates and charge state population produced by the ``ADKLinPol`` model obtained from the pulse shape in the lower panel, as well as the step-like ionization produced by the ``BSI`` model.
+
 .. plot:: models/field_ionization_charge_state_prediction.py
 
 References

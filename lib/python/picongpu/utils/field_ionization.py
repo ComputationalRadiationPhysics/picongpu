@@ -57,7 +57,7 @@ class FieldIonization:
         return Z / np.sqrt(2. * E_Ip)
 
     def ADKRate(self,
-                Z, E_Ip, F):
+                Z, E_Ip, F, polarization="linear"):
         """Ammosov-Delone-Krainov ionization rate.
 
         A rate model, simplified by Stirling's approximation and setting the
@@ -66,13 +66,26 @@ class FieldIonization:
         :param Z: charge state of the resulting ion
         :param E_Ip: ionization potential [unit: AU]
         :param F: field strength [unit: AU]
+        :param polarization: laser polarization
+                             ['linear' (default), 'circular']
         """
+        pol = polarization
+        if pol not in ["linear", "circular"]:
+            raise NotImplementedError(
+                "Cannot interpret polarization='{}'.\n".format(pol) +
+                "So far, the only implemented options are: " +
+                "['linear', 'circular']"
+                )
+
         nEff = np.float64(self.n_eff(Z, E_Ip))
         D = ((4. * Z**3.) / (F * nEff**4.))**nEff
 
-        rate = (np.sqrt((3. * nEff**3. * F) / (np.pi * Z**3.))
-                * (F * D**2.) / (8. * np.pi * Z)
-                * np.exp(-(2. * Z**3.) / (3. * nEff**3. * F)))
+        rate = (F * D**2.) / (8. * np.pi * Z) \
+            * np.exp(-(2. * Z**3.) / (3. * nEff**3. * F))
+
+        if pol == 'linear':
+            rate = rate \
+                * np.sqrt((3. * nEff**3. * F) / (np.pi * Z**3.))
 
         # set nan values due to near-zero field strengths to zero
         rate = np.nan_to_num(rate)
