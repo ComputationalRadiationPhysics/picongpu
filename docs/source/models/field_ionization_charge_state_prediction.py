@@ -14,7 +14,10 @@ import numpy as np
 import scipy.constants as sc
 from importlib import import_module
 
-sys.path.insert(0, os.path.abspath('../../../lib/python/'))
+picongpu_package_path = os.path.abspath('../../../lib/python/')
+
+if picongpu_package_path not in sys.path:
+    sys.path.insert(0, picongpu_package_path)
 
 
 # import my own modules without having to write a 'noqa' comment because PEP8
