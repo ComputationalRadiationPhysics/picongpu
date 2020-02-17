@@ -134,6 +134,35 @@ The figure shows the ionization rates and charge state population produced by th
 
 .. plot:: models/field_ionization_charge_state_prediction.py
 
+You can test the implemented ionization models yourself with the corresponding module shipped in ``picongpu/lib/python``.
+
+.. code:: python
+
+    import numpy as np
+    import scipy.constants as sc
+    from picongpu.utils import FieldIonization
+
+    # instantiate class object that contains functions for
+    #   - ionization rates
+    #   - critical field strengths (BSI models)
+    #   - laser intensity conversion
+    FI = FieldIonization()
+
+    # dictionary with atomic units
+    AU = FI.atomic_unit
+
+    # residual charge state AFTER ionization
+    Z_H = 1
+    # hydrogen ionization energy (13.6 eV) converted to atomic units
+    E_H_AU = 13.6 * sc.electron_volt / AU['energy']
+    # output: 0.50
+    print("%.2f" % (E_H_AU))
+    # barrier suppression threshold field strength
+    F_BSI_H = FI.F_crit_BSI(Z=Z_H, E_Ip=E_H_AU)
+    # output: 3.21e+10 V/m
+    print("%.2e V/m" % (F_BSI_H * AU['electric field']))
+
+
 References
 ----------
 .. [DeloneKrainov]
