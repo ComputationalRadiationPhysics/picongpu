@@ -47,7 +47,7 @@ class FieldIonization:
 
     def F_crit_BSIStarkShifted(self,
                                E_Ip):
-        """Barrier suppression field strength according to
+        """Barrier suppression field strength according to \
         Bauer 2010 - High Power Laser Matter Interaction, p. 276, Eq. (7.45).
 
         :param E_Ip: ionization potential [unit: AU]
@@ -116,8 +116,6 @@ class FieldIonization:
 
         :returns: ionization rate [unit: 1/AU(time)]
         """
-
-
         # characteristic exponential function argument
         charExpArg = np.sqrt((2.*E_Ip)**3) / F
 
@@ -135,7 +133,7 @@ class FieldIonization:
         :param E_in_a0: electric field [unit: a0]
         :param lambda_laser: laser wavelength [unit: m]
 
-        :returns: intensity [unit: W/m²]
+        :returns: intensity [unit: W/m^2]
         """
         E_in_SI = E_in_a0 \
             * sc.m_e * sc.c * 2. * sc.pi * sc.c \

@@ -39,7 +39,7 @@ params = {
 mpl.rcParams.update(params)
 
 
-def time_AU_to_SI(t_AU) -> float:
+def time_AU_to_SI(t_AU):
     """Convert time from AU to SI.
 
     :param t_AU: time in atomic units
@@ -49,7 +49,7 @@ def time_AU_to_SI(t_AU) -> float:
     return t_AU * AU_T
 
 
-def time_SI_to_AU(t_SI) -> float:
+def time_SI_to_AU(t_SI):
     """Convert time from SI to AU.
 
     :param t_SI: time in SI units
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     percent = 1e-2
     # femtosecond: for time conversion
     fs = 1e-15
-    # cm² in m²
+    # cm^2 in m^2
     cm2 = 1e-4
 
 # ============================================================================
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     # maximum electric field in a0
     E_max_a0 = 10
     # maximum intensity
-    I_max = FI.convert_a0_to_Intensity(E_in_a0=E_max_a0)  # W/m²
+    I_max = FI.convert_a0_to_Intensity(E_in_a0=E_max_a0)  # W/m^2
 
     intensity_fwhm = 30.e-15  # s
     intensity_sigma = intensity_fwhm / (2. * np.sqrt(2. * np.log(2)))  # s
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     ylim_ax_rate = [1e-10, 1e3]  # 1 / AU of time
     ylim_ax_pop = [0, 100]
     ylim_ax_bsi = [0, 100]
-    ylim_ax_bsi_twin = [1e13, 1e21]  # W/cm²
+    ylim_ax_bsi_twin = [1e13, 1e21]  # W/cm^2
     yfill_range = np.linspace(ylim_ax_bsi[0], ylim_ax_bsi[1], 100)
 
     # customize the color scale
@@ -259,7 +259,7 @@ if __name__ == "__main__":
             )
 
     ax_bsi_twin = ax_bsi.twinx()
-    # plot intensity in W/cm²
+    # plot intensity in W/cm^2
     ax_bsi_twin.plot(time / fs, intensity_envelope_SI / 1e4, c="k")
 
     locs = np.array([0, 100])
