@@ -89,6 +89,7 @@
  *
  * @{
  */
+<<<<<<< HEAD
 #define atomicAdd(...) cupla::atomicAdd(acc, __VA_ARGS__)
 #define atomicSub(...) cupla::atomicSub(acc, __VA_ARGS__)
 #define atomicMin(...) cupla::atomicMin(acc, __VA_ARGS__)
@@ -100,6 +101,19 @@
 #define atomicAnd(...) cupla::atomicAnd(acc, __VA_ARGS__)
 #define atomicXor(...) cupla::atomicXor(acc, __VA_ARGS__)
 #define atomicOr(...) cupla::atomicOr(acc, __VA_ARGS__)
+=======
+#define atomicAdd(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc, __VA_ARGS__)
+#define atomicSub(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Sub>(acc, __VA_ARGS__)
+#define atomicMin(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Min>(acc, __VA_ARGS__)
+#define atomicMax(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Max>(acc, __VA_ARGS__)
+#define atomicInc(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Inc>(acc, __VA_ARGS__)
+#define atomicDec(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Dec>(acc, __VA_ARGS__)
+#define atomicExch(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Exch>(acc, __VA_ARGS__)
+#define atomicCAS(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Cas>(acc, __VA_ARGS__)
+#define atomicAnd(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::And>(acc, __VA_ARGS__)
+#define atomicXor(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Xor>(acc, __VA_ARGS__)
+#define atomicOr(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Or>(acc, __VA_ARGS__)
+>>>>>>> Squashed 'thirdParty/cupla/' changes from 0594a68a0d..f60a0ac72c
 /** @} */
 
 #define uint3 ::cupla::uint3

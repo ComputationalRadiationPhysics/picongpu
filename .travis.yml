@@ -32,12 +32,26 @@ install:
   #############################################################################
   # PMacc CPU-only dependencies                                               #
   #############################################################################
+<<<<<<< HEAD
   - SPACK_FOUND=$(which spack >/dev/null && { echo 0; } || { echo 1; })
   - if [ $SPACK_FOUND -ne 0 ]; then
       mkdir -p $SPACK_ROOT &&
       git clone --depth 50 https://github.com/spack/spack.git $SPACK_ROOT &&
       echo -e "config:""\n  build_jobs:"" 2" > $SPACK_ROOT/etc/spack/config.yaml &&
       echo -e "packages:""\n  cmake:""\n    version:"" [3.11.4]""\n    paths:""\n      cmake@3.11.4:"" /home/travis/.cache/cmake-3.11.4""\n    buildable:"" False" > $SPACK_ROOT/etc/spack/packages.yaml;
+=======
+  - export PATH=$CMAKE_ROOT/bin:$PATH
+  - CMAKE_3_11_4_FOUND=$(cmake --version | grep " 3\.11\.4" >/dev/null && { echo 0; } || { echo 1; })
+  - if [ $CMAKE_3_11_4_FOUND -ne 0 ]; then
+      mkdir -p $CMAKE_ROOT &&
+      cd $CMAKE_ROOT &&
+      rm -rf $CMAKE_ROOT/* &&
+      travis_retry wget --no-check-certificate http://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.tar.gz &&
+      tar -xzf cmake-3.11.4-Linux-x86_64.tar.gz &&
+      mv cmake-3.11.4-Linux-x86_64/* . &&
+      rm -rf cmake-3.11.4-Linux-x86_64.tar.gz cmake-3.11.4-Linux-x86_64 &&
+      cd -;
+>>>>>>> Squashed 'thirdParty/cupla/' changes from 0594a68a0d..f60a0ac72c
     fi
   - spack compiler add
   # required dependencies - CMake 3.11.4
@@ -69,6 +83,7 @@ install:
   - spack load cmake
   - spack load boost $COMPILERSPEC
 
+<<<<<<< HEAD
 jobs:
   fast_finish: true
   include:
@@ -178,3 +193,63 @@ jobs:
         - export CXX=clang++
         - export CC=clang
         - export FC=gfortran-4.9
+=======
+script:
+  #############################################################################
+  # Example: Matrix Multiplication (adapted original)                         #
+  #############################################################################
+  - cd $HOME/matrixMul
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/matrixMul/ $CMAKE_FLAGS
+  - make
+  # can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original
+  #   SDK example
+  # CPU_B_SEQ_T_OMP2/THREADS: too many threads necessary (256)
+  # - ./matrixMul -wA=64 -wB=64 -hA=64 -hB=64
+  #############################################################################
+  # Example: Async API (adapted original)                                     #
+  #############################################################################
+  - cd $HOME/asyncAPI
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/asyncAPI/ $CMAKE_FLAGS
+  - make
+  # can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original
+  #   SDK example
+  # CPU_B_SEQ_T_OMP2/THREADS: too many threads necessary (512)
+  # - ./asyncAPI
+  #############################################################################
+  # Example: Async API (added elements layer)                                 #
+  #############################################################################
+  - cd $HOME/asyncAPI_tuned
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/asyncAPI_tuned/ $CMAKE_FLAGS
+  - make
+  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
+       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
+      ./asyncAPI_tuned;
+    fi
+  #############################################################################
+  # Example: vectorAdd (added elements layer)                                 #
+  #############################################################################
+  - cd $HOME/vectorAdd
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/vectorAdd/ $CMAKE_FLAGS
+  - make
+  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
+       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
+      ./vectorAdd 100000;
+    fi
+  #############################################################################
+  # Example: BlackScholes (adapted original)                                 #
+  #############################################################################
+  - cd $HOME/blackScholes
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/blackScholes/ $CMAKE_FLAGS
+  - make
+  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
+       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
+      ./blackScholes;
+    fi
+  #############################################################################
+  # Test: additional tests                                                    #
+  #############################################################################
+  - cd $HOME/test/config
+  - if [[ $CXX =~ "^g\+\+" ]] || [[ "$COMPILER" == "nvcc" ]] ; then
+      $TRAVIS_BUILD_DIR/test/system/config/test.sh $CXX;
+    fi
+>>>>>>> Squashed 'thirdParty/cupla/' changes from 0594a68a0d..f60a0ac72c
