@@ -99,7 +99,7 @@ namespace alpaka
 
         //#############################################################################
         //! The HIP RT device event.
-        class EventHipRt final
+        class EventHipRt final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, EventHipRt>
         {
         public:
             //-----------------------------------------------------------------------------

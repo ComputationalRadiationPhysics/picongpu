@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <type_traits>
 
@@ -25,6 +24,8 @@ namespace alpaka
         //! The block synchronization specifics.
         namespace sync
         {
+            struct ConceptBlockSync;
+
             //-----------------------------------------------------------------------------
             //! The block synchronization traits.
             namespace traits
@@ -57,38 +58,11 @@ namespace alpaka
                 TBlockSync const & blockSync)
             -> void
             {
+                using ImplementationBase = concepts::ImplementationBase<ConceptBlockSync, TBlockSync>;
                 traits::SyncBlockThreads<
-                    TBlockSync>
+                    ImplementationBase>
                 ::syncBlockThreads(
                     blockSync);
-            }
-
-            namespace traits
-            {
-                //#############################################################################
-                //! The AllocVar trait specialization for classes with BlockSyncBase member type.
-                template<
-                    typename TBlockSync>
-                struct SyncBlockThreads<
-                    TBlockSync,
-                    typename std::enable_if<
-                        meta::IsStrictBase<
-                            typename TBlockSync::BlockSyncBase,
-                            TBlockSync
-                        >::value
-                    >::type>
-                {
-                    //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_ACC static auto syncBlockThreads(
-                        TBlockSync const & blockSync)
-                    -> void
-                    {
-                        // Delegate the call to the base class.
-                        block::sync::syncBlockThreads(
-                            static_cast<typename TBlockSync::BlockSyncBase const &>(blockSync));
-                    }
-                };
             }
 
             //-----------------------------------------------------------------------------
@@ -166,47 +140,14 @@ namespace alpaka
                 int predicate)
             -> int
             {
+                using ImplementationBase = concepts::ImplementationBase<ConceptBlockSync, TBlockSync>;
                 return
                     traits::SyncBlockThreadsPredicate<
                         TOp,
-                        TBlockSync>
+                        ImplementationBase>
                     ::syncBlockThreadsPredicate(
                         blockSync,
                         predicate);
-            }
-
-            namespace traits
-            {
-                //#############################################################################
-                //! The AllocVar trait specialization for classes with BlockSyncBase member type.
-                template<
-                    typename TOp,
-                    typename TBlockSync>
-                struct SyncBlockThreadsPredicate<
-                    TOp,
-                    TBlockSync,
-                    typename std::enable_if<
-                        meta::IsStrictBase<
-                            typename TBlockSync::BlockSyncBase,
-                            TBlockSync
-                        >::value
-                    >::type>
-                {
-                    //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_ACC static auto syncBlockThreadsPredicate(
-                        TBlockSync const & blockSync,
-                        int predicate)
-                    -> int
-                    {
-                        // Delegate the call to the base class.
-                        return
-                            block::sync::syncBlockThreadsPredicate<
-                                TOp>(
-                                    static_cast<typename TBlockSync::BlockSyncBase const &>(blockSync),
-                                    predicate);
-                    }
-                };
             }
         }
     }

@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathRemainder;
+
         namespace traits
         {
             //#############################################################################
@@ -54,7 +55,7 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Remainder<
-                T,
+                concepts::ImplementationBase<ConceptMathRemainder, T>,
                 Tx,
                 Ty>
             ::remainder(
@@ -63,58 +64,16 @@ namespace alpaka
                 y))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathRemainder, T>;
             return
                 traits::Remainder<
-                    T,
+                    ImplementationBase,
                     Tx,
                     Ty>
                 ::remainder(
                     remainder_ctx,
                     x,
                     y);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Remainder specialization for classes with RemainderBase member type.
-            template<
-                typename T,
-                typename Tx,
-                typename Ty>
-            struct Remainder<
-                T,
-                Tx,
-                Ty,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::RemainderBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto remainder(
-                    T const & remainder_ctx,
-                    Tx const & x,
-                    Ty const & y)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::remainder(
-                        static_cast<typename T::RemainderBase const &>(remainder_ctx),
-                        x,
-                        y))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::remainder(
-                            static_cast<typename T::RemainderBase const &>(remainder_ctx),
-                            x,
-                            y);
-                }
-            };
         }
     }
 }

@@ -12,6 +12,7 @@
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
 
 #include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #if !BOOST_LANG_HIP
     #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
@@ -32,7 +33,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The HIP RT device manager.
-        class PltfHipRt
+        class PltfHipRt :
+            public concepts::Implements<ConceptPltf, PltfHipRt>
         {
         public:
             //-----------------------------------------------------------------------------

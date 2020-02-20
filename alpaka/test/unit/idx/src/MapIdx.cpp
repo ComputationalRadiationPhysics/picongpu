@@ -36,26 +36,18 @@ struct CreateExtentVal
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "mapIdx", "[idx]", alpaka::test::dim::TestDims)
 {
-template< typename TDim >
-void operator()()
-{
+    using Dim = TestType;
     using Idx = std::size_t;
-    using Vec = alpaka::vec::Vec<TDim, Idx>;
+    using Vec = alpaka::vec::Vec<Dim, Idx>;
 
-    auto const extentNd(alpaka::vec::createVecFromIndexedFnWorkaround<TDim, Idx, CreateExtentVal>(Idx()));
+    auto const extentNd(alpaka::vec::createVecFromIndexedFnWorkaround<Dim, Idx, CreateExtentVal>(Idx()));
     auto const idxNd(extentNd - Vec::all(4u));
 
     auto const idx1d(alpaka::idx::mapIdx<1u>(idxNd, extentNd));
 
-    auto const idxNdResult(alpaka::idx::mapIdx<TDim::value>(idx1d, extentNd));
+    auto const idxNdResult(alpaka::idx::mapIdx<Dim::value>(idx1d, extentNd));
 
     REQUIRE(idxNd == idxNdResult);
-}
-};
-
-TEST_CASE( "mapIdx", "[idx]")
-{
-    alpaka::meta::forEachType< alpaka::test::dim::TestDims >( TestTemplate() );
 }

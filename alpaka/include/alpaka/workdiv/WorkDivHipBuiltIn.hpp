@@ -36,11 +36,9 @@ namespace alpaka
         template<
             typename TDim,
             typename TIdx>
-        class WorkDivHipBuiltIn
+        class WorkDivHipBuiltIn : public concepts::Implements<ConceptWorkDiv, WorkDivHipBuiltIn<TDim, TIdx>>
         {
         public:
-            using WorkDivBase = WorkDivHipBuiltIn;
-
             //-----------------------------------------------------------------------------
             //! Default constructor.
             __device__ WorkDivHipBuiltIn(

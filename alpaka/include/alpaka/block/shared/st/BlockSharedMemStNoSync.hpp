@@ -29,11 +29,9 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The block shared memory allocator without synchronization.
-                class BlockSharedMemStNoSync
+                class BlockSharedMemStNoSync : public concepts::Implements<ConceptBlockSharedSt, BlockSharedMemStNoSync>
                 {
                 public:
-                    using BlockSharedMemStBase = BlockSharedMemStNoSync;
-
                     //-----------------------------------------------------------------------------
                     BlockSharedMemStNoSync() = default;
                     //-----------------------------------------------------------------------------

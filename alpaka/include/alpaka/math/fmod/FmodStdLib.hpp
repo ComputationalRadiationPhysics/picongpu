@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library fmod.
-        class FmodStdLib
+        class FmodStdLib : public concepts::Implements<ConceptMathFmod, FmodStdLib>
         {
-        public:
-            using FmodBase = FmodStdLib;
         };
 
         namespace traits

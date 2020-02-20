@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <type_traits>
 
@@ -29,6 +28,8 @@ namespace alpaka
             //! The block shared dynamic memory operation specifics.
             namespace dyn
             {
+                struct ConceptBlockSharedDyn;
+
                 //-----------------------------------------------------------------------------
                 //! The block shared dynamic memory operation traits.
                 namespace traits
@@ -56,43 +57,13 @@ namespace alpaka
                     TBlockSharedMemDyn const & blockSharedMemDyn)
                 -> T *
                 {
+                    using ImplementationBase = concepts::ImplementationBase<ConceptBlockSharedDyn, TBlockSharedMemDyn>;
                     return
                         traits::GetMem<
                             T,
-                            TBlockSharedMemDyn>
+                            ImplementationBase>
                         ::getMem(
                             blockSharedMemDyn);
-                }
-
-                namespace traits
-                {
-                    //#############################################################################
-                    //! The AllocVar trait specialization for classes with BlockSharedMemDynBase member type.
-                    template<
-                        typename T,
-                        typename TBlockSharedMemDyn>
-                    struct GetMem<
-                        T,
-                        TBlockSharedMemDyn,
-                        typename std::enable_if<
-                            meta::IsStrictBase<
-                                typename TBlockSharedMemDyn::BlockSharedMemDynBase,
-                                TBlockSharedMemDyn
-                            >::value
-                        >::type>
-                    {
-                        //-----------------------------------------------------------------------------
-                        ALPAKA_FN_ACC static auto getMem(
-                            TBlockSharedMemDyn const & blockSharedMemDyn)
-                        -> T *
-                        {
-                            // Delegate the call to the base class.
-                            return
-                                block::shared::dyn::getMem<
-                                    T>(
-                                        static_cast<typename TBlockSharedMemDyn::BlockSharedMemDynBase const &>(blockSharedMemDyn));
-                        }
-                    };
                 }
             }
         }

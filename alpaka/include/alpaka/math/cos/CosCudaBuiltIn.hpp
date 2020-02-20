@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in cos.
-        class CosCudaBuiltIn
+        class CosCudaBuiltIn : public concepts::Implements<ConceptMathCos, CosCudaBuiltIn>
         {
-        public:
-            using CosBase = CosCudaBuiltIn;
         };
 
         namespace traits

@@ -111,7 +111,7 @@ cuplaEventElapsedTime(
         cupla::AccDev,
         cupla::AccStream
     >::get().event( end );
-    *ms = eventEnd.elapsedSince(eventStart);
+    *ms = static_cast< float >( eventEnd.elapsedSince( eventStart ) );
     return cuplaSuccess;
 }
 

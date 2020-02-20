@@ -30,10 +30,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in max.
-        class MaxCudaBuiltIn
+        class MaxCudaBuiltIn : public concepts::Implements<ConceptMathMax, MaxCudaBuiltIn>
         {
-        public:
-            using MaxBase = MaxCudaBuiltIn;
         };
 
         namespace traits

@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -23,6 +22,8 @@ namespace alpaka
     //! The random number generation specifics.
     namespace rand
     {
+        struct ConceptRand;
+
         //-----------------------------------------------------------------------------
         //! The random number generator distribution specifics.
         namespace distribution
@@ -67,7 +68,7 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
             -> decltype(
                 traits::CreateNormalReal<
-                    TRand,
+                    concepts::ImplementationBase<ConceptRand, TRand>,
                     T>
                 ::createNormalReal(
                     rand))
@@ -77,9 +78,10 @@ namespace alpaka
                     std::is_floating_point<T>::value,
                     "The value type T has to be a floating point type!");
 
+                using ImplementationBase = concepts::ImplementationBase<ConceptRand, TRand>;
                 return
                     traits::CreateNormalReal<
-                        TRand,
+                        ImplementationBase,
                         T>
                     ::createNormalReal(
                         rand);
@@ -95,7 +97,7 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
             -> decltype(
                 traits::CreateUniformReal<
-                    TRand,
+                    concepts::ImplementationBase<ConceptRand, TRand>,
                     T>
                 ::createUniformReal(
                     rand))
@@ -105,9 +107,10 @@ namespace alpaka
                     std::is_floating_point<T>::value,
                     "The value type T has to be a floating point type!");
 
+                using ImplementationBase = concepts::ImplementationBase<ConceptRand, TRand>;
                 return
                     traits::CreateUniformReal<
-                        TRand,
+                        ImplementationBase,
                         T>
                     ::createUniformReal(
                         rand);
@@ -123,7 +126,7 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
             -> decltype(
                 traits::CreateUniformUint<
-                    TRand,
+                    concepts::ImplementationBase<ConceptRand, TRand>,
                     T>
                 ::createUniformUint(
                     rand))
@@ -133,101 +136,16 @@ namespace alpaka
                     std::is_integral<T>::value && std::is_unsigned<T>::value,
                     "The value type T has to be a unsigned integral type!");
 
+                using ImplementationBase = concepts::ImplementationBase<ConceptRand, TRand>;
                 return
                     traits::CreateUniformUint<
-                        TRand,
+                        ImplementationBase,
                         T>
                     ::createUniformUint(
                         rand);
             }
-            namespace traits
-            {
-                //#############################################################################
-                //! The CreateNormalReal specialization for classes with RandBase member type.
-                template<
-                    typename TRand,
-                    typename T>
-                struct CreateNormalReal<
-                    TRand,
-                    T,
-                    typename std::enable_if<
-                        std::is_base_of<typename TRand::RandBase, typename std::decay<TRand>::type>::value
-                        && (!std::is_same<typename TRand::RandBase, typename std::decay<TRand>::type>::value)>::type>
-                {
-                    //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto createNormalReal(
-                        TRand const & rand)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                    -> decltype(
-                        rand::distribution::createNormalReal<T>(
-                            static_cast<typename TRand::RandBase const &>(rand)))
-#endif
-                    {
-                        // Delegate the call to the base class.
-                        return
-                            rand::distribution::createNormalReal<T>(
-                                static_cast<typename TRand::RandBase const &>(rand));
-                    }
-                };
-                //#############################################################################
-                //! The CreateUniformReal specialization for classes with RandBase member type.
-                template<
-                    typename TRand,
-                    typename T>
-                struct CreateUniformReal<
-                    TRand,
-                    T,
-                    typename std::enable_if<
-                        std::is_base_of<typename TRand::RandBase, typename std::decay<TRand>::type>::value
-                        && (!std::is_same<typename TRand::RandBase, typename std::decay<TRand>::type>::value)>::type>
-                {
-                    //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto createUniformReal(
-                        TRand const & rand)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                    -> decltype(
-                        rand::distribution::createUniformReal<T>(
-                            static_cast<typename TRand::RandBase const &>(rand)))
-#endif
-                    {
-                        // Delegate the call to the base class.
-                        return
-                            rand::distribution::createUniformReal<T>(
-                                static_cast<typename TRand::RandBase const &>(rand));
-                    }
-                };
-                //#############################################################################
-                //! The CreateUniformUint specialization for classes with RandBase member type.
-                template<
-                    typename TRand,
-                    typename T>
-                struct CreateUniformUint<
-                    TRand,
-                    T,
-                    typename std::enable_if<
-                        std::is_base_of<typename TRand::RandBase, typename std::decay<TRand>::type>::value
-                        && (!std::is_same<typename TRand::RandBase, typename std::decay<TRand>::type>::value)>::type>
-                {
-                    //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto createUniformUint(
-                        TRand const & rand)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                    -> decltype(
-                        rand::distribution::createUniformUint<T>(
-                            static_cast<typename TRand::RandBase const &>(rand)))
-#endif
-                    {
-                        // Delegate the call to the base class.
-                        return
-                            rand::distribution::createUniformUint<T>(
-                                static_cast<typename TRand::RandBase const &>(rand));
-                    }
-                };
-            }
         }
+
         //-----------------------------------------------------------------------------
         //! The random number generator specifics.
         namespace generator
@@ -255,58 +173,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
             -> decltype(
                 traits::CreateDefault<
-                    TRand>
+                    concepts::ImplementationBase<ConceptRand, TRand>>
                 ::createDefault(
                     rand,
                     seed,
                     subsequence))
 #endif
             {
+                using ImplementationBase = concepts::ImplementationBase<ConceptRand, TRand>;
                 return
                     traits::CreateDefault<
-                        TRand>
+                        ImplementationBase>
                     ::createDefault(
                         rand,
                         seed,
                         subsequence);
-            }
-            namespace traits
-            {
-                //#############################################################################
-                //! The CreateDefault specialization for classes with RandBase member type.
-                template<
-                    typename TRand>
-                struct CreateDefault<
-                    TRand,
-                    typename std::enable_if<
-                        meta::IsStrictBase<
-                            typename TRand::RandBase,
-                            TRand
-                        >::value
-                    >::type>
-                {
-                    //-----------------------------------------------------------------------------
-                    ALPAKA_NO_HOST_ACC_WARNING
-                    ALPAKA_FN_HOST_ACC static auto createDefault(
-                        TRand const & rand,
-                        std::uint32_t const & seed,
-                        std::uint32_t const & subsequence)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                    -> decltype(
-                        rand::generator::createDefault(
-                            static_cast<typename TRand::RandBase const &>(rand),
-                            seed,
-                            subsequence))
-#endif
-                    {
-                        // Delegate the call to the base class.
-                        return
-                            rand::generator::createDefault(
-                                static_cast<typename TRand::RandBase const &>(rand),
-                                seed,
-                                subsequence);
-                    }
-                };
             }
         }
     }

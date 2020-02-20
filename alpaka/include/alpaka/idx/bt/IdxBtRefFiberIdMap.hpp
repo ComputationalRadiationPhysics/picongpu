@@ -14,6 +14,7 @@
 #include <alpaka/idx/Traits.hpp>
 
 #include <alpaka/core/Assert.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Fibers.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unused.hpp>
@@ -32,11 +33,9 @@ namespace alpaka
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxBtRefFiberIdMap
+            class IdxBtRefFiberIdMap : public concepts::Implements<ConceptIdxBt, IdxBtRefFiberIdMap<TDim, TIdx>>
             {
             public:
-                using IdxBtBase = IdxBtRefFiberIdMap;
-
                 using FiberIdToIdxMap = std::map<boost::fibers::fiber::id, vec::Vec<TDim, TIdx>>;
 
                 //-----------------------------------------------------------------------------

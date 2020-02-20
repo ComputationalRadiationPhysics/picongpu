@@ -130,21 +130,50 @@ struct FillBufferKernel
 auto main()
 -> int
 {
-// This example is hard-coded to use the sequential backend.
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
-
+// Fallback for the CI with disabled sequential backend
+#if defined(ALPAKA_CI) && !defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+    return EXIT_SUCCESS;
+#else
     // Define the index domain
     using Dim = alpaka::dim::DimInt<3u>;
     using Idx = std::size_t;
 
-    // Define the accelerator
+    // Define the device accelerator
+    //
+    // It is possible to choose from a set of accelerators
+    // that are defined in the alpaka::acc namespace e.g.:
+    // - AccGpuCudaRt
+    // - AccCpuThreads
+    // - AccCpuFibers
+    // - AccCpuOmp2Threads
+    // - AccCpuOmp2Blocks
+    // - AccCpuOmp4
+    // - AccCpuSerial
     using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
-    using DevQueue = alpaka::queue::QueueCpuBlocking;
+    // Defines the synchronization behavior of a queue
+    //
+    // choose between Blocking and NonBlocking
+    using AccQueueProperty = alpaka::queue::Blocking;
+    using DevQueue = alpaka::queue::Queue<Acc, AccQueueProperty>;
     using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
 
+    // Define the device accelerator
+    //
+    // It is possible to choose from a set of accelerators
+    // that are defined in the alpaka::acc namespace e.g.:
+    // - AccCpuThreads
+    // - AccCpuFibers
+    // - AccCpuOmp2Threads
+    // - AccCpuOmp2Blocks
+    // - AccCpuOmp4
+    // - AccCpuSerial
     using Host = alpaka::acc::AccCpuSerial<Dim, Idx>;
-    using HostQueue = alpaka::queue::QueueCpuBlocking;
+    // Defines the synchronization behavior of a queue
+    //
+    // choose between Blocking and NonBlocking
+    using HostQueueProperty = alpaka::queue::Blocking;
+    using HostQueue = alpaka::queue::Queue<Host, HostQueueProperty>;
     using DevHost = alpaka::dev::Dev<Host>;
     using PltfHost = alpaka::pltf::Pltf<DevHost>;
 
@@ -302,6 +331,7 @@ auto main()
         pDeviceBuffer1,                                 // 1st kernel argument
         extents,                                        // 2nd kernel argument
         deviceBuffer1Pitch);                            // 3rd kernel argument
+    alpaka::wait::wait(devQueue);
     std::cout << std::endl;
 
     alpaka::kernel::exec<Acc>(
@@ -311,6 +341,7 @@ auto main()
         pDeviceBuffer2,                                 // 1st kernel argument
         extents,                                        // 2nd kernel argument
         deviceBuffer2Pitch);                            // 3rd kernel argument
+    alpaka::wait::wait(devQueue);
     std::cout << std::endl;
 
     alpaka::kernel::exec<Host>(
@@ -320,6 +351,7 @@ auto main()
         pHostBuffer,                                    // 1st kernel argument
         extents,                                        // 2nd kernel argument
         hostBuffer1Pitch);                              // 3rd kernel argument
+    alpaka::wait::wait(hostQueue);
     std::cout << std::endl;
 
     alpaka::kernel::exec<Host>(
@@ -329,11 +361,9 @@ auto main()
         pHostViewPlainPtr,                              // 1st kernel argument
         extents,                                        // 2nd kernel argument
         hostViewPlainPtrPitch);                         // 3rd kernel argument
+    alpaka::wait::wait(hostQueue);
     std::cout << std::endl;
 
-    return EXIT_SUCCESS;
-
-#else
     return EXIT_SUCCESS;
 #endif
 }

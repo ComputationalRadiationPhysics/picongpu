@@ -29,11 +29,9 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The block shared dynamic memory allocator without synchronization.
-                class BlockSharedMemDynBoostAlignedAlloc
+                class BlockSharedMemDynBoostAlignedAlloc : public concepts::Implements<ConceptBlockSharedDyn, BlockSharedMemDynBoostAlignedAlloc>
                 {
                 public:
-                    using BlockSharedMemDynBase = BlockSharedMemDynBoostAlignedAlloc;
-
                     //-----------------------------------------------------------------------------
                     BlockSharedMemDynBoostAlignedAlloc(
                         std::size_t const & blockSharedMemDynSizeBytes)

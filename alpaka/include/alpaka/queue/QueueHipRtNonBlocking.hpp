@@ -23,6 +23,7 @@
 #include <alpaka/event/Traits.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/wait/Traits.hpp>
+#include <alpaka/meta/DependentFalseType.hpp>
 
 #include <alpaka/core/Hip.hpp>
 
@@ -116,7 +117,7 @@ namespace alpaka
 
         //#############################################################################
         //! The HIP RT non-blocking queue.
-        class QueueHipRtNonBlocking final
+        class QueueHipRtNonBlocking final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, QueueHipRtNonBlocking>
         {
         public:
             //-----------------------------------------------------------------------------
@@ -259,6 +260,15 @@ namespace alpaka
                     TTask const & task)
                 -> void
                 {
+#if BOOST_COMP_HIP
+                    // NOTE: hip callbacks are not blocking the stream.
+                    // The workaround used for HIP(hcc) would avoid the usage in a workflow with
+                    // many stream/event synchronizations (e.g. PIConGPU).
+                    // @todo remove this assert when hipStreamAddCallback is fixed
+                    static_assert(
+                                meta::DependentFalseType<TTask>::value,
+                                "Callbacks are not supported for HIP-clang");
+#endif
 
 #if BOOST_COMP_HCC  // NOTE: workaround for unwanted nonblocking hip streams for HCC (NVCC streams are blocking)
                     {

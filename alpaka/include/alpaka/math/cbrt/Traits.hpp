@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathCbrt;
+
         namespace traits
         {
             //#############################################################################
@@ -49,58 +50,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Cbrt<
-                T,
+                concepts::ImplementationBase<ConceptMathCbrt, T>,
                 TArg>
             ::cbrt(
                 cbrt_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathCbrt, T>;
             return
                 traits::Cbrt<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::cbrt(
                     cbrt_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Cbrt specialization for classes with CbrtBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Cbrt<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::CbrtBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto cbrt(
-                    T const & cbrt_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::cbrt(
-                        static_cast<typename T::CbrtBase const &>(cbrt_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::cbrt(
-                            static_cast<typename T::CbrtBase const &>(cbrt_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

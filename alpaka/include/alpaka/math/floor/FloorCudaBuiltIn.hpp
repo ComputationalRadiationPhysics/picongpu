@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in floor.
-        class FloorCudaBuiltIn
+        class FloorCudaBuiltIn : public concepts::Implements<ConceptMathFloor, FloorCudaBuiltIn>
         {
-        public:
-            using FloorBase = FloorCudaBuiltIn;
         };
 
         namespace traits

@@ -69,9 +69,10 @@ struct HelloWorldKernel
 auto main()
 -> int
 {
-// This example is hard-coded to use the sequential backend.
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
-
+// Fallback for the CI with disabled sequential backend
+#if defined(ALPAKA_CI) && !defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+    return EXIT_SUCCESS;
+#else
     // Define the index domain
     //
     // Depending on your type of problem, you have to define
@@ -100,13 +101,13 @@ auto main()
     // automatically.
 
     // By exchanging the Acc and Queue types you can select where to execute the kernel.
-#if 1
     using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
-    using Queue = alpaka::queue::QueueCpuBlocking;
-#else
-    using Acc = alpaka::acc::AccGpuCudaRt<Dim, Idx>;
-    using Queue = alpaka::queue::QueueCudaRtBlocking;
-#endif
+
+    // Defines the synchronization behavior of a queue
+    //
+    // choose between Blocking and NonBlocking
+    using QueueProperty = alpaka::queue::Blocking;
+    using Queue = alpaka::queue::Queue<Acc, QueueProperty>;
     using Dev = alpaka::dev::Dev<Acc>;
     using Pltf = alpaka::pltf::Pltf<Dev>;
 
@@ -197,10 +198,8 @@ auto main()
         workDiv,
         helloWorldKernel
         /* put kernel arguments here */);
+    alpaka::wait::wait(queue);
 
-    return EXIT_SUCCESS;
-
-#else
     return EXIT_SUCCESS;
 #endif
 }

@@ -11,6 +11,7 @@
 
 #include <alpaka/pltf/Traits.hpp>
 #include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <sstream>
 #include <vector>
@@ -21,7 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CPU device platform.
-        class PltfCpu
+        class PltfCpu :
+            public concepts::Implements<ConceptPltf, PltfCpu>
         {
         public:
             //-----------------------------------------------------------------------------

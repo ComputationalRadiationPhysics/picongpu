@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in cbrt.
-        class CbrtCudaBuiltIn
+        class CbrtCudaBuiltIn : public concepts::Implements<ConceptMathCbrt, CbrtCudaBuiltIn>
         {
-        public:
-            using CbrtBase = CbrtCudaBuiltIn;
         };
 
         namespace traits

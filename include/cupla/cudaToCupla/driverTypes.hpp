@@ -1,4 +1,5 @@
-/* Copyright 2015-2016 Rene Widera, Maximilian Knespel
+/* Copyright 2015-2020 Rene Widera, Maximilian Knespel, Matthias Werner,
+ *                     Sergei Bastrakov
  *
  * This file is part of cupla.
  *
@@ -95,7 +96,16 @@
   static_cast<uint3>(                                                \
       ::alpaka::workdiv::getWorkDiv<::alpaka::Thread, ::alpaka::Elems>(acc))
 
-// atomic functions
+/** Atomic functions
+ *
+ * Compared to their CUDA counterparts, these functions take an additional last
+ * parameter to denote atomicity (synchronization) level. This parameter is
+ * of type ::alpaka::hierarchy::{Grids|Blocks|Threads}. Grids corresponds
+ * to atomicity between different kernels, Blocks - to different blocks
+ * in the same kernel, Threads - to threads of the same block.
+ *
+ * @{
+ */
 #define atomicAdd(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc, __VA_ARGS__)
 #define atomicSub(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Sub>(acc, __VA_ARGS__)
 #define atomicMin(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Min>(acc, __VA_ARGS__)
@@ -107,8 +117,37 @@
 #define atomicAnd(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::And>(acc, __VA_ARGS__)
 #define atomicXor(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Xor>(acc, __VA_ARGS__)
 #define atomicOr(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Or>(acc, __VA_ARGS__)
+/** @} */
 
 #define uint3 ::cupla::uint3
+
+#if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+
+//! Simplistic stub for CUDA float3
+struct float3
+{
+    float x, y, z;
+};
+
+//! Factory function for float3
+ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float3 make_float3(float x, float y, float z)
+{
+    return float3{x, y, z};
+}
+
+//! Simplistic stub for CUDA int3
+struct int3
+{
+    int x, y, z;
+};
+
+//! Factory function for int3
+ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE int3 make_int3(int x, int y, int z)
+{
+    return int3{x, y, z};
+}
+
+#endif
 
 // recast functions
 namespace cupla

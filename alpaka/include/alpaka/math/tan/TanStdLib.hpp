@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library tan.
-        class TanStdLib
+        class TanStdLib : public concepts::Implements<ConceptMathTan, TanStdLib>
         {
-        public:
-            using TanBase = TanStdLib;
         };
 
         namespace traits

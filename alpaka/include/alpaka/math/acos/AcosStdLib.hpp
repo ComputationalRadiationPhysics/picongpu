@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library acos.
-        class AcosStdLib
+        class AcosStdLib : public concepts::Implements<ConceptMathAcos, AcosStdLib>
         {
-        public:
-            using AcosBase = AcosStdLib;
         };
 
         namespace traits

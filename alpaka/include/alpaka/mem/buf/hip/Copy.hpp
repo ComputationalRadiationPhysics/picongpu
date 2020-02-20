@@ -25,8 +25,6 @@
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/queue/QueueHipRtNonBlocking.hpp>
-#include <alpaka/queue/QueueHipRtBlocking.hpp>
 
 #include <alpaka/core/Assert.hpp>
 #include <alpaka/core/Hip.hpp>
@@ -712,7 +710,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtBlocking &,
+                    queue::QueueHipRtBlocking & queue,
                     mem::view::hip::detail::TaskCopyHip<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -743,23 +741,28 @@ namespace alpaka
                                 iDstDev));
                         // Initiate the memory copy.
                         ALPAKA_HIP_RT_CHECK(
-                            hipMemcpy(
+                            hipMemcpyAsync(
                                 dstNativePtr,
                                 srcNativePtr,
                                 static_cast<std::size_t>(extentWidthBytes),
-                                hipMemCpyKind));
+                                hipMemCpyKind,
+                                queue.m_spQueueImpl->m_HipQueue));
                     }
                     else
                     {
                         // Initiate the memory copy.
                         ALPAKA_HIP_RT_CHECK(
-                            hipMemcpyPeer(
+                            hipMemcpyPeerAsync(
                                 dstNativePtr,
                                 iDstDev,
                                 srcNativePtr,
                                 iSrcDev,
-                                static_cast<std::size_t>(extentWidthBytes)));
+                                static_cast<std::size_t>(extentWidthBytes),
+                                queue.m_spQueueImpl->m_HipQueue));
                     }
+
+                    ALPAKA_HIP_RT_CHECK( hipStreamSynchronize(
+                        queue.m_spQueueImpl->m_HipQueue));
                 }
             };
             //#############################################################################
@@ -840,7 +843,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtBlocking &,
+                    queue::QueueHipRtBlocking & queue,
                     mem::view::hip::detail::TaskCopyHip<dim::DimInt<2u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -882,14 +885,18 @@ namespace alpaka
                     }
 
                     ALPAKA_HIP_RT_CHECK(
-                        hipMemcpy2D(
+                        hipMemcpy2DAsync(
                             dstNativePtr,
                             static_cast<std::size_t>(dstPitchBytesX),
                             srcNativePtr,
                             static_cast<std::size_t>(srcPitchBytesX),
                             static_cast<std::size_t>(extentWidthBytes),
                             static_cast<std::size_t>(extentHeight),
-                            hipMemCpyKind));
+                            hipMemCpyKind,
+                            queue.m_spQueueImpl->m_HipQueue));
+
+                    ALPAKA_HIP_RT_CHECK( hipStreamSynchronize(
+                        queue.m_spQueueImpl->m_HipQueue));
 
                 }
             };
@@ -939,10 +946,10 @@ namespace alpaka
                     }
 
                     // Initiate the memory copy.
-                    // FIXME: hipMemcpy3DAsync not implemented yet by HIP. Use hipMemcpy3D for now.
                     ALPAKA_HIP_RT_CHECK(
-                        hipMemcpy3D(
-                            &hipMemCpy3DParms));
+                        hipMemcpy3DAsync(
+                            &hipMemCpy3DParms,
+                            queue.m_spQueueImpl->m_HipQueue));
                 }
             };
             //#############################################################################
@@ -957,7 +964,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtBlocking &,
+                    queue::QueueHipRtBlocking & queue,
                     mem::view::hip::detail::TaskCopyHip<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -992,8 +999,12 @@ namespace alpaka
 
                     // Initiate the memory copy.
                     ALPAKA_HIP_RT_CHECK(
-                        hipMemcpy3D(
-                            &hipMemCpy3DParms));
+                        hipMemcpy3DAsync(
+                            &hipMemCpy3DParms,
+                            queue.m_spQueueImpl->m_HipQueue));
+
+                    ALPAKA_HIP_RT_CHECK( hipStreamSynchronize(
+                        queue.m_spQueueImpl->m_HipQueue));
                 }
             };
         }

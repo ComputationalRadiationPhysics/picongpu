@@ -26,8 +26,6 @@ namespace alpaka
         class AtomicOmpBuiltIn
         {
         public:
-            using AtomicBase = AtomicOmpBuiltIn;
-
             //-----------------------------------------------------------------------------
             AtomicOmpBuiltIn() = default;
             //-----------------------------------------------------------------------------

@@ -9,21 +9,18 @@
 
 #pragma once
 
-#include <alpaka/core/Positioning.hpp>
 #include <alpaka/atomic/Traits.hpp>
 
-#include <type_traits>
+#include <alpaka/meta/InheritFromList.hpp>
+#include <alpaka/meta/Unique.hpp>
+
+#include <tuple>
 
 namespace alpaka
 {
     namespace atomic
     {
-        namespace atomicHierarchy
-        {
-            class Empty0{};
-            class Empty1{};
-            class Empty2{};
-        }
+
         //#############################################################################
         //! build a single class to inherit from different atomic implementations
         //
@@ -41,78 +38,18 @@ namespace alpaka
             typename TBlockAtomic,
             typename TThreadAtomic
         >
-        class AtomicHierarchy :
-            public TGridAtomic,
-            public std::conditional<
-                std::is_same<TGridAtomic,TBlockAtomic>::value,
-                atomicHierarchy::Empty1,
-                TBlockAtomic
-            >::type,
-            public std::conditional<
-                std::is_same<TGridAtomic,TThreadAtomic>::value ||
-                    std::is_same<TBlockAtomic,TThreadAtomic>::value,
-                atomicHierarchy::Empty2,
-                TThreadAtomic
-            >::type
-        {
-            public:
-            using UsedAtomicHierarchies = AtomicHierarchy<
-                TGridAtomic,
-                TBlockAtomic,
-                TThreadAtomic
+        using AtomicHierarchy
+            = alpaka::meta::InheritFromList<
+                alpaka::meta::Unique<
+                    std::tuple<
+                        TGridAtomic,
+                        TBlockAtomic,
+                        TThreadAtomic,
+                        concepts::Implements<ConceptAtomicGrids, TGridAtomic>,
+                        concepts::Implements<ConceptAtomicBlocks, TBlockAtomic>,
+                        concepts::Implements<ConceptAtomicThreads, TThreadAtomic>
+                    >
+                >
             >;
-        };
-
-        namespace traits
-        {
-            template<
-                typename TGridAtomic,
-                typename TBlockAtomic,
-                typename TThreadAtomic
-            >
-            struct AtomicBase<
-                AtomicHierarchy<
-                    TGridAtomic,
-                    TBlockAtomic,
-                    TThreadAtomic
-                >,
-                hierarchy::Threads>
-            {
-                using type = TThreadAtomic;
-            };
-
-            template<
-                typename TGridAtomic,
-                typename TBlockAtomic,
-                typename TThreadAtomic
-            >
-            struct AtomicBase<
-                AtomicHierarchy<
-                    TGridAtomic,
-                    TBlockAtomic,
-                    TThreadAtomic
-                >,
-                hierarchy::Blocks>
-            {
-                using type = TBlockAtomic;
-            };
-
-            template<
-                typename TGridAtomic,
-                typename TBlockAtomic,
-                typename TThreadAtomic
-            >
-            struct AtomicBase<
-                AtomicHierarchy<
-                    TGridAtomic,
-                    TBlockAtomic,
-                    TThreadAtomic
-                >,
-                hierarchy::Grids>
-            {
-                using type = TGridAtomic;
-            };
-
-        }
     }
 }

@@ -338,24 +338,16 @@ struct NonAlpakaVec
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "vecNDConstructionFromNonAlpakaVec", "[vec]", alpaka::test::dim::TestDims)
 {
-template< typename TDim >
-void operator()()
-{
+    using Dim = TestType;
     using Idx = std::size_t;
 
-    NonAlpakaVec<TDim, Idx> nonAlpakaVec;
-    auto const alpakaVec(static_cast<alpaka::vec::Vec<TDim, Idx>>(nonAlpakaVec));
+    NonAlpakaVec<Dim, Idx> nonAlpakaVec;
+    auto const alpakaVec(static_cast<alpaka::vec::Vec<Dim, Idx>>(nonAlpakaVec));
 
-    for(Idx d(0); d < TDim::value; ++d)
+    for(Idx d(0); d < Dim::value; ++d)
     {
         REQUIRE(nonAlpakaVec[d] == alpakaVec[d]);
     }
-}
-};
-
-TEST_CASE( "vecNDConstructionFromNonAlpakaVec", "[vec]")
-{
-    alpaka::meta::forEachType< alpaka::test::dim::TestDims >( TestTemplate() );
 }

@@ -20,6 +20,7 @@
 #include <alpaka/idx/Traits.hpp>
 
 #include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Hip.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unused.hpp>
@@ -35,11 +36,9 @@ namespace alpaka
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxBtHipBuiltIn
+            class IdxBtHipBuiltIn : public concepts::Implements<ConceptIdxBt, IdxBtHipBuiltIn<TDim, TIdx>>
             {
             public:
-                using IdxBtBase = IdxBtHipBuiltIn;
-
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST_ACC IdxBtHipBuiltIn() = default;
                 //-----------------------------------------------------------------------------

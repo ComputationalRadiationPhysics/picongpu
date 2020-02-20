@@ -188,47 +188,19 @@ namespace view
 #endif
 
 //-----------------------------------------------------------------------------
-struct TestTemplatePlain
+TEMPLATE_LIST_TEST_CASE( "viewPlainPtrTest", "[memView]", alpaka::test::acc::TestAccs)
 {
-    template< typename TAcc >
-    void operator()()
-    {
-        alpaka::test::mem::view::testViewPlainPtr<TAcc, float>();
-    }
-};
+    alpaka::test::mem::view::testViewPlainPtr<TestType, float>();
+}
 
 //-----------------------------------------------------------------------------
-struct TestTemplateConst
+TEMPLATE_LIST_TEST_CASE( "viewPlainPtrConstTest", "[memView]", alpaka::test::acc::TestAccs)
 {
-    template< typename TAcc >
-    void operator()()
-    {
-        alpaka::test::mem::view::testViewPlainPtrConst<TAcc, float>();
-    }
-};
+    alpaka::test::mem::view::testViewPlainPtrConst<TestType, float>();
+}
 
 //-----------------------------------------------------------------------------
-struct TestTemplateOperator
+TEMPLATE_LIST_TEST_CASE( "viewPlainPtrOperatorTest", "[memView]", alpaka::test::acc::TestAccs)
 {
-    template< typename TAcc >
-    void operator()()
-    {
-        alpaka::test::mem::view::testViewPlainPtrOperators<TAcc, float>();
-    }
-};
-
-TEST_CASE( "viewPlainPtrTest", "[memView]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplatePlain() );
+    alpaka::test::mem::view::testViewPlainPtrOperators<TestType, float>();
 }
-
-TEST_CASE( "viewPlainPtrConstTest", "[memView]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateConst() );
-}
-
-TEST_CASE( "viewPlainPtrOperatorTest", "[memView]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateOperator() );
-}
-

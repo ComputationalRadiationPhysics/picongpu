@@ -10,6 +10,7 @@
 #pragma once
 
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 namespace alpaka
 {
@@ -17,6 +18,8 @@ namespace alpaka
     //! The wait specifics.
     namespace wait
     {
+        struct ConceptCurrentThreadWaitFor;
+
         //-----------------------------------------------------------------------------
         //! The wait traits.
         namespace traits
@@ -45,8 +48,9 @@ namespace alpaka
             TAwaited const & awaited)
         -> void
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptCurrentThreadWaitFor, TAwaited>;
             traits::CurrentThreadWaitFor<
-                TAwaited>
+                ImplementationBase>
             ::currentThreadWaitFor(
                 awaited);
         }

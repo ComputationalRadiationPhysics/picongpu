@@ -20,6 +20,7 @@
 #include <alpaka/idx/Traits.hpp>
 
 #include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Cuda.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unused.hpp>
@@ -35,11 +36,9 @@ namespace alpaka
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxBtCudaBuiltIn
+            class IdxBtCudaBuiltIn : public concepts::Implements<ConceptIdxBt, IdxBtCudaBuiltIn<TDim, TIdx>>
             {
             public:
-                using IdxBtBase = IdxBtCudaBuiltIn;
-
                 //-----------------------------------------------------------------------------
                 IdxBtCudaBuiltIn() = default;
                 //-----------------------------------------------------------------------------

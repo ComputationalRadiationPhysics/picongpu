@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library trunc.
-        class TruncStdLib
+        class TruncStdLib : public concepts::Implements<ConceptMathTrunc, TruncStdLib>
         {
-        public:
-            using TruncBase = TruncStdLib;
         };
 
         namespace traits

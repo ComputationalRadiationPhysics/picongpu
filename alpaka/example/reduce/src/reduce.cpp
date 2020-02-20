@@ -21,11 +21,19 @@
 #include <cstdlib>
 #include <iostream>
 
-// This example is hard-coded to use the sequential backend.
 // It requires support for extended lambdas when using nvcc as CUDA compiler.
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED) && (!defined(__NVCC__) || (defined(__NVCC__) && defined(__CUDACC_EXTENDED_LAMBDA__) ))
+// Requires sequential backend if CI is used
+#if (!defined(__NVCC__) || (defined(__NVCC__) && defined(__CUDACC_EXTENDED_LAMBDA__) )) && \
+    (!defined(ALPAKA_CI) || defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED))
 
-// use defines of a specific accelerator
+// use defines of a specific accelerator from alpakaConfig.hpp
+// that are defined in alpakaConfig.hpp
+// - GpuCudaRt
+// - CpuThreads
+// - CpuOmp2Blocks
+// - CpuOmp4
+// - CpuSerial
+//
 using Accelerator = CpuSerial;
 
 using DevAcc = Accelerator::DevAcc;
@@ -39,7 +47,7 @@ using MaxBlockSize = Accelerator::MaxBlockSize;
 //-----------------------------------------------------------------------------
 //! Reduces the numbers 1 to n.
 //!
-//! \tparam T The data type. 
+//! \tparam T The data type.
 //! \tparam TFunc The data type of the reduction functor.
 //!
 //! \param devHost The host device.
@@ -47,7 +55,7 @@ using MaxBlockSize = Accelerator::MaxBlockSize;
 //! \param queue The device queue.
 //! \param n The problem size.
 //! \param hostMemory The buffer containing the input data.
-//! \param func The reduction function. 
+//! \param func The reduction function.
 //!
 //! Returns true if the reduction was correct and false otherwise.
 template<typename T, typename TFunc>
@@ -126,7 +134,7 @@ int main()
 
     using T = uint32_t;
     static constexpr uint64_t blockSize = getMaxBlockSize<Accelerator, 256>();
-    
+
     DevAcc devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(dev));
     DevHost devHost(alpaka::pltf::getDevByIdx<PltfHost>(0u));
     QueueAcc queue(devAcc);
@@ -156,7 +164,8 @@ int main()
 
     // reduce
     T result = reduce<T>(devHost, devAcc, queue, n, hostMemory, addFn);
-    
+    alpaka::wait::wait(queue);
+
     // check result
     T expectedResult = static_cast<T>(n / 2 * (n + 1));
     if (result != expectedResult)
@@ -165,9 +174,9 @@ int main()
                   << "\n";
         return EXIT_FAILURE;
     }
-    
+
     std::cout << "Results match.\n";
-    
+
     return EXIT_SUCCESS;
 }
 

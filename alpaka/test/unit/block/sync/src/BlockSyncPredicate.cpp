@@ -88,19 +88,17 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "synchronizePredicate", "[blockSync]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     BlockSyncPredicateTestKernel kernel;
 
     // 4^Dim
     {
-        alpaka::test::KernelExecutionFixture<TAcc> fixture(
+        alpaka::test::KernelExecutionFixture<Acc> fixture(
             alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(4u)));
 
         REQUIRE(
@@ -110,17 +108,11 @@ void operator()()
 
     // 1^Dim
     {
-        alpaka::test::KernelExecutionFixture<TAcc> fixture(
+        alpaka::test::KernelExecutionFixture<Acc> fixture(
             alpaka::vec::Vec<Dim, Idx>::ones());
 
         REQUIRE(
             fixture(
                 kernel));
     }
-}
-};
-
-TEST_CASE( "synchronizePredicate", "[blockSync]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
 }

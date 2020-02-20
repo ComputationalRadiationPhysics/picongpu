@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/idx/Traits.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <alpaka/vec/Vec.hpp>
 #include <alpaka/core/Positioning.hpp>
@@ -28,6 +27,8 @@ namespace alpaka
     //! The work division traits specifics.
     namespace workdiv
     {
+        struct ConceptWorkDiv;
+
         //-----------------------------------------------------------------------------
         //! The work division traits.
         namespace traits
@@ -53,9 +54,10 @@ namespace alpaka
             TWorkDiv const & workDiv)
         -> vec::Vec<dim::Dim<TWorkDiv>, idx::Idx<TWorkDiv>>
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptWorkDiv, TWorkDiv>;
             return
                 traits::GetWorkDiv<
-                    TWorkDiv,
+                    ImplementationBase,
                     TOrigin,
                     TUnit>
                 ::getWorkDiv(
@@ -64,94 +66,6 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
-            //! The work div grid block extent trait specialization for classes with WorkDivBase member type.
-            template<
-                typename TWorkDiv>
-            struct GetWorkDiv<
-                TWorkDiv,
-                origin::Grid,
-                unit::Blocks,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename TWorkDiv::WorkDivBase,
-                        TWorkDiv
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto getWorkDiv(
-                    TWorkDiv const & workDiv)
-                -> vec::Vec<dim::Dim<typename TWorkDiv::WorkDivBase>, idx::Idx<typename TWorkDiv::WorkDivBase>>
-                {
-                    // Delegate the call to the base class.
-                    return
-                        workdiv::getWorkDiv<
-                            origin::Grid,
-                            unit::Blocks>(
-                                static_cast<typename TWorkDiv::WorkDivBase const &>(workDiv));
-                }
-            };
-            //#############################################################################
-            //! The work div block thread extent trait specialization for classes with WorkDivBase member type.
-            template<
-                typename TWorkDiv>
-            struct GetWorkDiv<
-                TWorkDiv,
-                origin::Block,
-                unit::Threads,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename TWorkDiv::WorkDivBase,
-                        TWorkDiv
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto getWorkDiv(
-                    TWorkDiv const & workDiv)
-                -> vec::Vec<dim::Dim<typename TWorkDiv::WorkDivBase>, idx::Idx<typename TWorkDiv::WorkDivBase>>
-                {
-                    // Delegate the call to the base class.
-                    return
-                        workdiv::getWorkDiv<
-                            origin::Block,
-                            unit::Threads>(
-                                static_cast<typename TWorkDiv::WorkDivBase const &>(workDiv));
-                }
-            };
-            //#############################################################################
-            //! The work div block thread extent trait specialization for classes with WorkDivBase member type.
-            template<
-                typename TWorkDiv>
-            struct GetWorkDiv<
-                TWorkDiv,
-                origin::Thread,
-                unit::Elems,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename TWorkDiv::WorkDivBase,
-                        TWorkDiv
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto getWorkDiv(
-                    TWorkDiv const & workDiv)
-                -> vec::Vec<dim::Dim<typename TWorkDiv::WorkDivBase>, idx::Idx<typename TWorkDiv::WorkDivBase>>
-                {
-                    // Delegate the call to the base class.
-                    return
-                        workdiv::getWorkDiv<
-                            origin::Thread,
-                            unit::Elems>(
-                                static_cast<typename TWorkDiv::WorkDivBase const &>(workDiv));
-                }
-            };
-
             //#############################################################################
             //! The work div grid thread extent trait specialization.
             template<

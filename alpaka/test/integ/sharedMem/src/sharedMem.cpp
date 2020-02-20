@@ -134,20 +134,22 @@ namespace alpaka
     }
 }
 
-struct TestTemplate
+using TestAccs = alpaka::test::acc::EnabledAccs<
+    alpaka::dim::DimInt<1u>,
+    std::uint32_t>;
+
+TEMPLATE_LIST_TEST_CASE( "sharedMem", "[sharedMem]", TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     Idx const numElements = 1u<<16u;
 
     using Val = std::int32_t;
     using TnumUselessWork = std::integral_constant<Idx, 100>;
 
-    using DevAcc = alpaka::dev::Dev<TAcc>;
+    using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
     using QueueAcc = alpaka::test::queue::DefaultQueue<DevAcc>;
 
@@ -165,7 +167,7 @@ void operator()()
 
     // Set the grid blocks extent.
     alpaka::workdiv::WorkDivMembers<Dim, Idx> const workDiv(
-        alpaka::workdiv::getValidWorkDiv<TAcc>(
+        alpaka::workdiv::getValidWorkDiv<Acc>(
             devAcc,
             numElements,
             static_cast<Idx>(1u),
@@ -174,7 +176,7 @@ void operator()()
 
     std::cout
         << "SharedMemKernel("
-        << " accelerator: " << alpaka::acc::getAccName<TAcc>()
+        << " accelerator: " << alpaka::acc::getAccName<Acc>()
         << ", kernel: " << typeid(kernel).name()
         << ", workDiv: " << workDiv
         << ")" << std::endl;
@@ -193,7 +195,7 @@ void operator()()
     alpaka::mem::view::copy(queue, blockRetValsAcc, blockRetVals, resultElemCount);
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::kernel::createTaskKernel<TAcc>(
+    auto const taskKernel(alpaka::kernel::createTaskKernel<Acc>(
         workDiv,
         kernel,
         alpaka::mem::view::getPtrNative(blockRetValsAcc)));
@@ -228,14 +230,4 @@ void operator()()
     }
 
     REQUIRE(resultCorrect);
-}
-};
-
-TEST_CASE( "sharedMem", "[sharedMem]")
-{
-    using TestAccs = alpaka::test::acc::EnabledAccs<
-        alpaka::dim::DimInt<1u>,
-        std::uint32_t>;
-
-    alpaka::meta::forEachType< TestAccs >( TestTemplate() );
 }

@@ -25,7 +25,7 @@
 struct QueueCollectiveTestKernel
 {
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(
+    auto operator()(
         TAcc const & acc,
         int* resultsPtr) const
     -> void

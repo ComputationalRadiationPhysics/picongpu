@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in exp.
-        class ExpCudaBuiltIn
+        class ExpCudaBuiltIn : public concepts::Implements<ConceptMathExp, ExpCudaBuiltIn>
         {
-        public:
-            using ExpBase = ExpCudaBuiltIn;
         };
 
         namespace traits

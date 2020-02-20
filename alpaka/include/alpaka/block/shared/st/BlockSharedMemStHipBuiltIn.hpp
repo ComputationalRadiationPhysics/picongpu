@@ -32,11 +32,9 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The GPU HIP block shared memory allocator.
-                class BlockSharedMemStHipBuiltIn
+                class BlockSharedMemStHipBuiltIn : public concepts::Implements<ConceptBlockSharedSt, BlockSharedMemStHipBuiltIn>
                 {
                 public:
-                    using BlockSharedMemStBase = BlockSharedMemStHipBuiltIn;
-
                     //-----------------------------------------------------------------------------
                     //! Default constructor.
                     ALPAKA_FN_HOST_ACC BlockSharedMemStHipBuiltIn() = default;

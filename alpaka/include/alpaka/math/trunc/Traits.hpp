@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathTrunc;
+
         namespace traits
         {
             //#############################################################################
@@ -49,58 +50,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Trunc<
-                T,
+                concepts::ImplementationBase<ConceptMathTrunc, T>,
                 TArg>
             ::trunc(
                 trunc_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathTrunc, T>;
             return
                 traits::Trunc<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::trunc(
                     trunc_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Trunc specialization for classes with TruncBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Trunc<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::TruncBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto trunc(
-                    T const & trunc_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::trunc(
-                        static_cast<typename T::TruncBase const &>(trunc_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::trunc(
-                            static_cast<typename T::TruncBase const &>(trunc_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

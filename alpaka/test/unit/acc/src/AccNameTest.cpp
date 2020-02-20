@@ -16,16 +16,7 @@
 #include <iostream>
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "getAccName", "[acc]", alpaka::test::acc::TestAccs)
 {
-    template< typename TAcc >
-    void operator()()
-    {
-        std::cout << alpaka::acc::getAccName<TAcc>() << std::endl;
-    }
-};
-
-TEST_CASE( "getAccName", "[acc]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
+    std::cout << alpaka::acc::getAccName<TestType>() << std::endl;
 }

@@ -3,6 +3,8 @@
 
 [![Build Status dev](https://img.shields.io/travis/ComputationalRadiationPhysics/cupla/dev.svg?label=dev)](https://travis-ci.org/ComputationalRadiationPhysics/cupla/branches)
 
+![cupla Release](doc/logo/cupla_logo_320x210.png)
+
 **cupla** [[qχɑpˈlɑʔ]](https://en.wiktionary.org/wiki/Qapla%27) is a simple user
 interface for the platform independent parallel kernel
 acceleration library
@@ -36,8 +38,8 @@ For more information see [LICENSE.md](LICENSE.md).
 Dependencies
 ------------
 
-- **cmake 3.11.0**
-- **[alpaka](https://github.com/ComputationalRadiationPhysics/alpaka/)**
+- **cmake 3.11.4**
+- **[alpaka 0.4.0](https://github.com/ComputationalRadiationPhysics/alpaka/)**
   - alpaka is loaded as `git subtree` within **cupla**, see [INSTALL.md](INSTALL.md)
 
 Usage
@@ -53,15 +55,20 @@ Usage
 Authors
 -------
 
-### Maintainers and core developers
+### Maintainers* and Core Developers
 
-- Rene Widera
-- Matthias Werner
+- [Dr. Sergei Bastrakov](https://github.com/sbastrakov)*
+- [Dr. Andrea Bocci](https://github.com/fwyzard)
+- [Simeon Ehrig](https://github.com/SimeonEhrig)
+- [Matthias Werner](https://github.com/tdd11235813)*
+- [Rene Widera](https://github.com/psychocoderHPC)*
 
 ### Former Members, Contributions and Thanks
 
-- Axel Huebl
-- Dr. Michael Bussmann
+- [Dr. Michael Bussmann](https://www.hzdr.de/db/!ContMan.Visi.Card?pUser=4167&pNid=0)
+- [Dr. Axel Huebl](https://github.com/ax3l)
+- [Maximilian Knespel](https://github.com/mxmlnkn)
+- [Vincent Ridder](https://github.com/vincentridder)
 
 
 Trademarks Disclaimer

@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         // ! The CUDA built in log.
-        class LogCudaBuiltIn
+        class LogCudaBuiltIn : public concepts::Implements<ConceptMathLog, LogCudaBuiltIn>
         {
-        public:
-            using LogBase = LogCudaBuiltIn;
         };
 
         namespace traits

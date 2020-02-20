@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathTan;
+
         namespace traits
         {
             //#############################################################################
@@ -49,59 +50,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Tan<
-                T,
+                concepts::ImplementationBase<ConceptMathTan, T>,
                 TArg>
             ::tan(
                 tan_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathTan, T>;
             return
                 traits::Tan<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::tan(
                     tan_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Tan specialization for classes with TanBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Tan<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::TanBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                //
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto tan(
-                    T const & tan_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::tan(
-                        static_cast<typename T::TanBase const &>(tan_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::tan(
-                            static_cast<typename T::TanBase const &>(tan_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

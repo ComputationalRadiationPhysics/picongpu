@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library floor.
-        class FloorStdLib
+        class FloorStdLib : public concepts::Implements<ConceptMathFloor, FloorStdLib>
         {
-        public:
-            using FloorBase = FloorStdLib;
         };
 
         namespace traits

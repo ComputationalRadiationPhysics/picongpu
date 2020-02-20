@@ -111,7 +111,7 @@ namespace alpaka
 
         //#############################################################################
         //! The CUDA RT blocking queue.
-        class QueueCudaRtBlocking final
+        class QueueCudaRtBlocking final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, QueueCudaRtBlocking>
         {
         public:
             //-----------------------------------------------------------------------------
