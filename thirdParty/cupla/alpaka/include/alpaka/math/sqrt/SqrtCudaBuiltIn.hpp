@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA sqrt.
-        class SqrtCudaBuiltIn
+        class SqrtCudaBuiltIn : public concepts::Implements<ConceptMathSqrt, SqrtCudaBuiltIn>
         {
-        public:
-            using SqrtBase = SqrtCudaBuiltIn;
         };
 
         namespace traits

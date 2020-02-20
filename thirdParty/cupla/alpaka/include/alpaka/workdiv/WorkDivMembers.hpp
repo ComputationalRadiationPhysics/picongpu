@@ -26,11 +26,9 @@ namespace alpaka
         template<
             typename TDim,
             typename TIdx>
-        class WorkDivMembers
+        class WorkDivMembers : public concepts::Implements<ConceptWorkDiv, WorkDivMembers<TDim, TIdx>>
         {
         public:
-            using WorkDivBase = WorkDivMembers;
-
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST_ACC WorkDivMembers() = delete;
             //-----------------------------------------------------------------------------

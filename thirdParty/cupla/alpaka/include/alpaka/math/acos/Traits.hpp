@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathAcos;
+
         namespace traits
         {
             //#############################################################################
@@ -48,58 +49,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Acos<
-                T,
+                concepts::ImplementationBase<ConceptMathAcos, T>,
                 TArg>
             ::acos(
                 acos_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathAcos, T>;
             return
                 traits::Acos<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::acos(
                     acos_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Acos specialization for classes with AcosBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Acos<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::AcosBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto acos(
-                    T const & acos_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::acos(
-                        static_cast<typename T::AcosBase const &>(acos_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::acos(
-                            static_cast<typename T::AcosBase const &>(acos_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

@@ -12,9 +12,14 @@
 #include <alpaka/core/Common.hpp>
 #include <alpaka/dev/Traits.hpp>
 
+#include <alpaka/core/Concepts.hpp>
+#include <alpaka/queue/Traits.hpp>
+#include <alpaka/dev/Traits.hpp>
+
 #include <boost/config.hpp>
 
 #include <vector>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -22,6 +27,8 @@ namespace alpaka
     //! The platform specifics.
     namespace pltf
     {
+        struct ConceptPltf;
+
         //-----------------------------------------------------------------------------
         //! The platform traits.
         namespace traits
@@ -102,6 +109,25 @@ namespace alpaka
             }
 
             return devs;
+        }
+    }
+    namespace queue
+    {
+        namespace traits
+        {
+            template<
+                typename TPltf,
+                typename TProperty>
+            struct QueueType<
+                TPltf,
+                TProperty,
+                typename std::enable_if<concepts::ImplementsConcept<pltf::ConceptPltf, TPltf>::value>::type
+            >
+            {
+                using type = typename QueueType<
+                    typename dev::traits::DevType<TPltf>::type,
+                    TProperty>::type;
+            };
         }
     }
 }

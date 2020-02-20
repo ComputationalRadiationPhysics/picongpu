@@ -31,11 +31,9 @@ namespace alpaka
             //! The thread id map barrier block synchronization.
             template<
                 typename TIdx>
-            class BlockSyncBarrierThread
+            class BlockSyncBarrierThread : public concepts::Implements<ConceptBlockSync, BlockSyncBarrierThread<TIdx>>
             {
             public:
-                using BlockSyncBase = BlockSyncBarrierThread;
-
                 using Barrier = core::threads::BarrierThread<TIdx>;
                 using BarrierWithPredicate = core::threads::BarrierThreadWithPredicate<TIdx>;
 

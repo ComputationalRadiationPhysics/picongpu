@@ -93,15 +93,13 @@ namespace alpaka
 }
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "synchronize", "[blockSync]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(BlockSyncTestKernel::gridThreadExtentPerDim)));
 
     BlockSyncTestKernel kernel;
@@ -109,10 +107,4 @@ void operator()()
     REQUIRE(
         fixture(
             kernel));
-}
-};
-
-TEST_CASE( "synchronize", "[blockSync]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
 }

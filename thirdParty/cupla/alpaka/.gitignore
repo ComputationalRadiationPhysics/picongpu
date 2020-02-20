@@ -16,3 +16,6 @@
 
 # original backup files
 *.orig
+
+# VIM project files
+.vimrc

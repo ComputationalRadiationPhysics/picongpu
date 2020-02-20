@@ -19,8 +19,6 @@ There is no need to write special CUDA, OpenMP or custom threading code.
 Accelerator back-ends can be mixed within a device queue.
 The decision which accelerator back-end executes which kernel can be made at runtime.
 
-The **alpaka** API is currently unstable (beta state).
-
 The abstraction used is very similar to the CUDA grid-blocks-threads division strategy.
 Algorithms that should be parallelized have to be divided into a multi-dimensional grid consisting of small uniform work items.
 These functions are called kernels and are executed in parallel threads.
@@ -56,7 +54,7 @@ Accelerator Back-ends
 | std::thread | std::thread |Host CPU (multi core)|sequential|parallel (preemptive multitasking)|
 | Boost.Fiber | boost::fibers::fiber |Host CPU (single core)|sequential|parallel (cooperative multitasking)|
 |TBB|TBB 2.2+|Host CPU (multi core)|parallel (preemptive multitasking)|sequential (only 1 thread per block)|
-|CUDA|CUDA 8.0-10.0|NVIDIA GPUs|parallel (undefined)|parallel (lock-step within warps)|
+|CUDA|CUDA 8.0-10.2|NVIDIA GPUs|parallel (undefined)|parallel (lock-step within warps)|
 |HIP(nvcc)|[HIP 1.5+](https://github.com/ROCm-Developer-Tools/HIP)|NVIDIA GPUs SM 2.0+|parallel (undefined)|parallel (lock-step within warps)|
 
 
@@ -66,7 +64,7 @@ Supported Compilers
 This library uses C++11 (or newer when available).
 
 |Accelerator Back-end|gcc 4.9.4 <br/> (Linux)|gcc 5.5 <br/> (Linux)|gcc 6.4/7.3 <br/> (Linux)|gcc 8.1/9.1 <br/> (Linux)|clang 4 <br/> (Linux)|clang 5 <br/> (Linux)|clang 6 <br/> (Linux)|clang 7 <br/> (Linux)|clang 8 <br/> (Linux)|clang 9 <br/> (Linux)|Apple LLVM 10.2-11.2 <br/> (macOS)|MSVC 2017.9 <br/> (Windows)|
-|---|---|---|---|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 |Serial|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |OpenMP 2.0+ blocks|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
 |OpenMP 2.0+ threads|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
@@ -74,7 +72,7 @@ This library uses C++11 (or newer when available).
 | std::thread |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 | Boost.Fiber |:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:|:white_check_mark:|
 |TBB|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|CUDA (nvcc)|:white_check_mark: <br/> (CUDA 8.0-10.1)|:white_check_mark: <br/> (CUDA 9.0-10.1)|:white_check_mark: <br/> (CUDA 9.2-10.1) |:x:|:white_check_mark: <br/> (CUDA 9.1-10.1)|:white_check_mark: <br/> (CUDA 10.1)|:white_check_mark: <br/> (CUDA 10.1)|:white_check_mark: <br/> (CUDA 10.1)|:white_check_mark: <br/> (CUDA 10.1)|:x:|:x:|:white_check_mark: <br/> (CUDA 10.0-10.1)|
+|CUDA (nvcc)|:white_check_mark: <br/> (CUDA 8.0-10.2)|:white_check_mark: <br/> (CUDA 9.0-10.2)|:white_check_mark: <br/> (CUDA 9.2-10.2) |:x:|:white_check_mark: <br/> (CUDA 9.1-10.2)|:white_check_mark: <br/> (CUDA 10.1-10.2)|:white_check_mark: <br/> (CUDA 10.1-10.2)|:white_check_mark: <br/> (CUDA 10.1-10.2)|:white_check_mark: <br/> (CUDA 10.1-10.2)|:x:|:x:|:white_check_mark: <br/> (CUDA 10.0-10.2)|
 |CUDA (clang) | - | - | - | - | :white_check_mark: <br/> (CUDA 8.0)| :white_check_mark: <br/> (CUDA 8.0)| :white_check_mark: <br/> (CUDA 8.0-9.0) | :white_check_mark: <br/> (CUDA 8.0-9.2) | :white_check_mark: <br/> (CUDA 8.0-10.0) | :white_check_mark: <br/> (CUDA 9.2-10.1) | - | - |
 |[HIP](doc/markdown/user/implementation/mapping/HIP.md) (nvcc)|:white_check_mark: <br/> (nvcc 9.0+)|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|:x:|
 

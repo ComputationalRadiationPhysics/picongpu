@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathPow;
+
         namespace traits
         {
             //#############################################################################
@@ -54,7 +55,7 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Pow<
-                T,
+                concepts::ImplementationBase<ConceptMathPow, T>,
                 TBase,
                 TExp>
             ::pow(
@@ -63,58 +64,16 @@ namespace alpaka
                 exp))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathPow, T>;
             return
                 traits::Pow<
-                    T,
+                    ImplementationBase,
                     TBase,
                     TExp>
                 ::pow(
                     pow_ctx,
                     base,
                     exp);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Pow specialization for classes with PowBase member type.
-            template<
-                typename T,
-                typename TBase,
-                typename TExp>
-            struct Pow<
-                T,
-                TBase,
-                TExp,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::PowBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto pow(
-                    T const & pow_ctx,
-                    TBase const & base,
-                    TExp const & exp)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::pow(
-                        static_cast<typename T::PowBase const &>(pow_ctx),
-                        base,
-                        exp))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::pow(
-                            static_cast<typename T::PowBase const &>(pow_ctx),
-                            base,
-                            exp);
-                }
-            };
         }
     }
 }

@@ -37,7 +37,7 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The CPU device event implementation.
-                class EventCpuImpl final
+                class EventCpuImpl final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, EventCpuImpl>
                 {
                 public:
                     //-----------------------------------------------------------------------------
@@ -66,7 +66,7 @@ namespace alpaka
                     }
 
                     //-----------------------------------------------------------------------------
-                    auto wait(std::size_t const & enqueueCount, std::unique_lock<std::mutex>& lk) noexcept -> void
+                    auto wait(std::size_t const & enqueueCount, std::unique_lock<std::mutex>& lk) const noexcept -> void
                     {
                         ALPAKA_ASSERT(enqueueCount <= m_enqueueCount);
 
@@ -94,7 +94,7 @@ namespace alpaka
 
         //#############################################################################
         //! The CPU device event.
-        class EventCpu final
+        class EventCpu final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, EventCpu>
         {
         public:
             //-----------------------------------------------------------------------------
@@ -267,17 +267,17 @@ namespace alpaka
 
                         queueImpl.m_bCurrentlyExecutingTask = true;
 
-                        auto spEventImpl(event.m_spEventImpl);
+                        auto & eventImpl(*event.m_spEventImpl);
 
                         {
                             // Setting the event state and enqueuing it has to be atomic.
-                            std::lock_guard<std::mutex> evLk(spEventImpl->m_mutex);
+                            std::lock_guard<std::mutex> evLk(eventImpl.m_mutex);
 
-                            ++spEventImpl->m_enqueueCount;
+                            ++eventImpl.m_enqueueCount;
                             // NOTE: Difference to non-blocking version: directly set the event state instead of enqueuing.
-                            spEventImpl->m_LastReadyEnqueueCount = spEventImpl->m_enqueueCount;
+                            eventImpl.m_LastReadyEnqueueCount = eventImpl.m_enqueueCount;
 
-                            spEventImpl->m_future = promise.get_future();
+                            eventImpl.m_future = promise.get_future();
                         }
 
                         queueImpl.m_bCurrentlyExecutingTask = false;
@@ -323,7 +323,7 @@ namespace alpaka
                     event::EventCpu const & event)
                 -> void
                 {
-                    wait::wait(event.m_spEventImpl);
+                    wait::wait(*event.m_spEventImpl);
                 }
             };
             //#############################################################################
@@ -335,17 +335,17 @@ namespace alpaka
             //! NOTE: This method is for internal usage only.
             template<>
             struct CurrentThreadWaitFor<
-                std::shared_ptr<event::cpu::detail::EventCpuImpl>>
+                event::cpu::detail::EventCpuImpl>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    std::shared_ptr<event::cpu::detail::EventCpuImpl> const & spEventImpl)
+                    event::cpu::detail::EventCpuImpl const & eventImpl)
                 -> void
                 {
-                    std::unique_lock<std::mutex> lk(spEventImpl->m_mutex);
+                    std::unique_lock<std::mutex> lk(eventImpl.m_mutex);
 
-                    auto const enqueueCount = spEventImpl->m_enqueueCount;
-                    spEventImpl->wait(enqueueCount, lk);
+                    auto const enqueueCount = eventImpl.m_enqueueCount;
+                    eventImpl.wait(enqueueCount, lk);
                 }
             };
             //#############################################################################
@@ -419,11 +419,8 @@ namespace alpaka
                 {
                     alpaka::ignore_unused(queueImpl);
 
-                    // Copy the shared pointer of the event implementation.
-                    // This is forwarded to the lambda that is enqueued into the queue to ensure that the event implementation is alive as long as it is enqueued.
-                    auto spEventImpl(event.m_spEventImpl);
                     // NOTE: Difference to non-blocking version: directly wait for event.
-                    wait::wait(spEventImpl);
+                    wait::wait(*event.m_spEventImpl);
                 }
             };
             //#############################################################################

@@ -23,10 +23,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library min.
-        class MinStdLib
+        class MinStdLib : public concepts::Implements<ConceptMathMin, MinStdLib>
         {
-        public:
-            using MinBase = MinStdLib;
         };
 
         namespace traits

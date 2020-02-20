@@ -21,13 +21,9 @@
 #include <limits>
 
 //#############################################################################
-//!
-//#############################################################################
 class KernelWithHostConstexpr
 {
 public:
-    //-----------------------------------------------------------------------------
-    //!
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
@@ -53,28 +49,18 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "kernelWithHostConstexpr", "[kernel]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelWithHostConstexpr kernel;
 
     REQUIRE(fixture(kernel));
-}
-};
-
-TEST_CASE( "kernelWithHostConstexpr", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
 }
 
 #endif

@@ -73,13 +73,15 @@ public:
     }
 };
 
-struct TestTemplate
+using TestAccs = alpaka::test::acc::EnabledAccs<
+    alpaka::dim::DimInt<1u>,
+    std::size_t>;
+
+TEMPLATE_LIST_TEST_CASE( "axpy", "[axpy]", TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
 #ifdef ALPAKA_CI
     Idx const numElements = 1u<<9u;
@@ -88,7 +90,7 @@ void operator()()
 #endif
 
     using Val = float;
-    using DevAcc = alpaka::dev::Dev<TAcc>;
+    using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
     using QueueAcc = alpaka::test::queue::DefaultQueue<DevAcc>;
     using PltfHost = alpaka::pltf::PltfCpu;
@@ -112,7 +114,7 @@ void operator()()
 
     // Let alpaka calculate good block and grid sizes given our full problem extent.
     alpaka::workdiv::WorkDivMembers<Dim, Idx> const workDiv(
-        alpaka::workdiv::getValidWorkDiv<TAcc>(
+        alpaka::workdiv::getValidWorkDiv<Acc>(
             devAcc,
             extent,
             static_cast<Idx>(3u),
@@ -122,7 +124,7 @@ void operator()()
     std::cout
         << "AxpyKernel("
         << " numElements:" << numElements
-        << ", accelerator: " << alpaka::acc::getAccName<TAcc>()
+        << ", accelerator: " << alpaka::acc::getAccName<Acc>()
         << ", kernel: " << typeid(kernel).name()
         << ", workDiv: " << workDiv
         << ")" << std::endl;
@@ -181,7 +183,7 @@ void operator()()
 #endif
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::kernel::createTaskKernel<TAcc>(
+    auto const taskKernel(alpaka::kernel::createTaskKernel<Acc>(
         workDiv,
         kernel,
         numElements,
@@ -217,14 +219,4 @@ void operator()()
     }
 
     REQUIRE(resultCorrect);
-}
-};
-
-TEST_CASE( "axpy", "[axpy]")
-{
-    using TestAccs = alpaka::test::acc::EnabledAccs<
-        alpaka::dim::DimInt<1u>,
-        std::size_t>;
-
-    alpaka::meta::forEachType< TestAccs >( TestTemplate() );
 }

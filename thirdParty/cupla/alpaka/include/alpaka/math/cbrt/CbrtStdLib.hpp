@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library cbrt.
-        class CbrtStdLib
+        class CbrtStdLib : public concepts::Implements<ConceptMathCbrt, CbrtStdLib>
         {
-        public:
-            using CbrtBase = CbrtStdLib;
         };
 
         namespace traits

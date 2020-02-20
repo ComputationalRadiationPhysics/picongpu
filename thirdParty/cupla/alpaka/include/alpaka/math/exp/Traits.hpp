@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathExp;
+
         namespace traits
         {
             //#############################################################################
@@ -49,58 +50,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Exp<
-                T,
+                concepts::ImplementationBase<ConceptMathExp, T>,
                 TArg>
             ::exp(
                 exp_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathExp, T>;
             return
                 traits::Exp<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::exp(
                     exp_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Exp specialization for classes with ExpBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Exp<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::ExpBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto exp(
-                    T const & exp_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::exp(
-                        static_cast<typename T::ExpBase const &>(exp_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::exp(
-                            static_cast<typename T::ExpBase const &>(exp_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

@@ -22,9 +22,9 @@
 
 //-----------------------------------------------------------------------------
 template<
-    typename TAcc>
+    typename Acc>
 void ALPAKA_FN_ACC kernelFn(
-    TAcc const & acc,
+    Acc const & acc,
     bool * success,
     std::int32_t val)
 {
@@ -36,47 +36,31 @@ void ALPAKA_FN_ACC kernelFn(
 // std::function and std::bind is only allowed on CPU
 #if !BOOST_LANG_CUDA && !BOOST_LANG_HIP
 //-----------------------------------------------------------------------------
-struct TestTemplateStdFunction
+TEMPLATE_LIST_TEST_CASE( "stdFunctionKernelIsWorking", "[kernel]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
-    const auto kernel = std::function<void(TAcc const &, bool *, std::int32_t)>( kernelFn<TAcc> );
+    const auto kernel = std::function<void(Acc const &, bool *, std::int32_t)>( kernelFn<Acc> );
     REQUIRE(fixture(kernel, 42));
-  }
-};
-
-TEST_CASE( "stdFunctionKernelIsWorking", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateStdFunction() );
 }
 
 //-----------------------------------------------------------------------------
-struct TestTemplateStdBind
+TEMPLATE_LIST_TEST_CASE( "stdBindKernelIsWorking", "[kernel]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
-    const auto kernel = std::bind( kernelFn<TAcc>, std::placeholders::_1, std::placeholders::_2, 42 );
+    const auto kernel = std::bind( kernelFn<Acc>, std::placeholders::_1, std::placeholders::_2, 42 );
     REQUIRE(fixture(kernel));
-  }
-};
-
-TEST_CASE( "stdBindKernelIsWorking", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateStdBind() );
 }
 #endif
 
@@ -84,28 +68,21 @@ TEST_CASE( "stdBindKernelIsWorking", "[kernel]")
 #if 0
 //#if BOOST_LANG_CUDA
 // clang as a native CUDA compiler does not seem to support nvstd::function when ALPAKA_ACC_GPU_CUDA_ONLY_MODE is used.
-// error: reference to __device__ function 'kernelFn<alpaka::acc::AccGpuCudaRt<std::__1::integral_constant<unsigned long, 1>, unsigned long> >' in __host__ function const auto kernel = nvstd::function<void(TAcc const &, bool *, std::int32_t)>( kernelFn<TAcc> );
+// error: reference to __device__ function 'kernelFn<alpaka::acc::AccGpuCudaRt<std::__1::integral_constant<unsigned long, 1>, unsigned long> >' in __host__ function const auto kernel = nvstd::function<void(Acc const &, bool *, std::int32_t)>( kernelFn<Acc> );
 #if !(defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) && BOOST_COMP_CLANG_CUDA)
 //-----------------------------------------------------------------------------
-struct TestTemplateNvstdFunction
+TEMPLATE_LIST_TEST_CASE( "nvstdFunctionKernelIsWorking", "[kernel]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
-    const auto kernel = nvstd::function<void(TAcc const &, bool *, std::int32_t)>( kernelFn<TAcc> );
+    const auto kernel = nvstd::function<void(Acc const &, bool *, std::int32_t)>( kernelFn<Acc> );
     REQUIRE(fixture(kernel, 42));
-  }
-};
-
-TEST_CASE( "nvstdFunctionKernelIsWorking", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateNvstdFunction() );
 }
+
 #endif
 #endif

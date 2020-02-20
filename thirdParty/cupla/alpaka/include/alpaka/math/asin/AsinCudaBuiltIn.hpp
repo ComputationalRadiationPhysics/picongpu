@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in asin.
-        class AsinCudaBuiltIn
+        class AsinCudaBuiltIn : public concepts::Implements<ConceptMathAsin, AsinCudaBuiltIn>
         {
-        public:
-            using AsinBase = AsinCudaBuiltIn;
         };
 
         namespace traits

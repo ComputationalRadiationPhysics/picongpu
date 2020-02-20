@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library log.
-        class LogStdLib
+        class LogStdLib : public concepts::Implements<ConceptMathLog, LogStdLib>
         {
-        public:
-            using LogBase = LogStdLib;
         };
 
         namespace traits

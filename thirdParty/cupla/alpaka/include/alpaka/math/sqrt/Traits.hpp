@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathSqrt;
+
         namespace traits
         {
             //#############################################################################
@@ -49,58 +50,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Sqrt<
-                T,
+                concepts::ImplementationBase<ConceptMathSqrt, T>,
                 TArg>
             ::sqrt(
                 sqrt_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathSqrt, T>;
             return
                 traits::Sqrt<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::sqrt(
                     sqrt_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Sqrt specialization for classes with SqrtBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Sqrt<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::SqrtBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto sqrt(
-                    T const & sqrt_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::sqrt(
-                        static_cast<typename T::SqrtBase const &>(sqrt_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::sqrt(
-                            static_cast<typename T::SqrtBase const &>(sqrt_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

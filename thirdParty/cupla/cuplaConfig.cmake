@@ -22,7 +22,7 @@
 # Required cmake version.
 ################################################################################
 
-cmake_minimum_required(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.11.4)
 
 ################################################################################
 # CMake policies
@@ -272,8 +272,8 @@ endif()
 ################################################################################
 # Find cupla version.
 ################################################################################
-# FIXME: Add a version.hpp
-set(_cupla_VERSION "0.1.1")
+# Please also update the version in `include/cupla/version.hpp`
+set(_cupla_VERSION "0.2.0")
 
 ################################################################################
 # Set return values.

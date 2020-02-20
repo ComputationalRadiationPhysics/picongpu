@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library remainder.
-        class RemainderStdLib
+        class RemainderStdLib : public concepts::Implements<ConceptMathRemainder, RemainderStdLib>
         {
-        public:
-            using RemainderBase = RemainderStdLib;
         };
 
         namespace traits

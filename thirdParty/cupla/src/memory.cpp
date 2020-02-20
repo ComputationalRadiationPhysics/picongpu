@@ -154,10 +154,7 @@ cuplaMallocHost(
         cupla::AlpakaDim<1u>
     >::get().alloc( extent );
 
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
-    // only implemented if nvcc is used
-    ::alpaka::mem::buf::pin( buf );
-#endif
+    prepareForAsyncCopy( buf );
 
     // @toto catch errors
     *ptrptr = ::alpaka::mem::view::getPtrNative(buf);

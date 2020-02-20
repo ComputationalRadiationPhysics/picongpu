@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathErf;
+
         namespace traits
         {
             //#############################################################################
@@ -49,58 +50,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Erf<
-                T,
+                concepts::ImplementationBase<ConceptMathErf, T>,
                 TArg>
             ::erf(
                 erf_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathErf, T>;
             return
                 traits::Erf<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::erf(
                     erf_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Erf specialization for classes with ErfBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Erf<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::ErfBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto erf(
-                    T const & erf_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::erf(
-                        static_cast<typename T::ErfBase const &>(erf_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::erf(
-                            static_cast<typename T::ErfBase const &>(erf_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

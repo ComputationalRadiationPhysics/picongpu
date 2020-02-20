@@ -39,6 +39,7 @@
 
 // Implementation details.
 #include <alpaka/core/ClipCast.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Cuda.hpp>
 #include <alpaka/dev/DevCudaRt.hpp>
 
@@ -78,7 +79,8 @@ namespace alpaka
             public block::shared::st::BlockSharedMemStCudaBuiltIn,
             public block::sync::BlockSyncCudaBuiltIn,
             public rand::RandCuRand,
-            public time::TimeCudaBuiltIn
+            public time::TimeCudaBuiltIn,
+            public concepts::Implements<ConceptAcc, AccGpuCudaRt<TDim, TIdx>>
         {
         public:
             //-----------------------------------------------------------------------------
@@ -307,7 +309,7 @@ namespace alpaka
                 ALPAKA_FN_HOST static auto createTaskKernel(
                     TWorkDiv const & workDiv,
                     TKernelFnObj const & kernelFnObj,
-                    TArgs const & ... args)
+                    TArgs && ... args)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
                 -> kernel::TaskKernelGpuCudaRt<
                     TDim,
@@ -324,7 +326,7 @@ namespace alpaka
                             TArgs...>(
                                 workDiv,
                                 kernelFnObj,
-                                args...);
+                                std::forward<TArgs>(args)...);
                 }
             };
         }

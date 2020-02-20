@@ -33,10 +33,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA rand implementation.
-        class RandCuRand
+        class RandCuRand : public concepts::Implements<ConceptRand, RandCuRand>
         {
-        public:
-            using RandBase = RandCuRand;
         };
 
         namespace generator
@@ -50,9 +48,12 @@ namespace alpaka
                 public:
 
                     //-----------------------------------------------------------------------------
-                    //! After calling this constructor the instance is not valid initialized and
-                    //! need to be overwritten with a valid object
-                    Xor() = default;
+                    // After calling this constructor the instance is not valid initialized and
+                    // need to be overwritten with a valid object
+                    //-----------------------------------------------------------------------------
+                    ALPAKA_FN_HOST_ACC Xor() : m_State(curandStateXORWOW_t{})
+                    {
+                    }
 
                     //-----------------------------------------------------------------------------
                     __device__ Xor(

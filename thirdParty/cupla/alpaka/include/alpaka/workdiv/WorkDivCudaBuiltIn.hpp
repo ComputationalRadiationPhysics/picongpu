@@ -33,11 +33,9 @@ namespace alpaka
         template<
             typename TDim,
             typename TIdx>
-        class WorkDivCudaBuiltIn
+        class WorkDivCudaBuiltIn : public concepts::Implements<ConceptWorkDiv, WorkDivCudaBuiltIn<TDim, TIdx>>
         {
         public:
-            using WorkDivBase = WorkDivCudaBuiltIn;
-
             //-----------------------------------------------------------------------------
             __device__ WorkDivCudaBuiltIn(
                 vec::Vec<TDim, TIdx> const & threadElemExtent) :

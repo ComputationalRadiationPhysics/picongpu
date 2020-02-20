@@ -68,23 +68,20 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplateNonNull
+TEMPLATE_LIST_TEST_CASE( "nonNull", "[blockSharedMemSt]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     // Use multiple threads to make sure the synchronization really works.
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(3u)));
 
     BlockSharedMemStNonNullTestKernel kernel;
 
     REQUIRE(fixture(kernel));
 }
-};
 
 //#############################################################################
 class BlockSharedMemStSameTypeDifferentAdressTestKernel
@@ -124,30 +121,17 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplateDiffAddress
+TEMPLATE_LIST_TEST_CASE( "sameTypeDifferentAddress", "[blockSharedMemSt]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     // Use multiple threads to make sure the synchronization really works.
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::all(static_cast<Idx>(3u)));
 
     BlockSharedMemStSameTypeDifferentAdressTestKernel kernel;
 
     REQUIRE(fixture(kernel));
-}
-};
-
-TEST_CASE( "nonNull", "[blockSharedMemSt]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateNonNull() );
-}
-
-TEST_CASE( "sameTypeDifferentAddress", "[blockSharedMemSt]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateDiffAddress() );
 }

@@ -12,6 +12,7 @@
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 
 #include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #if !BOOST_LANG_CUDA
     #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
@@ -32,7 +33,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA RT device manager.
-        class PltfCudaRt
+        class PltfCudaRt :
+            public concepts::Implements<ConceptPltf, PltfCudaRt>
         {
         public:
             //-----------------------------------------------------------------------------

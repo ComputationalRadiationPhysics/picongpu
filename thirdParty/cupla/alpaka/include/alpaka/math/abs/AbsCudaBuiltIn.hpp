@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in abs.
-        class AbsCudaBuiltIn
+        class AbsCudaBuiltIn : public concepts::Implements<ConceptMathAbs, AbsCudaBuiltIn>
         {
-        public:
-            using AbsBase = AbsCudaBuiltIn;
         };
 
         namespace traits

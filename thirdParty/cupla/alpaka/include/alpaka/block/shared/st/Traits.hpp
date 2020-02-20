@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <type_traits>
 
@@ -29,6 +28,8 @@ namespace alpaka
             //! The block shared static memory operation specifics.
             namespace st
             {
+                struct ConceptBlockSharedSt;
+
                 //-----------------------------------------------------------------------------
                 //! The block shared static memory operation traits.
                 namespace traits
@@ -67,11 +68,12 @@ namespace alpaka
                     TBlockSharedMemSt const & blockSharedMemSt)
                 -> T &
                 {
+                    using ImplementationBase = concepts::ImplementationBase<ConceptBlockSharedSt, TBlockSharedMemSt>;
                     return
                         traits::AllocVar<
                             T,
                             TuniqueId,
-                            TBlockSharedMemSt>
+                            ImplementationBase>
                         ::allocVar(
                             blockSharedMemSt);
                 }
@@ -88,68 +90,11 @@ namespace alpaka
                     TBlockSharedMemSt & blockSharedMemSt)
                 -> void
                 {
+                    using ImplementationBase = concepts::ImplementationBase<ConceptBlockSharedSt, TBlockSharedMemSt>;
                     traits::FreeMem<
-                        TBlockSharedMemSt>
+                        ImplementationBase>
                     ::freeMem(
                         blockSharedMemSt);
-                }
-
-                namespace traits
-                {
-                    //#############################################################################
-                    //! The AllocVar trait specialization for classes with BlockSharedMemStBase member type.
-                    template<
-                        typename T,
-                        std::size_t TuniqueId,
-                        typename TBlockSharedMemSt>
-                    struct AllocVar<
-                        T,
-                        TuniqueId,
-                        TBlockSharedMemSt,
-                        typename std::enable_if<
-                            meta::IsStrictBase<
-                                typename TBlockSharedMemSt::BlockSharedMemStBase,
-                                TBlockSharedMemSt
-                            >::value
-                        >::type>
-                    {
-                        //-----------------------------------------------------------------------------
-                        ALPAKA_FN_ACC static auto allocVar(
-                            TBlockSharedMemSt const & blockSharedMemSt)
-                        -> T &
-                        {
-                            // Delegate the call to the base class.
-                            return
-                                block::shared::st::allocVar<
-                                    T,
-                                    TuniqueId>(
-                                        static_cast<typename TBlockSharedMemSt::BlockSharedMemStBase const &>(blockSharedMemSt));
-                        }
-                    };
-                    //#############################################################################
-                    //! The FreeMem trait specialization for classes with BlockSharedMemStBase member type.
-                    template<
-                        typename TBlockSharedMemSt>
-                    struct FreeMem<
-                        TBlockSharedMemSt,
-                        typename std::enable_if<
-                            meta::IsStrictBase<
-                                typename TBlockSharedMemSt::BlockSharedMemStBase,
-                                TBlockSharedMemSt
-                            >::value
-                        >::type>
-                    {
-                        //-----------------------------------------------------------------------------
-                        ALPAKA_NO_HOST_ACC_WARNING
-                        ALPAKA_FN_ACC static auto freeMem(
-                            TBlockSharedMemSt & blockSharedMemSt)
-                        -> void
-                        {
-                            // Delegate the call to the base class.
-                            block::shared::st::freeMem(
-                                static_cast<typename TBlockSharedMemSt::BlockSharedMemStBase &>(blockSharedMemSt));
-                        }
-                    };
                 }
             }
         }

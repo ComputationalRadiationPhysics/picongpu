@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library round.
-        class RoundStdLib
+        class RoundStdLib : public concepts::Implements<ConceptMathRound, RoundStdLib>
         {
-        public:
-            using RoundBase = RoundStdLib;
         };
 
         namespace traits

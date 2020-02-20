@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library asin.
-        class AsinStdLib
+        class AsinStdLib : public concepts::Implements<ConceptMathAsin, AsinStdLib>
         {
-        public:
-            using AsinBase = AsinStdLib;
         };
 
         namespace traits

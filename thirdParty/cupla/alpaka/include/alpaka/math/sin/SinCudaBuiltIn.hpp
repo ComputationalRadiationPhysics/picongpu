@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA sin.
-        class SinCudaBuiltIn
+        class SinCudaBuiltIn : public concepts::Implements<ConceptMathSin, SinCudaBuiltIn>
         {
-        public:
-            using SinBase = SinCudaBuiltIn;
         };
 
         namespace traits

@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathAtan;
+
         namespace traits
         {
             //#############################################################################
@@ -48,58 +49,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Atan<
-                T,
+                concepts::ImplementationBase<ConceptMathAtan, T>,
                 TArg>
             ::atan(
                 atan_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathAtan, T>;
             return
                 traits::Atan<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::atan(
                     atan_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Atan specialization for classes with AtanBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Atan<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::AtanBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto atan(
-                    T const & atan_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::atan(
-                        static_cast<typename T::AtanBase const &>(atan_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::atan(
-                            static_cast<typename T::AtanBase const &>(atan_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

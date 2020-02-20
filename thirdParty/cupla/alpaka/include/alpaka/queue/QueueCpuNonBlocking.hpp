@@ -102,7 +102,7 @@ namespace alpaka
 
         //#############################################################################
         //! The CPU device queue.
-        class QueueCpuNonBlocking final
+        class QueueCpuNonBlocking final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, QueueCpuNonBlocking>
         {
         public:
             //-----------------------------------------------------------------------------

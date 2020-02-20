@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathAsin;
+
         namespace traits
         {
             //#############################################################################
@@ -48,58 +49,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Asin<
-                T,
+                concepts::ImplementationBase<ConceptMathAsin, T>,
                 TArg>
             ::asin(
                 asin_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathAsin, T>;
             return
                 traits::Asin<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::asin(
                     asin_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Asin specialization for classes with AsinBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Asin<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::AsinBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto asin(
-                    T const & asin_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::asin(
-                        static_cast<typename T::AsinBase const &>(asin_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::asin(
-                            static_cast<typename T::AsinBase const &>(asin_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

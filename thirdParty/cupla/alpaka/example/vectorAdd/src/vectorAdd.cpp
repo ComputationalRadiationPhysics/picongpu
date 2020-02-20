@@ -75,18 +75,34 @@ public:
 auto main()
 -> int
 {
-// This example is hard-coded to use the sequential backend.
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
-
+// Fallback for the CI with disabled sequential backend
+#if defined(ALPAKA_CI) && !defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+    return EXIT_SUCCESS;
+#else
     // Define the index domain
     using Dim = alpaka::dim::DimInt<1u>;
     using Idx = std::size_t;
 
     // Define the accelerator
+    //
+    // It is possible to choose from a set of accelerators
+    // that are defined in the alpaka::acc namespace e.g.:
+    // - AccGpuCudaRt
+    // - AccCpuThreads
+    // - AccCpuFibers
+    // - AccCpuOmp2Threads
+    // - AccCpuOmp2Blocks
+    // - AccCpuOmp4
+    // - AccCpuSerial
     using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
     using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using QueueAcc = alpaka::queue::QueueCpuBlocking;
+
+    // Defines the synchronization behavior of a queue
+    //
+    // choose between Blocking and NonBlocking
+    using QueueProperty = alpaka::queue::Blocking;
+    using QueueAcc = alpaka::queue::Queue<Acc, QueueProperty>;
 
     // Select a device
     DevAcc const devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u));
@@ -167,6 +183,7 @@ auto main()
 
     // Copy back the result
     alpaka::mem::view::copy(queue, bufHostC, bufAccC, extent);
+    alpaka::wait::wait(queue);
 
     bool resultCorrect(true);
     for(Idx i(0u);
@@ -192,8 +209,5 @@ auto main()
         std::cout << "Execution results incorrect!" << std::endl;
         return EXIT_FAILURE;
     }
-
-#else
-    return EXIT_SUCCESS;
 #endif
 }

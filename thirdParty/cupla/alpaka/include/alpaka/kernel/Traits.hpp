@@ -179,7 +179,7 @@ namespace alpaka
         ALPAKA_FN_HOST auto createTaskKernel(
             TWorkDiv const & workDiv,
             TKernelFnObj const & kernelFnObj,
-            TArgs const & ... args)
+            TArgs && ... args)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::CreateTaskKernel<
@@ -190,7 +190,7 @@ namespace alpaka
             ::createTaskKernel(
                 workDiv,
                 kernelFnObj,
-                args...))
+                std::forward<TArgs>(args)...))
 #endif
         {
             // check for void return type
@@ -217,7 +217,7 @@ namespace alpaka
                     TArgs...>::createTaskKernel(
                         workDiv,
                         kernelFnObj,
-                        args...);
+                        std::forward<TArgs>(args)...);
         }
 
 #if BOOST_COMP_CLANG
@@ -245,7 +245,7 @@ namespace alpaka
             TQueue & queue,
             TWorkDiv const & workDiv,
             TKernelFnObj const & kernelFnObj,
-            TArgs const & ... args)
+            TArgs && ... args)
         -> void
         {
             queue::enqueue(
@@ -254,7 +254,7 @@ namespace alpaka
                     TAcc>(
                     workDiv,
                     kernelFnObj,
-                    args...));
+                    std::forward<TArgs>(args)...));
         }
     }
 }

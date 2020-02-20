@@ -25,27 +25,21 @@ namespace alpaka
     {
         //#############################################################################
         //! "Tiny" state mersenne twister implementation
-        class TinyMersenneTwister
+        class TinyMersenneTwister : public concepts::Implements<ConceptRand, TinyMersenneTwister>
         {
-        public:
-            using RandBase = TinyMersenneTwister;
         };
         using RandStdLib = TinyMersenneTwister;
 
         //#############################################################################
         //! The standard library mersenne twister implementation.
-        class MersenneTwister
+        class MersenneTwister : public concepts::Implements<ConceptRand, MersenneTwister>
         {
-        public:
-            using RandBase = MersenneTwister;
         };
 
         //#############################################################################
         //! The standard library rand device implementation.
-        class RandomDevice
+        class RandomDevice : public concepts::Implements<ConceptRand, RandomDevice>
         {
-        public:
-            using RandBase = RandomDevice;
         };
 
         namespace generator

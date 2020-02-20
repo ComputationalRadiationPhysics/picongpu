@@ -9,10 +9,9 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <alpaka/vec/Vec.hpp>
 
@@ -83,14 +82,9 @@ namespace alpaka
             struct GetIdx<
                 TIdxGb,
                 origin::Grid,
-                unit::Blocks,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename TIdxGb::IdxGbBase,
-                        TIdxGb
-                    >::value
-                >::type>
+                unit::Blocks>
             {
+                using ImplementationBase = concepts::ImplementationBase<ConceptIdxGb, TIdxGb>;
                 //-----------------------------------------------------------------------------
                 //! \return The index of the current thread in the grid.
                 ALPAKA_NO_HOST_ACC_WARNING
@@ -99,15 +93,16 @@ namespace alpaka
                 ALPAKA_FN_HOST_ACC static auto getIdx(
                     TIdxGb const & idx,
                     TWorkDiv const & workDiv)
-                -> vec::Vec<dim::Dim<typename TIdxGb::IdxGbBase>, idx::Idx<typename TIdxGb::IdxGbBase>>
+                -> vec::Vec<dim::Dim<ImplementationBase>, idx::Idx<ImplementationBase>>
                 {
-                    // Delegate the call to the base class.
                     return
-                        idx::getIdx<
+                        traits::GetIdx<
+                            ImplementationBase,
                             origin::Grid,
-                            unit::Blocks>(
-                                static_cast<typename TIdxGb::IdxGbBase const &>(idx),
-                                workDiv);
+                            unit::Blocks>
+                        ::getIdx(
+                            idx,
+                            workDiv);
                 }
             };
 
@@ -118,14 +113,9 @@ namespace alpaka
             struct GetIdx<
                 TIdxBt,
                 origin::Block,
-                unit::Threads,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename TIdxBt::IdxBtBase,
-                        TIdxBt
-                    >::value
-                >::type>
+                unit::Threads>
             {
+                using ImplementationBase = concepts::ImplementationBase<ConceptIdxBt, TIdxBt>;
                 //-----------------------------------------------------------------------------
                 //! \return The index of the current thread in the grid.
                 ALPAKA_NO_HOST_ACC_WARNING
@@ -134,15 +124,16 @@ namespace alpaka
                 ALPAKA_FN_HOST_ACC static auto getIdx(
                     TIdxBt const & idx,
                     TWorkDiv const & workDiv)
-                -> vec::Vec<dim::Dim<typename TIdxBt::IdxBtBase>, idx::Idx<typename TIdxBt::IdxBtBase>>
+                -> vec::Vec<dim::Dim<ImplementationBase>, idx::Idx<ImplementationBase>>
                 {
-                    // Delegate the call to the base class.
                     return
-                        idx::getIdx<
+                        traits::GetIdx<
+                            ImplementationBase,
                             origin::Block,
-                            unit::Threads>(
-                                static_cast<typename TIdxBt::IdxBtBase const &>(idx),
-                                workDiv);
+                            unit::Threads>
+                        ::getIdx(
+                            idx,
+                            workDiv);
                 }
             };
 

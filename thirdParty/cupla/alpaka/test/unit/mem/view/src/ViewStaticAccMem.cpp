@@ -65,24 +65,22 @@ struct StaticDeviceMemoryTestKernel
 using TestAccs = alpaka::test::acc::EnabledAccs<Dim, Idx>;
 
 //-----------------------------------------------------------------------------
-struct TestTemplateGlobal
+TEMPLATE_LIST_TEST_CASE( "staticDeviceMemoryGlobal", "[viewStaticAccMem]", TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using DevAcc = alpaka::dev::Dev<TAcc>;
+    using Acc = TestType;
+    using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
     DevAcc devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u));
 
     alpaka::vec::Vec<Dim, Idx> const extent(3u, 2u);
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(extent);
+    alpaka::test::KernelExecutionFixture<Acc> fixture(extent);
 
     StaticDeviceMemoryTestKernel kernel;
 
     //-----------------------------------------------------------------------------
     // FIXME: constant memory in HIP(HCC) is still not working
-#if !defined(BOOST_COMP_HCC) || !BOOST_COMP_HCC
+#if !BOOST_COMP_HCC && !BOOST_COMP_HIP
     // initialized static constant device memory
     {
         auto const viewConstantMemInitialized(
@@ -122,7 +120,6 @@ void operator()()
     }
 #endif
 }
-};
 
 // These forward declarations are only necessary when you want to access those variables
 // from a different compilation unit and should be moved to a common header.
@@ -141,24 +138,22 @@ ALPAKA_STATIC_ACC_MEM_GLOBAL Elem g_globalMemory2DInitialized[3][2] =
 ALPAKA_STATIC_ACC_MEM_GLOBAL Elem g_globalMemory2DUninitialized[3][2];
 
 //-----------------------------------------------------------------------------
-struct TestTemplateConstant
+TEMPLATE_LIST_TEST_CASE( "staticDeviceMemoryConstant", "[viewStaticAccMem]", TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using DevAcc = alpaka::dev::Dev<TAcc>;
+    using Acc = TestType;
+    using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
     DevAcc devAcc(alpaka::pltf::getDevByIdx<PltfAcc>(0u));
 
     alpaka::vec::Vec<Dim, Idx> const extent(3u, 2u);
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(extent);
+    alpaka::test::KernelExecutionFixture<Acc> fixture(extent);
 
     StaticDeviceMemoryTestKernel kernel;
 
     //-----------------------------------------------------------------------------
     // FIXME: static device memory in HIP(HCC) is still not working
-#if !defined(BOOST_COMP_HCC) || !BOOST_COMP_HCC
+#if !BOOST_COMP_HCC && !BOOST_COMP_HIP
     // initialized static global device memory
     {
         auto const viewGlobalMemInitialized(
@@ -200,15 +195,4 @@ void operator()()
                 alpaka::mem::view::getPtrNative(viewGlobalMemUninitialized)));
     }
 #endif
-}
-};
-
-TEST_CASE( "staticDeviceMemoryGlobal", "[viewStaticAccMem]")
-{
-    alpaka::meta::forEachType< TestAccs >( TestTemplateGlobal() );
-}
-
-TEST_CASE( "staticDeviceMemoryConstant", "[viewStaticAccMem]")
-{
-    alpaka::meta::forEachType< TestAccs >( TestTemplateConstant() );
 }

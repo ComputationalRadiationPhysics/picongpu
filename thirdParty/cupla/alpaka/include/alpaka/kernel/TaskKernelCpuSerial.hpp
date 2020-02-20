@@ -54,10 +54,10 @@ namespace alpaka
             ALPAKA_FN_HOST TaskKernelCpuSerial(
                 TWorkDiv && workDiv,
                 TKernelFnObj const & kernelFnObj,
-                TArgs const & ... args) :
+                TArgs && ... args) :
                     workdiv::WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv)),
                     m_kernelFnObj(kernelFnObj),
-                    m_args(args...)
+                    m_args(std::forward<TArgs>(args)...)
             {
                 static_assert(
                     dim::Dim<typename std::decay<TWorkDiv>::type>::value == TDim::value,
@@ -91,7 +91,7 @@ namespace alpaka
                 // Get the size of the block shared dynamic memory.
                 auto const blockSharedMemDynSizeBytes(
                     meta::apply(
-                        [&](TArgs const & ... args)
+                        [&](typename std::decay<TArgs>::type const & ... args)
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
@@ -111,7 +111,7 @@ namespace alpaka
                 // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
                 auto const boundKernelFnObj(
                     meta::apply(
-                        [this](TArgs const & ... args)
+                        [this](typename std::decay<TArgs>::type const & ... args)
                         {
                             return
                                 std::bind(
@@ -147,7 +147,7 @@ namespace alpaka
 
         private:
             TKernelFnObj m_kernelFnObj;
-            std::tuple<TArgs...> m_args;
+            std::tuple<typename std::decay<TArgs>::type...> m_args;
         };
     }
 

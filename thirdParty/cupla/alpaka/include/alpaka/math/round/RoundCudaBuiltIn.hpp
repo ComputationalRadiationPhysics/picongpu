@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA round.
-        class RoundCudaBuiltIn
+        class RoundCudaBuiltIn : public concepts::Implements<ConceptMathRound, RoundCudaBuiltIn>
         {
-        public:
-            using RoundBase = RoundCudaBuiltIn;
         };
 
         namespace traits

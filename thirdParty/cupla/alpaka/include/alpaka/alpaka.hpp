@@ -72,6 +72,7 @@
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/ClipCast.hpp>
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/ConcurrentExecPool.hpp>
 #include <alpaka/core/Cuda.hpp>
 #include <alpaka/core/Debug.hpp>
@@ -192,6 +193,7 @@
 #include <alpaka/queue/QueueCpuNonBlocking.hpp>
 #include <alpaka/queue/QueueCpuBlocking.hpp>
 #include <alpaka/queue/Traits.hpp>
+#include <alpaka/queue/Properties.hpp>
 //-----------------------------------------------------------------------------
 // time
 #include <alpaka/time/Traits.hpp>
