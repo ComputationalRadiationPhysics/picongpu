@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "picongpu/fields/absorber/NumCells.hpp"
+
 #include <pmacc/dimensions/DataSpace.hpp>
 
 #include <pmacc/Environment.hpp>
@@ -239,7 +241,7 @@ namespace picongpu
             if( isAbsorberEnabled && isBoundaryDevice )
             {
                 size_t boundary = m_mpiPosition[ dim ] == 0u ? 0u : 1u;
-                int maxAbsorberCells = ABSORBER_CELLS[ dim ][ boundary ];
+                int maxAbsorberCells = fields::absorber::numCells[ dim ][ boundary ];
 
                 if( m_movingWindowEnabled && dim == 1u )
                 {
@@ -248,8 +250,8 @@ namespace picongpu
                      */
                     maxAbsorberCells = static_cast< int >(
                         std::max(
-                            ABSORBER_CELLS[ dim ][ 0 ],
-                            ABSORBER_CELLS[ dim ][ 1 ]
+                            fields::absorber::numCells[ dim ][ 0 ],
+                            fields::absorber::numCells[ dim ][ 1 ]
                         )
                     );
                 }

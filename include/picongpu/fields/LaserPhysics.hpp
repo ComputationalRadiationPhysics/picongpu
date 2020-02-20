@@ -20,6 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
+#include "picongpu/fields/absorber/NumCells.hpp"
 #include "picongpu/fields/LaserPhysics.def"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
 
@@ -148,7 +149,8 @@ namespace fields
                 constexpr bool isLaserDisabled = laserProfiles::Selected::Unitless::INIT_TIME == 0.0_X;
                 constexpr bool isLaserInitInFirstCell = laserProfiles::Selected::Unitless::initPlaneY == 0;
                 // X + 1 is a workaround to avoid warning: pointless comparison of unsigned integer with zero
-                constexpr bool isInitPlaneYOutsideOfAbsorber = laserProfiles::Selected::Unitless::initPlaneY + 1 > ABSORBER_CELLS[1][0] + 1;
+                constexpr bool isInitPlaneYOutsideOfAbsorber =
+                    laserProfiles::Selected::Unitless::initPlaneY + 1 > absorber::numCells[1][0] + 1;
                 PMACC_CASSERT_MSG(
                     __initPlaneY_needs_to_be_greater_than_the_top_absorber_cells_or_zero,
                     isLaserDisabled || isLaserInitInFirstCell || isInitPlaneYOutsideOfAbsorber
