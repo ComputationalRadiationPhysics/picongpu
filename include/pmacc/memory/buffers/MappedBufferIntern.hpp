@@ -74,7 +74,7 @@ public:
         if (pointer && ownPointer)
         {
 #if( PMACC_CUDA_ENABLED == 1 )
-/* cupla 0.1.0 does not support the function cudaHostAlloc to create mapped memory.
+/* cupla 0.2.0 does not support the function cudaHostAlloc to create mapped memory.
  * Therefore we need to call the native CUDA function cudaFreeHost to free memory.
  * Due to the renaming of cuda functions with cupla via macros we need to remove
  * the renaming to get access to the native cuda function.
