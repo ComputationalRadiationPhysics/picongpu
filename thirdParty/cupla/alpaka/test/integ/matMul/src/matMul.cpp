@@ -199,13 +199,15 @@ namespace alpaka
     }
 }
 
-struct TestTemplate
+using TestAccs = alpaka::test::acc::EnabledAccs<
+    alpaka::dim::DimInt<2u>,
+    std::uint32_t>;
+
+TEMPLATE_LIST_TEST_CASE( "matMul", "[matMul]", TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     Idx const m(64u);
     Idx const n(79u);
@@ -213,9 +215,9 @@ void operator()()
 
     using Val = std::uint32_t;
     using Vec2 = alpaka::vec::Vec<Dim, Idx>;
-    using DevAcc = alpaka::dev::Dev<TAcc>;
+    using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using QueueAcc = alpaka::test::queue::DefaultQueue<alpaka::dev::Dev<TAcc>>;
+    using QueueAcc = alpaka::test::queue::DefaultQueue<alpaka::dev::Dev<Acc>>;
     using PltfHost = alpaka::pltf::PltfCpu;
     using DevHost = alpaka::dev::Dev<PltfHost>;
     using QueueHost = alpaka::queue::QueueCpuNonBlocking;
@@ -255,7 +257,7 @@ void operator()()
 
     // Let alpaka calculate good block and grid sizes given our full problem extent.
     alpaka::workdiv::WorkDivMembers<Dim, Idx> const workDiv(
-        alpaka::workdiv::getValidWorkDiv<TAcc>(
+        alpaka::workdiv::getValidWorkDiv<Acc>(
             devAcc,
             extentC,
             alpaka::vec::Vec<Dim, Idx>::ones(),
@@ -267,7 +269,7 @@ void operator()()
         << "m:" << m
         << ", n:" << n
         << ", k:" << k
-        << ", accelerator: " << alpaka::acc::getAccName<TAcc>()
+        << ", accelerator: " << alpaka::acc::getAccName<Acc>()
         << ", kernel: " << typeid(kernel).name()
         << ", workDiv: " << workDiv
         << ")" << std::endl;
@@ -304,7 +306,7 @@ void operator()()
     alpaka::mem::view::copy(queueAcc, bufCAcc, bufCHost, extentC);
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::kernel::createTaskKernel<TAcc>(
+    auto const taskKernel(alpaka::kernel::createTaskKernel<Acc>(
         workDiv,
         kernel,
         m,
@@ -352,14 +354,4 @@ void operator()()
     }
 
     REQUIRE(resultCorrect);
-}
-};
-
-TEST_CASE( "matMul", "[matMul]")
-{
-    using TestAccs = alpaka::test::acc::EnabledAccs<
-        alpaka::dim::DimInt<2u>,
-        std::uint32_t>;
-
-    alpaka::meta::forEachType< TestAccs >( TestTemplate() );
 }

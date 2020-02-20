@@ -39,6 +39,7 @@ before_install:
   - mkdir -p $HOME/asyncAPI
   - mkdir -p $HOME/asyncAPI_tuned
   - mkdir -p $HOME/vectorAdd
+  - mkdir -p $HOME/blackScholes
   - mkdir -p $HOME/test/config
   - export CMAKE_FLAGS="-DALPAKA_ACC_"$STRATEGY"_ENABLE=ON"
   - if [ "$COMPILER" == "gcc" ]; then
@@ -67,15 +68,15 @@ install:
   # CMAKE                                                                     #
   #############################################################################
   - export PATH=$CMAKE_ROOT/bin:$PATH
-  - CMAKE_315_FOUND=$(cmake --version | grep " 3\.15\." >/dev/null && { echo 0; } || { echo 1; })
-  - if [ $CMAKE_315_FOUND -ne 0 ]; then
+  - CMAKE_3_11_4_FOUND=$(cmake --version | grep " 3\.11\.4" >/dev/null && { echo 0; } || { echo 1; })
+  - if [ $CMAKE_3_11_4_FOUND -ne 0 ]; then
       mkdir -p $CMAKE_ROOT &&
       cd $CMAKE_ROOT &&
       rm -rf $CMAKE_ROOT/* &&
-      travis_retry wget --no-check-certificate http://cmake.org/files/v3.15/cmake-3.15.4-Linux-x86_64.tar.gz &&
-      tar -xzf cmake-3.15.4-Linux-x86_64.tar.gz &&
-      mv cmake-3.15.4-Linux-x86_64/* . &&
-      rm -rf cmake-3.15.4-Linux-x86_64.tar.gz cmake-3.15.4-Linux-x86_64 &&
+      travis_retry wget --no-check-certificate http://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.tar.gz &&
+      tar -xzf cmake-3.11.4-Linux-x86_64.tar.gz &&
+      mv cmake-3.11.4-Linux-x86_64/* . &&
+      rm -rf cmake-3.11.4-Linux-x86_64.tar.gz cmake-3.11.4-Linux-x86_64 &&
       cd -;
     fi
   - cmake --version
@@ -154,6 +155,16 @@ script:
   - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
        [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
       ./vectorAdd 100000;
+    fi
+  #############################################################################
+  # Example: BlackScholes (adapted original)                                 #
+  #############################################################################
+  - cd $HOME/blackScholes
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/blackScholes/ $CMAKE_FLAGS
+  - make
+  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
+       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
+      ./blackScholes;
     fi
   #############################################################################
   # Test: additional tests                                                    #

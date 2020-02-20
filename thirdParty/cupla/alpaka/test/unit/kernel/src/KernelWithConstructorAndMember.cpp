@@ -44,47 +44,31 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "kernelWithConstructorAndMember", "[kernel]", alpaka::test::acc::TestAccs)
 {
-    template< typename TAcc >
-    void operator()()
-    {
-        using Dim = alpaka::dim::Dim<TAcc>;
-        using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-        alpaka::test::KernelExecutionFixture<TAcc> fixture(
-            alpaka::vec::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
-        KernelWithConstructorAndMember kernel(42);
+    KernelWithConstructorAndMember kernel(42);
 
-        REQUIRE(fixture(kernel));
-    }
-};
-
-//-----------------------------------------------------------------------------
-struct TestTemplateDefault
-{
-    template< typename TAcc >
-    void operator()()
-    {
-        using Dim = alpaka::dim::Dim<TAcc>;
-        using Idx = alpaka::idx::Idx<TAcc>;
-
-        alpaka::test::KernelExecutionFixture<TAcc> fixture(
-            alpaka::vec::Vec<Dim, Idx>::ones());
-
-        KernelWithConstructorAndMember kernel;
-
-        REQUIRE(fixture(kernel));
-    }
-};
-
-TEST_CASE( "kernelWithConstructorAndMember", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
+    REQUIRE(fixture(kernel));
 }
 
-TEST_CASE( "kernelWithConstructorDefaultParamAndMember", "[kernel]")
+//-----------------------------------------------------------------------------
+TEMPLATE_LIST_TEST_CASE( "kernelWithConstructorDefaultParamAndMember", "[kernel]", alpaka::test::acc::TestAccs)
 {
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateDefault() );
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
+
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
+        alpaka::vec::Vec<Dim, Idx>::ones());
+
+    KernelWithConstructorAndMember kernel;
+
+    REQUIRE(fixture(kernel));
 }

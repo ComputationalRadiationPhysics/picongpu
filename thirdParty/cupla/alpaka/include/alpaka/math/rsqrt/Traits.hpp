@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathRsqrt;
+
         namespace traits
         {
             //#############################################################################
@@ -49,58 +50,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Rsqrt<
-                T,
+                concepts::ImplementationBase<ConceptMathRsqrt, T>,
                 TArg>
             ::rsqrt(
                 rsqrt_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathRsqrt, T>;
             return
                 traits::Rsqrt<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::rsqrt(
                     rsqrt_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Rsqrt specialization for classes with RsqrtBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Rsqrt<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::RsqrtBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto rsqrt(
-                    T const & rsqrt_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::rsqrt(
-                        static_cast<typename T::RsqrtBase const &>(rsqrt_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::rsqrt(
-                            static_cast<typename T::RsqrtBase const &>(rsqrt_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

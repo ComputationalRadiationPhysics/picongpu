@@ -195,7 +195,7 @@ namespace alpaka
                 //
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtBlocking &,
+                    queue::QueueHipRtBlocking & queue,
                     mem::view::hip::detail::TaskSetHip<dim::DimInt<1u>, TView, TExtent> const & task)
                 -> void
                 {
@@ -233,10 +233,14 @@ namespace alpaka
                             iDevice));
                     // Initiate the memory set.
                     ALPAKA_HIP_RT_CHECK(
-                        hipMemset(
+                        hipMemsetAsync(
                             dstNativePtr,
                             static_cast<int>(byte),
-                            static_cast<size_t>(extentWidthBytes)));
+                            static_cast<size_t>(extentWidthBytes),
+                            queue.m_spQueueImpl->m_HipQueue));
+
+                    ALPAKA_HIP_RT_CHECK( hipStreamSynchronize(
+                        queue.m_spQueueImpl->m_HipQueue));
                 }
             };
             //#############################################################################
@@ -312,7 +316,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtBlocking &,
+                    queue::QueueHipRtBlocking & queue,
                     mem::view::hip::detail::TaskSetHip<dim::DimInt<2u>, TView, TExtent> const & task)
                 -> void
                 {
@@ -354,12 +358,16 @@ namespace alpaka
                             iDevice));
                     // Initiate the memory set.
                     ALPAKA_HIP_RT_CHECK(
-                        hipMemset2D(
+                        hipMemset2DAsync(
                             dstNativePtr,
                             static_cast<size_t>(dstPitchBytesX),
                             static_cast<int>(byte),
                             static_cast<size_t>(extentWidthBytes),
-                            static_cast<size_t>(extentHeight)));
+                            static_cast<size_t>(extentHeight),
+                            queue.m_spQueueImpl->m_HipQueue));
+
+                    ALPAKA_HIP_RT_CHECK( hipStreamSynchronize(
+                        queue.m_spQueueImpl->m_HipQueue));
                 }
             };
             //#############################################################################
@@ -453,7 +461,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueHipRtBlocking &,
+                    queue::QueueHipRtBlocking & queue,
                     mem::view::hip::detail::TaskSetHip<dim::DimInt<3u>, TView, TExtent> const & task)
                 -> void
                 {
@@ -515,10 +523,14 @@ namespace alpaka
                             iDevice));
                     // Initiate the memory set.
                     ALPAKA_HIP_RT_CHECK(
-                        hipMemset3D(
+                        hipMemset3DAsync(
                             hipPitchedPtrVal,
                             static_cast<int>(byte),
-                            hipExtentVal));
+                            hipExtentVal,
+                            queue.m_spQueueImpl->m_HipQueue));
+
+                    ALPAKA_HIP_RT_CHECK( hipStreamSynchronize(
+                        queue.m_spQueueImpl->m_HipQueue));
                 }
             };
 

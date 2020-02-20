@@ -22,11 +22,9 @@ namespace alpaka
         {
             //#############################################################################
             //! The no op block synchronization.
-            class BlockSyncNoOp
+            class BlockSyncNoOp : public concepts::Implements<ConceptBlockSync, BlockSyncNoOp>
             {
             public:
-                using BlockSyncBase = BlockSyncNoOp;
-
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_ACC BlockSyncNoOp() = default;
                 //-----------------------------------------------------------------------------

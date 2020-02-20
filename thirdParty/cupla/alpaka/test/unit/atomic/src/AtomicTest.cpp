@@ -943,36 +943,28 @@ struct TestAtomicOperations
     }
 };
 
+using TestAccs = alpaka::test::acc::EnabledAccs<
+    alpaka::dim::DimInt<1u>,
+    std::size_t>;
+
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "atomicOperationsWorking", "[atomic]", TestAccs)
 {
-    template< typename TAcc >
-    void operator()()
-    {
-        TestAtomicOperations<TAcc, unsigned char>::testAtomicOperations();
-        TestAtomicOperations<TAcc, char>::testAtomicOperations();
-        TestAtomicOperations<TAcc, unsigned short>::testAtomicOperations();
-        TestAtomicOperations<TAcc, short>::testAtomicOperations();
+    using Acc = TestType;
+    TestAtomicOperations<Acc, unsigned char>::testAtomicOperations();
+    TestAtomicOperations<Acc, char>::testAtomicOperations();
+    TestAtomicOperations<Acc, unsigned short>::testAtomicOperations();
+    TestAtomicOperations<Acc, short>::testAtomicOperations();
 
-        TestAtomicOperations<TAcc, unsigned int>::testAtomicOperations();
-        TestAtomicOperations<TAcc, int>::testAtomicOperations();
+    TestAtomicOperations<Acc, unsigned int>::testAtomicOperations();
+    TestAtomicOperations<Acc, int>::testAtomicOperations();
 
-        TestAtomicOperations<TAcc, unsigned long>::testAtomicOperations();
-        TestAtomicOperations<TAcc, long>::testAtomicOperations();
-        TestAtomicOperations<TAcc, unsigned long long>::testAtomicOperations();
-        TestAtomicOperations<TAcc, long long>::testAtomicOperations();
+    TestAtomicOperations<Acc, unsigned long>::testAtomicOperations();
+    TestAtomicOperations<Acc, long>::testAtomicOperations();
+    TestAtomicOperations<Acc, unsigned long long>::testAtomicOperations();
+    TestAtomicOperations<Acc, long long>::testAtomicOperations();
 
-        // Not all atomic operations are possible with floating point values.
-        //TestAtomicOperations<TAcc, float>::testAtomicOperations();
-        //TestAtomicOperations<TAcc, double>::testAtomicOperations();
-    }
-};
-
-TEST_CASE( "atomicOperationsWorking", "[atomic]")
-{
-    using TestAccs = alpaka::test::acc::EnabledAccs<
-        alpaka::dim::DimInt<1u>,
-        std::size_t>;
-
-    alpaka::meta::forEachType< TestAccs >( TestTemplate() );
+    // Not all atomic operations are possible with floating point values.
+    //TestAtomicOperations<Acc, float>::testAtomicOperations();
+    //TestAtomicOperations<Acc, double>::testAtomicOperations();
 }

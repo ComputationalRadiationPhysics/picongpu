@@ -24,7 +24,7 @@
 #if BOOST_COMP_NVCC >= BOOST_VERSION_NUMBER(9, 0, 0)
     #include <cuda_runtime_api.h>
 #else
-    #if BOOST_COMP_HCC
+    #if BOOST_COMP_HCC || BOOST_COMP_HIP
         #include <math_functions.h>
     #else
         #include <math_functions.hpp>
@@ -39,10 +39,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The HIP max.
-        class MaxHipBuiltIn
+        class MaxHipBuiltIn : public concepts::Implements<ConceptMathMax, MaxHipBuiltIn>
         {
-        public:
-            using MaxBase = MaxHipBuiltIn;
         };
 
         namespace traits

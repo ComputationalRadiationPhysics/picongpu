@@ -22,7 +22,7 @@
 //-----------------------------------------------------------------------------
 //! This functions says hi to the world and
 //! can be encapsulated into a std::function
-//! and used as a kernel function. It is 
+//! and used as a kernel function. It is
 //! just another way to define alpaka kernels
 //! and might be useful when it is necessary
 //! to lift an existing function into a kernel
@@ -52,24 +52,40 @@ void ALPAKA_FN_ACC hiWorldFunction(
     for(size_t i = 0; i < nExclamationMarks; ++i){
         printf("!");
     }
-                                                          
-    printf("\n");  
+
+    printf("\n");
 }
 
 auto main()
 -> int
 {
-// This example is hard-coded to use the sequential backend.
 // It requires support for extended lambdas when using nvcc as CUDA compiler.
-#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED) && (!defined(__NVCC__) || (defined(__NVCC__) && defined(__CUDACC_EXTENDED_LAMBDA__) ))
+// Requires sequential backend if CI is used
+#if (!defined(__NVCC__) || (defined(__NVCC__) && defined(__CUDACC_EXTENDED_LAMBDA__) )) && \
+    (!defined(ALPAKA_CI) || defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED))
 
     // Define the index domain
     using Dim = alpaka::dim::DimInt<3>;
     using Idx = std::size_t;
 
     // Define the accelerator
+    //
+    // It is possible to choose from a set of accelerators
+    // that are defined in the alpaka::acc namespace e.g.:
+    // - AccGpuCudaRt
+    // - AccCpuThreads
+    // - AccCpuFibers
+    // - AccCpuOmp2Threads
+    // - AccCpuOmp2Blocks
+    // - AccCpuOmp4
+    // - AccCpuSerial
     using Acc = alpaka::acc::AccCpuSerial<Dim, Idx>;
-    using Queue = alpaka::queue::QueueCpuBlocking;
+
+    // Defines the synchronization behavior of a queue
+    //
+    // choose between Blocking and NonBlocking
+    using QueueProperty = alpaka::queue::Blocking;
+    using Queue = alpaka::queue::Queue<Acc, QueueProperty>;
     using Dev = alpaka::dev::Dev<Acc>;
     using Pltf = alpaka::pltf::Pltf<Dev>;
 
@@ -101,12 +117,12 @@ auto main()
     // Alpaka is able to execute lambda functions (anonymous functions) which
     // are available since the C++11 standard.
     // Alpaka forces the lambda function to accept
-    // the utilized accelerator as first argument. 
+    // the utilized accelerator as first argument.
     // All following arguments can be provided after
-    // the lambda function declaration or be captured. 
+    // the lambda function declaration or be captured.
     //
     // This example passes the number exclamation marks, that should
-    // be written after we greet the world, to the 
+    // be written after we greet the world, to the
     // lambda function.
     alpaka::kernel::exec<Acc>(
         queue,
@@ -131,6 +147,7 @@ auto main()
         },
         nExclamationMarks
     );
+    alpaka::wait::wait(queue);
 
     return EXIT_SUCCESS;
 

@@ -24,10 +24,8 @@ namespace alpaka
         {
             //#############################################################################
             //! The CPU new allocator.
-            class AllocCpuNew
+            class AllocCpuNew : public concepts::Implements<ConceptMemAlloc, AllocCpuNew>
             {
-            public:
-                using AllocBase = AllocCpuNew;
             };
 
             namespace traits

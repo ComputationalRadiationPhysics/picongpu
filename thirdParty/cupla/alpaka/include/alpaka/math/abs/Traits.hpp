@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathAbs;
+
         //-----------------------------------------------------------------------------
         //! The math traits.
         namespace traits
@@ -51,58 +52,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Abs<
-                T,
+                concepts::ImplementationBase<ConceptMathAbs, T>,
                 TArg>
             ::abs(
                 abs_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathAbs, T>;
             return
                 traits::Abs<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::abs(
                     abs_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Abs specialization for classes with AbsBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Abs<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::AbsBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto abs(
-                    T const & abs_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::abs(
-                        static_cast<typename T::AbsBase const &>(abs_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::abs(
-                            static_cast<typename T::AbsBase const &>(abs_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

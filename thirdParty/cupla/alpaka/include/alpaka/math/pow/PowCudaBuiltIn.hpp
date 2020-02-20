@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in pow.
-        class PowCudaBuiltIn
+        class PowCudaBuiltIn : public concepts::Implements<ConceptMathPow, PowCudaBuiltIn>
         {
-        public:
-            using PowBase = PowCudaBuiltIn;
         };
 
         namespace traits

@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in min.
-        class MinCudaBuiltIn
+        class MinCudaBuiltIn : public concepts::Implements<ConceptMathMin, MinCudaBuiltIn>
         {
-        public:
-            using MinBase = MinCudaBuiltIn;
         };
 
         namespace traits

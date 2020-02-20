@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library pow.
-        class PowStdLib
+        class PowStdLib : public concepts::Implements<ConceptMathPow, PowStdLib>
         {
-        public:
-            using PowBase = PowStdLib;
         };
 
         namespace traits

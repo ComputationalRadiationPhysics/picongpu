@@ -116,7 +116,7 @@ namespace alpaka
 
         //#############################################################################
         //! The HIP RT blocking queue.
-        class QueueHipRtBlocking final
+        class QueueHipRtBlocking final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, QueueHipRtBlocking>
         {
         public:
             //-----------------------------------------------------------------------------

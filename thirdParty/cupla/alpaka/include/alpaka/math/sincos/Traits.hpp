@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathSinCos;
+
         namespace traits
         {
             //#############################################################################
@@ -52,8 +53,9 @@ namespace alpaka
             TArg & result_cos)
         -> void
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathSinCos, T>;
             traits::SinCos<
-                T,
+                ImplementationBase,
                 TArg>
                 ::sincos(
                     sincos_ctx,
@@ -61,41 +63,6 @@ namespace alpaka
                     result_sin,
                     result_cos
                     );
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The SinCos specialization for classes with SinCosBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct SinCos<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::SinCosBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto sincos(
-                    T const & sincos_ctx,
-                    TArg const & arg,
-                    TArg & result_sin,
-                    TArg & result_cos
-                    )
-                -> void
-                {
-                    // Delegate the call to the base class.
-                    math::sincos(
-                        static_cast<typename T::SinCosBase const &>(sincos_ctx),
-                        arg, result_sin, result_cos);
-                }
-            };
         }
     }
 }

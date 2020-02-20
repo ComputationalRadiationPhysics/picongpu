@@ -22,11 +22,9 @@ namespace alpaka
     {
         //#############################################################################
         //! The CPU fibers accelerator time implementation.
-        class TimeStdLib
+        class TimeStdLib : public concepts::Implements<ConceptTime, TimeStdLib>
         {
         public:
-            using TimeBase = TimeStdLib;
-
             //-----------------------------------------------------------------------------
             TimeStdLib() = default;
             //-----------------------------------------------------------------------------

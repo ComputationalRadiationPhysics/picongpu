@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathMax;
+
         namespace traits
         {
             //#############################################################################
@@ -55,7 +56,7 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Max<
-                T,
+                concepts::ImplementationBase<ConceptMathMax, T>,
                 Tx,
                 Ty>
             ::max(
@@ -64,58 +65,16 @@ namespace alpaka
                 y))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathMax, T>;
             return
                 traits::Max<
-                    T,
+                    ImplementationBase,
                     Tx,
                     Ty>
                 ::max(
                     max_ctx,
                     x,
                     y);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Max specialization for classes with MaxBase member type.
-            template<
-                typename T,
-                typename Tx,
-                typename Ty>
-            struct Max<
-                T,
-                Tx,
-                Ty,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::MaxBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto max(
-                    T const & max_ctx,
-                    Tx const & x,
-                    Ty const & y)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::max(
-                        static_cast<typename T::MaxBase const &>(max_ctx),
-                        x,
-                        y))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::max(
-                            static_cast<typename T::MaxBase const &>(max_ctx),
-                            x,
-                            y);
-                }
-            };
         }
     }
 }

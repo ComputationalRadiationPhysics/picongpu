@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathCeil;
+
         namespace traits
         {
             //#############################################################################
@@ -49,58 +50,21 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Ceil<
-                T,
+                concepts::ImplementationBase<ConceptMathCeil, T>,
                 TArg>
             ::ceil(
                 ceil_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathCeil, T>;
             return
                 traits::Ceil<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::ceil(
                     ceil_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Ceil specialization for classes with CeilBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Ceil<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::CeilBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto ceil(
-                    T const & ceil_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::ceil(
-                        static_cast<typename T::CeilBase const &>(ceil_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::ceil(
-                            static_cast<typename T::CeilBase const &>(ceil_ctx),
-                            arg);
-                }
-            };
         }
     }
 }

@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library sin.
-        class SinStdLib
+        class SinStdLib : public concepts::Implements<ConceptMathSin, SinStdLib>
         {
-        public:
-            using SinBase = SinStdLib;
         };
 
         namespace traits

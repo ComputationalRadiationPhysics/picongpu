@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA tan.
-        class TanCudaBuiltIn
+        class TanCudaBuiltIn : public concepts::Implements<ConceptMathTan, TanCudaBuiltIn>
         {
-        public:
-            using TanBase = TanCudaBuiltIn;
         };
 
         namespace traits

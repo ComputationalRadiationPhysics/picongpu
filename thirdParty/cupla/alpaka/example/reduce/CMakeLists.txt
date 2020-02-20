@@ -26,7 +26,7 @@ SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 ################################################################################
 # Project.
 
-SET(_TARGET_NAME "reduce")
+SET(_TARGET_NAME reduce)
 
 PROJECT(${_TARGET_NAME})
 
@@ -45,47 +45,21 @@ endif()
 
 SET(ALPAKA_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../" CACHE STRING "The location of the alpaka library")
 LIST(APPEND CMAKE_MODULE_PATH "${ALPAKA_ROOT}")
-FIND_PACKAGE("alpaka" REQUIRED)
-
-#-------------------------------------------------------------------------------
-# Common.
-
-INCLUDE("${ALPAKA_ROOT}cmake/common.cmake")
-INCLUDE("${ALPAKA_ROOT}cmake/dev.cmake")
+FIND_PACKAGE(alpaka REQUIRED)
 
 #-------------------------------------------------------------------------------
 # Add executable.
 
-SET(_SOURCE_DIR "src/")
-
-# Add all the source files in all recursive subdirectories and group them accordingly.
-append_recursive_files_add_to_src_group("${_SOURCE_DIR}" "${_SOURCE_DIR}" "cpp" _FILES_SOURCE)
-append_recursive_files_add_to_src_group("${_SOURCE_DIR}" "${_SOURCE_DIR}" "hpp" _FILES_HEADER)
-
-SET(_COMPILE_OPTIONS_PRIVATE ${ALPAKA_DEV_COMPILE_OPTIONS})
-
-IF(MSVC)
-    LIST(APPEND _COMPILE_OPTIONS_PRIVATE "/wd4996")   # This function or variable may be unsafe. Consider using <safe_version> instead.
-ENDIF()
-
-# NVCC does not incorporate the COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
-IF(ALPAKA_ACC_GPU_CUDA_ENABLE AND NOT ALPAKA_CUDA_COMPILER MATCHES "clang")
-    STRING(REPLACE ";" " " _COMPILE_OPTIONS_PRIVATE_STRING "${_COMPILE_OPTIONS_PRIVATE}")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_COMPILE_OPTIONS_PRIVATE_STRING}")
-ENDIF()
-
-# Always add all files to the target executable build call to add them to the build project.
 ALPAKA_ADD_EXECUTABLE(
     ${_TARGET_NAME}
-    ${_FILES_SOURCE}
-    ${_FILES_HEADER})
-TARGET_COMPILE_OPTIONS(
-    ${_TARGET_NAME}
-    PRIVATE ${_COMPILE_OPTIONS_PRIVATE})
+    src/alpakaConfig.hpp
+    src/iterator.hpp
+    src/kernel.hpp
+    src/reduce.cpp)
 TARGET_LINK_LIBRARIES(
     ${_TARGET_NAME}
-    PUBLIC "alpaka")
+    PUBLIC alpaka)
 
-SET_TARGET_PROPERTIES(${_TARGET_NAME} PROPERTIES FOLDER "example")
+SET_TARGET_PROPERTIES(${_TARGET_NAME} PROPERTIES FOLDER example)
 
 ADD_TEST(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME})

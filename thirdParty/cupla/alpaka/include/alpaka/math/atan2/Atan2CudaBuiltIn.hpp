@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in atan2.
-        class Atan2CudaBuiltIn
+        class Atan2CudaBuiltIn : public concepts::Implements<ConceptMathAtan2, Atan2CudaBuiltIn>
         {
-        public:
-            using Atan2Base = Atan2CudaBuiltIn;
         };
 
         namespace traits

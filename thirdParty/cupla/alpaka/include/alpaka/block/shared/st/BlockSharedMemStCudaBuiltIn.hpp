@@ -32,11 +32,9 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The GPU CUDA block shared memory allocator.
-                class BlockSharedMemStCudaBuiltIn
+                class BlockSharedMemStCudaBuiltIn : public concepts::Implements<ConceptBlockSharedSt, BlockSharedMemStCudaBuiltIn>
                 {
                 public:
-                    using BlockSharedMemStBase = BlockSharedMemStCudaBuiltIn;
-
                     //-----------------------------------------------------------------------------
                     BlockSharedMemStCudaBuiltIn() = default;
                     //-----------------------------------------------------------------------------

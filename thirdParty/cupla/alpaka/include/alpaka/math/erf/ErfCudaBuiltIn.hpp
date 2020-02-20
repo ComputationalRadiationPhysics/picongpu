@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in erf.
-        class ErfCudaBuiltIn
+        class ErfCudaBuiltIn : public concepts::Implements<ConceptMathErf, ErfCudaBuiltIn>
         {
-        public:
-            using ErfBase = ErfCudaBuiltIn;
         };
 
         namespace traits

@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in acos.
-        class AcosCudaBuiltIn
+        class AcosCudaBuiltIn : public concepts::Implements<ConceptMathAcos, AcosCudaBuiltIn>
         {
-        public:
-            using AcosBase = AcosCudaBuiltIn;
         };
 
         namespace traits

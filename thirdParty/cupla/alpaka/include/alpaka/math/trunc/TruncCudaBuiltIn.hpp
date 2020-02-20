@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA trunc.
-        class TruncCudaBuiltIn
+        class TruncCudaBuiltIn : public concepts::Implements<ConceptMathTrunc, TruncCudaBuiltIn>
         {
-        public:
-            using TruncBase = TruncCudaBuiltIn;
         };
 
         namespace traits

@@ -24,11 +24,9 @@ namespace alpaka
         {
             //#############################################################################
             //! The OpenMP barrier block synchronization.
-            class BlockSyncBarrierOmp
+            class BlockSyncBarrierOmp : public concepts::Implements<ConceptBlockSync, BlockSyncBarrierOmp>
             {
             public:
-                using BlockSyncBase = BlockSyncBarrierOmp;
-
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST BlockSyncBarrierOmp() :
                     m_generation(0u)

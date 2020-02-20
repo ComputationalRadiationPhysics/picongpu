@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library sincos.
-        class SinCosStdLib
+        class SinCosStdLib : public concepts::Implements<ConceptMathSinCos, SinCosStdLib>
         {
-        public:
-            using SinCosBase = SinCosStdLib;
         };
 
         namespace traits

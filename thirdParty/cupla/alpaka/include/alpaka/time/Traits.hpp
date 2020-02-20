@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <type_traits>
 
@@ -21,6 +20,8 @@ namespace alpaka
     //! The time traits specifics.
     namespace time
     {
+        struct ConceptTime;
+
         //-----------------------------------------------------------------------------
         //! The time traits.
         namespace traits
@@ -45,40 +46,12 @@ namespace alpaka
             TTime const & time)
         -> std::uint64_t
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptTime, TTime>;
             return
                 traits::Clock<
-                    TTime>
+                    ImplementationBase>
                 ::clock(
                     time);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Clock trait specialization for classes with TimeBase member type.
-            template<
-                typename TTime>
-            struct Clock<
-                TTime,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename TTime::TimeBase,
-                        TTime
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto clock(
-                    TTime const & time)
-                -> std::uint64_t
-                {
-                    // Delegate the call to the base class.
-                    return
-                        time::clock(
-                            static_cast<typename TTime::TimeBase const &>(time));
-                }
-            };
         }
     }
 }

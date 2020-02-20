@@ -24,9 +24,9 @@ ADD_SUBDIRECTORY("common/")
 OPTION(ALPAKA_USE_INTERNAL_CATCH2 "Use internally shipped Catch2" ON)
 
 IF(ALPAKA_USE_INTERNAL_CATCH2)
-    message(STATUS "Catch2: Using INTERNAL version 2.5.0")
+    message(STATUS "Catch2: Using INTERNAL version 2.11.0")
 ELSE()
-    find_package(Catch2 2.4.0 CONFIG REQUIRED)
+    find_package(Catch2 2.11.0 CONFIG REQUIRED)
     set_target_properties(Catch2::Catch2 PROPERTIES IMPORTED_GLOBAL TRUE)
     message(STATUS "Catch2: Found version ${Catch2_VERSION}")
 ENDIF()
@@ -46,6 +46,7 @@ IF(MSVC)
     target_compile_definitions(CatchMain PUBLIC "CATCH_CONFIG_WINDOWS_CRTDBG")
     target_compile_options(CatchMain PUBLIC "/bigobj")
 ENDIF()
+
 IF(ALPAKA_USE_INTERNAL_CATCH2)
     target_include_directories(CatchMain SYSTEM PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/../thirdParty/catch2/include)
@@ -57,13 +58,18 @@ SET_TARGET_PROPERTIES(
     CatchMain
     PROPERTIES FOLDER "test")
 
-# NVCC does not incorporate the COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
-IF(ALPAKA_ACC_GPU_CUDA_ENABLE AND NOT ALPAKA_CUDA_COMPILER MATCHES "clang")
+IF(ALPAKA_ACC_GPU_CUDA_ENABLE AND ALPAKA_CUDA_COMPILER MATCHES "nvcc")
+    # NVCC does not incorporate the COMPILE_OPTIONS of a target but only the CMAKE_CXX_FLAGS
     GET_TARGET_PROPERTY(_COMMON_COMPILE_OPTIONS common COMPILE_OPTIONS)
     # If the property does not exist, the variable is set to NOTFOUND.
     IF(_COMMON_COMPILE_OPTIONS)
         STRING(REPLACE ";" " " _COMMON_COMPILE_OPTIONS_STRING "${_COMMON_COMPILE_OPTIONS}")
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_COMMON_COMPILE_OPTIONS_STRING}")
+    ENDIF()
+    # nvcc supports werror starting with 10.2
+    IF(CUDA_VERSION GREATER_EQUAL 10.2)
+        MESSAGE("adding -Werror=all-warnings")
+        LIST(APPEND CUDA_NVCC_FLAGS -Werror=all-warnings)
     ENDIF()
 ENDIF()
 

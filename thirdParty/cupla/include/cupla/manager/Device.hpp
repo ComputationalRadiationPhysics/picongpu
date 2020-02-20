@@ -163,7 +163,7 @@ namespace manager
         -> int
         {
             using Pltf = ::alpaka::pltf::Pltf< DeviceType >;
-            return ::alpaka::pltf::getDevCount< Pltf >( );
+            return static_cast< int >( ::alpaka::pltf::getDevCount< Pltf >( ) );
         }
 
     protected:

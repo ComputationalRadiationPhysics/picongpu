@@ -12,10 +12,14 @@
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
+#include <alpaka/wait/Traits.hpp>
 
 #include <alpaka/queue/cpu/ICpuQueue.hpp>
 #include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/cpu/SysInfo.hpp>
+
+#include <alpaka/queue/Traits.hpp>
+#include <alpaka/queue/Properties.hpp>
 
 #include <map>
 #include <mutex>
@@ -130,7 +134,7 @@ namespace alpaka
 
         //#############################################################################
         //! The CPU device handle.
-        class DevCpu
+        class DevCpu : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, DevCpu>
         {
             friend struct pltf::traits::GetDevByIdx<pltf::PltfCpu>;
         protected:
@@ -282,6 +286,29 @@ namespace alpaka
                 dev::DevCpu>
             {
                 using type = pltf::PltfCpu;
+            };
+        }
+    }
+    namespace queue
+    {
+        namespace traits
+        {
+            template<>
+            struct QueueType<
+                dev::DevCpu,
+                queue::Blocking
+            >
+            {
+                using type = queue::QueueCpuBlocking;
+            };
+
+            template<>
+            struct QueueType<
+                dev::DevCpu,
+                queue::NonBlocking
+            >
+            {
+                using type = queue::QueueCpuNonBlocking;
             };
         }
     }

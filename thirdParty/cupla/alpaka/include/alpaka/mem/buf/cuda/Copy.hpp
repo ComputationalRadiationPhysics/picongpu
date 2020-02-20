@@ -25,8 +25,6 @@
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/queue/QueueCudaRtNonBlocking.hpp>
-#include <alpaka/queue/QueueCudaRtBlocking.hpp>
 
 #include <alpaka/core/Assert.hpp>
 #include <alpaka/core/Cuda.hpp>
@@ -828,7 +826,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtBlocking &,
+                    queue::QueueCudaRtBlocking & queue,
                     mem::view::cuda::detail::TaskCopyCuda<dim::DimInt<1u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -860,11 +858,12 @@ namespace alpaka
                                 iDstDev));
                         // Initiate the memory copy.
                         ALPAKA_CUDA_RT_CHECK(
-                            cudaMemcpy(
+                            cudaMemcpyAsync(
                                 dstNativePtr,
                                 srcNativePtr,
                                 static_cast<std::size_t>(extentWidthBytes),
-                                cudaMemCpyKind));
+                                cudaMemCpyKind,
+                                queue.m_spQueueImpl->m_CudaQueue));
                     }
                     else
                     {
@@ -872,13 +871,17 @@ namespace alpaka
 
                         // Initiate the memory copy.
                         ALPAKA_CUDA_RT_CHECK(
-                            cudaMemcpyPeer(
+                            cudaMemcpyPeerAsync(
                                 dstNativePtr,
                                 iDstDev,
                                 srcNativePtr,
                                 iSrcDev,
-                                static_cast<std::size_t>(extentWidthBytes)));
+                                static_cast<std::size_t>(extentWidthBytes),
+                                queue.m_spQueueImpl->m_CudaQueue));
                     }
+                    ALPAKA_CUDA_RT_CHECK(
+                        cudaStreamSynchronize(
+                            queue.m_spQueueImpl->m_CudaQueue));
                 }
             };
             //#############################################################################
@@ -969,7 +972,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtBlocking &,
+                    queue::QueueCudaRtBlocking & queue,
                     mem::view::cuda::detail::TaskCopyCuda<dim::DimInt<2u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -1006,14 +1009,15 @@ namespace alpaka
                                 iDstDev));
                         // Initiate the memory copy.
                         ALPAKA_CUDA_RT_CHECK(
-                            cudaMemcpy2D(
+                            cudaMemcpy2DAsync(
                                 dstNativePtr,
                                 static_cast<std::size_t>(dstPitchBytesX),
                                 srcNativePtr,
                                 static_cast<std::size_t>(srcPitchBytesX),
                                 static_cast<std::size_t>(extentWidthBytes),
                                 static_cast<std::size_t>(extentHeight),
-                                cudaMemCpyKind));
+                                cudaMemCpyKind,
+                                queue.m_spQueueImpl->m_CudaQueue));
                     }
                     else
                     {
@@ -1026,9 +1030,13 @@ namespace alpaka
                                 task));
                         // Initiate the memory copy.
                         ALPAKA_CUDA_RT_CHECK(
-                            cudaMemcpy3DPeer(
-                                &cudaMemCpy3DPeerParms));
+                            cudaMemcpy3DPeerAsync(
+                                &cudaMemCpy3DPeerParms,
+                                queue.m_spQueueImpl->m_CudaQueue));
                     }
+                    ALPAKA_CUDA_RT_CHECK(
+                        cudaStreamSynchronize(
+                            queue.m_spQueueImpl->m_CudaQueue));
                 }
             };
             //#############################################################################
@@ -1105,7 +1113,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtBlocking &,
+                    queue::QueueCudaRtBlocking & queue,
                     mem::view::cuda::detail::TaskCopyCuda<dim::DimInt<3u>, TViewDst, TViewSrc, TExtent> const & task)
                 -> void
                 {
@@ -1135,8 +1143,9 @@ namespace alpaka
                                 iDstDev));
                         // Initiate the memory copy.
                         ALPAKA_CUDA_RT_CHECK(
-                            cudaMemcpy3D(
-                                &cudaMemCpy3DParms));
+                            cudaMemcpy3DAsync(
+                                &cudaMemCpy3DParms,
+                                queue.m_spQueueImpl->m_CudaQueue));
                     }
                     else
                     {
@@ -1148,9 +1157,13 @@ namespace alpaka
                                 task));
                         // Initiate the memory copy.
                         ALPAKA_CUDA_RT_CHECK(
-                            cudaMemcpy3DPeer(
-                                &cudaMemCpy3DPeerParms));
+                            cudaMemcpy3DPeerAsync(
+                                &cudaMemCpy3DPeerParms,
+                                queue.m_spQueueImpl->m_CudaQueue));
                     }
+                    ALPAKA_CUDA_RT_CHECK(
+                        cudaStreamSynchronize(
+                            queue.m_spQueueImpl->m_CudaQueue));
                 }
             };
         }

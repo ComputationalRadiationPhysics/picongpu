@@ -69,18 +69,20 @@ public:
     }
 };
 
-struct TestTemplate
+using TestAccs = alpaka::test::acc::EnabledAccs<
+    alpaka::dim::DimInt<1u>,
+    std::size_t>;
+
+TEMPLATE_LIST_TEST_CASE( "separableCompilation", "[separableCompilation]", TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Idx = alpaka::idx::Idx<Acc>;
 
     using Val = double;
 
-    using DevAcc = alpaka::dev::Dev<TAcc>;
+    using DevAcc = alpaka::dev::Dev<Acc>;
     using PltfAcc = alpaka::pltf::Pltf<DevAcc>;
-    using QueueAcc = alpaka::test::queue::DefaultQueue<alpaka::dev::Dev<TAcc>>;
+    using QueueAcc = alpaka::test::queue::DefaultQueue<alpaka::dev::Dev<Acc>>;
     using PltfHost = alpaka::pltf::PltfCpu;
     using DevHost = alpaka::dev::Dev<PltfHost>;
 
@@ -106,7 +108,7 @@ void operator()()
 
     // Let alpaka calculate good block and grid sizes given our full problem extent.
     alpaka::workdiv::WorkDivMembers<alpaka::dim::DimInt<1u>, Idx> const workDiv(
-        alpaka::workdiv::getValidWorkDiv<TAcc>(
+        alpaka::workdiv::getValidWorkDiv<Acc>(
             devAcc,
             extent,
             static_cast<Idx>(3u),
@@ -115,7 +117,7 @@ void operator()()
 
     std::cout
         << typeid(kernel).name() << "("
-        << "accelerator: " << alpaka::acc::getAccName<TAcc>()
+        << "accelerator: " << alpaka::acc::getAccName<Acc>()
         << ", workDiv: " << workDiv
         << ", numElements:" << numElements
         << ")" << std::endl;
@@ -142,7 +144,7 @@ void operator()()
     alpaka::mem::view::copy(queueAcc, memBufAccB, memBufHostB, extent);
 
     // Create the executor task.
-    auto const taskKernel(alpaka::kernel::createTaskKernel<TAcc>(
+    auto const taskKernel(alpaka::kernel::createTaskKernel<Acc>(
         workDiv,
         kernel,
         alpaka::mem::view::getPtrNative(memBufAccA),
@@ -179,14 +181,4 @@ void operator()()
     }
 
     REQUIRE(true == resultCorrect);
-}
-};
-
-TEST_CASE( "separableCompilation", "[separableCompilation]")
-{
-    using TestAccs = alpaka::test::acc::EnabledAccs<
-        alpaka::dim::DimInt<1u>,
-        std::size_t>;
-
-    alpaka::meta::forEachType< TestAccs >( TestTemplate() );
 }

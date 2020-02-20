@@ -191,7 +191,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtBlocking &,
+                    queue::QueueCudaRtBlocking & queue,
                     mem::view::cuda::detail::TaskSetCuda<dim::DimInt<1u>, TView, TExtent> const & task)
                 -> void
                 {
@@ -231,10 +231,15 @@ namespace alpaka
                             iDevice));
                     // Initiate the memory set.
                     ALPAKA_CUDA_RT_CHECK(
-                        cudaMemset(
+                        cudaMemsetAsync(
                             dstNativePtr,
                             static_cast<int>(byte),
-                            static_cast<size_t>(extentWidthBytes)));
+                            static_cast<size_t>(extentWidthBytes),
+                            queue.m_spQueueImpl->m_CudaQueue));
+
+                    ALPAKA_CUDA_RT_CHECK(
+                        cudaStreamSynchronize(
+                            queue.m_spQueueImpl->m_CudaQueue));
                 }
             };
             //#############################################################################
@@ -313,7 +318,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtBlocking &,
+                    queue::QueueCudaRtBlocking & queue,
                     mem::view::cuda::detail::TaskSetCuda<dim::DimInt<2u>, TView, TExtent> const & task)
                 -> void
                 {
@@ -359,12 +364,17 @@ namespace alpaka
 
                     // Initiate the memory set.
                     ALPAKA_CUDA_RT_CHECK(
-                        cudaMemset2D(
+                        cudaMemset2DAsync(
                             dstNativePtr,
                             static_cast<size_t>(dstPitchBytesX),
                             static_cast<int>(byte),
                             static_cast<size_t>(extentWidthBytes),
-                            static_cast<size_t>(extentHeight)));
+                            static_cast<size_t>(extentHeight),
+                            queue.m_spQueueImpl->m_CudaQueue));
+
+                    ALPAKA_CUDA_RT_CHECK(
+                        cudaStreamSynchronize(
+                            queue.m_spQueueImpl->m_CudaQueue));
                 }
             };
             //#############################################################################
@@ -459,7 +469,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtBlocking &,
+                    queue::QueueCudaRtBlocking & queue,
                     mem::view::cuda::detail::TaskSetCuda<dim::DimInt<3u>, TView, TExtent> const & task)
                 -> void
                 {
@@ -522,10 +532,15 @@ namespace alpaka
                             iDevice));
                     // Initiate the memory set.
                     ALPAKA_CUDA_RT_CHECK(
-                        cudaMemset3D(
+                        cudaMemset3DAsync(
                             cudaPitchedPtrVal,
                             static_cast<int>(byte),
-                            cudaExtentVal));
+                            cudaExtentVal,
+                            queue.m_spQueueImpl->m_CudaQueue));
+
+                    ALPAKA_CUDA_RT_CHECK(
+                        cudaStreamSynchronize(
+                            queue.m_spQueueImpl->m_CudaQueue));
                 }
             };
         }

@@ -43,22 +43,19 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplate
+TEMPLATE_LIST_TEST_CASE( "kernelFuntionObjectTemplate", "[kernel]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelFuntionObjectTemplate<std::int32_t> kernel;
 
     REQUIRE(fixture(kernel));
 }
-};
 
 //#############################################################################
 class KernelInvocationWithAdditionalTemplate
@@ -86,29 +83,16 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplateExtra
+TEMPLATE_LIST_TEST_CASE( "kernelFuntionObjectExtraTemplate", "[kernel]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelInvocationWithAdditionalTemplate kernel;
 
     REQUIRE(fixture(kernel, std::int32_t()));
-}
-};
-
-TEST_CASE( "kernelFuntionObjectTemplate", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplate() );
-}
-
-TEST_CASE( "kernelFuntionObjectExtraTemplate", "[kernel]")
-{
-    alpaka::meta::forEachType< alpaka::test::acc::TestAccs >( TestTemplateExtra() );
 }

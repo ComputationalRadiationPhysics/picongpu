@@ -33,6 +33,7 @@
 #include <alpaka/idx/Traits.hpp>
 
 // Implementation details.
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Unused.hpp>
 #include <alpaka/dev/DevCpu.hpp>
 
@@ -72,7 +73,8 @@ namespace alpaka
             public block::shared::st::BlockSharedMemStNoSync,
             public block::sync::BlockSyncNoOp,
             public rand::RandStdLib,
-            public time::TimeStdLib
+            public time::TimeStdLib,
+            public concepts::Implements<ConceptAcc, AccCpuTbbBlocks<TDim, TIdx>>
         {
         public:
             // Partial specialization with the correct TDim and TIdx is not allowed.
@@ -243,7 +245,7 @@ namespace alpaka
                 ALPAKA_FN_HOST static auto createTaskKernel(
                     TWorkDiv const & workDiv,
                     TKernelFnObj const & kernelFnObj,
-                    TArgs const & ... args)
+                    TArgs && ... args)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
                 -> kernel::TaskKernelCpuTbbBlocks<
                     TDim,
@@ -260,7 +262,7 @@ namespace alpaka
                             TArgs...>(
                                 workDiv,
                                 kernelFnObj,
-                                args...);
+                                std::forward<TArgs>(args)...);
                 }
             };
         }

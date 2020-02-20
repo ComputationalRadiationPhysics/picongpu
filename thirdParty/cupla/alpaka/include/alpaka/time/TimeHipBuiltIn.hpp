@@ -25,11 +25,9 @@ namespace alpaka
     {
         //#############################################################################
         //! The GPU HIP accelerator time implementation.
-        class TimeHipBuiltIn
+        class TimeHipBuiltIn : public concepts::Implements<ConceptTime, TimeHipBuiltIn>
         {
         public:
-            using TimeBase = TimeHipBuiltIn;
-
             //-----------------------------------------------------------------------------
             //! Default constructor.
             ALPAKA_FN_HOST_ACC TimeHipBuiltIn() = default;

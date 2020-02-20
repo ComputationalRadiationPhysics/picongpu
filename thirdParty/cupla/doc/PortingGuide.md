@@ -20,6 +20,10 @@ in kernels:
 Restrictions
 ============
 
+Cupla host-side API is not thread-safe.
+Thus, it is not allowed to use cupla API from multiple host-side threads simultaneously.
+In such scenarios, some synchronization between the host-side threads is required to ensure safe usage of cupla.
+
 Events with timing information synchronize the stream where they were recorded.
 Disable the timing information of the event by setting the flag
 `cudaEventDisableTiming` or `cuplaEventDisableTiming` during the event

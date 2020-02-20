@@ -99,7 +99,7 @@ namespace alpaka
 
         //#############################################################################
         //! The CUDA RT device event.
-        class EventCudaRt final
+        class EventCudaRt final : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, EventCudaRt>
         {
         public:
             //-----------------------------------------------------------------------------

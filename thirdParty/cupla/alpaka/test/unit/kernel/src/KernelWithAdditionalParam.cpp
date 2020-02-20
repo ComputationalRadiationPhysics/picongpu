@@ -36,26 +36,18 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplateByValue
+TEMPLATE_LIST_TEST_CASE("KernelWithAdditionalParamByValue", "[kernel]", alpaka::test::acc::TestAccs)
 {
-template< typename TAcc >
-void operator()()
-{
-    using Dim = alpaka::dim::Dim<TAcc>;
-    using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<TAcc> fixture(
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
         alpaka::vec::Vec<Dim, Idx>::ones());
 
     KernelWithAdditionalParamByValue kernel;
 
     REQUIRE(fixture(kernel, 42));
-  }
-};
-
-TEST_CASE("KernelWithAdditionalParamByValue", "[kernel]")
-{
-    alpaka::meta::forEachType<alpaka::test::acc::TestAccs>(TestTemplateByValue());
 }
 
 /*
@@ -81,25 +73,18 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplateByRef
+TEMPLATE_LIST_TEST_CASE("KernelWithAdditionalParamByRef", "[kernel]", alpaka::test::acc::TestAccs)
 {
-    template <typename TAcc> void operator()()
-    {
-        using Dim = alpaka::dim::Dim<TAcc>;
-        using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-        alpaka::test::KernelExecutionFixture<TAcc> fixture(
-            alpaka::vec::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
-        KernelWithAdditionalParamByRef kernel;
+    KernelWithAdditionalParamByRef kernel;
 
-        REQUIRE(fixture(kernel, 42));
-    }
-};
-
-TEST_CASE("KernelWithAdditionalParamByRef", "[kernel]")
-{
-    alpaka::meta::forEachType<alpaka::test::acc::TestAccs>(TestTemplateByRef());
+    REQUIRE(fixture(kernel, 42));
 }*/
 
 //#############################################################################
@@ -121,24 +106,16 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-struct TestTemplateByConstRef
+TEMPLATE_LIST_TEST_CASE("KernelWithAdditionalParamByConstRef", "[kernel]", alpaka::test::acc::TestAccs)
 {
-    template <typename TAcc> void operator()()
-    {
-        using Dim = alpaka::dim::Dim<TAcc>;
-        using Idx = alpaka::idx::Idx<TAcc>;
+    using Acc = TestType;
+    using Dim = alpaka::dim::Dim<Acc>;
+    using Idx = alpaka::idx::Idx<Acc>;
 
-        alpaka::test::KernelExecutionFixture<TAcc> fixture(
-            alpaka::vec::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(
+        alpaka::vec::Vec<Dim, Idx>::ones());
 
-        KernelWithAdditionalParamByConstRef kernel;
+    KernelWithAdditionalParamByConstRef kernel;
 
-        REQUIRE(fixture(kernel, 42));
-    }
-};
-
-TEST_CASE("KernelWithAdditionalParamByConstRef", "[kernel]")
-{
-    alpaka::meta::forEachType<alpaka::test::acc::TestAccs>(
-        TestTemplateByConstRef());
+    REQUIRE(fixture(kernel, 42));
 }

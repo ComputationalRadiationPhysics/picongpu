@@ -22,10 +22,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library atan2.
-        class Atan2StdLib
+        class Atan2StdLib : public concepts::Implements<ConceptMathAtan2, Atan2StdLib>
         {
-        public:
-            using Atan2Base = Atan2StdLib;
         };
 
         namespace traits

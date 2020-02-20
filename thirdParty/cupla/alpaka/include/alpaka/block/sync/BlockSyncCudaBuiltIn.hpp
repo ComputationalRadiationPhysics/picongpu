@@ -27,11 +27,9 @@ namespace alpaka
         {
             //#############################################################################
             //! The GPU CUDA block synchronization.
-            class BlockSyncCudaBuiltIn
+            class BlockSyncCudaBuiltIn : public concepts::Implements<ConceptBlockSync, BlockSyncCudaBuiltIn>
             {
             public:
-                using BlockSyncBase = BlockSyncCudaBuiltIn;
-
                 //-----------------------------------------------------------------------------
                 BlockSyncCudaBuiltIn() = default;
                 //-----------------------------------------------------------------------------

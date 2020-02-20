@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in fmod.
-        class FmodCudaBuiltIn
+        class FmodCudaBuiltIn : public concepts::Implements<ConceptMathFmod, FmodCudaBuiltIn>
         {
-        public:
-            using FmodBase = FmodCudaBuiltIn;
         };
 
         namespace traits

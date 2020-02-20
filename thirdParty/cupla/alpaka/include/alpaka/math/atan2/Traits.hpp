@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 
 #include <boost/config.hpp>
 
@@ -21,6 +20,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathAtan2;
+
         namespace traits
         {
             //#############################################################################
@@ -54,7 +55,7 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Atan2<
-                T,
+                concepts::ImplementationBase<ConceptMathAtan2, T>,
                 Ty,
                 Tx>
             ::atan2(
@@ -63,58 +64,16 @@ namespace alpaka
                 x))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathAtan2, T>;
             return
                 traits::Atan2<
-                    T,
+                    ImplementationBase,
                     Ty,
                     Tx>
                 ::atan2(
                     atan2_ctx,
                     y,
                     x);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Atan2 specialization for classes with Atan2Base member type.
-            template<
-                typename T,
-                typename Ty,
-                typename Tx>
-            struct Atan2<
-                T,
-                Ty,
-                Tx,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::Atan2Base,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto atan2(
-                    T const & atan2_ctx,
-                    Ty const & y,
-                    Tx const & x)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::atan2(
-                        static_cast<typename T::Atan2Base const &>(atan2_ctx),
-                        y,
-                        x))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::atan2(
-                            static_cast<typename T::Atan2Base const &>(atan2_ctx),
-                            y,
-                            x);
-                }
-            };
         }
     }
 }

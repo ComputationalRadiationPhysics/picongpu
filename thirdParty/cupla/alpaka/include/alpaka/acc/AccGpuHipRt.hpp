@@ -39,6 +39,7 @@
 
 // Implementation details.
 #include <alpaka/core/ClipCast.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/dev/DevHipRt.hpp>
 #include <alpaka/core/Hip.hpp>
 
@@ -78,7 +79,8 @@ namespace alpaka
             public block::shared::st::BlockSharedMemStHipBuiltIn,
             public block::sync::BlockSyncHipBuiltIn,
             public rand::RandHipRand,
-            public time::TimeHipBuiltIn
+            public time::TimeHipBuiltIn,
+            public concepts::Implements<ConceptAcc, AccGpuHipRt<TDim, TIdx>>
         {
         public:
             //-----------------------------------------------------------------------------
@@ -269,7 +271,7 @@ namespace alpaka
                 ALPAKA_FN_HOST static auto createTaskKernel(
                     TWorkDiv const & workDiv,
                     TKernelFnObj const & kernelFnObj,
-                    TArgs const & ... args)
+                    TArgs && ... args)
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
                 -> kernel::TaskKernelGpuHipRt<
                     TDim,
@@ -286,7 +288,7 @@ namespace alpaka
                             TArgs...>(
                                 workDiv,
                                 kernelFnObj,
-                                args...);
+                                std::forward<TArgs>(args)...);
                 }
             };
         }

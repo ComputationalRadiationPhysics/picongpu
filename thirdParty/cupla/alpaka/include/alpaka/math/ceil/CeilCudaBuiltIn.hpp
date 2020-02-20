@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in ceil.
-        class CeilCudaBuiltIn
+        class CeilCudaBuiltIn : public concepts::Implements<ConceptMathCeil, CeilCudaBuiltIn>
         {
-        public:
-            using CeilBase = CeilCudaBuiltIn;
         };
 
         namespace traits

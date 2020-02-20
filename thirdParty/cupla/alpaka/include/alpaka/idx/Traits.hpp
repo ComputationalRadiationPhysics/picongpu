@@ -17,6 +17,9 @@ namespace alpaka
     //! The index specifics.
     namespace idx
     {
+        struct ConceptIdxBt;
+        struct ConceptIdxGb;
+
         //-----------------------------------------------------------------------------
         //! The idx traits.
         namespace traits

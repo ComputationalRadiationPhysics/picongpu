@@ -31,10 +31,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The CUDA built in remainder.
-        class RemainderCudaBuiltIn
+        class RemainderCudaBuiltIn : public concepts::Implements<ConceptMathRemainder, RemainderCudaBuiltIn>
         {
-        public:
-            using RemainderBase = RemainderCudaBuiltIn;
         };
 
         namespace traits

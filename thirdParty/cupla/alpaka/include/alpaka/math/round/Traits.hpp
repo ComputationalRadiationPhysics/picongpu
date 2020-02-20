@@ -9,9 +9,8 @@
 
 #pragma once
 
-#include <alpaka/meta/IsStrictBase.hpp>
-
 #include <alpaka/core/Common.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Unused.hpp>
 
 #include <boost/config.hpp>
@@ -22,6 +21,8 @@ namespace alpaka
 {
     namespace math
     {
+        struct ConceptMathRound;
+
         namespace traits
         {
             //#############################################################################
@@ -66,16 +67,17 @@ namespace alpaka
 #ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
         -> decltype(
             traits::Round<
-                T,
+                concepts::ImplementationBase<ConceptMathRound, T>,
                 TArg>
             ::round(
                 round_ctx,
                 arg))
 #endif
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathRound, T>;
             return
                 traits::Round<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::round(
                     round_ctx,
@@ -97,9 +99,10 @@ namespace alpaka
             TArg const & arg)
         -> long int
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathRound, T>;
             return
                 traits::Lround<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::lround(
                     lround_ctx,
@@ -121,119 +124,14 @@ namespace alpaka
             TArg const & arg)
         -> long long int
         {
+            using ImplementationBase = concepts::ImplementationBase<ConceptMathRound, T>;
             return
                 traits::Llround<
-                    T,
+                    ImplementationBase,
                     TArg>
                 ::llround(
                     llround_ctx,
                     arg);
-        }
-
-        namespace traits
-        {
-            //#############################################################################
-            //! The Round specialization for classes with RoundBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Round<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::RoundBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto round(
-                    T const & round_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::round(
-                        static_cast<typename T::RoundBase const &>(round_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::round(
-                            static_cast<typename T::RoundBase const &>(round_ctx),
-                            arg);
-                }
-            };
-            //#############################################################################
-            //! The Lround specialization for classes with RoundBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Lround<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::RoundBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto lround(
-                    T const & lround_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::lround(
-                        static_cast<typename T::RoundBase const &>(lround_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::lround(
-                            static_cast<typename T::RoundBase const &>(lround_ctx),
-                            arg);
-                }
-            };
-            //#############################################################################
-            //! The Llround specialization for classes with RoundBase member type.
-            template<
-                typename T,
-                typename TArg>
-            struct Llround<
-                T,
-                TArg,
-                typename std::enable_if<
-                    meta::IsStrictBase<
-                        typename T::RoundBase,
-                        T
-                    >::value
-                >::type>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto llround(
-                    T const & llround_ctx,
-                    TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> decltype(
-                    math::llround(
-                        static_cast<typename T::RoundBase const &>(llround_ctx),
-                        arg))
-#endif
-                {
-                    // Delegate the call to the base class.
-                    return
-                        math::llround(
-                            static_cast<typename T::RoundBase const &>(llround_ctx),
-                            arg);
-                }
-            };
         }
     }
 }
