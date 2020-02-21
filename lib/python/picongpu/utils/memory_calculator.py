@@ -71,7 +71,9 @@ class MemoryCalculator:
             field_tmp_slots=1,
             particle_shape_order=2,
             sim_dim=3,
-            pml_enabled=False
+            pml_n_x=0,
+            pml_n_y=0,
+            pml_n_z=0
     ):
         """
         Memory reserved for fields on each device
@@ -93,9 +95,12 @@ class MemoryCalculator:
             ``species.param``: e.g. ``particles::shapes::PCS : 3rd order``)
         sim_dim : int
             simulation dimension (available for PIConGPU: 2 and 3)
-        pml_enabled : bool
-            whether the PML absorber is enabled
-            (see PIConGPU ``fieldSolver.param`` : ``Solver``)
+        pml_n_x : int
+            number of PML cells in x direction, combined for both sides
+        pml_n_y : int
+            number of PML cells in y direction, combined for both sides
+        pml_n_z : int
+            number of PML cells in z direction, combined for both sides
 
         Returns
         -------
@@ -109,6 +114,10 @@ class MemoryCalculator:
             n_y = self.n_y
         if n_z is None:
             n_z = self.n_z
+        # PML size cannot exceed the local grid size
+        pml_n_x = min(pml_n_x, n_x)
+        pml_n_y = min(pml_n_y, n_y)
+        pml_n_z = min(pml_n_z, n_z)
 
         # guard size in super cells in x, y, z
         guard_size_supercells = np.array([1, 1, 1])
@@ -121,6 +130,7 @@ class MemoryCalculator:
                 [16, 16, 1])  # \TODO make this more generic
             local_cells = (n_x + supercell_size[0] * 2 * guard_size_supercells[
                 0]) * (n_y + supercell_size[1] * 2 * guard_size_supercells[1])
+            local_pml_cells = n_x * n_y - (n_x - pml_n_x) * (n_y - pml_n_y)
 
             # cells around core-border region due to particle shape
             double_buffer_cells = (n_x + pso) * (n_y + pso) - n_x * n_y
@@ -135,6 +145,8 @@ class MemoryCalculator:
                    guard_size_supercells[1]) \
                 * (n_z + supercell_size[2] * 2 *
                    guard_size_supercells[2])
+            local_pml_cells = n_x * n_y * n_z \
+                - (n_x - pml_n_x) * (n_y - pml_n_y) * (n_z - pml_n_z)
 
             # cells around core-border region due to particle shape
             double_buffer_cells = (n_x + pso) * (n_y + pso) * (n_z + pso) \
@@ -145,16 +157,17 @@ class MemoryCalculator:
                 sim_dim,
                 " =/= {2, 3}")
 
-        # number of additional PML field components: when enabled,
-        # 2 additional scalar fields for each of Ex, Ey, Ez, Bx, By, Bz
-        num_pml_fields = 12 if pml_enabled else 0
         # number of fields: 3 * 3 = x,y,z for E,B,J
-        num_fields = 3 * 3 + field_tmp_slots + num_pml_fields
+        num_fields = 3 * 3 + field_tmp_slots
         # double buffer memory
         double_buffer_mem = double_buffer_cells * num_fields * self.value_size
+        # number of additional PML field components: when enabled,
+        # 2 additional scalar fields for each of Ex, Ey, Ez, Bx, By, Bz
+        num_pml_fields = 12
 
         req_mem = self.value_size * num_fields * local_cells \
-            + double_buffer_mem
+            + double_buffer_mem \
+            + self.value_size * num_pml_fields * local_pml_cells
         return req_mem
 
     def mem_req_by_particles(
