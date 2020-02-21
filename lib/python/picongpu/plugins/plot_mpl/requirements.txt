@@ -1,6 +1,4 @@
 matplotlib
 numpy
 scipy
-sys
-getopt
 -r ../data/requirements.txt
