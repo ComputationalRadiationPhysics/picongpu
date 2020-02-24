@@ -49,7 +49,7 @@
 # TIME_LIMIT, TIME_LIMIT_90, TIME_LIMIT_80 and/or TIME_LIMIT_50
 #SBATCH --mail-type=!TBG_mailSettings
 #SBATCH --mail-user=!TBG_mailAddress
-#SBATCH --workdir=!TBG_dstPath
+#SBATCH --chdir=!TBG_dstPath
 
 #SBATCH -o stdout
 #SBATCH -e stderr
