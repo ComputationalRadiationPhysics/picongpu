@@ -19,16 +19,17 @@
 
 /** @file
  *
- * This file defines the atomic state representation by numbering Hydrogen
+ * This file defines the atomic state representation by numbering Hydrogen-like
  * superconfigurations.
  *
- * The Hydrogen superconfiguration is specified by the occupation vector
- * N-vector, a listing of every level n's occupation number N_n,
- * Hydrogen 1 < n < n_max.
- * These different configs. are organized in a combinatorial table and numbered
- * starting with the completly ionized state.
+ * The Hydrogen-like superconfiguration here is specified by the occupation
+ * vector N-vector, a listing of every level n's occupation number N_n, with n:
+ * 1 < n < n_max.
  *
- * # |N_1, |N_2, |N_3; ...
+ * These different superconfigurations are organized in a combinatorial table
+ * and numbered starting with the completly ionized state.
+ *
+ * # |N_1, |N_2, |N_3, ...
  * 0 |0    |0    |0
  * 1 |1    |0    |0
  * 2 |2    |0    |0
@@ -36,15 +37,29 @@
  * 4 |1    |1    |0
  * 5 |2    |1    |0
  * 6 |0    |2    |0
+ * 7 |1    |2    |0
+ * 8 |2    |2    |0
+ * 9 |0    |3    |0
+ * ...
  *
- * #...config Number assigned,
- * g(n)= 2 * n^2 ...maximum number of electrons in a given level n
- * # = N_1 *(0 + 1)+ N_2 * (g(1)+1) + N_3 * (g(2)+1) * (g(1) + 1)) + ...
+ * analytical formula:
+ * # ... configNumber assigned
+ * # = N_1 *(g(0) + 1)+ N_2 * (g(1)+1) + N_3 * (g(2)+1) * (g(1) + 1)) + ...
+ * # = Sum_{n=1}^{n_max}[ N_n * Produkt_{i=1}^{n} (g(i-1) + 1) ]
  *
- * # = Sum_n=1^n_max( N_n * Produkt_i=1^n (g(i-1) +1) )
+ * g(n) ... maximum number of electrons in a given level n
+ * g(n) = 2 * n^2
+ * quick reference:
+ * https://en.wikipedia.org/wiki/Electron_shell#Number_of_electrons_in_each_shell
  *
- *@todo 2020-07-01 BrianMarre: implement usage of current charge to account for
- * one more than actually saved levels, => n_max effective = n_max + 1
+ * Note: a superconfiguration only stores occupation numbers, NOT spin or
+ *  angular momentumm, due to memory constrains.
+ *
+ * further information see:
+ *  https://en.wikipedia.org/wiki/Hydrogen-like_atom#Schr%C3%B6dinger_solution
+ *
+ * @todo 2020-07-01 BrianMarre: implement usage of current charge to account for
+ * one more level than actually saved, => n_max effective = n_max + 1
  */
 
 #pragma once
@@ -64,22 +79,36 @@ namespace stateRepresentation
 template< typename T_DataType, uint8_t T_NumberLevels >
 class ConfigNumber
 {
- /* this class implements the actual storage of the Configuration
+ /* this class implements the actual storage of the configuration
  *
- *T_Numberlevels ... n_max
- *for convenience of usage and modularity methods to convert the Config Number
- *to a occupation vector and convert a occuptation vector to the corresponding
- *configuration number are implemented.
+ * T_Numberlevels ... n_max
+ * for convenience of usage and modularity, methods to convert the configNumber
+ * to a occupation vector and convert a occuptation vector to the corresponding
+ * configuration number are implemented.
  *
  */
-    T_DataType configNumber;    //storage of actual ConfigNumber
+    T_DataType configNumber;    // storage of actual configNumber
 
     uint16_t g(uint8_t n)
     {
-        return static_cast<unsigned short int>(n) * n * 2;
+        // cast necessary to prevent overflow in n^2 calculation
+        return (static_cast<uint16_t>(n) * static_cast<uint16_t>(n) * 2);
+    }
+
+    T_DataType stepLength(uint8_t n)
+    {
+        T_DataType result = 1;
+
+        for (uint8_t i = 1u; i < n; i++)
+        {
+            result *= ( this->g(i) + 1 );
+        }
+
+        return result;
     }
 
 public:
+
     ConfigNumber(
         T_DataType N = 0u
         )
@@ -88,22 +117,43 @@ public:
             N >= 0,
             "negative configurationNumbers are not defined"
         );
+        PMACC_ASSERT_MSG(
+            N < stepLength(T_NumberLevels + 1),
+            "configurationNumber N larger than largest possible for"
+            " T_NumberLevels"
+        );
 
         this->configNumber = N;
     }
+
     ConfigNumber(
-        pmacc::math::Vector< uint8_t, T_NumberLevels > levelVector
+        pmacc::math::Vector< uint16_t, T_NumberLevels > levelVector
         )
     {
+    /** constructor using a given occupation number vector to initialise.
+    *
+    * Uses the formula in class descripton. Assumes index of vector corresponds
+    * to principal quantum number n -1.
+    */
+
+        /* stepLength ... number of table entries per occupation number VALUE of
+        * the current principal quantum number n.
+        */
         T_DataType stepLength = 1;
+
         this->configNumber = 0;
 
-        for(uint8_t n=0u; n < T_NumberLevels; n++) {
+        for(uint8_t n=0u; n < T_NumberLevels; n++)
+        {
             PMACC_ASSERT_MSG(
-                this->g(n) >= *levelVector[n],
+                this->g(n+1) >= *levelVector[n],
                 "occuation number too large"
             );
 
+            /* BEWARE: n here equals n-1 in formula in file documentation,
+            *
+            * since for loop starts with n=0 instead of n=1,
+            */
             stepLength *= this->g(n) + 1;
             this->configNumber += *levelVector[n] * stepLength;
         }
@@ -111,30 +161,46 @@ public:
 
     uint8_t numberLevels()
     {
+    /** returns number of levels, n_max, used for configNumber
+    */
         return T_NumberLevels;
     }
 
-    operator pmacc::math::Vector< uint8_t, T_NumberLevels >()
+    operator pmacc::math::Vector< uint16_t, T_NumberLevels >()
     {
-        pmacc::math::Vector< uint8_t, T_NumberLevels > result =
-            pmacc::math::Vector<uint8_t, T_NumberLevels>::create( 0 );
+    /** B() operator converts configNumber B into an occupation number vector
+    *
+    * Index of result vector corresponds to principal quantum number n -1.
+    *
+    * exploits that for largest whole number k for a given configNumber N,
+    * such that k * stepLength <= N, k is equal to the occupation number of
+    * n_max.
+    *
+    * stepLength ... number of table entries per occupation number VALUE of
+    * the current principal quantum number n.
+    *
+    * This is used recursively to determine all occupation numbers.
+    * further information: see master thesis of Brian Marre
+    */
+        pmacc::math::Vector< uint16_t, T_NumberLevels > result =
+            pmacc::math::Vector<uint16_t, T_NumberLevels>::create( 0 );
 
-        T_DataType product;
+        T_DataType stepLength;
         T_DataType N;
 
         N = this->configNumber;
 
+        // BEWARE: for loop counts down, strating with n_max
         for (uint8_t n = T_NumberLevels; n >= 1; n--)
         {
-            product = 1;
-            for (uint8_t i = 1u; i < n; i++)
-            {
-                product *= ( this->g(i) + 1 );
-            }
+            // calculate current stepLength
+            stepLength = this->stepLength(n);
 
-            *result[n-1] = static_cast<uint8_t>( N / product );
+            // get occupation number N_n by getting largest whole number factor
+            *result[n-1] = static_cast<uint16_t>( N / stepLength );
 
-            N -= product * (*result[n-1]);
+            // remove contribution of current N_n
+            N -= stepLength * (*result[n-1]);
         }
 
         return result;
@@ -155,7 +221,7 @@ namespace pmacc
 namespace traits
 {
 
-//defines what datatype is to be used to save the data in this object
+// defines what datatype is to be used to save the data in this object
 template< typename T_DataType, uint8_t T_NumberLevels >
 struct GetComponentsType<
     picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<
@@ -168,7 +234,7 @@ struct GetComponentsType<
     using type = T_DataType;
 };
 
-//defines how many independent components are saved in the object
+// defines how many independent components are saved in the object
 template< typename T_DataType, uint8_t T_NumberLevels >
 struct GetNComponents<
     picongpu::particles::atomicPhysics::stateRepresentation::ConfigNumber<

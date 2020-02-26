@@ -656,7 +656,7 @@ struct UnitDimension< atomicLevels<T_Type> >
 template<typename T_Type>
 struct MacroWeighted< atomicLevels<T_Type> >
 {
-    // only macro Particles have an atomic State
+    // only macro-particles have an atomic State
     static bool get()
     {
         return false;
