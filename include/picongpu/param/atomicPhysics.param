@@ -32,7 +32,7 @@ namespace picongpu
 namespace atomicPhysics
 {
 
-    //datatype/coding used in representation atomic state
+    // datatype/coding used in representation atomic state
 
     template< uint8_t T_NumberStates >
     using LevelVector = particles::atomicPhysics::stateRepresentation::LevelVector<
