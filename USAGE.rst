@@ -81,12 +81,14 @@ While you are still in ``$HOME/picInputs/myLWFA``, start your simulation on one 
 
 .. code-block:: bash
    :emphasize-lines: 2
-   
+
    # example run for an interactive simulation on the same machine
    tbg -s bash -c etc/picongpu/1.cfg -t etc/picongpu/bash/mpiexec.tpl $SCRATCH/runs/lwfa_001
 
 This will create the directory ``$SCRATCH/runs/lwfa_001`` where all simulation output will be written to.
 ``tbg`` will further create a subfolder ``input/`` in the directory of the run with the same structure as ``myLWFA`` to archive your input files.
+Subfolder ``simOutput/`` has all the simulation results.
+Particularly, the simulation progress log is in ``simOutput/output``.
 
 Details on the Commands Above
 -----------------------------
