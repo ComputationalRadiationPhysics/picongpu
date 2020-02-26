@@ -57,6 +57,11 @@ export PATH=$PATH:$PICSRC/src/tools/bin
 
 export PYTHONPATH=$PICSRC/lib/python:$PYTHONPATH
 
+# pybind11 location ###########################################################
+export PYBIND11_SRC=$HOME/pybind11
+export CMAKE_PREFIX_PATH=$PYBIND11_SRC:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH=$PYBIND11_SRC/lib:$LD_LIBRARY_PATH
+
 # "tbg" default options #######################################################
 #   - PBS/Torque (qsub)
 #   - "laser" queue
