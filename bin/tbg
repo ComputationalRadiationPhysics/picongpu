@@ -272,7 +272,15 @@ help()
 }
 
 #!/usr/bin/env bash
-initCall="$0 $*"
+#Check whether the provided path is relative or absolute and
+#convert it to an abolute path
+script=$0
+case $script in
+        /*) absScriptPath=$script;; #called using abs. path
+        ./*) absScriptPath=$PWD/${script#"./"};; #called using ./, remove it
+        *) absScriptPath=$PWD/$script;; #else called e.g. using bash <scriptName>
+esac
+initCall="cd $(pwd); $absScriptPath $*"
 projectPath="."
 
 pathToegetopt=$(which egetopt 2>/dev/null)
