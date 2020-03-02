@@ -63,7 +63,8 @@ namespace detail
         EnvironmentContext( ) :
             m_isMpiInitialized( false ),
             m_isDeviceSelected( false ),
-            m_isSubGridDefined( false )
+            m_isSubGridDefined( false ),
+            m_isMpiDirectEnabled( false )
         {
         }
 
@@ -75,6 +76,9 @@ namespace detail
 
         /** state if the SubGrid is defined */
         bool m_isSubGridDefined;
+
+        /** state shows if MPI direct is activated */
+        bool m_isMpiDirectEnabled;
 
         /** get the singleton EnvironmentContext
          *
@@ -129,6 +133,18 @@ namespace detail
          * @param deviceNumber number of the device
          */
         HINLINE void setDevice(int deviceNumber);
+
+        //! activate MPI direct usage
+        void enableMpiDirect()
+        {
+            m_isMpiDirectEnabled = true;
+        }
+
+        //! query if MPI direct support is activated
+        bool isMpiDirectEnabled() const
+        {
+            return m_isMpiDirectEnabled;
+        }
 
     };
 
@@ -280,6 +296,15 @@ template< uint32_t T_dim >
 class Environment : public detail::Environment
 {
 public:
+    void enableMpiDirect()
+    {
+        detail::EnvironmentContext::getInstance().enableMpiDirect();
+    }
+
+    bool isMpiDirectEnabled() const
+    {
+        return detail::EnvironmentContext::getInstance().isMpiDirectEnabled();
+    }
 
     /** get the singleton GridController
      *

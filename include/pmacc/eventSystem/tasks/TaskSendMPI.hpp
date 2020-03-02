@@ -46,12 +46,15 @@ public:
 
     virtual void init()
     {
+        Buffer< TYPE, DIM >* src = exchange->getCommunicationBuffer();
+
         this->request = Environment<DIM>::get().EnvironmentController()
-                .getCommunicator().startSend(
-                                             exchange->getExchangeType(),
-                                             (char*) exchange->getHostBuffer().getPointer(),
-                                             exchange->getHostBuffer().getCurrentSize() * sizeof (TYPE),
-                                             exchange->getCommunicationTag());
+            .getCommunicator().startSend(
+                exchange->getExchangeType(),
+                reinterpret_cast<char*>(src->getPointer()),
+                src->getCurrentSize() * sizeof (TYPE),
+                exchange->getCommunicationTag()
+            );
     }
 
     bool executeIntern()
@@ -87,7 +90,9 @@ public:
 
     std::string toString()
     {
-        return "TaskSendMPI";
+        return std::string("TaskSendMPI exchange type=") + std::to_string(
+                exchange->getExchangeType()
+        );
     }
 
 private:

@@ -46,12 +46,17 @@ public:
 
     virtual void init()
     {
+
+        Buffer<TYPE, DIM>* dst = exchange->getCommunicationBuffer();
+
         this->request = Environment<DIM>::get().EnvironmentController()
-                .getCommunicator().startReceive(
-                                                exchange->getExchangeType(),
-                                                (char*) exchange->getHostBuffer().getBasePointer(),
-                                                exchange->getHostBuffer().getDataSpace().productOfComponents() * sizeof (TYPE),
-                                                exchange->getCommunicationTag());
+            .getCommunicator().startReceive(
+                exchange->getExchangeType(),
+                reinterpret_cast<char*>(dst->getPointer()),
+                dst->getDataSpace().productOfComponents() * sizeof (TYPE),
+                exchange->getCommunicationTag()
+        );
+
     }
 
     bool executeIntern()
@@ -97,7 +102,9 @@ public:
 
     std::string toString()
     {
-        return "TaskReceiveMPI";
+        return std::string("TaskReceiveMPI exchange type=") + std::to_string(
+                exchange->getExchangeType()
+        );
     }
 
 private:

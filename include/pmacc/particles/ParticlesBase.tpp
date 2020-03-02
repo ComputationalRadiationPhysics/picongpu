@@ -115,8 +115,13 @@ namespace pmacc
     {
         if( particlesBuffer->hasReceiveExchange( exchangeType ) )
         {
-            size_t grid( particlesBuffer->getReceiveExchangeStack( exchangeType ).getHostCurrentSize( ) );
-            if( grid != 0u )
+            size_t numParticles = 0u;
+            if( Environment<>::get().isMpiDirectEnabled() )
+                numParticles = particlesBuffer->getReceiveExchangeStack( exchangeType ).getDeviceCurrentSize( );
+            else
+                numParticles = particlesBuffer->getReceiveExchangeStack( exchangeType ).getHostCurrentSize( );
+
+            if( numParticles != 0u )
             {
                 ExchangeMapping<
                     GUARD,
@@ -131,7 +136,7 @@ namespace pmacc
                 >::value;
 
                 PMACC_KERNEL( KernelInsertParticles< numWorkers >{ } )(
-                    grid,
+                    numParticles,
                     numWorkers
                 )(
                     particlesBuffer->getDeviceParticleBox( ),

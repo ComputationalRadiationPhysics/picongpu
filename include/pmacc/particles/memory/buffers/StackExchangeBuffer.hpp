@@ -29,8 +29,6 @@
 namespace pmacc
 {
 
-
-
     /**
      * Can be used for creating several DataBox types from an Exchange.
      *
@@ -118,10 +116,15 @@ namespace pmacc
         {
             // do host and device setCurrentSize parallel
             EventTask split = __getTransactionEvent();
-            __startTransaction(split);
-            stackIndexer.getHostBuffer().setCurrentSize(size);
-            stack.getHostBuffer().setCurrentSize(size);
-            EventTask e1 = __endTransaction();
+            EventTask e1;
+
+            if(!Environment<>::get().isMpiDirectEnabled())
+            {
+                __startTransaction(split);
+                stackIndexer.getHostBuffer().setCurrentSize(size);
+                stack.getHostBuffer().setCurrentSize(size);
+                e1 = __endTransaction();
+            }
 
             __startTransaction(split);
             stackIndexer.getDeviceBuffer().setCurrentSize(size);
@@ -135,7 +138,13 @@ namespace pmacc
 
         size_t getHostCurrentSize()
         {
-            return stackIndexer.getHostBuffer().getCurrentSize();
+            size_t result = 0u;
+            if(Environment<>::get().isMpiDirectEnabled())
+                result = stackIndexer.getDeviceBuffer().getCurrentSize();
+            else
+                result = stackIndexer.getHostBuffer().getCurrentSize();
+
+            return result;
         }
 
         size_t getDeviceCurrentSize()
@@ -150,12 +159,21 @@ namespace pmacc
 
         size_t getHostParticlesCurrentSize()
         {
+            if(Environment<>::get().isMpiDirectEnabled())
+                return stack.getDeviceBuffer().getCurrentSize();
+
             return stack.getHostBuffer().getCurrentSize();
         }
 
         size_t getMaxParticlesCount()
         {
-            return stack.getHostBuffer().getDataSpace().productOfComponents();
+            size_t result = 0u;
+            if(Environment<>::get().isMpiDirectEnabled())
+                result = stack.getDeviceBuffer().getDataSpace().productOfComponents();
+            else
+                result = stack.getHostBuffer().getDataSpace().productOfComponents();
+
+            return result;
         }
 
     private:

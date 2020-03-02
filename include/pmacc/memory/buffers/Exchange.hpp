@@ -77,6 +77,13 @@ namespace pmacc
             return communicationTag;
         }
 
+        /**
+         * Return the buffer which can be used for data exchange with MPI
+         *
+         * The buffer can point to device or host memory.
+         */
+        virtual Buffer<TYPE, DIM>* getCommunicationBuffer() = 0;
+
         virtual bool hasDeviceDoubleBuffer()=0;
 
         virtual DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer()=0;
