@@ -42,7 +42,7 @@ namespace picongpu
      *
      *  That means:
      *     The REAL number of particles density in units of volume**-3,
-     *       normed to UNIT_LENGHT**3
+     *       normed to UNIT_LENGTH**3
      *     That is NOT the species' macro particle density.
      *
      * @param offset The gpu offset (left top front cell in 3D)
