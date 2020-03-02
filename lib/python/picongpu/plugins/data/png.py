@@ -10,7 +10,6 @@ from .base_reader import DataReader
 import numpy as np
 import os
 import collections
-
 from imageio import imread
 
 
