@@ -178,13 +178,37 @@ After starting the notebook server write the following
    # together with labels that will be used in the plot legends so you still know
    # which data belongs to which simulation
    w = PhaseSpaceWidget(run_dir_options=[
-           ("scan1/sim4", scan1_sim4),
-           ("scan1/sim5", scan1_sim5)])
+           ("scan1/sim4", "/path/to/scan1/sim4"),
+           ("scan1/sim5", "/path/to/scan1/sim5")])
    display(w)
 
 
 and then interact with the displayed widgets.
 
+Plase note that per default the widget allows selection only of the ``ypy`` phase space slice for particles labelled by ``e``.
+To visualize, for instance the ``ypy``, ``xpx`` and ``ypz`` slices for particles labelled by ``e`` (as a rule background electrons)
+and by ``b`` (here electrons of a particle bunch) the above has to be augmented by setting ``w.ps.options`` and ``w.species.options``.
+The final script snippet then reads:
+
+.. code:: python
+
+   # this is required!
+   %matplotlib widget
+   import matplotlib.pyplot as plt 
+   plt.ioff()
+
+   from IPython.display import display
+   from picongpu.plugins.jupyter_widgets import PhaseSpaceWidget
+
+   # provide the paths to the simulations you want to be able to choose from
+   # together with labels that will be used in the plot legends so you still know
+   # which data belongs to which simulation
+   w = PhaseSpaceWidget(run_dir_options=[
+           ("scan1/sim4", "/path/to/scan1/sim4"),
+           ("scan1/sim5", "/path/to/scan1/sim5")])
+   w.ps.set_trait('options', ('ypy', 'xpx', 'ypz'))
+   w.species.set_trait('options', ('e', 'b'))
+   display(w)
 
 Out-of-Range Behavior
 ^^^^^^^^^^^^^^^^^^^^^
