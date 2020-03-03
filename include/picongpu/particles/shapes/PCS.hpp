@@ -41,9 +41,9 @@ struct PCS
         /*
          * W(x)=1/6*(4 - 6*x^2 + 3*|x|^3)
          */
-        float_X const square_x = x * x;
-        float_X const triple_x = square_x * x;
-        return 1.0_X / 6.0_X * ( 4.0_X - 6.0_X * square_x + 3.0_X * triple_x );
+        float_X const x_squared = x * x;
+        float_X const x_cube = x_squared * x;
+        return 1.0_X / 6.0_X * ( 4.0_X - 6.0_X * x_squared + 3.0_X * x_cube );
     }
 
     HDINLINE static float_X ff_2nd_radius( float_X const x )
@@ -52,8 +52,8 @@ struct PCS
          * W(x)=1/6*(2 - |x|)^3
          */
         float_X const tmp = 2.0_X - x;
-        float_X const triple_tmp = tmp * tmp * tmp;
-        return 1.0_X / 6.0_X * triple_tmp;
+        float_X const tmp_cube = tmp * tmp * tmp;
+        return 1.0_X / 6.0_X * tmp_cube;
     }
 };
 
@@ -75,16 +75,16 @@ struct PCS : public shared_PCS::PCS
              */
             float_X const abs_x = algorithms::math::abs( x );
 
-            bool const below_1 = abs_x < 1.0_X;
-            bool const below_2 = abs_x < 2.0_X;
+            bool const isWithin_1_0 = abs_x < 1.0_X;
+            bool const isWithin_2_0 = abs_x < 2.0_X;
 
             float_X const rad1 = ff_1st_radius( abs_x );
             float_X const rad2 = ff_2nd_radius( abs_x );
 
             float_X result( 0.0 );
-            if( below_1 )
+            if( isWithin_1_0 )
                 result = rad1;
-            else if( below_2 )
+            else if( isWithin_2_0 )
                 result = rad2;
 
             return result;
@@ -104,12 +104,12 @@ struct PCS : public shared_PCS::PCS
              */
             float_X const abs_x = algorithms::math::abs( x );
 
-            bool const below_1 = abs_x < 1.0_X;
+            bool const isWithin_1_0 = abs_x < 1.0_X;
             float_X const rad1 = ff_1st_radius( abs_x );
             float_X const rad2 = ff_2nd_radius( abs_x );
 
             float_X result = rad2;
-            if( below_1 )
+            if( isWithin_1_0 )
                 result = rad1;
 
             return result;

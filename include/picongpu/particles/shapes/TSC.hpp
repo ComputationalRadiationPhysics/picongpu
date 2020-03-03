@@ -80,16 +80,16 @@ struct TSC : public shared_TSC::TSC
              */
             float_X const abs_x = algorithms::math::abs( x );
 
-            bool const below_05 = abs_x < 0.5_X;
-            bool const below_1_5 = abs_x < 1.5_X;
+            bool const isWithin_0_5 = abs_x < 0.5_X;
+            bool const isWithin_1_5 = abs_x < 1.5_X;
 
             float_X const rad1 = ff_1st_radius( abs_x );
             float_X const rad2 = ff_2nd_radius( abs_x );
 
             float_X result( 0.0 );
-            if( below_05 )
+            if( isWithin_0_5 )
                 result = rad1;
-            else if( below_1_5 )
+            else if( isWithin_1_5 )
                 result = rad2;
 
             return result;
@@ -113,13 +113,13 @@ struct TSC : public shared_TSC::TSC
              */
             float_X const abs_x = algorithms::math::abs( x );
 
-            bool const below_05 = abs_x < 0.5_X;
+            bool const isWithin_0_5 = abs_x < 0.5_X;
 
             float_X const rad1 = ff_1st_radius( abs_x );
             float_X const rad2 = ff_2nd_radius( abs_x );
 
             float_X result = rad2;
-            if( below_05 )
+            if( isWithin_0_5 )
                 result = rad1;
 
             return result;

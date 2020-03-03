@@ -58,12 +58,12 @@ struct CIC : public shared_CIC::CIC
              */
             float_X const abs_x = algorithms::math::abs( x );
 
-            bool const below_1 = abs_x < 1.0_X;
-            float_X const onSupport = 1.0_X - abs_x;
+            bool const isInSupport = abs_x < 1.0_X;
+            float_X const valueInSupport = 1.0_X - abs_x;
 
             float_X result( 0.0 );
-            if( below_1 )
-                result = onSupport;
+            if( isInSupport )
+                result = valueInSupport;
 
             return result;
         }

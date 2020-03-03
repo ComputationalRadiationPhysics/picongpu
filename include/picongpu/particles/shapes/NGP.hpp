@@ -58,9 +58,9 @@ namespace shapes
                  *       -
                  */
 
-                bool const below_half = -0.5_X <= x && x < 0.5_X;
+                bool const isWithin_0_5 = -0.5_X <= x && x < 0.5_X;
 
-                return float_X( below_half );
+                return float_X( isWithin_0_5 );
             }
         };
 

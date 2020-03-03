@@ -101,17 +101,17 @@ struct P4S : public shared_P4S::P4S
              */
             float_X const abs_x = algorithms::math::abs( x );
 
-            bool const below_2nd_radius = abs_x < 1.5_X;
-            bool const below_1st_radius = abs_x < 0.5_X;
+            bool const isWithin_2nd_radius = abs_x < 1.5_X;
+            bool const isWithin_1st_radius = abs_x < 0.5_X;
 
             float_X const rad1 = ff_1st_radius( abs_x );
             float_X const rad2 = ff_2nd_radius( abs_x );
             float_X const rad3 = ff_3rd_radius( abs_x );
 
             float_X result = rad3;
-            if( below_1st_radius )
+            if( isWithin_1st_radius )
                 result = rad1;
-            else if( below_2nd_radius )
+            else if( isWithin_2nd_radius )
                 result = rad2;
 
             return result;
@@ -137,12 +137,12 @@ struct P4S : public shared_P4S::P4S
              */
             float_X const abs_x = algorithms::math::abs( x );
 
-            bool const below_max = abs_x < 2.5_X;
+            bool const isWithin_2_5 = abs_x < 2.5_X;
 
             float_X const onSupport = ChargeAssignmentOnSupport()( abs_x );
 
             float_X result( 0.0 );
-            if( below_max )
+            if( isWithin_2_5 )
                 result = onSupport;
 
             return result;
