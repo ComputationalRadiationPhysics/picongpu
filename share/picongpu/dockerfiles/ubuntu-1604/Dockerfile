@@ -1,12 +1,12 @@
 FROM       nvidia/cuda:9.2-base
-MAINTAINER Axel Huebl <a.huebl@hzdr.de>
+LABEL      maintainer="Axel Huebl <a.huebl@hzdr.de>, Rene Widera <r.widera@hzdr.de>"
 
 # docker and image environment
 ENV        DEBIAN_FRONTEND=noninteractive \
            FORCE_UNSAFE_CONFIGURE=1 \
            SPACK_ROOT=/usr/local \
            SPACK_EXTRA_REPO=/usr/local/share/spack-repo \
-           PIC_PACKAGE='picongpu@0.5.0+isaac backend=cuda'
+           PIC_PACKAGE='picongpu@0.5.0-rc1+isaac backend=cuda'
 
 # install minimal spack dependencies
 #   - adds gfortran for spack's openmpi package
