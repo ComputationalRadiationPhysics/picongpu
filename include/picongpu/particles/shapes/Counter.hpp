@@ -29,7 +29,7 @@ namespace particles
 namespace shapes
 {
 
-    namespace shared_Counter
+    namespace sharedCounter
     {
 
         struct Counter
@@ -41,12 +41,12 @@ namespace shapes
             static constexpr int support = 0;
         };
 
-    } // namespace shared_Counter
+    } // namespace sharedCounter
 
-    struct Counter : public shared_Counter::Counter
+    struct Counter : public sharedCounter::Counter
     {
 
-        struct ChargeAssignment : public shared_Counter::Counter
+        struct ChargeAssignment : public sharedCounter::Counter
         {
 
             HDINLINE float_X operator()( float_X const x )
@@ -58,13 +58,13 @@ namespace shapes
                  *       -
                  */
 
-                bool const in_cell = -1.0_X < x && x <= 0.0_X;
+                bool const isInCell = -1.0_X < x && x <= 0.0_X;
 
-                return float_X( in_cell );
+                return float_X( isInCell );
             }
         };
 
-        struct ChargeAssignmentOnSupport : public shared_Counter::Counter
+        struct ChargeAssignmentOnSupport : public sharedCounter::Counter
         {
 
             /** form factor of this particle shape.
@@ -72,9 +72,9 @@ namespace shapes
              */
             HDINLINE float_X operator()( float_X const x )
             {
-                bool const in_cell = 0.0_X <= x && x < 1.0_X;
+                bool const isInCell = 0.0_X <= x && x < 1.0_X;
 
-                return float_X( in_cell );
+                return float_X( isInCell );
             }
 
         };

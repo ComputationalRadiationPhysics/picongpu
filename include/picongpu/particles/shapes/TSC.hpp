@@ -29,7 +29,7 @@ namespace particles
 namespace shapes
 {
 
-namespace shared_TSC
+namespace sharedTSC
 {
 
 struct TSC
@@ -41,33 +41,33 @@ struct TSC
     static constexpr int support = 3;
 
 
-    HDINLINE static float_X ff_1st_radius( float_X const x )
+    HDINLINE static float_X ff1stRadius( float_X const x )
     {
         /*
          * W(x)=3/4 - x^2
          */
-        float_X const square_x = x * x;
-        return 0.75_X - square_x;
+        float_X const xSquared = x * x;
+        return 0.75_X - xSquared;
     }
 
-    HDINLINE static float_X ff_2nd_radius( float_X const x )
+    HDINLINE static float_X ff2ndRadius( float_X const x )
     {
         /*
          * W(x)=1/2*(3/2 - |x|)^2
          */
         float_X const tmp = 3.0_X / 2.0_X - x;
-        float_X const square_tmp = tmp * tmp;
-        return 0.5_X * square_tmp;
+        float_X const tmpSquared = tmp * tmp;
+        return 0.5_X * tmpSquared;
     }
 };
 
-} //namespace shared_TSC
+} //namespace sharedTSC
 
-struct TSC : public shared_TSC::TSC
+struct TSC : public sharedTSC::TSC
 {
     using CloudShape = picongpu::particles::shapes::CIC;
 
-    struct ChargeAssignment : public shared_TSC::TSC
+    struct ChargeAssignment : public sharedTSC::TSC
     {
 
         HDINLINE float_X operator()( float_X const x )
@@ -78,26 +78,26 @@ struct TSC : public shared_TSC::TSC
              *       |  0                          otherwise
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const xAbs = algorithms::math::abs( x );
 
-            bool const below_05 = abs_x < 0.5_X;
-            bool const below_1_5 = abs_x < 1.5_X;
+            bool const isInSupport_0_5 = xAbs < 0.5_X;
+            bool const isInSupport_1_5 = xAbs < 1.5_X;
 
-            float_X const rad1 = ff_1st_radius( abs_x );
-            float_X const rad2 = ff_2nd_radius( abs_x );
+            float_X const valueOnSupport_0_5 = ff1stRadius( xAbs );
+            float_X const valueOnSupport_1_5 = ff2ndRadius( xAbs );
 
             float_X result( 0.0 );
-            if( below_05 )
-                result = rad1;
-            else if( below_1_5 )
-                result = rad2;
+            if( isInSupport_0_5 )
+                result = valueOnSupport_0_5;
+            else if( isInSupport_1_5 )
+                result = valueOnSupport_1_5;
 
             return result;
 
         }
     };
 
-    struct ChargeAssignmentOnSupport : public shared_TSC::TSC
+    struct ChargeAssignmentOnSupport : public sharedTSC::TSC
     {
 
         /** form factor of this particle shape.
@@ -111,16 +111,16 @@ struct TSC : public shared_TSC::TSC
              *       |  1/2*(3/2 - |x|)^2          if 1/2<=|x|<3/2
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const xAbs = algorithms::math::abs( x );
 
-            bool const below_05 = abs_x < 0.5_X;
+            bool const isInSupport_0_5 = xAbs < 0.5_X;
 
-            float_X const rad1 = ff_1st_radius( abs_x );
-            float_X const rad2 = ff_2nd_radius( abs_x );
+            float_X const valueOnSupport_0_5 = ff1stRadius( xAbs );
+            float_X const valueOnSupport_1_5 = ff2ndRadius( xAbs );
 
-            float_X result = rad2;
-            if( below_05 )
-                result = rad1;
+            float_X result = valueOnSupport_1_5;
+            if( isInSupport_0_5 )
+                result = valueOnSupport_0_5;
 
             return result;
         }

@@ -28,7 +28,7 @@ namespace particles
 namespace shapes
 {
 
-namespace shared_PCS
+namespace sharedPCS
 {
 struct PCS
 {
@@ -36,33 +36,33 @@ struct PCS
 
 
 
-    HDINLINE static float_X ff_1st_radius( float_X const x )
+    HDINLINE static float_X ff1stRadius( float_X const x )
     {
         /*
          * W(x)=1/6*(4 - 6*x^2 + 3*|x|^3)
          */
-        float_X const square_x = x * x;
-        float_X const triple_x = square_x * x;
-        return 1.0_X / 6.0_X * ( 4.0_X - 6.0_X * square_x + 3.0_X * triple_x );
+        float_X const xSquared = x * x;
+        float_X const xCube = xSquared * x;
+        return 1.0_X / 6.0_X * ( 4.0_X - 6.0_X * xSquared + 3.0_X * xCube );
     }
 
-    HDINLINE static float_X ff_2nd_radius( float_X const x )
+    HDINLINE static float_X ff2ndRadius( float_X const x )
     {
         /*
          * W(x)=1/6*(2 - |x|)^3
          */
         float_X const tmp = 2.0_X - x;
-        float_X const triple_tmp = tmp * tmp * tmp;
-        return 1.0_X / 6.0_X * triple_tmp;
+        float_X const tmpCube = tmp * tmp * tmp;
+        return 1.0_X / 6.0_X * tmpCube;
     }
 };
 
-} //namespace shared_PCS
-struct PCS : public shared_PCS::PCS
+} //namespace sharedPCS
+struct PCS : public sharedPCS::PCS
 {
     using CloudShape = picongpu::particles::shapes::TSC;
 
-    struct ChargeAssignment : public shared_PCS::PCS
+    struct ChargeAssignment : public sharedPCS::PCS
     {
 
         HDINLINE float_X operator()( float_X const x )
@@ -73,25 +73,25 @@ struct PCS : public shared_PCS::PCS
              *       |  0                           otherwise
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const xAbs = algorithms::math::abs( x );
 
-            bool const below_1 = abs_x < 1.0_X;
-            bool const below_2 = abs_x < 2.0_X;
+            bool const isInSupport_1_0 = xAbs < 1.0_X;
+            bool const isInSupport_2_0 = xAbs < 2.0_X;
 
-            float_X const rad1 = ff_1st_radius( abs_x );
-            float_X const rad2 = ff_2nd_radius( abs_x );
+            float_X const valueOnSupport_1_0 = ff1stRadius( xAbs );
+            float_X const valueOnSupport_2_0 = ff2ndRadius( xAbs );
 
             float_X result( 0.0 );
-            if( below_1 )
-                result = rad1;
-            else if( below_2 )
-                result = rad2;
+            if( isInSupport_1_0 )
+                result = valueOnSupport_1_0;
+            else if( isInSupport_2_0 )
+                result = valueOnSupport_2_0;
 
             return result;
         }
     };
 
-    struct ChargeAssignmentOnSupport : public shared_PCS::PCS
+    struct ChargeAssignmentOnSupport : public sharedPCS::PCS
     {
 
         HDINLINE float_X operator()( float_X const x )
@@ -102,23 +102,18 @@ struct PCS : public shared_PCS::PCS
              *       |  1/6*(2 - |x|)^3             if 1<=|x|<2
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const xAbs = algorithms::math::abs( x );
 
-            bool const below_1 = abs_x < 1.0_X;
-            float_X const rad1 = ff_1st_radius( abs_x );
-            float_X const rad2 = ff_2nd_radius( abs_x );
+            bool const isInSupport_1_0 = xAbs < 1.0_X;
+            float_X const valueOnSupport_1_0 = ff1stRadius( xAbs );
+            float_X const valueOnSupport_2_0 = ff2ndRadius( xAbs );
 
-            float_X result = rad2;
-            if( below_1 )
-                result = rad1;
+            float_X result = valueOnSupport_2_0;
+            if( isInSupport_1_0 )
+                result = valueOnSupport_1_0;
 
             return result;
 
-            /* Semantics:
-            if( abs_x < 1.0_X )
-                return ff_1st_radius( abs_x );
-            return ff_2nd_radius( abs_x );
-             */
         }
 
     };

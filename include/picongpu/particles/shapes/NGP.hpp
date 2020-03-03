@@ -29,7 +29,7 @@ namespace particles
 namespace shapes
 {
 
-    namespace shared_NGP
+    namespace sharedNGP
     {
 
         struct NGP
@@ -41,12 +41,12 @@ namespace shapes
             static constexpr int support = 1;
         };
 
-    } // namespace shared_NGP
+    } // namespace sharedNGP
 
-    struct NGP : public shared_NGP::NGP
+    struct NGP : public sharedNGP::NGP
     {
 
-        struct ChargeAssignment : public shared_NGP::NGP
+        struct ChargeAssignment : public sharedNGP::NGP
         {
 
             HDINLINE float_X operator()( float_X const x )
@@ -58,13 +58,13 @@ namespace shapes
                  *       -
                  */
 
-                bool const below_half = -0.5_X <= x && x < 0.5_X;
+                bool const isInSupport = -0.5_X <= x && x < 0.5_X;
 
-                return float_X( below_half );
+                return float_X( isInSupport );
             }
         };
 
-        struct ChargeAssignmentOnSupport : public shared_NGP::NGP
+        struct ChargeAssignmentOnSupport : public sharedNGP::NGP
         {
 
             /** form factor of this particle shape.
