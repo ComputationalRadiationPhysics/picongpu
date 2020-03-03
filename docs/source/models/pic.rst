@@ -71,12 +71,12 @@ In most cases, these shapes are implemented as B-splines and are pre-integrated 
 
 .. math::
 
-   S^0(x) = \big\{ \substack{1 \qquad \text{if}~0 \le x \lt 1\\ 0 \qquad \text{else}}
+   S^0(x) = \begin{cases} 1 & 0\leq x < 1\\ 0 & else \end{cases}
 
    S^n(x) = \left(S^{n-1} * S^0\right)(x) = \int_{x-1}^x S^{n-1}(\xi) d\xi
 
 PIConGPU implements these up to order :math:`n=4`.
-The three dimensional marker shape is a multiplicative union of B-splines :math:`S^n(x,y,z) = S^n(x) S^n(y) S^n(z)`.
+The three dimensional marker shape is a direct product of B-splines :math:`S^n(x,y,z) = S^n(x) S^n(y) S^n(z)`.
 
 References
 ----------

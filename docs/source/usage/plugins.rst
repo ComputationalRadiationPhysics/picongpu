@@ -69,6 +69,7 @@ In order to further work with the data produced by a plugin during a simulation 
 They can be found under ``lib/python/picongpu/plugins``.
 
 It is our goal to provide at least three modules for each plugin to make postprocessing as convenient as possible:
+
 1. a data reader (inside the ``data`` subdirectory)
 2. a matplotlib visualizer (inside the ``plot_mpl`` subdirectory)
 3. a jupyter widget visualizer (inside the ``jupyter_widgets`` subdirectory) for usage in jupyter-notebooks
