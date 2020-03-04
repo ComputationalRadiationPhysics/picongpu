@@ -15,8 +15,8 @@ Our simulation computes the `Lienard Wiechert potentials <https://en.wikipedia.o
 Variable                       Meaning
 ============================== ================================================================================
 :math:`\vec r_k(t)`            The position of particle *k* at time *t*.
-:math:`\vec \beta_k(t)`        The normalized speed of particle *k* at time *t*.
-                               (Speed divided by the speed of light)
+:math:`\vec \beta_k(t)`        The normalized velocity of particle *k* at time *t*.
+                               (Velocity divided by the speed of light)
 :math:`\dot{\vec{\beta}}_k(t)` The normalized acceleration of particle *k* at time *t*.
                                (Time derivative of the normalized speed.)
 :math:`t`                      Time
