@@ -21,7 +21,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/absorber/NumCells.hpp"
+#include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Field.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/Parameters.hpp"
 #include "picongpu/fields/MaxwellSolver/YeePML/YeePML.kernel"
