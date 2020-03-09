@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "picongpu/fields/absorber/NumCells.hpp"
+#include "picongpu/fields/absorber/Absorber.hpp"
 
 #include <pmacc/dimensions/DataSpace.hpp>
 

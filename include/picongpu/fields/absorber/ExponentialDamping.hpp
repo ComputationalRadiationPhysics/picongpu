@@ -21,7 +21,7 @@
 
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/absorber/ExponentialDamping.kernel"
-#include "picongpu/fields/absorber/NumCells.hpp"
+#include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/simulation/control/MovingWindow.hpp"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
 
@@ -106,54 +106,6 @@ public:
         }
     }
 
-    static pmacc::traits::StringProperty getStringProperties()
-    {
-        pmacc::traits::StringProperty propList;
-        const DataSpace<DIM3> periodic =
-            Environment<simDim>::get().EnvironmentController().getCommunicator().getPeriodic();
-
-        for( uint32_t i = 1; i < NumberOfExchanges<simDim>::value; ++i )
-        {
-            // for each planar direction: left right top bottom back front
-            if( FRONT % i == 0 )
-            {
-                const std::string directionName = ExchangeTypeNames()[i];
-                const DataSpace<DIM3> relDir = Mask::getRelativeDirections<DIM3>(i);
-
-                bool isPeriodic = false;
-                uint32_t axis = 0;    // x(0) y(1) z(2)
-                uint32_t axisDir = 0; // negative (0), positive (1)
-                for( uint32_t d = 0; d < simDim; d++ )
-                {
-                    if( relDir[d] * periodic[d] != 0 )
-                        isPeriodic = true;
-                    if( relDir[d] != 0 )
-                        axis = d;
-                }
-                if( relDir[axis] > 0 )
-                    axisDir = 1;
-
-                std::string boundaryName = "open"; // absorbing boundary
-                if( isPeriodic )
-                    boundaryName = "periodic";
-
-                if( boundaryName == "open" )
-                {
-                    std::ostringstream boundaryParam;
-                    boundaryParam << "exponential damping over "
-                                  << absorber::numCells[axis][axisDir] << " cells";
-                    propList[directionName]["param"] = boundaryParam.str();
-                }
-                else
-                {
-                    propList[directionName]["param"] = "none";
-                }
-
-                propList[directionName]["name"] = boundaryName;
-            }
-        }
-        return propList;
-    }
 };
 
 } // namespace absorber
