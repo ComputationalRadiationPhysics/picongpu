@@ -20,7 +20,7 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/fields/absorber/NumCells.hpp"
+#include "picongpu/fields/absorber/Absorber.hpp"
 #include "picongpu/fields/LaserPhysics.def"
 #include "picongpu/fields/laserProfiles/profiles.hpp"
 
