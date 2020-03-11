@@ -137,6 +137,10 @@ namespace maxwellSolver
             template< uint32_t T_Area >
             void updateE( uint32_t currentStep )
             {
+                /* Courant-Friedrichs-Levy-Condition for Yee Field Solver: */
+                PMACC_CASSERT_MSG(Courant_Friedrichs_Levy_condition_failure____check_your_grid_param_file,
+                    (SPEED_OF_LIGHT*SPEED_OF_LIGHT*DELTA_T*DELTA_T*INV_CELL2_SUM)<=1.0);
+
                 constexpr auto numWorkers = getNumWorkers( );
                 using Kernel = yeePML::KernelUpdateE<
                     numWorkers,
