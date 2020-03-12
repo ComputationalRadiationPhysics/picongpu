@@ -49,7 +49,7 @@ template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor,
 /*                                          C0 c0, ..., CN cN   */ \
 DINLINE void operator()(T_Acc const & acc, Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) const \
 { \
-    math::Int<Mapper::dim> cellIndex(mapper(acc, dim3(blockIdx), dim3(threadIdx))); \
+    math::Int<Mapper::dim> cellIndex(mapper(acc, cupla::dim3(blockIdx), cupla::dim3(threadIdx))); \
 /*          c0[cellIndex]), ..., cN[cellIndex]     */ \
     functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
 }
@@ -86,8 +86,8 @@ struct KernelForeachLockstep
         > cellIndex(
             mapper(
                 acc,
-                dim3( blockIdx ),
-                dim3(
+                cupla::dim3( blockIdx ),
+                cupla::dim3(
                     0,
                     0,
                     0
@@ -144,8 +144,8 @@ namespace RT
                 mapper(
                     acc,
                     domainSize.toDim3(),
-                    dim3( blockIdx ),
-                    dim3(
+                    cupla::dim3( blockIdx ),
+                    cupla::dim3(
                         0,
                         0,
                         0

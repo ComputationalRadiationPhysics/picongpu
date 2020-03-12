@@ -22,7 +22,7 @@
 #include <utility>
 
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
-#include <pmacc/cuSTL/algorithm/cudaBlock/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/cuplaBlock/Foreach.hpp>
 #include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/VectorOperations.hpp>
@@ -197,7 +197,7 @@ namespace picongpu
             container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock( acc );
 
             /* init shared mem */
-            pmacc::algorithm::cudaBlock::Foreach<
+            pmacc::algorithm::cuplaBlock::Foreach<
                 pmacc::math::CT::Int< numWorkers >
             > forEachThreadInBlock(workerIdx);
             forEachThreadInBlock( acc,

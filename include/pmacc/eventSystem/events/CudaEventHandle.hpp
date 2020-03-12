@@ -90,11 +90,11 @@ public:
     }
 
     /**
-     * get native cuda event
+     * get native cupla event
      *
-     * @return native cuda event
+     * @return native cupla event
      */
-    cudaEvent_t operator*( ) const
+    cuplaEvent_t operator*( ) const
     {
         assert( event );
         return **event;
@@ -113,9 +113,9 @@ public:
 
     /** get stream in which this event is recorded
      *
-     * @return native cuda stream
+     * @return native cupla stream
      */
-    cudaStream_t getStream( ) const
+    cuplaStream_t getStream( ) const
     {
         PMACC_ASSERT( event );
         return event->getStream( );
@@ -123,9 +123,9 @@ public:
 
     /** record event in a device stream
      *
-     * @param stream native cuda stream
+     * @param stream native cupla stream
      */
-    void recordEvent( cudaStream_t stream )
+    void recordEvent( cuplaStream_t stream )
     {
         PMACC_ASSERT( event );
         event->recordEvent( stream );

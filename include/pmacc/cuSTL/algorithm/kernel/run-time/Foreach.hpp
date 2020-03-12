@@ -55,7 +55,7 @@ namespace RT
 /** Heuristic maximum threads per block and per axis
  * in agreement to sm_2.x - sm_5.3
  *
- * These values don't fully exploit the limits from the cuda specification
+ * These values don't fully exploit the limits from the cupla specification
  * but they give reasonable speed.
  */
 template<int dim>
@@ -79,22 +79,22 @@ struct MaxCudaBlockDim<DIM3>
     typedef math::CT::Size_t<8, 8, 8> type;
 };
 
-/** Check if MaxCudaBlockDim holds the cuda specification limits
+/** Check if MaxCudaBlockDim holds the cupla specification limits
  *
  * @cond
  */
-PMACC_CASSERT_MSG(_cuda_blockDim_exceeds_maximum_number_of_threads_per_block,
+PMACC_CASSERT_MSG(_cupla_blockDim_exceeds_maximum_number_of_threads_per_block,
     math::CT::volume<typename MaxCudaBlockDim<DIM1>::type >::type::value <= cudaSpecs::maxNumThreadsPerBlock);
-PMACC_CASSERT_MSG(_cuda_blockDim_exceeds_maximum_number_of_threads_per_block,
+PMACC_CASSERT_MSG(_cupla_blockDim_exceeds_maximum_number_of_threads_per_block,
     math::CT::volume<typename MaxCudaBlockDim<DIM2>::type >::type::value <= cudaSpecs::maxNumThreadsPerBlock);
-PMACC_CASSERT_MSG(_cuda_blockDim_exceeds_maximum_number_of_threads_per_block,
+PMACC_CASSERT_MSG(_cupla_blockDim_exceeds_maximum_number_of_threads_per_block,
     math::CT::volume<typename MaxCudaBlockDim<DIM3>::type >::type::value <= cudaSpecs::maxNumThreadsPerBlock);
 /** @endcond */
 
-/** Return a suitable cuda blockDim for a given gridDimension.
+/** Return a suitable cupla blockDim for a given gridDimension.
  *
  * @param gridDimension 1D, 2D or 3D grid size
- * @return cuda blockDim
+ * @return cupla blockDim
  */
 template<int dim>
 math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDimension)
@@ -147,15 +147,15 @@ math::Size_t<DIM3> getBestCudaBlockDim(const math::Size_t<dim> gridDimension)
             numWorkers = blockSize.productOfComponents();                                                           \
         kernel::detail::SphericMapper<Zone::dim> mapper;                                                            \
         using namespace pmacc;                                                                                      \
-        PMACC_KERNEL(kernel::detail::RT::KernelForeachLockstep{})(mapper.cudaGridDim(p_zone.size, this->_blockDim), numWorkers) \
+        PMACC_KERNEL(kernel::detail::RT::KernelForeachLockstep{})(mapper.cuplaGridDim(p_zone.size, this->_blockDim), numWorkers) \
                 /*   c0_shifted, ..., cN_shifted    */                                                              \
             (mapper, blockSize, functor, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _));                           \
     }
 
-/** Foreach algorithm that calls a cuda kernel
+/** Foreach algorithm that calls a cupla kernel
  *
  * This is the run-time version of kernel::Foreach where the
- * cuda blockDim is specified in the constructor
+ * cupla blockDim is specified in the constructor
  *
  * @warning collective functors (containing synchronization) are not supported
  */
@@ -163,7 +163,7 @@ struct Foreach
 {
     math::Size_t<DIM3> _blockDim;
 
-    /* \param _blockDim size of the cuda blockDim.
+    /* \param _blockDim size of the cupla blockDim.
      *
      * blockDim has to fit into the computing volume.
      * E.g. (8,8,4) fits into (256, 256, 256)

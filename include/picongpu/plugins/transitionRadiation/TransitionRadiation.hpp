@@ -312,7 +312,7 @@ namespace transitionRadiation
                 {
                     __deleteArray( theTransRad );
                 }
-                CUDA_CHECK( cudaGetLastError( ) );
+                CUDA_CHECK( cuplaGetLastError( ) );
                 __delete( incTransRad );
                 __delete( cohTransRadPara );
                 __delete( cohTransRadPerp );

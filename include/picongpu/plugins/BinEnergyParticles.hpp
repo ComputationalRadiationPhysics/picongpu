@@ -77,7 +77,7 @@ struct KernelBinEnergyParticles
      *
      * @tparam T_ParBox pmacc::ParticlesBox, particle box type
      * @tparam T_BinBox pmacc::DataBox, box type for the histogram in global memory
-     * @tparam T_Mapping type of the mapper to map a cuda block to a supercell index
+     * @tparam T_Mapping type of the mapper to map a cupla block to a supercell index
      * @tparam T_Acc alpaka accelerator type
      *
      * @param acc alpaka accelerator
@@ -86,7 +86,7 @@ struct KernelBinEnergyParticles
      * @param numBins number of bins in the histogram (must be fit into the shared memory)
      * @param minEnergy particle energy for the first bin
      * @param maxEnergy particle energy for the last bin
-     * @param mapper functor to map a cuda block to a supercells index
+     * @param mapper functor to map a cupla block to a supercells index
      */
     template<
         typename T_ParBox,

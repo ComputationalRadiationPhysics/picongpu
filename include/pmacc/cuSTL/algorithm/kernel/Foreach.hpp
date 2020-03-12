@@ -64,14 +64,14 @@ namespace kernel
         auto blockSize = BlockDim::toRT();                                                                   \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                  \
         using namespace pmacc;                                                                              \
-        PMACC_KERNEL(detail::KernelForeach{})(mapper.cudaGridDim(p_zone.size), blockSize)                    \
+        PMACC_KERNEL(detail::KernelForeach{})(mapper.cuplaGridDim(p_zone.size), blockSize)                    \
                   /* c0_shifted, c1_shifted, ... */                                                         \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                   \
     }
 
-/** Foreach algorithm that calls a cuda kernel
+/** Foreach algorithm that calls a cupla kernel
  *
- * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cuda blockDim.
+ * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cupla blockDim.
  *
  * blockDim has to fit into the computing volume.
  * E.g. (8,8,4) fits into (256, 256, 256)
@@ -133,7 +133,7 @@ struct ForeachLockstep
         > mapper;
 
          PMACC_KERNEL( detail::KernelForeachLockstep{ } )(
-            mapper.cudaGridDim( p_zone.size ),
+            mapper.cuplaGridDim( p_zone.size ),
             T_numWorkers
         )(
             mapper,

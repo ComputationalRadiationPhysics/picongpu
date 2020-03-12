@@ -34,14 +34,14 @@
 namespace pmacc
 {
 
-    /** Manages a pool of cudaEvent_t objects and gives access to them. */
+    /** Manages a pool of cuplaEvent_t objects and gives access to them. */
     class EventPool
     {
     public:
 
-        /** Returns a free cuda event
+        /** Returns a free cupla event
          *
-         * @return free cuda event
+         * @return free cupla event
          */
         CudaEventHandle pop( )
         {
@@ -71,9 +71,9 @@ namespace pmacc
                 freeEvents.push_back( CudaEventHandle(ev) );
         }
 
-        /** create and add cuda events to the pool
+        /** create and add cupla events to the pool
          *
-         * @param count number of cuda events to add
+         * @param count number of cupla events to add
          */
         void createEvents( size_t count = 1u )
         {
@@ -85,9 +85,9 @@ namespace pmacc
             }
         }
 
-        /** Returns the number of cuda events in the pool.
+        /** Returns the number of cupla events in the pool.
          *
-         * @return number of cuda events
+         * @return number of cupla events
          */
         size_t getEventsCount( )
         {
@@ -111,7 +111,7 @@ namespace pmacc
 
         /** Destructor
          *
-         * destroys all cuda events in the pool
+         * destroys all cupla events in the pool
          */
         ~EventPool()
         {

@@ -71,7 +71,7 @@ void MallocMCBuffer< T_DeviceHeap >::synchronize( )
     /* add event system hints */
     __startOperation(ITask::TASK_CUDA);
     __startOperation(ITask::TASK_HOST);
-    CUDA_CHECK(cudaMemcpy(hostPtr, deviceHeapInfo.p, deviceHeapInfo.size, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cuplaMemcpy(hostPtr, deviceHeapInfo.p, deviceHeapInfo.size, cuplaMemcpyDeviceToHost));
 
 }
 

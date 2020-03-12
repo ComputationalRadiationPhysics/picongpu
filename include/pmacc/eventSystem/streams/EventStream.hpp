@@ -30,8 +30,8 @@ namespace pmacc
 {
 
 /**
- * Wrapper for a single cuda stream.
- * Allows recording cuda events on the stream.
+ * Wrapper for a single cupla stream.
+ * Allows recording cupla events on the stream.
  */
 class EventStream
 {
@@ -39,11 +39,11 @@ public:
 
     /**
      * Constructor.
-     * Creates the cudaStream_t object.
+     * Creates the cuplaStream_t object.
      */
     EventStream() : stream(nullptr)
     {
-        CUDA_CHECK(cudaStreamCreate(&stream));
+        CUDA_CHECK(cuplaStreamCreate(&stream));
     }
 
     /**
@@ -53,15 +53,15 @@ public:
     virtual ~EventStream()
     {
         // wait for all kernels in stream to finish
-        CUDA_CHECK_NO_EXCEPT(cudaStreamSynchronize(stream));
-        CUDA_CHECK_NO_EXCEPT(cudaStreamDestroy(stream));
+        CUDA_CHECK_NO_EXCEPT(cuplaStreamSynchronize(stream));
+        CUDA_CHECK_NO_EXCEPT(cuplaStreamDestroy(stream));
     }
 
     /**
-     * Returns the cudaStream_t object associated with this EventStream.
-     * @return the internal cuda stream object
+     * Returns the cuplaStream_t object associated with this EventStream.
+     * @return the internal cupla stream object
      */
-    cudaStream_t getCudaStream() const
+    cuplaStream_t getCudaStream() const
     {
         return stream;
     }
@@ -70,12 +70,12 @@ public:
     {
         if (this->stream != ev.getStream())
         {
-            CUDA_CHECK(cudaStreamWaitEvent(this->getCudaStream(), *ev, 0));
+            CUDA_CHECK(cuplaStreamWaitEvent(this->getCudaStream(), *ev, 0));
         }
     }
 
 private:
-    cudaStream_t stream;
+    cuplaStream_t stream;
 };
 
 }

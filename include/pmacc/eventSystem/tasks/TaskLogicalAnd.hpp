@@ -85,7 +85,7 @@ namespace pmacc
                     {
                         this->stream = static_cast<StreamTask*>(task)->getEventStream();
                         this->setTaskType(ITask::TASK_CUDA);
-                        this->cudaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
+                        this->cuplaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
                         this->hasCudaEventHandle = true;
                     }
                 }
@@ -102,7 +102,7 @@ namespace pmacc
                     {
                         this->stream = static_cast<StreamTask*>(task)->getEventStream();
                         this->setTaskType(ITask::TASK_CUDA);
-                        this->cudaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
+                        this->cuplaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
                         this->hasCudaEventHandle = true;
                     }
                 }

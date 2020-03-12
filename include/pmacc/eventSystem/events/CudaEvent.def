@@ -29,7 +29,7 @@
 namespace pmacc
 {
 
-/** Wrapper for cudaEvent_t
+/** Wrapper for cuplaEvent_t
  *
  * This class follows the RAII rules
  */
@@ -37,18 +37,18 @@ class CudaEvent
 {
 private:
 
-    /** native cuda event */
-    cudaEvent_t event;
-    /** native cuda stream where the event is recorded
+    /** native cupla event */
+    cuplaEvent_t event;
+    /** native cupla stream where the event is recorded
      *
      *  only valid if isRecorded is true
      */
-    cudaStream_t stream;
+    cuplaStream_t stream;
     /** state if event is recorded */
     bool isRecorded;
     /** state if a recorded event is finished
      *
-     * avoid cuda driver calls after `isFinished()` returns the first time true
+     * avoid cupla driver calls after `isFinished()` returns the first time true
      */
     bool finished;
 
@@ -60,7 +60,7 @@ public:
 
     /** Constructor
      *
-     * if called before the cuda device is initialized the behavior is undefined
+     * if called before the cupla device is initialized the behavior is undefined
      */
     HINLINE CudaEvent( );
 
@@ -73,20 +73,20 @@ public:
     /** free a registered handle */
     HINLINE void releaseHandle( );
 
-    /** get native cudaEvent_t object
+    /** get native cuplaEvent_t object
      *
-     * @return native cuda event
+     * @return native cupla event
      */
-    cudaEvent_t operator*( ) const
+    cuplaEvent_t operator*( ) const
     {
         return event;
     }
 
     /** get stream in which this event is recorded
      *
-     * @return native cuda stream
+     * @return native cupla stream
      */
-    cudaStream_t getStream( ) const
+    cuplaStream_t getStream( ) const
     {
         assert( isRecorded );
         return stream;
@@ -100,9 +100,9 @@ public:
 
     /** record event in a device stream
      *
-     * @param stream native cuda stream
+     * @param stream native cupla stream
      */
-    HINLINE void recordEvent( cudaStream_t stream );
+    HINLINE void recordEvent( cuplaStream_t stream );
 
 };
 }

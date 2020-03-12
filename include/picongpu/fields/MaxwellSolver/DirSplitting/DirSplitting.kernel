@@ -23,7 +23,7 @@
 #include <pmacc/math/vector/Float.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
-#include <pmacc/cuSTL/algorithm/cudaBlock/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/cuplaBlock/Foreach.hpp>
 #include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include <pmacc/nvidia/functors/Assign.hpp>
 
@@ -90,7 +90,7 @@ struct DirSplittingKernel
         int linearThreadIdx = threadIdx.z * BlockDim::x::value * BlockDim::y::value +
             threadIdx.y * BlockDim::x::value +
             threadIdx.x;
-        algorithm::cudaBlock::Foreach<BlockDim> foreach(linearThreadIdx);
+        algorithm::cuplaBlock::Foreach<BlockDim> foreach(linearThreadIdx);
 
         for (int x_offset = 0; x_offset < this->m_totalLength; x_offset += BlockDim::x::value)
         {

@@ -198,13 +198,13 @@ void Gather<dim>::CopyToDest::operator()(
         // calculate srcPitch (contiguous memory)
         Size_t<memDim-1> srcPitch = GatherHelper::ContiguousPitch<memDim, Type>()(srcSizes[i]);
 
-        cudaWrapper::Memcopy<memDim>()(
+        cuplaWrapper::Memcopy<memDim>()(
             &(*dest.origin()(ndim_offset)),
             dest.getPitch(),
             tmpDest.data() + srcOffsets1D[i],
             srcPitch,
             srcSizes[i],
-            cudaWrapper::flags::Memcopy::hostToHost);
+            cuplaWrapper::flags::Memcopy::hostToHost);
     }
 }
 

@@ -42,13 +42,13 @@ alwaysFinished( false )
 inline CudaEventHandle StreamTask::getCudaEventHandle( ) const
 {
     PMACC_ASSERT( hasCudaEventHandle );
-    return cudaEvent;
+    return cuplaEvent;
 }
 
-inline void StreamTask::setCudaEventHandle(const CudaEventHandle& cudaEvent )
+inline void StreamTask::setCudaEventHandle(const CudaEventHandle& cuplaEvent )
 {
     this->hasCudaEventHandle = true;
-    this->cudaEvent = cudaEvent;
+    this->cuplaEvent = cuplaEvent;
 }
 
 inline bool StreamTask::isFinished( )
@@ -57,7 +57,7 @@ inline bool StreamTask::isFinished( )
         return true;
     if ( hasCudaEventHandle )
     {
-        if ( cudaEvent.isFinished( ) )
+        if ( cuplaEvent.isFinished( ) )
         {
             alwaysFinished = true;
             return true;
@@ -80,7 +80,7 @@ inline void StreamTask::setEventStream( EventStream* newStream )
     this->stream = newStream;
 }
 
-inline cudaStream_t StreamTask::getCudaStream( )
+inline cuplaStream_t StreamTask::getCudaStream( )
 {
     if ( stream == nullptr )
         stream = Environment<>::get( ).TransactionManager( ).getEventStream( TASK_CUDA );
@@ -89,8 +89,8 @@ inline cudaStream_t StreamTask::getCudaStream( )
 
 inline void StreamTask::activate( )
 {
-    cudaEvent = Environment<>::get().EventPool( ).pop( );
-    cudaEvent.recordEvent( getCudaStream( ) );
+    cuplaEvent = Environment<>::get().EventPool( ).pop( );
+    cuplaEvent.recordEvent( getCudaStream( ) );
     hasCudaEventHandle = true;
 }
 

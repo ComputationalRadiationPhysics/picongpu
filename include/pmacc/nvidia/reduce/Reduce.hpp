@@ -146,7 +146,7 @@ namespace kernel
          *
          * This method can be used to reduce a chunk of an array.
          * This method is a **collective** method and needs to be called by all
-         * threads within a cuda block.
+         * threads within a cupla block.
          *
          * @tparam T_SrcBuffer type of the buffer
          * @tparam T_Functor type of the binary functor to reduce two elements
@@ -164,7 +164,7 @@ namespace kernel
          *        first argument is the source and get the new reduced value.
          * @param sharedMem shared memory buffer with storage for `linearThreadIdxInBlock` elements,
          *        buffer must implement `operator[](size_t)` (one dimensional access)
-         * @param blockIndex index of the cuda block,
+         * @param blockIndex index of the cupla block,
          *                   for a global reduce: `blockIdx.x`,
          *                   for a reduce within a block: `0`
          *
@@ -300,7 +300,7 @@ namespace kernel
     public:
 
         /* Constructor
-         * Don't create a instance before you have set you cuda device!
+         * Don't create a instance before you have set you cupla device!
          * @param byte how many bytes in global gpu memory can reserved for the reduce algorithm
          * @param sharedMemByte limit the usage of shared memory per block on gpu
          */

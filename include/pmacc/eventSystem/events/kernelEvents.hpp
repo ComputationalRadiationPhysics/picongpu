@@ -55,8 +55,8 @@ namespace exec
      * this objects contains the functor and the starting parameter
      *
      * @tparam T_Kernel pmacc Kernel object
-     * @tparam T_VectorGrid type which defines the grid extents (type must be castable to CUDA dim3)
-     * @tparam T_VectorBlock type which defines the block extents (type must be castable to CUDA dim3)
+     * @tparam T_VectorGrid type which defines the grid extents (type must be castable to cupla dim3)
+     * @tparam T_VectorBlock type which defines the block extents (type must be castable to cupla dim3)
      */
     template<
         typename T_Kernel,
@@ -103,8 +103,8 @@ namespace exec
          *
          * this objects contains the functor and the starting parameter
          *
-         * @tparam T_VectorGrid type which defines the grid extents (type must be castable to CUDA dim3)
-         * @tparam T_VectorBlock type which defines the block extents (type must be castable to CUDA dim3)
+         * @tparam T_VectorGrid type which defines the grid extents (type must be castable to cupla dim3)
+         * @tparam T_VectorBlock type which defines the block extents (type must be castable to cupla dim3)
          *
          * @param gridExtent grid extent configuration for the kernel
          * @param blockExtent block extent configuration for the kernel
@@ -186,7 +186,7 @@ namespace exec
                 std::to_string( m_kernel.m_line ) + std::string( " ]" );
 
             CUDA_CHECK_KERNEL_MSG(
-                cudaDeviceSynchronize( ),
+                cuplaDeviceSynchronize( ),
                 std::string( "Crash before kernel call " ) + kernelInfo
             );
 
@@ -215,16 +215,16 @@ namespace exec
                 args ...
             );
             CUDA_CHECK_KERNEL_MSG(
-                cudaGetLastError( ),
+                cuplaGetLastError( ),
                 std::string( "Last error after kernel launch " ) + kernelInfo
             );
             CUDA_CHECK_KERNEL_MSG(
-                cudaDeviceSynchronize( ),
+                cuplaDeviceSynchronize( ),
                 std::string( "Crash after kernel launch " ) + kernelInfo
             );
             taskKernel->activateChecks( );
             CUDA_CHECK_KERNEL_MSG(
-                cudaDeviceSynchronize( ),
+                cuplaDeviceSynchronize( ),
                 std::string(  "Crash after kernel activation" ) + kernelInfo
             );
         }

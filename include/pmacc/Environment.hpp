@@ -429,7 +429,7 @@ namespace detail
         {
             pmacc::Environment<>::get().Manager().waitForAllTasks();
             // Required by scorep for flushing the buffers
-            cudaDeviceSynchronize();
+            cuplaDeviceSynchronize();
             m_isMpiInitialized = false;
             /* Free the MPI context.
              * The gpu context is freed by the `StreamController`, because
@@ -442,10 +442,10 @@ namespace detail
     void EnvironmentContext::setDevice(int deviceNumber)
     {
         int num_gpus = 0; //number of gpus
-        cudaGetDeviceCount(&num_gpus);
+        cuplaGetDeviceCount(&num_gpus);
 #if (PMACC_CUDA_ENABLED == 1)
         //##ERROR handling
-        if (num_gpus < 1) //check if cuda device is found
+        if (num_gpus < 1) //check if cupla device is found
         {
             throw std::runtime_error("no CUDA capable devices detected");
         }
@@ -454,7 +454,7 @@ namespace detail
         int maxTries = num_gpus;
         bool deviceSelectionSuccessful = false;
 
-        cudaError rc;
+        cuplaError rc;
 
         // search the first selectable device in the compute node
         for (int deviceOffset = 0; deviceOffset < maxTries; ++deviceOffset)
@@ -482,24 +482,24 @@ namespace detail
             }
 #endif
 
-            rc = cudaSetDevice(tryDeviceId);
+            rc = cuplaSetDevice(tryDeviceId);
 
-            if(rc == cudaSuccess)
+            if(rc == cuplaSuccess)
             {
-               cudaStream_t stream;
+               cuplaStream_t stream;
                /* \todo: Check if this workaround is needed
                 *
-                * - since NVIDIA change something in driver cudaSetDevice never
+                * - since NVIDIA change something in driver cuplaSetDevice never
                 * return an error if another process already use the selected
                 * device if gpu compute mode is set "process exclusive"
                 * - create a dummy stream to check if the device is already used by
                 * an other process.
-                * - cudaStreamCreate fails if gpu is already in use
+                * - cuplaStreamCreate fails if gpu is already in use
                 */
-               rc = cudaStreamCreate(&stream);
+               rc = cuplaStreamCreate(&stream);
             }
 
-            if (rc == cudaSuccess)
+            if (rc == cuplaSuccess)
             {
 #if (PMACC_CUDA_ENABLED == 1)
                 cudaDeviceProp dprop;
@@ -507,25 +507,25 @@ namespace detail
                 log<ggLog::CUDA_RT> ("Set device to %1%: %2%") % tryDeviceId % dprop.name;
                 if(cudaErrorSetOnActiveProcess == cudaSetDeviceFlags(cudaDeviceScheduleSpin))
                 {
-                    cudaGetLastError(); //reset all errors
-                    /* - because of cudaStreamCreate was called cudaSetDeviceFlags crashed
+                    cuplaGetLastError(); //reset all errors
+                    /* - because of cuplaStreamCreate was called cuplaSetDeviceFlags crashed
                      * - to set the flags reset the device and set flags again
                      */
-                    CUDA_CHECK(cudaDeviceReset());
+                    CUDA_CHECK(cuplaDeviceReset());
                     CUDA_CHECK((cuplaError_t)cudaSetDeviceFlags(cudaDeviceScheduleSpin));
                 }
 #endif
-                CUDA_CHECK(cudaGetLastError());
+                CUDA_CHECK(cuplaGetLastError());
                 deviceSelectionSuccessful = true;
                 break;
             }
-            else if (rc == cudaErrorDeviceAlreadyInUse
+            else if (rc == cuplaErrorDeviceAlreadyInUse
 #if (PMACC_CUDA_ENABLED == 1)
-                || rc==(cudaError)cudaErrorDevicesUnavailable
+                || rc==(cuplaError)cudaErrorDevicesUnavailable
 #endif
             )
             {
-                cudaGetLastError(); //reset all errors
+                cuplaGetLastError(); //reset all errors
                 log<ggLog::CUDA_RT > ("Device %1% already in use, try next.") % tryDeviceId;
                 continue;
             }

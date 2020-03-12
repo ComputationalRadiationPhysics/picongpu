@@ -31,27 +31,27 @@ namespace pmacc
 {
 
 /**
- * Print a cuda error message including file/line info to stderr
+ * Print a cupla error message including file/line info to stderr
  */
-#define PMACC_PRINT_CUDA_ERROR(msg) \
-    std::cerr << "[CUDA] Error: <" << __FILE__ << ">:" << __LINE__ << " " << msg << std::endl
+#define PMACC_PRINT_CUPLA_ERROR(msg) \
+    std::cerr << "[cupla] Error: <" << __FILE__ << ">:" << __LINE__ << " " << msg << std::endl
 
 /**
- * Print a cuda error message including file/line info to stderr and raises an exception
+ * Print a cupla error message including file/line info to stderr and raises an exception
  */
-#define PMACC_PRINT_CUDA_ERROR_AND_THROW(cudaError, msg) \
-    PMACC_PRINT_CUDA_ERROR(msg);                         \
-    throw std::runtime_error(std::string("[CUDA] Error: ") + std::string(cudaGetErrorString(cudaError)))
+#define PMACC_PRINT_CUPLA_ERROR_AND_THROW(cuplaError, msg) \
+    PMACC_PRINT_CUPLA_ERROR(msg);                         \
+    throw std::runtime_error(std::string("[cupla] Error: ") + std::string(cuplaGetErrorString(cuplaError)))
 
 /**
  * Captures CUDA errors and prints messages to stdout, including line number and file.
  *
- * @param cmd command with cudaError_t return value to check
+ * @param cmd command with cuplaError_t return value to check
  */
-#define CUDA_CHECK(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR_AND_THROW(error, ""); }}
+#define CUDA_CHECK(cmd) {cuplaError_t error = cmd; if(error!=cuplaSuccess){ PMACC_PRINT_CUPLA_ERROR_AND_THROW(error, ""); }}
 
-#define CUDA_CHECK_MSG(cmd,msg) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR_AND_THROW(error, msg); }}
+#define CUDA_CHECK_MSG(cmd,msg) {cuplaError_t error = cmd; if(error!=cuplaSuccess){ PMACC_PRINT_CUPLA_ERROR_AND_THROW(error, msg); }}
 
-#define CUDA_CHECK_NO_EXCEPT(cmd) {cudaError_t error = cmd; if(error!=cudaSuccess){ PMACC_PRINT_CUDA_ERROR(""); }}
+#define CUDA_CHECK_NO_EXCEPT(cmd) {cuplaError_t error = cmd; if(error!=cuplaSuccess){ PMACC_PRINT_CUPLA_ERROR(""); }}
 
 } // namespace pmacc

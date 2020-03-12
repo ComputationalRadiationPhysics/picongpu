@@ -30,14 +30,14 @@ template<typename Type, int dim>
 template<typename _Type>
 PseudoBuffer<Type, dim>::PseudoBuffer(pmacc::DeviceBuffer<_Type, dim>& devBuffer)
 {
-    cudaPitchedPtr cudaData = devBuffer.getCudaPitched();
-    this->dataPointer = (Type*)cudaData.ptr;
+    cuplaPitchedPtr cuplaData = devBuffer.getCudaPitched();
+    this->dataPointer = (Type*)cuplaData.ptr;
     this->_size = (math::Size_t<dim>)devBuffer.getDataSpace();
-    if(dim == 2) this->pitch[0] = cudaData.pitch;
+    if(dim == 2) this->pitch[0] = cuplaData.pitch;
     if(dim == 3)
     {
-        this->pitch[0] = cudaData.pitch;
-        this->pitch[1] = cudaData.pitch * this->_size.y();
+        this->pitch[0] = cuplaData.pitch;
+        this->pitch[1] = cuplaData.pitch * this->_size.y();
     }
 }
 

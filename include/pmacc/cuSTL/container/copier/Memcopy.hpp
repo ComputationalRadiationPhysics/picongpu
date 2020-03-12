@@ -26,7 +26,7 @@
 
 namespace pmacc
 {
-namespace cudaWrapper
+namespace cuplaWrapper
 {
 
 namespace flags
@@ -48,9 +48,9 @@ struct Memcopy<1>
                     const Type* source, const math::Size_t<0>, const math::Size_t<1>& size,
                     flags::Memcopy::Direction direction)
     {
-            const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
-                                     cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
-            CUDA_CHECK(cudaMemcpy(dest, source, sizeof(Type) * size.x(), kind[direction]));
+            const cuplaMemcpyKind kind[] = {cuplaMemcpyHostToDevice, cuplaMemcpyDeviceToHost,
+                                     cuplaMemcpyHostToHost, cuplaMemcpyDeviceToDevice};
+            CUDA_CHECK(cuplaMemcpy(dest, source, sizeof(Type) * size.x(), kind[direction]));
     }
 };
 
@@ -62,10 +62,10 @@ struct Memcopy<2u>
                     const Type* source, const math::Size_t<1> pitchSource, const math::Size_t<2u>& size,
                     flags::Memcopy::Direction direction)
     {
-            const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
-                                     cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
+            const cuplaMemcpyKind kind[] = {cuplaMemcpyHostToDevice, cuplaMemcpyDeviceToHost,
+                                     cuplaMemcpyHostToHost, cuplaMemcpyDeviceToDevice};
 
-            CUDA_CHECK(cudaMemcpy2D(dest, pitchDest.x(), source, pitchSource.x(), sizeof(Type) * size.x(), size.y(),
+            CUDA_CHECK(cuplaMemcpy2D(dest, pitchDest.x(), source, pitchSource.x(), sizeof(Type) * size.x(), size.y(),
                          kind[direction]));
     }
 };
@@ -78,30 +78,30 @@ struct Memcopy<3>
                     Type* source, const math::Size_t<2u> pitchSource, const math::Size_t<3>& size,
                     flags::Memcopy::Direction direction)
     {
-            const cudaMemcpyKind kind[] = {cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
-                                     cudaMemcpyHostToHost, cudaMemcpyDeviceToDevice};
+            const cuplaMemcpyKind kind[] = {cuplaMemcpyHostToDevice, cuplaMemcpyDeviceToHost,
+                                     cuplaMemcpyHostToHost, cuplaMemcpyDeviceToDevice};
 
-            cudaPitchedPtr pitchedPtrDest;
+            cuplaPitchedPtr pitchedPtrDest;
             pitchedPtrDest.pitch = pitchDest.x(); pitchedPtrDest.ptr = dest;
             pitchedPtrDest.xsize = size.x() * sizeof (Type);
             pitchedPtrDest.ysize = size.y();
-            cudaPitchedPtr pitchedPtrSource;
+            cuplaPitchedPtr pitchedPtrSource;
             pitchedPtrSource.pitch = pitchSource.x(); pitchedPtrSource.ptr = source;
             pitchedPtrSource.xsize = size.x() * sizeof (Type);
             pitchedPtrSource.ysize = size.y();
 
-            cudaMemcpy3DParms params;
+            cuplaMemcpy3DParms params;
             params.srcArray = nullptr;
-            params.srcPos = make_cudaPos(0,0,0);
+            params.srcPos = make_cuplaPos(0,0,0);
             params.srcPtr = pitchedPtrSource;
             params.dstArray = nullptr;
-            params.dstPos = make_cudaPos(0,0,0);
+            params.dstPos = make_cuplaPos(0,0,0);
             params.dstPtr = pitchedPtrDest;
-            params.extent = make_cudaExtent(size.x() * sizeof(Type), size.y(), size.z());
+            params.extent = make_cuplaExtent(size.x() * sizeof(Type), size.y(), size.z());
             params.kind = kind[direction];
-            CUDA_CHECK(cudaMemcpy3D(&params));
+            CUDA_CHECK(cuplaMemcpy3D(&params));
     }
 };
 
-} // cudaWrapper
+} // cuplaWrapper
 } // pmacc

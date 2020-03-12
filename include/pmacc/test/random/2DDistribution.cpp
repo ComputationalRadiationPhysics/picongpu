@@ -195,9 +195,9 @@ void writePGM(const std::string& filePath, T_Buffer& buffer)
 template<class T_DeviceBuffer, class T_Random>
 void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_DeviceBuffer& buffer, const T_Random& rand)
 {
-    cudaEvent_t start, stop;
-    CUDA_CHECK(cudaEventCreate(&start));
-    CUDA_CHECK(cudaEventCreate(&stop));
+    cuplaEvent_t start, stop;
+    CUDA_CHECK(cuplaEventCreate(&start));
+    CUDA_CHECK(cuplaEventCreate(&stop));
 
     constexpr uint32_t blockSize = 256;
 
@@ -207,7 +207,7 @@ void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_Device
 
     uint32_t gridSize = ( rngSize.productOfComponents() + blockSize - 1u ) / blockSize;
 
-    CUDA_CHECK(cudaEventRecord(
+    CUDA_CHECK(cuplaEventRecord(
         start,
         /* we need to pass a stream to avoid that we record the event in
          * an empty or wrong stream
@@ -230,7 +230,7 @@ void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_Device
         numSamples
     );
 
-    CUDA_CHECK(cudaEventRecord(
+    CUDA_CHECK(cuplaEventRecord(
         stop,
         /* we need to pass a stream to avoid that we record the event in
          * an empty or wrong stream
@@ -238,12 +238,12 @@ void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_Device
         pmacc::Environment<>::get( ).TransactionManager( ).
             getEventStream( pmacc::ITask::TASK_CUDA )->getCudaStream()
     ));
-    CUDA_CHECK(cudaEventSynchronize(stop));
+    CUDA_CHECK(cuplaEventSynchronize(stop));
     float milliseconds = 0;
-    CUDA_CHECK(cudaEventElapsedTime(&milliseconds, start, stop));
+    CUDA_CHECK(cuplaEventElapsedTime(&milliseconds, start, stop));
     std::cout << "Done in " << milliseconds << "ms" << std::endl;
-    CUDA_CHECK(cudaEventDestroy(start));
-    CUDA_CHECK(cudaEventDestroy(stop));
+    CUDA_CHECK(cuplaEventDestroy(start));
+    CUDA_CHECK(cuplaEventDestroy(stop));
 }
 
 template<class T_Method>
