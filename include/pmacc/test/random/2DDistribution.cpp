@@ -213,7 +213,7 @@ void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_Device
          * an empty or wrong stream
          */
         pmacc::Environment<>::get( ).TransactionManager( ).
-            getEventStream( pmacc::ITask::TASK_CUDA )->getCudaStream()
+            getEventStream( pmacc::ITask::TASK_DEVICE )->getCudaStream()
     ));
     PMACC_KERNEL(
         RandomFiller<
@@ -236,7 +236,7 @@ void generateRandomNumbers(const Space2D& rngSize, uint32_t numSamples, T_Device
          * an empty or wrong stream
          */
         pmacc::Environment<>::get( ).TransactionManager( ).
-            getEventStream( pmacc::ITask::TASK_CUDA )->getCudaStream()
+            getEventStream( pmacc::ITask::TASK_DEVICE )->getCudaStream()
     ));
     CUDA_CHECK(cuplaEventSynchronize(stop));
     float milliseconds = 0;

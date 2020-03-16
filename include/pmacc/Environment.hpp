@@ -559,7 +559,7 @@ namespace detail
  * depended on the opType this method is blocking
  *
  * @param opType place were the operation is running
- *               possible places are: `ITask::TASK_CUDA`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
+ *               possible places are: `ITask::TASK_DEVICE`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
  */
 #define __startOperation(opType) (pmacc::Environment<>::get().TransactionManager().startOperation(opType))
 
@@ -568,7 +568,7 @@ namespace detail
  * depended on the opType this method is blocking
  *
  * @param opType place were the operation is running
- *               possible places are: `ITask::TASK_CUDA`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
+ *               possible places are: `ITask::TASK_DEVICE`, `ITask::TASK_MPI`, `ITask::TASK_HOST`
  */
 #define __getEventStream(opType) (pmacc::Environment<>::get().TransactionManager().getEventStream(opType))
 

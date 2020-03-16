@@ -48,14 +48,14 @@ EventTask Transaction::getTransactionEvent( )
 
 void Transaction::operation( ITask::TaskType operation )
 {
-    if ( operation == ITask::TASK_CUDA )
+    if ( operation == ITask::TASK_DEVICE )
     {
         Manager &manager = Environment<>::get( ).Manager( );
 
         ITask* baseTask = manager.getITaskIfNotFinished( this->baseEvent.getTaskId( ) );
         if ( baseTask != nullptr )
         {
-            if ( baseTask->getTaskType( ) == ITask::TASK_CUDA )
+            if ( baseTask->getTaskType( ) == ITask::TASK_DEVICE )
             {
                 /* no blocking is needed */
                 return;
@@ -72,7 +72,7 @@ EventStream* Transaction::getEventStream( ITask::TaskType )
 
     if ( baseTask != nullptr )
     {
-        if ( baseTask->getTaskType( ) == ITask::TASK_CUDA )
+        if ( baseTask->getTaskType( ) == ITask::TASK_DEVICE )
         {
             /* `StreamTask` from previous task must be reused to guarantee
              * that the dependency chain not brake

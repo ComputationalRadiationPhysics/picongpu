@@ -42,7 +42,7 @@ namespace pmacc
 
         enum TaskType
         {
-            TASK_UNKNOWN, TASK_CUDA, TASK_MPI, TASK_HOST
+            TASK_UNKNOWN, TASK_DEVICE, TASK_MPI, TASK_HOST
         };
 
         /**

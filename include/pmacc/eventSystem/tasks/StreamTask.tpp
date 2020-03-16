@@ -36,7 +36,7 @@ stream( nullptr ),
 hasCudaEventHandle( false ),
 alwaysFinished( false )
 {
-    this->setTaskType( ITask::TASK_CUDA );
+    this->setTaskType( ITask::TASK_DEVICE );
 }
 
 inline CudaEventHandle StreamTask::getCudaEventHandle( ) const
@@ -69,7 +69,7 @@ inline bool StreamTask::isFinished( )
 inline EventStream* StreamTask::getEventStream( )
 {
     if ( stream == nullptr )
-        stream = __getEventStream( TASK_CUDA );
+        stream = __getEventStream( TASK_DEVICE );
     return stream;
 }
 
@@ -83,7 +83,7 @@ inline void StreamTask::setEventStream( EventStream* newStream )
 inline cuplaStream_t StreamTask::getCudaStream( )
 {
     if ( stream == nullptr )
-        stream = Environment<>::get( ).TransactionManager( ).getEventStream( TASK_CUDA );
+        stream = Environment<>::get( ).TransactionManager( ).getEventStream( TASK_DEVICE );
     return stream->getCudaStream( );
 }
 

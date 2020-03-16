@@ -81,10 +81,10 @@ namespace pmacc
                 if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();
-                    if (type == ITask::TASK_CUDA )
+                    if (type == ITask::TASK_DEVICE )
                     {
                         this->stream = static_cast<StreamTask*>(task)->getEventStream();
-                        this->setTaskType(ITask::TASK_CUDA);
+                        this->setTaskType(ITask::TASK_DEVICE);
                         this->cuplaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
                         this->hasCudaEventHandle = true;
                     }
@@ -98,10 +98,10 @@ namespace pmacc
                 if(task != nullptr)
                 {
                     ITask::TaskType type = task->getTaskType();
-                    if (type == ITask::TASK_CUDA )
+                    if (type == ITask::TASK_DEVICE )
                     {
                         this->stream = static_cast<StreamTask*>(task)->getEventStream();
-                        this->setTaskType(ITask::TASK_CUDA);
+                        this->setTaskType(ITask::TASK_DEVICE);
                         this->cuplaEvent = static_cast<StreamTask*>(task)->getCudaEventHandle();
                         this->hasCudaEventHandle = true;
                     }
@@ -131,19 +131,19 @@ namespace pmacc
         {
             s1->addObserver(this);
             s2->addObserver(this);
-            if(s1->getTaskType() == ITask::TASK_CUDA && s2->getTaskType() == ITask::TASK_CUDA)
+            if(s1->getTaskType() == ITask::TASK_DEVICE && s2->getTaskType() == ITask::TASK_DEVICE)
             {
-                this->setTaskType(ITask::TASK_CUDA);
+                this->setTaskType(ITask::TASK_DEVICE);
                 this->setEventStream(static_cast<StreamTask*> (s2)->getEventStream());
                 if(static_cast<StreamTask*> (s1)->getEventStream() != static_cast<StreamTask*> (s2)->getEventStream())
                     this->getEventStream()->waitOn(static_cast<StreamTask*> (s1)->getCudaEventHandle());
                 this->activate();
             }
-            else if(s1->getTaskType() == ITask::TASK_MPI && s2->getTaskType() == ITask::TASK_CUDA)
+            else if(s1->getTaskType() == ITask::TASK_MPI && s2->getTaskType() == ITask::TASK_DEVICE)
             {
                 this->setTaskType(ITask::TASK_MPI);
             }
-            else if(s2->getTaskType() == ITask::TASK_MPI && s1->getTaskType() == ITask::TASK_CUDA)
+            else if(s2->getTaskType() == ITask::TASK_MPI && s1->getTaskType() == ITask::TASK_DEVICE)
             {
                 this->setTaskType(ITask::TASK_MPI);
             }

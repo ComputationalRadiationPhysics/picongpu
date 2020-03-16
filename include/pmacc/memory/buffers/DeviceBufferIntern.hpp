@@ -83,7 +83,7 @@ public:
 
     virtual ~DeviceBufferIntern()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
 
         if (sizeOnDevice)
         {
@@ -100,7 +100,7 @@ public:
     {
         this->setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().productOfComponents());
 
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         if (!preserveData)
         {
             TYPE value;
@@ -117,14 +117,14 @@ public:
 
     DataBoxType getDataBox()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         return DataBoxType(PitchedBox<TYPE, DIM > ((TYPE*) data.ptr, offset,
                                                    this->getPhysicalMemorySize(), data.pitch));
     }
 
     TYPE* getPointer()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
 
         if (DIM == DIM1)
         {
@@ -154,7 +154,7 @@ public:
 
     size_t* getCurrentSizeOnDevicePointer()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         if (!sizeOnDevice)
         {
             throw std::runtime_error("Buffer has no size on device!, currentSize is only stored on host side.");
@@ -170,7 +170,7 @@ public:
 
     TYPE* getBasePointer()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         return (TYPE*) data.ptr;
     }
 
@@ -218,7 +218,7 @@ public:
 
     const cuplaPitchedPtr getCudaPitched() const
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         return data;
     }
 
@@ -238,7 +238,7 @@ private:
      */
     void createData()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         data.ptr = nullptr;
         data.pitch = 1;
         data.xsize = this->getDataSpace()[0] * sizeof (TYPE);
@@ -274,7 +274,7 @@ private:
      */
     void createFakeData()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         data.ptr = nullptr;
         data.pitch = 1;
         data.xsize = this->getDataSpace()[0] * sizeof (TYPE);

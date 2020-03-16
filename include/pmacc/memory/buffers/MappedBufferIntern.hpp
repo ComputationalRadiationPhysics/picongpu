@@ -68,7 +68,7 @@ public:
      */
     virtual ~MappedBufferIntern()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         __startOperation(ITask::TASK_HOST);
 
         if (pointer && ownPointer)
@@ -174,7 +174,7 @@ public:
 
     const cuplaPitchedPtr getCudaPitched() const
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         TYPE* dPointer;
         cuplaHostGetDevicePointer(&dPointer, pointer, 0);
 
@@ -206,7 +206,7 @@ public:
 
     DataBoxType getDataBox()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         TYPE* dPointer;
         cuplaHostGetDevicePointer(&dPointer, pointer, 0);
         return DataBoxType(PitchedBox<TYPE, DIM > (dPointer, DataSpace<DIM > (),
