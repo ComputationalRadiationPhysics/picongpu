@@ -59,14 +59,6 @@ of an easier install of `PIConGPU`. Contributions to these parts of the
 repository should *not* be made in the `thirdParty/` directory but in
 *their according repositories* (that we import).
 
- - `thirdParty/alpaka`:
-   alpaka is a header-only C++11 abstraction library for parallel
-   kernel development on accelerator hardware. It provides a single-source,
-   performance portable programming model for PIConGPU and PMacc.
-   Please visit
-     https://github.com/ComputationalRadiationPhysics/alpaka
-   for further details and contributions.
-
  - `thirdParty/mallocMC`:
    mallocMC is a fast memory allocator for many core accelerators and was
    originally forked from the `ScatterAlloc` project.

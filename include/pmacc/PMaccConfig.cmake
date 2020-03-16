@@ -139,12 +139,6 @@ if(
         ON)
 endif()
 
-if(NOT cupla_ALPAKA_PROVIDER)
-    # force cupla to use third party alpaka version
-    set(cupla_ALPAKA_PROVIDER "extern" CACHE STRING "Select which alpaka is used")
-    set(alpaka_DIR "${PMacc_DIR}/../../thirdParty/alpaka" CACHE PATH "path to alpaka")
-endif()
-
 if(${PMACC_CUPLA_PROVIDER} STREQUAL "intern")
     find_package(cupla
         REQUIRED
