@@ -23,8 +23,10 @@
 #pragma once
 
 #include "cupla/datatypes/Array.hpp"
+#include "cupla/device/SharedMemory.hpp"
+#include "cupla/device_functions.hpp"
 
-#define __syncthreads(...) ::alpaka::block::sync::syncBlockThreads(acc)
+#define __syncthreads(...) ::cupla::syncThreads(acc)
 
 #define cudaSuccess cuplaSuccess
 #define cudaErrorMemoryAllocation cuplaErrorMemoryAllocation
@@ -54,7 +56,7 @@
 /* cudaEventBlockingSync is a define in CUDA, hence we must remove
  * the old definition with the cupla enum
  */
-#define cudaEventBlockingSync cuplaEventBlockingSync 
+#define cudaEventBlockingSync cuplaEventBlockingSync
 
 #ifdef cudaEventDisableTiming
 #undef cudaEventDisableTiming
@@ -64,14 +66,6 @@
  */
 #define cudaEventDisableTiming cuplaEventDisableTiming
 
-#define sharedMem(ppName, ...)                                                 \
-  __VA_ARGS__ &ppName =                                                        \
-      ::alpaka::block::shared::st::allocVar<__VA_ARGS__, __COUNTER__>(acc)
-
-#define sharedMemExtern(ppName, ...)                                           \
-    __VA_ARGS__* ppName =                                                      \
-        ::alpaka::block::shared::dyn::getMem<__VA_ARGS__>(acc)
-
 #define cudaMemcpyKind cuplaMemcpyKind
 #define cudaMemcpyHostToDevice cuplaMemcpyHostToDevice
 #define cudaMemcpyDeviceToHost cuplaMemcpyDeviceToHost
@@ -79,22 +73,11 @@
 #define cudaMemcpyHostToHost cuplaMemcpyHostToHost
 
 // index renaming
-#define blockIdx                                                               \
-  static_cast<uint3>(                                                \
-      ::alpaka::idx::getIdx<::alpaka::Grid, ::alpaka::Blocks>(acc))
-#define threadIdx                                                              \
-  static_cast<uint3>(                                                \
-      ::alpaka::idx::getIdx<::alpaka::Block, ::alpaka::Threads>(acc))
-
-#define gridDim                                                                \
-  static_cast<uint3>(                                                \
-      ::alpaka::workdiv::getWorkDiv<::alpaka::Grid, ::alpaka::Blocks>(acc))
-#define blockDim                                                               \
-  static_cast<uint3>(                                                \
-      ::alpaka::workdiv::getWorkDiv<::alpaka::Block, ::alpaka::Threads>(acc))
-#define elemDim                                                               \
-  static_cast<uint3>(                                                \
-      ::alpaka::workdiv::getWorkDiv<::alpaka::Thread, ::alpaka::Elems>(acc))
+#define blockIdx cupla::blockIdx(acc)
+#define threadIdx cupla::threadIdx(acc)
+#define gridDim cupla::gridDim(acc)
+#define blockDim cupla::blockDim(acc)
+#define elemDim cupla::threadDim(acc)
 
 /** Atomic functions
  *
@@ -106,17 +89,17 @@
  *
  * @{
  */
-#define atomicAdd(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Add>(acc, __VA_ARGS__)
-#define atomicSub(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Sub>(acc, __VA_ARGS__)
-#define atomicMin(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Min>(acc, __VA_ARGS__)
-#define atomicMax(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Max>(acc, __VA_ARGS__)
-#define atomicInc(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Inc>(acc, __VA_ARGS__)
-#define atomicDec(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Dec>(acc, __VA_ARGS__)
-#define atomicExch(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Exch>(acc, __VA_ARGS__)
-#define atomicCAS(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Cas>(acc, __VA_ARGS__)
-#define atomicAnd(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::And>(acc, __VA_ARGS__)
-#define atomicXor(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Xor>(acc, __VA_ARGS__)
-#define atomicOr(...) ::alpaka::atomic::atomicOp<::alpaka::atomic::op::Or>(acc, __VA_ARGS__)
+#define atomicAdd(...) cupla::atomicAdd(acc, __VA_ARGS__)
+#define atomicSub(...) cupla::atomicSub(acc, __VA_ARGS__)
+#define atomicMin(...) cupla::atomicMin(acc, __VA_ARGS__)
+#define atomicMax(...) cupla::atomicMax(acc, __VA_ARGS__)
+#define atomicInc(...) cupla::atomicInc(acc, __VA_ARGS__)
+#define atomicDec(...) cupla::atomicDec(acc, __VA_ARGS__)
+#define atomicExch(...) cupla::atomicExch(acc, __VA_ARGS__)
+#define atomicCAS(...) cupla::atomicCAS(acc, __VA_ARGS__)
+#define atomicAnd(...) cupla::atomicAnd(acc, __VA_ARGS__)
+#define atomicXor(...) cupla::atomicXor(acc, __VA_ARGS__)
+#define atomicOr(...) cupla::atomicOr(acc, __VA_ARGS__)
 /** @} */
 
 #define uint3 ::cupla::uint3

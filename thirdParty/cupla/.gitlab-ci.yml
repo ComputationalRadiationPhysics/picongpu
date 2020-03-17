@@ -55,6 +55,13 @@
         && cmake $cupla_DIR/example/CUDASamples/vectorAdd/ $CMAKE_FLAGS -DCMAKE_BUILD_TYPE=$CUPLA_BUILD_TYPE
         && make -j
         && time ./vectorAdd 100000
+        && rm -r *
+        && echo "###################################################"
+        && echo "Example cuplaVectorAdd (added elements layer)"
+        && echo "###################################################"
+        && cmake $cupla_DIR/example/CUDASamples/cuplaVectorAdd/ $CMAKE_FLAGS -DCMAKE_BUILD_TYPE=$CUPLA_BUILD_TYPE
+        && make -j
+        && time ./cuplaVectorAdd 100000
         && rm -r * ;
       done
 
