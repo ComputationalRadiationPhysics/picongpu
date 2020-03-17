@@ -111,7 +111,7 @@ namespace stage
             auto const numSuperCells = superCellsCount.productOfComponents();
             for( auto supercellLinearIdx = 0;
                 supercellLinearIdx < numSuperCells; ++supercellLinearIdx )
-            {             
+            {
                 auto const idxWithGuard = DataSpaceOperations< simDim >::map(
                     superCellsCount,
                     supercellLinearIdx
