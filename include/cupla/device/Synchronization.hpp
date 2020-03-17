@@ -1,4 +1,4 @@
-/* Copyright 2016 Rene Widera
+/* Copyright 2020 Rene Widera
  *
  * This file is part of cupla.
  *
@@ -21,7 +21,37 @@
 
 #pragma once
 
-#include "cupla.hpp"
+#include "cupla/types.hpp"
 
-#include "cupla/cudaToCupla/driverTypes.hpp"
-#include "cupla/cudaToCupla/runtime.hpp"
+#include <alpaka/alpaka.hpp>
+
+namespace cupla
+{
+inline namespace device
+{
+
+    /** synchronize threads within the block
+     *
+     * @tparam T_Acc alpaka accelerator [alpaka::acc::*]
+     * @param acc alpaka accelerator
+     *
+     * @{
+     */
+    template< typename T_Acc >
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE
+    void syncThreads( T_Acc const & acc )
+    {
+        ::alpaka::block::sync::syncBlockThreads( acc );
+    }
+
+    template< typename T_Acc >
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE
+    void __syncthreads( T_Acc const & acc )
+    {
+        syncThreads( acc );
+    }
+
+    //!@}
+
+} // namespace device
+} // namespace cupla
