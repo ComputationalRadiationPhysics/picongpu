@@ -69,11 +69,11 @@ namespace fields
             constexpr uint32_t planeSize = pmacc::math::CT::volume< LaserPlaneSizeInSuperCell >::type::value;
             PMACC_CONSTEXPR_CAPTURE uint32_t numWorkers = T_numWorkers;
 
-            const uint32_t workerIdx = threadIdx.x;
+            const uint32_t workerIdx = cupla::threadIdx(acc).x;
 
             // offset of the superCell (in cells, without any guards) to the origin of the local domain
 
-            DataSpace< simDim > localSuperCellOffset = DataSpace< simDim >( blockIdx );
+            DataSpace< simDim > localSuperCellOffset = DataSpace< simDim >( cupla::blockIdx(acc) );
 
             // add not handled supercells from LaserFunctor::Unitless::initPlaneY
             localSuperCellOffset.y() += LaserFunctor::Unitless::initPlaneY / SuperCellSize::y::value;

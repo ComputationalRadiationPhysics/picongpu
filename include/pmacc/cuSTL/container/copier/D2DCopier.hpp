@@ -62,8 +62,8 @@ struct D2DCopier
             destCursor[i] = srcCursor[i];
         }
 #else
-        cudaWrapper::Memcopy<dim>()(dest, pitchDest, source, pitchSource,
-                                    size, cudaWrapper::flags::Memcopy::deviceToDevice);
+        cuplaWrapper::Memcopy<dim>()(dest, pitchDest, source, pitchSource,
+                                    size, cuplaWrapper::flags::Memcopy::deviceToDevice);
 #endif
     }
 };

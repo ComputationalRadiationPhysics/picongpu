@@ -62,11 +62,11 @@ struct CountMakroParticle
         typedef typename ParBox::FrameType FrameType;
         typedef typename ParBox::FramePtr FramePtr;
 
-        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        const DataSpace<simDim> block(mapper.getSuperCellIndex(DataSpace<simDim > (cupla::blockIdx(acc))));
         /* counterBox has no guarding supercells*/
         const DataSpace<simDim> counterCell = block - mapper.getGuardingSuperCells();
 
-        const DataSpace<simDim > threadIndex(threadIdx);
+        const DataSpace<simDim > threadIndex(cupla::threadIdx(acc));
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
         PMACC_SMEM( acc, counterValue, uint64_cu );
@@ -81,7 +81,7 @@ struct CountMakroParticle
                 counterBox(counterCell) = counterValue;
             }
         }
-        __syncthreads();
+        cupla::__syncthreads( acc );
         if (!frame.isValid())
             return; //end kernel if we have no frames
 
@@ -91,15 +91,15 @@ struct CountMakroParticle
         {
             if (isParticle)
             {
-                atomicAdd(&counterValue, static_cast<uint64_cu> (1LU), ::alpaka::hierarchy::Blocks{});
+                cupla::atomicAdd(acc, &counterValue, static_cast<uint64_cu> (1LU), ::alpaka::hierarchy::Blocks{});
             }
-            __syncthreads();
+            cupla::__syncthreads( acc );
             if (linearThreadIdx == 0)
             {
                 frame = parBox.getPreviousFrame(frame);
             }
             isParticle = true;
-            __syncthreads();
+            cupla::__syncthreads( acc );
         }
 
         if (linearThreadIdx == 0)

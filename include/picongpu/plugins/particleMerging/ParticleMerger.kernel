@@ -427,7 +427,7 @@ namespace particleMerging
                 voronoiIndexPool = VoronoiIndexPool( numInitialVoronoiCells );
             }
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             /* set initial Voronoi cells into `collecting` state */
             if( linearThreadIdx < numInitialVoronoiCells )
@@ -445,7 +445,7 @@ namespace particleMerging
                     listVoronoiCells
                 );
 
-                __syncthreads();
+                cupla::__syncthreads( acc );
 
                 /* TODO: parallelize */
                 if( linearThreadIdx == 0 )
@@ -456,7 +456,7 @@ namespace particleMerging
                     );
                 }
 
-                __syncthreads();
+                cupla::__syncthreads( acc );
             }
         }
     };

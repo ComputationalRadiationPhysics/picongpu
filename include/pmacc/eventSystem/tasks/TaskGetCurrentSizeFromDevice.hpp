@@ -65,10 +65,10 @@ public:
 
     virtual void init()
     {
-        CUDA_CHECK(cudaMemcpyAsync((void*) buffer->getCurrentSizeHostSidePointer(),
+        CUDA_CHECK(cuplaMemcpyAsync((void*) buffer->getCurrentSizeHostSidePointer(),
                                    buffer->getCurrentSizeOnDevicePointer(),
                                    sizeof (size_t),
-                                   cudaMemcpyDeviceToHost,
+                                   cuplaMemcpyDeviceToHost,
                                    this->getCudaStream()));
         this->activate();
     }

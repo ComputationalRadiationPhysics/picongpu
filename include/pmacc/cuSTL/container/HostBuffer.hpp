@@ -132,8 +132,8 @@ public:
                 std::stringstream() << "Assignment: Sizes of buffers do not match: "
                     << this->size() << " <-> " << rhs.size() << std::endl).str());
 
-        cudaWrapper::Memcopy<T_dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
-                                this->_size, cudaWrapper::flags::Memcopy::deviceToHost);
+        cuplaWrapper::Memcopy<T_dim>()(this->dataPointer, this->pitch, rhs.getDataPointer(), rhs.getPitch(),
+                                this->_size, cuplaWrapper::flags::Memcopy::deviceToHost);
 
         return *this;
     }

@@ -33,7 +33,7 @@ namespace math
 namespace CT
 {
 
-/** Compile time uint vector
+/** Compile time uint32_t vector
  *
  *
  * @tparam x value for x allowed range [0;max uint32_t value -1]

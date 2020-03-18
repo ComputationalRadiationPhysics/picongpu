@@ -86,13 +86,13 @@ namespace pmacc
                                 assigner::DeviceMemAssigner<> >
         cartBuffer() const
         {
-            cudaPitchedPtr cudaData = this->getCudaPitched();
+            cuplaPitchedPtr cuplaData = this->getCudaPitched();
             math::Size_t<DIM - 1> pitch;
             if(DIM >= 2)
-                pitch[0] = cudaData.pitch;
+                pitch[0] = cuplaData.pitch;
             if(DIM == 3)
                 pitch[1] = pitch[0] * this->getPhysicalMemorySize()[1];
-            container::DeviceBuffer<TYPE, DIM> result((TYPE*)cudaData.ptr, this->getDataSpace(), false, pitch);
+            container::DeviceBuffer<TYPE, DIM> result((TYPE*)cuplaData.ptr, this->getDataSpace(), false, pitch);
             return result;
         }
 
@@ -135,11 +135,11 @@ namespace pmacc
         virtual void setCurrentSize(const size_t size) = 0;
 
         /**
-         * Returns the internal pitched cuda pointer.
+         * Returns the internal pitched cupla pointer.
          *
-         * @return internal pitched cuda pointer
+         * @return internal pitched cupla pointer
          */
-        virtual const cudaPitchedPtr getCudaPitched() const = 0;
+        virtual const cuplaPitchedPtr getCudaPitched() const = 0;
 
         /** get line pitch of memory in byte
          *

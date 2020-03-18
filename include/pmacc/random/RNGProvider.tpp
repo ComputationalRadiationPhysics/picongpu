@@ -61,7 +61,7 @@ namespace random
                 using namespace mappings::threads;
 
                 constexpr uint32_t numWorkers = T_numWorkers;
-                uint32_t const workerIdx = threadIdx.x;
+                uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
                 using SupercellDomCfg = IdxConfig<
                     T_blockSize,
@@ -77,7 +77,7 @@ namespace random
                         uint32_t const
                     )
                     {
-                        uint32_t const linearTid = blockIdx.x * T_blockSize + linearIdx;
+                        uint32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
                         if( linearTid >= size.productOfComponents() )
                             return;
 

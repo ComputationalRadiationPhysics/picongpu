@@ -315,7 +315,7 @@ class ParticleSource
                     if (gc.getPosition()[1] == 0) //first gpu
                     {
                         Window window(MovingWindow::getInstance().getWindow( *currentStep ));
-                        for(uint i = 0; i < simDim; i++)
+                        for(uint32_t i = 0; i < simDim; i++)
                             guarding[i] += int(math::ceil((subGrid.getLocalDomain().size[i] - window.localDimensions.size[i]) / (float)MappingDesc::SuperCellSize::toRT()[i]));
                     }
                 }

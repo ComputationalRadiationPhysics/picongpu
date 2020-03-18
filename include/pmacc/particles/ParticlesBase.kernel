@@ -91,7 +91,7 @@ struct KernelFillGapsLastFrame
 
         using FramePtr = typename T_ParBox::FramePtr;
 
-        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim > ( blockIdx ) );
+        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim > ( cupla::blockIdx(acc) ) );
 
         PMACC_SMEM(
             acc,
@@ -122,7 +122,7 @@ struct KernelFillGapsLastFrame
             int
         );
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using MasterOnly = IdxConfig<
             1,
@@ -288,9 +288,9 @@ struct KernelFillGaps
         constexpr uint32_t dim = T_Mapping::Dim;
         constexpr uint32_t numWorkers = T_numWorkers;
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-        DataSpace< dim > const superCellIdx( mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) ) );
+        DataSpace< dim > const superCellIdx( mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) ) );
 
         // data copied from right (last) to left (first)
         PMACC_SMEM(
@@ -584,8 +584,8 @@ struct KernelShiftParticles
             bool
         );
 
-        DataSpace< dim > superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) );
-        uint32_t const workerIdx = threadIdx.x;
+        DataSpace< dim > superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) );
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using namespace mappings::threads;
 
@@ -704,7 +704,7 @@ struct KernelShiftParticles
                     directionCtx[ idx ] = frame[ linearIdx ][ multiMask_ ] - 2;
                     if ( directionCtx[ idx ] >= 0 )
                     {
-                        destParticleIdxCtx[ idx ] = atomicAdd( &(destFramesCounter[ directionCtx[ idx ] ]), 1, ::alpaka::hierarchy::Threads{} );
+                        destParticleIdxCtx[ idx ] = cupla::atomicAdd( acc, &(destFramesCounter[ directionCtx[ idx ] ]), 1, ::alpaka::hierarchy::Threads{} );
                     }
                 }
             );
@@ -885,8 +885,8 @@ struct KernelDeleteParticles
         constexpr uint32_t frameSize = math::CT::volume< typename FrameType::SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 
-        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) );
-        uint32_t const workerIdx = threadIdx.x;
+        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) );
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         PMACC_SMEM(
             acc,
@@ -1014,8 +1014,8 @@ struct KernelCopyGuardToExchange
 
         using FramePtr = typename T_ParBox::FramePtr;
 
-        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) );
-        uint32_t const workerIdx = threadIdx.x;
+        DataSpace< dim > const superCellIdx = mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) );
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         // number of particles in the current handled frame
         PMACC_SMEM(
@@ -1233,7 +1233,7 @@ struct KernelInsertParticles
         constexpr uint32_t frameSize = math::CT::volume< typename T_ParBox::FrameType::SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using FramePtr = typename T_ParBox::FramePtr;
 
@@ -1277,7 +1277,7 @@ struct KernelInsertParticles
             )
             {
                 exchangeChunk = exchangeBox.get(
-                    blockIdx.x,
+                    cupla::blockIdx(acc).x,
                     compressedSuperCellIdxCtx[ idx ]
                 );
                 elementCount = exchangeChunk.getSize( );

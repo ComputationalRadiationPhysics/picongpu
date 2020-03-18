@@ -58,7 +58,7 @@ struct KernelSumCurrents
 
         PMACC_SMEM( acc, sh_sumJ, float3_X );
 
-        const DataSpace<simDim > threadIndex(threadIdx);
+        const DataSpace<simDim > threadIndex(cupla::threadIdx(acc));
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
 
         if (linearThreadIdx == 0)
@@ -66,25 +66,25 @@ struct KernelSumCurrents
             sh_sumJ = float3_X::create(0.0);
         }
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
 
-        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (cupla::blockIdx(acc))));
         const DataSpace<simDim> cell(superCellIdx * SuperCellSize::toRT() + threadIndex);
 
         const float3_X myJ = fieldJ(cell);
 
-        atomicAdd( &(sh_sumJ.x()), myJ.x(), ::alpaka::hierarchy::Threads{});
-        atomicAdd( &(sh_sumJ.y()), myJ.y(), ::alpaka::hierarchy::Threads{});
-        atomicAdd( &(sh_sumJ.z()), myJ.z(), ::alpaka::hierarchy::Threads{});
+        cupla::atomicAdd(acc, &(sh_sumJ.x()), myJ.x(), ::alpaka::hierarchy::Threads{});
+        cupla::atomicAdd(acc, &(sh_sumJ.y()), myJ.y(), ::alpaka::hierarchy::Threads{});
+        cupla::atomicAdd(acc, &(sh_sumJ.z()), myJ.z(), ::alpaka::hierarchy::Threads{});
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         if (linearThreadIdx == 0)
         {
-            atomicAdd( &(gCurrent->x()), sh_sumJ.x(), ::alpaka::hierarchy::Blocks{});
-            atomicAdd( &(gCurrent->y()), sh_sumJ.y(), ::alpaka::hierarchy::Blocks{});
-            atomicAdd( &(gCurrent->z()), sh_sumJ.z(), ::alpaka::hierarchy::Blocks{});
+            cupla::atomicAdd(acc, &(gCurrent->x()), sh_sumJ.x(), ::alpaka::hierarchy::Blocks{});
+            cupla::atomicAdd(acc, &(gCurrent->y()), sh_sumJ.y(), ::alpaka::hierarchy::Blocks{});
+            cupla::atomicAdd(acc, &(gCurrent->z()), sh_sumJ.z(), ::alpaka::hierarchy::Blocks{});
         }
     }
 };

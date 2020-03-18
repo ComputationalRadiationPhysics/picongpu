@@ -66,7 +66,7 @@ namespace pmacc
         {
             size_t current_size = host->getCurrentSize();
             DataSpace<DIM> hostCurrentSize = host->getCurrentDataSpace(current_size);
-            /* IMPORTENT: `setCurrentSize()` must be called before the native cuda memcopy
+            /* IMPORTENT: `setCurrentSize()` must be called before the native cupla memcopy
              * is called else `setCurrentSize()` is not handled as part of this task.
              * The reason for that is that the native memcopy calls `this->getCudaStream()`
              * but not register an task before this `init()` is finished.
@@ -92,10 +92,10 @@ namespace pmacc
 
         void fastCopy(TYPE* src, TYPE* dst, size_t size)
         {
-            CUDA_CHECK(cudaMemcpyAsync(dst,
+            CUDA_CHECK(cuplaMemcpyAsync(dst,
                                        src,
                                        size * sizeof (TYPE),
-                                       cudaMemcpyHostToDevice,
+                                       cuplaMemcpyHostToDevice,
                                        this->getCudaStream()));
         }
 
@@ -121,9 +121,9 @@ namespace pmacc
 
         virtual void copy(DataSpace<DIM1> &hostCurrentSize)
         {
-            CUDA_CHECK(cudaMemcpyAsync(this->device->getPointer(), /*pointer include X offset*/
+            CUDA_CHECK(cuplaMemcpyAsync(this->device->getPointer(), /*pointer include X offset*/
                                        this->host->getBasePointer(),
-                                       hostCurrentSize[0] * sizeof (TYPE), cudaMemcpyHostToDevice,
+                                       hostCurrentSize[0] * sizeof (TYPE), cuplaMemcpyHostToDevice,
                                        this->getCudaStream()));
         }
     };
@@ -141,13 +141,13 @@ namespace pmacc
 
         virtual void copy(DataSpace<DIM2> &hostCurrentSize)
         {
-            CUDA_CHECK(cudaMemcpy2DAsync(this->device->getPointer(),
+            CUDA_CHECK(cuplaMemcpy2DAsync(this->device->getPointer(),
                                          this->device->getPitch(), /*this is pitch*/
                                          this->host->getBasePointer(),
                                          this->host->getDataSpace()[0] * sizeof (TYPE), /*this is pitch*/
                                          hostCurrentSize[0] * sizeof (TYPE),
                                          hostCurrentSize[1],
-                                         cudaMemcpyHostToDevice,
+                                         cuplaMemcpyHostToDevice,
                                          this->getCudaStream()));
         }
     };
@@ -165,30 +165,30 @@ namespace pmacc
 
         virtual void copy(DataSpace<DIM3> &hostCurrentSize)
         {
-            cudaPitchedPtr hostPtr;
+            cuplaPitchedPtr hostPtr;
             hostPtr.pitch = this->host->getDataSpace()[0] * sizeof (TYPE);
             hostPtr.ptr = this->host->getBasePointer();
             hostPtr.xsize = this->host->getDataSpace()[0] * sizeof (TYPE);
             hostPtr.ysize = this->host->getDataSpace()[1];
 
-            cudaMemcpy3DParms params;
+            cuplaMemcpy3DParms params;
             params.dstArray = nullptr;
-            params.dstPos = make_cudaPos(this->device->getOffset()[0] * sizeof (TYPE),
+            params.dstPos = make_cuplaPos(this->device->getOffset()[0] * sizeof (TYPE),
                                          this->device->getOffset()[1],
                                          this->device->getOffset()[2]);
             params.dstPtr = this->device->getCudaPitched();
 
             params.srcArray = nullptr;
-            params.srcPos = make_cudaPos(0, 0, 0);
+            params.srcPos = make_cuplaPos(0, 0, 0);
             params.srcPtr = hostPtr;
 
-            params.extent = make_cudaExtent(
+            params.extent = make_cuplaExtent(
                                             hostCurrentSize[0] * sizeof (TYPE),
                                             hostCurrentSize[1],
                                             hostCurrentSize[2]);
-            params.kind = cudaMemcpyHostToDevice;
+            params.kind = cuplaMemcpyHostToDevice;
 
-            CUDA_CHECK(cudaMemcpy3DAsync(&params, this->getCudaStream()));
+            CUDA_CHECK(cuplaMemcpy3DAsync(&params, this->getCudaStream()));
         }
     };
 

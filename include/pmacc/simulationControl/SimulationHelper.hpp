@@ -151,8 +151,8 @@ public:
         {
             /* first synchronize: if something failed, we can spare the time
              * for the checkpoint writing */
-            CUDA_CHECK(cudaDeviceSynchronize());
-            CUDA_CHECK(cudaGetLastError());
+            CUDA_CHECK(cuplaDeviceSynchronize());
+            CUDA_CHECK(cuplaGetLastError());
 
             // avoid deadlock between not finished PMacc tasks and MPI_Barrier
             __getTransactionEvent().waitForFinished();
@@ -173,8 +173,8 @@ public:
 
             /* important synchronize: only if no errors occured until this
              * point guarantees that a checkpoint is usable */
-            CUDA_CHECK(cudaDeviceSynchronize());
-            CUDA_CHECK(cudaGetLastError());
+            CUDA_CHECK(cuplaDeviceSynchronize());
+            CUDA_CHECK(cuplaGetLastError());
 
             /* avoid deadlock between not finished PMacc tasks and MPI_Barrier */
             __getTransactionEvent().waitForFinished();

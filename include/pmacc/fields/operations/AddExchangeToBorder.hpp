@@ -87,10 +87,10 @@ namespace operations
             constexpr uint32_t numWorkers = T_numWorkers;
             PMACC_CONSTEXPR_CAPTURE int dim = T_Mapping::Dim;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             DataSpace< dim > const blockCell(
-                mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) )
+                mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) )
                     * SuperCellSize::toRT()
             );
 

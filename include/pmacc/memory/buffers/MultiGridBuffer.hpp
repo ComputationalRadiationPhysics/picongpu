@@ -235,7 +235,7 @@ public:
 
     DataBoxType getDeviceDataBox()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         return DataBoxType(MultiBox<Type, DIM > (getGridBuffer(static_cast<NameType> (0)).getDeviceBuffer().getBasePointer(),
                                                  getGridBuffer(static_cast<NameType> (0)).getDeviceBuffer().getOffset(),
                                                  getGridBuffer(static_cast<NameType> (0)).getDeviceBuffer().getPhysicalMemorySize(),

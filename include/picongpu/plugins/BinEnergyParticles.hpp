@@ -77,7 +77,7 @@ struct KernelBinEnergyParticles
      *
      * @tparam T_ParBox pmacc::ParticlesBox, particle box type
      * @tparam T_BinBox pmacc::DataBox, box type for the histogram in global memory
-     * @tparam T_Mapping type of the mapper to map a cuda block to a supercell index
+     * @tparam T_Mapping type of the mapper to map a cupla block to a supercell index
      * @tparam T_Acc alpaka accelerator type
      *
      * @param acc alpaka accelerator
@@ -86,7 +86,7 @@ struct KernelBinEnergyParticles
      * @param numBins number of bins in the histogram (must be fit into the shared memory)
      * @param minEnergy particle energy for the first bin
      * @param maxEnergy particle energy for the last bin
-     * @param mapper functor to map a cuda block to a supercells index
+     * @param mapper functor to map a cupla block to a supercells index
      */
     template<
         typename T_ParBox,
@@ -133,7 +133,7 @@ struct KernelBinEnergyParticles
 
         int const realNumBins = numBins + 2;
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using MasterOnly = IdxConfig<
             1,
@@ -141,7 +141,7 @@ struct KernelBinEnergyParticles
         >;
 
         DataSpace< simDim > const superCellIdx(
-            mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+            mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) )
         );
 
         ForEachIdx< MasterOnly >{ workerIdx }(
@@ -172,7 +172,7 @@ struct KernelBinEnergyParticles
             }
         );
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         if( !frame.isValid( ) )
           return; /* end kernel if we have no frames */
@@ -249,7 +249,8 @@ struct KernelBinEnergyParticles
                              */
                             float_X const normedWeighting = weighting /
                                 float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
-                            atomicAdd(
+                            cupla::atomicAdd(
+                                acc,
                                 &( shBin[ binNumber ] ),
                                 normedWeighting,
                                 ::alpaka::hierarchy::Threads{}
@@ -259,7 +260,7 @@ struct KernelBinEnergyParticles
                 }
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             ForEachIdx< MasterOnly >{ workerIdx }(
                 [&](
@@ -271,7 +272,7 @@ struct KernelBinEnergyParticles
                     particlesInSuperCell = maxParticlesPerFrame;
                 }
             );
-            __syncthreads();
+            cupla::__syncthreads( acc );
         }
 
         ForEachIdx<
@@ -286,7 +287,8 @@ struct KernelBinEnergyParticles
             )
             {
                 for( int i = linearIdx; i < realNumBins; i += numWorkers )
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( gBins[ i ] ),
                         float_64( shBin[ i ] ),
                         ::alpaka::hierarchy::Blocks{}

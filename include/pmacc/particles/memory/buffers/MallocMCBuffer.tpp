@@ -69,9 +69,9 @@ void MallocMCBuffer< T_DeviceHeap >::synchronize( )
         this->hostBufferOffset = static_cast<int64_t>(reinterpret_cast<char*>(deviceHeapInfo.p) - hostPtr);
     }
     /* add event system hints */
-    __startOperation(ITask::TASK_CUDA);
+    __startOperation(ITask::TASK_DEVICE);
     __startOperation(ITask::TASK_HOST);
-    CUDA_CHECK(cudaMemcpy(hostPtr, deviceHeapInfo.p, deviceHeapInfo.size, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cuplaMemcpy(hostPtr, deviceHeapInfo.p, deviceHeapInfo.size, cuplaMemcpyDeviceToHost));
 
 }
 

@@ -33,7 +33,7 @@ namespace pmacc
     CudaEvent::CudaEvent( ) : isRecorded( false ), finished( true ), refCounter( 0u )
     {
         log( ggLog::CUDA_RT()+ggLog::EVENT(), "create event" );
-        CUDA_CHECK( cudaEventCreateWithFlags( &event, cudaEventDisableTiming ) );
+        CUDA_CHECK( cuplaEventCreateWithFlags( &event, cuplaEventDisableTiming ) );
     }
 
 
@@ -41,9 +41,9 @@ namespace pmacc
     {
         PMACC_ASSERT( refCounter == 0u );
         log( ggLog::CUDA_RT()+ggLog::EVENT(), "sync and delete event" );
-        // free cuda event
-        CUDA_CHECK_NO_EXCEPT(cudaEventSynchronize( event ));
-        CUDA_CHECK_NO_EXCEPT(cudaEventDestroy( event ));
+        // free cupla event
+        CUDA_CHECK_NO_EXCEPT(cuplaEventSynchronize( event ));
+        CUDA_CHECK_NO_EXCEPT(cuplaEventDestroy( event ));
 
     }
 
@@ -70,33 +70,33 @@ namespace pmacc
 
     bool CudaEvent::isFinished()
     {
-        // avoid cuda driver calls if event is already finished
+        // avoid cupla driver calls if event is already finished
         if( finished )
             return true;
         assert( isRecorded );
 
-        cudaError_t rc = cudaEventQuery(event);
+        cuplaError_t rc = cuplaEventQuery(event);
 
-        if(rc == cudaSuccess)
+        if(rc == cuplaSuccess)
         {
             finished = true;
             return true;
         }
-        else if(rc == cudaErrorNotReady)
+        else if(rc == cuplaErrorNotReady)
             return false;
         else
-            PMACC_PRINT_CUDA_ERROR_AND_THROW(rc, "Event query failed");
+            PMACC_PRINT_CUPLA_ERROR_AND_THROW(rc, "Event query failed");
     }
 
 
-    void CudaEvent::recordEvent(cudaStream_t stream)
+    void CudaEvent::recordEvent(cuplaStream_t stream)
     {
         /* disallow double recording */
         assert(isRecorded == false);
         isRecorded = true;
         finished = false;
         this->stream = stream;
-        CUDA_CHECK(cudaEventRecord(event, stream));
+        CUDA_CHECK(cuplaEventRecord(event, stream));
     }
 
 } // namepsace pmacc

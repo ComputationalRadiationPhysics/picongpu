@@ -224,7 +224,8 @@ public:
         __threadfence( );
 #endif
         FramePtr oldFirstFramePtr(
-            (FrameType*) atomicExch(
+            (FrameType*) cupla::atomicExch(
+                acc,
                 (unsigned long long int*) firstFrameNativPtr,
                 (unsigned long long int) frame.ptr,
                 ::alpaka::hierarchy::Grids{}
@@ -272,7 +273,8 @@ public:
         __threadfence( );
 #endif
         FramePtr oldLastFramePtr(
-            (FrameType*) atomicExch(
+            (FrameType*) cupla::atomicExch(
+                acc,
                 (unsigned long long int*) lastFrameNativPtr,
                 (unsigned long long int) frame.ptr,
                 ::alpaka::hierarchy::Grids{}

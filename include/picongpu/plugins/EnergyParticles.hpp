@@ -98,7 +98,7 @@ namespace picongpu
                 typename T_ParBox::FrameType::SuperCellSize
             >::type::value;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             using FramePtr = typename T_ParBox::FramePtr;
 
@@ -146,7 +146,7 @@ namespace picongpu
             __syncthreads( );
 
             DataSpace< simDim > const superCellIdx( mapper.getSuperCellIndex(
-                DataSpace< simDim >( blockIdx )
+                DataSpace< simDim >( cupla::blockIdx(acc) )
             ));
 
             // each virtual thread is working on an own frame
@@ -251,12 +251,14 @@ namespace picongpu
             }
 
             // each virtual thread adds the energies to the shared memory
-            atomicAdd(
+            cupla::atomicAdd(
+                acc,
                 &shEnergyKin,
                 localEnergyKin,
                 ::alpaka::hierarchy::Threads{}
             );
-            atomicAdd(
+            cupla::atomicAdd(
+                acc,
                 &shEnergy,
                 localEnergy,
                 ::alpaka::hierarchy::Threads{}
@@ -273,13 +275,15 @@ namespace picongpu
                 )
                 {
                     // add kinetic energy
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( gEnergy[ 0 ] ),
                         static_cast< float_64 >( shEnergyKin ),
                         ::alpaka::hierarchy::Blocks{}
                     );
                     // add total energy
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( gEnergy[ 1 ] ),
                         static_cast< float_64 >( shEnergy ),
                         ::alpaka::hierarchy::Blocks{}

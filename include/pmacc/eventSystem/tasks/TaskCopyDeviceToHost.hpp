@@ -88,10 +88,10 @@ namespace pmacc
 
         void fastCopy(TYPE* src,TYPE* dst,  size_t size)
         {
-            CUDA_CHECK(cudaMemcpyAsync(dst,
+            CUDA_CHECK(cuplaMemcpyAsync(dst,
                                        src,
                                        size * sizeof (TYPE),
-                                       cudaMemcpyDeviceToHost,
+                                       cuplaMemcpyDeviceToHost,
                                        this->getCudaStream()));
         }
 
@@ -117,10 +117,10 @@ namespace pmacc
         virtual void copy(DataSpace<DIM1> &devCurrentSize)
         {
 
-            CUDA_CHECK(cudaMemcpyAsync(this->host->getBasePointer(),
+            CUDA_CHECK(cuplaMemcpyAsync(this->host->getBasePointer(),
                                        this->device->getPointer(),
                                        devCurrentSize[0] * sizeof (TYPE),
-                                       cudaMemcpyDeviceToHost,
+                                       cuplaMemcpyDeviceToHost,
                                        this->getCudaStream()));
 
         }
@@ -141,13 +141,13 @@ namespace pmacc
 
         virtual void copy(DataSpace<DIM2> &devCurrentSize)
         {
-            CUDA_CHECK(cudaMemcpy2DAsync(this->host->getBasePointer(),
+            CUDA_CHECK(cuplaMemcpy2DAsync(this->host->getBasePointer(),
                                          this->host->getDataSpace()[0] * sizeof (TYPE), /*this is pitch*/
                                          this->device->getPointer(),
                                          this->device->getPitch(), /*this is pitch*/
                                          devCurrentSize[0] * sizeof (TYPE),
                                          devCurrentSize[1],
-                                         cudaMemcpyDeviceToHost,
+                                         cuplaMemcpyDeviceToHost,
                                          this->getCudaStream()));
 
         }
@@ -168,30 +168,30 @@ namespace pmacc
 
         virtual void copy(DataSpace<DIM3> &devCurrentSize)
         {
-            cudaPitchedPtr hostPtr;
+            cuplaPitchedPtr hostPtr;
             hostPtr.pitch = this->host->getDataSpace()[0] * sizeof (TYPE);
             hostPtr.ptr = this->host->getBasePointer();
             hostPtr.xsize = this->host->getDataSpace()[0] * sizeof (TYPE);
             hostPtr.ysize = this->host->getDataSpace()[1];
 
-            cudaMemcpy3DParms params;
+            cuplaMemcpy3DParms params;
             params.srcArray = nullptr;
-            params.srcPos = make_cudaPos(this->device->getOffset()[0] * sizeof (TYPE),
+            params.srcPos = make_cuplaPos(this->device->getOffset()[0] * sizeof (TYPE),
                                          this->device->getOffset()[1],
                                          this->device->getOffset()[2]);
             params.srcPtr = this->device->getCudaPitched();
 
             params.dstArray = nullptr;
-            params.dstPos = make_cudaPos(0, 0, 0);
+            params.dstPos = make_cuplaPos(0, 0, 0);
             params.dstPtr = hostPtr;
 
-            params.extent = make_cudaExtent(
+            params.extent = make_cuplaExtent(
                                             devCurrentSize[0] * sizeof (TYPE),
                                             devCurrentSize[1],
                                             devCurrentSize[2]);
-            params.kind = cudaMemcpyDeviceToHost;
+            params.kind = cuplaMemcpyDeviceToHost;
 
-            CUDA_CHECK(cudaMemcpy3DAsync(&params, this->getCudaStream()));
+            CUDA_CHECK(cuplaMemcpy3DAsync(&params, this->getCudaStream()));
 
         }
 

@@ -37,12 +37,12 @@ namespace detail
 
 namespace mpl = boost::mpl;
 
-/** The SphericMapper maps from cuda blockIdx and/or threadIdx to the cell index
+/** The SphericMapper maps from cupla blockIdx and/or threadIdx to the cell index
  * \tparam dim dimension
- * \tparam BlockSize compile-time vector of the cuda block size (optional)
+ * \tparam BlockSize compile-time vector of the cupla block size (optional)
  * \tparam dummy neccesary to implement the optional BlockSize parameter
  *
- * If BlockSize is given the cuda variable blockDim is not used which is faster.
+ * If BlockSize is given the cupla variable blockDim is not used which is faster.
  */
 template<int dim, typename BlockSize = mpl::void_, typename dummy = mpl::void_>
 struct SphericMapper;
@@ -55,7 +55,7 @@ struct SphericMapper<1, BlockSize>
     static constexpr int dim = 1;
 
     typename math::Size_t<3>::BaseType
-    cudaGridDim(const math::Size_t<1>& size) const
+    cuplaGridDim(const math::Size_t<1>& size) const
     {
         return math::Size_t<3>(
             size.x() / BlockSize::x::value,
@@ -79,8 +79,8 @@ struct SphericMapper<1, BlockSize>
     HDINLINE
     math::Int<1> operator()(
         T_Acc const & acc,
-        const dim3& _blockIdx,
-        const dim3& _threadIdx = dim3(0,0,0)
+        const cupla::dim3& _blockIdx,
+        const cupla::dim3& _threadIdx = cupla::dim3(0,0,0)
     ) const
     {
         return operator()(
@@ -97,7 +97,7 @@ struct SphericMapper<2, BlockSize>
     static constexpr int dim = 2;
 
     typename math::Size_t<3>::BaseType
-    cudaGridDim(const math::Size_t<2>& size) const
+    cuplaGridDim(const math::Size_t<2>& size) const
     {
         return math::Size_t<3>(
             size.x() / BlockSize::x::value,
@@ -122,8 +122,8 @@ struct SphericMapper<2, BlockSize>
     HDINLINE
     math::Int<2> operator()(
         T_Acc const & acc,
-        const dim3& _blockIdx,
-        const dim3& _threadIdx = dim3(0,0,0)
+        const cupla::dim3& _blockIdx,
+        const cupla::dim3& _threadIdx = cupla::dim3(0,0,0)
     ) const
     {
         return operator()(
@@ -140,7 +140,7 @@ struct SphericMapper<3, BlockSize>
     static constexpr int dim = 3;
 
     typename math::Size_t<3>::BaseType
-    cudaGridDim(const math::Size_t<3>& size) const
+    cuplaGridDim(const math::Size_t<3>& size) const
     {
         return math::Size_t<3>(
             size.x() / BlockSize::x::value,
@@ -164,8 +164,8 @@ struct SphericMapper<3, BlockSize>
     HDINLINE
     math::Int<3> operator()(
         T_Acc const & acc,
-        const dim3& _blockIdx,
-        const dim3& _threadIdx = dim3(0,0,0)
+        const cupla::dim3& _blockIdx,
+        const cupla::dim3& _threadIdx = cupla::dim3(0,0,0)
     ) const
     {
         return operator()(
@@ -184,7 +184,7 @@ struct SphericMapper<1, mpl::void_>
     static constexpr int dim = 1;
 
     typename math::Size_t<3>::BaseType
-    cudaGridDim(const math::Size_t<1>& size, const math::Size_t<3>& blockSize) const
+    cuplaGridDim(const math::Size_t<1>& size, const math::Size_t<3>& blockSize) const
     {
         return math::Size_t<3>(
             size.x() / blockSize.x(),
@@ -209,9 +209,9 @@ struct SphericMapper<1, mpl::void_>
     DINLINE
     math::Int<1> operator()(
         T_Acc const & acc,
-        const dim3& _blockDim,
-        const dim3& _blockIdx,
-        const dim3& _threadIdx
+        const cupla::dim3& _blockDim,
+        const cupla::dim3& _blockIdx,
+        const cupla::dim3& _threadIdx
     ) const
     {
         return operator()(
@@ -229,7 +229,7 @@ struct SphericMapper<2, mpl::void_>
     static constexpr int dim = 2;
 
     typename math::Size_t<3>::BaseType
-    cudaGridDim(const math::Size_t<2>& size, const math::Size_t<3>& blockSize) const
+    cuplaGridDim(const math::Size_t<2>& size, const math::Size_t<3>& blockSize) const
     {
         return math::Size_t<3>(
             size.x() / blockSize.x(),
@@ -255,9 +255,9 @@ struct SphericMapper<2, mpl::void_>
     DINLINE
     math::Int<2> operator()(
         T_Acc const & acc,
-        const dim3& _blockDim,
-        const dim3& _blockIdx,
-        const dim3& _threadIdx
+        const cupla::dim3& _blockDim,
+        const cupla::dim3& _blockIdx,
+        const cupla::dim3& _threadIdx
     ) const
     {
         return operator()(
@@ -275,7 +275,7 @@ struct SphericMapper<3, mpl::void_>
     static constexpr int dim = 3;
 
     typename math::Size_t<3>::BaseType
-    cudaGridDim(const math::Size_t<3>& size, const math::Size_t<3>& blockSize) const
+    cuplaGridDim(const math::Size_t<3>& size, const math::Size_t<3>& blockSize) const
     {
         return math::Size_t<3>(
             size.x() / blockSize.x(),
@@ -302,9 +302,9 @@ struct SphericMapper<3, mpl::void_>
     DINLINE
     math::Int<3> operator()(
         T_Acc const & acc,
-        const dim3& _blockDim,
-        const dim3& _blockIdx,
-        const dim3& _threadIdx
+        const cupla::dim3& _blockDim,
+        const cupla::dim3& _blockIdx,
+        const cupla::dim3& _threadIdx
     ) const
     {
         return operator()(

@@ -22,7 +22,7 @@
 #include <utility>
 
 #include <pmacc/cuSTL/cursor/MultiIndexCursor.hpp>
-#include <pmacc/cuSTL/algorithm/cudaBlock/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/cuplaBlock/Foreach.hpp>
 #include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/math/VectorOperations.hpp>
@@ -49,7 +49,7 @@ namespace picongpu
         DINLINE void
         operator()( const T_Acc& acc, Type& dest, const Type src ) const
         {
-            atomicAdd( &dest, src, ::alpaka::hierarchy::Blocks{} );
+            cupla::atomicAdd( acc, &dest, src, ::alpaka::hierarchy::Blocks{} );
         }
     };
 
@@ -112,7 +112,8 @@ namespace picongpu
                 p_bin = num_pbins - 1;
 
             /** \todo take particle shape into account */
-            atomicAdd(
+            cupla::atomicAdd(
+                acc,
                 &(*curDBufferOriginInBlock( p_bin, r_bin )),
                 particleChargeDensity,
                 ::alpaka::hierarchy::Threads{}
@@ -186,7 +187,7 @@ namespace picongpu
         operator()( const T_Acc& acc,  const pmacc::math::Int<simDim>& indexBlockOffset )
         {
             constexpr uint32_t numWorkers = T_numWorkers;
-            const uint32_t workerIdx = threadIdx.x;
+            const uint32_t workerIdx = cupla::threadIdx(acc).x;
 
             /** \todo write math::Vector constructor that supports dim3 */
             const pmacc::math::Int<simDim> indexGlobal = indexBlockOffset;
@@ -197,14 +198,14 @@ namespace picongpu
             container::CT::SharedBuffer<float_PS, dBufferSizeInBlock > dBufferInBlock( acc );
 
             /* init shared mem */
-            pmacc::algorithm::cudaBlock::Foreach<
+            pmacc::algorithm::cuplaBlock::Foreach<
                 pmacc::math::CT::Int< numWorkers >
             > forEachThreadInBlock(workerIdx);
             forEachThreadInBlock( acc,
                                   dBufferInBlock.zone(),
                                   dBufferInBlock.origin(),
                                   pmacc::algorithm::functor::AssignValue<float_PS>(0.0) );
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             FunctorParticle<r_dir, num_pbins, SuperCellSize> functorParticle;
 
@@ -226,7 +227,7 @@ namespace picongpu
                 axis_p_range
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
             /* add to global dBuffer */
             forEachThreadInBlock( acc,
                                   /* area to work on */

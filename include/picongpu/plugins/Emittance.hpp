@@ -110,7 +110,7 @@ namespace picongpu
                 typename T_ParBox::FrameType::SuperCellSize
             >::type::value;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             using FramePtr = typename T_ParBox::FramePtr;
 
@@ -175,7 +175,7 @@ namespace picongpu
             __syncthreads( );
 
             DataSpace< simDim > const superCellIdx( mapper.getSuperCellIndex(
-                DataSpace< simDim >( blockIdx )
+                DataSpace< simDim >( cupla::blockIdx(acc) )
             ) );
 
             // each virtual thread is working on an own frame
@@ -246,23 +246,27 @@ namespace picongpu
                                                         + frameCellOffset;
                             float_X const posX = ( float_X( globalCellOffset.x( ) ) + pos.x( ) ) * cellSize.x( );
 
-                            atomicAdd(
+                            cupla::atomicAdd(
+                                acc,
                                 &( shCount_e[ index_y ] ),
                                 normedWeighting,
                                 ::alpaka::hierarchy::Threads{ }
                             );
                             //weighted sum of single Electron values (Momentum = particle_momentum/weighting)
-                            atomicAdd(
+                            cupla::atomicAdd(
+                                acc,
                                 &( shSumMom2[ index_y ] ),
                                 mom.x( ) * mom.x( ) * normedWeighting,
                                 ::alpaka::hierarchy::Threads{ }
                             );
-                            atomicAdd(
+                            cupla::atomicAdd(
+                                acc,
                                 &( shSumPos2[ index_y ] ),
                                 posX * posX * normedWeighting,
                                 ::alpaka::hierarchy::Threads{ }
                             );
-                            atomicAdd(
+                            cupla::atomicAdd(
+                                acc,
                                 &( shSumMomPos[ index_y ] ),
                                 mom.x( ) * posX * normedWeighting,
                                 ::alpaka::hierarchy::Threads{ }
@@ -306,22 +310,26 @@ namespace picongpu
                     uint32_t const
                 )
                 {
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( gSumMom2[ gOffset + linearIdx ] ),
                         static_cast< float_64 >( shSumMom2[ linearIdx ] ),
                         ::alpaka::hierarchy::Blocks{ }
                     );
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( gSumPos2[ gOffset + linearIdx ] ),
                         static_cast< float_64 >( shSumPos2[ linearIdx ] ),
                         ::alpaka::hierarchy::Blocks{ }
                     );
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( gSumMomPos[ gOffset + linearIdx ] ),
                         static_cast< float_64 >( shSumMomPos[ linearIdx ] ),
                         ::alpaka::hierarchy::Blocks{ }
                     );
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( gCount_e[ gOffset + linearIdx ] ),
                         static_cast< float_64 >( shCount_e[ linearIdx ] ),
                         ::alpaka::hierarchy::Blocks{ }

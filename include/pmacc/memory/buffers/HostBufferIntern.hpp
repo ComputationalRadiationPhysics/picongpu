@@ -49,7 +49,7 @@ public:
     HostBuffer<TYPE, DIM>(size, size),
     pointer(nullptr),ownPointer(true)
     {
-        CUDA_CHECK(cudaMallocHost((void**)&pointer, size.productOfComponents() * sizeof (TYPE)));
+        CUDA_CHECK(cuplaMallocHost((void**)&pointer, size.productOfComponents() * sizeof (TYPE)));
         reset(false);
     }
 
@@ -70,7 +70,7 @@ public:
 
         if (pointer && ownPointer)
         {
-            CUDA_CHECK_NO_EXCEPT(cudaFreeHost(pointer));
+            CUDA_CHECK_NO_EXCEPT(cuplaFreeHost(pointer));
         }
     }
 

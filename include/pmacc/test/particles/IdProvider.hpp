@@ -63,9 +63,9 @@ namespace particles
 
             constexpr uint32_t numWorkers = T_numWorkers;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            uint32_t const blockId = blockIdx.x * T_numIdsPerBlock;
+            uint32_t const blockId = cupla::blockIdx(acc).x * T_numIdsPerBlock;
             ForEachIdx<
                 IdxConfig<
                     T_numIdsPerBlock,

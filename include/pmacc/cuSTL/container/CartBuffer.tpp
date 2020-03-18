@@ -88,7 +88,7 @@ namespace detail
     {
 #ifndef __CUDA_ARCH__
         using namespace pmacc;
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
 #endif
     }
 

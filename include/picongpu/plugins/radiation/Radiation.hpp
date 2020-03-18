@@ -375,7 +375,7 @@ private:
             }
 
             __delete(radiation);
-            CUDA_CHECK(cudaGetLastError());
+            CUDA_CHECK(cuplaGetLastError());
 
             __deleteArray(tmp_result);
         }

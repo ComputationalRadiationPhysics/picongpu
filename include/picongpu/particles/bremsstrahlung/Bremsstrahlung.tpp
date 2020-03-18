@@ -119,7 +119,7 @@ DINLINE void Bremsstrahlung<T_IonSpecies, T_ElectronSpecies, T_PhotonSpecies>::c
               );
 
     /* wait for shared memory to be initialized */
-    __syncthreads();
+    cupla::__syncthreads( acc );
 }
 
 template<

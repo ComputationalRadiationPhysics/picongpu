@@ -83,15 +83,15 @@ public:
 
     virtual ~DeviceBufferIntern()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
 
         if (sizeOnDevice)
         {
-            CUDA_CHECK_NO_EXCEPT(cudaFree(sizeOnDevicePtr));
+            CUDA_CHECK_NO_EXCEPT(cuplaFree(sizeOnDevicePtr));
         }
         if (!useOtherMemory)
         {
-            CUDA_CHECK_NO_EXCEPT(cudaFree(data.ptr));
+            CUDA_CHECK_NO_EXCEPT(cuplaFree(data.ptr));
 
         }
     }
@@ -100,7 +100,7 @@ public:
     {
         this->setCurrentSize(Buffer<TYPE, DIM>::getDataSpace().productOfComponents());
 
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         if (!preserveData)
         {
             TYPE value;
@@ -117,14 +117,14 @@ public:
 
     DataBoxType getDataBox()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         return DataBoxType(PitchedBox<TYPE, DIM > ((TYPE*) data.ptr, offset,
                                                    this->getPhysicalMemorySize(), data.pitch));
     }
 
     TYPE* getPointer()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
 
         if (DIM == DIM1)
         {
@@ -154,7 +154,7 @@ public:
 
     size_t* getCurrentSizeOnDevicePointer()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         if (!sizeOnDevice)
         {
             throw std::runtime_error("Buffer has no size on device!, currentSize is only stored on host side.");
@@ -170,7 +170,7 @@ public:
 
     TYPE* getBasePointer()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         return (TYPE*) data.ptr;
     }
 
@@ -216,9 +216,9 @@ public:
 
     }
 
-    const cudaPitchedPtr getCudaPitched() const
+    const cuplaPitchedPtr getCudaPitched() const
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         return data;
     }
 
@@ -238,7 +238,7 @@ private:
      */
     void createData()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         data.ptr = nullptr;
         data.pitch = 1;
         data.xsize = this->getDataSpace()[0] * sizeof (TYPE);
@@ -247,24 +247,24 @@ private:
         if (DIM == DIM1)
         {
             log<ggLog::MEMORY >("Create device 1D data: %1% MiB") % (data.xsize / 1024 / 1024);
-            CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize, 1));
+            CUDA_CHECK(cuplaMallocPitch(&data.ptr, &data.pitch, data.xsize, 1));
         }
         if (DIM == DIM2)
         {
             data.ysize = this->getDataSpace()[1];
             log<ggLog::MEMORY >("Create device 2D data: %1% MiB") % (data.xsize * data.ysize / 1024 / 1024);
-            CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, data.xsize, data.ysize));
+            CUDA_CHECK(cuplaMallocPitch(&data.ptr, &data.pitch, data.xsize, data.ysize));
 
         }
         if (DIM == DIM3)
         {
-            cudaExtent extent;
+            cuplaExtent extent;
             extent.width = this->getDataSpace()[0] * sizeof (TYPE);
             extent.height = this->getDataSpace()[1];
             extent.depth = this->getDataSpace()[2];
 
             log<ggLog::MEMORY >("Create device 3D data: %1% MiB") % (this->getDataSpace().productOfComponents() * sizeof (TYPE) / 1024 / 1024);
-            CUDA_CHECK(cudaMalloc3D(&data, extent));
+            CUDA_CHECK(cuplaMalloc3D(&data, extent));
         }
 
         reset(false);
@@ -274,14 +274,14 @@ private:
      */
     void createFakeData()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         data.ptr = nullptr;
         data.pitch = 1;
         data.xsize = this->getDataSpace()[0] * sizeof (TYPE);
         data.ysize = 1;
 
         log<ggLog::MEMORY >("Create device fake data: %1% MiB") % (this->getDataSpace().productOfComponents() * sizeof (TYPE) / 1024 / 1024);
-        CUDA_CHECK(cudaMallocPitch(&data.ptr, &data.pitch, this->getDataSpace().productOfComponents() * sizeof (TYPE), 1));
+        CUDA_CHECK(cuplaMallocPitch(&data.ptr, &data.pitch, this->getDataSpace().productOfComponents() * sizeof (TYPE), 1));
 
         //fake the pitch, thus we can use this 1D Buffer as 2D or 3D
         data.pitch = this->getDataSpace()[0] * sizeof (TYPE);
@@ -301,7 +301,7 @@ private:
 
         if (sizeOnDevice)
         {
-            CUDA_CHECK(cudaMalloc((void**)&sizeOnDevicePtr, sizeof (size_t)));
+            CUDA_CHECK(cuplaMalloc((void**)&sizeOnDevicePtr, sizeof (size_t)));
         }
         setCurrentSize(this->getDataSpace().productOfComponents());
     }
@@ -311,7 +311,7 @@ private:
 
     bool sizeOnDevice;
     size_t* sizeOnDevicePtr;
-    cudaPitchedPtr data;
+    cuplaPitchedPtr data;
     bool useOtherMemory;
 };
 

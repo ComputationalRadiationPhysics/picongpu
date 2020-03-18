@@ -120,7 +120,7 @@ namespace particleMerging
         DINLINE
         bool isFirstParticle(T_Acc const & acc)
         {
-            return atomicExch( &this->firstParticleFlag, 1 ) == 0;
+            return cupla::atomicExch( acc, &this->firstParticleFlag, 1 ) == 0;
         }
 
 
@@ -135,7 +135,7 @@ namespace particleMerging
         )
         {
             nvidia::atomicAllInc( acc, &this->numMacroParticles, ::alpaka::hierarchy::Threads{} );
-            atomicAdd( &this->numRealParticles, weighting, ::alpaka::hierarchy::Threads{} );
+            cupla::atomicAdd(acc,  &this->numRealParticles, weighting, ::alpaka::hierarchy::Threads{} );
 
             if( this->splittingStage == VoronoiSplittingStage::position )
             {
@@ -143,8 +143,8 @@ namespace particleMerging
 
                 for( int i = 0; i < simDim; i++ )
                 {
-                    atomicAdd( &this->meanValue[i], weighting * position[i], ::alpaka::hierarchy::Threads{} );
-                    atomicAdd( &this->meanSquaredValue[i], weighting * position2[i], ::alpaka::hierarchy::Threads{} );
+                    cupla::atomicAdd(acc,  &this->meanValue[i], weighting * position[i], ::alpaka::hierarchy::Threads{} );
+                    cupla::atomicAdd(acc,  &this->meanSquaredValue[i], weighting * position2[i], ::alpaka::hierarchy::Threads{} );
                 }
             }
             else
@@ -153,8 +153,8 @@ namespace particleMerging
 
                 for( int i = 0; i < DIM3; i++ )
                 {
-                    atomicAdd( &this->meanValue[i], weighting * momentum[i], ::alpaka::hierarchy::Threads{} );
-                    atomicAdd( &this->meanSquaredValue[i], weighting * momentum2[i], ::alpaka::hierarchy::Threads{} );
+                    cupla::atomicAdd(acc,  &this->meanValue[i], weighting * momentum[i], ::alpaka::hierarchy::Threads{} );
+                    cupla::atomicAdd(acc,  &this->meanSquaredValue[i], weighting * momentum2[i], ::alpaka::hierarchy::Threads{} );
                 }
             }
         }

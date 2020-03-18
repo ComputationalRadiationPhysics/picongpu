@@ -88,7 +88,7 @@ getValue(T_Type& value)
 /** set a value to all elements of a box
  *
  * @tparam T_numWorkers number of workers
- * @tparam T_xChunkSize number of elements in x direction to prepare with one cuda block
+ * @tparam T_xChunkSize number of elements in x direction to prepare with one cupla block
  */
 template<
     uint32_t T_numWorkers,
@@ -124,12 +124,12 @@ struct KernelSetValue
         using namespace mappings::threads;
         using SizeVecType = T_SizeVecType;
 
-        SizeVecType const blockIndex( blockIdx );
+        SizeVecType const blockIndex( cupla::blockIdx(acc) );
         SizeVecType blockSize( SizeVecType::create( 1 ) );
         blockSize.x( ) = T_xChunkSize;
 
         constexpr uint32_t numWorkers = T_numWorkers;
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         ForEachIdx<
             IdxConfig<
@@ -160,7 +160,7 @@ class DeviceBuffer;
  *
  * T_ValueType  = data type (e.g. float, float2)
  * T_dim   = dimension of the GridBuffer
- * T_isSmallValue = true if T_ValueType can be send via kernel parameter (on cuda T_ValueType must be smaller than 256 byte)
+ * T_isSmallValue = true if T_ValueType can be send via kernel parameter (on cupla T_ValueType must be smaller than 256 byte)
  */
 template <class T_ValueType, unsigned T_dim, bool T_isSmallValue>
 class TaskSetValue;
@@ -293,7 +293,7 @@ public:
     {
         if (valuePointer_host != nullptr)
         {
-            CUDA_CHECK_NO_EXCEPT(cudaFreeHost(valuePointer_host));
+            CUDA_CHECK_NO_EXCEPT(cuplaFreeHost(valuePointer_host));
             valuePointer_host = nullptr;
         }
     }
@@ -322,17 +322,17 @@ public:
 
             ValueType* devicePtr = this->destination->getPointer();
 
-            CUDA_CHECK( cudaMallocHost(
+            CUDA_CHECK( cuplaMallocHost(
                 (void**)&valuePointer_host,
                 sizeof( ValueType )
             ));
             *valuePointer_host = this->value; //copy value to new place
 
-            CUDA_CHECK( cudaMemcpyAsync(
+            CUDA_CHECK( cuplaMemcpyAsync(
                 devicePtr,
                 valuePointer_host,
                 sizeof( ValueType ),
-                cudaMemcpyHostToDevice,
+                cuplaMemcpyHostToDevice,
                 this->getCudaStream( )
             ));
 

@@ -41,8 +41,8 @@ struct H2HCopier
          Type* source, const math::Size_t<dim-1>& pitchSource,
          const math::Size_t<dim>& size)
     {
-        cudaWrapper::Memcopy<dim>()(dest, pitchDest, source, pitchSource,
-                                    size, cudaWrapper::flags::Memcopy::hostToHost);
+        cuplaWrapper::Memcopy<dim>()(dest, pitchDest, source, pitchSource,
+                                    size, cuplaWrapper::flags::Memcopy::hostToHost);
     }
 };
 

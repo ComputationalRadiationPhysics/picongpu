@@ -190,7 +190,8 @@ namespace emz
                          */
                         const float_X W = this->DS( line, k, 2 ) * tmp;
                         accumulated_J += W;
-                        atomicAdd(
+                        cupla::atomicAdd(
+                            acc,
                             &( (*cursorJ( i, j, k ) ).z( ) ),
                             accumulated_J,
                             ::alpaka::hierarchy::Threads{}
@@ -289,7 +290,8 @@ namespace emz
                      */
                     const float_X W = this->DS( line, i, 0 ) * tmp;
                     accumulated_J += W;
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( ( *cursorJ( i, j ) ).x( ) ),
                         accumulated_J,
                         ::alpaka::hierarchy::Threads{}
@@ -333,7 +335,8 @@ namespace emz
                         ( float_X( 1.0 ) / float_X( 3.0 ) ) * dsi * dsj;
 
                     const float_X j_z = W * currentSurfaceDensityZ;
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( ( *cursorJ( i, j ) ).z( ) ),
                         j_z,
                         ::alpaka::hierarchy::Threads{}

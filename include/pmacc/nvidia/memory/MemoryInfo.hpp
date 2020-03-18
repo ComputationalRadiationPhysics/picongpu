@@ -52,7 +52,7 @@ public:
         size_t freeInternal = 0;
         size_t totalInternal = 0;
 
-        CUDA_CHECK(cudaMemGetInfo(&freeInternal, &totalInternal));
+        CUDA_CHECK(cuplaMemGetInfo(&freeInternal, &totalInternal));
 
         if (free != nullptr)
         {

@@ -85,8 +85,8 @@ public:
         Environment<>::get().PluginConnector().restartPlugins(restartStep, restartDirectory);
         __getTransactionEvent().waitForFinished();
 
-        CUDA_CHECK(cudaDeviceSynchronize());
-        CUDA_CHECK(cudaGetLastError());
+        CUDA_CHECK(cuplaDeviceSynchronize());
+        CUDA_CHECK(cuplaGetLastError());
 
         GridController<simDim> &gc = Environment<simDim>::get().GridController();
 

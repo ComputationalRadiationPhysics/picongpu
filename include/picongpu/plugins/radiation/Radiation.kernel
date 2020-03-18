@@ -131,7 +131,7 @@ namespace radiation
 
             using namespace parameters; // parameters of radiation
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             /// calculate radiated Amplitude
             /* parallelized in 1 dimensions:
@@ -162,7 +162,7 @@ namespace radiation
             PMACC_SMEM( acc, lowpass_s, memory::Array< NyquistLowPass, blockSize > );
 
 
-            int const theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
+            int const theta_idx = cupla::blockIdx(acc).x; //cupla::blockIdx(acc).x is used to determine theta
 
             // simulation time (needed for retarded time)
             picongpu::float_64 const t(
@@ -223,7 +223,7 @@ namespace radiation
                      *  all threads must wait for the selection of a new frame
                      *  until all threads have evaluated "isValid"
                      */
-                    __syncthreads();
+                    cupla::__syncthreads( acc );
 
                     ForEachIdx<
                         IdxConfig<
@@ -247,7 +247,7 @@ namespace radiation
                         }
                     );
 
-                    __syncthreads();
+                    cupla::__syncthreads( acc );
 
                     using ParticleDomCfg = IdxConfig<
                         frameSize,
@@ -417,7 +417,7 @@ namespace radiation
                         }
                     );
 
-                    __syncthreads(); // wait till every thread has loaded its particle data
+                    cupla::__syncthreads( acc ); // wait till every thread has loaded its particle data
 
 
 
@@ -487,7 +487,7 @@ namespace radiation
 
 
                     // wait till all radiation contributions for this super cell are done
-                    __syncthreads();
+                    cupla::__syncthreads( acc );
 
                     /* First threads starts loading next frame of the super-cell:
                      *

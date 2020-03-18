@@ -221,7 +221,7 @@ struct Esirkepov<T_ParticleShape, DIM2>
                          */
                         const float_X W = DS( line, i, 0 ) * tmp;
                         accumulated_J += W;
-                        atomicAdd( &( ( *cursorJ( i, j ) ).x() ), accumulated_J, ::alpaka::hierarchy::Threads{} );
+                        cupla::atomicAdd(acc, &( ( *cursorJ( i, j ) ).x() ), accumulated_J, ::alpaka::hierarchy::Threads{} );
                     }
             }
 
@@ -260,7 +260,7 @@ struct Esirkepov<T_ParticleShape, DIM2>
                             ( float_X( 1.0 ) / float_X( 3.0 ) ) * dsi * dsj;
 
                         const float_X j_z = W * currentSurfaceDensityZ;
-                        atomicAdd( &( ( *cursorJ( i, j ) ).z() ), j_z, ::alpaka::hierarchy::Threads{} );
+                        cupla::atomicAdd(acc, &( ( *cursorJ( i, j ) ).z() ), j_z, ::alpaka::hierarchy::Threads{} );
                     }
             }
     }

@@ -68,7 +68,7 @@ public:
      */
     virtual ~MappedBufferIntern()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         __startOperation(ITask::TASK_HOST);
 
         if (pointer && ownPointer)
@@ -172,20 +172,20 @@ public:
         Buffer<TYPE, DIM>::setCurrentSize(size);
     }
 
-    const cudaPitchedPtr getCudaPitched() const
+    const cuplaPitchedPtr getCudaPitched() const
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         TYPE* dPointer;
-        cudaHostGetDevicePointer(&dPointer, pointer, 0);
+        cuplaHostGetDevicePointer(&dPointer, pointer, 0);
 
         /* on 1D memory we have no size for y, therefore we set y to 1 to
-         * get a valid cudaPitchedPtr
+         * get a valid cuplaPitchedPtr
          */
         int size_y=1;
         if(DIM>DIM1)
             size_y= this->data_space[1];
 
-        return make_cudaPitchedPtr(dPointer,
+        return make_cuplaPitchedPtr(dPointer,
                                    this->data_space.x() * sizeof (TYPE),
                                    this->data_space.x(),
                                    size_y
@@ -206,9 +206,9 @@ public:
 
     DataBoxType getDataBox()
     {
-        __startOperation(ITask::TASK_CUDA);
+        __startOperation(ITask::TASK_DEVICE);
         TYPE* dPointer;
-        cudaHostGetDevicePointer(&dPointer, pointer, 0);
+        cuplaHostGetDevicePointer(&dPointer, pointer, 0);
         return DataBoxType(PitchedBox<TYPE, DIM > (dPointer, DataSpace<DIM > (),
                                                    this->data_space, this->data_space[0] * sizeof (TYPE)));
     }

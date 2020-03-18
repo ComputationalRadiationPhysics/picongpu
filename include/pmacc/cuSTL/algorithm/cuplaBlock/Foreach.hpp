@@ -31,7 +31,7 @@ namespace pmacc
 {
 namespace algorithm
 {
-namespace cudaBlock
+namespace cuplaBlock
 {
 
 #ifndef FOREACH_KERNEL_MAX_PARAMS
@@ -61,11 +61,11 @@ namespace cudaBlock
         }                                                                          \
     }
 
-/** Foreach algorithm that is executed by one cuda thread block
+/** Foreach algorithm that is executed by one cupla thread block
  *
- * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cuda blockDim.
+ * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cupla blockDim.
  *
- * BlockDim could also be obtained from cuda itself at runtime but
+ * BlockDim could also be obtained from cupla itself at runtime but
  * it is faster to know it at compile-time.
  */
 template<typename BlockDim>
@@ -93,6 +93,6 @@ public:
 #undef SHIFTACCESS_CURSOR
 #undef FOREACH_OPERATOR
 
-} // cudaBlock
+} // cuplaBlock
 } // algorithm
 } // pmacc

@@ -29,7 +29,7 @@ namespace pmacc
     class EventStream;
 
     /**
-     * Abstract base class for all tasks which depend on cuda streams.
+     * Abstract base class for all tasks which depend on cupla streams.
      */
     class StreamTask : public ITask
     {
@@ -50,19 +50,19 @@ namespace pmacc
         }
 
         /**
-         * Returns the cuda event associated with this task.
+         * Returns the cupla event associated with this task.
          * An event has to be recorded or set before calling this.
          *
-         * @return the task's cuda event
+         * @return the task's cupla event
          */
         CudaEventHandle getCudaEventHandle() const;
 
         /**
          * Sets the
          *
-         * @param cudaEvent
+         * @param cuplaEvent
          */
-        void setCudaEventHandle(const CudaEventHandle& cudaEvent);
+        void setCudaEventHandle(const CudaEventHandle& cuplaEvent);
 
         /**
          * Returns if this task is finished.
@@ -86,11 +86,11 @@ namespace pmacc
         void setEventStream(EventStream* newStream);
 
         /**
-         * Returns the cuda stream of the underlying EventStream.
+         * Returns the cupla stream of the underlying EventStream.
          *
-         * @return the associated cuda stream
+         * @return the associated cupla stream
          */
-        cudaStream_t getCudaStream();
+        cuplaStream_t getCudaStream();
 
 
     protected:
@@ -102,7 +102,7 @@ namespace pmacc
 
 
         EventStream *stream;
-        CudaEventHandle cudaEvent;
+        CudaEventHandle cuplaEvent;
         bool hasCudaEventHandle;
         bool alwaysFinished;
     };

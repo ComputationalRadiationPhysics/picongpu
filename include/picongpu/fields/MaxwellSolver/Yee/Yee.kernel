@@ -82,7 +82,7 @@ namespace yee
             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_workers;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             auto cachedB = CachedBox::create<
                 0u,
@@ -93,7 +93,7 @@ namespace yee
             );
 
             nvidia::functors::Assign assign;
-            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) ) );
+            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) ) );
             DataSpace< simDim > const blockCell = block * MappingDesc::SuperCellSize::toRT( );
 
             auto fieldBBlock = fieldB.shift( blockCell );
@@ -110,7 +110,7 @@ namespace yee
                 fieldBBlock
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             constexpr float_X c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
             constexpr float_X dt = DELTA_T;
@@ -181,7 +181,7 @@ namespace yee
             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_workers;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             auto cachedE = CachedBox::create<
                 0u,
@@ -192,7 +192,7 @@ namespace yee
             );
 
             nvidia::functors::Assign assign;
-            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) ) );
+            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) ) );
             DataSpace< simDim > const blockCell = block * MappingDesc::SuperCellSize::toRT( );
 
             auto fieldEBlock = fieldE.shift( blockCell );
@@ -209,7 +209,7 @@ namespace yee
                 fieldEBlock
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             constexpr float_X dt = DELTA_T;
 

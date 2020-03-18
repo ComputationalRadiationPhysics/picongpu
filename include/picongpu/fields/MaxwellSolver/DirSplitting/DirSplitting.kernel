@@ -23,7 +23,7 @@
 #include <pmacc/math/vector/Float.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/cuSTL/container/compile-time/SharedBuffer.hpp>
-#include <pmacc/cuSTL/algorithm/cudaBlock/Foreach.hpp>
+#include <pmacc/cuSTL/algorithm/cuplaBlock/Foreach.hpp>
 #include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
 #include <pmacc/nvidia/functors/Assign.hpp>
 
@@ -43,22 +43,22 @@ struct DirSplittingKernel
     PMACC_ALIGN(m_totalLength,int);
     DirSplittingKernel(int totalLength) : m_totalLength(totalLength) {}
 
-    template<typename CursorE, typename CursorB >
-    DINLINE void propagate(CursorE cursorE, CursorB cursorB) const
+    template<typename T_Acc, typename CursorE, typename CursorB>
+    DINLINE void propagate(T_Acc const & acc, CursorE cursorE, CursorB cursorB) const
     {
         float_X a_plus = (*cursorB(-1, 0, 0)).z() + (*cursorE(-1, 0, 0)).y();
         float_X a_minus = (*cursorB(1, 0, 0)).z() - (*cursorE(1, 0, 0)).y();
         float_X a_prime_plus = (*cursorB(-1, 0, 0)).y() - (*cursorE(-1, 0, 0)).z();
         float_X a_prime_minus = (*cursorB(1, 0, 0)).y() + (*cursorE(1, 0, 0)).z();
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         (*cursorB).z() = float_X(0.5) * (a_plus + a_minus);
         (*cursorE).y() = float_X(0.5) * (a_plus - a_minus);
         (*cursorB).y() = float_X(0.5) * (a_prime_plus + a_prime_minus);
         (*cursorE).z() = float_X(0.5) * (a_prime_minus - a_prime_plus);
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
     }
 
     template<
@@ -84,22 +84,22 @@ struct DirSplittingKernel
 
         float3_X fieldE_old;
         float3_X fieldB_old;
-        int threadPos_x = threadIdx.x;
+        int threadPos_x = cupla::threadIdx(acc).x;
 
         //!@todo remove this explicit index calculation, this is a workaround during the lockstep refactoring
-        int linearThreadIdx = threadIdx.z * BlockDim::x::value * BlockDim::y::value +
-            threadIdx.y * BlockDim::x::value +
-            threadIdx.x;
-        algorithm::cudaBlock::Foreach<BlockDim> foreach(linearThreadIdx);
+        int linearThreadIdx = cupla::threadIdx(acc).z * BlockDim::x::value * BlockDim::y::value +
+            cupla::threadIdx(acc).y * BlockDim::x::value +
+            cupla::threadIdx(acc).x;
+        algorithm::cuplaBlock::Foreach<BlockDim> foreach(linearThreadIdx);
 
         for (int x_offset = 0; x_offset < this->m_totalLength; x_offset += BlockDim::x::value)
         {
             foreach(acc, typename CacheE::Zone(), cacheE.origin(), globalE(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
             foreach(acc, typename CacheB::Zone(), cacheB.origin(), globalB(-1 + x_offset, 0, 0), pmacc::nvidia::functors::Assign{});
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
-            auto cursorE = cacheE.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z);
-            auto cursorB = cacheB.origin()(1, 0, 0)(threadPos_x, threadIdx.y, threadIdx.z);
+            auto cursorE = cacheE.origin()(1, 0, 0)(threadPos_x, cupla::threadIdx(acc).y, cupla::threadIdx(acc).z);
+            auto cursorB = cacheB.origin()(1, 0, 0)(threadPos_x, cupla::threadIdx(acc).y, cupla::threadIdx(acc).z);
 
             if(threadPos_x == BlockDim::x::value - 1)
             {
@@ -112,13 +112,13 @@ struct DirSplittingKernel
                 *cursorB(-1,0,0) = fieldB_old;
             }
 
-            propagate(cursorE, cursorB);
+            propagate(acc, cursorE, cursorB);
 
             typedef zone::CT::SphericZone<BlockDim> BlockZone;
             foreach(acc, BlockZone(), globalE(x_offset, 0, 0), cacheE.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
             foreach(acc, BlockZone(), globalB(x_offset, 0, 0), cacheB.origin()(1, 0, 0), pmacc::nvidia::functors::Assign{});
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             threadPos_x = BlockDim::x::value - 1 - threadPos_x;
         }

@@ -77,11 +77,11 @@ public:
         T_Hierarchy const & hierarchy
     )
     {
-        TYPE oldSize = atomicAdd(currentSizePointer, count, hierarchy); //get count VALUEs
+        TYPE oldSize = cupla::atomicAdd(acc, currentSizePointer, count, hierarchy); //get count VALUEs
 
         if (oldSize + count > maxSize)
         {
-            atomicExch(currentSizePointer, maxSize, hierarchy); //reset size to maxsize
+            cupla::atomicExch(acc, currentSizePointer, maxSize, hierarchy); //reset size to maxsize
             if (oldSize >= maxSize)
             {
                 return TileDataBox<VALUE > (nullptr,

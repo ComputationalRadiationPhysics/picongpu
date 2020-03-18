@@ -525,9 +525,9 @@ struct Vector : private T_Storage<T_Type, T_dim>, protected T_Accessor, protecte
         return stream.str();
     }
 
-    HDINLINE dim3 toDim3() const
+    HDINLINE cupla::dim3 toDim3() const
     {
-        dim3 result;
+        cupla::dim3 result;
         unsigned int* ptr = &result.x;
         for (int d = 0; d < dim; ++d)
             ptr[d] = (*this)[d];

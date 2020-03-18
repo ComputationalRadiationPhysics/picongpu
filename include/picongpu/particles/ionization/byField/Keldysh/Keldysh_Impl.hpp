@@ -201,7 +201,7 @@ namespace ionization
                           );
 
                 /* wait for shared memory to be initialized */
-                __syncthreads();
+                cupla::__syncthreads( acc );
             }
 
             /** Initialization function on device
@@ -210,7 +210,7 @@ namespace ionization
              *         and initialize possible prerequisites for ionization, like e.g. random number generator.
              *
              * This function will be called inline on the device which must happen BEFORE threads diverge
-             * during loop execution. The reason for this is the `__syncthreads()` call which is necessary after
+             * during loop execution. The reason for this is the `cupla::__syncthreads( acc )` call which is necessary after
              * initializing the E-/B-field shared boxes in shared memory.
              */
             template< typename T_Acc >

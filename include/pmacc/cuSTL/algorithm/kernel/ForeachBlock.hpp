@@ -58,7 +58,7 @@ template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor,
                                                 /* C0 c0, C1 c1, ... */                                     \
 DINLINE void operator()(T_Acc const & acc, Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) const         \
 {                                                                                                           \
-    math::Int<Mapper::dim> cellIndex(mapper(acc, dim3(blockIdx)));                                               \
+    math::Int<Mapper::dim> cellIndex(mapper(acc, cupla::dim3(cupla::blockIdx(acc))));                                               \
          /* c0[cellIndex], c1[cellIndex], ... */                                                            \
     functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                       \
 }
@@ -91,18 +91,18 @@ BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(FOREACH_KERNEL_MAX_PARAMS), KERNEL_FOREA
         auto blockDim = ThreadBlock::toRT();                                                                \
         detail::SphericMapper<Zone::dim, BlockDim> mapper;                                                  \
         using namespace pmacc;                                                                              \
-        PMACC_KERNEL(detail::KernelForeachBlock{})(mapper.cudaGridDim(p_zone.size), blockDim)               \
+        PMACC_KERNEL(detail::KernelForeachBlock{})(mapper.cuplaGridDim(p_zone.size), blockDim)               \
                     /* c0_shifted, c1_shifted, ... */                                                       \
             (mapper, BOOST_PP_ENUM(N, SHIFTED_CURSOR, _), functor);                   \
     }
 
-/** Special foreach algorithm that calls a cuda kernel
+/** Special foreach algorithm that calls a cupla kernel
  *
  * Behaves like kernel::Foreach, except that is doesn't shift the cursors cell by cell, but
- * shifts them to the top left (front) corner cell of their corresponding cuda block.
+ * shifts them to the top left (front) corner cell of their corresponding cupla block.
  * So if BlockDim is 4x4x4 it shifts 64 cursors to (0,0,0), 64 to (4,0,0), 64 to (8,0,0), ...
  *
- * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cuda blockDim.
+ * \tparam BlockDim 3D compile-time vector (pmacc::math::CT::Int) of the size of the cupla blockDim.
  * \tparam ThreadBlock ignored
  */
 template<typename BlockDim, typename ThreadBlock = BlockDim>

@@ -109,11 +109,11 @@ namespace helperFields
             );
 
             // our workers per block are started 1D
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             // supercell index of current (frame-wise) supercell including GUARD
             DataSpace< simDim > const superCellIdx(
-                mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+                mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) )
             );
             /* index inside local energy histogram in averaged space (has no GUARD)
              * integer division: we average over multiples of supercells;
@@ -174,7 +174,7 @@ namespace helperFields
                 }
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             // return if the supercell has no particles
             if( !frame.isValid( ) )
@@ -232,7 +232,8 @@ namespace helperFields
                                 float_X const normedWeighting = weighting /
                                     float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
 
-                                atomicAdd(
+                                cupla::atomicAdd(
+                                    acc,
                                     &( shLocalEnergyHistogram[ binNumber ] ),
                                     normedWeighting,
                                     ::alpaka::hierarchy::Threads{}
@@ -242,7 +243,7 @@ namespace helperFields
                     }
                 );
 
-                __syncthreads();
+                cupla::__syncthreads( acc );
 
                 // go to next frame
                 ForEachIdx< MasterOnly >{ workerIdx }(
@@ -255,7 +256,7 @@ namespace helperFields
                         particlesInSuperCell = maxParticlesPerFrame;
                     }
                 );
-                __syncthreads();
+                cupla::__syncthreads( acc );
             }
 
             // write histogram back to global memory (add)
@@ -271,7 +272,8 @@ namespace helperFields
                 )
                 {
                     for( int i = linearIdx; i < numBins; i += numWorkers )
-                        atomicAdd(
+                        cupla::atomicAdd(
+                            acc,
                             &( localEnergyHistogram[ i ] ),
                             shLocalEnergyHistogram[ i ],
                             ::alpaka::hierarchy::Blocks{}

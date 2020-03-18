@@ -33,7 +33,7 @@ namespace algorithm
 namespace kernel
 {
 
-/** Reduce algorithm that calls a cuda kernel
+/** Reduce algorithm that calls a cupla kernel
  *
  */
 struct Reduce

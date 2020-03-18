@@ -121,7 +121,7 @@ namespace picongpu
             PMACC_CONSTEXPR_CAPTURE uint32_t cellsPerSupercell = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             using FramePtr = typename T_ParBox::FramePtr;
             using FrameType = typename T_ParBox::FrameType;
@@ -140,7 +140,7 @@ namespace picongpu
             );
 
             DataSpace< simDim > const superCellIdx(
-                mapper.getSuperCellIndex( DataSpace<simDim >( blockIdx ) )
+                mapper.getSuperCellIndex( DataSpace<simDim >( cupla::blockIdx(acc) ) )
             );
 
             /* offset of the superCell relative to the local domain [in supercells] (without guarding supercells) */
@@ -202,7 +202,7 @@ namespace picongpu
                 }
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             // initialize the position functor for each cell in the supercell
             ForEachIdx<
@@ -257,7 +257,7 @@ namespace picongpu
                 }
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             if( finished == 1 )
                 return; // if there is no particle which has to be created
@@ -281,7 +281,7 @@ namespace picongpu
             do
             {
                 // wait that master updates the current used frame
-                __syncthreads();
+                cupla::__syncthreads( acc );
 
                 onlyMaster(
                     [&](
@@ -293,7 +293,7 @@ namespace picongpu
                     }
                 );
 
-                __syncthreads();
+                cupla::__syncthreads( acc );
 
                 forEachParticle(
                     [&](
@@ -346,7 +346,7 @@ namespace picongpu
                     }
                 );
 
-                __syncthreads();
+                cupla::__syncthreads( acc );
 
                 onlyMaster(
                     [&](

@@ -72,7 +72,7 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
             particlesInSuperCell = pb.getSuperCell(superCellIdx).getSizeLastFrame(); \
         } \
     ); \
-    __syncthreads(); \
+    cupla::__syncthreads( acc ); \
     \
     if (!frame.isValid()) return; /* leave kernel if we have no frames*/ \
     \
@@ -111,7 +111,7 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
                 } \
             } \
         ); \
-        __syncthreads(); \
+        cupla::__syncthreads( acc ); \
         onlyMaster( \
             [&]( \
                 uint32_t const, \
@@ -122,7 +122,7 @@ BOOST_PP_ENUM_TRAILING(N, NORMAL_ARGS, _)) \
                 particlesInSuperCell = pmacc::math::CT::volume<SuperCellSize>::type::value; \
             } \
         ); \
-        __syncthreads(); \
+        cupla::__syncthreads( acc ); \
     } \
 }
 

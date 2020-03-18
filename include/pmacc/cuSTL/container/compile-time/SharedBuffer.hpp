@@ -31,7 +31,7 @@ namespace container
 namespace CT
 {
 
-/* typedef version of container::CT::CartBuffer for shared mem on a GPU inside a cuda kernel.
+/* typedef version of container::CT::CartBuffer for shared mem on a GPU inside a cupla kernel.
  * \param uid If two containers in one kernel have the same Type and Size,
  * uid has to be different. This is due to a nvcc bug.
  */
