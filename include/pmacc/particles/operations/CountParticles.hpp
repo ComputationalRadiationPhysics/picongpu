@@ -103,12 +103,12 @@ struct KernelCountParticles
 
         using SuperCellSize = typename T_Mapping::SuperCellSize;
 
-        DataSpace< dim > const threadIndex( threadIdx );
+        DataSpace< dim > const threadIndex( cupla::threadIdx(acc) );
         uint32_t const workerIdx = static_cast< uint32_t >(
             DataSpaceOperations< dim >::template map< SuperCellSize >( threadIndex )
         );
 
-        DataSpace< dim > const superCellIdx( mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) ) );
+        DataSpace< dim > const superCellIdx( mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) ) );
 
         ForEachIdx<
             IdxConfig<
@@ -203,7 +203,8 @@ struct KernelCountParticles
             )
             {
 
-                atomicAdd(
+                cupla::atomicAdd(
+                    acc,
                     gCounter,
                     static_cast< uint64_cu >( counter ),
                     ::alpaka::hierarchy::Blocks{}

@@ -129,7 +129,7 @@ namespace kernel
                 int
             );
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             DataSpace< numDims > const numSuperCells(
                 cellDesc.getGridSuperCells( ) - cellDesc.getGuardingSuperCells( ) * 2
@@ -151,7 +151,8 @@ namespace kernel
                     /* apply for work for the full block, counter[0] contains the
                      * offset in srcFrame to load N particles
                      */
-                    sharedSrcParticleOffset = atomicAdd(
+                    sharedSrcParticleOffset = cupla::atomicAdd(
+                        acc,
                         &( counter[ 0 ] ),
                         particlesPerFrame,
                         ::alpaka::hierarchy::Blocks{}
@@ -159,7 +160,7 @@ namespace kernel
                 }
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             using ParticleDomCfg = IdxConfig<
                 particlesPerFrame,
@@ -195,7 +196,7 @@ namespace kernel
                 }
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             // supercell index of the particle relative to the origin of the local domain
             memory::CtxArray<
@@ -246,7 +247,7 @@ namespace kernel
                 }
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             memory::CtxArray<
                 int,
@@ -306,7 +307,7 @@ namespace kernel
                 }
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             forEachParticle(
                 [&](

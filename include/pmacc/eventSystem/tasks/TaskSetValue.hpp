@@ -124,12 +124,12 @@ struct KernelSetValue
         using namespace mappings::threads;
         using SizeVecType = T_SizeVecType;
 
-        SizeVecType const blockIndex( blockIdx );
+        SizeVecType const blockIndex( cupla::blockIdx(acc) );
         SizeVecType blockSize( SizeVecType::create( 1 ) );
         blockSize.x( ) = T_xChunkSize;
 
         constexpr uint32_t numWorkers = T_numWorkers;
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         ForEachIdx<
             IdxConfig<

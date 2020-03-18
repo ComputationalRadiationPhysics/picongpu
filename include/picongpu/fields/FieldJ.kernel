@@ -113,10 +113,10 @@ struct KernelComputeCurrent
 
         const DataSpace< simDim > block(
             mapper.getSuperCellIndex(
-                DataSpace< simDim >( blockIdx )
+                DataSpace< simDim >( cupla::blockIdx(acc) )
             )
         );
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using VirtualWorkerDomCfg = IdxConfig<
             numParticlesPerFrame * numVirtualBlocks,
@@ -207,7 +207,7 @@ struct KernelComputeCurrent
         /* initialize shared memory with zeros */
         collectiveSet( acc, set, cachedJ );
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         while( true )
         {
@@ -268,7 +268,7 @@ struct KernelComputeCurrent
         }
 
         /* we wait that all workers finish the loop */
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         nvidia::functors::Add add;
         DataSpace< simDim > const blockCell = block * SuperCellSize::toRT();
@@ -372,7 +372,7 @@ struct KernelAddCurrentToEMF
         constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         auto cachedJ = CachedBox::create<
             0,
@@ -384,7 +384,7 @@ struct KernelAddCurrentToEMF
 
         nvidia::functors::Assign assign;
         DataSpace< simDim > const block(
-            mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+            mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) )
         );
         DataSpace< simDim > const blockCell = block * MappingDesc::SuperCellSize::toRT();
 

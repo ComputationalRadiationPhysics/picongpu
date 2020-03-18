@@ -82,10 +82,10 @@ namespace detail
             constexpr uint32_t frameSize = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             DataSpace< dim > const superCellIdx(
-                mapper.getSuperCellIndex( DataSpace< dim >( blockIdx ) )
+                mapper.getSuperCellIndex( DataSpace< dim >( cupla::blockIdx(acc) ) )
             );
 
             auto const & superCell = pb.getSuperCell( superCellIdx );

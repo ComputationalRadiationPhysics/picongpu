@@ -41,23 +41,7 @@
 #endif
 
 
-#include <cuda_to_cupla.hpp>
-
-#if( PMACC_CUDA_ENABLED == 1 )
-/** @todo please remove this workaround
- * This workaround allows to use native CUDA on the CUDA device without
- * passing the variable `acc` to each function. This is only needed during the
- * porting phase to allow the full feature set of the plain PMacc and PIConGPU
- * CUDA version if the accelerator is CUDA.
- */
-#   undef blockIdx
-#   undef __syncthreads
-#   undef threadIdx
-#   undef gridDim
-#   undef blockDim
-#   undef uint3
-
-#endif
+#include <cupla.hpp>
 
 #include "pmacc/debug/PMaccVerbose.hpp"
 #include "pmacc/ppFunctions.hpp"

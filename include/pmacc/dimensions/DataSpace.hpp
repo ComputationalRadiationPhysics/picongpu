@@ -70,7 +70,7 @@ namespace pmacc
 
         /**
          * constructor.
-         * Sets size of all dimensions from cupla uint3 (e.g. threadIdx/blockIdx)
+         * Sets size of all dimensions from cupla uint3 (e.g. cupla::threadIdx(acc)/cupla::blockIdx(acc))
          */
         HDINLINE DataSpace(cupla::uint3 value)
         {

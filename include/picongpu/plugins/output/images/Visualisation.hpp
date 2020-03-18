@@ -278,9 +278,9 @@ struct KernelPaintFields
         constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume< SuperCellSize >::type::value;
         constexpr uint32_t numWorkers = T_numWorkers;
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-        DataSpace< simDim > const suplercellIdx = mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) );
+        DataSpace< simDim > const suplercellIdx = mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) );
         // offset of the supercell (in cells) to the origin of the local domain
         DataSpace< simDim > const supercellCellOffset(
             ( suplercellIdx - mapper.getGuardingSuperCells( ) ) * SuperCellSize::toRT( )
@@ -421,7 +421,7 @@ struct KernelPaintParticles3D
         constexpr uint32_t numCellsPerSupercell = numParticlesPerFrame;
         constexpr uint32_t numWorkers = T_numWorkers;
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using ParticleDomCfg = IdxConfig<
             numParticlesPerFrame,
@@ -460,7 +460,7 @@ struct KernelPaintParticles3D
             SupercellDomCfg
         > isImageThreadCtx( false );
 
-        DataSpace< simDim > const suplercellIdx = mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx));
+        DataSpace< simDim > const suplercellIdx = mapper.getSuperCellIndex(DataSpace<simDim > (cupla::blockIdx(acc)));
         // offset of the supercell (in cells) to the origin of the local domain
         DataSpace< simDim > const supercellCellOffset(
             ( suplercellIdx - mapper.getGuardingSuperCells( ) ) * SuperCellSize::toRT( )
@@ -476,7 +476,7 @@ struct KernelPaintParticles3D
             }
         );
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         forEachCell(
             [&](
@@ -511,7 +511,7 @@ struct KernelPaintParticles3D
             }
         );
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         if( superCellParticipate == 0 )
             return;
@@ -564,7 +564,7 @@ struct KernelPaintParticles3D
         );
 
         // wait that shared memory  is set to zero
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         using FramePtr = typename T_ParBox::FramePtr;
         FramePtr frame = pb.getFirstFrame( suplercellIdx );
@@ -600,7 +600,8 @@ struct KernelPaintParticles3D
                                 particleCellOffset[ transpose.x( ) ],
                                 particleCellOffset[ transpose.y( ) ]
                             );
-                            atomicAdd(
+                            cupla::atomicAdd(
+                                acc,
                                 &( counter( reducedCell ) ),
                                 // normalize the value to avoid bad precision for large macro particle weightings
                                 particle[ weighting_ ] / particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE,
@@ -615,7 +616,7 @@ struct KernelPaintParticles3D
         }
 
         // wait that all worker finsihed the reduce operation
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         forEachCell(
             [&](
@@ -714,7 +715,7 @@ struct DivideAnyCell
 
         constexpr uint32_t numWorkers = T_numWorkers;
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using SupercellDomCfg = IdxConfig<
             T_blockSize,
@@ -729,7 +730,7 @@ struct DivideAnyCell
                 uint32_t const
             )
             {
-                uint32_t tid = blockIdx.x * T_blockSize + linearIdx;
+                uint32_t tid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
                 if( tid >= n )
                     return;
 
@@ -776,7 +777,7 @@ struct ChannelsToRGB
 
         constexpr uint32_t numWorkers = T_numWorkers;
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using SupercellDomCfg = IdxConfig<
             T_blockSize,
@@ -791,7 +792,7 @@ struct ChannelsToRGB
                 uint32_t const
             )
             {
-                uint32_t const tid = blockIdx.x * T_blockSize + linearIdx;
+                uint32_t const tid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
                 if( tid >= n )
                     return;
 

@@ -86,9 +86,9 @@ namespace cellwiseOperation
             constexpr uint32_t cellsPerSupercell = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorker = T_numWorkers;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace<simDim>( blockIdx ) ) );
+            DataSpace< simDim > const block( mapper.getSuperCellIndex( DataSpace<simDim>( cupla::blockIdx(acc) ) ) );
             DataSpace< simDim > const blockCell = block * SuperCellSize::toRT( );
             DataSpace< simDim > const guardCells = mapper.getGuardingSuperCells( ) * SuperCellSize::toRT( );
 

@@ -49,7 +49,7 @@ template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor,
 /*                                          C0 c0, ..., CN cN   */ \
 DINLINE void operator()(T_Acc const & acc, Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) const \
 { \
-    math::Int<Mapper::dim> cellIndex(mapper(acc, cupla::dim3(blockIdx), cupla::dim3(threadIdx))); \
+    math::Int<Mapper::dim> cellIndex(mapper(acc, cupla::dim3(cupla::blockIdx(acc)), cupla::dim3(cupla::threadIdx(acc)))); \
 /*          c0[cellIndex]), ..., cN[cellIndex]     */ \
     functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _)); \
 }
@@ -86,7 +86,7 @@ struct KernelForeachLockstep
         > cellIndex(
             mapper(
                 acc,
-                cupla::dim3( blockIdx ),
+                cupla::dim3( cupla::blockIdx(acc) ),
                 cupla::dim3(
                     0,
                     0,
@@ -144,7 +144,7 @@ namespace RT
                 mapper(
                     acc,
                     domainSize.toDim3(),
-                    cupla::dim3( blockIdx ),
+                    cupla::dim3( cupla::blockIdx(acc) ),
                     cupla::dim3(
                         0,
                         0,
@@ -155,7 +155,7 @@ namespace RT
 
 
 
-            for( uint32_t i = threadIdx.x; i < domainElementCount; i += blockDim.x )
+            for( uint32_t i = cupla::threadIdx(acc).x; i < domainElementCount; i += cupla::blockDim(acc).x )
             {
                 auto const inBlockOffset = DataSpaceOperations< T_Mapper::dim >::map(
                     domainSize,

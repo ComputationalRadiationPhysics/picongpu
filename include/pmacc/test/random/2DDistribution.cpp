@@ -71,7 +71,7 @@ struct RandomFiller
         using namespace pmacc::mappings::threads;
 
         constexpr uint32_t numWorkers = T_numWorkers;
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using SupercellDomCfg = IdxConfig<
             T_blockSize,
@@ -87,7 +87,7 @@ struct RandomFiller
                 uint32_t const
             )
             {
-                uint32_t const linearTid = blockIdx.x * T_blockSize + linearIdx;
+                uint32_t const linearTid = cupla::blockIdx(acc).x * T_blockSize + linearIdx;
 
                 if( linearTid >= boxSize.productOfComponents() )
                     return;
@@ -105,7 +105,7 @@ struct RandomFiller
                         acc,
                         boxSize
                     );
-                    atomicAdd(&box(idx), 1u, ::alpaka::hierarchy::Blocks{});
+                    cupla::atomicAdd(acc, &box(idx), 1u, ::alpaka::hierarchy::Blocks{});
                 }
             }
         );

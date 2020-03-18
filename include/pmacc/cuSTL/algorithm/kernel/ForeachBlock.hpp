@@ -58,7 +58,7 @@ template<typename Mapper, BOOST_PP_ENUM_PARAMS(N, typename C), typename Functor,
                                                 /* C0 c0, C1 c1, ... */                                     \
 DINLINE void operator()(T_Acc const & acc, Mapper mapper, BOOST_PP_ENUM_BINARY_PARAMS(N, C, c), Functor functor) const         \
 {                                                                                                           \
-    math::Int<Mapper::dim> cellIndex(mapper(acc, cupla::dim3(blockIdx)));                                               \
+    math::Int<Mapper::dim> cellIndex(mapper(acc, cupla::dim3(cupla::blockIdx(acc))));                                               \
          /* c0[cellIndex], c1[cellIndex], ... */                                                            \
     functor(acc, BOOST_PP_ENUM(N, SHIFTACCESS_CURSOR, _));                                                       \
 }

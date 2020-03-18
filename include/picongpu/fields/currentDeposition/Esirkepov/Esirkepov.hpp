@@ -230,7 +230,7 @@ struct Esirkepov<T_ParticleShape, DIM3>
                                  */
                                 const float_X W = DS( line, k, 2 ) * tmp;
                                 accumulated_J += W;
-                                atomicAdd( &( ( *cursorJ( i, j, k ) ).z() ), accumulated_J, ::alpaka::hierarchy::Threads{} );
+                                cupla::atomicAdd(acc, &( ( *cursorJ( i, j, k ) ).z() ), accumulated_J, ::alpaka::hierarchy::Threads{} );
                             }
                     }
             }

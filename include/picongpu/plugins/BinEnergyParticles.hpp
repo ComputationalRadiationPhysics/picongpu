@@ -133,7 +133,7 @@ struct KernelBinEnergyParticles
 
         int const realNumBins = numBins + 2;
 
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
         using MasterOnly = IdxConfig<
             1,
@@ -141,7 +141,7 @@ struct KernelBinEnergyParticles
         >;
 
         DataSpace< simDim > const superCellIdx(
-            mapper.getSuperCellIndex( DataSpace< simDim >( blockIdx ) )
+            mapper.getSuperCellIndex( DataSpace< simDim >( cupla::blockIdx(acc) ) )
         );
 
         ForEachIdx< MasterOnly >{ workerIdx }(
@@ -172,7 +172,7 @@ struct KernelBinEnergyParticles
             }
         );
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         if( !frame.isValid( ) )
           return; /* end kernel if we have no frames */
@@ -249,7 +249,8 @@ struct KernelBinEnergyParticles
                              */
                             float_X const normedWeighting = weighting /
                                 float_X( particles::TYPICAL_NUM_PARTICLES_PER_MACROPARTICLE );
-                            atomicAdd(
+                            cupla::atomicAdd(
+                                acc,
                                 &( shBin[ binNumber ] ),
                                 normedWeighting,
                                 ::alpaka::hierarchy::Threads{}
@@ -259,7 +260,7 @@ struct KernelBinEnergyParticles
                 }
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             ForEachIdx< MasterOnly >{ workerIdx }(
                 [&](
@@ -271,7 +272,7 @@ struct KernelBinEnergyParticles
                     particlesInSuperCell = maxParticlesPerFrame;
                 }
             );
-            __syncthreads();
+            cupla::__syncthreads( acc );
         }
 
         ForEachIdx<
@@ -286,7 +287,8 @@ struct KernelBinEnergyParticles
             )
             {
                 for( int i = linearIdx; i < realNumBins; i += numWorkers )
-                    atomicAdd(
+                    cupla::atomicAdd(
+                        acc,
                         &( gBins[ i ] ),
                         float_64( shBin[ i ] ),
                         ::alpaka::hierarchy::Blocks{}

@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <cuda_to_cupla.hpp>
+#include <cupla.hpp>
 #include <iostream>
 #include <stdexcept>
 

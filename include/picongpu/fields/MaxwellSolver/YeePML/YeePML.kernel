@@ -305,13 +305,13 @@ namespace yeePML
              * the index includes guards, same as all indices in this kernel
              */
             auto const blockBeginIdx = mapper.getSuperCellIndex(
-                DataSpace< simDim >( blockIdx )
+                DataSpace< simDim >( cupla::blockIdx(acc) )
             ) * MappingDesc::SuperCellSize::toRT( );
 
             // Cache B values for the block
             using namespace mappings::threads;
             constexpr auto numWorkers = T_numWorkers;
-            auto const workerIdx = threadIdx.x;
+            auto const workerIdx = cupla::threadIdx(acc).x;
             nvidia::functors::Assign assign;
             auto fieldBBlock = fieldB.shift( blockBeginIdx );
             ThreadCollective<
@@ -466,13 +466,13 @@ namespace yeePML
              * the index includes guards, same as all indices in this kernel
              */
             auto const blockBeginIdx = mapper.getSuperCellIndex(
-                DataSpace< simDim >( blockIdx )
+                DataSpace< simDim >( cupla::blockIdx(acc) )
             ) * MappingDesc::SuperCellSize::toRT( );
 
             // Cache E values for the block
             using namespace mappings::threads;
             constexpr auto numWorkers = T_numWorkers;
-            auto const workerIdx = threadIdx.x;
+            auto const workerIdx = cupla::threadIdx(acc).x;
             nvidia::functors::Assign assign;
             auto fieldEBlock = fieldE.shift( blockBeginIdx );
             ThreadCollective<

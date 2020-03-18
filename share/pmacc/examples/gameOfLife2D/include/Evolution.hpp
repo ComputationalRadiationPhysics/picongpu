@@ -91,12 +91,12 @@ namespace kernel
                 Type
             >( acc, BlockArea( ) );
 
-            Space const block( mapper.getSuperCellIndex( Space( blockIdx ) ) );
+            Space const block( mapper.getSuperCellIndex( Space( cupla::blockIdx(acc) ) ) );
             Space const blockCell = block * T_Mapping::SuperCellSize::toRT( );
 
             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             auto buffRead_shifted = buffRead.shift( blockCell );
 
@@ -113,7 +113,7 @@ namespace kernel
                 buffRead_shifted
             );
 
-            __syncthreads();
+            cupla::__syncthreads( acc );
 
             ForEachIdx<
                 IdxConfig<
@@ -185,14 +185,14 @@ namespace kernel
             using SuperCellSize = typename T_Mapping::SuperCellSize;
             constexpr uint32_t cellsPerSuperCell = pmacc::math::CT::volume< SuperCellSize >::type::value;
             constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             // get position in grid in units of SuperCells from blockID
-            Space const block( mapper.getSuperCellIndex( Space( blockIdx ) ) );
+            Space const block( mapper.getSuperCellIndex( Space( cupla::blockIdx(acc) ) ) );
             // convert position in unit of cells
             Space const blockCell = block * T_Mapping::SuperCellSize::toRT( );
             // convert CUDA dim3 to DataSpace<DIM3>
-            Space const threadIndex(threadIdx);
+            Space const threadIndex(cupla::threadIdx(acc));
 
             uint32_t const globalUniqueId = DataSpaceOperations< DIM2 >::map(
                 mapper.getGridSuperCells() * T_Mapping::SuperCellSize::toRT(),

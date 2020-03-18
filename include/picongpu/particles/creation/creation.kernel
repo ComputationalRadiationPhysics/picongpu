@@ -102,7 +102,7 @@ namespace creation
 
             constexpr uint32_t numWorkers = T_numWorkers;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             /* multi-dimensional offset vector from local domain origin on GPU in units of super cells */
             pmacc::math::Int< simDim > const block = blockCell / SuperCellSize::toRT( );

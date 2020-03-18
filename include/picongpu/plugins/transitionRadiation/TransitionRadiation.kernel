@@ -97,7 +97,7 @@ namespace transitionRadiation
             using FrameType = typename T_ParBox::FrameType;
             using FramePtr = typename T_ParBox::FramePtr;
 
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
             /* parallelized in 2 dimensions:
             * looking direction (theta, phi)
@@ -128,7 +128,7 @@ namespace transitionRadiation
             PMACC_SMEM( acc, counter_s, int );
 
 
-            int const theta_idx = blockIdx.x; //blockIdx.x is used to determine theta
+            int const theta_idx = cupla::blockIdx(acc).x; //cupla::blockIdx(acc).x is used to determine theta
 
             // looking direction (needed for observer) used in the thread
             float3_X const look = transitionRadiation::observationDirection( theta_idx );

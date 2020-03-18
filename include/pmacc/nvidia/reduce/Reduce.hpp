@@ -104,9 +104,9 @@ namespace kernel
             using namespace mappings::threads;
 
             constexpr uint32_t numWorkers = T_numWorkers;
-            uint32_t const workerIdx = threadIdx.x;
+            uint32_t const workerIdx = cupla::threadIdx(acc).x;
 
-            uint32_t const numGlobalVirtualThreadCount = gridDim.x * T_blockSize;
+            uint32_t const numGlobalVirtualThreadCount = cupla::gridDim(acc).x * T_blockSize;
             WorkerCfg< numWorkers > workerCfg( workerIdx );
 
             sharedMemExtern(s_mem,Type);
@@ -119,7 +119,7 @@ namespace kernel
                 bufferSize,
                 func,
                 s_mem,
-                blockIdx.x
+                cupla::blockIdx(acc).x
             );
 
             using MasterOnly = IdxConfig<
@@ -135,7 +135,7 @@ namespace kernel
                 {
                     destFunc(
                         acc,
-                        destBuffer[ blockIdx.x ],
+                        destBuffer[ cupla::blockIdx(acc).x ],
                         s_mem[ 0 ]
                     );
                 }
@@ -165,7 +165,7 @@ namespace kernel
          * @param sharedMem shared memory buffer with storage for `linearThreadIdxInBlock` elements,
          *        buffer must implement `operator[](size_t)` (one dimensional access)
          * @param blockIndex index of the cupla block,
-         *                   for a global reduce: `blockIdx.x`,
+         *                   for a global reduce: `cupla::blockIdx(acc).x`,
          *                   for a reduce within a block: `0`
          *
          * @result void the result is stored in the first slot of @p sharedMem
@@ -287,7 +287,7 @@ namespace kernel
                                 sharedMem[ linearIdx + chunk_count ]
                             );
 
-                        __syncthreads();
+                        cupla::__syncthreads( acc );
                     }
                 );
             }

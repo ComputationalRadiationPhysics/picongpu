@@ -83,9 +83,9 @@ struct KernelIntensity
             SuperCell2D()
         );
 
-        int y = blockIdx.y * SuperCellSize::y::value + threadIdx.y;
+        int y = cupla::blockIdx(acc).y * SuperCellSize::y::value + cupla::threadIdx(acc).y;
         int yGlobal = y + GuardSize::y::value * SuperCellSize::y::value;
-        const DataSpace<DIM2> threadId(threadIdx);
+        const DataSpace<DIM2> threadId(cupla::threadIdx(acc));
 
         if (threadId.x() == 0)
         {
@@ -93,7 +93,7 @@ struct KernelIntensity
             s_integrated[threadId.y()] = float_X(0.0);
             s_max[threadId.y()] = float_X(0.0);
         }
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         // move cell-wise over z direction (without guarding cells)
         for (int z = GuardSize::z::value * SuperCellSize::z::value; z < cellsCount.z() - GuardSize::z::value * SuperCellSize::z::value; ++z)
@@ -103,7 +103,7 @@ struct KernelIntensity
             {
                 const float3_X field_at_point(field(DataSpace<DIM3 > (x, yGlobal, z)));
                 s_field(threadId) = math::abs2(field_at_point);
-                __syncthreads();
+                cupla::__syncthreads( acc );
                 if (threadId.x() == 0)
                 {
                     // master thread moves cell-wise over 2D supercell
@@ -117,7 +117,7 @@ struct KernelIntensity
                 }
             }
         }
-        __syncthreads();
+        cupla::__syncthreads( acc );
 
         if (threadId.x() == 0)
         {

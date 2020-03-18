@@ -121,16 +121,16 @@ struct KernelPositionsParticles
 
         using SuperCellSize = typename Mapping::SuperCellSize;
 
-        const DataSpace<simDim > threadIndex(threadIdx);
+        const DataSpace<simDim > threadIndex(cupla::threadIdx(acc));
         const int linearThreadIdx = DataSpaceOperations<simDim>::template map<SuperCellSize > (threadIndex);
-        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (blockIdx)));
+        const DataSpace<simDim> superCellIdx(mapper.getSuperCellIndex(DataSpace<simDim > (cupla::blockIdx(acc))));
 
         if (linearThreadIdx == 0)
         {
             frame = pb.getLastFrame(superCellIdx);
         }
 
-        __syncthreads();
+        cupla::__syncthreads( acc );
         if (!frame.isValid())
             return; //end kernel if we have no frames
 
@@ -161,13 +161,13 @@ struct KernelPositionsParticles
                     * MappingDesc::SuperCellSize::toRT()
                     + frameCellOffset;
             }
-            __syncthreads();
+            cupla::__syncthreads( acc );
             if (linearThreadIdx == 0)
             {
                 frame = pb.getPreviousFrame(frame);
             }
             isParticle = true;
-            __syncthreads();
+            cupla::__syncthreads( acc );
         }
 
     }
