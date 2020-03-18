@@ -39,6 +39,7 @@ before_install:
   - mkdir -p $HOME/asyncAPI
   - mkdir -p $HOME/asyncAPI_tuned
   - mkdir -p $HOME/vectorAdd
+  - mkdir -p $HOME/cuplaVectorAdd
   - mkdir -p $HOME/blackScholes
   - mkdir -p $HOME/test/config
   - export CMAKE_FLAGS="-DALPAKA_ACC_"$STRATEGY"_ENABLE=ON"
@@ -155,6 +156,16 @@ script:
   - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
        [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
       ./vectorAdd 100000;
+    fi
+  #############################################################################
+  # Example: cuplaVectorAdd (added elements layer)                            #
+  #############################################################################
+  - cd $HOME/cuplaVectorAdd
+  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/cuplaVectorAdd/ $CMAKE_FLAGS
+  - make
+  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
+       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
+      ./cuplaVectorAdd 100000;
     fi
   #############################################################################
   # Example: BlackScholes (adapted original)                                 #

@@ -1,4 +1,4 @@
-/* Copyright 2016 Rene Widera
+/* Copyright 2020 Rene Widera
  *
  * This file is part of cupla.
  *
@@ -21,7 +21,12 @@
 
 #pragma once
 
-#include "cupla.hpp"
+#include <alpaka/alpaka.hpp>
 
-#include "cupla/cudaToCupla/driverTypes.hpp"
-#include "cupla/cudaToCupla/runtime.hpp"
+#define sharedMem(ppName, ...)                                                 \
+     __VA_ARGS__& ppName =                                                     \
+        ::alpaka::block::shared::st::allocVar< __VA_ARGS__, __COUNTER__ >( acc )
+
+#define sharedMemExtern(ppName, ...)                                           \
+    __VA_ARGS__* ppName =                                                      \
+        ::alpaka::block::shared::dyn::getMem< __VA_ARGS__ >( acc )

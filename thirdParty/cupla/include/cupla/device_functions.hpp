@@ -1,4 +1,4 @@
-/* Copyright 2016 Rene Widera
+/* Copyright 2020 Rene Widera
  *
  * This file is part of cupla.
  *
@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "cupla.hpp"
-
-#include "cupla/cudaToCupla/driverTypes.hpp"
-#include "cupla/cudaToCupla/runtime.hpp"
+#include "cupla/device/Synchronization.hpp"
+#include "cupla/device/Index.hpp"
+#include "cupla/device/Atomic.hpp"
+#include "cupla/device/SharedMemory.hpp"
