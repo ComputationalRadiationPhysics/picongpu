@@ -331,7 +331,7 @@ namespace yeePML
                 cachedB,
                 fieldBBlock
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             // Threads process values of the supercell in parallel
             constexpr auto numCellsPerSuperCell =
@@ -492,7 +492,7 @@ namespace yeePML
                 cachedE,
                 fieldEBlock
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             // Threads process values of the supercell in parallel
             constexpr auto numCellsPerSuperCell =

@@ -403,7 +403,7 @@ struct KernelAddCurrentToEMF
             fieldJBlock
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         ForEachIdx<
             IdxConfig<

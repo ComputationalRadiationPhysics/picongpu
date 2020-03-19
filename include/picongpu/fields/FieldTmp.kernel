@@ -121,7 +121,7 @@ namespace picongpu
                 cachedVal
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             while( frame.isValid() )
             {
@@ -155,7 +155,7 @@ namespace picongpu
 
             }
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             nvidia::functors::Add add;
             DataSpace< simDim > const blockCell = block * SuperCellSize::toRT( );

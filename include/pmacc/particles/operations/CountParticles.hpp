@@ -129,7 +129,7 @@ struct KernelCountParticles
             }
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         if( !frame.isValid() )
             return; //end kernel if we have no frames
@@ -180,7 +180,7 @@ struct KernelCountParticles
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             onlyMaster(
                 [&](
@@ -193,7 +193,7 @@ struct KernelCountParticles
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
         }
 
         onlyMaster(

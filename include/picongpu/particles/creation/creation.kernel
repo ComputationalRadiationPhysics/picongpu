@@ -228,7 +228,7 @@ namespace creation
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             /* move over source species frames and call particleCreator
              * frames are worked on in backwards order to avoid asking if there is another frame
@@ -271,7 +271,7 @@ namespace creation
                     }
                 );
 
-                __syncthreads( );
+                cupla::__syncthreads( acc );
 
                 /* always true while-loop over all particles inside source frame until each thread breaks out individually
                  *
@@ -300,7 +300,7 @@ namespace creation
 
                     oldFrameFillLvl = newFrameFillLvl;
 
-                    __syncthreads( );
+                    cupla::__syncthreads( acc );
 
                     /* < CHECK & ADD >
                      * - if a thread wants to create target particles in each cycle it can do that only once
@@ -322,7 +322,7 @@ namespace creation
                         }
                     );
 
-                    __syncthreads( );
+                    cupla::__syncthreads( acc );
 
                     /* < EXIT? >
                      * - if the counter hasn't changed all threads break out of the loop
@@ -330,7 +330,7 @@ namespace creation
                     if( oldFrameFillLvl == newFrameFillLvl )
                         break;
 
-                    __syncthreads( );
+                    cupla::__syncthreads( acc );
 
                     /* < NEW FRAME >
                      * - if there is no frame, yet, the master will create a new target particle frame
@@ -355,7 +355,7 @@ namespace creation
                         }
                     );
 
-                    __syncthreads( );
+                    cupla::__syncthreads( acc );
 
                     /* < CREATE >
                      * - all target particles were created
@@ -392,7 +392,7 @@ namespace creation
                         }
                     );
 
-                    __syncthreads( );
+                    cupla::__syncthreads( acc );
 
                     onlyMasters(
                         [&](
@@ -411,10 +411,10 @@ namespace creation
                         }
                     );
 
-                    __syncthreads( );
+                    cupla::__syncthreads( acc );
                 }
 
-                __syncthreads( );
+                cupla::__syncthreads( acc );
 
                 sourceFrame = sourceBox.getPreviousFrame( sourceFrame );
 

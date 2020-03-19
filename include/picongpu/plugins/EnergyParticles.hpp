@@ -143,7 +143,7 @@ namespace picongpu
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             DataSpace< simDim > const superCellIdx( mapper.getSuperCellIndex(
                 DataSpace< simDim >( cupla::blockIdx(acc) )
@@ -265,7 +265,7 @@ namespace picongpu
             );
 
             // wait that all virtual threads updated the shared memory energies
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             // add energies on global level using global memory
             ForEachIdx< MasterOnly >{ workerIdx }(

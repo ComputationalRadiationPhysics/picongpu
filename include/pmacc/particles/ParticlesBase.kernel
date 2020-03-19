@@ -142,7 +142,7 @@ struct KernelFillGapsLastFrame
             }
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         if ( lastFrame.isValid( ) )
         {
@@ -182,7 +182,7 @@ struct KernelFillGapsLastFrame
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             forEachParticle(
                 [&](
@@ -197,7 +197,7 @@ struct KernelFillGapsLastFrame
                     }
                 }
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
             forEachParticle(
                 [&](
                     uint32_t const linearIdx,
@@ -345,7 +345,7 @@ struct KernelFillGaps
             }
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         while ( firstFrame.isValid( ) && firstFrame != lastFrame )
         {
@@ -360,7 +360,7 @@ struct KernelFillGaps
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             using ParticleDomCfg = IdxConfig<
                 frameSize,
@@ -388,7 +388,7 @@ struct KernelFillGaps
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             if( numGaps != 0 )
             {
@@ -408,7 +408,7 @@ struct KernelFillGaps
                     }
                 );
 
-                __syncthreads( );
+                cupla::__syncthreads( acc );
 
                 // copy particles from lastFrame to the gaps in firstFrame
                 forEachParticle(
@@ -434,7 +434,7 @@ struct KernelFillGaps
                     }
                 );
 
-                __syncthreads( );
+                cupla::__syncthreads( acc );
 
                 onlyMaster(
                     [&](
@@ -489,7 +489,7 @@ struct KernelFillGaps
                 );
             }
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
         }
 
@@ -609,7 +609,7 @@ struct KernelShiftParticles
             }
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
         if ( !mustShift || !frame.isValid( ) ) return;
 
         using ExchangeDomCfg = IdxConfig<
@@ -668,7 +668,7 @@ struct KernelShiftParticles
             }
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         /* iterate over the frame list of the current supercell */
         while ( frame.isValid( ) )
@@ -708,7 +708,7 @@ struct KernelShiftParticles
                     }
                 }
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             forEachExchange(
                 [&](
@@ -751,7 +751,7 @@ struct KernelShiftParticles
                     }
                 }
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             forEachParticle(
                 [&](
@@ -787,7 +787,7 @@ struct KernelShiftParticles
                     }
                 }
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             forEachExchange(
                 [&](
@@ -812,7 +812,7 @@ struct KernelShiftParticles
                     }
                 }
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
         }
 
         forEachExchange(
@@ -911,7 +911,7 @@ struct KernelDeleteParticles
             }
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         while( frame.isValid( ) )
         {
@@ -933,7 +933,7 @@ struct KernelDeleteParticles
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             onlyMaster(
                 [&](
@@ -949,7 +949,7 @@ struct KernelDeleteParticles
                     );
                 }
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
         }
 
         onlyMaster(
@@ -1068,7 +1068,7 @@ struct KernelCopyGuardToExchange
             }
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         while ( frame.isValid( ) && allParticlesCopied )
         {
@@ -1096,7 +1096,7 @@ struct KernelCopyGuardToExchange
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
              // loop over all particles in the frame
             ForEachIdx< ParticleDomCfg > forEachParticle( workerIdx );
@@ -1113,7 +1113,7 @@ struct KernelCopyGuardToExchange
                     }
                 }
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             if( numParticles > 0 )
             {
@@ -1140,7 +1140,7 @@ struct KernelCopyGuardToExchange
                     }
                 );
 
-                __syncthreads( );
+                cupla::__syncthreads( acc );
 
                 forEachParticle(
                     [&](
@@ -1157,7 +1157,7 @@ struct KernelCopyGuardToExchange
                         }
                     }
                 );
-                __syncthreads( );
+                cupla::__syncthreads( acc );
             }
 
             onlyMaster(
@@ -1174,7 +1174,7 @@ struct KernelCopyGuardToExchange
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
         }
         onlyMaster(
             [&](
@@ -1288,7 +1288,7 @@ struct KernelInsertParticles
             }
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         // loop over all particles in the frame
         ForEachIdx<
@@ -1319,7 +1319,7 @@ struct KernelInsertParticles
         /** @bug This synchronize fixes a kernel crash in special cases,
          * psychocoderHPC: I can't tell why.
          */
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         onlyMaster(
             [&](
