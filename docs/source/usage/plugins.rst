@@ -123,7 +123,7 @@ If you would like to help in developing those classes for a plugin of your choic
         `DOI:10.1016/j.nima.2013.10.073 <https://doi.org/10.1016/j.nima.2013.10.073>`_
 
 .. [Pausch2018]
-        R. Pausch, A. Debus, A. Huebl, U. Schramma, K. Steiniger, R. Widera, and M. Bussmann.
+        R. Pausch, A. Debus, A. Huebl, U. Schramm, K. Steiniger, R. Widera, and M. Bussmann.
         *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes - a general form factor formalism for macro-particles*,
         Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 909, pp. 419-422 (2018)
         `arXiv:1802.03972 <https://arxiv.org/abs/1802.03972>`_, `DOI:10.1016/j.nima.2018.02.020 <https://doi.org/10.1016/j.nima.2018.02.020>`_
