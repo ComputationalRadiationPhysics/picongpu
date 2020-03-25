@@ -8,8 +8,10 @@ Changelog
 
 Perfectly Matched Layer (PML) and Bug Fixes
 
-This release introduces PML boundary conditions for the Yee field solver and particle 
-rendering with the ISAAC plugin.
+This release adds a new field absorber for the Yee solver, convolutional
+perfectly matched layer (PML). Compared to the still supported exponential
+dampling absorber, PML provides better absorption rate and much less spurious
+reflections. Particle rendering with the ISAAC plugin is also added.
 
 Thanks to Igor Andriyash, Sergei Bastrakov, Xeinia Bastrakova, Andrei Berceanu,
 Finn-Ole Carstens, Alexander Debus, Jian Fuh Ong, Marco Garten, Axel Huebl,
