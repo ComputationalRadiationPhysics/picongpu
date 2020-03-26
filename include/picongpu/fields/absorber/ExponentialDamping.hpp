@@ -65,7 +65,7 @@ public:
                 uint32_t pos_or_neg = i % 2;
 
                 uint32_t thickness = absorber::numCells[direction][pos_or_neg];
-                float_X absorber_strength = absorber::numCells[direction][pos_or_neg];
+                float_X absorber_strength = ABSORBER_STRENGTH[direction][pos_or_neg];
 
                 if (thickness == 0) continue; /*if the absorber has no thickness we check the next side*/
 
