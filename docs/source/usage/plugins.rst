@@ -28,6 +28,7 @@ Plugin name                                                                     
 :ref:`slice field printer <usage-plugins-sliceFieldPrinter>` [#f5]_                  print out a slice of the electric and/or magnetic and/or current field
 :ref:`sum currents <usage-plugins-sumCurrents>`                                      compute the total current summed over all cells
 :ref:`transitionRadiation <usage-plugins-transitionRadiation>`                       compute emitted electromagnetic spectra
+:ref:`X-ray diffraction <usage-plugins-xrayDiffraction>`                             compute X-ray diffraction from particle positions
 ==================================================================================== =================================================================================
 
 .. rubric:: Footnotes
@@ -127,4 +128,3 @@ If you would like to help in developing those classes for a plugin of your choic
         *Quantitatively consistent computation of coherent and incoherent radiation in particle-in-cell codes - a general form factor formalism for macro-particles*,
         Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment 909, pp. 419-422 (2018)
         `arXiv:1802.03972 <https://arxiv.org/abs/1802.03972>`_, `DOI:10.1016/j.nima.2018.02.020 <https://doi.org/10.1016/j.nima.2018.02.020>`_
-
