@@ -172,7 +172,7 @@ namespace picongpu
                     shCount_e[ linearIdx ] = 0.0_X;
                 }
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             DataSpace< simDim > const superCellIdx( mapper.getSuperCellIndex(
                 DataSpace< simDim >( cupla::blockIdx(acc) )
@@ -295,7 +295,7 @@ namespace picongpu
 
 
             // wait that all virtual threads updated the shared memory
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             const int gOffset = (
                 (

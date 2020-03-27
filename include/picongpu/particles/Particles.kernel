@@ -157,7 +157,7 @@ struct KernelDeriveParticles
             WorkerCfg< numWorker >{ workerIdx }
         );
 
-        __syncthreads( );
+        cupla::__syncthreads( acc );
 
         // move over all Frames
         while( srcFrame.isValid( ) )
@@ -196,7 +196,7 @@ struct KernelDeriveParticles
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
 
             onlyMaster(
                 [&](
@@ -217,7 +217,7 @@ struct KernelDeriveParticles
                     }
                 }
             );
-            __syncthreads( );
+            cupla::__syncthreads( acc );
         }
     }
 };

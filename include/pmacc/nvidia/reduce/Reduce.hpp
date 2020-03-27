@@ -254,7 +254,7 @@ namespace kernel
                 }
             );
 
-            __syncthreads( );
+            cupla::__syncthreads( acc );
             /*now reduce shared memory*/
             uint32_t chunk_count = T_blockSize;
 

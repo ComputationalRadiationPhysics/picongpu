@@ -45,7 +45,7 @@ Collective Loop
     // `frame` is a list which must be traversed collectively
     while( frame.isValid() )
     {
-        uint32_t const workerIdx = threadIdx.x;
+        uint32_t const workerIdx = cupla::threadIdx( acc ).x;
         using ParticleDomCfg = IdxConfig<
             frameSize,
             numWorker
@@ -67,7 +67,7 @@ Non-Collective Loop
 
 .. code-block:: cpp
 
-    uint32_t const workerIdx = threadIdx.x;
+    uint32_t const workerIdx = cupla::threadIdx( acc ).x;
     using ParticleDomCfg = IdxConfig<
         frameSize,
         numWorkers
@@ -91,7 +91,7 @@ Create a Context Variable
 
 .. code-block:: cpp
 
-    uint32_t const workerIdx = threadIdx.x;
+    uint32_t const workerIdx = cupla::threadIdx( acc ).x;
     using ParticleDomCfg = IdxConfig<
         frameSize,
         numWorkers
@@ -128,7 +128,7 @@ Using a Master Worker
         bool
     );
 
-    uint32_t const workerIdx = threadIdx.x;
+    uint32_t const workerIdx = cupla::threadIdx( acc ).x;
     ForEachIdx<
         IdxConfig<
             1,
@@ -150,4 +150,4 @@ Using a Master Worker
     /* important: synchronize now, in case upcoming operations (with
      * other workers) access that manipulated shared memory section
      */
-    __syncthreads();
+    cupla::__syncthreads( acc );
