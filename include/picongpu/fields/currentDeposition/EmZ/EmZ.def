@@ -60,7 +60,8 @@ namespace emz
      *                  Jinqing Yu, Xiaolin Jin, Weimin Zhou, Bin Li, Yuqiu Gu
      *                  DOI:10.1109/ICCIS.2012.159
      *
-     * \tparam T_ParticleShape the particle shape for the species, picongpu::particles::shapes
+     * @tparam T_ParticleShape the particle shape for the species [picongpu::particles::shapes]
+     * @tparam T_Strategy Used strategy to reduce the scattered data [currentSolver::strategy]
      *
      */
     template<

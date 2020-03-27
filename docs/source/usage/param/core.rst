@@ -106,6 +106,8 @@ species.param
    :path: include/picongpu/param/species.param
    :no-link:
 
+:ref:`Current solver details <usage-params-core-currentdeposition>`.
+
 speciesDefinition.param
 ^^^^^^^^^^^^^^^^^^^^^^^
 
