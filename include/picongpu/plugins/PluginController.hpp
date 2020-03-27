@@ -28,6 +28,7 @@
 #include "picongpu/plugins/EnergyParticles.hpp"
 #include "picongpu/plugins/multi/Master.hpp"
 #include "picongpu/plugins/EnergyFields.hpp"
+#include "picongpu/plugins/xrayDiffraction/XrayDiffraction.hpp"
 #include "picongpu/plugins/SumCurrents.hpp"
 #include "picongpu/plugins/BinEnergyParticles.hpp"
 #include "picongpu/plugins/Emittance.hpp"
@@ -216,7 +217,8 @@ private:
         plugins::multi::Master< BinEnergyParticles<bmpl::_1> >,
         CountParticles<bmpl::_1>,
         PngPlugin< Visualisation<bmpl::_1, PngCreator> >,
-        plugins::transitionRadiation::TransitionRadiation<bmpl::_1>
+        plugins::transitionRadiation::TransitionRadiation<bmpl::_1>,
+        plugins::xrayDiffraction::XrayDiffraction< bmpl::_1 >
 #if(ENABLE_HDF5 == 1)
         , plugins::radiation::Radiation<bmpl::_1>
         , plugins::multi::Master< ParticleCalorimeter<bmpl::_1> >

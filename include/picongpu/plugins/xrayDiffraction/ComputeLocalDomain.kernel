@@ -1,0 +1,353 @@
+/* Copyright 2013-2020 Axel Huebl, Heiko Burau, Rene Widera, Richard Pausch,
+ *                     Klaus Steiniger, Felix Schmitt, Benjamin Worpitz,
+ *                     Juncheng E, Sergei Bastrakov
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "picongpu/simulation_defines.hpp"
+
+#include "picongpu/plugins/xrayDiffraction/ReciprocalSpace.hpp"
+
+#include <pmacc/dimensions/DataSpaceOperations.hpp>
+#include <pmacc/mappings/threads/ForEachIdx.hpp>
+#include <pmacc/mappings/threads/IdxConfig.hpp>
+#include <pmacc/math/Complex.hpp>
+#include <pmacc/memory/Array.hpp>
+#include <pmacc/memory/shared/Allocate.hpp>
+
+#include <cstdint>
+
+
+namespace picongpu
+{
+namespace plugins
+{
+namespace xrayDiffraction
+{
+namespace detail
+{
+
+    //! Complex type to represent structure factor values
+    using Complex = pmacc::math::Complex< float_X >;
+
+    //! Internal representation of results for each thread
+    struct Result
+    {
+        //! Structure factor value F(q) for a single scattering vector
+        Complex structureFactor = Complex::zero();
+
+        //! Combined weighting of processed macroparticles
+        float_64 totalWeighting = 0.0;
+
+        //! Combine the current result with another one
+        HDINLINE Result & operator+=( Result const & other )
+        {
+            structureFactor += other.structureFactor;
+            totalWeighting += other.totalWeighting;
+            return *this;
+        }
+
+    };
+ 
+    /** Process particles of a frame
+     *
+     * @tparam T_numWorkers number of workers
+     * @tparam T_Acc alpaka accelerator type
+     * @tparam T_FramePtr particle frame pointer type
+     * @tparam T_CachedGlobalPositionArray cached array of global positions type
+     * @tparam T_CachedWeightingArray cached array of weighting type
+     *
+     * @param acc alpaka accelerator
+     * @param framePtr particle frame pointer
+     * @param numParticles number of macroparticles in the frame
+     * @param particleBox particle box
+     * @param cachedGlobalPosition global positions array in shared memory
+     * @param cachedWeighting weighting array in shared memory
+     * @param supercellOffsetGlobal supercell offset in the global domain
+     * @param reciprocalSpace reciprocal space of scattering vectors
+     */
+    template<
+        uint32_t T_numWorkers,
+        typename T_Acc,
+        typename T_FramePtr,
+        typename T_CachedGlobalPositionArray,
+        typename T_CachedWeightingArray
+    >
+    DINLINE Result processFrame(
+        T_Acc const & acc,
+        T_FramePtr const & framePtr,
+        uint32_t const numParticles,
+        T_CachedGlobalPositionArray & cachedGlobalPosition,
+        T_CachedWeightingArray & cachedWeighting,
+        DataSpace< simDim > const & supercellOffsetGlobal,
+        ReciprocalSpace const & reciprocalSpace
+    )
+    {
+        using namespace pmacc::mappings::threads;
+        uint32_t const workerIdx = cupla::threadIdx( acc ).x;
+        uint32_t const globalWorkerIdx = cupla::blockIdx( acc ).x *
+            cupla::blockDim( acc ).x + cupla::threadIdx( acc ).x;
+
+        /* Need to wait for previous frames to be over, since the cached arrays
+         * are reused
+         */
+        cupla::__syncthreads( acc );
+
+        // Collectively load frame data to the cached arrays
+        using Size = typename T_FramePtr::type::SuperCellSize;
+        constexpr uint32_t frameSize =
+            pmacc::math::CT::volume< Size >::type::value;
+        using ParticleDomCfg = IdxConfig<
+            frameSize,
+            T_numWorkers
+        >;
+        ForEachIdx< ParticleDomCfg > forEachParticle{ workerIdx };
+        forEachParticle( [ & ]( uint32_t const linearIdx, uint32_t const )
+        {
+            if( linearIdx < numParticles )
+            {
+                auto particle = framePtr[ linearIdx ];
+                auto const cellIdx = particle[ localCellIdx_ ];
+                auto const positionInCell = particle[ position_ ];
+                // Position of the current cell in the global domain, in cells
+                auto const globalPositionOffsetCells = supercellOffsetGlobal +
+                    DataSpaceOperations<simDim>::template map< SuperCellSize >(
+                        cellIdx
+                    );
+                cachedGlobalPosition[ linearIdx ][ 2 ] = 0.0;
+                for( auto dim = 0u; dim < simDim; ++dim )
+                    cachedGlobalPosition[ linearIdx ][ dim ] = cellSize[ dim ] *
+                        ( positionInCell[ dim ] + static_cast< float_X >(
+                          globalPositionOffsetCells[ dim ] ) );
+                cachedWeighting[ linearIdx ] = particle[ weighting_ ];
+
+            }
+        });
+
+        cupla::__syncthreads( acc );
+
+        /* Particle loop: each thread runs through all particles in the frame,
+         * computes results for a single scattering vector
+         */
+        Result result;
+        auto const scatteringVector = reciprocalSpace.getValue( globalWorkerIdx );
+        for( auto particleIdx = 0u; particleIdx < numParticles; ++particleIdx )
+        {
+            // Conversion multiplier from PIC unit length to angstrom
+            constexpr float_X meter2angstrom = 1e10_X;
+            constexpr float_X lengthToAngstrom = meter2angstrom * UNIT_LENGTH;
+            /* Compute part of the sum (5) in J.C. E, L. Wang, S. Chen,
+             * Y.Y. Zhang, S.N. Luo. GAPD: a GPU-accelerated atom-based
+             * polychromatic diffraction simulation code // Journal of
+             * Synchrotron Radiation. 25, 604-611 (2018)
+             * for a single scattering vector and macroparticles in the frame
+             */
+            auto const dotProduct = math::dot(
+                scatteringVector,
+                cachedGlobalPosition[ particleIdx ]
+            ) * lengthToAngstrom;
+            float_X sinValue, cosValue;
+            math::sincos(
+                dotProduct,
+                sinValue,
+                cosValue
+            );
+            result.structureFactor += Complex( cosValue, sinValue ) *
+                cachedWeighting[ particleIdx ];
+            result.totalWeighting += cachedWeighting[ particleIdx ];
+        }
+        return result;
+    }
+
+    /** Process particles of a supercell
+     *
+     * @tparam T_numWorkers number of workers
+     * @tparam T_Acc alpaka accelerator type
+     * @tparam T_ParticleBox particle box type
+     * @tparam T_Mapping mapping description type
+     * @tparam T_CachedGlobalPositionArray cached array of global positions type
+     * @tparam T_CachedWeightingArray cached array of weighting type
+     *
+     * @param acc alpaka accelerator
+     * @param idx supercell index with guard
+     * @param localDomainOffset offset of the local domain
+     * @param mapper mapping description
+     * @param particleBox particle box
+     * @param cachedGlobalPosition global positions array in shared memory
+     * @param cachedWeighting weighting array in shared memory
+     * @param reciprocalSpace reciprocal space of scattering vectors
+     */
+    template<
+        uint32_t T_numWorkers,
+        typename T_Acc,
+        typename T_ParticleBox,
+        typename T_Mapping,
+        typename T_CachedGlobalPositionArray,
+        typename T_CachedWeightingArray
+    >
+    DINLINE Result processSupercell(
+        T_Acc const & acc,
+        DataSpace< simDim > const & idx,
+        DataSpace< simDim > const & localDomainOffset,
+        T_Mapping mapper,
+        T_ParticleBox particleBox,
+        T_CachedGlobalPositionArray & cachedGlobalPosition,
+        T_CachedWeightingArray & cachedWeighting,
+        ReciprocalSpace const & reciprocalSpace
+    )
+    {
+        Result result;
+        auto const guardingSuperCells = mapper.getGuardingSuperCells();
+        auto const offsetCells = localDomainOffset +
+            ( ( idx - guardingSuperCells ) * SuperCellSize::toRT() );
+        auto frame = particleBox.getLastFrame( idx );
+        auto numParticlesInFrame = particleBox.getSuperCell( idx ).getSizeLastFrame();
+        while( frame.isValid() )
+        {
+            auto frameResult = processFrame< T_numWorkers >(
+                acc,
+                frame,
+                numParticlesInFrame,
+                cachedGlobalPosition,
+                cachedWeighting,
+                offsetCells,
+                reciprocalSpace
+            );
+            result += frameResult;
+            frame = particleBox.getPreviousFrame( frame );
+            using Size = typename T_ParticleBox::FrameType::SuperCellSize;
+            numParticlesInFrame = pmacc::math::CT::volume< Size >::type::value;
+        }
+        return result;
+    }
+
+    /** Kernel to compute X-ray diffraction results for the local domain
+     *  for a species
+     *
+     * @tparam T_numWorkers number of workers
+     */
+    template< uint32_t T_numWorkers >
+    struct KernelXrayDiffraction
+    {
+        /** Run the X-ray diffraction kernel
+         *
+         * The number of threads in the grid should be at least the number of
+         * scattering vectors in the reciprocal space.
+         *
+         * @tparam T_Acc alpaka accelerator type
+         * @tparam T_ParticleBox particle box type
+         * @tparam T_StructureFactorBox structure factor box type,
+         * @tparam T_TotalWeightingBox total weighting box type
+         * @tparam T_Mapping mapping description type
+         *
+         * @param acc alpaka accelerator
+         * @param particleBox particle box
+         * @param structureFactorBox structure factor box,
+         *                           an element per scattering vector
+         * @param totalWeightingBox total weighting box, 1 element
+         * @param localDomainOffset offset of the local domain
+         *                          from the global origin, in cells
+         * @param mapper mapping description
+         * @param reciprocalSpace reciprocal space
+         */
+        template <
+            typename T_Acc,
+            typename T_ParticleBox,
+            typename T_StructureFactorBox,
+            typename T_TotalWeightingBox,
+            typename T_Mapping 
+        >
+        DINLINE void operator()(
+            T_Acc const & acc,
+            T_ParticleBox particleBox,
+            T_StructureFactorBox structureFactorBox,
+            T_TotalWeightingBox totalWeightingBox,
+            DataSpace< simDim > localDomainOffset,
+            T_Mapping mapper,
+            ReciprocalSpace const & reciprocalSpace
+        ) const
+        {
+            // Memory for collective caching of frame data
+            using Size = typename T_ParticleBox::FrameType::SuperCellSize;
+            constexpr uint32_t frameSize =
+                pmacc::math::CT::volume< Size >::type::value;
+            using GlobalPositionArray = memory::Array<
+                float3_X,
+                frameSize
+            >;
+            PMACC_SMEM(
+                acc,
+                cachedGlobalPosition,
+                GlobalPositionArray
+            );
+            using WeightingArray = memory::Array<
+                float_X,
+                frameSize
+            >;
+            PMACC_SMEM(
+                acc,
+                cachedWeighting,
+                WeightingArray
+            );
+
+            Result result;
+            auto const guardingSuperCells = mapper.getGuardingSuperCells();
+            auto const superCellsCount =
+                mapper.getGridSuperCells() - 2 * guardingSuperCells;
+            auto const numSuperCells = superCellsCount.productOfComponents();
+            for( uint32_t supercellLinearIdx = 0;
+                supercellLinearIdx < numSuperCells; ++supercellLinearIdx )
+            {
+                auto const idxWithGuard = DataSpaceOperations< simDim >::map(
+                    superCellsCount,
+                    supercellLinearIdx
+                ) + guardingSuperCells;
+                auto const supercellResult = processSupercell< T_numWorkers >(
+                    acc,
+                    idxWithGuard,
+                    localDomainOffset,
+                    mapper,
+                    particleBox,
+                    cachedGlobalPosition,
+                    cachedWeighting,
+                    reciprocalSpace
+                );
+               /* Note: summing up for each supercell separately and adding
+                * to the total has an added benefit of reducing summation errors
+                * compared to a straighforward summation
+                */
+                result += supercellResult;
+            }
+
+            // Write results to global memory
+            auto const globalWorkerIdx = cupla::blockIdx( acc ).x *
+                cupla::blockDim( acc ).x + cupla::threadIdx( acc ).x;
+            if( globalWorkerIdx < reciprocalSpace.size.productOfComponents() )
+                structureFactorBox[ globalWorkerIdx ] = result.structureFactor;
+            // Local domain aggregated data is written by a single thread per device
+            if( globalWorkerIdx == 0 )
+                totalWeightingBox[ 0 ] = result.totalWeighting;
+        }
+    };
+
+} // namespace detail
+} // namespace xrayDiffraction
+} // namespace plugins
+} // namespace picongpu
