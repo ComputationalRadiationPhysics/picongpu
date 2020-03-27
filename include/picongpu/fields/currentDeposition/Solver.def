@@ -18,6 +18,7 @@
  */
 
 
+#include "picongpu/fields/currentDeposition/Strategy.def"
 #include "picongpu/fields/currentDeposition/Esirkepov/Esirkepov.def"
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
 

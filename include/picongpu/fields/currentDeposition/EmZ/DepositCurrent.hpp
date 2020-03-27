@@ -21,7 +21,6 @@
 
 #include <pmacc/cuSTL/cursor/Cursor.hpp>
 #include <pmacc/cuSTL/cursor/tools/twistVectorFieldAxes.hpp>
-#include <pmacc/nvidia/atomic.hpp>
 
 #include "picongpu/fields/currentDeposition/EmZ/EmZ.def"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
@@ -89,11 +88,13 @@ namespace emz
     };
 
     template<
+        typename T_AtomicAddOp,
         typename ParticleAssign,
         int T_begin,
         int T_end
     >
     struct DepositCurrent<
+        T_AtomicAddOp,
         ParticleAssign,
         T_begin,
         T_end,
@@ -190,11 +191,11 @@ namespace emz
                          */
                         const float_X W = this->DS( line, k, 2 ) * tmp;
                         accumulated_J += W;
-                        cupla::atomicAdd(
+                        auto const atomicOp = T_AtomicAddOp{};
+                        atomicOp(
                             acc,
-                            &( (*cursorJ( i, j, k ) ).z( ) ),
-                            accumulated_J,
-                            ::alpaka::hierarchy::Threads{}
+                            (*cursorJ( i, j, k ) ).z( ),
+                            accumulated_J
                         );
                     }
                 }
@@ -203,11 +204,13 @@ namespace emz
     };
 
     template<
+        typename T_AtomicAddOp,
         typename ParticleAssign,
         int T_begin,
         int T_end
     >
     struct DepositCurrent<
+        T_AtomicAddOp,
         ParticleAssign,
         T_begin,
         T_end,
@@ -290,11 +293,11 @@ namespace emz
                      */
                     const float_X W = this->DS( line, i, 0 ) * tmp;
                     accumulated_J += W;
-                    cupla::atomicAdd(
+                    auto const atomicOp = T_AtomicAddOp{};
+                    atomicOp(
                         acc,
-                        &( ( *cursorJ( i, j ) ).x( ) ),
-                        accumulated_J,
-                        ::alpaka::hierarchy::Threads{}
+                        ( *cursorJ( i, j ) ).x( ),
+                        accumulated_J
                     );
                 }
             }
@@ -335,11 +338,11 @@ namespace emz
                         ( float_X( 1.0 ) / float_X( 3.0 ) ) * dsi * dsj;
 
                     const float_X j_z = W * currentSurfaceDensityZ;
-                    cupla::atomicAdd(
+                    auto const atomicOp = T_AtomicAddOp{};
+                    atomicOp(
                         acc,
-                        &( ( *cursorJ( i, j ) ).z( ) ),
-                        j_z,
-                        ::alpaka::hierarchy::Threads{}
+                        ( *cursorJ( i, j ) ).z( ),
+                        j_z
                     );
                 }
             }

@@ -23,22 +23,20 @@
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/fields/FieldJ.kernel"
-
+#include "picongpu/fields/currentDeposition/Deposit.hpp"
+#include "picongpu/particles/traits/GetCurrentSolver.hpp"
+#include "picongpu/traits/GetMargin.hpp"
+#include "picongpu/traits/SIBaseUnits.hpp"
 
 #include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
-
 #include <pmacc/Environment.hpp>
 #include <pmacc/mappings/kernel/AreaMapping.hpp>
-#include <pmacc/mappings/kernel/StrideMapping.hpp>
 #include <pmacc/fields/tasks/FieldFactory.hpp>
 #include <pmacc/math/Vector.hpp>
 #include <pmacc/memory/MakeUnique.hpp>
 #include <pmacc/fields/operations/CopyGuardToExchange.hpp>
 #include <pmacc/fields/operations/AddExchangeToBorder.hpp>
-#include "picongpu/particles/traits/GetCurrentSolver.hpp"
-#include "picongpu/traits/GetMargin.hpp"
 #include <pmacc/traits/Resolve.hpp>
-#include "picongpu/traits/SIBaseUnits.hpp"
 #include <pmacc/traits/GetNumWorkers.hpp>
 
 #include <boost/mpl/accumulate.hpp>
@@ -243,7 +241,7 @@ void FieldJ::computeCurrent( T_Species & species, uint32_t )
         typename GetFlagType<FrameType, current<> >::type
     >::type ParticleCurrentSolver;
 
-    typedef ComputeCurrentPerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize> FrameSolver;
+    using FrameSolver = currentSolver::ComputePerFrame<ParticleCurrentSolver, Velocity, MappingDesc::SuperCellSize>;
 
     typedef SuperCellDescription<
         typename MappingDesc::SuperCellSize,
@@ -251,45 +249,32 @@ void FieldJ::computeCurrent( T_Species & species, uint32_t )
         typename GetMargin<ParticleCurrentSolver>::UpperMargin
     > BlockArea;
 
-    /* The needed stride for the stride mapper depends on the stencil width.
-    * If the upper and lower margin of the stencil fits into one supercell
-    * a double checker board (stride 2) is needed.
-    * The round up sum of margins is the number of supercells to skip.
-    */
-    using MarginPerDim = typename pmacc::math::CT::add<
-        typename GetMargin<ParticleCurrentSolver>::LowerMargin,
-        typename GetMargin<ParticleCurrentSolver>::UpperMargin
-    >::type;
-    using MaxMargin = typename pmacc::math::CT::max< MarginPerDim >::type;
-    using SuperCellMinSize = typename pmacc::math::CT::min< SuperCellSize >::type;
+    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
+        pmacc::math::CT::volume< SuperCellSize >::type::value * workerMultiplier
+    >::value;
 
-    /* number of supercells which must be skipped to avoid overlapping areas
-    * between different blocks in the kernel
-    */
-    constexpr uint32_t skipSuperCells = ( MaxMargin::value + SuperCellMinSize::value - 1u ) / SuperCellMinSize::value;
-    StrideMapping<
-        T_area,
-        skipSuperCells + 1u, // stride 1u means each supercell is used
-        MappingDesc
-    > mapper( cellDescription );
+    using Strategy = currentSolver::traits::GetStrategy_t< FrameSolver> ;
+
+    auto const depositionKernel = currentSolver::KernelComputeCurrent<
+        numWorkers,
+        BlockArea
+    >{};
 
     typename T_Species::ParticlesBoxType pBox = species.getDeviceParticlesBox( );
     FieldJ::DataBoxType jBox = buffer.getDeviceBuffer( ).getDataBox( );
     FrameSolver solver( DELTA_T );
 
-    constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
-        pmacc::math::CT::volume< SuperCellSize >::type::value * workerMultiplier
-    >::value;
-
-    do
-    {
-        PMACC_KERNEL( KernelComputeCurrent< numWorkers, BlockArea >{} )
-            ( mapper.getGridDim( ), numWorkers )
-            ( jBox,
-                pBox, solver, mapper );
-    }
-    while ( mapper.next( ) );
-
+    auto const deposit = currentSolver::Deposit< Strategy >{};
+    deposit.template execute<
+        T_area,
+        numWorkers
+    >(
+        cellDescription,
+        depositionKernel,
+        solver,
+        jBox,
+        pBox
+    );
 }
 
 template<uint32_t T_area, class T_CurrentInterpolation>
@@ -308,7 +293,7 @@ void FieldJ::addCurrentToEMF( T_CurrentInterpolation& myCurrentInterpolation )
         pmacc::math::CT::volume< SuperCellSize >::type::value
     >::value;
 
-    PMACC_KERNEL( KernelAddCurrentToEMF< numWorkers >{} )(
+    PMACC_KERNEL( currentSolver::KernelAddCurrentToEMF< numWorkers >{} )(
         mapper.getGridDim(),
         numWorkers
         )(

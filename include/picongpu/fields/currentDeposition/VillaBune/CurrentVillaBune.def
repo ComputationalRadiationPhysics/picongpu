@@ -17,23 +17,40 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include <pmacc/types.hpp>
 #include "picongpu/simulation_defines.hpp"
 #include "picongpu/particles/shapes/CIC.hpp"
+#include "picongpu/fields/currentDeposition/Strategy.def"
 
 
 namespace picongpu
 {
 namespace currentSolver
 {
-using namespace pmacc;
 
-template<typename ParticleShape = picongpu::particles::shapes::CIC>
-struct VillaBune;
+    template<
+        typename T_ParticleShape = picongpu::particles::shapes::CIC,
+        typename T_Strategy = traits::GetDefaultStrategy_t<>
+    >
+    struct VillaBune;
 
+namespace traits
+{
+    template<
+        typename T_ParticleShape,
+        typename T_Strategy
+    >
+    struct GetStrategy<
+        VillaBune<
+            T_ParticleShape,
+            T_Strategy
+        >
+    >
+    {
+        using type = T_Strategy;
+    };
+} // namespace traits
 } //namespace currentSolver
-
 } //namespace picongpu
