@@ -60,24 +60,65 @@ namespace pmacc
                 case RunCopy:
                     state = WaitForFinish;
                    __startTransaction();
-                    exchange->getHostBuffer().setCurrentSize(newBufferSize);
+
+                    /* If MPI direct is enabled
+                     *   - we do not have any host representation of an exchange
+                     *   - MPI will write directly into the device buffer
+                     *     or double buffer when available.
+                     */
                     if (exchange->hasDeviceDoubleBuffer())
                     {
+                        if(Environment<>::get().isMpiDirectEnabled())
+                        {
+                            exchange->getDeviceDoubleBuffer().setCurrentSize(newBufferSize);
+                        }
+                        else
+                        {
+                            exchange->getHostBuffer().setCurrentSize(newBufferSize);
+                            Environment<>::get().Factory().createTaskCopyHostToDevice(
+                                exchange->getHostBuffer(),
+                                exchange->getDeviceDoubleBuffer()
+                            );
+                        }
 
-                        Environment<>::get().Factory().createTaskCopyHostToDevice(exchange->getHostBuffer(),
-                                                                                     exchange->getDeviceDoubleBuffer());
-                        Environment<>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceDoubleBuffer(),
-                                                                                       exchange->getDeviceBuffer(),
-                                                                                       this);
+                        Environment<>::get().Factory().createTaskCopyDeviceToDevice(
+                            exchange->getDeviceDoubleBuffer(),
+                            exchange->getDeviceBuffer(),
+                            this
+                        );
+
                     }
                     else
                     {
-
-                        Environment<>::get().Factory().createTaskCopyHostToDevice(exchange->getHostBuffer(),
-                                                                                     exchange->getDeviceBuffer(),
-                                                                                     this);
+                        if(Environment<>::get().isMpiDirectEnabled())
+                        {
+                            exchange->getDeviceBuffer().setCurrentSize(newBufferSize);
+                            /* We can not be notified from setCurrentSize() therefore
+                             * we need to wait that the current event is finished.
+                             */
+                            setSizeEvent =__getTransactionEvent();
+                            state = WaitForSetSize;
+                        }
+                        else
+                        {
+                            exchange->getHostBuffer().setCurrentSize(newBufferSize);
+                            Environment<>::get().Factory().createTaskCopyHostToDevice(
+                                exchange->getHostBuffer(),
+                                exchange->getDeviceBuffer(),
+                                this
+                            );
+                        }
                     }
+
                     __endTransaction();
+                    break;
+                case WaitForSetSize:
+                    // this code is only passed if gpu direct is enabled
+                    if(nullptr == Environment<>::get().Manager().getITaskIfNotFinished(setSizeEvent.getTaskId()))
+                    {
+                        state = Finish;
+                        return true;
+                    }
                     break;
                 case WaitForFinish:
                     break;
@@ -132,6 +173,7 @@ namespace pmacc
             Constructor,
             WaitForReceived,
             RunCopy,
+            WaitForSetSize,
             WaitForFinish,
             Finish
 
@@ -141,6 +183,7 @@ namespace pmacc
         Exchange<TYPE, DIM> *exchange;
         state_t state;
         size_t newBufferSize;
+        EventTask setSizeEvent;
     };
 
 } //namespace pmacc

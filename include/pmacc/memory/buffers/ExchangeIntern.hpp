@@ -40,8 +40,9 @@
 namespace pmacc
 {
 
-    /**
-     * Internal Exchange implementation.
+    /** Internal Exchange implementation.
+     *
+     * There will be no host double buffer available if MPI direct for PMacc is enabled.
      */
     template <class TYPE, unsigned DIM>
     class ExchangeIntern : public Exchange<TYPE, DIM>
@@ -50,7 +51,7 @@ namespace pmacc
 
         ExchangeIntern(DeviceBuffer<TYPE, DIM>& source, GridLayout<DIM> memoryLayout, DataSpace<DIM> guardingCells, uint32_t exchange,
                        uint32_t communicationTag, uint32_t area = BORDER, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag)
+        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(nullptr), hostBuffer(nullptr)
         {
 
             PMACC_ASSERT(!guardingCells.isOneDimensionGreaterThan(memoryLayout.getGuard()));
@@ -92,13 +93,16 @@ namespace pmacc
                 );
             }
 
-            using HostBuffer = HostBufferIntern<TYPE, DIM>;
-            hostBuffer = memory::makeUnique<HostBuffer>(tmp_size);
+            if(!Environment<>::get().isMpiDirectEnabled())
+            {
+                using HostBuffer = HostBufferIntern<TYPE, DIM>;
+                hostBuffer = memory::makeUnique<HostBuffer>(tmp_size);
+            }
         }
 
         ExchangeIntern(DataSpace<DIM> exchangeDataSpace, uint32_t exchange,
                        uint32_t communicationTag, bool sizeOnDevice = false) :
-        Exchange<TYPE, DIM>(exchange, communicationTag)
+        Exchange<TYPE, DIM>(exchange, communicationTag), deviceDoubleBuffer(nullptr), hostBuffer(nullptr)
         {
             using DeviceBuffer = DeviceBufferIntern<TYPE, DIM >;
             deviceBuffer = memory::makeUnique<DeviceBuffer>(
@@ -116,8 +120,11 @@ namespace pmacc
                 );
             }
 
-            using HostBuffer = HostBufferIntern<TYPE, DIM >;
-            hostBuffer = memory::makeUnique<HostBuffer>(exchangeDataSpace);
+            if(!Environment<>::get().isMpiDirectEnabled())
+            {
+                using HostBuffer = HostBufferIntern<TYPE, DIM>;
+                hostBuffer = memory::makeUnique<HostBuffer>(exchangeDataSpace);
+            }
         }
 
         /**
@@ -217,11 +224,13 @@ namespace pmacc
 
         virtual HostBuffer<TYPE, DIM>& getHostBuffer()
         {
+            PMACC_ASSERT(hostBuffer != nullptr);
             return *hostBuffer;
         }
 
         virtual DeviceBuffer<TYPE, DIM>& getDeviceBuffer()
         {
+            PMACC_ASSERT(deviceBuffer != nullptr);
             return *deviceBuffer;
         }
 
@@ -232,6 +241,7 @@ namespace pmacc
 
         virtual DeviceBuffer<TYPE, DIM>& getDeviceDoubleBuffer()
         {
+            PMACC_ASSERT(deviceDoubleBuffer != nullptr);
             return *deviceDoubleBuffer;
         }
 
@@ -245,7 +255,24 @@ namespace pmacc
             return Environment<>::get().Factory().createTaskReceive(*this);
         }
 
+        Buffer<TYPE, DIM>* getCommunicationBuffer() override
+        {
+            if(Environment<>::get().isMpiDirectEnabled())
+            {
+                if(hasDeviceDoubleBuffer())
+                    return &(getDeviceDoubleBuffer());
+                else
+                    return &(getDeviceBuffer());
+            }
+
+            return &(getHostBuffer());
+        }
+
     protected:
+        /** host double buffer of the exchange data
+         *
+         * Is always a nullptr if MPI direct is used
+         */
         std::unique_ptr< HostBufferIntern<TYPE, DIM> > hostBuffer;
 
         //! This buffer is a vector which is used as message buffer for faster memcopy

@@ -51,18 +51,42 @@ namespace pmacc
             state = InitDone;
             if (exchange->hasDeviceDoubleBuffer())
             {
-                Environment<>::get().Factory().createTaskCopyDeviceToDevice(exchange->getDeviceBuffer(),
-                                                                            exchange->getDeviceDoubleBuffer()
-                                                                            );
-                Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceDoubleBuffer(),
-                                                                          exchange->getHostBuffer(),
-                                                                          this);
+                if(Environment<>::get().isMpiDirectEnabled())
+                    Environment<>::get().Factory().createTaskCopyDeviceToDevice(
+                        exchange->getDeviceBuffer(),
+                        exchange->getDeviceDoubleBuffer(),
+                        this
+                    );
+                else
+                {
+                    Environment<>::get().Factory().createTaskCopyDeviceToDevice(
+                        exchange->getDeviceBuffer(),
+                        exchange->getDeviceDoubleBuffer()
+                    );
+
+                    Environment<>::get().Factory().createTaskCopyDeviceToHost(
+                        exchange->getDeviceDoubleBuffer(),
+                        exchange->getHostBuffer(),
+                        this
+                    );
+                }
             }
             else
             {
-                Environment<>::get().Factory().createTaskCopyDeviceToHost(exchange->getDeviceBuffer(),
-                                                                          exchange->getHostBuffer(),
-                                                                          this);
+                if(Environment<>::get().isMpiDirectEnabled())
+                {
+                    /* Wait to be sure that all device work is finished before MPI is triggered.
+                     * MPI will not wait for work in our device streams
+                     */
+                    __getTransactionEvent().waitForFinished();
+                    state = ReadyForMPISend;
+                }
+                else
+                    Environment<>::get().Factory().createTaskCopyDeviceToHost(
+                        exchange->getDeviceBuffer(),
+                        exchange->getHostBuffer(),
+                        this
+                    );
             }
 
         }
@@ -73,7 +97,7 @@ namespace pmacc
             {
                 case InitDone:
                     break;
-                case DeviceToHostFinished:
+                case ReadyForMPISend:
                     state = SendDone;
                     __startTransaction();
                     Environment<>::get().Factory().createTaskSendMPI(exchange, this);
@@ -97,14 +121,14 @@ namespace pmacc
 
         void event(id_t, EventType type, IEventData*)
         {
-            if (type == COPYDEVICE2HOST)
+            if(type == COPYDEVICE2HOST || type == COPYDEVICE2DEVICE)
             {
-                state = DeviceToHostFinished;
+                state = ReadyForMPISend;
                 executeIntern();
 
             }
 
-            if (type == SENDFINISHED)
+            if(type == SENDFINISHED)
             {
                 state = Finish;
             }
@@ -124,7 +148,7 @@ namespace pmacc
         {
             Constructor,
             InitDone,
-            DeviceToHostFinished,
+            ReadyForMPISend,
             SendDone,
             Finish
         };
