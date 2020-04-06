@@ -158,7 +158,7 @@ HDINLINE
 T atomicAllInc(T *ptr)
 {
 #ifdef __CUDA_ARCH__
-    return atomicAllInc(alpaka::atomic::AtomicCudaBuiltIn(), ptr, ::alpaka::hierarchy::Grids());
+    return atomicAllInc(alpaka::atomic::AtomicUniformCudaHipBuiltIn(), ptr, ::alpaka::hierarchy::Grids());
 #else
     // assume that we can use the standard library atomics if we are not on gpu
     return atomicAllInc(alpaka::atomic::AtomicStdLibLock<16>(), ptr, ::alpaka::hierarchy::Grids());
