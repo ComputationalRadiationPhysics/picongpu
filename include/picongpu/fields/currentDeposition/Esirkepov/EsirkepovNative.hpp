@@ -98,11 +98,9 @@ namespace currentSolver
         )
         {
             this->charge = charge;
-            const float3_X deltaPos = float3_X(velocity.x() * deltaTime / cellSize.x(),
-                                               velocity.y() * deltaTime / cellSize.y(),
-                                               velocity.z() * deltaTime / cellSize.z());
+            const float3_X deltaPos = velocity * deltaTime / cellSize;
             const PosType oldPos = pos - deltaPos;
-            Line<float3_X> line(oldPos, pos);
+            const Line<float3_X> line(oldPos, pos);
             auto cursorJ = dataBoxJ.toCursor();
 
             /**
@@ -152,7 +150,7 @@ namespace currentSolver
                     float_X accumulated_J = float_X(0.0);
                     for (int k = begin; k < end; ++k)
                     {
-                        float_X W = DS(line, k, 3) * tmp;
+                        const float_X W = DS(line, k, 3) * tmp;
                         /* We multiply with `cellEdgeLength` due to the fact that the attribute for the
                          * in-cell particle `position` (and it's change in DELTA_T) is normalize to [0,1) */
                         accumulated_J += -this->charge * (float_X(1.0) / float_X(CELL_VOLUME * DELTA_T)) * W * cellEdgeLength;

@@ -5,8 +5,6 @@ Current Deposition
 
 The current solver can be set in :ref:`species.param <usage-params-core>` or directly per species :ref:`speciesDefinition.param <usage-params-core>`.
 
-The following operations can be applied in the ``picongpu::particles::InitPipeline`` of the latter:
-
 .. _usage-params-core-particles-currentsolver:
 
 Current Solver
@@ -43,7 +41,7 @@ Deposition Strategy
 '''''''''''''''''''
 
 A current solver supports a strategy to change how the algorithm behaves on different compute architectures.
-The strategy is optional, changing could could effect the performance negative.
+The strategy is optional, could affect performance.
 
 StridedCachedSupercells
 ~~~~~~~~~~~~~~~~~~~~~~~

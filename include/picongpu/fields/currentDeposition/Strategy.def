@@ -80,7 +80,7 @@ namespace strategy
      * to the global memory.
      *
      * Suggestion: Use this strategy if global atomics are fast and random memory access
-     * to a wide are in the memory is not a bottle neck.
+     * to a large range in memory is not a bottle neck.
      */
     struct NonCachedSupercells
     {

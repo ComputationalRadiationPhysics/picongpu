@@ -52,7 +52,7 @@ namespace detail
     {
         /** Create a cache
          *
-         * @attention thread collective operation, requires manually thread synchronization
+         * @attention thread-collective operation, requires external thread synchronization
          */
         template<
             uint32_t T_numWorkers,
@@ -90,10 +90,10 @@ namespace detail
             ThreadCollective<
                 T_BlockDescription,
                 T_numWorkers
-            > collectiveSet( workerIdx );
+            > collectiveFill( workerIdx );
 
             /* initialize shared memory with zeros */
-            collectiveSet(
+            collectiveFill(
                 acc,
                 set,
                 cache
@@ -103,7 +103,7 @@ namespace detail
 
         /** Flush the cache
          *
-         * @attention thread collective operation, requires manually thread synchronization
+         * @attention thread-collective operation, requires external thread synchronization
          */
         template<
             uint32_t T_numWorkers,
@@ -144,7 +144,7 @@ namespace detail
     {
         /** Create a cache
          *
-         * @attention thread collective operation, requires manually thread synchronization
+         * @attention thread-collective operation, requires external thread synchronization
          */
         template<
             uint32_t T_numWorkers,
@@ -169,7 +169,7 @@ namespace detail
 
         /** Flush the cache
          *
-         * @attention thread collective operation, requires manually thread synchronization
+         * @attention thread-collective operation, requires external thread synchronization
          */
         template<
             uint32_t T_numWorkers,

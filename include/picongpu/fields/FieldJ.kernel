@@ -326,9 +326,9 @@ private:
 namespace traits
 {
     template<
-        class ParticleAlgo,
-        class Velocity,
-        class TVec
+        typename ParticleAlgo,
+        typename Velocity,
+        typename TVec
     >
     struct GetStrategy<
         ComputePerFrame<
