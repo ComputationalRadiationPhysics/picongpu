@@ -20,34 +20,29 @@
 
 #pragma once
 
-#include <pmacc/types.hpp>
-#include <pmacc/particles/frame_types.hpp>
-
 #include "picongpu/simulation_defines.hpp"
-
-#include "FieldJ.hpp"
-#include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
-
-
+#include "picongpu/fields/currentDeposition/Strategy.def"
+#include "picongpu/fields/currentDeposition/Cache.hpp"
+#include "picongpu/fields/FieldJ.hpp"
 #include "picongpu/algorithms/Velocity.hpp"
 
 #include <pmacc/memory/boxes/CachedBox.hpp>
 #include <pmacc/dimensions/DataSpaceOperations.hpp>
-#include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/mappings/threads/ThreadCollective.hpp>
-#include "picongpu/algorithms/Set.hpp"
 #include <pmacc/mappings/threads/ForEachIdx.hpp>
 #include <pmacc/mappings/threads/IdxConfig.hpp>
 #include <pmacc/memory/CtxArray.hpp>
 #include <pmacc/particles/frame_types.hpp>
+#include <pmacc/particles/memory/boxes/ParticlesBox.hpp>
+#include <pmacc/types.hpp>
+
+#include <type_traits>
+#include <utility>
 
 namespace picongpu
 {
-
-using namespace pmacc;
-
-using J_DataBox = FieldJ::DataBoxType;
-
+namespace currentSolver
+{
 /** compute current
  *
  * @tparam T_numWorkers number of workers
@@ -189,23 +184,18 @@ struct KernelComputeCurrent
             }
         );
 
+        DataSpace< simDim > const blockCell = block * SuperCellSize::toRT();
+        using Strategy = currentSolver::traits::GetStrategy_t< FrameSolver >;
+
         /* this memory is used by all virtual blocks */
-        auto cachedJ = CachedBox::create<
-            0u,
-            typename JBox::ValueType
+        auto cachedJ = detail::Cache< Strategy >::template create<
+            numWorkers,
+            T_BlockDescription
         >(
             acc,
-            T_BlockDescription()
+            fieldJ.shift( blockCell ),
+            workerIdx
         );
-
-        Set< typename JBox::ValueType > set( float3_X::create( 0.0 ) );
-        ThreadCollective<
-            T_BlockDescription,
-            numWorkers
-        > collectiveSet( workerIdx );
-
-        /* initialize shared memory with zeros */
-        collectiveSet( acc, set, cachedJ );
 
         cupla::__syncthreads( acc );
 
@@ -270,29 +260,25 @@ struct KernelComputeCurrent
         /* we wait that all workers finish the loop */
         cupla::__syncthreads( acc );
 
-        nvidia::functors::Add add;
-        DataSpace< simDim > const blockCell = block * SuperCellSize::toRT();
-        ThreadCollective<
-            T_BlockDescription,
-            numWorkers
-        > collectiveAdd( workerIdx );
-        auto fieldJBlock = fieldJ.shift( blockCell );
-
-        /* write scatter results back to the global memory */
-        collectiveAdd(
+        /* this memory is used by all virtual blocks */
+        detail::Cache< Strategy >::template flush<
+            numWorkers,
+            T_BlockDescription
+        >(
             acc,
-            add,
-            fieldJBlock,
-            cachedJ
+            fieldJ.shift( blockCell ),
+            cachedJ,
+            workerIdx
         );
     }
 };
 
-template<class ParticleAlgo, class Velocity, class TVec>
-struct ComputeCurrentPerFrame
+template<typename T_ParticleAlgo, typename Velocity, typename TVec>
+struct ComputePerFrame
 {
+    using ParticleAlgo = T_ParticleAlgo;
 
-    HDINLINE ComputeCurrentPerFrame(const float_X deltaTime) :
+    HDINLINE ComputePerFrame(const float_X deltaTime) :
     m_deltaTime(deltaTime)
     {
     }
@@ -337,6 +323,25 @@ private:
     PMACC_ALIGN(m_deltaTime, const float_32);
 };
 
+namespace traits
+{
+    template<
+        typename ParticleAlgo,
+        typename Velocity,
+        typename TVec
+    >
+    struct GetStrategy<
+        ComputePerFrame<
+            ParticleAlgo,
+            Velocity,
+            TVec
+        >
+    >
+    {
+        using type = GetStrategy_t< ParticleAlgo >;
+    };
+} // namespace traits
+
 /** add current to electric and magnetic field
  *
  * @tparam T_numWorkers number of workers
@@ -355,7 +360,7 @@ struct KernelAddCurrentToEMF
         T_Acc const & acc,
         typename FieldE::DataBoxType fieldE,
         typename FieldB::DataBoxType fieldB,
-        J_DataBox fieldJ,
+        typename FieldJ::DataBoxType fieldJ,
         T_CurrentInterpolation currentInterpolation,
         T_Mapping mapper
     ) const
@@ -376,7 +381,7 @@ struct KernelAddCurrentToEMF
 
         auto cachedJ = CachedBox::create<
             0,
-            typename J_DataBox::ValueType
+            typename FieldJ::DataBoxType::ValueType
         >(
             acc,
             BlockArea( )
@@ -435,4 +440,5 @@ struct KernelAddCurrentToEMF
     }
 };
 
+} // namespace currentSolver
 } // namespace picongpu

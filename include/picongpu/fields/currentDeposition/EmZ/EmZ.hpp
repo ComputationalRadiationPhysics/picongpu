@@ -26,13 +26,15 @@
 #include "picongpu/fields/currentDeposition/EmZ/DepositCurrent.hpp"
 #include "picongpu/fields/currentDeposition/Esirkepov/Line.hpp"
 
+
 namespace picongpu
 {
 namespace currentSolver
 {
 
 template<
-    typename T_ParticleShape
+    typename T_ParticleShape,
+    typename T_Strategy
 >
 struct EmZ
 {
@@ -116,6 +118,7 @@ struct EmZ
 
         /* Esirkepov implementation for the current deposition */
         emz::DepositCurrent<
+            typename T_Strategy::BlockReductionOp,
             ParticleAssign,
             begin,
             end
