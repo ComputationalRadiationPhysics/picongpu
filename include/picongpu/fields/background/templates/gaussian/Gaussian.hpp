@@ -1,4 +1,4 @@
-/* Copyright 2014-2020 Axel Huebl, Alexander Debus
+/* Copyright 2014-2020 Alexander Debus
  *
  * This file is part of PIConGPU.
  *
@@ -20,6 +20,5 @@
 
 #pragma once
 
-/** Load pre-defined templates (implementation) */
-#include "picongpu/fields/background/templates/TWTS/TWTS.tpp"
-#include "picongpu/fields/background/templates/gaussian/Gaussian.tpp"
+#include "picongpu/fields/background/templates/gaussian/EField.hpp"
+#include "picongpu/fields/background/templates/gaussian/BField.hpp"
