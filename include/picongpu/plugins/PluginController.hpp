@@ -54,6 +54,7 @@
 #   include "picongpu/plugins/PositionsParticles.hpp"
 #   include "picongpu/plugins/ChargeConservation.hpp"
 #   include "picongpu/plugins/particleMerging/ParticleMerger.hpp"
+#   include "picongpu/plugins/RandomizedParticleMerger/RandomizedParticleMerger.hpp"
 #   if(ENABLE_HDF5 == 1)
 #       include "picongpu/plugins/makroParticleCounter/PerSuperCell.hpp"
 #   endif
@@ -234,6 +235,7 @@ private:
 #if( PMACC_CUDA_ENABLED == 1 )
         , PositionsParticles<bmpl::_1>
         , plugins::particleMerging::ParticleMerger<bmpl::_1>
+        , plugins::randomizedParticleMerger::RandomizedParticleMerger<bmpl::_1>
 #   if(ENABLE_HDF5 == 1)
         , PerSuperCell<bmpl::_1>
 #   endif
