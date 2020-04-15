@@ -31,7 +31,7 @@ def get_different_colors(n, cmap="tab20"):
             cm = plt.get_cmap(cmap, n)
         except ValueError:
             fallback_cmap = "tab20"
-            warn("Colormap {} not known. Using {1} instead!".format(
+            warn("Colormap {0} not known. Using {1} instead!".format(
                 cmap, fallback_cmap))
             cm = plt.get_cmap(fallback_cmap, n)
 
