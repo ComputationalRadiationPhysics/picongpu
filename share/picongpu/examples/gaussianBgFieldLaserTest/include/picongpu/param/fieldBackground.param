@@ -1,0 +1,241 @@
+/* Copyright 2014-2020 Axel Huebl, Alexander Debus, Richard Pausch
+ *
+ * This file is part of PIConGPU.
+ *
+ * PIConGPU is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * PIConGPU is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PIConGPU.
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file fieldBackground.param
+ *
+ * Load external background fields
+ */
+
+#pragma once
+
+/** Load pre-defined templates */
+#include "picongpu/fields/background/templates/gaussian/Gaussian.hpp"
+
+#ifndef PARAM_INCLUDE_FIELDBACKGROUND
+#define PARAM_INCLUDE_FIELDBACKGROUND true
+#endif
+
+namespace picongpu
+{
+    class FieldBackgroundE
+    {
+    public:
+
+        /* Add this additional field for pushing particles */
+        static constexpr bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
+
+        /* We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
+        /* Gaussian E-fields need to be initialized on host,
+         *  so they can look up global grid dimensions. */
+        //PMACC_ALIGN(gaussianFieldE, const templates::gaussian::EField);
+        const templates::gaussian::EField gaussianFieldE1;
+
+        /* Constructor is host-only, because of subGrid and halfSimSize initialization */
+        HINLINE FieldBackgroundE( const float3_64 unitField ) : 
+
+            m_unitField( unitField ),
+
+            gaussianFieldE1(
+                /* focus_y [m], the distance to the laser focus in y-direction */
+                46.2e-6,
+                /* wavelength [m] */
+                0.8e-6,
+                /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                5.0e-15,/// 2.3548200450309493820231386529194,
+                /* w0 [m], focal spot size */
+                5.0e-6 / 1.17741,
+                /* interaction angle between Gaussian laser propagation vector and the y-axis [rad] */
+                90. * (PI/180.),
+                /* manual time delay [s] if auto_tdelay is false */
+                57.4422e-6 / SI::SPEED_OF_LIGHT_SI,
+                /* Should PIConGPU automatically choose a suitable time delay? [true/false] */
+                false,
+                /* Polarization of Gaussian laser field */
+                templates::gaussian::EField::LINEAR_X )
+        {}
+
+        /** Specify your background field E(r,t) here
+         *
+         * \param cellIdx The total cell id counted from the start at t=0
+         * \param currentStep The current time step */
+        HDINLINE float3_X
+        operator()( const DataSpace<simDim>& cellIdx,
+                    const uint32_t currentStep ) const
+        {
+            /* example 1: Gaussian background pulse */
+            /** unit: meter */
+            constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+            /** UNITCONV */
+            /* const double UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
+                * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
+                * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::EPS0_SI); */
+            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+
+            /** unit: W / m^2 */
+            /* constexpr float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
+            /** unit: none */
+            /* constexpr float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0; */
+
+            /** unit: none */
+            const float_64 _A0 = 8.0;
+
+            /** unit: Volt /meter */
+            /*\todo #738 implement math::vector, native type operations */
+            const float3_64 invUnitField = float3_64(1.0 / m_unitField[0],
+                                                     1.0 / m_unitField[1],
+                                                     1.0 / m_unitField[2] );
+
+            /* laser amplitude in picongpu units [ unit: (Volt /meter) / unitField-factor ]
+             * Note: the laser amplitude is included in all field components
+             * polarization and other properties are established by the peak amplitude
+             * normalized gaussianFieldE(...) */
+            const float3_X amplitude = precisionCast<float_X>(
+                                float_64( _A0 * UNITCONV_A0_to_Amplitude_SI )
+                                    * invUnitField );
+
+            /* Note: gaussianFieldE(...) is normalized, such that peak amplitude equals unity. */
+            return    amplitude * gaussianFieldE1( cellIdx, currentStep );
+        }
+    };
+
+    class FieldBackgroundB
+    {
+    public:
+        /* Add this additional field for pushing particles */
+        static const bool InfluenceParticlePusher = PARAM_INCLUDE_FIELDBACKGROUND;
+
+        /* Gaussian B-fields need to be initialized on host,
+         * so they can look up global grid dimensions. */
+        //PMACC_ALIGN(gaussianFieldB, const templates::gaussian::BField);
+        templates::gaussian::BField gaussianFieldB1;
+
+        /* We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
+        HINLINE FieldBackgroundB( const float3_64 unitField ) :
+
+            m_unitField( unitField ),
+
+            gaussianFieldB1(
+                /* focus_y [m], the distance to the laser focus in y-direction */
+                46.2e-6,
+                /* wavelength [m] */
+                0.8e-6,
+                /* pulselength [s], sigma of std. gauss for intensity (E^2) */
+                5.0e-15,// / 2.3548200450309493820231386529194,
+                /* w0 [m], focused spot size */
+                5.0e-6 / 1.17741,
+                /* interaction angle between Gaussian laser propagation vector and the y-axis [rad] */
+                90. * (PI / 180.),
+                /* manual time delay [s] if auto_tdelay is false */
+                57.4422e-6 / SI::SPEED_OF_LIGHT_SI,
+                /* Should PIConGPU automatically choose a suitable time delay? [true / false] */
+                false,
+                /* Polarization of Gaussian laser field */
+                templates::gaussian::BField::LINEAR_X )
+        {}
+
+        /** Specify your background field B(r,t) here
+         *
+         * \param cellIdx The total cell id counted from the start at t=0
+         * \param currentStep The current time step */
+        HDINLINE float3_X
+        operator()( const DataSpace<simDim>& cellIdx,
+                    const uint32_t currentStep ) const
+        {
+            /** unit: meter */
+            constexpr float_64 WAVE_LENGTH_SI = 0.8e-6;
+
+            /** UNITCONV */
+            /* constexpr float_64 UNITCONV_Intens_to_A0 = SI::ELECTRON_CHARGE_SI
+                * SI::ELECTRON_CHARGE_SI * 2.0 * WAVE_LENGTH_SI * WAVE_LENGTH_SI / (4.0 * PI * PI
+                * SI::ELECTRON_MASS_SI * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI * SI::EPS0_SI); */
+            constexpr float_64 UNITCONV_A0_to_Amplitude_SI = -2.0 * PI / WAVE_LENGTH_SI
+                * SI::ELECTRON_MASS_SI * SI::SPEED_OF_LIGHT_SI
+                * SI::SPEED_OF_LIGHT_SI / SI::ELECTRON_CHARGE_SI;
+
+            /** unit: W / m^2 */
+            /* constexpr float_64 _PEAK_INTENSITY_SI = 3.4e19 * 1.0e4; */
+            /** unit: none */
+            /* constexpr float_64 _A0  = _PEAK_INTENSITY_SI * UNITCONV_Intens_to_A0; */
+
+            /** unit: none */
+            constexpr float_64 _A0 = 8.0;
+
+            /** unit: Volt /meter */
+            const float3_64 invUnitField = float3_64( 1.0 / m_unitField[0],
+                                                      1.0 / m_unitField[1],
+                                                      1.0 / m_unitField[2] );
+
+            /* laser amplitude in picongpu units [ unit: (Volt/meter) / unitField-factor ]
+             * Note: the laser amplitude is included in all field components
+             * polarization and other properties are established by the peak amplitude
+             * normalized gaussianFieldB(...) */
+            const float3_X amplitude = precisionCast<float_X>(
+                    float_64(_A0 * UNITCONV_A0_to_Amplitude_SI )
+                        * invUnitField );
+
+            /* Note: gaussianFieldB(...) is normalized, such that peak amplitude equals unity. */
+            return    amplitude * gaussianFieldB1( cellIdx, currentStep );
+        }
+    };
+
+    class FieldBackgroundJ
+    {
+    public:
+        /* Add this additional field? */
+        static constexpr bool activated = false;
+
+        /* We use this to calculate your SI input back to our unit system */
+        PMACC_ALIGN(m_unitField, const float3_64);
+
+        HDINLINE FieldBackgroundJ( const float3_64 unitField ) : m_unitField(unitField)
+        {}
+
+        /** Specify your background field J(r,t) here
+         *
+         * \param cellIdx The total cell id counted from the start at t=0
+         * \param currentStep The current time step */
+        HDINLINE float3_X
+        operator()( const DataSpace<simDim>& cellIdx,
+                    const uint32_t currentStep ) const
+        {
+            /* example: periodicity of 20 microns ( = 2.0e-5 m) */
+            constexpr float_64 period_SI(20.0e-6);
+            /* calculate cells -> SI -> m to microns*/
+            const float_64 y_SI = cellIdx.y() * SI::CELL_HEIGHT_SI * 1.0e6;
+            /* note: you can also transform the time step to seconds by
+             *       multiplying with DELTA_T_SI */
+
+            /* specify your J-Field in A/m^2 and convert to PIConGPU units */
+            const float_X sinArg = precisionCast<float_X>( y_SI / period_SI * 2.0 * PI );
+            return float3_X(0.0, math::cos( sinArg ) / m_unitField[1], 0.0);
+        }
+    };
+
+} // namespace picongpu
