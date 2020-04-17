@@ -28,27 +28,27 @@ namespace particles
 namespace shapes
 {
 
-namespace shared_P4S
+namespace sharedP4S
 {
 
 struct P4S
 {
     static constexpr int support = 5;
 
-    HDINLINE static float_X ff_1st_radius( float_X const x )
+    HDINLINE static float_X ff1stRadius( float_X const x )
     {
         /*
          * W(x)= 115/192 - 5/8 * x^2 + 1/4 * x^4
          *     = 115/192 + x^2 * (-5/8 + 1/4 * x^2)
          */
-        float_X const square_x = x * x;
-        return 115._X / 192._X + square_x * (
+        float_X const xSquared = x * x;
+        return 115._X / 192._X + xSquared * (
             -5._X / 8._X +
-            1.0_X / 4.0_X * square_x
+            1.0_X / 4.0_X * xSquared
         );
     }
 
-    HDINLINE static float_X ff_2nd_radius( float_X const x )
+    HDINLINE static float_X ff2ndRadius( float_X const x )
     {
         /*
          * W(x)= 1/96 * (55 + 20 * x - 120 * x^2 + 80 * x^3 - 16 * x^4)
@@ -65,28 +65,28 @@ struct P4S
         );
     }
 
-    HDINLINE static float_X ff_3rd_radius( float_X const x )
+    HDINLINE static float_X ff3rdRadius( float_X const x )
     {
         /*
          * W(x)=1/384 * (5 - 2*x)^4
          */
         float_X const tmp = 5._X - 2._X * x;
-        float_X const square_tmp = tmp * tmp;
-        float_X const biquadratic_tmp = square_tmp * square_tmp;
+        float_X const tmpSquared = tmp * tmp;
+        float_X const quarticTmp = tmpSquared * tmpSquared;
 
-        return 1._X / 384._X * biquadratic_tmp;
+        return 1._X / 384._X * quarticTmp;
     }
 };
 
-} //namespace shared_P4S
+} //namespace sharedP4S
 
 /** particle assignment shape `piecewise biquadratic spline`
  */
-struct P4S : public shared_P4S::P4S
+struct P4S : public sharedP4S::P4S
 {
     using CloudShape = picongpu::particles::shapes::PCS;
 
-    struct ChargeAssignmentOnSupport : public shared_P4S::P4S
+    struct ChargeAssignmentOnSupport : public sharedP4S::P4S
     {
 
         HDINLINE float_X operator()( float_X const x )
@@ -99,27 +99,27 @@ struct P4S : public shared_P4S::P4S
              *       |  1/384 * (5 - 2 * x)^4                                       if 3/2 <= |x| < 5/2
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const xAbs = algorithms::math::abs( x );
 
-            bool const below_2nd_radius = abs_x < 1.5_X;
-            bool const below_1st_radius = abs_x < 0.5_X;
+            bool const isInSupport_1_5 = xAbs < 1.5_X;
+            bool const isInSupport_0_5 = xAbs < 0.5_X;
 
-            float_X const rad1 = ff_1st_radius( abs_x );
-            float_X const rad2 = ff_2nd_radius( abs_x );
-            float_X const rad3 = ff_3rd_radius( abs_x );
+            float_X const valueOnSupport_1_5 = ff1stRadius( xAbs );
+            float_X const valueOnSupport_0_5 = ff2ndRadius( xAbs );
+            float_X const valueOnSupport_2_5 = ff3rdRadius( xAbs );
 
-            float_X result = rad3;
-            if( below_1st_radius )
-                result = rad1;
-            else if( below_2nd_radius )
-                result = rad2;
+            float_X result = valueOnSupport_2_5;
+            if( isInSupport_1_5 )
+                result = valueOnSupport_1_5;
+            else if( isInSupport_0_5 )
+                result = valueOnSupport_0_5;
 
             return result;
         }
 
     };
 
-    struct ChargeAssignment : public shared_P4S::P4S
+    struct ChargeAssignment : public sharedP4S::P4S
     {
 
         HDINLINE float_X operator()( float_X const x )
@@ -135,15 +135,15 @@ struct P4S : public shared_P4S::P4S
              *       |  0                                                           otherwise
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const xAbs = algorithms::math::abs( x );
 
-            bool const below_max = abs_x < 2.5_X;
+            bool const isInSupport = xAbs < 2.5_X;
 
-            float_X const onSupport = ChargeAssignmentOnSupport()( abs_x );
+            float_X const valueOnSupport = ChargeAssignmentOnSupport()( xAbs );
 
             float_X result( 0.0 );
-            if( below_max )
-                result = onSupport;
+            if( isInSupport )
+                result = valueOnSupport;
 
             return result;
         }

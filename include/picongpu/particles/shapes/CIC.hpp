@@ -27,7 +27,7 @@ namespace particles
 {
 namespace shapes
 {
-namespace shared_CIC
+namespace sharedCIC
 {
 
 struct CIC
@@ -39,13 +39,13 @@ struct CIC
     static constexpr int support = 2;
 };
 
-}//namespace shared_CIC
+}//namespace sharedCIC
 
-struct CIC : public shared_CIC::CIC
+struct CIC : public sharedCIC::CIC
 {
     using CloudShape = picongpu::particles::shapes::NGP;
 
-    struct ChargeAssignment : public shared_CIC::CIC
+    struct ChargeAssignment : public sharedCIC::CIC
     {
 
         HDINLINE float_X operator()( float_X const x )
@@ -56,20 +56,20 @@ struct CIC : public shared_CIC::CIC
              *       |  0               otherwise
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const xAbs = algorithms::math::abs( x );
 
-            bool const below_1 = abs_x < 1.0_X;
-            float_X const onSupport = 1.0_X - abs_x;
+            bool const isInSupport = xAbs < 1.0_X;
+            float_X const valueOnSupport = 1.0_X - xAbs;
 
             float_X result( 0.0 );
-            if( below_1 )
-                result = onSupport;
+            if( isInSupport )
+                result = valueOnSupport;
 
             return result;
         }
     };
 
-    struct ChargeAssignmentOnSupport : public shared_CIC::CIC
+    struct ChargeAssignmentOnSupport : public sharedCIC::CIC
     {
 
         /** form factor of this particle shape.
