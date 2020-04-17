@@ -94,12 +94,11 @@ namespace detail
              * fieldPosVector = float3_64( fieldPosVector.x(),
              *       +sin(phi)*fieldPosVector.y()-cos(phi)*fieldPosVector.z(),
              *       +cos(phi)*fieldPosVector.y()+sin(phi)*fieldPosVector.z()  );
-             * The 2D implementation here only calculates the last two components and takes z=0.
+             * The 2D implementation here only calculates the first two components and takes z=0.
              */
             return result(
                 fieldPosVector.x(),
-               +math::sin(AngleType(phi))*fieldPosVector.y() ,
-               +math::cos(AngleType(phi))*fieldPosVector.y() );
+               +math::sin(AngleType(phi))*fieldPosVector.y() );
         }
     };
 
