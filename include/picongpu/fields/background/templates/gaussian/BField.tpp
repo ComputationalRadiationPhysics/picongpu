@@ -218,14 +218,14 @@ namespace gaussian
         const float_T s = float_T( 1.0 ) / ( k0 * w0 );
 
         /* Note: The E-field amplitude E_0 is multiplied later outside this function */
-        const complex_T Ex = w0 / wz * math::exp( 
+        const complex_T Ex = w0 / wz * math::exp(
                              complex_T( 0, 1 ) * ( omega0 * t - k0 * z )
                            + complex_T( 0, 1 ) * phiz + complex_T( 0, 1 ) * phi0
-                           - ( x * x + y * y) * 
-                               ( float_T( 1.0 ) / ( wz * wz ) 
+                           - ( x * x + y * y) *
+                               ( float_T( 1.0 ) / ( wz * wz )
                                  + complex_T( 0, 1 ) * k0 * RzInv / float_T( 2.0 ) )
                           );
-        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed) 
+        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed)
                                        / ( float_T( 2.0 ) * tauG * tauG ) );
         const complex_T Bx_1 = s * s * xi * eta * ( -float_T( 4.0 ) * theta * theta )
                                * Ex_0 * ( float_T( 1.0 ) + sigma * epsilon * theta
@@ -284,14 +284,14 @@ namespace gaussian
         const float_T s = float_T( 1.0 ) / ( k0 * w0 );
 
         /* Note: The E-field amplitude E_0 is multiplied later outside this function */
-        const complex_T Ex = w0 / wz * math::exp( 
+        const complex_T Ex = w0 / wz * math::exp(
                              complex_T( 0, 1 ) * ( omega0 * t - k0 * z )
                            + complex_T( 0, 1 ) * phiz + complex_T( 0, 1 ) * phi0
-                           - ( x * x + y * y) * 
-                               ( float_T( 1.0 ) / ( wz * wz ) 
+                           - ( x * x + y * y) *
+                               ( float_T( 1.0 ) / ( wz * wz )
                                  + complex_T( 0, 1 ) * k0 * RzInv / float_T( 2.0 ) )
                           );
-        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed) 
+        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed)
                                        / ( float_T( 2.0 ) * tauG * tauG ) );
         const complex_T By_1 = Ex_0 * ( float_T( 1.0 ) + sigma * epsilon * theta
                                         * ( -float_T( 2.0 ) * zeta * complex_T( 0, 1 )
@@ -355,14 +355,14 @@ namespace gaussian
         const float_T s = float_T( 1.0 ) / ( k0 * w0 );
 
         /* Note: The E-field amplitude E_0 is multiplied later outside this function */
-        const complex_T Ex = w0 / wz * math::exp( 
+        const complex_T Ex = w0 / wz * math::exp(
                              complex_T( 0, 1 ) * ( omega0 * t - k0 * z )
                            + complex_T( 0, 1 ) * phiz + complex_T( 0, 1 ) * phi0
-                           - ( x * x + y * y) * 
-                               ( float_T( 1.0 ) / ( wz * wz ) 
+                           - ( x * x + y * y) *
+                               ( float_T( 1.0 ) / ( wz * wz )
                                  + complex_T( 0, 1 ) * k0 * RzInv / float_T( 2.0 ) )
                           );
-        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed) 
+        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed)
                                        / ( float_T( 2.0 ) * tauG * tauG ) );
         const complex_T Bz_1 = s * eta * ( -float_T( 2.0 ) * theta ) * Ex_0
                                        * ( float_T( 1.0 ) + sigma * epsilon * theta

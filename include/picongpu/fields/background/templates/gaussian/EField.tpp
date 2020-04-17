@@ -55,7 +55,7 @@ namespace gaussian
         focus_y_SI(focus_y_SI), wavelength_SI(wavelength_SI),
         pulselength_SI(pulselength_SI), w0_SI(w0_SI),
         phi(phi), tdelay_user_SI(tdelay_user_SI), dt(SI::DELTA_T_SI),
-        unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay), pol(pol) 
+        unit_length(UNIT_LENGTH), auto_tdelay(auto_tdelay), pol(pol)
     {
         /* Note: Enviroment-objects cannot be instantiated on CUDA GPU device. Since this is done
                  on host (see fieldBackground.param), this is no problem.
@@ -219,14 +219,14 @@ namespace gaussian
          * */
 
         /* Note: The E-field amplitude E_0 is multiplied later outside this function */
-        const complex_T Ex = w0 / wz * math::exp( 
+        const complex_T Ex = w0 / wz * math::exp(
                              complex_T( 0, 1 ) * ( omega0 * t - k0 * z )
                            + complex_T( 0, 1 ) * phiz + complex_T( 0, 1 ) * phi0
-                           - ( x * x + y * y) * 
-                               ( float_T( 1.0 ) / ( wz * wz ) 
+                           - ( x * x + y * y) *
+                               ( float_T( 1.0 ) / ( wz * wz )
                                  + complex_T( 0, 1 ) * k0 * RzInv / float_T( 2.0 ) )
                           );
-        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed) 
+        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed)
                                / ( float_T( 2.0 ) * tauG * tauG ) );
         const complex_T Ex_1 = Ex_0 * ( float_T( 1.0 ) + sigma * epsilon * theta
                                         * ( -float_T( 2.0 ) * zeta * complex_T( 0, 1 )
@@ -295,14 +295,14 @@ namespace gaussian
         const float_T s = float_T( 1.0 ) / ( k0 * w0 );
 
         /* Note: The E-field amplitude E_0 is multiplied later outside this function */
-        const complex_T Ex = w0 / wz * math::exp( 
+        const complex_T Ex = w0 / wz * math::exp(
                              complex_T( 0, 1 ) * ( omega0 * t - k0 * z )
                            + complex_T( 0, 1 ) * phiz + complex_T( 0, 1 ) * phi0
-                           - ( x * x + y * y) * 
-                               ( float_T( 1.0 ) / ( wz * wz ) 
+                           - ( x * x + y * y) *
+                               ( float_T( 1.0 ) / ( wz * wz )
                                  + complex_T( 0, 1 ) * k0 * RzInv / float_T( 2.0 ) )
                           );
-        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed) 
+        const complex_T Ex_0 = Ex * math::exp( -(t - z / cspeed) * (t - z / cspeed)
                                / ( float_T( 2.0 ) * tauG * tauG ) );
         const complex_T Ez_1 = s * xi * ( -float_T( 2.0 ) * theta ) * Ex_0 *
                                    ( float_T( 1.0 ) + sigma * epsilon * theta *

@@ -49,7 +49,7 @@ namespace picongpu
         const templates::gaussian::EField gaussianFieldE1;
 
         /* Constructor is host-only, because of subGrid and halfSimSize initialization */
-        HINLINE FieldBackgroundE( const float3_64 unitField ) : 
+        HINLINE FieldBackgroundE( const float3_64 unitField ) :
 
             m_unitField( unitField ),
 
