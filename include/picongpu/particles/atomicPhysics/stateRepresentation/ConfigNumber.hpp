@@ -66,6 +66,7 @@
 
 
 #include <pmacc/math/Vector.hpp>
+#include <pmacc/algorithms/math/defines/comparison.hpp>
 
 namespace picongpu
 {
@@ -98,16 +99,10 @@ class ConfigNumber
     T_DataType stepLength(uint8_t n)
     {
         T_DataType result = 1;
-        T_DataType currentG;
 
         for (uint8_t i = 1u; i < n; i++)
         {
-            currentG = this->g(i);
-            if ( currentG < T_ChargeNumber )
-            {
-                result *= currentG + 1;
-            }
-            else { result *= T_ChargeNumber + 1; }
+            result *= pmacc::algorithms::math::min(this->g(i), T_ChargeNumber) + 1;
         }
 
         return result;
