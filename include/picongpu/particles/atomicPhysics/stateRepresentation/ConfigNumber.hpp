@@ -76,7 +76,7 @@ namespace atomicPhysics
 namespace stateRepresentation
 {
 
-template< typename T_DataType, uint8_t T_NumberLevels >
+template< typename T_DataType, uint8_t T_NumberLevels, uint8_t T_ChargeNumber>
 class ConfigNumber
 {
  /* this class implements the actual storage of the configuration
@@ -98,10 +98,16 @@ class ConfigNumber
     T_DataType stepLength(uint8_t n)
     {
         T_DataType result = 1;
+        T_DataType currentG;
 
         for (uint8_t i = 1u; i < n; i++)
         {
-            result *= ( this->g(i) + 1 );
+            currentG = this->g(i);
+            if ( currentG < T_ChargeNumber )
+            {
+                result *= currentG + 1;
+            }
+            else { result *= T_ChargeNumber + 1; }
         }
 
         return result;
@@ -132,8 +138,8 @@ public:
     {
     /** constructor using a given occupation number vector to initialise.
     *
-    * Uses the formula in class descripton. Assumes index of vector corresponds
-    * to principal quantum number n -1.
+    * Uses the formula in file descripton. Assumes index of vector corresponds
+    * to n-1, n ... principal quantum number.
     */
 
         /* stepLength ... number of table entries per occupation number VALUE of
@@ -146,7 +152,7 @@ public:
         for(uint8_t n=0u; n < T_NumberLevels; n++)
         {
             PMACC_ASSERT_MSG(
-                this->g(n+1) >= *levelVector[n],
+                this->g(n+1) >= levelVector[n],
                 "occuation number too large"
             );
 
@@ -154,7 +160,7 @@ public:
             *
             * since for loop starts with n=0 instead of n=1,
             */
-            stepLength *= this->g(n) + 1;
+            stepLength *= std::min(this->g(n) + 1);
             this->configNumber += *levelVector[n] * stepLength;
         }
     }

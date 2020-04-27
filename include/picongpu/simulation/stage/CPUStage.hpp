@@ -1,6 +1,7 @@
 /* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
- *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
+ *                     Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -30,7 +31,6 @@
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>
-
 
 namespace picongpu
 {
