@@ -151,10 +151,20 @@ namespace picongpu
         0._X
     );
 
-    /** atomic superconfiguration
+    /* atomicPhysics internal state representations
+     *
+     * the following definitions, until <end atomicPhysics> are different
+     * Representations of the internal state of ions in plasmas.
+     */
+     {
+    //Example of number of modelled shells/levels
+    constexpr uint8_t numberLevels_Hydrogen = 4u;  // 4u =^= unsigned int 4
+
+    /** [depreceated]flylite atomic superconfiguration from
      *
      * atomic configuration of an ion for collisional-radiative modeling,
-     * see also flylite.param
+     * see also flylite.param, was to be used by the not finished population
+     * kinetics stage, has been replaced by atomicPhysics
      */
     value_identifier(
         flylite::Superconfig,
@@ -162,17 +172,41 @@ namespace picongpu
         flylite::Superconfig::create( 0. )
     );
 
-    //atomic State Example
-    constexpr uint8_t numberLevels_Hydrogen = 4u;  // 4u =^= unsigned int 4
+    alias( atomicLevels );
+    /** atomic levels
+     *
+     * internal state of ions described by levelVector, see atomicPhysics for
+     * detail.
+     *
+     * Must be defined for each ion seperatly by giving the number of moddeled
+     * atomic Levels N for this species.
+     *
+     * replaces fylite::Superconfig, since more general
+     */
+
+    /* definition of a atomicLevels specific for hydrogen other elements can be
+    * added similarly as a new value identifier
+    */
+
+    value_identifier(
+        atomicPhysics::LevelVector< numberLevels_Hydrogen >,
+        levelVector_Hydrogen,        // name used in species Definition
+        atomicPhysics::LevelVector< numberLevels_Hydrogen >::create( 0. )
+                                    //initialization with zero
+    );
 
     alias( atomicConfigNumber );
     /** atomicConfigNumber
      *
-     * must be defined for each ion seperatly by giving the number of moddeled
-     * atomic Levels N and the dataformat to be used, eg. float_x, uint32_t, ...
+     * internal state of ions described by index number of superconfiguration.
+     *
+     * Must be defined for each ion seperatly by giving the number of modelled
+     * atomic levels N and the dataformat to be used, eg. float_x, uint32_t, ...
+     *
+     * more efficient representation of atomicLevels
      */
 
-    /* definition of a config number specific for hydrogen
+    /* definition of a configNumber specific for hydrogen
     * other elements can be added similarly as a new value identifier
     *
     * actual datatype must be defined seperately from value_identifier,
@@ -190,20 +224,9 @@ namespace picongpu
         ConfigNumber_H( 1u )
     );
 
-    alias( atomicLevels );
-    /** atomic levels
-     *
-     * atomic levels must be defined for each ion seperatly by giving the number
-     * of moddeled atomic Levels  N and specializing the general representation
-     * of atomicPhysics.param.
-     */
-
-    value_identifier(
-        atomicPhysics::LevelVector< numberLevels_Hydrogen >,
-        levelVector_Hydrogen,        // name used in species Definition
-        atomicPhysics::LevelVector< numberLevels_Hydrogen >::create( 0. )
-                                //initialization with zero
-    );
+    }
+    /* <end atomicPhysics>
+    */
 
     /** Total cell index of a particle.
      *
