@@ -158,7 +158,8 @@ namespace picongpu
      */
      {
     //Example of number of modelled shells/levels
-    constexpr uint8_t numberLevels_Hydrogen = 4u;  // 4u =^= unsigned int 4
+    constexpr uint8_t numberLevels_Hydrogen = 4u;   //model 4 shells/atomic levels
+    constexpr uint8_t chargeNumber_Hydrogen = 1u:   //hydrogen has charge number 1
 
     /** [depreceated]flylite atomic superconfiguration from
      *
@@ -200,10 +201,13 @@ namespace picongpu
      *
      * internal state of ions described by index number of superconfiguration.
      *
-     * Must be defined for each ion seperatly by giving the number of modelled
-     * atomic levels N and the dataformat to be used, eg. float_x, uint32_t, ...
+     * Must be defined for each ion species seperatly by giving the number of
+     * modelled atomic levels N, the charge number and the dataformat to be
+     * used, eg. float_x, uint32_t, ..., for storage of index.
      *
      * more efficient representation of atomicLevels
+     * Beware: index variable  must be cover the number of states possible,
+     * see AtomicPhysics for further information
      */
 
     /* definition of a configNumber specific for hydrogen
@@ -215,7 +219,8 @@ namespace picongpu
     using ConfigNumber_H =
         particles::atomicPhysics::stateRepresentation::ConfigNumber<
             uint32_t,
-            numberLevels_Hydrogen
+            numberLevels_Hydrogen,
+            chargeNumber_Hydrogen
         >;
 
     value_identifier(

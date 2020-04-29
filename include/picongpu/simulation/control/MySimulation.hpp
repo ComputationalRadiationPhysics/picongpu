@@ -1,6 +1,7 @@
 /* Copyright 2013-2020 Axel Huebl, Felix Schmitt, Heiko Burau, Rene Widera,
  *                     Richard Pausch, Alexander Debus, Marco Garten,
- *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov
+ *                     Benjamin Worpitz, Alexander Grund, Sergei Bastrakov,
+                       Brian Marre
  *
  * This file is part of PIConGPU.
  *
@@ -61,6 +62,7 @@
 #include "picongpu/simulation/control/DomainAdjuster.hpp"
 #include "picongpu/simulation/stage/Bremsstrahlung.hpp"
 #include "picongpu/simulation/stage/CPUStage.hpp"
+#include "picongpu/simulation/stage/AtomicPhysics.hpp"
 #include "picongpu/simulation/stage/CurrentBackground.hpp"
 #include "picongpu/simulation/stage/CurrentDeposition.hpp"
 #include "picongpu/simulation/stage/CurrentInterpolationAndAdditionToEMF.hpp"
@@ -552,7 +554,8 @@ public:
         myFieldSolver->update_beforeCurrent( currentStep );
         CurrentReset{ }( currentStep );
         __setTransactionEvent( commEvent );
-        CPUStage{ *cellDescription }( currentStep );
+        //CPUStage{ *cellDescription }( currentStep );
+        AomicPhysic{ *cellDescription }( currentStep );
         CurrentBackground{ *cellDescription }( currentStep );
         CurrentDeposition{ }( currentStep );
         CurrentInterpolationAndAdditionToEMF{ }( currentStep );
