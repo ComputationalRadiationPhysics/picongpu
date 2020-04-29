@@ -22,6 +22,7 @@ RUN        apt-get update && \
               build-essential \
               ca-certificates \
               coreutils \
+              cuda-cupti-$CUDA_PKG_VERSION \
               cuda-command-line-tools-$CUDA_PKG_VERSION \
               cuda-core-$CUDA_PKG_VERSION \
               cuda-cudart-dev-$CUDA_PKG_VERSION \
