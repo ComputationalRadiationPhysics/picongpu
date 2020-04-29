@@ -41,7 +41,7 @@ namespace stage
 
     // Functor to apply the operation for a given ion species
     template< typename T_IonSpecies >
-    struct CallCPUStage
+    struct CallAtomicPhysics
     {
         // Define ion species and frame type
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
@@ -156,6 +156,12 @@ namespace stage
 
                     /// Here implement everything using variables ion and electron
                     /// that represent the selected pair
+                    
+                    double timeRemaining;
+
+                    timeRemaining = 
+                    
+                    
                 }
 
                 ionFrame = ionBox.getPreviousFrame( ionFrame );

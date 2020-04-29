@@ -1,19 +1,19 @@
-language: none
-sudo: false
-dist: trusty
+language none
+sudo false
+dist trusty
 
-cache:
-  apt: true
-  directories:
-    - $HOME/.cache/spack
-    - $HOME/.cache/cmake-3.11.4
-  pip: true
+cache
+  apt true
+  directories
+    - $HOME.cachespack
+    - $HOME.cachecmake-3.11.4
+  pip true
 
-addons:
-  apt:
-    sources:
+addons
+  apt
+    sources
       - ubuntu-toolchain-r-test
-    packages:
+    packages
       - g++-4.9
       - gfortran-4.9  # spack OpenMPI dependency
       - environment-modules
@@ -22,51 +22,37 @@ addons:
       # clang 5.0.0 is pre-installed
       # - clang-tidy-3.9
 
-env:
-  global:
-    - SPACK_ROOT: $HOME/.cache/spack
-    - PATH: $PATH:$HOME/.cache/spack/bin
-    - CXXFLAGS: "-std=c++11"
+env
+  global
+    - SPACK_ROOT $HOME.cachespack
+    - PATH $PATH$HOME.cachespackbin
+    - CXXFLAGS -std=c++11
 
-install:
+install
   #############################################################################
   # PMacc CPU-only dependencies                                               #
   #############################################################################
-<<<<<<< HEAD
-  - SPACK_FOUND=$(which spack >/dev/null && { echo 0; } || { echo 1; })
+  - SPACK_FOUND=$(which spack devnull && { echo 0; }  { echo 1; })
   - if [ $SPACK_FOUND -ne 0 ]; then
       mkdir -p $SPACK_ROOT &&
-      git clone --depth 50 https://github.com/spack/spack.git $SPACK_ROOT &&
-      echo -e "config:""\n  build_jobs:"" 2" > $SPACK_ROOT/etc/spack/config.yaml &&
-      echo -e "packages:""\n  cmake:""\n    version:"" [3.11.4]""\n    paths:""\n      cmake@3.11.4:"" /home/travis/.cache/cmake-3.11.4""\n    buildable:"" False" > $SPACK_ROOT/etc/spack/packages.yaml;
-=======
-  - export PATH=$CMAKE_ROOT/bin:$PATH
-  - CMAKE_3_11_4_FOUND=$(cmake --version | grep " 3\.11\.4" >/dev/null && { echo 0; } || { echo 1; })
-  - if [ $CMAKE_3_11_4_FOUND -ne 0 ]; then
-      mkdir -p $CMAKE_ROOT &&
-      cd $CMAKE_ROOT &&
-      rm -rf $CMAKE_ROOT/* &&
-      travis_retry wget --no-check-certificate http://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.tar.gz &&
-      tar -xzf cmake-3.11.4-Linux-x86_64.tar.gz &&
-      mv cmake-3.11.4-Linux-x86_64/* . &&
-      rm -rf cmake-3.11.4-Linux-x86_64.tar.gz cmake-3.11.4-Linux-x86_64 &&
-      cd -;
->>>>>>> Squashed 'thirdParty/cupla/' changes from 0594a68a0d..f60a0ac72c
+      git clone --depth 50 httpsgithub.comspackspack.git $SPACK_ROOT &&
+      echo -e confign  build_jobs 2  $SPACK_ROOTetcspackconfig.yaml &&
+      echo -e packagesn  cmaken    version [3.11.4]n    pathsn      cmake@3.11.4 hometravis.cachecmake-3.11.4n    buildable False  $SPACK_ROOTetcspackpackages.yaml;
     fi
   - spack compiler add
   # required dependencies - CMake 3.11.4
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      if [ ! -f $HOME/.cache/cmake-3.11.4/bin/cmake ]; then
-        wget -O cmake.sh https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh &&
-        sh cmake.sh --skip-license --exclude-subdir --prefix=$HOME/.cache/cmake-3.11.4 &&
+  - if [ $TRAVIS_OS_NAME == linux ]; then
+      if [ ! -f $HOME.cachecmake-3.11.4bincmake ]; then
+        wget -O cmake.sh httpscmake.orgfilesv3.11cmake-3.11.4-Linux-x86_64.sh &&
+        sh cmake.sh --skip-license --exclude-subdir --prefix=$HOME.cachecmake-3.11.4 &&
         rm cmake.sh;
       fi;
-    elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      if [ ! -d /Applications/CMake.app/Contents/ ]; then
-        curl -L -s -o cmake.dmg https://cmake.org/files/v3.11/cmake-3.11.4-Darwin-x86_64.dmg &&
-        yes | hdiutil mount cmake.dmg &&
-        sudo cp -R "/Volumes/cmake-3.11.4-Darwin-x86_64/CMake.app" /Applications &&
-        hdiutil detach /dev/disk1s1 &&
+    elif [ $TRAVIS_OS_NAME == osx ]; then
+      if [ ! -d ApplicationsCMake.appContents ]; then
+        curl -L -s -o cmake.dmg httpscmake.orgfilesv3.11cmake-3.11.4-Darwin-x86_64.dmg &&
+        yes  hdiutil mount cmake.dmg &&
+        sudo cp -R Volumescmake-3.11.4-Darwin-x86_64CMake.app Applications &&
+        hdiutil detach devdisk1s1 &&
         rm cmake.dmg;
       fi;
     fi
@@ -78,178 +64,117 @@ install:
       boost@1.65.1~date_time~graph~iostreams~locale~log~random~thread~timer~wave
       $COMPILERSPEC
   - spack clean -a
-  - source /etc/profile &&
-    source $SPACK_ROOT/share/spack/setup-env.sh
+  - source etcprofile &&
+    source $SPACK_ROOTsharespacksetup-env.sh
   - spack load cmake
   - spack load boost $COMPILERSPEC
 
-<<<<<<< HEAD
-jobs:
-  fast_finish: true
-  include:
-    - stage: 'Target Branch'
-      install: skip
-      script:
+jobs
+  fast_finish true
+  include
+    - stage 'Target Branch'
+      install skip
+      script
         #############################################################################
-        # Disallow PRs to `ComputationalRadiationPhysics/picongpu` branch `master`  #
+        # Disallow PRs to `ComputationalRadiationPhysicspicongpu` branch `master`  #
         # if not an other mainline branch such as `dev` or `release-...`            #
         #############################################################################
-        - . test/correctBranchPR
+        - . testcorrectBranchPR
     - &style-python
-      stage: 'Style'
-      language: python
-      python: "2.7"
-      install: pip install -U flake8
-      script:
+      stage 'Style'
+      language python
+      python 2.7
+      install pip install -U flake8
+      script
         #############################################################################
         # Test Python Files for PEP8 conformance                                    #
         #############################################################################
         - flake8 --exclude=thirdParty .
-    - <<: *style-python
-      python: "3.6"
-    - install: skip
-      language: cpp
-      script:
+    -  style-python
+      python 3.6
+    - install skip
+      language cpp
+      script
         #############################################################################
-        # Conformance with Alpaka: Do not write __global__ CUDA kernels directly    #
+        # Conformance with Alpaka Do not write __global__ CUDA kernels directly    #
         #############################################################################
-        - test/hasCudaGlobalKeyword include/pmacc
-        - test/hasCudaGlobalKeyword share/pmacc/examples
-        - test/hasCudaGlobalKeyword include/picongpu
-        - test/hasCudaGlobalKeyword share/picongpu/examples
+        - testhasCudaGlobalKeyword includepmacc
+        - testhasCudaGlobalKeyword sharepmaccexamples
+        - testhasCudaGlobalKeyword includepicongpu
+        - testhasCudaGlobalKeyword sharepicongpuexamples
 
         #############################################################################
         # Disallow end-of-line (EOL) white spaces                                   #
         #############################################################################
-        - test/hasEOLwhiteSpace
+        - testhasEOLwhiteSpace
 
         #############################################################################
         # Disallow TABs, use white spaces                                           #
         #############################################################################
-        - test/hasTabs
+        - testhasTabs
 
         #############################################################################
         # Disallow non-ASCII in source files and scripts                            #
         #############################################################################
-        - test/hasNonASCII
+        - testhasNonASCII
 
         #############################################################################
         # Disallow spaces before pre-compiler macros                                #
         #############################################################################
-        - test/hasSpaceBeforePrecompiler
+        - testhasSpaceBeforePrecompiler
 
         #############################################################################
-        # Enforce angle brackets <...> for includes of external library files       #
+        # Enforce angle brackets ... for includes of external library files       #
         #############################################################################
-        - test/hasExtLibIncludeBrackets include boost
-        - test/hasExtLibIncludeBrackets include alpaka
-        - test/hasExtLibIncludeBrackets include cupla
-        - test/hasExtLibIncludeBrackets include splash
-        - test/hasExtLibIncludeBrackets include mallocMC
-        - test/hasExtLibIncludeBrackets include/picongpu pmacc
-        - test/hasExtLibIncludeBrackets share/picongpu/examples pmacc
-        - test/hasExtLibIncludeBrackets share/picongpu/examples boost
-        - test/hasExtLibIncludeBrackets share/picongpu/examples alpaka
-        - test/hasExtLibIncludeBrackets share/picongpu/examples cupla
-        - test/hasExtLibIncludeBrackets share/picongpu/examples splash
-        - test/hasExtLibIncludeBrackets share/picongpu/examples mallocMC
-        - test/hasExtLibIncludeBrackets share/pmacc/examples pmacc
+        - testhasExtLibIncludeBrackets include boost
+        - testhasExtLibIncludeBrackets include alpaka
+        - testhasExtLibIncludeBrackets include cupla
+        - testhasExtLibIncludeBrackets include splash
+        - testhasExtLibIncludeBrackets include mallocMC
+        - testhasExtLibIncludeBrackets includepicongpu pmacc
+        - testhasExtLibIncludeBrackets sharepicongpuexamples pmacc
+        - testhasExtLibIncludeBrackets sharepicongpuexamples boost
+        - testhasExtLibIncludeBrackets sharepicongpuexamples alpaka
+        - testhasExtLibIncludeBrackets sharepicongpuexamples cupla
+        - testhasExtLibIncludeBrackets sharepicongpuexamples splash
+        - testhasExtLibIncludeBrackets sharepicongpuexamples mallocMC
+        - testhasExtLibIncludeBrackets sharepmaccexamples pmacc
     - &static-code-python
-      stage: 'Static Code Analysis'
-      language: python
-      python: "2.7"
-      install: pip install -U pyflakes
-      script:
+      stage 'Static Code Analysis'
+      language python
+      python 2.7
+      install pip install -U pyflakes
+      script
         #############################################################################
         # Warnings, unused code, etc.                                               #
         #############################################################################
         - pyflakes .
-    - <<: *static-code-python
-      python: "3.6"
+    -  static-code-python
+      python 3.6
     - &test-cpp-unit
-      stage: 'C++ Unit Tests'
-      language: cpp
-      env: [ COMPILERSPEC='%gcc@4.9.4' ]
-      before_install:
+      stage 'C++ Unit Tests'
+      language cpp
+      env [ COMPILERSPEC='%gcc@4.9.4' ]
+      before_install
         - export CXX=g++-4.9
         - export CC=gcc-4.9
         - export FC=gfortran-4.9
-      script:
+      script
         - $CXX --version
         - $CC --version
         - $FC --version
         #############################################################################
         # PMacc CPU-only tests                                                      #
         #############################################################################
-        - mkdir -p $HOME/build
-        - cd $HOME/build
-        - cmake $TRAVIS_BUILD_DIR/include/pmacc
+        - mkdir -p $HOMEbuild
+        - cd $HOMEbuild
+        - cmake $TRAVIS_BUILD_DIRincludepmacc
                 -DALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE=ON
         - make -j 2
         # - make test  # reduce memory and RT costs first
-    - <<: *test-cpp-unit
-      env: [ COMPILERSPEC='%clang@5.0.0' ]
-      before_install:
+    -  test-cpp-unit
+      env [ COMPILERSPEC='%clang@5.0.0' ]
+      before_install
         - export CXX=clang++
         - export CC=clang
         - export FC=gfortran-4.9
-=======
-script:
-  #############################################################################
-  # Example: Matrix Multiplication (adapted original)                         #
-  #############################################################################
-  - cd $HOME/matrixMul
-  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/matrixMul/ $CMAKE_FLAGS
-  - make
-  # can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original
-  #   SDK example
-  # CPU_B_SEQ_T_OMP2/THREADS: too many threads necessary (256)
-  # - ./matrixMul -wA=64 -wB=64 -hA=64 -hB=64
-  #############################################################################
-  # Example: Async API (adapted original)                                     #
-  #############################################################################
-  - cd $HOME/asyncAPI
-  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/asyncAPI/ $CMAKE_FLAGS
-  - make
-  # can not run with CPU_B_SEQ_T_SEQ due to missing elements layer in original
-  #   SDK example
-  # CPU_B_SEQ_T_OMP2/THREADS: too many threads necessary (512)
-  # - ./asyncAPI
-  #############################################################################
-  # Example: Async API (added elements layer)                                 #
-  #############################################################################
-  - cd $HOME/asyncAPI_tuned
-  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/asyncAPI_tuned/ $CMAKE_FLAGS
-  - make
-  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
-       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
-      ./asyncAPI_tuned;
-    fi
-  #############################################################################
-  # Example: vectorAdd (added elements layer)                                 #
-  #############################################################################
-  - cd $HOME/vectorAdd
-  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/vectorAdd/ $CMAKE_FLAGS
-  - make
-  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
-       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
-      ./vectorAdd 100000;
-    fi
-  #############################################################################
-  # Example: BlackScholes (adapted original)                                 #
-  #############################################################################
-  - cd $HOME/blackScholes
-  - cmake $TRAVIS_BUILD_DIR/example/CUDASamples/blackScholes/ $CMAKE_FLAGS
-  - make
-  - if [ $STRATEGY == "CPU_B_OMP2_T_SEQ" ] ||
-       [ $STRATEGY == "CPU_B_SEQ_T_SEQ" ]; then
-      ./blackScholes;
-    fi
-  #############################################################################
-  # Test: additional tests                                                    #
-  #############################################################################
-  - cd $HOME/test/config
-  - if [[ $CXX =~ "^g\+\+" ]] || [[ "$COMPILER" == "nvcc" ]] ; then
-      $TRAVIS_BUILD_DIR/test/system/config/test.sh $CXX;
-    fi
->>>>>>> Squashed 'thirdParty/cupla/' changes from 0594a68a0d..f60a0ac72c
