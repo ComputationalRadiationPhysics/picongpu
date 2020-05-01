@@ -92,12 +92,16 @@ class ConfigNumber
 
     uint16_t g(uint8_t n)
     {
+    /** returns the maximum occupation number for the n-th level
+     */
         // cast necessary to prevent overflow in n^2 calculation
         return (static_cast<uint16_t>(n) * static_cast<uint16_t>(n) * 2);
     }
 
     T_DataType stepLength(uint8_t n)
     {
+    /** returns the step length of the n-th level
+     */
         T_DataType result = 1;
 
         for (uint8_t i = 1u; i < n; i++)
@@ -165,6 +169,17 @@ public:
     /** returns number of levels, n_max, used for configNumber
     */
         return T_NumberLevels;
+    }
+
+    T_DataType numberStates()
+    {
+    /** returns number of different states(Configs) that are represented
+     */
+        return static_cast< T_DataType >(
+            this->stepLength(
+                this->numberLevels() + 1
+                )
+            );
     }
 
     operator pmacc::math::Vector< uint16_t, T_NumberLevels >()

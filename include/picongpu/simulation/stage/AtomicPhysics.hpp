@@ -22,8 +22,10 @@
 
 #pragma once
 
-#include "picongpu/fields/background/cellwiseOperation.hpp"
-#include "picongpu/fields/FieldJ.hpp"
+#include <picongpu/param/grid.param>
+
+#include <picongpu/fields/background/cellwiseOperation.hpp>
+#include <picongpu/fields/FieldJ.hpp>
 
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/Environment.hpp>
@@ -31,6 +33,7 @@
 #include <pmacc/type/Area.hpp>
 
 #include <cstdint>
+
 
 namespace picongpu
 {
@@ -159,8 +162,11 @@ namespace stage
                     
                     double timeRemaining;
 
-                    timeRemaining = 
-                    
+                    timeRemaining = static_cast< double >(
+                        picongpu::SI::DELTA_T_SI
+                    );
+
+                    ion[atomicConfigNumber_].
                     
                 }
 
@@ -189,12 +195,12 @@ namespace stage
                 VectorAllSpecies,
                 atomicPhysicsElectrons< > /// here will be your flag from .param file
             >::type;
-            // This will call the CallCPUStage functor for the species from the list
+            // This will call the AtomicPhysics functor for the species from the list
             pmacc::meta::ForEach<
                 SpeciesWithAtomicPhysics,
-                CallCPUStage< bmpl::_1 >
-            > callCPUStage;
-            callCPUStage(
+                CallAtomicPhysics< bmpl::_1 >
+            > callAtomicPhysics;
+            callAtomicPhysics(
                 cellDescription
             );
 

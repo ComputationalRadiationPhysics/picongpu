@@ -158,8 +158,8 @@ namespace picongpu
      */
      {
     //Example of number of modelled shells/levels
-    constexpr uint8_t numberLevels_Hydrogen = 4u;   //model 4 shells/atomic levels
-    constexpr uint8_t chargeNumber_Hydrogen = 1u:   //hydrogen has charge number 1
+    constexpr uint8_t numberLevels_Hydrogen = 4u;   //model 4 shells/levels
+    constexpr uint8_t chargeNumber_Hydrogen = 1u;   //hydrogen charge number=1
 
     /** [depreceated]flylite atomic superconfiguration from
      *
