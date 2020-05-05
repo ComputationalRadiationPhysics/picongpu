@@ -229,6 +229,8 @@ namespace picongpu
         ConfigNumber_H( 1u )
     );
 
+    alias( atomicPhysics );
+
     }
     /* <end atomicPhysics>
     */

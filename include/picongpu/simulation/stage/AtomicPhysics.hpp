@@ -32,11 +32,26 @@
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/type/Area.hpp>
 
-#include <cstdint>
+// modules necessary for random number generators from pmacc
+#include <pmacc/random/methods/methods.hpp>
+#include <pmacc/random/distributions/Uniform.hpp>
+#include <pmacc/random/RNGProvider.hpp>
 
+#include <cstdint>
 
 namespace picongpu
 {
+namespace traits
+{
+    /** specialization of the UsesRNG trait
+     * --> atomicPhysics module uses random number generation
+     */
+    template<>
+    struct UsesRNG<simulation::stage::CallAtomicPhysics> : public boost::true_type
+    {
+    };
+} // namespace traits
+
 namespace simulation
 {
 namespace stage
@@ -58,10 +73,24 @@ namespace stage
             VectorAllSpecies,
             typename pmacc::particles::traits::ResolveAliasFromSpecies<
                 IonSpecies,
-                atomicPhysicsElectrons< > /// here will be your flag from .param file
+                atomicPhysics< > /// here will be your flag from .param file
             >::type
         >;
         using ElectronFrameType = typename ElectronSpecies::FrameType;
+
+        // random number generator(RNG) Factory as defined in random.param
+        using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
+
+        using T_IonSpeciesAtomicConfigNumber =
+            pmacc::particles::traits::ResolveAliasFromSpecies<
+                IonSpecies,
+                atomicConfigNumber< >
+            >;
+
+        using Distribution = pmacc::random::distributions::Uniform<>;
+        using RandomGen = typename RNGFactory::GetRandomType<Distribution>::type;
+        //actual random number Generator
+        RandomGen randomGen = RNGFactory::createRandom<Distribution>();
 
         // Call the functor
         void operator()( MappingDesc const cellDescription ) const
@@ -159,14 +188,15 @@ namespace stage
 
                     /// Here implement everything using variables ion and electron
                     /// that represent the selected pair
-                    
-                    double timeRemaining;
 
+                    double timeRemaining;
                     timeRemaining = static_cast< double >(
                         picongpu::SI::DELTA_T_SI
                     );
 
-                    ion[atomicConfigNumber_].
+
+                    auto configNumber = ion[atomicConfigNumber_];
+                    auto numberPossibilities = configNumber.numberStates();
                     
                 }
 
@@ -179,11 +209,11 @@ namespace stage
 
 
     //! Test stage for accessing PIC data from a CPU
-    class CPUStage
+    class AtomicPhysics
     {
     public:
 
-        CPUStage( MappingDesc const cellDescription ):
+        AtomicPhysics( MappingDesc const cellDescription ):
             cellDescription( cellDescription )
         {
         }

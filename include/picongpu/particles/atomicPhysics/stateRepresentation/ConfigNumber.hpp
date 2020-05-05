@@ -98,24 +98,78 @@ class ConfigNumber
         return (static_cast<uint16_t>(n) * static_cast<uint16_t>(n) * 2);
     }
 
+    uint16_t numberOfOccupationNumberValuesInShell(uint8_t n)
+    {
+    /** returns the number of different occupation number values for the nth
+     * shell.
+     *
+     * Beware: n larger than 254 causes an overflow
+     */
+     PMACC_ASSERT_MSG(
+            n < 255,
+            "n too large, must be < 255"
+        );
+        return pmacc::algorithms::math::min(
+                this->g( n ),
+                T_ChargeNumber
+            ) + 1;
+    }
+
     T_DataType stepLength(uint8_t n)
     {
     /** returns the step length of the n-th level
+     *
+     * stepLength ... number of table entries per occupation number VALUE of
+     * the current principal quantum number n.
      */
         T_DataType result = 1;
 
         for (uint8_t i = 1u; i < n; i++)
         {
-            result *= pmacc::algorithms::math::min(this->g(i), T_ChargeNumber) + 1;
+            result *= static_cast<T_DataType>(
+                this->numberOfOccupationNumberValuesInShell(i)
+                );
         }
 
         return result;
     }
 
+    void nextStepLength(T_DataType* currentStepLength, uint8_t current_n)
+    {
+    /** returns the step length of the (current_n + 1)-th level, given the
+     * current step length and current_n
+     *
+     * stepLength ... number of table entries per occupation number VALUE of
+     * the current principal quantum number n.
+     */
+
+        *currentStepLength = *currentStepLength * static_cast<T_DataType>(
+            this->numberOfOccupationNumberValuesInShell( current_n )
+            );
+    }
+
 public:
 
+    uint8_t numberLevels()
+    {
+    /** returns number of levels, n_max, used for configNumber
+    */
+        return T_NumberLevels;
+    }
+
+    T_DataType numberStates()
+    {
+    /** returns number of different states(Configs) that are represented
+     */
+        return static_cast< T_DataType >(
+            this->stepLength(
+                this->numberLevels() + 1
+                )
+            );
+    }
+
     ConfigNumber(
-        T_DataType N = 0u
+        T_DataType N = static_cast<T_DataType>(0u)
         )
     {
         PMACC_ASSERT_MSG(
@@ -123,9 +177,9 @@ public:
             "negative configurationNumbers are not defined"
         );
         PMACC_ASSERT_MSG(
-            N < stepLength(T_NumberLevels + 1),
-            "configurationNumber N larger than largest possible for"
-            " T_NumberLevels"
+            N < this->numberStates - 1,
+            "configurationNumber N larger than largest possible ConfigNumber"
+            " for T_NumberLevels"
         );
 
         this->configNumber = N;
@@ -150,36 +204,20 @@ public:
 
         for(uint8_t n=0u; n < T_NumberLevels; n++)
         {
-            PMACC_ASSERT_MSG(
-                this->g(n+1) >= levelVector[n],
-                "occuation number too large"
-            );
-
             /* BEWARE: n here equals n-1 in formula in file documentation,
             *
             * since for loop starts with n=0 instead of n=1,
             */
-            stepLength *= std::min(this->g(n) + 1);
+
+            // must not test for < 0 since levelvector is vector of unsigned int
+            PMACC_ASSERT_MSG(
+                this->g(n+1) >= *levelVector[n],
+                "occuation numbers too large, must be <=2*n^2"
+            );
+
+            this->nextStepLength( &stepLength, n );
             this->configNumber += *levelVector[n] * stepLength;
         }
-    }
-
-    uint8_t numberLevels()
-    {
-    /** returns number of levels, n_max, used for configNumber
-    */
-        return T_NumberLevels;
-    }
-
-    T_DataType numberStates()
-    {
-    /** returns number of different states(Configs) that are represented
-     */
-        return static_cast< T_DataType >(
-            this->stepLength(
-                this->numberLevels() + 1
-                )
-            );
     }
 
     operator pmacc::math::Vector< uint16_t, T_NumberLevels >()

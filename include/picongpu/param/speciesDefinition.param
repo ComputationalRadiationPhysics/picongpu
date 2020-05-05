@@ -120,6 +120,7 @@ using ParticleFlagsIons = MakeSeq_t<
     chargeRatio< ChargeRatioIons >,
     densityRatio< DensityRatioIons >,
     atomicNumbers< ionization::atomicNumbers::Hydrogen_t >
+    atomicPhysics< PIC_Electron >
 >;
 
 /* define species ions */
