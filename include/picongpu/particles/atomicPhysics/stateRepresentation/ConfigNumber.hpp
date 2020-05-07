@@ -82,7 +82,7 @@ class ConfigNumber
 {
  /* this class implements the actual storage of the configuration
  *
- * T_Numberlevels ... n_max
+ * T_NumberLevels ... n_max
  * for convenience of usage and modularity, methods to convert the configNumber
  * to a occupation vector and convert a occuptation vector to the corresponding
  * configuration number are implemented.
@@ -90,7 +90,7 @@ class ConfigNumber
  */
     T_DataType configNumber;    // storage of actual configNumber
 
-    uint16_t g(uint8_t n)
+    uint16_t g( uint8_t n )
     {
     /** returns the maximum occupation number for the n-th level
      */
@@ -98,7 +98,7 @@ class ConfigNumber
         return (static_cast<uint16_t>(n) * static_cast<uint16_t>(n) * 2);
     }
 
-    uint16_t numberOfOccupationNumberValuesInShell(uint8_t n)
+    uint16_t numberOfOccupationNumberValuesInShell( uint8_t n )
     {
     /** returns the number of different occupation number values for the nth
      * shell.
@@ -115,7 +115,7 @@ class ConfigNumber
             ) + 1;
     }
 
-    T_DataType stepLength(uint8_t n)
+    constexpr T_DataType stepLength(uint8_t n)
     {
     /** returns the step length of the n-th level
      *
@@ -130,11 +130,10 @@ class ConfigNumber
                 this->numberOfOccupationNumberValuesInShell(i)
                 );
         }
-
         return result;
     }
 
-    void nextStepLength(T_DataType* currentStepLength, uint8_t current_n)
+    void nextStepLength( T_DataType* currentStepLength, uint8_t current_n )
     {
     /** returns the step length of the (current_n + 1)-th level, given the
      * current step length and current_n
@@ -156,14 +155,12 @@ public:
     // number of levels, n_max, used for configNumber
     constexpr static uint8_t numberLevels = T_NumberLevels;
 
-    T_DataType numberStates()
+    constexpr T_DataType numberStates()
     {
     /** returns number of different states(Configs) that are represented
      */
         return static_cast< T_DataType >(
-            this->stepLength(
-                this->numberLevels() + 1
-                )
+            this->stepLength( numberLevels + 1 )
             );
     }
 
