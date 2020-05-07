@@ -61,14 +61,14 @@ namespace stage
     template< typename T_IonSpecies >
     struct CallAtomicPhysics
     {
-        // Define ion species and frame type
+        // Define ion species and frame type datatype for later access
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_IonSpecies
         >;
         using IonFrameType = typename IonSpecies::FrameType;
 
-        // Define electron species and frame time
+        // Define electron species and frame type datatype for later access
         using ElectronSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             typename pmacc::particles::traits::ResolveAliasFromSpecies<
@@ -78,31 +78,53 @@ namespace stage
         >;
         using ElectronFrameType = typename ElectronSpecies::FrameType;
 
-        // random number generator(RNG) Factory as defined in random.param
-        using RNGFactory = pmacc::random::RNGProvider<simDim, random::Generator>;
-
-        using T_IonSpeciesAtomicConfigNumber =
+        // get specialisation of ConfigNumber class used in this species
+        using IonSpeciesAtomicConfigNumber =
             pmacc::particles::traits::ResolveAliasFromSpecies<
                 IonSpecies,
                 atomicConfigNumber< >
+                /* atomicConfigNumber is alias(interface name) for specific
+                specialisation of ConfigNumber of this specific species*/
             >;
+        /* get T_DataType used as parameter in ConfigNumber.hpp via public
+        typedef in class */
+        using ConfigNumberDataType =
+            typename IonSpeciesAtomicConfigNumber::DataType;
 
-        using Distribution = pmacc::random::distributions::Uniform<>;
-        using RandomGen = typename RNGFactory::GetRandomType<Distribution>::type;
-        //actual random number Generator
-        RandomGen randomGen = RNGFactory::createRandom<Distribution>();
+        // random number generator(RNG) Factory as defined in random.param
+        using RNGFactory = pmacc::random::RNGProvider<
+            simDim,
+            random::Generator
+            >;
+        using Distribution = pmacc::random::distributions::Uniform<
+            ConfigNumberDataType
+            >;
+        // type of random number Generator extracted from RNGFactory
+        using RandomGen = typename RNGFactory::GetRandomType<
+            Distribution
+            >::type;
+        // actual random number Generator defined as attribute and initialised
+        RandomGen randomGen = RNGFactory::createRandom< Distribution >();
 
-        // Call the functor
+        // Call functor, will be called in MySimulation once per time step
         void operator()( MappingDesc const cellDescription ) const
         {
+            // organisation of particle data retrival
+
+            // debug console output
             std::cout << "Operator(): ion species = " << IonFrameType::getName()
                  << ", electron species = " << ElectronFrameType::getName() << "\n";
+
             using namespace pmacc;
+
             DataConnector &dc = Environment<>::get().DataConnector();
+
             /// NOTE: having false as second parameter will copy to host
             /// (normally is not used as processing is done in kernels on device)
             auto & ions = *dc.get< IonSpecies >( IonFrameType::getName(), false );
             auto & electrons = *dc.get< ElectronSpecies >( ElectronFrameType::getName(), false );
+
+            // depending on whether using gpus(CUDA) or cpu(no cuda) different data retrival
 #if( PMACC_CUDA_ENABLED == 1 )
             auto mallocMCBuffer = dc.get< MallocMCBuffer< DeviceHeap > >( MallocMCBuffer< DeviceHeap >::getName(), true );
             auto ionBox = ions.getHostParticlesBox( mallocMCBuffer->getOffset() );
@@ -112,11 +134,14 @@ namespace stage
             auto ionBox = ions.getDeviceParticlesBox( );
             auto electronBox = electrons.getDeviceParticlesBox( );
 #endif
+
+            // actual call of algorithm process, future kernel call
             process(
                 ionBox,
                 electronBox,
                 cellDescription
             );
+
             // Copy back to device
             ions.syncToDevice();
             electrons.syncToDevice();
@@ -194,10 +219,9 @@ namespace stage
                         picongpu::SI::DELTA_T_SI
                     );
 
-
                     auto configNumber = ion[atomicConfigNumber_];
                     auto numberPossibilities = configNumber.numberStates();
-                    
+                    randomGen(  )
                 }
 
                 ionFrame = ionBox.getPreviousFrame( ionFrame );
