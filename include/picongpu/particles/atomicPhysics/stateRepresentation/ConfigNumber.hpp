@@ -150,12 +150,11 @@ class ConfigNumber
 
 public:
 
-    uint8_t numberLevels()
-    {
-    /** returns number of levels, n_max, used for configNumber
-    */
-        return T_NumberLevels;
-    }
+    // make T_DataType paramtere available for later use
+    using DataType = T_DataType;
+
+    // number of levels, n_max, used for configNumber
+    constexpr static uint8_t numberLevels = T_NumberLevels;
 
     T_DataType numberStates()
     {
