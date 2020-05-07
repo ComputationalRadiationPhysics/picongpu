@@ -135,6 +135,7 @@ namespace particleMerging
         )
         {
             nvidia::atomicAllInc( acc, &this->numMacroParticles, ::alpaka::hierarchy::Threads{} );
+            cupla::atomicAdd( acc, &this->numMacroParticles, 1, ::alpaka::hierarchy::Threads{} );
             cupla::atomicAdd(acc,  &this->numRealParticles, weighting, ::alpaka::hierarchy::Threads{} );
 
             if( this->splittingStage == VoronoiSplittingStage::position )

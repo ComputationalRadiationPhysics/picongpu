@@ -206,74 +206,74 @@ namespace particleMerging
                     const voronoiCellId::type voronoiCellId = particle[voronoiCellId_];
                     if( voronoiCellId != -1 )
                     {
-		            	VoronoiCell& voronoiCell = listVoronoiCells[voronoiCellId];
-		
-		                const floatD_X position = this->getParticlePosWithinSuperCell(
-		                    particle[localCellIdx_],
-		                    particle[position_]
-		                );
-		                const float_X weighting = particle[weighting_];
-		                const float3_X momentum = particle[momentum_] / weighting;
-		
-		                switch( voronoiCell.status )
-		                {
-		                case VoronoiStatus::collecting:
-		                    voronoiCell.addParticle(
-		                        acc,
-		                        position,
-		                        momentum,
-		                        weighting
-		                    );
-		
-		                    break;
-		
-		                case VoronoiStatus::splitting:
-		                    {
-		                        /* determine in what sub-Voronoi cell the particle falls */
-		                        const voronoiCellId::type subVoronoiCellId = voronoiCell.getSubVoronoiCell(
-		                            position,
-		                            momentum
-		                        );
-		
-		                        particle[voronoiCellId_] = subVoronoiCellId;
-		
-		                        /* place particle into one of the two sub-Voronoi cells */
-		                        listVoronoiCells[subVoronoiCellId].addParticle(
-		                            acc,
-		                            position,
-		                            momentum,
-		                            weighting
-		                        );
-		                    }
-		
-		                    break;
-		
-		                case VoronoiStatus::abort:
-		                    /* check out of the Voronoi cell */
-		                    particle[voronoiCellId_] = -1;
-		
-		                    break;
-		
-		                case VoronoiStatus::readyForMerging:
-		                    /* merge all particles of this Voronoi cell */
-		                    if( voronoiCell.isFirstParticle( acc ) )
-		                    {
-		                        /* I am the first particle in the Voronoi cell
-		                         * => get dressed with Voronoi cell's attributes */
-		                        particle[momentum_] = voronoiCell.meanValue * voronoiCell.numRealParticles;
-		                        particle[weighting_] = voronoiCell.numRealParticles;
-		                    }
-		                    else
-		                    {
-		                        /* I am not the first particle in the Voronoi cell
-		                         * => remove me */
-		                        particle[multiMask_] = 0;
-		                    }
-		
-		                    /* check out of the Voronoi cell */
-		                    particle[voronoiCellId_] = -1;
-		                }
-		            }
+                        VoronoiCell& voronoiCell = listVoronoiCells[voronoiCellId];
+
+                        const floatD_X position = this->getParticlePosWithinSuperCell(
+                            particle[localCellIdx_],
+                            particle[position_]
+                        );
+                        const float_X weighting = particle[weighting_];
+                        const float3_X momentum = particle[momentum_] / weighting;
+
+                        switch( voronoiCell.status )
+                        {
+                        case VoronoiStatus::collecting:
+                            voronoiCell.addParticle(
+                                acc,
+                                position,
+                                momentum,
+                                weighting
+                            );
+
+                            break;
+
+                        case VoronoiStatus::splitting:
+                            {
+                                /* determine in what sub-Voronoi cell the particle falls */
+                                const voronoiCellId::type subVoronoiCellId = voronoiCell.getSubVoronoiCell(
+                                    position,
+                                    momentum
+                                );
+
+                                particle[voronoiCellId_] = subVoronoiCellId;
+
+                                /* place particle into one of the two sub-Voronoi cells */
+                                listVoronoiCells[subVoronoiCellId].addParticle(
+                                    acc,
+                                    position,
+                                    momentum,
+                                    weighting
+                                );
+                            }
+
+                            break;
+
+                        case VoronoiStatus::abort:
+                            /* check out of the Voronoi cell */
+                            particle[voronoiCellId_] = -1;
+
+                            break;
+
+                        case VoronoiStatus::readyForMerging:
+                            /* merge all particles of this Voronoi cell */
+                            if( voronoiCell.isFirstParticle( acc ) )
+                            {
+                                /* I am the first particle in the Voronoi cell
+                                 * => get dressed with Voronoi cell's attributes */
+                                particle[momentum_] = voronoiCell.meanValue * voronoiCell.numRealParticles;
+                                particle[weighting_] = voronoiCell.numRealParticles;
+                            }
+                            else
+                            {
+                                /* I am not the first particle in the Voronoi cell
+                                 * => remove me */
+                                particle[multiMask_] = 0;
+                            }
+
+                            /* check out of the Voronoi cell */
+                            particle[voronoiCellId_] = -1;
+                        }
+                    }
                 },
                 particles::filter::All{}
             );
