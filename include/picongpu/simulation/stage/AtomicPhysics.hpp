@@ -86,6 +86,7 @@ namespace stage
                 /* atomicConfigNumber is alias(interface name) for specific
                 specialisation of ConfigNumber of this specific species*/
             >;
+
         /* get T_DataType used as parameter in ConfigNumber.hpp via public
         typedef in class */
         using ConfigNumberDataType =
@@ -103,8 +104,10 @@ namespace stage
         using RandomGen = typename RNGFactory::GetRandomType<
             Distribution
             >::type;
+
         // actual random number Generator defined as attribute and initialised
         RandomGen randomGen = RNGFactory::createRandom< Distribution >();
+
 
         // Call functor, will be called in MySimulation once per time step
         void operator()( MappingDesc const cellDescription ) const
@@ -197,6 +200,10 @@ namespace stage
             // The real kernel will essentially only have this part,
             // just start with selecting a supercell based on block index
 
+            // initialise randomGen with index of SuperCell
+            /// ask Sergei once more, wether possible
+            this->randomGen.init(idx);
+
             auto electronFrame = electronBox.getLastFrame( idx );
             // Iterate over ions frames
             auto ionFrame = ionBox.getLastFrame( idx );
@@ -219,11 +226,11 @@ namespace stage
                         picongpu::SI::DELTA_T_SI
                     );
 
-                    auto configNumber = ion[atomicConfigNumber_];
-                    auto numberPossibilities = configNumber.numberStates();
-                    randomGen(  )
-                }
+                    ConfigNumberDataType numberStates =
+                        ion[atomicConfigNumber_].numberStates();
 
+
+                }
                 ionFrame = ionBox.getPreviousFrame( ionFrame );
                 ionsInFrame = pmacc::math::CT::volume< SuperCellSize >::type::value;
             }
