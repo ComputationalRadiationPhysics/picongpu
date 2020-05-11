@@ -134,7 +134,7 @@ namespace particleMerging
             const float_X weighting
         )
         {
-            nvidia::atomicAllInc( acc, &this->numMacroParticles, ::alpaka::hierarchy::Threads{} );
+            cupla::atomicAdd(acc, &this->numMacroParticles, static_cast<uint32_t>(1), ::alpaka::hierarchy::Threads{} );
             cupla::atomicAdd(acc,  &this->numRealParticles, weighting, ::alpaka::hierarchy::Threads{} );
 
             if( this->splittingStage == VoronoiSplittingStage::position )
