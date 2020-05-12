@@ -88,8 +88,10 @@ class ConfigNumber
  * configuration number are implemented.
  *
  */
+public:
     T_DataType configNumber;    // storage of actual configNumber
 
+private:
     uint16_t g( uint8_t n )
     {
     /** returns the maximum occupation number for the n-th level

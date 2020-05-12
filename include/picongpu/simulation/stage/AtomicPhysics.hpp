@@ -97,17 +97,26 @@ namespace stage
             simDim,
             random::Generator
             >;
-        using Distribution = pmacc::random::distributions::Uniform<
+        using DistributionInt = pmacc::random::distributions::Uniform<
             ConfigNumberDataType
+            >;
+        using DistributionFloat = pmacc::random::distributions::Uniform<
+            double
             >;
         // type of random number Generator extracted from RNGFactory
         using RandomGen = typename RNGFactory::GetRandomType<
-            Distribution
+            DistributionInt
+            >::type;
+        using RandomGen = typename RNGFactory::GetRandomType<
+            DistributionFloat
             >::type;
 
         // actual random number Generator defined as attribute and initialised
-        RandomGen randomGen = RNGFactory::createRandom< Distribution >();
+        RandomGen randomGenInt = RNGFactory::createRandom< DistributionInt >();
+        RandomGen randomGenFloat = RNGFactory::createRandom< DistributionFloat >();
 
+        // RateMatrix encapsulated call to flylite
+        RateMatrix rateMatrix;
 
         // Call functor, will be called in MySimulation once per time step
         void operator()( MappingDesc const cellDescription ) const
@@ -215,20 +224,48 @@ namespace stage
                 for( int ionIdx = 0; ionIdx < ionsInFrame; ionIdx++ )
                 {
                     auto ion = ionFrame[ ionIdx ];
-                    /// TODO: electron will be selected here, for now use the same one always
-                    auto electron = electronFrame[ 0 ];
+                    //auto electron = electronFrame[ 0 ];
 
                     /// Here implement everything using variables ion and electron
                     /// that represent the selected pair
 
                     double timeRemaining;
+                    double rate;
+                    double probability;
+
+                    ConfigNumberDataType newState;
+                    ConfigNumberDataType randomNumber;
+
+                    using currentState = ion[atomicConfigNumber_]
+
                     timeRemaining = static_cast< double >(
                         picongpu::SI::DELTA_T_SI
                     );
 
-                    ConfigNumberDataType numberStates =
-                        ion[atomicConfigNumber_].numberStates();
-
+                    while ( timeRemaining > 0)
+                    {
+                            newState = this->randomGenInt();
+                        if (newState >= currentState.numberStates() )
+                        {
+                            newState = this->randomGenInt();
+                        }
+    
+                        rate = this->rateMatrix( newState, currentState.configNumber );
+                        probability = rate * timeRemaining;
+                        if ( probability >= 1 )
+                        {
+                            currentState.configNumber = newState;
+                            timeRemaining -= 1/rate;
+                        }
+                        else
+                        {
+                            randomNumber = this->randomGenFloat();
+                            if ( randomNumber > probability )
+                            {
+                                currentState.configNumber = newState;
+                            }
+                        }
+                    }
 
                 }
                 ionFrame = ionBox.getPreviousFrame( ionFrame );
