@@ -433,8 +433,12 @@ namespace particleMerging
             if( linearThreadIdx < numInitialVoronoiCells )
                 listVoronoiCells[linearThreadIdx] = VoronoiCell();
 
+            __syncthreads();
+
             /* init the voronoiCellId attribute for each particle */
             this->initVoronoiCellIdAttribute( acc, cellIndex );
+
+            __syncthreads();
 
             /* main loop of the merging algorithm */
             while( voronoiIndexPool.size() > 0 )
