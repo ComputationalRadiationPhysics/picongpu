@@ -24,6 +24,8 @@
 #include <pmacc/math/Complex.hpp>
 #include <pmacc/memory/buffers/Buffer.hpp>
 
+#include <algorithm>
+#include <vector>
 
 namespace picongpu
 {
@@ -33,7 +35,7 @@ namespace xrayScattering
 {
     template< typename T >
     std::vector< T > extractReal(
-        Buffer< pmacc::math::Complex< T >, DIM1 > & complexBuffer )
+        Buffer< pmacc::math::Complex< T >, DIM1 >  & complexBuffer )
     {
         std::vector< T > realValues;
         auto size = complexBuffer.getCurrentSize( );
@@ -48,7 +50,7 @@ namespace xrayScattering
 
     template< typename T >
     std::vector< T > extractImag(
-        Buffer< pmacc::math::Complex< T >, DIM1 > & complexBuffer )
+        Buffer< pmacc::math::Complex< T >, DIM1 >  & complexBuffer )
     {
         std::vector< T > imagValues;
         auto size = complexBuffer.getCurrentSize( );
@@ -63,7 +65,7 @@ namespace xrayScattering
 
     template< typename T >
     std::vector< T > extractReal(
-        std::vector< pmacc::math::Complex< T > > & complexVec )
+        std::vector< pmacc::math::Complex< T > > const & complexVec )
     {
         std::vector< T > realValues;
         realValues.reserve( complexVec.size( ) );
@@ -72,7 +74,7 @@ namespace xrayScattering
             std::begin( complexVec ),
             std::end( complexVec ),
             std::back_inserter( realValues ),
-            [ ]( const pmacc::math::Complex< T > & data )
+            [ ](  pmacc::math::Complex< T > const & data )
             {
                 return data.get_real( );
             }
@@ -82,7 +84,7 @@ namespace xrayScattering
 
     template< typename T >
     std::vector< T > extractImag(
-        std::vector< pmacc::math::Complex< T > > & complexVec )
+        std::vector< pmacc::math::Complex< T > > const & complexVec )
     {
         std::vector< T > imagValues;
         imagValues.reserve( complexVec.size( ) );
@@ -91,7 +93,7 @@ namespace xrayScattering
             std::begin( complexVec ),
             std::end( complexVec ),
             std::back_inserter( imagValues ),
-            [ ]( const pmacc::math::Complex< T > & data )
+            [ ](  pmacc::math::Complex< T > const & data )
             {
                 return data.get_imag( );
             }
@@ -101,7 +103,7 @@ namespace xrayScattering
 
     template < typename T >
     void copyVectorToBuffer(
-        std::vector< T > & vec,
+        std::vector< T > const & vec,
         Buffer< T, DIM1 > & buffer
     )
     {

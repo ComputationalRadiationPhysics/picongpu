@@ -34,8 +34,6 @@ namespace xrayScattering
 {
 namespace beam
 {
-    using namespace picongpu::plugins::xrayScattering::beam;
-
    // TODO: Move this back to the param file after fixing the coordinate
    // transform.
     constexpr float_X BEAM_OFFSET[ 2 ] = { 0.0, 0.0 };
@@ -44,8 +42,8 @@ namespace beam
     using BeamShape = beamShapes::ConstShape;
 
     using BeamCoordinates = CoordinateTransform<
-    ProbingSide,
-    SecondaryRotation< RotationParam >
+        ProbingSide,
+        SecondaryRotation< RotationParam >
     >;
     using XrayScatteringBeam = ProbingBeam<
         BeamProfile,

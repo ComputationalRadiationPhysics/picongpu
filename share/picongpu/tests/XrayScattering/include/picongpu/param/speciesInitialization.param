@@ -46,7 +46,7 @@ namespace particles
             PIC_Electrons
         >
 #if( PARAM_IONS == 1 )
-        ,Derive<
+        , Derive<
             PIC_Electrons,
             PIC_Ions
         >,

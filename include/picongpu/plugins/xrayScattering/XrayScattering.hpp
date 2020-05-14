@@ -84,7 +84,6 @@ namespace xrayScattering
     private:
         using SuperCellSize = MappingDesc::SuperCellSize;
 
-        GridController< simDim > & gc;
         MappingDesc cellDescription;
         uint32_t currentStep;
 
@@ -99,7 +98,7 @@ namespace xrayScattering
         std::vector< float_X > realPart;
         //! Storage for amplitude imaginary part used when dumping data
         std::vector< float_X > imgPart;
-        // Used only in the split mode:
+        // Used only in the distributed mode:
         //! Storage for receiving amplitude data from another node
         std::vector< complex_X > amplitudeReceive;
         //! Number of scattering vectors on initialy last rank
@@ -140,7 +139,7 @@ namespace xrayScattering
         uint32_t mpiRank;
         //! Total number of nodes
         uint32_t countRanks;
-        //! Number of Times the split output was passed along
+        //! Number of Times the distributed output was passed along
         uint32_t accumulatedRotations;
         mpi::MPIReduce reduce;
 
@@ -163,7 +162,6 @@ namespace xrayScattering
             cellDescription( DataSpace< simDim >( SuperCellSize::toRT( ) ) ),
             isMaster( false ),
             currentStep( 0 ),
-            gc( Environment< simDim >::get( ).GridController( ) ),
             accumulatedRotations( 0 )
         {
             Environment<>::get( ).PluginConnector( ).registerPlugin( this );
@@ -173,7 +171,7 @@ namespace xrayScattering
         ~XrayScattering( ) override{ }
 
 
-        //! Adds comand line options and their descriptions.
+        //! Adds command line options and their descriptions.
         void pluginRegisterHelp( po::options_description &desc ) override
         {
             desc.add_options( )(
@@ -233,9 +231,9 @@ namespace xrayScattering
                 (pluginPrefix + ".memoryLayout").c_str( ),
                 po::value< std::string >( & memoryLayout )
                     ->default_value( "mirror" ),
-                "Possible values: 'mirror' and 'split'"
+                "Possible values: 'mirror' and 'distribute'"
                 "Output can be mirrored on all Host+Device pairs or"
-                " uniformly split over all nodes. Split can be used "
+                " uniformly distributed over all nodes. Distribute can be used "
                 "when the output array is to big to store the complete "
                 "computed q-space on one device."
             );
@@ -261,8 +259,8 @@ namespace xrayScattering
             const std::string restartDirectory
         ) override
         {
-            throw std::runtime_error("Restarting is not yet implemented"
-                                     " for the xrayScattering plugin." );
+            log<picLog::INPUT_OUTPUT > ("XrayScattering : restart not"
+                "yet implemented - start with zero values");
             // TODO: Support for restarting.
         }
 
@@ -272,8 +270,9 @@ namespace xrayScattering
             const std::string restartDirectory
         ) override
         {
-            throw std::runtime_error("Restarting is not yet implemented"
-                                     " in the xrayScattering plugin." );
+            log<picLog::INPUT_OUTPUT > ("XrayScattering : checkpoint not"
+                "yet implemented - nothing was saved");
+
             // TODO: Support for restarting.
         }
 
@@ -301,17 +300,18 @@ namespace xrayScattering
                 );
                 // Set the memory layout in use.
                 std::map< std::string, OutputMemoryLayout > layoutMap;
-                layoutMap["mirror"] = OutputMemoryLayout::MirrorOnNodes;
-                layoutMap["split"] = OutputMemoryLayout::SplitOverNodes;
+                layoutMap["mirror"] = OutputMemoryLayout::Mirror;
+                layoutMap["distribute"] = OutputMemoryLayout::Distribute;
                 outputLayout = layoutMap.at( memoryLayout );
 
+                GridController< simDim > & gc = Environment< simDim >::get( ).GridController( );
                 mpiRank = gc.getGlobalRank( );
                 isMaster = ( mpiRank == 0 );
 
                 // Prepare amplitude buffer:
-                uint32_t  bufferSize;
+                uint32_t bufferSize;
                 auto totalNumVectors = numVectors.productOfComponents( );
-                if ( outputLayout == OutputMemoryLayout::MirrorOnNodes )
+                if ( outputLayout == OutputMemoryLayout::Mirror )
                 {
                     // All vectors are stored on every node.
                     bufferSize =  totalNumVectors ;
@@ -343,8 +343,9 @@ namespace xrayScattering
                 amplitude->getDeviceBuffer( ).setValue( 0.0 );
 
                 // Go to PIC unit system.
-                q_min = q_min * 1.0e10 * UNIT_LENGTH;
-                q_max = q_max * 1.0e10 * UNIT_LENGTH;
+                constexpr float_X invMeterToInvAngstrom = 1.0e10;
+                q_min = q_min * invMeterToInvAngstrom * UNIT_LENGTH;
+                q_max = q_max * invMeterToInvAngstrom * UNIT_LENGTH;
                 // Set the q-space grid spacing.
                 q_step = ( q_max - q_min ) /
                          precisionCast< float_X >( numVectors );
@@ -393,13 +394,7 @@ namespace xrayScattering
         }
 
 
-        void pluginUnload( ) override
-        {
-            // if ( !notifyPeriod.empty( ) )
-            // {
-            //     CUDA_CHECK( cudaGetLastError( ) );
-            // }
-        }
+        void pluginUnload( ) override { }
 
 
         //! Collect amplitude data from each CPU on the master node.
@@ -421,7 +416,7 @@ namespace xrayScattering
 
 
         //! Calculates the offset to the the currently processed output chunk.
-        HINLINE uint32_t calcOffset( uint32_t const & step )
+        HINLINE uint32_t calcOffset( uint32_t const & step ) const
         {
             /* Chunks move with every "rotation" from left to the right (from
              * smaller to a higher rank). So after one rotation the rank n has
@@ -440,7 +435,7 @@ namespace xrayScattering
 
 
         //! Checks if this node hast the last output part.
-        HINLINE bool hasLastChunk ( uint32_t const & step )
+        HINLINE bool hasLastChunk ( uint32_t const & step ) const
         {
             uint32_t totalRotations = accumulatedRotations + step;
             return mpiRank == ( countRanks - 1 + totalRotations ) % countRanks;
@@ -450,7 +445,7 @@ namespace xrayScattering
         //! Writes amplitude data to disk.
         HINLINE void writeOutput( )
         {
-            if ( outputLayout == OutputMemoryLayout::SplitOverNodes )
+            if ( outputLayout == OutputMemoryLayout::Distribute )
             {
                 amplitude->deviceToHost( );
                 __getTransactionEvent( ).waitForFinished( );
@@ -513,6 +508,7 @@ namespace xrayScattering
             bytesToSend *= amplitude->getHostBuffer( ).getCurrentSize( );
 
             // An mpi request to monitor a non blocking send transaction.
+            GridController< simDim > & gc = Environment< simDim >::get( ).GridController( );
             MPI_Request transactionRequest;
             // Pass data to the next node.
             MPI_CHECK( MPI_Isend(
@@ -604,11 +600,11 @@ namespace xrayScattering
         }
 
 
-        /** Runs xrayScattering kernel when the output is split over nodes.
+        /** Runs kernel when the output is distributed over nodes.
          *
          * A single kernel run adds result only to that output part which
          * currently resides on the node. The output parts are passed along to
-         * the neigbouring node, in a circle. This repeats until every node has
+         * the neighbouring node, in a circle. This repeats until every node has
          * computed all scattering vectors.
          *
          * @param cellsGrid field grid, without GUARD, on one device
@@ -618,7 +614,7 @@ namespace xrayScattering
          * @param fieldPos TmpField in cell position
          */
         template < typename T_FieldPos >
-        HINLINE void runKernelInSplitMode(
+        HINLINE void runKernelInDistributeMode(
             DataSpace < simDim > & cellsGrid,
             FieldTmp::DataBoxType const & fieldTmpNoGuard,
             DataSpace< simDim > & globalOffset,
@@ -630,10 +626,10 @@ namespace xrayScattering
             constexpr uint32_t numWorkers = pmacc::traits::GetNumWorkers<
                 pmacc::math::CT::volume< SuperCellSize >::type::value >::value;
 
-            uint32_t countVectors, iterOffset;
             // Loop over kernel runs.
             for( uint32_t step = 0; step < countRanks; step++ )
             {
+                uint32_t countVectors, iterOffset;
                 // Pass along the data.
                 communicationOnStep( step );
                 // 1D offset to the begin of the currently processed output
@@ -702,13 +698,13 @@ namespace xrayScattering
                 pmacc::math::CT::volume< SuperCellSize >::type::value >::value;
             // Define scattering vectors for the output part.
             GetScatteringVector scatteringVectors
-                {
-                    q_min,
-                    q_max,
-                    q_step,
-                    numVectors,
-                    0
-                };
+            {
+                q_min,
+                q_max,
+                q_step,
+                numVectors,
+                0
+            };
             // Run the kernel.
             PMACC_KERNEL(
                 KernelXrayScattering < numWorkers >{ }
@@ -780,9 +776,9 @@ namespace xrayScattering
 
 
             // Run Kernel.
-            if ( outputLayout == OutputMemoryLayout::SplitOverNodes )
+            if ( outputLayout == OutputMemoryLayout::Distribute )
             {
-                runKernelInSplitMode(
+                runKernelInDistributeMode(
                     cellsGrid,
                     fieldTmpNoGuard,
                     globalOffset,
@@ -806,7 +802,7 @@ namespace xrayScattering
             if ( pluginSystem::containsStep( outputPeriod, currentStep ) )
                 writeOutput( );
             // Update the total number of rotations ( data passes ).
-            if ( outputLayout == OutputMemoryLayout::SplitOverNodes )
+            if ( outputLayout == OutputMemoryLayout::Distribute )
                 accumulatedRotations += countRanks - 1;
         }
     };

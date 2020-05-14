@@ -45,8 +45,8 @@ namespace beam
         using Params = T_ParamClass;
         struct ReversedAngles
         {
-            static constexpr float_X yawAngle = -1 * Params::yawAngle;
-            static constexpr float_X pitchAngle = -1 * Params::pitchAngle;
+            static constexpr float_X yawAngle = -1.0_X * Params::yawAngle;
+            static constexpr float_X pitchAngle = -1.0_X * Params::pitchAngle;
         } reversedAngles;
 
         using ReverseOperation = SecondaryRotation< ReversedAngles >;
@@ -65,7 +65,7 @@ private:
              */
             float_X cos;
             float_X sin;
-            picongpu::math::sincos( -1 * xAngle, sin, cos );
+            pmacc::math::sincos( -1.0_X * xAngle, sin, cos );
             float_X y = vec[ 1 ] * cos - vec[ 2 ] * sin;
             float_X z = vec[ 1 ] * sin + vec[ 2 ] * cos;
             vec[ 1 ] = y;
@@ -78,9 +78,9 @@ private:
         {
             float_X cos;
             float_X sin;
-            picongpu::math::sincos( -1 * yAngle, sin, cos );
+            pmacc::math::sincos( -1.0_X * yAngle, sin, cos );
             float_X x = vec[ 0 ] * cos + vec[ 2 ] * sin;
-            float_X z = -1 * vec[ 0 ] * sin + vec[ 2 ] * cos;
+            float_X z = -1.0_X * vec[ 0 ] * sin + vec[ 2 ] * cos;
             vec[ 0 ] = x;
             vec[ 2 ] = z;
         }

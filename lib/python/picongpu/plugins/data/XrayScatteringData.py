@@ -69,12 +69,13 @@ class XrayScatteringData(DataReader):
         return np.array(list(self.series.iterations))
 
     def _get_for_iteration(self, iteration, **kwargs):
-        """
-        Get the data for a given iteration.
+        """ Get the data for a given iteration in PIC units.
+
+        Call `get_unit` method to get the conversion factor (to SI).
 
         Returns
         -------
-        The complex scattering amplitude.
+        The complex scattering amplitude in PIC units.
         """
 
         i = self.series.iterations[iteration]
@@ -83,7 +84,14 @@ class XrayScatteringData(DataReader):
         real = mrc_real.load_chunk()
         imag = mrc_imag.load_chunk()
         self.series.flush()
-        return (real + 1j * imag) * self.total_simulation_cells
+        if mrc_imag.dtype.type is np.float32:
+            dtype = np.complex64
+        elif mrc_imag.dtype.type is np.float64:
+            dtype = np.complex128
+        else:
+            raise TypeError
+        result = (real + 1j * imag) * self.total_simulation_cells
+        return result.astype(dtype)
 
     def get_unit(self):
         """ Get the amplitude unit. """

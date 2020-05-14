@@ -51,16 +51,16 @@ namespace beam
     PMACC_STRUCT( RotationParam,
         ( PMACC_C_VALUE ( float_X, yawAngle,
 #if PARAM_ANGLES == 1
-            20.0 / 180.0 * math::Pi< float_64 >::value
+            20.0_X / 180.0_X * pmacc::math::Pi< float_X >::value
 #else
-        0.0
+        0.0_X
 #endif
             ) )
         ( PMACC_C_VALUE ( float_X, pitchAngle,
 #if PARAM_ANGLES == 1
-            42.0 / 180.0 * math::Pi< float_64 >::value
+            42.0_X / 180.0_X * pmacc::math::Pi< float_X >::value
 #else
-            0.0
+            0.0_X
 #endif
             ) )
     );

@@ -36,7 +36,7 @@ namespace beamShapes
     {
         static HDINLINE constexpr float_X getFactor( const float_X & time )
         {
-            return float_X( 1.0 );
+            return 1.0_X;
         }
     };
 } // namespace beamShapes

@@ -30,11 +30,6 @@
 
 #include "picongpu/particles/startPosition/functors.def"
 #include "picongpu/particles/manipulators/manipulators.def"
-#include "picongpu/particles/filter/filter.def"
-#include <pmacc/nvidia/functors/Add.hpp>
-#include <pmacc/nvidia/functors/Assign.hpp>
-#include <pmacc/random/distributions/Uniform.hpp>
-
 
 namespace picongpu
 {
@@ -71,100 +66,11 @@ namespace manipulators
     };
     using OnceIonized = generic::Free< OnceIonizedImpl >;
 
-    /** Parameter for DriftParam
-     */
-    CONST_VECTOR(float_X,3,DriftParam_direction,1.0,0.0,0.0);
-    /** Parameter for a particle drift assignment
-     */
-    struct DriftParam
-    {
-        static constexpr float_64 gamma = 1.0;
-        const DriftParam_direction_t direction;
-    };
-    /** definition of manipulator that assigns a drift in X */
-    using AssignXDrift = unary::Drift<
-        DriftParam,
-        nvidia::functors::Assign
-    >;
-
-
-    /** Parameter for a temperature assignment
-     */
-    struct TemperatureParam
-    {
-        /*Initial temperature
-         *  unit: keV
-         */
-        static constexpr float_64 temperature = 0.0;
-    };
-    /* definition a temperature assignment manipulator */
-    using AddTemperature = unary::Temperature< TemperatureParam >;
-
-    /** Unary particle manipulator: double each weighting
-     */
-    struct DoubleWeightingFunctor
-    {
-        template< typename T_Particle >
-        DINLINE void operator()( T_Particle& particle )
-        {
-            particle[weighting_] *= 2.0_X;
-        }
-    };
-
-    /** definition of a free particle manipulator: double weighting */
-    using DoubleWeighting = generic::Free< DoubleWeightingFunctor >;
-
-    struct RandomEnabledRadiationFunctor
-    {
-        template< typename T_Rng, typename T_Particle >
-        DINLINE void operator()( T_Rng& rng, T_Particle& particle )
-        {
-            // enable radiation for 10% of the particles
-            particle[ radiationMask_ ] = rng() < 0.1_X;
-        }
-    };
-
-    /* definition of RandomEnableRadiation start */
-    using RandomEnabledRadiation = generic::FreeRng<
-        RandomEnabledRadiationFunctor,
-        pmacc::random::distributions::Uniform< float_X >
-    >;
-
-    /** changes the in-cell position of each particle of a species */
-    using RandomPosition = unary::RandomPosition;
 
 } // namespace manipulators
 
 namespace startPosition
 {
-
-    struct RandomParameter
-    {
-        /** Count of particles per cell at initial state
-         *
-         *  unit: none */
-        static constexpr uint32_t numParticlesPerCell = TYPICAL_PARTICLES_PER_CELL;
-    };
-    /** definition of random particle start */
-    using Random = RandomImpl< RandomParameter >;
-
-    struct QuietParam
-    {
-        /** Count of particles per cell per direction at initial state
-         *
-         *  unit: none */
-        using numParticlesPerDimension = mCT::shrinkTo<
-            mCT::Int<
-                1,
-                TYPICAL_PARTICLES_PER_CELL,
-                1
-                >,
-            simDim
-        >::type;
-    };
-
-    /** definition of quiet particle start */
-    using Quiet = QuietImpl< QuietParam >;
 
     /** sit directly in the middle of the cell */
     CONST_VECTOR(

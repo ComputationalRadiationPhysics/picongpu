@@ -69,10 +69,10 @@ namespace beam
             PMACC_ASSERT( a1 != 0 );
             PMACC_ASSERT( a2 != 0 );
 
-            float3_X result{ 0.0, 0.0, 0.0 };
+            float3_X result;
             result[ axis0 ] =  vec [ 0 ] / a0;
             result[ axis1 ] =  vec [ 1 ] / a1;
-            result[ axis0 ] =  vec [ 2 ] / a2;
+            result[ axis2 ] =  vec [ 2 ] / a2;
             return result;
         }
     };

@@ -20,8 +20,6 @@
 #pragma once
 
 #include "picongpu/simulation_defines.hpp"
-#include "picongpu/plugins/xrayScattering/XrayScattering.hpp"
-
 #include <pmacc/assert.hpp>
 #include <pmacc/dataManagement/DataConnector.hpp>
 #include <pmacc/math/Vector.hpp>
@@ -30,20 +28,21 @@
 
 #include <openPMD/openPMD.hpp>
 
+#include <vector>
+#include <cstdint>
+
 namespace picongpu
 {
 namespace  plugins
 {
 namespace  xrayScattering
 {
-    using namespace picongpu::plugins::xrayScattering;
-
 
     //! Specifies plugin functioning mode. Mirrored or chunked output possible.
     enum class OutputMemoryLayout
     {
-        MirrorOnNodes,
-        SplitOverNodes
+        Mirror,
+        Distribute
     };
 
 
@@ -56,8 +55,8 @@ namespace  xrayScattering
 
 
     //! Maps a linear index to a 2D cell position vector.
-    inline std::vector< uint64_t > map2d(
-        pmacc::math::Vector< uint64_t, DIM2 >const & size,
+    HINLINE std::vector< uint64_t > map2d(
+        pmacc::math::Vector< uint64_t, DIM2 > const & size,
         uint64_t pos
     )
     {
@@ -72,8 +71,8 @@ namespace  xrayScattering
         unsigned DIM,
         typename T
     >
-    inline std::vector< T > asStandardVector(
-        pmacc::math::Vector< T, DIM >const & vec
+    HINLINE std::vector< T > asStandardVector(
+        pmacc::math::Vector< T, DIM > const & vec
     )
     {
         std::vector< T > res;
@@ -89,8 +88,8 @@ namespace  xrayScattering
     /** Output writer for the xrayScattering plugin.
      *
      * Handles either a serial, in the mirrored output mode, or a parallel, in
-     * the split (chunked) mode, data writing. Data is saved in the openPMD
-     * standard using the openPMD API.
+     * the distributed (chunked) mode, data writing. Data is saved in the
+     * openPMD standard using the openPMD API.
      * @tparam T_ValueType Type of the values stored in the output.
      */
     template < typename T_ValueType >
@@ -99,7 +98,7 @@ namespace  xrayScattering
 private:
 
         //! A pointer to an openPMD API Series object
-        std::unique_ptr< openPMD::Series > openPMDSeries;
+        std::unique_ptr< ::openPMD::Series > openPMDSeries;
         //! MPI Communicator for the parallel data write
         MPI_Comm  mpiCommunicator;
         std::string const fileName, fileExtension, dir;
@@ -109,7 +108,7 @@ private:
         //! Output dimensions
         pmacc::math::UInt64< DIM2 > const globalExtent;
         //! OpenPMD type specifier for the ValueType
-        openPMD::Datatype datatype;
+        ::openPMD::Datatype datatype;
         //! Output SI unit
         const float_64 unit;
         //! GridSpacing
@@ -149,7 +148,7 @@ public:
             unit( unit )
         {
             if(outputMemoryLayout ==
-                OutputMemoryLayout::SplitOverNodes)
+                OutputMemoryLayout::Distribute)
             {
                 // Set the MPI communicator.
                 GridController< simDim > & gc =
@@ -162,9 +161,9 @@ public:
                 ) );
             }
 
-            datatype = openPMD::determineDatatype< T_ValueType >( );
+            datatype = ::openPMD::determineDatatype< T_ValueType >( );
             // Create the output file.
-            openSeries( openPMD::AccessType::CREATE );
+            openSeries( ::openPMD::AccessType::CREATE );
             openPMDSeries->setMeshesPath( "scatteringData" );
             openPMDSeries->setAttribute("totalSimulationCells",
                 totalSimulationCells);
@@ -173,7 +172,7 @@ public:
 
         virtual ~XrayScatteringWriter( )
         {
-            if(outputMemoryLayout == OutputMemoryLayout::SplitOverNodes)
+            if(outputMemoryLayout == OutputMemoryLayout::Distribute)
             {
                 if( mpiCommunicator != MPI_COMM_NULL )
                 {
@@ -188,7 +187,7 @@ public:
 
 private:
 
-        HINLINE bool isADIOS1()
+        HINLINE bool isADIOS1( ) const
         {
 #if openPMD_HAVE_ADIOS1 && !openPMD_HAVE_ADIOS2
             return this->fileExtension == "bp";
@@ -201,7 +200,7 @@ private:
          *
          * @param at OpenPMD API access type.
          */
-        HINLINE void openSeries( openPMD::AccessType at )
+        HINLINE void openSeries( ::openPMD::AccessType at )
         {
             if( !openPMDSeries )
             {
@@ -211,26 +210,23 @@ private:
                     "XrayScatteringWriter: Opening file: %1%" )
                 % fullName;
 
-                if ( outputMemoryLayout == OutputMemoryLayout::SplitOverNodes )
+                if ( outputMemoryLayout == OutputMemoryLayout::Distribute )
                 {
                     // Open a series for a parallel write.
-                    openPMDSeries = std::unique_ptr< openPMD::Series >(
-                        new openPMD::Series(
-                            fullName,
-                            at,
-                            mpiCommunicator
-                        )
+                    openPMDSeries = pmacc::memory::makeUnique< ::openPMD::Series >(
+                        fullName,
+                        at,
+                        mpiCommunicator
                     );
                 }
                 else
                 {
                     // Open a series for a serial write.
-                    openPMDSeries = std::unique_ptr< openPMD::Series >(
-                        new openPMD::Series(
-                            fullName,
-                            at
-                        )
+                    openPMDSeries = pmacc::memory::makeUnique< ::openPMD::Series >(
+                        fullName,
+                        at
                     );
+
                 }
 
                 log< picLog::INPUT_OUTPUT >(
@@ -253,7 +249,7 @@ private:
                                              "file: %1%" ) %
                 fileName;
                 openPMDSeries.reset( );
-                if ( outputMemoryLayout == OutputMemoryLayout::SplitOverNodes )
+                if ( outputMemoryLayout == OutputMemoryLayout::Distribute )
                 {
                     MPI_Barrier( mpiCommunicator );
                 }
@@ -273,12 +269,12 @@ private:
         /** Prepare an openPMD mesh for the amplitude.
          * @param currentStep
          */
-        HINLINE openPMD::Mesh
+        HINLINE ::openPMD::Mesh
         prepareMesh( uint32_t const currentStep )
         {
-            openPMD::Iteration iteration =
+            ::openPMD::Iteration iteration =
                 openPMDSeries->iterations[ currentStep ];
-            openPMD::Mesh mesh = iteration.meshes[ "amplitude" ];
+            ::openPMD::Mesh mesh = iteration.meshes[ "amplitude" ];
             mesh.setGridSpacing( asStandardVector< DIM2 >( gridSpacing ) );
             // 1/angstrom to 1/meter conversion
             mesh.setGridUnitSI( 1e10 );
@@ -291,19 +287,19 @@ private:
          * @param currentStep
          * @param component Component to write, either real or imaginary
          */
-        HINLINE openPMD::MeshRecordComponent
+        HINLINE ::openPMD::MeshRecordComponent
         prepareMRC(
             Component component,
-            openPMD::Mesh & mesh
+            ::openPMD::Mesh & mesh
         )
         {
             const std::string name_lookup_tpl[ ] = { "x", "y" };
-            openPMD::MeshRecordComponent mrc =
+            ::openPMD::MeshRecordComponent mrc =
                 mesh[ name_lookup_tpl[ static_cast< int >( component ) ] ];
 
             std::vector< uint64_t > shape =
                 asStandardVector< DIM2 >( globalExtent );
-            openPMD::Dataset dataset{
+            ::openPMD::Dataset dataset{
                 datatype,
                 std::move( shape )
             };
@@ -338,26 +334,26 @@ public:
             std::vector< T_ValueType > & imagVec
         )
         {
-            openSeries( openPMD::AccessType::READ_WRITE );
+            openSeries( ::openPMD::AccessType::READ_WRITE );
 
-            openPMD::Mesh mesh = prepareMesh( currentStep );
-            openPMD::MeshRecordComponent mrc_real = prepareMRC(
+            ::openPMD::Mesh mesh = prepareMesh( currentStep );
+            ::openPMD::MeshRecordComponent mrc_real = prepareMRC(
                 Component::Real,
                 mesh
             );
-            openPMD::MeshRecordComponent mrc_imag = prepareMRC(
+            ::openPMD::MeshRecordComponent mrc_imag = prepareMRC(
                 Component::Imag,
                 mesh
             );
 
 
             mrc_real.storeChunk< T_ValueType >(
-                openPMD::shareRaw( & realVec[ 0 ] ),
-                openPMD::Offset( DIM2, 0u ),
+                ::openPMD::shareRaw( & realVec[ 0 ] ),
+                ::openPMD::Offset( DIM2, 0u ),
                 asStandardVector< DIM2 >( globalExtent ) );
             mrc_imag.storeChunk< T_ValueType >(
-                openPMD::shareRaw( & imagVec[ 0 ] ),
-                openPMD::Offset( DIM2, 0u ),
+                ::openPMD::shareRaw( & imagVec[ 0 ] ),
+                ::openPMD::Offset( DIM2, 0u ),
                 asStandardVector< DIM2 >( globalExtent ) );
             openPMDSeries->flush( );
 
@@ -389,16 +385,16 @@ public:
             std::vector< T_ValueType > & imagVec
         )
         {
-            openSeries( openPMD::AccessType::READ_WRITE );
+            openSeries( ::openPMD::AccessType::READ_WRITE );
 
             // Get openPMD mesh record components for the real and imaginary
             // parts.
-            openPMD::Mesh mesh = prepareMesh( currentStep );
-            openPMD::MeshRecordComponent mrc_real = prepareMRC(
+            ::openPMD::Mesh mesh = prepareMesh( currentStep );
+            ::openPMD::MeshRecordComponent mrc_real = prepareMRC(
                 Component::Real,
                 mesh
             );
-            openPMD::MeshRecordComponent mrc_imag = prepareMRC(
+            ::openPMD::MeshRecordComponent mrc_imag = prepareMRC(
                 Component::Imag,
                 mesh
             );
@@ -429,12 +425,12 @@ public:
             extent = std::vector< uint64_t >{ 1, firstLineLength };
             // Register chunks for imag and real components.
             mrc_real.storeChunk< T_ValueType >(
-                openPMD::shareRaw( & realVec[ 0 ] ),
+                ::openPMD::shareRaw( & realVec[ 0 ] ),
                 offset,
                 extent
             );
             mrc_imag.storeChunk< T_ValueType >(
-                openPMD::shareRaw( & imagVec[ 0 ] ),
+                ::openPMD::shareRaw( & imagVec[ 0 ] ),
                 offset,
                 extent
             );
@@ -453,12 +449,12 @@ public:
             );
             // Register the middle chunk.
             mrc_real.storeChunk< T_ValueType >(
-                openPMD::shareRaw( & realVec[ localOffset ] ),
+                ::openPMD::shareRaw( & realVec[ localOffset ] ),
                 offset,
                 extent
             );
             mrc_imag.storeChunk< T_ValueType >(
-                openPMD::shareRaw( & imagVec[ localOffset ] ),
+                ::openPMD::shareRaw( & imagVec[ localOffset ] ),
                 offset,
                 extent
             );
@@ -478,12 +474,12 @@ public:
                 extent[ 0 ] = 1;
                 extent[ 1 ] = lastLineLength;
                 mrc_real.storeChunk< T_ValueType >(
-                    openPMD::shareRaw( & realVec[ localOffset ] ),
+                    ::openPMD::shareRaw( & realVec[ localOffset ] ),
                     offset,
                     extent
                 );
                 mrc_imag.storeChunk< T_ValueType >(
-                    openPMD::shareRaw( & imagVec[ localOffset ] ),
+                    ::openPMD::shareRaw( & imagVec[ localOffset ] ),
                     offset,
                     extent
                 );

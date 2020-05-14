@@ -173,12 +173,12 @@ namespace xrayScattering
                             float_X dotqr;
                             density = densities[ rLoopIdx ];
                             float2_X position = positions[ rLoopIdx ];
-                            dotqr = algorithms::math::dot(
+                            dotqr = pmacc::math::dot(
                                 position,
                                 q
                             );
                             dotqr *= -1.0;
-                            amplitude += algorithms::math::euler(
+                            amplitude += pmacc::math::euler(
                                 density,
                                 dotqr
                             );

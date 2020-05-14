@@ -20,7 +20,7 @@ def compare_with_fft(species, bound_electrons, rotation=None):
     series_output = api.Series(path_output, api.Access_Type.read_only)
     i = series_output.iterations[0]
     e_mesh = i.meshes['e_density']
-    ed = e_mesh['\x0bScalar']
+    ed = e_mesh[api.Mesh_Record_Component.SCALAR]
     electron_density = ed.load_chunk()
     # ions have the same density in this setup
     electron_density *= bound_electrons
@@ -42,15 +42,15 @@ def compare_with_fft(species, bound_electrons, rotation=None):
     # equivalent transformation q_x -> -q_x. The [1:,:] is necessary since the
     # fft output has one extra, mismatching after reflection, frequency. It is
     # left out of the comparision.
-    fft, amplitude = fft[1:, :], amplitude[1:, :]
+    fft, amplitude = fft[1:, 1:], amplitude[1:, 1:]
     fft = fft[::-1, :]
 
     fft = fft.astype(amplitude.dtype.type)
     if amplitude.real.dtype.type is np.float32:
-        params = {"abs_tolerance": 1e-2,
-                  "threshold": 1e-2, "rel_tolerance": 1e-1}
+        params = {"abs_tolerance": 1e-1,
+                  "threshold": 1e-1, "rel_tolerance": 1e-1}
     elif amplitude.real.dtype.type is np.float64:
-        params = {"abs_tolerance": 1e-10,
+        params = {"abs_tolerance": 1e-8,
                   "threshold": 1e-8, "rel_tolerance": 1e-8}
     else:
         raise TypeError

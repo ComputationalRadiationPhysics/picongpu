@@ -40,10 +40,9 @@ namespace beamProfiles
     {
         using ParamClass = T_ParamClass;
 
-
         static HDINLINE float_X getFactor(
-            const float_X & x,
-            const float_X & y
+            float_X const & x,
+            float_X const & y
         )
         {
             constexpr float_X s_x = ParamClass::sigmaX_SI / UNIT_LENGTH;
@@ -60,7 +59,3 @@ namespace beamProfiles
 } // namespace xrayScattering
 } // namespace plugins
 } // namespace picongpu
-
-
-
-
