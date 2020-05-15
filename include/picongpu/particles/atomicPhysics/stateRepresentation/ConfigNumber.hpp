@@ -92,7 +92,7 @@ public:
     T_DataType configNumber;    // storage of actual configNumber
 
 private:
-    uint16_t g( uint8_t n )
+    static uint16_t g( uint8_t n )
     {
     /** returns the maximum occupation number for the n-th level
      */
@@ -100,7 +100,7 @@ private:
         return (static_cast<uint16_t>(n) * static_cast<uint16_t>(n) * 2);
     }
 
-    uint16_t numberOfOccupationNumberValuesInShell( uint8_t n )
+    static uint16_t numberOfOccupationNumberValuesInShell( uint8_t n )
     {
     /** returns the number of different occupation number values for the nth
      * shell.
@@ -117,7 +117,7 @@ private:
             ) + 1;
     }
 
-    constexpr T_DataType stepLength(uint8_t n)
+    constexpr static T_DataType stepLength(uint8_t n)
     {
     /** returns the step length of the n-th level
      *
@@ -135,7 +135,7 @@ private:
         return result;
     }
 
-    void nextStepLength( T_DataType* currentStepLength, uint8_t current_n )
+    static void nextStepLength( T_DataType* currentStepLength, uint8_t current_n )
     {
     /** returns the step length of the (current_n + 1)-th level, given the
      * current step length and current_n
@@ -157,7 +157,7 @@ public:
     // number of levels, n_max, used for configNumber
     constexpr static uint8_t numberLevels = T_NumberLevels;
 
-    constexpr T_DataType numberStates()
+    constexpr static T_DataType numberStates()
     {
     /** returns number of different states(Configs) that are represented
      */

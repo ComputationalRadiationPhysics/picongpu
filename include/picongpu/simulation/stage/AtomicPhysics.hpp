@@ -33,9 +33,14 @@
 #include <pmacc/type/Area.hpp>
 
 // modules necessary for random number generators from pmacc
-#include <pmacc/random/methods/methods.hpp>
-#include <pmacc/random/distributions/Uniform.hpp>
-#include <pmacc/random/RNGProvider.hpp>
+// #include <pmacc/random/methods/methods.hpp>
+// #include <pmacc/random/distributions/Uniform.hpp>
+// #include <pmacc/random/RNGProvider.hpp>
+
+// random number generation from random lib of c++, only used in prototype
+#include <random>
+// get information about data types
+#include <limits>
 
 #include <cstdint>
 
@@ -61,11 +66,15 @@ namespace stage
     template< typename T_IonSpecies >
     struct CallAtomicPhysics
     {
+
+        // Typdefinitions:
+
         // Define ion species and frame type datatype for later access
         using IonSpecies = pmacc::particles::meta::FindByNameOrType_t<
             VectorAllSpecies,
             T_IonSpecies
         >;
+
         using IonFrameType = typename IonSpecies::FrameType;
 
         // Define electron species and frame type datatype for later access
@@ -76,7 +85,9 @@ namespace stage
                 atomicPhysics< > /// here will be your flag from .param file
             >::type
         >;
+
         using ElectronFrameType = typename ElectronSpecies::FrameType;
+
 
         // get specialisation of ConfigNumber class used in this species
         using IonSpeciesAtomicConfigNumber =
@@ -92,6 +103,10 @@ namespace stage
         using ConfigNumberDataType =
             typename IonSpeciesAtomicConfigNumber::DataType;
 
+
+
+
+    /* for use with pmacc
         // random number generator(RNG) Factory as defined in random.param
         using RNGFactory = pmacc::random::RNGProvider<
             simDim,
@@ -114,9 +129,29 @@ namespace stage
         // actual random number Generator defined as attribute and initialised
         RandomGen randomGenInt = RNGFactory::createRandom< DistributionInt >();
         RandomGen randomGenFloat = RNGFactory::createRandom< DistributionFloat >();
+    */
+
+
+        // Attribute definitions:
 
         // RateMatrix encapsulated call to flylite
         RateMatrix rateMatrix;
+        // random number Generators
+        std::uniform_int_distribution<ConfigNumberDataType> randomIntGen;
+        std::uniform_real_distribution<float> randomFloatGen;
+
+
+        CallAtomicPhysics()
+        {
+            // initializing the random number generators
+            this->randomIntGen = std::uniform_int_distribution<ConfigNumberDataType>
+            (
+                0,
+                IonSpeciesAtomicConfigNumber.numberStates()
+            );
+            this->randomFloatGen = std::uniform_real_distribution<float>( 0, 1 )
+        }
+
 
         // Call functor, will be called in MySimulation once per time step
         void operator()( MappingDesc const cellDescription ) const
@@ -229,14 +264,13 @@ namespace stage
                     /// Here implement everything using variables ion and electron
                     /// that represent the selected pair
 
-                    double timeRemaining;
-                    double rate;
-                    double probability;
+                    float timeRemaining;
+                    float rate;
+                    float probability;
 
                     ConfigNumberDataType newState;
                     ConfigNumberDataType randomNumber;
-
-                    using currentState = ion[atomicConfigNumber_]
+                    // ion[atomicConfigNumber_].configNumber;
 
                     timeRemaining = static_cast< double >(
                         picongpu::SI::DELTA_T_SI
@@ -244,13 +278,9 @@ namespace stage
 
                     while ( timeRemaining > 0)
                     {
-                            newState = this->randomGenInt();
-                        if (newState >= currentState.numberStates() )
-                        {
-                            newState = this->randomGenInt();
-                        }
+                        newState = this->randomIntGen();
     
-                        rate = this->rateMatrix( newState, currentState.configNumber );
+                        rate = this->rateMatrix( newState, ion[atomicConfigNumber_].configNumber );
                         probability = rate * timeRemaining;
                         if ( probability >= 1 )
                         {
@@ -259,8 +289,7 @@ namespace stage
                         }
                         else
                         {
-                            randomNumber = this->randomGenFloat();
-                            if ( randomNumber > probability )
+                            if ( this->randomFloatGen() <= probability )
                             {
                                 currentState.configNumber = newState;
                             }
