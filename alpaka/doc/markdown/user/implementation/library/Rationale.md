@@ -203,7 +203,7 @@ When the *CUDA* compiler is used, they are defined to their *CUDA* equivalents, 
 There are two possible ways to tell the kernel about the accelerator type:
  1. The kernel is templated on the accelerator type ...
   * + This allows users to specialize them for different accelerators. (Is this is really necessary or desired?)
-  * - The kernel has to be a class template. This does not allow C++ lambdas to be used as kernels because they are no templates themselves (but only their `operator()` can be templated in C++14).
+  * - The kernel has to be a class template. This does not allow C++ lambdas to be used as kernels because they are no templates themselves (but only their `operator()` can be templated).
   * - This prevents the user from instantiating an accelerator independent kernel before executing it.
   Because the memory layout in inheritance hierarchies is undefined a simple copy of the user kernel or its members to its specialized type is not possible platform independently.
   This would require a copy from UserKernel<TDummyAcc> to UserKernel<TAcc> to be possible.
@@ -219,7 +219,7 @@ There are two possible ways to tell the kernel about the accelerator type:
  2. The `operator()` is templated on the accelerator type and has a reference to the accelerator as parameter.
   * + The kernel can be an arbitrary function object with ALPAKA_FN_HOST_ACC attributes.
   * + This would allow to instantiate the accelerator independent kernel and set its members before execution.
-  * +/- C++14 provides polymorphic lambdas. All compilers (even MSVC) support this.
+  * +/- usable with polymorphic lambdas.
   * - The `operator()` could be overloaded on the accelerator type but there is no way to specialize the whole kernel class itself, so it always has the same members.
   * - This would require an additional object (the accelerator) in device memory taking up valuable CUDA registers (opposed to the inheritance solution). At least on CUDA all the accelerator functions could be inlined nevertheless.
 

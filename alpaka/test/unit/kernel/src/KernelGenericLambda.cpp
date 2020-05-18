@@ -14,8 +14,6 @@
 
 #include <catch2/catch.hpp>
 
-// Generic lambdas are a C++14 feature.
-#if !defined(BOOST_NO_CXX14_GENERIC_LAMBDAS)
 // CUDA C Programming guide says: "__host__ __device__ extended lambdas cannot be generic lambdas"
 #if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
 
@@ -72,5 +70,4 @@ TEMPLATE_LIST_TEST_CASE( "variadicGenericLambdaKernelIsWorking", "[kernel]", alp
     REQUIRE(fixture(kernel, arg1, arg2));
 }
 
-#endif
 #endif

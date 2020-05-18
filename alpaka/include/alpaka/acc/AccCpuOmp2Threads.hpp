@@ -261,13 +261,6 @@ namespace alpaka
                     TWorkDiv const & workDiv,
                     TKernelFnObj const & kernelFnObj,
                     TArgs && ... args)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> kernel::TaskKernelCpuOmp2Threads<
-                    TDim,
-                    TIdx,
-                    TKernelFnObj,
-                    TArgs...>
-#endif
                 {
                     return
                         kernel::TaskKernelCpuOmp2Threads<

@@ -78,9 +78,6 @@ namespace alpaka
             typename T>
         ALPAKA_FN_HOST auto getDev(
             T const & t)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(traits::GetDev<T>::getDev(t))
-#endif
         {
             return
                 traits::GetDev<

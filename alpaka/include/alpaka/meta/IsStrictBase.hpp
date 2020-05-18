@@ -24,6 +24,6 @@ namespace alpaka
             std::integral_constant<
                 bool,
                 std::is_base_of<TBase, TDerived>::value
-                && !std::is_same<TBase, typename std::decay<TDerived>::type>::value>;
+                && !std::is_same<TBase, std::decay_t<TDerived>>::value>;
     }
 }

@@ -20,7 +20,7 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathFloor;
+        struct ConceptMathFloor{};
 
         namespace traits
         {
@@ -47,15 +47,6 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto floor(
             T const & floor_ctx,
             TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Floor<
-                concepts::ImplementationBase<ConceptMathFloor, T>,
-                TArg>
-            ::floor(
-                floor_ctx,
-                arg))
-#endif
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathFloor, T>;
             return

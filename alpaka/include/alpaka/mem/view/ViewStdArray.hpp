@@ -100,11 +100,10 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static constexpr auto getExtent(
-                    std::array<TElem, Tsize> const & /*extent*/)
+                    std::array<TElem, Tsize> const & extent)
                 -> idx::Idx<std::array<TElem, Tsize>>
                 {
-                    // C++14 constexpr with void return
-                    /*alpaka::ignore_unused(extent);*/
+                    alpaka::ignore_unused(extent);
                     return Tsize;
                 }
             };

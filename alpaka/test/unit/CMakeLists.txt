@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2019 Benjamin Worpitz
+# Copyright 2015-2020 Benjamin Worpitz, Jan Stephan
 #
 # This file is part of Alpaka.
 #
@@ -12,26 +12,26 @@
 # Required CMake version.
 ################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.15)
 
 ################################################################################
 # Add subdirectories.
 ################################################################################
 
-ADD_SUBDIRECTORY("acc/")
-ADD_SUBDIRECTORY("atomic/")
-ADD_SUBDIRECTORY("block/shared/")
-ADD_SUBDIRECTORY("block/sync/")
-ADD_SUBDIRECTORY("core/")
-ADD_SUBDIRECTORY("event/")
-ADD_SUBDIRECTORY("idx/")
-ADD_SUBDIRECTORY("kernel/")
-ADD_SUBDIRECTORY("math/sincos/")
-ADD_SUBDIRECTORY("mem/buf/")
-ADD_SUBDIRECTORY("mem/view/")
-ADD_SUBDIRECTORY("mem/p2p/")
-ADD_SUBDIRECTORY("meta/")
-ADD_SUBDIRECTORY("queue/")
-ADD_SUBDIRECTORY("rand/")
-ADD_SUBDIRECTORY("time/")
-ADD_SUBDIRECTORY("vec/")
+add_subdirectory("acc/")
+add_subdirectory("atomic/")
+add_subdirectory("block/shared/")
+add_subdirectory("block/sync/")
+add_subdirectory("core/")
+add_subdirectory("event/")
+add_subdirectory("idx/")
+add_subdirectory("kernel/")
+add_subdirectory("math/sincos/")
+add_subdirectory("mem/buf/")
+add_subdirectory("mem/view/")
+add_subdirectory("mem/p2p/")
+add_subdirectory("meta/")
+add_subdirectory("queue/")
+add_subdirectory("rand/")
+add_subdirectory("time/")
+add_subdirectory("vec/")

@@ -14,7 +14,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-4.9
+      - g++-5
       - clang-4.0
 
 env:
@@ -22,7 +22,7 @@ env:
     - CUDA_ROOT: $HOME/.cache/cuda
     - CMAKE_ROOT: $HOME/.cache/cmake
     - BOOST_ROOT: $HOME/.cache/boost
-    - BOOST_MIN: 106000 # careful: hard coded below
+    - BOOST_MIN: 106501 # careful: hard coded below
     - CUPLA_ROOT: $TRAVIS_BUILD_DIR
     - OMP_NUM_THREADS: 4 # ignored in thread layer
   matrix:
@@ -44,9 +44,9 @@ before_install:
   - mkdir -p $HOME/test/config
   - export CMAKE_FLAGS="-DALPAKA_ACC_"$STRATEGY"_ENABLE=ON"
   - if [ "$COMPILER" == "gcc" ]; then
-        echo "Using g++-4.9 and sequential OpenMP2 threads ...";
-        export CXX=g++-4.9;
-        export CC=gcc-4.9;
+        echo "Using g++-5 and sequential OpenMP2 threads ...";
+        export CXX=g++-5;
+        export CC=gcc-5;
         unset CUDA_ROOT;
     elif [ "$COMPILER" == "clang" ]; then
         echo "Using clang++-4.0 & sequential threads ...";
@@ -55,8 +55,8 @@ before_install:
         unset CUDA_ROOT;
     elif [ "$COMPILER" == "nvcc" ]; then
         echo "Using CUDA 7.5 ...";
-        export CXX=g++-4.9;
-        export CC=gcc-4.9;
+        export CXX=g++-5;
+        export CC=gcc-5;
         export PATH=$CUDA_ROOT/bin:$PATH;
     fi
   - echo "$CMAKE_FLAGS"
@@ -69,15 +69,15 @@ install:
   # CMAKE                                                                     #
   #############################################################################
   - export PATH=$CMAKE_ROOT/bin:$PATH
-  - CMAKE_3_11_4_FOUND=$(cmake --version | grep " 3\.11\.4" >/dev/null && { echo 0; } || { echo 1; })
-  - if [ $CMAKE_3_11_4_FOUND -ne 0 ]; then
+  - CMAKE_3_15_0_FOUND=$(cmake --version | grep " 3\.15\.0" >/dev/null && { echo 0; } || { echo 1; })
+  - if [ $CMAKE_3_15_0_FOUND -ne 0 ]; then
       mkdir -p $CMAKE_ROOT &&
       cd $CMAKE_ROOT &&
       rm -rf $CMAKE_ROOT/* &&
-      travis_retry wget --no-check-certificate http://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.tar.gz &&
-      tar -xzf cmake-3.11.4-Linux-x86_64.tar.gz &&
-      mv cmake-3.11.4-Linux-x86_64/* . &&
-      rm -rf cmake-3.11.4-Linux-x86_64.tar.gz cmake-3.11.4-Linux-x86_64 &&
+      travis_retry wget --no-check-certificate http://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz &&
+      tar -xzf cmake-3.15.0-Linux-x86_64.tar.gz &&
+      mv cmake-3.15.0-Linux-x86_64/* . &&
+      rm -rf cmake-3.15.0-Linux-x86_64.tar.gz cmake-3.15.0-Linux-x86_64 &&
       cd -;
     fi
   - cmake --version
@@ -93,13 +93,13 @@ install:
   - if [ $BOOST_FOUND -ne 0 ]; then
       mkdir -p $ BOOST_ROOT &&
       cd $BOOST_ROOT &&
-      travis_retry wget --no-check-certificate -O boost.tar.bz2 http://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2/download &&
+      travis_retry wget --no-check-certificate -O boost.tar.bz2 http://sourceforge.net/projects/boost/files/boost/1.65.1/boost_1_65_1.tar.bz2/download &&
       tar -xjf boost.tar.bz2 &&
-      cd boost_1_62_0 &&
+      cd boost_1_65_1 &&
       ./bootstrap.sh --with-libraries=atomic,chrono,context,date_time,system,thread --prefix=$BOOST_ROOT &&
       ./b2 -j2 &&
       ./b2 install &&
-      rm -rf boost.tar.bz2 boost_1_62_0 &&
+      rm -rf boost.tar.bz2 boost_1_65_1 &&
       cd $HOME;
     fi
   #############################################################################
@@ -109,10 +109,10 @@ install:
   - if [ $NVCC_FOUND -ne 0 ] && [ $COMPILER == "nvcc" ]; then
       mkdir -p $CUDA_ROOT &&
       cd $CUDA_ROOT &&
-      travis_retry wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run &&
-      chmod u+x ./cuda_8.0.44_linux-run &&
-      ./cuda_8.0.44_linux-run --override --silent --verbose --toolkit --toolkitpath=$CUDA_ROOT &&
-      rm -rf cuda_8.0.44_linux-run $CUDA_ROOT/{samples,jre,doc,share} &&
+      travis_retry wget https://developer.nvidia.com/compute/cuda/9.0/Prod/local_installers/cuda_9.0.176_384.81_linux-run &&
+      chmod u+x *-run &&
+      ./cuda_9.0.176_384.81_linux-run --override --silent --verbose --toolkit --toolkitpath=$CUDA_ROOT &&
+      rm -rf ./cuda_9.0.176_384.81_linux-run $CUDA_ROOT/{samples,jre,doc,share} &&
       cd -;
     fi
 

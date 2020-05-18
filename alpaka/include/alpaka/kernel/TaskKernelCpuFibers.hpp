@@ -31,6 +31,7 @@
 #include <alpaka/meta/ApplyTuple.hpp>
 
 #include <algorithm>
+#include <functional>
 #include <vector>
 #include <tuple>
 #include <type_traits>
@@ -90,7 +91,7 @@ namespace alpaka
                     m_args(std::forward<TArgs>(args)...)
             {
                 static_assert(
-                    dim::Dim<typename std::decay<TWorkDiv>::type>::value == TDim::value,
+                    dim::Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                     "The work division and the execution task have to be of the same dimensionality!");
             }
             //-----------------------------------------------------------------------------
@@ -121,7 +122,7 @@ namespace alpaka
                 // Get the size of the block shared dynamic memory.
                 auto const blockSharedMemDynSizeBytes(
                     meta::apply(
-                        [&](typename std::decay<TArgs>::type const & ... args)
+                        [&](std::decay_t<TArgs> const & ... args)
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
@@ -151,7 +152,7 @@ namespace alpaka
 
                 auto const boundGridBlockExecHost(
                     meta::apply(
-                        [this, &acc, &blockThreadExtent, &fiberPool](typename std::decay<TArgs>::type const & ... args)
+                        [this, &acc, &blockThreadExtent, &fiberPool](std::decay_t<TArgs> const & ... args)
                         {
                             // Bind the kernel and its arguments to the grid block function.
                             return
@@ -181,7 +182,7 @@ namespace alpaka
                 vec::Vec<TDim, TIdx> const & blockThreadExtent,
                 FiberPool & fiberPool,
                 TKernelFnObj const & kernelFnObj,
-                typename std::decay<TArgs>::type const & ... args)
+                std::decay_t<TArgs> const & ... args)
             -> void
             {
                     // The futures of the threads in the current block.
@@ -235,7 +236,7 @@ namespace alpaka
                 FiberPool &,
 #endif
                 TKernelFnObj const & kernelFnObj,
-                typename std::decay<TArgs>::type const & ... args)
+                std::decay_t<TArgs> const & ... args)
             -> void
             {
                 // Bind the arguments to the accelerator block thread execution function.
@@ -265,7 +266,7 @@ namespace alpaka
                 acc::AccCpuFibers<TDim, TIdx> & acc,
                 vec::Vec<TDim, TIdx> const & blockThreadIdx,
                 TKernelFnObj const & kernelFnObj,
-                typename std::decay<TArgs>::type const & ... args)
+                std::decay_t<TArgs> const & ... args)
             -> void
             {
                 // We have to store the fiber data before the kernel is calling any of the methods of this class depending on them.
@@ -293,7 +294,7 @@ namespace alpaka
             }
 
             TKernelFnObj m_kernelFnObj;
-            std::tuple<typename std::decay<TArgs>::type...> m_args;
+            std::tuple<std::decay_t<TArgs>...> m_args;
         };
     }
 

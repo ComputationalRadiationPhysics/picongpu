@@ -75,8 +75,7 @@ namespace alpaka
                             block::shared::st::BlockSharedMemStNoSync const & blockSharedMemSt)
                         -> T &
                         {
-                            // TODO: replace with constexpr std::max in C++14
-                            constexpr std::size_t alignmentInBytes = (core::vectorization::defaultAlignment < alignof(T)) ? alignof(T) : core::vectorization::defaultAlignment;
+                            constexpr std::size_t alignmentInBytes = std::max(core::vectorization::defaultAlignment, alignof(T));
 
                             blockSharedMemSt.m_sharedAllocs.emplace_back(
                                 reinterpret_cast<uint8_t *>(

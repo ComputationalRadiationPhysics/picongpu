@@ -13,6 +13,8 @@
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
 
+#include <type_traits>
+
 namespace alpaka
 {
     namespace idx
@@ -59,7 +61,7 @@ namespace alpaka
             struct MapIdx<
                 TidxDimOut,
                 1u,
-                typename std::enable_if<TidxDimOut != 1u>::type>
+                std::enable_if_t<TidxDimOut != 1u>>
             {
                 //-----------------------------------------------------------------------------
                 // \tparam TElem Type of the index values.
@@ -103,7 +105,7 @@ namespace alpaka
             struct MapIdx<
                 1u,
                 TidxDimIn,
-                typename std::enable_if<TidxDimIn != 1u>::type>
+                std::enable_if_t<TidxDimIn != 1u>>
             {
                 //-----------------------------------------------------------------------------
                 // \tparam TElem Type of the index values.

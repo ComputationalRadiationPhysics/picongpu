@@ -27,7 +27,7 @@ namespace alpaka
                 typename T>
             struct DimType<
                 T,
-                typename std::enable_if<std::is_arithmetic<T>::value>::type>
+                std::enable_if_t<std::is_arithmetic<T>::value>>
             {
                 using type = dim::DimInt<1u>;
             };

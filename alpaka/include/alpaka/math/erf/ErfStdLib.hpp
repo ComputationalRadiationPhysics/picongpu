@@ -35,13 +35,12 @@ namespace alpaka
             struct Erf<
                 ErfStdLib,
                 TArg,
-                typename std::enable_if<
-                    std::is_arithmetic<TArg>::value>::type>
+                std::enable_if_t<
+                    std::is_arithmetic<TArg>::value>>
             {
                 ALPAKA_FN_HOST static auto erf(
                     ErfStdLib const & erf_ctx,
                     TArg const & arg)
-                -> decltype(std::erf(arg))
                 {
                     alpaka::ignore_unused(erf_ctx);
                     return std::erf(arg);

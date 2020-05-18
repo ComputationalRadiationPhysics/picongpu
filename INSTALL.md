@@ -4,17 +4,17 @@ cupla Install Guide
 Requirements
 ------------
 
-- **cmake**  3.11.4 or higher
+- **cmake**  3.15.0 or higher
   - *Debian/Ubuntu:* `sudo apt-get install cmake file cmake-curses-gui`
   - *Arch Linux:* `sudo pacman --sync cmake`
 
 - **cupla**
-  - https://github.com/ComputationalRadiationPhysics/cupla
+  - https://github.com/alpaka-group/cupla
   - `export CUPLA_ROOT=<cupla_SRC_CODE_DIR>`
   - `export CMAKE_PREFIX_PATH=$CUPLA_ROOT:$CMAKE_PREFIX_PATH`
   - example:
     - `mkdir -p $HOME/src`
-    - `git clone git://github.com/ComputationalRadiationPhysics/cupla.git $HOME/src/cupla`
+    - `git clone git://github.com/alpaka-group/cupla.git $HOME/src/cupla`
     - `cd $HOME/src/cupla`
     - `export CUPLA_ROOT=$HOME/src/cupla`
   - use a different alpaka installation:
@@ -48,7 +48,7 @@ How to update alpaka as git subtree?
 # git author is generic to not mess up contribution statistics
 GIT_AUTHOR_NAME="Third Party" GIT_AUTHOR_EMAIL="crp-git@hzdr.de" \
  git subtree pull --prefix alpaka \
- https://github.com/ComputationalRadiationPhysics/alpaka.git develop --squash
+ https://github.com/alpaka-group/alpaka.git develop --squash
 ```
 
 **How to commit local changes to alpaka upstream?**

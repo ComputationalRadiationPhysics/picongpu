@@ -17,6 +17,7 @@
 #include <catch2/catch.hpp>
 
 #include <numeric>
+#include <type_traits>
 
 
 namespace alpaka
@@ -117,7 +118,7 @@ namespace alpaka
                             std::is_pointer<NativePtr>::value,
                             "The value returned by getPtrNative has to be a pointer.");
                         static_assert(
-                            std::is_const<typename std::remove_pointer<NativePtr>::type>::value,
+                            std::is_const<std::remove_pointer_t<NativePtr>>::value,
                             "The value returned by getPtrNative has to be const when the view is const.");
 
                         if(alpaka::extent::getExtentProduct(view) != static_cast<TIdx>(0u))
@@ -329,7 +330,7 @@ namespace alpaka
                             std::is_pointer<NativePtr>::value,
                             "The value returned by getPtrNative has to be a pointer.");
                         static_assert(
-                            !std::is_const<typename std::remove_pointer<NativePtr>::type>::value,
+                            !std::is_const<std::remove_pointer_t<NativePtr>>::value,
                             "The value returned by getPtrNative has to be non-const when the view is non-const.");
                     }
 

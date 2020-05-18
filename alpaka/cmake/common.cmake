@@ -194,9 +194,6 @@ FUNCTION(list_add_prefix In_Prefix In_ListVariableName)
     FOREACH(
         item
         IN LISTS ${In_ListVariableName})
-        IF(POLICY CMP0054)
-            CMAKE_POLICY(SET CMP0054 NEW)   # Only interpret if() arguments as variables or keywords when unquoted.
-        ENDIF()
         IF(NOT "${item}" STREQUAL "")
             LIST(
                 APPEND

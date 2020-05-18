@@ -20,7 +20,7 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathRsqrt;
+        struct ConceptMathRsqrt{};
 
         namespace traits
         {
@@ -47,15 +47,6 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto rsqrt(
             T const & rsqrt_ctx,
             TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Rsqrt<
-                concepts::ImplementationBase<ConceptMathRsqrt, T>,
-                TArg>
-            ::rsqrt(
-                rsqrt_ctx,
-                arg))
-#endif
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathRsqrt, T>;
             return

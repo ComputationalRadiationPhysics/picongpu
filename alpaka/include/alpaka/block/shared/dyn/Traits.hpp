@@ -28,7 +28,7 @@ namespace alpaka
             //! The block shared dynamic memory operation specifics.
             namespace dyn
             {
-                struct ConceptBlockSharedDyn;
+                struct ConceptBlockSharedDyn{};
 
                 //-----------------------------------------------------------------------------
                 //! The block shared dynamic memory operation traits.

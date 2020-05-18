@@ -10,6 +10,7 @@
 #pragma once
 
 #include <utility>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -17,8 +18,8 @@ namespace alpaka
     //! The index specifics.
     namespace idx
     {
-        struct ConceptIdxBt;
-        struct ConceptIdxGb;
+        struct ConceptIdxBt{};
+        struct ConceptIdxGb{};
 
         //-----------------------------------------------------------------------------
         //! The idx traits.
@@ -46,9 +47,9 @@ namespace alpaka
                 typename T>
             struct IdxType<
                 T,
-                typename std::enable_if<std::is_arithmetic<T>::value>::type>
+                std::enable_if_t<std::is_arithmetic<T>::value>>
             {
-                using type = typename std::decay<T>::type;
+                using type = std::decay_t<T>;
             };
         }
 

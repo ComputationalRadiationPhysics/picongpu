@@ -24,7 +24,7 @@ namespace alpaka
         //! The block synchronization specifics.
         namespace sync
         {
-            struct ConceptBlockSync;
+            struct ConceptBlockSync{};
 
             //-----------------------------------------------------------------------------
             //! The block synchronization traits.

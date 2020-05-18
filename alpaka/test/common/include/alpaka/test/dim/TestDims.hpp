@@ -18,7 +18,7 @@
 // Else the log length would be exceeded.
 #if defined(ALPAKA_CI)
   #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA \
-   || defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP && !BOOST_COMP_HCC
+   || defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP
     #define ALPAKA_CUDA_CI
   #endif
 #endif

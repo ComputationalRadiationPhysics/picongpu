@@ -18,7 +18,7 @@ namespace alpaka
     //! The wait specifics.
     namespace wait
     {
-        struct ConceptCurrentThreadWaitFor;
+        struct ConceptCurrentThreadWaitFor{};
 
         //-----------------------------------------------------------------------------
         //! The wait traits.

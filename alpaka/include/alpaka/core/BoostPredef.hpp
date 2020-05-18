@@ -19,9 +19,10 @@
 #endif
 
 //---------------------------------------HIP-----------------------------------
-// __HIPCC__ is defined by hipcc (if either __HCC__ or __CUDACC__ is defined)
+// __HIPCC__ is defined by hipcc (if either __CUDACC__ is defined)
+// https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_porting_guide.md#compiler-defines-summary
 #if !defined(BOOST_LANG_HIP)
-  #if defined(__HIPCC__) && ( defined(__CUDACC__) || defined(__HCC__) || defined(__HIP__))
+  #if defined(__HIPCC__) && ( defined(__CUDACC__) || defined(__HIP__))
     #include <hip/hip_runtime.h>
     //HIP defines "abort()" as "{asm("trap;");}", which breaks some kernels
     #undef abort
@@ -37,25 +38,14 @@
 #endif
 
 //-----------------------------------------------------------------------------
-// HSA device architecture detection (HSA generated via HIP(HCC) or HCC directly)
+// HSA device architecture detection (HSA generated via HIP(clang))
 #if !defined(BOOST_ARCH_HSA)
-    #if defined(__HIP_DEVICE_COMPILE__) && __HIP_DEVICE_COMPILE__==1 && defined(__HCC__) \
-        || (defined(__HCC_ACCELERATOR__) && __HCC_ACCELERATOR__!=0)
+    #if defined(__HIP_DEVICE_COMPILE__) && __HIP_DEVICE_COMPILE__==1 && defined(__HIP__)
         // __HIP_DEVICE_COMPILE__ does not represent feature capability of target device like CUDA_ARCH.
         // For feature detection there are special macros, see ROCm's HIP porting guide.
         #define BOOST_ARCH_HSA BOOST_VERSION_NUMBER_AVAILABLE
     #else
         #define BOOST_ARCH_HSA BOOST_VERSION_NUMBER_NOT_AVAILABLE
-    #endif
-#endif
-
-//-----------------------------------------------------------------------------
-// hcc HSA compiler detection
-#if !defined(BOOST_COMP_HCC)
-    #if defined(__HCC__)
-        #define BOOST_COMP_HCC BOOST_VERSION_NUMBER_AVAILABLE
-    #else
-        #define BOOST_COMP_HCC BOOST_VERSION_NUMBER_NOT_AVAILABLE
     #endif
 #endif
 
@@ -118,22 +108,6 @@
         #endif
     #else
         #define BOOST_COMP_NVCC BOOST_VERSION_NUMBER_NOT_AVAILABLE
-    #endif
-#endif
-
-//-----------------------------------------------------------------------------
-// In boost since 1.64.0
-// Work around for broken intel detection
-#if BOOST_COMP_INTEL == 0
-    #if defined(__INTEL_COMPILER)
-        #ifdef BOOST_COMP_INTEL_DETECTION
-            #undef BOOST_COMP_INTEL_DETECTION
-        #endif
-        #define BOOST_COMP_INTEL_DETECTION BOOST_PREDEF_MAKE_10_VVRR(__INTEL_COMPILER)
-        #if defined(BOOST_COMP_INTEL)
-            #undef BOOST_COMP_INTEL
-        #endif
-        #define BOOST_COMP_INTEL BOOST_COMP_INTEL_DETECTION
     #endif
 #endif
 

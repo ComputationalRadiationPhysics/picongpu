@@ -24,6 +24,7 @@
 #include <boost/config.hpp>
 
 #include <iosfwd>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -91,7 +92,7 @@ namespace alpaka
                     struct GetPitchBytesDefault<
                         TIdx,
                         TView,
-                        typename std::enable_if<TIdx::value < (dim::Dim<TView>::value - 1)>::type>
+                        std::enable_if_t<TIdx::value < (dim::Dim<TView>::value - 1)>>
                     {
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST static auto getPitchBytesDefault(
@@ -279,16 +280,6 @@ namespace alpaka
                 TView & view,
                 std::uint8_t const & byte,
                 TExtent const & extent)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-                traits::CreateTaskSet<
-                    dim::Dim<TView>,
-                    dev::Dev<TView>>
-                ::createTaskSet(
-                    view,
-                    byte,
-                    extent))
-#endif
             {
                 static_assert(
                     dim::Dim<TView>::value == dim::Dim<TExtent>::value,
@@ -344,17 +335,6 @@ namespace alpaka
                 TViewDst & viewDst,
                 TViewSrc const & viewSrc,
                 TExtent const & extent)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-                traits::CreateTaskCopy<
-                    dim::Dim<TViewDst>,
-                    dev::Dev<TViewDst>,
-                    dev::Dev<TViewSrc>>
-                ::createTaskCopy(
-                    viewDst,
-                    viewSrc,
-                    extent))
-#endif
             {
                 static_assert(
                     dim::Dim<TViewDst>::value == dim::Dim<TViewSrc>::value,
@@ -363,7 +343,7 @@ namespace alpaka
                     dim::Dim<TViewDst>::value == dim::Dim<TExtent>::value,
                     "The destination view and the extent are required to have the same dimensionality!");
                 static_assert(
-                    std::is_same<elem::Elem<TViewDst>, typename std::remove_const<elem::Elem<TViewSrc>>::type>::value,
+                    std::is_same<elem::Elem<TViewDst>, std::remove_const_t<elem::Elem<TViewSrc>>>::value,
                     "The source and the destination view are required to have the same element type!");
 
                 return
@@ -586,15 +566,6 @@ namespace alpaka
                 TElem * pMem,
                 TDev const & dev,
                 TExtent const & extent)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-                traits::CreateStaticDevMemView<
-                        TDev>
-                    ::createStaticDevMemView(
-                        pMem,
-                        dev,
-                        extent))
-#endif
             {
                 return
                     traits::CreateStaticDevMemView<

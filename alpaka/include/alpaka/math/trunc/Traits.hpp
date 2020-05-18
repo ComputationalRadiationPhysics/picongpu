@@ -20,7 +20,7 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathTrunc;
+        struct ConceptMathTrunc{};
 
         namespace traits
         {
@@ -47,15 +47,6 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto trunc(
             T const & trunc_ctx,
             TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Trunc<
-                concepts::ImplementationBase<ConceptMathTrunc, T>,
-                TArg>
-            ::trunc(
-                trunc_ctx,
-                arg))
-#endif
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathTrunc, T>;
             return

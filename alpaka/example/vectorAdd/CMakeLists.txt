@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019 Benjamin Worpitz
+# Copyright 2014-2020 Benjamin Worpitz, Jan Stephan
 #
 # This file exemplifies usage of Alpaka.
 #
@@ -19,44 +19,37 @@
 ################################################################################
 # Required CMake version.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11.4)
+cmake_minimum_required(VERSION 3.15)
 
-SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ################################################################################
 # Project.
 
-SET(_TARGET_NAME vectorAdd)
+set(_TARGET_NAME vectorAdd)
 
-PROJECT(${_TARGET_NAME})
+project(${_TARGET_NAME})
 
-################################################################################
-# CMake policies
-#
-# Search in <PackageName>_ROOT:
-#   https://cmake.org/cmake/help/v3.12/policy/CMP0074.html
-
-if(POLICY CMP0074)
-    cmake_policy(SET CMP0074 NEW)
-endif()
 
 #-------------------------------------------------------------------------------
 # Find alpaka.
 
-SET(ALPAKA_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../" CACHE STRING "The location of the alpaka library")
-LIST(APPEND CMAKE_MODULE_PATH "${ALPAKA_ROOT}")
-FIND_PACKAGE(alpaka REQUIRED)
+if(NOT TARGET alpaka::alpaka)
+    set(ALPAKA_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../" CACHE STRING "The location of the alpaka library")
+    list(APPEND CMAKE_MODULE_PATH "${ALPAKA_ROOT}")
+    find_package(alpaka REQUIRED)
+endif()
 
 #-------------------------------------------------------------------------------
 # Add executable.
 
-ALPAKA_ADD_EXECUTABLE(
+alpaka_add_executable(
     ${_TARGET_NAME}
     src/vectorAdd.cpp)
-TARGET_LINK_LIBRARIES(
+target_link_libraries(
     ${_TARGET_NAME}
-    PUBLIC alpaka)
+    PUBLIC alpaka::alpaka)
 
-SET_TARGET_PROPERTIES(${_TARGET_NAME} PROPERTIES FOLDER example)
+set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER example)
 
-ADD_TEST(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME})
+add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME})

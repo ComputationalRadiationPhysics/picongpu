@@ -38,15 +38,14 @@ namespace alpaka
                 MaxStdLib,
                 Tx,
                 Ty,
-                typename std::enable_if<
+                std::enable_if_t<
                     std::is_integral<Tx>::value
-                    && std::is_integral<Ty>::value>::type>
+                    && std::is_integral<Ty>::value>>
             {
                 ALPAKA_FN_HOST static auto max(
                     MaxStdLib const & max_ctx,
                     Tx const & x,
                     Ty const & y)
-                -> decltype(std::max(x, y))
                 {
                     alpaka::ignore_unused(max_ctx);
                     return std::max(x, y);
@@ -61,17 +60,16 @@ namespace alpaka
                 MaxStdLib,
                 Tx,
                 Ty,
-                typename std::enable_if<
+                std::enable_if_t<
                     std::is_arithmetic<Tx>::value
                     && std::is_arithmetic<Ty>::value
                     && !(std::is_integral<Tx>::value
-                        && std::is_integral<Ty>::value)>::type>
+                        && std::is_integral<Ty>::value)>>
             {
                 ALPAKA_FN_HOST static auto max(
                     MaxStdLib const & max_ctx,
                     Tx const & x,
                     Ty const & y)
-                -> decltype(std::fmax(x, y))
                 {
                     alpaka::ignore_unused(max_ctx);
                     return std::fmax(x, y);
