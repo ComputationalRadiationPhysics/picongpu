@@ -1,6 +1,6 @@
 language: none
 sudo: false
-dist: trusty
+dist: bionic
 
 cache:
   apt: true
@@ -14,13 +14,12 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-4.9
-      - gfortran-4.9  # spack OpenMPI dependency
+      - g++-5
+      - gfortran-5  # spack OpenMPI dependency
       - environment-modules
       - openmpi-bin
       - libopenmpi-dev
-      # clang 5.0.0 is pre-installed
-      # - clang-tidy-3.9
+      # clang 7.0.0 is pre-installed
 
 env:
   global:
@@ -154,11 +153,11 @@ jobs:
     - &test-cpp-unit
       stage: 'C++ Unit Tests'
       language: cpp
-      env: [ COMPILERSPEC='%gcc@4.9.4' ]
+      env: [ COMPILERSPEC='%gcc@5.5.0' ]
       before_install:
-        - export CXX=g++-4.9
-        - export CC=gcc-4.9
-        - export FC=gfortran-4.9
+        - export CXX=g++-5
+        - export CC=gcc-5
+        - export FC=gfortran-5
       script:
         - $CXX --version
         - $CC --version
@@ -173,8 +172,8 @@ jobs:
         - make -j 2
         # - make test  # reduce memory and RT costs first
     - <<: *test-cpp-unit
-      env: [ COMPILERSPEC='%clang@5.0.0' ]
+      env: [ COMPILERSPEC='%clang@7.0.0' ]
       before_install:
         - export CXX=clang++
         - export CC=clang
-        - export FC=gfortran-4.9
+        - export FC=gfortran-5
