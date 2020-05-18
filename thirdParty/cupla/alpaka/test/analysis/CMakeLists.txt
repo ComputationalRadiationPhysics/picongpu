@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019 Benjamin Worpitz
+# Copyright 2014-2020 Benjamin Worpitz, Jan Stephan
 #
 # This file is part of Alpaka.
 #
@@ -12,12 +12,12 @@
 # Required CMake version.
 ################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.15)
 
-PROJECT("alpakaAnalysisTest")
+project("alpakaAnalysisTest")
 
 ################################################################################
 # Add subdirectories.
 ################################################################################
 
-ADD_SUBDIRECTORY("headerCheck/")
+add_subdirectory("headerCheck/")

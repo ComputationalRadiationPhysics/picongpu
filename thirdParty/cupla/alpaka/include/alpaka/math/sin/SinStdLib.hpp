@@ -35,13 +35,12 @@ namespace alpaka
             struct Sin<
                 SinStdLib,
                 TArg,
-                typename std::enable_if<
-                    std::is_arithmetic<TArg>::value>::type>
+                std::enable_if_t<
+                    std::is_arithmetic<TArg>::value>>
             {
                 ALPAKA_FN_HOST static auto sin(
                     SinStdLib const & sin_ctx,
                     TArg const & arg)
-                -> decltype(std::sin(arg))
                 {
                     alpaka::ignore_unused(sin_ctx);
                     return std::sin(arg);

@@ -20,7 +20,7 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathCos;
+        struct ConceptMathCos{};
 
         namespace traits
         {
@@ -47,15 +47,6 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto cos(
             T const & cos_ctx,
             TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Cos<
-                concepts::ImplementationBase<ConceptMathCos, T>,
-                TArg>
-            ::cos(
-                cos_ctx,
-                arg))
-#endif
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathCos, T>;
             return

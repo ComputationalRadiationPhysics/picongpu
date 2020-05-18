@@ -13,8 +13,8 @@
 
 #include <type_traits>
 
-struct ConceptExample;
-struct ConceptNonMatchingExample;
+struct ConceptExample{};
+struct ConceptNonMatchingExample{};
 
 struct ImplementerNotTagged
 {

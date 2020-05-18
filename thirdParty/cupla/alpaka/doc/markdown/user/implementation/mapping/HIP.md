@@ -1,35 +1,24 @@
-## Current restrictions on HCC platform
+## Current restrictions on HSA platform
 
-- Workaround for unsupported `syncthreads_{count|and|or}`.
+- Workaround for unsupported `syncthreads_{count|and|or}` depending of the hardware.
   - uses temporary shared value and atomics
 - Workaround for buggy `hipStreamQuery`, `hipStreamSynchronize`.
-  - introduces own queue management
   - `hipStreamQuery` and `hipStreamSynchronize` did not work in multithreaded environment
 - Workaround for missing `cuStreamWaitValue32`.
   - polls value each 10ms
 - device constant memory not supported yet
 - note, that `printf` in kernels is still not supported in HIP
-- 3D memory is currently disabled
-  - missing `hipMemcpy3DAsync` is replaced with `hipMemcpy3D` though
-  - exclude `hipMalloc3D` and `hipMallocPitch` when size is zero
-    - otherwise they throw an Unknown Error
-  - `TestAccs` excludes 3D specialization of Hip back-end for now
-  - ... because `verifyBytesSet` fails in `memView` for 3D specialization
+- exclude `hipMalloc3D` and `hipMallocPitch` when size is zero otherwise they throw an Unknown Error
+- `TestAccs` excludes 3D specialization of Hip back-end for now because `verifyBytesSet` fails in `memView` for 3D specialization
 - `dim3` structure is not available on device (use `alpaka::vec::Vec` instead)
-- Constructors' attributes unified with destructors'.
-  - host/device signature must match in HIP(HCC)
 - a chain of functions must also provide correct host-device signatures
   - e.g. a host function cannot be called from a host-device function
-- recompile your target when HCC linker returned the error:
-"File format not recognized
-clang-7: error: linker command failed with exit code 1"
-- if compile-error occurred, the linker still may link, but without the device code
 - AMD device architecture currently hardcoded in `alpakaConfig.cmake`
 
 ## Compiling HIP from source
 
 Follow [this](https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md "HIP installation") guide for installing HIP.
-HIP requires either `nvcc` or `hcc` to be installed on your system (see guide for further details).
+HIP requires either `nvcc` or ROCm with `hcc` to be installed on your system (see guide for further details).
 
 - If you want the hip binaries to be located in a directory that does not require superuser access, be sure to change the install directory of HIP by modifying the `CMAKE_INSTALL_PREFIX` cmake variable.
 - Also, after the installation is complete, add the following line to the `.profile` file in your home directory, in order to add the path to the HIP binaries to PATH:
@@ -50,8 +39,6 @@ Set the appropriate paths (edit `${YOUR_**}` variables).
 export HIP_PATH=${YOUR_HIP_INSTALL_DIR}
 # Paths required by HIP tools
 export CUDA_PATH=${YOUR_CUDA_ROOT}
-# - if required, path to HCC compiler. Default /opt/rocm/hcc.
-export HCC_HOME=${YOUR_HCC_ROOT}
 # - if required, path to HSA include, lib. Default /opt/rocm/hsa.
 export HSA_PATH=${YOUR_HSA_PATH}
 # HIP binaries and libraries
@@ -60,7 +47,7 @@ export LD_LIBRARY_PATH=${HIP_PATH}/lib64:${LD_LIBRARY_PATH}
 ```
 Test the HIP binaries.
 ```bash
-# calls nvcc or hcc
+# calls nvcc or clang
 which hipcc
 hipcc -V
 which hipconfig

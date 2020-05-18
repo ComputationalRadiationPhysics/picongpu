@@ -100,8 +100,8 @@ namespace alpaka
             ((__VA_ARGS__)<=64?64:128\
             )))))))
     #define ALPAKA_OPTIMAL_ALIGNMENT(...)\
-            ALPAKA_OPTIMAL_ALIGNMENT_SIZE(sizeof(typename std::remove_cv<__VA_ARGS__>::type))
+            ALPAKA_OPTIMAL_ALIGNMENT_SIZE(sizeof(std::remove_cv_t<__VA_ARGS__>))
 #else
     #define ALPAKA_OPTIMAL_ALIGNMENT(...)\
-            ::alpaka::core::align::OptimalAlignment<sizeof(typename std::remove_cv<__VA_ARGS__>::type)>::value
+            ::alpaka::core::align::OptimalAlignment<sizeof(std::remove_cv_t<__VA_ARGS__>)>::value
 #endif

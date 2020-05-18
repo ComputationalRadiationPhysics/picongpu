@@ -35,13 +35,12 @@ namespace alpaka
             struct Log<
                 LogStdLib,
                 TArg,
-                typename std::enable_if<
-                    std::is_arithmetic<TArg>::value>::type>
+                std::enable_if_t<
+                    std::is_arithmetic<TArg>::value>>
             {
                 ALPAKA_FN_HOST static auto log(
                     LogStdLib const & log_ctx,
                     TArg const & arg)
-                -> decltype(std::log(arg))
                 {
                     alpaka::ignore_unused(log_ctx);
                     return std::log(arg);

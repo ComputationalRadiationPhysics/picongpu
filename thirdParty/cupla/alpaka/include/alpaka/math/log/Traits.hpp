@@ -20,7 +20,7 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathLog;
+        struct ConceptMathLog{};
 
         namespace traits
         {
@@ -47,15 +47,6 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto log(
             T const & log_ctx,
             TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Log<
-                concepts::ImplementationBase<ConceptMathLog, T>,
-                TArg>
-            ::log(
-                log_ctx,
-                arg))
-#endif
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathLog, T>;
             return

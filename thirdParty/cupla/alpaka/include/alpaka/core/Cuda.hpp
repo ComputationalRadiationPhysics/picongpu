@@ -22,7 +22,6 @@
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/idx/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
-#include <alpaka/meta/IntegerSequence.hpp>
 #include <alpaka/meta/Metafunctions.hpp>
 
 // cuda_runtime_api.h: CUDA Runtime API C-style interface that does not require compiling with nvcc.
@@ -35,122 +34,24 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 
-#include <array>
 #include <type_traits>
 #include <utility>
-#include <iostream>
 #include <string>
 #include <stdexcept>
 #include <cstddef>
 
-#if (!defined(CUDART_VERSION) || (CUDART_VERSION < 8000))
-    #error "CUDA version 8.0 or greater required!"
+#if (!defined(CUDART_VERSION) || (CUDART_VERSION < 9000))
+    #error "CUDA version 9.0 or greater required!"
 #endif
 
-#if (!defined(CUDA_VERSION) || (CUDA_VERSION < 8000))
-    #error "CUDA version 8.0 or greater required!"
+#if (!defined(CUDA_VERSION) || (CUDA_VERSION < 9000))
+    #error "CUDA version 9.0 or greater required!"
 #endif
 
-namespace alpaka
-{
-    namespace cuda
-    {
-        namespace detail
-        {
-            //-----------------------------------------------------------------------------
-            //! CUDA runtime API error checking with log and exception, ignoring specific error values
-            ALPAKA_FN_HOST inline auto cudaRtCheck(
-                cudaError_t const & error,
-                char const * desc,
-                char const * file,
-                int const & line)
-            -> void
-            {
-                if(error != cudaSuccess)
-                {
-                    std::string const sError(std::string(file) + "(" + std::to_string(line) + ") " + std::string(desc) + " : '" + cudaGetErrorName(error) +  "': '" + std::string(cudaGetErrorString(error)) + "'!");
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-                    std::cerr << sError << std::endl;
-#endif
-                    ALPAKA_DEBUG_BREAK;
-                    // reset the last error to allow user side error handling
-                    cudaGetLastError();
-                    throw std::runtime_error(sError);
-                }
-            }
-            //-----------------------------------------------------------------------------
-            //! CUDA runtime API error checking with log and exception, ignoring specific error values
-            // NOTE: All ignored errors have to be convertible to cudaError_t.
-            template<
-                typename... TErrors/*,
-                typename = typename std::enable_if<
-                    meta::Conjunction<
-                        std::true_type,
-                        std::is_convertible<
-                            TErrors,
-                            cudaError_t
-                        >...
-                    >::value>::type*/>
-            ALPAKA_FN_HOST auto cudaRtCheckIgnore(
-                cudaError_t const & error,
-                char const * cmd,
-                char const * file,
-                int const & line,
-                TErrors && ... ignoredErrorCodes)
-            -> void
-            {
-                if(error != cudaSuccess)
-                {
-                    // https://stackoverflow.com/questions/18792731/can-we-omit-the-double-braces-for-stdarray-in-c14/18792782#18792782
-                    std::array<cudaError_t, sizeof...(ignoredErrorCodes)> const aIgnoredErrorCodes{{ignoredErrorCodes...}};
-
-                    // If the error code is not one of the ignored ones.
-                    if(std::find(aIgnoredErrorCodes.cbegin(), aIgnoredErrorCodes.cend(), error) == aIgnoredErrorCodes.cend())
-                    {
-                        cudaRtCheck(error, ("'" + std::string(cmd) + "' returned error ").c_str(), file, line);
-                    }
-                }
-            }
-            //-----------------------------------------------------------------------------
-            //! CUDA runtime API last error checking with log and exception.
-            ALPAKA_FN_HOST inline auto cudaRtCheckLastError(
-                char const * desc,
-                char const * file,
-                int const & line)
-            -> void
-            {
-                cudaError_t const error(cudaGetLastError());
-                cudaRtCheck(error, desc, file, line);
-            }
-        }
-    }
-}
-
-#if BOOST_COMP_MSVC
-    //-----------------------------------------------------------------------------
-    //! CUDA runtime error checking with log and exception, ignoring specific error values
-    #define ALPAKA_CUDA_RT_CHECK_IGNORE(cmd, ...)\
-        ::alpaka::cuda::detail::cudaRtCheckLastError("'" #cmd "' A previous CUDA call (not this one) set the error ", __FILE__, __LINE__);\
-        ::alpaka::cuda::detail::cudaRtCheckIgnore(cmd, #cmd, __FILE__, __LINE__, __VA_ARGS__)
-#else
-    #if BOOST_COMP_CLANG
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-    #endif
-    //-----------------------------------------------------------------------------
-    //! CUDA runtime error checking with log and exception, ignoring specific error values
-    #define ALPAKA_CUDA_RT_CHECK_IGNORE(cmd, ...)\
-        ::alpaka::cuda::detail::cudaRtCheckLastError("'" #cmd "' A previous CUDA call (not this one) set the error ", __FILE__, __LINE__);\
-        ::alpaka::cuda::detail::cudaRtCheckIgnore(cmd, #cmd, __FILE__, __LINE__, ##__VA_ARGS__)
-    #if BOOST_COMP_CLANG
-        #pragma clang diagnostic pop
-    #endif
-#endif
-
-//-----------------------------------------------------------------------------
-//! CUDA runtime error checking with log and exception.
-#define ALPAKA_CUDA_RT_CHECK(cmd)\
-    ALPAKA_CUDA_RT_CHECK_IGNORE(cmd)
+#define ALPAKA_PP_CONCAT_DO(X,Y) X##Y
+#define ALPAKA_PP_CONCAT(X,Y) ALPAKA_PP_CONCAT_DO(X,Y)
+//! prefix a name with `cuda`
+#define ALPAKA_API_PREFIX(name) ALPAKA_PP_CONCAT_DO(cuda,name)
 
 namespace alpaka
 {
@@ -294,7 +195,7 @@ namespace alpaka
                 typename T>
             struct DimType<
                 T,
-                typename std::enable_if<
+                std::enable_if_t<
                     std::is_same<T, char1>::value
                     || std::is_same<T, double1>::value
                     || std::is_same<T, float1>::value
@@ -307,7 +208,7 @@ namespace alpaka
                     || std::is_same<T, ulong1>::value
                     || std::is_same<T, ulonglong1>::value
                     || std::is_same<T, ushort1>::value
-                >::type>
+                >>
             {
                 using type = dim::DimInt<1u>;
             };
@@ -317,7 +218,7 @@ namespace alpaka
                 typename T>
             struct DimType<
                 T,
-                typename std::enable_if<
+                std::enable_if_t<
                     std::is_same<T, char2>::value
                     || std::is_same<T, double2>::value
                     || std::is_same<T, float2>::value
@@ -330,7 +231,7 @@ namespace alpaka
                     || std::is_same<T, ulong2>::value
                     || std::is_same<T, ulonglong2>::value
                     || std::is_same<T, ushort2>::value
-                >::type>
+                >>
             {
                 using type = dim::DimInt<2u>;
             };
@@ -340,7 +241,7 @@ namespace alpaka
                 typename T>
             struct DimType<
                 T,
-                typename std::enable_if<
+                std::enable_if_t<
                     std::is_same<T, char3>::value
                     || std::is_same<T, dim3>::value
                     || std::is_same<T, double3>::value
@@ -360,7 +261,7 @@ namespace alpaka
                     || std::is_same<T, __cuda_builtin_blockDim_t>::value
                     || std::is_same<T, __cuda_builtin_gridDim_t>::value
 #endif
-                >::type>
+                >>
             {
                 using type = dim::DimInt<3u>;
             };
@@ -370,7 +271,7 @@ namespace alpaka
                 typename T>
             struct DimType<
                 T,
-                typename std::enable_if<
+                std::enable_if_t<
                     std::is_same<T, char4>::value
                     || std::is_same<T, double4>::value
                     || std::is_same<T, float4>::value
@@ -383,7 +284,7 @@ namespace alpaka
                     || std::is_same<T, ulong4>::value
                     || std::is_same<T, ulonglong4>::value
                     || std::is_same<T, ushort4>::value
-                >::type>
+                >>
             {
                 using type = dim::DimInt<4u>;
             };
@@ -399,8 +300,8 @@ namespace alpaka
                 typename T>
             struct ElemType<
                 T,
-                typename std::enable_if<
-                    cuda::traits::IsCudaBuiltInType<T>::value>::type>
+                std::enable_if_t<
+                    cuda::traits::IsCudaBuiltInType<T>::value>>
             {
                 using type = decltype(std::declval<T>().x);
             };
@@ -417,14 +318,13 @@ namespace alpaka
             struct GetExtent<
                 dim::DimInt<dim::Dim<TExtent>::value - 1u>,
                 TExtent,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TExtent>::value
-                    && (dim::Dim<TExtent>::value >= 1)>::type>
+                    && (dim::Dim<TExtent>::value >= 1)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
                     TExtent const & extent)
-                -> decltype(extent.x)
                 {
                     return extent.x;
                 }
@@ -436,14 +336,13 @@ namespace alpaka
             struct GetExtent<
                 dim::DimInt<dim::Dim<TExtent>::value - 2u>,
                 TExtent,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TExtent>::value
-                    && (dim::Dim<TExtent>::value >= 2)>::type>
+                    && (dim::Dim<TExtent>::value >= 2)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
                     TExtent const & extent)
-                -> decltype(extent.y)
                 {
                     return extent.y;
                 }
@@ -455,14 +354,13 @@ namespace alpaka
             struct GetExtent<
                 dim::DimInt<dim::Dim<TExtent>::value - 3u>,
                 TExtent,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TExtent>::value
-                    && (dim::Dim<TExtent>::value >= 3)>::type>
+                    && (dim::Dim<TExtent>::value >= 3)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
                     TExtent const & extent)
-                -> decltype(extent.z)
                 {
                     return extent.z;
                 }
@@ -474,14 +372,13 @@ namespace alpaka
             struct GetExtent<
                 dim::DimInt<dim::Dim<TExtent>::value - 4u>,
                 TExtent,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TExtent>::value
-                    && (dim::Dim<TExtent>::value >= 4)>::type>
+                    && (dim::Dim<TExtent>::value >= 4)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
                     TExtent const & extent)
-                -> decltype(extent.w)
                 {
                     return extent.w;
                 }
@@ -495,9 +392,9 @@ namespace alpaka
                 dim::DimInt<dim::Dim<TExtent>::value - 1u>,
                 TExtent,
                 TExtentVal,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TExtent>::value
-                    && (dim::Dim<TExtent>::value >= 1)>::type>
+                    && (dim::Dim<TExtent>::value >= 1)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setExtent(
@@ -517,9 +414,9 @@ namespace alpaka
                 dim::DimInt<dim::Dim<TExtent>::value - 2u>,
                 TExtent,
                 TExtentVal,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TExtent>::value
-                    && (dim::Dim<TExtent>::value >= 2)>::type>
+                    && (dim::Dim<TExtent>::value >= 2)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setExtent(
@@ -539,9 +436,9 @@ namespace alpaka
                 dim::DimInt<dim::Dim<TExtent>::value - 3u>,
                 TExtent,
                 TExtentVal,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TExtent>::value
-                    && (dim::Dim<TExtent>::value >= 3)>::type>
+                    && (dim::Dim<TExtent>::value >= 3)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setExtent(
@@ -561,9 +458,9 @@ namespace alpaka
                 dim::DimInt<dim::Dim<TExtent>::value - 4u>,
                 TExtent,
                 TExtentVal,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TExtent>::value
-                    && (dim::Dim<TExtent>::value >= 4)>::type>
+                    && (dim::Dim<TExtent>::value >= 4)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setExtent(
@@ -587,14 +484,13 @@ namespace alpaka
             struct GetOffset<
                 dim::DimInt<dim::Dim<TOffsets>::value - 1u>,
                 TOffsets,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TOffsets>::value
-                    && (dim::Dim<TOffsets>::value >= 1)>::type>
+                    && (dim::Dim<TOffsets>::value >= 1)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getOffset(
                     TOffsets const & offsets)
-                -> decltype(offsets.x)
                 {
                     return offsets.x;
                 }
@@ -606,14 +502,13 @@ namespace alpaka
             struct GetOffset<
                 dim::DimInt<dim::Dim<TOffsets>::value - 2u>,
                 TOffsets,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TOffsets>::value
-                    && (dim::Dim<TOffsets>::value >= 2)>::type>
+                    && (dim::Dim<TOffsets>::value >= 2)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getOffset(
                     TOffsets const & offsets)
-                -> decltype(offsets.y)
                 {
                     return offsets.y;
                 }
@@ -625,14 +520,13 @@ namespace alpaka
             struct GetOffset<
                 dim::DimInt<dim::Dim<TOffsets>::value - 3u>,
                 TOffsets,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TOffsets>::value
-                    && (dim::Dim<TOffsets>::value >= 3)>::type>
+                    && (dim::Dim<TOffsets>::value >= 3)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getOffset(
                     TOffsets const & offsets)
-                -> decltype(offsets.z)
                 {
                     return offsets.z;
                 }
@@ -644,14 +538,13 @@ namespace alpaka
             struct GetOffset<
                 dim::DimInt<dim::Dim<TOffsets>::value - 4u>,
                 TOffsets,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TOffsets>::value
-                    && (dim::Dim<TOffsets>::value >= 4)>::type>
+                    && (dim::Dim<TOffsets>::value >= 4)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getOffset(
                     TOffsets const & offsets)
-                -> decltype(offsets.w)
                 {
                     return offsets.w;
                 }
@@ -665,9 +558,9 @@ namespace alpaka
                 dim::DimInt<dim::Dim<TOffsets>::value - 1u>,
                 TOffsets,
                 TOffset,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TOffsets>::value
-                    && (dim::Dim<TOffsets>::value >= 1)>::type>
+                    && (dim::Dim<TOffsets>::value >= 1)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setOffset(
@@ -687,9 +580,9 @@ namespace alpaka
                 dim::DimInt<dim::Dim<TOffsets>::value - 2u>,
                 TOffsets,
                 TOffset,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TOffsets>::value
-                    && (dim::Dim<TOffsets>::value >= 2)>::type>
+                    && (dim::Dim<TOffsets>::value >= 2)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setOffset(
@@ -709,9 +602,9 @@ namespace alpaka
                 dim::DimInt<dim::Dim<TOffsets>::value - 3u>,
                 TOffsets,
                 TOffset,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TOffsets>::value
-                    && (dim::Dim<TOffsets>::value >= 3)>::type>
+                    && (dim::Dim<TOffsets>::value >= 3)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setOffset(
@@ -731,9 +624,9 @@ namespace alpaka
                 dim::DimInt<dim::Dim<TOffsets>::value - 4u>,
                 TOffsets,
                 TOffset,
-                typename std::enable_if<
+                std::enable_if_t<
                     cuda::traits::IsCudaBuiltInType<TOffsets>::value
-                    && (dim::Dim<TOffsets>::value >= 4)>::type>
+                    && (dim::Dim<TOffsets>::value >= 4)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setOffset(
@@ -756,13 +649,15 @@ namespace alpaka
                 typename TIdx>
             struct IdxType<
                 TIdx,
-                typename std::enable_if<
-                    cuda::traits::IsCudaBuiltInType<TIdx>::value>::type>
+                std::enable_if_t<
+                    cuda::traits::IsCudaBuiltInType<TIdx>::value>>
             {
                 using type = std::size_t;
             };
         }
     }
 }
+
+#include <alpaka/core/UniformCudaHip.hpp>
 
 #endif

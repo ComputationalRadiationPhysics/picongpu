@@ -33,7 +33,7 @@ namespace alpaka
         //! The element type trait alias template to remove the ::type.
         template<
             typename TView>
-        using Elem = typename std::remove_volatile<typename traits::ElemType<TView>::type>::type;
+        using Elem = std::remove_volatile_t<typename traits::ElemType<TView>::type>;
 
         //-----------------------------------------------------------------------------
         // Trait specializations for unsigned integral types.
@@ -45,7 +45,7 @@ namespace alpaka
                 typename T>
             struct ElemType<
                 T,
-                typename std::enable_if<std::is_fundamental<T>::value>::type>
+                std::enable_if_t<std::is_fundamental<T>::value>>
             {
                 using type = T;
             };

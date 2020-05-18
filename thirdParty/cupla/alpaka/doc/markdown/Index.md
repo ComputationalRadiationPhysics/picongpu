@@ -17,4 +17,3 @@
       * 3. [Accelerators](user/implementation/mapping/Accelerators.md)
 * Developer Documentation
   * 1. [Code Formatting](dev/style.md)
-  * 2. [Publishing Doxygen Documentation on gh-pages](dev/gh-pages.md)

@@ -43,44 +43,21 @@ namespace alpaka
 #endif
                 };
 
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-#if !BOOST_LANG_CUDA
-    #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#endif
                 //#############################################################################
-                //! The default queue type trait specialization for the CUDA device.
+                //! The default queue type trait specialization for the CUDA/HIP device.
                 template<>
                 struct DefaultQueueType<
-                    alpaka::dev::DevCudaRt>
+                    alpaka::dev::DevUniformCudaHipRt>
                 {
 #if (ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-                    using type = alpaka::queue::QueueCudaRtBlocking;
+                    using type = alpaka::queue::QueueUniformCudaHipRtBlocking;
 #else
-                    using type = alpaka::queue::QueueCudaRtNonBlocking;
+                    using type = alpaka::queue::QueueUniformCudaHipRtNonBlocking;
 #endif
                 };
 #endif
-
-#ifdef ALPAKA_ACC_GPU_HIP_ENABLED
-
-#if !BOOST_LANG_HIP
-    #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#endif
-                //#############################################################################
-                //! The default queue type trait specialization for the HIP device.
-                template<>
-                struct DefaultQueueType<
-                    alpaka::dev::DevHipRt>
-                {
-#if (ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL)
-                    using type = alpaka::queue::QueueHipRtBlocking;
-#else
-                    using type = alpaka::queue::QueueHipRtNonBlocking;
-#endif
-                };
-#endif
-
             }
             //#############################################################################
             //! The queue type that should be used for the given accelerator.
@@ -115,53 +92,27 @@ namespace alpaka
                     static constexpr bool value = false;
                 };
 
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 
-#if !BOOST_LANG_CUDA
-    #error If ALPAKA_ACC_GPU_CUDA_ENABLED is set, the compiler has to support CUDA!
-#endif
                 //#############################################################################
-                //! The blocking queue trait specialization for a blocking CUDA RT queue.
+                //! The blocking queue trait specialization for a blocking CUDA/HIP RT queue.
                 template<>
                 struct IsBlockingQueue<
-                    alpaka::queue::QueueCudaRtBlocking>
+                    alpaka::queue::QueueUniformCudaHipRtBlocking>
                 {
                     static constexpr bool value = true;
                 };
 
                 //#############################################################################
-                //! The blocking queue trait specialization for a non-blocking CUDA RT queue.
+                //! The blocking queue trait specialization for a non-blocking CUDA/HIP RT queue.
                 template<>
                 struct IsBlockingQueue<
-                    alpaka::queue::QueueCudaRtNonBlocking>
+                    alpaka::queue::QueueUniformCudaHipRtNonBlocking>
                 {
                     static constexpr bool value = false;
                 };
 #endif
 
-#ifdef ALPAKA_ACC_GPU_HIP_ENABLED
-
-#if !BOOST_LANG_HIP
-    #error If ALPAKA_ACC_GPU_HIP_ENABLED is set, the compiler has to support HIP!
-#endif
-                //#############################################################################
-                //! The blocking queue trait specialization for a blocking HIP RT queue.
-                template<>
-                struct IsBlockingQueue<
-                    alpaka::queue::QueueHipRtBlocking>
-                {
-                    static constexpr bool value = true;
-                };
-
-                //#############################################################################
-                //! The blocking queue trait specialization for a non-blocking HIP RT queue.
-                template<>
-                struct IsBlockingQueue<
-                    alpaka::queue::QueueHipRtNonBlocking>
-                {
-                    static constexpr bool value = false;
-                };
-#endif
             }
             //#############################################################################
             //! The queue type that should be used for the given accelerator.
@@ -177,8 +128,8 @@ namespace alpaka
                     std::tuple<alpaka::dev::DevCpu, alpaka::queue::QueueCpuNonBlocking>
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
                     ,
-                    std::tuple<alpaka::dev::DevCudaRt, alpaka::queue::QueueCudaRtBlocking>,
-                    std::tuple<alpaka::dev::DevCudaRt, alpaka::queue::QueueCudaRtNonBlocking>
+                    std::tuple<alpaka::dev::DevUniformCudaHipRt, alpaka::queue::QueueUniformCudaHipRtBlocking>,
+                    std::tuple<alpaka::dev::DevUniformCudaHipRt, alpaka::queue::QueueUniformCudaHipRtNonBlocking>
 #endif
 #ifdef ALPAKA_ACC_GPU_HIP_ENABLED
                     ,

@@ -29,6 +29,8 @@
 
 namespace cupla
 {
+inline namespace CUPLA_ACCELERATOR_NAMESPACE
+{
 inline namespace device
 {
 
@@ -173,4 +175,5 @@ inline namespace device
          */
 
 } // namespace device
+} // namespace CUPLA_ACCELERATOR_NAMESPACE
 } // namespace cupla

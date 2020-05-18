@@ -33,7 +33,7 @@ namespace alpaka
                 typename TFixedSizeArray>
             struct DevType<
                 TFixedSizeArray,
-                typename std::enable_if<std::is_array<TFixedSizeArray>::value>::type>
+                std::enable_if_t<std::is_array<TFixedSizeArray>::value>>
             {
                 using type = dev::DevCpu;
             };
@@ -44,7 +44,7 @@ namespace alpaka
                 typename TFixedSizeArray>
             struct GetDev<
                 TFixedSizeArray,
-                typename std::enable_if<std::is_array<TFixedSizeArray>::value>::type>
+                std::enable_if_t<std::is_array<TFixedSizeArray>::value>>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
@@ -67,7 +67,7 @@ namespace alpaka
                 typename TFixedSizeArray>
             struct DimType<
                 TFixedSizeArray,
-                typename std::enable_if<std::is_array<TFixedSizeArray>::value>::type>
+                std::enable_if_t<std::is_array<TFixedSizeArray>::value>>
             {
                 using type = dim::DimInt<std::rank<TFixedSizeArray>::value>;
             };
@@ -83,10 +83,10 @@ namespace alpaka
                 typename TFixedSizeArray>
             struct ElemType<
                 TFixedSizeArray,
-                typename std::enable_if<
-                    std::is_array<TFixedSizeArray>::value>::type>
+                std::enable_if_t<
+                    std::is_array<TFixedSizeArray>::value>>
             {
-                using type = typename std::remove_all_extent<TFixedSizeArray>::type;
+                using type = std::remove_all_extent_t<TFixedSizeArray>;
             };
         }
     }
@@ -102,19 +102,18 @@ namespace alpaka
             struct GetExtent<
                 TIdxIntegralConst,
                 TFixedSizeArray,
-                typename std::enable_if<
+                std::enable_if_t<
                     std::is_array<TFixedSizeArray>::value
                     && (std::rank<TFixedSizeArray>::value > TIdxIntegralConst::value)
-                    && (std::extent<TFixedSizeArray, TIdxIntegralConst::value>::value > 0u)>::type>
+                    && (std::extent<TFixedSizeArray, TIdxIntegralConst::value>::value > 0u)>>
             {
                 //-----------------------------------------------------------------------------
                 static constexpr auto getExtent(
-                    TFixedSizeArray const & //extent
+                    TFixedSizeArray const & extent
                 )
                 -> idx::Idx<TFixedSizeArray>
                 {
-                    // C++14 constexpr with void return
-                    //alpaka::ignore_unused(extent);
+                    alpaka::ignore_unused(extent);
                     return std::extent<TFixedSizeArray, TIdxIntegralConst::value>::value;
                 }
             };
@@ -132,10 +131,10 @@ namespace alpaka
                     typename TFixedSizeArray>
                 struct GetPtrNative<
                     TFixedSizeArray,
-                    typename std::enable_if<
-                        std::is_array<TFixedSizeArray>::value>::type>
+                    std::enable_if_t<
+                        std::is_array<TFixedSizeArray>::value>>
                 {
-                    using TElem = typename std::remove_all_extent<TFixedSizeArray>::type;
+                    using TElem = std::remove_all_extent_t<TFixedSizeArray>;
 
                     //-----------------------------------------------------------------------------
                     static auto getPtrNative(
@@ -160,11 +159,11 @@ namespace alpaka
                 struct GetPitchBytes<
                     dim::DimInt<std::rank<TFixedSizeArray>::value - 1u>,
                     TFixedSizeArray,
-                    typename std::enable_if<
+                    std::enable_if_t<
                         std::is_array<TFixedSizeArray>::value
-                        && (std::extent<TFixedSizeArray, std::rank<TFixedSizeArray>::value - 1u>::value > 0u)>::type>
+                        && (std::extent<TFixedSizeArray, std::rank<TFixedSizeArray>::value - 1u>::value > 0u)>>
                 {
-                    using TElem = typename std::remove_all_extent<TFixedSizeArray>::type;
+                    using TElem = std::remove_all_extent_t<TFixedSizeArray>;
 
                     //-----------------------------------------------------------------------------
                     static constexpr auto getPitchBytes(
@@ -189,7 +188,7 @@ namespace alpaka
             struct GetOffset<
                 TIdx,
                 TFixedSizeArray,
-                typename std::enable_if<std::is_array<TFixedSizeArray>::value>::type>
+                std::enable_if_t<std::is_array<TFixedSizeArray>::value>>
             {
                 //-----------------------------------------------------------------------------
                 static auto getOffset(
@@ -211,7 +210,7 @@ namespace alpaka
                 typename TFixedSizeArray>
             struct IdxType<
                 TFixedSizeArray,
-                typename std::enable_if<std::is_array<TFixedSizeArray>::value>::type>
+                std::enable_if_t<std::is_array<TFixedSizeArray>::value>>
             {
                 using type = std::size_t;
             };

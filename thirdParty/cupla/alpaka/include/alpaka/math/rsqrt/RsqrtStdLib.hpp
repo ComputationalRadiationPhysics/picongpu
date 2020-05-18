@@ -35,13 +35,12 @@ namespace alpaka
             struct Rsqrt<
                 RsqrtStdLib,
                 TArg,
-                typename std::enable_if<
-                    std::is_arithmetic<TArg>::value>::type>
+                std::enable_if_t<
+                    std::is_arithmetic<TArg>::value>>
             {
                 ALPAKA_FN_HOST static auto rsqrt(
                     RsqrtStdLib const & rsqrt_ctx,
                     TArg const & arg)
-                -> decltype(std::sqrt(arg))
                 {
                     alpaka::ignore_unused(rsqrt_ctx);
                     return static_cast<TArg>(1)/std::sqrt(arg);

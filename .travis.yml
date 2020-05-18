@@ -1,12 +1,12 @@
 language: none
 sudo: false
-dist: trusty
+dist: bionic
 
 cache:
   apt: true
   directories:
     - $HOME/.cache/spack
-    - $HOME/.cache/cmake-3.11.4
+    - $HOME/.cache/cmake-3.15.0
   pip: true
 
 addons:
@@ -14,13 +14,12 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-4.9
-      - gfortran-4.9  # spack OpenMPI dependency
+      - g++-5
+      - gfortran-5  # spack OpenMPI dependency
       - environment-modules
       - openmpi-bin
       - libopenmpi-dev
-      # clang 5.0.0 is pre-installed
-      # - clang-tidy-3.9
+      # clang 7.0.0 is pre-installed
 
 env:
   global:
@@ -37,21 +36,21 @@ install:
       mkdir -p $SPACK_ROOT &&
       git clone --depth 50 https://github.com/spack/spack.git $SPACK_ROOT &&
       echo -e "config:""\n  build_jobs:"" 2" > $SPACK_ROOT/etc/spack/config.yaml &&
-      echo -e "packages:""\n  cmake:""\n    version:"" [3.11.4]""\n    paths:""\n      cmake@3.11.4:"" /home/travis/.cache/cmake-3.11.4""\n    buildable:"" False" > $SPACK_ROOT/etc/spack/packages.yaml;
+      echo -e "packages:""\n  cmake:""\n    version:"" [3.15.0]""\n    paths:""\n      cmake@3.15.0:"" /home/travis/.cache/cmake-3.15.0""\n    buildable:"" False" > $SPACK_ROOT/etc/spack/packages.yaml;
     fi
   - spack compiler add
-  # required dependencies - CMake 3.11.4
+  # required dependencies - CMake 3.15.0
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      if [ ! -f $HOME/.cache/cmake-3.11.4/bin/cmake ]; then
-        wget -O cmake.sh https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh &&
-        sh cmake.sh --skip-license --exclude-subdir --prefix=$HOME/.cache/cmake-3.11.4 &&
+      if [ ! -f $HOME/.cache/cmake-3.15.0/bin/cmake ]; then
+        wget -O cmake.sh https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.sh &&
+        sh cmake.sh --skip-license --exclude-subdir --prefix=$HOME/.cache/cmake-3.15.0 &&
         rm cmake.sh;
       fi;
     elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
       if [ ! -d /Applications/CMake.app/Contents/ ]; then
-        curl -L -s -o cmake.dmg https://cmake.org/files/v3.11/cmake-3.11.4-Darwin-x86_64.dmg &&
+        curl -L -s -o cmake.dmg https://cmake.org/files/v3.15/cmake-3.15.0-Darwin-x86_64.dmg &&
         yes | hdiutil mount cmake.dmg &&
-        sudo cp -R "/Volumes/cmake-3.11.4-Darwin-x86_64/CMake.app" /Applications &&
+        sudo cp -R "/Volumes/cmake-3.15.0-Darwin-x86_64/CMake.app" /Applications &&
         hdiutil detach /dev/disk1s1 &&
         rm cmake.dmg;
       fi;
@@ -154,11 +153,11 @@ jobs:
     - &test-cpp-unit
       stage: 'C++ Unit Tests'
       language: cpp
-      env: [ COMPILERSPEC='%gcc@4.9.4' ]
+      env: [ COMPILERSPEC='%gcc@5.5.0' ]
       before_install:
-        - export CXX=g++-4.9
-        - export CC=gcc-4.9
-        - export FC=gfortran-4.9
+        - export CXX=g++-5
+        - export CC=gcc-5
+        - export FC=gfortran-5
       script:
         - $CXX --version
         - $CC --version
@@ -173,8 +172,8 @@ jobs:
         - make -j 2
         # - make test  # reduce memory and RT costs first
     - <<: *test-cpp-unit
-      env: [ COMPILERSPEC='%clang@5.0.0' ]
+      env: [ COMPILERSPEC='%clang@7.0.0' ]
       before_install:
         - export CXX=clang++
         - export CC=clang
-        - export FC=gfortran-4.9
+        - export FC=gfortran-5

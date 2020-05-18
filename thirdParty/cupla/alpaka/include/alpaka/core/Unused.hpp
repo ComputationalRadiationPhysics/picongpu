@@ -18,7 +18,7 @@ namespace alpaka
     ALPAKA_NO_HOST_ACC_WARNING
     template< typename... Ts >
     BOOST_FORCEINLINE
-    BOOST_CXX14_CONSTEXPR
+    constexpr
     ALPAKA_FN_HOST_ACC
     void
     ignore_unused( Ts const& ... )
@@ -27,7 +27,7 @@ namespace alpaka
     ALPAKA_NO_HOST_ACC_WARNING
     template< typename... Ts >
     BOOST_FORCEINLINE
-    BOOST_CXX14_CONSTEXPR
+    constexpr
     ALPAKA_FN_HOST_ACC
     void
     ignore_unused()

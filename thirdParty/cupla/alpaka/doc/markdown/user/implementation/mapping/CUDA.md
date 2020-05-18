@@ -143,7 +143,7 @@ The following tables list the functions available in the [CUDA Runtime API](http
 |cudaGetMipmappedArrayLevel|-|
 |cudaGetSymbolAddress|-|
 |cudaGetSymbolSize|-|
-|cudaHostAlloc|n/a|
+|cudaHostAlloc|n/a, the existing buffer can be pinned using alpaka::mem::buf::prepareForAsyncCopy(memBuf)|
 |cudaHostGetDevicePointer|-|
 |cudaHostGetFlags|-|
 |cudaHostRegister|-|

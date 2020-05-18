@@ -103,14 +103,6 @@ namespace alpaka
 #endif
                 }
                 //-----------------------------------------------------------------------------
-                //! \return The frequency of the CPU the code is running on.
-                // TODO: implement!
-                /*inline auto getCpuFrequency()
-                -> std::size_t
-                {
-                    return 0;
-                }*/
-                //-----------------------------------------------------------------------------
                 //! \return The total number of bytes of global memory.
                 //! Adapted from David Robert Nadeau: http://nadeausoftware.com/articles/2012/09/c_c_tip_how_get_physical_memory_size_system
                 inline auto getTotalGlobalMemSizeBytes()

@@ -20,7 +20,7 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathCeil;
+        struct ConceptMathCeil{};
 
         namespace traits
         {
@@ -47,15 +47,6 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto ceil(
             T const & ceil_ctx,
             TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Ceil<
-                concepts::ImplementationBase<ConceptMathCeil, T>,
-                TArg>
-            ::ceil(
-                ceil_ctx,
-                arg))
-#endif
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathCeil, T>;
             return

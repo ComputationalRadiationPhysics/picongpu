@@ -31,27 +31,27 @@ Mandatory
 
 gcc
 """
-- 4.9 - 7 (if you want to build for Nvidia GPUs, supported compilers depend on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
+- 5.5 - 7 (if you want to build for Nvidia GPUs, supported compilers depend on your current `CUDA version <https://gist.github.com/ax3l/9489132>`_)
 
-  - CUDA 9.2 - 10.0: Use gcc 4.9 - 7
-  - CUDA 10.1/10.2: Use gcc 4.9 - 8
+  - CUDA 9.2 - 10.0: Use gcc 5.5 - 7
+  - CUDA 10.1/10.2: Use gcc 5.5 - 8
 - *note:* be sure to build all libraries/dependencies with the *same* gcc version; GCC 5 or newer is recommended
 - *Debian/Ubuntu:*
   
-  - ``sudo apt-get install gcc-5.3 g++-5.3 build-essential``
-  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5.3 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5.3``
+  - ``sudo apt-get install gcc-5 g++-5 build-essential``
+  - ``sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5``
 - *Arch Linux:*
   
   - ``sudo pacman --sync base-devel``
   - if the installed version of **gcc** is too new, `compile an older gcc <https://gist.github.com/slizzered/a9dc4e13cb1c7fffec53>`_
 - *Spack:*
   
-  - ``spack install gcc@5.3.0``
-  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@5.3.0``
+  - ``spack install gcc@5.5.0``
+  - make it the default in your `packages.yaml <http://spack.readthedocs.io/en/latest/getting_started.html#compiler-configuration>`_ or *suffix* `all following <http://spack.readthedocs.io/en/latest/features.html#simple-package-installation>`_ ``spack install`` commands with a *space* and ``%gcc@5.5.0``
 
 CMake
 """""
-- 3.11.4 or higher
+- 3.15.0 or higher
 - *Debian/Ubuntu:* ``sudo apt-get install cmake file cmake-curses-gui``
 - *Arch Linux:* ``sudo pacman --sync cmake``
 - *Spack:* ``spack install cmake``

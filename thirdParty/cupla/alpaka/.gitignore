@@ -19,3 +19,11 @@
 
 # VIM project files
 .vimrc
+
+# IDE & tmp build
+.idea/
+cmake-build-*/
+.kdev?/
+*.kdev?
+spack-build*
+build/

@@ -12,7 +12,7 @@ The definitions must be passed via a compiler flag or be defined before the acce
 The default value will be used if the configuration header is included without defining any of the following options.
 
 - `CUPLA_STREAM_ASYNC_ENABLED`: `0` use synchronous streams (default), `1` use asynchronous streams
-- `CUPLA_HEADER_ONLY`: `1` *cupla* will be used as header-only library (default), otherwise you must compile all `.cpp` files in [`src/`](https://github.com/ComputationalRadiationPhysics/cupla/tree/master/src)
+- `CUPLA_HEADER_ONLY`: `1` *cupla* will be used as header-only library (default), otherwise you must compile all `.cpp` files in [`src/`](https://github.com/alpaka-group/cupla/tree/master/src)
 
 
 linker dependencies
@@ -24,7 +24,7 @@ Depending of the used accelerator you must link the library `pthread` and/or act
 Example
 =======
 
-To select an accelerator you must include the corresponding accelerator header from [`cupla/config/`](https://github.com/ComputationalRadiationPhysics/cupla/tree/master/include/cupla/config)
+To select an accelerator you must include the corresponding accelerator header from [`cupla/config/`](https://github.com/alpaka-group/cupla/tree/master/include/cupla/config)
 
 
 ```C++

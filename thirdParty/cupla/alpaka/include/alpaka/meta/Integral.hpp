@@ -37,13 +37,13 @@ namespace alpaka
             typename T0,
             typename T1>
         using HigherMax =
-            typename std::conditional<
+            std::conditional_t<
                 (sizeof(T0) > sizeof(T1)),
                 T0,
-                typename std::conditional<
+                std::conditional_t<
                     ((sizeof(T0) == sizeof(T1)) && std::is_unsigned<T0>::value && std::is_signed<T1>::value),
                         T0,
-                        T1>::type>::type;
+                        T1>>;
 
         //#############################################################################
         //! The type that has the lower max value.
@@ -51,13 +51,13 @@ namespace alpaka
             typename T0,
             typename T1>
         using LowerMax =
-            typename std::conditional<
+            std::conditional_t<
                 (sizeof(T0) < sizeof(T1)),
                 T0,
-                typename std::conditional<
+                std::conditional_t<
                     ((sizeof(T0) == sizeof(T1)) && std::is_signed<T0>::value && std::is_unsigned<T1>::value),
                         T0,
-                        T1>::type>::type;
+                        T1>>;
 
         //#############################################################################
         //! The type that has the higher min value. If both types have the same min value, the type with the wider range is chosen.
@@ -65,22 +65,22 @@ namespace alpaka
             typename T0,
             typename T1>
         using HigherMin =
-            typename std::conditional<
+            std::conditional_t<
                 (std::is_unsigned<T0>::value == std::is_unsigned<T1>::value),
-                typename std::conditional<
+                std::conditional_t<
                     std::is_unsigned<T0>::value,
-                        typename std::conditional<
+                        std::conditional_t<
                         (sizeof(T0) < sizeof(T1)),
                             T1,
-                            T0>::type,
-                        typename std::conditional<
+                            T0>,
+                        std::conditional_t<
                         (sizeof(T0) < sizeof(T1)),
                             T0,
-                            T1>::type>::type,
-                typename std::conditional<
+                            T1>>,
+                std::conditional_t<
                     std::is_unsigned<T0>::value,
                         T0,
-                        T1>::type>::type;
+                        T1>>;
 
         //#############################################################################
         //! The type that has the lower min value. If both types have the same min value, the type with the wider range is chosen.
@@ -88,15 +88,15 @@ namespace alpaka
             typename T0,
             typename T1>
         using LowerMin =
-            typename std::conditional<
+            std::conditional_t<
                 (std::is_unsigned<T0>::value == std::is_unsigned<T1>::value),
-                typename std::conditional<
+                std::conditional_t<
                     (sizeof(T0) > sizeof(T1)),
                         T0,
-                        T1>::type,
-                typename std::conditional<
+                        T1>,
+                std::conditional_t<
                     std::is_signed<T0>::value,
                         T0,
-                        T1>::type>::type;
+                        T1>>;
     }
 }

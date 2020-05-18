@@ -35,13 +35,12 @@ namespace alpaka
             struct Trunc<
                 TruncStdLib,
                 TArg,
-                typename std::enable_if<
-                    std::is_arithmetic<TArg>::value>::type>
+                std::enable_if_t<
+                    std::is_arithmetic<TArg>::value>>
             {
                 ALPAKA_FN_HOST static auto trunc(
                     TruncStdLib const & trunc_ctx,
                     TArg const & arg)
-                -> decltype(std::trunc(arg))
                 {
                     alpaka::ignore_unused(trunc_ctx);
                     return std::trunc(arg);

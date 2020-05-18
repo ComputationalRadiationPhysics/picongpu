@@ -24,6 +24,7 @@
 #include <functional>
 #include <set>
 #include <array>
+#include <type_traits>
 
 //-----------------------------------------------------------------------------
 //! The alpaka library.
@@ -50,7 +51,7 @@ namespace alpaka
             //!     2) ret<=maxDivisor
             template<
                 typename T,
-                typename = typename std::enable_if<std::is_integral<T>::value>::type>
+                typename = std::enable_if_t<std::is_integral<T>::value>>
             ALPAKA_FN_HOST auto nextDivisorLowerOrEqual(
                 T const & maxDivisor,
                 T const & dividend)
@@ -75,7 +76,7 @@ namespace alpaka
             //! \return A list of all divisors less then or equal to the given maximum.
             template<
                 typename T,
-                typename = typename std::enable_if<std::is_integral<T>::value>::type>
+                typename = std::enable_if_t<std::is_integral<T>::value>>
             ALPAKA_FN_HOST auto allDivisorsLessOrEqual(
                 T const & val,
                 T const & maxDivisor)

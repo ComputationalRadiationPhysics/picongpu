@@ -57,7 +57,7 @@ namespace alpaka
             struct ImplementationBaseType<
                 TConcept,
                 TDerived,
-                typename std::enable_if<!ImplementsConcept<TConcept, TDerived>::value>::type>
+                std::enable_if_t<!ImplementsConcept<TConcept, TDerived>::value>>
             {
                 using type = TDerived;
             };
@@ -70,7 +70,7 @@ namespace alpaka
             struct ImplementationBaseType<
                 TConcept,
                 TDerived,
-                typename std::enable_if<ImplementsConcept<TConcept, TDerived>::value>::type>
+                std::enable_if_t<ImplementsConcept<TConcept, TDerived>::value>>
             {
                 template<
                     typename TBase>

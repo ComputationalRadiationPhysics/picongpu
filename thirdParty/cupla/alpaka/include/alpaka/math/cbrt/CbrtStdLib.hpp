@@ -35,13 +35,12 @@ namespace alpaka
             struct Cbrt<
                 CbrtStdLib,
                 TArg,
-                typename std::enable_if<
-                    std::is_arithmetic<TArg>::value>::type>
+                std::enable_if_t<
+                    std::is_arithmetic<TArg>::value>>
             {
                 ALPAKA_FN_HOST static auto cbrt(
                     CbrtStdLib const & cbrt_ctx,
                     TArg const & arg)
-                -> decltype(std::cbrt(arg))
                 {
                     alpaka::ignore_unused(cbrt_ctx);
                     return std::cbrt(arg);

@@ -15,16 +15,18 @@
 
 #include <catch2/catch.hpp>
 
+#include <type_traits>
+
 // https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
 template <typename TAcc, typename FP>
 ALPAKA_FN_ACC
-typename std::enable_if< !std::numeric_limits<FP>::is_integer, bool >::type
+std::enable_if_t< !std::numeric_limits<FP>::is_integer, bool >
 almost_equal(TAcc const & acc, FP x, FP y, int ulp)
 {
     // the machine epsilon has to be scaled to the magnitude of the values used
     // and multiplied by the desired precision in ULPs (units in the last place)
     return alpaka::math::abs(acc, x-y)
-        <= std::numeric_limits<FP>::epsilon() * alpaka::math::abs(acc, x+y) * ulp
+        <= std::numeric_limits<FP>::epsilon() * alpaka::math::abs(acc, x+y) * static_cast<FP>(ulp)
         // unless the result is subnormal
         || alpaka::math::abs(acc, x-y) < std::numeric_limits<FP>::min();
 }

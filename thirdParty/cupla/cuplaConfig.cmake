@@ -22,7 +22,7 @@
 # Required cmake version.
 ################################################################################
 
-cmake_minimum_required(VERSION 3.11.4)
+cmake_minimum_required(VERSION 3.15.0)
 
 ################################################################################
 # CMake policies
@@ -114,34 +114,17 @@ set_property(CACHE cupla_ALPAKA_PROVIDER PROPERTY STRINGS "intern;extern")
 mark_as_advanced(cupla_ALPAKA_PROVIDER)
 
 if(${cupla_ALPAKA_PROVIDER} STREQUAL "intern")
-
-    find_package(alpaka
-        PATHS "${_cupla_ROOT_DIR}/alpaka"
-        NO_DEFAULT_PATH
-        NO_CMAKE_ENVIRONMENT_PATH
-        NO_CMAKE_PATH
-        NO_SYSTEM_ENVIRONMENT_PATH
-        NO_CMAKE_PACKAGE_REGISTRY
-        NO_CMAKE_BUILDS_PATH
-        NO_CMAKE_SYSTEM_PATH
-        NO_CMAKE_SYSTEM_PACKAGE_REGISTRY
-        NO_CMAKE_FIND_ROOT_PATH
-    )
+    set(alpaka_BUILD_EXAMPLES OFF)
+    set(BUILD_TESTING OFF)
+    add_subdirectory(${_cupla_ROOT_DIR}/alpaka ${CMAKE_BINARY_DIR}/alpaka)
 else()
     find_package(alpaka HINTS $ENV{ALPAKA_ROOT})
 endif()
 
-if(NOT alpaka_FOUND)
+if(NOT TARGET alpaka::alpaka)
     message(WARNING "Required cupla dependency alpaka could not be found!")
     set(_cupla_FOUND FALSE)
-else()
-    # TODO: use imported targets instead of chain of variables
-    list(APPEND _cupla_COMPILE_OPTIONS_PUBLIC ${alpaka_COMPILE_OPTIONS})
-    list(APPEND _cupla_COMPILE_DEFINITIONS_PUBLIC ${alpaka_COMPILE_DEFINITIONS})
-    list(APPEND _cupla_INCLUDE_DIRECTORIES_PUBLIC ${alpaka_INCLUDE_DIRS})
-    list(APPEND _cupla_LINK_LIBRARIES_PUBLIC ${alpaka_LIBRARIES})
 endif()
-
 
 ################################################################################
 # Compiler settings.
@@ -212,15 +195,6 @@ alpaka_add_library(
 # Even if there are no sources CMAKE has to know the language.
 set_target_properties("cupla" PROPERTIES LINKER_LANGUAGE CXX)
 
-# properties
-target_compile_features("cupla"
-    PUBLIC cxx_std_11
-    )
-set_target_properties("cupla" PROPERTIES
-    CXX_EXTENSIONS OFF
-    CXX_STANDARD_REQUIRED ON
-    )
-
 # Compile options.
 message(STATUS "_cupla_COMPILE_OPTIONS_PUBLIC: ${_cupla_COMPILE_OPTIONS_PUBLIC}")
 list(
@@ -259,15 +233,10 @@ endif()
 
 # Link libraries.
 message(STATUS "_cupla_LINK_LIBRARIES_PUBLIC: ${_cupla_LINK_LIBRARIES_PUBLIC}")
-list(
-    LENGTH
-    _cupla_LINK_LIBRARIES_PUBLIC
-    _cupla_LINK_LIBRARIES_PUBLIC_LENGTH)
-if("${_cupla_LINK_LIBRARIES_PUBLIC_LENGTH}")
-    target_link_libraries(
-        "cupla"
-        PUBLIC alpaka ${_cupla_LINK_LIBRARIES_PUBLIC})
-endif()
+
+target_link_libraries(
+    "cupla"
+    PUBLIC alpaka::alpaka ${_cupla_LINK_LIBRARIES_PUBLIC})
 
 ################################################################################
 # Find cupla version.

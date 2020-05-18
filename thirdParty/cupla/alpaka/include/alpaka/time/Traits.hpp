@@ -20,7 +20,7 @@ namespace alpaka
     //! The time traits specifics.
     namespace time
     {
-        struct ConceptTime;
+        struct ConceptTime{};
 
         //-----------------------------------------------------------------------------
         //! The time traits.

@@ -20,7 +20,7 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathRemainder;
+        struct ConceptMathRemainder{};
 
         namespace traits
         {
@@ -52,17 +52,6 @@ namespace alpaka
             T const & remainder_ctx,
             Tx const & x,
             Ty const & y)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Remainder<
-                concepts::ImplementationBase<ConceptMathRemainder, T>,
-                Tx,
-                Ty>
-            ::remainder(
-                remainder_ctx,
-                x,
-                y))
-#endif
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathRemainder, T>;
             return

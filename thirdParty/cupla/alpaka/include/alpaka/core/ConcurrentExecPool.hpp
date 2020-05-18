@@ -28,6 +28,7 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -88,7 +89,7 @@ namespace alpaka
 
             //#############################################################################
             //! ITaskPkg.
-            // \NOTE: We can not use C++11 std::packaged_task as it forces the use of std::future
+            // \NOTE: We can not use std::packaged_task as it forces the use of std::future
             // but we additionally support boost::fibers::promise.
 #if BOOST_COMP_CLANG
     #pragma clang diagnostic push
@@ -189,7 +190,7 @@ namespace alpaka
             private:
                 // NOTE: To avoid invalid memory accesses to memory of a different thread
                 // `std::remove_reference` enforces the function object to be copied.
-                typename std::remove_reference<TFnObj>::type m_FnObj;
+                std::remove_reference_t<TFnObj> m_FnObj;
             };
 
             //#############################################################################
@@ -239,20 +240,17 @@ namespace alpaka
             private:
                 // NOTE: To avoid invalid memory accesses to memory of a different thread
                 // `std::remove_reference` enforces the function object to be copied.
-                typename std::remove_reference<TFnObj>::type m_FnObj;
+                std::remove_reference_t<TFnObj> m_FnObj;
             };
 
             //-----------------------------------------------------------------------------
             template<
                 typename TFnObj0,
                 typename TFnObj1,
-                typename = typename std::enable_if<!std::is_same<void, decltype(std::declval<TFnObj0>()())>::value>::type>
+                typename = std::enable_if_t<!std::is_same<void, decltype(std::declval<TFnObj0>()())>::value>>
             auto invokeBothReturnFirst(
                     TFnObj0 && fn0,
                     TFnObj1 && fn1)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-             -> decltype(std::declval<TFnObj0>()())
-#endif
             {
                 auto ret = fn0();
                 fn1();
@@ -263,7 +261,7 @@ namespace alpaka
             template<
                 typename TFnObj0,
                 typename TFnObj1,
-                typename = typename std::enable_if<std::is_same<void, decltype(std::declval<TFnObj0>()())>::value>::type>
+                typename = std::enable_if_t<std::is_same<void, decltype(std::declval<TFnObj0>()())>::value>>
             auto invokeBothReturnFirst(
                     TFnObj0 && fn0,
                     TFnObj1 && fn1)
@@ -369,14 +367,6 @@ namespace alpaka
                 auto enqueueTask(
                     TFnObj && task,
                     TArgs && ... args)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-#if BOOST_COMP_GNUC && (BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(5, 0, 0))
-                // FIXME: gcc 4.9 does not support the syntax below. Restricting the return type to void works because we never use something else within alpaka.
-                -> decltype(std::declval<TPromise<void>>().get_future())
-#else
-                -> decltype(std::declval<TPromise<decltype(task(args...))>>().get_future())
-#endif
-#endif
                 {
                     auto boundTask([=](){return task(args...);});
                     auto decrementNumActiveTasks([this](){--m_numActiveTasks;});
@@ -577,14 +567,6 @@ namespace alpaka
                 auto enqueueTask(
                     TFnObj && task,
                     TArgs && ... args)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-#if BOOST_COMP_GNUC && (BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(5, 0, 0))
-                // FIXME: gcc 4.9 does not support the syntax below. Restricting the return type to void works because we never use something else within alpaka.
-                -> decltype(std::declval<TPromise<void>>().get_future())
-#else
-                -> decltype(std::declval<TPromise<decltype(task(args...))>>().get_future())
-#endif
-#endif
                 {
                     auto boundTask([=](){return task(args...);});
                     auto decrementNumActiveTasks([this](){--m_numActiveTasks;});

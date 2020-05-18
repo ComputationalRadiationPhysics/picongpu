@@ -35,13 +35,12 @@ namespace alpaka
             struct Floor<
                 FloorStdLib,
                 TArg,
-                typename std::enable_if<
-                    std::is_arithmetic<TArg>::value>::type>
+                std::enable_if_t<
+                    std::is_arithmetic<TArg>::value>>
             {
                 ALPAKA_FN_HOST static auto floor(
                     FloorStdLib const & floor_ctx,
                     TArg const & arg)
-                -> decltype(std::floor(arg))
                 {
                     alpaka::ignore_unused(floor_ctx);
                     return std::floor(arg);
