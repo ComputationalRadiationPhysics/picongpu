@@ -25,7 +25,7 @@ export CXX=$(which g++)
 
 # required tools and libs
 module load git
-module load cmake/3.14.2
+module load cmake/3.15.2
 module load cuda/10.1.168
 module load boost/1.66.0
 
