@@ -115,22 +115,14 @@ namespace openPMD
             /* count total number of particles on the device */
             uint64_t totalNumParticles = 0;
 
-            /* load particles info table entry for ONE process
-               (note: this is NOT necessarily THIS process!) :uniaku:
-               particlesInfo is (part-count, scalar pos, x, y, z) */
-
-            uint64_t start = 5 * gc.getGlobalRank();
-            uint64_t count = 5; // openPMDCountParticles: uint64_t
-
             // avoid deadlock between not finished pmacc tasks and mpi calls in
             // openPMD
             __getTransactionEvent().waitForFinished();
-            std::shared_ptr< uint64_t > particlesInfo =
-                particleSpecies[ "particles_info" ]
-                               [::openPMD::RecordComponent::SCALAR ]
-                                   .loadChunk< uint64_t >(
-                                       ::openPMD::Offset{ start },
-                                       ::openPMD::Extent{ count } );
+            std::shared_ptr< uint64_t > fullParticlesInfoShared =
+                particleSpecies
+                    .particlePatches[ "numParticles" ]
+                                    [::openPMD::RecordComponent::SCALAR ]
+                    .load< uint64_t >();
             series.flush();
 
             /* Run a prefix sum over the numParticles[0] element in
@@ -138,21 +130,7 @@ namespace openPMD
              * gc.getGlobalRank() */
             uint64_t particleOffset = 0;
 
-            uint64_t fullParticlesInfo[ gc.getGlobalSize() ];
-
-            auto particlesInfoPtr = particlesInfo.get();
-
-            // avoid deadlock between not finished pmacc tasks and mpi blocking
-            // collectives
-            __getTransactionEvent().waitForFinished();
-            MPI_CHECK( MPI_Allgather(
-                particlesInfoPtr,
-                1,
-                MPI_UINT64_T,
-                fullParticlesInfo,
-                1,
-                MPI_UINT64_T,
-                gc.getCommunicator().getMPIComm() ) );
+            uint64_t * fullParticlesInfo = fullParticlesInfoShared.get();
 
             for( size_t i = 0; i < gc.getGlobalSize(); ++i )
             {
