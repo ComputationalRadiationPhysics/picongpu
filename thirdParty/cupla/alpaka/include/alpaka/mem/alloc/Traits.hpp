@@ -24,7 +24,7 @@ namespace alpaka
         //! The allocator specifics.
         namespace alloc
         {
-            struct ConceptMemAlloc;
+            struct ConceptMemAlloc{};
 
             //-----------------------------------------------------------------------------
             //! The allocator traits.

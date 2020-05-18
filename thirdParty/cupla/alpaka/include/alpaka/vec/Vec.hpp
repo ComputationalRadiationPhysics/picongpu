@@ -20,21 +20,23 @@
 #include <alpaka/core/Assert.hpp>
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
-#include <alpaka/meta/IntegerSequence.hpp>
 #include <alpaka/meta/Fold.hpp>
+#include <alpaka/meta/Functional.hpp>
+#include <alpaka/meta/IntegerSequence.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <boost/config.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <ostream>
 #include <type_traits>
-#include <algorithm>
+#include <utility>
 
 // Some compilers do not support the out of class versions:
 // - the nvcc CUDA compiler (at least 8.0)
 // - the intel compiler
-#if BOOST_COMP_HCC || BOOST_COMP_HIP || BOOST_COMP_NVCC || BOOST_COMP_INTEL || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 0, 0))
+#if BOOST_COMP_HIP || BOOST_COMP_NVCC || BOOST_COMP_INTEL || (BOOST_COMP_CLANG_CUDA >= BOOST_VERSION_NUMBER(4, 0, 0)) || (BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(8, 0, 0))
     #define ALPAKA_CREATE_VEC_IN_CLASS
 #endif
 
@@ -58,11 +60,8 @@ namespace alpaka
             typename TIdxSize,
             TIdxSize... TIndices>
         ALPAKA_FN_HOST_ACC auto createVecFromIndexedFnArbitrary(
-            meta::IntegerSequence<TIdxSize, TIndices...> const & indices,
+            std::integer_sequence<TIdxSize, TIndices...> const & indices,
             TArgs && ... args)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> Vec<TDim, decltype(TTFnObj<0>::create(std::forward<TArgs>(args)...))>
-#endif
         {
             alpaka::ignore_unused(indices);
 
@@ -79,16 +78,8 @@ namespace alpaka
             typename... TArgs>
         ALPAKA_FN_HOST_ACC auto createVecFromIndexedFn(
             TArgs && ... args)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            createVecFromIndexedFnArbitrary<
-                TDim,
-                TTFnObj>(
-                    meta::MakeIntegerSequence<typename TDim::value_type, TDim::value>(),
-                    std::forward<TArgs>(args)...))
-#endif
         {
-            using IdxSequence = meta::MakeIntegerSequence<typename TDim::value_type, TDim::value>;
+            using IdxSequence = std::make_integer_sequence<typename TDim::value_type, TDim::value>;
             return
                 createVecFromIndexedFnArbitrary<
                     TDim,
@@ -107,14 +98,6 @@ namespace alpaka
             typename... TArgs>
         ALPAKA_FN_HOST_ACC auto createVecFromIndexedFnOffset(
             TArgs && ... args)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            createVecFromIndexedFnArbitrary<
-                TDim,
-                TTFnObj>(
-                    meta::ConvertIntegerSequence<typename TIdxOffset::value_type, meta::MakeIntegerSequenceOffset<std::intmax_t, TIdxOffset::value, TDim::value>>(),
-                    std::forward<TArgs>(args)...))
-#endif
         {
             using IdxSubSequenceSigned = meta::MakeIntegerSequenceOffset<std::intmax_t, TIdxOffset::value, TDim::value>;
             using IdxSubSequence = meta::ConvertIntegerSequence<typename TIdxOffset::value_type, IdxSubSequenceSigned>;
@@ -144,7 +127,7 @@ namespace alpaka
         private:
             //! A sequence of integers from 0 to dim-1.
             //! This can be used to write compile time indexing algorithms.
-            using IdxSequence = meta::MakeIntegerSequence<std::size_t, TDim::value>;
+            using IdxSequence = std::make_integer_sequence<std::size_t, TDim::value>;
 
         public:
             //-----------------------------------------------------------------------------
@@ -152,7 +135,7 @@ namespace alpaka
             ALPAKA_NO_HOST_ACC_WARNING
             template<
                 bool B = (TDim::value == 0u),
-                typename = typename std::enable_if<B>::type>
+                typename = std::enable_if_t<B>>
             ALPAKA_FN_HOST_ACC Vec() :
                 m_data{static_cast<TVal>(0u)}
             {}
@@ -165,12 +148,12 @@ namespace alpaka
             template<
                 typename TArg0,
                 typename... TArgs,
-                typename = typename std::enable_if<
+                typename = std::enable_if_t<
                     // There have to be dim arguments.
                     (sizeof...(TArgs)+1 == TDim::value)
                     &&
-                    (std::is_same<TVal, typename std::decay<TArg0>::type>::value)
-                    >::type>
+                    (std::is_same<TVal, std::decay_t<TArg0>>::value)
+                    >>
             ALPAKA_FN_HOST_ACC Vec(
                 TArg0 && arg0,
                 TArgs && ... args) :
@@ -187,7 +170,7 @@ namespace alpaka
                 typename TIdxSize,
                 TIdxSize... TIndices>
             ALPAKA_FN_HOST_ACC static auto createVecFromIndexedFnArbitrary(
-                meta::IntegerSequence<TIdxSize, TIndices...> const & indices,
+                std::integer_sequence<TIdxSize, TIndices...> const & indices,
                 TArgs && ... args)
             -> Vec<TDim, TVal>
             {
@@ -313,8 +296,8 @@ namespace alpaka
             ALPAKA_NO_HOST_ACC_WARNING
             template<
                 typename TIdx,
-                typename = typename std::enable_if<
-                    std::is_integral<TIdx>::value>::type>
+                typename = std::enable_if_t<
+                    std::is_integral<TIdx>::value>>
             ALPAKA_FN_HOST_ACC auto operator[](
                 TIdx const iIdx)
             -> TVal &
@@ -331,8 +314,8 @@ namespace alpaka
             ALPAKA_NO_HOST_ACC_WARNING
             template<
                 typename TIdx,
-                typename = typename std::enable_if<
-                    std::is_integral<TIdx>::value>::type>
+                typename = std::enable_if_t<
+                    std::is_integral<TIdx>::value>>
             ALPAKA_FN_HOST_ACC auto operator[](
                 TIdx const iIdx) const
             -> TVal
@@ -373,13 +356,7 @@ namespace alpaka
                 std::size_t... TIndices>
             ALPAKA_FN_HOST_ACC auto foldrByIndices(
                 TFnObj const & f,
-                meta::IntegerSequence<std::size_t, TIndices...> const & indices) const
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-                meta::foldr(
-                    f,
-                    ((*this)[TIndices])...))
-#endif
+                std::integer_sequence<std::size_t, TIndices...> const & indices) const
             {
                 alpaka::ignore_unused(indices);
 
@@ -394,16 +371,6 @@ namespace alpaka
                 typename TFnObj>
             ALPAKA_FN_HOST_ACC auto foldrAll(
                 TFnObj const & f) const
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-#if (BOOST_COMP_GNUC && (BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(5, 0, 0))) || BOOST_COMP_INTEL || BOOST_COMP_NVCC
-                this->foldrByIndices(
-#else
-                foldrByIndices(
-#endif
-                    f,
-                    IdxSequence()))
-#endif
             {
                 return
                     foldrByIndices(
@@ -421,11 +388,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC auto prod() const
             -> TVal
             {
-                return foldrAll(
-                    [](TVal a, TVal b)
-                    {
-                        return static_cast<TVal>(a * b);
-                    });
+                return foldrAll(std::multiplies<TVal>());
             }
 #if BOOST_COMP_MSVC
     #pragma warning(pop)
@@ -436,11 +399,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC auto sum() const
             -> TVal
             {
-                return foldrAll(
-                    [](TVal a, TVal b)
-                    {
-                        return static_cast<TVal>(a + b);
-                    });
+                return foldrAll(std::plus<TVal>());
             }
             //-----------------------------------------------------------------------------
             //! \return The min of all values.
@@ -448,11 +407,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC auto min() const
             -> TVal
             {
-                return foldrAll(
-                    [](TVal a, TVal b)
-                    {
-                        return (b < a) ? b : a;
-                    });
+                return foldrAll(meta::min<TVal>());
             }
             //-----------------------------------------------------------------------------
             //! \return The max of all values.
@@ -460,11 +415,7 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC auto max() const
             -> TVal
             {
-                return foldrAll(
-                    [](TVal a, TVal b)
-                    {
-                        return (b > a) ? b : a;
-                    });
+                return foldrAll(meta::max<TVal>());
             }
             //-----------------------------------------------------------------------------
             //! \return The index of the minimal element.
@@ -510,9 +461,6 @@ namespace alpaka
             typename... TArgs>
         ALPAKA_FN_HOST_ACC auto createVecFromIndexedFnWorkaround(
             TArgs && ... args)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> alpaka::vec::Vec<TDim, TVal>
-#endif
         {
             return
                 alpaka::vec::
@@ -540,9 +488,6 @@ namespace alpaka
             typename... TArgs>
         ALPAKA_FN_HOST_ACC auto createVecFromIndexedFnOffsetWorkaround(
             TArgs && ... args)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> alpaka::vec::Vec<TDim, TVal>
-#endif
         {
             return
                 alpaka::vec::
@@ -927,13 +872,13 @@ namespace alpaka
                 std::size_t... TIndices>
             struct SubVecFromIndices<
                 Vec<TDim, TVal>,
-                meta::IntegerSequence<std::size_t, TIndices...>,
-                typename std::enable_if<
+                std::integer_sequence<std::size_t, TIndices...>,
+                std::enable_if_t<
                     !std::is_same<
-                        meta::IntegerSequence<std::size_t, TIndices...>,
-                        meta::MakeIntegerSequence<std::size_t, TDim::value>
+                        std::integer_sequence<std::size_t, TIndices...>,
+                        std::make_integer_sequence<std::size_t, TDim::value>
                     >::value
-                >::type>
+                >>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto subVecFromIndices(
@@ -943,7 +888,7 @@ namespace alpaka
                     // In the case of a zero dimensional vector, vec is unused.
                     alpaka::ignore_unused(vec);
 
-                    static_assert(sizeof...(TIndices) <= TDim::value, "The sub-vector has to be smaller (or same idx) then the origin vector.");
+                    static_assert(sizeof...(TIndices) <= TDim::value, "The sub-vector has to be smaller (or same size) than the origin vector.");
 
                     return Vec<dim::DimInt<sizeof...(TIndices)>, TVal>(vec[TIndices]...);
                 }
@@ -952,10 +897,17 @@ namespace alpaka
             //! Specialization for selecting the whole vector.
             template<
                 typename TDim,
-                typename TVal>
+                typename TVal,
+                std::size_t... TIndices>
             struct SubVecFromIndices<
                 Vec<TDim, TVal>,
-                meta::MakeIntegerSequence<std::size_t, TDim::value>>
+                std::integer_sequence<std::size_t, TIndices...>,
+                std::enable_if_t<
+                    std::is_same<
+                        std::integer_sequence<std::size_t, TIndices...>,
+                        std::make_integer_sequence<std::size_t, TDim::value>
+                    >::value
+                >>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto subVecFromIndices(
@@ -1290,7 +1242,7 @@ namespace alpaka
             struct GetExtent<
                 TIdxIntegralConst,
                 vec::Vec<TDim, TVal>,
-                typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
+                std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
@@ -1311,7 +1263,7 @@ namespace alpaka
                 TIdxIntegralConst,
                 vec::Vec<TDim, TVal>,
                 TExtentVal,
-                typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
+                std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setExtent(
@@ -1337,7 +1289,7 @@ namespace alpaka
             struct GetOffset<
                 TIdxIntegralConst,
                 vec::Vec<TDim, TVal>,
-                typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
+                std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getOffset(
@@ -1358,7 +1310,7 @@ namespace alpaka
                 TIdxIntegralConst,
                 vec::Vec<TDim, TVal>,
                 TOffset,
-                typename std::enable_if<(TDim::value > TIdxIntegralConst::value)>::type>
+                std::enable_if_t<(TDim::value > TIdxIntegralConst::value)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setOffset(

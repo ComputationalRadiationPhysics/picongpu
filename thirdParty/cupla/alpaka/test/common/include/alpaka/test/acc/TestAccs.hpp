@@ -23,7 +23,7 @@
 // Else the log length would be exceeded.
 #if defined(ALPAKA_CI)
   #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA \
-   || defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP && !BOOST_COMP_HCC
+   || defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP
     #define ALPAKA_CUDA_CI
   #endif
 #endif
@@ -119,6 +119,18 @@ namespace alpaka
                     typename TIdx>
                 using AccCpuOmp4IfAvailableElseInt = int;
 #endif
+#if (defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+                template<
+                    typename TDim,
+                    typename TIdx>
+                using AccGpuUniformCudaHipRtIfAvailableElseInt = alpaka::acc::AccGpuUniformCudaHipRt<TDim, TIdx>;
+#else
+                template<
+                    typename TDim,
+                    typename TIdx>
+                using AccGpuUniformCudaHipRtIfAvailableElseInt = int;
+#endif
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
                 template<
                     typename TDim,
@@ -159,6 +171,7 @@ namespace alpaka
                         AccCpuOmp2BlocksIfAvailableElseInt<TDim, TIdx>,
                         AccCpuOmp2ThreadsIfAvailableElseInt<TDim, TIdx>,
                         AccCpuOmp4IfAvailableElseInt<TDim, TIdx>,
+                        AccGpuUniformCudaHipRtIfAvailableElseInt<TDim, TIdx>,
                         AccGpuCudaRtIfAvailableElseInt<TDim, TIdx>,
                         AccGpuHipRtIfAvailableElseInt<TDim, TIdx>
                     >;
@@ -241,8 +254,8 @@ namespace alpaka
                 {
                     using type =
                         EnabledAccs<
-                            typename std::tuple_element<0, TTestAccParamSet>::type,
-                            typename std::tuple_element<1, TTestAccParamSet>::type
+                            std::tuple_element_t<0, TTestAccParamSet>,
+                            std::tuple_element_t<1, TTestAccParamSet>
                         >;
                 };
 

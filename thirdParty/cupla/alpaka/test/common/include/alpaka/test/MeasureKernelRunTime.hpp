@@ -34,7 +34,7 @@ namespace alpaka
                 std::cout
                     << "measureKernelRunTime("
                     << " queue: " << typeid(TQueue).name()
-                    << " task: " << typeid(typename std::decay<TTask>::type).name()
+                    << " task: " << typeid(std::decay_t<TTask>).name()
                     << ")" << std::endl;
 #endif
                 // Wait for the queue to finish all tasks enqueued prior to the giventask.

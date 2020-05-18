@@ -176,8 +176,8 @@ namespace alpaka
             struct GetOffset<
                 dim::DimInt<0u>,
                 TOffsets,
-                typename std::enable_if<
-                    std::is_integral<TOffsets>::value>::type>
+                std::enable_if_t<
+                    std::is_integral<TOffsets>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getOffset(
@@ -196,8 +196,8 @@ namespace alpaka
                 dim::DimInt<0u>,
                 TOffsets,
                 TOffset,
-                typename std::enable_if<
-                    std::is_integral<TOffsets>::value>::type>
+                std::enable_if_t<
+                    std::is_integral<TOffsets>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setOffset(

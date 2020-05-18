@@ -13,7 +13,7 @@
 
 #include <cuda_to_cupla.hpp>
 #include <stdio.h>
-#ifndef __CUDACC__
+#if !(BOOST_LANG_CUDA || BOOST_LANG_HIP)
 struct float2{
     float x;
     float y;
@@ -39,8 +39,8 @@ float cndGPU(T_Acc const & acc, float d)
     const float RSQRT2PI = 0.39894228040143267793994605993438f;
 
     float
-    K = __fdividef(1.0f, (1.0f + 0.2316419f * fabsf(d)));
-    float cnd = RSQRT2PI * __expf(- 0.5f * d * d) *
+    K = __fdividef(1.0f, (1.0f + 0.2316419f * cupla::abs(d)));
+    float cnd = RSQRT2PI * cupla::exp(- 0.5f * d * d) *
           (K * (A1 + K * (A2 + K * (A3 + K * (A4 + K * A5)))));
     if (d > 0)
         cnd = 1.0f - cnd;
@@ -66,8 +66,8 @@ ALPAKA_FN_ACC void BlackScholesBodyGPU(
 {
     float sqrtT, expRT;
     float d1, d2, CNDD1, CNDD2;
-    sqrtT = sqrtf(T); /// __fdividef(1.0F, rsqrtf(T));
-    d1 = __fdividef(__logf(S / X) + (R + 0.5f * V * V) * T, V * sqrtT);
+    sqrtT = cupla::sqrt(T); /// __fdividef(1.0F, rsqrtf(T));
+    d1 = __fdividef(cupla::log(S / X) + (R + 0.5f * V * V) * T, V * sqrtT);
 
     d2 = d1 - V * sqrtT;
 
@@ -75,7 +75,7 @@ ALPAKA_FN_ACC void BlackScholesBodyGPU(
     CNDD2 = cndGPU(acc, d2);
 
     //Calculate Call and Put simultaneously
-    expRT = __expf(- R * T);
+    expRT = cupla::exp(- R * T);
     CallResult = S * CNDD1 - X * expRT * CNDD2;
     PutResult  = X * expRT * (1.0f - CNDD2) - S * (1.0f - CNDD1);
 }

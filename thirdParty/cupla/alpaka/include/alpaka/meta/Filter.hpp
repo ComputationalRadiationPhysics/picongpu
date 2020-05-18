@@ -48,10 +48,10 @@ namespace alpaka
                 Ts...>
             {
                 using type =
-                    typename std::conditional<
-                        TPred<T>::value,    // TODO: Remove '::value' when C++14 variable templates are supported.
+                    std::conditional_t<
+                        TPred<T>::value,
                         Concatenate<TList<T>, typename FilterImplHelper<TList, TPred, Ts...>::type>,
-                        typename FilterImplHelper<TList, TPred, Ts...>::type >::type;
+                        typename FilterImplHelper<TList, TPred, Ts...>::type >;
             };
 
             //#############################################################################

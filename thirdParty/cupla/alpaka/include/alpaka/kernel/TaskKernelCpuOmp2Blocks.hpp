@@ -33,6 +33,7 @@
 
 #include <omp.h>
 
+#include <functional>
 #include <stdexcept>
 #include <tuple>
 #include <type_traits>
@@ -68,7 +69,7 @@ namespace alpaka
             {
 
                 static_assert(
-                    dim::Dim<typename std::decay<TWorkDiv>::type>::value == TDim::value,
+                    dim::Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                     "The work division and the execution task have to be of the same dimensionality!");
             }
             //-----------------------------------------------------------------------------
@@ -99,7 +100,7 @@ namespace alpaka
                 // Get the size of the block shared dynamic memory.
                 auto const blockSharedMemDynSizeBytes(
                     meta::apply(
-                        [&](typename std::decay<TArgs>::type const & ... args)
+                        [&](std::decay_t<TArgs> const & ... args)
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
@@ -119,7 +120,7 @@ namespace alpaka
                 // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
                 auto const boundKernelFnObj(
                     meta::apply(
-                        [this](typename std::decay<TArgs>::type const & ... args)
+                        [this](std::decay_t<TArgs> const & ... args)
                         {
                             return
                                 std::bind(
@@ -173,9 +174,11 @@ namespace alpaka
             {
                 #pragma omp single nowait
                 {
-                    // The OpenMP runtime does not create a parallel region when only one thread is required in the num_threads clause.
+                    // The OpenMP runtime does not create a parallel region when either:
+                    // * only one thread is required in the num_threads clause
+                    // * or only one thread is available
                     // In all other cases we expect to be in a parallel region now.
-                    if((numBlocksInGrid > 1) && (::omp_in_parallel() == 0))
+                    if((numBlocksInGrid > 1) && (::omp_get_max_threads() > 1) && (::omp_in_parallel() == 0))
                     {
                         throw std::runtime_error("The OpenMP 2.0 runtime did not create a parallel region!");
                     }
@@ -218,7 +221,7 @@ namespace alpaka
             }
 
             TKernelFnObj m_kernelFnObj;
-            std::tuple<typename std::decay<TArgs>::type...> m_args;
+            std::tuple<std::decay_t<TArgs>...> m_args;
         };
     }
 

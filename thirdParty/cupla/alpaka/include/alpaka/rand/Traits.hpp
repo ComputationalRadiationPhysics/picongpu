@@ -22,7 +22,7 @@ namespace alpaka
     //! The random number generation specifics.
     namespace rand
     {
-        struct ConceptRand;
+        struct ConceptRand{};
 
         //-----------------------------------------------------------------------------
         //! The random number generator distribution specifics.
@@ -65,14 +65,6 @@ namespace alpaka
                 typename TRand>
             ALPAKA_FN_HOST_ACC auto createNormalReal(
                 TRand const & rand)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-                traits::CreateNormalReal<
-                    concepts::ImplementationBase<ConceptRand, TRand>,
-                    T>
-                ::createNormalReal(
-                    rand))
-#endif
             {
                 static_assert(
                     std::is_floating_point<T>::value,
@@ -94,14 +86,6 @@ namespace alpaka
                 typename TRand>
             ALPAKA_FN_HOST_ACC auto createUniformReal(
                 TRand const & rand)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-                traits::CreateUniformReal<
-                    concepts::ImplementationBase<ConceptRand, TRand>,
-                    T>
-                ::createUniformReal(
-                    rand))
-#endif
             {
                 static_assert(
                     std::is_floating_point<T>::value,
@@ -123,14 +107,6 @@ namespace alpaka
                 typename TRand>
             ALPAKA_FN_HOST_ACC auto createUniformUint(
                 TRand const & rand)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-                traits::CreateUniformUint<
-                    concepts::ImplementationBase<ConceptRand, TRand>,
-                    T>
-                ::createUniformUint(
-                    rand))
-#endif
             {
                 static_assert(
                     std::is_integral<T>::value && std::is_unsigned<T>::value,
@@ -170,15 +146,6 @@ namespace alpaka
                 TRand const & rand,
                 std::uint32_t const & seed,
                 std::uint32_t const & subsequence)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-                traits::CreateDefault<
-                    concepts::ImplementationBase<ConceptRand, TRand>>
-                ::createDefault(
-                    rand,
-                    seed,
-                    subsequence))
-#endif
             {
                 using ImplementationBase = concepts::ImplementationBase<ConceptRand, TRand>;
                 return

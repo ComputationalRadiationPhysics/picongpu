@@ -22,7 +22,7 @@ namespace alpaka
 
             template<
                 typename T_Idx>
-            ALPAKA_FN_HOST_ACC const TType &operator[](
+            ALPAKA_FN_HOST_ACC const TType & operator[](
                 const T_Idx idx) const
             {
                 return m_data[idx];

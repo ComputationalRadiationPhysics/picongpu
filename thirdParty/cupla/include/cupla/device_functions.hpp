@@ -25,3 +25,4 @@
 #include "cupla/device/Index.hpp"
 #include "cupla/device/Atomic.hpp"
 #include "cupla/device/SharedMemory.hpp"
+#include "cupla/device/math.hpp"

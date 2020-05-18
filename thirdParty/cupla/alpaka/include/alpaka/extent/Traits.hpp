@@ -14,9 +14,9 @@
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/meta/Fold.hpp>
 #include <alpaka/idx/Traits.hpp>
-#include <alpaka/meta/IntegerSequence.hpp>
 
 #include <type_traits>
+#include <utility>
 #include <functional>
 
 namespace alpaka
@@ -118,7 +118,7 @@ namespace alpaka
                 size_t... TIndices>
             ALPAKA_FN_HOST_ACC auto getExtentProductInternal(
                 TExtent const & extent,
-                alpaka::meta::IndexSequence<TIndices...> const & indices)
+                std::index_sequence<TIndices...> const & indices)
             -> idx::Idx<TExtent>
             {
                 alpaka::ignore_unused(indices);
@@ -139,7 +139,7 @@ namespace alpaka
             TExtent const & extent = TExtent())
         -> idx::Idx<TExtent>
         {
-            using IdxSequence = alpaka::meta::MakeIndexSequence<dim::Dim<TExtent>::value>;
+            using IdxSequence = std::make_index_sequence<dim::Dim<TExtent>::value>;
             return
                 detail::getExtentProductInternal(
                     extent,
@@ -217,8 +217,8 @@ namespace alpaka
             struct GetExtent<
                 dim::DimInt<0u>,
                 TExtent,
-                typename std::enable_if<
-                    std::is_integral<TExtent>::value>::type>
+                std::enable_if_t<
+                    std::is_integral<TExtent>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
@@ -237,8 +237,8 @@ namespace alpaka
                 dim::DimInt<0u>,
                 TExtent,
                 TExtentVal,
-                typename std::enable_if<
-                    std::is_integral<TExtent>::value>::type>
+                std::enable_if_t<
+                    std::is_integral<TExtent>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setExtent(

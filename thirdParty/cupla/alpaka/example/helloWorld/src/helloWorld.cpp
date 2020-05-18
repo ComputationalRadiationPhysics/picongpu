@@ -92,6 +92,7 @@ auto main()
     // - AccCpuOmp2Threads
     // - AccCpuOmp2Blocks
     // - AccCpuOmp4
+    // - AccCpuTbbBlocks
     // - AccCpuSerial
     //
     // Each accelerator has strengths and weaknesses. Therefore,

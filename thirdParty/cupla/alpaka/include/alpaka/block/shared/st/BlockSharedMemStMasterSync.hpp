@@ -84,8 +84,7 @@ namespace alpaka
                             block::shared::st::BlockSharedMemStMasterSync const & blockSharedMemSt)
                         -> T &
                         {
-                            // TODO: replace with constexpr std::max in C++14
-                            constexpr std::size_t alignmentInBytes = (core::vectorization::defaultAlignment < alignof(T)) ? alignof(T) : core::vectorization::defaultAlignment;
+                            constexpr std::size_t alignmentInBytes = std::max(core::vectorization::defaultAlignment, alignof(T));
 
                             // Assure that all threads have executed the return of the last allocBlockSharedArr function (if there was one before).
                             blockSharedMemSt.m_syncFn();

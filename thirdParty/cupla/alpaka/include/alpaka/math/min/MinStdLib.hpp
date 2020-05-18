@@ -38,15 +38,14 @@ namespace alpaka
                 MinStdLib,
                 Tx,
                 Ty,
-                typename std::enable_if<
+                std::enable_if_t<
                     std::is_integral<Tx>::value
-                    && std::is_integral<Ty>::value>::type>
+                    && std::is_integral<Ty>::value>>
             {
                 ALPAKA_FN_HOST static auto min(
                     MinStdLib const & min_ctx,
                     Tx const & x,
                     Ty const & y)
-                -> decltype(std::min(x, y))
                 {
                     alpaka::ignore_unused(min_ctx);
                     return std::min(x, y);
@@ -61,17 +60,16 @@ namespace alpaka
                 MinStdLib,
                 Tx,
                 Ty,
-                typename std::enable_if<
+                std::enable_if_t<
                     std::is_arithmetic<Tx>::value
                     && std::is_arithmetic<Ty>::value
                     && !(std::is_integral<Tx>::value
-                        && std::is_integral<Ty>::value)>::type>
+                        && std::is_integral<Ty>::value)>>
             {
                 ALPAKA_FN_HOST static auto min(
                     MinStdLib const & min_ctx,
                     Tx const & x,
                     Ty const & y)
-                -> decltype(std::fmin(x, y))
                 {
                     alpaka::ignore_unused(min_ctx);
                     return std::fmin(x, y);

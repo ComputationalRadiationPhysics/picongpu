@@ -65,7 +65,7 @@ TEMPLATE_LIST_TEST_CASE( "memP2PTest", "[memP2P]", alpaka::test::acc::TestAccs)
     BOOST_COMP_GNUC >= BOOST_VERSION_NUMBER(7,2,0) && \
     BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(8,0,0) && \
     defined(ALPAKA_ACC_CPU_BT_OMP4_ENABLED)
-    std::cerr << "Currently, memP2P is not working with gcc7.2 / gcc7.3 on Ubuntu14.04 on travis/CI." << std::endl;
+    std::cerr << "Currently, memP2P is not working with gcc7.2 / gcc7.3 on CI." << std::endl;
     CHECK(true);
 #else
     using Acc = TestType;

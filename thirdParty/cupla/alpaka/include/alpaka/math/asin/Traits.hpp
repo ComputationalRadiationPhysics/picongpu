@@ -20,7 +20,7 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathAsin;
+        struct ConceptMathAsin{};
 
         namespace traits
         {
@@ -46,15 +46,6 @@ namespace alpaka
         ALPAKA_FN_HOST_ACC auto asin(
             T const & asin_ctx,
             TArg const & arg)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Asin<
-                concepts::ImplementationBase<ConceptMathAsin, T>,
-                TArg>
-            ::asin(
-                asin_ctx,
-                arg))
-#endif
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathAsin, T>;
             return

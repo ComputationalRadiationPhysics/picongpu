@@ -137,7 +137,7 @@ TEMPLATE_LIST_TEST_CASE( "axpy", "[axpy]", TestAccs)
     Val * const pBufHostOrigY = alpaka::mem::view::getPtrNative(memBufHostOrigY);
     Val * const pBufHostY = alpaka::mem::view::getPtrNative(memBufHostY);
 
-    // C++11 random generator for uniformly distributed numbers in [0,1)
+    // random generator for uniformly distributed numbers in [0,1)
     // keep in mind, this can generate different values on different platforms
     std::random_device rd{};
     auto const seed = rd();

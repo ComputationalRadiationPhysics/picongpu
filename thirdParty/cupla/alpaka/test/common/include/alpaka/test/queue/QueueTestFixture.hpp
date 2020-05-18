@@ -9,6 +9,8 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include <tuple>
+
 namespace alpaka
 {
     namespace test
@@ -20,8 +22,8 @@ namespace alpaka
                 typename TDevQueue>
             struct QueueTestFixture
             {
-                using Dev = typename std::tuple_element<0, TDevQueue>::type;
-                using Queue = typename std::tuple_element<1, TDevQueue>::type;
+                using Dev = std::tuple_element_t<0, TDevQueue>;
+                using Queue = std::tuple_element_t<1, TDevQueue>;
 
                 using Pltf = alpaka::pltf::Pltf<Dev>;
 

@@ -28,7 +28,7 @@ namespace alpaka
             //! The block shared static memory operation specifics.
             namespace st
             {
-                struct ConceptBlockSharedSt;
+                struct ConceptBlockSharedSt{};
 
                 //-----------------------------------------------------------------------------
                 //! The block shared static memory operation traits.

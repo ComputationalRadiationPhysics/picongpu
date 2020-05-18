@@ -20,7 +20,7 @@ namespace alpaka
 {
     namespace math
     {
-        struct ConceptMathAtan2;
+        struct ConceptMathAtan2{};
 
         namespace traits
         {
@@ -52,17 +52,6 @@ namespace alpaka
             T const & atan2_ctx,
             Ty const & y,
             Tx const & x)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-        -> decltype(
-            traits::Atan2<
-                concepts::ImplementationBase<ConceptMathAtan2, T>,
-                Ty,
-                Tx>
-            ::atan2(
-                atan2_ctx,
-                y,
-                x))
-#endif
         {
             using ImplementationBase = concepts::ImplementationBase<ConceptMathAtan2, T>;
             return

@@ -66,7 +66,7 @@ namespace alpaka
         {
             traits::Enqueue<
                 TQueue,
-                typename std::decay<TTask>::type>
+                std::decay_t<TTask>>
             ::enqueue(
                 queue,
                 std::forward<TTask>(task));

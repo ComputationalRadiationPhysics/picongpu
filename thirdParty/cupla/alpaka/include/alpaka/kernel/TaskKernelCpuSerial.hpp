@@ -27,6 +27,7 @@
 #include <alpaka/meta/ApplyTuple.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
+#include <functional>
 #include <tuple>
 #include <type_traits>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
@@ -60,7 +61,7 @@ namespace alpaka
                     m_args(std::forward<TArgs>(args)...)
             {
                 static_assert(
-                    dim::Dim<typename std::decay<TWorkDiv>::type>::value == TDim::value,
+                    dim::Dim<std::decay_t<TWorkDiv>>::value == TDim::value,
                     "The work division and the execution task have to be of the same dimensionality!");
             }
             //-----------------------------------------------------------------------------
@@ -91,7 +92,7 @@ namespace alpaka
                 // Get the size of the block shared dynamic memory.
                 auto const blockSharedMemDynSizeBytes(
                     meta::apply(
-                        [&](typename std::decay<TArgs>::type const & ... args)
+                        [&](std::decay_t<TArgs> const & ... args)
                         {
                             return
                                 kernel::getBlockSharedMemDynSizeBytes<
@@ -111,7 +112,7 @@ namespace alpaka
                 // TODO: With C++14 we could create a perfectly argument forwarding function object within the constructor.
                 auto const boundKernelFnObj(
                     meta::apply(
-                        [this](typename std::decay<TArgs>::type const & ... args)
+                        [this](std::decay_t<TArgs> const & ... args)
                         {
                             return
                                 std::bind(
@@ -147,7 +148,7 @@ namespace alpaka
 
         private:
             TKernelFnObj m_kernelFnObj;
-            std::tuple<typename std::decay<TArgs>::type...> m_args;
+            std::tuple<std::decay_t<TArgs>...> m_args;
         };
     }
 

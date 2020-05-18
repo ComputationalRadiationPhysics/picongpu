@@ -59,7 +59,7 @@ namespace alpaka
         //! The CPU threads accelerator.
         //!
         //! This accelerator allows parallel kernel execution on a CPU device.
-        //! It uses C++11 std::thread to implement the parallelism.
+        //! It uses std::thread to implement the parallelism.
         template<
             typename TDim,
             typename TIdx>
@@ -264,13 +264,6 @@ namespace alpaka
                     TWorkDiv const & workDiv,
                     TKernelFnObj const & kernelFnObj,
                     TArgs && ... args)
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-                -> kernel::TaskKernelCpuThreads<
-                    TDim,
-                    TIdx,
-                    TKernelFnObj,
-                    TArgs...>
-#endif
                 {
                     return
                         kernel::TaskKernelCpuThreads<

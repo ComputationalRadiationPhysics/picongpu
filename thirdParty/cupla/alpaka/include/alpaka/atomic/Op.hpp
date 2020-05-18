@@ -9,7 +9,8 @@
 
 #pragma once
 
-#include <alpaka/vec/Vec.hpp>
+#include <alpaka/core/BoostPredef.hpp>
+#include <alpaka/core/Common.hpp>
 
 #include <algorithm>
 

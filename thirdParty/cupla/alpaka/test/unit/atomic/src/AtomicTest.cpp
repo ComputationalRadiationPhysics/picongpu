@@ -8,6 +8,7 @@
  */
 
 #include <alpaka/atomic/Traits.hpp>
+#include <alpaka/core/Unused.hpp>
 
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
@@ -15,6 +16,7 @@
 #include <catch2/catch.hpp>
 
 #include <climits>
+#include <type_traits>
 
 //-----------------------------------------------------------------------------
 ALPAKA_NO_HOST_ACC_WARNING
@@ -353,6 +355,34 @@ public:
     }
 };
 
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+//#############################################################################
+// Skip all atomic tests for the unified CUDA/HIP backend.
+// CUDA and HIP atomics will be tested separate.
+template<
+    typename T,
+    typename TDim,
+    typename TIdx>
+class AtomicTestKernel<
+    alpaka::acc::AccGpuUniformCudaHipRt<TDim, TIdx>,
+    T>
+{
+public:
+    //-----------------------------------------------------------------------------
+    ALPAKA_NO_HOST_ACC_WARNING
+    ALPAKA_FN_ACC auto operator()(
+        alpaka::acc::AccGpuUniformCudaHipRt<TDim, TIdx> const & acc,
+        bool * success,
+        T operandOrig) const
+    -> void
+    {
+        alpaka::ignore_unused(acc);
+        alpaka::ignore_unused(success);
+        alpaka::ignore_unused(operandOrig);
+    }
+};
+#endif
+
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
 //#############################################################################
 template<
@@ -609,14 +639,14 @@ template<
 class AtomicTestKernel<
     alpaka::acc::AccGpuCudaRt<TDim, TIdx>,
     T,
-    typename std::enable_if<
+    std::enable_if_t<
         !std::is_same<int, T>::value
         && !std::is_same<unsigned int, T>::value
         && !std::is_same<unsigned long int, T>::value
         && !std::is_same<unsigned long long int, T>::value
         && !std::is_same<float, T>::value
         && !std::is_same<double, T>::value
-    >::type>
+    >>
 {
 public:
     //-----------------------------------------------------------------------------
@@ -892,14 +922,14 @@ template<
 class AtomicTestKernel<
     alpaka::acc::AccGpuHipRt<TDim, TIdx>,
     T,
-    typename std::enable_if<
+    std::enable_if_t<
         !std::is_same<int, T>::value
         && !std::is_same<unsigned int, T>::value
         && !std::is_same<unsigned long int, T>::value
         && !std::is_same<unsigned long long int, T>::value
         && !std::is_same<float, T>::value
         && !std::is_same<double, T>::value
-    >::type>
+    >>
 {
 public:
     //-----------------------------------------------------------------------------

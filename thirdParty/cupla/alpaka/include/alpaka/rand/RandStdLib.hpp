@@ -221,8 +221,8 @@ namespace alpaka
                 struct CreateNormalReal<
                     RandStdLib,
                     T,
-                    typename std::enable_if<
-                        std::is_floating_point<T>::value>::type>
+                    std::enable_if_t<
+                        std::is_floating_point<T>::value>>
                 {
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto createNormalReal(
@@ -240,8 +240,8 @@ namespace alpaka
                 struct CreateUniformReal<
                     RandStdLib,
                     T,
-                    typename std::enable_if<
-                        std::is_floating_point<T>::value>::type>
+                    std::enable_if_t<
+                        std::is_floating_point<T>::value>>
                 {
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto createUniformReal(
@@ -259,8 +259,8 @@ namespace alpaka
                 struct CreateUniformUint<
                     RandStdLib,
                     T,
-                    typename std::enable_if<
-                        std::is_integral<T>::value>::type>
+                    std::enable_if_t<
+                        std::is_integral<T>::value>>
                 {
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto createUniformUint(

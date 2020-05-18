@@ -11,6 +11,8 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include <type_traits>
+
 namespace alpaka
 {
     //-----------------------------------------------------------------------------
@@ -35,10 +37,10 @@ namespace alpaka
                     template<
                         typename T,
                         typename TSource>
-                    using MimicConst = typename std::conditional<
+                    using MimicConst = std::conditional_t<
                         std::is_const<TSource>::value,
-                        typename std::add_const<T>::type,
-                        typename std::remove_const<T>::type>;
+                        std::add_const_t<T>,
+                        std::remove_const_t<T>>;
 
 #if BOOST_COMP_GNUC
     #pragma GCC diagnostic push
@@ -50,10 +52,10 @@ namespace alpaka
                         typename TSfinae = void>
                     class IteratorView
                     {
-                        using TViewDecayed = typename std::decay<TView>::type;
+                        using TViewDecayed = std::decay_t<TView>;
                         using Dim = alpaka::dim::Dim<TViewDecayed>;
                         using Idx = alpaka::idx::Idx<TViewDecayed>;
-                        using Elem = typename MimicConst<alpaka::elem::Elem<TViewDecayed>, TView>::type;
+                        using Elem = MimicConst<alpaka::elem::Elem<TViewDecayed>, TView>;
 
                     public:
                         //-----------------------------------------------------------------------------
@@ -145,13 +147,9 @@ namespace alpaka
                             // [py, px, ElemSize] [z, y, x] -> [py*z, px*y, ElemSize*x]
                             auto const dimensionalOffsetsInByte(currentIdxDimx * dstPitchBytes);
                             // sum{[py*z, px*y, ElemSize*x]} -> offset in byte
-                            auto const offsetInByte(dimensionalOffsetsInByte.foldrAll(
-                                [](Idx a, Idx b)
-                                {
-                                    return static_cast<Idx>(a + b);
-                                }));
+                            auto const offsetInByte(dimensionalOffsetsInByte.foldrAll(std::plus<Idx>()));
 
-                            using Byte = typename MimicConst<std::uint8_t, Elem>::type;
+                            using Byte = MimicConst<std::uint8_t, Elem>;
                             Byte* ptr(reinterpret_cast<Byte*>(m_nativePtr) + offsetInByte);
 
 #if 0

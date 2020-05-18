@@ -120,17 +120,6 @@ namespace alpaka
             ALPAKA_FN_HOST auto alloc(
                 TDev const & dev,
                 TExtent const & extent = TExtent())
-#ifdef BOOST_NO_CXX14_RETURN_TYPE_DEDUCTION
-            -> decltype(
-                traits::Alloc<
-                    TElem,
-                    dim::Dim<TExtent>,
-                    TIdx,
-                    TDev>
-                ::alloc(
-                    dev,
-                    extent))
-#endif
             {
                 return
                     traits::Alloc<

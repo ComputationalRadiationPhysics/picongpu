@@ -8,7 +8,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11.4)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 
 #------------------------------------------------------------------------------
 # Calls CUDA_ADD_LIBRARY or ADD_LIBRARY depending on the enabled alpaka
@@ -107,11 +107,7 @@ MACRO(ALPAKA_ADD_LIBRARY libraryName)
                     SET_SOURCE_FILES_PROPERTIES( ${_file} PROPERTIES CUDA_SOURCE_PROPERTY_FORMAT OBJ )
                 ENDIF()
             ENDFOREACH()
-            IF (CMAKE_VERSION VERSION_LESS 3.9.0)
-                CMAKE_POLICY(SET CMP0023 OLD)   # CUDA_ADD_EXECUTABLE calls TARGET_LINK_LIBRARIES without keywords.
-            ELSE()
-                SET(CUDA_LINK_LIBRARIES_KEYWORD "PUBLIC")
-            ENDIF()
+            SET(CUDA_LINK_LIBRARIES_KEYWORD "PUBLIC")
             CUDA_ADD_LIBRARY(
                 ${libraryName}
                 ${sourceFileNames}
@@ -128,7 +124,6 @@ MACRO(ALPAKA_ADD_LIBRARY libraryName)
                     SET_SOURCE_FILES_PROPERTIES( ${_file} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT OBJ )
                 ENDIF()
             ENDFOREACH()
-            CMAKE_POLICY(SET CMP0023 OLD)   # CUDA_ADD_LIBRARY calls TARGET_LINK_LIBRARIES without keywords.
             HIP_ADD_LIBRARY(
                 ${libraryName}
                 ${sourceFileNames}

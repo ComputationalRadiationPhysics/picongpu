@@ -384,7 +384,7 @@ namespace alpaka
     {
         namespace event
         {
-            namespace cuda
+            namespace uniform_cuda_hip
             {
                 namespace detail
                 {
@@ -394,7 +394,7 @@ namespace alpaka
                     public:
                         //-----------------------------------------------------------------------------
                         ALPAKA_FN_HOST EventHostManualTriggerCudaImpl(
-                            dev::DevCudaRt const & dev) :
+                            dev::DevUniformCudaHipRt const & dev) :
                                 m_dev(dev),
                                 m_mutex(),
                                 m_bIsReady(true)
@@ -402,16 +402,16 @@ namespace alpaka
                             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                             // Set the current device.
-                            ALPAKA_CUDA_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 cudaSetDevice(
                                     m_dev.m_iDevice));
                             // Allocate the buffer on this device.
-                            ALPAKA_CUDA_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 cudaMalloc(
                                     &m_devMem,
                                     static_cast<size_t>(sizeof(int32_t))));
                             // Initiate the memory set.
-                            ALPAKA_CUDA_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 cudaMemset(
                                     m_devMem,
                                     static_cast<int>(0u),
@@ -431,11 +431,11 @@ namespace alpaka
                             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                             // Set the current device.
-                            ALPAKA_CUDA_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 cudaSetDevice(
                                     m_dev.m_iDevice));
                             // Free the buffer.
-                            ALPAKA_CUDA_RT_CHECK(cudaFree(m_devMem));
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(cudaFree(m_devMem));
                         }
 
                         //-----------------------------------------------------------------------------
@@ -445,11 +445,11 @@ namespace alpaka
                             m_bIsReady = true;
 
                             // Set the current device.
-                            ALPAKA_CUDA_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 cudaSetDevice(
                                     m_dev.m_iDevice));
                             // Initiate the memory set.
-                            ALPAKA_CUDA_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 cudaMemset(
                                     m_devMem,
                                     static_cast<int>(1u),
@@ -457,7 +457,7 @@ namespace alpaka
                         }
 
                     public:
-                        dev::DevCudaRt const m_dev;     //!< The device this event is bound to.
+                        dev::DevUniformCudaHipRt const m_dev;     //!< The device this event is bound to.
 
                         mutable std::mutex m_mutex;     //!< The mutex used to synchronize access to the event.
                         void * m_devMem;
@@ -473,8 +473,8 @@ namespace alpaka
             public:
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST EventHostManualTriggerCuda(
-                    dev::DevCudaRt const & dev) :
-                        m_spEventImpl(std::make_shared<cuda::detail::EventHostManualTriggerCudaImpl>(dev))
+                    dev::DevUniformCudaHipRt const & dev) :
+                        m_spEventImpl(std::make_shared<uniform_cuda_hip::detail::EventHostManualTriggerCudaImpl>(dev))
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
                 }
@@ -508,7 +508,7 @@ namespace alpaka
                 }
 
             public:
-                std::shared_ptr<cuda::detail::EventHostManualTriggerCudaImpl> m_spEventImpl;
+                std::shared_ptr<uniform_cuda_hip::detail::EventHostManualTriggerCudaImpl> m_spEventImpl;
             };
 
             namespace traits
@@ -516,7 +516,7 @@ namespace alpaka
                 //#############################################################################
                 template<>
                 struct EventHostManualTriggerType<
-                    alpaka::dev::DevCudaRt>
+                    alpaka::dev::DevUniformCudaHipRt>
                 {
                     using type = alpaka::test::event::EventHostManualTriggerCuda;
                 };
@@ -524,28 +524,19 @@ namespace alpaka
                 //! The CPU event host manual trigger support get trait specialization.
                 template<>
                 struct IsEventHostManualTriggerSupported<
-                    alpaka::dev::DevCudaRt>
+                    alpaka::dev::DevUniformCudaHipRt>
                 {
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto isSupported(
-#if BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(9, 0, 0)
                         alpaka::dev::DevCudaRt const & dev)
-#else
-                        alpaka::dev::DevCudaRt const &)
-#endif
                     -> bool
                     {
-#if BOOST_LANG_CUDA >= BOOST_VERSION_NUMBER(9, 0, 0)
                         int result = 0;
                         cuDeviceGetAttribute(
                             &result,
                             CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_MEM_OPS,
                             dev.m_iDevice);
                         return result != 0;
-#else
-                        // In CUDA 8.0 there is no way to find out if those operations are really supported.
-                        return false;
-#endif
                     }
                 };
             }
@@ -564,7 +555,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
                     test::event::EventHostManualTriggerCuda const & event)
-                -> dev::DevCudaRt
+                -> dev::DevUniformCudaHipRt
                 {
                     return event.m_spEventImpl->m_dev;
                 }
@@ -601,12 +592,12 @@ namespace alpaka
             //#############################################################################
             template<>
             struct Enqueue<
-                queue::QueueCudaRtNonBlocking,
+                queue::QueueUniformCudaHipRtNonBlocking,
                 test::event::EventHostManualTriggerCuda>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtNonBlocking & queue,
+                    queue::QueueUniformCudaHipRtNonBlocking & queue,
                     test::event::EventHostManualTriggerCuda & event)
                 -> void
                 {
@@ -632,7 +623,7 @@ namespace alpaka
                     //   cuStreamWaitValue32() and cuStreamWriteValue32().
                     ALPAKA_CUDA_DRV_CHECK(
                         cuStreamWaitValue32(
-                            static_cast<CUstream>(queue.m_spQueueImpl->m_CudaQueue),
+                            static_cast<CUstream>(queue.m_spQueueImpl->m_UniformCudaHipQueue),
                             reinterpret_cast<CUdeviceptr>(event.m_spEventImpl->m_devMem),
                             0x01010101u,
                             CU_STREAM_WAIT_VALUE_GEQ));
@@ -641,12 +632,12 @@ namespace alpaka
             //#############################################################################
             template<>
             struct Enqueue<
-                queue::QueueCudaRtBlocking,
+                queue::QueueUniformCudaHipRtBlocking,
                 test::event::EventHostManualTriggerCuda>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtBlocking & queue,
+                    queue::QueueUniformCudaHipRtBlocking & queue,
                     test::event::EventHostManualTriggerCuda & event)
                 -> void
                 {
@@ -672,7 +663,7 @@ namespace alpaka
                     //   cuStreamWaitValue32() and cuStreamWriteValue32().
                     ALPAKA_CUDA_DRV_CHECK(
                         cuStreamWaitValue32(
-                            static_cast<CUstream>(queue.m_spQueueImpl->m_CudaQueue),
+                            static_cast<CUstream>(queue.m_spQueueImpl->m_UniformCudaHipQueue),
                             reinterpret_cast<CUdeviceptr>(event.m_spEventImpl->m_devMem),
                             0x01010101u,
                             CU_STREAM_WAIT_VALUE_GEQ));
@@ -718,16 +709,16 @@ namespace alpaka
                             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                             // Set the current device.
-                            ALPAKA_HIP_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 hipSetDevice(
                                     m_dev.m_iDevice));
                             // Allocate the buffer on this device.
-                            ALPAKA_HIP_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 hipMalloc(
                                     &m_devMem,
                                     static_cast<size_t>(sizeof(int32_t))));
                             // Initiate the memory set.
-                            ALPAKA_HIP_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 hipMemset(
                                     m_devMem,
                                     static_cast<int>(0u),
@@ -746,11 +737,11 @@ namespace alpaka
                         {
                             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                            ALPAKA_HIP_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 hipSetDevice(
                                     m_dev.m_iDevice));
                             // Free the buffer.
-                            ALPAKA_HIP_RT_CHECK(hipFree(m_devMem));
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipFree(m_devMem));
                         }
 
                         //-----------------------------------------------------------------------------
@@ -760,11 +751,11 @@ namespace alpaka
                             m_bIsReady = true;
 
                             // Set the current device.
-                            ALPAKA_HIP_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 hipSetDevice(
                                     m_dev.m_iDevice));
                             // Initiate the memory set.
-                            ALPAKA_HIP_RT_CHECK(
+                            ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(
                                 hipMemset(
                                     m_devMem,
                                     static_cast<int>(1u),
@@ -939,11 +930,11 @@ namespace alpaka
                     std::cerr << "[Workaround] polling of device-located value in stream, as hipStreamWaitValue32 is not available.\n";
 #endif
                     while(hostMem<0x01010101u) {
-                      ALPAKA_HIP_RT_CHECK(hipMemcpyDtoHAsync(&hostMem,
+                      ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipMemcpyDtoHAsync(&hostMem,
                                                              reinterpret_cast<hipDeviceptr_t>(event.m_spEventImpl->m_devMem),
                                                              sizeof(int32_t),
-                                                             queue.m_spQueueImpl->m_HipQueue));
-                      ALPAKA_HIP_RT_CHECK(hipStreamSynchronize(queue.m_spQueueImpl->m_HipQueue));
+                                                             queue.m_spQueueImpl->m_UniformCudaHipQueue));
+                      ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipStreamSynchronize(queue.m_spQueueImpl->m_UniformCudaHipQueue));
                     }
                 }
             };
@@ -980,18 +971,18 @@ namespace alpaka
                     //   the device build upon value-based HIP queue synchronization APIs such as
                     //   cuStreamWaitValue32() and cuStreamWriteValue32().
 #if BOOST_COMP_NVCC
-                    ALPAKA_HIP_RT_CHECK(hipCUResultTohipError(
+                    ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipCUResultTohipError(
                         cuStreamWaitValue32(
-                            static_cast<CUstream>(queue.m_spQueueImpl->m_HipQueue),
+                            static_cast<CUstream>(queue.m_spQueueImpl->m_UniformCudaHipQueue),
                             reinterpret_cast<CUdeviceptr>(event.m_spEventImpl->m_devMem),
                             0x01010101u,
                             CU_STREAM_WAIT_VALUE_GEQ)));
 #else
-                    // workaround for missing cuStreamWaitValue32 in HIP(HCC)
+                    // workaround for missing cuStreamWaitValue32 in HIP
                     std::uint32_t hmem = 0;
                     do {
                         std::this_thread::sleep_for(std::chrono::milliseconds(10u));
-                        ALPAKA_HIP_RT_CHECK(hipMemcpy(&hmem, event.m_spEventImpl->m_devMem, sizeof(std::uint32_t), hipMemcpyDefault));
+                        ALPAKA_UNIFORM_CUDA_HIP_RT_CHECK(hipMemcpy(&hmem, event.m_spEventImpl->m_devMem, sizeof(std::uint32_t), hipMemcpyDefault));
                     } while(hmem < 0x01010101u);
 
 #endif

@@ -7,9 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// NVCC needs --expt-relaxed-constexpr
-#if !defined(__NVCC__) || (defined(__NVCC__) && defined(__CUDACC_RELAXED_CONSTEXPR__))
-
 #include <alpaka/kernel/Traits.hpp>
 
 #include <alpaka/test/acc/TestAccs.hpp>
@@ -62,5 +59,3 @@ TEMPLATE_LIST_TEST_CASE( "kernelWithHostConstexpr", "[kernel]", alpaka::test::ac
 
     REQUIRE(fixture(kernel));
 }
-
-#endif

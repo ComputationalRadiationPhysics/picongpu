@@ -60,7 +60,7 @@ namespace alpaka
                         //
                         // For HIP the required alignment is the size of a cache line.
                         // https://rocm-developer-tools.github.io/HIP/group__Memory.html#gab8258f051e1a1f7385f794a15300e674
-                        // To avoid issues with HIP(cuda) the alignment will be set also for HIP(clang/hcc)
+                        // To avoid issues with HIP(cuda) the alignment will be set also for HIP(clang)
                         // to 4kib.
                         // @todo evaluate requirements when the HIP ecosystem is more stable
                         constexpr size_t minAlignement = 4096;

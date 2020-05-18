@@ -3,10 +3,10 @@
 Accelerator Implementations
 ===========================
 
-|alpaka|Serial|std::thread|Boost.Fiber|OpenMP 2.0|OpenMP 4.0|CUDA 8.0|
+|alpaka|Serial|std::thread|Boost.Fiber|OpenMP 2.0|OpenMP 4.0|CUDA 9.0+|
 |---|---|---|---|---|---|---|
 |Devices|Host Core|Host Cores|Host Core|Host Cores|Host Cores|NVIDIA GPUs|
-|Lib/API|n/a|std::thread|boost::fibers::fiber|OpenMP 2.0|OpenMP 4.0|CUDA 8.0|
+|Lib/API|n/a|std::thread|boost::fibers::fiber|OpenMP 2.0|OpenMP 4.0|CUDA 9.0+|
 |Kernel execution|n/a|std::thread(kernel)|boost::fibers::fiber(kernel)|omp_set_dynamic(0), #pragma omp parallel num_threads(iNumKernelsInBlock)|#pragma omp target, #pragma omp teams num_teams(...) thread_limit(...), #pragma omp distribute, #pragma omp parallel num_threads(...)|cudaConfigureCall, cudaSetupArgument, cudaLaunch|
 |Execution strategy grid-blocks|sequential|sequential|sequential|sequential|undefined|undefined|
 |Execution strategy block-kernels|sequential|preemptive multitasking|cooperative multithreading|preemptive multitasking|preemptive multitasking|lock-step within warps|

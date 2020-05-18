@@ -16,39 +16,8 @@
 #include <type_traits>
 
 
-#if !(defined(BOOST_LANG_HIP) && BOOST_LANG_HIP && BOOST_COMP_HCC)
-  #define ALPAKA_ASSERT(EXPRESSION) assert(EXPRESSION)
-#else
 
-  // Including assert.h would interfere with HIP's host-device implementation
-  // see: https://github.com/ROCm-Developer-Tools/HIP/issues/599
-  // However, cassert is still in some header, so we have to do a workaround for HIP.
-  #ifdef NDEBUG
-    #define ALPAKA_ASSERT(EXPRESSION) static_cast<void>(0)
-  #else
-    #define ALPAKA_ASSERT(EXPRESSION) assert_workaround(EXPRESSION)
-
-    #pragma push_macro("__DEVICE__")
-    #define __DEVICE__ extern "C" __device__ __attribute__((always_inline)) \
-            __attribute__((weak))
-
-     __DEVICE__ void __device_trap() __asm("llvm.trap");
-
-     __host__ __device__
-     __attribute__((always_inline))             \
-     __attribute__((weak))
-     void assert_workaround(bool expr) {
-       if(!expr) {
-         printf("assert failed.\n");
-         #if __HIP_DEVICE_COMPILE__==1
-           __device_trap();
-         #else
-           exit(1);
-         #endif
-       }
-     }
-  #endif //NDEBUG
-#endif
+#define ALPAKA_ASSERT(EXPRESSION) assert(EXPRESSION)
 
 namespace alpaka
 {
@@ -66,7 +35,7 @@ namespace alpaka
                 typename TArg>
             struct AssertValueUnsigned<
                 TArg,
-                typename std::enable_if<!std::is_unsigned<TArg>::value>::type>
+                std::enable_if_t<!std::is_unsigned<TArg>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto assertValueUnsigned(
@@ -85,7 +54,7 @@ namespace alpaka
                 typename TArg>
             struct AssertValueUnsigned<
                 TArg,
-                typename std::enable_if<std::is_unsigned<TArg>::value>::type>
+                std::enable_if_t<std::is_unsigned<TArg>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto assertValueUnsigned(
@@ -128,7 +97,7 @@ namespace alpaka
             struct AssertGreaterThan<
                 TLhs,
                 TRhs,
-                typename std::enable_if<!std::is_unsigned<TRhs>::value || (TLhs::value != 0u)>::type>
+                std::enable_if_t<!std::is_unsigned<TRhs>::value || (TLhs::value != 0u)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto assertGreaterThan(
@@ -149,7 +118,7 @@ namespace alpaka
             struct AssertGreaterThan<
                 TLhs,
                 TRhs,
-                typename std::enable_if<std::is_unsigned<TRhs>::value && (TLhs::value == 0u)>::type>
+                std::enable_if_t<std::is_unsigned<TRhs>::value && (TLhs::value == 0u)>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto assertGreaterThan(

@@ -21,9 +21,9 @@ namespace alpaka
     //! The atomic operation traits specifics.
     namespace atomic
     {
-        struct ConceptAtomicGrids;
-        struct ConceptAtomicBlocks;
-        struct ConceptAtomicThreads;
+        struct ConceptAtomicGrids{};
+        struct ConceptAtomicBlocks{};
+        struct ConceptAtomicThreads{};
 
         namespace detail
         {

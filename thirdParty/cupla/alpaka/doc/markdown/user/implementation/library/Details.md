@@ -216,10 +216,10 @@ namespace queue
 	struct Enqueue<
 		TQueue
 		TTask,
-		typename std::enable_if<
+		std::enable_if_t<
 			std::is_base_of<UserQueue, TQueue>::value
 			&& (TTask::TaskId == 1u)
-		>::type>
+		>>
 	{
 		ALPAKA_FN_HOST static auto enqueue(
 			TQueue & queue,

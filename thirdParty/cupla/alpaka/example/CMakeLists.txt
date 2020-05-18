@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2019 Benjamin Worpitz
+# Copyright 2015-2020 Benjamin Worpitz, Jan Stephan
 #
 # This file exemplifies usage of Alpaka.
 #
@@ -20,16 +20,16 @@
 # Required CMake version.
 ################################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.15)
 
-PROJECT("alpakaExamples")
+project("alpakaExamples")
 
 ################################################################################
 # Add subdirectories.
 ################################################################################
 
-ADD_SUBDIRECTORY("bufferCopy/")
-ADD_SUBDIRECTORY("helloWorld/")
-ADD_SUBDIRECTORY("helloWorldLambda/")
-ADD_SUBDIRECTORY("reduce/")
-ADD_SUBDIRECTORY("vectorAdd/")
+add_subdirectory("bufferCopy")
+add_subdirectory("helloWorld/")
+add_subdirectory("helloWorldLambda/")
+add_subdirectory("reduce/")
+add_subdirectory("vectorAdd/")
