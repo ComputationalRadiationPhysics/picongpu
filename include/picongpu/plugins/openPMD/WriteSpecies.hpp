@@ -520,7 +520,7 @@ namespace openPMD
 
             /* write species counter table to openPMD storage */
             log< picLog::INPUT_OUTPUT >(
-                "openPMD: (begin) writing particle index table for %1%" ) %
+                "openPMD: (begin) writing particle patches for %1%" ) %
                 T_SpeciesFilter::getName();
             {
                 using index_t = uint64_t;
@@ -562,59 +562,13 @@ namespace openPMD
                     extent_x.store< index_t >( mpiRank, patchExtent[ d ] );
                 }
 
-                // legacy from here one
-
-                constexpr uint64_t localTableSize = 5;
-
-                GridController< simDim > & gc =
-                    Environment< simDim >::get().GridController();
-
-                const size_t pos_offset = 2;
-
-                /* particlesMetaInfo = (num particles, scalar position, particle
-                 * offset x, y, z) */
-                std::shared_ptr< uint64_t > particlesMetaInfo{
-                    new uint64_t[ localTableSize ]{
-                        myNumParticles, gc.getScalarPosition(), 0, 0, 0 },
-                    []( uint64_t * ptr ) { delete[] ptr; }
-                };
-                auto particlesMetaInfoPtr = particlesMetaInfo.get();
-                for( size_t d = 0; d < simDim; ++d )
-                {
-                    particlesMetaInfoPtr[ pos_offset + d ] =
-                        particleOffset[ d ];
-                }
-
-                /* prevent that top (y) gpus have negative value here */
-                if( gc.getPosition().y() == 0 )
-                    particlesMetaInfoPtr[ pos_offset + 1 ] = 0;
-
-                if( particleOffset[ 1 ] < 0 ) // 1 == y
-                    particlesMetaInfoPtr[ pos_offset + 1 ] = 0;
-
-                ::openPMD::RecordComponent recordComponent =
-                    particleSpecies[ "particles_info" ]
-                                   [::openPMD::RecordComponent::SCALAR ];
-
-                params
-                    ->initDataset< DIM1 >(
-                        recordComponent,
-                        datatype,
-                        { localTableSize * uint64_t( gc.getGlobalSize() ) },
-                        true,
-                        params->compressionMethod )
-                    .template storeChunk(
-                        particlesMetaInfo,
-                        { localTableSize * uint64_t( gc.getGlobalRank() ) },
-                        { localTableSize } );
-
                 /* openPMD ED-PIC: additional attributes */
                 setParticleAttributes( iteration );
                 params->openPMDSeries->flush();
             }
 
             log< picLog::INPUT_OUTPUT >(
-                "openPMD: ( end ) writing particle index table for %1%" ) %
+                "openPMD: ( end ) writing particle patches for %1%" ) %
                 T_SpeciesFilter::getName();
         }
     };
