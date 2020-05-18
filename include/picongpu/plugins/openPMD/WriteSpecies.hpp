@@ -300,7 +300,7 @@ namespace openPMD
                 ( uint64_t )counterBuffer.getHostBuffer().getDataBox()[ 0 ] ==
                 rp.myNumParticles );
         }
-    }; // namespace openPMD
+    };
 
     /** Write copy particle to host memory and dump to openPMD file
      *
@@ -523,6 +523,47 @@ namespace openPMD
                 "openPMD: (begin) writing particle index table for %1%" ) %
                 T_SpeciesFilter::getName();
             {
+                using index_t = uint64_t;
+                ::openPMD::Datatype const datatype =
+                    ::openPMD::determineDatatype< index_t >();
+                ::openPMD::Dataset const ds( datatype, { mpiSize } );
+
+                ::openPMD::ParticlePatches particlePatches =
+                    particleSpecies.particlePatches;
+                ::openPMD::PatchRecordComponent numParticles =
+                    particlePatches[ "numParticles" ]
+                                   [::openPMD::RecordComponent::SCALAR ];
+                ::openPMD::PatchRecordComponent numParticlesOffset =
+                    particlePatches[ "numParticlesOffset" ]
+                                   [::openPMD::RecordComponent::SCALAR ];
+
+                numParticles.resetDataset( ds );
+                numParticlesOffset.resetDataset( ds );
+
+                numParticles.store< index_t >( mpiRank, myNumParticles );
+                numParticlesOffset.store< index_t >(
+                    mpiRank, myParticleOffset );
+
+                ::openPMD::PatchRecord offset = particlePatches[ "offset" ];
+                ::openPMD::PatchRecord extent = particlePatches[ "extent" ];
+                auto const patchExtent = params->window.localDimensions.size;
+
+                for( size_t d = 0; d < simDim; ++d )
+                {
+                    ::openPMD::PatchRecordComponent offset_x =
+                        offset[ name_lookup[ d ] ];
+                    ::openPMD::PatchRecordComponent extent_x =
+                        extent[ name_lookup[ d ] ];
+
+                    offset_x.resetDataset( ds );
+                    extent_x.resetDataset( ds );
+
+                    offset_x.store< index_t >( mpiRank, particleOffset[ d ] );
+                    extent_x.store< index_t >( mpiRank, patchExtent[ d ] );
+                }
+
+                // legacy from here one
+
                 constexpr uint64_t localTableSize = 5;
 
                 GridController< simDim > & gc =
@@ -551,8 +592,6 @@ namespace openPMD
                 if( particleOffset[ 1 ] < 0 ) // 1 == y
                     particlesMetaInfoPtr[ pos_offset + 1 ] = 0;
 
-                ::openPMD::Datatype datatype =
-                    ::openPMD::determineDatatype< uint64_t >();
                 ::openPMD::RecordComponent recordComponent =
                     particleSpecies[ "particles_info" ]
                                    [::openPMD::RecordComponent::SCALAR ];
