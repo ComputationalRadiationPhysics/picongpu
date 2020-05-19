@@ -111,3 +111,17 @@
 #ifndef CUPLA_HEADER_ONLY_FUNC_SPEC
 #   define CUPLA_HEADER_ONLY_FUNC_SPEC
 #endif
+
+/*! device compile flag
+ *
+ * Enabled if the compiler processes currently a separate compile path for the device code
+ *
+ * @attention value is always 0 for alpaka CPU accelerators
+ *
+ * Value is 1 if device path is compiled else 0
+ */
+#if defined(__CUDA_ARCH__) || ( defined(__HIP_DEVICE_COMPILE__) && __HIP_DEVICE_COMPILE__== 1 && defined(__HIP__) )
+    #define CUPLA_DEVICE_COMPILE 1
+#else
+    #define CUPLA_DEVICE_COMPILE 0
+#endif
