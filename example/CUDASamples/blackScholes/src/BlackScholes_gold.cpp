@@ -12,7 +12,7 @@
 
 
 #include <math.h>
-
+#include <cupla.hpp>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,10 +28,10 @@ static double CND(double d)
     const double RSQRT2PI = 0.39894228040143267793994605993438;
 
     double
-    K = 1.0 / (1.0 + 0.2316419 * fabs(d));
+    K = 1.0 / (1.0 + 0.2316419 * cupla::abs(d));
 
     double
-    cnd = RSQRT2PI * exp(- 0.5 * d * d) *
+    cnd = RSQRT2PI * cupla::exp(- 0.5 * d * d) *
           (K * (A1 + K * (A2 + K * (A3 + K * (A4 + K * A5)))));
 
     if (d > 0)
@@ -56,8 +56,8 @@ static void BlackScholesBodyCPU(
 {
     double S = Sf, X = Xf, T = Tf, R = Rf, V = Vf;
 
-    double sqrtT = sqrt(T);
-    double    d1 = (log(S / X) + (R + 0.5 * V * V) * T) / (V * sqrtT);
+    double sqrtT = cupla::sqrt(T);
+    double    d1 = (cupla::log(S / X) + (R + 0.5 * V * V) * T) / (V * sqrtT);
     double    d2 = d1 - V * sqrtT;
     double CNDD1 = CND(d1);
     double CNDD2 = CND(d2);

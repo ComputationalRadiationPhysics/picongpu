@@ -22,6 +22,7 @@
 #pragma once
 
 #include "cupla/types.hpp"
+#include "cupla/defines.hpp"
 
 #include <alpaka/core/Concepts.hpp>
 
@@ -39,21 +40,29 @@ namespace detail
 {
     /** Get the concept implementation of the current accelerator
      *
+     * @tparam T_AccOrMathImpl accelerator or math implementation [type alpaka::acc::* or alpaka::math::MathStdLib]
      * @tparam T_Concept alpaka concept
      * @return implementation of the concept
      */
     ALPAKA_NO_HOST_ACC_WARNING
-    template< typename T_Concept >
-    ALPAKA_FN_HOST_ACC  auto getConcept()
+    template< typename T_AccOrMathImpl, typename T_Concept >
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto getConcept()
     {
-        using AccThreadSeqMathConcept = alpaka::concepts::ImplementationBase<
+        using ResultMathConcept = alpaka::concepts::ImplementationBase<
             T_Concept,
-            AccThreadSeq
+            T_AccOrMathImpl
         >;
+
         using AccMathConcept = alpaka::concepts::ImplementationBase<
             T_Concept,
             Acc
         >;
+
+        using AccThreadSeqMathConcept = alpaka::concepts::ImplementationBase<
+            T_Concept,
+            AccThreadSeq
+        >;
+
         // cupla Acc and AccThreadSeq should use the same math concept implementation
         static_assert(
             std::is_same<
@@ -62,35 +71,33 @@ namespace detail
             >::value,
             "The math concept implementation for the type 'Acc' and 'AccThreadSeq' must be equal"
         );
-        return AccMathConcept{};
+
+        return ResultMathConcept{};
     }
 } // namespace detail
 
-/* Using the free alpaka functions `alpaka::math::*` will result into `__host__ __device__`
- * errors, therefore the alpaka math trait must be used.
- */
-#define CUPLA_UNARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait)  \
+#define CUPLA_UNARY_MATH_FN_DETAIL(functionName, accOrMathImpl, alpakaMathConcept, alpakaMathTrait)  \
     /**                                                                        \
      * @tparam T_Type argument type                                            \
      * @param arg input argument                                               \
      */                                                                        \
     ALPAKA_NO_HOST_ACC_WARNING                                                 \
     template< typename T_Type >                                                \
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE auto functionName(                          \
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto functionName(                     \
         T_Type const & arg                                                     \
     )                                                                          \
-    /* return type is required because nvcc can not detect the return type     \
-     * for device functions.                                                   \
+    /* return type is required for the compiler to detect host, device         \
+     * function qualifier correctly                                            \
      */                                                                        \
     ->  decltype(                                                              \
         alpaka::math::traits::alpakaMathTrait<                                 \
             alpaka::concepts::ImplementationBase<                              \
                 alpakaMathConcept,                                             \
-                Acc                                                            \
+                accOrMathImpl                                                  \
             >,                                                                 \
             T_Type                                                             \
         >::functionName(                                                       \
-            detail::getConcept< alpakaMathConcept >(),                         \
+            detail::getConcept< accOrMathImpl, alpakaMathConcept >(),          \
             arg                                                                \
         )                                                                      \
     )                                                                          \
@@ -98,11 +105,11 @@ namespace detail
         return alpaka::math::traits::alpakaMathTrait<                          \
             alpaka::concepts::ImplementationBase<                              \
                 alpakaMathConcept,                                             \
-                Acc                                                            \
+                accOrMathImpl                                                  \
             >,                                                                 \
             T_Type                                                             \
         >::functionName(                                                       \
-            detail::getConcept< alpakaMathConcept >(),                         \
+            detail::getConcept< accOrMathImpl, alpakaMathConcept >(),          \
             arg                                                                \
         );                                                                     \
     }
@@ -110,12 +117,13 @@ namespace detail
 /* Using the free alpaka functions `alpaka::math::*` will result into `__host__ __device__`
  * errors, therefore the alpaka math trait must be used.
  */
-#define CUPLA_BINARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait) \
+#define CUPLA_BINARY_MATH_FN_DETAIL(functionName, accOrMathImpl, alpakaMathConcept, alpakaMathTrait) \
     /**                                                                        \
      * @tparam T_Type argument type                                            \
      * @param arg1 first input argument                                        \
      * @param arg2 second input argument                                       \
      */                                                                        \
+    ALPAKA_NO_HOST_ACC_WARNING                                                 \
     template<                                                                  \
         typename T_Type1,                                                      \
         typename T_Type2                                                       \
@@ -124,19 +132,19 @@ namespace detail
         T_Type1 const & arg1,                                                  \
         T_Type2 const & arg2                                                   \
     )                                                                          \
-    /* return type is required because nvcc can not detect the return type     \
-     * for device functions.                                                   \
+    /* return type is required for the compiler to detect host, device         \
+     * function qualifier correctly                                            \
      */                                                                        \
     ->  decltype(                                                              \
         alpaka::math::traits::alpakaMathTrait<                                 \
             alpaka::concepts::ImplementationBase<                              \
                 alpakaMathConcept,                                             \
-                Acc                                                            \
+                accOrMathImpl                                                  \
             >,                                                                 \
             T_Type1,                                                           \
             T_Type2                                                            \
         >::functionName(                                                       \
-            detail::getConcept< alpakaMathConcept >(),                         \
+            detail::getConcept< accOrMathImpl, alpakaMathConcept >(),          \
             arg1,                                                              \
             arg2                                                               \
         )                                                                      \
@@ -145,16 +153,24 @@ namespace detail
         return alpaka::math::traits::alpakaMathTrait<                          \
             alpaka::concepts::ImplementationBase<                              \
                 alpakaMathConcept,                                             \
-                Acc                                                            \
+                accOrMathImpl                                                  \
             >,                                                                 \
             T_Type1,                                                           \
             T_Type2                                                            \
         >::functionName(                                                       \
-            detail::getConcept< alpakaMathConcept >(),                         \
+            detail::getConcept< accOrMathImpl, alpakaMathConcept >(),          \
             arg1,                                                              \
             arg2                                                               \
         );                                                                     \
     }
+
+#if CUPLA_DEVICE_COMPILE == 0
+    #define CUPLA_UNARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait) CUPLA_UNARY_MATH_FN_DETAIL(functionName, alpaka::math::MathStdLib, alpakaMathConcept, alpakaMathTrait)
+    #define CUPLA_BINARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait) CUPLA_BINARY_MATH_FN_DETAIL(functionName, alpaka::math::MathStdLib, alpakaMathConcept, alpakaMathTrait)
+#else
+    #define CUPLA_UNARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait) CUPLA_UNARY_MATH_FN_DETAIL(functionName, Acc, alpakaMathConcept, alpakaMathTrait)
+    #define CUPLA_BINARY_MATH_FN(functionName, alpakaMathConcept, alpakaMathTrait) CUPLA_BINARY_MATH_FN_DETAIL(functionName, Acc, alpakaMathConcept, alpakaMathTrait)
+#endif
 
 } // namespace math
 } // namespace device
