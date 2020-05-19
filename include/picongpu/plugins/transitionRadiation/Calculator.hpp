@@ -82,12 +82,12 @@ namespace transitionRadiation
         {
             // frequent calculations
             // momentum Space for Particle:
-            picongpu::math::sincos(
+            pmacc::math::sincos(
                 particle.getMomTheta( ),
                 parMomSinTheta,
                 parMomCosTheta
             );
-            picongpu::math::sincos(
+            pmacc::math::sincos(
                 parMomPhi - detectorPhi,
                 parMomSinPhi,
                 parMomCosPhi
@@ -96,7 +96,7 @@ namespace transitionRadiation
             // detector Position since lookDirection is normalized
             float_X const detectorTheta = picongpu::math::acos( lookDirection.y( ) );
 
-            picongpu::math::sincos(
+            pmacc::math::sincos(
                 detectorTheta,
                 detectorSinTheta,
                 detectorCosTheta

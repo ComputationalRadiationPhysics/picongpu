@@ -65,7 +65,7 @@ struct FoilFunctor
         /* gaussian ramp length of density above the surface */
         constexpr float_64 rampLength = 0.1e-6;
 
-        using namespace pmacc::algorithms::math;
+        using namespace pmacc::math;
 
         if( abs( pos.y() - plateauPos) < plateauLength / 2.0 )
         {

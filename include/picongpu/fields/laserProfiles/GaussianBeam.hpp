@@ -144,7 +144,7 @@ namespace acc
             // transversal position only
             floatD_X planeNoNormal = floatD_X::create( 1.0_X );
             planeNoNormal[ planeNormalDir ] = 0.0_X;
-            float_X const r2 = math::abs2( pos * planeNoNormal );
+            float_X const r2 = pmacc::math::abs2( pos * planeNoNormal );
 
             // calculate focus position relative to the laser initialization plane
             float_X const focusPos = Unitless::FOCUS_POS - pos.y();
@@ -166,9 +166,9 @@ namespace acc
                 etrans_norm += typename Unitless::LAGUERREMODES_t{}[m];
 
             // beam waist in the near field: w_y(y=0) == W0
-            float_X const w_y = Unitless::W0 * algorithms::math::sqrt( 1.0_X + ( focusPos / y_R )*( focusPos / y_R ) );
+            float_X const w_y = Unitless::W0 * math::sqrt( 1.0_X + ( focusPos / y_R )*( focusPos / y_R ) );
             //! the Gouy phase shift
-            float_X const xi_y = algorithms::math::atan( -focusPos / y_R );
+            float_X const xi_y = math::atan( -focusPos / y_R );
 
             if( Unitless::Polarisation == Unitless::LINEAR_X || Unitless::Polarisation == Unitless::LINEAR_Z )
             {
@@ -284,7 +284,7 @@ namespace acc
             for( uint32_t m = 0 ; m <= Unitless::MODENUMBER ; ++m )
                 etrans_norm += typename Unitless::LAGUERREMODES_t{}[m];
             PMACC_VERIFY_MSG(
-                algorithms::math::abs( etrans_norm ) > std::numeric_limits< float_X >::epsilon(),
+                math::abs( etrans_norm ) > std::numeric_limits< float_X >::epsilon(),
                 "Sum of LAGUERREMODES can not be 0."
             );
 

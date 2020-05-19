@@ -86,10 +86,10 @@ namespace currentSolver
         )
         {
 
-            if (math::float2int_rd(oldPos.x()) != math::float2int_rd(newPos.x()))
+        if (pmacc::math::float2int_rd(oldPos.x()) != pmacc::math::float2int_rd(newPos.x()))
             {
                 const float3_X interPos = intersectXPlane(oldPos, newPos,
-                                                          math::max(math::float2int_rd(oldPos.x()), math::float2int_rd(newPos.x())));
+                                                      math::max(pmacc::math::float2int_rd(oldPos.x()), pmacc::math::float2int_rd(newPos.x())));
                 addCurrentSplitY(acc, oldPos, interPos, charge, mem, deltaTime);
                 addCurrentSplitY(acc, interPos, newPos, charge, mem, deltaTime);
                 return;
@@ -112,9 +112,9 @@ namespace currentSolver
         {
             //shift to the cell meanPos belongs to
             //because meanPos may exceed the range [0,1)
-            DataSpace<DIM3> off(math::float2int_rd(meanPos.x()),
-                                math::float2int_rd(meanPos.y()),
-                                math::float2int_rd(meanPos.z()));
+        DataSpace<DIM3> off(pmacc::math::float2int_rd(meanPos.x()),
+                            pmacc::math::float2int_rd(meanPos.y()),
+                            pmacc::math::float2int_rd(meanPos.z()));
 
             auto mem = memIn.shift(off);
 
@@ -214,10 +214,10 @@ namespace currentSolver
         )
         {
 
-            if (math::float2int_rd(oldPos.z()) != math::float2int_rd(newPos.z()))
+        if (pmacc::math::float2int_rd(oldPos.z()) != pmacc::math::float2int_rd(newPos.z()))
             {
                 const float3_X interPos = intersectZPlane(oldPos, newPos,
-                                                          math::max(math::float2int_rd(oldPos.z()), math::float2int_rd(newPos.z())));
+                                                      math::max(pmacc::math::float2int_rd(oldPos.z()), pmacc::math::float2int_rd(newPos.z())));
                 float3_X deltaPos = interPos - oldPos;
                 float3_X meanPos = oldPos + float_X(0.5) * deltaPos;
                 addCurrentToSingleCell(acc, meanPos, deltaPos, charge, mem, deltaTime);
@@ -249,10 +249,10 @@ namespace currentSolver
         )
         {
 
-            if (math::float2int_rd(oldPos.y()) != math::float2int_rd(newPos.y()))
+        if (pmacc::math::float2int_rd(oldPos.y()) != pmacc::math::float2int_rd(newPos.y()))
             {
                 const float3_X interPos = intersectYPlane(oldPos, newPos,
-                                                          math::max(math::float2int_rd(oldPos.y()), math::float2int_rd(newPos.y())));
+                                                      math::max(pmacc::math::float2int_rd(oldPos.y()), pmacc::math::float2int_rd(newPos.y())));
                 addCurrentSplitZ(acc, oldPos, interPos, charge, mem, deltaTime);
                 addCurrentSplitZ(acc, interPos, newPos, charge, mem, deltaTime);
                 return;

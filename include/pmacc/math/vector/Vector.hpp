@@ -826,21 +826,12 @@ HDINLINE Lhs operator%(const Lhs& lhs, const Rhs& rhs)
     return result;
 }
 
-struct Abs2
-{
-    template<typename Type, int dim >
-    HDINLINE Type operator()(const Vector<Type, dim>& vec)
-    {
-        return pmacc::algorithms::math::abs2(vec);
-    }
-};
-
 struct Abs
 {
     template<typename Type, int dim >
     HDINLINE Type operator()(const Vector<Type, dim>& vec)
     {
-        return pmacc::algorithms::math::abs(vec);
+        return cupla::math::abs(vec);
     }
 };
 
@@ -848,12 +839,6 @@ struct Abs
 
 namespace result_of
 {
-
-template<typename TVector>
-struct Functor<math::Abs2, TVector>
-{
-    using type = typename TVector::type;
-};
 
 template<typename TVector>
 struct Functor<math::Abs, TVector>

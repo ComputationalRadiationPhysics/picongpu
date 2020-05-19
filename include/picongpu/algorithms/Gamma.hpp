@@ -40,7 +40,7 @@ namespace picongpu
     {
         using namespace pmacc;
 
-        valueType const fMom2 = math::abs2( precisionCast< valueType >( mom ) );
+        valueType const fMom2 = pmacc::math::abs2( precisionCast< valueType >( mom ) );
         constexpr valueType c2 = SPEED_OF_LIGHT * SPEED_OF_LIGHT;
 
         valueType const m2_c2_reci = valueType( 1.0 ) /

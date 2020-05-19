@@ -211,7 +211,7 @@ namespace ionization
                     /* integral part of the average charge state */
                     float_X intZStar;
                     /* fractional part of the average charge state */
-                    float_X const fracZStar = math::modf( ZStar, &intZStar );
+                    float_X const fracZStar = pmacc::math::modf( ZStar, &intZStar );
 
                     /* Determine new charge state.
                      * We do a Monte-Carlo step to distribute charge states between

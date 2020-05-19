@@ -27,8 +27,6 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
 namespace bessel
@@ -198,5 +196,4 @@ namespace bessel
 
 } //namespace bessel
 } //namespace math
-} //namespace algorithms
 } //namespace pmacc

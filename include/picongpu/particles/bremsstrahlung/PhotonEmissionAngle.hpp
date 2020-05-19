@@ -87,7 +87,7 @@ struct GetPhotonAngleFunctor
     {
         const float_X deltaLookupPos = delta * static_cast<float_64>(photon::NUM_SAMPLES_DELTA - 1);
 
-        const float_X lnGamma = algorithms::math::log(gamma);
+        const float_X lnGamma = math::log(gamma);
         const float_X gammaLookupPos =
             (lnGamma - this->lnMinGamma) /
             (this->lnMaxGamma - this->lnMinGamma) *
@@ -191,7 +191,7 @@ private:
         minimum = boost::math::tools::brent_find_minima(
             aimForDelta,
             0.0,
-            pmacc::algorithms::math::Pi<float_64>::value,
+            pmacc::math::Pi<float_64>::value,
             std::numeric_limits<float_64>::digits);
 
         return minimum.first;

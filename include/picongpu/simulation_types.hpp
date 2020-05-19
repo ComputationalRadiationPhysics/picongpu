@@ -25,6 +25,7 @@
 #include <pmacc/algorithms/PromoteType.hpp>
 #include <pmacc/meta/ForEach.hpp>
 #include <pmacc/algorithms/math.hpp>
+#include <cupla/device/math.hpp>
 #include <pmacc/traits/GetStringProperties.hpp>
 #include "picongpu/traits/GetMargin.hpp"
 #include <pmacc/traits/GetComponentsType.hpp>
@@ -64,7 +65,7 @@ namespace precision64Bit
 using precisionType = double;
 }
 
-namespace math = pmacc::algorithms::math;
+namespace math = cupla::device::math;
 using namespace pmacc::algorithms::precisionCast;
 using namespace pmacc::algorithms::promoteType;
 using namespace pmacc::traits;

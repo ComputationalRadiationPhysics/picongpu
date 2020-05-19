@@ -54,7 +54,7 @@ struct KinEnergy
 
         if( gamma < GAMMA_THRESH )
         {
-            const ValueType mom2 = math::abs2( precisionCast< ValueType >( mom ) );
+            const ValueType mom2 = pmacc::math::abs2( precisionCast< ValueType >( mom ) );
             /* non relativistic kinetic energy expression */
             kinEnergy = mom2 / ( ValueType( 2.0 ) * mass );
         }

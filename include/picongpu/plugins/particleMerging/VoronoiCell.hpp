@@ -182,7 +182,7 @@ namespace particleMerging
         HDINLINE
         float_X getMeanMomentum2() const
         {
-            return math::abs2( this->meanValue );
+            return pmacc::math::abs2( this->meanValue );
         }
 
 

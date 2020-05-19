@@ -58,7 +58,7 @@ namespace radFormFactor_baseShape_3D
       {
           float_X sincValue = float_X( 1.0 );
           for( uint32_t d = 0; d < DIM3; ++d )
-              sincValue *= math::sinc( observer_unit_vec[d] * cellSize[d] / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega );
+              sincValue *= pmacc::math::sinc( observer_unit_vec[d] * cellSize[d] / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega );
 
           // here we combine sinc^2(..) with (...)^T_shapeOrder to ...^(2 * T_shapeOrder)
           return math::sqrt( N + ( N * N - N ) * util::pow( sincValue , 2 * T_shapeOrder ) );
@@ -108,7 +108,7 @@ namespace radFormFactor_CIC_1Dy
       {
           return math::sqrt(
               N + ( N * N - N ) * util::square(
-                  math::sinc( CELL_HEIGHT / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega )
+                  pmacc::math::sinc( CELL_HEIGHT / ( SPEED_OF_LIGHT * float_X( 2.0 ) ) * omega )
               )
           );
       }

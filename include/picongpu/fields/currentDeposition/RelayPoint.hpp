@@ -79,8 +79,8 @@ namespace currentSolver
             const float_X x_2
         ) const
         {
-            i_1 = math::float2int_rd( x_1 + float_X( 0.5 ) );
-            i_2 = math::float2int_rd( x_2 + float_X( 0.5 ) );
+            i_1 = pmacc::math::float2int_rd( x_1 + float_X( 0.5 ) );
+            i_2 = pmacc::math::float2int_rd( x_2 + float_X( 0.5 ) );
 
             return i_1 == i_2 ? x_2 : float_X( i_1 + i_2 )/float_X( 2.0 );
         }

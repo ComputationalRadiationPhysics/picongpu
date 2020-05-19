@@ -29,32 +29,8 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
-
-template<>
-struct Floor<float>
-{
-    typedef float result;
-
-    HDINLINE result operator( )(result value)
-    {
-        return ::floorf( value );
-    }
-};
-
-template<>
-struct Ceil<float>
-{
-    typedef float result;
-
-    HDINLINE result operator( )(result value)
-    {
-        return ::ceil( value );
-    }
-};
 
 template<>
 struct Float2int_ru<float>
@@ -125,5 +101,4 @@ struct Float2int_rn<float>
 };
 
 } //namespace math
-} //namespace algorithms
 } // namespace pmacc

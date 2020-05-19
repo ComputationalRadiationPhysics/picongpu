@@ -99,7 +99,7 @@ struct P4S : public shared_P4S::P4S
              *       |  1/384 * (5 - 2 * x)^4                                       if 3/2 <= |x| < 5/2
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const abs_x = math::abs( x );
 
             bool const below_2nd_radius = abs_x < 1.5_X;
             bool const below_1st_radius = abs_x < 0.5_X;
@@ -135,7 +135,7 @@ struct P4S : public shared_P4S::P4S
              *       |  0                                                           otherwise
              *       -
              */
-            float_X const abs_x = algorithms::math::abs( x );
+            float_X const abs_x = math::abs( x );
 
             bool const below_max = abs_x < 2.5_X;
 

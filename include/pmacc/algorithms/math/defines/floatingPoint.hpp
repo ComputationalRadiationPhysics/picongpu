@@ -23,17 +23,8 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-
 namespace math
 {
-
-template<typename Type>
-struct Floor;
-
-template<typename Type>
-struct Ceil;
 
 template<typename Type>
 struct Float2int_ru;
@@ -43,24 +34,6 @@ struct Float2int_rd;
 
 template<typename Type>
 struct Float2int_rn;
-
-/**
- * Rounds down (towards -inf)
- */
-template<typename T1>
-HDINLINE typename Floor< T1>::result floor(T1 value)
-{
-    return Floor< T1 > ()(value);
-}
-
-/**
- * Rounds up (towards +inf)
- */
-template<typename T1>
-HDINLINE typename Ceil< T1>::result ceil(T1 value)
-{
-    return Ceil< T1 > ()(value);
-}
 
 /**
  * Returns the smallest int value that is at least as big as value
@@ -97,5 +70,4 @@ HDINLINE typename Float2int_rn< T1>::result float2int_rn(T1 value)
 }
 
 } //namespace math
-} //namespace algorithms
 }//namespace pmacc

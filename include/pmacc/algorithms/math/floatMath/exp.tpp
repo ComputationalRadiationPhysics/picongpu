@@ -28,48 +28,23 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
 
-template<>
-struct Exp<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value )
+    template<>
+    struct Log10<float>
     {
-        return ::expf( value );
-    }
-};
+        typedef float result;
 
-template<>
-struct Log<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value )
-    {
-        return ::logf( value );
-    }
-};
-
-template<>
-struct Log10<float>
-{
-    typedef float result;
-
-    HDINLINE float operator( )(const float& value)
-    {
+        HDINLINE float operator( )(const float& value)
+        {
 #if __CUDA_ARCH__
-        return ::log10f( value );
+            return ::log10f( value );
 #else
-        return ::log10( value );
+            return ::log10( value );
 #endif
-    }
-};
+        }
+    };
 
 } //namespace math
-} //namespace algorithms
 } // namespace pmacc

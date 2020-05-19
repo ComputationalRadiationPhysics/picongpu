@@ -24,9 +24,6 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
-
 namespace math
 {
 
@@ -40,5 +37,4 @@ HDINLINE typename Cross< T1, T2 >::result cross(const T1& value, const T2& value
     return Cross< T1, T2 > ()(value, value2);
 }
 } //namespace math
-} //namespace algorithms
 }//namespace pmacc

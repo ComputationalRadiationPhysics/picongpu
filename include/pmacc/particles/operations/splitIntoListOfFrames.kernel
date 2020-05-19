@@ -405,7 +405,7 @@ namespace kernel
             DIM1
         > counterBuffer( DataSpace<DIM1>( 3 ) );
 
-        uint32_t const iterationsForLoad = algorithms::math::float2int_ru(
+        uint32_t const iterationsForLoad = math::float2int_ru(
             static_cast< double >( numParticles ) /
             static_cast< double >( chunkSize )
         );
@@ -430,7 +430,7 @@ namespace kernel
             >::value;
 
             PMACC_KERNEL( kernel::SplitIntoListOfFrames< numWorkers >{ } )(
-                algorithms::math::float2int_ru( double( currentChunkSize ) / double( cellsInSuperCell ) ),
+                math::float2int_ru( double( currentChunkSize ) / double( cellsInSuperCell ) ),
                 numWorkers
             )(
                 counterBuffer.getDeviceBuffer( ).getDataBox( ),

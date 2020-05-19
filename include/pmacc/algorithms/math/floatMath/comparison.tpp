@@ -27,8 +27,6 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
 
@@ -55,5 +53,4 @@ struct Max<float, float>
 };
 
 } //namespace math
-} //namespace algorithms
 } //namespace pmacc

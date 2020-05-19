@@ -121,7 +121,7 @@ struct GetOffsetToStaticShapeSystem<true>
     template<typename T_Type>
     HDINLINE int operator()(const T_Type& pos)
     {
-        return math::float2int_rd(pos);
+        return pmacc::math::float2int_rd(pos);
     }
 };
 

@@ -28,76 +28,8 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
-
-template<>
-struct Sin<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
-    {
-        return ::sin( value );
-    }
-};
-
-template<>
-struct ASin<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value)
-    {
-        return ::asin( value );
-    }
-};
-
-template<>
-struct Cos<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
-    {
-        return ::cos( value );
-    }
-};
-
-template<>
-struct ACos<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value)
-    {
-        return ::acos( value );
-    }
-};
-
-template<>
-struct Tan<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value )
-    {
-        return ::tan( value );
-    }
-};
-
-template<>
-struct ATan<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& value)
-    {
-        return ::atan( value );
-    }
-};
 
 template<>
 struct SinCos<double, double, double>
@@ -107,8 +39,8 @@ struct SinCos<double, double, double>
     HDINLINE void operator( )(double arg, double& sinValue, double& cosValue )
     {
 #if defined(_MSC_VER) && !defined(__CUDA_ARCH__)
-        sinValue = ::sin(arg);
-        cosValue = ::cos(arg);
+        sinValue = cupla::math::sin(arg);
+        cosValue = cupla::math::cos(arg);
 #else
         ::sincos(arg, &sinValue, &cosValue);
 #endif
@@ -123,24 +55,12 @@ struct Sinc<double>
 
     HDINLINE double operator( )(const double& value )
     {
-        if(pmacc::algorithms::math::abs(value) < DBL_EPSILON)
+        if(cupla::math::abs(value) < DBL_EPSILON)
             return 1.0;
         else
-            return pmacc::algorithms::math::sin( value )/value;
-    }
-};
-
-template<>
-struct Atan2<double>
-{
-    typedef double result;
-
-    HDINLINE double operator( )(const double& val1, const double& val2 )
-    {
-        return ::atan2( val1, val2 );
+            return cupla::math::sin( value )/value;
     }
 };
 
 } //namespace math
-} //namespace algorithms
 } // namespace pmacc

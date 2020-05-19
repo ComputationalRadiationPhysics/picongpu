@@ -51,10 +51,10 @@ public:
   {
       picongpu::float_X cosValue;
       picongpu::float_X sinValue;
-      picongpu::math::sincos(phase, sinValue, cosValue);
-      amp_x=picongpu::math::euler(vec.x(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
-      amp_y=picongpu::math::euler(vec.y(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
-      amp_z=picongpu::math::euler(vec.z(), picongpu::precisionCast<picongpu::float_64>(sinValue), picongpu::precisionCast<picongpu::float_64>(cosValue) );
+      pmacc::math::sincos(phase, sinValue, cosValue);
+      amp_x=pmacc::math::euler(vec.x(), precisionCast<picongpu::float_64>(sinValue), precisionCast<picongpu::float_64>(cosValue) );
+      amp_y=pmacc::math::euler(vec.y(), precisionCast<picongpu::float_64>(sinValue), precisionCast<picongpu::float_64>(cosValue) );
+      amp_z=pmacc::math::euler(vec.z(), precisionCast<picongpu::float_64>(sinValue), precisionCast<picongpu::float_64>(cosValue) );
   }
 
 
@@ -119,9 +119,9 @@ public:
   {
       // const SI factor radiation
       const picongpu::float_64 factor = 1.0 /
-        (16. * util::cube(pmacc::algorithms::math::Pi< picongpu::float_64 >::value) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT);
+        (16. * util::cube(pmacc::math::Pi< picongpu::float_64 >::value) * picongpu::EPS0 * picongpu::SPEED_OF_LIGHT);
 
-      return factor * (picongpu::math::abs2(amp_x) + picongpu::math::abs2(amp_y) + picongpu::math::abs2(amp_z));
+      return factor * (pmacc::math::abs2(amp_x) + pmacc::math::abs2(amp_y) + pmacc::math::abs2(amp_z));
   }
 
 

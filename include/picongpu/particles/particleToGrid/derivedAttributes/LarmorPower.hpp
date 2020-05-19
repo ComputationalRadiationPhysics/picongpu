@@ -70,9 +70,9 @@ namespace derivedAttributes
                c2 * SPEED_OF_LIGHT * mass * mass) * gamma2 * gamma2;
         const float_X momentumToBetaConvert = float_X(1.0)/ (mass * SPEED_OF_LIGHT * gamma);
         const float_X larmorPower = el_factor
-                                    * ( math::abs2(mom_dt)
+                                    * ( pmacc::math::abs2(mom_dt)
                                         - momentumToBetaConvert * momentumToBetaConvert
-                                          * math::abs2(math::cross(mom, mom_dt))
+                                          * pmacc::math::abs2(pmacc::math::cross(mom, mom_dt))
                                       );
 
         /* return attribute */

@@ -38,7 +38,7 @@ constexpr float_64 SYNC_FUNCS_STEP_WIDTH =
 constexpr float_64 SYNC_FUNCS_F1_INTEGRAL_BOUND = 50.0;
 
 constexpr float_X SOFT_PHOTONS_CUTOFF_MOM = static_cast<float_X>(
-    HBAR * pmacc::algorithms::math::Pi<float_X>::doubleValue / SOFT_PHOTONS_CUTOFF_RATIO / DELTA_T / SPEED_OF_LIGHT);
+    HBAR * pmacc::math::Pi<float_X>::doubleValue / SOFT_PHOTONS_CUTOFF_RATIO / DELTA_T / SPEED_OF_LIGHT);
 
 } // namespace synchrotronPhotons
 } // namespace particles

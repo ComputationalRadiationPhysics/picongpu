@@ -256,8 +256,8 @@ namespace listFrequencies
         picongpu::float_32 cosPhi;
         picongpu::float_32 sinTheta;
         picongpu::float_32 cosTheta;
-        math::sincos( precisionCast< picongpu::float_32 >( phi ), sinPhi, cosPhi );
-        math::sincos( precisionCast< picongpu::float_32 >( theta ), sinTheta, cosTheta );
+        pmacc::math::sincos( precisionCast< picongpu::float_32 >( phi ), sinPhi, cosPhi );
+        pmacc::math::sincos( precisionCast< picongpu::float_32 >( theta ), sinTheta, cosTheta );
         /** compute observation unit vector */
         return float3_X( sinTheta * cosPhi , cosTheta, sinTheta * sinPhi );
     }

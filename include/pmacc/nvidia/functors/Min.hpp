@@ -38,13 +38,13 @@ namespace functors
         template<typename Dst, typename Src >
         DINLINE void operator()(Dst & dst, const Src & src) const
         {
-            dst = algorithms::math::max(dst, src);
+            dst = math::min(dst, src);
         }
 
         template<typename Dst, typename Src, typename T_Acc >
         DINLINE void operator()(const T_Acc &, Dst & dst, const Src & src) const
         {
-            dst = algorithms::math::max(dst, src);
+            dst = math::min(dst, src);
         }
     };
 } // namespace functors

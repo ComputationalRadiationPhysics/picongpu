@@ -23,7 +23,6 @@
 
 #include "SynchrotronFunctions.hpp"
 #include "picongpu/algorithms/Gamma.hpp"
-#include <pmacc/algorithms/math/defines/sqrt.hpp>
 #include <pmacc/algorithms/math/defines/dot.hpp>
 #include <pmacc/algorithms/math/defines/cross.hpp>
 #include "picongpu/traits/frame/GetMass.hpp"
@@ -312,16 +311,16 @@ public:
         /* All computation below is in the single "real" particle picture.
          * The macroparticle weighting factor is reintroduced at the end of this code block. */
         const float3_X mom = particle[momentum_] / particle[weighting_];
-        const float_X mom2 = math::dot(mom, mom);
+        const float_X mom2 = pmacc::math::dot(mom, mom);
         const float3_X mom_norm = mom * math::rsqrt(mom2);
         const float_X mass = frame::getMass<FrameType>();
 
         const float_X gamma = Gamma<>()(mom, mass);
         const float3_X vel = mom / (gamma * mass); // low accuracy?
 
-        const float3_X lorentzForceOverCharge = fieldE + math::cross(vel, fieldB);
-        const float_X lorentzForceOverCharge2 = math::dot(lorentzForceOverCharge, lorentzForceOverCharge);
-        const float_X fieldE_long = math::dot(mom_norm, fieldE);
+        const float3_X lorentzForceOverCharge = fieldE + pmacc::math::cross(vel, fieldB);
+        const float_X lorentzForceOverCharge2 = pmacc::math::dot(lorentzForceOverCharge, lorentzForceOverCharge);
+        const float_X fieldE_long = pmacc::math::dot(mom_norm, fieldE);
 
         // effective magnetic strength (in cgs)
         const float_X H_eff = math::sqrt(lorentzForceOverCharge2 - fieldE_long*fieldE_long);

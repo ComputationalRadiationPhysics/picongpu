@@ -69,14 +69,10 @@
 
 namespace pmacc
 {
-namespace algorithms
-{
 namespace math
 {
 namespace bessel
 {
-    namespace pmMath = pmacc::algorithms::math;
-
     template<
         typename T_Type,
         typename T_TableA,
@@ -108,7 +104,7 @@ namespace bessel
             complex_T const cone = complex_T( 1, 0 );
             complex_T const czero = complex_T( 0, 0 );
 
-            float_T const a0 = pmMath::abs( z );
+            float_T const a0 = cupla::math::abs( z );
             complex_T const z2 = z * z;
             complex_T z1 = z;
             if( a0 == float_T( 0.0 ) )
@@ -126,7 +122,7 @@ namespace bessel
                 {
                     cr *= float_T( -0.25 ) * z2 / float_T( k * k );
                     cj0 += cr;
-                    if( pmMath::abs( cr ) < pmMath::abs( cj0 ) * eps ) break;
+                    if( cupla::math::abs( cr ) < cupla::math::abs( cj0 ) * eps ) break;
                 }
             }
             else {
@@ -146,13 +142,13 @@ namespace bessel
                 complex_T cq0 = float_T( -0.125 ) / z1;
                 for ( uint32_t k = 0; k < kz; k++ )
                 {
-                    cq0 += b[ k ] * pmMath::pow(
+                    cq0 += b[ k ] * cupla::pow(
                         z1,
                         float_T( -2.0 ) * k - float_T( 3.0 )
                     );
                 }
-                complex_T const cu = pmMath::sqrt( Pi< float_T >::doubleReciprocalValue / z1 );
-                cj0 = cu * ( cp0 * pmMath::cos( ct1 ) - cq0 * pmMath::sin( ct1 ) );
+                complex_T const cu = cupla::math::sqrt( Pi< float_T >::doubleReciprocalValue / z1 );
+                cj0 = cu * ( cp0 * cupla::math::cos( ct1 ) - cq0 * cupla::math::sin( ct1 ) );
             }
             return cj0;
         }
@@ -189,7 +185,7 @@ namespace bessel
             complex_T const cone = complex_T( 1, 0 );
             complex_T const czero = complex_T( 0, 0 );
 
-            float_T const a0 = pmMath::abs( z );
+            float_T const a0 = cupla::math::abs( z );
             complex_T const z2 = z * z;
             complex_T z1 = z;
             if( a0 == float_T( 0.0 ) )
@@ -207,7 +203,7 @@ namespace bessel
                 {
                     cr *= float_T( -0.25 ) * z2 / ( k * ( k + float_T( 1.0 ) ) );
                     cj1 += cr;
-                    if ( pmMath::abs( cr ) < pmMath::abs( cj1 ) * eps ) break;
+                    if ( cupla::math::abs( cr ) < cupla::math::abs( cj1 ) * eps ) break;
                 }
                 cj1 *= float_T( 0.5 ) * z1;
             }
@@ -216,12 +212,12 @@ namespace bessel
                 if( a0 >= float_T( 50.0 ) ) kz = 8u;        // can be changed to 10
                 else if ( a0 >= float_T( 35.0 ) ) kz = 10u; //   "      "     "  12
                 else kz = 12u;                              //   "      "     "  14
-                complex_T const cu = pmMath::sqrt( Pi< float_T >::doubleReciprocalValue / z1 );
+                complex_T const cu = cupla::math::sqrt( Pi< float_T >::doubleReciprocalValue / z1 );
                 complex_T const ct2 = z1 - float_T( 0.75 ) * Pi< float_T >::value;
                 complex_T cp1 = cone;
                 for ( uint32_t k = 0u; k < kz; k++ )
                 {
-                    cp1 += a1[ k ] * pmMath::pow(
+                    cp1 += a1[ k ] * cupla::pow(
                         z1,
                         float_T( -2.0 ) * k - float_T( 2.0 )
                     );
@@ -229,12 +225,12 @@ namespace bessel
                 complex_T cq1 = float_T( 0.375 ) / z1;
                 for ( uint32_t k = 0u; k < kz; k++ )
                 {
-                    cq1 += b1[ k ] * pmMath::pow(
+                    cq1 += b1[ k ] * cupla::pow(
                         z1,
                         float_T( -2.0 ) * k - float_T( 3.0 )
                     );
                 }
-                cj1 = cu * ( cp1 * pmMath::cos( ct2 ) - cq1 * pmMath::sin( ct2 ) );
+                cj1 = cu * ( cp1 * cupla::math::cos( ct2 ) - cq1 * cupla::math::sin( ct2 ) );
             }
             if( z.get_real( ) < float_T( 0.0 ) )
             {
@@ -247,40 +243,39 @@ namespace bessel
     template< >
     struct J0< pmacc::math::Complex< double > > : public Cbesselj0Base<
         double,
-        pmacc::algorithms::math::bessel::aDouble_t,
-        pmacc::algorithms::math::bessel::bDouble_t,
-        pmacc::algorithms::math::bessel::a1Double_t,
-        pmacc::algorithms::math::bessel::b1Double_t
+        pmacc::math::bessel::aDouble_t,
+        pmacc::math::bessel::bDouble_t,
+        pmacc::math::bessel::a1Double_t,
+        pmacc::math::bessel::b1Double_t
     >{ };
 
     template< >
     struct J0< pmacc::math::Complex< float > > : public Cbesselj0Base<
         float,
-        pmacc::algorithms::math::bessel::aFloat_t,
-        pmacc::algorithms::math::bessel::bFloat_t,
-        pmacc::algorithms::math::bessel::a1Float_t,
-        pmacc::algorithms::math::bessel::b1Float_t
+        pmacc::math::bessel::aFloat_t,
+        pmacc::math::bessel::bFloat_t,
+        pmacc::math::bessel::a1Float_t,
+        pmacc::math::bessel::b1Float_t
     >{ };
 
     template< >
     struct J1< pmacc::math::Complex< double > > : public Cbesselj1Base<
         double,
-        pmacc::algorithms::math::bessel::aDouble_t,
-        pmacc::algorithms::math::bessel::bDouble_t,
-        pmacc::algorithms::math::bessel::a1Double_t,
-        pmacc::algorithms::math::bessel::b1Double_t
+        pmacc::math::bessel::aDouble_t,
+        pmacc::math::bessel::bDouble_t,
+        pmacc::math::bessel::a1Double_t,
+        pmacc::math::bessel::b1Double_t
     >{ };
 
     template< >
     struct J1< pmacc::math::Complex< float > > : public Cbesselj1Base<
         float,
-        pmacc::algorithms::math::bessel::aFloat_t,
-        pmacc::algorithms::math::bessel::bFloat_t,
-        pmacc::algorithms::math::bessel::a1Float_t,
-        pmacc::algorithms::math::bessel::b1Float_t
+        pmacc::math::bessel::aFloat_t,
+        pmacc::math::bessel::bFloat_t,
+        pmacc::math::bessel::a1Float_t,
+        pmacc::math::bessel::b1Float_t
     >{ };
 
 } //namespace bessel
 } //namespace math
-} //namespace algorithms
 } //namespace pmacc

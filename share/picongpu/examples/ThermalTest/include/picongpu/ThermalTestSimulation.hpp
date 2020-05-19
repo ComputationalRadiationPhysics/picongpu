@@ -51,10 +51,6 @@
 
 #include <pmacc/cuSTL/container/allocator/DeviceMemEvenPitchAllocator.hpp>
 #include <pmacc/cuSTL/algorithm/host/Foreach.hpp>
-#include <pmacc/math/vector/math_functor/min.hpp>
-#include <pmacc/math/vector/math_functor/max.hpp>
-#include <pmacc/math/vector/math_functor/sqrtf.hpp>
-#include <pmacc/math/vector/math_functor/cosf.hpp>
 #include <pmacc/nvidia/functors/Add.hpp>
 #include <pmacc/cuSTL/algorithm/functor/GetComponent.hpp>
 #include <pmacc/cuSTL/algorithm/functor/Add.hpp>

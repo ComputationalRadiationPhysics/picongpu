@@ -205,7 +205,7 @@ namespace picongpu
                         {
                             float3_X const mom = particle[ momentum_ ];
                             // compute square of absolute momentum of the particle
-                            float_X const mom2 = math::abs2( mom );
+                            float_X const mom2 = pmacc::math::abs2( mom );
                             float_X const weighting = particle[ weighting_ ];
                             float_X const mass = attribute::getMass(
                                 weighting,
@@ -223,7 +223,7 @@ namespace picongpu
                              *    E^2 = p^2*c^2 + m^2*c^4
                              *        = c^2 * [p^2 + m^2*c^2]
                              */
-                            localEnergy += algorithms::math::sqrt(
+                            localEnergy += math::sqrt(
                                 mom2 +
                                 mass * mass * c2
                             ) * SPEED_OF_LIGHT;

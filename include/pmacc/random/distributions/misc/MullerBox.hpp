@@ -86,10 +86,10 @@ namespace distributions
                 state
             ) * valueTwoPI;
 
-            T_Type s = algorithms::math::sqrt( T_Type( -2.0 ) * algorithms::math::log( u1 ) );
+            T_Type s = cupla::math::sqrt( T_Type( -2.0 ) * cupla::math::log( u1 ) );
 
             T_Type firstRngNumber;
-            algorithms::math::sincos(
+            pmacc::math::sincos(
                 u2,
                 firstRngNumber,
                 secondRngNumber
