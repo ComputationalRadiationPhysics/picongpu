@@ -190,8 +190,10 @@ namespace gaussian
         const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T( wavelength_SI / UNIT_LENGTH );
         const float_T omega0 = float_T( 2.0 * PI * cspeed / lambda0 );
-        /* factor 2 in tauG arises from definition convention in laser formula */
-        const float_T tauG = float_T( pulselength_SI * 2.0 / UNIT_TIME );
+        /* factor sqrt(2) in tauG arises from the convention to parameterize
+         * the standard deviation of intensity instead of the field.
+         * */
+        const float_T tauG = float_T( pulselength_SI * math::sqrt( float_T( 2.0 ) ) / UNIT_TIME );
         const float_T w0 = float_T( w0_SI / UNIT_LENGTH );
         const float_T Z0 = float_T( PI * w0 * w0 / lambda0 );
         const float_T k0 = float_T( 2.0 * PI / lambda0 );
@@ -268,8 +270,10 @@ namespace gaussian
         const float_T cspeed = float_T( SI::SPEED_OF_LIGHT_SI / UNIT_SPEED );
         const float_T lambda0 = float_T( wavelength_SI / UNIT_LENGTH );
         const float_T omega0 = float_T( 2.0 * PI * cspeed / lambda0 );
-        /* factor 2 in tauG arises from definition convention in laser formula */
-        const float_T tauG = float_T( pulselength_SI * 2.0 / UNIT_TIME );
+        /* factor sqrt(2) in tauG arises from the convention to parameterize
+         * the standard deviation of intensity instead of the field.
+         * */
+        const float_T tauG = float_T( pulselength_SI * math::sqrt( float_T( 2.0 ) ) / UNIT_TIME );
         const float_T w0 = float_T( w0_SI / UNIT_LENGTH );
         const float_T Z0 = float_T( PI * w0 * w0 / lambda0 );
         const float_T k0 = float_T( 2.0 * PI / lambda0 );
